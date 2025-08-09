@@ -1,0 +1,32 @@
+// src\scss\components\_preloader.scss
+
+#app-preloader {
+  @include center-absolute;
+  background: var(--color-bg-main);
+  // flex-direction: column;
+  z-index: 9999;
+  transition: opacity 1s ease-in-out;
+
+  .preloader-icon {
+    font-size: 4.5rem;
+    color: var(--color-accent);
+    animation: pulse 5.2s infinite ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .preloader-text {
+    margin-top: 2rem;
+    font-size: 1.5rem;
+    color: var(--color-highlight);
+    font-weight: 300;
+    opacity: 0.85;
+  }
+}
+
+body.ready #app-preloader {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 200ms;
+}

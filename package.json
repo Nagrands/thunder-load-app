@@ -1,0 +1,113 @@
+{
+  "name": "thunder-load-app",
+  "productName": "ThunderLoad",
+  "version": "1.2.3",
+  "description": "Thunder Load",
+  "main": "src/js/app.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron . --dev",
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-linux": "electron-builder --linux AppImage",
+    "build-mac": "electron-builder --mac",
+    "sass": "sass --watch src/scss:src/css",
+    "format": "prettier --write .",
+    "dist": "electron-builder --publish always"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "electron-log": "^4.4.7",
+    "electron-store": "^7.0.3",
+    "electron-updater": "^6.3.3",
+    "electron-window-state": "^5.0.3",
+    "marked": "^14.1.2",
+    "sudo-prompt": "^9.2.1",
+    "tldjs": "^2.3.1",
+    "tree-kill": "^1.2.2",
+    "unzipper": "^0.10.11"
+  },
+  "devDependencies": {
+    "electron": "^24.8.8",
+    "electron-builder": "^25.0.0-alpha.9",
+    "electron-debug": "^4.0.0",
+    "prettier": "^3.3.3",
+    "sass": "^1.32.8"
+  },
+  "build": {
+    "appId": "com.thunderload.app",
+    "productName": "Thunder Load",
+    "asar": true,
+    "extraResources": [
+      {
+        "from": "assets/icons/",
+        "to": "usr/share/icons/hicolor/256x256/apps"
+      }
+    ],
+    "files": [
+      "bin/**/*",
+      "assets/**/*",
+      "src/**/*",
+      "index.html",
+      "app.js",
+      "preload.js",
+      "renderer.js",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Nagrands",
+        "repo": "thunder-load-app",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icons/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "assets/icons/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}.${ext}",
+      "icon": "assets/icons/macOS/icon.icns",
+      "category": "public.app-category.utilities"
+    },
+    "afterPack": "./scripts/afterPack.js"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nagrands/thunder-load-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nagrands/thunder-load-app/issues"
+  },
+  "keywords": [
+    "electron",
+    "audio",
+    "video",
+    "downloader"
+  ],
+  "author": "ThunderLoad"
+}

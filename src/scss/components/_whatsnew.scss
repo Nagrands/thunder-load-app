@@ -1,0 +1,113 @@
+// src/scss/components/_whatsnew.scss
+
+#whats-new-content {
+  padding: 16px;
+  color: var(--color-text-main);
+  line-height: 1.6;
+
+  details.spoiler {
+    // background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    padding: 12px;
+    // border: 1px solid var(--color-border);
+
+    summary {
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      // padding-bottom: 8px;
+      // border-bottom: 1px transparent solid;
+      // gap: 8px;
+      color: var(--color-accent);
+
+      i {
+        font-size: 13px;
+        transition: transform 0.2s ease;
+        transform: rotate(0deg);
+      }
+    }
+
+    &[open] summary i {
+      transform: rotate(90deg);
+    }
+
+    h2,
+    h3 {
+        font-size: 20px;
+        margin: 10px 5px;
+        /* font-weight: 700; */
+        letter-spacing: 0.7pt;
+        color: var(--color-url-link);
+        display: flex;
+        align-items: center;
+        /* text-transform: uppercase; */
+        gap: 4px;
+        justify-content: center;
+
+      &::before {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        margin-right: 4px;
+      }
+
+      &.new::before {
+        content: "⚙️";
+      }
+
+      &.fix::before {
+        content: "📌";
+      }
+
+      &.dev::before {
+        content: "⚙️";
+      }
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      border: 1px var(--color-hover) solid;
+      border-radius: var(--border-radius);
+      padding: 2px;
+
+      li {
+        position: relative;
+        padding: 10px 15px;
+        background-color: transparent;
+        margin: 5px;
+        border-radius: var(--border-radius);
+        // border-left: 4px var(--color-url-link) solid;
+        border: 2px var(--color-border) solid;
+
+        &:hover {
+          background-color: var(--color-hover);
+          transition: all 0.6s ease;
+        }
+
+        i {
+          font-size: 14px;
+          min-width: 16px;
+          color: var(--color-accent);
+        }
+
+        span {
+          flex: 1;
+        }
+
+        strong {
+          color: var(--color-accent);
+        }
+
+        kbd {
+          background-color: var(--color-bg-secondary);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 14px;
+          font-family: monospace;
+        }
+      }
+    }
+  }
+}

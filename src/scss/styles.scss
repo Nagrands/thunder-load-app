@@ -1,0 +1,36 @@
+// src\scss\styles.scss
+
+// Абстрактные модули
+@import "abstracts/variables";
+@import "abstracts/mixins";
+@import "abstracts/animations";
+
+// Базовые стили
+@import "base/reset";
+@import "base/visibility";
+@import "base/typography";
+@import "base/base";
+
+// Layout
+@import "layout/header";
+@import "layout/footer";
+
+// Компоненты
+@import "components";
+
+// Отдельные компоненты
+@import "components/preloader";
+@import "components/buttons";
+@import "components/inputs";
+@import "components/modals";
+@import "components/whatsnew";
+@import "components/sidebar";
+@import "components/toasts";
+@import "components/tooltips";
+@import "components/others";
+
+// Вкладки
+@import "tab/wgsend";
+
+// Платформенные стили
+@import "platform/macos";

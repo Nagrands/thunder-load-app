@@ -1,0 +1,272 @@
+// ==============================
+// Sidebar Component (Improved & Updated)
+// ==============================
+
+// Параметры бокового меню
+$sidebar-width: 250px;
+$sidebar-padding-vertical: 0.5rem;
+$sidebar-padding-horizontal: 0.2rem;
+$transition-duration: 0.3s;
+$transition-ease: ease;
+
+// ==============================
+// Toggle Button (для открытия сайдбара)
+// ==============================
+.toggle-btn {
+  background-color: transparent;
+  color: var(--color-highlight);
+  border-radius: 50%;
+  padding: 5px 10px;
+  font-size: 16px;
+  margin: 0 4px 0 8px;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  cursor: pointer;
+
+  &.highlight {
+    box-shadow: 0 0 10px var(--color-accent);
+  }
+
+  &:hover {
+    color: var(--color-text-main);
+    transform: scale(1.05);
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: var(--color-bg-secondary);
+  border-right: 1px var(--color-hover) solid;
+  color: var(--sidebar-color);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+  z-index: 999;
+  justify-content: center;
+  align-items: stretch;
+
+  // Псевдоэлементы для декоративных эффектов
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+  }
+
+  // Когда меню активно — выдвигаем его по оси X
+  &.active {
+    transform: translateX(0);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  // Элементы меню
+  &-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-hover);
+    border: 1px var(--color-hover) solid;
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s ease;
+    margin: 1rem;
+    padding: 10px;
+    gap: 10px;
+    color: var(--color-highlight);
+    cursor: pointer;
+
+    a {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    i {
+      transition: transform 0.2s ease;
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+
+    label {
+      padding-left: 0.125rem;
+    }
+
+    &:hover {
+      color: var(--color-accent);
+      font-weight: 600;
+      border: 2px var(--color-accent) solid;
+      border-color: var(--color-accent);
+      transform: scale(0.95);
+      transition: all 0.3s ease-in;
+    }
+
+    &.active {
+      background-color: var(--color-accent);
+      color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      animation: flash 0.2s ease forwards;
+      i {
+        color: #fff;
+      }
+    }
+  }
+
+  #open-github {
+      background: none;
+  }
+
+  // Нижняя часть сайдбара
+  &-footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: auto;
+    border-top: 1px var(--color-hover) solid;
+  }
+
+  // Логотип и текст
+  .logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem;
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      animation: pulseEffect 2s infinite;
+    }
+
+    i {
+      color: var(--color-accent);
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-size: 1.4rem;
+      color: var(--color-accent);
+
+      &:hover {
+        cursor: default;
+        color: var(--color-highlight);
+      }
+    }
+  }
+
+  // Социальные ссылки
+  .social-links {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: var(--border-radius);
+    margin: 1.5rem 1rem 0;
+
+    .icon-links {
+      display: flex;
+      align-items: center;
+      background: var(--color-hover);
+      border-radius: var(--border-radius);
+
+      a {
+        font-size: 1.6em;
+        padding: 10px;
+        width: 55px;
+        color: var(--color-highlight);
+        transition:
+          transform 0.2s ease,
+          background-color 0.2s ease,
+          color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+
+        // Индивидуальные стили для соц. сетей
+        &[href="https://www.youtube.com"]
+        {
+          &:hover {
+            color: var(--color-youtube);
+            border-color: var(--color-youtube);
+          }
+        }
+        &[href="https://www.twitch.tv"]
+        {
+          &:hover {
+            color: var(--color-twitch);
+            border-color: var(--color-twitch);
+          }
+        }
+        &[href="https://vkvideo.ru"]
+        {
+          &:hover {
+            color: var(--color-vkvideo);
+            border-color: var(--color-vkvideo);
+          }
+        }
+        &[href="https://www.coub.com"]
+        {
+          &:hover {
+            color: var(--color-coub);
+            border-color: var(--color-coub);
+          }
+        }
+      }
+    }
+  }
+
+  .close-btn {
+    border-bottom: 1px var(--color-hover) solid;
+    height: 50px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-highlight);
+
+    &:hover {
+      background-color: var(--color-bg-main);
+      color: var(--color-text-main);
+    }
+  }
+}
+
+// ==============================
+// Close Button (для закрытия сайдбара)
+// ==============================
+
+// ==============================
+// Overlay (подложка для мобильных устройств)
+// ==============================
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  transition: opacity 0.3s ease;
+  z-index: 998;
+  display: none;
+  &.active {
+    display: block;
+  }
+}

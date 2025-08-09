@@ -1,0 +1,210 @@
+// src/scss/abstracts/_variables.scss
+
+// Breakpoints
+$breakpoint-mobile: 668px;
+$breakpoint-tablet: 1280px;
+
+$modal-padding: 15px;
+$modal-border-radius: 18px;
+$modal-max-width: 600px;
+$animation-duration: 0.1s;
+
+// Spacing & Border Radius
+$spacing-small: 8px;
+$spacing-medium: 16px;
+$spacing-large: 24px;
+$border-radius: 24px;
+
+// Transitions
+$transition-duration: 0.2s;
+
+// Color Palettes
+$themes: (
+  dark: (
+    // Основные цвета для темного режима
+    color-accent: #96cbff,
+    // яркий акцент
+    color-bg-log: #121212,
+    // фон логов – чуть светлее абсолютного черного
+    color-bg-main: #262729,
+    // основной фон
+    color-bg-secondary: #1f1f1de5,
+    // вторичный фон
+    color-border: #262729,
+
+    menu-item-active: linear-gradient(180deg, #007aff, #005bb5),
+    menu-item-hover:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0.1)
+      ),
+    // цвет границ
+    color-disabled: #5a5f6b,
+    // для неактивных элементов
+    color-highlight: #D7D7D7,
+    // подсветка
+    color-history-scroll: #323842,
+    // фон полосы прокрутки истории
+    color-hover: #ffffff0d,
+    // эффект наведения
+    color-icon-links: #8a79ff,
+    // иконки и ссылки
+    color-progress-bar: #0a84ff,
+    // полоса прогресса
+    color-progress-bg: rgba(30, 34, 42, 0.7),
+    // фон полосы прогресса
+    color-quality: rgba(200, 200, 200, 0.4),
+    // индикатор качества
+    color-toast-bg: #2b2b2b,
+    // фон уведомлений
+    color-toast-error: #ff3b30,
+    // ошибка
+    color-toast-success: #32d74b,
+    // успех
+    color-toast-text: #ffffff,
+    // текст уведомлений
+    color-toast-warning: #ffcc00,
+    // предупреждение
+    color-url-bg: rgba(30, 33, 36, 0.4),
+    // фон URL
+    color-url-border: #444b5c,
+    // граница URL
+    color-url-link: #4dabf7,
+    // ссылка в URL
+    color-url-text: #c9c9c9,
+    // ссылка в URL
+    button-cancel: linear-gradient(180deg, #b33434, #2a2f3d),
+    // кнопка "Отмена"
+    button-color: #aad4ff,
+    // базовый цвет кнопок
+    button-default: linear-gradient(180deg, rgba(30, 144, 255, 0.62), #23262c),
+    // стандартная кнопка
+    button-disabled-bg: #4a4a4a80,
+    // фон неактивной кнопки
+    button-disabled: #dddddd,
+    // текст неактивной кнопки
+    button-download: linear-gradient(180deg, #3f73a7, #0f3f82),
+    // кнопка "Скачать"
+    button-enabled: #dddddd,
+    // активная кнопка
+    button-open-folder: linear-gradient(180deg, #b04c4c, #282c34),
+    // кнопка открытия папки
+    button-open-history: linear-gradient(180deg, #30d158, #282c34),
+    // кнопка истории
+    button-openlast-video: linear-gradient(180deg, #0a84ff, #282c34),
+    // кнопка последнего видео
+    sidebar-background: #121212cc,
+    // фон сайдбара
+    sidebar-color: #e0e0e0,
+    // цвет текста в сайдбаре
+    sidebar-list-color: #ffffff20,
+    // цвет элементов списка
+    color-text-main: #DEDEDE,
+    // основной текст
+    color-youtube: #ce1312,
+    color-twitch: #9e60fc,
+    color-vkvideo: #0077ff,
+    color-coub: #37a8ff,
+  ),
+  light: (
+    // Основные цвета для светлого режима
+    color-accent: #5dabff,
+    // яркий акцент
+    color-bg-log: #f9f9f9,
+    // фон логов
+    color-bg-main: #272e3a,
+    // основной фон
+    color-bg-secondary: #151820,
+    // вторичный фон
+    color-border: #c0c0c029,
+    // цвет границ
+    color-disabled: #a8a8a880,
+    // для неактивных элементов
+    color-highlight: #f0f0f0,
+    // подсветка
+    color-history-scroll: #b0b0b033,
+    // фон полосы прокрутки истории
+    color-hover: #8bb6e329,
+    color-icon-links: #007aff,
+    // иконки и ссылки
+    color-progress-bar: #007aff,
+    // полоса прогресса
+    color-progress-bg: #313131,
+    // фон полосы прогресса
+    color-quality: #a0a0a0cc,
+    // индикатор качества
+    color-toast-bg: #f5f5f5,
+    // фон уведомлений
+    color-toast-error: #ff453a,
+    // ошибка
+    color-toast-success: #30d158,
+    // успех
+    color-toast-text: #787878,
+    // текст уведомлений
+    color-toast-warning: #ffcc00,
+    // предупреждение
+    color-url-bg: #0000004d,
+    // фон URL
+    color-url-border: #82beff2b,
+    // граница URL
+    color-url-link: #007aff,
+    // ссылка в URL
+    color-url-text: #cccccc,
+    // ссылка в URL
+    button-cancel: linear-gradient(180deg, #d32f2f, #b71c1c),
+    // кнопка "Отмена"
+    button-color: #f0f0f0,
+    // базовый цвет кнопок
+    button-default: linear-gradient(180deg, #285e9a, #1d3853),
+    // стандартная кнопка
+    button-disabled-bg: #cccccc,
+    // фон неактивной кнопки
+    button-disabled: #e0e0e0,
+    // текст неактивной кнопки
+    button-download: linear-gradient(180deg, #3f73a7, #0f3f82),
+    // кнопка "Скачать"
+    button-enabled: #ffffff,
+    // активная кнопка
+    button-open-folder: linear-gradient(180deg, #b04c4c, #282c34),
+    // кнопка открытия папки
+    button-open-history: linear-gradient(180deg, #1d3853, #005bb5),
+    // кнопка истории
+    button-openlast-video: linear-gradient(180deg, #1d3853, #005bb5),
+    // кнопка последнего видео
+    sidebar-background: #333333,
+    // фон сайдбара
+    sidebar-color: #eee,
+    // цвет текста в сайдбаре
+    sidebar-list-color: #cccccc1f,
+    // цвет элементов списка
+    color-text-main: #eee,
+    // основной текст
+    color-youtube: #ce1312,
+    color-twitch: #9e60fc,
+    color-vkvideo: #0077ff,
+    color-coub: #37a8ff,
+  ),
+);
+
+// Mixin для экспорта переменных в CSS
+@mixin export-css-variables($theme) {
+  @each $name, $value in $theme {
+    --#{$name}: #{$value};
+  }
+}
+
+// Определение CSS переменных в :root
+:root {
+  @include export-css-variables(map-get($themes, dark));
+  --transition-duration: #{$transition-duration};
+  --spacing-small: #{$spacing-small};
+  --spacing-medium: #{$spacing-medium};
+  --spacing-large: #{$spacing-large};
+  --border-radius: #{$border-radius};
+}
+
+// CSS переменные для светлой темы
+[data-theme="light"] {
+  @include export-css-variables(map-get($themes, light));
+}

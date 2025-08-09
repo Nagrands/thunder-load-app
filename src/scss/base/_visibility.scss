@@ -1,0 +1,18 @@
+// src/scss/base/_visibility.scss
+
+:root {
+  --font-size: 16px; // по умолчанию
+}
+
+body {
+  font-size: var(--font-size);
+}
+
+body {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+body.ready {
+  opacity: 1;
+}
