@@ -40,6 +40,7 @@ dist/
 bin/
 build/
 docs/
+scripts/
 
 # ─── Environment & Local Config ────────────────────────────
 .env
