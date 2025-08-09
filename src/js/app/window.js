@@ -21,6 +21,19 @@ const isMac = process.platform === 'darwin';
 
 console.log("🪟 createWindow called");
 
+// Helper to load a NativeImage from a list of candidate paths
+function loadNativeImageFrom(paths) {
+  for (const p of paths) {
+    if (fs.existsSync(p)) {
+      const img = nativeImage.createFromPath(p);
+      if (!img.isEmpty()) return img;
+      console.warn("Icon exists but failed to load (empty):", p);
+    }
+  }
+  console.warn("No suitable icon found among:", paths);
+  return null;
+}
+
 function createWindow(
   isDev,
   app,
@@ -39,17 +52,19 @@ function createWindow(
 
   const preloadPath = path.join(__dirname, "../preload.js");
 
-  let iconPath = path.join(
-    __dirname,
-    "../../../assets/icons",
-    process.platform === "darwin" ? "macOS/icon.icns" : "icon.ico",
-  );
-  console.log("🧭 iconPath:", iconPath);
-  console.log("📁 icon exists:", fs.existsSync(iconPath));
-  if (!fs.existsSync(iconPath)) {
-    console.warn("Icon file not found at:", iconPath);
-    iconPath = null;
-  }
+  const baseAssetsPath = app.isPackaged ? process.resourcesPath : app.getAppPath();
+  const macIcns = path.join(baseAssetsPath, "assets", "icons", "macOS", "icon.icns");
+  const macPng  = path.join(baseAssetsPath, "assets", "icons", "icon.png");
+  const winIco  = path.join(baseAssetsPath, "assets", "icons", "icon.ico");
+
+  // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns
+  const bwIconCandidates = process.platform === "darwin"
+    ? (app.isPackaged ? [macIcns, macPng] : [macPng])
+    : [winIco, macPng];
+
+  let iconPath = bwIconCandidates.find(p => fs.existsSync(p)) || null;
+  console.log("🧭 icon candidates:", bwIconCandidates);
+  console.log("📁 chosen icon:", iconPath);
 
   const mainWindow = new BrowserWindow({
     titleBarStyle: "hiddenInset",
@@ -149,17 +164,19 @@ function createWindow(
   if (isMac) {
     createAppMenu(isDev, app);
 
-    // Устанавливаем иконку для Dock на macOS (BrowserWindow.icon может игнорироваться)
-    const dockIconPath = path.join(__dirname, "../../../assets/icons/macOS/icon.icns");
-    if (fs.existsSync(dockIconPath)) {
-      const dockImg = nativeImage.createFromPath(dockIconPath);
-      if (!dockImg.isEmpty()) {
-        app.dock.setIcon(dockImg);
-      } else {
-        console.warn("Dock icon is empty (failed to load):", dockIconPath);
-      }
-    } else {
-      console.warn("Dock icon not found:", dockIconPath);
+    // Set Dock icon using candidate/fallback approach
+    const dockIconCandidates = app.isPackaged
+      ? [
+          path.join(baseAssetsPath, "assets", "icons", "macOS", "icon.icns"),
+          path.join(baseAssetsPath, "assets", "icons", "icon.png"),
+        ]
+      : [
+          path.join(baseAssetsPath, "assets", "icons", "icon.png"),
+        ];
+    const dockImg = loadNativeImageFrom(dockIconCandidates);
+    console.log("🧭 dock icon candidates:", dockIconCandidates);
+    if (dockImg) {
+      app.dock.setIcon(dockImg);
     }
 
     const dockMenu = Menu.buildFromTemplate([
