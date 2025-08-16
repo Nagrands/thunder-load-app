@@ -1,0 +1,93 @@
+// src\scss\components\_toasts.scss
+
+/* ========== Стили для тост-уведомлений ========== */
+
+.toast {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-toast-text);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-hover);
+  padding: var(--spacing-medium);
+  @include box-shadow(0, 4px, 12px, rgba(0, 0, 0, 0.15));
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+
+  &-container {
+    position: fixed;
+    top: 80px;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-small);
+    width: min(450px, 90%);
+    max-width: 100%;
+    z-index: 1055;
+  }
+
+  &.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &-icon {
+    font-size: 1.4rem;
+    margin-right: var(--spacing-small);
+    color: inherit;
+  }
+
+  &-message {
+    flex: 1;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding-right: var(--spacing-small);
+    word-break: break-word;
+  }
+
+  &-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0 5px;
+    color: inherit;
+    transition:
+      color 0.2s ease-in-out,
+      transform 0.2s ease;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
+  /* Модификаторы для разных типов тостов */
+  &-success {
+    color: var(--color-toast-success);
+  }
+
+  &-error {
+    color: var(--color-toast-error);
+  }
+
+  &-warning {
+    color: var(--color-toast-warning);
+  }
+
+  &-info {
+    color: var(--color-toast-text);
+  }
+}
+
+.close-btn {
+  cursor: pointer;
+  transition: color 0.2s ease;
+  color: var(--color-highlight);
+
+  &:hover {
+    color: var(--color-accent);
+  }
+}

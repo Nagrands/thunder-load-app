@@ -1,0 +1,117 @@
+{
+  "name": "thunder-load-app",
+  "productName": "ThunderLoad",
+  "version": "1.2.3",
+  "description": "Thunder Load",
+  "main": "src/js/app.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron . --dev",
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-linux": "electron-builder --linux AppImage",
+    "build-mac": "electron-builder --mac",
+    "sass": "sass --watch src/scss:src/css",
+    "fa:copy": "copyfiles -f node_modules/@fortawesome/fontawesome-free/webfonts/* src/assets/webfonts",
+    "postinstall": "npm run fa:copy",
+    "prebuild": "npm run fa:copy",
+    "format": "prettier --write .",
+    "dist": "electron-builder --publish always",
+    "release:patch": "npm version patch -m \"chore(release): %s\" && git push && git push --tags",
+    "release:minor": "npm version minor -m \"chore(release): %s\" && git push && git push --tags",
+    "release:major": "npm version major -m \"chore(release): %s\" && git push && git push --tags",
+    "tag:current": "node -e \"const v='v'+require('./package.json').version; const {execSync}=require('child_process'); execSync(`git tag ${v}`,{stdio:'inherit'}); execSync(`git push origin ${v}`,{stdio:'inherit'});\""
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "electron-log": "^4.4.7",
+    "electron-store": "^7.0.3",
+    "electron-updater": "^6.3.3",
+    "electron-window-state": "^5.0.3",
+    "marked": "^14.1.2",
+    "sudo-prompt": "^9.2.1",
+    "tldjs": "^2.3.1",
+    "tree-kill": "^1.2.2",
+    "unzipper": "^0.10.11"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^7.0.0",
+    "electron": "^37.2.6",
+    "electron-builder": "^25.0.0-alpha.9",
+    "electron-debug": "^4.0.0",
+    "prettier": "^3.3.3",
+    "copyfiles": "^2.4.1",
+    "sass": "^1.32.8"
+  },
+  "build": {
+    "appId": "com.thunderload.app",
+    "productName": "ThunderLoad",
+    "asar": true,
+    "extraResources": [
+      {
+        "from": "assets/icons/",
+        "to": "usr/share/icons/hicolor/256x256/apps"
+      }
+    ],
+    "files": [
+      "bin/**/*",
+      "assets/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Nagrands",
+        "repo": "thunder-load-app",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icons/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "assets/icons/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}.${ext}",
+      "icon": "assets/icons/macOS/icon.icns",
+      "category": "public.app-category.utilities"
+    }
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nagrands/thunder-load-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nagrands/thunder-load-app/issues"
+  },
+  "keywords": [
+    "electron",
+    "audio",
+    "video",
+    "downloader"
+  ],
+  "author": "ThunderLoad"
+}

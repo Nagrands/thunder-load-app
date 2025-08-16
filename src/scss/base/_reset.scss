@@ -1,0 +1,142 @@
+// src/scss/base/_reset.scss
+
+/* Правила box-sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Удаление стандартных отступов и заполнений */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+
+/* Основные настройки тела документа */
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+}
+
+/* Удаление стилей списка для ul и ol */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Удаление стандартных стилей ссылок */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Адаптивные изображения */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Наследование шрифтов для элементов формы */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Удаление стандартных стилей кнопок */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Удаление стандартных стилей fieldset */
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Удаление стандартных стилей таблиц */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* Наследование шрифтов для кнопок и полей ввода */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Удаление стандартных стилей blockquote и q */
+blockquote,
+q {
+  quotes: none;
+}
+
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
+  content: "";
+  content: none;
+}
+
+/* Удаление стандартных стилей hr */
+hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 1em 0;
+}
+
+/* Удаление возможности изменения размера textarea */
+textarea {
+  resize: vertical;
+}
+
+/* Удаление внутреннего фокуса для кнопок и полей ввода в Firefox */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* Удаление спиннеров в полях ввода типа number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Установка базового размера шрифта и box model для html */
+html {
+  font-size: 16px;
+  box-sizing: border-box;
+}

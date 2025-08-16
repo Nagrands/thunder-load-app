@@ -1,0 +1,406 @@
+:root {
+  --btn-hover-duration: 1.25s;
+  --btn-ripple-duration: 1.6s;
+  --btn-focus-shadow: rgba(var(--color-accent-rgb), 0.5);
+}
+
+/* ========== Базовые стили кнопок ========== */
+.button {
+  @include button-base;
+  position: relative;
+  overflow: hidden;
+  padding: 0.75em 2.6em;
+  transition:
+    color 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.3) 10%,
+      transparent 70%
+    );
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:hover {
+    @include common-box-shadow;
+    transform: translateY(-2px) rotateX(2deg) rotateY(2deg);
+    &::before {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      transition:
+        transform var(--btn-ripple-duration) ease-out,
+        opacity var(--btn-ripple-duration) ease-out;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    &::before {
+      animation: ripple var(--btn-ripple-duration) ease-out forwards;
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--btn-focus-shadow);
+  }
+
+  &:disabled {
+    color: var(--button-disabled) !important;
+    cursor: not-allowed !important;
+    animation: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    .shine,
+    &::before {
+      display: none;
+    }
+  }
+}
+
+/* ========== Модификаторы кнопок ========== */
+.button--open-folder,
+.button--open-last-video {
+  @extend .button;
+  background: var(--button-default);
+  color: var(--button-color);
+
+  &:hover {
+    background: var(--button-default);
+    color: #fff;
+    @include common-box-shadow;
+  }
+}
+
+.button--download-button {
+  @extend .button;
+  background: var(--button-default);
+  color: var(--color-highlight);
+  position: relative;
+  background-size: 400% 400%;
+
+  &.active {
+    background: linear-gradient(45deg, #005bb5, #007bff, #005bb5, #1d3853);
+    color: var(--button-enabled);
+  }
+
+  .shine {
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: skewX(-20deg);
+    animation: shine var(--btn-ripple-duration) infinite;
+  }
+
+  &:disabled .button-text {
+    color: var(--button-disabled);
+    text-shadow: none;
+  }
+
+  i {
+    margin-right: var(--spacing-small);
+  }
+}
+
+.button--cancel {
+  @extend .button;
+  background: var(--button-cancel);
+  color: var(--button-color);
+  min-width: 64px;
+  &:hover {
+    background: var(--button-cancel-hover, var(--button-cancel));
+    color: #fff;
+    @include common-box-shadow;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+}
+
+.button--quality {
+  @extend .button;
+  background: var(--button-default);
+  color: var(--button-color);
+  min-width: 64px;
+  &:focus {
+    background: var(--color-bg-secondary);
+    color: var(--color-accent);
+  }
+  &:hover {
+    background: var(--button-default);
+    color: #fff;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+}
+
+.button--install-deps {
+  @extend .button;
+  background: var(--button-default);
+  color: var(--button-color);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: var(--button-default);
+    color: #fff;
+    @include common-box-shadow;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  &.disabled,
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* ========== Группа основных действий ========== */
+.download-quality-group {
+  display: contents; /* расплющить внутрь сетки */
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: auto 6fr auto auto auto;
+  align-items: center;
+  gap: var(--spacing-small);
+  background: rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  margin: 10px 0 15px;
+
+  > * {
+    justify-self: center;
+    min-width: 64px;
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Привязка модификаторов к конкретным кнопкам */
+#open-last-video {
+  @extend .button--open-last-video;
+}
+#download-button {
+  @extend .button--download-button;
+  justify-self: stretch;
+  width: 100%;
+}
+#download-cancel {
+  @extend .button--cancel;
+}
+#quality-button {
+  @extend .button--quality;
+}
+#open-folder {
+  @extend .button--open-folder;
+}
+
+#install-deps-btn {
+  @extend .button--install-deps;
+  display: block;
+  width: 100%;
+  justify-content: center;
+  padding: 0.95em 1.4em;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.25) 0%,
+    rgba(var(--color-accent-rgb), 0.15) 60%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  min-height: 44px;
+  box-sizing: border-box;
+  clear: both;
+
+  i {
+    font-size: 18px; // крупнее
+    margin-right: var(--spacing-small);
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.35) 0%,
+      rgba(var(--color-accent-rgb), 0.22) 60%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    color: #fff;
+    box-shadow:
+      0 6px 22px rgba(var(--color-accent-rgb), 0.25),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(var(--color-accent-rgb), 0.35),
+      0 6px 22px rgba(var(--color-accent-rgb), 0.25);
+  }
+
+  &.disabled,
+  &:disabled {
+    opacity: 0.65;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+  }
+}
+
+/* ========== Стили для выпадающего списка качества ========== */
+.quality-container {
+  position: relative;
+  display: inline-block;
+  z-index: 777;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    height: 2px;
+    background: var(--color-accent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(80% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    padding: 4px 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(3px);
+
+    &[hidden] {
+      display: block !important;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    li {
+      padding: 8px 10px;
+      margin: 2px 4px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(
+        to right,
+        transparent 50%,
+        rgba(255, 255, 255, 0.08) 100%
+      );
+
+      &:hover {
+        background: var(--color-border);
+        transform: translateX(2px);
+      }
+
+      &.selected {
+        background: var(--color-hover);
+        .quality-value {
+          color: var(--color-highlight);
+        }
+        .selected-icon {
+          opacity: 1;
+          animation: checkBounce 0.4s ease;
+        }
+      }
+
+      .quality-text {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      i {
+        font-size: 18px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+      }
+
+      .quality-label {
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      }
+      .quality-value {
+        font-size: 13px;
+        opacity: 0.8;
+      }
+      .selected-icon {
+        color: var(--color-toast-success);
+        font-size: 16px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+    }
+  }
+
+  // &:hover .dropdown-menu,
+  &:focus-within .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(5px);
+  }
+}
+
+/* --- Tools section layout fixes (avoid clipping the install button) --- */
+#tools-info {
+  overflow: visible; /* на всякий случай, если где-то унаследовалось hidden */
+  padding-bottom: calc(
+    var(--spacing-large) + 6px
+  ); /* добавить место под кнопку */
+}
+
+#tools-info .tools-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--spacing-medium);
+  overflow: visible;
+}
