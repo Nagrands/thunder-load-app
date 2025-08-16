@@ -1,0 +1,697 @@
+// src/scss/tab/_wgsend.scss
+
+@use "../abstracts/mixins" as *;
+
+$wg-max-width: 1020px;
+$wg-bg-img: "../../assets/img/wg-bg.jpg";
+
+@mixin wg-constrained {
+  max-width: $wg-max-width;
+  margin-inline: auto;
+}
+
+.wg-center {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  @include wg-constrained;
+  overflow-y: visible;
+}
+
+.wireguard-view {
+  position: relative;
+  background: none;           // фон унесён на псевдоэлементы
+  isolation: isolate;         // собственный стек для z-index (нужен для ::before/::after с z-index: -1)
+
+  &::before {
+    content: "";
+    position: fixed;          // фиксируем к окну, а не к контейнеру
+    inset: 0;
+    background: url(#{$wg-bg-img}) no-repeat center center / cover;
+    z-index: -1;              // уводим под контент
+    pointer-events: none;
+    transform: translate3d(0, calc(var(--wg-parallax-offset, 0px) * -0.2), 0);
+    will-change: transform;
+    transition: transform 90ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transform: none !important;
+      transition: none !important;
+      will-change: auto !important;
+    }
+  }
+
+  &::after {
+    content: "";
+    position: fixed;          // покрытие на весь вьюпорт
+    inset: 0;
+    /* Слоистое затемнение + мягкая виньетка по краям */
+    background:
+      radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.45) 100%),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0.35) 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .wg-card {
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
+    border-radius: var(--border-radius);
+    padding: 1rem 1.25rem;
+    background: rgba(31, 34, 39, 0.75);
+    box-shadow: 0 1px 0 var(--color-accent);
+
+    @supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+      background: rgba(31, 34, 39, 0.55);
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+    }
+
+    @media (max-width: 980px) {
+      padding: 0.75rem 1rem;
+    }
+    @media (max-width: 620px) {
+      padding: 0.6rem 0.8rem;
+    }
+  }
+
+  .wg-glass {
+    margin-top: 5%;
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(18, 22, 28, 0.45);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    @include wg-constrained;
+    @supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+      background: rgba(18, 22, 28, 0.5);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  /* Внутренние отступы и визуальная согласованность внутри плашки */
+  .wg-glass .wg-header { margin: 0 0 1rem; }
+  .wg-glass .wg-block { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
+  .wg-glass .wg-log-block { background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25))rgba(56, 56, 56, 0.02); }
+
+  /* Header */
+  .wg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 2rem 0;
+    position: relative;
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+  .wg-header .title {
+    position: relative;
+    padding: 10px 14px;
+    border-radius: var(--border-radius);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25) inset;
+      z-index: -1;
+      @supports ((-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px))) {
+        background: rgba(0,0,0,0.28);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+      }
+    }
+  }
+  .wg-header .title i {
+    display: flex;
+    color: var(--color-accent);
+    padding: 12px;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .wg-header .subtitle {
+    margin: 0.15rem 0 0;
+    color: var(--color-quality);
+    font-size: 0.9rem;
+    max-width: 62ch;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+  }
+
+  /* Switch */
+  .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .switch input {
+    display: none;
+  }
+  .switch .slider {
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    position: relative;
+    background: var(--color-hover);
+    transition: background 0.15s ease;
+  }
+  .switch .slider::after {
+    content: "";
+    position: absolute;
+    inset: 2px auto 2px 2px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--color-highlight);
+    transition: transform 0.15s ease;
+  }
+  .switch input:checked + .slider {
+    background: var(--color-accent);
+  }
+  .switch input:checked + .slider::after {
+    transform: translateX(16px);
+  }
+  .switch .switch-label {
+    font-size: 0.9rem;
+    color: var(--color-quality);
+  }
+
+  .wg-grid .wg-field {
+    gap: 0.8rem;
+    position: relative;
+  }
+  @media (min-width: 880px) {
+    .wg-grid .wg-field::after {
+      content: attr(data-hint);
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translate(100%, -50%);
+      font-size: 0.8rem;
+      color: var(--color-quality);
+      max-width: 180px;
+      text-align: left;
+      opacity: 0.7;
+      line-height: 1.3;
+      pointer-events: none;
+      white-space: normal;
+      overflow-wrap: break-word;
+    }
+    .wg-grid .wg-field .field-hint {
+      display: none;
+    }
+    .wg-block.wg-grid {
+      padding-right: 180px;
+    }
+  }
+
+  .wg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+  @media (max-width: 980px) {
+    .wg-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 620px) {
+    .wg-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .wg-field {
+    .label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+    .field-hint {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--color-quality);
+      opacity: 0.9;
+    }
+    .field-error {
+      margin-top: 0.25rem;
+      min-height: 1em;
+      font-size: 0.78rem;
+      color: var(--color-toast-error);
+    }
+  }
+
+  .section-heading.mt {
+    margin-top: 1.2rem;
+  }
+
+  .buttons .large-button.is-loading {
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  h1 {
+    font-size: clamp(20px, 1.8vw + 12px, 28px);
+    margin: 0 0 0.6rem 0;
+    border-bottom: 1px var(--color-hover) solid;
+    /* убираем липкость — заголовок не будет вылезать за контейнер */
+    position: static;
+    top: auto;
+    z-index: auto;
+    background: transparent;
+    padding: 0.25rem 0;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+  }
+  @media (max-width: 820px) {
+    h1 {
+      font-size: clamp(18px, 1.4vw + 12px, 24px);
+      margin-bottom: 0.5rem;
+      border-bottom-width: 1px;
+      padding: 0.2rem 0;
+    }
+  }
+
+  h2.section-heading {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    margin: 1.5rem 0 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px dashed var(--color-hover);
+    @include wg-constrained;
+  }
+
+  .input {
+    @include input-base(var(--spacing-small) var(--spacing-medium));
+    color: var(--color-accent);
+    font-weight: 600;
+
+    &:focus {
+      color: var(--color-highlight);
+      border: 2px solid var(--color-accent);
+      transition: var(--transition-duration);
+    }
+
+    &::placeholder {
+      color: var(--color-quality);
+      font-style: italic;
+    }
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+      border-color: var(--color-hover);
+    }
+    &:active {
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  #wg-status-indicator {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-style: italic;
+    opacity: 0.7;
+
+    &.hidden {
+      display: none;
+    }
+  }
+
+  .wg-block + .wg-block {
+    margin-top: 1.5rem;
+  }
+
+  .wg-block {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .wg-block label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-quality);
+    justify-content: center;
+  }
+
+  input[type="checkbox"] {
+    accent-color: var(--color-accent);
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--color-hover);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+
+    i {
+      color: var(--color-accent);
+      transition: transform 0.2s ease;
+    }
+
+    input:checked + i {
+      transform: rotate(15deg);
+    }
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: center;
+    /* width: 40%; */
+    gap: 15px;
+    padding: 10px;
+    background: rgba(18, 22, 28, 0.45);
+    flex-direction: row;
+    align-items: center;
+    border-radius: var(--border-radius);
+    align-content: center;
+    backdrop-filter: blur(8px);
+    @include wg-constrained;
+
+    .large-button,
+    .small-button {
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--border-radius);
+      transition:
+        transform 140ms ease,
+        box-shadow 140ms ease;
+      color: var(--color-highlight);
+      box-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .large-button {
+      background: var(--button-default);
+
+      &:hover {
+        background: var(--button-download);
+        color: var(--color-highlight);
+      }
+    }
+
+    .small-button {
+      background: var(--button-default);
+
+      &:hover {
+        background: var(--button-open-folder);
+        color: var(--color-highlight);
+      }
+    }
+
+    .large-button:active,
+    .small-button:active {
+      transform: translateY(0);
+    }
+  }
+
+  .flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-quality);
+    border-radius: var(--border-radius);
+
+    span {
+      width: 50%;
+    }
+
+    .history-action {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+    }
+  }
+
+  .wg-log-block {
+    padding: 0.6rem 0.4rem;
+    border-radius: var(--border-radius);
+    max-height: 230px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-padding-bottom: 12px;
+    position: relative;
+  }
+
+  .wg-log-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.25rem;
+  }
+  .wg-log-toolbar .input-compact {
+    padding: 0.35rem 0.6rem;
+    // font-size: 0.85rem;
+  }
+  .wg-log-toolbar .wg-log-actions {
+    margin-left: auto;
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .wg-log-toolbar .autoscroll {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--color-quality);
+  }
+  .wg-log-empty {
+    display: none;
+    padding: 0.4rem 0;
+    font-style: italic;
+  }
+
+  .wg-log-block summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.6rem;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-quality);
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+    position: sticky;
+    top: 0;
+    background: var(--color-hover);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+    z-index: 1;
+
+    &:hover {
+      color: var(--color-highlight);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+  }
+
+  .wg-log-block summary .small-button {
+    padding: 0.3rem 0.55rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .wg-log-block summary .small-button i {
+    font-size: 0.9em;
+  }
+
+  .wg-log-block summary::-webkit-details-marker {
+    display: none;
+  }
+  .wg-log-block summary::marker {
+    content: "";
+  }
+  .wg-log-block summary .ml-auto {
+    margin-left: auto;
+    color: var(--color-accent);
+  }
+
+  .wg-log-block[open] > summary::after {
+    content: none;
+  }
+  .wg-log-block:not([open]) > summary::after {
+    content: none;
+  }
+
+  .wg-log-block pre#wg-log {
+    padding: 0.45rem 0.55rem !important;
+    margin-top: 0.4rem !important;
+    font-size: 0.85rem;
+  }
+  .wg-log-block pre#wg-log::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .wg-log-block pre#wg-log::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+  }
+  .wg-log-block pre#wg-log::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.input-error {
+  border-color: var(--color-toast-error);
+  box-shadow: 0 0 0 1px var(--color-toast-error);
+  transition: box-shadow 0.2s ease;
+}
+
+// Compact console style for wg-status
+.wg-status {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin-top: 0.5rem;
+  max-height: 160px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease;
+}
+
+/* Variant for console look */
+.wg-status.console {
+  color: var(--color-accent);
+}
+
+.wg-status.error-log {
+  color: var(--color-toast-error);
+  font-weight: 600;
+  border-left-color: var(--color-toast-error);
+}
+
+.history-action-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+  transition:
+    background-color 0.15s ease,
+    transform 0.12s ease;
+
+  i {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+.clear-field-btn {
+  background: none;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    transform 0.2s;
+  padding: 0;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: var(--color-highlight);
+  }
+}
+
+// Utility classes references are defined in the shared utilities file.
+
+.wg-status-flash {
+  animation: flashSuccess 0.4s ease-in-out;
+}
+
+@keyframes flashSuccess {
+  0% {
+    background-color: var(--color-hover);
+  }
+  50% {
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+  100% {
+    background-color: var(--color-hover);
+  }
+}
+
+
+/* Preload WG Unlock background to avoid first-frame jump */
+.wg-bg-preload {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  background-image: url(#{$wg-bg-img});
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  z-index: -9999;
+}

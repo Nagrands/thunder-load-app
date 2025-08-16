@@ -1,0 +1,150 @@
+// src\scss\components\_inputs.scss
+
+/* ========== Стили для полей ввода ========== */
+
+#filter-input {
+  @include input-base(var(--spacing-small) 210px var(--spacing-small) 50px);
+  color: var(--color-accent);
+  font-size: 14px;
+
+  &:focus {
+    color: var(--color-highlight);
+    background-color: var(--color-bg-secondary);
+  }
+
+  &::placeholder {
+    color: var(--color-quality);
+    font-style: italic;
+  }
+
+  $icon-buttons: (
+    clear-filter-input: 170px,
+    sort-button: 130px,
+    refresh-button: 90px,
+    clear-history: 50px,
+    delete-selected: 50px,
+    history-header: 10px,
+  );
+
+  @each $id, $width in $icon-buttons {
+    ~ ##{$id} {
+      @include icon-button-base($width);
+    }
+  }
+}
+
+#history-header {
+  cursor: default;
+  color: var(--color-accent) !important;
+}
+
+.url-input-wrapper {
+  position: relative;
+  width: 100%;
+
+  input {
+    width: 100%;
+    padding-right: 70px; /* освободим место для крестика и иконки */
+    box-sizing: border-box;
+  }
+}
+
+// === Базовый стиль для всех иконок-кнопок ===
+.action-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--color-hover);
+  border: none;
+  border-radius: 8px;
+  color: var(--color-text-main);
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.3s ease;
+
+  &:hover {
+    background-color: var(--color-hover);
+    color: var(--color-accent);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-hover);
+    outline-offset: 2px;
+  }
+
+  i {
+    pointer-events: none;
+  }
+}
+
+// === Позиционирование конкретных кнопок ===
+.paste-button,
+.clear-button {
+  @extend .action-button;
+  right: 65px;
+}
+
+.folder-button {
+  @extend .action-button;
+  right: 18px;
+}
+
+/* Когда кнопка скрывается */
+.hidden {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+
+/* Когда кнопка снова появляется */
+.paste-button:not(.hidden),
+.folder-button:not(.hidden) {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.fade-toggle {
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+}
+
+.fade-toggle.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: all;
+}
+
+#url {
+  @include input-base(var(--spacing-medium) 105px var(--spacing-medium) 50px);
+
+  &:focus {
+    background-color: var(--color-bg-secondary);
+    letter-spacing: 0.6px;
+    color: var(--color-accent);
+    transition: var(--transition-duration);
+    animation: gradientAnimation 6s infinite;
+  }
+
+  &::placeholder {
+    color: var(--color-quality);
+  }
+}

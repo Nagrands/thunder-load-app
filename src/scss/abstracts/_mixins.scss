@@ -1,0 +1,162 @@
+// src\scss\abstracts\_mixins.scss
+
+/* Миксин для заголовков */
+@mixin heading-style($font-size, $font-weight: 700) {
+  font-size: $font-size;
+  font-weight: $font-weight;
+  color: var(--color-accent);
+}
+
+@mixin media-breakpoint-up($breakpoint) {
+  $min-width: map-get($grid-breakpoints, $breakpoint);
+  @if $min-width != null and $min-width > 0 {
+    @media (min-width: $min-width) {
+      @content;
+    }
+  }
+}
+
+@mixin center-absolute {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Миксин для центрирования по Flexbox
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Миксин для теней
+@mixin box-shadow($x: 0, $y: 0, $blur: 10px, $color: rgba(0, 0, 0, 0.5)) {
+  box-shadow: $x $y $blur $color;
+}
+
+// Общая тень для кнопок
+@mixin common-box-shadow {
+  @include box-shadow(0px, 3px, 2px, rgba(0, 0, 0, 0.2));
+}
+
+// Миксин для плавного появления
+@mixin fade-in($duration: 1s, $timing: ease-in-out) {
+  animation: fadeIn $duration $timing;
+}
+
+// Миксин для базовых стилей кнопки
+@mixin button-base {
+  position: relative;
+  background: none;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  overflow: hidden;
+  height: 46px;
+  @include flex-center;
+  letter-spacing: 0.02rem;
+  transition: all 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+// Миксин для базовых стилей инпута
+@mixin input-base($padding, $font-size: 16px) {
+  flex: 1;
+  padding: $padding;
+  border: 2px solid var(--color-url-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-url-bg);
+  color: var(--color-url-text);
+  letter-spacing: 0.5px;
+  font-size: $font-size;
+  position: relative;
+  z-index: 1;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.1s ease;
+}
+
+// Миксин иконки закрытия
+@mixin close-button {
+  position: absolute;
+  font-size: 12px;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-hover);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-highlight);
+  cursor: pointer;
+  z-index: 1001;
+}
+
+// Миксин для иконок кнопок
+@mixin icon-button-base($right) {
+  position: absolute;
+  top: 50%;
+  right: $right;
+  transform: translateY(-50%);
+  // width: 35px;
+  // height: 28px;
+  background: transparent;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  color: var(--color-url-border);
+
+  &:hover {
+    // background-color: var(--color-hover);
+    color: var(--color-highlight);
+  }
+}
+
+@mixin modal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 1024;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@mixin modal-content-base {
+  position: relative;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-blend-mode: multiply;
+  background: radial-gradient(
+    circle,
+    var(--color-bg-main),
+    var(--color-bg-secondary)
+  );
+  border: 1px var(--color-hover) solid;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin: 15px;
+  padding: $modal-padding;
+  width: 75%;
+  border-radius: $modal-border-radius;
+  animation: fadeIn $animation-duration ease-in-out;
+
+  h2 {
+    color: var(--color-accent);
+
+    i {
+      padding-right: 10px;
+    }
+  }
+}

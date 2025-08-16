@@ -1,0 +1,873 @@
+// ----------------------------------------
+// 🪟 Основные модалки
+// ----------------------------------------
+
+%modal-base {
+  @include modal-overlay;
+}
+
+.modal-overlay,
+.shortcuts-modal,
+.whats-modal,
+.settings-modal {
+  @extend %modal-base;
+}
+
+.modal-content,
+.shortcuts-modal-content,
+.whats-modal-content,
+.settings-modal-content,
+#update-available-modal .modal-content,
+#update-downloaded-modal .modal-content,
+#update-error-modal .modal-content {
+  @include modal-content-base;
+}
+
+// ----------------------------------------
+// ⌨️ Модалка "Горячие клавиши"
+// ----------------------------------------
+
+.shortcuts-modal {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    .short-info {
+      display: flex;
+      color: var(--color-quality);
+      margin: 5px;
+      font-weight: 400;
+      font-size: 13px;
+      font-style: italic;
+    }
+  }
+
+  li {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    color: var(--color-highlight);
+    transition: color 0.1s ease-in-out;
+
+    strong {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: row;
+      min-width: 20%;
+      // font-size: 14px;
+      color: var(--color-accent);
+      // border: 1px var(--color-hover) solid;
+      background-color: var(--color-bg-main);
+      border-radius: var(--border-radius);
+      letter-spacing: 0.7px;
+      padding: 4px 10px;
+      font-weight: 500;
+      &:hover {
+        color: var(--color-highlight);
+      }
+    }
+
+    i {
+      width: 25px;
+      margin: 0 15px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    &:hover {
+      background-color: var(--color-hover);
+      color: var(--color-text-main);
+      border-radius: var(--border-radius);
+      // transition: 0.3s ease-in-out;
+    }
+  }
+}
+
+// Стили для модального окна "What's New"
+.whats-modal {
+  ul {
+    padding: 0;
+
+    li {
+      color: var(--color-highlight);
+
+      b {
+        margin: 10px 0;
+        font-weight: 500;
+        letter-spacing: 0.5pt;
+        text-transform: uppercase;
+      }
+    }
+
+    h3 {
+      display: flex;
+      justify-content: center;
+      color: var(--color-highlight);
+      font-size: 24px;
+      font-weight: 600;
+      margin: 10px 0;
+    }
+
+    .whats-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &-date {
+        font-weight: 500;
+        color: var(--color-accent);
+        padding: 5px;
+        border-bottom: 1px solid rgba(78, 93, 148, 0.23);
+        margin-bottom: 10px;
+
+        i {
+          padding-right: 10px;
+        }
+      }
+
+      &-head {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--color-text-main);
+        font-size: 18px;
+        padding: 10px;
+
+        i {
+          padding-right: 10px;
+        }
+      }
+
+      &-entry {
+        background-color: var(--color-hover);
+        color: var(--color-highlight);
+        border-radius: 6px;
+        padding: 12px;
+
+        i {
+          padding: 0 5px;
+        }
+      }
+    }
+  }
+}
+
+// Стили для модального окна "Настройки"
+.settings-modal {
+  // === Инструменты (yt-dlp / ffmpeg) ===
+  #tools-info {
+    padding: 12px 14px 18px; // добавили нижний паддинг под кнопку
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-hover);
+    margin-top: 14px;
+    overflow: visible; // чтобы содержимое (кнопка) не подрезалось
+
+    h2 {
+      font-weight: 500;
+      margin: 5px 2px;
+    }
+
+    #tools-hint {
+      display: block;
+      margin-top: 8px;
+      color: var(--color-highlight);
+      opacity: 0.8;
+    }
+
+    // --- Footer: status + check updates button ---
+    .tools-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    #tools-status {
+      flex: 1 1 220px;
+      min-height: 18px;
+      font-size: 12px;
+      color: var(--color-quality); // спокойный, "приглушённый" тон
+      opacity: 0.95;
+      line-height: 1.35; // компактные межстрочные интервалы
+      white-space: normal; // перенос строк (мы используем <br> из JS)
+      word-break: break-word; // защиты от длинных версий
+    }
+
+    #tools-primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 14px;
+      min-width: 60px;
+      background: var(--button-default);
+      border-radius: var(--border-radius);
+      color: var(--color-text-main);
+      transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+
+      i {
+        font-size: 14px;
+      }
+
+      &:hover {
+        background: var(--button-openlast-video);
+        color: var(--color-highlight);
+      }
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    #open-tools-folder,
+    #tools-force-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      /* gap: 8px; */
+      height: 36px;
+      padding: 0 14px;
+      min-width: 60px;
+      background: var(--button-default);
+      border-radius: var(--border-radius);
+      color: var(--color-text-main);
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      i {
+        font-size: 14px;
+      }
+
+      &:hover {
+        background: var(--button-openlast-video);
+        color: var(--color-highlight);
+      }
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    // Модификатор при скрытом футере
+    &.no-footer {
+      padding-bottom: 10px; // уменьшенный нижний паддинг
+    }
+  }
+
+  // Адаптив под узкие окна
+  @media screen and (max-width: 720px) {
+    #tools-info {
+      .tools-footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  }
+
+  // === Переменные ===
+  $transition-time: 0.3s;
+  $input-size: 18px;
+  $tab-padding: 8px 20px;
+
+  // === Заголовки ===
+  h1 {
+    font-size: 24px;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 600;
+
+    i {
+      color: var(--color-quality);
+      font-size: 16px;
+      padding: 0 10px;
+    }
+  }
+
+  p {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--color-highlight);
+    padding: 5px;
+    line-height: 1.4;
+  }
+
+  // === Списки и элементы ===
+  ul.module {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 2px;
+    background-color: var(--color-hover);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 2px;
+    border-radius: var(--border-radius);
+    color: var(--color-text-main);
+    transition:
+      background-color $transition-time ease,
+      color $transition-time ease;
+
+    &.custom-theme-select {
+      padding: 5px 15px;
+    }
+
+    &.submenu {
+      padding-left: 45px;
+      position: relative;
+
+      &::before {
+        // content: "→";
+        position: absolute;
+        left: 25px;
+        color: var(--color-highlight);
+      }
+    }
+
+    &:hover {
+      background-color: var(--color-hover);
+      color: var(--color-highlight);
+    }
+
+    label {
+      // display: flex;
+      // align-items: center;
+      // justify-content: space-between;
+      width: 100%;
+      gap: 5px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+
+      i {
+        font-size: 1em;
+        min-width: 24px;
+        text-align: center;
+        color: var(--color-accent);
+        margin: 0 8px;
+      }
+
+      span {
+        min-width: 130px;
+      }
+    }
+  }
+
+  // === Табы ===
+  .tab-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    border-bottom: 1px solid var(--color-hover);
+  }
+
+  .tab-link {
+    padding: $tab-padding;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: transparent;
+    color: var(--color-highlight);
+    cursor: pointer;
+    transition:
+      background-color $transition-time ease,
+      color $transition-time ease;
+
+    i {
+      color: var(--color-quality);
+      margin-right: 6px;
+    }
+
+    &.active {
+      background-color: var(--color-accent);
+      color: var(--color-text-main);
+    }
+
+    &:hover {
+      background-color: var(--color-hover);
+      color: var(--color-accent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-hover);
+      outline-offset: 2px;
+    }
+  }
+
+  .tab-content {
+    flex-grow: 1;
+
+    .tab-pane {
+      display: none;
+      animation: fadeInTf $transition-time ease;
+
+      &.active {
+        display: block;
+      }
+    }
+  }
+
+  // === Выбор темы ===
+  .custom-theme-select {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      // flex: 0 0 auto;
+      // flex-shrink: 0;
+
+      i {
+        font-size: 15px;
+        min-width: 18px;
+        text-align: center;
+        margin-right: 0;
+        color: var(--color-accent);
+      }
+
+      span {
+        font-weight: 500;
+        color: var(--color-highlight);
+      }
+    }
+
+    .dropdown {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      position: relative;
+      flex: 1 1 auto;
+    }
+
+    .dropdown-reset {
+      margin-left: auto;
+      height: 38px;
+    }
+  }
+
+  // === Выпадающее меню ===
+  .dropdown {
+    width: 100%;
+
+    &-toggle,
+    &-reset {
+      height: 38px;
+    }
+
+    &-toggle {
+      width: 200px;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      border-radius: 6px;
+      background-color: var(--color-bg-secondary);
+      color: var(--color-text-main);
+      border: 1px solid var(--color-hover);
+      cursor: pointer;
+      line-height: 1;
+
+      i {
+        margin-left: 8px;
+        font-size: 12px;
+      }
+
+      &:hover {
+        background-color: var(--color-hover);
+      }
+    }
+
+    &-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 50%;
+      padding: 1px;
+      z-index: 100;
+      background-color: var(--color-bg-main);
+      border: 1px solid var(--color-hover);
+      border-radius: 6px;
+
+      &.show {
+        display: block;
+      }
+
+      li {
+        padding: 6px 12px;
+        margin: 2px;
+        color: var(--color-text-main);
+        cursor: pointer;
+        transition: background $transition-time ease;
+
+        i {
+          margin-right: 0 !important;
+        }
+
+        &:hover {
+          background-color: var(--color-hover);
+          color: var(--color-accent);
+        }
+
+        &.active {
+          background-color: var(--color-hover);
+          color: #fff;
+        }
+      }
+    }
+
+    &-reset {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-left: 8px;
+      padding: 4px 10px;
+      font-size: 14px;
+      background: var(--button-default);
+      border-radius: var(--border-radius);
+      color: var(--color-text-main);
+      transition: background-color $transition-time ease;
+
+      &:hover {
+        background-color: var(--color-accent);
+        color: white;
+      }
+    }
+  }
+
+  // === Вкладка «Внешний вид» — улучшения ===
+  #appearance-settings {
+    // Карточный вид строк
+    ul.module {
+      background: transparent;
+      gap: 10px;
+
+      li.custom-theme-select {
+        background: var(--color-bg-secondary);
+        border: 1px solid var(--color-hover);
+        border-radius: var(--border-radius);
+        padding: 10px 12px;
+        margin: 0;
+        transition:
+          background-color var(--transition-duration) ease,
+          border-color var(--transition-duration) ease;
+
+        &:hover {
+          background: var(--color-hover);
+          border-color: var(--color-hover);
+        }
+      }
+    }
+
+    // Выравнивание дропдаунов и размера кнопок
+    .custom-theme-select {
+      .dropdown-toggle {
+        width: 220px;
+        height: 36px;
+      }
+      .dropdown-reset {
+        height: 36px;
+      }
+    }
+
+    // Меню тем — превью свотчи
+    .dropdown-menu {
+      min-width: 220px;
+      left: auto;
+      right: 0;
+
+      li {
+        position: relative;
+        padding-left: 28px;
+
+        &::before {
+          content: "";
+          position: absolute;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+        }
+
+        &[data-value="dark"]::before {
+          background: radial-gradient(circle at 30% 30%, #3a3a3a, #121212 70%);
+        }
+        &[data-value="light"]::before {
+          background: radial-gradient(circle at 30% 30%, #f5f5f5, #d6d6d6 70%);
+        }
+      }
+    }
+
+    .dropdown-menu li.active {
+      outline: 1px solid var(--color-accent);
+      outline-offset: -1px;
+      position: relative;
+
+      &::after {
+        content: "✓";
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-accent);
+        font-size: 13px;
+        font-weight: 700;
+      }
+    }
+
+    // Фокус‑состояния для доступности
+    .dropdown-toggle:focus-visible,
+    .dropdown-reset:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  // === Чекбоксы и радио ===
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: $input-size;
+    height: $input-size;
+    cursor: pointer;
+    margin-right: 8px;
+    transition:
+      filter $transition-time ease,
+      transform $transition-time ease;
+
+    &:hover {
+      filter: brightness(1.2);
+      transform: scale(1.05);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-hover);
+    }
+  }
+}
+
+// Заголовок модального окна
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// Кнопки закрытия модальных окон
+.close,
+.close-whats-new,
+.close-settings,
+.close-modal {
+  @include close-button;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-url-border);
+    color: var(--color-highlight);
+  }
+}
+
+// Тело модального окна
+.modal-body {
+  padding: 0;
+  margin: 18px 0;
+  color: var(--color-toast-warning);
+}
+
+// Футер модального окна
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  text-align: right;
+
+  .confirm-button,
+  .cancel-button {
+    @include button-base;
+    margin-left: 15px;
+    width: 20%;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+
+    i {
+      padding-right: 5px;
+      padding: 4px 8px;
+      margin: 0 5px;
+      border-radius: var(--border-radius);
+    }
+  }
+
+  .confirm-button {
+    background: var(--button-default);
+    color: var(--color-toast-warning);
+
+    &:hover {
+      background: var(--button-download);
+      color: var(--color-text-main);
+    }
+  }
+
+  .cancel-button {
+    background: var(--button-default);
+    color: var(--color-text-main);
+
+    &:hover {
+      background: var(--button-open-folder);
+      color: var(--color-highlight);
+    }
+  }
+}
+
+// Прогресс-Бар для обновлений
+#update-progress-container {
+  display: none; // скрыт по умолчанию
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 480px;
+  background-color: var(--color-hover);
+  padding: 16px 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  color: var(--color-text-main);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s ease;
+
+  // добавим минимальную анимацию появления
+  &.show {
+    display: flex;
+    animation: fadeInUp 0.25s ease;
+  }
+
+  #update-progress-text {
+    text-align: center;
+    font-size: 15px;
+    color: var(--color-highlight);
+  }
+
+  #update-progress-bar {
+    width: 100%;
+    height: 16px;
+    appearance: none;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #2c2c2c;
+
+    // Webkit-only
+    &::-webkit-progress-bar {
+      background-color: #2c2c2c;
+      border-radius: 8px;
+    }
+
+    &::-webkit-progress-value {
+      background-color: var(--color-accent);
+      transition: width 0.3s ease;
+    }
+
+    // Firefox
+    &::-moz-progress-bar {
+      background-color: var(--color-accent);
+    }
+  }
+}
+
+// Адаптивность
+@media screen and (max-width: 480px) {
+  .modal-content {
+    width: 90%;
+  }
+}
+
+// Вертикальные вкладки в настройках
+.settings-layout {
+  display: flex;
+  gap: 24px;
+  overflow: visible;
+  position: relative;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+
+  .tab-link {
+    background: transparent;
+    color: var(--color-highlight);
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 0.02rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &.active {
+      background: var(--color-hover);
+      color: var(--color-text-main);
+
+      i {
+        color: var(--color-accent);
+      }
+    }
+  }
+}
+
+.tab-content {
+  overflow: visible;
+}
+
+.tab-pane {
+  overflow: visible;
+}
+
+.dropdown-menu {
+  z-index: 9999;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  overflow: visible;
+}

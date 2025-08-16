@@ -1,0 +1,6 @@
+{
+  "version": "1.2.4",
+  "changes": [
+    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Общие\" dir=\"auto\">Общие</h3>\n<ul>\n<li dir=\"auto\">При первом запуске приложения загрузка могла занимать длительное время из-за необходимости скачивания важных компонентов, таких как <em>yt-dlp</em> и <em>ffmpeg</em>. Теперь, чтобы установить или обновить <em>эти инструменты</em>, достаточно перейти в раздел <strong>«Настройки»</strong> -&gt; <strong>«Downloader»</strong> и выбрать необходимые действия.</li>\n</ul>\n<h3 data-heading=\"Исправлено  {.fix}\" dir=\"auto\" class=\"fix\">Исправлено </h3>\n<blockquote dir=\"auto\">\n<p><strong>Вкладка Downloader</strong></p>\n<ul>\n<li dir=\"auto\"><strong>«Выбор папки»</strong> работал некорректно. При выборе новой папки и попытке загрузить видео или аудио файлы, загрузка происходит в старое, а не в новое указанное место.</li>\n</ul>\n</blockquote>\n    </details>"
+  ]
+}
