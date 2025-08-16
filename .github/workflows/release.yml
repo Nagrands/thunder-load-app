@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -32,10 +33,18 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Show tool versions
+        run: |
+          node -v
+          npm -v
+          npx electron-builder -V
+
       - name: Build & Publish (macOS)
         if: runner.os == 'macOS'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
           # пока без подписи/нотаризации:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
@@ -49,6 +58,8 @@ jobs:
         if: runner.os == 'Windows'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           # для подписи Windows (опционально):
           # CSC_LINK: ${{ secrets.WIN_CERT_PFX_BASE64 }}
