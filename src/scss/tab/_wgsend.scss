@@ -467,9 +467,8 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   .wg-log-block {
     padding: 0.6rem 0.4rem;
     border-radius: var(--border-radius);
-    max-height: 230px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    max-height: none;
+    overflow: visible;
     scroll-padding-bottom: 12px;
     position: relative;
   }
