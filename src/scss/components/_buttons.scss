@@ -1,3 +1,5 @@
+@use "../abstracts/mixins";
+
 :root {
   --btn-hover-duration: 1.25s;
   --btn-ripple-duration: 1.6s;
@@ -6,7 +8,7 @@
 
 /* ========== Базовые стили кнопок ========== */
 .button {
-  @include button-base;
+  @include mixins.button-base;
   position: relative;
   overflow: hidden;
   padding: 0.75em 2.6em;
@@ -32,7 +34,7 @@
   }
 
   &:hover {
-    @include common-box-shadow;
+    @include mixins.common-box-shadow;
     transform: translateY(-2px) rotateX(2deg) rotateY(2deg);
     &::before {
       transform: translate(-50%, -50%) scale(1);
@@ -79,7 +81,7 @@
   &:hover {
     background: var(--button-default);
     color: #fff;
-    @include common-box-shadow;
+    @include mixins.common-box-shadow;
   }
 }
 
@@ -124,7 +126,7 @@
   &:hover {
     background: var(--button-cancel-hover, var(--button-cancel));
     color: #fff;
-    @include common-box-shadow;
+    @include mixins.common-box-shadow;
     transition:
       background-color 0.3s ease,
       color 0.3s ease;
@@ -164,7 +166,7 @@
   &:hover {
     background: var(--button-default);
     color: #fff;
-    @include common-box-shadow;
+    @include mixins.common-box-shadow;
     transition:
       background-color 0.3s ease,
       color 0.3s ease;

@@ -4,6 +4,7 @@
  * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
  * Copyright 2025 Fonticons, Inc.
  */
+/* **** Импорт шрифтов **** */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap");
 .fa-solid,
 .fa-regular,
@@ -11055,7 +11056,6 @@ body.ready {
   opacity: 1;
 }
 
-/* **** Импорт шрифтов **** */
 .toggle-btn,
 .close-btn,
 .close,
@@ -12089,9 +12089,7 @@ hr {
   header h1 {
     font-size: 1.7rem;
   }
-  .button, .button--install-deps, #install-deps-btn, .button--quality, #quality-button, .button--cancel, #download-cancel, .button--download-button, #download-button, .button--open-folder, #open-folder,
-  .button--open-last-video,
-  #open-last-video {
+  .button {
     font-size: 14px;
   }
   .icon-links a {
@@ -14306,7 +14304,6 @@ body.ready #app-preloader {
   transition: background-color var(--transition-duration), color var(--transition-duration), border-color var(--transition-duration), box-shadow var(--transition-duration);
 }
 
-/* Миксин для заголовков */
 .wg-center {
   min-height: calc(100vh - 80px);
   display: flex;

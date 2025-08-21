@@ -1,3 +1,5 @@
+@use "../abstracts/variables";
+
 // src/scss/components/_tooltips.scss
 
 // Параметры для tooltip (их можно переопределять в основном файле)
@@ -19,8 +21,8 @@ $tooltip-padding: 0.4rem 0.6rem;
   // Изначальное состояние с размытием
   filter: blur(4px);
   transition:
-    opacity $transition-duration ease,
-    filter $transition-duration ease;
+    opacity variables.$transition-duration ease,
+    filter variables.$transition-duration ease;
 
   &.show {
     opacity: 1;

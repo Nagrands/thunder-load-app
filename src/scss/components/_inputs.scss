@@ -1,9 +1,11 @@
+@use "../abstracts/mixins";
+
 // src\scss\components\_inputs.scss
 
 /* ========== Стили для полей ввода ========== */
 
 #filter-input {
-  @include input-base(var(--spacing-small) 210px var(--spacing-small) 50px);
+  @include mixins.input-base(var(--spacing-small) 210px var(--spacing-small) 50px);
   color: var(--color-accent);
   font-size: 14px;
 
@@ -28,7 +30,7 @@
 
   @each $id, $width in $icon-buttons {
     ~ ##{$id} {
-      @include icon-button-base($width);
+      @include mixins.icon-button-base($width);
     }
   }
 }
@@ -134,7 +136,7 @@
 }
 
 #url {
-  @include input-base(var(--spacing-medium) 105px var(--spacing-medium) 50px);
+  @include mixins.input-base(var(--spacing-medium) 105px var(--spacing-medium) 50px);
 
   &:focus {
     background-color: var(--color-bg-secondary);

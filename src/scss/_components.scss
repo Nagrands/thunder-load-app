@@ -1,3 +1,5 @@
+@use "abstracts/mixins";
+
 // src\scss\_components.scss
 
 .spinner-message {
@@ -145,7 +147,7 @@
   width: 100%;
   max-width: 1020px;
   overflow-y: auto;
-  @include fade-in(0.5s);
+  @include mixins.fade-in(0.5s);
 }
 
 .footer-info {
@@ -1129,7 +1131,7 @@ video {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  @include fade-in(0.5s);
+  @include mixins.fade-in(0.5s);
   z-index: 999;
 
   .center-menu {

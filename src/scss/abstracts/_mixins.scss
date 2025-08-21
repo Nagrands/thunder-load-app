@@ -1,3 +1,6 @@
+@use "sass:map";
+@use "variables";
+
 // src\scss\abstracts\_mixins.scss
 
 /* Миксин для заголовков */
@@ -8,7 +11,7 @@
 }
 
 @mixin media-breakpoint-up($breakpoint) {
-  $min-width: map-get($grid-breakpoints, $breakpoint);
+  $min-width: map.get($grid-breakpoints, $breakpoint);
   @if $min-width != null and $min-width > 0 {
     @media (min-width: $min-width) {
       @content;
@@ -147,10 +150,10 @@
   border: 1px var(--color-hover) solid;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   margin: 15px;
-  padding: $modal-padding;
+  padding: variables.$modal-padding;
   width: 75%;
-  border-radius: $modal-border-radius;
-  animation: fadeIn $animation-duration ease-in-out;
+  border-radius: variables.$modal-border-radius;
+  animation: fadeIn variables.$animation-duration ease-in-out;
 
   h2 {
     color: var(--color-accent);

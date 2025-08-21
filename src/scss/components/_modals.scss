@@ -1,9 +1,11 @@
+@use "../abstracts/mixins";
+
 // ----------------------------------------
 // 🪟 Основные модалки
 // ----------------------------------------
 
 %modal-base {
-  @include modal-overlay;
+  @include mixins.modal-overlay;
 }
 
 .modal-overlay,
@@ -20,7 +22,7 @@
 #update-available-modal .modal-content,
 #update-downloaded-modal .modal-content,
 #update-error-modal .modal-content {
-  @include modal-content-base;
+  @include mixins.modal-content-base;
 }
 
 // ----------------------------------------
@@ -686,7 +688,7 @@
 .close-whats-new,
 .close-settings,
 .close-modal {
-  @include close-button;
+  @include mixins.close-button;
 
   &:hover,
   &:focus {
@@ -712,7 +714,7 @@
 
   .confirm-button,
   .cancel-button {
-    @include button-base;
+    @include mixins.button-base;
     margin-left: 15px;
     width: 20%;
     cursor: pointer;

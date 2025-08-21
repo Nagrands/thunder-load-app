@@ -1,3 +1,5 @@
+@use "../abstracts/variables";
+
 // src\scss\base\_base.scss
 
 .toggle-btn,
@@ -84,14 +86,14 @@ strong {
 }
 
 /* **** Адаптивность для header **** */
-@media (max-width: $breakpoint-mobile) {
+@media (max-width: variables.$breakpoint-mobile) {
   header {
     grid-gap: var(--spacing-small);
   }
 }
 
 /* **** Дополнительные медиазапросы для адаптивности **** */
-@media (max-width: $breakpoint-tablet) {
+@media (max-width: variables.$breakpoint-tablet) {
   footer {
     font-size: 12px;
   }

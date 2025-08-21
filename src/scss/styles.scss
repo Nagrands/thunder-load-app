@@ -3,36 +3,36 @@
 @use "vendor/fontawesome";
 
 // Абстрактные модули
-@import "abstracts/variables";
-@import "abstracts/mixins";
-@import "abstracts/animations";
+@use "abstracts/variables";
+@use "abstracts/mixins";
+@use "abstracts/animations";
 
 // Базовые стили
-@import "base/reset";
-@import "base/visibility";
-@import "base/typography";
-@import "base/base";
+@use "base/reset";
+@use "base/visibility";
+@use "base/typography";
+@use "base/base";
 
 // Layout
-@import "layout/header";
-@import "layout/footer";
+@use "layout/header";
+@use "layout/footer";
 
 // Компоненты
-@import "components";
+@use "components";
 
 // Отдельные компоненты
-@import "components/preloader";
-@import "components/buttons";
-@import "components/inputs";
-@import "components/modals";
-@import "components/whatsnew";
-@import "components/sidebar";
-@import "components/toasts";
-@import "components/tooltips";
-@import "components/others";
+@use "components/preloader";
+@use "components/buttons";
+@use "components/inputs";
+@use "components/modals";
+@use "components/whatsnew";
+@use "components/sidebar";
+@use "components/toasts";
+@use "components/tooltips";
+@use "components/others";
 
 // Вкладки
-@import "tab/wgsend";
+@use "tab/wgsend";
 
 // Платформенные стили
-@import "platform/macos";
+@use "platform/macos";

@@ -1,3 +1,5 @@
+@use "../abstracts/variables";
+
 // ==============================
 // Sidebar Component (Improved & Updated)
 // ==============================
@@ -6,7 +8,7 @@
 $sidebar-width: 250px;
 $sidebar-padding-vertical: 0.5rem;
 $sidebar-padding-horizontal: 0.2rem;
-$transition-duration: 0.3s;
+variables.$transition-duration: 0.3s;
 $transition-ease: ease;
 
 // ==============================

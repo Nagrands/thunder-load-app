@@ -1,3 +1,4 @@
+@use "sass:map";
 // src/scss/abstracts/_variables.scss
 
 // Breakpoints
@@ -196,7 +197,7 @@ $themes: (
 
 // Определение CSS переменных в :root
 :root {
-  @include export-css-variables(map-get($themes, dark));
+  @include export-css-variables(map.get($themes, dark));
   --transition-duration: #{$transition-duration};
   --spacing-small: #{$spacing-small};
   --spacing-medium: #{$spacing-medium};
@@ -206,5 +207,5 @@ $themes: (
 
 // CSS переменные для светлой темы
 [data-theme="light"] {
-  @include export-css-variables(map-get($themes, light));
+  @include export-css-variables(map.get($themes, light));
 }

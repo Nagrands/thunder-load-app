@@ -1,7 +1,9 @@
+@use "../abstracts/mixins";
+
 // src\scss\components\_preloader.scss
 
 #app-preloader {
-  @include center-absolute;
+  @include mixins.center-absolute;
   background: var(--color-bg-main);
   // flex-direction: column;
   z-index: 9999;
