@@ -44,14 +44,15 @@ export async function renderToolsInfo() {
   const primaryLabel = document.getElementById("tools-primary-label");
   const forceBtn = document.getElementById("tools-force-btn");
   let isChecking = false;
+  let isInstalling = false;
 
   function applyNetworkState() {
     const offline = !navigator.onLine;
-    if (primaryBtn) primaryBtn.disabled = offline;
+    if (primaryBtn) primaryBtn.disabled = offline || isInstalling || isChecking;
+    if (forceBtn) forceBtn.disabled = offline || isInstalling || isChecking;
   }
 
   // init and subscribe to online/offline
-  applyNetworkState();
   if (window.__toolsInfoNetHandlers) {
     window.removeEventListener("online", window.__toolsInfoNetHandlers.on);
     window.removeEventListener("offline", window.__toolsInfoNetHandlers.off);
@@ -62,6 +63,7 @@ export async function renderToolsInfo() {
   };
   window.addEventListener("online", window.__toolsInfoNetHandlers.on);
   window.addEventListener("offline", window.__toolsInfoNetHandlers.off);
+  applyNetworkState();
 
   try {
     const res = await window.electron.tools.getVersions();
@@ -94,7 +96,7 @@ export async function renderToolsInfo() {
       ? "Некоторые инструменты не найдены. Установите их или нажмите ‘Скачать зависимости’."
       : "";
 
-    if (forceBtn) forceBtn.style.display = missing ? "none" : "none";
+    if (forceBtn) forceBtn.style.display = missing ? "none" : "";
 
     // Настраиваем единую кнопку: скачать зависимости ИЛИ проверить обновления
     if (primaryBtn && primaryLabel && primaryIcon) {
@@ -122,6 +124,9 @@ export async function renderToolsInfo() {
             return;
           }
           const prevText = primaryLabel.textContent;
+          isInstalling = true;
+          applyNetworkState();
+          primaryBtn.setAttribute("aria-busy", "true");
           let dotsTimer;
           try {
             primaryBtn.disabled = true;
@@ -138,6 +143,9 @@ export async function renderToolsInfo() {
             primaryBtn.disabled = false;
             primaryLabel.textContent = prevText || "Скачать зависимости";
           } finally {
+            isInstalling = false;
+            primaryBtn.removeAttribute("aria-busy");
+            applyNetworkState();
             if (dotsTimer) clearInterval(dotsTimer);
           }
         };
@@ -158,6 +166,9 @@ export async function renderToolsInfo() {
             const prevText = primaryLabel.textContent;
             let dotsTimer;
             try {
+              isInstalling = true;
+              applyNetworkState();
+              primaryBtn.setAttribute("aria-busy", "true");
               primaryBtn.disabled = true;
               if (forceBtn) forceBtn.disabled = true;
               primaryLabel.textContent = "Скачиваю";
@@ -174,6 +185,9 @@ export async function renderToolsInfo() {
               if (forceBtn) forceBtn.disabled = false;
               primaryLabel.textContent = prevText || "Проверить обновления";
             } finally {
+              isInstalling = false;
+              primaryBtn.removeAttribute("aria-busy");
+              applyNetworkState();
               if (dotsTimer) clearInterval(dotsTimer);
             }
           };
@@ -199,6 +213,8 @@ export async function renderToolsInfo() {
           let promotedToUpdateMode = false;
           isChecking = true;
           primaryBtn.disabled = true;
+          applyNetworkState();
+          primaryBtn.setAttribute("aria-busy", "true");
           primaryIcon.classList.add("fa-spin");
           const prevText = primaryLabel.textContent;
           primaryLabel.textContent = "Проверяю…";
@@ -373,8 +389,14 @@ export async function renderToolsInfo() {
 
               // Rebind click to update only the needed tool(s)
               primaryBtn.onclick = async () => {
+                isInstalling = true;
+                applyNetworkState();
+                primaryBtn.setAttribute("aria-busy", "true");
                 if (!navigator.onLine) {
                   await window.electron.invoke("toast", "Нет сети: проверьте подключение", "warning");
+                  isInstalling = false;
+                  primaryBtn.removeAttribute("aria-busy");
+                  applyNetworkState();
                   return;
                 }
                 const prevText2 = primaryLabel.textContent;
@@ -404,6 +426,9 @@ export async function renderToolsInfo() {
                   primaryBtn.disabled = false;
                   primaryLabel.textContent = prevText2 || btnLabel;
                 } finally {
+                  isInstalling = false;
+                  primaryBtn.removeAttribute("aria-busy");
+                  applyNetworkState();
                   if (dotsTimer2) clearInterval(dotsTimer2);
                 }
               };
@@ -437,6 +462,8 @@ export async function renderToolsInfo() {
             );
           } finally {
             isChecking = false;
+            primaryBtn.removeAttribute("aria-busy");
+            applyNetworkState();
             primaryIcon.classList.remove("fa-spin");
             if (!promotedToUpdateMode) {
               primaryLabel.textContent = prevText || "Проверить обновления";

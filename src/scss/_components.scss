@@ -626,7 +626,7 @@ hr {
   color: var(--color-quality);
   font-size: 12px;
   letter-spacing: 0.02em;
-  padding: 2px 6px;
+  padding: 6px;
   font-weight: 500;
   // background-color: rgba(255, 255, 255, 0.04);
   border-radius: var(--border-radius);
@@ -642,10 +642,9 @@ hr {
     justify-content: space-between;
     align-items: center;
     // background-color: #eeeeee04;
-    border-radius: var(--border-radius);
     margin: 0px 5px;
     // padding: 4px;
-    // border-bottom: 1px var(--color-hover) solid;
+    border-bottom: 1px var(--color-hover) dashed;
   }
 }
 

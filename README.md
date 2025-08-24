@@ -1,4 +1,4 @@
-# ⚡ ThunderLoad — Fast & User‑Friendly Video Downloader
+# ⚡ Thunder Load — Audio/Video downloader
 
 <!-- Badges -->
 

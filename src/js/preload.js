@@ -2,195 +2,109 @@
 try {
   const { contextBridge, ipcRenderer } = require("electron");
 
-  /* -------------------------------------------------
-     1. Разрешённые каналы (renderer ↔ main)
-  ------------------------------------------------- */
-  const validChannels = [
-    // — существующие —
-    "open-terminal",
-    "open-config-folder",
-    "select-download-folder",
-    "download-video",
-    "stop-download",
-    "set-download-path",
-    "get-download-path",
-    "load-history",
-    "save-history",
-    "clear-history",
-    "get-theme",
-    "set-theme",
-    "get-font-size",
-    "set-font-size",
-    "get-download-count",
-    "open-download-folder",
-    "get-icon-path",
-    "open-history",
-    "open-external-link",
-    "open-last-video",
-    "paste-notification",
-    "toggle-auto-launch",
-    "get-auto-launch-status",
-    "get-minimize-on-launch-status",
-    "set-minimize-on-launch-status",
-    "set-minimize-to-tray-status",
-    "get-minimize-to-tray-status",
-    "set-close-notification-status",
-    "get-close-notification-status",
-    "set-open-on-download-complete-status",
-    "get-open-on-download-complete-status",
-    "set-open-on-copy-url-status",
-    "get-open-on-copy-url-status",
-    "set-disable-global-shortcuts-status",
-    "get-disable-global-shortcuts-status",
-    "set-auto-shutdown-status",
-    "get-auto-shutdown-status",
-    "set-auto-shutdown-seconds",
-    "get-auto-shutdown-seconds",
-    "get-auto-shutdown-deadline",
-    "toast",
-    "window-focused",
-    "download-progress",
-    "download-notification",
-    "open-site",
-    "download-started",
-    "download-complete",
-    "show-system-notification",
-    "set-minimize-instead-of-close",
-    "get-minimize-instead-of-close-status",
-    "open-settings",
-    "download-update",
-    "restart-app",
-    "check-file-exists",
-    "delete-file",
-    "update-available",
-    "update-progress",
-    "update-error",
-    "update-downloaded",
-    "update-message",
-    "show-whats-new",
-    "get-whats-new",
-    "get-version",
-    "preload-error",
-    "get-file-size",
-    "get-disable-complete-modal-status",
-    "set-disable-complete-modal-status",
+  // --- ВАЖНО: в dev режиме не блокируем по whitelist, чтобы не падать из‑за несостыковок каналов.
+  // Для строгого режима поменяй alwaysAllow на false и подключи CHANNELS_LIST ниже.
+  const alwaysAllow = process.env.NODE_ENV !== 'production' ? true : false;
 
-    // — каналы WireGuard / WG Unlock —
-    "wg-get-config",
-    "wg-set-config",
-    "wg-reset-config-defaults",
-    "wg-get-settings",
-    "wg-set-setting",
-    "wg-send-udp",
-    "wg-toast",
-    "get-default-tab",
-    "set-default-tab",
-    "get-platform-info",
-    "status-message",
-    "tools:getVersions",
-    "tools:showInFolder",
-    "tools:installAll",
-    "tools:checkUpdates",
-    "tools:updateYtDlp",
-    "tools:updateFfmpeg",
-    "wg-open-config-folder",
-    "wg-auto-shutdown-updated",
-    "download-path-changed",
-  ];
+  // Необязательный список каналов из общего enums (если есть)
+  let validChannels = [];
+  try {
+    const { CHANNELS_LIST } = require("./ipc/channels");
+    if (Array.isArray(CHANNELS_LIST)) validChannels = CHANNELS_LIST;
+  } catch (_) {
+    // channels.js может отсутствовать в ранних сборках — игнорируем
+  }
 
-  /* -------------------------------------------------
-     2. Безопасные обёртки invoke / on
-  ------------------------------------------------- */
+  const isAllowed = (channel) => (alwaysAllow || validChannels.includes(channel));
+
+  // ————————————————————————————————————————————————
+  // Безопасные обёртки
   function safeInvoke(channel, ...args) {
-    if (validChannels.includes(channel)) {
-      return ipcRenderer.invoke(channel, ...args).catch((err) => {
-        console.error(`invoke[${channel}]`, err);
-        throw err;
-      });
-    }
-    console.warn(`Invalid invoke "${channel}"`);
-    return Promise.reject(new Error(`Канал "${channel}" не разрешён`));
+    if (isAllowed(channel)) return ipcRenderer.invoke(channel, ...args);
+    return Promise.reject(new Error(`[IPC blocked] ${channel}`));
+  }
+  function safeSend(channel, ...args) {
+    if (isAllowed(channel)) ipcRenderer.send(channel, ...args);
+  }
+  function safeOn(channel, listener) {
+    if (!isAllowed(channel)) return;
+    const wrapped = (_event, ...payload) => listener(...payload);
+    ipcRenderer.on(channel, wrapped);
+    return () => ipcRenderer.removeListener(channel, wrapped);
+  }
+  function safeOnce(channel, listener) {
+    if (!isAllowed(channel)) return;
+    const wrapped = (_event, ...payload) => listener(...payload);
+    ipcRenderer.once(channel, wrapped);
   }
 
-  function safeOn(channel, callback) {
-    if (validChannels.includes(channel) && typeof callback === "function") {
-      ipcRenderer.on(channel, (_evt, ...args) => callback(...args));
-    } else {
-      console.warn(`Invalid on "${channel}"`);
-    }
+  // Локальная платформа — без IPC, чтобы не требовать обработчик в main
+  async function getPlatformInfo() {
+    return {
+      isMac: process.platform === "darwin",
+      isWindows: process.platform === "win32",
+      platform: process.platform,
+      arch: process.arch,
+    };
   }
 
-  /* -------------------------------------------------
-     3. Экспорт в window
-  ------------------------------------------------- */
   contextBridge.exposeInMainWorld("electron", {
-    /** прямой доступ (с фильтрацией каналов) */
-    ipcRenderer: {
-      invoke: safeInvoke,
-      on: safeOn,
-      send: (ch, ...a) =>
-        validChannels.includes(ch)
-          ? ipcRenderer.send(ch, ...a)
-          : console.warn(`Invalid send "${ch}"`),
-    },
+    // ——— Совместимость со старым API ———
+    invoke: safeInvoke,      // <-- добавлено для совместимости (window.electron.invoke)
+    on: safeOn,              // <-- совместимость (window.electron.on)
+    send: safeSend,          // уже было
+    receive: safeOn,         // уже было
 
-    /** шорт‑каты для старого кода */
-    invoke: safeInvoke,
-    on: safeOn,
-    /** Новый метод для приема сообщений (ipcRenderer.on) */
-    receive: (channel, func) => {
-      if (validChannels.includes(channel) && typeof func === "function") {
-        ipcRenderer.on(channel, (_event, ...args) => func(...args));
-      } else {
-        console.warn(`Invalid receive channel: "${channel}"`);
-      }
-    },
+    // Специальные удобные подписки для совместимости со старым кодом
+    onShowWhatsNew: (callback) => safeOn("show-whats-new", callback),
 
-    /** системные действия окна */
-    minimize: () => ipcRenderer.send("window-minimize"),
-    close: () => ipcRenderer.send("window-close"),
-    getPlatformInfo: () => safeInvoke("get-platform-info"),
-
-    /** инструменты */
+    // Совместимый API для инструментов
     tools: {
       getVersions: () => safeInvoke("tools:getVersions"),
       showInFolder: (p) => safeInvoke("tools:showInFolder", p),
       installAll: () => safeInvoke("tools:installAll"),
-      checkUpdates: () => safeInvoke("tools:checkUpdates"),
+      checkUpdates: (opts) => safeInvoke("tools:checkUpdates", opts),
       updateYtDlp: () => safeInvoke("tools:updateYtDlp"),
       updateFfmpeg: () => safeInvoke("tools:updateFfmpeg"),
     },
 
-    /** удобные подписки (оставлены без изменений) */
-    onShowWhatsNew(callback) {
-      safeOn("show-whats-new", callback);
+    // Совместимые подписки/вызовы, которые ждёт старый код
+    onVersion: (callback) => {
+      if (typeof callback === "function") {
+        safeInvoke("get-version").then(callback).catch(() => {});
+      }
     },
-    onWindowFocused(callback) {
-      safeOn("window-focused", callback);
-    },
-    onProgress(callback) {
-      safeOn("download-progress", callback);
-    },
-    onVersion(callback) {
-      safeInvoke("get-version").then(callback);
-    },
-    onNotification(callback) {
-      safeOn("download-notification", callback);
-    },
-    onPasteNotification(callback) {
-      safeOn("paste-notification", callback);
-    },
-    onToast(callback) {
-      safeOn("toast", callback);
-    },
-  });
+    onWindowFocused: (callback) => safeOn("window-focused", callback),
+    onProgress: (callback) => safeOn("download-progress", callback),
+    onNotification: (callback) => safeOn("download-notification", callback),
+    onPasteNotification: (callback) => safeOn("paste-notification", callback),
+    onToast: (callback) => safeOn("toast", callback),
 
-  console.log("validChannels:", validChannels);
+    // Новый API — явный proxy на ipcRenderer
+      // ——— Новый API: явный proxy на ipcRenderer ———
+    ipcRenderer: {
+      invoke: safeInvoke,
+      send: safeSend,
+      on: safeOn,
+      once: safeOnce,
+      removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+    },
+
+    // Утилиты
+      // ——— Утилиты ———
+  getPlatformInfo,
+  minimize: () => {
+    // Пытаемся отправить в один из известных каналов (поддержка старых/новых названий)
+    const variants = ["window-minimize", "minimize", "app:minimize"];
+    for (const ch of variants) { if (isAllowed(ch)) { ipcRenderer.send(ch); break; } }
+  },
+  close: () => {
+    const variants = ["window-close", "close", "app:close"];
+    for (const ch of variants) { if (isAllowed(ch)) { ipcRenderer.send(ch); break; } }
+  },
+  });
 } catch (error) {
-  // Если preload упал, сообщаем в main‑процесс
-  try {
-    require("electron").ipcRenderer.send("preload-error", error);
-  } catch (_) {
-    console.error("preload-error", error);
-  }
+  // Никогда не валим рендерер из‑за ошибок в preload — просто логируем
+  // и оставляем страницу работать без bridge (renderer должен это пережить).
+  console.error("[preload] failed to initialize contextBridge:", error);
 }

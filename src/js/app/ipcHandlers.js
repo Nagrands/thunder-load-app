@@ -9,6 +9,8 @@ const {
   app,
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
+const { CHANNELS } = require("../ipc/channels");
+
 const { getToolsVersions } = require("./toolsVersions");
 const fs = require("fs");
 const Store = require("electron-store");
@@ -42,8 +44,7 @@ function isPathInsideBaseDir(filePath, baseDir) {
   const resolvedBase = path.resolve(baseDir);
   const resolvedPath = path.resolve(filePath);
   const relative = path.relative(resolvedBase, resolvedPath);
-  const isInside =
-    relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+  const isInside = !relative.startsWith("..") && !path.isAbsolute(relative);
 
   log.info(
     `Checking if "${resolvedPath}" is inside "${resolvedBase}": ${isInside}`,
@@ -120,12 +121,12 @@ function setupIpcHandlers(dependencies) {
     log.error("auto-shutdown init schedule error:", e);
   }
 
-  ipcMain.handle("get-default-tab", () => store.get("defaultTab", "download"));
-  ipcMain.handle("set-default-tab", (_, tabId) =>
+  ipcMain.handle(CHANNELS.GET_DEFAULT_TAB, () => store.get("defaultTab", "download"));
+  ipcMain.handle(CHANNELS.SET_DEFAULT_TAB, (_, tabId) =>
     store.set("defaultTab", tabId),
   );
 
-  ipcMain.handle("get-whats-new", async (event) => {
+  ipcMain.handle(CHANNELS.GET_WHATS_NEW, async (event) => {
     try {
       const whatsNewPath = path.join(
         app.getAppPath(),
@@ -142,11 +143,11 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("tools:getVersions", () => {
+  ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, () => {
     return getToolsVersions();
   });
 
-  ipcMain.handle("tools:showInFolder", async (_evt, filePath) => {
+  ipcMain.handle(CHANNELS.TOOLS_SHOWINFOLDER, async (_evt, filePath) => {
     try {
       if (filePath && typeof filePath === "string") {
         shell.showItemInFolder(filePath);
@@ -330,7 +331,7 @@ function setupIpcHandlers(dependencies) {
   }
 
   // Handler for checking tool updates, reading actual versions from disk and honoring noCache/forceFetch
-  ipcMain.handle("tools:checkUpdates", async (_event, opts = {}) => {
+  ipcMain.handle(CHANNELS.TOOLS_CHECKUPDATES, async (_event, opts = {}) => {
     // Accepts options: { noCache, forceFetch }
     try {
       const tools = await getToolsVersions();
@@ -480,7 +481,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   // Ручная установка зависимостей по запросу из UI (чистая переустановка: удаляет старые бинарники)
-  ipcMain.handle("tools:installAll", async () => {
+  ipcMain.handle(CHANNELS.TOOLS_INSTALLALL, async () => {
     try {
       const tools = await getToolsVersions();
 
@@ -530,7 +531,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   // --- tools:updateYtDlp ---
-  ipcMain.handle("tools:updateYtDlp", async () => {
+  ipcMain.handle(CHANNELS.TOOLS_UPDATEYTDLP, async () => {
     try {
       log.info("tools:updateYtDlp: Checking current yt-dlp version...");
       const tools = await getToolsVersions();
@@ -565,7 +566,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   // --- tools:updateFfmpeg ---
-  ipcMain.handle("tools:updateFfmpeg", async () => {
+  ipcMain.handle(CHANNELS.TOOLS_UPDATEFFMPEG, async () => {
     try {
       log.info("tools:updateFfmpeg: Checking current ffmpeg version...");
       const tools = await getToolsVersions();
@@ -599,33 +600,33 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-platform-info", () => {
+  ipcMain.handle(CHANNELS.GET_PLATFORM_INFO, () => {
     console.log("📡 get-platform-info handler registered");
     return { isMac: process.platform === "darwin" };
   });
 
   // Обработчики IPC для темы
-  ipcMain.handle("get-theme", () => {
+  ipcMain.handle(CHANNELS.GET_THEME, () => {
     return store.get("theme", "light"); // 'light' - тема по умолчанию
   });
 
-  ipcMain.handle("set-theme", (event, theme) => {
+  ipcMain.handle(CHANNELS.SET_THEME, (event, theme) => {
     store.set("theme", theme);
     return { success: true };
   });
 
-  ipcMain.handle("toast", (event, message, type = "success") => {
+  ipcMain.handle(CHANNELS.TOAST, (event, message, type = "success") => {
     if (mainWindow && mainWindow.webContents) {
       mainWindow.webContents.send("toast", message, type);
     }
   });
 
   // Обработчики IPC для размера шрифта
-  ipcMain.handle("get-font-size", () => {
+  ipcMain.handle(CHANNELS.GET_FONT_SIZE, () => {
     return store.get("fontSize", "16px"); // '16px' - размер по умолчанию
   });
 
-  ipcMain.handle("set-font-size", (event, fontSize) => {
+  ipcMain.handle(CHANNELS.SET_FONT_SIZE, (event, fontSize) => {
     store.set("fontSize", fontSize);
     return { success: true };
   });
@@ -877,12 +878,12 @@ function setupIpcHandlers(dependencies) {
   // Обработчики IPC:
 
   // Добавляем обработчик для открытия терминала на macOS
-  ipcMain.handle("open-terminal", async () => {
+  ipcMain.handle(CHANNELS.OPEN_TERMINAL, async () => {
     const { exec } = require("child_process");
     exec("open -a Terminal");
   });
 
-  ipcMain.handle("open-config-folder", () => {
+  ipcMain.handle(CHANNELS.OPEN_CONFIG_FOLDER, () => {
     const folderPath = app.getPath("userData");
     const filePath = path.join(folderPath, "wireguard.conf");
     try {
@@ -902,7 +903,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   // WG Unlock: open config folder via ipcRenderer.send("wg-open-config-folder")
-  ipcMain.on("wg-open-config-folder", () => {
+  ipcMain.on(CHANNELS.WG_OPEN_CONFIG_FOLDER, () => {
     try {
       const folderPath = app.getPath("userData");
       const filePath = path.join(folderPath, "wireguard.conf");
@@ -919,7 +920,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   // Обработка запроса на загрузку обновления из рендер-процесса
-  ipcMain.handle("download-update", async () => {
+  ipcMain.handle(CHANNELS.DOWNLOAD_UPDATE, async () => {
     try {
       log.info("Запрос на загрузку обновления получен.");
       autoUpdater.downloadUpdate();
@@ -931,7 +932,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   // Обработка запроса на перезапуск и установку обновления из рендер-процесса
-  ipcMain.handle("restart-app", async () => {
+  ipcMain.handle(CHANNELS.RESTART_APP, async () => {
     try {
       log.info("Запрос на перезапуск приложения получен.");
       autoUpdater.quitAndInstall();
@@ -942,7 +943,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("check-file-exists", async (event, filePath) => {
+  ipcMain.handle(CHANNELS.CHECK_FILE_EXISTS, async (event, filePath) => {
     try {
       await fsPromises.access(filePath);
       return true;
@@ -952,18 +953,18 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-disable-complete-modal-status", () =>
+  ipcMain.handle(CHANNELS.GET_DISABLE_COMPLETE_MODAL_STATUS, () =>
     store.get("disableCompleteModal", true),
   );
 
-  ipcMain.handle("set-disable-complete-modal-status", (_, enabled) =>
+  ipcMain.handle(CHANNELS.SET_DISABLE_COMPLETE_MODAL_STATUS, (_, enabled) =>
     store.set("disableCompleteModal", enabled),
   );
 
   /**
    * Обработчик для удаления файла
    */
-  ipcMain.handle("delete-file", async (event, filePath) => {
+  ipcMain.handle(CHANNELS.DELETE_FILE, async (event, filePath) => {
     try {
       log.info(`Attempting to delete file: ${filePath}`);
 
@@ -1000,7 +1001,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("select-download-folder", async () => {
+  ipcMain.handle(CHANNELS.SELECT_DOWNLOAD_FOLDER, async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ["openDirectory"],
     });
@@ -1023,7 +1024,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("download-video", async (event, url, quality) => {
+  ipcMain.handle(CHANNELS.DOWNLOAD_VIDEO, async (event, url, quality) => {
     if (downloadState.downloadInProgress) {
       throw new Error("Загрузка уже выполняется");
     }
@@ -1048,7 +1049,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("stop-download", async () => {
+  ipcMain.handle(CHANNELS.STOP_DOWNLOAD, async () => {
     console.log("A request to stop download was received.");
     try {
       await stopDownload();
@@ -1060,7 +1061,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("set-download-path", async (event, path) => {
+  ipcMain.handle(CHANNELS.SET_DOWNLOAD_PATH, async (event, path) => {
     if (typeof path !== "string") {
       throw new Error("Invalid path");
     }
@@ -1078,7 +1079,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-download-path", async () => {
+  ipcMain.handle(CHANNELS.GET_DOWNLOAD_PATH, async () => {
     try {
       return downloadState.downloadPath;
     } catch (e) {
@@ -1087,7 +1088,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("load-history", async () => {
+  ipcMain.handle(CHANNELS.LOAD_HISTORY, async () => {
     try {
       if (!fs.existsSync(historyFilePath)) {
         fs.writeFileSync(historyFilePath, JSON.stringify([]));
@@ -1100,7 +1101,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("save-history", async (event, history) => {
+  ipcMain.handle(CHANNELS.SAVE_HISTORY, async (event, history) => {
     try {
       const historyJson = JSON.stringify(history, null, 2);
       await fs.promises.writeFile(historyFilePath, historyJson, "utf8");
@@ -1109,7 +1110,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("clear-history", async () => {
+  ipcMain.handle(CHANNELS.CLEAR_HISTORY, async () => {
     try {
       await fs.promises.writeFile(historyFilePath, JSON.stringify([]), "utf-8");
       return true;
@@ -1119,7 +1120,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-file-size", async (event, filePath) => {
+  ipcMain.handle(CHANNELS.GET_FILE_SIZE, async (event, filePath) => {
     try {
       const stats = await fs.promises.stat(filePath);
       return stats.size;
@@ -1129,7 +1130,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-version", async () => {
+  ipcMain.handle(CHANNELS.GET_VERSION, async () => {
     try {
       return await getAppVersion();
     } catch (error) {
@@ -1138,7 +1139,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-download-count", async () => {
+  ipcMain.handle(CHANNELS.GET_DOWNLOAD_COUNT, async () => {
     try {
       if (!fs.existsSync(historyFilePath)) return 0;
       const historyData = await fs.promises.readFile(historyFilePath, "utf8");
@@ -1149,9 +1150,8 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  const { shell } = require("electron");
 
-  ipcMain.handle("open-download-folder", async (event, filePath) => {
+  ipcMain.handle(CHANNELS.OPEN_DOWNLOAD_FOLDER, async (event, filePath) => {
     if (!filePath || typeof filePath !== "string")
       throw new TypeError('The "path" argument must be of type string.');
 
@@ -1164,12 +1164,12 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-icon-path", async (event, url) => {
+  ipcMain.handle(CHANNELS.GET_ICON_PATH, async (event, url) => {
     const iconName = getIconNameFromUrl(url);
     return await getAppIconPath(iconName);
   });
 
-  ipcMain.handle("open-external-link", async (event, url) => {
+  ipcMain.handle(CHANNELS.OPEN_EXTERNAL_LINK, async (event, url) => {
     log.info("Opening external link:", url);
     try {
       if (!isValidUrl(url)) throw new Error("Invalid URL");
@@ -1187,7 +1187,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("open-last-video", async (event, filePath) => {
+  ipcMain.handle(CHANNELS.OPEN_LAST_VIDEO, async (event, filePath) => {
     try {
       log.info(`Trying to open file: ${filePath}`);
       if (!filePath) throw new Error("File path is empty");
@@ -1209,7 +1209,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("toggle-auto-launch", async (event, enable) => {
+  ipcMain.handle(CHANNELS.TOGGLE_AUTO_LAUNCH, async (event, enable) => {
     try {
       if (enable) {
         enableAutoLaunch();
@@ -1239,20 +1239,20 @@ function setupIpcHandlers(dependencies) {
   });
 
   // ==== WG Unlock: авто‑закрытие приложения ====
-  ipcMain.handle("get-auto-shutdown-status", () => {
+  ipcMain.handle(CHANNELS.GET_AUTO_SHUTDOWN_STATUS, () => {
     return store.get("autoShutdownEnabled", false);
   });
 
-  ipcMain.handle("get-auto-shutdown-seconds", () => {
+  ipcMain.handle(CHANNELS.GET_AUTO_SHUTDOWN_SECONDS, () => {
     return store.get("autoShutdownSeconds", 30);
   });
 
-  ipcMain.handle("get-auto-shutdown-deadline", () => {
+  ipcMain.handle(CHANNELS.GET_AUTO_SHUTDOWN_DEADLINE, () => {
     const enabled = store.get("autoShutdownEnabled", false);
     return enabled ? autoShutdownDeadlineMs : null;
   });
 
-  ipcMain.handle("set-auto-shutdown-status", (event, enable) => {
+  ipcMain.handle(CHANNELS.SET_AUTO_SHUTDOWN_STATUS, (event, enable) => {
     try {
       store.set("autoShutdownEnabled", !!enable);
       if (enable) {
@@ -1306,7 +1306,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("set-auto-shutdown-seconds", (event, seconds) => {
+  ipcMain.handle(CHANNELS.SET_AUTO_SHUTDOWN_SECONDS, (event, seconds) => {
     try {
       const sNum = Number(seconds);
       if (!Number.isFinite(sNum)) return false;
@@ -1343,16 +1343,16 @@ function setupIpcHandlers(dependencies) {
   });
   // ==== /WG Unlock: авто‑закрытие приложения ====
 
-  ipcMain.handle("set-minimize-on-launch-status", (_, enabled) => {
+  ipcMain.handle(CHANNELS.SET_MINIMIZE_ON_LAUNCH_STATUS, (_, enabled) => {
     store.set("minimizeOnLaunch", enabled);
     return true; // ← нужно!
   });
 
-  ipcMain.handle("get-minimize-on-launch-status", () => {
+  ipcMain.handle(CHANNELS.GET_MINIMIZE_ON_LAUNCH_STATUS, () => {
     return store.get("minimizeOnLaunch", false);
   });
 
-  ipcMain.handle("set-minimize-instead-of-close", async (event, minimize) => {
+  ipcMain.handle(CHANNELS.SET_MINIMIZE_INSTEAD_OF_CLOSE, async (event, minimize) => {
     store.set("minimizeInsteadOfClose", minimize);
     showTrayNotification(
       minimize
@@ -1361,7 +1361,7 @@ function setupIpcHandlers(dependencies) {
     );
   });
 
-  ipcMain.handle("get-auto-launch-status", async () => {
+  ipcMain.handle(CHANNELS.GET_AUTO_LAUNCH_STATUS, async () => {
     try {
       const isEnabled = isAutoLaunchEnabled();
       return isEnabled;
@@ -1371,34 +1371,34 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("set-minimize-to-tray-status", async (event, enable) => {
+  ipcMain.handle(CHANNELS.SET_MINIMIZE_TO_TRAY_STATUS, async (event, enable) => {
     store.set("minimizeToTray", enable);
   });
 
-  ipcMain.handle("get-minimize-to-tray-status", async () => {
+  ipcMain.handle(CHANNELS.GET_MINIMIZE_TO_TRAY_STATUS, async () => {
     return store.get("minimizeToTray", false);
   });
 
-  ipcMain.handle("set-close-notification-status", async (event, enable) => {
+  ipcMain.handle(CHANNELS.SET_CLOSE_NOTIFICATION_STATUS, async (event, enable) => {
     store.set("closeNotification", enable);
   });
 
-  ipcMain.handle("get-close-notification-status", async () => {
+  ipcMain.handle(CHANNELS.GET_CLOSE_NOTIFICATION_STATUS, async () => {
     return store.get("closeNotification", true);
   });
 
   ipcMain.handle(
-    "set-open-on-download-complete-status",
+    CHANNELS.SET_OPEN_ON_DOWNLOAD_COMPLETE_STATUS,
     async (event, enable) => {
       store.set("expandWindowOnDownloadComplete", enable);
     },
   );
 
-  ipcMain.handle("get-open-on-download-complete-status", async () => {
+  ipcMain.handle(CHANNELS.GET_OPEN_ON_DOWNLOAD_COMPLETE_STATUS, async () => {
     return store.get("expandWindowOnDownloadComplete", false);
   });
 
-  ipcMain.handle("set-open-on-copy-url-status", async (event, enabled) => {
+  ipcMain.handle(CHANNELS.SET_OPEN_ON_COPY_URL_STATUS, async (event, enabled) => {
     store.set("openOnCopyUrl", enabled);
     if (clipboardMonitor) {
       enabled ? clipboardMonitor.start() : clipboardMonitor.stop();
@@ -1407,16 +1407,16 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-open-on-copy-url-status", async () => {
+  ipcMain.handle(CHANNELS.GET_OPEN_ON_COPY_URL_STATUS, async () => {
     return store.get("openOnCopyUrl", false);
   });
 
-  ipcMain.handle("get-disable-global-shortcuts-status", () => {
+  ipcMain.handle(CHANNELS.GET_DISABLE_GLOBAL_SHORTCUTS_STATUS, () => {
     const isEnabled = store.get("disableGlobalShortcuts", false);
     return isEnabled;
   });
 
-  ipcMain.handle("set-disable-global-shortcuts-status", (event, enable) => {
+  ipcMain.handle(CHANNELS.SET_DISABLE_GLOBAL_SHORTCUTS_STATUS, (event, enable) => {
     store.set("disableGlobalShortcuts", enable);
     if (enable) {
       globalShortcut.unregisterAll();
@@ -1427,7 +1427,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("show-system-notification", async (event, { title, body }) => {
+  ipcMain.handle(CHANNELS.SHOW_SYSTEM_NOTIFICATION, async (event, { title, body }) => {
     if (Notification.isSupported()) {
       new Notification({ title, body }).show();
     } else {
@@ -1437,7 +1437,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle("get-minimize-instead-of-close-status", async () => {
+  ipcMain.handle(CHANNELS.GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS, async () => {
     return store.get("minimizeInsteadOfClose", false);
   });
 }

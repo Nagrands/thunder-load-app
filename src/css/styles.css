@@ -11691,7 +11691,7 @@ hr {
   color: var(--color-quality);
   font-size: 12px;
   letter-spacing: 0.02em;
-  padding: 2px 6px;
+  padding: 6px;
   font-weight: 500;
   border-radius: var(--border-radius);
 }
@@ -11703,8 +11703,8 @@ hr {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: var(--border-radius);
   margin: 0px 5px;
+  border-bottom: 1px var(--color-hover) dashed;
 }
 
 .quality {
