@@ -2,6 +2,15 @@
 
 'use strict';
 
+/**
+ * This file defines all IPC (Inter-Process Communication) channel names used throughout the application.
+ * These channels facilitate communication between the main and renderer processes.
+ */
+
+/**
+ * Enum-like object mapping uppercase keys to IPC channel string names.
+ * Each key represents a specific IPC channel used in the application.
+ */
 const CHANNELS = Object.freeze({
   CHECK_FILE_EXISTS: 'check-file-exists',
   CLEAR_HISTORY: 'clear-history',
@@ -66,6 +75,13 @@ const CHANNELS = Object.freeze({
   WG_OPEN_CONFIG_FOLDER: 'wg-open-config-folder',
 });
 
+/**
+ * A frozen array containing all IPC channel string values defined in CHANNELS.
+ * Useful for validation or iteration over all available channels.
+ */
 const CHANNELS_LIST = Object.freeze(Object.values(CHANNELS));
 
+/**
+ * Exports the CHANNELS enum-like object and the CHANNELS_LIST array for use in other modules.
+ */
 module.exports = { CHANNELS, CHANNELS_LIST };

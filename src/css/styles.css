@@ -12127,8 +12127,8 @@ video {
 }
 .top-bar .center-menu {
   position: absolute;
-  left: 35%;
-  transform: translateX(20%);
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   height: 100%;
@@ -12175,7 +12175,7 @@ video {
 .top-bar .menu-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .top-bar .left {
@@ -12383,7 +12383,6 @@ video {
   width: 40px;
   height: 40px;
   background: transparent;
-  background-color: var(--color-hover);
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
@@ -13264,10 +13263,9 @@ body.ready #app-preloader {
 .settings-modal #tools-info .tools-footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 10px;
   margin-top: 10px;
-  flex-wrap: wrap;
 }
 .settings-modal #tools-info #tools-status {
   flex: 1 1 220px;
