@@ -1,87 +1,201 @@
 // src/js/preload.js
+// Унифицированный preload‑мост с безопасными обёртками IPC и JSDoc типами
+// Совместим с Windows и macOS. Не падает в dev при расхождениях каналов.
+
+'use strict';
+
 try {
-  const { contextBridge, ipcRenderer } = require("electron");
+  const { contextBridge, ipcRenderer } = require('electron');
 
-  // --- ВАЖНО: в dev режиме не блокируем по whitelist, чтобы не падать из‑за несостыковок каналов.
-  // Для строгого режима поменяй alwaysAllow на false и подключи CHANNELS_LIST ниже.
-  const alwaysAllow = process.env.NODE_ENV !== 'production' ? true : false;
+  /**
+   * Признак production‑сборки
+   * @type {boolean}
+   */
+  const IS_PROD = process.env.NODE_ENV === 'production';
 
-  // Необязательный список каналов из общего enums (если есть)
-  let validChannels = [];
+  /**
+   * В dev разрешаем любые каналы, чтобы не ломать работу при несовпадении whitelist.
+   * В prod — включайте общий список каналов в `./ipc/channels`.
+   * @type {boolean}
+   */
+  const ALWAYS_ALLOW = !IS_PROD;
+
+  /**
+   * Список разрешённых каналов, если доступен общий enum каналов.
+   * @type {string[]}
+   */
+  let VALID_CHANNELS = [];
   try {
-    const { CHANNELS_LIST } = require("./ipc/channels");
-    if (Array.isArray(CHANNELS_LIST)) validChannels = CHANNELS_LIST;
+    // Необязательный импорт: может отсутствовать в старых ветках
+    const { CHANNELS_LIST } = require('./ipc/channels');
+    if (Array.isArray(CHANNELS_LIST)) VALID_CHANNELS = CHANNELS_LIST;
   } catch (_) {
-    // channels.js может отсутствовать в ранних сборках — игнорируем
+    // ignore
   }
 
-  const isAllowed = (channel) => (alwaysAllow || validChannels.includes(channel));
+  /**
+   * Проверка доступа к каналу.
+   * @param {string} channel
+   * @returns {boolean}
+   */
+  const isAllowed = (channel) => (ALWAYS_ALLOW || VALID_CHANNELS.includes(channel));
 
-  // ————————————————————————————————————————————————
-  // Безопасные обёртки
+  // ────────────────────────────────────────────────────────────────────────────
+  // Безопасные обёртки IPC
+
+  /**
+   * Надёжный invoke: отклоняет промис, если канал не разрешён.
+   * @param {string} channel
+   * @param {...any} args
+   * @returns {Promise<any>}
+   */
   function safeInvoke(channel, ...args) {
     if (isAllowed(channel)) return ipcRenderer.invoke(channel, ...args);
     return Promise.reject(new Error(`[IPC blocked] ${channel}`));
   }
+
+  /**
+   * Безопасная отправка сообщения без ожидания ответа.
+   * @param {string} channel
+   * @param {...any} args
+   * @returns {void}
+   */
   function safeSend(channel, ...args) {
     if (isAllowed(channel)) ipcRenderer.send(channel, ...args);
   }
+
+  /**
+   * Подписка на события IPC (listener получает только payload без event).
+   * Возвращает функцию отписки.
+   * @param {string} channel
+   * @param {(…args: any[]) => void} listener
+   * @returns {(() => void) | undefined}
+   */
   function safeOn(channel, listener) {
-    if (!isAllowed(channel)) return;
+    if (!isAllowed(channel)) return undefined;
     const wrapped = (_event, ...payload) => listener(...payload);
     ipcRenderer.on(channel, wrapped);
     return () => ipcRenderer.removeListener(channel, wrapped);
   }
+
+  /**
+   * Одноразовая подписка на событие IPC.
+   * @param {string} channel
+   * @param {(…args: any[]) => void} listener
+   * @returns {void}
+   */
   function safeOnce(channel, listener) {
     if (!isAllowed(channel)) return;
     const wrapped = (_event, ...payload) => listener(...payload);
     ipcRenderer.once(channel, wrapped);
   }
 
-  // Локальная платформа — без IPC, чтобы не требовать обработчик в main
+  /**
+   * Отправить в первый разрешённый канал из списка вариантов (для совместимости
+   * со старыми именами каналов: `window-minimize`/`minimize`/`app:minimize`).
+   * @param {string[]} variants
+   * @param {...any} args
+   * @returns {boolean} true — если удалось отправить
+   */
+  function sendFirstAllowed(variants, ...args) {
+    for (const ch of variants) {
+      if (isAllowed(ch)) {
+        ipcRenderer.send(ch, ...args);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Информация о платформе (без IPC).
+   * @typedef {Object} PlatformInfo
+   * @property {boolean} isMac
+   * @property {boolean} isWindows
+   * @property {NodeJS.Platform} platform
+   * @property {string} arch
+   */
+
+  /**
+   * Получить информацию о платформе.
+   * @returns {Promise<PlatformInfo>}
+   */
   async function getPlatformInfo() {
     return {
-      isMac: process.platform === "darwin",
-      isWindows: process.platform === "win32",
+      isMac: process.platform === 'darwin',
+      isWindows: process.platform === 'win32',
       platform: process.platform,
       arch: process.arch,
     };
   }
 
-  contextBridge.exposeInMainWorld("electron", {
-    // ——— Совместимость со старым API ———
-    invoke: safeInvoke,      // <-- добавлено для совместимости (window.electron.invoke)
-    on: safeOn,              // <-- совместимость (window.electron.on)
-    send: safeSend,          // уже было
-    receive: safeOn,         // уже было
+  /**
+   * API для окна (доступно как `window.electron`).
+   * @typedef {Object} ElectronBridge
+   * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
+   * @property {(channel: string, listener: (...args: any[]) => void) => (() => void)|undefined} on
+   * @property {(channel: string, ...args: any[]) => void} send
+   * @property {(listener: (...args: any[]) => void) => (() => void)|undefined} onShowWhatsNew
+   * @property {{
+   *   getVersions: () => Promise<any>,
+   *   showInFolder: (p: string) => Promise<any>,
+   *   installAll: () => Promise<any>,
+   *   checkUpdates: (opts?: any) => Promise<any>,
+   *   updateYtDlp: () => Promise<any>,
+   *   updateFfmpeg: () => Promise<any>,
+   * }} tools
+   * @property {(cb: (v:any)=>void) => void} onVersion
+   * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onWindowFocused
+   * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onProgress
+   * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onNotification
+   * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onPasteNotification
+   * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onToast
+   * @property {{
+   *   invoke: (channel: string, ...args:any[]) => Promise<any>,
+   *   send: (channel: string, ...args:any[]) => void,
+   *   on: (channel: string, cb: (...args:any[])=>void) => (()=>void)|undefined,
+   *   once: (channel: string, cb: (...args:any[])=>void) => void,
+   *   removeAllListeners: (channel: string) => void,
+   * }} ipcRenderer
+   * @property {() => Promise<PlatformInfo>} getPlatformInfo
+   * @property {() => void} minimize
+   * @property {() => void} close
+   */
 
-    // Специальные удобные подписки для совместимости со старым кодом
-    onShowWhatsNew: (callback) => safeOn("show-whats-new", callback),
+  /** @type {ElectronBridge} */
+  const electronAPI = {
+    // Совместимость со старым API
+    invoke: safeInvoke,
+    on: safeOn,
+    send: safeSend,
+    receive: safeOn,
 
-    // Совместимый API для инструментов
+    // Специальные подписки
+    onShowWhatsNew: (callback) => safeOn('show-whats-new', callback),
+
+    // Инструменты
     tools: {
-      getVersions: () => safeInvoke("tools:getVersions"),
-      showInFolder: (p) => safeInvoke("tools:showInFolder", p),
-      installAll: () => safeInvoke("tools:installAll"),
-      checkUpdates: (opts) => safeInvoke("tools:checkUpdates", opts),
-      updateYtDlp: () => safeInvoke("tools:updateYtDlp"),
-      updateFfmpeg: () => safeInvoke("tools:updateFfmpeg"),
+      getVersions: () => safeInvoke('tools:getVersions'),
+      showInFolder: (p) => safeInvoke('tools:showInFolder', p),
+      installAll: () => safeInvoke('tools:installAll'),
+      checkUpdates: (opts) => safeInvoke('tools:checkUpdates', opts),
+      updateYtDlp: () => safeInvoke('tools:updateYtDlp'),
+      updateFfmpeg: () => safeInvoke('tools:updateFfmpeg'),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код
     onVersion: (callback) => {
-      if (typeof callback === "function") {
-        safeInvoke("get-version").then(callback).catch(() => {});
+      if (typeof callback === 'function') {
+        safeInvoke('get-version').then(callback).catch(() => {});
       }
     },
-    onWindowFocused: (callback) => safeOn("window-focused", callback),
-    onProgress: (callback) => safeOn("download-progress", callback),
-    onNotification: (callback) => safeOn("download-notification", callback),
-    onPasteNotification: (callback) => safeOn("paste-notification", callback),
-    onToast: (callback) => safeOn("toast", callback),
+    onWindowFocused: (cb) => safeOn('window-focused', cb),
+    onProgress: (cb) => safeOn('download-progress', cb),
+    onNotification: (cb) => safeOn('download-notification', cb),
+    onPasteNotification: (cb) => safeOn('paste-notification', cb),
+    onToast: (cb) => safeOn('toast', cb),
 
-    // Новый API — явный proxy на ipcRenderer
-      // ——— Новый API: явный proxy на ipcRenderer ———
+    // Прямой прокси IPC
     ipcRenderer: {
       invoke: safeInvoke,
       send: safeSend,
@@ -90,21 +204,20 @@ try {
       removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
     },
 
-    // Утилиты
-      // ——— Утилиты ———
-  getPlatformInfo,
-  minimize: () => {
-    // Пытаемся отправить в один из известных каналов (поддержка старых/новых названий)
-    const variants = ["window-minimize", "minimize", "app:minimize"];
-    for (const ch of variants) { if (isAllowed(ch)) { ipcRenderer.send(ch); break; } }
-  },
-  close: () => {
-    const variants = ["window-close", "close", "app:close"];
-    for (const ch of variants) { if (isAllowed(ch)) { ipcRenderer.send(ch); break; } }
-  },
-  });
+    // Утилиты и совместимость с разными именами каналов
+    getPlatformInfo,
+    minimize: () => { sendFirstAllowed(['window-minimize', 'minimize', 'app:minimize']); },
+    close: () => { sendFirstAllowed(['window-close', 'close', 'app:close']); },
+  };
+
+  // Экспортируем в глобальный контекст окна
+  contextBridge.exposeInMainWorld('electron', electronAPI);
+
+  /**
+   * Расширение Window для автодополнения в редакторах.
+   * @typedef {Window & { electron: ElectronBridge }} WindowWithElectron
+   */
 } catch (error) {
-  // Никогда не валим рендерер из‑за ошибок в preload — просто логируем
-  // и оставляем страницу работать без bridge (renderer должен это пережить).
-  console.error("[preload] failed to initialize contextBridge:", error);
+  // Не валим рендерер из‑за ошибок в preload — просто логируем.
+  console.error('[preload] failed to initialize contextBridge:', error);
 }
