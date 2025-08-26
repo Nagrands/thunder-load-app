@@ -93,8 +93,7 @@
       "artifactName": "${productName}-${version}.${ext}",
       "icon": "assets/icons/macOS/icon.icns",
       "category": "public.app-category.utilities"
-    },
-    "afterPack": "./scripts/afterPack.js"
+    }
   },
   "jest": {
     "transform": {
