@@ -121,7 +121,9 @@ function setupIpcHandlers(dependencies) {
     log.error("auto-shutdown init schedule error:", e);
   }
 
-  ipcMain.handle(CHANNELS.GET_DEFAULT_TAB, () => store.get("defaultTab", "download"));
+  ipcMain.handle(CHANNELS.GET_DEFAULT_TAB, () =>
+    store.get("defaultTab", "download"),
+  );
   ipcMain.handle(CHANNELS.SET_DEFAULT_TAB, (_, tabId) =>
     store.set("defaultTab", tabId),
   );
@@ -213,7 +215,9 @@ function setupIpcHandlers(dependencies) {
   // ---- Extra helpers for latest resolution & heuristics ----
   async function resolveLatestYtDlpViaPyPI(ts) {
     try {
-      const p = await fetchJson(`https://pypi.org/pypi/yt-dlp/json${ts ? `?t=${Date.now()}` : ""}`);
+      const p = await fetchJson(
+        `https://pypi.org/pypi/yt-dlp/json${ts ? `?t=${Date.now()}` : ""}`,
+      );
       const ver = p?.info?.version ? String(p.info.version).trim() : null; // e.g. "2025.08.11"
       return ver || null;
     } catch (_) {
@@ -223,7 +227,9 @@ function setupIpcHandlers(dependencies) {
 
   async function resolveLatestFfmpegViaFfbinaries(ts) {
     try {
-      const f = await fetchJson(`https://ffbinaries.com/api/v1/version/latest${ts ? `?t=${Date.now()}` : ""}`);
+      const f = await fetchJson(
+        `https://ffbinaries.com/api/v1/version/latest${ts ? `?t=${Date.now()}` : ""}`,
+      );
       const ver = f?.version ? String(f.version).trim() : null; // e.g. "7.1"
       return ver || null;
     } catch (_) {
@@ -245,7 +251,8 @@ function setupIpcHandlers(dependencies) {
 
   async function resolveLatestFfmpegViaGyan(ts) {
     // Try lightweight .ver endpoints first, then fall back to parsing the builds page
-    const addTs = (u) => (ts ? (u + (u.includes("?") ? "&" : "?") + "t=" + Date.now()) : u);
+    const addTs = (u) =>
+      ts ? u + (u.includes("?") ? "&" : "?") + "t=" + Date.now() : u;
     const candidates = [
       "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z.ver",
       "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip.ver",
@@ -261,8 +268,12 @@ function setupIpcHandlers(dependencies) {
       } catch (_) {}
     }
     try {
-      const html = await fetchText(addTs("https://www.gyan.dev/ffmpeg/builds/"));
-      const m = String(html || "").match(/latest\s+release\s+version\s*:\s*([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i);
+      const html = await fetchText(
+        addTs("https://www.gyan.dev/ffmpeg/builds/"),
+      );
+      const m = String(html || "").match(
+        /latest\s+release\s+version\s*:\s*([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i,
+      );
       if (m && m[1]) return m[1];
     } catch (_) {}
     return null;
@@ -337,11 +348,19 @@ function setupIpcHandlers(dependencies) {
       const tools = await getToolsVersions();
 
       // Try to read local versions from disk by executing the binaries (more reliable than cached values)
-      let ytCurrent = tools?.ytDlp?.ok ? (tools.ytDlp.version || "").split("\n")[0] : null;
+      let ytCurrent = tools?.ytDlp?.ok
+        ? (tools.ytDlp.version || "").split("\n")[0]
+        : null;
       try {
         if (tools?.ytDlp?.path && fs.existsSync(tools.ytDlp.path)) {
-          const { stdout } = await execFileAsync(tools.ytDlp.path, ["--version"], { timeout: 8000 });
-          ytCurrent = String(stdout || "").trim().split("\n")[0];
+          const { stdout } = await execFileAsync(
+            tools.ytDlp.path,
+            ["--version"],
+            { timeout: 8000 },
+          );
+          ytCurrent = String(stdout || "")
+            .trim()
+            .split("\n")[0];
         }
       } catch (e) {
         log.warn("yt-dlp local exec failed:", e.message || e);
@@ -351,7 +370,11 @@ function setupIpcHandlers(dependencies) {
       let ffCurrent = tools?.ffmpeg?.ok ? tools.ffmpeg.version || "" : null;
       try {
         if (tools?.ffmpeg?.path && fs.existsSync(tools.ffmpeg.path)) {
-          const { stdout } = await execFileAsync(tools.ffmpeg.path, ["-version"], { timeout: 8000 });
+          const { stdout } = await execFileAsync(
+            tools.ffmpeg.path,
+            ["-version"],
+            { timeout: 8000 },
+          );
           ffCurrent = String(stdout || "").trim();
         }
       } catch (e) {
@@ -360,19 +383,20 @@ function setupIpcHandlers(dependencies) {
       ffCurrent = normalizeFfmpegVersion(ffCurrent);
 
       // When fetching latest versions from GitHub, honor opts.noCache/forceFetch by appending a timestamp query to URLs
-      const ts = (opts && (opts.noCache || opts.forceFetch)) ? `?t=${Date.now()}` : "";
+      const ts =
+        opts && (opts.noCache || opts.forceFetch) ? `?t=${Date.now()}` : "";
       // --- yt-dlp latest (with fallbacks) ---
       let ytLatest = null;
       let ytUnknownLatest = false;
       try {
         const ytrel = await fetchJson(
-          `https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest${ts}`
+          `https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest${ts}`,
         );
         ytLatest = normalizeYtDlpVersion(ytrel?.tag_name);
         if (!ytLatest) {
           // Fallback #1: latest release from list
           const rels = await fetchJson(
-            `https://api.github.com/repos/yt-dlp/yt-dlp/releases?per_page=1${ts ? `&t=${Date.now()}` : ""}`
+            `https://api.github.com/repos/yt-dlp/yt-dlp/releases?per_page=1${ts ? `&t=${Date.now()}` : ""}`,
           );
           if (Array.isArray(rels) && rels.length) {
             ytLatest = normalizeYtDlpVersion(rels[0]?.tag_name);
@@ -381,7 +405,7 @@ function setupIpcHandlers(dependencies) {
         if (!ytLatest) {
           // Fallback #2: latest tag
           const tags = await fetchJson(
-            `https://api.github.com/repos/yt-dlp/yt-dlp/tags?per_page=1${ts ? `&t=${Date.now()}` : ""}`
+            `https://api.github.com/repos/yt-dlp/yt-dlp/tags?per_page=1${ts ? `&t=${Date.now()}` : ""}`,
           );
           if (Array.isArray(tags) && tags.length) {
             ytLatest = normalizeYtDlpVersion(tags[0]?.name);
@@ -437,7 +461,9 @@ function setupIpcHandlers(dependencies) {
 
       // Sanity check: ignore clearly bogus versions (e.g., 2.0)
       if (ffLatest && !isReasonableFfVersion(ffLatest)) {
-        log.warn(`[tools:checkUpdates] ffmpeg latest looked unreasonable: ${ffLatest} — ignoring`);
+        log.warn(
+          `[tools:checkUpdates] ffmpeg latest looked unreasonable: ${ffLatest} — ignoring`,
+        );
         ffLatest = null;
       }
 
@@ -489,7 +515,9 @@ function setupIpcHandlers(dependencies) {
       const ytDlpInfo = tools?.ytDlp;
       if (ytDlpInfo?.ok && ytDlpInfo?.path) {
         try {
-          log.info(`[tools:installAll] Removing existing yt-dlp at ${ytDlpInfo.path}`);
+          log.info(
+            `[tools:installAll] Removing existing yt-dlp at ${ytDlpInfo.path}`,
+          );
           await fsPromises.unlink(ytDlpInfo.path);
         } catch (e) {
           log.warn(`[tools:installAll] Could not remove yt-dlp: ${e.message}`);
@@ -504,7 +532,9 @@ function setupIpcHandlers(dependencies) {
       const ffmpegInfo = tools?.ffmpeg;
       if (ffmpegInfo?.ok && ffmpegInfo?.path) {
         try {
-          log.info(`[tools:installAll] Removing existing ffmpeg at ${ffmpegInfo.path}`);
+          log.info(
+            `[tools:installAll] Removing existing ffmpeg at ${ffmpegInfo.path}`,
+          );
           await fsPromises.unlink(ffmpegInfo.path);
         } catch (e) {
           log.warn(`[tools:installAll] Could not remove ffmpeg: ${e.message}`);
@@ -516,15 +546,29 @@ function setupIpcHandlers(dependencies) {
       await installFfmpeg();
 
       if (mainWindow && mainWindow.webContents) {
-        mainWindow.webContents.send("status-message", "Зависимости установлены.");
-        mainWindow.webContents.send("toast", "Зависимости установлены", "success");
+        mainWindow.webContents.send(
+          "status-message",
+          "Зависимости установлены.",
+        );
+        mainWindow.webContents.send(
+          "toast",
+          "Зависимости установлены",
+          "success",
+        );
       }
       return { success: true };
     } catch (e) {
       log.error("tools:installAll error:", e);
       if (mainWindow && mainWindow.webContents) {
-        mainWindow.webContents.send("status-message", `Ошибка при установке зависимостей: ${e.message}`);
-        mainWindow.webContents.send("toast", `Не удалось установить зависимости: ${e.message}` , "error");
+        mainWindow.webContents.send(
+          "status-message",
+          `Ошибка при установке зависимостей: ${e.message}`,
+        );
+        mainWindow.webContents.send(
+          "toast",
+          `Не удалось установить зависимости: ${e.message}`,
+          "error",
+        );
       }
       return { success: false, error: e.message };
     }
@@ -674,12 +718,12 @@ function setupIpcHandlers(dependencies) {
 
       const videoFormat = selectedFormats.videoFormat;
       const audioFormat = selectedFormats.audioFormat;
-      const audioExt    = selectedFormats.audioExt;
-      const videoExt    = selectedFormats.videoExt;
+      const audioExt = selectedFormats.audioExt;
+      const videoExt = selectedFormats.videoExt;
 
       // Получаем разрешение и fps
       const resolution = selectedFormats.resolution;
-      const fps        = selectedFormats.fps;
+      const fps = selectedFormats.fps;
 
       checkIfCancelled("before downloadMedia");
 
@@ -1150,7 +1194,6 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-
   ipcMain.handle(CHANNELS.OPEN_DOWNLOAD_FOLDER, async (event, filePath) => {
     if (!filePath || typeof filePath !== "string")
       throw new TypeError('The "path" argument must be of type string.');
@@ -1352,14 +1395,17 @@ function setupIpcHandlers(dependencies) {
     return store.get("minimizeOnLaunch", false);
   });
 
-  ipcMain.handle(CHANNELS.SET_MINIMIZE_INSTEAD_OF_CLOSE, async (event, minimize) => {
-    store.set("minimizeInsteadOfClose", minimize);
-    showTrayNotification(
-      minimize
-        ? "Приложение теперь будет сворачиваться в трей при закрытии."
-        : "Приложение теперь будет полностью закрываться.",
-    );
-  });
+  ipcMain.handle(
+    CHANNELS.SET_MINIMIZE_INSTEAD_OF_CLOSE,
+    async (event, minimize) => {
+      store.set("minimizeInsteadOfClose", minimize);
+      showTrayNotification(
+        minimize
+          ? "Приложение теперь будет сворачиваться в трей при закрытии."
+          : "Приложение теперь будет полностью закрываться.",
+      );
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_AUTO_LAUNCH_STATUS, async () => {
     try {
@@ -1371,17 +1417,23 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.SET_MINIMIZE_TO_TRAY_STATUS, async (event, enable) => {
-    store.set("minimizeToTray", enable);
-  });
+  ipcMain.handle(
+    CHANNELS.SET_MINIMIZE_TO_TRAY_STATUS,
+    async (event, enable) => {
+      store.set("minimizeToTray", enable);
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_MINIMIZE_TO_TRAY_STATUS, async () => {
     return store.get("minimizeToTray", false);
   });
 
-  ipcMain.handle(CHANNELS.SET_CLOSE_NOTIFICATION_STATUS, async (event, enable) => {
-    store.set("closeNotification", enable);
-  });
+  ipcMain.handle(
+    CHANNELS.SET_CLOSE_NOTIFICATION_STATUS,
+    async (event, enable) => {
+      store.set("closeNotification", enable);
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_CLOSE_NOTIFICATION_STATUS, async () => {
     return store.get("closeNotification", true);
@@ -1398,14 +1450,17 @@ function setupIpcHandlers(dependencies) {
     return store.get("expandWindowOnDownloadComplete", false);
   });
 
-  ipcMain.handle(CHANNELS.SET_OPEN_ON_COPY_URL_STATUS, async (event, enabled) => {
-    store.set("openOnCopyUrl", enabled);
-    if (clipboardMonitor) {
-      enabled ? clipboardMonitor.start() : clipboardMonitor.stop();
-    } else {
-      log.warn("clipboardMonitor не инициализирован");
-    }
-  });
+  ipcMain.handle(
+    CHANNELS.SET_OPEN_ON_COPY_URL_STATUS,
+    async (event, enabled) => {
+      store.set("openOnCopyUrl", enabled);
+      if (clipboardMonitor) {
+        enabled ? clipboardMonitor.start() : clipboardMonitor.stop();
+      } else {
+        log.warn("clipboardMonitor not initialized");
+      }
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_OPEN_ON_COPY_URL_STATUS, async () => {
     return store.get("openOnCopyUrl", false);
@@ -1416,26 +1471,32 @@ function setupIpcHandlers(dependencies) {
     return isEnabled;
   });
 
-  ipcMain.handle(CHANNELS.SET_DISABLE_GLOBAL_SHORTCUTS_STATUS, (event, enable) => {
-    store.set("disableGlobalShortcuts", enable);
-    if (enable) {
-      globalShortcut.unregisterAll();
-      log.info("Global hotkeys are disabled.");
-    } else {
-      setupGlobalShortcuts(mainWindow);
-      log.info("Global hotkeys are enabled.");
-    }
-  });
+  ipcMain.handle(
+    CHANNELS.SET_DISABLE_GLOBAL_SHORTCUTS_STATUS,
+    (event, enable) => {
+      store.set("disableGlobalShortcuts", enable);
+      if (enable) {
+        globalShortcut.unregisterAll();
+        log.info("Global hotkeys are disabled.");
+      } else {
+        setupGlobalShortcuts(mainWindow);
+        log.info("Global hotkeys are enabled.");
+      }
+    },
+  );
 
-  ipcMain.handle(CHANNELS.SHOW_SYSTEM_NOTIFICATION, async (event, { title, body }) => {
-    if (Notification.isSupported()) {
-      new Notification({ title, body }).show();
-    } else {
-      console.error(
-        "Системные уведомления не поддерживаются на этом устройстве.",
-      );
-    }
-  });
+  ipcMain.handle(
+    CHANNELS.SHOW_SYSTEM_NOTIFICATION,
+    async (event, { title, body }) => {
+      if (Notification.isSupported()) {
+        new Notification({ title, body }).show();
+      } else {
+        console.error(
+          "Системные уведомления не поддерживаются на этом устройстве.",
+        );
+      }
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS, async () => {
     return store.get("minimizeInsteadOfClose", false);

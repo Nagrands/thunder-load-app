@@ -14401,7 +14401,7 @@ body.ready #app-preloader {
   border-color: rgba(255, 255, 255, 0.08);
 }
 .wireguard-view .wg-glass .wg-log-block {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25)) rgba(56, 56, 56, 0.02);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25)), rgba(56, 56, 56, 0.02);
 }
 .wireguard-view .wg-header {
   display: flex;
@@ -14947,6 +14947,121 @@ body.ready #app-preloader {
   z-index: -9999;
 }
 
+/* ============================
+   Responsive tweaks for small windows
+   ============================ */
+@media (max-width: 820px) {
+  .wireguard-view .wg-glass {
+    margin-top: 3.5%;
+    padding: 8px 12px;
+  }
+  .wireguard-view .wg-header {
+    margin: 1.25rem 0;
+    gap: 0.75rem;
+  }
+  .wireguard-view .wg-header .subtitle {
+    font-size: 0.85rem;
+  }
+  .wireguard-view .wg-card {
+    padding: 0.7rem 0.9rem;
+  }
+}
+@media (max-width: 620px) {
+  .wg-center {
+    min-height: auto; /* не тянем контейнер, когда маленькое окно */
+  }
+  .wireguard-view::after {
+    /* делаем виньетку мягче на совсем маленьких окнах */
+    background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.08) 75%, rgba(0, 0, 0, 0.25) 100%);
+  }
+  .wireguard-view .wg-glass {
+    margin-top: 2.5%;
+    padding: 8px 10px;
+    border-radius: calc(var(--border-radius) - 2px);
+  }
+  .wireguard-view .wg-grid {
+    grid-template-columns: 1fr; /* одна колонка */
+    gap: 0.65rem;
+  }
+  .wireguard-view .wg-block {
+    padding: 8px;
+  }
+  .wireguard-view h1 {
+    font-size: 18px;
+    margin-bottom: 0.4rem;
+  }
+  .wireguard-view h2.section-heading {
+    margin: 1rem 0 0.5rem;
+    font-size: 1rem;
+  }
+  .wireguard-view .buttons {
+    flex-direction: column; /* кнопки в колонку */
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px;
+  }
+  .wireguard-view .buttons .large-button,
+  .wireguard-view .buttons .small-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 0.9rem;
+  }
+  .wireguard-view .wg-log-block {
+    overflow: hidden; /* единый скролл только у pre */
+    padding: 0.4rem;
+  }
+  .wireguard-view .wg-log-block summary {
+    position: static; /* убираем липкость, чтобы не плодить второй скролл */
+    box-shadow: none;
+    background: transparent;
+    padding: 0.2rem 0.4rem;
+  }
+  .wireguard-view .wg-log-block pre#wg-log {
+    max-height: 40vh; /* ограничение высоты логов на маленьких окнах */
+    overflow-y: auto;
+    margin-top: 0.25rem !important;
+    font-size: 0.82rem;
+  }
+  .wireguard-view .wg-log-toolbar {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .wireguard-view .wg-log-toolbar .wg-log-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 420px) {
+  .wireguard-view .wg-header .title {
+    padding: 8px 10px;
+  }
+  .wireguard-view .wg-header .title i {
+    padding: 8px;
+  }
+  .wireguard-view .switch .switch-label {
+    font-size: 0.85rem;
+  }
+  .wireguard-view .input {
+    padding: var(--spacing-small);
+  }
+  .wireguard-view .checkbox-label {
+    gap: 0.4rem;
+  }
+  .wireguard-view .history-action-button {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+}
+@media (max-height: 560px) {
+  /* когда окно низкое, уменьшим отступы и высоту логов */
+  .wireguard-view .wg-header {
+    margin: 0.8rem 0;
+  }
+  .wireguard-view .wg-log-block pre#wg-log {
+    max-height: 32vh;
+  }
+}
 body.is-mac .btn-minimize,
 body.is-mac .btn-close {
   display: none !important;
