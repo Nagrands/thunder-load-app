@@ -5,6 +5,18 @@ import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
 
 export default function renderWireGuard() {
+  // Guard: если вкладка WG Unlock отключена — не инициализируем UI
+  const _isWgDisabled = () => {
+    try { return JSON.parse(localStorage.getItem('wgUnlockDisabled')) === true; } catch { return false; }
+  };
+  if (_isWgDisabled()) {
+    // возвращаем скрытый контейнер, чтобы tabSystem мог управлять отображением
+    const placeholder = document.createElement('div');
+    placeholder.id = 'wireguard-view';
+    placeholder.className = 'wireguard-view tab-content p-4 space-y-4';
+    placeholder.style.display = 'none';
+    return placeholder;
+  }
   const T0 = performance.now();
   // Ensure WG background is preloaded to prevent layout jump on first render
   if (!document.querySelector('.wg-bg-preload')) {

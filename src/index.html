@@ -590,7 +590,7 @@
                   </li>
                 </ul>
                 <h2>
-                  Открывать вкладку
+                  При запуске открывать
                   <i
                     class="fa-solid fa-circle-info"
                     data-bs-toggle="tooltip"
@@ -599,7 +599,7 @@
                   ></i>
                 </h2>
                 <ul class="module">
-                  <li>
+                  <li class="custom-theme-select">
                     <input
                       type="radio"
                       id="settings-tab-downloader"
@@ -609,10 +609,10 @@
                     />
                     <label for="settings-tab-downloader">
                       <i class="fa-solid fa-download"></i>
-                      Downloader</label
+                      <strong>Downloader</strong></label
                     >
                   </li>
-                  <li>
+                  <li class="custom-theme-select">
                     <input
                       type="radio"
                       id="settings-tab-wgsend"
@@ -621,7 +621,7 @@
                     />
                     <label for="settings-tab-wgsend">
                       <i class="fa-solid fa-unlock-keyhole"></i>
-                      WG Unlock</label
+                      <strong>WG Unlock</strong></label
                     >
                   </li>
                 </ul>
@@ -720,6 +720,13 @@
               <div id="wgunlock-settings" class="tab-pane">
                 <h2>Вкладка «WireGuard Unlock»</h2>
                 <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="wg-disable-toggle" />
+                    <label for="wg-disable-toggle" data-bs-toggle="tooltip" data-bs-placement="top" title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.">
+                      <i class="fa-solid fa-unlock-keyhole"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
                   <li>
                     <input type="checkbox" id="wg-autosend" />
                     <label for="wg-autosend">
@@ -746,7 +753,7 @@
                   >
                     <label for="wg-auto-shutdown-seconds">
                       <i class="fa-solid fa-hourglass-half"></i>
-                      Закрыть через:
+                      Закрытие приложения через:
                       <strong
                         ><span id="wg-auto-shutdown-value">30</span>
                         сек.</strong
@@ -842,7 +849,7 @@
                   ></i>
                 </h2>
                 <ul class="module">
-                  <li>
+                  <li class="custom-theme-select">
                     <input
                       type="checkbox"
                       id="settings-disable-global-shortcuts-toggle"

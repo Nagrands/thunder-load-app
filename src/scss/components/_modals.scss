@@ -307,15 +307,6 @@
   }
 
   // === Списки и элементы ===
-  ul.module {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 2px;
-    background-color: var(--color-hover);
-    border-radius: var(--border-radius);
-    margin: 1rem 0;
-  }
 
   li {
     display: flex;
@@ -433,7 +424,7 @@
   .custom-theme-select {
     display: flex;
     align-items: center;
-    gap: 12px;
+    // gap: 12px;
 
     label {
       display: flex;
@@ -465,7 +456,7 @@
     }
 
     .dropdown-reset {
-      margin-left: auto;
+      // margin-left: auto;
       height: 38px;
     }
   }
@@ -561,13 +552,21 @@
       }
     }
   }
-
-  // === Вкладка «Внешний вид» — улучшения ===
-  #appearance-settings {
+  
+  #general-settings,
+  #window-settings,
+  #wgunlock-settings,
+  #appearance-settings,
+  #other-settings{
     // Карточный вид строк
     ul.module {
-      background: transparent;
-      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 1px;
+      background-color: var(--color-hover);
+      border-radius: var(--border-radius);
+      // margin: 1rem 0;
 
       li.custom-theme-select {
         background: var(--color-bg-secondary);

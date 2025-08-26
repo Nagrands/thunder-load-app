@@ -439,6 +439,171 @@ async function initSettings() {
       }
     });
 
+  // === WG Unlock: отключение вкладки (settings toggle) ===
+  (function initWgDisableToggle(){
+    const KEY = "wgUnlockDisabled";
+    const read = () => {
+      try { return JSON.parse(localStorage.getItem(KEY)) === true; } catch { return false; }
+    };
+
+    function toggleAutoSendDisabled(disabled) {
+      // Ищем контрол «Авто‑отправка при запуске» (внутри WG‑секции настроек)
+      const modal = document.getElementById("settings-modal") || document.querySelector("#settings");
+      const root = modal || document;
+      const autosend = root.querySelector("#wg-autosend, #wg-autosend-toggle, [name=\"wg-autosend\"], [data-setting=\"wg-autosend\"]");
+      if (!autosend) return;
+      autosend.disabled = !!disabled;
+      const label = autosend.closest("label, .form-check, .settings-row") || autosend.parentElement;
+      if (label) label.classList.toggle("is-disabled", !!disabled);
+      // Подсказка через Bootstrap tooltip, если инициализатор активен
+      if (label && label.hasAttribute("data-bs-toggle")) {
+        try { window.bootstrap?.Tooltip?.getOrCreateInstance(label); } catch {}
+      }
+    }
+
+    function findWgSectionContainer(modal) {
+      // Ищем ПРАВЫЙ КОНТЕНТ WG-секции (не левую навигацию)
+      const byPaneId = modal?.querySelector('#wgunlock-settings');
+      if (byPaneId) return byPaneId.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byPaneId;
+
+      const byId = modal?.querySelector('#settings-wg');
+      if (byId) return byId.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byId;
+
+      const byData = modal?.querySelector('[data-section="wg"]');
+      if (byData) return byData.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byData;
+
+      const byClass = modal?.querySelector('.settings-section--wg');
+      if (byClass) return byClass.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byClass;
+
+      // Заголовок WG Unlock → ближайшая секция → её контент
+      const heading = Array.from(modal?.querySelectorAll('h2, h3, .section-title') || [])
+        .find(h => /WG\s*Unlock/i.test(h.textContent || ''));
+      if (heading) {
+        const sec = heading.closest('.settings-section, .card, section, .accordion-item') || heading.parentElement;
+        if (sec) return sec.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || sec;
+      }
+      // Фолбэк — контент модалки
+      return modal?.querySelector('.settings-body, .modal-body, .settings-content') || modal || document.body;
+    }
+
+    const write = (v) => {
+      const val = !!v;
+      try { localStorage.setItem(KEY, JSON.stringify(val)); } catch {}
+      // необязательный IPC-фолбэк — если канал есть в preload whitelist
+      try { window.electron?.send && window.electron.send("settings:set", { key: KEY, value: val }); } catch {}
+      // мгновенно обновляем интерфейс вкладок (tabSystem.js подпишется на событие)
+      window.dispatchEvent(new CustomEvent("wg:toggleDisabled", { detail: { disabled: val } }));
+      // Блокируем/разблокируем автосенд
+      toggleAutoSendDisabled(val);
+      // тост
+      window.electron?.invoke?.("toast", val
+        ? "Вкладка <strong>WG Unlock</strong> отключена"
+        : "Вкладка <strong>WG Unlock</strong> включена",
+        val ? "info" : "success");
+    };
+
+    // Находим контейнер модалки и WG‑секцию
+    const modal = document.getElementById("settings-modal") || document.querySelector("#settings");
+    const target = findWgSectionContainer(modal);
+    if (!target) return; // защитимся, если модалка ещё не инициализирована
+
+    // Если тумблер уже размечен в index.html — привяжем логику и не создаём дубликат
+    const staticToggle = document.querySelector('#wgunlock-settings #wg-disable-toggle, #wg-disable-toggle');
+    if (staticToggle) {
+      staticToggle.checked = read();
+      staticToggle.addEventListener('change', () => write(staticToggle.checked));
+      window.electron?.on?.('open-settings', () => {
+        const val = read();
+        staticToggle.checked = val;
+        toggleAutoSendDisabled(val);
+      });
+      toggleAutoSendDisabled(read());
+      return;
+    }
+
+    // Guard: если переключатель уже вставлен — не дублируем UI
+    const existing = target.querySelector('#wg-disable-toggle');
+    if (existing) {
+      // синхронизируем состояние и обработчики на всякий случай
+      existing.checked = read();
+      existing.addEventListener('change', () => write(existing.checked), { once: true });
+      toggleAutoSendDisabled(read());
+      window.electron?.on?.('open-settings', () => {
+        const val = read();
+        existing.checked = val;
+        toggleAutoSendDisabled(val);
+      });
+      return;
+    }
+
+    // Создаём UI‑блок именно в секции WG Unlock
+    const row = document.createElement("div");
+    row.className = "settings-row settings-row--wg-disable";
+    row.innerHTML = `
+      <label class="checkbox-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.">
+        <input id="wg-disable-toggle" type="checkbox" />
+        <i class="fa-solid fa-bolt"></i>
+        Отключить вкладку WG Unlock
+      </label>
+      <p class="field-hint">Применяется сразу. Можно включить обратно в любое время.</p>
+    `;
+
+    target.appendChild(row);
+
+    // Видимость: показывать блок только на активной WG-секции
+    function isWgSectionActive() {
+      // Bootstrap 5 tab-pane.active или кастомная активность
+      const pane = row.closest('.tab-pane, .settings-section, section, .card, .accordion-item');
+      if (!pane) return true; // если не таб — считаем активным
+      // active по классам или стилям
+      const isActiveClass = pane.classList.contains('active') || !pane.hasAttribute('hidden');
+      const isVisible = pane.offsetParent !== null; // отрисован
+      return isActiveClass && isVisible;
+    }
+    function syncRowVisibility() {
+      row.style.display = isWgSectionActive() ? '' : 'none';
+    }
+    // первичная синхронизация
+    syncRowVisibility();
+
+    // Bootstrap событие переключения вкладок
+    document.addEventListener('shown.bs.tab', (e) => {
+      // если переключились в/из WG — обновим видимость
+      syncRowVisibility();
+    }, true);
+
+    // Делегированный обработчик на клик по навигации настроек
+    document.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-bs-toggle="tab"], [role="tab"], .settings-nav a, .settings-nav button');
+      if (el) {
+        setTimeout(syncRowVisibility, 0);
+      }
+    }, true);
+
+    // Наблюдаем за контейнером табов на изменения классов/атрибутов
+    const tabsRoot = modal?.querySelector('.tab-content, .settings-tabs, .modal-body');
+    if (tabsRoot && 'MutationObserver' in window) {
+      const mo = new MutationObserver(() => syncRowVisibility());
+      mo.observe(tabsRoot, { attributes: true, subtree: true, attributeFilter: ['class', 'style', 'hidden'] });
+    }
+
+    // Инициализация чекбокса
+    const input = row.querySelector("#wg-disable-toggle");
+    input.checked = read();
+    input.addEventListener("change", () => write(input.checked));
+
+    // Синхронизация при каждом открытии модалки
+    window.electron?.on?.("open-settings", () => {
+      const val = read();
+      input.checked = val;
+      toggleAutoSendDisabled(val);
+    });
+
+    // Применим блокировку автосенд на старте
+    toggleAutoSendDisabled(read());
+  })();
+  // === /WG Unlock: отключение вкладки ===
+
   // === WG Unlock: авто‑закрытие (toggle + range 10–60s) ===
   const wgAutoToggle = document.getElementById("wg-auto-shutdown-toggle");
   const wgRangeWrap = document.getElementById("wg-auto-shutdown-range");

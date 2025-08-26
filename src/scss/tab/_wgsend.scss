@@ -21,6 +21,8 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
 }
 
 .wireguard-view {
+  /* unified focus ring token for this view */
+  --focus-ring: 0 0 0 2px var(--color-accent);
   position: relative;
   background: none;
   isolation: isolate;
@@ -180,6 +182,10 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     position: relative;
     background: var(--color-hover);
     transition: background 0.15s ease;
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
   }
   .switch .slider::after {
     content: "";
@@ -329,6 +335,10 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     &:active {
       background-color: rgba(255, 255, 255, 0.04);
     }
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
   }
 
   #wg-status-indicator {
@@ -372,6 +382,10 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     border-radius: 4px;
     border: 1px solid var(--color-hover);
     background-color: var(--color-bg-secondary);
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
   }
 
   .checkbox-label {
@@ -437,6 +451,12 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     .large-button:active,
     .small-button:active {
       transform: translateY(0);
+    }
+
+    .large-button:focus-visible,
+    .small-button:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
     }
   }
 
@@ -538,6 +558,10 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+  }
+  .wg-log-block summary .small-button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
   .wg-log-block summary .small-button i {
     font-size: 0.9em;
@@ -695,6 +719,27 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   z-index: -9999;
 }
 
+/* Inline alert component for info/warn/error states */
+.wg-alert {
+  position: relative;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-hover);
+  background: rgba(255,255,255,0.03);
+  color: var(--color-highlight);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.35;
+
+  &.is-info { border-color: rgba(100, 180, 255, 0.45); background: rgba(100, 180, 255, 0.08); }
+  &.is-warn { border-color: rgba(255, 200, 60, 0.45);  background: rgba(255, 200, 60, 0.08);  }
+  &.is-error { border-color: var(--color-toast-error);  background: rgba(255, 80, 80, 0.08); }
+
+  .wg-alert-icon { flex: 0 0 auto; margin-top: 2px; color: currentColor; }
+  .wg-alert-content { flex: 1 1 auto; }
+}
+
 /* ============================
    Responsive tweaks for small windows
    ============================ */
@@ -806,4 +851,14 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   /* когда окно низкое, уменьшим отступы и высоту логов */
   .wireguard-view .wg-header { margin: 0.8rem 0; }
   .wireguard-view .wg-log-block pre#wg-log { max-height: 32vh; }
+}
+
+@media (max-height: 480px) {
+  .wireguard-view .wg-header { margin: 0.6rem 0; }
+  .wireguard-view h1 { margin-bottom: 0.35rem; border-bottom-width: 0; }
+  .wireguard-view .wg-block { margin-bottom: 6px; padding: 8px; }
+  .wireguard-view .buttons { gap: 8px; padding: 6px; }
+  .wireguard-view .buttons .large-button,
+  .wireguard-view .buttons .small-button { padding: 0.5rem 0.9rem; }
+  .wireguard-view .wg-log-block pre#wg-log { max-height: 28vh; }
 }

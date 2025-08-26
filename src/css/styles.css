@@ -13360,15 +13360,6 @@ body.ready #app-preloader {
   padding: 5px;
   line-height: 1.4;
 }
-.settings-modal ul.module {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 2px;
-  background-color: var(--color-hover);
-  border-radius: var(--border-radius);
-  margin: 1rem 0;
-}
 .settings-modal li {
   display: flex;
   align-items: center;
@@ -13458,7 +13449,6 @@ body.ready #app-preloader {
 .settings-modal .custom-theme-select {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 .settings-modal .custom-theme-select label {
   display: flex;
@@ -13484,7 +13474,6 @@ body.ready #app-preloader {
   flex: 1 1 auto;
 }
 .settings-modal .custom-theme-select .dropdown-reset {
-  margin-left: auto;
   height: 38px;
 }
 .settings-modal .dropdown {
@@ -13564,11 +13553,23 @@ body.ready #app-preloader {
   background-color: var(--color-accent);
   color: white;
 }
-.settings-modal #appearance-settings ul.module {
-  background: transparent;
-  gap: 10px;
+.settings-modal #general-settings ul.module,
+.settings-modal #window-settings ul.module,
+.settings-modal #wgunlock-settings ul.module,
+.settings-modal #appearance-settings ul.module,
+.settings-modal #other-settings ul.module {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 1px;
+  background-color: var(--color-hover);
+  border-radius: var(--border-radius);
 }
-.settings-modal #appearance-settings ul.module li.custom-theme-select {
+.settings-modal #general-settings ul.module li.custom-theme-select,
+.settings-modal #window-settings ul.module li.custom-theme-select,
+.settings-modal #wgunlock-settings ul.module li.custom-theme-select,
+.settings-modal #appearance-settings ul.module li.custom-theme-select,
+.settings-modal #other-settings ul.module li.custom-theme-select {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-hover);
   border-radius: var(--border-radius);
@@ -13576,27 +13577,51 @@ body.ready #app-preloader {
   margin: 0;
   transition: background-color var(--transition-duration) ease, border-color var(--transition-duration) ease;
 }
-.settings-modal #appearance-settings ul.module li.custom-theme-select:hover {
+.settings-modal #general-settings ul.module li.custom-theme-select:hover,
+.settings-modal #window-settings ul.module li.custom-theme-select:hover,
+.settings-modal #wgunlock-settings ul.module li.custom-theme-select:hover,
+.settings-modal #appearance-settings ul.module li.custom-theme-select:hover,
+.settings-modal #other-settings ul.module li.custom-theme-select:hover {
   background: var(--color-hover);
   border-color: var(--color-hover);
 }
-.settings-modal #appearance-settings .custom-theme-select .dropdown-toggle {
+.settings-modal #general-settings .custom-theme-select .dropdown-toggle,
+.settings-modal #window-settings .custom-theme-select .dropdown-toggle,
+.settings-modal #wgunlock-settings .custom-theme-select .dropdown-toggle,
+.settings-modal #appearance-settings .custom-theme-select .dropdown-toggle,
+.settings-modal #other-settings .custom-theme-select .dropdown-toggle {
   width: 220px;
   height: 36px;
 }
-.settings-modal #appearance-settings .custom-theme-select .dropdown-reset {
+.settings-modal #general-settings .custom-theme-select .dropdown-reset,
+.settings-modal #window-settings .custom-theme-select .dropdown-reset,
+.settings-modal #wgunlock-settings .custom-theme-select .dropdown-reset,
+.settings-modal #appearance-settings .custom-theme-select .dropdown-reset,
+.settings-modal #other-settings .custom-theme-select .dropdown-reset {
   height: 36px;
 }
-.settings-modal #appearance-settings .dropdown-menu {
+.settings-modal #general-settings .dropdown-menu,
+.settings-modal #window-settings .dropdown-menu,
+.settings-modal #wgunlock-settings .dropdown-menu,
+.settings-modal #appearance-settings .dropdown-menu,
+.settings-modal #other-settings .dropdown-menu {
   min-width: 220px;
   left: auto;
   right: 0;
 }
-.settings-modal #appearance-settings .dropdown-menu li {
+.settings-modal #general-settings .dropdown-menu li,
+.settings-modal #window-settings .dropdown-menu li,
+.settings-modal #wgunlock-settings .dropdown-menu li,
+.settings-modal #appearance-settings .dropdown-menu li,
+.settings-modal #other-settings .dropdown-menu li {
   position: relative;
   padding-left: 28px;
 }
-.settings-modal #appearance-settings .dropdown-menu li::before {
+.settings-modal #general-settings .dropdown-menu li::before,
+.settings-modal #window-settings .dropdown-menu li::before,
+.settings-modal #wgunlock-settings .dropdown-menu li::before,
+.settings-modal #appearance-settings .dropdown-menu li::before,
+.settings-modal #other-settings .dropdown-menu li::before {
   content: "";
   position: absolute;
   left: 10px;
@@ -13607,18 +13632,34 @@ body.ready #app-preloader {
   border-radius: 50%;
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
 }
-.settings-modal #appearance-settings .dropdown-menu li[data-value=dark]::before {
+.settings-modal #general-settings .dropdown-menu li[data-value=dark]::before,
+.settings-modal #window-settings .dropdown-menu li[data-value=dark]::before,
+.settings-modal #wgunlock-settings .dropdown-menu li[data-value=dark]::before,
+.settings-modal #appearance-settings .dropdown-menu li[data-value=dark]::before,
+.settings-modal #other-settings .dropdown-menu li[data-value=dark]::before {
   background: radial-gradient(circle at 30% 30%, #3a3a3a, #121212 70%);
 }
-.settings-modal #appearance-settings .dropdown-menu li[data-value=light]::before {
+.settings-modal #general-settings .dropdown-menu li[data-value=light]::before,
+.settings-modal #window-settings .dropdown-menu li[data-value=light]::before,
+.settings-modal #wgunlock-settings .dropdown-menu li[data-value=light]::before,
+.settings-modal #appearance-settings .dropdown-menu li[data-value=light]::before,
+.settings-modal #other-settings .dropdown-menu li[data-value=light]::before {
   background: radial-gradient(circle at 30% 30%, #f5f5f5, #d6d6d6 70%);
 }
-.settings-modal #appearance-settings .dropdown-menu li.active {
+.settings-modal #general-settings .dropdown-menu li.active,
+.settings-modal #window-settings .dropdown-menu li.active,
+.settings-modal #wgunlock-settings .dropdown-menu li.active,
+.settings-modal #appearance-settings .dropdown-menu li.active,
+.settings-modal #other-settings .dropdown-menu li.active {
   outline: 1px solid var(--color-accent);
   outline-offset: -1px;
   position: relative;
 }
-.settings-modal #appearance-settings .dropdown-menu li.active::after {
+.settings-modal #general-settings .dropdown-menu li.active::after,
+.settings-modal #window-settings .dropdown-menu li.active::after,
+.settings-modal #wgunlock-settings .dropdown-menu li.active::after,
+.settings-modal #appearance-settings .dropdown-menu li.active::after,
+.settings-modal #other-settings .dropdown-menu li.active::after {
   content: "✓";
   position: absolute;
   left: 10px;
@@ -13628,8 +13669,16 @@ body.ready #app-preloader {
   font-size: 13px;
   font-weight: 700;
 }
+.settings-modal #general-settings .dropdown-toggle:focus-visible,
+.settings-modal #general-settings .dropdown-reset:focus-visible,
+.settings-modal #window-settings .dropdown-toggle:focus-visible,
+.settings-modal #window-settings .dropdown-reset:focus-visible,
+.settings-modal #wgunlock-settings .dropdown-toggle:focus-visible,
+.settings-modal #wgunlock-settings .dropdown-reset:focus-visible,
 .settings-modal #appearance-settings .dropdown-toggle:focus-visible,
-.settings-modal #appearance-settings .dropdown-reset:focus-visible {
+.settings-modal #appearance-settings .dropdown-reset:focus-visible,
+.settings-modal #other-settings .dropdown-toggle:focus-visible,
+.settings-modal #other-settings .dropdown-reset:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -14314,6 +14363,8 @@ body.ready #app-preloader {
 }
 
 .wireguard-view {
+  /* unified focus ring token for this view */
+  --focus-ring: 0 0 0 2px var(--color-accent);
   position: relative;
   background: none;
   isolation: isolate;
@@ -14479,6 +14530,10 @@ body.ready #app-preloader {
   background: var(--color-hover);
   transition: background 0.15s ease;
 }
+.wireguard-view .switch .slider:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 .wireguard-view .switch .slider::after {
   content: "";
   position: absolute;
@@ -14627,6 +14682,10 @@ body.ready #app-preloader {
 .wireguard-view .input:active {
   background-color: rgba(255, 255, 255, 0.04);
 }
+.wireguard-view .input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 .wireguard-view #wg-status-indicator {
   margin-top: 0.5rem;
   text-align: center;
@@ -14663,6 +14722,10 @@ body.ready #app-preloader {
   border-radius: 4px;
   border: 1px solid var(--color-hover);
   background-color: var(--color-bg-secondary);
+}
+.wireguard-view input[type=checkbox]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 .wireguard-view .checkbox-label {
   display: flex;
@@ -14718,6 +14781,11 @@ body.ready #app-preloader {
 .wireguard-view .buttons .large-button:active,
 .wireguard-view .buttons .small-button:active {
   transform: translateY(0);
+}
+.wireguard-view .buttons .large-button:focus-visible,
+.wireguard-view .buttons .small-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .wireguard-view .flex {
   display: flex;
@@ -14807,6 +14875,10 @@ body.ready #app-preloader {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+.wireguard-view .wg-log-block summary .small-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .wireguard-view .wg-log-block summary .small-button i {
   font-size: 0.9em;
@@ -14947,6 +15019,40 @@ body.ready #app-preloader {
   z-index: -9999;
 }
 
+/* Inline alert component for info/warn/error states */
+.wg-alert {
+  position: relative;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-hover);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-highlight);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.35;
+}
+.wg-alert.is-info {
+  border-color: rgba(100, 180, 255, 0.45);
+  background: rgba(100, 180, 255, 0.08);
+}
+.wg-alert.is-warn {
+  border-color: rgba(255, 200, 60, 0.45);
+  background: rgba(255, 200, 60, 0.08);
+}
+.wg-alert.is-error {
+  border-color: var(--color-toast-error);
+  background: rgba(255, 80, 80, 0.08);
+}
+.wg-alert .wg-alert-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: currentColor;
+}
+.wg-alert .wg-alert-content {
+  flex: 1 1 auto;
+}
+
 /* ============================
    Responsive tweaks for small windows
    ============================ */
@@ -15060,6 +15166,30 @@ body.ready #app-preloader {
   }
   .wireguard-view .wg-log-block pre#wg-log {
     max-height: 32vh;
+  }
+}
+@media (max-height: 480px) {
+  .wireguard-view .wg-header {
+    margin: 0.6rem 0;
+  }
+  .wireguard-view h1 {
+    margin-bottom: 0.35rem;
+    border-bottom-width: 0;
+  }
+  .wireguard-view .wg-block {
+    margin-bottom: 6px;
+    padding: 8px;
+  }
+  .wireguard-view .buttons {
+    gap: 8px;
+    padding: 6px;
+  }
+  .wireguard-view .buttons .large-button,
+  .wireguard-view .buttons .small-button {
+    padding: 0.5rem 0.9rem;
+  }
+  .wireguard-view .wg-log-block pre#wg-log {
+    max-height: 28vh;
   }
 }
 body.is-mac .btn-minimize,
