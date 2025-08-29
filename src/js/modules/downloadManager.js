@@ -180,10 +180,11 @@ const initiateDownload = async (url, quality) => {
   downloadButton.classList.remove("loading");
 };
 
-const handleDownloadButtonClick = async () => {
+const handleDownloadButtonClick = async (options = {}) => {
   const selectedQuality = getSelectedQuality();
   const raw = urlInput.value.trim();
-  const quality = selectedQuality || "Source";
+  let quality = selectedQuality || "Source";
+  if (options.forceAudioOnly) quality = "Audio Only";
 
   // Поддержка мультивставки: разделяем по пробельным и переводам строк
   const parts = raw
@@ -201,7 +202,7 @@ const handleDownloadButtonClick = async () => {
   if (validUrls.length > 1) {
     const first = validUrls[0];
     const rest = validUrls.slice(1);
-    if (state.isDownloading) {
+    if (state.isDownloading || options.enqueueOnly) {
       // все в очередь
       let added = 0;
       for (const u of validUrls) {
@@ -235,7 +236,7 @@ const handleDownloadButtonClick = async () => {
 
   // Один URL
   const url = validUrls[0];
-  if (state.isDownloading) {
+  if (state.isDownloading || options.enqueueOnly) {
     if (state.currentUrl === url) {
       showToast("Этот URL уже загружается.", "warning");
       return;
@@ -256,7 +257,33 @@ const handleDownloadButtonClick = async () => {
 function initDownloadButton() {
   downloadButton.addEventListener("click", async () => {
     hideUrlActionButtons();
-    await handleDownloadButtonClick();
+    const opts = {
+      enqueueOnly: downloadButton.dataset.enqueueOnly === "1",
+      forceAudioOnly: downloadButton.dataset.forceAudioOnly === "1",
+    };
+    delete downloadButton.dataset.enqueueOnly;
+    delete downloadButton.dataset.forceAudioOnly;
+    await handleDownloadButtonClick(opts);
+  });
+
+  // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
+  window.addEventListener("queue:addMany", (e) => {
+    const urls = Array.isArray(e.detail?.urls) ? e.detail.urls : [];
+    const q = e.detail?.quality || getSelectedQuality() || "Source";
+    let added = 0;
+    for (const u of urls) {
+      if (
+        (!state.isDownloading || state.currentUrl !== u) &&
+        !state.downloadQueue.some((it) => it.url === u)
+      ) {
+        state.downloadQueue.push({ url: u, quality: q });
+        added++;
+      }
+    }
+    if (added > 0) {
+      updateQueueDisplay();
+      showToast(`Добавлено в очередь: ${added} ссылок`, "info");
+    }
   });
 }
 

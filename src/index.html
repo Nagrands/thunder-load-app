@@ -137,6 +137,9 @@
               id="url"
               placeholder="Введите URL видео или аудио"
               aria-label="Введите URL видео или аудио"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Вставьте ссылку или перетащите сюда. Enter — скачать; Shift+Enter — очередь; Alt+Enter — Audio Only"
             />
             <div class="button-grid">
               <button
@@ -288,19 +291,19 @@
           <i class="fa fa-play" aria-hidden="true"></i>
         </button>
 
-        <!-- Группа кнопок скачивания и выбора качества -->
-        <div class="download-quality-group">
-          <!-- Кнопка скачивания -->
-          <button
-            id="download-button"
-            class="large-button"
-            disabled
-            aria-disabled="true"
-          >
-            <i class="fas fa-download"></i>
-            <span class="button-text">Скачать</span>
-            <div class="shine"></div>
-          </button>
+          <!-- Группа кнопок скачивания и выбора качества -->
+          <div class="download-quality-group">
+            <!-- Кнопка скачивания -->
+            <button
+              id="download-button"
+              class="large-button"
+              disabled
+              aria-disabled="true"
+            >
+              <i class="fas fa-download"></i>
+              <span class="button-text">Скачать</span>
+              <div class="shine"></div>
+            </button>
 
           <!-- Кнопка отмены скачивания -->
           <button

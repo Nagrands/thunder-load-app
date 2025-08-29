@@ -173,7 +173,18 @@ function setupIpcHandlers(dependencies) {
       } else if (info?.thumbnail) {
         thumb = info.thumbnail;
       }
-      return { success: true, title, duration, thumbnail: thumb };
+      // плейлист
+      let playlistCount = 0;
+      let entries = [];
+      if (Array.isArray(info?.entries) && info.entries.length) {
+        playlistCount = info.entries.length;
+        entries = info.entries
+          .map((e) => e?.webpage_url || e?.url)
+          .filter((u) => typeof u === 'string' && u.length > 0);
+      } else if (typeof info?.playlist_count === 'number') {
+        playlistCount = info.playlist_count;
+      }
+      return { success: true, title, duration, thumbnail: thumb, playlistCount, entries };
     } catch (e) {
       log.warn("get-video-info error:", e?.message || e);
       return { success: false, error: e?.message || String(e) };

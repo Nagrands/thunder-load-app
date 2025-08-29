@@ -224,3 +224,11 @@
     img { display: none; }
   }
 }
+
+/* Подсказки под полем URL */
+.url-hints {
+  display: block;
+  margin-top: 8px;
+  color: var(--color-quality);
+  font-size: 12px;
+}

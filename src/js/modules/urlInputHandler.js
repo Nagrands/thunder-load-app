@@ -1,6 +1,7 @@
 // src/js/modules/urlInputHandler.js
 
 import { urlInput } from "./domElements.js";
+import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
 import { showToast } from "./toast.js";
 
@@ -37,14 +38,46 @@ function initUrlInputHandler() {
     const t = document.getElementById('preview-title');
     const d = document.getElementById('preview-duration');
     const img = document.getElementById('preview-thumb');
+    // кнопка "Добавить всё"
+    let addAllBtn = document.getElementById('preview-enqueue-all');
     if (!card || !t || !d || !img) return;
-    if (!data || !data.success) { card.style.display = 'none'; return; }
+    if (!data || !data.success) { card.style.display = 'none'; if (addAllBtn) addAllBtn.style.display='none'; return; }
     t.textContent = data.title || '';
     d.textContent = data.duration ? `Длительность: ${durationToStr(data.duration)}` : '';
     if (data.thumbnail) {
       img.src = data.thumbnail; img.style.display = '';
     } else { img.removeAttribute('src'); img.style.display = 'none'; }
     card.style.display = (data.title || data.thumbnail) ? '' : 'none';
+
+    // плейлист → показать кнопку и повесить обработчик
+    const count = Number(data.playlistCount || (data.entries?.length || 0)) || 0;
+    if (count > 1 && Array.isArray(data.entries) && data.entries.length) {
+      if (!addAllBtn) {
+        addAllBtn = document.createElement('button');
+        addAllBtn.id = 'preview-enqueue-all';
+        addAllBtn.className = 'btn btn-small';
+        addAllBtn.style.marginLeft = '12px';
+        addAllBtn.style.whiteSpace = 'nowrap';
+        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> Добавить все (${data.entries.length})`;
+        addAllBtn.setAttribute('data-bs-toggle','tooltip');
+        addAllBtn.setAttribute('data-bs-placement','top');
+        addAllBtn.setAttribute('title','Добавить все элементы плейлиста в очередь');
+        card.appendChild(addAllBtn);
+        try { initTooltips(); } catch(_) {}
+      } else {
+        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> Добавить все (${data.entries.length})`;
+        addAllBtn.style.display = '';
+        try { initTooltips(); } catch(_) {}
+      }
+      addAllBtn.onclick = () => {
+        try {
+          const ev = new CustomEvent('queue:addMany', { detail: { urls: data.entries } });
+          window.dispatchEvent(ev);
+        } catch (_) {}
+      };
+    } else if (addAllBtn) {
+      addAllBtn.style.display = 'none';
+    }
   };
 
   const maybeFetchPreview = () => {
@@ -83,11 +116,24 @@ function initUrlInputHandler() {
 
   // Старт загрузки по Enter (без модификаторов)
   urlInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      e.preventDefault();
-      const btn = document.getElementById("download-button");
-      if (btn && !btn.disabled) btn.click();
+    if (e.key !== "Enter") return;
+    const btn = document.getElementById("download-button");
+    if (!btn || btn.disabled) return;
+    e.preventDefault();
+    // Shift+Enter → только в очередь
+    if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      btn.dataset.enqueueOnly = "1";
+      btn.click();
+      return;
     }
+    // Alt+Enter → Audio Only
+    if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      btn.dataset.forceAudioOnly = "1";
+      btn.click();
+      return;
+    }
+    // Обычный Enter → как прежде
+    btn.click();
   });
 
   clearButton.addEventListener("click", () => {
@@ -114,6 +160,9 @@ function initUrlInputHandler() {
   if (wrapper) {
     const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
     ['dragenter','dragover','dragleave','drop'].forEach(ev => wrapper.addEventListener(ev, prevent));
+    wrapper.addEventListener('dragenter', () => wrapper.classList.add('drag-over'));
+    wrapper.addEventListener('dragleave', () => wrapper.classList.remove('drag-over'));
+    wrapper.addEventListener('drop', () => wrapper.classList.remove('drag-over'));
     wrapper.addEventListener('drop', (e) => {
       try {
         const text = (e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text') || '').trim();
