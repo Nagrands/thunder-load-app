@@ -730,6 +730,135 @@ async function initSettings() {
       console.error("[settings] renderToolsInfo failed on open:", e);
     }
   });
+
+  // === Tools location (yt-dlp, ffmpeg) — UI bindings ===
+  (function initToolsLocationControls() {
+    const pathInput = document.getElementById('tools-location-path');
+    const btnChoose = document.getElementById('tools-location-choose');
+    const btnOpen = document.getElementById('tools-location-open');
+    const btnReset = document.getElementById('tools-location-reset');
+    const btnMigrate = document.getElementById('tools-location-migrate');
+
+    if (!pathInput || !btnChoose || !btnOpen || !btnMigrate) return; // минимальный набор
+
+    const toast = (msg, type = 'info') => window.electron.invoke('toast', msg, type);
+
+    async function refreshLocation() {
+      try {
+        const res = await window.electron.tools?.getLocation?.();
+        if (res?.success) {
+          const { path: current, isDefault, defaultPath } = res;
+          pathInput.value = current || '';
+          if (btnReset) {
+            btnReset.disabled = !!isDefault;
+            const title = isDefault
+              ? `Сейчас используется путь по умолчанию${defaultPath ? `: ${defaultPath}` : ''}`
+              : `Сбросить на путь по умолчанию${defaultPath ? `: ${defaultPath}` : ''}`;
+            btnReset.setAttribute('title', title);
+          }
+        }
+      } catch (e) {
+        console.error('[settings] getLocation error:', e);
+      }
+    }
+
+    async function chooseDirectory() {
+      // Пытаемся вызвать известные каналы выбора директории, иначе — prompt
+      const candidates = [
+        'dialog:choose-tools-dir',
+        'dialog:chooseDir',
+        'choose-directory',
+        'select-directory'
+      ];
+      for (const ch of candidates) {
+        try {
+          const res = await window.electron.invoke(ch);
+          if (res && typeof res === 'string') return res;
+          if (res && res.filePaths && res.filePaths[0]) return res.filePaths[0];
+          if (res && res.canceled === false && res?.paths?.[0]) return res.paths[0];
+        } catch {}
+      }
+      // Фолбэк — ввод пути вручную
+      const manual = prompt('Укажите путь к папке инструментов');
+      return manual || null;
+    }
+
+    btnChoose?.addEventListener('click', async () => {
+      const dir = await chooseDirectory();
+      if (!dir) return;
+      try {
+        const res = await window.electron.tools?.setLocation?.(dir);
+        if (res?.success) {
+          await refreshLocation();
+          toast('Папка инструментов обновлена', 'success');
+          try { await renderToolsInfo(); } catch {}
+        } else {
+          toast('Не удалось установить папку инструментов: ' + (res?.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        console.error('[settings] setLocation error:', e);
+        toast('Ошибка при установке папки инструментов', 'error');
+      }
+    });
+
+    btnOpen?.addEventListener('click', async () => {
+      try {
+        const res = await window.electron.tools?.openLocation?.();
+        if (!res?.success) toast('Не удалось открыть папку инструментов', 'error');
+      } catch (e) {
+        console.error('[settings] openLocation error:', e);
+        toast('Ошибка при открытии папки инструментов', 'error');
+      }
+    });
+
+    btnReset?.addEventListener('click', async () => {
+      try {
+        const res = await window.electron.tools?.resetLocation?.();
+        if (res?.success) {
+          await refreshLocation();
+          toast('Путь инструментов сброшен на значение по умолчанию', 'success');
+          try { await renderToolsInfo(); } catch {}
+        } else {
+          toast('Не удалось сбросить путь инструментов: ' + (res?.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        console.error('[settings] resetLocation error:', e);
+        toast('Ошибка при сбросе пути инструментов', 'error');
+      }
+    });
+
+    btnMigrate?.addEventListener('click', async () => {
+      try {
+        const detect = await window.electron.tools?.detectLegacy?.();
+        if (!detect?.success) {
+          toast('Не удалось проверить старые установки', 'error');
+          return;
+        }
+        if (!detect.found || !detect.found.length) {
+          toast('Старые установки не найдены', 'info');
+          return;
+        }
+        const res = await window.electron.tools?.migrateOld?.({ overwrite: false });
+        if (res?.success) {
+          const copied = res.copied?.length || 0;
+          const skipped = res.skipped?.length || 0;
+          toast(`Миграция завершена: скопировано ${copied}, пропущено ${skipped}`, 'success');
+          await refreshLocation();
+          try { await renderToolsInfo(); } catch {}
+        } else {
+          toast('Не удалось выполнить миграцию: ' + (res?.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        console.error('[settings] migrateOld error:', e);
+        toast('Ошибка при миграции', 'error');
+      }
+    });
+
+    // Инициализация при открытии настроек
+    refreshLocation();
+    window.electron.on('open-settings', refreshLocation);
+  })();
+  // === /Tools location UI ===
 }
 
 export async function exportConfig() {

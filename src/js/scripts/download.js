@@ -9,19 +9,27 @@ const unzipper = require("unzipper");
 const treeKill = require("tree-kill");
 const log = require("electron-log");
 
-// Пути к ресурсам приложения
-const appDir = process.resourcesPath;
-const binDir = path.join(process.resourcesPath, "bin");
+const {
+  getEffectiveToolsDir,
+  getDefaultToolsDir,
+  ensureToolsDir,
+  resolveToolPath,
+} = require("../app/toolsPaths");
+const Store = require("electron-store");
 
-const ytDlpExecutable = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
-const ffmpegExecutable = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
-const ffprobeExecutable =
-  process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
-
-const ytDlpPath = path.join(binDir, ytDlpExecutable);
-const ffmpegPath = path.join(binDir, ffmpegExecutable);
-const ffprobePath = path.join(binDir, ffprobeExecutable);
-const ffmpegDir = binDir;
+// Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
+function getStore() {
+  try { return new Store(); } catch { return null; }
+}
+function getToolsDir() {
+  return getEffectiveToolsDir(getStore());
+}
+function getYtDlpPath() { return resolveToolPath("yt-dlp", getToolsDir()); }
+function getFfmpegPath() { return resolveToolPath("ffmpeg", getToolsDir()); }
+function getFfprobePath() {
+  const dir = getToolsDir();
+  return path.join(dir, process.platform === "win32" ? "ffprobe.exe" : "ffprobe");
+}
 
 // Качество скачивания
 const QUALITY_AUDIO_ONLY = "Audio Only";
@@ -285,6 +293,7 @@ function selectFormatsByQuality(formats, desiredQuality) {
  * Получает версию yt-dlp.
  */
 async function getYtDlpVersion() {
+  const ytDlpPath = getYtDlpPath();
   if (!fs.existsSync(ytDlpPath)) return null;
   try {
     return await runProcess(ytDlpPath, ["--version"]);
@@ -308,7 +317,9 @@ async function installYtDlp() {
       process.platform === "win32"
         ? "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
         : "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
-    if (!fs.existsSync(binDir)) fs.mkdirSync(binDir, { recursive: true });
+    const dir = getToolsDir();
+    const ytDlpPath = getYtDlpPath();
+    await ensureToolsDir(dir);
     await downloadFile(ytDlpUrl, ytDlpPath);
     if (process.platform !== "win32") fs.chmodSync(ytDlpPath, 0o755);
     log.info("yt-dlp downloaded successfully.");
@@ -327,6 +338,7 @@ async function installYtDlp() {
  * Получает версию ffmpeg.
  */
 async function getFfmpegVersion() {
+  const ffmpegPath = getFfmpegPath();
   if (!fs.existsSync(ffmpegPath)) return null;
   return runProcess(ffmpegPath, ["-version"]);
 }
@@ -362,6 +374,8 @@ async function installFfmpeg() {
       // Поиск бинарников после распаковки
       let foundBinPath = null;
       const subDirs = fs.readdirSync(ffmpegExtractPath);
+      const ffmpegExecutable = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+      const ffprobeExecutable = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
       for (const dir of subDirs) {
         const potentialBin = path.join(ffmpegExtractPath, dir, "bin");
         if (
@@ -373,7 +387,10 @@ async function installFfmpeg() {
         }
       }
       if (foundBinPath) {
-        if (!fs.existsSync(binDir)) fs.mkdirSync(binDir, { recursive: true });
+        const dir = getToolsDir();
+        const ffmpegPath = getFfmpegPath();
+        const ffprobePath = getFfprobePath();
+        await ensureToolsDir(dir);
         fs.copyFileSync(path.join(foundBinPath, ffmpegExecutable), ffmpegPath);
         const ffprobeSource = path.join(foundBinPath, ffprobeExecutable);
         if (fs.existsSync(ffprobeSource)) {
@@ -411,7 +428,10 @@ async function installFfmpeg() {
         ? "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/mac-arm64"
         : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/mac-x64";
 
-      if (!fs.existsSync(binDir)) fs.mkdirSync(binDir, { recursive: true });
+      const dir = getToolsDir();
+      const ffmpegPath = getFfmpegPath();
+      const ffprobePath = getFfprobePath();
+      await ensureToolsDir(dir);
 
       try {
         await downloadFile(ffmpegUrl, ffmpegPath);
@@ -448,6 +468,7 @@ async function installFfmpeg() {
       throw new Error("Unsupported platform for ffmpeg installation.");
     }
     // --- LOGGING FFPROBE STATE ---
+    const ffprobePath = getFfprobePath();
     if (fs.existsSync(ffprobePath)) {
       log.info("[ffprobe] successfully installed to:", ffprobePath);
     } else {
@@ -471,6 +492,8 @@ async function installFfmpeg() {
 function getVideoInfo(url) {
   log.info(`Getting video information for URL: ${url}`);
   return new Promise((resolve, reject) => {
+    const ytDlpPath = getYtDlpPath();
+    const ffmpegDir = getToolsDir();
     activeProcesses.getVideoInfo = spawn(ytDlpPath, [
       "-J",
       url,
@@ -516,6 +539,8 @@ function getVideoInfo(url) {
  */
 function spawnDownloadProcess(format, outputPath, url, progressCallback) {
   return new Promise((resolve, reject) => {
+    const ytDlpPath = getYtDlpPath();
+    const ffmpegDir = getToolsDir();
     const proc = spawn(ytDlpPath, [
       "-f",
       format,
@@ -587,6 +612,8 @@ async function downloadMedia(
           }
           event.sender.send("download-progress", progress);
         };
+        const ytDlpPath = getYtDlpPath();
+        const ffmpegDir = getToolsDir();
         activeProcesses.audioDownload = spawn(ytDlpPath, [
           "-o",
           audioOutput,
@@ -639,6 +666,8 @@ async function downloadMedia(
           }
           event.sender.send("download-progress", progress);
         };
+        const ytDlpPath = getYtDlpPath();
+        const ffmpegDir = getToolsDir();
         activeProcesses.audioDownload = spawn(ytDlpPath, [
           "-f",
           audioFormat,
@@ -715,6 +744,8 @@ async function downloadMedia(
 
     // Скачивание видео
     await new Promise((resolve, reject) => {
+      const ytDlpPath = getYtDlpPath();
+      const ffmpegDir = getToolsDir();
       activeProcesses.videoDownload = spawn(ytDlpPath, [
         "-f",
         videoFormat,
@@ -799,6 +830,7 @@ async function downloadMedia(
 
       // Слияние видео и аудио через ffmpeg
       await new Promise((resolve, reject) => {
+        const ffmpegPath = getFfmpegPath();
         activeProcesses.merge = spawn(ffmpegPath, [
           "-i",
           videoOutputTemp,
@@ -952,9 +984,10 @@ function isDownloadCancelledFunc() {
   return isDownloadCancelled;
 }
 
-log.info("[download.js] yt-dlp path:", ytDlpPath);
-log.info("[download.js] ffmpeg path:", ffmpegPath);
-log.info("[download.js] ffprobe path:", ffprobePath);
+log.info("[download.js] tools dir:", getToolsDir(), "(default:", getDefaultToolsDir(), ")");
+log.info("[download.js] yt-dlp path:", getYtDlpPath());
+log.info("[download.js] ffmpeg path:", getFfmpegPath());
+log.info("[download.js] ffprobe path:", getFfprobePath());
 
 module.exports = {
   installYtDlp,

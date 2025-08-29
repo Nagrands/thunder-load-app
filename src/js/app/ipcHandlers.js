@@ -33,6 +33,13 @@ const {
   isDownloadCancelled,
 } = require("../scripts/download.js");
 const { isValidUrl, isSupportedUrl } = require("./utils.js");
+const {
+  getDefaultToolsDir,
+  getEffectiveToolsDir,
+  ensureToolsDir,
+  detectLegacyLocations,
+  migrateLegacy,
+} = require("./toolsPaths");
 console.log("📡 ipcHandlers loaded");
 /**
  * Проверяет, находится ли filePath внутри baseDir
@@ -146,7 +153,8 @@ function setupIpcHandlers(dependencies) {
   });
 
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, () => {
-    return getToolsVersions();
+    // Передаём store, чтобы учитывать кастомную папку инструментов
+    return getToolsVersions(store);
   });
 
   ipcMain.handle(CHANNELS.TOOLS_SHOWINFOLDER, async (_evt, filePath) => {
@@ -159,6 +167,89 @@ function setupIpcHandlers(dependencies) {
     } catch (e) {
       log.error("tools:showInFolder error:", e);
       return { success: false, error: e.message };
+    }
+  });
+
+  // ==== Tools location management ====
+  ipcMain.handle(CHANNELS.TOOLS_GET_LOCATION, () => {
+    try {
+      const def = getDefaultToolsDir();
+      const dir = getEffectiveToolsDir(store);
+      return { success: true, path: dir, isDefault: dir === def, defaultPath: def };
+    } catch (e) {
+      log.error("tools:getLocation error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_SET_LOCATION, async (_evt, newDir) => {
+    try {
+      const dir = await ensureToolsDir(newDir);
+      store.set("tools.dir", dir);
+      return { success: true, path: dir };
+    } catch (e) {
+      log.error("tools:setLocation error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_OPEN_LOCATION, async () => {
+    try {
+      const dir = getEffectiveToolsDir(store);
+      await ensureToolsDir(dir);
+      shell.openPath(dir);
+      return { success: true, path: dir };
+    } catch (e) {
+      log.error("tools:openLocation error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_RESET_LOCATION, async () => {
+    try {
+      const def = getDefaultToolsDir();
+      await ensureToolsDir(def);
+      // remove custom key to fall back to default
+      try { store.delete && store.delete("tools.dir"); } catch { store.set("tools.dir", def); }
+      return { success: true, path: def };
+    } catch (e) {
+      log.error("tools:resetLocation error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_MIGRATE_OLD, async (_evt, opts) => {
+    try {
+      const dir = getEffectiveToolsDir(store);
+      const result = await migrateLegacy(dir, opts || {});
+      return { success: true, ...result };
+    } catch (e) {
+      log.error("tools:migrateOld error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_DETECT_LEGACY, async () => {
+    try {
+      const found = await detectLegacyLocations();
+      return { success: true, found };
+    } catch (e) {
+      log.error("tools:detectLegacy error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+  // ==== /Tools location management ====
+
+  // Native folder picker for tools dir
+  ipcMain.handle(CHANNELS.DIALOG_CHOOSE_TOOLS_DIR, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openDirectory", "createDirectory"],
+      });
+      return result; // { canceled, filePaths: [...] }
+    } catch (e) {
+      log.error("dialog:choose-tools-dir error:", e);
+      return { canceled: true, error: e.message };
     }
   });
 
@@ -345,7 +436,8 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_CHECKUPDATES, async (_event, opts = {}) => {
     // Accepts options: { noCache, forceFetch }
     try {
-      const tools = await getToolsVersions();
+      // Берём текущие версии из выбранной пользователем папки (через electron-store)
+      const tools = await getToolsVersions(store);
 
       // Try to read local versions from disk by executing the binaries (more reliable than cached values)
       let ytCurrent = tools?.ytDlp?.ok
@@ -509,7 +601,7 @@ function setupIpcHandlers(dependencies) {
   // Ручная установка зависимостей по запросу из UI (чистая переустановка: удаляет старые бинарники)
   ipcMain.handle(CHANNELS.TOOLS_INSTALLALL, async () => {
     try {
-      const tools = await getToolsVersions();
+      const tools = await getToolsVersions(store);
 
       // --- yt-dlp: remove old binary if exists to force overwrite ---
       const ytDlpInfo = tools?.ytDlp;
@@ -578,7 +670,8 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_UPDATEYTDLP, async () => {
     try {
       log.info("tools:updateYtDlp: Checking current yt-dlp version...");
-      const tools = await getToolsVersions();
+      // Учитываем пользовательскую папку инструментов
+      const tools = await getToolsVersions(store);
       const ytDlpInfo = tools?.ytDlp;
       if (ytDlpInfo?.ok && ytDlpInfo?.path) {
         log.info(
@@ -613,7 +706,8 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_UPDATEFFMPEG, async () => {
     try {
       log.info("tools:updateFfmpeg: Checking current ffmpeg version...");
-      const tools = await getToolsVersions();
+      // Учитываем пользовательскую папку инструментов
+      const tools = await getToolsVersions(store);
       const ffmpegInfo = tools?.ffmpeg;
       if (ffmpegInfo?.ok && ffmpegInfo?.path) {
         log.info(

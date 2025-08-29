@@ -143,6 +143,13 @@ try {
    *   checkUpdates: (opts?: any) => Promise<any>,
    *   updateYtDlp: () => Promise<any>,
    *   updateFfmpeg: () => Promise<any>,
+   *   // Tools location management
+   *   getLocation: () => Promise<{ success: boolean, path?: string, isDefault?: boolean, error?: string }>,
+   *   setLocation: (dir: string) => Promise<{ success: boolean, path?: string, error?: string }>,
+   *   openLocation: () => Promise<{ success: boolean, path?: string, error?: string }>,
+   *   migrateOld: (opts?: { overwrite?: boolean }) => Promise<{ success: boolean, copied?: string[], skipped?: string[], error?: string }>,
+   *   detectLegacy: () => Promise<{ success: boolean, found?: any[], error?: string }>,
+   *   resetLocation: () => Promise<{ success: boolean, path?: string, error?: string }>,
    * }} tools
    * @property {(cb: (v:any)=>void) => void} onVersion
    * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onWindowFocused
@@ -181,6 +188,13 @@ try {
       checkUpdates: (opts) => safeInvoke('tools:checkUpdates', opts),
       updateYtDlp: () => safeInvoke('tools:updateYtDlp'),
       updateFfmpeg: () => safeInvoke('tools:updateFfmpeg'),
+      // Location management
+      getLocation: () => safeInvoke('tools:getLocation'),
+      setLocation: (dir) => safeInvoke('tools:setLocation', dir),
+      openLocation: () => safeInvoke('tools:openLocation'),
+      migrateOld: (opts) => safeInvoke('tools:migrateOld', opts),
+      detectLegacy: () => safeInvoke('tools:detectLegacy'),
+      resetLocation: () => safeInvoke('tools:resetLocation'),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код

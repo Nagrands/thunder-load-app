@@ -72,6 +72,13 @@ const CHANNELS = Object.freeze({
   TOOLS_SHOWINFOLDER: 'tools:showInFolder',
   TOOLS_UPDATEFFMPEG: 'tools:updateFfmpeg',
   TOOLS_UPDATEYTDLP: 'tools:updateYtDlp',
+  TOOLS_GET_LOCATION: 'tools:getLocation',
+  TOOLS_SET_LOCATION: 'tools:setLocation',
+  TOOLS_OPEN_LOCATION: 'tools:openLocation',
+  TOOLS_MIGRATE_OLD: 'tools:migrateOld',
+  TOOLS_DETECT_LEGACY: 'tools:detectLegacy',
+  TOOLS_RESET_LOCATION: 'tools:resetLocation',
+  DIALOG_CHOOSE_TOOLS_DIR: 'dialog:choose-tools-dir',
   WG_OPEN_CONFIG_FOLDER: 'wg-open-config-folder',
 });
 

@@ -37,6 +37,11 @@ function replaceModifiers(text, isMac) {
 }
 
 function initTooltips() {
+  // Если Bootstrap не загружен, спокойно выходим без ошибок
+  if (!(window.bootstrap && window.bootstrap.Tooltip)) {
+    console.info("[Tooltips] Bootstrap is not available. Skipping tooltip init.");
+    return;
+  }
   // Очистка предыдущих тултипов
   tooltipInstances.forEach((tooltip) => {
     try {

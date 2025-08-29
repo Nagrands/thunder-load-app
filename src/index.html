@@ -1,6 +1,6 @@
 <!-- src/index.html -->
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -174,6 +174,7 @@
             id="progress-bar-container"
             class="progress-bar-container"
             role="progressbar"
+            aria-valuenow="0"
             aria-valuemin="0"
             aria-valuemax="100"
           >
@@ -705,6 +706,28 @@
                 </ul>
                 <section id="tools-info" class="settings-section">
                   <h2>Инструменты</h2>
+                  <div class="module tools-location">
+                    <label for="tools-location-path">
+                      <i class="fa-solid fa-folder"></i>
+                      Папка для инструментов (yt-dlp, ffmpeg)
+                    </label>
+                    <div class="tools-location-row">
+                      <input id="tools-location-path" type="text" readonly />
+                      <button id="tools-location-choose" data-bs-toggle="tooltip" title="Выбрать папку">
+                        <i class="fa-solid fa-folder-open"></i>
+                      </button>
+                      <button id="tools-location-open" data-bs-toggle="tooltip" title="Открыть папку">
+                        <i class="fa-regular fa-folder-open"></i>
+                      </button>
+                      <button id="tools-location-reset" data-bs-toggle="tooltip" title="Сбросить по умолчанию">
+                        <i class="fa-solid fa-rotate-left"></i>
+                      </button>
+                      <button id="tools-location-migrate" data-bs-toggle="tooltip" title="Мигрировать из старого места">
+                        <i class="fa-solid fa-database"></i>
+                      </button>
+                    </div>
+                    <small id="tools-location-hint" class="muted">Папка сохраняется между обновлениями и может быть изменена.</small>
+                  </div>
                   <div class="kv">
                     <div>yt-dlp:</div>
                     <div id="yt-dlp-version">—</div>
@@ -903,7 +926,7 @@
             <span>Открыть папку</span>
           </li>
           <li id="open-site">
-            <i class="fa-duotone fa-solid fa-link"></i>
+            <i class="fa-solid fa-link"></i>
             <span>Открыть сайт</span>
           </li>
           <li id="delete-entry">
@@ -915,7 +938,7 @@
             <span>Удалить файл</span>
           </li>
           <li id="retry-download">
-            <i class="fa-sharp fa-solid fa-rotate-right"></i>
+            <i class="fa-solid fa-arrow-rotate-right"></i>
             <span>Повторить загрузку</span>
           </li>
         </ul>
@@ -1149,6 +1172,8 @@
 
     <div
       id="startup-status"
+      role="status"
+      aria-live="polite"
       style="text-align: center; padding: 0.5rem; color: #aaa"
     ></div>
 
@@ -1160,12 +1185,34 @@
       </p>
     </footer>
 
+    <div class="downloader-bg-preload"></div>
+
     <!-- Scripts -->
+    <script>
+      (function () {
+        function loadRenderer() {
+          var s = document.createElement('script');
+          s.type = 'module';
+          s.src = 'js/renderer.js';
+          document.head.appendChild(s);
+        }
+        window._startRenderer = loadRenderer;
+        window._loadBootstrapCdnAndStart = function () {
+          var cdn = document.createElement('script');
+          cdn.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js';
+          cdn.integrity = 'sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q';
+          cdn.crossOrigin = 'anonymous';
+          cdn.onload = loadRenderer;
+          cdn.onerror = loadRenderer; // стартуем даже без Bootstrap
+          document.head.appendChild(cdn);
+        };
+      })();
+    </script>
     <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
-      defer
+      src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"
+      onload="window._startRenderer()"
+      onerror="window._loadBootstrapCdnAndStart()"
     ></script>
-    <script type="module" src="js/renderer.js" defer></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("current-year").textContent =

@@ -1,0 +1,171 @@
+// src/scss/components/_settings-tools.scss
+
+// Улучшения UI для окна «Настройки» и блока «Инструменты»
+
+// Общие модули внутри настроек
+.settings-section .module {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.settings-section .module + .module { margin-top: 10px; }
+
+// Единый стиль «серой подсказки»
+.muted { opacity: 0.75; }
+
+// --- Блок выбора папки инструментов
+.tools-location {
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .tools-location-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto auto; // input + 4 кнопки
+    gap: 8px;
+    align-items: center;
+  }
+
+  #tools-location-path,
+  #ti-tools-location-path {
+    width: 100%;
+    height: 34px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06);
+    color: inherit;
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #tools-location-choose,
+  #tools-location-open,
+  #tools-location-reset,
+  #tools-location-migrate,
+  #ti-tools-location-choose,
+  #ti-tools-location-open,
+  #ti-tools-location-reset,
+  #ti-tools-location-migrate {
+    height: 34px;
+    min-width: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    padding: 0 10px;
+    transition: transform .08s ease, background .16s ease, border-color .16s ease;
+    cursor: pointer;
+  }
+
+  // hover/active
+  #tools-location-choose:hover,
+  #tools-location-open:hover,
+  #tools-location-reset:hover,
+  #tools-location-migrate:hover,
+  #ti-tools-location-choose:hover,
+  #ti-tools-location-open:hover,
+  #ti-tools-location-reset:hover,
+  #ti-tools-location-migrate:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+  }
+  #tools-location-choose:active,
+  #tools-location-open:active,
+  #tools-location-reset:active,
+  #tools-location-migrate:active,
+  #ti-tools-location-choose:active,
+  #ti-tools-location-open:active,
+  #ti-tools-location-reset:active,
+  #ti-tools-location-migrate:active {
+    transform: translateY(1px);
+  }
+
+  // disabled
+  #tools-location-reset:disabled,
+  #ti-tools-location-reset:disabled {
+    opacity: .55;
+    cursor: default;
+  }
+}
+
+// --- Футер инструментов
+.tools-footer {
+  display: grid;
+  grid-template-columns: 1fr auto auto; // статус + основная + форс
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+
+  #tools-primary-btn,
+  #tools-force-btn {
+    height: 34px;
+    border-radius: 10px;
+    padding: 0 12px;
+  }
+
+  #tools-status { text-align: left; }
+}
+
+// --- Адаптив под узкие окна
+@media (max-width: 720px) {
+  .tools-location .tools-location-row {
+    grid-template-columns: 1fr 1fr 1fr; // input + 2 колонки
+    grid-auto-flow: row;
+
+    // раскладываем кнопки на две строки
+    #tools-location-choose,
+    #ti-tools-location-choose { grid-column: 2 / span 1; }
+    #tools-location-open,
+    #ti-tools-location-open { grid-column: 3 / span 1; }
+
+    #tools-location-reset,
+    #ti-tools-location-reset { grid-column: 2 / span 1; }
+    #tools-location-migrate,
+    #ti-tools-location-migrate { grid-column: 3 / span 1; }
+  }
+
+  .tools-footer {
+    grid-template-columns: 1fr; // всё в столбец
+    #tools-status { order: 1; }
+    #tools-primary-btn { order: 2; }
+    #tools-force-btn { order: 3; }
+  }
+}
+
+// --- Бейджи статуса инструментов
+.tool-badges {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  border: 1px solid var(--color-hover);
+  background: rgba(255, 255, 255, 0.05);
+
+  &.ok {
+    border-color: var(--color-accent);
+  }
+  &.missing {
+    border-color: #d9534f;
+    background: rgba(217, 83, 79, 0.12);
+  }
+}

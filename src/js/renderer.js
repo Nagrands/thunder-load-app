@@ -47,8 +47,9 @@ async function applyPlatformClass() {
 // document.body.classList.add("is-mac");
 
 // ————————————————————————————————————————————————————————————————
-document.addEventListener("DOMContentLoaded", async () => {
+async function startRenderer() {
   try {
+    console.log("[Startup] Bootstrap loaded:", !!window.bootstrap);
     applyPlatformClass();
     await initializeTheme();
     await initializeFontSize();
@@ -58,7 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const downloaderWrapper = document.createElement("div");
     downloaderWrapper.id = "downloader-view";
-    downloaderWrapper.className = "view-wrapper tab-view";
+    downloaderWrapper.className = "view-wrapper tab-view downloader-view";
 
     const wireguardWrapper = document.createElement("div");
     wireguardWrapper.id = "wireguard-view-wrapper";
@@ -196,6 +197,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         el = document.createElement("div");
         el.id = "startup-status";
         el.className = "spinner-message";
+        el.setAttribute("role", "status");
+        el.setAttribute("aria-live", "polite");
         document.body.prepend(el);
       }
 
@@ -261,4 +264,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     console.error("Ошибка при инициализации приложения:", error);
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startRenderer);
+} else {
+  startRenderer();
+}

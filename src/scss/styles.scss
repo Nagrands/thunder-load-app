@@ -30,8 +30,10 @@
 @use "components/toasts";
 @use "components/tooltips";
 @use "components/others";
+@use "components/settings-tools";
 
 // Вкладки
+@use "tab/downloader";
 @use "tab/wgsend";
 
 // Платформенные стили

@@ -1,9 +1,16 @@
 // src/js/app/toolsVersions.js
 
 const { spawnSync } = require("node:child_process");
-const path = require("path");
 const fs = require("fs");
+const {
+  getEffectiveToolsDir,
+  resolveToolPath,
+  getExecName,
+} = require("./toolsPaths");
 
+/**
+ * Run a binary with args and return its first line of stdout (or null).
+ */
 function runVersion(cmd, args) {
   try {
     const res = spawnSync(cmd, args, { encoding: "utf8" });
@@ -15,22 +22,28 @@ function runVersion(cmd, args) {
   }
 }
 
-function getToolsVersions() {
-  const binDir = path.join(process.resourcesPath, "bin");
-  const ytName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
-  const ffName = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+/**
+ * Get current versions of yt-dlp and ffmpeg from effective tools directory.
+ * @param {any} store optional store/getter to resolve custom dir
+ */
+function getToolsVersions(store) {
+  const dir = getEffectiveToolsDir(store);
+  const ytPath = resolveToolPath("yt-dlp", dir);
+  const ffPath = resolveToolPath("ffmpeg", dir);
 
-  const ytPath = path.join(binDir, ytName);
-  const ffPath = path.join(binDir, ffName);
+  let yt = { ok: false };
+  if (fs.existsSync(ytPath)) {
+    const ver = runVersion(ytPath, ["--version"]);
+    yt = ver ? { ok: true, path: ytPath, version: ver } : { ok: false, path: ytPath };
+  }
 
-  return {
-    ytDlp: fs.existsSync(ytPath)
-      ? { ok: true, path: ytPath, version: runVersion(ytPath, ["--version"]) }
-      : { ok: false },
-    ffmpeg: fs.existsSync(ffPath)
-      ? { ok: true, path: ffPath, version: runVersion(ffPath, ["-version"]) }
-      : { ok: false },
-  };
+  let ff = { ok: false };
+  if (fs.existsSync(ffPath)) {
+    const ver = runVersion(ffPath, ["-version"]);
+    ff = ver ? { ok: true, path: ffPath, version: ver } : { ok: false, path: ffPath };
+  }
+
+  return { ytDlp: yt, ffmpeg: ff };
 }
 
 module.exports = { getToolsVersions };
