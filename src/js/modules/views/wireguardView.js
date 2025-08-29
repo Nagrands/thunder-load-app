@@ -7,7 +7,14 @@ import { initTooltips } from "../tooltipInitializer.js";
 export default function renderWireGuard() {
   // Guard: если вкладка WG Unlock отключена — не инициализируем UI
   const _isWgDisabled = () => {
-    try { return JSON.parse(localStorage.getItem('wgUnlockDisabled')) === true; } catch { return false; }
+    try {
+      const raw = localStorage.getItem('wgUnlockDisabled');
+      // По умолчанию вкладка отключена, если ключ отсутствует
+      if (raw === null) return true;
+      return JSON.parse(raw) === true;
+    } catch {
+      return true;
+    }
   };
   if (_isWgDisabled()) {
     // возвращаем скрытый контейнер, чтобы tabSystem мог управлять отображением

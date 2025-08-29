@@ -443,7 +443,15 @@ async function initSettings() {
   (function initWgDisableToggle(){
     const KEY = "wgUnlockDisabled";
     const read = () => {
-      try { return JSON.parse(localStorage.getItem(KEY)) === true; } catch { return false; }
+      try {
+        const raw = localStorage.getItem(KEY);
+        // По умолчанию вкладка отключена, если ключ отсутствует
+        if (raw === null) return true;
+        return JSON.parse(raw) === true;
+      } catch {
+        // Безопасный дефолт — отключено
+        return true;
+      }
     };
 
     function toggleAutoSendDisabled(disabled) {

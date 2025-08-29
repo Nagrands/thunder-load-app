@@ -101,7 +101,14 @@ export default class TabSystem {
     this.activeTabId = id;
   }
   _isWgDisabled() {
-    try { return JSON.parse(localStorage.getItem("wgUnlockDisabled")) === true; } catch { return false; }
+    try {
+      const raw = localStorage.getItem("wgUnlockDisabled");
+      // Дефолт: вкладка отключена, если ключ не задан
+      if (raw === null) return true;
+      return JSON.parse(raw) === true;
+    } catch {
+      return true;
+    }
   }
 
   _applyWgVisibility() {
