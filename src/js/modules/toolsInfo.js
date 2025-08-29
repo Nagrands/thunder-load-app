@@ -148,7 +148,7 @@ export async function renderToolsInfo() {
     <div class="tools-location module">
       <label for="ti-tools-location-path">
         <i class="fa-solid fa-folder"></i>
-        Папка для инструментов (yt-dlp, ffmpeg)
+        Папка инструментов
       </label>
       <div class="tools-location-row">
         <input id="ti-tools-location-path" type="text" readonly />
@@ -171,10 +171,6 @@ export async function renderToolsInfo() {
     <small id="ti-tools-location-info" class="muted"></small>
 
     <div class="tools-footer">
-      <button id="open-tools-folder" type="button" title="Открыть папку с инструментами">
-        <i class="fa-regular fa-folder-open"></i>
-        <span></span>
-      </button>
       <small id="tools-status" class="muted"></small>
       <button id="tools-primary-btn" type="button" title="">
         <i class="fa-solid fa-rotate" id="tools-primary-icon"></i>
@@ -194,8 +190,6 @@ export async function renderToolsInfo() {
     </div>
   `;
 
-  /** @type {HTMLButtonElement|null} */
-  const btnOpenToolsFolder = document.getElementById("open-tools-folder");
   /** @type {HTMLButtonElement|null} */
   const primaryBtn = document.getElementById("tools-primary-btn");
   /** @type {HTMLElement|null} */
@@ -235,14 +229,6 @@ export async function renderToolsInfo() {
           locReset.setAttribute('title', title);
         }
         if (locInput) locInput.setAttribute('title', info.path || '');
-        const locInfo = document.getElementById('ti-tools-location-info');
-        if (locInfo) {
-          const cur = info.path || '';
-          const def = info.defaultPath || '';
-          locInfo.textContent = info.isDefault
-            ? (def ? `Текущий путь по умолчанию: ${def}` : 'Используется путь по умолчанию')
-            : (def ? `Текущий путь: ${cur} • По умолчанию: ${def}` : `Текущий путь: ${cur}`);
-        }
       }
     } catch (e) { console.error('[toolsInfo] getLocation error:', e); }
   }
@@ -329,21 +315,6 @@ export async function renderToolsInfo() {
 
   try {
     const res = await window.electron?.tools?.getVersions?.();
-
-    // Кнопка «Открыть папку с инструментами»
-    if (btnOpenToolsFolder) {
-      const openPath = (res?.ytDlp?.ok && res?.ytDlp?.path) || (res?.ffmpeg?.ok && res?.ffmpeg?.path) || null;
-      if (openPath) {
-        btnOpenToolsFolder.style.display = "";
-        btnOpenToolsFolder.onclick = () => { window.electron?.tools?.showInFolder?.(openPath); };
-        btnOpenToolsFolder.setAttribute("title", "Открыть папку с инструментами");
-        btnOpenToolsFolder.setAttribute("data-bs-toggle", "tooltip");
-      } else {
-        btnOpenToolsFolder.style.display = "none";
-        btnOpenToolsFolder.removeAttribute("title");
-        btnOpenToolsFolder.removeAttribute("data-bs-toggle");
-      }
-    }
 
     // Хинт
     const missing = !res?.ytDlp?.ok || !res?.ffmpeg?.ok;

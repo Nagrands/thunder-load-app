@@ -14352,10 +14352,7 @@ body.ready #app-preloader {
 }
 
 .settings-section .module {
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  padding: 12px 14px;
+  padding: 12px 0;
 }
 
 .settings-section .module + .module {
@@ -14407,6 +14404,7 @@ body.ready #app-preloader {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
+  color: var(--color-highlight);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.05);
   padding: 0 10px;
@@ -14457,7 +14455,6 @@ body.ready #app-preloader {
   gap: 8px;
   font-size: 13px;
   line-height: 1;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.06);
   color: var(--color-text-main);
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease;
@@ -14539,7 +14536,8 @@ body.ready #app-preloader {
   transform: translateY(-1px);
 }
 .tool-badge.ok {
-  border-color: var(--color-accent);
+  border-color: var(--color-hover);
+  background-color: rgba(18, 97, 33, 0.12);
 }
 .tool-badge.missing {
   border-color: #d9534f;
@@ -14572,7 +14570,6 @@ body.ready #app-preloader {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.05);
   margin-right: 6px;
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease;
