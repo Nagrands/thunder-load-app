@@ -599,6 +599,10 @@ async function downloadMedia(
       fs.mkdirSync(downloadPath, { recursive: true });
     currentDownloadPath = downloadPath;
 
+    // Подготовим пути к инструментам один раз для всей функции
+    const ytDlpPath = getYtDlpPath();
+    const ffmpegDir = getToolsDir();
+
     // Audio Only режим
     if (quality === QUALITY_AUDIO_ONLY) {
       if (url.includes("twitch.tv")) {
@@ -612,8 +616,6 @@ async function downloadMedia(
           }
           event.sender.send("download-progress", progress);
         };
-        const ytDlpPath = getYtDlpPath();
-        const ffmpegDir = getToolsDir();
         activeProcesses.audioDownload = spawn(ytDlpPath, [
           "-o",
           audioOutput,
@@ -666,8 +668,6 @@ async function downloadMedia(
           }
           event.sender.send("download-progress", progress);
         };
-        const ytDlpPath = getYtDlpPath();
-        const ffmpegDir = getToolsDir();
         activeProcesses.audioDownload = spawn(ytDlpPath, [
           "-f",
           audioFormat,
@@ -744,8 +744,6 @@ async function downloadMedia(
 
     // Скачивание видео
     await new Promise((resolve, reject) => {
-      const ytDlpPath = getYtDlpPath();
-      const ffmpegDir = getToolsDir();
       activeProcesses.videoDownload = spawn(ytDlpPath, [
         "-f",
         videoFormat,

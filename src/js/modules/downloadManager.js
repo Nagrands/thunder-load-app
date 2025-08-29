@@ -23,6 +23,19 @@ const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
 const queueIndicator = document.getElementById("queue-start-indicator");
 
+function updateDownloaderTabLabel() {
+  try {
+    const label = document.querySelector(
+      '.group-menu [data-menu="download"] .menu-text',
+    );
+    if (!label) return;
+    const count = (state.isDownloading ? 1 : 0) + state.downloadQueue.length;
+    label.textContent = count > 0 ? `Downloader (${count})` : "Downloader";
+  } catch (e) {
+    // no-op
+  }
+}
+
 function updateQueueDisplay() {
   const count = state.downloadQueue.length;
   if (queueInfo && queueCount) {
@@ -40,6 +53,7 @@ function updateQueueDisplay() {
       queueInfo.classList.add("hidden");
     }
   }
+  updateDownloaderTabLabel();
 }
 
 const downloadVideo = async (url, quality) => {
@@ -49,6 +63,7 @@ const downloadVideo = async (url, quality) => {
   urlInput.disabled = true;
   downloadCancelButton.disabled = true;
   updateButtonState();
+  updateDownloaderTabLabel();
 
   try {
     progressBarContainer.style.opacity = 1;
@@ -125,6 +140,7 @@ const downloadVideo = async (url, quality) => {
     state.isDownloading = false;
     urlInput.disabled = false;
     updateButtonState();
+    updateDownloaderTabLabel();
 
     buttonText.textContent = "Скачать";
     downloadButton.removeAttribute("title");
