@@ -14449,12 +14449,37 @@ body.ready #app-preloader {
 }
 .tools-footer #tools-primary-btn,
 .tools-footer #tools-force-btn {
-  height: 34px;
-  border-radius: 10px;
+  height: 32px;
+  border-radius: 12px;
   padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease;
+}
+.tools-footer #tools-primary-btn:hover,
+.tools-footer #tools-force-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.tools-footer #tools-primary-btn:active,
+.tools-footer #tools-force-btn:active {
+  transform: translateY(1px);
 }
 .tools-footer #tools-status {
   text-align: left;
+  min-height: 18px;
+}
+.tools-footer #tools-primary-btn {
+  justify-self: end;
+}
+.tools-footer .tools-more {
+  justify-self: end;
 }
 
 @media (max-width: 720px) {
@@ -14493,7 +14518,7 @@ body.ready #app-preloader {
 }
 .tool-badges {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -14502,12 +14527,16 @@ body.ready #app-preloader {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
   line-height: 1.2;
   border: 1px solid var(--color-hover);
   background: rgba(255, 255, 255, 0.05);
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.08s ease;
+}
+.tool-badge:hover {
+  transform: translateY(-1px);
 }
 .tool-badge.ok {
   border-color: var(--color-accent);
@@ -14515,6 +14544,118 @@ body.ready #app-preloader {
 .tool-badge.missing {
   border-color: #d9534f;
   background: rgba(217, 83, 79, 0.12);
+}
+.tool-badge.update {
+  border-color: #e6a700;
+  background: rgba(230, 167, 0, 0.12);
+  color: #ffc107;
+}
+
+.tools-status-animate {
+  animation: toolsFadeIn 0.18s ease both;
+}
+
+@keyframes toolsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+#open-tools-folder {
+  height: 28px;
+  width: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  margin-right: 6px;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease;
+}
+#open-tools-folder:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+#open-tools-folder:active {
+  transform: translateY(1px);
+}
+
+.tools-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tools-more-btn {
+  height: 32px;
+  width: 36px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease;
+}
+
+.tools-more-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.tools-more-btn:active {
+  transform: translateY(1px);
+}
+
+.tools-more-menu {
+  position: absolute;
+  right: 0;
+  bottom: 110%;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 20, 20, 0.92);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(6px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+  z-index: 1200;
+}
+
+.tools-more:hover .tools-more-menu,
+.tools-more:focus-within .tools-more-menu {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.tools-more-menu button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  padding: 0 8px;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.tools-more-menu button:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .downloader-view {

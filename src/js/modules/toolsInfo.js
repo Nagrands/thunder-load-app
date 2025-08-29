@@ -1,5 +1,6 @@
 // src/js/modules/toolsInfo.js
 import { initTooltips } from "./tooltipInitializer.js";
+import { showConfirmationDialog } from "./modals.js";
 
 /**
  * Модуль рендера секции «Инструменты» (yt-dlp, ffmpeg).
@@ -179,10 +180,17 @@ export async function renderToolsInfo() {
         <i class="fa-solid fa-rotate" id="tools-primary-icon"></i>
         <span id="tools-primary-label"></span>
       </button>
-      <button id="tools-force-btn" type="button" title="Принудительно переустановить инструменты" data-bs-toggle="tooltip" style="display:none; vertical-align: middle;">
-        <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span></span>
-      </button>
+      <div id="tools-more" class="tools-more" style="display:none;">
+        <button id="tools-more-btn" class="tools-more-btn" title="Дополнительно" aria-label="Дополнительно">
+          <i class="fa-solid fa-ellipsis"></i>
+        </button>
+        <div id="tools-more-menu" class="tools-more-menu" role="menu" aria-label="Дополнительные действия">
+          <button id="tools-force-btn" type="button" title="Принудительно переустановить инструменты" data-bs-toggle="tooltip">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+            <span>Переустановить</span>
+          </button>
+        </div>
+      </div>
     </div>
   `;
 
@@ -194,6 +202,8 @@ export async function renderToolsInfo() {
   const primaryIcon = document.getElementById("tools-primary-icon");
   /** @type {HTMLElement|null} */
   const primaryLabel = document.getElementById("tools-primary-label");
+  /** @type {HTMLDivElement|null} */
+  const moreWrap = document.getElementById("tools-more");
   /** @type {HTMLButtonElement|null} */
   const forceBtn = document.getElementById("tools-force-btn");
   /** @type {HTMLElement|null} */
@@ -282,6 +292,8 @@ export async function renderToolsInfo() {
         const copied = res.copied?.length || 0; const skipped = res.skipped?.length || 0;
         await toast(`Миграция завершена: скопировано ${copied}, пропущено ${skipped}`, 'success');
         await refreshLocationUI();
+        // После успешной миграции перерисуем блок, чтобы обновились бейджи/статусы
+        await renderToolsInfo();
       } else { await toast('Не удалось выполнить миграцию', 'error'); }
     } catch (e) { console.error('[toolsInfo] migrateOld error:', e); await toast('Ошибка при миграции', 'error'); }
   });
@@ -339,7 +351,7 @@ export async function renderToolsInfo() {
       ? "Некоторые инструменты не найдены. Установите их или нажмите ‘Скачать зависимости’."
       : "";
 
-    if (forceBtn) forceBtn.style.display = missing ? "none" : "";
+    if (moreWrap) moreWrap.style.display = missing ? "none" : "";
 
     // Настраиваем единую кнопку: скачать зависимости ИЛИ проверить обновления
     if (primaryBtn && primaryLabel && primaryIcon) {
@@ -392,33 +404,41 @@ export async function renderToolsInfo() {
 
         const enableForceReinstall = () => {
           if (!forceBtn) return;
-          forceBtn.style.display = "";
-          forceBtn.onclick = async () => {
-            if (!navigator.onLine) {
-              await window.electron?.invoke?.("toast", "Нет сети: проверьте подключение", "warning");
-              return;
-            }
-            const prevText = primaryLabel.textContent;
-            try {
-              isInstalling = true;
-              applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
-              primaryBtn.setAttribute("aria-busy", "true");
-              primaryBtn.disabled = true; if (forceBtn) forceBtn.disabled = true;
-              let dots; dots = startDotsAnimator(primaryLabel, "Скачиваю");
-              await window.electron?.tools?.installAll?.();
-              await renderToolsInfo();
-            } catch (e) {
-              console.error("[toolsInfo] force installAll failed:", e);
-              primaryBtn.disabled = false; if (forceBtn) forceBtn.disabled = false;
-              primaryLabel.textContent = prevText || "Проверить обновления";
-            } finally {
-              isInstalling = false;
-              primaryBtn.removeAttribute("aria-busy");
-              applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
-              try { if (typeof dots?.stop === 'function') dots.stop(); } catch {}
-            }
+          if (moreWrap) moreWrap.style.display = "";
+          forceBtn.onclick = () => {
+            showConfirmationDialog(
+              "Вы действительно хотите переустановить инструменты?<br><small>Существующие файлы yt-dlp и ffmpeg в выбранной папке будут заменены.</small>",
+              async () => {
+                if (!navigator.onLine) {
+                  await window.electron?.invoke?.("toast", "Нет сети: проверьте подключение", "warning");
+                  return;
+                }
+                const prevText = primaryLabel.textContent;
+                try {
+                  isInstalling = true;
+                  applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
+                  primaryBtn.setAttribute("aria-busy", "true");
+                  primaryBtn.disabled = true; if (forceBtn) forceBtn.disabled = true;
+                  let dots; dots = startDotsAnimator(primaryLabel, "Скачиваю");
+                  await window.electron?.tools?.installAll?.();
+                  await renderToolsInfo();
+                } catch (e) {
+                  console.error("[toolsInfo] force installAll failed:", e);
+                  primaryBtn.disabled = false; if (forceBtn) forceBtn.disabled = false;
+                  primaryLabel.textContent = prevText || "Проверить обновления";
+                } finally {
+                  isInstalling = false;
+                  primaryBtn.removeAttribute("aria-busy");
+                  applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
+                  try { if (typeof dots?.stop === 'function') dots.stop(); } catch {}
+                }
+              }
+            );
           };
         };
+
+        // Всегда доступно дополнительное действие «Переустановить», когда инструменты присутствуют
+        enableForceReinstall();
 
         // handler: check updates
         primaryBtn.onclick = async () => {
@@ -486,14 +506,35 @@ export async function renderToolsInfo() {
             }
             const ytMsg = msgs.find((m) => m.startsWith("yt-dlp")) || "";
             const ffMsg = msgs.find((m) => m.startsWith("ffmpeg")) || "";
-            if (statusEl) statusEl.innerHTML = [ytMsg, ffMsg].filter(Boolean).join("<br>") || "Обновлений не найдено.";
+            if (statusEl) {
+              const badges = [];
+              if (cur?.ytDlp?.ok) {
+                const curTxt = yCurLocal || yCurUpd || "—";
+                const cls = ytCmp === 1 ? 'update' : 'ok';
+                const icon = ytCmp === 1 ? 'fa-rotate-right' : 'fa-check';
+                const latestTxt = ytLatest ? ` → ${ytLatest}` : '';
+                badges.push(`<span class=\"tool-badge ${cls}\"><i class=\"fa-solid ${icon}\"></i> yt-dlp ${curTxt}${latestTxt}</span>`);
+              } else {
+                badges.push(`<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> yt-dlp</span>`);
+              }
+              if (cur?.ffmpeg?.ok) {
+                const curTxt = fCurLocal || fCurUpd || "—";
+                const cls = ffCmp === 1 ? 'update' : 'ok';
+                const icon = ffCmp === 1 ? 'fa-rotate-right' : 'fa-check';
+                const latestTxt = ffLatest ? ` → ${ffLatest}` : '';
+                badges.push(`<span class=\"tool-badge ${cls}\"><i class=\"fa-solid ${icon}\"></i> ffmpeg ${curTxt}${latestTxt}</span>`);
+              } else {
+                badges.push(`<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> ffmpeg</span>`);
+              }
+              statusEl.innerHTML = `<div class=\"tool-badges\">${badges.join(' ')}<\/div>`;
+              statusEl.setAttribute('aria-live', 'polite');
+            }
 
             const ytCan = ytCmp === 1;
             const ffCan = ffCmp === 1;
             const anyUpdate = ytCan || ffCan;
 
             if (anyUpdate) {
-              if (forceBtn) forceBtn.style.display = "none";
 
               const updateYt = ytCan && !ffCan;
               const updateFf = ffCan && !ytCan;
@@ -592,7 +633,8 @@ export async function renderToolsInfo() {
       } else {
         parts.push(`<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> ffmpeg</span>`);
       }
-      statusEl.innerHTML = `<div class="tool-badges">${parts.join(" ")}</div>`;
+      statusEl.innerHTML = `<div class="tool-badges tools-status-animate">${parts.join(" ")}</div>`;
+      statusEl.setAttribute('aria-live', 'polite');
     }
   } catch (e) {
     if (hintEl) hintEl.textContent = "Не удалось получить версии инструментов.";
