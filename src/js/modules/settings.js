@@ -612,6 +612,37 @@ async function initSettings() {
   })();
   // === /WG Unlock: отключение вкладки ===
 
+  // === Backup: отключение вкладки (settings toggle) ===
+  (function initBackupDisableToggle(){
+    const KEY = "backupDisabled";
+    const read = () => {
+      try { return JSON.parse(localStorage.getItem(KEY)) === true; } catch { return false; }
+    };
+
+    const write = (v) => {
+      const val = !!v;
+      try { localStorage.setItem(KEY, JSON.stringify(val)); } catch {}
+      try { window.electron?.send && window.electron.send("settings:set", { key: KEY, value: val }); } catch {}
+      window.dispatchEvent(new CustomEvent("backup:toggleDisabled", { detail: { disabled: val } }));
+      window.electron?.invoke?.("toast", val
+        ? "Вкладка <strong>Backup</strong> отключена"
+        : "Вкладка <strong>Backup</strong> включена",
+        val ? "info" : "success");
+    };
+
+    const modal = document.getElementById("settings-modal") || document.querySelector("#settings");
+    if (!modal) return;
+    const input = modal.querySelector('#backup-settings #backup-disable-toggle, #backup-disable-toggle');
+    if (!input) return;
+    input.checked = read();
+    input.addEventListener('change', () => write(input.checked));
+    window.electron?.on?.('open-settings', () => {
+      const val = read();
+      input.checked = val;
+    });
+  })();
+  // === /Backup: отключение вкладки ===
+
   // === WG Unlock: авто‑закрытие (toggle + range 10–60s) ===
   const wgAutoToggle = document.getElementById("wg-auto-shutdown-toggle");
   const wgRangeWrap = document.getElementById("wg-auto-shutdown-range");

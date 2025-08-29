@@ -100,6 +100,24 @@ const localHotkeys = new Map([
     },
   ],
   [
+    "Ctrl+3",
+    () => {
+      if (tabSystemReference) {
+        tabSystemReference.activateTab("backup");
+        console.log("Переключено на вкладку Backup (Ctrl+3)");
+      }
+    },
+  ],
+  [
+    "Meta+3",
+    () => {
+      if (tabSystemReference) {
+        tabSystemReference.activateTab("backup");
+        console.log("Переключено на вкладку Backup (Meta+3)");
+      }
+    },
+  ],
+  [
     "Ctrl+D",
     () => {
       closeAllModals(modals);

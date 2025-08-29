@@ -548,6 +548,9 @@
               <button class="tab-link" data-tab="wgunlock-settings">
                 <i class="fa-solid fa-unlock-keyhole"></i>WG Unlock
               </button>
+              <button class="tab-link" data-tab="backup-settings">
+                <i class="fa-solid fa-box-archive"></i>Backup
+              </button>
               <button class="tab-link" data-tab="appearance-settings">
                 <i class="fa-solid fa-palette"></i>Внешний вид
               </button>
@@ -794,6 +797,22 @@
                 </ul>
               </div>
 
+              <div id="backup-settings" class="tab-pane">
+                <h2>Вкладка «Backup»</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="backup-disable-toggle" />
+                    <label for="backup-disable-toggle" data-bs-toggle="tooltip" data-bs-placement="top" title="Скрывает вкладку и отключает её инициализацию.">
+                      <i class="fa-solid fa-box-archive"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
+                  <li>
+                    <small class="muted">Функции резервного копирования появятся в будущих обновлениях.</small>
+                  </li>
+                </ul>
+              </div>
+
               <!-- Appearance Settings Tab -->
               <div id="appearance-settings" class="tab-pane">
                 <h2>Внешний вид приложения</h2>
@@ -982,6 +1001,12 @@
                 <strong>Ctrl + 2</strong>
                 <p>
                   <i class="fa-solid fa-unlock-keyhole"></i> Вкладка «WG Unlock»
+                </p>
+              </li>
+              <li>
+                <strong>Ctrl + 3</strong>
+                <p>
+                  <i class="fa-solid fa-box-archive"></i> Вкладка «Backup»
                 </p>
               </li>
               <hr />

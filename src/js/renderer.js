@@ -2,6 +2,7 @@
 
 import TabSystem from "./modules/tabSystem.js";
 import renderWireGuard from "./modules/views/wireguardView.js";
+import renderBackup from "./modules/views/backupView.js";
 
 import { initHistory, initHistoryState } from "./modules/history.js";
 import { initIconUpdater } from "./modules/iconUpdater.js";
@@ -66,6 +67,11 @@ async function startRenderer() {
     wireguardWrapper.className = "view-wrapper tab-view";
     wireguardWrapper.style.display = "none";
 
+    const backupWrapper = document.createElement("div");
+    backupWrapper.id = "backup-view-wrapper";
+    backupWrapper.className = "view-wrapper tab-view";
+    backupWrapper.style.display = "none";
+
     const GLOBAL_SELECTOR = [
       "#sidebar",
       ".modal-overlay",
@@ -88,6 +94,7 @@ async function startRenderer() {
 
     mainView.prepend(downloaderWrapper);
     mainView.appendChild(wireguardWrapper);
+    mainView.appendChild(backupWrapper);
 
     // Инициализация TabSystem
     const openHistoryBtn = document.getElementById("open-history");
@@ -114,6 +121,19 @@ async function startRenderer() {
           wireguardWrapper.appendChild(renderWireGuard());
         }
         return wireguardWrapper;
+      },
+      { onShow: () => showHistory(false), onHide: () => showHistory(true) },
+    );
+
+    tabs.addTab(
+      "backup",
+      "Backup",
+      "fa-solid fa-box-archive",
+      () => {
+        if (!backupWrapper.hasChildNodes()) {
+          backupWrapper.appendChild(renderBackup());
+        }
+        return backupWrapper;
       },
       { onShow: () => showHistory(false), onHide: () => showHistory(true) },
     );
