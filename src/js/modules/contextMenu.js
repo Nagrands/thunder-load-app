@@ -416,6 +416,12 @@ function handleRetryDownload(logEntry) {
     urlInput.value = retryUrl; // Используем импортированный urlInput
     updateButtonState();
 
+    // Синхронизируем UI кнопок вокруг поля и форсируем предпросмотр
+    try {
+      urlInput.dispatchEvent(new Event('input', { bubbles: true }));
+      urlInput.dispatchEvent(new Event('force-preview'));
+    } catch (_) {}
+
     downloadButton.classList.remove("disabled");
     downloadButton.classList.add("active");
 

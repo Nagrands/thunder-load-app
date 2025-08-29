@@ -182,26 +182,68 @@ const initiateDownload = async (url, quality) => {
 
 const handleDownloadButtonClick = async () => {
   const selectedQuality = getSelectedQuality();
-  const url = urlInput.value.trim();
-  if (!isValidUrl(url) || !isSupportedUrl(url)) {
+  const raw = urlInput.value.trim();
+  const quality = selectedQuality || "Source";
+
+  // Поддержка мультивставки: разделяем по пробельным и переводам строк
+  const parts = raw
+    .split(/\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  const validUrls = parts.filter((u) => isValidUrl(u) && isSupportedUrl(u));
+  if (validUrls.length === 0) {
     showToast("Пожалуйста, введите корректный URL.", "warning");
     return;
   }
 
-  const quality = selectedQuality || "Source";
+  // Если несколько: стартуем первый/добавляем остальные в очередь
+  if (validUrls.length > 1) {
+    const first = validUrls[0];
+    const rest = validUrls.slice(1);
+    if (state.isDownloading) {
+      // все в очередь
+      let added = 0;
+      for (const u of validUrls) {
+        if (
+          u !== state.currentUrl &&
+          !state.downloadQueue.some((it) => it.url === u)
+        ) {
+          state.downloadQueue.push({ url: u, quality });
+          added++;
+        }
+      }
+      if (added > 0) updateQueueDisplay();
+      showToast(`Добавлено в очередь: ${added} ссылок`, "info");
+    } else {
+      await initiateDownload(first, quality);
+      let added = 0;
+      for (const u of rest) {
+        if (!state.downloadQueue.some((it) => it.url === u)) {
+          state.downloadQueue.push({ url: u, quality });
+          added++;
+        }
+      }
+      if (added > 0) {
+        updateQueueDisplay();
+        showToast(`Добавлено в очередь: ${added} ссылок`, "info");
+      }
+    }
+    urlInput.value = "";
+    return;
+  }
 
+  // Один URL
+  const url = validUrls[0];
   if (state.isDownloading) {
     if (state.currentUrl === url) {
       showToast("Этот URL уже загружается.", "warning");
       return;
     }
-
-    const alreadyQueued = state.downloadQueue.some((item) => item.url === url);
-    if (alreadyQueued) {
+    if (state.downloadQueue.some((item) => item.url === url)) {
       showToast("Этот URL уже есть в очереди.", "info");
       return;
     }
-
     state.downloadQueue.push({ url, quality });
     showToast("Добавлено в очередь загрузки.", "info");
     urlInput.value = "";

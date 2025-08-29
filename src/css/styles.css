@@ -12197,6 +12197,12 @@ video {
   align-items: center;
   gap: 5px;
   height: 100%;
+  /* Небольшой бейдж для количества у вкладки Downloader, если оно включено в текст */
+}
+.group-menu [data-menu=download] .menu-text {
+  position: relative;
+  padding-right: 6px;
+  white-space: nowrap;
 }
 
 /* Контейнер для экспорт/импорт секции */
@@ -12975,11 +12981,18 @@ body.ready #app-preloader {
 .url-input-wrapper {
   position: relative;
   width: 100%;
+  /* Подсветка области при перетаскивании ссылок (если JS добавит класс) */
 }
 .url-input-wrapper input {
   width: 100%;
   padding-right: 70px; /* освободим место для крестика и иконки */
   box-sizing: border-box;
+}
+.url-input-wrapper.drag-over {
+  outline: 2px dashed var(--color-highlight);
+  outline-offset: 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .action-button, .folder-button, .paste-button,
@@ -13077,6 +13090,69 @@ body.ready #app-preloader {
 }
 #url::placeholder {
   color: var(--color-quality);
+}
+
+/* Карточка предпросмотра для Downloader */
+#preview-card {
+  display: none; /* управление показом через JS */
+  /* Размещаем карточку ПОВЕРХ поля ввода, по центру контейнера */
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 20px); /* над инпутом с отступом */
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-hover);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  color: var(--color-text-main);
+  gap: 12px;
+  align-items: center;
+  display: flex;
+  max-width: min(840px, 92vw);
+}
+#preview-card img {
+  width: auto;
+  max-width: 160px;
+  height: auto;
+  max-height: 84px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+#preview-card .preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0; /* для работы ellipsis */
+}
+#preview-card .preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 520px;
+}
+#preview-card .muted,
+#preview-card #preview-duration {
+  color: var(--color-quality);
+  font-size: 12px;
+}
+@media (max-width: 720px) {
+  #preview-card .preview-title {
+    max-width: 260px;
+  }
+}
+@media (max-width: 480px) {
+  #preview-card {
+    padding: 8px 10px;
+  }
+  #preview-card img {
+    display: none;
+  }
 }
 
 .modal-overlay,

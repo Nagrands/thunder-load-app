@@ -49,6 +49,14 @@
     padding-right: 70px; /* освободим место для крестика и иконки */
     box-sizing: border-box;
   }
+
+  /* Подсветка области при перетаскивании ссылок (если JS добавит класс) */
+  &.drag-over {
+    outline: 2px dashed var(--color-highlight);
+    outline-offset: 6px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+  }
 }
 
 // === Базовый стиль для всех иконок-кнопок ===
@@ -148,5 +156,71 @@
 
   &::placeholder {
     color: var(--color-quality);
+  }
+}
+
+/* Карточка предпросмотра для Downloader */
+#preview-card {
+  display: none; /* управление показом через JS */
+  /* Размещаем карточку ПОВЕРХ поля ввода, по центру контейнера */
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 20px); /* над инпутом с отступом */
+  transform: translateX(-50%);
+  z-index: 5;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-hover);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  color: var(--color-text-main);
+  gap: 12px;
+  align-items: center;
+  display: flex;
+  max-width: min(840px, 92vw);
+
+  img {
+    width: auto;
+    max-width: 160px;
+    height: auto;
+    max-height: 84px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  .preview-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0; /* для работы ellipsis */
+  }
+
+  .preview-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 520px;
+  }
+
+  .muted,
+  #preview-duration {
+    color: var(--color-quality);
+    font-size: 12px;
+  }
+
+  @media (max-width: 720px) {
+    .preview-title {
+      max-width: 260px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 10px;
+    img { display: none; }
   }
 }

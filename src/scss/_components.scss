@@ -1216,6 +1216,13 @@ video {
   align-items: center;
   gap: 5px;
   height: 100%;
+
+  /* Небольшой бейдж для количества у вкладки Downloader, если оно включено в текст */
+  [data-menu="download"] .menu-text {
+    position: relative;
+    padding-right: 6px;
+    white-space: nowrap;
+  }
 }
 
 /* Контейнер для экспорт/импорт секции */

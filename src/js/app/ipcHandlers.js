@@ -157,6 +157,29 @@ function setupIpcHandlers(dependencies) {
     return getToolsVersions(store);
   });
 
+  // Предпросмотр: получить метаданные видео по URL (заголовок, длительность, превью)
+  ipcMain.handle(CHANNELS.GET_VIDEO_INFO, async (_evt, url) => {
+    try {
+      if (!isValidUrl(url)) throw new Error("Invalid URL");
+      const info = await getVideoInfo(url);
+      const title = info?.title || "";
+      const duration = Number(info?.duration || 0);
+      // thumbnails: yt-dlp отдаёт массив; возьмём самый широкий
+      let thumb = null;
+      if (Array.isArray(info?.thumbnails) && info.thumbnails.length) {
+        thumb = info.thumbnails
+          .slice()
+          .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || null;
+      } else if (info?.thumbnail) {
+        thumb = info.thumbnail;
+      }
+      return { success: true, title, duration, thumbnail: thumb };
+    } catch (e) {
+      log.warn("get-video-info error:", e?.message || e);
+      return { success: false, error: e?.message || String(e) };
+    }
+  });
+
   ipcMain.handle(CHANNELS.TOOLS_SHOWINFOLDER, async (_evt, filePath) => {
     try {
       if (filePath && typeof filePath === "string") {

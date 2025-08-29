@@ -30,6 +30,7 @@ const CHANNELS = Object.freeze({
   GET_FILE_SIZE: 'get-file-size',
   GET_FONT_SIZE: 'get-font-size',
   GET_ICON_PATH: 'get-icon-path',
+  GET_VIDEO_INFO: 'get-video-info',
   GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS: 'get-minimize-instead-of-close-status',
   GET_MINIMIZE_ON_LAUNCH_STATUS: 'get-minimize-on-launch-status',
   GET_MINIMIZE_TO_TRAY_STATUS: 'get-minimize-to-tray-status',
