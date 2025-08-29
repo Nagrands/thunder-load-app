@@ -60,6 +60,12 @@
   }
 }
 
+@keyframes progressPulse {
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+}
+
 @keyframes progress-bar-stripes {
   from {
     background-position: 1rem 0;

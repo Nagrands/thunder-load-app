@@ -10749,6 +10749,17 @@
     background-position: 0 0;
   }
 }
+@keyframes progressPulse {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
 @keyframes progress-bar-stripes {
   from {
     background-position: 1rem 0;
@@ -11323,12 +11334,15 @@ footer p:hover {
   position: relative;
   display: flex;
   align-items: center;
+  flex-wrap: wrap; /* позволяем элементам переноситься на новую строку */
   width: 100%;
 }
 
 .icon-placeholder {
   position: absolute;
   left: 18px;
+  top: var(--icon-top, 50%);
+  transform: translateY(-50%);
   width: 24px;
   height: 24px;
   display: flex;
@@ -11441,13 +11455,14 @@ footer p:hover {
   overflow: hidden;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
 }
 #progress-bar-container::after {
   content: attr(data-progress);
   position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 14px;
+  top: 8px;
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-text-main);
@@ -11456,6 +11471,17 @@ footer p:hover {
   opacity: 0.9;
   letter-spacing: 0.5px;
 }
+#progress-bar-container::before {
+  content: attr(data-eta);
+  position: absolute;
+  right: 14px;
+  bottom: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-quality);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
 
 #progress-bar {
   height: 100%;
@@ -11463,7 +11489,7 @@ footer p:hover {
   background: linear-gradient(to right, var(--color-progress-bg), var(--color-progress-bar));
   border-radius: 8px;
   position: relative;
-  animation: flash 1s infinite;
+  animation: progressPulse 2s ease-in-out infinite;
   transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s ease;
 }
 #progress-bar::before {
@@ -11475,7 +11501,7 @@ footer p:hover {
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
   background-size: 24px 24px;
-  animation: progress-stripes 1s linear infinite;
+  animation: progress-stripes 1.2s linear infinite;
   mask: linear-gradient(to right, rgb(0, 0, 0) 85%, rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0));
 }
 #progress-bar::after {
@@ -12682,7 +12708,7 @@ body.ready #app-preloader {
 
 .button-group {
   display: grid;
-  grid-template-columns: auto 6fr auto auto auto;
+  grid-template-columns: auto 6fr auto auto; /* без кнопки качества */
   align-items: center;
   gap: var(--spacing-small);
   background: rgba(0, 0, 0, 0.1);
@@ -12981,6 +13007,7 @@ body.ready #app-preloader {
 .url-input-wrapper {
   position: relative;
   width: 100%;
+  z-index: 1; /* выше прогресс-оверлея */
   /* Подсветка области при перетаскивании ссылок (если JS добавит класс) */
 }
 .url-input-wrapper input {
@@ -13095,55 +13122,171 @@ body.ready #app-preloader {
 /* Карточка предпросмотра для Downloader */
 #preview-card {
   display: none; /* управление показом через JS */
-  /* Размещаем карточку ПОВЕРХ поля ввода, по центру контейнера */
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 20px); /* над инпутом с отступом */
-  transform: translateX(-50%);
-  z-index: 5;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--color-bg-secondary);
+  /* По умолчанию — потоковый блок ПОД инпутом и на ширину поля + пресетов */
+  position: relative; /* чтобы абсолютные кнопки позиционировались относительно карточки */
+  margin-top: 14px;
+  z-index: auto;
+  width: calc(100% - 120px); /* 50px слева под иконку + 70px справа под кнопки */
+  margin-left: 50px;
+  margin-right: 70px;
+  padding: 10px 44px 10px 12px; /* справа место под крестик */
+  border-radius: var(--border-radius);
+  background: var(--color-hover);
   border: 1px solid var(--color-hover);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  overflow: hidden; /* чтобы внутренние элементы не выходили за скругления */
   color: var(--color-text-main);
   gap: 12px;
   align-items: center;
-  display: flex;
-  max-width: min(840px, 92vw);
+  display: grid;
+  grid-template-columns: auto 1fr; /* превью + текст */
+  min-height: 104px; /* фиксируем высоту строки карточки */
+  /* заполняем доступную ширину блока ввода */
+  /* Контейнер превью-изображения для позиционирования кнопок */
+  /* Кнопка сохранения превью поверх изображения */
+  /* Кнопка закрытия карточки в правом верхнем углу */
+  /* Аккуратный бейдж длительности под заголовком */
+  /* Модификатор: разместить НАД инпутом, если ниже нет места */
+  /* Узкие экраны: совпасть по ширине с пресетами (у них width:100%, margin 0) */
 }
 #preview-card img {
-  width: auto;
-  max-width: 160px;
-  height: auto;
-  max-height: 84px;
+  width: 148px;
+  height: 84px;
   border-radius: 8px;
   object-fit: cover;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+#preview-card .preview-thumb-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  /* мягкая подложка под иконкой сохранения, чтобы она не терялась на светлых превью */
+}
+#preview-card .preview-thumb-wrap::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 64px;
+  height: 48px;
+  pointer-events: none;
+}
+#preview-card .preview-save {
+  position: absolute;
+  right: 12px;
+  top: 3px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--color-hover);
+  color: var(--color-text-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+#preview-card .preview-save i {
+  font-size: 14px;
+}
+#preview-card .preview-save:hover {
+  background: rgba(0, 0, 0, 0.65);
+  transform: scale(1.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+#preview-card .preview-save:active {
+  transform: scale(0.97);
+}
+#preview-card .preview-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  width: 26px; /* чуть меньше, чтобы не спорила с заголовком */
+  height: 26px;
+  border-radius: 50%;
+  color: var(--color-text-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+#preview-card .preview-close i {
+  font-size: 12px;
+}
+#preview-card .preview-close:hover {
+  background: rgba(0, 0, 0, 0.48);
+  transform: scale(1.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+#preview-card .preview-close:active {
+  transform: scale(0.97);
+}
+#preview-card .preview-close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 #preview-card .preview-meta {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 0; /* для работы ellipsis */
+  min-width: clamp(220px, 40vw, 360px); /* стабильная, но адаптивная ширина правой области */
+  min-height: 84px; /* выравнивание по высоте превью (148x84) */
+  justify-content: center;
+  line-height: 1.2;
+  padding-top: 6px; /* опускаем контент немного ниже от верхнего края/крестика */
 }
 #preview-card .preview-title {
+  align-items: center;
+  padding: 6px 10px; /* паддинги вокруг текста */
+  background: rgba(0, 0, 0, 0.35); /* фон для стабильности */
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 520px;
+  max-width: 100%;
+  min-height: 28px; /* стабильная высота заголовка */
+  margin-top: 2px;
 }
 #preview-card .muted,
 #preview-card #preview-duration {
-  color: var(--color-quality);
+  color: var(--color-highlight);
+  font-size: 12px;
+}
+#preview-card #preview-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px; /* чуть ниже, чтобы не пересекаться с крестиком */
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  line-height: 1;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+#preview-card #preview-duration::before {
+  content: "⏱";
+  opacity: 0.85;
   font-size: 12px;
 }
 @media (max-width: 720px) {
   #preview-card .preview-title {
     max-width: 260px;
+  }
+  #preview-card .preview-meta {
+    min-width: 0; /* на узких экранах разрешаем сжиматься */
+    min-height: auto;
   }
 }
 @media (max-width: 480px) {
@@ -13154,6 +13297,31 @@ body.ready #app-preloader {
     display: none;
   }
 }
+#preview-card.pos-top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: none;
+  top: auto;
+  bottom: calc(100% + 14px);
+  z-index: 5;
+  margin-top: 0;
+  width: calc(100% - 120px);
+  margin-left: 50px;
+  margin-right: 70px;
+}
+@media (max-width: 720px) {
+  #preview-card {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  #preview-card.pos-top {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
 
 /* Подсказки под полем URL */
 .url-hints {
@@ -13161,6 +13329,77 @@ body.ready #app-preloader {
   margin-top: 8px;
   color: var(--color-quality);
   font-size: 12px;
+}
+
+/* Быстрые пресеты качества */
+.quality-presets {
+  display: none;
+  /* Располагаем пресеты на отдельной строке под полем */
+  order: 2;
+  flex-basis: 100%;
+  display: none;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 10px;
+  width: calc(100% - 120px);
+  /* Плашка с лёгким блюром */
+  align-self: center;
+  width: fit-content;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--color-hover);
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(4px);
+  /* Узкие экраны: убираем боковые отступы, растягиваемся */
+  /* Респонсив: на очень узких экранах растягиваем по ширине */
+}
+.quality-presets.is-visible {
+  display: flex;
+  justify-content: center;
+}
+.quality-presets.is-disabled {
+  pointer-events: none;
+  opacity: 0.6;
+  filter: grayscale(0.1);
+}
+@media (max-width: 720px) {
+  .quality-presets {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
+}
+.quality-presets .preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--color-text-main);
+  background: var(--color-hover);
+  border: 1px solid var(--color-hover);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.quality-presets .preset:hover {
+  background: var(--color-hover);
+}
+.quality-presets .preset.active {
+  color: var(--color-highlight);
+  background: var(--color-bg-secondary);
+  border-color: transparent;
+}
+.quality-presets .preset i {
+  font-size: 12px;
+}
+@media (max-width: 720px) {
+  .quality-presets {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 .modal-overlay,

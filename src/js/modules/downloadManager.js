@@ -36,6 +36,78 @@ function updateDownloaderTabLabel() {
   }
 }
 
+// === Queue helpers ===
+const QUEUE_MAX = 200;
+
+function normalizeUrl(u) {
+  try {
+    const url = new URL(String(u).trim());
+    // strip common tracking params but keep meaningful like 't' (timestamp)
+    const toDelete = [
+      'utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+      'si','spm','fbclid','gclid','yclid','mc_cid','mc_eid','feature'
+    ];
+    toDelete.forEach((k) => url.searchParams.delete(k));
+    // remove trailing slash for consistency
+    if (url.pathname !== '/' && url.pathname.endsWith('/')) {
+      url.pathname = url.pathname.replace(/\/+$/, '');
+    }
+    // drop hash except time-like (#t=) to reduce dupes
+    if (!/^t=/.test(url.hash?.slice(1) || '')) url.hash = '';
+    url.username = '';
+    url.password = '';
+    return url.toString();
+  } catch {
+    return (u || '').trim();
+  }
+}
+
+function extractUrls(raw) {
+  if (!raw) return [];
+  const re = /(https?:\/\/[^\s'"<>]+)/gi;
+  const out = [];
+  let m;
+  while ((m = re.exec(raw))) out.push(m[1]);
+  // если ре не нашёл — fallback разбивка по пробелам
+  if (out.length === 0) {
+    out.push(
+      ...String(raw)
+        .split(/\s+|,|;|\n|\r/)
+        .map((s) => s.trim())
+        .filter((s) => /^https?:\/\//i.test(s)),
+    );
+  }
+  return out;
+}
+
+function summarizeEnqueueResult(res) {
+  const parts = [];
+  if (res.added) parts.push(`добавлено: ${res.added}`);
+  if (res.duplicates) parts.push(`дубликатов: ${res.duplicates}`);
+  if (res.activeDup) parts.push(`совпадает с текущей: ${res.activeDup}`);
+  if (res.invalid) parts.push(`некорректных: ${res.invalid}`);
+  if (res.capped) parts.push(`превышение лимита: +${res.capped}`);
+  return parts.join(', ');
+}
+
+function enqueueMany(urls, quality, options = {}) {
+  const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
+  const existing = new Set(state.downloadQueue.map((it) => normalizeUrl(it.url)));
+  let added = 0, duplicates = 0, activeDup = 0, invalid = 0, capped = 0;
+  for (const raw of urls) {
+    if (!isValidUrl(raw) || !isSupportedUrl(raw)) { invalid++; continue; }
+    const n = normalizeUrl(raw);
+    if (n === currentN) { activeDup++; continue; }
+    if (existing.has(n)) { duplicates++; continue; }
+    if (state.downloadQueue.length >= QUEUE_MAX) { capped++; continue; }
+    state.downloadQueue.push({ url: raw, quality });
+    existing.add(n);
+    added++;
+  }
+  updateQueueDisplay();
+  return { added, duplicates, activeDup, invalid, capped };
+}
+
 function updateQueueDisplay() {
   const count = state.downloadQueue.length;
   if (queueInfo && queueCount) {
@@ -56,6 +128,8 @@ function updateQueueDisplay() {
   updateDownloaderTabLabel();
 }
 
+let lastInputBeforeDownload = null;
+
 const downloadVideo = async (url, quality) => {
   console.log("Инициирование загрузки по URL:", url, "с качеством:", quality);
   state.isDownloading = true;
@@ -63,9 +137,22 @@ const downloadVideo = async (url, quality) => {
   urlInput.disabled = true;
   downloadCancelButton.disabled = true;
   updateButtonState();
+  try { window.dispatchEvent(new CustomEvent('download:state', { detail: { isDownloading: true } })); } catch {}
   updateDownloaderTabLabel();
 
   try {
+    // Поменяем содержимое поля URL на название ролика, чтобы во время загрузки показывать title
+    lastInputBeforeDownload = urlInput.value;
+    try {
+      const meta = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      const title = meta?.title?.trim();
+      if (title && title.length >= 2) {
+        urlInput.value = title;
+        urlInput.setAttribute("data-title-mode", "1");
+        try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
+      }
+    } catch (_) {}
+
     progressBarContainer.style.opacity = 1;
     progressBar.style.width = "0%";
 
@@ -88,6 +175,14 @@ const downloadVideo = async (url, quality) => {
 
     if (cancelled) {
       console.log("Загрузка отменена.");
+      // Вернём исходное содержимое поля, если меняли его на title
+      try {
+        if (urlInput.getAttribute("data-title-mode") === "1") {
+          urlInput.value = lastInputBeforeDownload || "";
+          urlInput.removeAttribute("data-title-mode");
+          urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      } catch {}
       return;
     }
 
@@ -118,6 +213,7 @@ const downloadVideo = async (url, quality) => {
     await updateDownloadCount();
 
     urlInput.value = "";
+    try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
     updateIcon("");
     updateButtonState();
 
@@ -135,11 +231,20 @@ const downloadVideo = async (url, quality) => {
         "error",
       );
     }
+    // На ошибке — вернём исходный URL в поле (если меняли)
+    try {
+      if (urlInput.getAttribute("data-title-mode") === "1") {
+        urlInput.value = lastInputBeforeDownload || "";
+        urlInput.removeAttribute("data-title-mode");
+        urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    } catch {}
   } finally {
     state.currentUrl = "";
     state.isDownloading = false;
     urlInput.disabled = false;
     updateButtonState();
+    try { window.dispatchEvent(new CustomEvent('download:state', { detail: { isDownloading: false } })); } catch {}
     updateDownloaderTabLabel();
 
     buttonText.textContent = "Скачать";
@@ -186,13 +291,8 @@ const handleDownloadButtonClick = async (options = {}) => {
   let quality = selectedQuality || "Source";
   if (options.forceAudioOnly) quality = "Audio Only";
 
-  // Поддержка мультивставки: разделяем по пробельным и переводам строк
-  const parts = raw
-    .split(/\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
-  const validUrls = parts.filter((u) => isValidUrl(u) && isSupportedUrl(u));
+  // Извлекаем URL из произвольного текста
+  const validUrls = extractUrls(raw).filter((u) => isValidUrl(u) && isSupportedUrl(u));
   if (validUrls.length === 0) {
     showToast("Пожалуйста, введите корректный URL.", "warning");
     return;
@@ -203,51 +303,36 @@ const handleDownloadButtonClick = async (options = {}) => {
     const first = validUrls[0];
     const rest = validUrls.slice(1);
     if (state.isDownloading || options.enqueueOnly) {
-      // все в очередь
-      let added = 0;
-      for (const u of validUrls) {
-        if (
-          u !== state.currentUrl &&
-          !state.downloadQueue.some((it) => it.url === u)
-        ) {
-          state.downloadQueue.push({ url: u, quality });
-          added++;
-        }
-      }
-      if (added > 0) updateQueueDisplay();
-      showToast(`Добавлено в очередь: ${added} ссылок`, "info");
+      const res = enqueueMany(validUrls, quality, options);
+      showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
     } else {
       await initiateDownload(first, quality);
-      let added = 0;
-      for (const u of rest) {
-        if (!state.downloadQueue.some((it) => it.url === u)) {
-          state.downloadQueue.push({ url: u, quality });
-          added++;
-        }
-      }
-      if (added > 0) {
-        updateQueueDisplay();
-        showToast(`Добавлено в очередь: ${added} ссылок`, "info");
+      const res = enqueueMany(rest, quality, options);
+      if (res.added || res.duplicates || res.invalid) {
+        showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
       }
     }
     urlInput.value = "";
+    try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
     return;
   }
 
   // Один URL
   const url = validUrls[0];
   if (state.isDownloading || options.enqueueOnly) {
-    if (state.currentUrl === url) {
+    const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
+    if (nCurr === normalizeUrl(url)) {
       showToast("Этот URL уже загружается.", "warning");
       return;
     }
-    if (state.downloadQueue.some((item) => item.url === url)) {
+    if (state.downloadQueue.some((item) => normalizeUrl(item.url) === normalizeUrl(url))) {
       showToast("Этот URL уже есть в очереди.", "info");
       return;
     }
     state.downloadQueue.push({ url, quality });
     showToast("Добавлено в очередь загрузки.", "info");
     urlInput.value = "";
+    try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
     updateQueueDisplay();
   } else {
     await initiateDownload(url, quality);
@@ -270,19 +355,9 @@ function initDownloadButton() {
   window.addEventListener("queue:addMany", (e) => {
     const urls = Array.isArray(e.detail?.urls) ? e.detail.urls : [];
     const q = e.detail?.quality || getSelectedQuality() || "Source";
-    let added = 0;
-    for (const u of urls) {
-      if (
-        (!state.isDownloading || state.currentUrl !== u) &&
-        !state.downloadQueue.some((it) => it.url === u)
-      ) {
-        state.downloadQueue.push({ url: u, quality: q });
-        added++;
-      }
-    }
-    if (added > 0) {
-      updateQueueDisplay();
-      showToast(`Добавлено в очередь: ${added} ссылок`, "info");
+    const res = enqueueMany(urls, q, {});
+    if (res.added || res.duplicates || res.invalid) {
+      showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
     }
   });
 }

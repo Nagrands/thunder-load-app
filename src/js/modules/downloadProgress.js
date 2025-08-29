@@ -28,6 +28,20 @@ function initDownloadProgress() {
     progressBar.style.width = `${progress}%`;
     if (progressBarContainer) {
       progressBarContainer.setAttribute("aria-valuenow", progressStr);
+      try {
+        // Отрисуем проценты и ETA прямо на оверлее прогресса
+        progressBarContainer.dataset.progress = `${progressStr}%`;
+        if (startedAt) {
+          const elapsed = (Date.now() - startedAt) / 1000;
+          const rate = progress / Math.max(0.5, elapsed); // %/s
+          const remaining = (100 - progress) / Math.max(0.1, rate);
+          const mm = Math.floor(remaining / 60);
+          const ss = Math.floor(remaining % 60);
+          progressBarContainer.dataset.eta = `~${mm}:${String(ss).padStart(2, '0')}`;
+        } else {
+          progressBarContainer.dataset.eta = '';
+        }
+      } catch {}
     }
   });
 }

@@ -186,7 +186,7 @@
 
 .button-group {
   display: grid;
-  grid-template-columns: auto 6fr auto auto auto;
+  grid-template-columns: auto 6fr auto auto; /* без кнопки качества */
   align-items: center;
   gap: var(--spacing-small);
   background: rgba(0, 0, 0, 0.1);

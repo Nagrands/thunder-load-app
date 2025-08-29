@@ -172,6 +172,30 @@
               </button>
             </div>
           </div>
+          <!-- Quick quality presets -->
+          <div class="quality-presets">
+            <button type="button" class="preset" data-quality="Audio Only" data-bs-toggle="tooltip" data-bs-placement="top" title="Скачать только аудио">
+              <i class="fa-solid fa-music"></i>
+              Audio
+            </button>
+            <button type="button" class="preset" data-quality="Source" data-bs-toggle="tooltip" data-bs-placement="top" title="Максимальное доступное качество">
+              <i class="fa-solid fa-bullseye"></i>
+              Source
+            </button>
+            <button type="button" class="preset" data-quality="FHD 1080p" data-bs-toggle="tooltip" data-bs-placement="top" title="1080p">
+              <i class="fa-solid fa-tv"></i>
+              1080p
+            </button>
+            <button type="button" class="preset" data-quality="HD 720p" data-bs-toggle="tooltip" data-bs-placement="top" title="720p">
+              <i class="fa-solid fa-display"></i>
+              720p
+            </button>
+            <button type="button" class="preset" data-quality="SD 360p" data-bs-toggle="tooltip" data-bs-placement="top" title="360p">
+              <i class="fa-solid fa-mobile-screen"></i>
+              360p
+            </button>
+          </div>
+
           <!-- Progress Bar -->
           <div id="preview-card" class="preview-card" style="display:none">
             <img id="preview-thumb" alt="Превью" style="display:none;max-height:80px;border-radius:6px;margin-right:8px" />
@@ -318,8 +342,8 @@
             <i class="fa-solid fa-xmark"></i>
           </button>
 
-          <!-- Кнопка выбора качества -->
-          <div class="quality-container">
+          <!-- Кнопка выбора качества (скрыто, качеством управляют пресеты) -->
+          <div class="quality-container" style="display: none">
             <button
               id="quality-button"
               class="small-button"

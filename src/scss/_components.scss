@@ -188,12 +188,15 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex-wrap: wrap; /* позволяем элементам переноситься на новую строку */
   width: 100%;
 }
 
 .icon-placeholder {
   position: absolute;
   left: 18px;
+  top: var(--icon-top, 50%);
+  transform: translateY(-50%);
   width: 24px;
   height: 24px;
   display: flex;
@@ -317,13 +320,14 @@
     inset 0 1px 3px rgba(0, 0, 0, 0.12),
     0 2px 4px rgba(0, 0, 0, 0.05);
   transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
 
   &::after {
     content: attr(data-progress);
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 14px;
+    top: 8px;
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--color-text-main);
@@ -333,6 +337,18 @@
     z-index: 2;
     opacity: 0.9;
     letter-spacing: 0.5px;
+  }
+
+  &::before {
+    content: attr(data-eta);
+    position: absolute;
+    right: 14px;
+    bottom: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-quality);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    z-index: 2;
   }
 }
 
@@ -346,7 +362,7 @@
   );
   border-radius: 8px;
   position: relative;
-  animation: flash 1s infinite;
+  animation: progressPulse 2s ease-in-out infinite;
   transition:
     width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
     background-color 0.3s ease;
@@ -369,7 +385,7 @@
       transparent
     );
     background-size: 24px 24px;
-    animation: progress-stripes 1s linear infinite;
+    animation: progress-stripes 1.2s linear infinite;
     mask: linear-gradient(
       to right,
       rgba(0, 0, 0, 1) 85%,
