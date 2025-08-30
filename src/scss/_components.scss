@@ -1408,6 +1408,35 @@ video {
   }
 }
 
+// ——— Улучшенный стиль контейнера вкладок по центру (glass pill со скроллом) ———
+.group-menu {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(6px);
+  max-width: min(64vw, 720px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+}
+.group-menu::-webkit-scrollbar { display: none; }
+.group-menu::before,
+.group-menu::after {
+  content: "";
+  position: sticky;
+  top: 0; bottom: 0;
+  width: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+.group-menu::before { left: 0; background: linear-gradient(90deg, rgba(0,0,0,0.25), transparent); border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
+.group-menu::after { right: 0; background: linear-gradient(270deg, rgba(0,0,0,0.25), transparent); border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
+
 /* Контейнер для экспорт/импорт секции */
 .export-import-section {
   margin-top: 1.5rem;
