@@ -31,8 +31,8 @@
   #tools-location-path,
   #ti-tools-location-path {
     width: 100%;
-    height: 34px;
-    padding: 6px 10px;
+    height: 36px;
+    padding: 8px 12px;
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.06);
@@ -41,6 +41,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+  }
+
+  #tools-location-path:focus-visible,
+  #ti-tools-location-path:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(78, 93, 148, 0.35);
   }
 
   #tools-location-choose,
@@ -51,12 +58,12 @@
   #ti-tools-location-open,
   #ti-tools-location-reset,
   #ti-tools-location-migrate {
-    height: 34px;
-    min-width: 34px;
+    height: 36px;
+    min-width: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--color-highlight);
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.05);
@@ -88,6 +95,18 @@
     transform: translateY(1px);
   }
 
+  #tools-location-choose:focus-visible,
+  #tools-location-open:focus-visible,
+  #tools-location-reset:focus-visible,
+  #tools-location-migrate:focus-visible,
+  #ti-tools-location-choose:focus-visible,
+  #ti-tools-location-open:focus-visible,
+  #ti-tools-location-reset:focus-visible,
+  #ti-tools-location-migrate:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
   // disabled
   #tools-location-reset:disabled,
   #ti-tools-location-reset:disabled {
@@ -106,23 +125,26 @@
 
   #tools-primary-btn,
   #tools-force-btn {
-    height: 32px;
-    border-radius: 12px;
-    padding: 0 12px;
+    height: 36px;
+    border-radius: 14px;
+    padding: 0 14px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1;
     background: rgba(255,255,255,0.06);
     color: var(--color-text-main);
     transition: background .16s ease, border-color .16s ease, transform .08s ease;
+
+    i { font-size: 14px; }
 
     &:hover {
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.14);
     }
     &:active { transform: translateY(1px); }
+    &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
   }
 
   #tools-status {
@@ -233,9 +255,9 @@
   align-items: center;
 }
 .tools-more-btn {
-  height: 32px;
-  width: 36px;
-  border-radius: 12px;
+  height: 36px;
+  width: 40px;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -243,12 +265,19 @@
   background: rgba(255,255,255,0.06);
   color: var(--color-text-main);
   transition: background .16s ease, border-color .16s ease, transform .08s ease;
+  cursor: pointer;
 }
 .tools-more-btn:hover {
   background: rgba(255,255,255,0.08);
   border-color: rgba(255,255,255,0.14);
 }
 .tools-more-btn:active { transform: translateY(1px); }
+.tools-more-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.tools-more.is-open .tools-more-btn {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.18);
+}
 
 .tools-more-menu {
   position: absolute;
@@ -267,9 +296,22 @@
   pointer-events: none;
   transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
   z-index: 1200; // выше z-index тултипов
+
+  &::before {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    transform: rotate(45deg);
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+  }
 }
-.tools-more:hover .tools-more-menu,
-.tools-more:focus-within .tools-more-menu {
+.tools-more.is-open .tools-more-menu {
   opacity: 1;
   transform: translateY(0);
   visibility: visible;
@@ -280,14 +322,23 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 32px;
+  height: 34px;
   border-radius: 8px;
   background: transparent;
   border: none;
   color: var(--color-text-main);
   padding: 0 8px;
   transition: background .16s ease, color .16s ease;
+  cursor: pointer;
 }
 .tools-more-menu button:hover {
   background: rgba(255,255,255,0.06);
+}
+
+// Блок статусов — выравнивание бейджей и текста
+.tool-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }

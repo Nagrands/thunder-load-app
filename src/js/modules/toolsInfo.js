@@ -199,6 +199,10 @@ export async function renderToolsInfo() {
   /** @type {HTMLDivElement|null} */
   const moreWrap = document.getElementById("tools-more");
   /** @type {HTMLButtonElement|null} */
+  const moreBtn = document.getElementById("tools-more-btn");
+  /** @type {HTMLElement|null} */
+  const moreMenu = document.getElementById("tools-more-menu");
+  /** @type {HTMLButtonElement|null} */
   const forceBtn = document.getElementById("tools-force-btn");
   /** @type {HTMLElement|null} */
   const hintEl = document.getElementById("tools-hint");
@@ -296,6 +300,42 @@ export async function renderToolsInfo() {
 
   await refreshLocationUI();
   // === /Tools location wiring ===
+
+  // --- Overflow menu: click to open/close ---
+  if (moreWrap && moreBtn && moreMenu) {
+    // reset state
+    moreWrap.classList.remove('is-open');
+    moreBtn.setAttribute('aria-expanded', 'false');
+
+    const closeMenu = () => {
+      if (!moreWrap.classList.contains('is-open')) return;
+      moreWrap.classList.remove('is-open');
+      moreBtn.setAttribute('aria-expanded', 'false');
+    };
+
+    const toggleMenu = (ev) => {
+      ev.stopPropagation();
+      const willOpen = !moreWrap.classList.contains('is-open');
+      // Close any other open menus of the same type
+      document.querySelectorAll('.tools-more.is-open').forEach((el) => {
+        if (el !== moreWrap) el.classList.remove('is-open');
+      });
+      moreWrap.classList.toggle('is-open', willOpen);
+      moreBtn.setAttribute('aria-expanded', String(willOpen));
+    };
+
+    moreBtn.addEventListener('click', toggleMenu);
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!moreWrap.classList.contains('is-open')) return;
+      if (!moreWrap.contains(e.target)) closeMenu();
+    });
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+  }
 
   let isChecking = false;
   let isInstalling = false;
