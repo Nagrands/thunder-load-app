@@ -109,83 +109,84 @@ $themes: (
     color-coub: #37a8ff,
   ),
   light: (
-    // Основные цвета для светлого режима
-    color-accent: #5dabff,
-    // яркий акцент
-    color-bg-log: #f9f9f9,
+    // Обновлённая светлая (нейтральная) тема
+    color-accent: #0a84ff,
+    // яркий акцент (сохраняем синим)
+    color-bg-log: #ffffff,
     // фон логов
-    color-bg-main: #272e3a,
-    // основной фон
-    color-bg-secondary: #151820,
-    // вторичный фон
-    color-border: #c0c0c029,
-    // цвет границ
-    color-disabled: #a8a8a880,
+    color-bg-main: #f2f3f5,
+    // более нейтральный серовато‑светлый фон
+    color-bg-secondary: #ffffff,
+    // вторичный фон (карточки, панели)
+    color-border: #e5e7eb,
+    // светлые границы
+    color-disabled: #b8c0cc,
     // для неактивных элементов
-    color-highlight: #f0f0f0,
-    // подсветка
-    color-history-scroll: #b0b0b033,
+    color-highlight: #2b2f3a,
+    // контентный акцентный текст
+    color-history-scroll: rgba(0,0,0,0.14),
     // фон полосы прокрутки истории
-    color-hover: #8bb6e329,
-    color-icon-links: #007aff,
+    color-hover: rgba(0, 0, 0, 0.05),
+    color-icon-links: #0a84ff,
     // иконки и ссылки
-    color-progress-bar: #007aff,
+    color-progress-bar: #0a84ff,
     // полоса прогресса
-    color-progress-bg: #313131,
+    color-progress-bg: rgba(0,0,0,0.06),
     // фон полосы прогресса
-    color-quality: #a0a0a0cc,
+    color-quality: #6b7280,
     // индикатор качества
-    color-toast-bg: #f5f5f5,
+    color-toast-bg: #ffffff,
     // фон уведомлений
-    color-toast-error: #ff453a,
+    color-toast-error: #ff3b30,
     // ошибка
     color-toast-success: #30d158,
     // успех
-    color-toast-text: #787878,
+    color-toast-text: #1f2330,
     // текст уведомлений
     color-toast-warning: #ffcc00,
     // предупреждение
-    color-url-bg: #0000004d,
+    color-url-bg: #ffffff,
     // фон URL
-    color-url-border: #82beff2b,
+    color-url-border: #e5e7eb,
     // граница URL
-    color-url-link: #007aff,
+    color-url-link: #0a84ff,
     // ссылка в URL
-    color-url-text: #cccccc,
-    // ссылка в URL
-    button-cancel: linear-gradient(180deg, #d32f2f, #b71c1c),
+    color-url-text: #1f2330,
+    // текст URL
+    button-cancel: linear-gradient(180deg, #ff5f56, #ffd1d1),
     // кнопка "Отмена"
-    button-color: #f0f0f0,
-    // базовый цвет кнопок
-    button-default: linear-gradient(180deg, #285e9a, #1d3853),
+    button-color: #1f2330,
+    // базовый цвет кнопок (текст)
+    button-default: linear-gradient(180deg, #ffffff, #eceff3),
     // стандартная кнопка
-    button-disabled-bg: #cccccc,
+    button-disabled-bg: #e6e6e6,
     // фон неактивной кнопки
-    button-disabled: #e0e0e0,
+    button-disabled: #9aa3af,
     // текст неактивной кнопки
-    button-download: linear-gradient(180deg, #3f73a7, #0f3f82),
+    button-download: linear-gradient(180deg, #3f8cff, #0a84ff),
     // кнопка "Скачать"
-    button-enabled: #ffffff,
-    // активная кнопка
-    button-open-folder: linear-gradient(180deg, #b04c4c, #282c34),
+    button-enabled: #1f2330,
+    // активная кнопка (текст)
+    button-open-folder: linear-gradient(180deg, #ffc9c9, #ffecec),
     // кнопка открытия папки
-    button-open-history: linear-gradient(180deg, #1d3853, #005bb5),
+    button-open-history: linear-gradient(180deg, #cfe5ff, #eaf3ff),
     // кнопка истории
-    button-openlast-video: linear-gradient(180deg, #1d3853, #005bb5),
+    button-openlast-video: linear-gradient(180deg, #cfe5ff, #eaf3ff),
     // кнопка последнего видео
-    sidebar-background: #333333,
+    sidebar-background: #ffffffcc,
     // фон сайдбара
-    sidebar-color: #eee,
+    sidebar-color: #1f2330,
     // цвет текста в сайдбаре
-    sidebar-list-color: #cccccc1f,
+    sidebar-list-color: rgba(0,0,0,0.06),
     // цвет элементов списка
-    color-text-main: #eee,
+    color-text-main: #1f2330,
     // основной текст
     color-youtube: #ce1312,
     color-twitch: #9e60fc,
     color-vkvideo: #0077ff,
     color-coub: #37a8ff,
   ),
+
   midnight: (
     // Глубокая тёмно‑синяя тема
     color-accent: #5ac8fa,

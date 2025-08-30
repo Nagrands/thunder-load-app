@@ -153,20 +153,44 @@ const localHotkeys = new Map([
     "Ctrl+T",
     async () => {
       closeAllModals(modals);
-      const newTheme = toggleTheme();
-      updateThemeDropdownUI(newTheme);
-      localStorage.setItem("theme", newTheme);
-      await window.electron.invoke("set-theme", newTheme);
+      const order = ["system", "light", "dark", "midnight"]; // цикл тем с системной
+      const curAttr = document.documentElement.getAttribute("data-theme");
+      const cur = curAttr || localStorage.getItem("theme") || "system";
+      const idx = Math.max(0, order.indexOf(cur));
+      const next = order[(idx + 1) % order.length];
+      document.documentElement.classList.add('theme-transition');
+      if (next === "system") {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.removeItem("theme");
+      } else {
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+      }
+      updateThemeDropdownUI(next);
+      await window.electron.invoke("set-theme", next);
+      setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
     },
   ],
   [
     "Meta+T",
     async () => {
       closeAllModals(modals);
-      const newTheme = toggleTheme();
-      updateThemeDropdownUI(newTheme);
-      localStorage.setItem("theme", newTheme);
-      await window.electron.invoke("set-theme", newTheme);
+      const order = ["system", "light", "dark", "midnight"]; // цикл тем с системной
+      const curAttr = document.documentElement.getAttribute("data-theme");
+      const cur = curAttr || localStorage.getItem("theme") || "system";
+      const idx = Math.max(0, order.indexOf(cur));
+      const next = order[(idx + 1) % order.length];
+      document.documentElement.classList.add('theme-transition');
+      if (next === "system") {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.removeItem("theme");
+      } else {
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+      }
+      updateThemeDropdownUI(next);
+      await window.electron.invoke("set-theme", next);
+      setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
     },
   ],
   [

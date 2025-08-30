@@ -104,7 +104,7 @@ $transition-ease: ease;
 
   // macOS: учитываем область стандартных контролов окна (traffic lights)
   body.is-mac & {
-    padding-top: 28px; // небольшой отступ сверху для зоны «светофоров»
+    padding-top: 22px; // небольшой отступ сверху для зоны «светофоров»
     .sidebar-actions { top: calc(env(safe-area-inset-top, 0px) + 28px); }
   }
   .pin-btn,

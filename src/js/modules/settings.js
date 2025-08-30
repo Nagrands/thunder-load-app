@@ -113,12 +113,18 @@ async function initSettings() {
 
   console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    document.documentElement.setAttribute("data-theme", savedTheme);
+    const savedTheme = await getTheme();
+    if (savedTheme === "system") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    }
     themeLabel.textContent =
       savedTheme === "light"
-        ? "Blue"
-        : savedTheme.charAt(0).toUpperCase() + savedTheme.slice(1);
+        ? "Light"
+        : savedTheme === "system"
+          ? "System"
+          : savedTheme.charAt(0).toUpperCase() + savedTheme.slice(1);
     // Highlight selected theme in dropdown on init
     themeDropdownMenu.querySelectorAll("li").forEach((item) => {
       item.classList.remove("active");
@@ -148,19 +154,29 @@ async function initSettings() {
     themeDropdownMenu.querySelectorAll("li").forEach((item) => {
       item.addEventListener("click", async () => {
         const selectedTheme = item.getAttribute("data-value");
-        localStorage.setItem("theme", selectedTheme);
+        // плавный переход
+        document.documentElement.classList.add('theme-transition');
+        if (selectedTheme === "system") {
+          localStorage.removeItem("theme");
+          document.documentElement.removeAttribute("data-theme");
+        } else {
+          localStorage.setItem("theme", selectedTheme);
+          document.documentElement.setAttribute("data-theme", selectedTheme);
+        }
         themeLabel.textContent =
           selectedTheme === "light"
-            ? "Blue"
-            : selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1);
+            ? "Light"
+            : selectedTheme === "system"
+              ? "System"
+              : selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1);
         // Highlight selected theme in dropdown
         themeDropdownMenu
           .querySelectorAll("li")
           .forEach((li) => li.classList.remove("active"));
         item.classList.add("active");
-        document.documentElement.setAttribute("data-theme", selectedTheme);
         themeDropdownMenu.classList.remove("show");
         await window.electron.invoke("set-theme", selectedTheme);
+        setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
         window.electron.invoke(
           "toast",
           `Выбрана тема: <strong>${themeLabel.textContent}</strong>`,
@@ -193,9 +209,12 @@ async function initSettings() {
   const resetThemeBtn = document.getElementById("reset-theme");
   if (resetThemeBtn && themeDropdownMenu && themeLabel) {
     resetThemeBtn.addEventListener("click", async () => {
-      const defaultTheme = "dark";
-      localStorage.setItem("theme", defaultTheme);
-      themeLabel.textContent = "Dark";
+      const defaultTheme = "system"; // сбрасываем на системную тему
+      // storage + DOM attribute
+      document.documentElement.classList.add('theme-transition');
+      localStorage.removeItem("theme");
+      document.documentElement.removeAttribute("data-theme");
+      themeLabel.textContent = "System";
       // Обновляем активный элемент в выпадающем меню
       themeDropdownMenu.querySelectorAll("li").forEach((li) => {
         li.classList.remove("active");
@@ -203,12 +222,12 @@ async function initSettings() {
           li.classList.add("active");
         }
       });
-      document.documentElement.setAttribute("data-theme", defaultTheme);
       themeDropdownMenu.classList.remove("show");
       await window.electron.invoke("set-theme", defaultTheme);
+      setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
       window.electron.invoke(
         "toast",
-        `<strong>Тема</strong> сброшена на <strong> ${defaultTheme} </strong>`,
+        `<strong>Тема</strong> сброшена на <strong>System</strong>`,
         "success",
       );
     });

@@ -10653,46 +10653,91 @@
 }
 
 [data-theme=light] {
-  --color-accent: #5dabff;
-  --color-bg-log: #f9f9f9;
-  --color-bg-main: #272e3a;
-  --color-bg-secondary: #151820;
-  --color-border: rgba(192, 192, 192, 0.1607843137);
-  --color-disabled: rgba(168, 168, 168, 0.5019607843);
-  --color-highlight: #f0f0f0;
-  --color-history-scroll: rgba(176, 176, 176, 0.2);
-  --color-hover: rgba(139, 182, 227, 0.1607843137);
-  --color-icon-links: #007aff;
-  --color-progress-bar: #007aff;
-  --color-progress-bg: #313131;
-  --color-quality: rgba(160, 160, 160, 0.8);
-  --color-toast-bg: #f5f5f5;
-  --color-toast-error: #ff453a;
+  --color-accent: #0a84ff;
+  --color-bg-log: #ffffff;
+  --color-bg-main: #f2f3f5;
+  --color-bg-secondary: #ffffff;
+  --color-border: #e5e7eb;
+  --color-disabled: #b8c0cc;
+  --color-highlight: #2b2f3a;
+  --color-history-scroll: rgba(0, 0, 0, 0.14);
+  --color-hover: rgba(0, 0, 0, 0.05);
+  --color-icon-links: #0a84ff;
+  --color-progress-bar: #0a84ff;
+  --color-progress-bg: rgba(0, 0, 0, 0.06);
+  --color-quality: #6b7280;
+  --color-toast-bg: #ffffff;
+  --color-toast-error: #ff3b30;
   --color-toast-success: #30d158;
-  --color-toast-text: #787878;
+  --color-toast-text: #1f2330;
   --color-toast-warning: #ffcc00;
-  --color-url-bg: rgba(0, 0, 0, 0.3019607843);
-  --color-url-border: rgba(130, 190, 255, 0.168627451);
-  --color-url-link: #007aff;
-  --color-url-text: #cccccc;
-  --button-cancel: linear-gradient(180deg, #d32f2f, #b71c1c);
-  --button-color: #f0f0f0;
-  --button-default: linear-gradient(180deg, #285e9a, #1d3853);
-  --button-disabled-bg: #cccccc;
-  --button-disabled: #e0e0e0;
-  --button-download: linear-gradient(180deg, #3f73a7, #0f3f82);
-  --button-enabled: #ffffff;
-  --button-open-folder: linear-gradient(180deg, #b04c4c, #282c34);
-  --button-open-history: linear-gradient(180deg, #1d3853, #005bb5);
-  --button-openlast-video: linear-gradient(180deg, #1d3853, #005bb5);
-  --sidebar-background: #333333;
-  --sidebar-color: #eee;
-  --sidebar-list-color: rgba(204, 204, 204, 0.1215686275);
-  --color-text-main: #eee;
+  --color-url-bg: #ffffff;
+  --color-url-border: #e5e7eb;
+  --color-url-link: #0a84ff;
+  --color-url-text: #1f2330;
+  --button-cancel: linear-gradient(180deg, #ff5f56, #ffd1d1);
+  --button-color: #1f2330;
+  --button-default: linear-gradient(180deg, #ffffff, #eceff3);
+  --button-disabled-bg: #e6e6e6;
+  --button-disabled: #9aa3af;
+  --button-download: linear-gradient(180deg, #3f8cff, #0a84ff);
+  --button-enabled: #1f2330;
+  --button-open-folder: linear-gradient(180deg, #ffc9c9, #ffecec);
+  --button-open-history: linear-gradient(180deg, #cfe5ff, #eaf3ff);
+  --button-openlast-video: linear-gradient(180deg, #cfe5ff, #eaf3ff);
+  --sidebar-background: rgba(255, 255, 255, 0.8);
+  --sidebar-color: #1f2330;
+  --sidebar-list-color: rgba(0, 0, 0, 0.06);
+  --color-text-main: #1f2330;
   --color-youtube: #ce1312;
   --color-twitch: #9e60fc;
   --color-vkvideo: #0077ff;
   --color-coub: #37a8ff;
+}
+
+[data-theme=midnight] {
+  --color-accent: #5ac8fa;
+  --color-bg-log: #0b0f1a;
+  --color-bg-main: #0e1422;
+  --color-bg-secondary: rgba(11, 18, 32, 0.8980392157);
+  --color-border: #0e1422;
+  --menu-item-active: linear-gradient(180deg, #0a84ff, #0054a8);
+  --menu-item-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.08));
+  --color-disabled: #4e5b73;
+  --color-highlight: #d4e6ff;
+  --color-history-scroll: rgba(80, 110, 145, 0.25);
+  --color-hover: rgba(255, 255, 255, 0.07);
+  --color-icon-links: #5ac8fa;
+  --color-progress-bar: #0a84ff;
+  --color-progress-bg: rgba(7, 14, 28, 0.7);
+  --color-quality: rgba(180, 205, 240, 0.5);
+  --color-toast-bg: #0d1220;
+  --color-toast-error: #ff453a;
+  --color-toast-success: #30d158;
+  --color-toast-text: #e6f0ff;
+  --color-toast-warning: #ffd60a;
+  --color-url-bg: rgba(10, 20, 35, 0.5);
+  --color-url-border: #1c3357;
+  --color-url-link: #58a6ff;
+  --color-url-text: #d6e4ff;
+  --button-cancel: linear-gradient(180deg, #b33434, #0d1a2b);
+  --button-color: #d6e4ff;
+  --button-default: linear-gradient(180deg, rgba(10, 132, 255, 0.6), #0d1626);
+  --button-disabled-bg: rgba(90, 110, 140, 0.5);
+  --button-disabled: #bcd1f7;
+  --button-download: linear-gradient(180deg, #1e5ea6, #083b79);
+  --button-enabled: #e6f0ff;
+  --button-open-folder: linear-gradient(180deg, #b04c4c, #0b1220);
+  --button-open-history: linear-gradient(180deg, #0a84ff, #0b1220);
+  --button-openlast-video: linear-gradient(180deg, #0a84ff, #0b1220);
+  --sidebar-background: rgba(11, 18, 32, 0.8);
+  --sidebar-color: #e6f0ff;
+  --sidebar-list-color: rgba(255, 255, 255, 0.12);
+  --color-text-main: #e6f0ff;
+  --color-youtube: #ff453a;
+  --color-twitch: #9e60fc;
+  --color-vkvideo: #0a84ff;
+  --color-coub: #5ac8fa;
 }
 
 /* Миксин для заголовков */
@@ -11156,6 +11201,11 @@ strong {
     font-size: 12px;
   }
 }
+.theme-transition,
+.theme-transition * {
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, outline-color 220ms ease, fill 220ms ease, stroke 220ms ease;
+}
+
 /* **** Стили для header **** */
 header {
   display: grid;
@@ -13934,6 +13984,28 @@ body.ready #app-preloader {
   border: 1px solid var(--color-hover);
   cursor: pointer;
   line-height: 1;
+  position: relative;
+}
+.settings-modal .dropdown-toggle::before {
+  content: "";
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 12px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: radial-gradient(circle at 20% 50%, #f5f5f5 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #d6d6d6 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #bfbfbf 0 3px, transparent 4px);
+}
+.settings-modal .dropdown-toggle[data-current-theme=dark]::before {
+  background: radial-gradient(circle at 20% 50%, #3a3a3a 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #202020 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #121212 0 3px, transparent 4px);
+}
+.settings-modal .dropdown-toggle[data-current-theme=midnight]::before {
+  background: radial-gradient(circle at 20% 50%, #163a6b 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #0a84ff 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #0b1220 0 3px, transparent 4px);
+}
+.settings-modal .dropdown-toggle[data-current-theme=system]::before {
+  background: radial-gradient(circle at 20% 50%, #f5f5f5 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #d6d6d6 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #121212 0 3px, transparent 4px);
 }
 .settings-modal .dropdown-toggle i {
   margin-left: 8px;
@@ -14136,6 +14208,21 @@ body.ready #app-preloader {
 .settings-modal #appearance-settings .dropdown-menu li[data-value=light]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=light]::before {
   background: radial-gradient(circle at 30% 30%, #f5f5f5, #d6d6d6 70%);
+}
+.settings-modal #general-settings .dropdown-menu li[data-value=system]::before,
+.settings-modal #window-settings .dropdown-menu li[data-value=system]::before,
+.settings-modal #wgunlock-settings .dropdown-menu li[data-value=system]::before,
+.settings-modal #appearance-settings .dropdown-menu li[data-value=system]::before,
+.settings-modal #other-settings .dropdown-menu li[data-value=system]::before {
+  background: conic-gradient(from 45deg, #f5f5f5 0 25%, #d6d6d6 25% 50%, #3a3a3a 50% 75%, #121212 75% 100%);
+}
+.settings-modal #general-settings .dropdown-menu li[data-value=midnight]::before,
+.settings-modal #window-settings .dropdown-menu li[data-value=midnight]::before,
+.settings-modal #wgunlock-settings .dropdown-menu li[data-value=midnight]::before,
+.settings-modal #appearance-settings .dropdown-menu li[data-value=midnight]::before,
+.settings-modal #other-settings .dropdown-menu li[data-value=midnight]::before {
+  background: radial-gradient(circle at 30% 30%, #163a6b, #0b1220 70%);
+  box-shadow: inset 0 0 0 2px rgba(90, 200, 250, 0.25);
 }
 .settings-modal #general-settings .dropdown-menu li.active,
 .settings-modal #window-settings .dropdown-menu li.active,
@@ -14558,7 +14645,7 @@ body.ready #app-preloader {
   backdrop-filter: blur(3px);
 }
 body.is-mac .sidebar {
-  padding-top: 28px;
+  padding-top: 22px;
 }
 body.is-mac .sidebar .sidebar-actions {
   top: calc(env(safe-area-inset-top, 0px) + 28px);
