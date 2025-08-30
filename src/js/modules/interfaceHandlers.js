@@ -11,14 +11,14 @@ import {
   filterInput,
   clearFilterInputButton,
 } from "./domElements.js";
-import { toggleSidebar, openSettings, closeSettings } from "./sidebar.js";
+import { toggleSidebar, openSettings, closeSettings, closeSidebarForced } from "./sidebar.js";
 import { state } from "./state.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 
 function initInterfaceHandlers() {
   // Обработчики событий для кнопок
   toggleBtn.addEventListener("click", toggleSidebar);
-  closeBtn.addEventListener("click", toggleSidebar);
+  closeBtn.addEventListener("click", closeSidebarForced);
 
   settingsButton.addEventListener("click", () => {
     if (settingsModal.style.display === "flex") {
@@ -33,7 +33,7 @@ function initInterfaceHandlers() {
   overlay.addEventListener("click", () => {
     if (settingsModal.style.display === "flex") {
       closeSettings();
-    } else if (sidebar.classList.contains("active")) {
+    } else if (sidebar.classList.contains("active") && !sidebar.classList.contains("is-pinned")) {
       toggleSidebar();
     }
   });

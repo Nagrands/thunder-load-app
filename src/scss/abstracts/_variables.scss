@@ -186,6 +186,55 @@ $themes: (
     color-vkvideo: #0077ff,
     color-coub: #37a8ff,
   ),
+  midnight: (
+    // Глубокая тёмно‑синяя тема
+    color-accent: #5ac8fa,
+    color-bg-log: #0b0f1a,
+    color-bg-main: #0e1422,
+    color-bg-secondary: #0b1220e5,
+    color-border: #0e1422,
+
+    menu-item-active: linear-gradient(180deg, #0a84ff, #0054a8),
+    menu-item-hover: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.08)),
+
+    color-disabled: #4e5b73,
+    color-highlight: #d4e6ff,
+    color-history-scroll: rgba(80, 110, 145, 0.25),
+    color-hover: rgba(255,255,255,0.07),
+    color-icon-links: #5ac8fa,
+    color-progress-bar: #0a84ff,
+    color-progress-bg: rgba(7, 14, 28, 0.7),
+    color-quality: rgba(180, 205, 240, 0.5),
+    color-toast-bg: #0d1220,
+    color-toast-error: #ff453a,
+    color-toast-success: #30d158,
+    color-toast-text: #e6f0ff,
+    color-toast-warning: #ffd60a,
+    color-url-bg: rgba(10, 20, 35, 0.5),
+    color-url-border: #1c3357,
+    color-url-link: #58a6ff,
+    color-url-text: #d6e4ff,
+
+    button-cancel: linear-gradient(180deg, #b33434, #0d1a2b),
+    button-color: #d6e4ff,
+    button-default: linear-gradient(180deg, rgba(10,132,255,0.6), #0d1626),
+    button-disabled-bg: rgba(90, 110, 140, 0.5),
+    button-disabled: #bcd1f7,
+    button-download: linear-gradient(180deg, #1e5ea6, #083b79),
+    button-enabled: #e6f0ff,
+    button-open-folder: linear-gradient(180deg, #b04c4c, #0b1220),
+    button-open-history: linear-gradient(180deg, #0a84ff, #0b1220),
+    button-openlast-video: linear-gradient(180deg, #0a84ff, #0b1220),
+
+    sidebar-background: #0b1220cc,
+    sidebar-color: #e6f0ff,
+    sidebar-list-color: rgba(255,255,255,0.12),
+    color-text-main: #e6f0ff,
+    color-youtube: #ff453a,
+    color-twitch: #9e60fc,
+    color-vkvideo: #0a84ff,
+    color-coub: #5ac8fa,
+  ),
 );
 
 // Mixin для экспорта переменных в CSS
@@ -208,4 +257,9 @@ $themes: (
 // CSS переменные для светлой темы
 [data-theme="light"] {
   @include export-css-variables(map.get($themes, light));
+}
+
+// CSS переменные для темы Midnight
+[data-theme="midnight"] {
+  @include export-css-variables(map.get($themes, midnight));
 }
