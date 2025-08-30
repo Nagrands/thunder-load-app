@@ -30,6 +30,11 @@
 // ----------------------------------------
 
 .shortcuts-modal {
+  // Контейнер контента модалки: слегка компактнее и читаемее
+  .shortcuts-modal-content {
+    max-width: 780px;
+  }
+
   ul {
     margin: 0;
     padding: 0;
@@ -86,6 +91,101 @@
       border-radius: var(--border-radius);
       // transition: 0.3s ease-in-out;
     }
+  }
+
+  // Секции (details/summary) — компактные карточки
+  details.spoiler {
+    margin-top: 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-hover);
+    background: rgba(255,255,255,0.03);
+  }
+  details.spoiler summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  details.spoiler summary::-webkit-details-marker { display: none; }
+  details.spoiler summary i { transition: transform .16s ease; }
+  details.spoiler[open] summary i { transform: rotate(90deg); }
+
+  // Списки хоткеев — грид 2 колонки на широких окнах
+  .main-hotkeys,
+  .additional-hotkeys {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  @media (min-width: 760px) {
+    .main-hotkeys,
+    .additional-hotkeys {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  // Разделители внутри grid — на всю ширину
+  .main-hotkeys hr,
+  .additional-hotkeys hr {
+    grid-column: 1 / -1;
+    opacity: .15;
+    margin: 4px 0;
+    border: none;
+    border-top: 1px solid var(--color-hover);
+  }
+
+  // Элементы хоткеев: key → описание
+  .main-hotkeys li,
+  .additional-hotkeys li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+    // padding: 6px 8px;
+    border-radius: 8px;
+    transition: background-color .12s ease, color .12s ease;
+  }
+
+  .main-hotkeys li:hover,
+  .additional-hotkeys li:hover {
+    background-color: var(--color-hover);
+    color: var(--color-text-main);
+  }
+
+  // Значок/текст описания
+  .main-hotkeys li p,
+  .additional-hotkeys li p {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--color-highlight);
+  }
+
+  // Бейдж комбинации клавиш (kbd‑стиль)
+  .main-hotkeys li strong,
+  .additional-hotkeys li strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: auto;
+    padding: 4px 10px;
+    font-weight: 600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    letter-spacing: .2px;
+    color: var(--color-accent);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    border: 1px solid var(--color-hover);
+    border-radius: 8px;
+  }
+
+  // Адаптив для совсем узких окон — одна колонка
+  @media (max-width: 560px) {
+    .main-hotkeys,
+    .additional-hotkeys { grid-template-columns: 1fr; }
   }
 }
 
