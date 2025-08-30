@@ -115,6 +115,9 @@ export default class TabSystem {
     next.onShow?.();
 
     this.activeTabId = id;
+    try {
+      window.dispatchEvent(new CustomEvent('tabs:activated', { detail: { id } }));
+    } catch {}
   }
   _isWgDisabled() {
     try {

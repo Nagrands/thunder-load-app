@@ -5,10 +5,13 @@
 // ==============================
 
 // Параметры бокового меню
-$sidebar-width: 250px;
+$sidebar-width: 260px;
+$sidebar-width-collapsed: 72px;
 $sidebar-padding-vertical: 0.5rem;
 $sidebar-padding-horizontal: 0.2rem;
-variables.$transition-duration: 0.3s;
+$drawer-max-width: 320px; // max width for drawer mode
+$bp-drawer: 1024px; // breakpoint to switch to drawer
+$transition-duration: 0.3s;
 $transition-ease: ease;
 
 // ==============================
@@ -43,15 +46,19 @@ $transition-ease: ease;
   top: 0;
   left: 0;
   height: 100vh;
-  background-color: var(--color-bg-secondary);
-  border-right: 1px var(--color-hover) solid;
+  width: $sidebar-width;
+  // Прозрачный сайдбар с тонкой разделительной линией
+  background: transparent;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   color: var(--sidebar-color);
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, width 0.2s ease;
   overflow-y: auto;
+  overflow-x: hidden; // исключаем горизонтальные полосы прокрутки
   z-index: 999;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: stretch;
+  padding-bottom: .75rem;
 
   // Псевдоэлементы для декоративных эффектов
   &::before,
@@ -70,6 +77,58 @@ $transition-ease: ease;
     transform: translateX(0);
   }
 
+  // Off‑canvas режим (мобильный/узкие экраны)
+  &.is-drawer {
+    width: min(82vw, $drawer-max-width);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px);
+  }
+
+  // Компактная панель действий вверху
+  .sidebar-actions {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .5rem .5rem .25rem;
+    margin-bottom: .25rem;
+    background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0));
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    backdrop-filter: blur(3px);
+  }
+
+  // macOS: учитываем область стандартных контролов окна (traffic lights)
+  body.is-mac & {
+    padding-top: 28px; // небольшой отступ сверху для зоны «светофоров»
+    .sidebar-actions { top: calc(env(safe-area-inset-top, 0px) + 28px); }
+  }
+  .pin-btn,
+  .close-btn {
+    height: 36px;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--color-highlight);
+    transition: background .16s ease, border-color .16s ease, transform .08s ease;
+    cursor: pointer;
+  }
+  .pin-btn:hover,
+  .close-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+  .pin-btn:active,
+  .close-btn:active { transform: translateY(1px); }
+  .pin-btn:focus-visible,
+  .close-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .pin-btn.is-active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: var(--color-accent); }
+
   ul {
     list-style: none;
     padding: 0;
@@ -80,17 +139,22 @@ $transition-ease: ease;
   &-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: var(--color-hover);
+    justify-content: flex-start;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(4px);
     border: 1px var(--color-hover) solid;
-    border-radius: var(--border-radius);
-    transition: background-color 0.3s ease;
-    margin: 1rem;
-    padding: 10px;
+    border-radius: 12px;
+    transition: background-color .16s ease, border-color .16s ease, transform .08s ease, color .16s ease;
+    margin: 8px 12px;
+    padding: 10px 12px;
     gap: 10px;
     color: var(--color-highlight);
     cursor: pointer;
+    user-select: none;
 
+    &.dragging { opacity: .6; }
+    &.drag-over { outline: 2px dashed rgba(255,255,255,0.25); }
+  
     a {
       display: flex;
       align-items: center;
@@ -100,34 +164,42 @@ $transition-ease: ease;
     }
 
     i {
-      transition: transform 0.2s ease;
-      &:hover {
-        transform: scale(1.2);
-      }
+      font-size: 18px;
+      transition: color .16s ease;
     }
 
     label {
       padding-left: 0.125rem;
     }
 
-    &:hover {
-      color: var(--color-accent);
-      font-weight: 600;
-      border: 2px var(--color-accent) solid;
-      border-color: var(--color-accent);
-      transform: scale(0.95);
-      transition: all 0.3s ease-in;
-    }
+    &:hover { background: var(--color-hover); color: var(--color-text-main); border-color: var(--color-hover); }
+    &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
     &.active {
-      background-color: var(--color-accent);
-      color: #fff;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-      animation: flash 0.2s ease forwards;
-      i {
-        color: #fff;
-      }
+      background-color: rgba(255,255,255,0.08);
+      color: var(--color-accent);
+      border-color: var(--color-accent);
+      box-shadow:
+        inset 2px 0 0 var(--color-accent),
+        0 0 0 1px var(--color-accent) inset;
     }
+
+    // Статусы и бейджи: счётчики, точки состояния
+    .badge {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      color: var(--color-text-main);
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .badge.dot { width: 8px; min-width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--color-accent); border: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.15); }
   }
 
   #open-github {
@@ -148,12 +220,12 @@ $transition-ease: ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin: 1.5rem;
+    gap: .75rem;
+    margin: 2.75rem 1rem 1rem;
 
     .logo {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       animation: pulseEffect 2s infinite;
     }
 
@@ -163,7 +235,7 @@ $transition-ease: ease;
     }
 
     .logo-text {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       color: var(--color-accent);
 
       &:hover {
@@ -176,30 +248,51 @@ $transition-ease: ease;
   // Социальные ссылки
   .social-links {
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);
-    margin: 1.5rem 1rem 0;
+    margin: .25rem 1rem 0;
 
     .icon-links {
       display: flex;
+      flex-direction: row; // по умолчанию — горизонтально
       align-items: center;
-      background: var(--color-hover);
-      border-radius: var(--border-radius);
+      gap: 8px;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 999px;
+      padding: 6px 8px;
+      overflow: hidden; // без внутренних скроллов
+      max-width: 100%;
+      box-sizing: border-box;
 
       a {
-        font-size: 1.6em;
-        padding: 10px;
-        width: 55px;
+        position: relative;
+        font-size: 18px;
+        height: 36px;
+        width: 36px;
+        padding: 0;
         color: var(--color-highlight);
         transition:
           transform 0.2s ease,
           background-color 0.2s ease,
           color 0.2s ease;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: var(--border-radius);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+
+        // Микро‑анимация и подсветка иконок
+        &:hover,
+        &:focus-visible {
+          color: var(--color-accent);
+          background: rgba(255,255,255,0.08);
+          border-color: rgba(255,255,255,0.14);
+          transform: translateY(-1px);
+        }
 
         // Индивидуальные стили для соц. сетей
         &[href="https://www.youtube.com"]
@@ -231,23 +324,166 @@ $transition-ease: ease;
           }
         }
       }
+
+      // Горизонтальная лента: тонкие вертикальные разделители между иконками
+      a + a::after {
+        content: "";
+        position: absolute;
+        left: -4px;
+        top: 10px;
+        width: 1px;
+        height: 16px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 1px;
+        transition: background-color .16s ease, opacity .16s ease;
+      }
+      // Микровзаимодействия: на ховере разделитель пропадает вокруг пункта,
+      // на фокусе/активном состоянии подсвечивается акцентом
+      a:hover::after { background: transparent; }
+      a:hover + a::after { background: transparent; }
+      a:focus-visible::after,
+      a:active::after { background: var(--color-accent); }
+      a:focus-visible + a::after,
+      a:active + a::after { background: var(--color-accent); }
     }
+
+    // При закреплении — вертикальный список во всю ширину (надёжные селекторы)
+    .sidebar.is-pinned & .icon-links {
+      flex-direction: column;
+      align-items: stretch;
+      border-radius: 12px;
+      padding: 6px;
+    }
+    .sidebar.is-pinned & .icon-links a {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 0 10px;
+      border-radius: 10px;
+    }
+    // Вертикальные разделители между пунктами «Сервисы»
+    .sidebar.is-pinned & .icon-links a:not(:first-child)::before {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: 10px;
+      right: 10px;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 1px;
+      transition: background-color .16s ease, opacity .16s ease;
+    }
+    // Микровзаимодействия в вертикальном режиме
+    .sidebar.is-pinned & .icon-links a:hover::before { background: transparent; }
+    .sidebar.is-pinned & .icon-links a:focus-visible::before,
+    .sidebar.is-pinned & .icon-links a:active::before { background: var(--color-accent); }
   }
+
+  // Навигация с подписями (вертикальный список, полноценные элементы)
+  #sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin: .5rem .75rem;
+    overflow: visible;
+  }
+  #sidebar-nav .sidebar-item {
+    position: relative;
+    width: auto;
+    height: auto;
+    min-height: 36px;
+    padding: 8px 12px;
+    justify-content: flex-start;
+    border-radius: 10px;
+    transition: background-color .16s ease, border-color .16s ease, transform .08s ease, color .16s ease;
+  }
+  #sidebar-nav .sidebar-item i { font-size: 18px; }
+  #sidebar-nav .sidebar-item span { display: inline; }
+  #sidebar-nav .sidebar-item .badge {
+    position: static;
+    margin-left: auto;
+    min-width: 18px; height: 18px; padding: 0 6px;
+    font-size: 11px;
+    border-width: 1px;
+    background: rgba(255,255,255,0.10);
+    color: var(--color-text-main);
+  }
+  // Микровзаимодействия для пунктов навигации
+  #sidebar-nav .sidebar-item:hover,
+  #sidebar-nav .sidebar-item:focus-visible {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+    transform: translateY(-1px);
+    color: var(--color-accent);
+  }
+  // Разделитель: плавность и реакции на hover/focus
+  #sidebar-nav .sidebar-item:not(:first-child)::before {
+    transition: background-color .16s ease, opacity .16s ease;
+  }
+  #sidebar-nav .sidebar-item:hover::before { background: transparent; }
+  #sidebar-nav .sidebar-item:hover + .sidebar-item::before { background: transparent; }
+  #sidebar-nav .sidebar-item:focus-visible::before,
+  #sidebar-nav .sidebar-item:active::before { background: var(--color-accent); }
+  // Тонкий разделитель между пунктами
+  #sidebar-nav .sidebar-item:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 1px;
+  }
+
+  // В свернутом режиме — компактные строки (иконка+текст остаются, ширина ограничена)
+  &.is-collapsed #sidebar-nav {
+    margin: .25rem .5rem;
+    gap: 4px;
+  }
+  // В свернутом режиме — без разделителей, компактные элементы
+  &.is-collapsed #sidebar-nav .sidebar-item { padding: 6px 10px; border-radius: 10px; }
+  &.is-collapsed #sidebar-nav .sidebar-item:not(:first-child)::before { display: none; }
 
   .close-btn {
-    border-bottom: 1px var(--color-hover) solid;
-    height: 50px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-    background-color: var(--color-bg-secondary);
-    color: var(--color-highlight);
-
-    &:hover {
-      background-color: var(--color-bg-main);
-      color: var(--color-text-main);
-    }
+    border-bottom: none;
+    font-size: 16px;
   }
+
+  // Свернутый режим
+  &.is-collapsed {
+    width: $sidebar-width-collapsed;
+    .logo-text { display: none; }
+    .sidebar-item { justify-content: center; padding: 10px; }
+    .sidebar-item span { display: none; }
+    .sidebar-actions { justify-content: center; }
+    .social-links { justify-content: center; }
+    // В свернутом виде: если не закреплено — горизонтальные кружки; если закреплено — унаследует вертикаль из .is-pinned
+    &:not(.is-pinned) .social-links .icon-links { flex-direction: row; border-radius: 999px; gap: 6px; padding: 6px; }
+    &:not(.is-pinned) .social-links .icon-links a { width: 36px; padding: 0; justify-content: center; }
+  }
+
+  // Навигация и структура: группы и заголовки
+  .sidebar-group { margin: .5rem .75rem; }
+  .sidebar-title {
+    margin: .5rem .5rem .25rem;
+    padding: 0 .25rem;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--color-quality);
+    opacity: .9;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sidebar-title::after { content: ""; height: 1px; flex: 1 1 auto; background: rgba(255,255,255,0.08); }
+}
+
+// Мобильная компоновка: по умолчанию как off‑canvas
+@media (max-width: $bp-drawer) {
+  .sidebar {
+    width: min(82vw, $drawer-max-width);
+  }
+  .sidebar .pin-btn { display: none; } // pin не нужен на телефонах
 }
 
 // ==============================
@@ -271,4 +507,12 @@ $transition-ease: ease;
   &.active {
     display: block;
   }
+}
+
+// Платформенные детали: drag region (macOS)
+.drag-region { -webkit-app-region: drag; }
+.no-drag, .sidebar button, .sidebar a, .sidebar .sidebar-item { -webkit-app-region: no-drag; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .sidebar * { transition: none !important; animation: none !important; }
 }

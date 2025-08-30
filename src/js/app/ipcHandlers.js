@@ -1120,7 +1120,7 @@ function setupIpcHandlers(dependencies) {
       await fsPromises.access(filePath);
       return true;
     } catch (error) {
-      log.warn(`The file does not exist: ${filePath}`);
+      // log.warn(`The file does not exist: ${filePath}`);
       return false;
     }
   });
@@ -1277,6 +1277,10 @@ function setupIpcHandlers(dependencies) {
     try {
       const historyJson = JSON.stringify(history, null, 2);
       await fs.promises.writeFile(historyFilePath, historyJson, "utf8");
+      try {
+        const count = Array.isArray(history) ? history.length : 0;
+        mainWindow?.webContents?.send('history-updated', { count });
+      } catch (e) { log.warn('history-updated emit failed:', e); }
     } catch (error) {
       log.error(`Error saving history: ${error}`);
     }
@@ -1285,6 +1289,7 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.CLEAR_HISTORY, async () => {
     try {
       await fs.promises.writeFile(historyFilePath, JSON.stringify([]), "utf-8");
+      try { mainWindow?.webContents?.send('history-updated', { count: 0 }); } catch (e) { log.warn('history-updated emit failed:', e); }
       return true;
     } catch (error) {
       log.error(`Error clearing history: ${error}`);

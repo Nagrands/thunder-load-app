@@ -220,11 +220,23 @@
       </header>
 
       <!-- Sidebar -->
-      <aside class="sidebar" id="sidebar">
-        <!-- Кнопка закрытия бокового меню -->
-        <button class="close-btn" id="close-btn" aria-label="Закрыть меню">
-          <i class="fa-solid fa-angles-left"></i>
-        </button>
+      <aside class="sidebar" id="sidebar" role="navigation" aria-label="Боковое меню">
+        <!-- Панель действий сайдбара: закрепить/закрыть -->
+        <div class="sidebar-actions">
+          <button
+            class="pin-btn"
+            id="collapse-sidebar"
+            aria-label="Свернуть меню"
+            data-bs-toggle="tooltip"
+            data-bs-placement="right"
+            title="Свернуть/развернуть меню"
+          >
+            <i class="fa-solid fa-thumbtack"></i>
+          </button>
+          <button class="close-btn" id="close-btn" aria-label="Закрыть меню">
+            <i class="fa-solid fa-angles-left"></i>
+          </button>
+        </div>
 
         <div class="logo-container">
           <img
@@ -236,7 +248,31 @@
           <span class="logo-text">Thunder Load</span>
         </div>
 
+        <div class="sidebar-group" id="sidebar-nav">
+          <div class="sidebar-title">Навигация</div>
+          <button class="sidebar-item" data-tab="download" data-id="download" title="Downloader">
+            <i class="fa-solid fa-download"></i>
+            <span>Downloader</span>
+          </button>
+          <button class="sidebar-item" data-tab="wireguard" data-id="wireguard" title="WG Unlock">
+            <i class="fa-solid fa-unlock-keyhole"></i>
+            <span>WG Unlock</span>
+          </button>
+          <button class="sidebar-item" data-tab="backup" data-id="backup" title="Backup">
+            <i class="fa-solid fa-box-archive"></i>
+            <span>Backup</span>
+          </button>
+          <button class="sidebar-item" id="sb-open-history" data-id="history" title="История загрузок">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>История</span>
+            <span class="badge" id="sb-history-count">0</span>
+          </button>
+        </div>
+
         <!-- Иконки видео-сервисов -->
+        <div class="sidebar-group">
+          <div class="sidebar-title">Сервисы</div>
+        </div>
         <nav class="social-links">
           <div class="icon-links">
             <a
@@ -287,6 +323,7 @@
         </nav>
 
         <div class="sidebar-footer">
+          <div class="sidebar-title">Прочее</div>
           <button
             id="open-github"
             class="sidebar-item"
