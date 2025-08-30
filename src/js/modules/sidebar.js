@@ -1,6 +1,7 @@
 // src/js/modules/sidebar.js
 
-import { sidebar, overlay, toggleBtn, settingsModal, collapseSidebarButton } from "./domElements.js";
+import { sidebar, overlay, toggleBtn, settingsModal, collapseSidebarButton, compactSidebarButton } from "./domElements.js";
+import { disposeAllTooltips, initTooltips } from "./tooltipInitializer.js";
 
 /**
  * Функция для переключения бокового меню
@@ -69,6 +70,7 @@ document.getElementById("open-github")?.addEventListener("click", () => {
 });
 
 export { toggleSidebar, hideSidebar, openSettings, closeSettings };
+export { toggleCollapsed };
 
 // ==============================
 // Collapsed (compact) sidebar mode with persistence
@@ -83,9 +85,9 @@ function applyCollapsedFromStore() {
     const raw = localStorage.getItem(COLLAPSE_KEY);
     const collapsed = raw ? JSON.parse(raw) === true : false;
     sidebar?.classList.toggle("is-collapsed", !!collapsed);
-    collapseSidebarButton?.setAttribute("aria-pressed", String(!!collapsed));
-    collapseSidebarButton?.setAttribute("title", collapsed ? "Развернуть меню" : "Свернуть меню");
-    collapseSidebarButton?.classList.toggle('is-active', !!collapsed);
+    compactSidebarButton?.setAttribute("aria-pressed", String(!!collapsed));
+    compactSidebarButton?.setAttribute("title", collapsed ? "Развернуть меню (компактный режим)" : "Свернуть меню (компактный режим)");
+    compactSidebarButton?.classList.toggle('is-active', !!collapsed);
     applySocialLinksLayout();
   } catch {}
 }
@@ -94,10 +96,12 @@ function toggleCollapsed() {
   const collapsed = !sidebar.classList.contains("is-collapsed");
   sidebar.classList.toggle("is-collapsed", collapsed);
   try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); } catch {}
-  collapseSidebarButton?.setAttribute("aria-pressed", String(collapsed));
-  collapseSidebarButton?.setAttribute("title", collapsed ? "Развернуть меню" : "Свернуть меню");
-  collapseSidebarButton?.classList.toggle('is-active', collapsed);
+  compactSidebarButton?.setAttribute("aria-pressed", String(collapsed));
+  compactSidebarButton?.setAttribute("title", collapsed ? "Развернуть меню (компактный режим)" : "Свернуть меню (компактный режим)");
+  compactSidebarButton?.classList.toggle('is-active', collapsed);
   applySocialLinksLayout();
+  // refresh tooltips placement for compact mode
+  try { disposeAllTooltips(); initTooltips(); } catch {}
 }
 
 // Pinned state handling
@@ -115,11 +119,11 @@ function applyPinnedFromStore() {
       // В закреплённом режиме оставляем видимой кнопку-тогглер
       toggleBtn.classList.remove("hidden");
     } else {
-      // ensure default horizontal layout by removing collapse if any
-      sidebar.classList.remove("is-collapsed");
-      try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(false)); } catch {}
+      // при откреплении режим compact допустим, но в drawer он будет отключён
     }
     applySocialLinksLayout();
+    // refresh tooltips on responsive changes
+    try { disposeAllTooltips(); initTooltips(); } catch {}
   } catch {}
 }
 
@@ -136,11 +140,7 @@ function togglePinned() {
     overlay.classList.remove("active");
     toggleBtn.classList.remove("hidden");
   } else {
-    // При откреплении возвращаем горизонтальный вид и ширину
-    if (sidebar.classList.contains("is-collapsed")) {
-      sidebar.classList.remove("is-collapsed");
-      try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(false)); } catch {}
-    }
+    // Открепление само по себе не трогает компактный режим; он отключается в drawer-режиме
   }
   applySocialLinksLayout();
 }
@@ -160,6 +160,10 @@ function closeSidebarForced() {
 collapseSidebarButton?.addEventListener("click", (e) => {
   e.stopPropagation();
   togglePinned();
+});
+compactSidebarButton?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleCollapsed();
 });
 
 // Apply on init
@@ -187,6 +191,9 @@ function applyResponsiveMode() {
       if (sidebar.classList.contains('is-collapsed')) {
         sidebar.classList.remove('is-collapsed');
         localStorage.setItem(COLLAPSE_KEY, JSON.stringify(false));
+        compactSidebarButton?.classList.remove('is-active');
+        compactSidebarButton?.setAttribute('aria-pressed', 'false');
+        compactSidebarButton?.setAttribute('title', 'Свернуть меню (компактный режим)');
       }
     }
     // Возврат из drawer: восстановим закрепление, если было приостановлено или сохранено в store
@@ -202,6 +209,15 @@ function applyResponsiveMode() {
         collapseSidebarButton?.setAttribute('title', 'Открепить меню');
         __pinSuspendedOnDrawer = false;
       }
+      // восстановить компактный режим из store
+      try {
+        const rawC = localStorage.getItem(COLLAPSE_KEY);
+        const wantCollapsed = rawC ? JSON.parse(rawC) === true : false;
+        sidebar.classList.toggle('is-collapsed', !!wantCollapsed);
+        compactSidebarButton?.classList.toggle('is-active', !!wantCollapsed);
+        compactSidebarButton?.setAttribute('aria-pressed', String(!!wantCollapsed));
+        compactSidebarButton?.setAttribute('title', wantCollapsed ? 'Развернуть меню (компактный режим)' : 'Свернуть меню (компактный режим)');
+      } catch {}
     }
     applySocialLinksLayout();
   } catch {}
@@ -254,12 +270,13 @@ function applySocialLinksLayout() {
     const iconLinks = sidebar?.querySelector('.social-links .icon-links');
     if (!iconLinks) return;
     const pinned = sidebar.classList.contains('is-pinned');
+    const collapsed = sidebar.classList.contains('is-collapsed');
     const links = iconLinks.querySelectorAll('a');
-    if (pinned) {
+    if (collapsed) {
       iconLinks.style.flexDirection = 'column';
       iconLinks.style.borderRadius = '12px';
-      iconLinks.style.padding = '6px';
-      links.forEach((a) => { a.style.width = '100%'; a.style.justifyContent = 'flex-start'; a.style.padding = '0 10px'; });
+      iconLinks.style.padding = '0';
+      links.forEach((a) => { a.style.width = '36px'; a.style.height = '36px'; a.style.justifyContent = 'center'; a.style.padding = '0'; });
     } else {
       iconLinks.style.flexDirection = 'row';
       iconLinks.style.borderRadius = '999px';
@@ -271,3 +288,74 @@ function applySocialLinksLayout() {
 
 // initial sync
 applySocialLinksLayout();
+
+// ==============================
+// Collapsible groups (accordion-like) with persistence
+// ==============================
+const GROUPS_KEY = 'sidebarGroupsState';
+
+function loadGroupsState() {
+  try { return JSON.parse(localStorage.getItem(GROUPS_KEY) || '{}') || {}; } catch { return {}; }
+}
+function saveGroupsState(state) {
+  try { localStorage.setItem(GROUPS_KEY, JSON.stringify(state)); } catch {}
+}
+
+function setCollapseMaxHeight(container, expanded) {
+  if (!container) return;
+  if (expanded) {
+    container.hidden = false;
+    // set a large max-height based on content
+    container.style.maxHeight = container.scrollHeight + 'px';
+    // after transition, allow auto height for dynamic content
+    const onEnd = () => { container.style.maxHeight = 'none'; container.removeEventListener('transitionend', onEnd); };
+    container.addEventListener('transitionend', onEnd, { once: true });
+  } else {
+    // ensure transition from a numeric value
+    if (getComputedStyle(container).maxHeight === 'none') {
+      container.style.maxHeight = container.scrollHeight + 'px';
+      // force reflow
+      void container.offsetHeight;
+    }
+    container.style.maxHeight = '0px';
+    const onEnd = () => { container.hidden = true; container.removeEventListener('transitionend', onEnd); };
+    container.addEventListener('transitionend', onEnd, { once: true });
+  }
+}
+
+function initCollapsibleGroups() {
+  try {
+    const state = loadGroupsState();
+    const titles = Array.from(sidebar.querySelectorAll('.sidebar-title[aria-controls]'));
+    titles.forEach((title) => {
+      const id = String(title.getAttribute('data-group') || title.getAttribute('aria-controls'));
+      const contentId = title.getAttribute('aria-controls');
+      if (!contentId) return;
+      const container = sidebar.querySelector('#' + CSS.escape(contentId));
+      if (!container) return;
+
+      const stored = state[id];
+      const expanded = stored === undefined ? true : stored === true;
+      title.setAttribute('aria-expanded', String(expanded));
+      container.hidden = !expanded;
+      requestAnimationFrame(() => setCollapseMaxHeight(container, expanded));
+
+      const toggle = () => {
+        const nowExpanded = title.getAttribute('aria-expanded') !== 'true';
+        title.setAttribute('aria-expanded', String(nowExpanded));
+        setCollapseMaxHeight(container, nowExpanded);
+        const cur = loadGroupsState();
+        cur[id] = nowExpanded;
+        saveGroupsState(cur);
+      };
+
+      title.addEventListener('click', (e) => { e.preventDefault(); toggle(); });
+      title.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+    });
+  } catch {}
+}
+
+// init collapsible groups after layout
+initCollapsibleGroups();

@@ -99,6 +99,17 @@ function initTooltips() {
   tooltipTriggerList.forEach((el) => {
     setTimeout(() => {
       try {
+        const sidebar = document.getElementById('sidebar');
+        const isCollapsed = sidebar?.classList?.contains('is-collapsed');
+        const insideSidebar = !!el.closest('#sidebar');
+        const isNavItem = el.classList?.contains('sidebar-item');
+        const isServiceIcon = !!el.closest('.social-links .icon-links');
+        // Base placement from attribute, fallback to top
+        let placementOption = el.getAttribute('data-bs-placement') || 'top';
+        // Override for compact sidebar: nav buttons and service icons should show to the right
+        if (insideSidebar && isCollapsed && (isNavItem || isServiceIcon)) {
+          placementOption = 'right';
+        }
         if (
           !el ||
           typeof el.getAttribute !== "function" ||
@@ -112,7 +123,7 @@ function initTooltips() {
           customClass: "tooltip-inner",
           template:
             '<div class="tooltip" role="tooltip"><div class="tooltip-inner"></div></div>',
-          placement: "top",
+          placement: placementOption,
           offset: [0, 8],
           boundary: "window",
         });

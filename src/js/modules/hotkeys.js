@@ -47,6 +47,7 @@ import { showToast } from "./toast.js";
 import {
   hideSidebar,
   toggleSidebar,
+  toggleCollapsed,
   openSettings,
   closeSettings,
 } from "./sidebar.js";
@@ -63,6 +64,18 @@ const modals = [
 
 // Определяем список локальных горячих клавиш
 const localHotkeys = new Map([
+  [
+    "Ctrl+Alt+B",
+    () => {
+      toggleCollapsed();
+    },
+  ],
+  [
+    "Meta+Alt+B",
+    () => {
+      toggleCollapsed();
+    },
+  ],
   [
     "Ctrl+1",
     () => {

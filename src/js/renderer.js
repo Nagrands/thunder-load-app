@@ -161,7 +161,7 @@ async function startRenderer() {
       sbHist?.addEventListener('click', () => document.getElementById('open-history')?.click());
 
       // Drag & Drop reorder for nav items
-      const navRoot = document.getElementById('sidebar-nav');
+      const navRoot = document.querySelector('#sidebar-nav .sidebar-collapse') || document.getElementById('sidebar-nav');
       const ORDER_KEY = 'sidebarNavOrder';
       function getOrderFromDom() {
         return Array.from(navRoot?.querySelectorAll('.sidebar-item[data-id]') || [])

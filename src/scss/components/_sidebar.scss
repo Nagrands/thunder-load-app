@@ -6,7 +6,7 @@
 
 // Параметры бокового меню
 $sidebar-width: 260px;
-$sidebar-width-collapsed: 72px;
+$sidebar-width-collapsed: 80px;
 $sidebar-padding-vertical: 0.5rem;
 $sidebar-padding-horizontal: 0.2rem;
 $drawer-max-width: 320px; // max width for drawer mode
@@ -324,58 +324,21 @@ $transition-ease: ease;
           }
         }
       }
-
-      // Горизонтальная лента: тонкие вертикальные разделители между иконками
-      a + a::after {
-        content: "";
-        position: absolute;
-        left: -4px;
-        top: 10px;
-        width: 1px;
-        height: 16px;
-        background: rgba(255,255,255,0.08);
-        border-radius: 1px;
-        transition: background-color .16s ease, opacity .16s ease;
-      }
-      // Микровзаимодействия: на ховере разделитель пропадает вокруг пункта,
-      // на фокусе/активном состоянии подсвечивается акцентом
-      a:hover::after { background: transparent; }
-      a:hover + a::after { background: transparent; }
-      a:focus-visible::after,
-      a:active::after { background: var(--color-accent); }
-      a:focus-visible + a::after,
-      a:active + a::after { background: var(--color-accent); }
     }
 
-    // При закреплении — вертикальный список во всю ширину (надёжные селекторы)
+    // При закреплении — оставляем горизонтальную ленту (как по умолчанию)
     .sidebar.is-pinned & .icon-links {
-      flex-direction: column;
-      align-items: stretch;
-      border-radius: 12px;
-      padding: 6px;
+      flex-direction: row;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 8px;
     }
     .sidebar.is-pinned & .icon-links a {
-      width: 100%;
-      justify-content: flex-start;
-      padding: 0 10px;
-      border-radius: 10px;
+      width: 36px;
+      justify-content: center;
+      padding: 0;
+      border-radius: 999px;
     }
-    // Вертикальные разделители между пунктами «Сервисы»
-    .sidebar.is-pinned & .icon-links a:not(:first-child)::before {
-      content: "";
-      position: absolute;
-      top: -4px;
-      left: 10px;
-      right: 10px;
-      height: 1px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 1px;
-      transition: background-color .16s ease, opacity .16s ease;
-    }
-    // Микровзаимодействия в вертикальном режиме
-    .sidebar.is-pinned & .icon-links a:hover::before { background: transparent; }
-    .sidebar.is-pinned & .icon-links a:focus-visible::before,
-    .sidebar.is-pinned & .icon-links a:active::before { background: var(--color-accent); }
   }
 
   // Навигация с подписями (вертикальный список, полноценные элементы)
@@ -425,20 +388,10 @@ $transition-ease: ease;
   #sidebar-nav .sidebar-item:focus-visible::before,
   #sidebar-nav .sidebar-item:active::before { background: var(--color-accent); }
   // Тонкий разделитель между пунктами
-  #sidebar-nav .sidebar-item:not(:first-child)::before {
-    content: "";
-    position: absolute;
-    top: -4px;
-    left: 12px;
-    right: 12px;
-    height: 1px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 1px;
-  }
 
   // В свернутом режиме — компактные строки (иконка+текст остаются, ширина ограничена)
   &.is-collapsed #sidebar-nav {
-    margin: .25rem .5rem;
+    // margin: .25rem .5rem;
     gap: 4px;
   }
   // В свернутом режиме — без разделителей, компактные элементы
@@ -454,13 +407,61 @@ $transition-ease: ease;
   &.is-collapsed {
     width: $sidebar-width-collapsed;
     .logo-text { display: none; }
-    .sidebar-item { justify-content: center; padding: 10px; }
+    .sidebar-item { justify-content: center; padding: 8px; margin: 6px; }
     .sidebar-item span { display: none; }
-    .sidebar-actions { justify-content: center; }
-    .social-links { justify-content: center; }
-    // В свернутом виде: если не закреплено — горизонтальные кружки; если закреплено — унаследует вертикаль из .is-pinned
-    &:not(.is-pinned) .social-links .icon-links { flex-direction: row; border-radius: 999px; gap: 6px; padding: 6px; }
-    &:not(.is-pinned) .social-links .icon-links a { width: 36px; padding: 0; justify-content: center; }
+    // у навигации принудительно скрываем подписи
+    #sidebar-nav .sidebar-item span { display: none; }
+    .sidebar-actions { justify-content: center; align-items: center; flex-direction: column; gap: 6px; padding: 6px; }
+    .social-links { justify-content: center; margin: .25rem .5rem 0; }
+    // В компактном режиме заголовки групп не показываем
+    .sidebar-title { display: none; }
+    // И содержимое групп держим раскрытым без ограничений высоты
+    .sidebar-collapse { max-height: none !important; overflow: visible; }
+    // Иконки сервисов: вертикальная колонка компактных кнопок с читаемым фоном
+    .social-links .icon-links {
+      flex-direction: column;
+      align-items: center;
+      background: transparent;
+      border: none;
+      gap: 8px;
+      padding: 0;
+      overflow: visible;
+    }
+    .social-links .icon-links a {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .social-links .icon-links a:hover,
+    .social-links .icon-links a:focus-visible {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.16);
+    }
+    // Кнопка GitHub в футере — как сервисная иконка
+    #open-github.sidebar-item {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      margin: 6px auto 8px; // центр по горизонтали
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      align-self: center; // центрирование в колонке футера
+    }
+    #open-github.sidebar-item:hover,
+    #open-github.sidebar-item:focus-visible {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.16);
+    }
+    // центрируем содержимое футера
+    .sidebar-footer { align-items: center; }
   }
 
   // Навигация и структура: группы и заголовки
@@ -474,6 +475,31 @@ $transition-ease: ease;
     color: var(--color-quality);
     opacity: .9;
     display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 8px;
+    position: relative;
+    min-height: 24px;
+  }
+  // chevron indicator
+  .sidebar-title::before {
+    content: "";
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--color-quality);
+    opacity: .85;
+    transform-origin: 50% 45%;
+    transition: transform .16s ease, opacity .16s ease;
+  }
+  .sidebar-title[aria-expanded="false"]::before { transform: rotate(-90deg); opacity: .7; }
+  .sidebar-title:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+  // collapsible container
+  .sidebar-collapse {
+    overflow: hidden;
+    transition: max-height .22s ease;
+    max-height: 1000px; // default expanded; JS will adjust
   }
   .sidebar-title::after { content: ""; height: 1px; flex: 1 1 auto; background: rgba(255,255,255,0.08); }
 }
