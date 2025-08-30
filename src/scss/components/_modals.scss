@@ -365,6 +365,27 @@
     }
   }
 
+  // Группа радиокнопок "При запуске открывать" — в одну строку
+  .default-tab-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      padding: 6px 10px;
+      border: 1px solid var(--color-hover);
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+    }
+
+    label { width: auto; display: inline-flex; align-items: center; gap: 6px; }
+    input[type="radio"] { margin-right: 6px; }
+  }
+
   // === Табы ===
   .tab-navigation {
     display: flex;
@@ -594,6 +615,41 @@
       .dropdown-reset {
         height: 36px;
       }
+    }
+
+    // Override: группа "При запуске открывать" — в ряд, компактные пилюли
+    ul.module.default-tab-group {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0;
+      background: transparent;
+      border-radius: 0;
+    }
+    ul.module.default-tab-group li.custom-theme-select {
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      padding: 6px 10px;
+      background: transparent;
+      border: 1px solid var(--color-hover);
+      border-radius: 999px;
+      transition: background-color var(--transition-duration) ease,
+                  border-color var(--transition-duration) ease;
+    }
+    ul.module.default-tab-group li.custom-theme-select:hover {
+      background: var(--color-hover);
+      border-color: var(--color-hover);
+    }
+    ul.module.default-tab-group label {
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    ul.module.default-tab-group input[type="radio"] {
+      margin-right: 6px;
     }
 
     // Меню тем — превью свотчи
