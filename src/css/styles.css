@@ -10645,6 +10645,8 @@
   --color-twitch: #9e60fc;
   --color-vkvideo: #0077ff;
   --color-coub: #37a8ff;
+  --badge-size-bg: rgba(255, 255, 255, 0.06);
+  --badge-size-border: rgba(255, 255, 255, 0.14);
   --transition-duration: 0.2s;
   --spacing-small: 8px;
   --spacing-medium: 16px;
@@ -10693,6 +10695,8 @@
   --color-twitch: #9e60fc;
   --color-vkvideo: #0077ff;
   --color-coub: #37a8ff;
+  --badge-size-bg: rgba(255, 255, 255, 0.06);
+  --badge-size-border: rgba(255, 255, 255, 0.14);
 }
 
 [data-theme=midnight] {
@@ -10738,6 +10742,8 @@
   --color-twitch: #9e60fc;
   --color-vkvideo: #0a84ff;
   --color-coub: #5ac8fa;
+  --badge-size-bg: rgba(255, 255, 255, 0.05);
+  --badge-size-border: rgba(255, 255, 255, 0.12);
 }
 
 /* Миксин для заголовков */
@@ -11305,6 +11311,7 @@ footer p:hover {
 
 #history {
   width: 100%;
+  padding: 4px 4px 6px;
   max-height: 300px;
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: var(--border-radius);
@@ -11661,16 +11668,19 @@ hr {
 .log-entry {
   display: flex;
   align-items: center;
-  background-color: var(--color-url-bg);
-  border-radius: var(--border-radius);
+  background-color: var(--color-bg-secondary);
+  border-radius: 12px;
   color: var(--color-highlight);
-  min-width: 20px;
-  margin: 2px;
+  margin: 4px;
+  border: 1px solid var(--color-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+  /* badges moved to header */
 }
 .log-entry .log-actions {
   opacity: 0;
   transition: opacity 0.2s ease;
-  margin-right: 5px;
+  margin-right: 8px;
 }
 .log-entry.selected {
   background-color: var(--color-hover);
@@ -11681,10 +11691,12 @@ hr {
 }
 .log-entry:hover {
   background-color: var(--color-hover);
-  border-radius: var(--border-radius);
   color: var(--color-text-main);
   transform: translateY(-2px);
-  transition: all 0.4s ease-in-out;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+.log-entry:hover .log-actions {
+  opacity: 1;
 }
 .log-entry:hover .tooltip {
   opacity: 1;
@@ -11693,8 +11705,6 @@ hr {
 .log-entry img {
   width: 30px;
   height: 30px;
-  margin: var(--spacing-small);
-  margin-right: 15px;
   animation: checkBounce 0.5s ease;
 }
 .log-entry .text {
@@ -11702,10 +11712,177 @@ hr {
   display: flex;
   flex-direction: column;
   text-align: left;
-  padding: 5px;
-  border-radius: var(--border-radius);
-  border: 1px var(--color-hover) solid;
+  gap: 1px;
+  padding: 8px;
   cursor: pointer;
+}
+.log-entry .date-time-quality {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed var(--color-hover);
+}
+.log-entry .date-time-quality .date-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-quality);
+  white-space: nowrap;
+}
+.log-entry .date-time-quality .quality {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+.log-entry .date-time-quality .quality .file-size {
+  color: var(--color-quality);
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--badge-size-border);
+  background: var(--badge-size-bg);
+  line-height: 1;
+}
+.log-entry .date-time-quality .quality .q-badge {
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(10, 132, 255, 0.12);
+  border: 1px solid rgba(10, 132, 255, 0.35);
+  color: var(--color-accent);
+  line-height: 1;
+}
+.log-entry .date-time-quality .quality .log-badges.top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px;
+}
+.log-entry .date-time-quality .quality .log-badges.top .hist-badge {
+  height: 18px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+.log-entry .log-filename {
+  display: grid;
+  grid-template-columns: 32px 30px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.log-entry .log-actions {
+  justify-self: end;
+}
+.log-entry .log-name {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+  max-height: 1.25em;
+  white-space: normal;
+}
+.log-entry .log-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  margin-right: 4px;
+  flex-wrap: nowrap;
+}
+.log-entry .hist-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hover);
+  color: var(--color-text-main);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.log-entry .hist-badge.muted {
+  color: var(--color-quality);
+}
+.log-entry .hist-badge.type-resolution {
+  background: rgba(10, 132, 255, 0.12);
+  color: var(--color-accent);
+  border-color: rgba(10, 132, 255, 0.35);
+}
+.log-entry .hist-badge.type-fps {
+  background: rgba(10, 132, 255, 0.08);
+  color: var(--color-text-main);
+  border-color: rgba(10, 132, 255, 0.25);
+}
+.log-entry .hist-badge.type-size {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-quality);
+  border-color: var(--color-hover);
+}
+.log-entry .hist-badge.type-host {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-quality);
+}
+.log-entry .hist-badge.type-audio {
+  background: rgba(48, 209, 88, 0.12);
+  color: var(--color-toast-success);
+  border-color: rgba(48, 209, 88, 0.35);
+}
+.log-entry .hist-badge.type-host.host-youtube {
+  color: var(--color-youtube);
+  border-color: var(--color-youtube);
+  background: color-mix(in srgb, var(--color-youtube) 18%, transparent);
+}
+.log-entry .hist-badge.type-host.host-twitch {
+  color: var(--color-twitch);
+  border-color: var(--color-twitch);
+  background: color-mix(in srgb, var(--color-twitch) 18%, transparent);
+}
+.log-entry .hist-badge.type-host.host-vk {
+  color: var(--color-vkvideo);
+  border-color: var(--color-vkvideo);
+  background: color-mix(in srgb, var(--color-vkvideo) 18%, transparent);
+}
+.log-entry .hist-badge.type-host.host-coub {
+  color: var(--color-coub);
+  border-color: var(--color-coub);
+  background: color-mix(in srgb, var(--color-coub) 18%, transparent);
+}
+.log-entry .log-actions .log-play-btn,
+.log-entry .log-actions .open-folder-btn,
+.log-entry .log-actions .delete-entry-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hover);
+  color: var(--color-text-main);
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.08s ease, opacity 0.16s ease;
+}
+.log-entry .log-actions .log-play-btn:hover,
+.log-entry .log-actions .open-folder-btn:hover,
+.log-entry .log-actions .delete-entry-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.log-entry .log-actions .log-play-btn i {
+  color: var(--color-accent);
 }
 .log-entry .new-entry {
   background-color: rgba(255, 215, 0, 0.1); /* светло-жёлтый фон */
@@ -11716,8 +11893,13 @@ hr {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 4%;
+  min-width: 28px;
+  height: 28px;
+  margin-left: 6px;
+  border-radius: 8px;
+  background: var(--color-hover);
   color: var(--color-text-main);
+  font-weight: 600;
 }
 
 .log-entry:hover .log-actions {
@@ -11804,14 +11986,40 @@ hr {
 }
 
 .log-entry.missing {
-  opacity: 0.5;
+  opacity: 0.85;
   border-radius: var(--border-radius);
-  background-color: rgba(255, 0, 0, 0.05);
+  background-color: rgba(255, 80, 80, 0.06);
+  border: 1px dashed rgba(255, 80, 80, 0.35);
+  box-shadow: none;
+}
+.log-entry.missing .log-number {
+  background: rgba(255, 80, 80, 0.12);
+  color: var(--color-toast-error);
+}
+.log-entry.missing .log-name {
+  color: var(--color-quality);
+  text-decoration: line-through;
 }
 .log-entry.missing .file-missing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding: 0 8px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 80, 80, 0.45);
+  background: rgba(255, 80, 80, 0.12);
   color: var(--color-toast-error);
-  font-style: italic;
-  font-size: 0.7em;
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1;
+}
+.log-entry.missing .log-actions .log-play-btn,
+.log-entry.missing .log-actions .open-folder-btn {
+  opacity: 0.35;
+  filter: grayscale(1);
+  pointer-events: none;
 }
 
 .delete-entry-btn:hover, .open-folder-btn:hover {
@@ -11857,9 +12065,9 @@ hr {
 
 .log-actions {
   display: flex;
+  gap: 0.4rem;
   padding: 2px;
   margin-left: auto;
-  background-color: var(--color-bg-secondary);
   border-radius: var(--border-radius);
 }
 
@@ -12038,7 +12246,7 @@ hr {
   color: var(--color-highlight);
 }
 .info-entry i {
-  margin-right: 5px;
+  margin-right: 8px;
 }
 .info-entry .info-delete {
   display: flex;
@@ -12539,6 +12747,10 @@ video {
 }
 .queue-start-indicator.hidden {
   display: none;
+}
+
+.log-entry:hover .log-name {
+  max-height: 2.5em;
 }
 
 #app-preloader {

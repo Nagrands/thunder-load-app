@@ -107,6 +107,9 @@ $themes: (
     color-twitch: #9e60fc,
     color-vkvideo: #0077ff,
     color-coub: #37a8ff,
+    // Бейдж размера файла (тон зависит от темы)
+    badge-size-bg: rgba(255,255,255,0.06),
+    badge-size-border: rgba(255,255,255,0.14),
   ),
   light: (
     // Обновлённая светлая (нейтральная) тема
@@ -185,6 +188,9 @@ $themes: (
     color-twitch: #9e60fc,
     color-vkvideo: #0077ff,
     color-coub: #37a8ff,
+    // Бейдж размера файла (тон зависит от темы)
+    badge-size-bg: rgba(255,255,255,0.06),
+    badge-size-border: rgba(255,255,255,0.14),
   ),
 
   midnight: (
@@ -235,6 +241,9 @@ $themes: (
     color-twitch: #9e60fc,
     color-vkvideo: #0a84ff,
     color-coub: #5ac8fa,
+    // Бейдж размера файла (тон зависит от темы)
+    badge-size-bg: rgba(255,255,255,0.05),
+    badge-size-border: rgba(255,255,255,0.12),
   ),
 );
 

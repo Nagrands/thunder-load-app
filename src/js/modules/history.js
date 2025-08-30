@@ -71,6 +71,23 @@ function createLogEntry(entry, index) {
   const format = entry.format || "";
   const formattedSize = entry.formattedSize ? ` (${entry.formattedSize})` : "";
   const formatInfo = `${format}${formattedSize}`;
+  // Host badge + audio-only flag
+  let host = "";
+  let hostClass = "";
+  try {
+    if (entry.sourceUrl) {
+      host = new URL(entry.sourceUrl).hostname.replace(/^www\./, "");
+      const h = host.toLowerCase();
+      if (/youtube\.com|youtu\.be/.test(h)) hostClass = "host-youtube";
+      else if (/twitch\.tv/.test(h)) hostClass = "host-twitch";
+      else if (/vkvideo\.ru|vk\.com/.test(h)) hostClass = "host-vk";
+      else if (/coub\.com/.test(h)) hostClass = "host-coub";
+    }
+  } catch {}
+  const isAudioOnly =
+    /audio/i.test(entry?.quality || "") ||
+    /audio/i.test(entry?.resolution || "") ||
+    /audio only/i.test(format);
 
   el.innerHTML = `
     <div class="text" data-filepath="${entry.filePath}" data-url="${entry.sourceUrl}" data-filename="${entry.fileName}">
@@ -79,16 +96,27 @@ function createLogEntry(entry, index) {
           <i class="fa-solid fa-clock"></i> ${entry.dateText || "неизвестно"}
         </span>
         <span class="quality">
-          <i class="fa-regular fa-rectangle-list"></i> ${entry.quality}
-          <span class="file-size">${formattedSize}</span>
+          <span class="q-badge" title="Формат/качество">${(entry.quality || "").replace(/</g,'&lt;')}</span>
+          <div class="log-badges top">
+            ${host ? `<span class="hist-badge type-host ${hostClass}" title="Источник">${host}</span>` : ""}
+            ${entry.resolution ? `<span class="hist-badge type-resolution" title="Разрешение">${entry.resolution}</span>` : ""}
+            ${entry.fps ? `<span class="hist-badge type-fps" title="Кадров/с">${entry.fps}fps</span>` : ""}
+          </div>
+          ${entry.isMissing
+            ? `<span class="file-missing" title="Файл отсутствует на диске">файл удалён</span>`
+            : `<span class="file-size">${formattedSize}</span>`}
         </span>
       </div>
       <div class="log-filename">
         <span class="log-number">${index + 1}.</span>
         <img src="file://${entry.iconUrl}" alt="Icon">
-        ${entry.fileName}
-        ${entry.isMissing ? `<span class="file-missing">(файл удалён)</span>` : ""}
+        <span class="log-name" title="${(entry.fileName || "").replace(/"/g, '&quot;')}">${entry.fileName}</span>
+        
         <div class="log-actions">
+          ${!entry.isMissing ? `
+            <button class="log-play-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Воспроизвести" data-path="${entry.filePath}">
+              <i class="fa-solid fa-circle-play"></i>
+            </button>` : ""}
           ${
             !entry.isMissing
               ? `
@@ -109,6 +137,18 @@ function createLogEntry(entry, index) {
 
   if (el._clickHandler) {
     el.removeEventListener("click", el._clickHandler);
+  }
+
+  const playBtn = el.querySelector('.log-play-btn');
+  if (playBtn && !entry.isMissing) {
+    playBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        const exists = await window.electron.invoke("check-file-exists", entry.filePath);
+        if (!exists) return showToast("Файл не найден на диске", "error");
+        await window.electron.invoke("open-last-video", entry.filePath);
+      } catch (err) { console.error(err); }
+    });
   }
 
   el._clickHandler = async function (e) {
