@@ -57,6 +57,16 @@ export default class TabSystem {
       if (firstVisible) return this.activateTab(firstVisible);
       return; // нет доступных вкладок
     }
+    // Guard: не позволяем активировать Backup, если вкладка отключена
+    if (id === this._BK_ID && this._isBackupDisabled()) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) return this.activateTab(firstVisible);
+      return; // нет доступных вкладок
+    }
     if (!this.tabs.has(id) || id === this.activeTabId) return;
 
     const next = this.tabs.get(id);

@@ -238,7 +238,7 @@ document
   .getElementById("delete-selected")
   ?.addEventListener("click", async () => {
     const idsToDelete = state.selectedEntries.map((id) => id.toString());
-    console.log("➡️ selectedEntries =", state.selectedEntries);
+    console.log("selectedEntries =", state.selectedEntries);
 
     if (!idsToDelete.length) return;
 
@@ -252,18 +252,18 @@ document
     );
 
     // ВСТАВКА: логи до и после удаления
-    console.log("🧹 История до удаления:", currentHistory);
-    console.log("🗑️ IDs к удалению:", idsToDelete);
-    console.log("📦 История после удаления:", updatedHistory);
+    console.log("История до удаления:", currentHistory);
+    console.log("IDs к удалению:", idsToDelete);
+    console.log("История после удаления:", updatedHistory);
 
     console.log("Перед обновлением истории:", getHistoryData());
     setHistoryData(updatedHistory); // ✅ обновляем локальное состояние
     // ВСТАВКА: лог после setHistoryData
     console.log(
-      "📥 setHistoryData выполнен. Актуальная история:",
+      "setHistoryData выполнен. Актуальная история:",
       getHistoryData(),
     );
-    console.log("🗒️ История после удаления:", getHistoryData());
+    console.log("История после удаления:", getHistoryData());
     state.selectedEntries = [];
 
     await window.electron.invoke("save-history", updatedHistory); // ✅ сохраняем на диск
@@ -271,9 +271,9 @@ document
       state.currentSearchQuery,
       state.currentSortOrder,
       true,
-    ); // ✅ перерисовываем (без loadHistory)
+    );
     // ВСТАВКА: лог после перерисовки
-    console.log("🧼 После перерисовки renderHistory:", getHistoryData());
+    console.log("После перерисовки renderHistory:", getHistoryData());
     await updateDownloadCount();
     updateDeleteSelectedButton();
 
@@ -330,7 +330,7 @@ function renderHistory(entries) {
     "🧾 renderHistory получил entries:",
     entries.map((e) => e.id),
   );
-  console.log("🔁 renderHistory called at", new Date().toISOString());
+  console.log("renderHistory called at", new Date().toISOString());
   console.trace("renderHistory stack");
 
   const container = document.getElementById("history");

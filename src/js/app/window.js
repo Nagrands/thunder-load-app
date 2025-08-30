@@ -19,8 +19,6 @@ let windowTray = null;
 let isQuitting = false;
 const isMac = process.platform === "darwin";
 
-console.log("🪟 createWindow called");
-
 // Helper to load a NativeImage from a list of candidate paths
 function loadNativeImageFrom(paths) {
   for (const p of paths) {
@@ -74,8 +72,8 @@ function createWindow(
       : [winIco, macPng];
 
   let iconPath = bwIconCandidates.find((p) => fs.existsSync(p)) || null;
-  console.log("🧭 icon candidates:", bwIconCandidates);
-  console.log("📁 chosen icon:", iconPath);
+  console.log("icon candidates:", bwIconCandidates);
+  console.log("chosen icon:", iconPath);
 
   const mainWindow = new BrowserWindow({
     titleBarStyle: "hiddenInset",
@@ -183,7 +181,7 @@ function createWindow(
         ]
       : [path.join(baseAssetsPath, "assets", "icons", "icon.png")];
     const dockImg = loadNativeImageFrom(dockIconCandidates);
-    console.log("🧭 dock icon candidates:", dockIconCandidates);
+    console.log("dock icon candidates:", dockIconCandidates);
     if (dockImg) {
       app.dock.setIcon(dockImg);
     }

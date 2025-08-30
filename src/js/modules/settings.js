@@ -87,7 +87,6 @@ async function initSettings() {
       const defaultSize = "16";
       localStorage.setItem("fontSize", defaultSize);
       fontSizeLabel.textContent = `${defaultSize} px`;
-      // Обновляем активный элемент в выпадающем меню
       fontSizeDropdownMenu.querySelectorAll("li").forEach((li) => {
         li.classList.remove("active");
         if (li.getAttribute("data-value") === defaultSize) {
@@ -108,12 +107,10 @@ async function initSettings() {
     });
   }
 
-  // Theme dropdown logic (custom dropdown, not native select)
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
   const themeLabel = document.getElementById("theme-selected-label");
 
-  // Лог и гарантия наличия элементов
   console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
     const savedTheme = localStorage.getItem("theme") || "dark";
@@ -619,11 +616,26 @@ async function initSettings() {
       try { return JSON.parse(localStorage.getItem(KEY)) === true; } catch { return false; }
     };
 
+    function toggleBackupControlsDisabled(disabled) {
+      // Отключаем любые интерактивные элементы внутри основного Backup‑вью (если уже отрисовано)
+      const view = document.getElementById('backup-view') || document.getElementById('backup-view-wrapper');
+      if (!view) return;
+      const ctrls = view.querySelectorAll('input, button, select, textarea');
+      ctrls.forEach((el) => {
+        // сам контейнер вкладки может быть скрыт TabSystem'ом — это ок
+        el.disabled = !!disabled;
+        const label = el.closest('label, .form-check, .settings-row, .control-row');
+        if (label) label.classList.toggle('is-disabled', !!disabled);
+      });
+    }
+
     const write = (v) => {
       const val = !!v;
       try { localStorage.setItem(KEY, JSON.stringify(val)); } catch {}
       try { window.electron?.send && window.electron.send("settings:set", { key: KEY, value: val }); } catch {}
       window.dispatchEvent(new CustomEvent("backup:toggleDisabled", { detail: { disabled: val } }));
+      // Блокируем/разблокируем контролы во вью
+      toggleBackupControlsDisabled(val);
       window.electron?.invoke?.("toast", val
         ? "Вкладка <strong>Backup</strong> отключена"
         : "Вкладка <strong>Backup</strong> включена",
@@ -639,7 +651,11 @@ async function initSettings() {
     window.electron?.on?.('open-settings', () => {
       const val = read();
       input.checked = val;
+      toggleBackupControlsDisabled(val);
     });
+
+    // Применим блокировку контролов при инициализации
+    toggleBackupControlsDisabled(read());
   })();
   // === /Backup: отключение вкладки ===
 

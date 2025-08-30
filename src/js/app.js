@@ -248,9 +248,7 @@ if (!app.requestSingleInstanceLock()) {
   /**
    * Main function to initialize the application.
    */
-  console.log("🧩 main() start");
   async function main() {
-    console.log("🧪 calling createWindow");
     // Ensure downloadPath is loaded from electron-store before window creation
     try {
       const savedStorePathAtStartup = store.get("downloadPath", "");
@@ -284,8 +282,6 @@ if (!app.requestSingleInstanceLock()) {
 
     dependencies.mainWindow = mainWindow;
 
-    // Перемещённый вызов setupIpcHandlers
-    console.log("🛠 calling setupIpcHandlers");
     setupIpcHandlers(dependencies);
 
     // Setup auto updater

@@ -256,7 +256,7 @@ async function handleDeleteEntry(logEntry) {
     const { currentHistory, wasDeleted } =
       await deleteEntryFromHistory(entryId); // Удаление записи из истории
     setHistoryData(currentHistory);
-    console.log("📁 (ContextMenu) Обновлённая история:", getHistoryData());
+    console.log("(ContextMenu) Обновлённая история:", getHistoryData());
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,

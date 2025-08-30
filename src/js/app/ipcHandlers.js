@@ -40,7 +40,7 @@ const {
   detectLegacyLocations,
   migrateLegacy,
 } = require("./toolsPaths");
-console.log("📡 ipcHandlers loaded");
+console.log("ipcHandlers loaded");
 /**
  * Проверяет, находится ли filePath внутри baseDir
  * @param {string} filePath - Абсолютный путь к файлу
@@ -89,7 +89,7 @@ async function backupFile(filePath, baseDir) {
 }
 
 function setupIpcHandlers(dependencies) {
-  console.log("✅ setupIpcHandlers called"); // ← должен появиться в devtools (main)
+  console.log("setupIpcHandlers called"); // ← должен появиться в devtools (main)
   const {
     mainWindow,
     store,
@@ -773,7 +773,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   ipcMain.handle(CHANNELS.GET_PLATFORM_INFO, () => {
-    console.log("📡 get-platform-info handler registered");
+    console.log("get-platform-info handler registered");
     return { isMac: process.platform === "darwin" };
   });
 
