@@ -168,7 +168,7 @@ export default function renderWireGuard() {
       <details class="wg-log-block" open>
         <summary class="text-sm text-muted flex items-center gap-2">
           Лог активности
-          <button id="wg-log-clear" type="button" class="ml-auto small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+          <button id="wg-log-clear" type="button" class="ml-auto small-button btn btn-sm btn-ghost" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
             <i class="fa-solid fa-trash"></i>
           </button>
         </summary>
@@ -177,15 +177,15 @@ export default function renderWireGuard() {
 
       <h2 class="section-heading mt">Управление</h2>
       <div class="buttons" role="group" aria-label="Управление отправкой">
-        <button id="wg-send" class="large-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Отправить сообщение">
+        <button id="wg-send" class="large-button btn btn-lg btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Отправить сообщение">
           <i class="fa-solid fa-paper-plane"></i>
           <span>Отправить</span>
         </button>
-        <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сбросить поля">
+        <button id="wg-reset" class="small-button btn btn-sm btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Сбросить поля">
           <i class="fa-solid fa-rotate"></i>
           <span></span>
         </button>
-        <button id="wg-open-config-folder" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку настроек">
+        <button id="wg-open-config-folder" class="small-button btn btn-sm btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку настроек">
           <i class="fa-solid fa-folder-open"></i>
           <span></span>
         </button>

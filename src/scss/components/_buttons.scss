@@ -7,11 +7,12 @@
 }
 
 /* ========== Базовые стили кнопок ========== */
-.button {
+.button,
+.btn {
   @include mixins.button-base;
   position: relative;
   overflow: hidden;
-  padding: 0.75em 2.6em;
+  padding: 0.7em 1.2em;
   transition:
     color 0.2s ease-in-out,
     transform 0.2s ease-in-out;
@@ -35,7 +36,7 @@
 
   &:hover {
     @include mixins.common-box-shadow;
-    transform: translateY(-2px) rotateX(2deg) rotateY(2deg);
+    transform: translateY(-1px);
     &::before {
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
@@ -46,7 +47,7 @@
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: translateY(0);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
     &::before {
       animation: ripple var(--btn-ripple-duration) ease-out forwards;
@@ -58,7 +59,8 @@
     box-shadow: 0 0 0 3px var(--btn-focus-shadow);
   }
 
-  &:disabled {
+  &:disabled,
+  &[aria-disabled="true"] {
     color: var(--button-disabled) !important;
     cursor: not-allowed !important;
     animation: none !important;
@@ -70,6 +72,56 @@
     }
   }
 }
+
+/* ========== Унифицированная система размеров/вариантов ========== */
+.btn,
+.small-button,
+.large-button {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.12));
+  color: var(--color-highlight);
+  border-radius: var(--border-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.btn-sm,
+.small-button { min-height: 36px; padding: 0.45rem 0.8rem; font-size: 0.95rem; }
+.btn-lg,
+.large-button { min-height: 44px; padding: 0.6rem 1.1rem; font-weight: 600; }
+
+.btn-primary { background: var(--button-default); }
+.btn-primary:hover { background: var(--button-download); }
+.btn-secondary { background: var(--button-open-folder); }
+.btn-ghost { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+.btn-danger { background: var(--button-cancel); }
+
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-icon i { margin: 0 !important; }
+
+/* Loading state */
+.btn.is-loading,
+.large-button.is-loading {
+  position: relative;
+  pointer-events: none;
+}
+.btn.is-loading::after,
+.large-button.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: var(--color-accent);
+  animation: spin 0.8s linear infinite;
+  right: 10px; top: 50%; transform: translateY(-50%);
+}
+
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 
 /* ========== Модификаторы кнопок ========== */
 .button--open-folder,

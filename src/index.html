@@ -383,14 +383,14 @@
       <!-- Группа кнопок -->
       <nav class="button-group" aria-label="Основные действия">
         <!-- Кнопка открытия последнего видео -->
-        <button
-          id="open-last-video"
-          class="small-button"
-          aria-label="Открыть последнее скачанное видео"
-          disabled
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Последнее видео"
+          <button
+            id="open-last-video"
+            class="small-button btn btn-sm btn-secondary"
+            aria-label="Открыть последнее скачанное видео"
+            disabled
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Последнее видео"
         >
           <i class="fa fa-play" aria-hidden="true"></i>
         </button>
@@ -400,7 +400,7 @@
             <!-- Кнопка скачивания -->
             <button
               id="download-button"
-              class="large-button"
+              class="large-button btn btn-lg btn-primary"
               disabled
               aria-disabled="true"
             >
@@ -412,7 +412,7 @@
           <!-- Кнопка отмены скачивания -->
           <button
             id="download-cancel"
-            class="small-button"
+            class="small-button btn btn-sm btn-danger"
             aria-label="Отменить скачивание"
             disabled
             data-bs-toggle="tooltip"
@@ -426,7 +426,7 @@
           <div class="quality-container" style="display: none">
             <button
               id="quality-button"
-              class="small-button"
+              class="small-button btn btn-sm btn-ghost"
               aria-label="Выбрать качество"
               aria-haspopup="true"
               aria-controls="quality-dropdown"
@@ -485,7 +485,7 @@
         <!-- Кнопка открытия папки с видео -->
         <button
           id="open-folder"
-          class="small-button"
+          class="small-button btn btn-sm btn-secondary"
           aria-label="Открыть папку с видео"
           data-bs-toggle="tooltip"
           data-bs-placement="top"
