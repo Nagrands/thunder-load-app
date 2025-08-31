@@ -1,0 +1,23 @@
+// src/scss/components/_utilities.scss
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.2s forwards;
+}
+
+.fade-out { animation: fadeOut 0.2s forwards; }
+
+.button-container,
+.filter-clear-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: var(--spacing-small) 0;
+}
+
+/* Global helpers */
+.hidden { display: none !important; }
+
+:focus-visible { outline: none; }

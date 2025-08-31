@@ -1,0 +1,72 @@
+// src/scss/components/_context-menu.scss
+
+.context-menu {
+  position: absolute;
+  display: none;
+  z-index: 1000;
+  min-width: 220px;
+  overflow: hidden;
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  color: var(--color-toast-text);
+  animation: fadeIn 0.2s ease-in-out;
+  transform-origin: top left;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    position: relative;
+    cursor: pointer;
+    color: var(--color-text-main);
+    transition: all 0.2s ease-in-out;
+    opacity: 0;
+    transform: translateX(-10px);
+    animation: slideIn 0.3s ease forwards;
+
+    &:hover {
+      background-color: var(--color-hover);
+      color: var(--color-accent);
+      i { color: var(--color-accent); transform: scale(1.1); }
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background-color: var(--color-hover);
+    }
+
+    &:last-child::after { display: none; }
+
+    &:nth-child(1) { animation-delay: 0.1s; }
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.2s; }
+    &:nth-child(4) { animation-delay: 0.25s; }
+    &:nth-child(5) { animation-delay: 0.3s; }
+    &:nth-child(6) { animation-delay: 0.35s; }
+  }
+
+  i {
+    width: 20px;
+    text-align: center;
+    color: var(--color-highlight);
+    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  }
+
+  span { flex-grow: 1; }
+}
+
+.context-menu li.disabled { color: var(--color-disabled); pointer-events: none; }
+

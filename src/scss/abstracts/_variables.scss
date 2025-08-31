@@ -1,4 +1,5 @@
 @use "sass:map";
+@use "sass:color";
 // src/scss/abstracts/_variables.scss
 
 // Breakpoints
@@ -248,6 +249,9 @@ $themes: (
 );
 
 // Mixin для экспорта переменных в CSS
+@function theme-value($theme-name, $key) {
+  @return map.get(map.get($themes, $theme-name), $key);
+}
 @mixin export-css-variables($theme) {
   @each $name, $value in $theme {
     --#{$name}: #{$value};
@@ -262,14 +266,18 @@ $themes: (
   --spacing-medium: #{$spacing-medium};
   --spacing-large: #{$spacing-large};
   --border-radius: #{$border-radius};
+  // Derived RGB channels for effects using rgba(var(--color-accent-rgb), ...)
+  --color-accent-rgb: #{color.channel(theme-value(dark, color-accent), "red", $space: rgb)}, #{color.channel(theme-value(dark, color-accent), "green", $space: rgb)}, #{color.channel(theme-value(dark, color-accent), "blue", $space: rgb)};
 }
 
 // CSS переменные для светлой темы
 [data-theme="light"] {
   @include export-css-variables(map.get($themes, light));
+  --color-accent-rgb: #{color.channel(theme-value(light, color-accent), "red", $space: rgb)}, #{color.channel(theme-value(light, color-accent), "green", $space: rgb)}, #{color.channel(theme-value(light, color-accent), "blue", $space: rgb)};
 }
 
 // CSS переменные для темы Midnight
 [data-theme="midnight"] {
   @include export-css-variables(map.get($themes, midnight));
+  --color-accent-rgb: #{color.channel(theme-value(midnight, color-accent), "red", $space: rgb)}, #{color.channel(theme-value(midnight, color-accent), "green", $space: rgb)}, #{color.channel(theme-value(midnight, color-accent), "blue", $space: rgb)};
 }

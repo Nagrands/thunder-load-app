@@ -8,6 +8,7 @@
   @include mixins.input-base(var(--spacing-small) 210px var(--spacing-small) 50px);
   color: var(--color-accent);
   font-size: 14px;
+  transition: background-color var(--transition-duration), color var(--transition-duration);
 
   &:focus {
     color: var(--color-highlight);
@@ -412,7 +413,7 @@
     color: var(--color-text-main);
     background: var(--color-hover);
     border: 1px solid var(--color-hover);
-    border-radius: 999px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
@@ -429,4 +430,42 @@
     width: 100%;
     justify-content: flex-start;
   }
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  transition:
+    background-color var(--transition-duration),
+    color var(--transition-duration),
+    border-color var(--transition-duration),
+    box-shadow var(--transition-duration);
+}
+
+/* .icon-placeholder {
+  position: absolute;
+  left: 18px;
+  top: var(--icon-top, 50%);
+  transform: translateY(-50%);
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  color: var(--color-url-border);
+  z-index: 2;
+  transition: color 0.3s ease;
+  img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  i { transition: color 0.2s ease; }
+} */
+
+.icon-button {
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  margin-left: var(--spacing-small);
+  margin-right: 0;
+  &:hover { color: var(--color-accent); }
+  i { font-size: 20px; padding: 12px; color: var(--color-highlight); &:hover { color: var(--color-accent); transition: 0.2s ease-in-out; } }
 }

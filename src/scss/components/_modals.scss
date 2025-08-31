@@ -1,7 +1,7 @@
 @use "../abstracts/mixins";
 
 // ----------------------------------------
-// 🪟 Основные модалки
+//  Основные модалки
 // ----------------------------------------
 
 %modal-base {
@@ -770,7 +770,7 @@
       padding: 6px 10px;
       background: transparent;
       border: 1px solid var(--color-hover);
-      border-radius: 999px;
+      border-radius: var(--border-radius);
       transition: background-color var(--transition-duration) ease,
                   border-color var(--transition-duration) ease;
     }
@@ -899,7 +899,7 @@
 .modal-body {
   padding: 0;
   margin: 18px 0;
-  color: var(--color-toast-warning);
+  color: var(--color-highlight);
 }
 
 // Футер модального окна

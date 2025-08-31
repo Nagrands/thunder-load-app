@@ -22,6 +22,7 @@ const https = require("https");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
+const backup = require("./backupManager");
 const {
   installYtDlp,
   installFfmpeg,
@@ -801,6 +802,77 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.SET_FONT_SIZE, (event, fontSize) => {
     store.set("fontSize", fontSize);
     return { success: true };
+  });
+
+  // ===== Backup: presets, actions =====
+  ipcMain.handle(CHANNELS.BACKUP_GET_PROGRAMS, async () => {
+    try {
+      const programs = await backup.readPrograms();
+      return { success: true, programs };
+    } catch (e) {
+      log.error("backup:getPrograms error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.BACKUP_SAVE_PROGRAMS, async (_evt, programs) => {
+    try {
+      await backup.savePrograms(programs || []);
+      return { success: true };
+    } catch (e) {
+      log.error("backup:savePrograms error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.BACKUP_GET_LAST_TIMES, async () => {
+    try {
+      const programs = await backup.readPrograms();
+      const map = await backup.listLastTimes(programs);
+      return { success: true, map };
+    } catch (e) {
+      log.error("backup:getLastTimes error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.BACKUP_RUN, async (_evt, programs) => {
+    try {
+      const list = Array.isArray(programs) ? programs : (await backup.readPrograms());
+      const res = await backup.runBackupBatch(list);
+      // optional toast summary
+      try {
+        const ok = res.filter((r) => r.success).length;
+        const total = res.length;
+        if (mainWindow && mainWindow.webContents) {
+          mainWindow.webContents.send("toast", `Backup завершён: ${ok}/${total}`, ok === total ? "success" : (ok ? "warning" : "error"));
+        }
+      } catch (_) {}
+      return { success: true, results: res };
+    } catch (e) {
+      log.error("backup:run error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.BACKUP_CHOOSE_DIR, async () => {
+    try {
+      const dir = await backup.chooseDir(mainWindow);
+      return { success: !!dir, path: dir || null };
+    } catch (e) {
+      log.error("backup:chooseDir error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.BACKUP_OPEN_PATH, async (_evt, p) => {
+    try {
+      const r = await backup.openPath(p);
+      return r;
+    } catch (e) {
+      log.error("backup:openPath error:", e);
+      return { success: false, error: e.message };
+    }
   });
 
   // Проверка на отмену загрузки

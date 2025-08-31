@@ -1,0 +1,135 @@
+// src/scss/components/_topbar.scss
+@use "../abstracts/mixins";
+
+.top-bar {
+  -webkit-app-region: drag;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  padding: 0 0 0 16px;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px var(--color-hover) solid;
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @include mixins.fade-in(0.5s);
+  z-index: 999;
+
+  .center-menu {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--color-highlight);
+    position: relative;
+    overflow: visible;
+    cursor: pointer;
+
+    &:hover:not(.active):not(.disabled) {
+      background-color: var(--color-hover);
+      color: var(--color-accent);
+    }
+
+    &:active:not(.active):not(.disabled) { transform: translateY(1px); }
+
+    &.active {
+      background-color: var(--color-hover);
+      color: var(--color-accent);
+      cursor: default;
+      pointer-events: none;
+      transition: none;
+      &:hover { color: var(--color-highlight); }
+    }
+
+    &.disabled {
+      color: var(--color-disabled);
+      cursor: not-allowed;
+      pointer-events: none;
+      &:hover { background: var(--color-hover); }
+    }
+  }
+
+  .menu-main { display: flex; align-items: center; gap: 5px; }
+}
+
+.top-bar .left { display: flex; align-items: center; gap: 12px; height: 100%; justify-content: center; }
+.top-bar .right { display: flex; align-items: center; height: 100%; }
+
+.group-menu {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+
+  [data-menu="download"] .menu-text {
+    position: relative;
+    padding-right: 6px;
+    white-space: nowrap;
+  }
+}
+
+// Center tab strip with subtle scroll mask
+.group-menu { display: inline-flex; gap: 6px; padding: 4px; max-width: min(64vw, 720px); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; position: relative; }
+.group-menu::-webkit-scrollbar { display: none; }
+.group-menu::before,
+.group-menu::after {
+  content: "";
+  position: sticky;
+  top: 0; bottom: 0;
+  width: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+.group-menu::before { left: 0; background: linear-gradient(90deg, rgba(0,0,0,0.25), transparent); border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
+.group-menu::after  { right: 0; background: linear-gradient(270deg, rgba(0,0,0,0.25), transparent); border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
+
+// Top bar controls
+.app-version-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  background-color: var(--color-hover);
+  padding: 4px 12px;
+  border-radius: var(--border-radius);
+  color: var(--color-highlight);
+  user-select: none;
+  letter-spacing: 0.04rem;
+  font-weight: 600;
+  transition: background 0.4s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  i { font-size: 1rem; border-radius: 50%; padding: 2px; animation: pulseEffect 2s infinite; transition: transform 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; color: var(--color-accent); }
+  &:hover { color: var(--color-accent); box-shadow: 0 0 3px var(--color-accent); transform: translateY(-1px); i { animation: none; transform: scale(1.3); color: var(--color-text-main); } }
+  &:active { transform: translateY(0); box-shadow: 0 3px 6px rgba(0, 123, 255, 0.2); }
+  @media (max-width: 480px) { font-size: 10px; padding: 3px 6px 3px 8px; gap: 6px; i { font-size: 0.9rem; } }
+  @media (max-width: 320px) { font-size: 9px; padding: 2px 5px 2px 6px; gap: 4px; i { font-size: 0.8rem; } }
+}
+
+.version-text { letter-spacing: 0.8px; font-size: 14px; }
+
+#reload-app {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; background: transparent; border-radius: var(--border-radius); cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  &:hover { color: var(--color-highlight); font-size: 16px; background-color: var(--color-history-scroll); }
+  &:active { transform: scale(0.95); }
+  &:focus-visible { outline: 2px solid var(--color-hover); outline-offset: 2px; }
+  i { pointer-events: none; }
+}
+

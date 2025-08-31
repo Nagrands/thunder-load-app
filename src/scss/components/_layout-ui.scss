@@ -1,0 +1,47 @@
+// src/scss/components/_layout-ui.scss
+@use "../abstracts/mixins";
+
+.header {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+  transition: background-color var(--transition-duration), color var(--transition-duration);
+}
+
+.container {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1020px;
+  overflow-y: auto;
+  @include mixins.fade-in(0.5s);
+  transition: background-color var(--transition-duration), color var(--transition-duration), border-color var(--transition-duration), box-shadow var(--transition-duration);
+}
+
+.footer-info {
+  text-transform: uppercase;
+  color: var(--color-quality);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  opacity: 0.85;
+  user-select: none;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease, opacity 0.2s ease, text-decoration-color 0.2s ease;
+  &:hover { color: var(--color-accent); opacity: 1; text-decoration: underline; text-decoration-thickness: 0.08em; }
+  &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 6px; }
+  @media (max-width: 480px) { font-size: 11px; letter-spacing: 0.05em; }
+}
+
+/* Link icons tweaks */
+.icon-links,
+.icon-links a { transition: color var(--transition-duration); }
+
+/* Responsive tweaks formerly in _ui.scss */
+@media (max-width: 600px) {
+  header h1 { font-size: 1.7rem; }
+  .button { font-size: 14px; }
+  .icon-links a { font-size: 1.2em; }
+}

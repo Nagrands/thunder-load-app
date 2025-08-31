@@ -69,7 +69,7 @@ function createLogEntry(entry, index) {
   if (entry.isMissing) el.classList.add("missing");
 
   const format = entry.format || "";
-  const formattedSize = entry.formattedSize ? ` (${entry.formattedSize})` : "";
+  const formattedSize = entry.formattedSize ? ` ${entry.formattedSize}` : "";
   const formatInfo = `${format}${formattedSize}`;
   // Host badge + audio-only flag
   let host = "";

@@ -178,7 +178,7 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   .switch .slider {
     width: 36px;
     height: 20px;
-    border-radius: 999px;
+    border-radius: var(--border-radius);
     position: relative;
     background: var(--color-hover);
     transition: background 0.15s ease;
@@ -558,6 +558,7 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    height: 10px;
   }
   .wg-log-block summary .small-button:focus-visible {
     outline: none;
@@ -596,7 +597,7 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   }
   .wg-log-block pre#wg-log::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 999px;
+    border-radius: var(--border-radius);
   }
   .wg-log-block pre#wg-log::-webkit-scrollbar-track {
     background: transparent;
@@ -793,7 +794,8 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     font-size: 1rem;
   }
 
-  .wireguard-view .buttons {
+  .wireguard-view .buttons,
+  .backup-view .buttons {
     flex-direction: column;       /* кнопки в колонку */
     align-items: stretch;
     gap: 8px;
@@ -801,7 +803,9 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   }
 
   .wireguard-view .buttons .large-button,
-  .wireguard-view .buttons .small-button {
+  .wireguard-view .buttons .small-button,
+  .backup-view .buttons .large-button,
+  .backup-view .buttons .small-button {
     width: 100%;
     justify-content: center;
     padding: 0.65rem 0.9rem;
@@ -817,7 +821,9 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     background: transparent;
     padding: 0.2rem 0.4rem;
   }
-  .wireguard-view .wg-log-block pre#wg-log {
+  .wireguard-view .wg-log-block pre#wg-log,
+  .backup-view .wg-log-block pre#bk-log,
+  .backup-view .wg-log-block pre {
     max-height: 40vh; /* ограничение высоты логов на маленьких окнах */
     overflow-y: auto;
     margin-top: 0.25rem !important;
@@ -832,11 +838,14 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
 }
 
 @media (max-width: 420px) {
-  .wireguard-view .wg-header .title { padding: 8px 10px; }
-  .wireguard-view .wg-header .title i { padding: 8px; }
+  .wireguard-view .wg-header .title,
+  .backup-view .wg-header .title { padding: 8px 10px; }
+  .wireguard-view .wg-header .title i,
+  .backup-view .wg-header .title i { padding: 8px; }
   .wireguard-view .switch .switch-label { font-size: 0.85rem; }
 
-  .wireguard-view .input {
+  .wireguard-view .input,
+  .backup-view .input {
     padding: var(--spacing-small);
   }
 
@@ -849,16 +858,26 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
 
 @media (max-height: 560px) {
   /* когда окно низкое, уменьшим отступы и высоту логов */
-  .wireguard-view .wg-header { margin: 0.8rem 0; }
-  .wireguard-view .wg-log-block pre#wg-log { max-height: 32vh; }
+  .wireguard-view .wg-header,
+  .backup-view .wg-header { margin: 0.8rem 0; }
+  .wireguard-view .wg-log-block pre#wg-log,
+  .backup-view .wg-log-block pre#bk-log,
+  .backup-view .wg-log-block pre { max-height: 32vh; }
 }
 
 @media (max-height: 480px) {
-  .wireguard-view .wg-header { margin: 0.6rem 0; }
+  .wireguard-view .wg-header,
+  .backup-view .wg-header { margin: 0.6rem 0; }
   .wireguard-view h1 { margin-bottom: 0.35rem; border-bottom-width: 0; }
-  .wireguard-view .wg-block { margin-bottom: 6px; padding: 8px; }
-  .wireguard-view .buttons { gap: 8px; padding: 6px; }
+  .wireguard-view .wg-block,
+  .backup-view .wg-block { margin-bottom: 6px; padding: 8px; }
+  .wireguard-view .buttons,
+  .backup-view .buttons { gap: 8px; padding: 6px; }
   .wireguard-view .buttons .large-button,
-  .wireguard-view .buttons .small-button { padding: 0.5rem 0.9rem; }
-  .wireguard-view .wg-log-block pre#wg-log { max-height: 28vh; }
+  .wireguard-view .buttons .small-button,
+  .backup-view .buttons .large-button,
+  .backup-view .buttons .small-button { padding: 0.5rem 0.9rem; }
+  .wireguard-view .wg-log-block pre#wg-log,
+  .backup-view .wg-log-block pre#bk-log,
+  .backup-view .wg-log-block pre { max-height: 28vh; }
 }

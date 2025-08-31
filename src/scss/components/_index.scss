@@ -1,0 +1,37 @@
+// Aggregates component partials to control load order
+// Usage: `@use "components/index";` from styles.scss
+
+// Utilities and base UI
+@forward "utilities";
+@forward "layout-ui";
+
+// Navigation and shell
+@forward "topbar";
+@forward "sidebar";
+
+// Forms and inputs
+@forward "inputs";
+@forward "forms";
+
+// Buttons and interactive components
+@forward "buttons";
+@forward "spinner";
+@forward "progress";
+@forward "history";
+
+// Overlays and menus
+@forward "dropdown";
+@forward "context-menu";
+@forward "modals";
+@forward "toasts";
+@forward "tooltips";
+
+// Tabs and settings
+@forward "tabs";
+@forward "settings-sections";
+@forward "settings-tools";
+
+// Misc pages
+@forward "preloader";
+@forward "whatsnew";
+@forward "media";

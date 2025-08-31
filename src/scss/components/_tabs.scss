@@ -1,0 +1,47 @@
+// src/scss/components/_tabs.scss
+
+.tab-view .container {
+  animation: none !important; // disable fadeIn transform inside tab container
+}
+
+/* Tabs: fade/slide behavior */
+.tab-view {
+  display: none;
+  opacity: 0;
+  transition: opacity 250ms ease;
+
+  &.tab-show {
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+    opacity: 1;
+  }
+
+  &.container {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  &.tab-hide { opacity: 0; }
+}
+
+.download-queue-info,
+.queue-start-indicator {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-quality);
+  transition: opacity 0.3s ease;
+}
+
+.download-queue-info {
+  margin-top: 6px;
+  &.hidden { display: none; }
+}
+
+.queue-start-indicator {
+  margin-top: 4px;
+  opacity: 0;
+  &.show { opacity: 1; animation: pulse-indicator 1.2s ease-in-out infinite; }
+  &.hidden { display: none; }
+}
+
