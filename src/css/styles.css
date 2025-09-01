@@ -10652,7 +10652,9 @@
   --spacing-medium: 16px;
   --spacing-large: 24px;
   --border-radius: 24px;
-  --color-accent-rgb: 69, 143, 215;
+  --color-accent-rgb: 69,
+                      143,
+                      215;
 }
 
 [data-theme=light] {
@@ -10698,7 +10700,9 @@
   --color-coub: #37a8ff;
   --badge-size-bg: rgba(255, 255, 255, 0.06);
   --badge-size-border: rgba(255, 255, 255, 0.14);
-  --color-accent-rgb: 10, 132, 255;
+  --color-accent-rgb: 10,
+                      132,
+                      255;
 }
 
 [data-theme=midnight] {
@@ -10746,7 +10750,9 @@
   --color-coub: #5ac8fa;
   --badge-size-bg: rgba(255, 255, 255, 0.05);
   --badge-size-border: rgba(255, 255, 255, 0.12);
-  --color-accent-rgb: 90, 200, 250;
+  --color-accent-rgb: 90,
+                      200,
+                      250;
 }
 
 /* Миксин для заголовков */
@@ -16041,7 +16047,7 @@ video {
 }
 @media (max-width: 620px) {
   .downloader-view::after {
-    background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.08) 75%, rgba(0, 0, 0, 0.25) 100%), url("../assets/img/downloader-bg.jpg") center/cover no-repeat;
+    background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.08) 75%, rgba(0, 0, 0, 0.25) 100%), url("../../assets/img/downloader-bg.jpg") center/cover no-repeat;
   }
 }
 .wg-center {
