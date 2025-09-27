@@ -1,3 +1,26 @@
+/**
+ * @file updateHandler.js
+ * @description
+ * Manages application update notifications and progress UI for Thunder Load.
+ * Handles communication with the Electron main process via contextBridge.
+ *
+ * Responsibilities:
+ *  - Listen for update-related IPC events from main process
+ *      • update-available
+ *      • update-progress
+ *      • update-error
+ *      • update-downloaded
+ *  - Display modals for available updates and downloaded updates
+ *  - Update progress bar during download
+ *  - Display error notifications when update fails
+ *  - Handle modal close actions and cleanup UI elements
+ *  - Provide utility to hide or update progress bar
+ *
+ * Exports:
+ *  - initUpdateHandler — initializes event listeners and modals
+ *  - updateProgressBar — updates progress bar and progress text
+ */
+
 // src/js/modules/updateHandler.js
 
 // Используем методы, предоставленные через contextBridge

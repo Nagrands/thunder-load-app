@@ -1,3 +1,22 @@
+/**
+ * @file app.js
+ * @description
+ * Main entry point for the Electron application.
+ * Handles initialization of the main process, including:
+ *  - Setting up the application window
+ *  - Managing persistent settings via electron-store
+ *  - Handling download paths and history
+ *  - Registering IPC handlers for renderer ↔ main communication
+ *  - Initializing clipboard monitoring
+ *  - Setting up auto-updater and global shortcuts
+ *  - Displaying "What's New" modal on version updates
+ *  - Managing single-instance lock to prevent multiple app instances
+ *  - Cleaning up resources before quitting
+ *
+ * Exports:
+ *  - `mainWindow` — reference to the main BrowserWindow instance
+ */
+
 // src/js/app.js
 
 const path = require("path");

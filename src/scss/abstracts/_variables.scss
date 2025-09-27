@@ -111,87 +111,66 @@ $themes: (
     // Бейдж размера файла (тон зависит от темы)
     badge-size-bg: rgba(255,255,255,0.06),
     badge-size-border: rgba(255,255,255,0.14),
+    color-delete: rgba(255, 80, 80, 0.06),
   ),
   light: (
-    // Обновлённая светлая (нейтральная) тема
-    color-accent: #0a84ff,
-    // яркий акцент (сохраняем синим)
+    // Светлая тема с бирюзовым акцентом
+    color-accent: #14b8a6,
+    // яркий акцент (бирюзовый)
     color-bg-log: #ffffff,
-    // фон логов
-    color-bg-main: #f2f3f5,
-    // более нейтральный серовато‑светлый фон
-    color-bg-secondary: #ffffff,
-    // вторичный фон (карточки, панели)
-    color-border: #e5e7eb,
-    // светлые границы
-    color-disabled: #b8c0cc,
+    // фон логов (чистый белый)
+    color-bg-main: #fefefe,
+    // основной фон
+    color-bg-secondary: #fafafa,
+    // карточки и панели
+    color-border: #e2e8f0,
+    // мягкие серые границы
+    color-disabled: #94a3b8,
     // для неактивных элементов
-    color-highlight: #2b2f3a,
-    // контентный акцентный текст
-    color-history-scroll: rgba(0,0,0,0.14),
-    // фон полосы прокрутки истории
-    color-hover: rgba(0, 0, 0, 0.05),
-    color-icon-links: #0a84ff,
+    color-highlight: #1e293b,
+    // основной текст/иконки
+    color-history-scroll: rgba(0,0,0,0.1),
+    // фон полосы прокрутки
+    color-hover: rgba(20, 184, 166, 0.08),
+    // эффект наведения
+    color-icon-links: #14b8a6,
     // иконки и ссылки
-    color-progress-bar: #0a84ff,
-    // полоса прогресса
-    color-progress-bg: rgba(0,0,0,0.06),
-    // фон полосы прогресса
-    color-quality: #6b7280,
-    // индикатор качества
+    color-progress-bar: #14b8a6,
+    color-progress-bg: rgba(0,0,0,0.05),
+    color-quality: #475569,
     color-toast-bg: #ffffff,
-    // фон уведомлений
-    color-toast-error: #ff3b30,
-    // ошибка
-    color-toast-success: #30d158,
-    // успех
-    color-toast-text: #1f2330,
-    // текст уведомлений
-    color-toast-warning: #ffcc00,
-    // предупреждение
+    color-toast-error: #dc2626,
+    color-toast-success: #16a34a,
+    color-toast-text: #1e293b,
+    color-toast-warning: #f59e0b,
     color-url-bg: #ffffff,
-    // фон URL
-    color-url-border: #e5e7eb,
-    // граница URL
-    color-url-link: #0a84ff,
-    // ссылка в URL
-    color-url-text: #1f2330,
-    // текст URL
-    button-cancel: linear-gradient(180deg, #ff5f56, #ffd1d1),
-    // кнопка "Отмена"
-    button-color: #1f2330,
-    // базовый цвет кнопок (текст)
-    button-default: linear-gradient(180deg, #ffffff, #eceff3),
-    // стандартная кнопка
-    button-disabled-bg: #e6e6e6,
-    // фон неактивной кнопки
-    button-disabled: #9aa3af,
-    // текст неактивной кнопки
-    button-download: linear-gradient(180deg, #3f8cff, #0a84ff),
-    // кнопка "Скачать"
-    button-enabled: #1f2330,
-    // активная кнопка (текст)
-    button-open-folder: linear-gradient(180deg, #ffc9c9, #ffecec),
-    // кнопка открытия папки
-    button-open-history: linear-gradient(180deg, #cfe5ff, #eaf3ff),
-    // кнопка истории
-    button-openlast-video: linear-gradient(180deg, #cfe5ff, #eaf3ff),
-    // кнопка последнего видео
+    color-url-border: #e2e8f0,
+    color-url-link: #14b8a6,
+    color-url-text: #1e293b,
+
+    button-cancel: linear-gradient(180deg, #fca5a5, #fee2e2),
+    button-color: #1e293b,
+    button-default: linear-gradient(180deg, #ffffff, #f1f5f9),
+    button-disabled-bg: #e2e8f0,
+    button-disabled: #94a3b8,
+    button-download: linear-gradient(180deg, #2dd4bf, #14b8a6),
+    button-enabled: #1e293b,
+    button-open-folder: linear-gradient(180deg, #fca5a5, #fee2e2),
+    button-open-history: linear-gradient(180deg, #a5f3fc, #e0f2fe),
+    button-openlast-video: linear-gradient(180deg, #a5f3fc, #e0f2fe),
+
     sidebar-background: #ffffffcc,
-    // фон сайдбара
-    sidebar-color: #1f2330,
-    // цвет текста в сайдбаре
-    sidebar-list-color: rgba(0,0,0,0.06),
-    // цвет элементов списка
-    color-text-main: #1f2330,
-    // основной текст
-    color-youtube: #ce1312,
-    color-twitch: #9e60fc,
-    color-vkvideo: #0077ff,
-    color-coub: #37a8ff,
-    // Бейдж размера файла (тон зависит от темы)
-    badge-size-bg: rgba(255,255,255,0.06),
-    badge-size-border: rgba(255,255,255,0.14),
+    sidebar-color: #1e293b,
+    sidebar-list-color: rgba(0,0,0,0.04),
+    color-text-main: #1e293b,
+    color-youtube: #dc2626,
+    color-twitch: #8b5cf6,
+    color-vkvideo: #2563eb,
+    color-coub: #06b6d4,
+
+    badge-size-bg: rgba(0,0,0,0.03),
+    badge-size-border: rgba(0,0,0,0.1),
+    color-delete: rgba(220, 38, 38, 0.16),
   ),
 
   midnight: (
@@ -245,6 +224,7 @@ $themes: (
     // Бейдж размера файла (тон зависит от темы)
     badge-size-bg: rgba(255,255,255,0.05),
     badge-size-border: rgba(255,255,255,0.12),
+    color-delete: rgba(255, 65, 65, 0.132),
   ),
 );
 

@@ -1,27 +1,28 @@
-# ⚡ Thunder Load — Audio/Video downloader
-
 <!-- Badges -->
+
+<img src="assets/icons/icon.png" alt="ThunderLoad Screenshot" width="15%"/> 
+
+# Thunder Load
 
 [![Build](https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml/badge.svg)](https://github.com/Nagrands/thunder-load-app/actions)
 
-<img src="assets/icons/icon.png" alt="ThunderLoad Screenshot" width="35%"/>
+|           ***Downloader***      |
+| :-----------------------------: |
+| ![](assets/screenshots/app.png) |
 
-## 📸 Screenshots
-
-| Downloader                      | Settings                         |
-| ------------------------------- | -------------------------------- |
-| ![](assets/screenshots/app.png) | ![](assets/screenshots/app2.png) |
-
+---
 ## 📑 Table of Contents
 
 - [English](#english)
 - [Русский](#русский)
 - [Українська](#українська)
 
+---
 ## ⬇️ Download
 
-[latest_version](https://github.com/Nagrands/thunder-load-app/releases/latest)
+[Release](https://github.com/Nagrands/thunder-load-app/releases/latest)
 
+---
 ## English
 
 ThunderLoad is a modern, cross‑platform video, audio, and file downloader built with [Electron](https://www.electronjs.org/).  
@@ -91,9 +92,10 @@ To build the application for production:
 npm run build
 ```
 
+---
 ## Русский
 
-ThunderLoad — это современный кроссплатформенный загрузчик видео, аудио и файлов, созданный на базе [Electron](https://www.electronjs.org/).  
+ThunderLoad — это современный кроссплатформенный загрузчик видео, аудио файлов, созданный на базе [Electron](https://www.electronjs.org/).  
 Разработан для скорости, простоты и комфортного пользовательского опыта.
 
 ## Особенности
@@ -160,9 +162,10 @@ npm start
 npm run build
 ```
 
+---
 ## Українська
 
-ThunderLoad — це сучасний кросплатформений завантажувач відео, аудіо та файлів, створений на основі [Electron](https://www.electronjs.org/).  
+ThunderLoad — це сучасний кросплатформений завантажувач відео, аудіо файлів, створений на основі [Electron](https://www.electronjs.org/).  
 Розроблений для швидкості, простоти та комфортного користувацького досвіду.
 
 ## Можливості

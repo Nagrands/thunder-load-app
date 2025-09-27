@@ -97,13 +97,19 @@
 
 .btn-primary { background: var(--button-default); }
 .btn-primary:hover { background: var(--button-download); }
-.btn-secondary { background: var(--button-open-folder); }
+.btn-secondary { gap: 0; background: var(--button-open-folder); }
 .btn-ghost { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
 .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
 .btn-danger { background: var(--button-cancel); }
 
 .btn-icon { width: 36px; height: 36px; padding: 0; }
 .btn-icon i { margin: 0 !important; }
+
+#bk-create-first {
+  display: flex;
+  align-content: center;
+  height: auto;
+}
 
 /* Loading state */
 .btn.is-loading,
@@ -262,7 +268,7 @@
 
   > * {
     justify-self: center;
-    min-width: 64px;
+    min-width: 90px;
   }
 
   @media (max-width: 600px) {

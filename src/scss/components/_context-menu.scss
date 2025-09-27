@@ -22,18 +22,19 @@
   li {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
+    gap: 10px;
+    padding: 8px 14px;
     position: relative;
     cursor: pointer;
-    color: var(--color-text-main);
+    color: var(--color-highlight);
+    background-color: var(--color-hover);
     transition: all 0.2s ease-in-out;
     opacity: 0;
     transform: translateX(-10px);
-    animation: slideIn 0.3s ease forwards;
+    animation: slideIn 0.2s ease forwards;
 
     &:hover {
-      background-color: var(--color-hover);
+      background-color: var(--color-bg-main);
       color: var(--color-accent);
       i { color: var(--color-accent); transform: scale(1.1); }
     }

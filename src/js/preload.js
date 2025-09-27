@@ -1,6 +1,26 @@
+/**
+ * @file preload.js
+ * @description
+ * Preload script for the Electron application.
+ * Provides a secure contextBridge API (`window.electron`) with safe wrappers
+ * around IPC communication between renderer and main process.
+ *
+ * Responsibilities:
+ *  - Restricts IPC channel access using whitelist (or allows all in dev mode)
+ *  - Defines safe wrappers for `invoke`, `send`, `on`, `once`
+ *  - Provides compatibility for legacy channel names
+ *  - Exposes tools management API (versions, updates, location handling)
+ *  - Supplies platform info (OS, architecture)
+ *  - Handles special subscriptions: version updates, window focus, downloads,
+ *    notifications, toasts, "What's New" modal
+ *  - Ensures preload errors do not crash the renderer
+ *
+ * Exports:
+ *  - `window.electron` — global object with the defined API
+ *  - Typings via JSDoc (`ElectronBridge`, `PlatformInfo`, `WindowWithElectron`)
+ */
+
 // src/js/preload.js
-// Унифицированный preload‑мост с безопасными обёртками IPC и JSDoc типами
-// Совместим с Windows и macOS. Не падает в dev при расхождениях каналов.
 
 'use strict';
 

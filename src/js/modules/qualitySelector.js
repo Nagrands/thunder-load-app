@@ -30,7 +30,7 @@ function updateSelectedQuality() {
   if (selectedQuality === "Audio Only") {
     buttonText.textContent = "Скачать аудио";
   } else {
-    buttonText.textContent = `Скачать "${selectedQuality}"`;
+    buttonText.textContent = `Скачать «${selectedQuality}»`;
   }
 }
 

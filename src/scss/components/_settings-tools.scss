@@ -207,6 +207,7 @@
 
   &.ok {
     border-color: var(--color-hover);
+    color: var(--color-highlight);
     background-color: rgba(18, 97, 33, 0.12);
   }
   &.missing {

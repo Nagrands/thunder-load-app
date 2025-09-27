@@ -168,7 +168,7 @@ export default function renderWireGuard() {
       <details class="wg-log-block" open>
         <summary class="text-sm text-muted flex items-center gap-2">
           Лог активности
-          <button id="wg-log-clear" type="button" class="ml-auto small-button btn btn-sm btn-ghost" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+          <button id="wg-log-clear" type="button" class="ml-auto small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
             <i class="fa-solid fa-trash"></i>
           </button>
         </summary>

@@ -27,14 +27,16 @@
 
 .download-queue-info,
 .queue-start-indicator {
-  font-size: 13px;
   font-style: italic;
-  color: var(--color-quality);
+  color: var(--color-highlight);
   transition: opacity 0.3s ease;
 }
 
 .download-queue-info {
-  margin-top: 6px;
+  background-color: var(--color-hover);
+  border-radius: var(--border-radius);
+  padding: 8px 20px;
+  margin: 10px 0;
   &.hidden { display: none; }
 }
 

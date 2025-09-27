@@ -139,7 +139,7 @@
               aria-label="Введите URL видео или аудио"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Вставьте ссылку или перетащите сюда. Enter — скачать; Shift+Enter — очередь; Alt+Enter — Audio Only"
+              title="Вставьте ссылку или перетащите сюда. Enter — скачать; Shift+Enter — очередь; Alt+Enter — только аудио."
             />
             <div class="button-grid">
               <button
@@ -199,7 +199,7 @@
           <!-- Progress Bar -->
           <div id="preview-card" class="preview-card" style="display:none">
             <img id="preview-thumb" alt="Превью" style="display:none;max-height:80px;border-radius:6px;margin-right:8px" />
-            <div class="preview-meta" style="display:inline-block;vertical-align:top">
+            <div class="preview-meta">
               <div id="preview-title" class="preview-title" style="font-weight:600"></div>
               <small id="preview-duration" class="muted"></small>
             </div>
@@ -494,14 +494,14 @@
           <i class="fa-regular fa-folder-open"></i>
         </button>
 
-        <div id="download-queue-info" class="download-queue-info hidden">
-          В очереди: <span id="queue-count">0</span> ссылок
-        </div>
-
-        <div id="queue-start-indicator" class="queue-start-indicator hidden">
-          ⏳ Загрузка из очереди...
-        </div>
       </nav>
+      <div id="download-queue-info" class="download-queue-info hidden">
+        В очереди: <span id="queue-count">0</span> ссылок
+      </div>
+
+      <div id="queue-start-indicator" class="queue-start-indicator hidden">
+        ⏳ Загрузка из очереди...
+      </div>
 
       <!-- History Section -->
       <section id="history-container">
@@ -935,9 +935,6 @@
                       <strong>Отключить вкладку</strong>
                     </label>
                   </li>
-                  <li>
-                    <small class="muted">Функции резервного копирования появятся в будущих обновлениях.</small>
-                  </li>
                 </ul>
               </div>
 
@@ -1358,7 +1355,7 @@
           cdn.integrity = 'sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q';
           cdn.crossOrigin = 'anonymous';
           cdn.onload = loadRenderer;
-          cdn.onerror = loadRenderer; // стартуем даже без Bootstrap
+          cdn.onerror = loadRenderer;
           document.head.appendChild(cdn);
         };
       })();

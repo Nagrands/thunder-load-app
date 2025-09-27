@@ -1,3 +1,24 @@
+/**
+ * @file renderer.js
+ * @description
+ * Entry point for the renderer process. Initializes UI, mounts tabbed views,
+ * and orchestrates interaction between UI modules and the Electron main process.
+ *
+ * Responsibilities:
+ *  - Apply platform-specific classes (macOS styling, etc.)
+ *  - Initialize theme and font size managers
+ *  - Create and manage tab system (Downloader, WG Unlock, Backup)
+ *  - Handle sidebar navigation, reordering, and active state sync
+ *  - Update sidebar history badge and listen for history updates
+ *  - Initialize application modules (history, downloads, settings, tooltips, etc.)
+ *  - Bind event handlers for WireGuard autosend and manual send
+ *  - Manage preloader removal and startup status messages
+ *  - Set up IPC listeners for status messages from main
+ *
+ * Exports:
+ *  - None (executes initialization logic directly in renderer context)
+ */
+
 // src/js/renderer.js
 
 import TabSystem from "./modules/tabSystem.js";

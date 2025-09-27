@@ -90,7 +90,7 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--color-quality);
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -182,8 +182,7 @@
     .date-time {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 12px;
+      gap: 4px;
       color: var(--color-quality);
       white-space: nowrap;
     }
@@ -191,8 +190,7 @@
     .quality {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
+      gap: 4px;
       color: var(--color-accent);
       white-space: nowrap;
 
@@ -200,28 +198,21 @@
         color: var(--color-quality);
         display: inline-flex;
         align-items: center;
-        height: 18px;
+        height: 20px;
         padding: 0 6px;
         border-radius: var(--border-radius);
-        border: 1px solid var(--badge-size-border);
         background: var(--badge-size-bg);
-        line-height: 1;
       }
 
       .q-badge {
-        height: 18px;
+        height: 20px;
         display: inline-flex;
         align-items: center;
         padding: 0 8px;
         border-radius: var(--border-radius);
-        background: rgba(10,132,255,0.12);
-        border: 1px solid rgba(10,132,255,0.35);
+        background: rgba(10, 132, 255, 0.12);
         color: var(--color-accent);
-        line-height: 1;
       }
-
-      .log-badges.top { display: inline-flex; align-items: center; gap: 6px; margin: 0 4px; }
-      .log-badges.top .hist-badge { height: 18px; }
     }
   }
 
@@ -245,7 +236,13 @@
     white-space: normal;
   }
 
-  .log-badges { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 4px; flex-wrap: nowrap; }
+  .log-badges { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 6px; 
+    margin-left: auto;
+    flex-wrap: nowrap; 
+  }
 
   .hist-badge {
     display: inline-flex;
@@ -254,7 +251,6 @@
     padding: 0 8px;
     border-radius: var(--border-radius);
     background: rgba(255,255,255,0.06);
-    border: 1px solid var(--color-hover);
     color: var(--color-text-main);
     font-size: 12px;
     line-height: 1;
@@ -270,22 +266,22 @@
   .hist-badge.type-audio { background: rgba(48,209,88,0.12); color: var(--color-toast-success); border-color: rgba(48,209,88,0.35); }
 
   .hist-badge.type-host.host-youtube { 
-    color: var(--color-youtube); 
+    color: var(--color-highlight); 
     // border-color: var(--color-youtube);
     background: color-mix(in srgb, var(--color-youtube) 18%, transparent);
   }
   .hist-badge.type-host.host-twitch  { 
-    color: var(--color-twitch);  
+    color: var(--color-highlight);  
     // border-color: var(--color-twitch); 
     background: color-mix(in srgb, var(--color-twitch) 18%, transparent);
   }
   .hist-badge.type-host.host-vk      { 
-    color: var(--color-vkvideo); 
+    color: var(--color-highlight); 
     // border-color: var(--color-vkvideo); 
     background: color-mix(in srgb, var(--color-vkvideo) 18%, transparent);
   }
   .hist-badge.type-host.host-coub    { 
-    color: var(--color-coub);    
+    color: var(--color-highlight);    
     // border-color: var(--color-coub); 
     background: color-mix(in srgb, var(--color-coub) 18%, transparent);
   }
@@ -359,7 +355,7 @@
   font-size: 12px;
   font-optical-sizing: auto;
   letter-spacing: 0.02em;
-  padding: 2px 6px;
+  // padding: 2px 6px;
   color: var(--color-accent);
   border-radius: var(--border-radius);
 
@@ -376,8 +372,8 @@
 .log-entry.missing {
   opacity: 0.85;
   border-radius: var(--border-radius);
-  background-color: rgba(255, 80, 80, 0.06);
-  border: 1px dashed rgba(255, 80, 80, 0.35);
+  background-color: var(--color-delete);
+  border: 1px dashed var(--color-delete);
   box-shadow: none;
 
   .log-number { color: var(--color-toast-error); }
@@ -391,11 +387,8 @@
     height: 18px;
     border-radius: var(--border-radius);
     border: 1px solid rgba(255, 80, 80, 0.45);
-    background: rgba(255, 80, 80, 0.12);
     color: var(--color-toast-error);
     font-style: normal;
-    font-size: 11px;
-    line-height: 1;
   }
 
   .log-actions .log-play-btn,

@@ -19,6 +19,7 @@
 .shortcuts-modal-content,
 .whats-modal-content,
 .settings-modal-content,
+.bk-modal,
 #update-available-modal .modal-content,
 #update-downloaded-modal .modal-content,
 #update-error-modal .modal-content {
@@ -30,6 +31,7 @@
 // ----------------------------------------
 
 .shortcuts-modal {
+
   // Контейнер контента модалки: слегка компактнее и читаемее
   .shortcuts-modal-content {
     max-width: 780px;
@@ -73,6 +75,7 @@
       letter-spacing: 0.7px;
       padding: 4px 10px;
       font-weight: 500;
+
       &:hover {
         color: var(--color-highlight);
       }
@@ -98,8 +101,9 @@
     margin-top: 8px;
     border-radius: var(--border-radius);
     border: 1px solid var(--color-hover);
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
   }
+
   details.spoiler summary {
     display: flex;
     align-items: center;
@@ -108,9 +112,18 @@
     cursor: pointer;
     user-select: none;
   }
-  details.spoiler summary::-webkit-details-marker { display: none; }
-  details.spoiler summary i { transition: transform .16s ease; }
-  details.spoiler[open] summary i { transform: rotate(90deg); }
+
+  details.spoiler summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.spoiler summary i {
+    transition: transform .16s ease;
+  }
+
+  details.spoiler[open] summary i {
+    transform: rotate(90deg);
+  }
 
   // Списки хоткеев — грид 2 колонки на широких окнах
   .main-hotkeys,
@@ -121,6 +134,7 @@
   }
 
   @media (min-width: 760px) {
+
     .main-hotkeys,
     .additional-hotkeys {
       grid-template-columns: 1fr 1fr;
@@ -177,15 +191,18 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     letter-spacing: .2px;
     color: var(--color-accent);
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
     border: 1px solid var(--color-hover);
     border-radius: 8px;
   }
 
   // Адаптив для совсем узких окон — одна колонка
   @media (max-width: 560px) {
+
     .main-hotkeys,
-    .additional-hotkeys { grid-template-columns: 1fr; }
+    .additional-hotkeys {
+      grid-template-columns: 1fr;
+    }
   }
 }
 
@@ -260,6 +277,7 @@
 
 // Стили для модального окна "Настройки"
 .settings-modal {
+
   // === Инструменты (yt-dlp / ffmpeg) ===
   #tools-info {
     padding: 12px 14px 18px; // добавили нижний паддинг под кнопку
@@ -301,7 +319,9 @@
       word-break: break-word; // защиты от длинных версий
     }
 
-    #tools-primary-btn {
+    #tools-primary-btn,
+    #open-tools-folder,
+    #tools-force-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -317,41 +337,14 @@
         color 0.2s ease;
 
       i {
-        font-size: 14px;
+        font-size: 1rem;
       }
 
       &:hover {
         background: var(--button-openlast-video);
         color: var(--color-highlight);
       }
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-    }
 
-    #open-tools-folder,
-    #tools-force-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      /* gap: 8px; */
-      height: 36px;
-      padding: 0 14px;
-      min-width: 60px;
-      background: var(--button-default);
-      border-radius: var(--border-radius);
-      color: var(--color-text-main);
-      transition: background-color 0.2s ease, color 0.2s ease;
-
-      i {
-        font-size: 14px;
-      }
-
-      &:hover {
-        background: var(--button-openlast-video);
-        color: var(--color-highlight);
-      }
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
@@ -376,7 +369,7 @@
 
   // === Переменные ===
   $transition-time: 0.3s;
-  $input-size: 18px;
+  $input-size: 20px;
   $tab-padding: 8px 20px;
 
   // === Заголовки ===
@@ -419,9 +412,9 @@
       background-color $transition-time ease,
       color $transition-time ease;
 
-    &.custom-theme-select {
-      padding: 5px 15px;
-    }
+    // &.custom-theme-select {
+    //   padding: 5px 15px;
+    // }
 
     &.submenu {
       padding-left: 45px;
@@ -478,12 +471,20 @@
       margin: 0;
       padding: 6px 10px;
       border: 1px solid var(--color-hover);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       border-radius: 12px;
     }
 
-    label { width: auto; display: inline-flex; align-items: center; gap: 6px; }
-    input[type="radio"] { margin-right: 6px; }
+    label {
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input[type="radio"] {
+      margin-right: 6px;
+    }
   }
 
   // === Табы ===
@@ -607,33 +608,37 @@
 
       // Встроенный свотч темы
       position: relative;
+
       &::before {
         content: "";
         position: absolute;
-        right: 28px; // перед стрелкой
+        right: 35px; // перед стрелкой
         top: 50%;
         transform: translateY(-50%);
         width: 32px;
         height: 12px;
         border-radius: 10px;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
         background:
           radial-gradient(circle at 20% 50%, #f5f5f5 0 3px, transparent 4px),
           radial-gradient(circle at 50% 50%, #d6d6d6 0 3px, transparent 4px),
           radial-gradient(circle at 80% 50%, #bfbfbf 0 3px, transparent 4px);
       }
+
       &[data-current-theme="dark"]::before {
         background:
           radial-gradient(circle at 20% 50%, #3a3a3a 0 3px, transparent 4px),
           radial-gradient(circle at 50% 50%, #202020 0 3px, transparent 4px),
           radial-gradient(circle at 80% 50%, #121212 0 3px, transparent 4px);
       }
+
       &[data-current-theme="midnight"]::before {
         background:
           radial-gradient(circle at 20% 50%, #163a6b 0 3px, transparent 4px),
           radial-gradient(circle at 50% 50%, #0a84ff 0 3px, transparent 4px),
           radial-gradient(circle at 80% 50%, #0b1220 0 3px, transparent 4px);
       }
+
       &[data-current-theme="system"]::before {
         background:
           radial-gradient(circle at 20% 50%, #f5f5f5 0 3px, transparent 4px),
@@ -693,28 +698,33 @@
     &-reset {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-left: 8px;
-      padding: 4px 10px;
-      font-size: 14px;
-      background: var(--button-default);
-      border-radius: var(--border-radius);
-      color: var(--color-text-main);
-      transition: background-color $transition-time ease;
+      gap: 0.5rem;
+      margin: 0 10px;
+      padding: 0 10px;
+      color: #fff;
+      background-color: var(--color-history-scroll, #007bff);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      i {
+        font-size: 1rem;
+      }
 
       &:hover {
-        background-color: var(--color-accent);
-        color: white;
+        background-color: #0056b3;
       }
     }
   }
-  
+
   #general-settings,
   #window-settings,
   #wgunlock-settings,
+  #backup-settings,
   #appearance-settings,
-  #other-settings{
+  #other-settings {
+
     // Карточный вид строк
     ul.module {
       display: flex;
@@ -748,6 +758,7 @@
         width: 220px;
         height: 36px;
       }
+
       .dropdown-reset {
         height: 36px;
       }
@@ -763,6 +774,7 @@
       background: transparent;
       border-radius: 0;
     }
+
     ul.module.default-tab-group li.custom-theme-select {
       display: inline-flex;
       align-items: center;
@@ -772,18 +784,21 @@
       border: 1px solid var(--color-hover);
       border-radius: var(--border-radius);
       transition: background-color var(--transition-duration) ease,
-                  border-color var(--transition-duration) ease;
+        border-color var(--transition-duration) ease;
     }
+
     ul.module.default-tab-group li.custom-theme-select:hover {
       background: var(--color-hover);
       border-color: var(--color-hover);
     }
+
     ul.module.default-tab-group label {
       width: auto;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
+
     ul.module.default-tab-group input[type="radio"] {
       margin-right: 6px;
     }
@@ -813,13 +828,16 @@
         &[data-value="dark"]::before {
           background: radial-gradient(circle at 30% 30%, #3a3a3a, #121212 70%);
         }
+
         &[data-value="light"]::before {
           background: radial-gradient(circle at 30% 30%, #f5f5f5, #d6d6d6 70%);
         }
+
         &[data-value="system"]::before {
           background:
             conic-gradient(from 45deg, #f5f5f5 0 25%, #d6d6d6 25% 50%, #3a3a3a 50% 75%, #121212 75% 100%);
         }
+
         &[data-value="midnight"]::before {
           background: radial-gradient(circle at 30% 30%, #163a6b, #0b1220 70%);
           box-shadow: inset 0 0 0 2px rgba(90, 200, 250, 0.25);
@@ -858,7 +876,7 @@
     width: $input-size;
     height: $input-size;
     cursor: pointer;
-    margin-right: 8px;
+    // margin-right: 8px;
     transition:
       filter $transition-time ease,
       transform $transition-time ease;
@@ -907,7 +925,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  margin: 5px 0;
   text-align: right;
 
   .confirm-button,
@@ -922,7 +940,7 @@
 
     i {
       padding-right: 5px;
-      padding: 4px 8px;
+      /* padding: 4px 8px; */
       margin: 0 5px;
       border-radius: var(--border-radius);
     }
@@ -958,9 +976,9 @@
   transform: translateX(-50%);
   width: 80%;
   max-width: 480px;
-  background-color: var(--color-hover);
+  background-color: var(--color-bg-secondary);
   padding: 16px 24px;
-  border-radius: 10px;
+  border-radius: var(--border-radius);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
   z-index: 1000;
   color: var(--color-text-main);
@@ -1028,7 +1046,7 @@
   display: flex;
   flex-direction: column;
   min-width: 210px;
-  background: var(--color-bg-secondary);
+  backdrop-filter: blur(8px);
   border-radius: var(--border-radius);
   overflow: hidden;
 

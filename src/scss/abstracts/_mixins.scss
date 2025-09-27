@@ -142,16 +142,13 @@
   background-repeat: no-repeat;
   background-size: cover;
   background-blend-mode: multiply;
-  background: radial-gradient(
-    circle,
-    var(--color-bg-main),
-    var(--color-bg-secondary)
-  );
+  background: var(--color-url-bg);
   border: 1px var(--color-hover) solid;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px var(--color-hover);
   margin: 15px;
+  backdrop-filter: blur(8px);
   padding: variables.$modal-padding;
-  width: 75%;
+  width: 70%;
   border-radius: variables.$modal-border-radius;
   animation: fadeIn variables.$animation-duration ease-in-out;
 

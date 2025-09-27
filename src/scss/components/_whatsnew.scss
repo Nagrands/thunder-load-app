@@ -34,14 +34,13 @@
 
     h2,
     h3 {
-      font-size: 20px;
+      font-size: 22px;
+      font-weight: 600;
       margin: 10px 5px;
-      /* font-weight: 700; */
-      letter-spacing: 0.7pt;
+      letter-spacing: 0.6pt;
       color: var(--color-url-link);
       display: flex;
       align-items: center;
-      /* text-transform: uppercase; */
       gap: 4px;
       justify-content: center;
 
@@ -68,7 +67,7 @@
       list-style: none;
       padding-left: 0;
       margin: 0;
-      border: 1px var(--color-hover) solid;
+      border: 2px var(--color-accent) solid;
       border-radius: var(--border-radius);
       padding: 2px;
 
@@ -79,7 +78,7 @@
         margin: 5px;
         border-radius: var(--border-radius);
         // border-left: 4px var(--color-url-link) solid;
-        border: 2px var(--color-border) solid;
+        border: 1px var(--color-hover) solid;
 
         &:hover {
           background-color: var(--color-hover);

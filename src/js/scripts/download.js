@@ -1,3 +1,32 @@
+/**
+ * @file download.js
+ * @description
+ * Utility script for managing external tools (yt-dlp, ffmpeg) and handling
+ * video/audio downloads in the Thunder Load application.
+ *
+ * Responsibilities:
+ *  - Detects and installs required dependencies (yt-dlp, ffmpeg, ffprobe)
+ *  - Provides version checks for tools
+ *  - Downloads binaries from remote URLs with redirect and cancellation support
+ *  - Retrieves video information via yt-dlp (`-J` JSON mode)
+ *  - Selects best matching formats for given quality (Audio Only, Source, FHD, HD, SD)
+ *  - Manages download processes (video, audio, muxed) with progress tracking
+ *  - Merges video/audio streams using ffmpeg when required
+ *  - Supports cancellation and cleanup of active downloads and temporary files
+ *  - Exposes functions for dependency installation, download control, and progress reporting
+ *
+ * Exports:
+ *  - installYtDlp
+ *  - installFfmpeg
+ *  - getVideoInfo
+ *  - downloadMedia
+ *  - stopDownload
+ *  - resetDownloadCancelledFlag
+ *  - selectFormatsByQuality
+ *  - isDownloadCancelled
+ *  - ensureAllDependencies
+ */
+
 // src/js/scripts/download.js
 
 const { spawn } = require("child_process");

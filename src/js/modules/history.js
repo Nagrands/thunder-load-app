@@ -92,19 +92,19 @@ function createLogEntry(entry, index) {
   el.innerHTML = `
     <div class="text" data-filepath="${entry.filePath}" data-url="${entry.sourceUrl}" data-filename="${entry.fileName}">
       <div class="date-time-quality">
-        <span class="date-time">
+        <div class="date-time">
           <i class="fa-solid fa-clock"></i> ${entry.dateText || "неизвестно"}
-        </span>
+          ${host ? `<span class="hist-badge type-host ${hostClass}" title="Источник">${host}</span>` : ""}
+        </div>
         <span class="quality">
-          <span class="q-badge" title="Формат/качество">${(entry.quality || "").replace(/</g,'&lt;')}</span>
           <div class="log-badges top">
-            ${host ? `<span class="hist-badge type-host ${hostClass}" title="Источник">${host}</span>` : ""}
             ${entry.resolution ? `<span class="hist-badge type-resolution" title="Разрешение">${entry.resolution}</span>` : ""}
+            <span class="q-badge" title="Разрешение/Кадров">${(entry.quality || "").replace(/</g,'&lt;')}</span>
             ${entry.fps ? `<span class="hist-badge type-fps" title="Кадров/с">${entry.fps}fps</span>` : ""}
-          </div>
-          ${entry.isMissing
+            ${entry.isMissing
             ? `<span class="file-missing" title="Файл отсутствует на диске">файл удалён</span>`
-            : `<span class="file-size">${formattedSize}</span>`}
+            : `<span class="file-size" title="Размер файла">${formattedSize}</span>`}
+          </div>
         </span>
       </div>
       <div class="log-filename">

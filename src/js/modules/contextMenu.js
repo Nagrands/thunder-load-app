@@ -1,3 +1,28 @@
+/**
+ * @file contextMenu.js
+ * @description
+ * Provides right-click context menu functionality for history log entries
+ * in the Thunder Load application.
+ *
+ * Responsibilities:
+ *  - Show and position a custom context menu near the mouse cursor
+ *  - Enable or disable menu items based on file existence
+ *  - Handle context menu actions:
+ *      • Open video
+ *      • Open containing folder
+ *      • Open original site
+ *      • Delete history entry (with confirmation)
+ *      • Delete file from disk (with confirmation)
+ *      • Retry download
+ *  - Keep track of currently selected log entry
+ *  - Synchronize UI state after modifications (history, counts, sorting, toasts)
+ *  - Integrate with Electron main process through IPC invokes
+ *
+ * Exports:
+ *  - initContextMenu — initializes menu and history event listeners
+ *  - handleDeleteEntry — removes entry from DOM and history (with confirmation)
+ */
+
 // src/js/modules/contextMenu.js
 
 import { setHistoryData, getHistoryData } from "./state.js";

@@ -3,7 +3,7 @@
 @use "../abstracts/mixins" as *;
 
 $wg-max-width: 1020px;
-$wg-bg-img: "../../assets/img/wg-bg.jpg";
+$wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 @mixin wg-constrained {
   max-width: $wg-max-width;
@@ -11,7 +11,7 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
 }
 
 .wg-center {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 480px);
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -26,6 +26,11 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   position: relative;
   background: none;
   isolation: isolate;
+  max-width: $wg-max-width;
+  margin-inline: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
 
   &::before {
     content: "";
@@ -87,7 +92,7 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
 
   .wg-glass {
     margin-top: 5%;
-    padding: 10px 15px;
+    padding: 2rem 2.5rem;
     border-radius: var(--border-radius);
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(18, 22, 28, 0.45);
@@ -266,7 +271,6 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
       opacity: 0.9;
     }
     .field-error {
-      margin-top: 0.25rem;
       min-height: 1em;
       font-size: 0.78rem;
       color: var(--color-toast-error);
@@ -317,10 +321,15 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
     @include input-base(var(--spacing-small) var(--spacing-medium));
     color: var(--color-accent);
     font-weight: 600;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    transition: box-shadow 0.2s ease, background 0.2s ease;
 
     &:focus {
       color: var(--color-highlight);
       border: 2px solid var(--color-accent);
+      background: rgba(0,0,0,0.45);
+      box-shadow: 0 0 0 2px var(--color-accent);
       transition: var(--transition-duration);
     }
 
@@ -329,11 +338,11 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
       font-style: italic;
     }
     &:hover {
-      background-color: rgba(255, 255, 255, 0.02);
+      background-color: rgba(255, 255, 255, 0.05);
       border-color: var(--color-hover);
     }
     &:active {
-      background-color: rgba(255, 255, 255, 0.04);
+      background-color: rgba(255, 255, 255, 0.08);
     }
     &:focus-visible {
       outline: none;
@@ -359,7 +368,7 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
   .wg-block {
     display: flex;
     flex-direction: column;
-    margin-bottom: 10px;
+    margin-bottom: 1.25rem;
     padding: 10px;
     background-color: var(--color-bg-secondary);
     border-radius: var(--border-radius);
@@ -723,13 +732,13 @@ $wg-bg-img: "../../assets/img/wg-bg.jpg";
 /* Inline alert component for info/warn/error states */
 .wg-alert {
   position: relative;
-  padding: 0.6rem 0.75rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--color-hover);
   background: rgba(255,255,255,0.03);
   color: var(--color-highlight);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   line-height: 1.35;
 

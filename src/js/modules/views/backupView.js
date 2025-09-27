@@ -87,7 +87,7 @@ export default function renderBackup() {
             <button id="bk-clear-filter" class="history-action-button" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск">&times;</button>
         </div>
         <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
-          <div class="bk-actions" style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <div class="bk-actions">
             <button id="bk-add" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
               <i class="fa-solid fa-plus"></i>
             </button>
@@ -463,8 +463,8 @@ export default function renderBackup() {
             <i class="fa-solid fa-play"></i>
             <span class="text-xs text-muted">Сохранить и запустить</span>
           </label>
-          <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
           <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
+          <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
         </div>
       </div>`;
     // Показать модалку по правилам приложения

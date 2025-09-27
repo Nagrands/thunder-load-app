@@ -1,3 +1,23 @@
+/**
+ * @file tooltipInitializer.js
+ * @description
+ * Initializes and manages Bootstrap tooltips across the Thunder Load UI.
+ *
+ * Responsibilities:
+ *  - Normalize and format hotkey strings (remove duplicates, reorder modifiers)
+ *  - Replace modifier text with macOS-specific symbols (⌘, ⌥, ⌃, ⇧)
+ *  - Adjust sidebar tooltip placement based on collapse state
+ *  - Patch Bootstrap's internal methods for stability
+ *  - Initialize tooltips for all `[data-bs-toggle="tooltip"]` elements
+ *  - Handle cleanup and disposal of tooltip instances
+ *  - Update hotkey labels in the "Shortcuts" modal for cross-platform clarity
+ *  - Hide tooltips on click (element click or global body click)
+ *
+ * Exports:
+ *  - initTooltips — sets up and activates all tooltips
+ *  - disposeAllTooltips — removes all tooltips and cleans state
+ */
+
 // src/js/modules/tooltipInitializer.js
 
 function removeDuplicateModifiers(text) {

@@ -1,3 +1,26 @@
+/**
+ * @file clipboardHandler.js
+ * @description
+ * Handles automatic detection of supported URLs from the clipboard when the
+ * application window gains focus. If a valid and supported URL is found, it
+ * pre-fills the Downloader tab with the link, updates the UI state, and
+ * prompts the user to select a quality preset.
+ *
+ * Responsibilities:
+ *  - Listens for clipboard content when window is focused
+ *  - Validates and checks if the URL is supported
+ *  - Switches to Downloader tab automatically
+ *  - Prefills input field with clipboard URL
+ *  - Updates source icon and button state
+ *  - Triggers preview generation (bypassing debounce)
+ *  - Opens quality dropdown for immediate selection
+ *  - Shows toast notification for automatic paste
+ *  - Tracks last pasted URL to prevent duplicates
+ *
+ * Exports:
+ *  - initClipboardHandler — initializes the clipboard monitoring logic
+ */
+
 // src/js/modules/clipboardHandler.js
 
 import { state, updateButtonState } from "./state.js";
