@@ -1,7 +1,7 @@
 {
   "name": "thunder-load-app",
   "productName": "Thunder Load",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Thunder Load",
   "main": "src/js/app.js",
   "private": true,
