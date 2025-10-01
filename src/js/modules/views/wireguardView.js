@@ -177,7 +177,7 @@ export default function renderWireGuard() {
 
       <h2 class="section-heading mt">Управление</h2>
       <div class="buttons" role="group" aria-label="Управление отправкой">
-        <button id="wg-send" class="large-button btn btn-lg btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Отправить сообщение">
+        <button id="wg-send" class="small-button btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Отправить сообщение">
           <i class="fa-solid fa-paper-plane"></i>
           <span>Отправить</span>
         </button>

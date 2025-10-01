@@ -18,20 +18,22 @@
     pointer-events: none;
   }
   .wg-glass {
-    padding: 12px 16px;
+    padding: 1rem 0.7rem;
     border-radius: var(--border-radius);
-    // border: 1px solid rgba(255, 255, 255, 0.06);
-    // background: rgba(18, 22, 28, 0.40);
-    // box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-    margin-top: clamp(12px, 3.5%, 32px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    max-width: 1020px;
+    margin-inline: auto;
+    background: rgba(18, 22, 28, 0.5);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
   }
 
   .wg-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
-    margin: 12px 0 16px;
+    gap: 1rem;
     position: relative;
     &::after {
       content: "";

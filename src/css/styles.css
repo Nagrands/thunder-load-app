@@ -10603,7 +10603,7 @@
 }
 
 :root {
-  --color-accent: #458fd7;
+  --color-accent: #52aeff;
   --color-bg-log: #121212;
   --color-bg-main: #262729;
   --color-bg-secondary: rgba(31, 31, 29, 0.8980392157);
@@ -10654,9 +10654,9 @@
   --spacing-large: 24px;
   --border-radius: 24px;
   --color-accent-rgb:
-    69,
-    143,
-    215;
+    82,
+    174,
+    255;
 }
 
 [data-theme=light] {
@@ -11234,7 +11234,6 @@ header {
   justify-items: center;
   align-items: center;
   align-content: center;
-  margin-top: 8vh;
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: var(--border-radius);
@@ -12128,6 +12127,7 @@ body.is-mac .sidebar .sidebar-actions {
   background-color: var(--color-url-bg);
   color: var(--color-url-text);
   letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
   font-size: 16px;
   position: relative;
   z-index: 1;
@@ -12249,6 +12249,7 @@ body.is-mac .sidebar .sidebar-actions {
 .url-input-wrapper {
   position: relative;
   width: 100%;
+  border-radius: var(--border-radius);
   z-index: 1; /* выше прогресс-оверлея */
   /* Подсветка области при перетаскивании ссылок (если JS добавит класс) */
 }
@@ -12345,6 +12346,7 @@ body.is-mac .sidebar .sidebar-actions {
   background-color: var(--color-url-bg);
   color: var(--color-url-text);
   letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
   font-size: 16px;
   position: relative;
   z-index: 1;
@@ -16359,6 +16361,7 @@ video {
   background-color: var(--color-url-bg);
   color: var(--color-url-text);
   letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
   font-size: 16px;
   position: relative;
   z-index: 1;
@@ -16449,25 +16452,13 @@ video {
 .wireguard-view .buttons {
   display: flex;
   justify-content: center;
-  /* width: 40%; */
-  gap: 15px;
-  padding: 10px;
-  background: rgba(18, 22, 28, 0.45);
+  gap: 10px;
   flex-direction: row;
   align-items: center;
   border-radius: var(--border-radius);
   align-content: center;
-  backdrop-filter: blur(8px);
   max-width: 1020px;
   margin-inline: auto;
-}
-.wireguard-view .buttons .large-button,
-.wireguard-view .buttons .small-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--border-radius);
-  transition: transform 140ms ease, box-shadow 140ms ease;
-  color: var(--color-highlight);
-  box-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
 }
 .wireguard-view .buttons .large-button {
   background: var(--button-default);
@@ -16929,16 +16920,21 @@ video {
   pointer-events: none;
 }
 .backup-view .wg-glass {
-  padding: 12px 16px;
+  padding: 1rem 0.7rem;
   border-radius: var(--border-radius);
-  margin-top: clamp(12px, 3.5%, 32px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  max-width: 1020px;
+  margin-inline: auto;
+  background: rgba(18, 22, 28, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 .backup-view .wg-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin: 12px 0 16px;
+  gap: 1rem;
   position: relative;
 }
 .backup-view .wg-header::after {
@@ -17329,6 +17325,7 @@ video {
   background-color: var(--color-url-bg);
   color: var(--color-url-text);
   letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
   font-size: 14px;
   position: relative;
   z-index: 1;

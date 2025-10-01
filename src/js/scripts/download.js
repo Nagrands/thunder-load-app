@@ -454,8 +454,8 @@ async function installFfmpeg() {
       // macOS: скачать бинарник ffmpeg напрямую и применить chmod
       const isArm64 = process.arch === "arm64";
       ffmpegUrl = isArm64
-        ? "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/mac-arm64"
-        : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/mac-x64";
+        ? "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-arm64"
+        : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-x64";
 
       const dir = getToolsDir();
       const ffmpegPath = getFfmpegPath();

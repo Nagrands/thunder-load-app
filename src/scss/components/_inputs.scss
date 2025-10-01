@@ -44,6 +44,7 @@
 .url-input-wrapper {
   position: relative;
   width: 100%;
+  border-radius: var(--border-radius);
   z-index: 1; /* выше прогресс-оверлея */
 
   input {

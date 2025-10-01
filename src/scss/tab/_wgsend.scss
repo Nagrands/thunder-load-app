@@ -414,27 +414,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   .buttons {
     display: flex;
     justify-content: center;
-    /* width: 40%; */
-    gap: 15px;
-    padding: 10px;
-    background: rgba(18, 22, 28, 0.45);
+    gap: 10px;
     flex-direction: row;
     align-items: center;
     border-radius: var(--border-radius);
     align-content: center;
-    backdrop-filter: blur(8px);
     @include wg-constrained;
-
-    .large-button,
-    .small-button {
-      padding: 0.6rem 1.2rem;
-      border-radius: var(--border-radius);
-      transition:
-        transform 140ms ease,
-        box-shadow 140ms ease;
-      color: var(--color-highlight);
-      box-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
-    }
 
     .large-button {
       background: var(--button-default);
