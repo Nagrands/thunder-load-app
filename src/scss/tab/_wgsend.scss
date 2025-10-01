@@ -91,8 +91,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   }
 
   .wg-glass {
-    margin-top: 5%;
-    padding: 2rem 2.5rem;
+    padding: 1rem 0.7rem;
     border-radius: var(--border-radius);
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(18, 22, 28, 0.45);
@@ -135,7 +134,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     padding: 10px 14px;
     border-radius: var(--border-radius);
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
     align-items: center;
     &::before {
       content: "";
@@ -147,8 +146,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       box-shadow: 0 8px 24px rgba(0,0,0,0.25) inset;
       z-index: -1;
       @supports ((-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px))) {
-        background: rgba(0,0,0,0.28);
-        -webkit-backdrop-filter: blur(6px);
         backdrop-filter: blur(6px);
       }
     }

@@ -13,6 +13,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  flex-wrap: wrap;
   max-width: 1020px;
   overflow-y: auto;
   @include mixins.fade-in(0.5s);

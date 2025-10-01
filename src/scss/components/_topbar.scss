@@ -7,10 +7,9 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 50px;
-  padding: 0 0 0 16px;
-  background-color: var(--color-bg-secondary);
-  border-bottom: 1px var(--color-hover) solid;
+  height: 55px;
+  padding: 0 0 0 20px;
+  background-color: rgb(0 0 0 / 10%);
   backdrop-filter: blur(6px);
   display: flex;
   justify-content: space-between;
@@ -42,7 +41,6 @@
     cursor: pointer;
 
     &:hover:not(.active):not(.disabled) {
-      font-size: 16px;
       background-color: var(--color-hover);
       color: var(--color-accent);
     }
@@ -67,7 +65,22 @@
     }
   }
 
-  .menu-main { display: flex; align-items: center; gap: 5px; }
+  .menu-main { 
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    gap: 5px; 
+
+    i {
+        display: flex;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--border-radius);
+        background-color: rgb(0 0 0 / 30%);
+        align-items: center;
+        justify-content: center;
+    }
+  }
 }
 
 .top-bar .left { display: flex; align-items: center; gap: 12px; height: 100%; justify-content: center; }

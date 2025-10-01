@@ -1,6 +1,6 @@
 <!-- src/index.html -->
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -131,7 +131,11 @@
         <!-- Input Container -->
         <div class="input-container">
           <div class="url-input-wrapper">
-            <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
+            <i
+              id="icon-url-globe"
+              class="fas fa-globe search-icon"
+              aria-hidden="true"
+            ></i>
             <input
               type="text"
               id="url"
@@ -174,37 +178,85 @@
           </div>
           <!-- Quick quality presets -->
           <div class="quality-presets">
-            <button type="button" class="preset" data-quality="Audio Only" data-bs-toggle="tooltip" data-bs-placement="top" title="Скачать только аудио">
+            <button
+              type="button"
+              class="preset"
+              data-quality="Audio Only"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Скачать только аудио"
+            >
               <i class="fa-solid fa-music"></i>
               Audio
             </button>
-            <button type="button" class="preset" data-quality="Source" data-bs-toggle="tooltip" data-bs-placement="top" title="Максимальное доступное качество">
+            <button
+              type="button"
+              class="preset"
+              data-quality="Source"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Максимальное доступное качество"
+            >
               <i class="fa-solid fa-bullseye"></i>
               Source
             </button>
-            <button type="button" class="preset" data-quality="FHD 1080p" data-bs-toggle="tooltip" data-bs-placement="top" title="1080p">
+            <button
+              type="button"
+              class="preset"
+              data-quality="FHD 1080p"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="1080p"
+            >
               <i class="fa-solid fa-tv"></i>
               1080p
             </button>
-            <button type="button" class="preset" data-quality="HD 720p" data-bs-toggle="tooltip" data-bs-placement="top" title="720p">
+            <button
+              type="button"
+              class="preset"
+              data-quality="HD 720p"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="720p"
+            >
               <i class="fa-solid fa-display"></i>
               720p
             </button>
-            <button type="button" class="preset" data-quality="SD 360p" data-bs-toggle="tooltip" data-bs-placement="top" title="360p">
+            <button
+              type="button"
+              class="preset"
+              data-quality="SD 360p"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="360p"
+            >
               <i class="fa-solid fa-mobile-screen"></i>
               360p
             </button>
           </div>
 
           <!-- Progress Bar -->
-          <div id="preview-card" class="preview-card" style="display:none">
-            <img id="preview-thumb" alt="Превью" style="display:none;max-height:80px;border-radius:6px;margin-right:8px" />
+          <div id="preview-card" class="preview-card" style="display: none">
+            <img
+              id="preview-thumb"
+              alt="Превью"
+              style="
+                display: none;
+                max-height: 80px;
+                border-radius: 6px;
+                margin-right: 8px;
+              "
+            />
             <div class="preview-meta">
-              <div id="preview-title" class="preview-title" style="font-weight:600"></div>
+              <div
+                id="preview-title"
+                class="preview-title"
+                style="font-weight: 600"
+              ></div>
               <small id="preview-duration" class="muted"></small>
             </div>
           </div>
-          
+
           <!-- Progress Bar -->
           <div
             id="progress-bar-container"
@@ -220,7 +272,12 @@
       </header>
 
       <!-- Sidebar -->
-      <aside class="sidebar" id="sidebar" role="navigation" aria-label="Боковое меню">
+      <aside
+        class="sidebar"
+        id="sidebar"
+        role="navigation"
+        aria-label="Боковое меню"
+      >
         <!-- Панель действий сайдбара: закрепить/закрыть -->
         <div class="sidebar-actions">
           <button
@@ -270,19 +327,51 @@
             Навигация
           </div>
           <div class="sidebar-collapse" id="group-nav">
-            <button class="sidebar-item" data-tab="download" data-id="download" title="Downloader" data-bs-toggle="tooltip" data-bs-placement="right" data-hotkey="Ctrl+1">
+            <button
+              class="sidebar-item"
+              data-tab="download"
+              data-id="download"
+              title="Downloader"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              data-hotkey="Ctrl+1"
+            >
               <i class="fa-solid fa-download"></i>
               <span>Downloader</span>
             </button>
-            <button class="sidebar-item" data-tab="wireguard" data-id="wireguard" title="WG Unlock" data-bs-toggle="tooltip" data-bs-placement="right" data-hotkey="Ctrl+2">
+            <button
+              class="sidebar-item"
+              data-tab="wireguard"
+              data-id="wireguard"
+              title="WG Unlock"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              data-hotkey="Ctrl+2"
+            >
               <i class="fa-solid fa-unlock-keyhole"></i>
               <span>WG Unlock</span>
             </button>
-            <button class="sidebar-item" data-tab="backup" data-id="backup" title="Backup" data-bs-toggle="tooltip" data-bs-placement="right" data-hotkey="Ctrl+3">
+            <button
+              class="sidebar-item"
+              data-tab="backup"
+              data-id="backup"
+              title="Backup"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              data-hotkey="Ctrl+3"
+            >
               <i class="fa-solid fa-box-archive"></i>
               <span>Backup</span>
             </button>
-            <button class="sidebar-item" id="sb-open-history" data-id="history" title="История загрузок" data-bs-toggle="tooltip" data-bs-placement="right" data-hotkey="Ctrl+H">
+            <button
+              class="sidebar-item"
+              id="sb-open-history"
+              data-id="history"
+              title="История загрузок"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              data-hotkey="Ctrl+H"
+            >
               <i class="fa-solid fa-clock-rotate-left"></i>
               <span>История</span>
               <span class="badge" id="sb-history-count">0</span>
@@ -383,31 +472,31 @@
       <!-- Группа кнопок -->
       <nav class="button-group" aria-label="Основные действия">
         <!-- Кнопка открытия последнего видео -->
-          <button
-            id="open-last-video"
-            class="small-button btn btn-sm btn-secondary"
-            aria-label="Открыть последнее скачанное видео"
-            disabled
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Последнее видео"
+        <button
+          id="open-last-video"
+          class="small-button btn btn-sm btn-secondary"
+          aria-label="Открыть последнее скачанное видео"
+          disabled
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Последнее видео"
         >
           <i class="fa fa-play" aria-hidden="true"></i>
         </button>
 
-          <!-- Группа кнопок скачивания и выбора качества -->
-          <div class="download-quality-group">
-            <!-- Кнопка скачивания -->
-            <button
-              id="download-button"
-              class="large-button btn btn-lg btn-primary"
-              disabled
-              aria-disabled="true"
-            >
-              <i class="fas fa-download"></i>
-              <span class="button-text">Скачать</span>
-              <div class="shine"></div>
-            </button>
+        <!-- Группа кнопок скачивания и выбора качества -->
+        <div class="download-quality-group">
+          <!-- Кнопка скачивания -->
+          <button
+            id="download-button"
+            class="large-button btn btn-lg btn-primary"
+            disabled
+            aria-disabled="true"
+          >
+            <i class="fas fa-download"></i>
+            <span class="button-text">Скачать</span>
+            <div class="shine"></div>
+          </button>
 
           <!-- Кнопка отмены скачивания -->
           <button
@@ -493,7 +582,6 @@
         >
           <i class="fa-regular fa-folder-open"></i>
         </button>
-
       </nav>
       <div id="download-queue-info" class="download-queue-info hidden">
         В очереди: <span id="queue-count">0</span> ссылок
@@ -844,20 +932,39 @@
                     </label>
                     <div class="tools-location-row">
                       <input id="tools-location-path" type="text" readonly />
-                      <button id="tools-location-choose" data-bs-toggle="tooltip" title="Выбрать папку">
+                      <button
+                        id="tools-location-choose"
+                        data-bs-toggle="tooltip"
+                        title="Выбрать папку"
+                      >
                         <i class="fa-solid fa-folder-open"></i>
                       </button>
-                      <button id="tools-location-open" data-bs-toggle="tooltip" title="Открыть папку">
+                      <button
+                        id="tools-location-open"
+                        data-bs-toggle="tooltip"
+                        title="Открыть папку"
+                      >
                         <i class="fa-regular fa-folder-open"></i>
                       </button>
-                      <button id="tools-location-reset" data-bs-toggle="tooltip" title="Сбросить по умолчанию">
+                      <button
+                        id="tools-location-reset"
+                        data-bs-toggle="tooltip"
+                        title="Сбросить по умолчанию"
+                      >
                         <i class="fa-solid fa-rotate-left"></i>
                       </button>
-                      <button id="tools-location-migrate" data-bs-toggle="tooltip" title="Мигрировать из старого места">
+                      <button
+                        id="tools-location-migrate"
+                        data-bs-toggle="tooltip"
+                        title="Мигрировать из старого места"
+                      >
                         <i class="fa-solid fa-database"></i>
                       </button>
                     </div>
-                    <small id="tools-location-hint" class="muted">Папка сохраняется между обновлениями и может быть изменена.</small>
+                    <small id="tools-location-hint" class="muted"
+                      >Папка сохраняется между обновлениями и может быть
+                      изменена.</small
+                    >
                   </div>
                   <div class="kv">
                     <div>yt-dlp:</div>
@@ -876,7 +983,12 @@
                 <ul class="module">
                   <li class="custom-theme-select">
                     <input type="checkbox" id="wg-disable-toggle" checked />
-                    <label for="wg-disable-toggle" data-bs-toggle="tooltip" data-bs-placement="top" title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.">
+                    <label
+                      for="wg-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’."
+                    >
                       <i class="fa-solid fa-unlock-keyhole"></i>
                       <strong>Отключить вкладку</strong>
                     </label>
@@ -930,7 +1042,12 @@
                 <ul class="module">
                   <li class="custom-theme-select">
                     <input type="checkbox" id="backup-disable-toggle" />
-                    <label for="backup-disable-toggle" data-bs-toggle="tooltip" data-bs-placement="top" title="Скрывает вкладку и отключает её инициализацию.">
+                    <label
+                      for="backup-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку и отключает её инициализацию."
+                    >
                       <i class="fa-solid fa-box-archive"></i>
                       <strong>Отключить вкладку</strong>
                     </label>
@@ -1132,9 +1249,7 @@
               </li>
               <li>
                 <strong>Ctrl + 3</strong>
-                <p>
-                  <i class="fa-solid fa-box-archive"></i> Вкладка «Backup»
-                </p>
+                <p><i class="fa-solid fa-box-archive"></i> Вкладка «Backup»</p>
               </li>
               <hr />
               <li>
@@ -1223,9 +1338,9 @@
         </div>
       </div>
 
-      <!-- 
+      <!--
       ==========================
-      Модальные окна обновлений 
+      Модальные окна обновлений
       ==========================
       -->
 
@@ -1343,17 +1458,19 @@
     <script>
       (function () {
         function loadRenderer() {
-          var s = document.createElement('script');
-          s.type = 'module';
-          s.src = 'js/renderer.js';
+          var s = document.createElement("script");
+          s.type = "module";
+          s.src = "js/renderer.js";
           document.head.appendChild(s);
         }
         window._startRenderer = loadRenderer;
         window._loadBootstrapCdnAndStart = function () {
-          var cdn = document.createElement('script');
-          cdn.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js';
-          cdn.integrity = 'sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q';
-          cdn.crossOrigin = 'anonymous';
+          var cdn = document.createElement("script");
+          cdn.src =
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js";
+          cdn.integrity =
+            "sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q";
+          cdn.crossOrigin = "anonymous";
           cdn.onload = loadRenderer;
           cdn.onerror = loadRenderer;
           document.head.appendChild(cdn);

@@ -10653,9 +10653,10 @@
   --spacing-medium: 16px;
   --spacing-large: 24px;
   --border-radius: 24px;
-  --color-accent-rgb: 69,
-                      143,
-                      215;
+  --color-accent-rgb:
+    69,
+    143,
+    215;
 }
 
 [data-theme=light] {
@@ -10702,9 +10703,10 @@
   --badge-size-bg: rgba(0, 0, 0, 0.03);
   --badge-size-border: rgba(0, 0, 0, 0.1);
   --color-delete: rgba(220, 38, 38, 0.16);
-  --color-accent-rgb: 20,
-                      184,
-                      166;
+  --color-accent-rgb:
+    20,
+    184,
+    166;
 }
 
 [data-theme=midnight] {
@@ -10753,9 +10755,10 @@
   --badge-size-bg: rgba(255, 255, 255, 0.05);
   --badge-size-border: rgba(255, 255, 255, 0.12);
   --color-delete: rgba(255, 65, 65, 0.132);
-  --color-accent-rgb: 90,
-                      200,
-                      250;
+  --color-accent-rgb:
+    90,
+    200,
+    250;
 }
 
 /* Миксин для заголовков */
@@ -11295,6 +11298,7 @@ footer p:hover {
   align-items: center;
   justify-content: center;
   width: 100%;
+  flex-wrap: wrap;
   max-width: 1020px;
   overflow-y: auto;
   animation: fadeIn 0.5s ease-in-out;
@@ -11355,10 +11359,9 @@ footer p:hover {
   top: 0;
   left: 0;
   right: 0;
-  height: 50px;
-  padding: 0 0 0 16px;
-  background-color: var(--color-bg-secondary);
-  border-bottom: 1px var(--color-hover) solid;
+  height: 55px;
+  padding: 0 0 0 20px;
+  background-color: rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(6px);
   display: flex;
   justify-content: space-between;
@@ -11389,7 +11392,6 @@ footer p:hover {
   cursor: pointer;
 }
 .top-bar .menu-item:hover:not(.active):not(.disabled) {
-  font-size: 16px;
   background-color: var(--color-hover);
   color: var(--color-accent);
 }
@@ -11417,8 +11419,18 @@ footer p:hover {
 }
 .top-bar .menu-main {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 5px;
+}
+.top-bar .menu-main i {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius);
+  background-color: rgba(0, 0, 0, 0.3);
+  align-items: center;
+  justify-content: center;
 }
 
 .top-bar .left {
@@ -11575,22 +11587,20 @@ footer p:hover {
 }
 
 .toggle-btn {
-  background-color: transparent;
-  color: var(--color-highlight);
+  background: transparent;
+  color: var(--color-accent);
   border-radius: 50%;
-  padding: 5px 10px;
-  font-size: 16px;
-  margin: 0 4px 0 8px;
+  padding: 5px;
   margin-left: 5rem;
   transition: background 0.2s ease, transform 0.2s ease;
   cursor: pointer;
 }
 .toggle-btn.highlight {
-  box-shadow: 0 0 10px var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent);
 }
 .toggle-btn:hover {
-  color: var(--color-text-main);
-  transform: scale(1.05);
+  color: var(--color-highlight);
+  transform: scale(1.1);
 }
 
 .sidebar {
@@ -11651,7 +11661,7 @@ body.is-mac .sidebar {
   padding-top: 22px;
 }
 body.is-mac .sidebar .sidebar-actions {
-  top: calc(env(safe-area-inset-top, 0px) + 28px);
+  top: calc(env(safe-area-inset-top, 0px) + 33px);
 }
 .sidebar .pin-btn,
 .sidebar .close-btn {
@@ -13437,8 +13447,8 @@ hr {
 /* ========== History & Search ========== */
 .window-controls {
   display: flex;
-  gap: 5px;
-  margin-right: 4px;
+  gap: 2px;
+  margin-right: 10px;
   align-items: center;
   background-color: var(--color-hover);
   border-radius: var(--border-radius);
@@ -16122,8 +16132,7 @@ video {
   }
 }
 .wireguard-view .wg-glass {
-  margin-top: 5%;
-  padding: 2rem 2.5rem;
+  padding: 1rem 0.7rem;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(18, 22, 28, 0.45);
@@ -16172,7 +16181,7 @@ video {
   padding: 10px 14px;
   border-radius: var(--border-radius);
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
 }
 .wireguard-view .wg-header .title::before {
@@ -16186,8 +16195,6 @@ video {
 }
 @supports (-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px)) {
   .wireguard-view .wg-header .title::before {
-    background: rgba(0, 0, 0, 0.28);
-    -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
 }

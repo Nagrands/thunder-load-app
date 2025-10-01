@@ -35,8 +35,7 @@ $themes: (
     color-border: #262729,
 
     menu-item-active: linear-gradient(180deg, #007aff, #005bb5),
-    menu-item-hover:
-      linear-gradient(
+    menu-item-hover: linear-gradient(
         180deg,
         rgba(255, 255, 255, 0.6),
         rgba(255, 255, 255, 0.1)
@@ -109,8 +108,8 @@ $themes: (
     color-vkvideo: #0077ff,
     color-coub: #37a8ff,
     // Бейдж размера файла (тон зависит от темы)
-    badge-size-bg: rgba(255,255,255,0.06),
-    badge-size-border: rgba(255,255,255,0.14),
+    badge-size-bg: rgba(255, 255, 255, 0.06),
+    badge-size-border: rgba(255, 255, 255, 0.14),
     color-delete: rgba(255, 80, 80, 0.06),
   ),
   light: (
@@ -129,14 +128,14 @@ $themes: (
     // для неактивных элементов
     color-highlight: #1e293b,
     // основной текст/иконки
-    color-history-scroll: rgba(0,0,0,0.1),
+    color-history-scroll: rgba(0, 0, 0, 0.1),
     // фон полосы прокрутки
     color-hover: rgba(20, 184, 166, 0.08),
     // эффект наведения
     color-icon-links: #14b8a6,
     // иконки и ссылки
     color-progress-bar: #14b8a6,
-    color-progress-bg: rgba(0,0,0,0.05),
+    color-progress-bg: rgba(0, 0, 0, 0.05),
     color-quality: #475569,
     color-toast-bg: #ffffff,
     color-toast-error: #dc2626,
@@ -158,18 +157,17 @@ $themes: (
     button-open-folder: linear-gradient(180deg, #fca5a5, #fee2e2),
     button-open-history: linear-gradient(180deg, #a5f3fc, #e0f2fe),
     button-openlast-video: linear-gradient(180deg, #a5f3fc, #e0f2fe),
-
     sidebar-background: #ffffffcc,
     sidebar-color: #1e293b,
-    sidebar-list-color: rgba(0,0,0,0.04),
+    sidebar-list-color: rgba(0, 0, 0, 0.04),
     color-text-main: #1e293b,
     color-youtube: #dc2626,
     color-twitch: #8b5cf6,
     color-vkvideo: #2563eb,
     color-coub: #06b6d4,
 
-    badge-size-bg: rgba(0,0,0,0.03),
-    badge-size-border: rgba(0,0,0,0.1),
+    badge-size-bg: rgba(0, 0, 0, 0.03),
+    badge-size-border: rgba(0, 0, 0, 0.1),
     color-delete: rgba(220, 38, 38, 0.16),
   ),
 
@@ -182,12 +180,15 @@ $themes: (
     color-border: #0e1422,
 
     menu-item-active: linear-gradient(180deg, #0a84ff, #0054a8),
-    menu-item-hover: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.08)),
-
+    menu-item-hover: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.35),
+        rgba(255, 255, 255, 0.08)
+      ),
     color-disabled: #4e5b73,
     color-highlight: #d4e6ff,
     color-history-scroll: rgba(80, 110, 145, 0.25),
-    color-hover: rgba(255,255,255,0.07),
+    color-hover: rgba(255, 255, 255, 0.07),
     color-icon-links: #5ac8fa,
     color-progress-bar: #0a84ff,
     color-progress-bg: rgba(7, 14, 28, 0.7),
@@ -204,7 +205,7 @@ $themes: (
 
     button-cancel: linear-gradient(180deg, #b33434, #0d1a2b),
     button-color: #d6e4ff,
-    button-default: linear-gradient(180deg, rgba(10,132,255,0.6), #0d1626),
+    button-default: linear-gradient(180deg, rgba(10, 132, 255, 0.6), #0d1626),
     button-disabled-bg: rgba(90, 110, 140, 0.5),
     button-disabled: #bcd1f7,
     button-download: linear-gradient(180deg, #1e5ea6, #083b79),
@@ -212,18 +213,17 @@ $themes: (
     button-open-folder: linear-gradient(180deg, #b04c4c, #0b1220),
     button-open-history: linear-gradient(180deg, #0a84ff, #0b1220),
     button-openlast-video: linear-gradient(180deg, #0a84ff, #0b1220),
-
     sidebar-background: #0b1220cc,
     sidebar-color: #e6f0ff,
-    sidebar-list-color: rgba(255,255,255,0.12),
+    sidebar-list-color: rgba(255, 255, 255, 0.12),
     color-text-main: #e6f0ff,
     color-youtube: #ff453a,
     color-twitch: #9e60fc,
     color-vkvideo: #0a84ff,
     color-coub: #5ac8fa,
     // Бейдж размера файла (тон зависит от темы)
-    badge-size-bg: rgba(255,255,255,0.05),
-    badge-size-border: rgba(255,255,255,0.12),
+    badge-size-bg: rgba(255, 255, 255, 0.05),
+    badge-size-border: rgba(255, 255, 255, 0.12),
     color-delete: rgba(255, 65, 65, 0.132),
   ),
 );
@@ -247,23 +247,26 @@ $themes: (
   --spacing-large: #{$spacing-large};
   --border-radius: #{$border-radius};
   // Derived RGB channels for effects using rgba(var(--color-accent-rgb), ...)
-  --color-accent-rgb: #{color.channel(theme-value(dark, color-accent), "red", $space: rgb)},
-                      #{color.channel(theme-value(dark, color-accent), "green", $space: rgb)},
-                      #{color.channel(theme-value(dark, color-accent), "blue", $space: rgb)};
+  --color-accent-rgb:
+    #{color.channel(theme-value(dark, color-accent), "red", $space: rgb)},
+    #{color.channel(theme-value(dark, color-accent), "green", $space: rgb)},
+    #{color.channel(theme-value(dark, color-accent), "blue", $space: rgb)};
 }
 
 // CSS переменные для светлой темы
 [data-theme="light"] {
   @include export-css-variables(map.get($themes, light));
-  --color-accent-rgb: #{color.channel(theme-value(light, color-accent), "red", $space: rgb)},
-                      #{color.channel(theme-value(light, color-accent), "green", $space: rgb)},
-                      #{color.channel(theme-value(light, color-accent), "blue", $space: rgb)};
+  --color-accent-rgb:
+    #{color.channel(theme-value(light, color-accent), "red", $space: rgb)},
+    #{color.channel(theme-value(light, color-accent), "green", $space: rgb)},
+    #{color.channel(theme-value(light, color-accent), "blue", $space: rgb)};
 }
 
 // CSS переменные для темы Midnight
 [data-theme="midnight"] {
   @include export-css-variables(map.get($themes, midnight));
-  --color-accent-rgb: #{color.channel(theme-value(midnight, color-accent), "red", $space: rgb)},
-                      #{color.channel(theme-value(midnight, color-accent), "green", $space: rgb)},
-                      #{color.channel(theme-value(midnight, color-accent), "blue", $space: rgb)};
+  --color-accent-rgb:
+    #{color.channel(theme-value(midnight, color-accent), "red", $space: rgb)},
+    #{color.channel(theme-value(midnight, color-accent), "green", $space: rgb)},
+    #{color.channel(theme-value(midnight, color-accent), "blue", $space: rgb)};
 }

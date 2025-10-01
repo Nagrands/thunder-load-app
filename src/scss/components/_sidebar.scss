@@ -18,12 +18,10 @@ $transition-ease: ease;
 // Toggle Button (для открытия сайдбара)
 // ==============================
 .toggle-btn {
-  background-color: transparent;
-  color: var(--color-highlight);
+  background: transparent;
+  color: var(--color-accent);
   border-radius: 50%;
-  padding: 5px 10px;
-  font-size: 16px;
-  margin: 0 4px 0 8px;
+  padding: 5px;
   margin-left: 5rem;
   transition:
     background 0.2s ease,
@@ -31,12 +29,12 @@ $transition-ease: ease;
   cursor: pointer;
 
   &.highlight {
-    box-shadow: 0 0 10px var(--color-accent);
+    box-shadow: 0 0 6px var(--color-accent);
   }
 
   &:hover {
-    color: var(--color-text-main);
-    transform: scale(1.05);
+    color: var(--color-highlight);
+    transform: scale(1.1);
   }
 }
 
@@ -107,7 +105,7 @@ $transition-ease: ease;
   // macOS: учитываем область стандартных контролов окна (traffic lights)
   body.is-mac & {
     padding-top: 22px; // небольшой отступ сверху для зоны «светофоров»
-    .sidebar-actions { top: calc(env(safe-area-inset-top, 0px) + 28px); }
+    .sidebar-actions { top: calc(env(safe-area-inset-top, 0px) + 33px); }
   }
   .pin-btn,
   .close-btn {
