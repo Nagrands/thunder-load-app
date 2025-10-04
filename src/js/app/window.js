@@ -317,7 +317,7 @@ function createTray(mainWindow, app, store, downloadPath) {
     },
   ]);
 
-  windowTray.setToolTip("Thunderload");
+  windowTray.setToolTip("Thunder Load");
   windowTray.setContextMenu(contextMenu);
 
   windowTray.on("click", () => {

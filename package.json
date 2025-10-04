@@ -45,7 +45,7 @@
   },
   "build": {
     "appId": "com.thunderload.app",
-    "productName": "ThunderLoad",
+    "productName": "Thunder Load",
     "asar": true,
     "extraResources": [
       {

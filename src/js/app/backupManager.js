@@ -82,10 +82,31 @@ async function listLastTimes(programs) {
   return result;
 }
 
+async function isDirNotEmptyWithPatterns(srcDir, patterns) {
+  try {
+    const entries = await fsp.readdir(srcDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(srcDir, entry.name);
+      if (entry.isFile()) {
+        if (matchByPatterns(entry.name, patterns)) {
+          return true;
+        }
+      } else if (entry.isDirectory()) {
+        const notEmpty = await isDirNotEmptyWithPatterns(fullPath, patterns);
+        if (notEmpty) {
+          return true;
+        }
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 async function copyTreeFiltered(src, dst, patterns) {
   const st = await fsp.stat(src);
   if (!st.isDirectory()) throw new Error(`Source is not a directory: ${src}`);
-  await ensureDir(dst);
   const stack = ['']; // relative paths
   while (stack.length) {
     const rel = stack.pop();
@@ -97,8 +118,11 @@ async function copyTreeFiltered(src, dst, patterns) {
       const relPath = path.join(rel, it.name);
       const dstPath = path.join(curDst, it.name);
       if (it.isDirectory()) {
-        await ensureDir(dstPath);
-        stack.push(relPath);
+        const hasContent = await isDirNotEmptyWithPatterns(srcPath, patterns);
+        if (hasContent) {
+          await ensureDir(dstPath);
+          stack.push(relPath);
+        }
       } else if (it.isFile()) {
         if (matchByPatterns(it.name, patterns)) {
           await ensureDir(path.dirname(dstPath));
@@ -198,30 +222,40 @@ async function runBackup(program) {
   const profile = program?.profile_path || null;
   const patterns = Array.isArray(program?.config_patterns) ? program.config_patterns : [];
   if (!name || !src || !dstRoot) throw new Error('Invalid program config');
-  const srcStat = await fsp.stat(src).catch(() => null);
-  if (!srcStat || !srcStat.isDirectory()) throw new Error(`Source not found: ${src}`);
-  await ensureDir(dstRoot);
-  await moveOldBackups(dstRoot, name, 5);
+  log.info(`[backup] Starting backup for program: ${name}`);
   const ts = new Date();
   const timestamp = `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')}_${String(ts.getHours()).padStart(2,'0')}-${String(ts.getMinutes()).padStart(2,'0')}-${String(ts.getSeconds()).padStart(2,'0')}`;
   const tmpFolder = path.join(dstRoot, `${name}_Backup_${timestamp}`);
-  await ensureDir(tmpFolder);
-  await copyTreeFiltered(src, tmpFolder, patterns);
-  await copyProfile(profile, tmpFolder);
-  const zipOut = path.join(dstRoot, `${name}_Backup_${timestamp}.zip`);
-  const finalZip = await zipFolder(tmpFolder, zipOut);
-  // remove temp folder
-  try { await fsp.rm(tmpFolder, { recursive: true, force: true }); } catch (_) {}
-  return { zipPath: finalZip };
+  try {
+    const srcStat = await fsp.stat(src).catch(() => null);
+    if (!srcStat || !srcStat.isDirectory()) throw new Error(`Source not found: ${src}`);
+    await ensureDir(dstRoot);
+    await moveOldBackups(dstRoot, name, 5);
+    await ensureDir(tmpFolder);
+    await copyTreeFiltered(src, tmpFolder, patterns);
+    await copyProfile(profile, tmpFolder);
+    const zipOut = path.join(dstRoot, `${name}_Backup_${timestamp}.zip`);
+    const finalZip = await zipFolder(tmpFolder, zipOut);
+    log.info(`[backup] Backup completed successfully for program: ${name}`);
+    return { zipPath: finalZip };
+  } catch (error) {
+    log.error(`[backup] Backup failed for program: ${name} - ${error?.message || error}`);
+    throw error;
+  } finally {
+    try { await fsp.rm(tmpFolder, { recursive: true, force: true }); } catch (_) {}
+  }
 }
 
 async function runBackupBatch(programs) {
+  log.info('[backup] Starting batch backup for programs');
   const results = [];
   for (const p of programs) {
+    log.info(`[backup] Starting backup for program: ${p.name}`);
     try {
       const r = await runBackup(p);
       results.push({ name: p.name, success: true, ...r });
     } catch (e) {
+      log.error(`[backup] Backup failed for program: ${p?.name || 'unknown'} - ${e?.message || String(e)}`);
       results.push({ name: p?.name || 'unknown', success: false, error: e?.message || String(e) });
     }
   }
@@ -256,4 +290,3 @@ module.exports = {
   chooseDir,
   openPath,
 };
-

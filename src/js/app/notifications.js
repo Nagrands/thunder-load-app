@@ -5,7 +5,7 @@ const path = require("path");
 
 function showTrayNotification(message) {
   const notification = new Notification({
-    title: "Thunderload",
+    title: "Thunder Load",
     body: message,
     icon: path.join(__dirname, "../../../assets/icons/thunder-logo.png"),
   });

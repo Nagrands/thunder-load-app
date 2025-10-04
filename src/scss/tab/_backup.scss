@@ -281,22 +281,22 @@
     position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-quality);
   }
   #bk-filter:focus {
-    border-color: rgba(120,180,255,.45);
-    box-shadow: 0 0 0 1px rgba(120,180,255,.45), 0 6px 18px rgba(0,0,0,0.25);
+    color: var(--color-highlight);
+    transition: var(--transition-duration);
+    animation: gradientAnimation 9s infinite;
   }
   // Search input: reuse app input look with left and right paddings
   #bk-filter {
     @include mixins.input-base(var(--spacing-small) 36px var(--spacing-small) 34px, 14px);
-    width: 100%;
-    height: 36px;
-    line-height: 36px;
-    border-radius: 12px;
+    color: var(--color-accent);
+    font-size: 14px;
+    transition: background-color var(--transition-duration), color var(--transition-duration);
   }
   // Clear button inside search field (right aligned)
   #bk-clear-filter.history-action-button {
     position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
     width: 28px; height: 28px; border-radius: 8px; color: var(--color-accent);
-    line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1; display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
 

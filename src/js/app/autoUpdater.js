@@ -33,7 +33,7 @@ function setupAutoUpdater(mainWindow) {
 
     if (Notification.isSupported()) {
       new Notification({
-        title: "Thunderload - Обновление доступно",
+        title: "Thunder Load - Обновление доступно",
         body: message,
         icon: iconPath,
       }).show();

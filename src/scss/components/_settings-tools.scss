@@ -32,11 +32,12 @@
   #ti-tools-location-path {
     width: 100%;
     height: 36px;
+    font-size: 14px;
     padding: 8px 12px;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.06);
-    color: inherit;
+    color: var(--color-highlight);
     outline: none;
     overflow: hidden;
     text-overflow: ellipsis;

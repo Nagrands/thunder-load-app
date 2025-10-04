@@ -280,10 +280,9 @@
 
   // === Инструменты (yt-dlp / ffmpeg) ===
   #tools-info {
-    padding: 12px 14px 18px; // добавили нижний паддинг под кнопку
-    background-color: var(--color-bg-secondary);
+    padding: 12px 14px 18px;
+    background-color: var(--color-hover);
     border-radius: var(--border-radius);
-    border: 1px solid var(--color-hover);
     margin-top: 14px;
     overflow: visible; // чтобы содержимое (кнопка) не подрезалось
 
@@ -556,7 +555,7 @@
       // flex-shrink: 0;
 
       i {
-        font-size: 15px;
+        font-size: 14px;
         min-width: 18px;
         text-align: center;
         margin-right: 0;
@@ -769,10 +768,11 @@
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
+      justify-content: center;
+      background-color: var(--color-hover);
+      border-radius: var(--border-radius);
       gap: 8px;
-      padding: 0;
-      background: transparent;
-      border-radius: 0;
+      padding: 6px;
     }
 
     ul.module.default-tab-group li.custom-theme-select {
@@ -780,7 +780,7 @@
       align-items: center;
       margin: 0;
       padding: 6px 10px;
-      background: transparent;
+      background: var(--color-hover);
       border: 1px solid var(--color-hover);
       border-radius: var(--border-radius);
       transition: background-color var(--transition-duration) ease,

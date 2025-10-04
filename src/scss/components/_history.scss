@@ -38,7 +38,7 @@
 
 #history {
   width: 100%;
-  padding: 4px 4px 6px;
+  // padding: 4px 4px 6px;
   max-height: 300px;
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: var(--border-radius);
@@ -107,7 +107,7 @@
     color 0.2s ease;
 
   &:hover {
-    background-color: var(--color-accent);
+    // background-color: var(--color-accent);
     color: var(--color-text-main);
   }
 
@@ -118,12 +118,13 @@
 .log-entry {
   display: flex;
   align-items: center;
-  background-color: var(--color-bg-secondary);
-  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  // background-color: var(--color-bg-secondary);
+  border-radius: var(--border-radius);
   color: var(--color-highlight);
-  margin: 4px;
+  margin: 2px;
   border: 1px solid var(--color-hover);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 2px var(--color-quality);
   transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
 
   .log-actions {
@@ -133,18 +134,16 @@
   }
 
   &.selected {
-    background-color: var(--color-hover);
-    border-radius: var(--border-radius);
-    color: var(--color-text-main);
+    color: var(--color-accent);
     transform: translateY(2px);
-    transition: all 0.2s ease-in-out;
+    transition: all 0.1s ease-in-out;
+    box-shadow: 0 1px 4px var(--color-accent);
   }
 
   &:hover {
-    background-color: var(--color-hover);
-    color: var(--color-text-main);
+    color: var(--color-accent);
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    box-shadow: 0 1px 4px var(--color-accent);
 
     .log-actions { opacity: 1; }
 
@@ -443,7 +442,7 @@
   border-radius: var(--border-radius);
 }
 
-.empty-history { text-align: center; font-size: 1.1rem; color: var(--text-muted, #888); margin: 2rem 0; padding: 1rem; opacity: 0.8; }
+.empty-history { text-align: center; color: var(--color-accent, #888); margin: 2rem 0; padding: 1rem; opacity: 0.8; }
 .empty-history i { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
 
 .shortcuts-button {

@@ -115,11 +115,10 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  color: var(--color-url-border);
+  color: var(--color-highlight);
 
   &:hover {
-    // background-color: var(--color-hover);
-    color: var(--color-highlight);
+    color: var(--color-accent);
   }
 }
 

@@ -74,7 +74,7 @@ export default function renderBackup() {
           <i class="fa-solid fa-database"></i>
           <div class="text">
             <h1>Backup</h1>
-            <p class="subtitle text-muted">Резервное копирование по пресетам: исходник → архив в целевую папку</p>
+            <p class="subtitle text-muted">Резервное копирование файлов и папок: исходник → архив в целевую папку</p>
           </div>
         </div>
       </div>
@@ -91,11 +91,11 @@ export default function renderBackup() {
             <button id="bk-add" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
               <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="bk-del" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные (0)" disabled>
+            <button id="bk-del" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
               <i class="fa-solid fa-trash"></i>
               <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
-            <button id="bk-run-selected" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных (0)" disabled>
+            <button id="bk-run-selected" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled>
               <i class="fa-solid fa-play"></i>
               <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
             </button>
@@ -226,11 +226,11 @@ export default function renderBackup() {
     const s = Math.floor(diff / 1000);
     if (s < 60) return `${s}s назад`;
     const m = Math.floor(s / 60);
-    if (m < 60) return `${m} мин назад`;
+    if (m < 60) return `${m} мин. назад`;
     const h = Math.floor(m / 60);
-    if (h < 24) return `${h} ч назад`;
+    if (h < 24) return `${h} ч. назад`;
     const d = Math.floor(h / 24);
-    return `${d} дн назад`;
+    return `${d} дн. назад`;
   }
 
   /**

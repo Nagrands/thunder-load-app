@@ -12,7 +12,8 @@
 
   &:focus {
     color: var(--color-highlight);
-    background-color: var(--color-bg-secondary);
+    transition: var(--transition-duration);
+    animation: gradientAnimation 9s infinite;
   }
 
   &::placeholder {
@@ -150,7 +151,7 @@
   @include mixins.input-base(var(--spacing-medium) 105px var(--spacing-medium) 50px);
 
   &:focus {
-    background-color: var(--color-bg-secondary);
+    // background-color: var(--color-bg-secondary);
     letter-spacing: 0.6px;
     color: var(--color-accent);
     transition: var(--transition-duration);
@@ -159,6 +160,7 @@
 
   &::placeholder {
     color: var(--color-quality);
+    font-style: italic;
   }
 }
 
@@ -424,8 +426,7 @@
     &:hover { background: var(--color-accent); color: var(--color-bg-secondary) }
     &.active {
       color: var(--color-text-main);
-      background: var(--color-accent);
-      // border-color: var(--color-highlight);
+      background: var(--color-bg-secondary);
     }
     i { font-size: 12px; }
   }
