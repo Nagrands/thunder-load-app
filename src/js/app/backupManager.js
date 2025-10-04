@@ -225,7 +225,7 @@ async function runBackup(program) {
   log.info(`[backup] Starting backup for program: ${name}`);
   const ts = new Date();
   const timestamp = `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')}_${String(ts.getHours()).padStart(2,'0')}-${String(ts.getMinutes()).padStart(2,'0')}-${String(ts.getSeconds()).padStart(2,'0')}`;
-  const tmpFolder = path.join(dstRoot, `${name}_Backup_${timestamp}`);
+  const tmpFolder = path.join(os.tmpdir(), `${name}_Backup_${timestamp}`);
   try {
     const srcStat = await fsp.stat(src).catch(() => null);
     if (!srcStat || !srcStat.isDirectory()) throw new Error(`Source not found: ${src}`);
@@ -234,15 +234,30 @@ async function runBackup(program) {
     await ensureDir(tmpFolder);
     await copyTreeFiltered(src, tmpFolder, patterns);
     await copyProfile(profile, tmpFolder);
-    const zipOut = path.join(dstRoot, `${name}_Backup_${timestamp}.zip`);
-    const finalZip = await zipFolder(tmpFolder, zipOut);
+    const zipOutTmp = path.join(os.tmpdir(), `${name}_Backup_${timestamp}.zip`);
+    const finalZipTmp = await zipFolder(tmpFolder, zipOutTmp);
+    const finalZipDst = path.join(dstRoot, path.basename(finalZipTmp));
+    await fsp.rename(finalZipTmp, finalZipDst).catch(async () => {
+      await fsp.copyFile(finalZipTmp, finalZipDst);
+      await fsp.unlink(finalZipTmp);
+    });
     log.info(`[backup] Backup completed successfully for program: ${name}`);
-    return { zipPath: finalZip };
+    return { zipPath: finalZipDst };
   } catch (error) {
     log.error(`[backup] Backup failed for program: ${name} - ${error?.message || error}`);
     throw error;
   } finally {
-    try { await fsp.rm(tmpFolder, { recursive: true, force: true }); } catch (_) {}
+    try {
+      const exists = await fsp.stat(tmpFolder).then(() => true).catch(() => false);
+      if (exists) {
+        const remainingFiles = await fsp.readdir(tmpFolder);
+        if (remainingFiles.length > 0) {
+          log.warn(`[backup] Temporary backup folder '${tmpFolder}' not empty before deletion. Remaining files: ${remainingFiles.join(', ')}`);
+        }
+        log.warn(`[backup] Temporary backup folder '${tmpFolder}' will be removed.`);
+        await fsp.rm(tmpFolder, { recursive: true, force: true });
+      }
+    } catch (_) {}
   }
 }
 
