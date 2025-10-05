@@ -697,7 +697,10 @@ export default function renderBackup() {
         toast('Заполните обязательные поля', 'error');
         const firstInvalid = overlay.querySelector('.input.input-error, .input:not(.input-valid)[id="f-src"], .input:not(.input-valid)[id="f-dst"]');
         if (firstInvalid) firstInvalid.focus();
-        if (saveBtn) { saveBtn.classList.remove('is-loading'); saveBtn.removeAttribute('disabled'); }
+        if (saveBtn && saveBtn.removeAttribute) {
+          saveBtn.classList.remove('is-loading');
+          saveBtn.removeAttribute('disabled');
+        }
         return;
       }
       const payload = { name, source_path, backup_path, profile_path, config_patterns };
@@ -716,7 +719,10 @@ export default function renderBackup() {
       } catch (e) {
         toast(e.message || 'Ошибка', 'error');
       } finally {
-        if (saveBtn) { saveBtn.classList.remove('is-loading'); saveBtn.removeAttribute('disabled'); }
+        if (saveBtn && saveBtn.removeAttribute) {
+          saveBtn.classList.remove('is-loading');
+          saveBtn.removeAttribute('disabled');
+        }
       }
     });
 
@@ -735,7 +741,12 @@ export default function renderBackup() {
     if (!indices.length) { toast('Не выбрано ни одного пресета', 'warning'); return; }
     const list = indices.map((i) => state.programs[i]);
     // Visual highlighting rows and progress bar
-    const rows = indices.map(i => wrapper.querySelector(`.bk-row:nth-child(${i + 1})`)).filter(Boolean);
+    const rows = indices
+      .map((i) => {
+        const chk = wrapper.querySelector(`.bk-chk[data-i="${i}"]`);
+        return chk ? chk.closest('.bk-row') : null;
+      })
+      .filter(Boolean);
     rows.forEach(r => r.classList.add('is-running'));
     const progressEl = getEl('#bk-batch-progress') || (() => {
       const bar = document.createElement('div');
@@ -755,6 +766,16 @@ export default function renderBackup() {
       log(`Ошибка: ${res?.error || 'unknown'}`);
       rows.forEach(r => r.classList.remove('is-running'));
       setTimeout(() => progressEl.style.display = 'none', 1200);
+      // Авторазворачивание и прокрутка лога при ошибке
+      const logBox = getEl('#bk-log');
+      if (logBox) {
+        // Разворачиваем log, если свёрнут
+        const details = logBox.closest('details');
+        if (details && !details.hasAttribute('open')) details.setAttribute('open', '');
+        logBox.style.maxHeight = '400px';
+        logBox.classList.add('expanded');
+        logBox.scrollTo({ top: logBox.scrollHeight, behavior: 'smooth' });
+      }
       return;
     }
     res.results.forEach((r) => {
@@ -765,8 +786,20 @@ export default function renderBackup() {
       progressEl.style.width = percent + '%';
     });
     await load();
+    // Авторазворачивание и прокрутка лога после обновления и до снятия is-running
+    const logBox = getEl('#bk-log');
+    if (logBox) {
+      // Разворачиваем log, если свёрнут
+      const details = logBox.closest('details');
+      if (details && !details.hasAttribute('open')) details.setAttribute('open', '');
+      logBox.style.maxHeight = '400px';
+      logBox.classList.add('expanded');
+      logBox.scrollTo({ top: logBox.scrollHeight, behavior: 'smooth' });
+    }
     rows.forEach(r => r.classList.remove('is-running'));
-    setTimeout(() => progressEl.style.display = 'none', 1200);
+    setTimeout(() => {
+      progressEl.style.display = 'none';
+    }, 1200);
   }
 
   // Events
@@ -885,7 +918,14 @@ export default function renderBackup() {
       const btn = t;
       btn.classList.add('is-loading');
       btn.setAttribute('disabled','true');
-      try { await runForIndices([i]); } finally { btn.classList.remove('is-loading'); btn.removeAttribute('disabled'); }
+      try {
+        await runForIndices([i]);
+      } finally {
+        if (btn && btn.removeAttribute) {
+          btn.classList.remove('is-loading');
+          btn.removeAttribute('disabled');
+        }
+      }
     }
   });
 
