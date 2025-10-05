@@ -79,8 +79,8 @@ export default function renderBackup() {
         </div>
       </div>
 
-      <div id="bk-toolbar" class="wg-block" aria-label="Управление пресетами" style="display:flex;align-items:center;gap:10px;">
-      <div class="history-actions" style="display:flex;align-items:center;gap:10px;flex:1;">
+      <div id="bk-toolbar" class="wg-block" aria-label="Управление пресетами">
+      <div class="history-actions">
         <div class="history-search-wrapper">
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="bk-filter" class="input" placeholder="Поиск пресетов" aria-label="Поиск пресетов" style="padding-left:34px;padding-right:34px;" autocomplete="off" />
@@ -88,14 +88,14 @@ export default function renderBackup() {
         </div>
         <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
           <div class="bk-actions">
-            <button id="bk-add" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
+            <button id="bk-add" class="btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
               <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="bk-del" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
+            <button id="bk-del" class="btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
               <i class="fa-solid fa-trash"></i>
               <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
-            <button id="bk-run-selected" class="history-action-button btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled>
+            <button id="bk-run-selected" class="btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled>
               <i class="fa-solid fa-play"></i>
               <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
             </button>
@@ -109,25 +109,26 @@ export default function renderBackup() {
           <input type="checkbox" id="bk-select-all" />
           <i class="fa-solid fa-check"></i>
           <span class="text-xs text-muted">выбрать всё</span>
-        </label>
-      </h2>
-      <div id="bk-list" class="bk-list space-y-2"></div>
-
-      <details class="wg-log-block" open>
-        <summary class="log-summary">
+          </label>
+          </h2>
+          <div id="bk-list" class="bk-list space-y-2"></div>
+          
+          
+          <details class="wg-log-block">
+          <summary class="log-summary">
           <span class="log-title"><i class="fa-solid fa-terminal"></i> Лог</span>
           <div class="log-actions">
-            <button id="bk-log-autoscroll" type="button" class="small-button" title="Автопрокрутка: вкл"><i class="fa-solid fa-arrow-down-short-wide"></i></button>
-            <button id="bk-log-font" type="button" class="small-button" title="Шрифт: моно"><i class="fa-solid fa-font"></i></button>
-            <button id="bk-log-copy" type="button" class="small-button" title="Скопировать лог"><i class="fa-solid fa-copy"></i></button>
-            <button id="bk-log-export" type="button" class="small-button" title="Экспорт в файл"><i class="fa-solid fa-file-arrow-down"></i></button>
-            <button id="bk-log-clear" type="button" class="small-button" title="Очистить лог"><i class="fa-solid fa-trash"></i></button>
+          <button id="bk-log-autoscroll" type="button" class="small-button" title="Автопрокрутка: вкл"><i class="fa-solid fa-arrow-down-short-wide"></i></button>
+          <button id="bk-log-font" type="button" class="small-button" title="Шрифт: моно"><i class="fa-solid fa-font"></i></button>
+          <button id="bk-log-copy" type="button" class="small-button" title="Скопировать лог"><i class="fa-solid fa-copy"></i></button>
+          <button id="bk-log-export" type="button" class="small-button" title="Экспорт в файл"><i class="fa-solid fa-file-arrow-down"></i></button>
+          <button id="bk-log-clear" type="button" class="small-button" title="Очистить лог"><i class="fa-solid fa-trash"></i></button>
           </div>
-        </summary>
-        <pre id="bk-log" class="wg-status console text-xs overflow-auto"></pre>
-      </details>
-
-      <div class="text-xs text-muted">Совет: шаблоны файлов разделяйте запятыми, например: *.ini,*.cfg,*.dat</div>
+          </summary>
+          <pre id="bk-log" class="wg-status console text-xs overflow-auto"></pre>
+          </details>
+          
+          <div class="text-xs text-muted">Совет: шаблоны файлов разделяйте запятыми, например: *.ini,*.cfg,*.dat</div>
     </div>
   `;
   container.innerHTML = html;
@@ -148,13 +149,20 @@ export default function renderBackup() {
   /**
    * Append a timestamped message to the log area.
    * Respects autoscroll or keeps viewport when user is scrolled up.
+   * Adds color coding for log lines.
    * @param {string} msg
    * @returns {void}
    */
   const log = (msg) => {
     if (!logBox) return;
     const atBottom = (logBox.scrollTop + logBox.clientHeight) >= (logBox.scrollHeight - 4);
-    logBox.textContent += `\n${new Date().toLocaleTimeString()} › ${msg}`;
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    if (/✔/.test(msg)) line.classList.add('log-success');
+    else if (/✖|ошибка|error/i.test(msg)) line.classList.add('log-error');
+    else if (/предупреждение|warn/i.test(msg)) line.classList.add('log-warn');
+    line.textContent = `${new Date().toLocaleTimeString()} › ${msg}`;
+    logBox.appendChild(line);
     if (state.autoscroll || atBottom) logBox.scrollTop = logBox.scrollHeight;
   };
 
@@ -327,15 +335,15 @@ export default function renderBackup() {
         <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать пресет ${p.name}" />
         <div class="bk-row-content min-w-0">
           <div class="font-semibold truncate">${p.name}</div>
-          <div class="text-xs text-muted truncate" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
-          <div class="text-xs text-muted">Фильтры: ${patterns}</div>
+          <div class="back-path" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
+          <div class="back-filter">Фильтры: ${patterns}</div>
           <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString() : ''}">${lbl.text}</span></div>
         </div>
         <div class="bk-row-actions">
-          <button class="history-action-button btn btn-ghost btn-sm bk-edit" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
-          <button class="history-action-button btn btn-ghost btn-sm bk-open-src" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
-          <button class="history-action-button btn btn-ghost btn-sm bk-open" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
-          <button class="history-action-button btn btn-ghost btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
+          <button class="btn btn-sm bk-edit" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm bk-open-src" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
+          <button class="btn btn-sm bk-open" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
+          <button class="btn btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
         </div>
       `;
       root.appendChild(row);
@@ -719,20 +727,46 @@ export default function renderBackup() {
   /**
    * Run backup for a subset of presets by indices.
    * Appends human-readable results to the log and refreshes state.
+   * Adds visual highlighting for running rows and batch progress.
    * @param {number[]} indices
    * @returns {Promise<void>}
    */
   async function runForIndices(indices) {
     if (!indices.length) { toast('Не выбрано ни одного пресета', 'warning'); return; }
     const list = indices.map((i) => state.programs[i]);
+    // Visual highlighting rows and progress bar
+    const rows = indices.map(i => wrapper.querySelector(`.bk-row:nth-child(${i + 1})`)).filter(Boolean);
+    rows.forEach(r => r.classList.add('is-running'));
+    const progressEl = getEl('#bk-batch-progress') || (() => {
+      const bar = document.createElement('div');
+      bar.id = 'bk-batch-progress';
+      bar.className = 'bk-progress';
+      wrapper.querySelector('.wg-header')?.appendChild(bar);
+      return bar;
+    })();
+    let done = 0;
+    progressEl.style.width = '0%';
+    progressEl.style.display = 'block';
+
     log(`Запуск backup для ${list.length} пресета(ов)…`);
     const res = await invoke('backup:run', list);
-    if (!res?.success) { toast(res?.error || 'Ошибка запуска', 'error'); log(`Ошибка: ${res?.error || 'unknown'}`); return; }
+    if (!res?.success) {
+      toast(res?.error || 'Ошибка запуска', 'error');
+      log(`Ошибка: ${res?.error || 'unknown'}`);
+      rows.forEach(r => r.classList.remove('is-running'));
+      setTimeout(() => progressEl.style.display = 'none', 1200);
+      return;
+    }
     res.results.forEach((r) => {
       if (r.success) { log(`✔ ${r.name}: ${r.zipPath}`); }
       else { log(`✖ ${r.name}: ${r.error}`); }
+      done += 1;
+      const percent = Math.round((done / list.length) * 100);
+      progressEl.style.width = percent + '%';
     });
     await load();
+    rows.forEach(r => r.classList.remove('is-running'));
+    setTimeout(() => progressEl.style.display = 'none', 1200);
   }
 
   // Events

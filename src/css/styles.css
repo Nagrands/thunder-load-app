@@ -13578,6 +13578,7 @@ hr {
   border-radius: var(--border-radius);
   color: var(--color-highlight);
   margin: 2px;
+  background-color: var(--color-bg-main);
   border: 1px solid var(--color-hover);
   box-shadow: 0 1px 2px var(--color-quality);
   transition: transform 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
@@ -13596,7 +13597,8 @@ hr {
 .log-entry:hover {
   color: var(--color-accent);
   transform: translateY(-2px);
-  box-shadow: 0 1px 4px var(--color-accent);
+  background-color: var(--color-hover);
+  box-shadow: 0 1px 4px var(--color-hover);
 }
 .log-entry:hover .log-actions {
   opacity: 1;
@@ -16018,7 +16020,7 @@ video {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.35) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 25%, rgba(0, 0, 0, 0.15) 75%, rgba(0, 0, 0, 0.35) 100%), url("../../assets/img/bg-downloader.png") center/cover no-repeat;
+  background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.35) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 25%, rgba(0, 0, 0, 0.15) 75%, rgba(0, 0, 0, 0.35) 100%), url("../../assets/img/bg-downloader.jpg") center/cover no-repeat;
   opacity: 0.58;
   z-index: -1;
   pointer-events: none;
@@ -16032,7 +16034,7 @@ video {
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
-  background-image: url("../../assets/img/bg-downloader.png");
+  background-image: url("../../assets/img/bg-downloader.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -16046,7 +16048,7 @@ video {
 }
 @media (max-width: 620px) {
   .downloader-view::after {
-    background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.08) 75%, rgba(0, 0, 0, 0.25) 100%), url("../../assets/img/bg-downloader.png") center/cover no-repeat;
+    background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.08) 75%, rgba(0, 0, 0, 0.25) 100%), url("../../assets/img/bg-downloader.jpg") center/cover no-repeat;
   }
 }
 .wg-center {
@@ -16910,7 +16912,7 @@ video {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.35) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 25%, rgba(0, 0, 0, 0.15) 75%, rgba(0, 0, 0, 0.35) 100%), url("../../assets/img/bg-backup.png") center/cover no-repeat;
+  background: radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.35) 100%), linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 25%, rgba(0, 0, 0, 0.15) 75%, rgba(0, 0, 0, 0.35) 100%), url("../../assets/img/bg-backup.jpg") center/cover no-repeat;
   opacity: 0.58;
   z-index: -1;
   pointer-events: none;
@@ -16918,11 +16920,11 @@ video {
 .backup-view .wg-glass {
   padding: 1rem 0.7rem;
   border-radius: var(--border-radius);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-url-border);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
   max-width: 1020px;
   margin-inline: auto;
-  background: rgba(18, 22, 28, 0.5);
+  background: var(--color-url-bg);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
@@ -17084,17 +17086,16 @@ video {
   box-shadow: 0 0 0 2px rgba(60, 200, 120, 0.35), 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 .backup-view .bk-modal .input {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-url-bg);
   color: var(--color-text-main);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--color-url-border);
   border-radius: 10px;
-  padding: 6px;
+  padding: 6px 15px;
   outline: none;
   background-clip: padding-box;
 }
 .backup-view .bk-modal .input:focus {
-  border-color: rgba(120, 180, 255, 0.45);
-  box-shadow: 0 0 0 1px rgba(120, 180, 255, 0.45), 0 6px 18px rgba(0, 0, 0, 0.25);
+  border-color: var(--color-url-border);
 }
 .backup-view .bk-modal .input::placeholder {
   color: rgba(255, 255, 255, 0.45);
@@ -17238,13 +17239,15 @@ video {
   }
 }
 .backup-view h2.section-heading {
-  margin-top: 20px;
-  margin-bottom: 25px;
-  display: inline-flex;
+  margin: 10px 0;
+  padding: 10px;
+  display: flex;
   align-items: center;
-  gap: 0.55rem;
-  line-height: 1.2;
   position: relative;
+  gap: 20px;
+  justify-content: center;
+  flex-direction: row;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .backup-view h2.section-heading .checkbox-label {
   gap: 0.4rem;
@@ -17286,7 +17289,6 @@ video {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 .backup-view .history-action-button:focus-visible,
 .backup-view .bk-actions .history-action-button:focus-visible,
@@ -17300,7 +17302,6 @@ video {
   flex: 1 1 auto;
   min-width: 220px;
   max-width: 600px;
-  margin-bottom: 2px;
 }
 .backup-view .history-search-wrapper .search-icon {
   position: absolute;
@@ -17383,29 +17384,33 @@ video {
 }
 .backup-view .bk-list {
   display: flex;
+  gap: 10px;
   flex-direction: column;
-  gap: 8px;
+  align-items: stretch;
 }
 .backup-view .bk-row {
   display: grid;
-  grid-template-columns: auto 1fr auto; /* checkbox / content / actions */
+  grid-template-columns: auto 1fr auto;
   gap: 8px;
   padding: 9px 12px;
   min-height: 56px;
   transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: start;
+  border: 1px solid var(--color-url-border);
   border-radius: var(--border-radius);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-url-bg);
+  justify-items: stretch;
 }
 .backup-view .bk-row .bk-row-content .font-semibold {
-  margin-bottom: 2px;
-  line-height: 1.25;
+  margin-bottom: 4px;
+  font-size: 20px;
+  color: var(--color-accent);
+  letter-spacing: 1px;
 }
 @media (hover: hover) {
   .backup-view .bk-row.wg-card:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.18);
+    background: var(--color-hover);
+    border-color: var(--color-url-border);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
     transform: translateY(-1px);
   }
@@ -17422,11 +17427,31 @@ video {
 .backup-view .bk-row .bk-chk {
   margin-top: 0;
   align-self: center;
+  width: 20px;
+  height: 20px;
 }
 .backup-view .bk-row .text-xs {
   color: var(--color-quality);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+}
+.backup-view .back-path {
+  margin: 10px 2px;
+  font-size: 13px;
+  font-family: monospace;
+  padding: 4px;
+  background-color: var(--color-url-bg);
+  color: var(--color-quality);
+  border: 1px solid var(--color-url-border);
+  border-radius: 8px;
+}
+.backup-view .back-filter {
+  margin: 10px 0;
+  padding: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-quality);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .backup-view .bk-row .history-action-button {
   min-width: 30px;
@@ -17447,6 +17472,8 @@ video {
   margin-left: auto;
   display: inline-flex;
   gap: 6px;
+  flex-direction: row;
+  justify-content: center;
 }
 .backup-view .bk-chip {
   display: inline-flex;
@@ -17516,10 +17543,6 @@ video {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-.backup-view .wg-log-block .small-button {
-  width: 28px;
-  height: 28px;
 }
 .backup-view .wg-log-block .small-button:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -17609,6 +17632,44 @@ video {
     transition: none !important;
     transform: none !important;
     box-shadow: none !important;
+  }
+}
+
+.backup-view .log-line {
+  margin: 2px 0;
+}
+.backup-view .log-success {
+  color: #9f9;
+}
+.backup-view .log-error {
+  color: #f99;
+}
+.backup-view .log-warn {
+  color: #ff9;
+}
+.backup-view .bk-row.is-running {
+  background: rgba(60, 120, 255, 0.08);
+  border-color: rgba(120, 180, 255, 0.4);
+  box-shadow: 0 0 8px rgba(100, 160, 255, 0.3);
+  animation: pulse-running 1.2s ease-in-out infinite alternate;
+}
+.backup-view .bk-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--color-accent), #88f);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  transition: width 0.25s ease;
+  display: none;
+}
+@keyframes pulse-running {
+  from {
+    box-shadow: 0 0 6px rgba(100, 160, 255, 0.2);
+  }
+  to {
+    box-shadow: 0 0 18px rgba(100, 160, 255, 0.5);
   }
 }
 

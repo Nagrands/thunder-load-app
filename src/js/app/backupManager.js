@@ -261,17 +261,65 @@ async function runBackup(program) {
   }
 }
 
-async function runBackupBatch(programs) {
+async function runBackupBatch(programs, parallel = false) {
   log.info('[backup] Starting batch backup for programs');
   const results = [];
-  for (const p of programs) {
-    log.info(`[backup] Starting backup for program: ${p.name}`);
-    try {
-      const r = await runBackup(p);
-      results.push({ name: p.name, success: true, ...r });
-    } catch (e) {
-      log.error(`[backup] Backup failed for program: ${p?.name || 'unknown'} - ${e?.message || String(e)}`);
-      results.push({ name: p?.name || 'unknown', success: false, error: e?.message || String(e) });
+  const chunkSize = 7;
+  if (parallel) {
+    if (programs.length > chunkSize) {
+      for (let i = 0; i < programs.length; i += chunkSize) {
+        const chunk = programs.slice(i, i + chunkSize);
+        const promises = chunk.map((p) => {
+          log.info(`[backup] Starting backup for program: ${p.name}`);
+          return runBackup(p)
+            .then((r) => ({ name: p.name, success: true, ...r }))
+            .catch((e) => {
+              log.error(`[backup] Backup failed for program: ${p?.name || 'unknown'} - ${e?.message || String(e)}`);
+              return { name: p?.name || 'unknown', success: false, error: e?.message || String(e) };
+            });
+        });
+        const settled = await Promise.allSettled(promises);
+        for (const res of settled) {
+          if (res.status === 'fulfilled') {
+            results.push(res.value);
+          } else {
+            // This case should not happen because catch handles errors, but just in case:
+            results.push({ name: 'unknown', success: false, error: res.reason?.message || String(res.reason) });
+            log.error(`[backup] Backup failed with unexpected error: ${res.reason?.message || String(res.reason)}`);
+          }
+        }
+      }
+    } else {
+      const promises = programs.map((p) => {
+        log.info(`[backup] Starting backup for program: ${p.name}`);
+        return runBackup(p)
+          .then((r) => ({ name: p.name, success: true, ...r }))
+          .catch((e) => {
+            log.error(`[backup] Backup failed for program: ${p?.name || 'unknown'} - ${e?.message || String(e)}`);
+            return { name: p?.name || 'unknown', success: false, error: e?.message || String(e) };
+          });
+      });
+      const settled = await Promise.allSettled(promises);
+      for (const res of settled) {
+        if (res.status === 'fulfilled') {
+          results.push(res.value);
+        } else {
+          // This case should not happen because catch handles errors, but just in case:
+          results.push({ name: 'unknown', success: false, error: res.reason?.message || String(res.reason) });
+          log.error(`[backup] Backup failed with unexpected error: ${res.reason?.message || String(res.reason)}`);
+        }
+      }
+    }
+  } else {
+    for (const p of programs) {
+      log.info(`[backup] Starting backup for program: ${p.name}`);
+      try {
+        const r = await runBackup(p);
+        results.push({ name: p.name, success: true, ...r });
+      } catch (e) {
+        log.error(`[backup] Backup failed for program: ${p?.name || 'unknown'} - ${e?.message || String(e)}`);
+        results.push({ name: p?.name || 'unknown', success: false, error: e?.message || String(e) });
+      }
     }
   }
   return results;
