@@ -139,7 +139,27 @@
     .wg-field .input::placeholder { color: rgba(255,255,255,.45); }
 
     /* Validation states */
-    .wg-field .input.input-error { border-color: rgba(255,80,80,.65); box-shadow: 0 0 0 1px rgba(255,80,80,.55); }
+    .wg-field .input.input-error {
+      border-color: rgba(255,80,80,.65);
+      box-shadow: 0 0 0 1px rgba(255,80,80,.55);
+      transition: border-color 0.25s cubic-bezier(.5,1.5,.3,1), box-shadow 0.25s cubic-bezier(.5,1.5,.3,1);
+    }
+    /* Flash effect for bk-preview */
+    #bk-preview.flash {
+      animation: bk-preview-flash 0.36s cubic-bezier(.7,0,.3,1);
+    }
+    @keyframes bk-preview-flash {
+      from { background: rgba(255,255,180,0.37); }
+      60%  { background: rgba(255,255,180,0.27); }
+      to   { background: transparent; }
+    }
+    /* Info button hover highlight */
+    .info-pop-btn.hover-highlight,
+    .info-pop-btn.hover-highlight:hover {
+      background: rgba(120,180,255,0.18);
+      box-shadow: 0 0 8px rgba(120,180,255,0.18);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
     .field-error { margin-top: 4px; color: #ff8a8a; }
 
     .wg-field .history-action-button { opacity: .9; transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
@@ -529,3 +549,9 @@
     }
   }
 }
+
+.valid-path { color: #7fff7f; }
+.invalid-path { color: #ff8a8a; font-weight: 600; }
+.optional-path { color: #aaa; font-style: italic; }
+.bk-preview .path-line { transition: color 0.35s ease; }
+.field-error::before { content: '⚠ '; }

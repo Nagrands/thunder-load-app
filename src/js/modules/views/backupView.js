@@ -513,18 +513,32 @@ export default function renderBackup() {
       btn.className = 'info-pop-btn';
       btn.setAttribute('aria-label', 'Пояснение');
       btn.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+      // Hover effect: add/remove hover-highlight class
+      btn.addEventListener('mouseenter', () => btn.classList.add('hover-highlight'));
+      btn.addEventListener('mouseleave', () => btn.classList.remove('hover-highlight'));
       btn.addEventListener('click', (e)=>{ e.stopPropagation(); const msg = lab.getAttribute('data-hint') || ''; if (infoPop.style.display === 'block') hideInfo(); else showInfo(btn, msg); });
       lab.appendChild(btn);
     });
     overlay.addEventListener('click', (e)=>{ if (!e.target.closest('.info-pop-btn') && !e.target.closest('.bk-infopop')) hideInfo(); });
-    // Autofocus the first required field
-    queueMicrotask(() => { q('#f-name')?.focus(); });
+
+    // Autofocus the first empty required field on modal open
+    queueMicrotask(() => {
+      const fields = ['#f-name', '#f-src', '#f-dst'];
+      for (const sel of fields) {
+        const el = q(sel);
+        if (el && !el.value.trim()) {
+          el.focus();
+          break;
+        }
+      }
+    });
 
     function updateSaveState() {
       const name = q('#f-name')?.value?.trim();
       const src  = q('#f-src')?.value?.trim();
       const dst  = q('#f-dst')?.value?.trim();
       const hasErrors = !!overlay.querySelector('.field-error:not(:empty)');
+      // Фильтры файлов (#f-pats) опциональны и не влияют на возможность сохранения
       const ok = !!name && !!src && !!dst && !hasErrors;
       const btn = q('#bk-save');
       if (btn) {
@@ -538,8 +552,17 @@ export default function renderBackup() {
       const inp = q(`#${id}`);
       const box = overlay.querySelector(`.field-error[data-error-for="${id}"]`);
       if (!inp || !box) return;
-      inp.classList.toggle('input-error', !!hasError);
+      // For smooth transition, always add/remove .input-error, and force reflow if adding
+      if (hasError) {
+        inp.classList.add('input-error');
+        // Force reflow to allow transition if re-adding error
+        void inp.offsetWidth;
+      } else {
+        inp.classList.remove('input-error');
+      }
       box.textContent = hasError ? (message || '') : '';
+      if (hasError) box.classList.add('field-error-icon');
+      else box.classList.remove('field-error-icon');
       _debouncedUpdateSave();
     }
     // Wire up pick/clear buttons embedded in inputs
@@ -553,10 +576,20 @@ export default function renderBackup() {
       });
     });
     overlay.querySelectorAll('.clear-field-btn').forEach((btn)=>{
+      const sel = btn.getAttribute('data-target');
+      const input = sel ? q(sel) : null;
+      if (!input) return;
+      
+      const updateVisibility = () => {
+        btn.style.display = input.value.trim() ? '' : 'none';
+      };
+      
+      updateVisibility();
+      input.addEventListener('input', updateVisibility);
+      
       btn.addEventListener('click', ()=>{
-        const sel = btn.getAttribute('data-target');
-        const input = sel ? q(sel) : null;
-        if (input) input.value = '';
+        input.value = '';
+        updateVisibility();
         updatePreview();
       });
     });
@@ -565,6 +598,9 @@ export default function renderBackup() {
       el?.addEventListener('input', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
       el?.addEventListener('change', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
     });
+    // #f-pats не вызывает markFieldError по пустому значению
+    q('#f-prof')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
+    q('#f-pats')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
     q('#f-prof')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
     q('#f-pats')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
 
@@ -638,7 +674,11 @@ export default function renderBackup() {
       const nameEl = q('#f-name');
       if (nameEl && !nameEl.value.trim()) {
         const bn = baseName(q('#f-src')?.value || '');
-        if (bn) nameEl.value = bn;
+        if (bn) {
+          nameEl.value = bn;
+          const hintEl = q('#f-name-hint');
+          if (hintEl) hintEl.textContent = `Автопредложение имени: ${bn}`;
+        }
       }
       await validatePath('f-src', true);
       _debouncedUpdateSave();
@@ -651,19 +691,32 @@ export default function renderBackup() {
     _debouncedUpdateSave();
 
     function updatePreview() {
-      const name = q('#f-name')?.value?.trim() || 'Имя';
-      const src = q('#f-src')?.value?.trim() || '—';
-      const dst = q('#f-dst')?.value?.trim() || '—';
-      const prof = q('#f-prof')?.value?.trim();
-      const pats = q('#f-pats')?.value?.trim() || 'все файлы';
-      const lines = [
-        `<div><b>${name}</b>: ${src} → ${dst}</div>`,
-        `<div>Фильтры: ${pats}</div>`,
-        `<div>Профиль: ${prof ? prof : '—'}</div>`
-      ];
-      const box = q('#bk-preview');
-      if (box) box.innerHTML = lines.join('');
+    const name = q('#f-name')?.value?.trim() || 'Имя';
+    const src = q('#f-src')?.value?.trim() || '';
+    const dst = q('#f-dst')?.value?.trim() || '';
+    const prof = q('#f-prof')?.value?.trim();
+    const pats = q('#f-pats')?.value?.trim() || 'все файлы';
+
+    const checkPathClass = (val, required) => {
+      if (!val) return required ? 'invalid-path' : 'optional-path';
+      return 'valid-path';
+    };
+
+    const lines = [
+      `<div><b>${name}</b>: <span class="path-line ${checkPathClass(src,true)}">${src || '—'}</span> → <span class="path-line ${checkPathClass(dst,true)}">${dst || '—'}</span></div>`,
+      `<div>Фильтры: ${pats}</div>`,
+      `<div>Профиль: <span class="path-line ${checkPathClass(prof,false)}">${prof || '—'}</span></div>`
+    ];
+
+    const box = q('#bk-preview');
+    if (box) {
+      box.innerHTML = lines.join('');
+      box.classList.remove('flash');
+      void box.offsetWidth;
+      box.classList.add('flash');
+      setTimeout(() => box.classList.remove('flash'), 350);
     }
+  }
     updatePreview();
     const closeOverlay = () => {
       overlay.remove();
