@@ -226,6 +226,25 @@ async function runBackup(program) {
   const ts = new Date();
   const timestamp = `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')}_${String(ts.getHours()).padStart(2,'0')}-${String(ts.getMinutes()).padStart(2,'0')}-${String(ts.getSeconds()).padStart(2,'0')}`;
   const tmpFolder = path.join(os.tmpdir(), `${name}_Backup_${timestamp}`);
+
+  const { available } = await fsp.statvfs?.(dstRoot).catch(() => ({})) || {};
+  try {
+    const diskInfo = await fsp.statvfs?.(dstRoot);
+    if (diskInfo && diskInfo.f_bavail && diskInfo.f_bsize) {
+      const freeMB = Math.round((diskInfo.f_bavail * diskInfo.f_bsize) / 1024 / 1024);
+      if (freeMB < 500) {
+        log.warn(`[backup] Low disk space detected at '${dstRoot}': only ${freeMB} MB available`);
+      }
+    }
+  } catch {
+    // fallback for platforms without statvfs
+    const freeSpace = os.freemem?.() ? Math.round(os.freemem() / 1024 / 1024) : null;
+    if (freeSpace && freeSpace < 500) {
+      log.warn(`[backup] System memory low, only ${freeSpace} MB free`);
+    }
+  }
+  const startTime = Date.now();
+
   try {
     const srcStat = await fsp.stat(src).catch(() => null);
     if (!srcStat || !srcStat.isDirectory()) throw new Error(`Source not found: ${src}`);
@@ -247,6 +266,8 @@ async function runBackup(program) {
     log.error(`[backup] Backup failed for program: ${name} - ${error?.message || error}`);
     throw error;
   } finally {
+    const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(2);
+    log.info(`[backup] Backup for '${name}' finished in ${elapsedSec}s`);
     try {
       const exists = await fsp.stat(tmpFolder).then(() => true).catch(() => false);
       if (exists) {
