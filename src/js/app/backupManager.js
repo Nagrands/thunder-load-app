@@ -185,7 +185,7 @@ async function zipFolder(folderPath, zipPath) {
   return zipPath;
 }
 
-async function moveOldBackups(backupDir, programName, keep = 5) {
+async function moveOldBackups(backupDir, programName, keep = 7) {
   try {
     const entries = await fsp.readdir(backupDir, { withFileTypes: true });
     const prefix = `${programName}_Backup_`;
@@ -199,15 +199,18 @@ async function moveOldBackups(backupDir, programName, keep = 5) {
     }
     targets.sort((a, b) => b.mtimeMs - a.mtimeMs);
     if (targets.length > keep) {
-      const archiveDir = path.join(backupDir, '_archive');
-      await ensureDir(archiveDir);
       for (const t of targets.slice(keep)) {
-        const dest = path.join(archiveDir, path.basename(t.file));
-        await fsp.rename(t.file, dest).catch(async () => {
-          // fallback to copy+unlink
-          await fsp.copyFile(t.file, dest);
-          await fsp.unlink(t.file);
-        });
+        try {
+          const st = await fsp.stat(t.file).catch(() => null);
+          if (st && st.isFile()) {
+            await fsp.unlink(t.file);
+            log.info(`[backup] Old backup deleted: ${t.file}`);
+          } else {
+            log.warn(`[backup] Skipping non-file or missing: ${t.file}`);
+          }
+        } catch (err) {
+          log.warn(`[backup] Failed to delete old backup: ${t.file} - ${err.message}`);
+        }
       }
     }
   } catch (e) {
@@ -249,7 +252,7 @@ async function runBackup(program) {
     const srcStat = await fsp.stat(src).catch(() => null);
     if (!srcStat || !srcStat.isDirectory()) throw new Error(`Source not found: ${src}`);
     await ensureDir(dstRoot);
-    await moveOldBackups(dstRoot, name, 5);
+    await moveOldBackups(dstRoot, name, 7);
     await ensureDir(tmpFolder);
     await copyTreeFiltered(src, tmpFolder, patterns);
     await copyProfile(profile, tmpFolder);

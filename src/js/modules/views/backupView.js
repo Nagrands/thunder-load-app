@@ -866,9 +866,22 @@ export default function renderBackup() {
       try { await save(); await load(); toast('Удалено'); } catch (e) { toast(e.message || 'Ошибка', 'error'); }
     });
   });
-  getEl('#bk-run-selected').addEventListener('click', async () => {
-    const indices = Array.from(wrapper.querySelectorAll('.bk-chk:checked')).map((c) => Number(c.dataset.i));
-    await runForIndices(indices);
+  getEl('#bk-run-selected')?.addEventListener('click', async () => {
+    const indices = Array.from(wrapper.querySelectorAll('.bk-chk:checked')).map(c => Number(c.dataset.i));
+    if (!indices.length) return;
+
+    // disable button using CSS class instead of direct attribute removal for safety
+    const btn = getEl('#bk-run-selected');
+    if (btn) btn.classList.add('is-loading');
+
+    try {
+      await runForIndices(indices);
+    } finally {
+      try {
+        const btnFinal = getEl('#bk-run-selected');
+        if (btnFinal) btnFinal.classList.remove('is-loading');
+      } catch (_) { /* no-op */ }
+    }
   });
   const selAll = getEl('#bk-select-all');
   if (selAll) {
