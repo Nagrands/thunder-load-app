@@ -48,6 +48,7 @@ async function readPrograms() {
     const data = JSON.parse(raw);
     return Array.isArray(data?.programs) ? data.programs : [];
   } catch (e) {
+    log.warn(`[backup] Failed to read programs config: ${e?.message || e}`);
     return [];
   }
 }
@@ -77,7 +78,9 @@ async function listLastTimes(programs) {
         if (!latest || st.mtimeMs > latest.mtimeMs) latest = { file: z, mtimeMs: st.mtimeMs };
       }
       if (latest) result[name] = latest.mtimeMs;
-    } catch (_) {}
+    } catch (err) {
+      log.warn(`[backup] Failed to list last times for program '${prg?.name}': ${err?.message || err}`);
+    }
   }
   return result;
 }
@@ -126,7 +129,11 @@ async function copyTreeFiltered(src, dst, patterns) {
       } else if (it.isFile()) {
         if (matchByPatterns(it.name, patterns)) {
           await ensureDir(path.dirname(dstPath));
-          await fsp.copyFile(srcPath, dstPath);
+          try {
+            await fsp.copyFile(srcPath, dstPath);
+          } catch (err) {
+            log.warn(`[backup] Failed to copy file '${srcPath}' -> '${dstPath}': ${err?.message || err}`);
+          }
         }
       }
     }
@@ -155,7 +162,11 @@ async function copyDir(src, dst) {
       await copyDir(s, d);
     } else if (e.isFile()) {
       await ensureDir(path.dirname(d));
-      await fsp.copyFile(s, d);
+      try {
+        await fsp.copyFile(s, d);
+      } catch (err) {
+        log.warn(`[backup] Failed to copy file '${s}' -> '${d}': ${err?.message || err}`);
+      }
     }
   }
 }
@@ -346,6 +357,10 @@ async function runBackupBatch(programs, parallel = false) {
       }
     }
   }
+  // Итоговое логирование после выполнения всех задач
+  const ok = results.filter(r => r.success).length;
+  const fail = results.filter(r => !r.success).length;
+  log.info(`[backup] Batch complete: ${ok} successful, ${fail} failed out of ${results.length}`);
   return results;
 }
 

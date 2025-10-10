@@ -73,53 +73,48 @@ export default function renderBackup() {
         <div class="title">
           <i class="fa-solid fa-database"></i>
           <div class="text">
-            <h1>Backup</h1>
-            <p class="subtitle text-muted">Резервное копирование файлов и папок: исходник → архив в целевую папку</p>
+            <h2>Backup</h2>
+            <p class="subtitle text-muted">Резервное копирование файлов и папок</p>
           </div>
         </div>
       </div>
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление пресетами">
-      <div class="history-actions">
-        <div class="history-search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="bk-filter" class="input" placeholder="Поиск пресетов" aria-label="Поиск пресетов" style="padding-left:34px;padding-right:34px;" autocomplete="off" />
-            <button id="bk-clear-filter" class="history-action-button" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск">&times;</button>
-        </div>
-        <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
+
+      <h1 class="section-heading">
+      <div>
+      Пресеты 
+        <span id="bk-count" class="bk-count" title="Видимых/всего">0/0</span>
+      </div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="bk-select-all" />
+          <span class="text-xs text-muted">выбрать всё</span>
+        </label>
+        <div>
+          <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
           <div class="bk-actions">
-            <button id="bk-add" class="btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
+            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
               <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="bk-del" class="btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
+            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
               <i class="fa-solid fa-trash"></i>
               <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
-            <button id="bk-run-selected" class="btn btn-ghost btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled>
+            <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled>
               <i class="fa-solid fa-play"></i>
               <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
             </button>
           </div>
         </div>
-      </div>
+      </h1>
+          
+      <div id="bk-list" class="bk-list space-y-2"></div>
 
-      <h2 class="section-heading">Пресеты
-        <span id="bk-count" class="bk-count" title="Видимых/всего">0/0</span>
-        <label class="checkbox-label" style="margin-left:8px">
-          <input type="checkbox" id="bk-select-all" />
-          <i class="fa-solid fa-check"></i>
-          <span class="text-xs text-muted">выбрать всё</span>
-          </label>
-          </h2>
-          <div id="bk-list" class="bk-list space-y-2"></div>
-          
-          
           <details class="wg-log-block">
           <summary class="log-summary">
           <span class="log-title"><i class="fa-solid fa-terminal"></i> Лог</span>
           <div class="log-actions">
           <button id="bk-log-autoscroll" type="button" class="small-button" title="Автопрокрутка: вкл"><i class="fa-solid fa-arrow-down-short-wide"></i></button>
-          <button id="bk-log-font" type="button" class="small-button" title="Шрифт: моно"><i class="fa-solid fa-font"></i></button>
           <button id="bk-log-copy" type="button" class="small-button" title="Скопировать лог"><i class="fa-solid fa-copy"></i></button>
           <button id="bk-log-export" type="button" class="small-button" title="Экспорт в файл"><i class="fa-solid fa-file-arrow-down"></i></button>
           <button id="bk-log-clear" type="button" class="small-button" title="Очистить лог"><i class="fa-solid fa-trash"></i></button>
@@ -127,8 +122,6 @@ export default function renderBackup() {
           </summary>
           <pre id="bk-log" class="wg-status console text-xs overflow-auto"></pre>
           </details>
-          
-          <div class="text-xs text-muted">Совет: шаблоны файлов разделяйте запятыми, например: *.ini,*.cfg,*.dat</div>
     </div>
   `;
   container.innerHTML = html;
@@ -379,6 +372,30 @@ export default function renderBackup() {
   }
 
   /**
+   * Render a field for the backup modal form.
+   * @param {string} labelText
+   * @param {string} id
+   * @param {string} value
+   * @param {string} hint
+   * @param {boolean} required
+   * @param {boolean} hasPick
+   * @returns {string}
+   */
+  function renderField(labelText, id, value, hint, required = false, hasPick = false) {
+    return `
+      <label class="wg-field flex flex-col gap-1 relative" data-hint="${hint}">
+        <span class="text-sm">${labelText}</span>
+        <div class="filter-clear-container input-container">
+          <input id="${id}" class="input" type="text" placeholder="${hint}" value="${value}" ${required ? 'required' : ''} aria-describedby="${id}-hint ${id}-err"/>
+          <div class="input-actions">
+            ${hasPick ? `<button type="button" class="pick-folder-btn history-action-button" data-pick="#${id}" title="Выбрать папку" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>` : ''}
+            <button type="button" class="clear-field-btn history-action-button" data-target="#${id}" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
+          </div>
+        </div>
+      </label>`;
+  }
+
+  /**
    * Open modal editor for creating or editing a backup preset.
    * @param {number} [idx=-1] - Index in state.programs, or -1 to create a new preset.
    * @returns {void}
@@ -390,91 +407,35 @@ export default function renderBackup() {
       : JSON.parse(JSON.stringify(state.programs[idx]));
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
+    // Новый современный HTML модалки с 2-колоночной формой, современным фоном, градиентами, компактными полями, preview снизу, минимальными тенями и hover эффектами.
     overlay.innerHTML = `
-      <div class="modal-content bk-modal">
-        <div class="modal-header">
-          <h2><i class="fa-solid fa-box-archive" style="margin-right:8px"></i>${isNew ? 'Новый пресет' : 'Редактировать пресет'}</h2>
-          <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="wg-grid bk-form-grid">
-            <label class="wg-field flex flex-col gap-1 relative" data-hint="Введите краткое название пресета">
-              <span class="text-sm">Имя пресета*</span>
-              <div class="filter-clear-container input-container">
-                <input id="f-name" class="input" type="text" placeholder="Например: Firefox" value="${init.name || ''}" aria-describedby="f-name-hint f-name-err" />
-                <div class="history-action">
-                  <button type="button" class="clear-field-btn history-action-button" data-target="#f-name" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
-                </div>
-              </div>
-              <div id="f-name-hint" class="field-hint text-xs text-muted">Будет использоваться в имени архива</div>
-              <div id="f-name-err" class="field-error text-xs text-red-500" data-error-for="f-name"></div>
-            </label>
-
-            <label class="wg-field flex flex-col gap-1 relative" data-hint="Папка, из которой будут копироваться файлы">
-              <span class="text-sm">Исходный путь*</span>
-              <div class="filter-clear-container input-container">
-                <input id="f-src" class="input" type="text" placeholder="Выберите исходную папку" value="${init.source_path || ''}" aria-describedby="f-src-hint f-src-err" />
-                <div class="history-action">
-                  <button type="button" class="pick-folder-btn history-action-button" data-pick="#f-src" title="Выбрать папку" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>
-                  <button type="button" class="clear-field-btn history-action-button" data-target="#f-src" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
-                </div>
-              </div>
-              <div id="f-src-hint" class="field-hint text-xs text-muted">Можно перетащить путь мышью в поле</div>
-              <div id="f-src-err" class="field-error text-xs text-red-500" data-error-for="f-src"></div>
-            </label>
-
-            <label class="wg-field flex flex-col gap-1 relative" data-hint="Куда сохранить архивы резервных копий">
-              <span class="text-sm">Папка бэкапа*</span>
-              <div class="filter-clear-container input-container">
-                <input id="f-dst" class="input" type="text" placeholder="Папка назначения" value="${init.backup_path || ''}" aria-describedby="f-dst-hint f-dst-err" />
-                <div class="history-action">
-                  <button type="button" class="pick-folder-btn history-action-button" data-pick="#f-dst" title="Выбрать папку" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>
-                  <button type="button" class="clear-field-btn history-action-button" data-target="#f-dst" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
-                </div>
-              </div>
-              <div id="f-dst-hint" class="field-hint text-xs text-muted">Архивы вида “Имя_Backup_Дата.zip”</div>
-              <div id="f-dst-err" class="field-error text-xs text-red-500" data-error-for="f-dst"></div>
-            </label>
-
-            <label class="wg-field flex flex-col gap-1 relative" data-hint="Необязательно: папка профиля приложения">
-              <span class="text-sm">Папка профиля</span>
-              <div class="filter-clear-container input-container">
-                <input id="f-prof" class="input" type="text" placeholder="Опционально" value="${init.profile_path || ''}" aria-describedby="f-prof-hint" />
-                <div class="history-action">
-                  <button type="button" class="pick-folder-btn history-action-button" data-pick="#f-prof" title="Выбрать папку" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>
-                  <button type="button" class="clear-field-btn history-action-button" data-target="#f-prof" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
-                </div>
-              </div>
-              <div id="f-prof-hint" class="field-hint text-xs text-muted">Будет скопирована в подкаталог “Profiles”</div>
-            </label>
-
-            <label class="wg-field flex flex-col gap-1 relative" style="grid-column:1/-1" data-hint="Список масок через запятую">
-              <span class="text-sm">Фильтры файлов</span>
-              <div class="filter-clear-container input-container">
-                <input id="f-pats" class="input" type="text" placeholder="Например: *.ini,*.cfg,*.dat (пусто — все файлы)" value="${(init.config_patterns||[]).join(',')}" aria-describedby="f-pats-hint" />
-                <div class="history-action">
-                  <button type="button" class="clear-field-btn history-action-button" data-target="#f-pats" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
-                </div>
-              </div>
-              <div id="f-pats-hint" class="field-hint text-xs text-muted">Поддерживаются * и ? (по имени файла)</div>
-            </label>
-          </div>
-
-          <div class="wg-card bk-preview-card">
-            <div class="text-xs text-muted"><strong>Предпросмотр</strong></div>
-            <div id="bk-preview" class="text-sm bk-preview"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <label class="checkbox-label" style="margin-right:auto; gap:.5rem">
-            <input type="checkbox" id="bk-save-run" />
-            <i class="fa-solid fa-play"></i>
-            <span class="text-xs text-muted">Сохранить и запустить</span>
-          </label>
-          <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
-          <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
-        </div>
-      </div>`;
+<div class="modal-content bk-modal">
+  <div class="modal-header">
+    <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? 'Новый пресет' : 'Редактировать пресет'}</h2>
+    <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
+  </div>
+  <div class="modal-body bk-form-grid">
+    ${renderField('Имя пресета *', 'f-name', init.name || '', 'Будет использоваться в имени архива', true)}
+    ${renderField('Исходная папка *', 'f-src', init.source_path || '', 'Путь папки для бэкапа', true, true)}
+    ${renderField('Папка бэкапа *', 'f-dst', init.backup_path || '', 'Архивы вида “Имя_Backup_Дата.zip”', true, true)}
+    ${renderField('Папка профиля', 'f-prof', init.profile_path || '', 'Будет скопирована в подкаталог “Profiles”', false, true)}
+    ${renderField('Фильтры файлов', 'f-pats', (init.config_patterns||[]).join(','), 'Поддерживаются * и ? (по имени файла)', false)}
+    <div class="bk-preview-card">
+      <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>Предпросмотр</strong></div>
+      <div id="bk-preview" class="text-sm bk-preview"></div>
+    </div>
+  </div>
+  <div class="modal-footer flex gap-3">
+    <label class="checkbox-label" style="margin-right:auto; gap:.5rem">
+      <input type="checkbox" id="bk-save-run" />
+      <i class="fa-solid fa-play"></i>
+      <span class="text-xs text-muted">Сохранить и запустить</span>
+    </label>
+    <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
+    <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
+  </div>
+</div>
+`;
     // Показать модалку по правилам приложения
     const _docEl = document.documentElement;
     const _prevOverflow = _docEl.style.overflow;
@@ -483,43 +444,6 @@ export default function renderBackup() {
     wrapper.appendChild(overlay);
     const q = (s) => overlay.querySelector(s);
 
-    // Lightweight info popover (no Bootstrap)
-    const infoPop = document.createElement('div');
-    infoPop.className = 'bk-infopop';
-    infoPop.setAttribute('role', 'tooltip');
-    infoPop.style.display = 'none';
-    infoPop.innerHTML = '<div class="bk-infopop-content"></div>';
-    overlay.appendChild(infoPop);
-
-    function showInfo(btn, html) {
-      const c = infoPop.querySelector('.bk-infopop-content');
-      c.innerHTML = html;
-      infoPop.style.display = 'block';
-      const br = btn.getBoundingClientRect();
-      const or = overlay.getBoundingClientRect();
-      const x = br.left - or.left + (br.width / 2);
-      const y = br.top - or.top + br.height + 8; // below button
-      const maxX = or.width - 12; // keep 12px padding from right edge
-      const clampedX = Math.min(maxX, Math.max(12, x));
-      infoPop.style.left = `${clampedX}px`;
-      infoPop.style.top  = `${Math.max(12, y)}px`;
-    }
-    function hideInfo() { infoPop.style.display = 'none'; }
-
-    // Create small info buttons for labels that have data-hint
-    overlay.querySelectorAll('label.wg-field[data-hint]').forEach((lab)=>{
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'info-pop-btn';
-      btn.setAttribute('aria-label', 'Пояснение');
-      btn.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
-      // Hover effect: add/remove hover-highlight class
-      btn.addEventListener('mouseenter', () => btn.classList.add('hover-highlight'));
-      btn.addEventListener('mouseleave', () => btn.classList.remove('hover-highlight'));
-      btn.addEventListener('click', (e)=>{ e.stopPropagation(); const msg = lab.getAttribute('data-hint') || ''; if (infoPop.style.display === 'block') hideInfo(); else showInfo(btn, msg); });
-      lab.appendChild(btn);
-    });
-    overlay.addEventListener('click', (e)=>{ if (!e.target.closest('.info-pop-btn') && !e.target.closest('.bk-infopop')) hideInfo(); });
 
     // Autofocus the first empty required field on modal open
     queueMicrotask(() => {
@@ -598,32 +522,47 @@ export default function renderBackup() {
       el?.addEventListener('input', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
       el?.addEventListener('change', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
     });
-    // #f-pats не вызывает markFieldError по пустому значению
-    q('#f-prof')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
-    q('#f-pats')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
-    q('#f-prof')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
-    q('#f-pats')?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
+    // #f-prof и #f-pats обновляют preview и save state (без дублирования)
+    ['#f-prof','#f-pats'].forEach(fid => {
+      const el = q(fid);
+      el?.addEventListener('input', () => { updatePreview(); _debouncedUpdateSave(); });
+    });
 
-    // Drag and drop support for path inputs (Electron: uses file.path) + highlight
+    // Drag & Drop support for path inputs (Electron: uses file.path) + highlight
     ['#f-src', '#f-dst', '#f-prof'].forEach((sel) => {
       const field = q(sel);
       if (!field) return;
       const box = field.closest('.input-container');
-      const addHL = () => box && box.classList.add('is-drop');
-      const rmHL  = () => box && box.classList.remove('is-drop');
-      const onDragPrevent = (e) => { e.preventDefault(); e.stopPropagation(); };
+      if (!box) return;
 
-      ['dragenter','dragover'].forEach(ev => field.addEventListener(ev, (e)=>{ onDragPrevent(e); addHL(); }));
-      ['dragleave','drop'].forEach(ev => field.addEventListener(ev, (e)=>{ onDragPrevent(e); rmHL(); }));
+      const addHL = () => box.classList.add('is-drop');
+      const rmHL  = () => box.classList.remove('is-drop');
 
-      field.addEventListener('drop', (e) => {
-        const f = e.dataTransfer?.files?.[0];
-        if (f && f.path) {
-          field.value = f.path;
+      // attach dragenter/dragover to the container
+      ['dragenter', 'dragover'].forEach(ev => {
+        box.addEventListener(ev, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addHL();
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(ev => {
+        box.addEventListener(ev, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          rmHL();
+        });
+      });
+
+      box.addEventListener('drop', (e) => {
+        const file = e.dataTransfer?.files?.[0];
+        if (file && file.path) {
+          field.value = file.path;
           if (sel === '#f-src') {
             const nameEl = q('#f-name');
             if (nameEl && !nameEl.value.trim()) {
-              const bn = baseName(field.value || '');
+              const bn = baseName(file.path);
               if (bn) nameEl.value = bn;
             }
           }
@@ -908,18 +847,6 @@ export default function renderBackup() {
   };
   refreshAutoBtn();
   logAutoBtn?.addEventListener('click', () => { state.autoscroll = !state.autoscroll; refreshAutoBtn(); });
-
-  // Font toggle (mono / proportional)
-  const logFontBtn = getEl('#bk-log-font');
-  const refreshFontBtn = () => {
-    if (!logFontBtn) return;
-    logFontBtn.title = `Шрифт: ${state.mono ? 'моно' : 'пропорц'}`;
-    logFontBtn.classList.toggle('is-active', !!state.mono);
-    if (logBox) logBox.classList.toggle('mono', !!state.mono);
-    try { localStorage.setItem('bk_log_mono', JSON.stringify(!!state.mono)); } catch {}
-  };
-  refreshFontBtn();
-  logFontBtn?.addEventListener('click', () => { state.mono = !state.mono; refreshFontBtn(); });
 
   // Export log to a .txt file (client-side)
   const logExportBtn = getEl('#bk-log-export');
