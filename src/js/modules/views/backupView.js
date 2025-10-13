@@ -389,7 +389,7 @@ export default function renderBackup() {
           <input id="${id}" class="input" type="text" placeholder="${hint}" value="${value}" ${required ? 'required' : ''} aria-describedby="${id}-hint ${id}-err"/>
           <div class="input-actions">
             ${hasPick ? `<button type="button" class="pick-folder-btn history-action-button" data-pick="#${id}" title="Выбрать папку" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>` : ''}
-            <button type="button" class="clear-field-btn history-action-button" data-target="#${id}" title="Очистить"><i class="fa-solid fa-times-circle"></i></button>
+            <button type="button" class="clear-field-btn history-action-button" data-target="#${id}" title="Очистить" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-solid fa-times-circle"></i></button>
           </div>
         </div>
       </label>`;
@@ -731,6 +731,13 @@ export default function renderBackup() {
    */
   async function runForIndices(indices) {
     if (!indices.length) { toast('Не выбрано ни одного пресета', 'warning'); return; }
+    // --- Ensure log panel is expanded before running backup (universal for .bk-log-panel or .bk-log)
+    const logPanel = document.querySelector('.bk-log-panel') || document.querySelector('.bk-log');
+    if (logPanel) {
+      logPanel.style.display = 'block';
+      logPanel.classList.remove('collapsed');
+      logPanel.classList.add('expanded');
+    }
     const list = indices.map((i) => state.programs[i]);
     // Visual highlighting rows and progress bar
     const rows = indices
