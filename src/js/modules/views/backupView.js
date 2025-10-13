@@ -154,6 +154,7 @@ export default function renderBackup() {
     if (/✔/.test(msg)) line.classList.add('log-success');
     else if (/✖|ошибка|error/i.test(msg)) line.classList.add('log-error');
     else if (/предупреждение|warn/i.test(msg)) line.classList.add('log-warn');
+    else line.classList.add('log-info');
     line.textContent = `${new Date().toLocaleTimeString()} › ${msg}`;
     logBox.appendChild(line);
     if (state.autoscroll || atBottom) logBox.scrollTop = logBox.scrollHeight;
@@ -696,7 +697,13 @@ export default function renderBackup() {
         return;
       }
       const payload = { name, source_path, backup_path, profile_path, config_patterns };
-      if (isNew) state.programs.push(payload); else state.programs[idx] = payload;
+      if (isNew) {
+        state.programs.push(payload);
+        log(`Создан новый пресет: ${name}`);
+      } else {
+        state.programs[idx] = payload;
+        log(`Пресет обновлён: ${name}`);
+      }
       try {
         await save();
         await load();
@@ -810,6 +817,7 @@ export default function renderBackup() {
     showConfirmationDialog(`Вы уверены, что хотите удалить пресеты: <b>${names}</b>?`, async () => {
       state.programs = state.programs.filter((_, i) => !indices.includes(i));
       try { await save(); await load(); toast('Удалено'); } catch (e) { toast(e.message || 'Ошибка', 'error'); }
+      log(`Удалены пресеты: ${names}`);
     });
   });
   getEl('#bk-run-selected')?.addEventListener('click', async () => {

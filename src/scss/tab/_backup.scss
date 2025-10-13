@@ -1548,18 +1548,23 @@
   line-height: 1.25;
   white-space: pre-wrap;
 
+  &.log-info {
+    color: #5fc3ff;
+    background: rgba(95,195,255,0.08);
+  }
+
   &.log-success {
-    color: #3fe69f; // зеленый для успешных
+    color: #3fe69f;
     background: rgba(60,200,120,0.1);
   }
 
   &.log-error {
-    color: #ff6b6b; // красный для ошибок
+    color: #ff6b6b;
     background: rgba(255,90,90,0.1);
   }
 
   &.log-warn {
-    color: #ffdf6a; // желтый для предупреждений
+    color: #ffdf6a;
     background: rgba(255,200,60,0.1);
   }
 }

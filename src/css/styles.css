@@ -18332,6 +18332,10 @@ video {
   line-height: 1.25;
   white-space: pre-wrap;
 }
+#bk-log .log-line.log-info {
+  color: #5fc3ff;
+  background: rgba(95, 195, 255, 0.08);
+}
 #bk-log .log-line.log-success {
   color: #3fe69f;
   background: rgba(60, 200, 120, 0.1);
