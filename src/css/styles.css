@@ -18213,6 +18213,60 @@ video {
   transform: translateY(5px);
 }
 
+.backup-view {
+  /* ---------------------------------------------------------------------------
+     Existing Profile Selector in Edit Modal
+  --------------------------------------------------------------------------- */
+}
+.backup-view #f-select-existing {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-hover);
+  background: rgba(32, 32, 40, 0.93);
+  color: var(--color-highlight);
+  font-size: 0.97rem;
+  outline: none;
+  transition: border-color 0.22s, box-shadow 0.22s;
+  cursor: pointer;
+}
+.backup-view #f-select-existing:hover:not(:focus) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 6px rgba(120, 180, 255, 0.15);
+}
+.backup-view #f-select-existing:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(120, 180, 255, 0.22), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.backup-view #f-select-existing option {
+  background: rgba(32, 32, 40, 0.95);
+  color: var(--color-highlight);
+  padding: 4px 8px;
+}
+
+.name-list-popup {
+  display: block;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  font-size: 0.95rem;
+  font-weight: 500;
+  background: rgba(32, 32, 40, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  z-index: 10;
+  margin-top: 4px;
+}
+
+.name-list-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--color-highlight);
+  transition: background 0.18s;
+}
+
+.name-list-item:hover {
+  background: rgba(120, 180, 255, 0.2);
+}
+
 body.is-mac .btn-minimize,
 body.is-mac .btn-close {
   display: none !important;

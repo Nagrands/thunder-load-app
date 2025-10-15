@@ -499,6 +499,10 @@ export default function renderBackup() {
     const init = isNew
       ? { name: '', source_path: '', backup_path: '', profile_path: '', config_patterns: [] }
       : JSON.parse(JSON.stringify(state.programs[idx]));
+    // --- Название: всегда input для имени профиля (и для создания, и для редактирования) ---
+    // Кнопка "Список" будет добавлена JS-ом, если есть хотя бы один профиль
+    const nameFieldHTML = renderField('Название *', 'f-name', init.name || '', 'Имя профиля и создаваемого архива', true);
+
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.innerHTML = `
@@ -508,7 +512,7 @@ export default function renderBackup() {
           <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
         </div>
         <div class="modal-body bk-form-grid">
-          ${renderField('Название *', 'f-name', init.name || '', 'Имя профиля и создаваемого архива', true)}
+          ${nameFieldHTML}
           ${renderField('Исходная папка *', 'f-src', init.source_path || '', 'Укажите путь к папке резервного копирования', true, true)}
           ${renderField('Папка бэкапа *', 'f-dst', init.backup_path || '', 'Путь, где будет храниться резервная копия', true, true)}
           ${renderField('Папка настроек', 'f-prof', init.profile_path || '', 'Будет создан подкаталог «Profiles»', false, true)}
@@ -537,12 +541,85 @@ export default function renderBackup() {
     wrapper.appendChild(overlay);
     const q = (s) => overlay.querySelector(s);
 
+    // Всегда используем input для имени профиля
+    const nameInput = overlay.querySelector('#f-name');
+
+    // Добавление кнопки "Список" рядом с "Очистить поле" для имени профиля
+    queueMicrotask(() => {
+      if (!nameInput) return;
+      const inputContainer = nameInput.closest('.input-container');
+      const inputActions = inputContainer?.querySelector('.input-actions');
+      if (state.programs.length > 0 && inputActions && !inputActions.querySelector('.name-list-btn')) {
+        const btnList = document.createElement('button');
+        btnList.type = 'button';
+        btnList.className = 'history-action-button name-list-btn';
+        btnList.title = 'Список';
+        btnList.innerHTML = '<i class="fa-solid fa-list"></i>';
+        inputActions.appendChild(btnList);
+
+        btnList.addEventListener('click', () => {
+          let listBox = overlay.querySelector('.name-list-popup');
+          if (!listBox) {
+            listBox = document.createElement('div');
+            listBox.className = 'name-list-popup';
+            listBox.style.position = 'absolute';
+            listBox.style.top = '100%';
+            listBox.style.left = '0';
+            listBox.style.width = '100%';
+            listBox.style.maxHeight = '200px';
+            listBox.style.overflowY = 'auto';
+            listBox.style.background = 'rgba(32,32,40,0.95)';
+            listBox.style.border = '1px solid rgba(255,255,255,0.1)';
+            listBox.style.borderRadius = '8px';
+            listBox.style.zIndex = '10';
+            inputContainer.appendChild(listBox);
+
+            state.programs.forEach(p => {
+              const item = document.createElement('div');
+              item.className = 'name-list-item';
+              item.textContent = p.name;
+              item.style.padding = '6px 10px';
+              item.style.cursor = 'pointer';
+              item.style.color = 'var(--color-highlight)';
+              item.addEventListener('mouseenter', () => item.style.background = 'rgba(120,180,255,0.2)');
+              item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+              item.addEventListener('click', () => {
+                nameInput.value = p.name;
+                overlay.querySelector('#f-src').value = p.source_path || '';
+                overlay.querySelector('#f-dst').value = p.backup_path || '';
+                overlay.querySelector('#f-prof').value = p.profile_path || '';
+                overlay.querySelector('#f-pats').value = (p.config_patterns || []).join(',');
+                updatePreview();
+                _debouncedUpdateSave();
+                listBox.remove();
+              });
+              listBox.appendChild(item);
+            });
+
+            // Закрытие при клике вне
+            setTimeout(() => {
+              const closePopup = (e) => {
+                if (!listBox.contains(e.target) && e.target !== btnList) {
+                  listBox.remove();
+                  document.removeEventListener('mousedown', closePopup, true);
+                }
+              };
+              document.addEventListener('mousedown', closePopup, true);
+            }, 0);
+          } else {
+            listBox.remove();
+          }
+        });
+      }
+    });
+
     // Autofocus the first empty required field on modal open
     queueMicrotask(() => {
+      // Фокусируем на первом пустом обязательном поле
       const fields = ['#f-name', '#f-src', '#f-dst'];
       for (const sel of fields) {
         const el = q(sel);
-        if (el && !el.value.trim()) {
+        if (el && el.offsetParent !== null && !el.value.trim()) {
           el.focus();
           break;
         }
@@ -550,7 +627,9 @@ export default function renderBackup() {
     });
 
     function updateSaveState() {
-      const name = q('#f-name')?.value?.trim();
+      // Получаем имя профиля с учетом видимости input/select
+      let name = '';
+      name = q('#f-name')?.value?.trim();
       const src  = q('#f-src')?.value?.trim();
       const dst  = q('#f-dst')?.value?.trim();
       const hasErrors = !!overlay.querySelector('.field-error:not(:empty)');
@@ -609,7 +688,13 @@ export default function renderBackup() {
         updatePreview();
       });
     });
+    // Обработка событий для поля имени (input) и других полей
     ['f-name','f-src','f-dst'].forEach((fid)=>{
+      const el = q(`#${fid}`);
+      el?.addEventListener('input', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
+      el?.addEventListener('change', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
+    });
+    ['f-src','f-dst'].forEach((fid)=>{
       const el = q(`#${fid}`);
       el?.addEventListener('input', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
       el?.addEventListener('change', ()=> { markFieldError(fid,false,''); updatePreview(); _debouncedUpdateSave(); });
@@ -771,7 +856,9 @@ export default function renderBackup() {
     };
     window.addEventListener('keydown', onEsc);
     q('#bk-save').addEventListener('click', async () => {
-      const name = q('#f-name').value.trim();
+      // Получаем имя профиля с учетом видимости input/select
+      let name = '';
+      name = q('#f-name')?.value?.trim();
       const source_path = q('#f-src').value.trim();
       const backup_path = q('#f-dst').value.trim();
       const profile_path = q('#f-prof').value.trim();
@@ -786,10 +873,15 @@ export default function renderBackup() {
         toast('Заполните обязательные поля', 'error');
         const firstInvalid = overlay.querySelector('.input.input-error, .input:not(.input-valid)[id="f-src"], .input:not(.input-valid)[id="f-dst"]');
         if (firstInvalid) firstInvalid.focus();
-        if (saveBtn && saveBtn.removeAttribute) {
-          saveBtn.classList.remove('is-loading');
-          saveBtn.removeAttribute('disabled');
-        }
+        if (saveBtn) { saveBtn.classList.remove('is-loading'); saveBtn.removeAttribute('disabled'); }
+        return;
+      }
+      // Проверка на дублирующее имя профиля
+      const existingIndex = state.programs.findIndex(p => p.name === name && (isNew || p !== state.programs[idx]));
+      if (existingIndex >= 0) {
+        markFieldError('f-name', true, 'Профиль с таким именем уже существует');
+        toast('Нельзя создать профиль с одинаковым именем', 'error');
+        if (saveBtn) { saveBtn.classList.remove('is-loading'); saveBtn.removeAttribute('disabled'); }
         return;
       }
       const payload = { name, source_path, backup_path, profile_path, config_patterns };
