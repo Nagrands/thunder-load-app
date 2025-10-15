@@ -432,6 +432,8 @@ export default function renderBackup() {
           <button class="btn btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
         </div>
       `;
+      // Enable editing via double-click on the row
+      row.addEventListener('dblclick', () => showEditForm(idx));
       root.appendChild(row);
       row.setAttribute('aria-label', `${p.name}: ${p.source_path} → ${p.backup_path}`);
     });
