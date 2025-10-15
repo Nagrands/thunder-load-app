@@ -530,11 +530,6 @@
         justify-items: start;
         position: relative;
 
-        &:hover {
-          box-shadow: 0 0 0 1px var(--color-hover);
-          border-radius: 8px;
-        }
-
         &:focus-within {
           .text-sm {
             color: var(--color-accent);
@@ -942,8 +937,13 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    align-items: stretch;
     margin-bottom: 0.5rem;
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+    box-sizing: border-box;
+    // Убираем горизонтальный скролл, разрешаем перенос длинных путей
+    overflow-x: hidden;
 
     .bk-row {
       animation: slide-in-from-top 0.4s ease-out;
@@ -956,15 +956,17 @@
     --bk-row-bg-selected: rgba(60, 120, 255, 0.10);
     --bk-row-border: 1px solid rgba(120,180,255,0.13);
 
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start; // выравнивание по верху, чтобы переносы не ломали ряд
     gap: 10px;
     padding: 8px 16px;
     min-height: 48px;
+    flex-shrink: 0;
+    min-width: 0; // важно
     border-radius: var(--border-radius);
-    background: var(--bk-row-bg);
-    border: var(--bk-row-border);
+    background: var(--bk-row-bg, rgba(40, 44, 56, 0.85));
+    border: 1px solid rgba(120,180,255,0.13);
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -1032,9 +1034,9 @@
     .bk-row-content {
       display: flex;
       flex-direction: column;
-      min-width: 0;
       gap: 2px;
-      justify-content: center;
+      min-width: 0;
+      flex: 1 1 auto; // занимать оставшееся пространство
 
       .font-semibold {
         font-size: 1.18rem;
@@ -1047,6 +1049,15 @@
         text-shadow: 0 1px 4px rgba(0,0,0,0.13);
       }
 
+      .back-path,
+      .back-filter {
+        white-space: normal; // разрешаем перенос
+        word-break: break-word; // переносим длинные пути
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        display: block;
+      }
       .back-path {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 12.5px;
@@ -1055,25 +1066,17 @@
         background: rgba(60,80,120,0.18);
         border: 1px solid rgba(100,150,255,0.10);
         color: #c8daff;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
         max-width: 100%;
         margin-bottom: 1px;
         transition: background 0.18s, color 0.18s;
       }
-
       .back-filter {
         font-size: 11.5px;
         color: #b3b8c7;
         font-weight: 500;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
         max-width: 100%;
         margin-bottom: 1px;
       }
-
       .text-xs.text-muted {
         font-size: 11px;
         color: var(--color-quality);
@@ -1089,6 +1092,7 @@
       display: flex;
       gap: 4px;
       align-items: center;
+      flex-shrink: 0;
 
       button {
         width: 28px;
@@ -1499,6 +1503,9 @@
   border-radius: 8px;
   z-index: 10;
   margin-top: 4px;
+  overflow-y: auto;
+  max-height: 200px;
+  padding: 4px 0;
 }
 .name-list-item {
   padding: 6px 10px;
@@ -1508,4 +1515,58 @@
 }
 .name-list-item:hover {
   background: rgba(120,180,255,0.2);
+}
+.bk-search-container {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 0.5rem;
+
+  input#bk-filter {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1.5px solid var(--color-hover);
+    background: rgba(32,32,40,0.93);
+    color: var(--color-highlight);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.22s, box-shadow 0.22s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &::placeholder {
+      color: rgba(255,255,255,0.45);
+    }
+
+    &:hover:not(:focus) {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 6px rgba(120,180,255,0.15);
+    }
+
+    &:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px rgba(120,180,255,0.22), 0 4px 12px rgba(0,0,0,0.15);
+    }
+  }
+
+  button#bk-clear-filter {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--color-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.18s, box-shadow 0.18s;
+
+    &:hover {
+      background: rgba(120,180,255,0.18);
+      box-shadow: 0 2px 8px rgba(120,180,255,0.12);
+    }
+  }
 }

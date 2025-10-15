@@ -80,6 +80,12 @@ export default function renderBackup() {
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями">
 
+      <div class="bk-search-container" style="margin-top:8px; display:flex; gap:6px; align-items:center;">
+        <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
+        <input type="text" id="bk-filter" placeholder="Поиск профиля, пути..." class="input" style="flex:1;" />
+        <button type="button" id="bk-clear-filter" class="history-action-button" title="Очистить поиск" style="width:32px; height:32px;"><i class="fa-solid fa-times"></i></button>
+      </div>
+
       <h1 class="section-heading">
       <div>
       Профиль 
@@ -125,6 +131,27 @@ export default function renderBackup() {
   `;
   container.innerHTML = html;
   wrapper.appendChild(container);
+
+  // === BEGIN: Search filter logic ===
+  // debounce must be defined before any use:
+  const debounce = (fn, ms = 120) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
+  const filterInput = container.querySelector('#bk-filter');
+  const clearFilterBtn = container.querySelector('#bk-clear-filter');
+  if (filterInput) {
+    filterInput.addEventListener('input', debounce(() => {
+      state.filter = filterInput.value.trim();
+      renderList();
+    }, 150));
+  }
+  if (clearFilterBtn && filterInput) {
+    clearFilterBtn.addEventListener('click', () => {
+      filterInput.value = '';
+      state.filter = '';
+      renderList();
+      filterInput.focus();
+    });
+  }
+  // === END: Search filter logic ===
 
   // === BEGIN: Backup Hints Block ===
   // Add hints block after subtitle
@@ -255,16 +282,22 @@ export default function renderBackup() {
     runSel: getEl('#bk-run-selected'),
   });
 
-  // Small helpers
-  const debounce = (fn, ms = 120) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
 
   /**
    * Update toolbar actions availability, titles, badges and select-all state.
+   * Считает только видимые чекбоксы в #bk-list.
    * @returns {void}
    */
   function updateActionsState() {
-    const count = wrapper.querySelectorAll('.bk-chk:checked').length;
-    const total = wrapper.querySelectorAll('.bk-chk').length;
+    const bkList = getEl('#bk-list');
+    if (!bkList) return;
+    // Считаем только видимые чекбоксы в #bk-list (не скрытые через display: none)
+    const visibleCheckboxes = Array.from(bkList.querySelectorAll('.bk-chk')).filter(
+      (chk) => chk.offsetParent !== null
+    );
+    const checkedVisibleCheckboxes = visibleCheckboxes.filter(chk => chk.checked);
+    const count = checkedVisibleCheckboxes.length;
+    const total = visibleCheckboxes.length;
     const { del, runSel } = actions();
     if (del) del.disabled = count === 0;
     if (runSel) runSel.disabled = count === 0;
@@ -508,8 +541,8 @@ export default function renderBackup() {
     overlay.innerHTML = `
       <div class="modal-content bk-modal">
         <div class="modal-header">
-          <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? 'Создание профиля' : 'Редактировать профиль'}</h2>
-          <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
+          <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? 'Создание профиля' : `Редактирование профиля - ${init.name}`}</h2>
+          <button class="close-modal bk-close" aria-label="Закрыть" data-bs-toggle="tooltip" data-bs-placement="top" title="Закрыть">&times;</button>
         </div>
         <div class="modal-body bk-form-grid">
           ${nameFieldHTML}
@@ -544,16 +577,19 @@ export default function renderBackup() {
     // Всегда используем input для имени профиля
     const nameInput = overlay.querySelector('#f-name');
 
-    // Добавление кнопки "Список" рядом с "Очистить поле" для имени профиля
+    // Добавление кнопки "Список" рядом с "Очистить поле" для имени профиля (заменённый блок)
     queueMicrotask(() => {
       if (!nameInput) return;
       const inputContainer = nameInput.closest('.input-container');
-      const inputActions = inputContainer?.querySelector('.input-actions');
+      if (!inputContainer) return;
+      const inputActions = inputContainer.querySelector('.input-actions');
       if (state.programs.length > 0 && inputActions && !inputActions.querySelector('.name-list-btn')) {
         const btnList = document.createElement('button');
         btnList.type = 'button';
         btnList.className = 'history-action-button name-list-btn';
-        btnList.title = 'Список';
+        btnList.title = 'Использовать профиль';
+        btnList.setAttribute('data-bs-toggle', 'tooltip');
+        btnList.setAttribute('data-bs-placement', 'top');
         btnList.innerHTML = '<i class="fa-solid fa-list"></i>';
         inputActions.appendChild(btnList);
 
@@ -562,16 +598,18 @@ export default function renderBackup() {
           if (!listBox) {
             listBox = document.createElement('div');
             listBox.className = 'name-list-popup';
+            inputContainer.style.position = 'relative'; // важно для position:absolute
             listBox.style.position = 'absolute';
             listBox.style.top = '100%';
             listBox.style.left = '0';
             listBox.style.width = '100%';
             listBox.style.maxHeight = '200px';
-            listBox.style.overflowY = 'auto';
+            listBox.style.overflowY = 'auto'; // всегда скролл
             listBox.style.background = 'rgba(32,32,40,0.95)';
             listBox.style.border = '1px solid rgba(255,255,255,0.1)';
             listBox.style.borderRadius = '8px';
-            listBox.style.zIndex = '10';
+            listBox.style.zIndex = '999';
+            listBox.style.padding = '4px 0';
             inputContainer.appendChild(listBox);
 
             state.programs.forEach(p => {
@@ -580,7 +618,6 @@ export default function renderBackup() {
               item.textContent = p.name;
               item.style.padding = '6px 10px';
               item.style.cursor = 'pointer';
-              item.style.color = 'var(--color-highlight)';
               item.addEventListener('mouseenter', () => item.style.background = 'rgba(120,180,255,0.2)');
               item.addEventListener('mouseleave', () => item.style.background = 'transparent');
               item.addEventListener('click', () => {
@@ -886,7 +923,7 @@ export default function renderBackup() {
       }
       const payload = { name, source_path, backup_path, profile_path, config_patterns };
       if (isNew) {
-        state.programs.push(payload);
+        state.programs.unshift(payload);
         log(`Создан новый профиль: ${name}`);
       } else {
         state.programs[idx] = payload;
