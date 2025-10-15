@@ -1,6 +1,5 @@
 // src/js/modules/views/backupView.js
 
-
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
@@ -73,27 +72,27 @@ export default function renderBackup() {
         <div class="title">
           <i class="fa-solid fa-database"></i>
           <div class="text">
-            <h2>Backup</h2>
+            <h2>BackUp Manager</h2>
             <p class="subtitle text-muted">Резервное копирование файлов и папок</p>
           </div>
         </div>
       </div>
 
-      <div id="bk-toolbar" class="wg-block" aria-label="Управление пресетами">
+      <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями">
 
       <h1 class="section-heading">
       <div>
-      Пресеты 
-        <span id="bk-count" class="bk-count" title="Видимых/всего">0/0</span>
+      Профиль 
+        <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="Видимых/всего">0/0</span>
       </div>
         <label class="checkbox-label">
-          <input type="checkbox" id="bk-select-all" />
+          <input type="checkbox" class="bk-chk" id="bk-select-all" />
           <span class="text-xs text-muted">выбрать всё</span>
         </label>
         <div>
           <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
           <div class="bk-actions">
-            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать пресет">
+            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль">
               <i class="fa-solid fa-plus"></i>
             </button>
             <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
@@ -127,6 +126,36 @@ export default function renderBackup() {
   container.innerHTML = html;
   wrapper.appendChild(container);
 
+  // === BEGIN: Backup Hints Block ===
+  // Add hints block after subtitle
+  const subtitle = container.querySelector('.wg-block');
+  const hintsBlock = document.createElement('div');
+  hintsBlock.className = 'bk-hints';
+  hintsBlock.innerHTML = '<div class="bk-hint-text"></div>';
+  subtitle.insertAdjacentElement('afterend', hintsBlock);
+
+  // JS logic for cycling hints
+  const hints = [
+    '💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.',
+    '⚙️ Используйте кнопку «Запустить для выбранных», чтобы копировать несколько профилей сразу.',
+    '📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.',
+    '🧩 Активируйте автопрокрутку лога, чтобы следить за процессом копирования в реальном времени.',
+    '🕒 Последнее время успешного копирования видно под именем каждого профиля.'
+  ];
+  let hintIndex = 0;
+  const hintEl = hintsBlock.querySelector('.bk-hint-text');
+  const showHint = () => {
+    hintEl.style.opacity = 0;
+    setTimeout(() => {
+      hintEl.textContent = hints[hintIndex];
+      hintEl.style.opacity = 1;
+      hintIndex = (hintIndex + 1) % hints.length;
+    }, 400);
+  };
+  showHint();
+  setInterval(showHint, 10000);
+  // === END: Backup Hints Block ===
+
   // Autofocus search when opening the tab
   queueMicrotask(() => { const s = wrapper.querySelector('#bk-filter'); s && s.focus(); });
 
@@ -139,6 +168,60 @@ export default function renderBackup() {
    */
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
   const logBox = getEl('#bk-log');
+  
+  /**
+   * Show error notification in the UI
+   * @param {string} message - Error message
+   * @param {string} details - Additional details
+   */
+  function showError(message, details = '') {
+    const errorEl = document.createElement('div');
+    errorEl.className = 'wg-alert is-error';
+    errorEl.innerHTML = `
+      <div class="wg-alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+      <div class="wg-alert-content">
+        <strong>Ошибка</strong>
+        <div>${message}</div>
+        ${details ? `<div class="text-xs opacity-75">${details}</div>` : ''}
+      </div>
+      <div class="wg-alert-actions">
+        <button class="btn btn-sm btn-secondary" onclick="this.closest('.wg-alert').remove()">Закрыть</button>
+      </div>
+    `;
+    
+    const container = getEl('.backup-center');
+    container.insertBefore(errorEl, container.firstChild);
+    
+    // Автоудаление через 8 секунд
+    setTimeout(() => {
+      if (errorEl.parentNode) errorEl.remove();
+    }, 8000);
+  }
+
+  /**
+   * Show skeleton loading state
+   */
+  function renderSkeleton() {
+    const root = getEl('#bk-list');
+    root.innerHTML = '';
+    
+    for (let i = 0; i < 3; i++) {
+      const skeleton = document.createElement('div');
+      skeleton.className = 'bk-row bk-skeleton';
+      skeleton.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+          <div style="width: 18px; height: 18px; border-radius: 4px;"></div>
+          <div style="flex: 1;">
+            <div style="height: 16px; width: 60%; margin-bottom: 8px; border-radius: 4px;"></div>
+            <div style="height: 12px; width: 80%; margin-bottom: 4px; border-radius: 3px;"></div>
+            <div style="height: 12px; width: 40%; border-radius: 3px;"></div>
+          </div>
+        </div>
+      `;
+      root.appendChild(skeleton);
+    }
+  }
+
   /**
    * Append a timestamped message to the log area.
    * Respects autoscroll or keeps viewport when user is scrolled up.
@@ -151,7 +234,7 @@ export default function renderBackup() {
     const atBottom = (logBox.scrollTop + logBox.clientHeight) >= (logBox.scrollHeight - 4);
     const line = document.createElement('div');
     line.className = 'log-line';
-    if (/✔/.test(msg)) line.classList.add('log-success');
+    if (/✔|успех|success/i.test(msg)) line.classList.add('log-success');
     else if (/✖|ошибка|error/i.test(msg)) line.classList.add('log-error');
     else if (/предупреждение|warn/i.test(msg)) line.classList.add('log-warn');
     else line.classList.add('log-info');
@@ -254,12 +337,20 @@ export default function renderBackup() {
    * @returns {Promise<void>}
    */
   const load = async () => {
-    const res = await invoke('backup:getPrograms');
-    if (!res?.success) throw new Error(res?.error || 'load failed');
-    state.programs = res.programs || [];
-    const t = await invoke('backup:getLastTimes');
-    state.lastTimes = t?.success ? (t.map || {}) : {};
-    renderList();
+    renderSkeleton(); // Показать скелетон
+    
+    try {
+      const res = await invoke('backup:getPrograms');
+      if (!res?.success) throw new Error(res?.error || 'load failed');
+      state.programs = res.programs || [];
+      const t = await invoke('backup:getLastTimes');
+      state.lastTimes = t?.success ? (t.map || {}) : {};
+      renderList();
+    } catch (error) {
+      console.error('Failed to load backup programs:', error);
+      showError('Не удалось загрузить профили', error.message);
+      renderList(); // Рендерим пустой список
+    }
   };
 
   /**
@@ -304,7 +395,7 @@ export default function renderBackup() {
       root.innerHTML = `
         <div class="wg-alert is-muted">
           <div class="wg-alert-icon"><i class="fa-solid fa-circle-info"></i></div>
-          <div class="wg-alert-content">Нет пресетов — добавьте первый.</div>
+          <div class="wg-alert-content">Нет профиля — добавьте первый.</div>
           <div class="wg-alert-actions">
             <button id="bk-create-first" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus" style="margin-right:6px"></i>Создать</button>
           </div>
@@ -319,19 +410,20 @@ export default function renderBackup() {
     }
     const selAll = getEl('#bk-select-all');
     if (selAll) { selAll.checked = false; selAll.indeterminate = false; }
-    filtered.forEach((p) => {
+    filtered.forEach((p, index) => {
       const idx = state.programs.indexOf(p);
       const row = document.createElement('div');
       row.className = 'bk-row wg-card';
+      row.style.animationDelay = `${index * 0.05}s`;
       const lbl = lastLabel(state.lastTimes[p.name]);
       const patterns = Array.isArray(p.config_patterns) && p.config_patterns.length ? p.config_patterns.join(', ') : 'все файлы';
       row.innerHTML = `
-        <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать пресет ${p.name}" />
+        <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
         <div class="bk-row-content min-w-0">
           <div class="font-semibold truncate">${p.name}</div>
-          <div class="back-path" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
+          <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
           <div class="back-filter">Фильтры: ${patterns}</div>
-          <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString() : ''}">${lbl.text}</span></div>
+          <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString() : ''}">${lbl.text}</span></div>
         </div>
         <div class="bk-row-actions">
           <button class="btn btn-sm bk-edit" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
@@ -408,35 +500,34 @@ export default function renderBackup() {
       : JSON.parse(JSON.stringify(state.programs[idx]));
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
-    // Новый современный HTML модалки с 2-колоночной формой, современным фоном, градиентами, компактными полями, preview снизу, минимальными тенями и hover эффектами.
     overlay.innerHTML = `
-<div class="modal-content bk-modal">
-  <div class="modal-header">
-    <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? 'Новый пресет' : 'Редактировать пресет'}</h2>
-    <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
-  </div>
-  <div class="modal-body bk-form-grid">
-    ${renderField('Имя пресета *', 'f-name', init.name || '', 'Будет использоваться в имени архива', true)}
-    ${renderField('Исходная папка *', 'f-src', init.source_path || '', 'Путь папки для бэкапа', true, true)}
-    ${renderField('Папка бэкапа *', 'f-dst', init.backup_path || '', 'Архивы вида “Имя_Backup_Дата.zip”', true, true)}
-    ${renderField('Папка профиля', 'f-prof', init.profile_path || '', 'Будет скопирована в подкаталог “Profiles”', false, true)}
-    ${renderField('Фильтры файлов', 'f-pats', (init.config_patterns||[]).join(','), 'Поддерживаются * и ? (по имени файла)', false)}
-    <div class="bk-preview-card">
-      <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>Предпросмотр</strong></div>
-      <div id="bk-preview" class="text-sm bk-preview"></div>
-    </div>
-  </div>
-  <div class="modal-footer flex gap-3">
-    <label class="checkbox-label" style="margin-right:auto; gap:.5rem">
-      <input type="checkbox" id="bk-save-run" />
-      <i class="fa-solid fa-play"></i>
-      <span class="text-xs text-muted">Сохранить и запустить</span>
-    </label>
-    <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
-    <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
-  </div>
-</div>
-`;
+      <div class="modal-content bk-modal">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? 'Создание профиля' : 'Редактировать профиль'}</h2>
+          <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
+        </div>
+        <div class="modal-body bk-form-grid">
+          ${renderField('Название *', 'f-name', init.name || '', 'Имя профиля и создаваемого архива', true)}
+          ${renderField('Исходная папка *', 'f-src', init.source_path || '', 'Укажите путь к папке резервного копирования', true, true)}
+          ${renderField('Папка бэкапа *', 'f-dst', init.backup_path || '', 'Путь, где будет храниться резервная копия', true, true)}
+          ${renderField('Папка настроек', 'f-prof', init.profile_path || '', 'Будет создан подкаталог «Profiles»', false, true)}
+          ${renderField('Фильтры файлов', 'f-pats', (init.config_patterns||[]).join(','), 'Поддерживаются * и ? (по имени файла)', false)}
+          <div class="bk-preview-card">
+            <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>Предпросмотр</strong></div>
+            <div id="bk-preview" class="text-sm bk-preview"></div>
+          </div>
+        </div>
+        <div class="modal-footer flex gap-3">
+          <label class="checkbox-label" style="margin-right:auto; gap:.5rem">
+            <input type="checkbox" id="bk-save-run" />
+            <i class="fa-solid fa-play"></i>
+            <span class="text-xs text-muted">Запустить</span>
+          </label>
+          <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
+          <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
+        </div>
+      </div>
+      `;
     // Показать модалку по правилам приложения
     const _docEl = document.documentElement;
     const _prevOverflow = _docEl.style.overflow;
@@ -444,7 +535,6 @@ export default function renderBackup() {
     overlay.style.display = 'flex';
     wrapper.appendChild(overlay);
     const q = (s) => overlay.querySelector(s);
-
 
     // Autofocus the first empty required field on modal open
     queueMicrotask(() => {
@@ -631,7 +721,7 @@ export default function renderBackup() {
     _debouncedUpdateSave();
 
     function updatePreview() {
-    const name = q('#f-name')?.value?.trim() || 'Имя';
+    const name = q('#f-name')?.value?.trim() || 'Имя профиля';
     const src = q('#f-src')?.value?.trim() || '';
     const dst = q('#f-dst')?.value?.trim() || '';
     const prof = q('#f-prof')?.value?.trim();
@@ -642,10 +732,15 @@ export default function renderBackup() {
       return 'valid-path';
     };
 
-    const lines = [
-      `<div><b>${name}</b>: <span class="path-line ${checkPathClass(src,true)}">${src || '—'}</span> → <span class="path-line ${checkPathClass(dst,true)}">${dst || '—'}</span></div>`,
-      `<div>Фильтры: ${pats}</div>`,
-      `<div>Профиль: <span class="path-line ${checkPathClass(prof,false)}">${prof || '—'}</span></div>`
+    const lines = [`
+      <div>
+        «<strong>${name}</strong>»<hr />
+        <span class="path-line ${checkPathClass(src,true)}">${src || '—'}</span><br> →
+        <span class="path-line ${checkPathClass(dst,true)}">${dst || '—'}</span>
+      </div><hr />
+      `,
+      `<div><strong>Папка настроек</strong>: <span class="path-line ${checkPathClass(prof,false)}">${prof || '—'}</span></div>`,
+      `<div><strong>Фильтр</strong>: ${pats}</div>`
     ];
 
     const box = q('#bk-preview');
@@ -699,10 +794,10 @@ export default function renderBackup() {
       const payload = { name, source_path, backup_path, profile_path, config_patterns };
       if (isNew) {
         state.programs.push(payload);
-        log(`Создан новый пресет: ${name}`);
+        log(`Создан новый профиль: ${name}`);
       } else {
         state.programs[idx] = payload;
-        log(`Пресет обновлён: ${name}`);
+        log(`Профиль обновлён: ${name}`);
       }
       try {
         await save();
@@ -730,6 +825,34 @@ export default function renderBackup() {
   }
 
   /**
+   * Show notification for backup operations
+   * @param {string} message - Notification message
+   * @param {string} type - Type of notification (success, error, info)
+   */
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'bk-notification';
+    notification.innerHTML = `
+      <div class="bk-notification-content">
+        <i class="fa-solid fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+
+    // Автоудаление через 3 секунды
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (notification.parentNode) notification.remove();
+        }, 300);
+      }
+    }, 3000);
+  }
+
+  /**
    * Run backup for a subset of presets by indices.
    * Appends human-readable results to the log and refreshes state.
    * Adds visual highlighting for running rows and batch progress.
@@ -737,14 +860,14 @@ export default function renderBackup() {
    * @returns {Promise<void>}
    */
   async function runForIndices(indices) {
-    if (!indices.length) { toast('Не выбрано ни одного пресета', 'warning'); return; }
-    // --- Ensure log panel is expanded before running backup (universal for .bk-log-panel or .bk-log)
-    const logPanel = document.querySelector('.bk-log-panel') || document.querySelector('.bk-log');
-    if (logPanel) {
-      logPanel.style.display = 'block';
-      logPanel.classList.remove('collapsed');
-      logPanel.classList.add('expanded');
+    if (!indices.length) { 
+      toast('Не выбрано ни одного профиля', 'warning'); 
+      return; 
     }
+
+    // Показать уведомление о начале
+    showNotification(`Запуск Backup для ${indices.length} профилей...`, 'info');
+
     const list = indices.map((i) => state.programs[i]);
     // Visual highlighting rows and progress bar
     const rows = indices
@@ -754,6 +877,7 @@ export default function renderBackup() {
       })
       .filter(Boolean);
     rows.forEach(r => r.classList.add('is-running'));
+    
     const progressEl = getEl('#bk-batch-progress') || (() => {
       const bar = document.createElement('div');
       bar.id = 'bk-batch-progress';
@@ -765,13 +889,15 @@ export default function renderBackup() {
     progressEl.style.width = '0%';
     progressEl.style.display = 'block';
 
-    log(`Запуск backup для ${list.length} пресета(ов)…`);
+    log(`Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`);
     const res = await invoke('backup:run', list);
     if (!res?.success) {
       toast(res?.error || 'Ошибка запуска', 'error');
       log(`Ошибка: ${res?.error || 'unknown'}`);
       rows.forEach(r => r.classList.remove('is-running'));
       setTimeout(() => progressEl.style.display = 'none', 1200);
+      showNotification('Ошибка при выполнении backup', 'error');
+      
       // Авторазворачивание и прокрутка лога при ошибке
       const logBox = getEl('#bk-log');
       if (logBox) {
@@ -784,14 +910,28 @@ export default function renderBackup() {
       }
       return;
     }
+    
     res.results.forEach((r) => {
-      if (r.success) { log(`✔ ${r.name}: ${r.zipPath}`); }
-      else { log(`✖ ${r.name}: ${r.error}`); }
+      if (r.success) { 
+        log(`✔ ${r.name}: ${r.zipPath}`); 
+      } else { 
+        log(`✖ ${r.name}: ${r.error}`); 
+      }
       done += 1;
       const percent = Math.round((done / list.length) * 100);
       progressEl.style.width = percent + '%';
     });
+    
     await load();
+    
+    // Показать уведомление о завершении
+    const successCount = res.results.filter(r => r.success).length;
+    if (successCount === list.length) {
+      showNotification(`Backup успешно завершен для всех ${successCount} профилей`, 'success');
+    } else {
+      showNotification(`Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`, 'error');
+    }
+    
     // Авторазворачивание и прокрутка лога после обновления и до снятия is-running
     const logBox = getEl('#bk-log');
     if (logBox) {
@@ -802,6 +942,7 @@ export default function renderBackup() {
       logBox.classList.add('expanded');
       logBox.scrollTo({ top: logBox.scrollHeight, behavior: 'smooth' });
     }
+    
     rows.forEach(r => r.classList.remove('is-running'));
     setTimeout(() => {
       progressEl.style.display = 'none';
@@ -812,12 +953,12 @@ export default function renderBackup() {
   getEl('#bk-add').addEventListener('click', () => showEditForm(-1));
   getEl('#bk-del').addEventListener('click', async () => {
     const indices = Array.from(wrapper.querySelectorAll('.bk-chk:checked')).map((c) => Number(c.dataset.i));
-    if (!indices.length) { toast('Не выбрано ни одного пресета', 'warning'); return; }
+    if (!indices.length) { toast('Не выбрано ни одного профиля', 'warning'); return; }
     const names = indices.map((i) => state.programs[i]?.name).filter(Boolean).join(', ');
-    showConfirmationDialog(`Вы уверены, что хотите удалить пресеты: <b>${names}</b>?`, async () => {
+    showConfirmationDialog(`Вы уверены, что хотите удалить профиль: <b>${names}</b>?`, async () => {
       state.programs = state.programs.filter((_, i) => !indices.includes(i));
       try { await save(); await load(); toast('Удалено'); } catch (e) { toast(e.message || 'Ошибка', 'error'); }
-      log(`Удалены пресеты: ${names}`);
+      log(`Профили удалены: ${names}`);
     });
   });
   getEl('#bk-run-selected')?.addEventListener('click', async () => {
@@ -982,7 +1123,10 @@ export default function renderBackup() {
 
   /** Kick off initial data load for the view. */
   // Initial load
-  load().catch((e) => { console.error(e); toast('Не удалось загрузить пресеты', 'error'); });
+  load().catch((e) => { 
+    console.error(e); 
+    showError('Не удалось загрузить профили', e.message); 
+  });
 
   /** Initialize Bootstrap tooltips for elements in this view. */
   // init tooltips like other views
