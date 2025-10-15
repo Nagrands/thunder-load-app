@@ -18190,9 +18190,13 @@ video {
 
 .bk-hints {
   margin-top: 1.5rem;
+  padding: 8px;
   text-align: center;
   font-size: 14px;
-  color: #c8daff;
+  font-weight: 500;
+  color: var(--color-highlight);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--border-radius);
   opacity: 0.85;
   transition: opacity 0.3s ease, transform 0.3s ease;
   min-height: 24px;
