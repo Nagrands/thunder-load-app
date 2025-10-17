@@ -17753,7 +17753,6 @@ video {
   border-color: rgba(120, 180, 255, 0.22);
   z-index: 2;
   outline: none;
-  transform: translateY(-2px);
 }
 .backup-view .bk-row:has(.bk-chk:checked), .backup-view .bk-row.selected {
   background: var(--bk-row-bg-selected);

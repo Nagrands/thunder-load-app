@@ -995,11 +995,21 @@ export default function renderBackup() {
       return; 
     }
 
-    // Показать уведомление о начале
-    showNotification(`Запуск Backup для ${indices.length} профилей...`, 'info');
+    // Фильтруем, чтобы не было undefined
+    const list = indices
+      .map((i) => state.programs[i])
+      .filter(Boolean);
 
-    const list = indices.map((i) => state.programs[i]);
-    // Visual highlighting rows and progress bar
+    if (!list.length) {
+      toast('Нет доступных профилей для запуска', 'warning');
+      log('⚠ Нет доступных профилей для запуска');
+      return;
+    }
+
+    // Показать уведомление о начале
+    showNotification(`Запуск Backup для ${list.length} профилей...`, 'info');
+
+    // Подсветка активных строк
     const rows = indices
       .map((i) => {
         const chk = wrapper.querySelector(`.bk-chk[data-i="${i}"]`);
@@ -1020,6 +1030,7 @@ export default function renderBackup() {
     progressEl.style.display = 'block';
 
     log(`Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`);
+    
     const res = await invoke('backup:run', list);
     if (!res?.success) {
       toast(res?.error || 'Ошибка запуска', 'error');
@@ -1027,57 +1038,52 @@ export default function renderBackup() {
       rows.forEach(r => r.classList.remove('is-running'));
       setTimeout(() => progressEl.style.display = 'none', 1200);
       showNotification('Ошибка при выполнении backup', 'error');
-      
-      // Авторазворачивание и прокрутка лога при ошибке
-      const logBox = getEl('#bk-log');
-      if (logBox) {
-        // Разворачиваем log, если свёрнут
-        const details = logBox.closest('details');
-        if (details && !details.hasAttribute('open')) details.setAttribute('open', '');
-        logBox.style.maxHeight = '400px';
-        logBox.classList.add('expanded');
-        logBox.scrollTo({ top: logBox.scrollHeight, behavior: 'smooth' });
-      }
+      expandAndScrollLog();
       return;
     }
-    
-    res.results.forEach((r) => {
-      if (r.success) { 
-        log(`✔ ${r.name}: ${r.zipPath}`); 
-      } else { 
-        log(`✖ ${r.name}: ${r.error}`); 
-      }
-      done += 1;
-      const percent = Math.round((done / list.length) * 100);
-      progressEl.style.width = percent + '%';
-    });
-    
+
+    res.results
+      .filter(Boolean)
+      .forEach((r) => {
+        const name = r.name || 'Без имени';
+        if (r.success) { 
+          log(`✔ ${name}: ${r.zipPath || ''}`); 
+        } else { 
+          log(`✖ ${name}: ${r.error || 'неизвестная ошибка'}`); 
+        }
+        done += 1;
+        const percent = Math.round((done / list.length) * 100);
+        progressEl.style.width = percent + '%';
+      });
+
     await load();
-    
-    // Показать уведомление о завершении
-    const successCount = res.results.filter(r => r.success).length;
+
+    const successCount = res.results.filter(r => r?.success).length;
     if (successCount === list.length) {
       showNotification(`Backup успешно завершен для всех ${successCount} профилей`, 'success');
     } else {
       showNotification(`Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`, 'error');
     }
-    
-    // Авторазворачивание и прокрутка лога после обновления и до снятия is-running
-    const logBox = getEl('#bk-log');
-    if (logBox) {
-      // Разворачиваем log, если свёрнут
-      const details = logBox.closest('details');
-      if (details && !details.hasAttribute('open')) details.setAttribute('open', '');
-      logBox.style.maxHeight = '400px';
-      logBox.classList.add('expanded');
-      logBox.scrollTo({ top: logBox.scrollHeight, behavior: 'smooth' });
-    }
-    
+
+    expandAndScrollLog();
+
     rows.forEach(r => r.classList.remove('is-running'));
-    setTimeout(() => {
-      progressEl.style.display = 'none';
-    }, 1200);
+    setTimeout(() => progressEl.style.display = 'none', 1200);
   }
+
+  /**
+   * Вспомогательная функция — разворачивает и прокручивает лог.
+   */
+  function expandAndScrollLog() {
+    const logBox = getEl('#bk-log');
+    if (!logBox) return;
+    const details = logBox.closest('details');
+    if (details && !details.hasAttribute('open')) details.setAttribute('open', '');
+    logBox.style.maxHeight = '400px';
+    logBox.classList.add('expanded');
+    logBox.scrollTo({ top: logBox.scrollHeight, behavior: 'smooth' });
+  }
+
 
   // Events
   getEl('#bk-add').addEventListener('click', () => showEditForm(-1));
