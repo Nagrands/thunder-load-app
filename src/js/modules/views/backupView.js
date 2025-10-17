@@ -194,6 +194,15 @@ export default function renderBackup() {
    */
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
   const logBox = getEl('#bk-log');
+  // Restore logBox content from localStorage if present
+  if (logBox) {
+    try {
+      const logData = localStorage.getItem('backupLog');
+      if (logData) {
+        logBox.innerHTML = logData;
+      }
+    } catch {}
+  }
   
   // Use toast for error notification
   /**
@@ -233,6 +242,7 @@ export default function renderBackup() {
    * Append a timestamped message to the log area.
    * Respects autoscroll or keeps viewport when user is scrolled up.
    * Adds color coding for log lines.
+   * Saves log content to localStorage.
    * @param {string} msg
    * @returns {void}
    */
@@ -247,6 +257,10 @@ export default function renderBackup() {
     else line.classList.add('log-info');
     line.textContent = `${new Date().toLocaleTimeString()} › ${msg}`;
     logBox.appendChild(line);
+    // Save log to localStorage
+    try {
+      localStorage.setItem('backupLog', logBox.innerHTML);
+    } catch {}
     if (state.autoscroll || atBottom) logBox.scrollTop = logBox.scrollHeight;
   };
 
@@ -1075,7 +1089,12 @@ export default function renderBackup() {
       updateActionsState();
     });
   }
-  getEl('#bk-log-clear').addEventListener('click', () => { if (logBox) logBox.textContent = ''; });
+  getEl('#bk-log-clear').addEventListener('click', () => {
+    if (logBox) logBox.textContent = '';
+    try {
+      localStorage.removeItem('backupLog');
+    } catch {}
+  });
   const logCopyBtn = getEl('#bk-log-copy');
   logCopyBtn?.addEventListener('click', async () => {
     const text = logBox?.textContent || '';
