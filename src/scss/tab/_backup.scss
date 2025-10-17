@@ -1260,29 +1260,6 @@
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Notifications & Alerts
-  // ---------------------------------------------------------------------------
-  .bk-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(40, 44, 52, 0.95);
-    border: 1px solid rgba(120, 180, 255, 0.3);
-    border-radius: 12px;
-    padding: 12px 16px;
-    backdrop-filter: blur(10px);
-    z-index: 10000;
-    animation: slide-in-from-top 0.3s ease-out;
-
-    .bk-notification-content {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--color-accent);
-      font-weight: 500;
-    }
-  }
 
   .wg-alert {
     &.is-error {

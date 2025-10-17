@@ -195,33 +195,14 @@ export default function renderBackup() {
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
   const logBox = getEl('#bk-log');
   
+  // Use toast for error notification
   /**
    * Show error notification in the UI
    * @param {string} message - Error message
    * @param {string} details - Additional details
    */
   function showError(message, details = '') {
-    const errorEl = document.createElement('div');
-    errorEl.className = 'wg-alert is-error';
-    errorEl.innerHTML = `
-      <div class="wg-alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
-      <div class="wg-alert-content">
-        <strong>Ошибка</strong>
-        <div>${message}</div>
-        ${details ? `<div class="text-xs opacity-75">${details}</div>` : ''}
-      </div>
-      <div class="wg-alert-actions">
-        <button class="btn btn-sm btn-secondary" onclick="this.closest('.wg-alert').remove()">Закрыть</button>
-      </div>
-    `;
-    
-    const container = getEl('.backup-center');
-    container.insertBefore(errorEl, container.firstChild);
-    
-    // Автоудаление через 8 секунд
-    setTimeout(() => {
-      if (errorEl.parentNode) errorEl.remove();
-    }, 8000);
+    toast(`${message}${details ? ': ' + details : ''}`, 'error');
   }
 
   /**
@@ -370,7 +351,6 @@ export default function renderBackup() {
    */
   const load = async () => {
     renderSkeleton(); // Показать скелетон
-    
     try {
       const res = await invoke('backup:getPrograms');
       if (!res?.success) throw new Error(res?.error || 'load failed');
@@ -380,7 +360,7 @@ export default function renderBackup() {
       renderList();
     } catch (error) {
       console.error('Failed to load backup programs:', error);
-      showError('Не удалось загрузить профили', error.message);
+      toast('Не удалось загрузить профили: ' + error.message, 'error');
       renderList(); // Рендерим пустой список
     }
   };
@@ -884,7 +864,7 @@ export default function renderBackup() {
     overlay.querySelectorAll('.bk-close').forEach((b) => b.addEventListener('click', closeOverlay));
     overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) closeOverlay(); });
     const onEsc = (e) => {
-      if (e.key === 'Escape') { hideInfo(); closeOverlay(); }
+      if (e.key === 'Escape') { closeOverlay(); }
       else if (e.key === 'Enter') {
         e.preventDefault();
         if (e.metaKey || e.ctrlKey) { const run = q('#bk-save-run'); if (run) run.checked = true; }
@@ -954,33 +934,6 @@ export default function renderBackup() {
     queueMicrotask(() => initTooltips());
   }
 
-  /**
-   * Show notification for backup operations
-   * @param {string} message - Notification message
-   * @param {string} type - Type of notification (success, error, info)
-   */
-  function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = 'bk-notification';
-    notification.innerHTML = `
-      <div class="bk-notification-content">
-        <i class="fa-solid fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
-      </div>
-    `;
-    document.body.appendChild(notification);
-
-    // Автоудаление через 3 секунды
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-          if (notification.parentNode) notification.remove();
-        }, 300);
-      }
-    }, 3000);
-  }
 
   /**
    * Run backup for a subset of presets by indices.
@@ -1007,7 +960,7 @@ export default function renderBackup() {
     }
 
     // Показать уведомление о начале
-    showNotification(`Запуск Backup для ${list.length} профилей...`, 'info');
+    toast(`Запуск Backup для ${list.length} профилей...`, 'info');
 
     // Подсветка активных строк
     const rows = indices
@@ -1037,7 +990,7 @@ export default function renderBackup() {
       log(`Ошибка: ${res?.error || 'unknown'}`);
       rows.forEach(r => r.classList.remove('is-running'));
       setTimeout(() => progressEl.style.display = 'none', 1200);
-      showNotification('Ошибка при выполнении backup', 'error');
+      toast('Ошибка при выполнении backup', 'error');
       expandAndScrollLog();
       return;
     }
@@ -1060,9 +1013,9 @@ export default function renderBackup() {
 
     const successCount = res.results.filter(r => r?.success).length;
     if (successCount === list.length) {
-      showNotification(`Backup успешно завершен для всех ${successCount} профилей`, 'success');
+      toast(`Backup успешно завершен для всех ${successCount} профилей`, 'success');
     } else {
-      showNotification(`Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`, 'error');
+      toast(`Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`, 'error');
     }
 
     expandAndScrollLog();
