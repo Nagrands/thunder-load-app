@@ -40,6 +40,34 @@ function matchByPatterns(fileName, patterns) {
   return patterns.some((p) => wildcardToRegex(p).test(fileName));
 }
 
+/**
+ * Copy a file with retries to handle intermittent ENOENT errors.
+ * Logs missing files on Windows and retries a few times.
+ * @param {string} src - Source file path
+ * @param {string} dst - Destination file path
+ * @param {number} [retries=3] - Number of retry attempts
+ * @param {number} [delay=500] - Delay between retries in ms
+ */
+async function copyFileWithRetry(src, dst, retries = 3, delay = 500) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await fsp.access(src, fs.constants.R_OK);
+      await fsp.copyFile(src, dst);
+      return;
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        log.warn(`[backup] ENOENT: Source file not found '${src}' (attempt ${attempt}/${retries})`);
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      }
+      log.warn(`[backup] Failed to copy file '${src}' -> '${dst}': ${err?.message || err}`);
+      throw err;
+    }
+  }
+}
+
 async function readPrograms() {
   try {
     const p = getConfigPath();
@@ -129,11 +157,7 @@ async function copyTreeFiltered(src, dst, patterns) {
       } else if (it.isFile()) {
         if (matchByPatterns(it.name, patterns)) {
           await ensureDir(path.dirname(dstPath));
-          try {
-            await fsp.copyFile(srcPath, dstPath);
-          } catch (err) {
-            log.warn(`[backup] Failed to copy file '${srcPath}' -> '${dstPath}': ${err?.message || err}`);
-          }
+          await copyFileWithRetry(srcPath, dstPath); // Use retry helper
         }
       }
     }
@@ -162,11 +186,7 @@ async function copyDir(src, dst) {
       await copyDir(s, d);
     } else if (e.isFile()) {
       await ensureDir(path.dirname(d));
-      try {
-        await fsp.copyFile(s, d);
-      } catch (err) {
-        log.warn(`[backup] Failed to copy file '${s}' -> '${d}': ${err?.message || err}`);
-      }
+      await copyFileWithRetry(s, d); // Use retry helper
     }
   }
 }
@@ -318,7 +338,6 @@ async function runBackupBatch(programs, parallel = false) {
           if (res.status === 'fulfilled') {
             results.push(res.value);
           } else {
-            // This case should not happen because catch handles errors, but just in case:
             results.push({ name: 'unknown', success: false, error: res.reason?.message || String(res.reason) });
             log.error(`[backup] Backup failed with unexpected error: ${res.reason?.message || String(res.reason)}`);
           }
@@ -339,7 +358,6 @@ async function runBackupBatch(programs, parallel = false) {
         if (res.status === 'fulfilled') {
           results.push(res.value);
         } else {
-          // This case should not happen because catch handles errors, but just in case:
           results.push({ name: 'unknown', success: false, error: res.reason?.message || String(res.reason) });
           log.error(`[backup] Backup failed with unexpected error: ${res.reason?.message || String(res.reason)}`);
         }

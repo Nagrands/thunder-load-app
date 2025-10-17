@@ -1,6 +1,6 @@
 {
   "version": "1.2.8",
   "changes": [
-    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Вкладка Backup {.dev}\" dir=\"auto\" class=\"dev\">Вкладка Backup</h3>\n<h4 data-heading=\"Исправления\" dir=\"auto\">Исправления</h4>\n<ul>\n<li dir=\"auto\">Была устранена ошибка, которая возникала при выборе всех пресетов и нажатии на кнопку «Запустить для выбранных».</li>\n</ul>\n<hr>\n    </details>"
+    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Вкладка Backup {.dev}\" dir=\"auto\" class=\"dev\">Вкладка Backup</h3>\n<h4 data-heading=\"Исправления\" dir=\"auto\">Исправления</h4>\n<ul>\n<li dir=\"auto\">Была устранена ошибка, которая возникала при выборе всех пресетов и нажатии на кнопку «Запустить для выбранных».</li>\n<li dir=\"auto\">Исправлено случайное появление ошибки в <strong>Windows</strong> «ENOENT: no such file or directory при копировании файлов».</li>\n</ul>\n<hr>\n    </details>"
   ]
 }
