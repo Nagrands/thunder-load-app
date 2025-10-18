@@ -81,8 +81,16 @@
       "category": "Utility"
     },
     "mac": {
-      "target": ["dmg", "zip"],
-      "arch": ["x64", "arm64"],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "icon": "assets/icons/macOS/icon.icns",
       "category": "public.app-category.utilities"
