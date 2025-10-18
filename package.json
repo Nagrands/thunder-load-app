@@ -1,7 +1,7 @@
 {
   "name": "thunder-load-app",
   "productName": "Thunder Load",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "Thunder Load",
   "main": "src/js/app.js",
   "private": true,
@@ -84,11 +84,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
