@@ -168,9 +168,10 @@ function setupIpcHandlers(dependencies) {
       // thumbnails: yt-dlp отдаёт массив; возьмём самый широкий
       let thumb = null;
       if (Array.isArray(info?.thumbnails) && info.thumbnails.length) {
-        thumb = info.thumbnails
-          .slice()
-          .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || null;
+        thumb =
+          info.thumbnails
+            .slice()
+            .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || null;
       } else if (info?.thumbnail) {
         thumb = info.thumbnail;
       }
@@ -181,11 +182,18 @@ function setupIpcHandlers(dependencies) {
         playlistCount = info.entries.length;
         entries = info.entries
           .map((e) => e?.webpage_url || e?.url)
-          .filter((u) => typeof u === 'string' && u.length > 0);
-      } else if (typeof info?.playlist_count === 'number') {
+          .filter((u) => typeof u === "string" && u.length > 0);
+      } else if (typeof info?.playlist_count === "number") {
         playlistCount = info.playlist_count;
       }
-      return { success: true, title, duration, thumbnail: thumb, playlistCount, entries };
+      return {
+        success: true,
+        title,
+        duration,
+        thumbnail: thumb,
+        playlistCount,
+        entries,
+      };
     } catch (e) {
       log.warn("get-video-info error:", e?.message || e);
       return { success: false, error: e?.message || String(e) };
@@ -210,7 +218,12 @@ function setupIpcHandlers(dependencies) {
     try {
       const def = getDefaultToolsDir();
       const dir = getEffectiveToolsDir(store);
-      return { success: true, path: dir, isDefault: dir === def, defaultPath: def };
+      return {
+        success: true,
+        path: dir,
+        isDefault: dir === def,
+        defaultPath: def,
+      };
     } catch (e) {
       log.error("tools:getLocation error:", e);
       return { success: false, error: e.message };
@@ -245,7 +258,11 @@ function setupIpcHandlers(dependencies) {
       const def = getDefaultToolsDir();
       await ensureToolsDir(def);
       // remove custom key to fall back to default
-      try { store.delete && store.delete("tools.dir"); } catch { store.set("tools.dir", def); }
+      try {
+        store.delete && store.delete("tools.dir");
+      } catch {
+        store.set("tools.dir", def);
+      }
       return { success: true, path: def };
     } catch (e) {
       log.error("tools:resetLocation error:", e);
@@ -838,14 +855,20 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.BACKUP_RUN, async (_evt, programs) => {
     try {
-      const list = Array.isArray(programs) ? programs : (await backup.readPrograms());
+      const list = Array.isArray(programs)
+        ? programs
+        : await backup.readPrograms();
       const res = await backup.runBackupBatch(list);
       // optional toast summary
       try {
         const ok = res.filter((r) => r.success).length;
         const total = res.length;
         if (mainWindow && mainWindow.webContents) {
-          mainWindow.webContents.send("toast", `Backup завершён: ${ok}/${total}`, ok === total ? "success" : (ok ? "warning" : "error"));
+          mainWindow.webContents.send(
+            "toast",
+            `Backup завершён: ${ok}/${total}`,
+            ok === total ? "success" : ok ? "warning" : "error",
+          );
         }
       } catch (_) {}
       return { success: true, results: res };
@@ -1351,8 +1374,10 @@ function setupIpcHandlers(dependencies) {
       await fs.promises.writeFile(historyFilePath, historyJson, "utf8");
       try {
         const count = Array.isArray(history) ? history.length : 0;
-        mainWindow?.webContents?.send('history-updated', { count });
-      } catch (e) { log.warn('history-updated emit failed:', e); }
+        mainWindow?.webContents?.send("history-updated", { count });
+      } catch (e) {
+        log.warn("history-updated emit failed:", e);
+      }
     } catch (error) {
       log.error(`Error saving history: ${error}`);
     }
@@ -1361,7 +1386,11 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.CLEAR_HISTORY, async () => {
     try {
       await fs.promises.writeFile(historyFilePath, JSON.stringify([]), "utf-8");
-      try { mainWindow?.webContents?.send('history-updated', { count: 0 }); } catch (e) { log.warn('history-updated emit failed:', e); }
+      try {
+        mainWindow?.webContents?.send("history-updated", { count: 0 });
+      } catch (e) {
+        log.warn("history-updated emit failed:", e);
+      }
       return true;
     } catch (error) {
       log.error(`Error clearing history: ${error}`);

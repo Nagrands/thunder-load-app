@@ -73,14 +73,20 @@
 }
 
 .button,
-.btn { @extend %btn; }
+.btn {
+  @extend %btn;
+}
 
 /* ========== Унифицированная система размеров/вариантов ========== */
 .btn,
 .small-button,
 .large-button {
   // border: 1px solid rgba(255,255,255,0.12);
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.12));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(0, 0, 0, 0.12)
+  );
   color: var(--color-highlight);
   border-radius: var(--border-radius);
   display: inline-flex;
@@ -91,19 +97,48 @@
 }
 
 .btn-sm,
-.small-button { min-height: 36px; padding: 0.45rem 0.8rem; font-size: 0.95rem; }
+.small-button {
+  min-height: 36px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.95rem;
+}
 .btn-lg,
-.large-button { min-height: 44px; padding: 0.6rem 1.1rem; font-weight: 600; }
+.large-button {
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  font-weight: 600;
+}
 
-.btn-primary { background: var(--button-default); }
-.btn-primary:hover { background: var(--button-download); }
-.btn-secondary { gap: 0; background: var(--button-open-folder); }
-.btn-ghost { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
-.btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
-.btn-danger { background: var(--button-cancel); }
+.btn-primary {
+  background: var(--button-default);
+}
+.btn-primary:hover {
+  background: var(--button-download);
+}
+.btn-secondary {
+  gap: 0;
+  background: var(--button-open-folder);
+}
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.btn-danger {
+  background: var(--button-cancel);
+}
 
-.btn-icon { width: 36px; height: 36px; padding: 0; }
-.btn-icon i { margin: 0 !important; }
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+.btn-icon i {
+  margin: 0 !important;
+}
 
 #bk-create-first {
   display: flex;
@@ -121,15 +156,22 @@
 .large-button.is-loading::after {
   content: "";
   position: absolute;
-  width: 16px; height: 16px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.35);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   border-top-color: var(--color-accent);
   animation: spinY 0.8s linear infinite;
-  right: 10px; top: 50%; transform: translateY(-50%);
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-@keyframes spinY { to { transform: translateY(-50%) rotate(360deg); } }
+@keyframes spinY {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
 
 /* Reduced motion: disable heavy transitions/animations */
 @media (prefers-reduced-motion: reduce) {
@@ -138,9 +180,13 @@
     transition: none !important;
   }
   .btn::before,
-  .button::before { transition: none !important; }
+  .button::before {
+    transition: none !important;
+  }
   .btn.is-loading::after,
-  .large-button.is-loading::after { animation: none !important; }
+  .large-button.is-loading::after {
+    animation: none !important;
+  }
 }
 
 /* ========== Модификаторы кнопок ========== */
@@ -277,12 +323,24 @@
 }
 
 /* Привязка модификаторов к конкретным кнопкам */
-.btn--open-last-video { @extend .button--open-last-video; }
-.btn--download { @extend .button--download-button; }
-.btn--cancel { @extend .button--cancel; }
-.btn--quality { @extend .button--quality; }
-.btn--open-folder { @extend .button--open-folder; }
-.btn--install-deps { @extend .button--install-deps; }
+.btn--open-last-video {
+  @extend .button--open-last-video;
+}
+.btn--download {
+  @extend .button--download-button;
+}
+.btn--cancel {
+  @extend .button--cancel;
+}
+.btn--quality {
+  @extend .button--quality;
+}
+.btn--open-folder {
+  @extend .button--open-folder;
+}
+.btn--install-deps {
+  @extend .button--install-deps;
+}
 
 #open-last-video {
   @extend .button--open-last-video;

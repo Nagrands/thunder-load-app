@@ -22,16 +22,16 @@
 
 // src/js/preload.js
 
-'use strict';
+"use strict";
 
 try {
-  const { contextBridge, ipcRenderer } = require('electron');
+  const { contextBridge, ipcRenderer } = require("electron");
 
   /**
    * Признак production‑сборки
    * @type {boolean}
    */
-  const IS_PROD = process.env.NODE_ENV === 'production';
+  const IS_PROD = process.env.NODE_ENV === "production";
 
   /**
    * В dev разрешаем любые каналы, чтобы не ломать работу при несовпадении whitelist.
@@ -47,7 +47,7 @@ try {
   let VALID_CHANNELS = [];
   try {
     // Необязательный импорт: может отсутствовать в старых ветках
-    const { CHANNELS_LIST } = require('./ipc/channels');
+    const { CHANNELS_LIST } = require("./ipc/channels");
     if (Array.isArray(CHANNELS_LIST)) VALID_CHANNELS = CHANNELS_LIST;
   } catch (_) {
     // ignore
@@ -58,7 +58,8 @@ try {
    * @param {string} channel
    * @returns {boolean}
    */
-  const isAllowed = (channel) => (ALWAYS_ALLOW || VALID_CHANNELS.includes(channel));
+  const isAllowed = (channel) =>
+    ALWAYS_ALLOW || VALID_CHANNELS.includes(channel);
 
   // ────────────────────────────────────────────────────────────────────────────
   // Безопасные обёртки IPC
@@ -142,8 +143,8 @@ try {
    */
   async function getPlatformInfo() {
     return {
-      isMac: process.platform === 'darwin',
-      isWindows: process.platform === 'win32',
+      isMac: process.platform === "darwin",
+      isWindows: process.platform === "win32",
       platform: process.platform,
       arch: process.arch,
     };
@@ -198,36 +199,38 @@ try {
     receive: safeOn,
 
     // Специальные подписки
-    onShowWhatsNew: (callback) => safeOn('show-whats-new', callback),
+    onShowWhatsNew: (callback) => safeOn("show-whats-new", callback),
 
     // Инструменты
     tools: {
-      getVersions: () => safeInvoke('tools:getVersions'),
-      showInFolder: (p) => safeInvoke('tools:showInFolder', p),
-      installAll: () => safeInvoke('tools:installAll'),
-      checkUpdates: (opts) => safeInvoke('tools:checkUpdates', opts),
-      updateYtDlp: () => safeInvoke('tools:updateYtDlp'),
-      updateFfmpeg: () => safeInvoke('tools:updateFfmpeg'),
+      getVersions: () => safeInvoke("tools:getVersions"),
+      showInFolder: (p) => safeInvoke("tools:showInFolder", p),
+      installAll: () => safeInvoke("tools:installAll"),
+      checkUpdates: (opts) => safeInvoke("tools:checkUpdates", opts),
+      updateYtDlp: () => safeInvoke("tools:updateYtDlp"),
+      updateFfmpeg: () => safeInvoke("tools:updateFfmpeg"),
       // Location management
-      getLocation: () => safeInvoke('tools:getLocation'),
-      setLocation: (dir) => safeInvoke('tools:setLocation', dir),
-      openLocation: () => safeInvoke('tools:openLocation'),
-      migrateOld: (opts) => safeInvoke('tools:migrateOld', opts),
-      detectLegacy: () => safeInvoke('tools:detectLegacy'),
-      resetLocation: () => safeInvoke('tools:resetLocation'),
+      getLocation: () => safeInvoke("tools:getLocation"),
+      setLocation: (dir) => safeInvoke("tools:setLocation", dir),
+      openLocation: () => safeInvoke("tools:openLocation"),
+      migrateOld: (opts) => safeInvoke("tools:migrateOld", opts),
+      detectLegacy: () => safeInvoke("tools:detectLegacy"),
+      resetLocation: () => safeInvoke("tools:resetLocation"),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код
     onVersion: (callback) => {
-      if (typeof callback === 'function') {
-        safeInvoke('get-version').then(callback).catch(() => {});
+      if (typeof callback === "function") {
+        safeInvoke("get-version")
+          .then(callback)
+          .catch(() => {});
       }
     },
-    onWindowFocused: (cb) => safeOn('window-focused', cb),
-    onProgress: (cb) => safeOn('download-progress', cb),
-    onNotification: (cb) => safeOn('download-notification', cb),
-    onPasteNotification: (cb) => safeOn('paste-notification', cb),
-    onToast: (cb) => safeOn('toast', cb),
+    onWindowFocused: (cb) => safeOn("window-focused", cb),
+    onProgress: (cb) => safeOn("download-progress", cb),
+    onNotification: (cb) => safeOn("download-notification", cb),
+    onPasteNotification: (cb) => safeOn("paste-notification", cb),
+    onToast: (cb) => safeOn("toast", cb),
 
     // Прямой прокси IPC
     ipcRenderer: {
@@ -240,12 +243,16 @@ try {
 
     // Утилиты и совместимость с разными именами каналов
     getPlatformInfo,
-    minimize: () => { sendFirstAllowed(['window-minimize', 'minimize', 'app:minimize']); },
-    close: () => { sendFirstAllowed(['window-close', 'close', 'app:close']); },
+    minimize: () => {
+      sendFirstAllowed(["window-minimize", "minimize", "app:minimize"]);
+    },
+    close: () => {
+      sendFirstAllowed(["window-close", "close", "app:close"]);
+    },
   };
 
   // Экспортируем в глобальный контекст окна
-  contextBridge.exposeInMainWorld('electron', electronAPI);
+  contextBridge.exposeInMainWorld("electron", electronAPI);
 
   /**
    * Расширение Window для автодополнения в редакторах.
@@ -253,5 +260,5 @@ try {
    */
 } catch (error) {
   // Не валим рендерер из‑за ошибок в preload — просто логируем.
-  console.error('[preload] failed to initialize contextBridge:', error);
+  console.error("[preload] failed to initialize contextBridge:", error);
 }

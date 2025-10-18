@@ -155,7 +155,7 @@ async function initSettings() {
       item.addEventListener("click", async () => {
         const selectedTheme = item.getAttribute("data-value");
         // плавный переход
-        document.documentElement.classList.add('theme-transition');
+        document.documentElement.classList.add("theme-transition");
         if (selectedTheme === "system") {
           localStorage.removeItem("theme");
           document.documentElement.removeAttribute("data-theme");
@@ -176,7 +176,10 @@ async function initSettings() {
         item.classList.add("active");
         themeDropdownMenu.classList.remove("show");
         await window.electron.invoke("set-theme", selectedTheme);
-        setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
+        setTimeout(
+          () => document.documentElement.classList.remove("theme-transition"),
+          260,
+        );
         window.electron.invoke(
           "toast",
           `Выбрана тема: <strong>${themeLabel.textContent}</strong>`,
@@ -211,7 +214,7 @@ async function initSettings() {
     resetThemeBtn.addEventListener("click", async () => {
       const defaultTheme = "system"; // сбрасываем на системную тему
       // storage + DOM attribute
-      document.documentElement.classList.add('theme-transition');
+      document.documentElement.classList.add("theme-transition");
       localStorage.removeItem("theme");
       document.documentElement.removeAttribute("data-theme");
       themeLabel.textContent = "System";
@@ -224,7 +227,10 @@ async function initSettings() {
       });
       themeDropdownMenu.classList.remove("show");
       await window.electron.invoke("set-theme", defaultTheme);
-      setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
+      setTimeout(
+        () => document.documentElement.classList.remove("theme-transition"),
+        260,
+      );
       window.electron.invoke(
         "toast",
         `<strong>Тема</strong> сброшена на <strong>System</strong>`,
@@ -456,7 +462,7 @@ async function initSettings() {
     });
 
   // === WG Unlock: отключение вкладки (settings toggle) ===
-  (function initWgDisableToggle(){
+  (function initWgDisableToggle() {
     const KEY = "wgUnlockDisabled";
     const read = () => {
       try {
@@ -472,71 +478,130 @@ async function initSettings() {
 
     function toggleAutoSendDisabled(disabled) {
       // Ищем контрол «Авто‑отправка при запуске» (внутри WG‑секции настроек)
-      const modal = document.getElementById("settings-modal") || document.querySelector("#settings");
+      const modal =
+        document.getElementById("settings-modal") ||
+        document.querySelector("#settings");
       const root = modal || document;
-      const autosend = root.querySelector("#wg-autosend, #wg-autosend-toggle, [name=\"wg-autosend\"], [data-setting=\"wg-autosend\"]");
+      const autosend = root.querySelector(
+        '#wg-autosend, #wg-autosend-toggle, [name="wg-autosend"], [data-setting="wg-autosend"]',
+      );
       if (!autosend) return;
       autosend.disabled = !!disabled;
-      const label = autosend.closest("label, .form-check, .settings-row") || autosend.parentElement;
+      const label =
+        autosend.closest("label, .form-check, .settings-row") ||
+        autosend.parentElement;
       if (label) label.classList.toggle("is-disabled", !!disabled);
       // Подсказка через Bootstrap tooltip, если инициализатор активен
       if (label && label.hasAttribute("data-bs-toggle")) {
-        try { window.bootstrap?.Tooltip?.getOrCreateInstance(label); } catch {}
+        try {
+          window.bootstrap?.Tooltip?.getOrCreateInstance(label);
+        } catch {}
       }
     }
 
     function findWgSectionContainer(modal) {
       // Ищем ПРАВЫЙ КОНТЕНТ WG-секции (не левую навигацию)
-      const byPaneId = modal?.querySelector('#wgunlock-settings');
-      if (byPaneId) return byPaneId.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byPaneId;
+      const byPaneId = modal?.querySelector("#wgunlock-settings");
+      if (byPaneId)
+        return (
+          byPaneId.querySelector(
+            ".settings-content, .section-body, .tab-pane, .card-body",
+          ) || byPaneId
+        );
 
-      const byId = modal?.querySelector('#settings-wg');
-      if (byId) return byId.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byId;
+      const byId = modal?.querySelector("#settings-wg");
+      if (byId)
+        return (
+          byId.querySelector(
+            ".settings-content, .section-body, .tab-pane, .card-body",
+          ) || byId
+        );
 
       const byData = modal?.querySelector('[data-section="wg"]');
-      if (byData) return byData.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byData;
+      if (byData)
+        return (
+          byData.querySelector(
+            ".settings-content, .section-body, .tab-pane, .card-body",
+          ) || byData
+        );
 
-      const byClass = modal?.querySelector('.settings-section--wg');
-      if (byClass) return byClass.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || byClass;
+      const byClass = modal?.querySelector(".settings-section--wg");
+      if (byClass)
+        return (
+          byClass.querySelector(
+            ".settings-content, .section-body, .tab-pane, .card-body",
+          ) || byClass
+        );
 
       // Заголовок WG Unlock → ближайшая секция → её контент
-      const heading = Array.from(modal?.querySelectorAll('h2, h3, .section-title') || [])
-        .find(h => /WG\s*Unlock/i.test(h.textContent || ''));
+      const heading = Array.from(
+        modal?.querySelectorAll("h2, h3, .section-title") || [],
+      ).find((h) => /WG\s*Unlock/i.test(h.textContent || ""));
       if (heading) {
-        const sec = heading.closest('.settings-section, .card, section, .accordion-item') || heading.parentElement;
-        if (sec) return sec.querySelector('.settings-content, .section-body, .tab-pane, .card-body') || sec;
+        const sec =
+          heading.closest(
+            ".settings-section, .card, section, .accordion-item",
+          ) || heading.parentElement;
+        if (sec)
+          return (
+            sec.querySelector(
+              ".settings-content, .section-body, .tab-pane, .card-body",
+            ) || sec
+          );
       }
       // Фолбэк — контент модалки
-      return modal?.querySelector('.settings-body, .modal-body, .settings-content') || modal || document.body;
+      return (
+        modal?.querySelector(
+          ".settings-body, .modal-body, .settings-content",
+        ) ||
+        modal ||
+        document.body
+      );
     }
 
     const write = (v) => {
       const val = !!v;
-      try { localStorage.setItem(KEY, JSON.stringify(val)); } catch {}
+      try {
+        localStorage.setItem(KEY, JSON.stringify(val));
+      } catch {}
       // необязательный IPC-фолбэк — если канал есть в preload whitelist
-      try { window.electron?.send && window.electron.send("settings:set", { key: KEY, value: val }); } catch {}
+      try {
+        window.electron?.send &&
+          window.electron.send("settings:set", { key: KEY, value: val });
+      } catch {}
       // мгновенно обновляем интерфейс вкладок (tabSystem.js подпишется на событие)
-      window.dispatchEvent(new CustomEvent("wg:toggleDisabled", { detail: { disabled: val } }));
+      window.dispatchEvent(
+        new CustomEvent("wg:toggleDisabled", { detail: { disabled: val } }),
+      );
       // Блокируем/разблокируем автосенд
       toggleAutoSendDisabled(val);
       // тост
-      window.electron?.invoke?.("toast", val
-        ? "Вкладка <strong>WG Unlock</strong> отключена"
-        : "Вкладка <strong>WG Unlock</strong> включена",
-        val ? "info" : "success");
+      window.electron?.invoke?.(
+        "toast",
+        val
+          ? "Вкладка <strong>WG Unlock</strong> отключена"
+          : "Вкладка <strong>WG Unlock</strong> включена",
+        val ? "info" : "success",
+      );
     };
 
     // Находим контейнер модалки и WG‑секцию
-    const modal = document.getElementById("settings-modal") || document.querySelector("#settings");
+    const modal =
+      document.getElementById("settings-modal") ||
+      document.querySelector("#settings");
     const target = findWgSectionContainer(modal);
     if (!target) return; // защитимся, если модалка ещё не инициализирована
 
     // Если тумблер уже размечен в index.html — привяжем логику и не создаём дубликат
-    const staticToggle = document.querySelector('#wgunlock-settings #wg-disable-toggle, #wg-disable-toggle');
+    const staticToggle = document.querySelector(
+      "#wgunlock-settings #wg-disable-toggle, #wg-disable-toggle",
+    );
     if (staticToggle) {
       staticToggle.checked = read();
-      staticToggle.addEventListener('change', () => write(staticToggle.checked));
-      window.electron?.on?.('open-settings', () => {
+      staticToggle.addEventListener("change", () =>
+        write(staticToggle.checked),
+      );
+      window.electron?.on?.("open-settings", () => {
         const val = read();
         staticToggle.checked = val;
         toggleAutoSendDisabled(val);
@@ -546,13 +611,15 @@ async function initSettings() {
     }
 
     // Guard: если переключатель уже вставлен — не дублируем UI
-    const existing = target.querySelector('#wg-disable-toggle');
+    const existing = target.querySelector("#wg-disable-toggle");
     if (existing) {
       // синхронизируем состояние и обработчики на всякий случай
       existing.checked = read();
-      existing.addEventListener('change', () => write(existing.checked), { once: true });
+      existing.addEventListener("change", () => write(existing.checked), {
+        once: true,
+      });
       toggleAutoSendDisabled(read());
-      window.electron?.on?.('open-settings', () => {
+      window.electron?.on?.("open-settings", () => {
         const val = read();
         existing.checked = val;
         toggleAutoSendDisabled(val);
@@ -577,38 +644,57 @@ async function initSettings() {
     // Видимость: показывать блок только на активной WG-секции
     function isWgSectionActive() {
       // Bootstrap 5 tab-pane.active или кастомная активность
-      const pane = row.closest('.tab-pane, .settings-section, section, .card, .accordion-item');
+      const pane = row.closest(
+        ".tab-pane, .settings-section, section, .card, .accordion-item",
+      );
       if (!pane) return true; // если не таб — считаем активным
       // active по классам или стилям
-      const isActiveClass = pane.classList.contains('active') || !pane.hasAttribute('hidden');
+      const isActiveClass =
+        pane.classList.contains("active") || !pane.hasAttribute("hidden");
       const isVisible = pane.offsetParent !== null; // отрисован
       return isActiveClass && isVisible;
     }
     function syncRowVisibility() {
-      row.style.display = isWgSectionActive() ? '' : 'none';
+      row.style.display = isWgSectionActive() ? "" : "none";
     }
     // первичная синхронизация
     syncRowVisibility();
 
     // Bootstrap событие переключения вкладок
-    document.addEventListener('shown.bs.tab', (e) => {
-      // если переключились в/из WG — обновим видимость
-      syncRowVisibility();
-    }, true);
+    document.addEventListener(
+      "shown.bs.tab",
+      (e) => {
+        // если переключились в/из WG — обновим видимость
+        syncRowVisibility();
+      },
+      true,
+    );
 
     // Делегированный обработчик на клик по навигации настроек
-    document.addEventListener('click', (e) => {
-      const el = e.target.closest('[data-bs-toggle="tab"], [role="tab"], .settings-nav a, .settings-nav button');
-      if (el) {
-        setTimeout(syncRowVisibility, 0);
-      }
-    }, true);
+    document.addEventListener(
+      "click",
+      (e) => {
+        const el = e.target.closest(
+          '[data-bs-toggle="tab"], [role="tab"], .settings-nav a, .settings-nav button',
+        );
+        if (el) {
+          setTimeout(syncRowVisibility, 0);
+        }
+      },
+      true,
+    );
 
     // Наблюдаем за контейнером табов на изменения классов/атрибутов
-    const tabsRoot = modal?.querySelector('.tab-content, .settings-tabs, .modal-body');
-    if (tabsRoot && 'MutationObserver' in window) {
+    const tabsRoot = modal?.querySelector(
+      ".tab-content, .settings-tabs, .modal-body",
+    );
+    if (tabsRoot && "MutationObserver" in window) {
       const mo = new MutationObserver(() => syncRowVisibility());
-      mo.observe(tabsRoot, { attributes: true, subtree: true, attributeFilter: ['class', 'style', 'hidden'] });
+      mo.observe(tabsRoot, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ["class", "style", "hidden"],
+      });
     }
 
     // Инициализация чекбокса
@@ -629,45 +715,67 @@ async function initSettings() {
   // === /WG Unlock: отключение вкладки ===
 
   // === Backup: отключение вкладки (settings toggle) ===
-  (function initBackupDisableToggle(){
+  (function initBackupDisableToggle() {
     const KEY = "backupDisabled";
     const read = () => {
-      try { return JSON.parse(localStorage.getItem(KEY)) === true; } catch { return false; }
+      try {
+        return JSON.parse(localStorage.getItem(KEY)) === true;
+      } catch {
+        return false;
+      }
     };
 
     function toggleBackupControlsDisabled(disabled) {
       // Отключаем любые интерактивные элементы внутри основного Backup‑вью (если уже отрисовано)
-      const view = document.getElementById('backup-view') || document.getElementById('backup-view-wrapper');
+      const view =
+        document.getElementById("backup-view") ||
+        document.getElementById("backup-view-wrapper");
       if (!view) return;
-      const ctrls = view.querySelectorAll('input, button, select, textarea');
+      const ctrls = view.querySelectorAll("input, button, select, textarea");
       ctrls.forEach((el) => {
         // сам контейнер вкладки может быть скрыт TabSystem'ом — это ок
         el.disabled = !!disabled;
-        const label = el.closest('label, .form-check, .settings-row, .control-row');
-        if (label) label.classList.toggle('is-disabled', !!disabled);
+        const label = el.closest(
+          "label, .form-check, .settings-row, .control-row",
+        );
+        if (label) label.classList.toggle("is-disabled", !!disabled);
       });
     }
 
     const write = (v) => {
       const val = !!v;
-      try { localStorage.setItem(KEY, JSON.stringify(val)); } catch {}
-      try { window.electron?.send && window.electron.send("settings:set", { key: KEY, value: val }); } catch {}
-      window.dispatchEvent(new CustomEvent("backup:toggleDisabled", { detail: { disabled: val } }));
+      try {
+        localStorage.setItem(KEY, JSON.stringify(val));
+      } catch {}
+      try {
+        window.electron?.send &&
+          window.electron.send("settings:set", { key: KEY, value: val });
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("backup:toggleDisabled", { detail: { disabled: val } }),
+      );
       // Блокируем/разблокируем контролы во вью
       toggleBackupControlsDisabled(val);
-      window.electron?.invoke?.("toast", val
-        ? "Вкладка <strong>Backup</strong> отключена"
-        : "Вкладка <strong>Backup</strong> включена",
-        val ? "info" : "success");
+      window.electron?.invoke?.(
+        "toast",
+        val
+          ? "Вкладка <strong>Backup</strong> отключена"
+          : "Вкладка <strong>Backup</strong> включена",
+        val ? "info" : "success",
+      );
     };
 
-    const modal = document.getElementById("settings-modal") || document.querySelector("#settings");
+    const modal =
+      document.getElementById("settings-modal") ||
+      document.querySelector("#settings");
     if (!modal) return;
-    const input = modal.querySelector('#backup-settings #backup-disable-toggle, #backup-disable-toggle');
+    const input = modal.querySelector(
+      "#backup-settings #backup-disable-toggle, #backup-disable-toggle",
+    );
     if (!input) return;
     input.checked = read();
-    input.addEventListener('change', () => write(input.checked));
-    window.electron?.on?.('open-settings', () => {
+    input.addEventListener("change", () => write(input.checked));
+    window.electron?.on?.("open-settings", () => {
       const val = read();
       input.checked = val;
       toggleBackupControlsDisabled(val);
@@ -807,130 +915,158 @@ async function initSettings() {
 
   // === Tools location (yt-dlp, ffmpeg) — UI bindings ===
   (function initToolsLocationControls() {
-    const pathInput = document.getElementById('tools-location-path');
-    const btnChoose = document.getElementById('tools-location-choose');
-    const btnOpen = document.getElementById('tools-location-open');
-    const btnReset = document.getElementById('tools-location-reset');
-    const btnMigrate = document.getElementById('tools-location-migrate');
+    const pathInput = document.getElementById("tools-location-path");
+    const btnChoose = document.getElementById("tools-location-choose");
+    const btnOpen = document.getElementById("tools-location-open");
+    const btnReset = document.getElementById("tools-location-reset");
+    const btnMigrate = document.getElementById("tools-location-migrate");
 
     if (!pathInput || !btnChoose || !btnOpen || !btnMigrate) return; // минимальный набор
 
-    const toast = (msg, type = 'info') => window.electron.invoke('toast', msg, type);
+    const toast = (msg, type = "info") =>
+      window.electron.invoke("toast", msg, type);
 
     async function refreshLocation() {
       try {
         const res = await window.electron.tools?.getLocation?.();
         if (res?.success) {
           const { path: current, isDefault, defaultPath } = res;
-          pathInput.value = current || '';
+          pathInput.value = current || "";
           if (btnReset) {
             btnReset.disabled = !!isDefault;
             const title = isDefault
-              ? `Сейчас используется путь по умолчанию${defaultPath ? `: ${defaultPath}` : ''}`
-              : `Сбросить на путь по умолчанию${defaultPath ? `: ${defaultPath}` : ''}`;
-            btnReset.setAttribute('title', title);
+              ? `Сейчас используется путь по умолчанию${defaultPath ? `: ${defaultPath}` : ""}`
+              : `Сбросить на путь по умолчанию${defaultPath ? `: ${defaultPath}` : ""}`;
+            btnReset.setAttribute("title", title);
           }
         }
       } catch (e) {
-        console.error('[settings] getLocation error:', e);
+        console.error("[settings] getLocation error:", e);
       }
     }
 
     async function chooseDirectory() {
       // Пытаемся вызвать известные каналы выбора директории, иначе — prompt
       const candidates = [
-        'dialog:choose-tools-dir',
-        'dialog:chooseDir',
-        'choose-directory',
-        'select-directory'
+        "dialog:choose-tools-dir",
+        "dialog:chooseDir",
+        "choose-directory",
+        "select-directory",
       ];
       for (const ch of candidates) {
         try {
           const res = await window.electron.invoke(ch);
-          if (res && typeof res === 'string') return res;
+          if (res && typeof res === "string") return res;
           if (res && res.filePaths && res.filePaths[0]) return res.filePaths[0];
-          if (res && res.canceled === false && res?.paths?.[0]) return res.paths[0];
+          if (res && res.canceled === false && res?.paths?.[0])
+            return res.paths[0];
         } catch {}
       }
       // Фолбэк — ввод пути вручную
-      const manual = prompt('Укажите путь к папке инструментов');
+      const manual = prompt("Укажите путь к папке инструментов");
       return manual || null;
     }
 
-    btnChoose?.addEventListener('click', async () => {
+    btnChoose?.addEventListener("click", async () => {
       const dir = await chooseDirectory();
       if (!dir) return;
       try {
         const res = await window.electron.tools?.setLocation?.(dir);
         if (res?.success) {
           await refreshLocation();
-          toast('Папка инструментов обновлена', 'success');
-          try { await renderToolsInfo(); } catch {}
+          toast("Папка инструментов обновлена", "success");
+          try {
+            await renderToolsInfo();
+          } catch {}
         } else {
-          toast('Не удалось установить папку инструментов: ' + (res?.error || 'Unknown error'), 'error');
+          toast(
+            "Не удалось установить папку инструментов: " +
+              (res?.error || "Unknown error"),
+            "error",
+          );
         }
       } catch (e) {
-        console.error('[settings] setLocation error:', e);
-        toast('Ошибка при установке папки инструментов', 'error');
+        console.error("[settings] setLocation error:", e);
+        toast("Ошибка при установке папки инструментов", "error");
       }
     });
 
-    btnOpen?.addEventListener('click', async () => {
+    btnOpen?.addEventListener("click", async () => {
       try {
         const res = await window.electron.tools?.openLocation?.();
-        if (!res?.success) toast('Не удалось открыть папку инструментов', 'error');
+        if (!res?.success)
+          toast("Не удалось открыть папку инструментов", "error");
       } catch (e) {
-        console.error('[settings] openLocation error:', e);
-        toast('Ошибка при открытии папки инструментов', 'error');
+        console.error("[settings] openLocation error:", e);
+        toast("Ошибка при открытии папки инструментов", "error");
       }
     });
 
-    btnReset?.addEventListener('click', async () => {
+    btnReset?.addEventListener("click", async () => {
       try {
         const res = await window.electron.tools?.resetLocation?.();
         if (res?.success) {
           await refreshLocation();
-          toast('Путь инструментов сброшен на значение по умолчанию', 'success');
-          try { await renderToolsInfo(); } catch {}
+          toast(
+            "Путь инструментов сброшен на значение по умолчанию",
+            "success",
+          );
+          try {
+            await renderToolsInfo();
+          } catch {}
         } else {
-          toast('Не удалось сбросить путь инструментов: ' + (res?.error || 'Unknown error'), 'error');
+          toast(
+            "Не удалось сбросить путь инструментов: " +
+              (res?.error || "Unknown error"),
+            "error",
+          );
         }
       } catch (e) {
-        console.error('[settings] resetLocation error:', e);
-        toast('Ошибка при сбросе пути инструментов', 'error');
+        console.error("[settings] resetLocation error:", e);
+        toast("Ошибка при сбросе пути инструментов", "error");
       }
     });
 
-    btnMigrate?.addEventListener('click', async () => {
+    btnMigrate?.addEventListener("click", async () => {
       try {
         const detect = await window.electron.tools?.detectLegacy?.();
         if (!detect?.success) {
-          toast('Не удалось проверить старые установки', 'error');
+          toast("Не удалось проверить старые установки", "error");
           return;
         }
         if (!detect.found || !detect.found.length) {
-          toast('Старые установки не найдены', 'info');
+          toast("Старые установки не найдены", "info");
           return;
         }
-        const res = await window.electron.tools?.migrateOld?.({ overwrite: false });
+        const res = await window.electron.tools?.migrateOld?.({
+          overwrite: false,
+        });
         if (res?.success) {
           const copied = res.copied?.length || 0;
           const skipped = res.skipped?.length || 0;
-          toast(`Миграция завершена: скопировано ${copied}, пропущено ${skipped}`, 'success');
+          toast(
+            `Миграция завершена: скопировано ${copied}, пропущено ${skipped}`,
+            "success",
+          );
           await refreshLocation();
-          try { await renderToolsInfo(); } catch {}
+          try {
+            await renderToolsInfo();
+          } catch {}
         } else {
-          toast('Не удалось выполнить миграцию: ' + (res?.error || 'Unknown error'), 'error');
+          toast(
+            "Не удалось выполнить миграцию: " + (res?.error || "Unknown error"),
+            "error",
+          );
         }
       } catch (e) {
-        console.error('[settings] migrateOld error:', e);
-        toast('Ошибка при миграции', 'error');
+        console.error("[settings] migrateOld error:", e);
+        toast("Ошибка при миграции", "error");
       }
     });
 
     // Инициализация при открытии настроек
     refreshLocation();
-    window.electron.on('open-settings', refreshLocation);
+    window.electron.on("open-settings", refreshLocation);
   })();
   // === /Tools location UI ===
 }

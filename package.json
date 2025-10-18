@@ -81,16 +81,9 @@
       "category": "Utility"
     },
     "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "artifactName": "${productName}-${version}.${ext}",
+      "target": ["dmg", "zip"],
+      "arch": ["x64", "arm64"],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
       "icon": "assets/icons/macOS/icon.icns",
       "category": "public.app-category.utilities"
     }
@@ -109,9 +102,11 @@
   },
   "keywords": [
     "electron",
-    "audio",
     "video",
-    "downloader"
+    "audio",
+    "downloader",
+    "backup",
+    "tools"
   ],
-  "author": "ThunderLoad"
+  "author": "Spotlight"
 }

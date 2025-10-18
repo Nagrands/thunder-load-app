@@ -1,16 +1,17 @@
 <!-- Badges -->
 
-<img src="assets/icons/icon.png" alt="ThunderLoad Screenshot" width="15%"/> 
+<img src="assets/icons/icon.png" alt="ThunderLoad Screenshot" width="15%"/>
 
 # Thunder Load
 
 [![Build](https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml/badge.svg)](https://github.com/Nagrands/thunder-load-app/actions)
 
-|           ***Downloader***      |
+|        **_Downloader_**         |
 | :-----------------------------: |
 | ![](assets/screenshots/app.png) |
 
 ---
+
 ## 📑 Table of Contents
 
 - [English](#english)
@@ -18,11 +19,13 @@
 - [Українська](#українська)
 
 ---
+
 ## ⬇️ Download
 
 [Release](https://github.com/Nagrands/thunder-load-app/releases/latest)
 
 ---
+
 ## English
 
 ThunderLoad is a modern, cross‑platform video, audio, and file downloader built with [Electron](https://www.electronjs.org/).  
@@ -93,6 +96,7 @@ npm run build
 ```
 
 ---
+
 ## Русский
 
 ThunderLoad — это современный кроссплатформенный загрузчик видео, аудио файлов, созданный на базе [Electron](https://www.electronjs.org/).  
@@ -163,6 +167,7 @@ npm run build
 ```
 
 ---
+
 ## Українська
 
 ThunderLoad — це сучасний кросплатформений завантажувач відео, аудіо файлів, створений на основі [Electron](https://www.electronjs.org/).  

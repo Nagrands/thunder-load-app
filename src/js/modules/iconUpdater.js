@@ -6,7 +6,8 @@ import { showToast } from "./toast.js";
 
 let iconUpdateTimeout;
 
-const mountSelector = '.downloader-view .history-search-wrapper .search-icon, #icon-url-globe';
+const mountSelector =
+  ".downloader-view .history-search-wrapper .search-icon, #icon-url-globe";
 
 /**
  * Ensure we have a valid mount element for the icon (either <i> or <img>),
@@ -14,7 +15,10 @@ const mountSelector = '.downloader-view .history-search-wrapper .search-icon, #i
  * @returns {HTMLElement|null}
  */
 function getIconMount() {
-  return document.getElementById('icon-url-globe') || document.querySelector(mountSelector);
+  return (
+    document.getElementById("icon-url-globe") ||
+    document.querySelector(mountSelector)
+  );
 }
 
 /**
@@ -25,8 +29,8 @@ function getIconMount() {
 function swapIcon(current, next) {
   if (!current) return;
   // Preserve positioning classes
-  next.className = current.className || 'search-icon';
-  next.id = 'icon-url-globe';
+  next.className = current.className || "search-icon";
+  next.id = "icon-url-globe";
   current.replaceWith(next);
 }
 
@@ -42,34 +46,34 @@ const updateIcon = async (url) => {
       if (!mount) return; // нет куда рисовать — тихо выходим
 
       const iconUrl = await window.electron.invoke(
-        'get-icon-path',
-        url && url.trim() ? url : 'default'
+        "get-icon-path",
+        url && url.trim() ? url : "default",
       );
 
       if (iconUrl) {
         // show favicon as <img>
-        const img = document.createElement('img');
-        img.setAttribute('alt', 'Icon');
-        img.setAttribute('draggable', 'false');
+        const img = document.createElement("img");
+        img.setAttribute("alt", "Icon");
+        img.setAttribute("draggable", "false");
         img.src = `file://${iconUrl}`;
         swapIcon(mount, img);
       } else {
         // fallback to globe font icon
-        const i = document.createElement('i');
-        i.setAttribute('aria-hidden', 'true');
-        i.classList.add('fa-solid', 'fa-globe');
+        const i = document.createElement("i");
+        i.setAttribute("aria-hidden", "true");
+        i.classList.add("fa-solid", "fa-globe");
         swapIcon(mount, i);
       }
     } catch (error) {
-      console.error('Error updating icon:', error);
-      showToast('Ошибка обновления иконки.', 'error');
+      console.error("Error updating icon:", error);
+      showToast("Ошибка обновления иконки.", "error");
     }
   }, 500);
 };
 
 function initIconUpdater() {
   if (!urlInput) return;
-  urlInput.addEventListener('input', () => {
+  urlInput.addEventListener("input", () => {
     updateIcon(urlInput.value);
     updateButtonState();
   });

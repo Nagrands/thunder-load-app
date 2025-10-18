@@ -18,8 +18,10 @@ const elements = {
   clearHistoryButton: document.getElementById("clear-history"),
   openFolderButton: document.getElementById("open-folder"),
   iconPlaceholder:
-    document.getElementById('icon-url-globe') ||
-    document.querySelector('.downloader-view .history-search-wrapper .search-icon'),
+    document.getElementById("icon-url-globe") ||
+    document.querySelector(
+      ".downloader-view .history-search-wrapper .search-icon",
+    ),
   iconFilterSearch: document.getElementById("icon-filter-search"),
   refreshButton: document.getElementById("refresh-button"),
   versionElement: document.querySelector(".version"),

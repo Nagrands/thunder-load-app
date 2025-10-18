@@ -29,8 +29,12 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  i { font-size: 1rem; }
-  &:hover { background-color: #0056b3; }
+  i {
+    font-size: 1rem;
+  }
+  &:hover {
+    background-color: #0056b3;
+  }
 }
 
 /* Reset settings section */
@@ -61,7 +65,8 @@
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    &:hover { background-color: #b52b3a; }
+    &:hover {
+      background-color: #b52b3a;
+    }
   }
 }
-

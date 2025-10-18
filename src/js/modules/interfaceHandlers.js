@@ -11,7 +11,12 @@ import {
   filterInput,
   clearFilterInputButton,
 } from "./domElements.js";
-import { toggleSidebar, openSettings, closeSettings, closeSidebarForced } from "./sidebar.js";
+import {
+  toggleSidebar,
+  openSettings,
+  closeSettings,
+  closeSidebarForced,
+} from "./sidebar.js";
 import { state } from "./state.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 
@@ -33,7 +38,10 @@ function initInterfaceHandlers() {
   overlay.addEventListener("click", () => {
     if (settingsModal.style.display === "flex") {
       closeSettings();
-    } else if (sidebar.classList.contains("active") && !sidebar.classList.contains("is-pinned")) {
+    } else if (
+      sidebar.classList.contains("active") &&
+      !sidebar.classList.contains("is-pinned")
+    ) {
       toggleSidebar();
     }
   });

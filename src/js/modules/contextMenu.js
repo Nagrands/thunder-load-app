@@ -443,8 +443,8 @@ function handleRetryDownload(logEntry) {
 
     // Синхронизируем UI кнопок вокруг поля и форсируем предпросмотр
     try {
-      urlInput.dispatchEvent(new Event('input', { bubbles: true }));
-      urlInput.dispatchEvent(new Event('force-preview'));
+      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+      urlInput.dispatchEvent(new Event("force-preview"));
     } catch (_) {}
 
     downloadButton.classList.remove("disabled");

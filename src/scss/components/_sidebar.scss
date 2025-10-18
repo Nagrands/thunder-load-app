@@ -52,13 +52,15 @@ $transition-ease: ease;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   color: var(--sidebar-color);
   transform: translateX(-100%);
-  transition: transform 0.3s ease, width 0.2s ease;
+  transition:
+    transform 0.3s ease,
+    width 0.2s ease;
   overflow-y: auto;
   overflow-x: hidden; // исключаем горизонтальные полосы прокрутки
   z-index: 999;
   justify-content: flex-start;
   align-items: stretch;
-  padding-bottom: .75rem;
+  padding-bottom: 0.75rem;
 
   // Псевдоэлементы для декоративных эффектов
   &::before,
@@ -80,8 +82,8 @@ $transition-ease: ease;
   // Off‑canvas режим (мобильный/узкие экраны)
   &.is-drawer {
     width: min(82vw, $drawer-max-width);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
-    border-right: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(8px);
   }
 
@@ -93,10 +95,10 @@ $transition-ease: ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: .5rem;
-    padding: .5rem .5rem .25rem;
-    margin-bottom: .25rem;
-    background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0));
+    gap: 0.5rem;
+    padding: 0.5rem 0.5rem 0.25rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0));
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
     backdrop-filter: blur(3px);
@@ -105,7 +107,9 @@ $transition-ease: ease;
   // macOS: учитываем область стандартных контролов окна (traffic lights)
   body.is-mac & {
     padding-top: 22px; // небольшой отступ сверху для зоны «светофоров»
-    .sidebar-actions { top: calc(env(safe-area-inset-top, 0px) + 33px); }
+    .sidebar-actions {
+      top: calc(env(safe-area-inset-top, 0px) + 33px);
+    }
   }
   .pin-btn,
   .close-btn {
@@ -116,18 +120,33 @@ $transition-ease: ease;
     justify-content: center;
     border-radius: var(--border-radius);
     background: var(--color-hover);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--color-highlight);
-    transition: background .16s ease, border-color .16s ease, transform .08s ease;
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease,
+      transform 0.08s ease;
     cursor: pointer;
   }
   .pin-btn:hover,
-  .close-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
   .pin-btn:active,
-  .close-btn:active { transform: translateY(1px); }
+  .close-btn:active {
+    transform: translateY(1px);
+  }
   .pin-btn:focus-visible,
-  .close-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-  .pin-btn.is-active { background: var(--color-hover); border-color: var(--color-hover); color: var(--color-accent); }
+  .close-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .pin-btn.is-active {
+    background: var(--color-hover);
+    border-color: var(--color-hover);
+    color: var(--color-accent);
+  }
 
   ul {
     list-style: none;
@@ -140,11 +159,15 @@ $transition-ease: ease;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    background: rgba(255,255,255,0.04);
+    background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(4px);
     border: 1px var(--color-hover) solid;
     border-radius: 12px;
-    transition: background-color .16s ease, border-color .16s ease, transform .08s ease, color .16s ease;
+    transition:
+      background-color 0.16s ease,
+      border-color 0.16s ease,
+      transform 0.08s ease,
+      color 0.16s ease;
     margin: 4px 12px;
     padding: 10px 12px;
     gap: 10px;
@@ -152,9 +175,13 @@ $transition-ease: ease;
     cursor: pointer;
     user-select: none;
 
-    &.dragging { opacity: .6; }
-    &.drag-over { outline: 2px dashed rgba(255,255,255,0.25); }
-  
+    &.dragging {
+      opacity: 0.6;
+    }
+    &.drag-over {
+      outline: 2px dashed rgba(255, 255, 255, 0.25);
+    }
+
     a {
       display: flex;
       align-items: center;
@@ -165,18 +192,25 @@ $transition-ease: ease;
 
     i {
       font-size: 18px;
-      transition: color .16s ease;
+      transition: color 0.16s ease;
     }
 
     label {
       padding-left: 0.125rem;
     }
 
-    &:hover { background: var(--color-hover); color: var(--color-text-main); border-color: var(--color-hover); }
-    &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    &:hover {
+      background: var(--color-hover);
+      color: var(--color-text-main);
+      border-color: var(--color-hover);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
 
     &.active {
-      background-color: rgba(255,255,255,0.08);
+      background-color: rgba(255, 255, 255, 0.08);
       color: var(--color-accent);
       border-color: var(--color-accent);
       box-shadow:
@@ -196,15 +230,24 @@ $transition-ease: ease;
       border-radius: var(--border-radius);
       font-size: 11px;
       color: var(--color-text-main);
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
     }
-    .badge.dot { width: 8px; min-width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--color-accent); border: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.15); }
+    .badge.dot {
+      width: 8px;
+      min-width: 8px;
+      height: 8px;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--color-accent);
+      border: none;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+    }
   }
 
   #open-github {
     background: none;
-    
+
     span {
       font-size: 14px;
       font-weight: 600;
@@ -225,7 +268,7 @@ $transition-ease: ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: .75rem;
+    gap: 0.75rem;
     margin: 2.75rem 1rem 1rem;
 
     .logo {
@@ -256,7 +299,7 @@ $transition-ease: ease;
     justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);
-    margin: .25rem 1rem 0;
+    margin: 0.25rem 1rem 0;
 
     .icon-links {
       display: flex;
@@ -287,15 +330,15 @@ $transition-ease: ease;
         align-items: center;
         justify-content: center;
         border-radius: var(--border-radius);
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
 
         // Микро‑анимация и подсветка иконок
         &:hover,
         &:focus-visible {
           color: var(--color-accent);
-          background: rgba(255,255,255,0.08);
-          border-color: rgba(255,255,255,0.14);
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.14);
           transform: translateY(-1px);
         }
 
@@ -352,7 +395,7 @@ $transition-ease: ease;
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
-    margin: .5rem .75rem;
+    margin: 0.5rem 0.75rem;
     overflow: visible;
   }
   #sidebar-nav .sidebar-item {
@@ -363,35 +406,53 @@ $transition-ease: ease;
     padding: 8px 12px;
     justify-content: flex-start;
     border-radius: 10px;
-    transition: background-color .16s ease, border-color .16s ease, transform .08s ease, color .16s ease;
+    transition:
+      background-color 0.16s ease,
+      border-color 0.16s ease,
+      transform 0.08s ease,
+      color 0.16s ease;
   }
-  #sidebar-nav .sidebar-item i { font-size: 18px; }
-  #sidebar-nav .sidebar-item span { display: inline; }
+  #sidebar-nav .sidebar-item i {
+    font-size: 18px;
+  }
+  #sidebar-nav .sidebar-item span {
+    display: inline;
+  }
   #sidebar-nav .sidebar-item .badge {
     position: static;
     margin-left: auto;
-    min-width: 18px; height: 18px; padding: 0 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
     font-size: 11px;
     border-width: 1px;
-    background: rgba(255,255,255,0.10);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--color-text-main);
   }
   // Микровзаимодействия для пунктов навигации
   #sidebar-nav .sidebar-item:hover,
   #sidebar-nav .sidebar-item:focus-visible {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.14);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
     transform: translateY(-1px);
     color: var(--color-accent);
   }
   // Разделитель: плавность и реакции на hover/focus
   #sidebar-nav .sidebar-item:not(:first-child)::before {
-    transition: background-color .16s ease, opacity .16s ease;
+    transition:
+      background-color 0.16s ease,
+      opacity 0.16s ease;
   }
-  #sidebar-nav .sidebar-item:hover::before { background: transparent; }
-  #sidebar-nav .sidebar-item:hover + .sidebar-item::before { background: transparent; }
+  #sidebar-nav .sidebar-item:hover::before {
+    background: transparent;
+  }
+  #sidebar-nav .sidebar-item:hover + .sidebar-item::before {
+    background: transparent;
+  }
   #sidebar-nav .sidebar-item:focus-visible::before,
-  #sidebar-nav .sidebar-item:active::before { background: var(--color-accent); }
+  #sidebar-nav .sidebar-item:active::before {
+    background: var(--color-accent);
+  }
   // Тонкий разделитель между пунктами
 
   // В свернутом режиме — компактные строки (иконка+текст остаются, ширина ограничена)
@@ -400,8 +461,12 @@ $transition-ease: ease;
     gap: 4px;
   }
   // В свернутом режиме — без разделителей, компактные элементы
-  &.is-collapsed #sidebar-nav .sidebar-item { border-radius: var(--border-radius); }
-  &.is-collapsed #sidebar-nav .sidebar-item:not(:first-child)::before { display: none; }
+  &.is-collapsed #sidebar-nav .sidebar-item {
+    border-radius: var(--border-radius);
+  }
+  &.is-collapsed #sidebar-nav .sidebar-item:not(:first-child)::before {
+    display: none;
+  }
 
   .close-btn {
     font-size: 16px;
@@ -410,17 +475,41 @@ $transition-ease: ease;
   // Свернутый режим
   &.is-collapsed {
     width: $sidebar-width-collapsed;
-    .logo-text { display: none; }
-    .sidebar-item { justify-content: center; padding: 8px; margin: 2px; }
-    .sidebar-item span { display: none; }
+    .logo-text {
+      display: none;
+    }
+    .sidebar-item {
+      justify-content: center;
+      padding: 8px;
+      margin: 2px;
+    }
+    .sidebar-item span {
+      display: none;
+    }
     // у навигации принудительно скрываем подписи
-    #sidebar-nav .sidebar-item span { display: none; }
-    .sidebar-actions { justify-content: center; align-items: center; flex-direction: column; gap: 6px; padding: 6px; }
-    .social-links { justify-content: center; margin: .25rem .5rem 0; }
+    #sidebar-nav .sidebar-item span {
+      display: none;
+    }
+    .sidebar-actions {
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px;
+    }
+    .social-links {
+      justify-content: center;
+      margin: 0.25rem 0.5rem 0;
+    }
     // В компактном режиме заголовки групп не показываем
-    .sidebar-title { display: none; }
+    .sidebar-title {
+      display: none;
+    }
     // И содержимое групп держим раскрытым без ограничений высоты
-    .sidebar-collapse { max-height: none !important; overflow: visible; }
+    .sidebar-collapse {
+      max-height: none !important;
+      overflow: visible;
+    }
     // Иконки сервисов: вертикальная колонка компактных кнопок с читаемым фоном
     .social-links .icon-links {
       flex-direction: column;
@@ -437,8 +526,8 @@ $transition-ease: ease;
       padding: 0;
       justify-content: center;
       border-radius: var(--border-radius);
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .social-links .icon-links a:hover,
     .social-links .icon-links a:focus-visible {
@@ -463,20 +552,26 @@ $transition-ease: ease;
       background: var(--color-hover);
     }
     // центрируем содержимое футера
-    .sidebar-footer { align-items: center; }
+    .sidebar-footer {
+      align-items: center;
+    }
   }
 
   // Навигация и структура: группы и заголовки
-  .sidebar-group { margin: .5rem .75rem; }
+  .sidebar-group {
+    margin: 0.5rem 0.75rem;
+  }
   .sidebar-title {
-    margin: .5rem .5rem .25rem;
-    padding: 0 .25rem;
+    margin: 0.5rem 0.5rem 0.25rem;
+    padding: 0 0.25rem;
     font-size: 11px;
-    letter-spacing: .08em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-quality);
-    opacity: .9;
-    display: flex; align-items: center; gap: 6px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     cursor: pointer;
     user-select: none;
     border-radius: 8px;
@@ -486,26 +581,40 @@ $transition-ease: ease;
   // chevron indicator
   .sidebar-title::before {
     content: "";
-    width: 0; height: 0;
+    width: 0;
+    height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
     border-top: 6px solid var(--color-quality);
-    opacity: .85;
+    opacity: 0.85;
     transform-origin: 50% 45%;
-    transition: transform .16s ease, opacity .16s ease;
+    transition:
+      transform 0.16s ease,
+      opacity 0.16s ease;
   }
-  .sidebar-title[aria-expanded="false"]::before { transform: rotate(-90deg); opacity: .7; }
-  .sidebar-title:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .sidebar-title[aria-expanded="false"]::before {
+    transform: rotate(-90deg);
+    opacity: 0.7;
+  }
+  .sidebar-title:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 
   // collapsible container
   .sidebar-collapse {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: max-height .22s ease;
+    transition: max-height 0.22s ease;
     max-height: 1000px; // default expanded; JS will adjust
   }
-  .sidebar-title::after { content: ""; height: 1px; flex: 1 1 auto; background: rgba(255,255,255,0.08); }
+  .sidebar-title::after {
+    content: "";
+    height: 1px;
+    flex: 1 1 auto;
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 // Мобильная компоновка: по умолчанию как off‑canvas
@@ -513,7 +622,9 @@ $transition-ease: ease;
   .sidebar {
     width: min(82vw, $drawer-max-width);
   }
-  .sidebar .pin-btn { display: none; } // pin не нужен на телефонах
+  .sidebar .pin-btn {
+    display: none;
+  } // pin не нужен на телефонах
 }
 
 // ==============================
@@ -540,9 +651,20 @@ $transition-ease: ease;
 }
 
 // Платформенные детали: drag region (macOS)
-.drag-region { -webkit-app-region: drag; }
-.no-drag, .sidebar button, .sidebar a, .sidebar .sidebar-item { -webkit-app-region: no-drag; }
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag,
+.sidebar button,
+.sidebar a,
+.sidebar .sidebar-item {
+  -webkit-app-region: no-drag;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar, .sidebar * { transition: none !important; animation: none !important; }
+  .sidebar,
+  .sidebar * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

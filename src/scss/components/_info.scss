@@ -19,7 +19,9 @@
   background-color: var(--color-url-bg);
   color: var(--color-highlight);
 
-  i { margin-right: 8px; }
+  i {
+    margin-right: 8px;
+  }
 
   .info {
     &-delete {
@@ -47,4 +49,3 @@
     }
   }
 }
-

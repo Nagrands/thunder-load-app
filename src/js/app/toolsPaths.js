@@ -8,14 +8,14 @@
  * проверяет наличие бинарников и (опционально) мигрирует из "старых" мест.
  */
 
-const fs = require('fs');
-const fsp = require('fs/promises');
-const path = require('path');
-const os = require('os');
-const { app } = require('electron');
+const fs = require("fs");
+const fsp = require("fs/promises");
+const path = require("path");
+const os = require("os");
+const { app } = require("electron");
 
-const TOOLS_KEY = 'tools.dir'; // ключ настроек для кастомной папки инструментов
-const TOOL_NAMES = /** @type {const} */ (['yt-dlp', 'ffmpeg']);
+const TOOLS_KEY = "tools.dir"; // ключ настроек для кастомной папки инструментов
+const TOOL_NAMES = /** @type {const} */ (["yt-dlp", "ffmpeg"]);
 
 /**
  * Возвращает имя исполняемого файла под платформу
@@ -23,7 +23,7 @@ const TOOL_NAMES = /** @type {const} */ (['yt-dlp', 'ffmpeg']);
  */
 function getExecName(tool) {
   const base = tool;
-  if (process.platform === 'win32') return `${base}.exe`;
+  if (process.platform === "win32") return `${base}.exe`;
   return base;
 }
 
@@ -34,7 +34,7 @@ function getExecName(tool) {
  * Windows: %APPDATA%/<App Name>/tools
  */
 function getDefaultToolsDir() {
-  return path.join(app.getPath('userData'), 'tools');
+  return path.join(app.getPath("userData"), "tools");
 }
 
 /**
@@ -43,7 +43,7 @@ function getDefaultToolsDir() {
  */
 function normalizeDir(dir) {
   // expand ~ на *nix
-  if (dir && dir.startsWith('~')) dir = path.join(os.homedir(), dir.slice(1));
+  if (dir && dir.startsWith("~")) dir = path.join(os.homedir(), dir.slice(1));
   return path.resolve(dir);
 }
 
@@ -54,8 +54,10 @@ function normalizeDir(dir) {
 function readCustomDir(storeOrGetter) {
   try {
     if (!storeOrGetter) return undefined;
-    if (typeof storeOrGetter === 'function') return storeOrGetter(TOOLS_KEY) || undefined;
-    if (typeof storeOrGetter.get === 'function') return storeOrGetter.get(TOOLS_KEY) || undefined;
+    if (typeof storeOrGetter === "function")
+      return storeOrGetter(TOOLS_KEY) || undefined;
+    if (typeof storeOrGetter.get === "function")
+      return storeOrGetter.get(TOOLS_KEY) || undefined;
   } catch {}
   return undefined;
 }
@@ -98,7 +100,7 @@ async function isToolPresent(tool, dir) {
   try {
     await fsp.access(file, fs.constants.F_OK);
     // Доп.проверка исполнимости на *nix
-    if (process.platform !== 'win32') {
+    if (process.platform !== "win32") {
       await fsp.access(file, fs.constants.X_OK);
     }
     return true;
@@ -113,23 +115,23 @@ async function isToolPresent(tool, dir) {
  */
 function legacyCandidates() {
   const candidates = new Set();
-  const exeDir = path.dirname(app.getPath('exe'));
+  const exeDir = path.dirname(app.getPath("exe"));
   const appPath = app.getAppPath();
   const resPath = process.resourcesPath;
 
   const possible = [
     // Рядом с exe / приложением
     exeDir,
-    path.join(exeDir, 'bin'),
+    path.join(exeDir, "bin"),
     appPath,
-    path.join(appPath, 'bin'),
+    path.join(appPath, "bin"),
     // В ресурсах
     resPath,
-    path.join(resPath, 'bin'),
-    path.join(resPath, 'app.asar.unpacked', 'bin'),
+    path.join(resPath, "bin"),
+    path.join(resPath, "app.asar.unpacked", "bin"),
     // Рабочая директория
     process.cwd(),
-    path.join(process.cwd(), 'bin'),
+    path.join(process.cwd(), "bin"),
   ];
 
   for (const p of possible) candidates.add(p);
@@ -166,7 +168,8 @@ async function migrateLegacy(toDir, opts = {}) {
   const overwrite = !!opts.overwrite;
   const targetDir = await ensureToolsDir(toDir);
   const found = await detectLegacyLocations();
-  const copied = []; const skipped = [];
+  const copied = [];
+  const skipped = [];
 
   for (const loc of found) {
     for (const t of TOOL_NAMES) {
@@ -184,8 +187,10 @@ async function migrateLegacy(toDir, opts = {}) {
         // файла нет — можно копировать
       }
       await fsp.copyFile(src, dst);
-      if (process.platform !== 'win32') {
-        try { await fsp.chmod(dst, 0o755); } catch {}
+      if (process.platform !== "win32") {
+        try {
+          await fsp.chmod(dst, 0o755);
+        } catch {}
       }
       copied.push(dst);
     }

@@ -14,10 +14,16 @@ export default class TabSystem {
     this._WG_ID = "wireguard";
     // Backup visibility wiring
     this._BK_ID = "backup";
-    this._applyWgVisibility = this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
-    this._applyBackupVisibility = this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
-    window.addEventListener("wg:toggleDisabled", () => this._applyWgVisibility());
-    window.addEventListener("backup:toggleDisabled", () => this._applyBackupVisibility());
+    this._applyWgVisibility =
+      this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
+    this._applyBackupVisibility =
+      this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
+    window.addEventListener("wg:toggleDisabled", () =>
+      this._applyWgVisibility(),
+    );
+    window.addEventListener("backup:toggleDisabled", () =>
+      this._applyBackupVisibility(),
+    );
     // применить сразу (если вкладка уже есть)
     this._applyWgVisibility();
     this._applyBackupVisibility();
@@ -116,7 +122,9 @@ export default class TabSystem {
 
     this.activeTabId = id;
     try {
-      window.dispatchEvent(new CustomEvent('tabs:activated', { detail: { id } }));
+      window.dispatchEvent(
+        new CustomEvent("tabs:activated", { detail: { id } }),
+      );
     } catch {}
   }
   _isWgDisabled() {

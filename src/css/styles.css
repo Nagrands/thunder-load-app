@@ -12108,12 +12108,16 @@ body.is-mac .sidebar .sidebar-actions {
   -webkit-app-region: drag;
 }
 
-.no-drag, .sidebar button, .sidebar a, .sidebar .sidebar-item {
+.no-drag,
+.sidebar button,
+.sidebar a,
+.sidebar .sidebar-item {
   -webkit-app-region: no-drag;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar, .sidebar * {
+  .sidebar,
+  .sidebar * {
     transition: none !important;
     animation: none !important;
   }
@@ -13487,13 +13491,11 @@ hr {
 #history {
   width: 100%;
   max-height: 300px;
-  background-color: rgba(0, 0, 0, 0.1);
   border-radius: var(--border-radius);
   box-sizing: border-box;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-highlight) var(--color-history-scroll);
-  backdrop-filter: blur(3px);
 }
 #history::-webkit-scrollbar {
   width: 6px;
@@ -13576,7 +13578,6 @@ hr {
   border-radius: var(--border-radius);
   color: var(--color-highlight);
   margin: 2px;
-  background-color: var(--color-bg-main);
   border: 1px solid var(--color-hover);
   box-shadow: 0 1px 2px var(--color-quality);
   transition: transform 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
@@ -17725,8 +17726,8 @@ video {
 .backup-view .bk-row {
   --bk-row-bg: rgba(40, 44, 56, 0.85);
   --bk-row-bg-hover: rgba(60, 80, 120, 0.95);
-  --bk-row-bg-selected: rgba(60, 120, 255, 0.10);
-  --bk-row-border: 1px solid rgba(120,180,255,0.13);
+  --bk-row-bg-selected: rgba(60, 120, 255, 0.1);
+  --bk-row-border: 1px solid rgba(120, 180, 255, 0.13);
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -18267,7 +18268,7 @@ video {
   padding: 8px 12px;
   border-radius: 12px;
   border: 1.5px solid var(--color-hover);
-  background: rgba(32, 32, 40, 0.93);
+  background: rgba(32, 32, 40, 0.25);
   color: var(--color-highlight);
   font-size: 0.95rem;
   outline: none;

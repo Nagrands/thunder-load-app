@@ -18,8 +18,9 @@
 body {
   display: flex;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background-color: var(--color-bg-main);
   color: var(--color-text-main);
   height: 100vh;
@@ -99,11 +100,14 @@ strong {
   }
 }
 
-
 // Плавный переход цветовых переменных при смене темы
 .theme-transition,
 .theme-transition * {
-  transition: background-color 220ms ease, color 220ms ease,
-              border-color 220ms ease, outline-color 220ms ease,
-              fill 220ms ease, stroke 220ms ease;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease,
+    outline-color 220ms ease,
+    fill 220ms ease,
+    stroke 220ms ease;
 }

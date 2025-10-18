@@ -171,7 +171,7 @@ const localHotkeys = new Map([
       const cur = curAttr || localStorage.getItem("theme") || "system";
       const idx = Math.max(0, order.indexOf(cur));
       const next = order[(idx + 1) % order.length];
-      document.documentElement.classList.add('theme-transition');
+      document.documentElement.classList.add("theme-transition");
       if (next === "system") {
         document.documentElement.removeAttribute("data-theme");
         localStorage.removeItem("theme");
@@ -181,7 +181,10 @@ const localHotkeys = new Map([
       }
       updateThemeDropdownUI(next);
       await window.electron.invoke("set-theme", next);
-      setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
+      setTimeout(
+        () => document.documentElement.classList.remove("theme-transition"),
+        260,
+      );
     },
   ],
   [
@@ -193,7 +196,7 @@ const localHotkeys = new Map([
       const cur = curAttr || localStorage.getItem("theme") || "system";
       const idx = Math.max(0, order.indexOf(cur));
       const next = order[(idx + 1) % order.length];
-      document.documentElement.classList.add('theme-transition');
+      document.documentElement.classList.add("theme-transition");
       if (next === "system") {
         document.documentElement.removeAttribute("data-theme");
         localStorage.removeItem("theme");
@@ -203,7 +206,10 @@ const localHotkeys = new Map([
       }
       updateThemeDropdownUI(next);
       await window.electron.invoke("set-theme", next);
-      setTimeout(() => document.documentElement.classList.remove('theme-transition'), 260);
+      setTimeout(
+        () => document.documentElement.classList.remove("theme-transition"),
+        260,
+      );
     },
   ],
   [

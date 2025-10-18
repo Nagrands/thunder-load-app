@@ -39,9 +39,14 @@ function initClipboardHandler() {
     ) {
       // Активируем вкладку Downloader, чтобы пользователь сразу видел карточку
       try {
-        const tabBtn = document.querySelector('.group-menu [data-menu="download"]');
+        const tabBtn = document.querySelector(
+          '.group-menu [data-menu="download"]',
+        );
         if (tabBtn) tabBtn.click();
-        else document.querySelector('#sidebar .sidebar-item[data-tab="download"]')?.click();
+        else
+          document
+            .querySelector('#sidebar .sidebar-item[data-tab="download"]')
+            ?.click();
       } catch {}
 
       urlInput.value = clipboardContent;

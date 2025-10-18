@@ -22,7 +22,9 @@
     transform: none !important;
   }
 
-  &.tab-hide { opacity: 0; }
+  &.tab-hide {
+    opacity: 0;
+  }
 }
 
 .download-queue-info,
@@ -37,13 +39,19 @@
   border-radius: var(--border-radius);
   padding: 8px 20px;
   margin: 10px 0;
-  &.hidden { display: none; }
+  &.hidden {
+    display: none;
+  }
 }
 
 .queue-start-indicator {
   margin-top: 4px;
   opacity: 0;
-  &.show { opacity: 1; animation: pulse-indicator 1.2s ease-in-out infinite; }
-  &.hidden { display: none; }
+  &.show {
+    opacity: 1;
+    animation: pulse-indicator 1.2s ease-in-out infinite;
+  }
+  &.hidden {
+    display: none;
+  }
 }
-

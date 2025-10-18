@@ -44,21 +44,32 @@ function normalizeUrl(u) {
     const url = new URL(String(u).trim());
     // strip common tracking params but keep meaningful like 't' (timestamp)
     const toDelete = [
-      'utm_source','utm_medium','utm_campaign','utm_term','utm_content',
-      'si','spm','fbclid','gclid','yclid','mc_cid','mc_eid','feature'
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content",
+      "si",
+      "spm",
+      "fbclid",
+      "gclid",
+      "yclid",
+      "mc_cid",
+      "mc_eid",
+      "feature",
     ];
     toDelete.forEach((k) => url.searchParams.delete(k));
     // remove trailing slash for consistency
-    if (url.pathname !== '/' && url.pathname.endsWith('/')) {
-      url.pathname = url.pathname.replace(/\/+$/, '');
+    if (url.pathname !== "/" && url.pathname.endsWith("/")) {
+      url.pathname = url.pathname.replace(/\/+$/, "");
     }
     // drop hash except time-like (#t=) to reduce dupes
-    if (!/^t=/.test(url.hash?.slice(1) || '')) url.hash = '';
-    url.username = '';
-    url.password = '';
+    if (!/^t=/.test(url.hash?.slice(1) || "")) url.hash = "";
+    url.username = "";
+    url.password = "";
     return url.toString();
   } catch {
-    return (u || '').trim();
+    return (u || "").trim();
   }
 }
 
@@ -87,19 +98,37 @@ function summarizeEnqueueResult(res) {
   if (res.activeDup) parts.push(`совпадает с текущей: ${res.activeDup}`);
   if (res.invalid) parts.push(`некорректных: ${res.invalid}`);
   if (res.capped) parts.push(`превышение лимита: +${res.capped}`);
-  return parts.join(', ');
+  return parts.join(", ");
 }
 
 function enqueueMany(urls, quality, options = {}) {
   const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
-  const existing = new Set(state.downloadQueue.map((it) => normalizeUrl(it.url)));
-  let added = 0, duplicates = 0, activeDup = 0, invalid = 0, capped = 0;
+  const existing = new Set(
+    state.downloadQueue.map((it) => normalizeUrl(it.url)),
+  );
+  let added = 0,
+    duplicates = 0,
+    activeDup = 0,
+    invalid = 0,
+    capped = 0;
   for (const raw of urls) {
-    if (!isValidUrl(raw) || !isSupportedUrl(raw)) { invalid++; continue; }
+    if (!isValidUrl(raw) || !isSupportedUrl(raw)) {
+      invalid++;
+      continue;
+    }
     const n = normalizeUrl(raw);
-    if (n === currentN) { activeDup++; continue; }
-    if (existing.has(n)) { duplicates++; continue; }
-    if (state.downloadQueue.length >= QUEUE_MAX) { capped++; continue; }
+    if (n === currentN) {
+      activeDup++;
+      continue;
+    }
+    if (existing.has(n)) {
+      duplicates++;
+      continue;
+    }
+    if (state.downloadQueue.length >= QUEUE_MAX) {
+      capped++;
+      continue;
+    }
     state.downloadQueue.push({ url: raw, quality });
     existing.add(n);
     added++;
@@ -137,19 +166,28 @@ const downloadVideo = async (url, quality) => {
   urlInput.disabled = true;
   downloadCancelButton.disabled = true;
   updateButtonState();
-  try { window.dispatchEvent(new CustomEvent('download:state', { detail: { isDownloading: true } })); } catch {}
+  try {
+    window.dispatchEvent(
+      new CustomEvent("download:state", { detail: { isDownloading: true } }),
+    );
+  } catch {}
   updateDownloaderTabLabel();
 
   try {
     // Поменяем содержимое поля URL на название ролика, чтобы во время загрузки показывать title
     lastInputBeforeDownload = urlInput.value;
     try {
-      const meta = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      const meta = await window.electron.ipcRenderer.invoke(
+        "get-video-info",
+        url,
+      );
       const title = meta?.title?.trim();
       if (title && title.length >= 2) {
         urlInput.value = title;
         urlInput.setAttribute("data-title-mode", "1");
-        try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
+        try {
+          urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+        } catch {}
       }
     } catch (_) {}
 
@@ -213,7 +251,9 @@ const downloadVideo = async (url, quality) => {
     await updateDownloadCount();
 
     urlInput.value = "";
-    try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
+    try {
+      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch {}
     updateIcon("");
     updateButtonState();
 
@@ -244,7 +284,11 @@ const downloadVideo = async (url, quality) => {
     state.isDownloading = false;
     urlInput.disabled = false;
     updateButtonState();
-    try { window.dispatchEvent(new CustomEvent('download:state', { detail: { isDownloading: false } })); } catch {}
+    try {
+      window.dispatchEvent(
+        new CustomEvent("download:state", { detail: { isDownloading: false } }),
+      );
+    } catch {}
     updateDownloaderTabLabel();
 
     buttonText.textContent = "Скачать";
@@ -292,7 +336,9 @@ const handleDownloadButtonClick = async (options = {}) => {
   if (options.forceAudioOnly) quality = "Audio Only";
 
   // Извлекаем URL из произвольного текста
-  const validUrls = extractUrls(raw).filter((u) => isValidUrl(u) && isSupportedUrl(u));
+  const validUrls = extractUrls(raw).filter(
+    (u) => isValidUrl(u) && isSupportedUrl(u),
+  );
   if (validUrls.length === 0) {
     showToast("Пожалуйста, введите корректный URL.", "warning");
     return;
@@ -313,7 +359,9 @@ const handleDownloadButtonClick = async (options = {}) => {
       }
     }
     urlInput.value = "";
-    try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
+    try {
+      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch {}
     return;
   }
 
@@ -325,14 +373,20 @@ const handleDownloadButtonClick = async (options = {}) => {
       showToast("Этот URL уже загружается.", "warning");
       return;
     }
-    if (state.downloadQueue.some((item) => normalizeUrl(item.url) === normalizeUrl(url))) {
+    if (
+      state.downloadQueue.some(
+        (item) => normalizeUrl(item.url) === normalizeUrl(url),
+      )
+    ) {
       showToast("Этот URL уже есть в очереди.", "info");
       return;
     }
     state.downloadQueue.push({ url, quality });
     showToast("Добавлено в очередь загрузки.", "info");
     urlInput.value = "";
-    try { urlInput.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
+    try {
+      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch {}
     updateQueueDisplay();
   } else {
     await initiateDownload(url, quality);

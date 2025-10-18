@@ -119,7 +119,8 @@
 .progress-complete {
   #progress-bar {
     animation: progress-pulse 1s ease-out;
-    &::before { animation: none; }
+    &::before {
+      animation: none;
+    }
   }
 }
-

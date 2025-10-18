@@ -1,7 +1,11 @@
 // src/js/modules/downloadProgress.js
 
 import { state } from "./state.js";
-import { buttonText, progressBar, progressBarContainer } from "./domElements.js";
+import {
+  buttonText,
+  progressBar,
+  progressBarContainer,
+} from "./domElements.js";
 
 function initDownloadProgress() {
   let startedAt = null;
@@ -22,7 +26,7 @@ function initDownloadProgress() {
       const remaining = (100 - progress) / Math.max(0.1, rate);
       const mm = Math.floor(remaining / 60);
       const ss = Math.floor(remaining % 60);
-      suffix = ` • ~${mm}:${String(ss).padStart(2, '0')}`;
+      suffix = ` • ~${mm}:${String(ss).padStart(2, "0")}`;
     }
     buttonText.textContent = `Скачивание... ${progressStr}%${suffix}`;
     progressBar.style.width = `${progress}%`;
@@ -37,9 +41,9 @@ function initDownloadProgress() {
           const remaining = (100 - progress) / Math.max(0.1, rate);
           const mm = Math.floor(remaining / 60);
           const ss = Math.floor(remaining % 60);
-          progressBarContainer.dataset.eta = `~${mm}:${String(ss).padStart(2, '0')}`;
+          progressBarContainer.dataset.eta = `~${mm}:${String(ss).padStart(2, "0")}`;
         } else {
-          progressBarContainer.dataset.eta = '';
+          progressBarContainer.dataset.eta = "";
         }
       } catch {}
     }

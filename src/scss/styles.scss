@@ -18,7 +18,7 @@
 @use "layout/footer";
 
 // Компоненты (агрегатор)
-@use "components/index"; // агрегатор всех компонентов из папки components
+@use "components/index";
 
 // Вкладки
 @use "tab/downloader";

@@ -12,14 +12,14 @@ import {
 export function updateThemeDropdownUI(theme) {
   const label = document.getElementById("theme-selected-label");
   const menu = document.getElementById("theme-dropdown-menu");
-  const btn  = document.getElementById("theme-dropdown-btn");
+  const btn = document.getElementById("theme-dropdown-btn");
   const item = menu?.querySelector(`[data-value="${theme}"]`);
 
   if (label && item) {
     label.textContent = item.textContent;
     menu.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
     item.classList.add("active");
-    if (btn) btn.setAttribute('data-current-theme', theme);
+    if (btn) btn.setAttribute("data-current-theme", theme);
   }
 }
 

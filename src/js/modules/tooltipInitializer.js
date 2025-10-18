@@ -59,7 +59,9 @@ function replaceModifiers(text, isMac) {
 function initTooltips() {
   // Если Bootstrap не загружен, спокойно выходим без ошибок
   if (!(window.bootstrap && window.bootstrap.Tooltip)) {
-    console.info("[Tooltips] Bootstrap is not available. Skipping tooltip init.");
+    console.info(
+      "[Tooltips] Bootstrap is not available. Skipping tooltip init.",
+    );
     return;
   }
   // Очистка предыдущих тултипов
@@ -119,16 +121,16 @@ function initTooltips() {
   tooltipTriggerList.forEach((el) => {
     setTimeout(() => {
       try {
-        const sidebar = document.getElementById('sidebar');
-        const isCollapsed = sidebar?.classList?.contains('is-collapsed');
-        const insideSidebar = !!el.closest('#sidebar');
-        const isNavItem = el.classList?.contains('sidebar-item');
-        const isServiceIcon = !!el.closest('.social-links .icon-links');
+        const sidebar = document.getElementById("sidebar");
+        const isCollapsed = sidebar?.classList?.contains("is-collapsed");
+        const insideSidebar = !!el.closest("#sidebar");
+        const isNavItem = el.classList?.contains("sidebar-item");
+        const isServiceIcon = !!el.closest(".social-links .icon-links");
         // Base placement from attribute, fallback to top
-        let placementOption = el.getAttribute('data-bs-placement') || 'top';
+        let placementOption = el.getAttribute("data-bs-placement") || "top";
         // Override for compact sidebar: nav buttons and service icons should show to the right
         if (insideSidebar && isCollapsed && (isNavItem || isServiceIcon)) {
-          placementOption = 'right';
+          placementOption = "right";
         }
         if (
           !el ||

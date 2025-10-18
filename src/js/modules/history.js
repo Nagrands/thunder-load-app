@@ -99,24 +99,30 @@ function createLogEntry(entry, index) {
         <span class="quality">
           <div class="log-badges top">
             ${entry.resolution ? `<span class="hist-badge type-resolution" title="Разрешение">${entry.resolution}</span>` : ""}
-            <span class="q-badge" title="Разрешение/Кадров">${(entry.quality || "").replace(/</g,'&lt;')}</span>
+            <span class="q-badge" title="Разрешение/Кадров">${(entry.quality || "").replace(/</g, "&lt;")}</span>
             ${entry.fps ? `<span class="hist-badge type-fps" title="Кадров/с">${entry.fps}fps</span>` : ""}
-            ${entry.isMissing
-            ? `<span class="file-missing" title="Файл отсутствует на диске">файл удалён</span>`
-            : `<span class="file-size" title="Размер файла">${formattedSize}</span>`}
+            ${
+              entry.isMissing
+                ? `<span class="file-missing" title="Файл отсутствует на диске">файл удалён</span>`
+                : `<span class="file-size" title="Размер файла">${formattedSize}</span>`
+            }
           </div>
         </span>
       </div>
       <div class="log-filename">
         <span class="log-number">${index + 1}.</span>
         <img src="file://${entry.iconUrl}" alt="Icon">
-        <span class="log-name" title="${(entry.fileName || "").replace(/"/g, '&quot;')}">${entry.fileName}</span>
+        <span class="log-name" title="${(entry.fileName || "").replace(/"/g, "&quot;")}">${entry.fileName}</span>
         
         <div class="log-actions">
-          ${!entry.isMissing ? `
+          ${
+            !entry.isMissing
+              ? `
             <button class="log-play-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Воспроизвести" data-path="${entry.filePath}">
               <i class="fa-solid fa-circle-play"></i>
-            </button>` : ""}
+            </button>`
+              : ""
+          }
           ${
             !entry.isMissing
               ? `
@@ -139,15 +145,20 @@ function createLogEntry(entry, index) {
     el.removeEventListener("click", el._clickHandler);
   }
 
-  const playBtn = el.querySelector('.log-play-btn');
+  const playBtn = el.querySelector(".log-play-btn");
   if (playBtn && !entry.isMissing) {
-    playBtn.addEventListener('click', async (e) => {
+    playBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       try {
-        const exists = await window.electron.invoke("check-file-exists", entry.filePath);
+        const exists = await window.electron.invoke(
+          "check-file-exists",
+          entry.filePath,
+        );
         if (!exists) return showToast("Файл не найден на диске", "error");
         await window.electron.invoke("open-last-video", entry.filePath);
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
 

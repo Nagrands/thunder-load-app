@@ -34,13 +34,17 @@ function getToolsVersions(store) {
   let yt = { ok: false };
   if (fs.existsSync(ytPath)) {
     const ver = runVersion(ytPath, ["--version"]);
-    yt = ver ? { ok: true, path: ytPath, version: ver } : { ok: false, path: ytPath };
+    yt = ver
+      ? { ok: true, path: ytPath, version: ver }
+      : { ok: false, path: ytPath };
   }
 
   let ff = { ok: false };
   if (fs.existsSync(ffPath)) {
     const ver = runVersion(ffPath, ["-version"]);
-    ff = ver ? { ok: true, path: ffPath, version: ver } : { ok: false, path: ffPath };
+    ff = ver
+      ? { ok: true, path: ffPath, version: ver }
+      : { ok: false, path: ffPath };
   }
 
   return { ytDlp: yt, ffmpeg: ff };

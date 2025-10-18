@@ -31,7 +31,6 @@
 // ----------------------------------------
 
 .shortcuts-modal {
-
   // Контейнер контента модалки: слегка компактнее и читаемее
   .shortcuts-modal-content {
     max-width: 780px;
@@ -118,7 +117,7 @@
   }
 
   details.spoiler summary i {
-    transition: transform .16s ease;
+    transition: transform 0.16s ease;
   }
 
   details.spoiler[open] summary i {
@@ -134,7 +133,6 @@
   }
 
   @media (min-width: 760px) {
-
     .main-hotkeys,
     .additional-hotkeys {
       grid-template-columns: 1fr 1fr;
@@ -145,7 +143,7 @@
   .main-hotkeys hr,
   .additional-hotkeys hr {
     grid-column: 1 / -1;
-    opacity: .15;
+    opacity: 0.15;
     margin: 4px 0;
     border: none;
     border-top: 1px solid var(--color-hover);
@@ -160,7 +158,9 @@
     gap: 10px;
     // padding: 6px 8px;
     border-radius: 8px;
-    transition: background-color .12s ease, color .12s ease;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
   }
 
   .main-hotkeys li:hover,
@@ -188,17 +188,22 @@
     min-width: auto;
     padding: 4px 10px;
     font-weight: 600;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    letter-spacing: .2px;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    letter-spacing: 0.2px;
     color: var(--color-accent);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.03)
+    );
     border: 1px solid var(--color-hover);
     border-radius: 8px;
   }
 
   // Адаптив для совсем узких окон — одна колонка
   @media (max-width: 560px) {
-
     .main-hotkeys,
     .additional-hotkeys {
       grid-template-columns: 1fr;
@@ -277,7 +282,6 @@
 
 // Стили для модального окна "Настройки"
 .settings-modal {
-
   // === Инструменты (yt-dlp / ffmpeg) ===
   #tools-info {
     padding: 12px 14px 18px;
@@ -723,7 +727,6 @@
   #backup-settings,
   #appearance-settings,
   #other-settings {
-
     // Карточный вид строк
     ul.module {
       display: flex;
@@ -783,7 +786,8 @@
       background: var(--color-hover);
       border: 1px solid var(--color-hover);
       border-radius: var(--border-radius);
-      transition: background-color var(--transition-duration) ease,
+      transition:
+        background-color var(--transition-duration) ease,
         border-color var(--transition-duration) ease;
     }
 
@@ -834,8 +838,13 @@
         }
 
         &[data-value="system"]::before {
-          background:
-            conic-gradient(from 45deg, #f5f5f5 0 25%, #d6d6d6 25% 50%, #3a3a3a 50% 75%, #121212 75% 100%);
+          background: conic-gradient(
+            from 45deg,
+            #f5f5f5 0 25%,
+            #d6d6d6 25% 50%,
+            #3a3a3a 50% 75%,
+            #121212 75% 100%
+          );
         }
 
         &[data-value="midnight"]::before {

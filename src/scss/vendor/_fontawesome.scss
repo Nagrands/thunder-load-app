@@ -9,7 +9,9 @@
 @use "../../../node_modules/@fortawesome/fontawesome-free/scss/fa" as fa;
 
 // Подключаем только нужные стили (меньше вес)
-@use "../../../node_modules/@fortawesome/fontawesome-free/scss/solid" as fa-solid;
-@use "../../../node_modules/@fortawesome/fontawesome-free/scss/brands" as fa-brands;
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/solid" as
+  fa-solid;
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/brands" as
+  fa-brands;
 // Если понадобятся:
 // @use "../../node_modules/@fortawesome/fontawesome-free/scss/regular" as fa-regular;

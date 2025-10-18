@@ -54,12 +54,22 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
   &::after {
     content: "";
-    position: fixed;          // покрытие на весь вьюпорт
+    position: fixed; // покрытие на весь вьюпорт
     inset: 0;
     /* Слоистое затемнение + мягкая виньетка по краям */
     background:
-      radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.45) 100%),
-      linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0.35) 100%);
+      radial-gradient(
+        80% 60% at 50% 40%,
+        rgba(0, 0, 0, 0) 60%,
+        rgba(0, 0, 0, 0.45) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.35) 0%,
+        rgba(0, 0, 0, 0.1) 25%,
+        rgba(0, 0, 0, 0.1) 75%,
+        rgba(0, 0, 0, 0.35) 100%
+      );
     z-index: -1;
     pointer-events: none;
   }
@@ -76,7 +86,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     background: rgba(31, 34, 39, 0.75);
     box-shadow: 0 1px 0 var(--color-accent);
 
-    @supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+    @supports (
+      (-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))
+    ) {
       background: rgba(31, 34, 39, 0.55);
       -webkit-backdrop-filter: blur(2px);
       backdrop-filter: blur(2px);
@@ -97,7 +109,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     background: rgba(18, 22, 28, 0.45);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
     @include wg-constrained;
-    @supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+    @supports (
+      (-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))
+    ) {
       background: rgba(18, 22, 28, 0.5);
       -webkit-backdrop-filter: blur(8px);
       backdrop-filter: blur(8px);
@@ -105,9 +119,18 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   }
 
   /* Внутренние отступы и визуальная согласованность внутри плашки */
-  .wg-glass .wg-header { margin: 0 0 1rem; }
-  .wg-glass .wg-block { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
-  .wg-glass .wg-log-block { background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25)), rgba(56, 56, 56, 0.02); }
+  .wg-glass .wg-header {
+    margin: 0 0 1rem;
+  }
+  .wg-glass .wg-block {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .wg-glass .wg-log-block {
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25)),
+      rgba(56, 56, 56, 0.02);
+  }
 
   /* Header */
   .wg-header {
@@ -124,7 +147,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       right: 0;
       bottom: -6px;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.18),
+        transparent
+      );
       opacity: 0.6;
       pointer-events: none;
     }
@@ -141,11 +169,16 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background:
-        linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25) inset;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.55),
+        rgba(0, 0, 0, 0.25)
+      );
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) inset;
       z-index: -1;
-      @supports ((-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px))) {
+      @supports (
+        (-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px))
+      ) {
         backdrop-filter: blur(6px);
       }
     }
@@ -157,14 +190,14 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     justify-content: center;
     align-content: center;
     align-items: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
   .wg-header .subtitle {
     margin: 0.15rem 0 0;
     color: var(--color-quality);
     font-size: 0.9rem;
     max-width: 62ch;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
   }
 
   /* Switch */
@@ -293,7 +326,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     z-index: auto;
     background: transparent;
     padding: 0.25rem 0;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
   }
   @media (max-width: 820px) {
     h1 {
@@ -319,13 +352,15 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     color: var(--color-accent);
     font-weight: 600;
     border-radius: 8px;
-    background: rgba(0,0,0,0.3);
-    transition: box-shadow 0.2s ease, background 0.2s ease;
+    background: rgba(0, 0, 0, 0.3);
+    transition:
+      box-shadow 0.2s ease,
+      background 0.2s ease;
 
     &:focus {
       color: var(--color-highlight);
       border: 2px solid var(--color-accent);
-      background: rgba(0,0,0,0.45);
+      background: rgba(0, 0, 0, 0.45);
       box-shadow: 0 0 0 2px var(--color-accent);
       transition: var(--transition-duration);
     }
@@ -603,8 +638,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 // Compact console style for wg-status
 .wg-status {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 0.9rem;
   line-height: 1.35;
   margin-top: 0.5rem;
@@ -695,7 +731,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   }
 }
 
-
 /* Preload WG Unlock background to avoid first-frame jump */
 .wg-bg-preload {
   position: fixed;
@@ -717,19 +752,34 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   padding: 0.3rem 0.75rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--color-hover);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--color-highlight);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   line-height: 1.35;
 
-  &.is-info { border-color: rgba(100, 180, 255, 0.45); background: rgba(100, 180, 255, 0.08); }
-  &.is-warn { border-color: rgba(255, 200, 60, 0.45);  background: rgba(255, 200, 60, 0.08);  }
-  &.is-error { border-color: var(--color-toast-error);  background: rgba(255, 80, 80, 0.08); }
+  &.is-info {
+    border-color: rgba(100, 180, 255, 0.45);
+    background: rgba(100, 180, 255, 0.08);
+  }
+  &.is-warn {
+    border-color: rgba(255, 200, 60, 0.45);
+    background: rgba(255, 200, 60, 0.08);
+  }
+  &.is-error {
+    border-color: var(--color-toast-error);
+    background: rgba(255, 80, 80, 0.08);
+  }
 
-  .wg-alert-icon { flex: 0 0 auto; margin-top: 2px; color: currentColor; }
-  .wg-alert-content { flex: 1 1 auto; }
+  .wg-alert-icon {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: currentColor;
+  }
+  .wg-alert-content {
+    flex: 1 1 auto;
+  }
 }
 
 /* ============================
@@ -744,8 +794,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     margin: 1.25rem 0;
     gap: 0.75rem;
   }
-  .wireguard-view .wg-header .subtitle { font-size: 0.85rem; }
-  .wireguard-view .wg-card { padding: 0.7rem 0.9rem; }
+  .wireguard-view .wg-header .subtitle {
+    font-size: 0.85rem;
+  }
+  .wireguard-view .wg-card {
+    padding: 0.7rem 0.9rem;
+  }
 }
 
 @media (max-width: 620px) {
@@ -756,8 +810,18 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   .wireguard-view::after {
     /* делаем виньетку мягче на совсем маленьких окнах */
     background:
-      radial-gradient(80% 60% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28) 100%),
-      linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.08) 75%, rgba(0, 0, 0, 0.25) 100%);
+      radial-gradient(
+        80% 60% at 50% 40%,
+        rgba(0, 0, 0, 0) 60%,
+        rgba(0, 0, 0, 0.28) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.25) 0%,
+        rgba(0, 0, 0, 0.08) 25%,
+        rgba(0, 0, 0, 0.08) 75%,
+        rgba(0, 0, 0, 0.25) 100%
+      );
   }
 
   .wireguard-view .wg-glass {
@@ -787,7 +851,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
   .wireguard-view .buttons,
   .backup-view .buttons {
-    flex-direction: column;       /* кнопки в колонку */
+    flex-direction: column; /* кнопки в колонку */
     align-items: stretch;
     gap: 8px;
     padding: 8px;
@@ -825,50 +889,82 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     flex-wrap: wrap;
     gap: 0.4rem;
   }
-  .wireguard-view .wg-log-toolbar .wg-log-actions { width: 100%; justify-content: flex-end; }
+  .wireguard-view .wg-log-toolbar .wg-log-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 @media (max-width: 420px) {
   .wireguard-view .wg-header .title,
-  .backup-view .wg-header .title { padding: 8px 10px; }
+  .backup-view .wg-header .title {
+    padding: 8px 10px;
+  }
   .wireguard-view .wg-header .title i,
-  .backup-view .wg-header .title i { padding: 8px; }
-  .wireguard-view .switch .switch-label { font-size: 0.85rem; }
+  .backup-view .wg-header .title i {
+    padding: 8px;
+  }
+  .wireguard-view .switch .switch-label {
+    font-size: 0.85rem;
+  }
 
   .wireguard-view .input,
   .backup-view .input {
     padding: var(--spacing-small);
   }
 
-  .wireguard-view .checkbox-label { gap: 0.4rem; }
+  .wireguard-view .checkbox-label {
+    gap: 0.4rem;
+  }
 
   .wireguard-view .history-action-button {
-    width: 26px; height: 26px; border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
   }
 }
 
 @media (max-height: 560px) {
   /* когда окно низкое, уменьшим отступы и высоту логов */
   .wireguard-view .wg-header,
-  .backup-view .wg-header { margin: 0.8rem 0; }
+  .backup-view .wg-header {
+    margin: 0.8rem 0;
+  }
   .wireguard-view .wg-log-block pre#wg-log,
   .backup-view .wg-log-block pre#bk-log,
-  .backup-view .wg-log-block pre { max-height: 32vh; }
+  .backup-view .wg-log-block pre {
+    max-height: 32vh;
+  }
 }
 
 @media (max-height: 480px) {
   .wireguard-view .wg-header,
-  .backup-view .wg-header { margin: 0.6rem 0; }
-  .wireguard-view h1 { margin-bottom: 0.35rem; border-bottom-width: 0; }
+  .backup-view .wg-header {
+    margin: 0.6rem 0;
+  }
+  .wireguard-view h1 {
+    margin-bottom: 0.35rem;
+    border-bottom-width: 0;
+  }
   .wireguard-view .wg-block,
-  .backup-view .wg-block { margin-bottom: 6px; padding: 8px; }
+  .backup-view .wg-block {
+    margin-bottom: 6px;
+    padding: 8px;
+  }
   .wireguard-view .buttons,
-  .backup-view .buttons { gap: 8px; padding: 6px; }
+  .backup-view .buttons {
+    gap: 8px;
+    padding: 6px;
+  }
   .wireguard-view .buttons .large-button,
   .wireguard-view .buttons .small-button,
   .backup-view .buttons .large-button,
-  .backup-view .buttons .small-button { padding: 0.5rem 0.9rem; }
+  .backup-view .buttons .small-button {
+    padding: 0.5rem 0.9rem;
+  }
   .wireguard-view .wg-log-block pre#wg-log,
   .backup-view .wg-log-block pre#bk-log,
-  .backup-view .wg-log-block pre { max-height: 28vh; }
+  .backup-view .wg-log-block pre {
+    max-height: 28vh;
+  }
 }

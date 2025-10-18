@@ -160,44 +160,61 @@ async function startRenderer() {
     );
 
     // Sidebar navigation: activate tabs from sidebar items
-    const sidebarEl = document.getElementById('sidebar');
+    const sidebarEl = document.getElementById("sidebar");
     if (sidebarEl) {
-      sidebarEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('.sidebar-item[data-tab]');
+      sidebarEl.addEventListener("click", (e) => {
+        const btn = e.target.closest(".sidebar-item[data-tab]");
         if (btn) {
-          const id = btn.getAttribute('data-tab');
+          const id = btn.getAttribute("data-tab");
           if (id) {
             tabs.activateTab(id);
             // auto-close drawer on navigation (unpinned)
-            const sb = document.getElementById('sidebar');
-            if (sb && sb.classList.contains('is-drawer') && sb.classList.contains('active') && !sb.classList.contains('is-pinned')) {
-              sb.classList.remove('active');
-              document.getElementById('overlay')?.classList.remove('active');
-              document.getElementById('toggle-btn')?.classList.remove('hidden');
+            const sb = document.getElementById("sidebar");
+            if (
+              sb &&
+              sb.classList.contains("is-drawer") &&
+              sb.classList.contains("active") &&
+              !sb.classList.contains("is-pinned")
+            ) {
+              sb.classList.remove("active");
+              document.getElementById("overlay")?.classList.remove("active");
+              document.getElementById("toggle-btn")?.classList.remove("hidden");
             }
           }
         }
       });
-      const sbHist = document.getElementById('sb-open-history');
-      sbHist?.addEventListener('click', () => document.getElementById('open-history')?.click());
+      const sbHist = document.getElementById("sb-open-history");
+      sbHist?.addEventListener("click", () =>
+        document.getElementById("open-history")?.click(),
+      );
 
       // Drag & Drop reorder for nav items
-      const navRoot = document.querySelector('#sidebar-nav .sidebar-collapse') || document.getElementById('sidebar-nav');
-      const ORDER_KEY = 'sidebarNavOrder';
+      const navRoot =
+        document.querySelector("#sidebar-nav .sidebar-collapse") ||
+        document.getElementById("sidebar-nav");
+      const ORDER_KEY = "sidebarNavOrder";
       function getOrderFromDom() {
-        return Array.from(navRoot?.querySelectorAll('.sidebar-item[data-id]') || [])
-          .map((el) => el.getAttribute('data-id'))
+        return Array.from(
+          navRoot?.querySelectorAll(".sidebar-item[data-id]") || [],
+        )
+          .map((el) => el.getAttribute("data-id"))
           .filter(Boolean);
       }
       function persistOrder() {
-        try { localStorage.setItem(ORDER_KEY, JSON.stringify(getOrderFromDom())); } catch {}
+        try {
+          localStorage.setItem(ORDER_KEY, JSON.stringify(getOrderFromDom()));
+        } catch {}
       }
       function applyOrderFromStore() {
         try {
           const raw = localStorage.getItem(ORDER_KEY);
           const arr = raw ? JSON.parse(raw) : null;
           if (!Array.isArray(arr) || !navRoot) return;
-          const map = new Map(Array.from(navRoot.querySelectorAll('.sidebar-item[data-id]')).map(el => [el.getAttribute('data-id'), el]));
+          const map = new Map(
+            Array.from(navRoot.querySelectorAll(".sidebar-item[data-id]")).map(
+              (el) => [el.getAttribute("data-id"), el],
+            ),
+          );
           arr.forEach((id) => {
             const el = map.get(id);
             if (el) navRoot.appendChild(el);
@@ -206,51 +223,59 @@ async function startRenderer() {
       }
       function enableDndFor(el) {
         if (!el) return;
-        el.setAttribute('draggable', 'true');
-        el.addEventListener('dragstart', (e) => {
-          el.classList.add('dragging');
-          e.dataTransfer?.setData('text/plain', el.getAttribute('data-id') || '');
-          try { e.dataTransfer?.setDragImage(el, 10, 10); } catch {}
+        el.setAttribute("draggable", "true");
+        el.addEventListener("dragstart", (e) => {
+          el.classList.add("dragging");
+          e.dataTransfer?.setData(
+            "text/plain",
+            el.getAttribute("data-id") || "",
+          );
+          try {
+            e.dataTransfer?.setDragImage(el, 10, 10);
+          } catch {}
         });
-        el.addEventListener('dragend', () => {
-          el.classList.remove('dragging');
-          navRoot?.querySelectorAll('.drag-over').forEach((n) => n.classList.remove('drag-over'));
+        el.addEventListener("dragend", () => {
+          el.classList.remove("dragging");
+          navRoot
+            ?.querySelectorAll(".drag-over")
+            .forEach((n) => n.classList.remove("drag-over"));
           persistOrder();
         });
       }
       function handleDragOver(e) {
         if (!navRoot) return;
-        const dragging = navRoot.querySelector('.sidebar-item.dragging');
+        const dragging = navRoot.querySelector(".sidebar-item.dragging");
         if (!dragging) return;
-        const target = e.target.closest('.sidebar-item[data-id]');
+        const target = e.target.closest(".sidebar-item[data-id]");
         if (!target || target === dragging) return;
         e.preventDefault();
         const rect = target.getBoundingClientRect();
         const cs = getComputedStyle(navRoot);
-        const horizontal = cs.display.includes('flex') && cs.flexDirection.startsWith('row');
+        const horizontal =
+          cs.display.includes("flex") && cs.flexDirection.startsWith("row");
         const before = horizontal
-          ? (e.clientX - rect.left) < rect.width / 2
-          : (e.clientY - rect.top) < rect.height / 2;
-        target.classList.add('drag-over');
+          ? e.clientX - rect.left < rect.width / 2
+          : e.clientY - rect.top < rect.height / 2;
+        target.classList.add("drag-over");
         if (before) navRoot.insertBefore(dragging, target);
         else navRoot.insertBefore(dragging, target.nextSibling);
       }
-      navRoot?.addEventListener('dragover', handleDragOver);
-      navRoot?.addEventListener('dragleave', (e) => {
-        const t = e.target.closest('.sidebar-item');
-        t?.classList.remove('drag-over');
+      navRoot?.addEventListener("dragover", handleDragOver);
+      navRoot?.addEventListener("dragleave", (e) => {
+        const t = e.target.closest(".sidebar-item");
+        t?.classList.remove("drag-over");
       });
       // init
-      navRoot?.querySelectorAll('.sidebar-item[data-id]').forEach(enableDndFor);
+      navRoot?.querySelectorAll(".sidebar-item[data-id]").forEach(enableDndFor);
       applyOrderFromStore();
     }
 
     // Sidebar badge: history count
     async function updateHistoryBadge() {
       try {
-        const list = await window.electron.invoke('load-history');
+        const list = await window.electron.invoke("load-history");
         const n = Array.isArray(list) ? list.length : 0;
-        const badge = document.getElementById('sb-history-count');
+        const badge = document.getElementById("sb-history-count");
         if (badge) badge.textContent = String(n);
       } catch {}
     }
@@ -277,25 +302,28 @@ async function startRenderer() {
 
     // live update badge when history changes from main
     try {
-      window.electron.on && window.electron.on('history-updated', (payload) => {
-        const n = Number(payload?.count) || 0;
-        const badge = document.getElementById('sb-history-count');
-        if (badge) badge.textContent = String(n);
-      });
+      window.electron.on &&
+        window.electron.on("history-updated", (payload) => {
+          const n = Number(payload?.count) || 0;
+          const badge = document.getElementById("sb-history-count");
+          if (badge) badge.textContent = String(n);
+        });
     } catch {}
 
     // Sync active state for sidebar nav buttons
     function syncSidebarActive(id) {
       try {
-        document.querySelectorAll('#sidebar .sidebar-item[data-tab]').forEach((el) => {
-          const is = el.getAttribute('data-tab') === id;
-          el.classList.toggle('active', is);
-          if (is) el.setAttribute('aria-current', 'page');
-          else el.removeAttribute('aria-current');
-        });
+        document
+          .querySelectorAll("#sidebar .sidebar-item[data-tab]")
+          .forEach((el) => {
+            const is = el.getAttribute("data-tab") === id;
+            el.classList.toggle("active", is);
+            if (is) el.setAttribute("aria-current", "page");
+            else el.removeAttribute("aria-current");
+          });
       } catch {}
     }
-    window.addEventListener('tabs:activated', (e) => {
+    window.addEventListener("tabs:activated", (e) => {
       const id = e?.detail?.id;
       if (id) syncSidebarActive(id);
     });

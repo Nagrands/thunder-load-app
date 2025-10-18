@@ -44,8 +44,8 @@ function getSelectedQuality() {
 
 function setSelectedQuality(q, silent = false) {
   const allowed = new Set(
-    Array.from(qualityDropdown.querySelectorAll('[data-quality]')).map((el) =>
-      el.getAttribute('data-quality'),
+    Array.from(qualityDropdown.querySelectorAll("[data-quality]")).map((el) =>
+      el.getAttribute("data-quality"),
     ),
   );
   if (!allowed.has(q)) return;
@@ -111,34 +111,46 @@ function initQualitySelector() {
   });
 
   // Быстрые пресеты качества (если присутствуют в DOM)
-  const presets = document.querySelectorAll('.quality-presets [data-quality]');
+  const presets = document.querySelectorAll(".quality-presets [data-quality]");
   presets.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       if (state.isDownloading) {
         showToast("Нельзя менять качество во время загрузки.", "warning");
         return;
       }
-      const q = btn.getAttribute('data-quality');
+      const q = btn.getAttribute("data-quality");
       setSelectedQuality(q);
       // визуальная активность
-      presets.forEach((b) => b.classList.toggle('active', b === btn));
+      presets.forEach((b) => b.classList.toggle("active", b === btn));
     });
   });
   // начальная подсветка выбранного
-  presets.forEach((b) => b.classList.toggle('active', b.getAttribute('data-quality') === selectedQuality));
+  presets.forEach((b) =>
+    b.classList.toggle(
+      "active",
+      b.getAttribute("data-quality") === selectedQuality,
+    ),
+  );
 
   // Блокировка/разблокировка пресетов и дропдауна при загрузке
-  const presetsBox = document.querySelector('.quality-presets');
+  const presetsBox = document.querySelector(".quality-presets");
   const setControlsDisabled = (flag) => {
     try {
       qualityButton.disabled = !!flag;
-      qualityButton.setAttribute('aria-disabled', String(!!flag));
-      if (presetsBox) presetsBox.classList.toggle('is-disabled', !!flag);
+      qualityButton.setAttribute("aria-disabled", String(!!flag));
+      if (presetsBox) presetsBox.classList.toggle("is-disabled", !!flag);
       if (flag) qualityDropdown.hidden = true;
     } catch {}
   };
   setControlsDisabled(state.isDownloading);
-  window.addEventListener('download:state', (e) => setControlsDisabled(!!e.detail?.isDownloading));
+  window.addEventListener("download:state", (e) =>
+    setControlsDisabled(!!e.detail?.isDownloading),
+  );
 }
 
-export { getSelectedQuality, setSelectedQuality, updateSelectedQuality, initQualitySelector };
+export {
+  getSelectedQuality,
+  setSelectedQuality,
+  updateSelectedQuality,
+  initQualitySelector,
+};
