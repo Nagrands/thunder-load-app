@@ -83,7 +83,7 @@ export default function renderBackup() {
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями">
 
-      <div class="bk-search-container" style="margin-top:8px; display:flex; gap:6px; align-items:center;">
+      <div class="bk-search-container">
         <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
         <input type="text" id="bk-filter" placeholder="Поиск профиля, пути..." class="input" style="flex:1;" />
         <button type="button" id="bk-clear-filter" class="history-action-button" title="Очистить поиск" style="width:32px; height:32px;"><i class="fa-solid fa-times"></i></button>

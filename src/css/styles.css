@@ -12079,7 +12079,7 @@ body.is-mac .sidebar-actions {
   font-size: 1.125rem;
 }
 .social-links a:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-bg-secondary);
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -16914,7 +16914,6 @@ video {
   }
 }
 .backup-view .wg-glass {
-  background: var(--color-hover);
   padding: 1rem;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -16924,24 +16923,9 @@ video {
 .backup-view .wg-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: var(--color-progress-bg);
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
   backdrop-filter: blur(6px);
-}
-.backup-view .wg-header .title {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.1rem;
-  color: var(--color-accent);
-}
-.backup-view .wg-header .title i {
-  color: var(--color-accent);
-  font-size: 1.2rem;
 }
 .backup-view .wg-header .actions {
   display: flex;
@@ -17038,11 +17022,7 @@ video {
   }
 }
 .backup-view .wg-block {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--border-radius);
   padding: 0.75rem 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .backup-view .wg-block .history-action-button {
   height: 32px;
@@ -18171,7 +18151,7 @@ video {
   font-size: 14px;
   font-weight: 500;
   color: var(--color-highlight);
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-hover);
   border-radius: var(--border-radius);
   opacity: 0.85;
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -18251,6 +18231,12 @@ video {
   gap: 6px;
   align-items: center;
   margin-top: 0.5rem;
+  background: rgba(32, 32, 40, 0.25);
+  padding: 10px;
+  border-radius: var(--border-radius);
+}
+.bk-search-container i {
+  margin: 0 6px;
 }
 .bk-search-container input#bk-filter {
   flex: 1;

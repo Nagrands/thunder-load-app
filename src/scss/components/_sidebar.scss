@@ -355,7 +355,7 @@ $glass-border: rgba(255, 255, 255, 0.06);
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: var(--color-bg-secondary);
       border-color: rgba(255, 255, 255, 0.15);
       @include hover-lift;
       color: var(--color-accent);
