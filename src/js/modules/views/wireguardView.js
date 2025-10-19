@@ -351,7 +351,7 @@ export default function renderWireGuard() {
               </button>
               <button id="wg-open-config-folder" class="small-button">
                 <i class="fa-solid fa-folder-open"></i>
-                <span>Папка</span>
+                <span>Настройки</span>
               </button>
             </div>
             <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>

@@ -331,12 +331,10 @@ function applySocialLinksLayout() {
     if (collapsed) {
       iconLinks.style.flexDirection = "column";
       iconLinks.style.borderRadius = "12px";
-      iconLinks.style.padding = "0";
       links.forEach((a) => {
         a.style.width = "36px";
         a.style.height = "36px";
         a.style.justifyContent = "center";
-        a.style.padding = "0";
       });
     } else {
       iconLinks.style.flexDirection = "row";
@@ -345,7 +343,6 @@ function applySocialLinksLayout() {
       links.forEach((a) => {
         a.style.width = "36px";
         a.style.justifyContent = "center";
-        a.style.padding = "0";
       });
     }
   } catch {}

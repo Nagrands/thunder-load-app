@@ -1,43 +1,45 @@
 @use "../abstracts/variables";
 
 // ==============================
-// Sidebar Component (Improved & Updated)
+// Sidebar Component (Modern & Optimized)
 // ==============================
 
-// Параметры бокового меню
+// Design Tokens
 $sidebar-width: 260px;
 $sidebar-width-collapsed: 80px;
-$sidebar-padding-vertical: 0.5rem;
-$sidebar-padding-horizontal: 0.2rem;
-$drawer-max-width: 320px; // max width for drawer mode
-$bp-drawer: 1024px; // breakpoint to switch to drawer
-$transition-duration: 0.3s;
-$transition-ease: ease;
+$sidebar-padding: clamp(0.5rem, 2vw, 1rem);
+$drawer-max-width: min(320px, 90vw);
+$bp-drawer: 1024px;
+$transition-duration: 0.25s;
+$transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+$border-radius: 12px;
+$glass-effect: rgba(255, 255, 255, 0.08);
+$glass-border: rgba(255, 255, 255, 0.06);
 
-// ==============================
-// Toggle Button (для открытия сайдбара)
-// ==============================
-.toggle-btn {
-  background: transparent;
-  color: var(--color-accent);
-  border-radius: 50%;
-  padding: 5px;
-  margin-left: 5rem;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-  cursor: pointer;
-
-  &.highlight {
-    box-shadow: 0 0 6px var(--color-accent);
-  }
-
-  &:hover {
-    color: var(--color-highlight);
-    transform: scale(1.1);
-  }
+// Mixins
+@mixin glass-morphism($blur: 8px, $opacity: 0.04) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  border: 1px solid $glass-border;
 }
 
+@mixin focus-ring {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@mixin smooth-transition($properties: all) {
+  transition: $properties $transition-duration $transition-timing;
+}
+
+@mixin hover-lift {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+// ==============================
+// Base Sidebar Styles
+// ==============================
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -46,593 +48,422 @@ $transition-ease: ease;
   left: 0;
   height: 100vh;
   width: $sidebar-width;
-  // Прозрачный сайдбар с тонкой разделительной линией
   background: transparent;
   backdrop-filter: blur(8px);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid $glass-border;
   color: var(--sidebar-color);
   transform: translateX(-100%);
-  transition:
-    transform 0.3s ease,
-    width 0.2s ease;
-  overflow-y: auto;
-  overflow-x: hidden; // исключаем горизонтальные полосы прокрутки
-  z-index: 999;
-  justify-content: flex-start;
-  align-items: stretch;
-  padding-bottom: 0.75rem;
+  @include smooth-transition(transform width);
+  overflow: hidden;
+  z-index: 1000;
+  padding-bottom: 1rem;
 
-  // Псевдоэлементы для декоративных эффектов
-  &::before,
-  &::after {
+  // Enhanced glass effect with gradient overlay
+  &::before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
     z-index: -1;
   }
 
-  // Когда меню активно — выдвигаем его по оси X
   &.active {
     transform: translateX(0);
   }
 
-  // Off‑canvas режим (мобильный/узкие экраны)
+  // Drawer mode for mobile
   &.is-drawer {
-    width: min(82vw, $drawer-max-width);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    width: $drawer-max-width;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
     border-right: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
   }
+}
 
-  // Компактная панель действий вверху
-  .sidebar-actions {
-    position: sticky;
-    top: calc(env(safe-area-inset-top, 0px) + 6px);
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.8rem 0.5rem 0.25rem;
-    margin-bottom: 0.25rem;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0));
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    backdrop-filter: blur(3px);
-  }
+// ==============================
+// Sidebar Actions
+// ==============================
+.sidebar-actions {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem 0.5rem;
+  margin: 0 0.75rem 0.5rem;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.1) 80%,
+    transparent 100%
+  );
+  border-radius: $border-radius;
+  backdrop-filter: blur(4px);
+  border: 1px solid $glass-border;
 
-  // macOS: учитываем область стандартных контролов окна (traffic lights)
+  // macOS specific adjustments
   body.is-mac & {
-    padding-top: 22px; // небольшой отступ сверху для зоны «светофоров»
-    .sidebar-actions {
-      top: calc(env(safe-area-inset-top, 0px) + 36px);
-    }
+    top: calc(env(safe-area-inset-top, 0px) + 2rem);
   }
-  .pin-btn,
-  .close-btn {
-    height: 36px;
-    min-width: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--border-radius);
-    background: var(--color-hover);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: var(--color-highlight);
-    transition:
-      background 0.16s ease,
-      border-color 0.16s ease,
-      transform 0.08s ease;
-    cursor: pointer;
-  }
-  .pin-btn:hover,
-  .close-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.14);
-  }
-  .pin-btn:active,
-  .close-btn:active {
-    transform: translateY(1px);
-  }
-  .pin-btn:focus-visible,
-  .close-btn:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-  .pin-btn.is-active {
-    background: var(--color-hover);
-    border-color: var(--color-hover);
-    color: var(--color-accent);
+}
+
+// Action buttons
+.pin-btn,
+.close-btn {
+  @include glass-morphism(4px, 0.06);
+  height: 2.25rem;
+  min-width: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--color-highlight);
+  @include smooth-transition;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.12);
+    @include hover-lift;
   }
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  &:active {
+    transform: translateY(0);
   }
 
-  // Элементы меню
-  &-item {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(4px);
-    border: 1px var(--color-hover) solid;
-    border-radius: 12px;
-    transition:
-      background-color 0.16s ease,
-      border-color 0.16s ease,
-      transform 0.08s ease,
-      color 0.16s ease;
-    margin: 4px 12px;
-    padding: 10px 12px;
-    gap: 10px;
-    color: var(--color-highlight);
-    cursor: pointer;
-    user-select: none;
-
-    &.dragging {
-      opacity: 0.6;
-    }
-    &.drag-over {
-      outline: 2px dashed rgba(255, 255, 255, 0.25);
-    }
-
-    a {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    i {
-      font-size: 18px;
-      transition: color 0.16s ease;
-    }
-
-    label {
-      padding-left: 0.125rem;
-    }
-
-    &:hover {
-      background: var(--color-hover);
-      color: var(--color-text-main);
-      border-color: var(--color-hover);
-    }
-    &:focus-visible {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    &.active {
-      background-color: rgba(255, 255, 255, 0.08);
-      color: var(--color-accent);
-      border-color: var(--color-accent);
-      box-shadow:
-        inset 2px 0 0 var(--color-accent),
-        0 0 0 1px var(--color-accent) inset;
-    }
-
-    // Статусы и бейджи: счётчики, точки состояния
-    .badge {
-      margin-left: auto;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 6px;
-      border-radius: var(--border-radius);
-      font-size: 11px;
-      color: var(--color-text-main);
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-    .badge.dot {
-      width: 8px;
-      min-width: 8px;
-      height: 8px;
-      padding: 0;
-      border-radius: 50%;
-      background: var(--color-accent);
-      border: none;
-      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
-    }
+  &:focus-visible {
+    @include focus-ring;
   }
 
-  #open-github {
-    background: none;
-
-    span {
-      font-size: 14px;
-      font-weight: 600;
-    }
-  }
-
-  // Нижняя часть сайдбара
-  &-footer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-top: auto;
-    border-top: 1px var(--color-hover) solid;
-  }
-
-  // Логотип и текст
-  .logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    margin: 2.75rem 1rem 1rem;
-
-    .logo {
-      width: 36px;
-      height: 36px;
-      animation: pulseEffect 2s infinite;
-    }
-
-    i {
-      color: var(--color-accent);
-      font-size: 20px;
-    }
-
-    .logo-text {
-      font-size: 1.2rem;
-      color: var(--color-accent);
-
-      &:hover {
-        cursor: default;
-        color: var(--color-highlight);
-      }
-    }
-  }
-
-  // Социальные ссылки
-  .social-links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: var(--border-radius);
-    margin: 0.25rem 1rem 0;
-
-    .icon-links {
-      display: flex;
-      flex-direction: row; // по умолчанию — горизонтально
-      align-items: center;
-      gap: 8px;
-      background: none;
-      backdrop-filter: blur(6px);
-      border: 1px solid var(--color-hover);
-      border-radius: var(--border-radius);
-      padding: 6px 8px;
-      overflow: hidden; // без внутренних скроллов
-      max-width: 100%;
-      box-sizing: border-box;
-
-      a {
-        position: relative;
-        font-size: 18px;
-        height: 36px;
-        width: 36px;
-        padding: 0;
-        color: var(--color-highlight);
-        transition:
-          transform 0.2s ease,
-          background-color 0.2s ease,
-          color 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--border-radius);
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-
-        // Микро‑анимация и подсветка иконок
-        &:hover,
-        &:focus-visible {
-          color: var(--color-accent);
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.14);
-          transform: translateY(-1px);
-        }
-
-        // Индивидуальные стили для соц. сетей
-        &[href="https://www.youtube.com"]
-        {
-          &:hover {
-            color: var(--color-youtube);
-            border-color: var(--color-youtube);
-          }
-        }
-        &[href="https://www.twitch.tv"]
-        {
-          &:hover {
-            color: var(--color-twitch);
-            border-color: var(--color-twitch);
-          }
-        }
-        &[href="https://vkvideo.ru"]
-        {
-          &:hover {
-            color: var(--color-vkvideo);
-            border-color: var(--color-vkvideo);
-          }
-        }
-        &[href="https://www.coub.com"]
-        {
-          &:hover {
-            color: var(--color-coub);
-            border-color: var(--color-coub);
-          }
-        }
-      }
-    }
-
-    // При закреплении — оставляем горизонтальную ленту (как по умолчанию)
-    .sidebar.is-pinned & .icon-links {
-      flex-direction: row;
-      align-items: center;
-      border-radius: var(--border-radius);
-      padding: 6px 8px;
-    }
-    .sidebar.is-pinned & .icon-links a {
-      width: 36px;
-      justify-content: center;
-      padding: 0;
-      border-radius: var(--border-radius);
-    }
-  }
-
-  // Навигация с подписями (вертикальный список, полноценные элементы)
-  #sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    margin: 0.5rem 0.75rem;
-    overflow: visible;
-  }
-  #sidebar-nav .sidebar-item {
-    position: relative;
-    width: auto;
-    height: auto;
-    min-height: 36px;
-    padding: 8px 12px;
-    justify-content: flex-start;
-    border-radius: 10px;
-    transition:
-      background-color 0.16s ease,
-      border-color 0.16s ease,
-      transform 0.08s ease,
-      color 0.16s ease;
-  }
-  #sidebar-nav .sidebar-item i {
-    font-size: 18px;
-  }
-  #sidebar-nav .sidebar-item span {
-    display: inline;
-  }
-  #sidebar-nav .sidebar-item .badge {
-    position: static;
-    margin-left: auto;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 6px;
-    font-size: 11px;
-    border-width: 1px;
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-main);
-  }
-  // Микровзаимодействия для пунктов навигации
-  #sidebar-nav .sidebar-item:hover,
-  #sidebar-nav .sidebar-item:focus-visible {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.14);
-    transform: translateY(-1px);
-    color: var(--color-accent);
-  }
-  // Разделитель: плавность и реакции на hover/focus
-  #sidebar-nav .sidebar-item:not(:first-child)::before {
-    transition:
-      background-color 0.16s ease,
-      opacity 0.16s ease;
-  }
-  #sidebar-nav .sidebar-item:hover::before {
-    background: transparent;
-  }
-  #sidebar-nav .sidebar-item:hover + .sidebar-item::before {
-    background: transparent;
-  }
-  #sidebar-nav .sidebar-item:focus-visible::before,
-  #sidebar-nav .sidebar-item:active::before {
+  &.is-active {
     background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
   }
-  // Тонкий разделитель между пунктами
+}
 
-  // В свернутом режиме — компактные строки (иконка+текст остаются, ширина ограничена)
-  &.is-collapsed #sidebar-nav {
-    // margin: .25rem .5rem;
-    gap: 4px;
-  }
-  // В свернутом режиме — без разделителей, компактные элементы
-  &.is-collapsed #sidebar-nav .sidebar-item {
+// ==============================
+// Logo Section
+// ==============================
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  margin: 2rem 1rem 1.5rem;
+  padding: 0.75rem;
+  border-radius: $border-radius;
+  @include glass-morphism(4px, 0.04);
+
+  .logo {
+    width: 2.5rem;
+    // height: 2.5rem;
     border-radius: var(--border-radius);
-  }
-  &.is-collapsed #sidebar-nav .sidebar-item:not(:first-child)::before {
-    display: none;
+    animation: pulse-glow 3s ease-in-out infinite;
   }
 
-  .close-btn {
-    font-size: 16px;
+  .logo-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-highlight));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
+}
 
-  // Свернутый режим
-  &.is-collapsed {
-    width: $sidebar-width-collapsed;
-    .logo-text {
-      display: none;
-    }
-    .sidebar-item {
-      justify-content: center;
-      padding: 8px;
-      margin: 2px;
-    }
-    .sidebar-item span {
-      display: none;
-    }
-    // у навигации принудительно скрываем подписи
-    #sidebar-nav .sidebar-item span {
-      display: none;
-    }
-    .sidebar-actions {
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      gap: 6px;
-      padding: 6px;
-    }
-    .social-links {
-      justify-content: center;
-      margin: 0.25rem 0.5rem 0;
-    }
-    // В компактном режиме заголовки групп не показываем
-    .sidebar-title {
-      display: none;
-    }
-    // И содержимое групп держим раскрытым без ограничений высоты
-    .sidebar-collapse {
-      max-height: none !important;
-      overflow: visible;
-    }
-    // Иконки сервисов: вертикальная колонка компактных кнопок с читаемым фоном
-    .social-links .icon-links {
-      flex-direction: column;
-      align-items: center;
-      background: transparent;
-      border: none;
-      gap: 8px;
-      padding: 0;
-      overflow: visible;
-    }
-    .social-links .icon-links a {
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      justify-content: center;
-      border-radius: var(--border-radius);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .social-links .icon-links a:hover,
-    .social-links .icon-links a:focus-visible {
-      background: var(--color-hover);
-    }
-    // Кнопка GitHub в футере — как сервисная иконка
-    #open-github.sidebar-item {
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      margin: 6px auto 8px; // центр по горизонтали
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      background: none;
-      border: 1px solid var(--color-hover);
-      align-self: center; // центрирование в колонке футера
-    }
-    #open-github.sidebar-item:hover,
-    #open-github.sidebar-item:focus-visible {
-      background: var(--color-hover);
-    }
-    // центрируем содержимое футера
-    .sidebar-footer {
-      align-items: center;
-    }
-  }
+// ==============================
+// Navigation & Menu Items
+// ==============================
+.sidebar-group {
+  margin: 5px;
+}
 
-  // Навигация и структура: группы и заголовки
-  .sidebar-group {
-    margin: 0.5rem 0.75rem;
-  }
-  .sidebar-title {
-    margin: 0.5rem 0.5rem 0.25rem;
-    padding: 0 0.25rem;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-quality);
-    opacity: 0.9;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    user-select: none;
-    border-radius: 8px;
-    position: relative;
-    min-height: 24px;
-  }
-  // chevron indicator
-  .sidebar-title::before {
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0.5rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-quality);
+  opacity: 0.8;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 8px;
+  @include smooth-transition;
+
+  // Collapse indicator
+  &::before {
     content: "";
     width: 0;
     height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 6px solid var(--color-quality);
-    opacity: 0.85;
-    transform-origin: 50% 45%;
-    transition:
-      transform 0.16s ease,
-      opacity 0.16s ease;
-  }
-  .sidebar-title[aria-expanded="false"]::before {
-    transform: rotate(-90deg);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
     opacity: 0.7;
-  }
-  .sidebar-title:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    @include smooth-transition(transform);
   }
 
-  // collapsible container
-  .sidebar-collapse {
+  &[aria-expanded="false"]::before {
+    transform: rotate(-90deg);
+  }
+
+  &:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.sidebar-collapse {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  @include smooth-transition(max-height);
+}
+
+// Menu items
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(4px);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--color-highlight);
+  cursor: pointer;
+  user-select: none;
+  @include smooth-transition;
+
+  a {
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: max-height 0.22s ease;
-    max-height: 1000px; // default expanded; JS will adjust
+    align-items: center;
+    gap: inherit;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
   }
-  .sidebar-title::after {
-    content: "";
-    height: 1px;
-    flex: 1 1 auto;
+
+  i {
+    font-size: 1.125rem;
+    width: 1.25rem;
+    text-align: center;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  &:hover {
     background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+    @include hover-lift;
+    color: var(--color-text-main);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active {
+    background: rgba(var(--color-accent-rgb), 0.15);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    
+    i {
+      color: var(--color-accent);
+    }
+  }
+
+  // Badges
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.375rem;
+    border-radius: 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--color-text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    &.dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      min-width: 0.5rem;
+      padding: 0;
+      background: var(--color-accent);
+      border: none;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+    }
   }
 }
 
-// Мобильная компоновка: по умолчанию как off‑canvas
-@media (max-width: $bp-drawer) {
-  .sidebar {
-    width: min(82vw, $drawer-max-width);
+// ==============================
+// Social Links & Services
+// ==============================
+.social-links {
+  margin: 0.5rem 0.75rem;
+
+  .icon-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(2.5rem, 1fr));
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+    justify-items: center;
   }
-  .sidebar .pin-btn {
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--color-highlight);
+    @include smooth-transition;
+
+    i {
+      font-size: 1.125rem;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.15);
+      @include hover-lift;
+      color: var(--color-accent);
+    }
+
+    // Platform-specific colors
+    &[href*="youtube"]:hover { color: var(--color-youtube); border-color: var(--color-youtube); }
+    &[href*="twitch"]:hover { color: var(--color-twitch); border-color: var(--color-twitch); }
+    &[href*="vkvideo"]:hover { color: var(--color-vkvideo); border-color: var(--color-vkvideo); }
+    &[href*="coub"]:hover { color: var(--color-coub); border-color: var(--color-coub); }
+  }
+}
+
+// ==============================
+// Collapsed State
+// ==============================
+.sidebar.is-collapsed {
+  width: $sidebar-width-collapsed;
+
+  // Hide text elements
+  .logo-text,
+  .sidebar-item span,
+  .sidebar-title,
+  .badge:not(.dot) {
     display: none;
-  } // pin не нужен на телефонах
+  }
+
+  // Center everything
+  .logo-container,
+  .sidebar-actions,
+  .social-links .icon-links {
+    justify-content: center;
+  }
+
+  // Compact items
+  .sidebar-item {
+    justify-content: center;
+    padding: 0.75rem;
+    margin: 0.125rem 0.375rem;
+    
+    i {
+      margin: 0;
+    }
+  }
+
+  // Stack actions vertically
+  .sidebar-actions {
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.5rem;
+  }
+
+  // Social links as vertical stack
+  .social-links .icon-links {
+    grid-template-columns: 1fr;
+    gap: 0.375rem;
+    padding: 0.5rem;
+  }
+
+  // GitHub button as icon
+  #open-github.sidebar-item {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0.5rem auto;
+    padding: 0;
+  }
 }
 
 // ==============================
-// Close Button (для закрытия сайдбара)
+// Footer Section
 // ==============================
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
 
 // ==============================
-// Overlay (подложка для мобильных устройств)
+// Toggle Button (Outside sidebar)
+// ==============================
+.toggle-btn {
+  @include glass-morphism(4px, 0.06);
+  color: var(--color-accent);
+  border-radius: 50%;
+  padding: 0.5rem;
+  margin-left: auto;
+  cursor: pointer;
+  @include smooth-transition;
+
+  &.highlight {
+    box-shadow: 
+      0 0 0 2px var(--color-accent),
+      0 0 12px rgba(var(--color-accent-rgb), 0.4);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: scale(1.1);
+    color: var(--color-highlight);
+  }
+
+  &:active {
+    transform: scale(1.05);
+  }
+}
+
+// ==============================
+// Overlay
 // ==============================
 .overlay {
   position: fixed;
@@ -640,31 +471,79 @@ $transition-ease: ease;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
-  transition: opacity 0.3s ease;
-  z-index: 998;
-  display: none;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 999;
+  @include smooth-transition(opacity visibility);
+
   &.active {
-    display: block;
+    opacity: 1;
+    visibility: visible;
   }
 }
 
-// Платформенные детали: drag region (macOS)
-.drag-region {
-  -webkit-app-region: drag;
-}
-.no-drag,
-.sidebar button,
-.sidebar a,
-.sidebar .sidebar-item {
-  -webkit-app-region: no-drag;
+// ==============================
+// Responsive Design
+// ==============================
+@media (max-width: $bp-drawer) {
+  .sidebar {
+    width: $drawer-max-width;
+    
+    .pin-btn {
+      display: none; // Hide pin button on mobile
+    }
+  }
 }
 
+// ==============================
+// Accessibility & Reduced Motion
+// ==============================
 @media (prefers-reduced-motion: reduce) {
   .sidebar,
   .sidebar * {
     transition: none !important;
     animation: none !important;
   }
+}
+
+// Focus styles for keyboard navigation
+.sidebar {
+  &:focus-within {
+    .sidebar-item:focus-visible,
+    .sidebar-title:focus-visible,
+    .pin-btn:focus-visible,
+    .close-btn:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+// ==============================
+// Animations
+// ==============================
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(var(--color-accent-rgb), 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(var(--color-accent-rgb), 0.8));
+    transform: scale(1.05);
+  }
+}
+
+// ==============================
+// Platform Specific
+// ==============================
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag,
+.sidebar button,
+.sidebar a,
+.sidebar .sidebar-item {
+  -webkit-app-region: no-drag;
 }
