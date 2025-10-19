@@ -1,6 +1,67 @@
 // src/scss/components/_layout-ui.scss
 @use "../abstracts/mixins";
 
+// Основной контейнер приложения с учетом высоты top-bar
+#main-view {
+  padding-top: 60px; // Высота top-bar
+  min-height: calc(100vh - 60px); // Вычитаем высоту top-bar
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    padding-top: 56px; // Высота top-bar на мобильных
+    min-height: calc(100vh - 56px);
+  }
+}
+
+// Дополнительные контейнеры, которые могут появляться
+#app-preloader {
+  padding-top: 60px;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    padding-top: 56px;
+    min-height: calc(100vh - 56px);
+  }
+}
+
+// Модальные окна - должны быть поверх top-bar
+#settings-modal,
+#shortcuts-modal,
+#whats-new-modal,
+#confirmation-modal,
+#update-available-modal,
+#update-downloaded-modal,
+#update-error-modal {
+  padding-top: 0 !important;
+  min-height: 100vh !important;
+  z-index: 1001; // Выше чем top-bar (z-index: 1000)
+}
+
+// Сайдбар - учитывает top-bar
+.sidebar {
+  top: 60px; // Размещаем под top-bar
+  height: calc(100vh - 60px); // Высота минус top-bar
+  
+  @media (max-width: 768px) {
+    top: 56px;
+    height: calc(100vh - 56px);
+  }
+}
+
+// Toast-уведомления - поверх всего
+.toast-container {
+  top: 80px !important; // Ниже top-bar но выше контента
+  z-index: 1002;
+}
+
+// Оверлей - на весь экран
+.overlay {
+  top: 0;
+  height: 100vh;
+  z-index: 999; // Ниже top-bar но выше основного контента
+}
+
 .header {
   background-color: var(--color-bg-main);
   color: var(--color-text-main);
@@ -10,7 +71,7 @@
 }
 
 .container {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 80px - 60px); // Учитываем и top-bar и footer
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,5 +134,11 @@
   }
   .icon-links a {
     font-size: 1.2em;
+  }
+  
+  // Дополнительные корректировки для мобильных
+  #main-view {
+    padding-top: 56px;
+    min-height: calc(100vh - 56px);
   }
 }

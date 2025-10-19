@@ -188,7 +188,7 @@ function createWindow(
 
     const dockMenu = Menu.buildFromTemplate([
       {
-        label: "Открыть приложение",
+        label: "Открыть",
         click: () => mainWindow.show(),
       },
       {
@@ -264,7 +264,7 @@ function createTray(mainWindow, app, store, downloadPath) {
     },
     { type: "separator" },
     {
-      label: "Открыть приложение",
+      label: "Открыть",
       click: () => mainWindow.show(),
     },
     { type: "separator" },

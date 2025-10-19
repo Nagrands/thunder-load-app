@@ -2,7 +2,7 @@
   "name": "thunder-load-app",
   "productName": "Thunder Load",
   "version": "1.2.10",
-  "description": "Thunder Load",
+  "description": "App for downloading videos from various platforms",
   "main": "src/js/app.js",
   "private": true,
   "scripts": {

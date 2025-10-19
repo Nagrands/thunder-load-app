@@ -7,217 +7,317 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 55px;
-  padding: 0 0 0 20px;
-  background-color: rgb(0 0 0 / 10%);
-  backdrop-filter: blur(6px);
+  height: 60px;
+  padding: 0 16px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.15) 100%);
+  backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  @include mixins.fade-in(0.5s);
-  z-index: 999;
+  @include mixins.fade-in(0.4s);
+  z-index: 1000;
+  transition: all 0.3s ease;
 
-  .center-menu {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+  &:hover {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%);
+  }
+}
+
+// Center menu with proper tab layout
+.center-menu {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  
+  .group-menu {
     display: flex;
     align-items: center;
+    gap: 4px;
     height: 100%;
-  }
-
-  .menu-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 40px;
-    padding: 0 18px;
-    border-radius: var(--border-radius);
-    font-weight: 500;
-    line-height: 1;
-    color: var(--color-highlight);
-    position: relative;
-    overflow: visible;
-    cursor: pointer;
-
-    &:hover:not(.active):not(.disabled) {
-      background-color: var(--color-hover);
-      color: var(--color-accent);
+    padding: 0 8px;
+    max-width: 500px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    
+    &::-webkit-scrollbar {
+      height: 3px;
     }
-
-    &:active:not(.active):not(.disabled) {
-      transform: translateY(1px);
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
     }
-
-    &.active {
-      background-color: var(--color-hover);
-      border: 1px solid var(--color-hover);
-      color: var(--color-accent);
-      cursor: default;
-      pointer-events: none;
-      transition: none;
-      &:hover {
-        color: var(--color-highlight);
-      }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
     }
-
-    &.disabled {
-      color: var(--color-disabled);
-      cursor: not-allowed;
-      pointer-events: none;
-      &:hover {
-        background: var(--color-hover);
-      }
+    
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
     }
-  }
-
-  .menu-main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-
-    i {
+    
+    .menu-item {
+      -webkit-app-region: no-drag;
       display: flex;
-      width: 28px;
-      height: 28px;
-      border-radius: var(--border-radius);
-      background-color: rgb(0 0 0 / 30%);
       align-items: center;
       justify-content: center;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--color-highlight);
+      position: relative;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: fit-content;
+
+      &:hover:not(.active):not(.disabled) {
+        background-color: var(--color-hover);
+        color: var(--color-accent);
+        transform: translateY(-1px);
+      }
+
+      &:active:not(.active):not(.disabled) {
+        transform: translateY(0);
+      }
+
+      &.active {
+        background-color: var(--color-accent);
+        color: white;
+        box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.3);
+        cursor: default;
+        pointer-events: none;
+      }
+
+      &.disabled {
+        color: var(--color-disabled);
+        cursor: not-allowed;
+        pointer-events: none;
+        
+        &:hover {
+          background: transparent;
+          transform: none;
+        }
+      }
+      
+      .menu-main {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        
+        i {
+          font-size: 12px;
+          width: 16px;
+          text-align: center;
+        }
+      }
     }
   }
 }
 
+// Left section with improved styling
 .top-bar .left {
   display: flex;
   align-items: center;
   gap: 12px;
   height: 100%;
-  justify-content: center;
+  
+  .toggle-btn {
+    -webkit-app-region: no-drag;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-highlight);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      background: var(--color-accent);
+      color: var(--color-highlight);
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    i {
+      font-size: 16px;
+    }
+  }
 }
+
+// Right section controls
 .top-bar .right {
   display: flex;
   align-items: center;
   height: 100%;
+  gap: 4px;
 }
 
-.group-menu {
+// Window controls with modern design
+.window-controls {
   display: flex;
   align-items: center;
-  gap: 5px;
-  height: 100%;
+  gap: 4px;
+  -webkit-app-region: no-drag;
 
-  [data-menu="download"] .menu-text {
-    position: relative;
-    padding-right: 6px;
-    white-space: nowrap;
-  }
-}
-
-// Center tab strip with subtle scroll mask
-.group-menu {
-  display: inline-flex;
-  gap: 6px;
-  padding: 4px;
-  max-width: min(64vw, 720px);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  position: relative;
-}
-.group-menu::-webkit-scrollbar {
-  display: none;
-}
-.group-menu::before,
-.group-menu::after {
-  content: "";
-  position: sticky;
-  top: 0;
-  bottom: 0;
-  width: 14px;
-  pointer-events: none;
-  z-index: 1;
-}
-.group-menu::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.25), transparent);
-  border-top-left-radius: 999px;
-  border-bottom-left-radius: 999px;
-}
-.group-menu::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(0, 0, 0, 0.25), transparent);
-  border-top-right-radius: 999px;
-  border-bottom-right-radius: 999px;
-}
-
-// Top bar controls
-.app-version-label {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 6px;
-  background-color: var(--color-hover);
-  border-radius: var(--border-radius);
-  color: var(--color-highlight);
-  user-select: none;
-  letter-spacing: 0.1rem;
-  font-weight: 600;
-  transition:
-    background 0.4s ease,
-    color 0.3s ease,
-    box-shadow 0.3s ease,
-    transform 0.2s ease;
-  i {
-    font-size: 1rem;
-    border-radius: 50%;
-    padding: 2px;
-    animation: pulseEffect 2s infinite;
-    transition:
-      transform 0.3s ease,
-      color 0.3s ease,
-      box-shadow 0.3s ease;
-    color: var(--color-accent);
-  }
-  &:hover {
-    color: var(--color-accent);
-    transform: translateY(-1px);
+  button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-highlight);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-accent);
+    }
+    
+    &:active {
+      transform: scale(0.92);
+    }
+    
     i {
-      animation: none;
-      transform: scale(1.1);
-      color: var(--color-text-main);
+      font-size: 14px;
+    }
+    
+    // Special styling for close button
+    &.btn-close:hover {
+      background: #ff4757;
+      color: var(--color-highlight);
+    }
+    
+    // Special styling for minimize button
+    &.btn-minimize:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--color-accent);
     }
   }
+}
+
+// Individual menu items in right section
+.menu-item {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-weight: 500;
+  color: var(--color-highlight);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: var(--color-hover);
+    color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
   &:active {
     transform: translateY(0);
   }
-  @media (max-width: 480px) {
-    font-size: 10px;
-    padding: 3px 6px 3px 8px;
-    gap: 6px;
-    i {
-      font-size: 0.9rem;
-    }
+
+  &.active {
+    background: var(--color-accent);
+    color: var(--color-highlight);
+    box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.3);
   }
-  @media (max-width: 320px) {
-    font-size: 9px;
-    padding: 2px 5px 2px 6px;
-    gap: 4px;
-    i {
-      font-size: 0.8rem;
+
+  &.disabled {
+    color: var(--color-disabled);
+    cursor: not-allowed;
+    
+    &:hover {
+      background: transparent;
+      transform: none;
     }
   }
 }
 
-.version-text {
-  letter-spacing: 0.8px;
-  font-size: 14px;
+.menu-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  i {
+    font-size: 14px;
+  }
 }
 
+// App version label with modern design
+.app-version-label {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: var(--color-highlight);
+  user-select: none;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  
+  i {
+    font-size: 14px;
+    border-radius: 50%;
+    padding: 3px;
+    animation: pulseEffect 2s infinite;
+    transition: all 0.3s ease;
+    color: var(--color-accent);
+  }
+  
+  &:hover {
+    background: rgba(var(--color-accent-rgb), 0.15);
+    color: var(--color-accent);
+    transform: translateY(-1px);
+    border-color: rgba(var(--color-accent-rgb), 0.3);
+    
+    i {
+      animation: none;
+      transform: scale(1.2);
+      color: var(--color-accent);
+    }
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Reload app button - возвращены старые стили
 #reload-app {
   display: inline-flex;
   align-items: center;
@@ -225,23 +325,127 @@
   background: transparent;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.1s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  
   &:hover {
     color: var(--color-accent);
     font-size: 16px;
     background-color: var(--color-hover);
   }
+  
   &:active {
     transform: scale(0.95);
   }
+  
   &:focus-visible {
     outline: 2px solid var(--color-hover);
     outline-offset: 2px;
   }
+  
   i {
     pointer-events: none;
   }
+}
+
+// Responsive design
+@media (max-width: 1024px) {
+  .center-menu .group-menu {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-bar {
+    height: 56px;
+    padding: 0 12px;
+  }
+  
+  .center-menu .group-menu {
+    max-width: 300px;
+    
+    .menu-item {
+      padding: 0 12px;
+      font-size: 12px;
+      height: 32px;
+      
+      .menu-main {
+        gap: 4px;
+        
+        i {
+          font-size: 11px;
+          width: 14px;
+        }
+      }
+    }
+  }
+  
+  .app-version-label {
+    font-size: 10px;
+    padding: 6px 8px;
+    gap: 6px;
+    
+    i {
+      font-size: 12px;
+    }
+  }
+  
+  .menu-item,
+  .toggle-btn,
+  .window-controls button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .center-menu .group-menu {
+    max-width: 250px;
+    
+    .menu-item {
+      padding: 0 10px;
+      font-size: 11px;
+    }
+  }
+  
+  .app-version-label .version-text {
+    display: none;
+  }
+  
+  .app-version-label {
+    padding: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-bar {
+    padding: 0 8px;
+  }
+  
+  .center-menu .group-menu {
+    max-width: 200px;
+    
+    .menu-item {
+      padding: 0 8px;
+      font-size: 10px;
+      
+      .menu-main i {
+        display: none;
+      }
+    }
+  }
+}
+
+// Animation for version icon
+@keyframes pulseEffect {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(var(--color-accent-rgb), 0);
+  }
+}
+
+// Add CSS variables if not exists in your theme
+:root {
+  --color-accent-rgb: 96, 165, 250; // Example blue color - adjust to your accent color
 }

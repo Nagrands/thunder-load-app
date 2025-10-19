@@ -96,7 +96,7 @@ $transition-ease: ease;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.5rem 0.25rem;
+    padding: 0.8rem 0.5rem 0.25rem;
     margin-bottom: 0.25rem;
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0));
     border-bottom-left-radius: 12px;
@@ -108,7 +108,7 @@ $transition-ease: ease;
   body.is-mac & {
     padding-top: 22px; // небольшой отступ сверху для зоны «светофоров»
     .sidebar-actions {
-      top: calc(env(safe-area-inset-top, 0px) + 33px);
+      top: calc(env(safe-area-inset-top, 0px) + 36px);
     }
   }
   .pin-btn,
