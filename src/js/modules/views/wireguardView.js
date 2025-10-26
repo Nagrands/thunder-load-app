@@ -120,7 +120,10 @@ export default function renderWireGuard() {
     const saved = window.localStorage.getItem("wg-last-send-time");
     if (el && saved) {
       const dt = new Date(saved);
-      if (!isNaN(dt)) el.textContent = dt.toLocaleTimeString();
+      if (!isNaN(dt)) {
+        const pad = (n) => String(n).padStart(2, "0");
+        el.textContent = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} в ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+      }
     }
   };
 
@@ -178,7 +181,8 @@ export default function renderWireGuard() {
     const timeEl = getEl('wg-last-send-time', view);
     if (timeEl) {
       lastSendTime = new Date();
-      timeEl.textContent = lastSendTime.toLocaleTimeString();
+      const pad = (n) => String(n).padStart(2, "0");
+      timeEl.textContent = `${pad(lastSendTime.getHours())}:${pad(lastSendTime.getMinutes())}:${pad(lastSendTime.getSeconds())}`;
       saveLastSendTime(lastSendTime);
     }
   };
@@ -200,35 +204,54 @@ export default function renderWireGuard() {
     if (hasError) el.focus();
   };
 
+  // Флаг для отслеживания новой сессии приложения (инициализации)
+  let isNewSession = false;
   const log = (text, error = false) => {
     // Всегда показывать ошибки, независимо от режима отладки
     const debugToggle = getEl("debug-toggle", view);
     const debugEnabled = debugToggle ? debugToggle.classList.contains("is-active") : false;
-    
+
     if (!debugEnabled && !error) return;
-    
+
     const pre = getEl("wg-log", view);
     if (pre) {
-      const timestamp = new Date().toLocaleTimeString();
-      // Убедимся, что добавляем текст, а не заменяем
-      const currentContent = pre.textContent || '';
-      pre.textContent = currentContent + (currentContent ? '\n' : '') + `${timestamp} › ${text}`;
+      // Форматируем дату/время как YYYY-MM-DD HH:MM:SS (24h)
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-      // Ограничиваем лог последними 300 строками
-      const lines = pre.textContent.split('\n');
-      if (lines.length > 300) {
-        pre.textContent = lines.slice(-300).join('\n');
+      const divider = "----------------------------------------";
+      const currentContent = pre.textContent || '';
+      let newContent;
+      // Добавляем разделитель только если это новая сессия
+      if (isNewSession) {
+        newContent =
+          (currentContent ? currentContent + "\n" : "") +
+          divider + "\n" +
+          `${timestamp} › ${text}`;
+        isNewSession = false;
+      } else {
+        newContent =
+          (currentContent ? currentContent + "\n" : "") +
+          `${timestamp} › ${text}`;
       }
-      
+      pre.textContent = newContent;
+
+      // Ограничиваем лог последними 50_000 символами
+      const maxLogChars = 50000;
+      if (pre.textContent.length > maxLogChars) {
+        pre.textContent = pre.textContent.slice(-maxLogChars);
+      }
+
       if (error) {
         pre.classList.add("error-log");
       } else {
         pre.classList.remove("error-log");
       }
-      
+
       // Автопрокрутка к новому сообщению
       pre.scrollTop = pre.scrollHeight;
-      
+
       // Автоматически раскрывать details при новых сообщениях
       const details = pre.closest('details');
       if (details && !details.open) {
@@ -823,6 +846,8 @@ export default function renderWireGuard() {
 
   const initialize = async () => {
     try {
+      // При инициализации устанавливаем флаг новой сессии
+      isNewSession = true;
       // Сначала устанавливаем начальное сообщение в лог
       const pre = getEl("wg-log", view);
       if (pre && !pre.textContent.trim()) {
