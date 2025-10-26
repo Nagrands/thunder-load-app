@@ -1025,35 +1025,44 @@ export default function renderBackup() {
     _debouncedUpdateSave();
 
     function updatePreview() {
-      const name = q("#f-name")?.value?.trim() || "Имя профиля";
-      const src = q("#f-src")?.value?.trim() || "";
-      const dst = q("#f-dst")?.value?.trim() || "";
+      const name = q("#f-name")?.value?.trim();
+      const src = q("#f-src")?.value?.trim();
+      const dst = q("#f-dst")?.value?.trim();
       const prof = q("#f-prof")?.value?.trim();
-      const pats = q("#f-pats")?.value?.trim() || "все файлы";
+      const pats = q("#f-pats")?.value?.trim();
 
       const checkPathClass = (val, required) => {
         if (!val) return required ? "invalid-path" : "optional-path";
         return "valid-path";
       };
 
-      const lines = [
-        `
-        <div>
-          «<strong>${name}</strong>»<hr />
-          <span class="path-line ${checkPathClass(src, true)}">${src || "—"}</span><br> →
-          <span class="path-line ${checkPathClass(dst, true)}">${dst || "—"}</span>
-        </div><hr />
-        `,
-        `<div><strong>Папка настроек</strong>: <span class="path-line ${checkPathClass(prof, false)}">${prof || "—"}</span></div>`,
-        `<div><strong>Фильтр</strong>: ${pats}</div>`,
-      ];
+      const lines = [];
+
+      if (name || src || dst) {
+        lines.push(`
+          <div>
+            ${name ? `<strong>Имя профиля</strong>: ${name}<hr />` : ""}
+            ${src ? `<span class="path-line ${checkPathClass(src, true)}">${src}</span>` : ""}
+            ${src && dst ? "<br> → " : ""}
+            ${dst ? `<span class="path-line ${checkPathClass(dst, true)}">${dst}</span>` : ""}
+          </div>
+        `);
+      }
+
+      if (prof) {
+        lines.push(`<div><strong>Папка настроек</strong>: <span class="path-line ${checkPathClass(prof, false)}">${prof}</span></div>`);
+      }
+
+      if (pats) {
+        lines.push(`<div><strong>Фильтры</strong>: ${pats}</div>`);
+      }
 
       const box = q("#bk-preview");
       if (box) {
         box.innerHTML = lines.join("");
         box.classList.remove("flash");
         void box.offsetWidth;
-        box.classList.add("flash");
+        if (lines.length) box.classList.add("flash");
         setTimeout(() => box.classList.remove("flash"), 350);
       }
     }
