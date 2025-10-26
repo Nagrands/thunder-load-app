@@ -351,6 +351,9 @@ export default function renderWireGuard() {
               <button id="wg-open-config-folder" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Папка настроек">
                 <i class="fa-solid fa-folder-open"></i>
               </button>
+              <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top">
+                <i class="fa-solid fa-network-wired"></i>
+              </button>
             </div>
             <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
           </div>
@@ -828,6 +831,29 @@ export default function renderWireGuard() {
         }
       };
       await initTipsRotation();
+
+      const initNetworkSettingsButton = () => {
+        const platform = window.electron?.getPlatformInfo?.()?.os || "";
+        const btn = view.querySelector("#wg-open-network-settings");
+        if (!btn) return;
+
+        // Меняем тултип в зависимости от платформы
+        if (platform === "darwin") {
+          btn.setAttribute("title", "Открыть настройки сети (macOS)");
+        } else if (platform === "windows") {
+          btn.setAttribute("title", "Открыть параметры сети (Windows)");
+        } else {
+          btn.setAttribute("title", "Открыть сетевые настройки системы");
+        }
+
+        // Показываем кнопку на macOS и Windows
+        btn.style.display = "inline-flex";
+
+        btn.addEventListener("click", () => {
+          window.electron.send("open-network-settings");
+        });
+      };
+      initNetworkSettingsButton();
       
       // Инициализация тултипов
       queueMicrotask(() => {

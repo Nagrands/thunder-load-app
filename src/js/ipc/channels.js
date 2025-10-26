@@ -81,6 +81,8 @@ const CHANNELS = Object.freeze({
   TOOLS_RESET_LOCATION: "tools:resetLocation",
   DIALOG_CHOOSE_TOOLS_DIR: "dialog:choose-tools-dir",
   WG_OPEN_CONFIG_FOLDER: "wg-open-config-folder",
+  WG_OPEN_NETWORK_SETTINGS:
+  "open-network-settings",
 
   // Backup tab
   BACKUP_GET_PROGRAMS: "backup:getPrograms",

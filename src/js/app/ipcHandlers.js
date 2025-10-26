@@ -1211,6 +1211,22 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.on(CHANNELS.WG_OPEN_NETWORK_SETTINGS, () => {
+    const os = require("os");
+    if (process.platform === "win32") {
+      shell.openExternal("ms-settings:network");
+    } else if (process.platform === "darwin") {
+      const version = parseFloat(os.release());
+      if (version >= 22) {
+        shell.openExternal("x-apple.systempreferences:com.apple.Network-Settings.extension");
+      } else {
+        shell.openExternal("x-apple.systempreferences:com.apple.preference.network");
+      }
+    } else {
+      log.info("WG_OPEN_NETWORK_SETTINGS: платформа не поддерживается для открытия настроек сети.");
+    }
+  });
+
   // Обработка запроса на загрузку обновления из рендер-процесса
   ipcMain.handle(CHANNELS.DOWNLOAD_UPDATE, async () => {
     try {
