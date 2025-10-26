@@ -95,6 +95,37 @@ export default function renderWireGuard() {
   let lastLoggedRemaining = null;
 
   // =============================================
+  // ЛОКАЛЬНОЕ СОХРАНЕНИЕ ЛОГА И ВРЕМЕНИ ОТПРАВКИ
+  // =============================================
+
+  const saveLog = () => {
+    const pre = getEl("wg-log", view);
+    if (pre) window.localStorage.setItem("wg-log", pre.textContent);
+  };
+
+  const loadLog = () => {
+    const pre = getEl("wg-log", view);
+    if (pre) {
+      const saved = window.localStorage.getItem("wg-log");
+      if (saved) pre.textContent = saved;
+    }
+  };
+
+  const saveLastSendTime = (time = new Date()) => {
+    window.localStorage.setItem("wg-last-send-time", time.toISOString());
+  };
+
+  const loadLastSendTime = () => {
+    const el = getEl("wg-last-send-time", view);
+    const saved = window.localStorage.getItem("wg-last-send-time");
+    if (el && saved) {
+      const dt = new Date(saved);
+      if (!isNaN(dt)) el.textContent = dt.toLocaleTimeString();
+    }
+  };
+
+
+  // =============================================
   // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
   // =============================================
 
@@ -148,6 +179,7 @@ export default function renderWireGuard() {
     if (timeEl) {
       lastSendTime = new Date();
       timeEl.textContent = lastSendTime.toLocaleTimeString();
+      saveLastSendTime(lastSendTime);
     }
   };
 
@@ -202,6 +234,8 @@ export default function renderWireGuard() {
       if (details && !details.open) {
         details.open = true;
       }
+
+      saveLog();
     }
   };
 
@@ -598,6 +632,8 @@ export default function renderWireGuard() {
         pre.textContent = debugEnabled 
           ? "[Лог] Очищен пользователем" 
           : "Лог активности. Включите режим отладки для подробного вывода.";
+
+        saveLog(); // Сохраняем обновлённый (очищенный) лог
         
         log("[Лог] Очищен пользователем");
       }
@@ -794,6 +830,8 @@ export default function renderWireGuard() {
       }
 
       await loadConfiguration();
+      loadLog();
+      loadLastSendTime();
       setupFieldEvents();
       setupEasterEgg();
       setupEventHandlers();
