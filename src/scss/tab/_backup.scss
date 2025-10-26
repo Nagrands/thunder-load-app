@@ -1353,51 +1353,195 @@
   // ---------------------------------------------------------------------------
   // Progress Indicator
   // ---------------------------------------------------------------------------
-  .bk-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3.5px;
-    width: 0%;
-    background: linear-gradient(90deg, var(--color-accent), #88f 80%);
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-    transition:
-      width 0.4s cubic-bezier(0.5, 1.3, 0.5, 1),
-      background 0.18s;
+  .bk-progress-container {
+    margin: 1rem 0 0.5rem;
+    padding: 0 0.5rem;
     display: none;
-    z-index: 4;
-    position: relative;
-    overflow: hidden;
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent
-      );
-      animation: shimmer 2s infinite;
-    }
-
+    
     &.active {
       display: block;
+      animation: progressSlideIn 0.4s ease-out;
     }
-
-    &-label {
+  }
+  
+  .bk-progress {
+    position: relative;
+    height: 28px;
+    background: rgba(30, 35, 45, 0.8);
+    border-radius: 14px;
+    border: 1px solid rgba(120, 180, 255, 0.15);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.25),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    
+    &::before {
+      content: "";
       position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 11px;
-      font-weight: 600;
-      color: #fff;
-      text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+      inset: 0;
+      background: 
+        linear-gradient(90deg, 
+          transparent 0%, 
+          rgba(255, 255, 255, 0.1) 50%, 
+          transparent 100%);
+      opacity: 0.6;
+      animation: backgroundShimmer 3s ease-in-out infinite;
+    }
+  }
+
+  .bk-progress-bar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) 0%,
+    #4fd1ff 30%,
+    #88f7ff 70%,
+    var(--color-accent) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 12px;
+  position: relative;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: gradientShift 2s ease-in-out infinite;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+  .bk-progress-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 2;
+  }
+
+  .bk-progress-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.8),
+      0 0 4px rgba(100, 200, 255, 0.5);
+    letter-spacing: 0.5px;
+    
+    &.primary {
+      font-size: 0.9rem;
+    }
+    
+    &.percentage {
+      background: linear-gradient(180deg, #fff, #e0f7ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+    }
+  }
+
+  .bk-progress-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      
+      i {
+        font-size: 0.7rem;
+        opacity: 0.8;
+      }
+    }
+  }
+
+  // Новые анимации для прогресс-бара
+  @keyframes progressSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes gradientShift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @keyframes backgroundShimmer {
+    0%, 100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+
+  // Адаптивность для мобильных устройств
+  @media (max-width: 640px) {
+    .bk-progress-container {
+      margin: 0.75rem 0 0.5rem;
+      padding: 0 0.25rem;
+    }
+    
+    .bk-progress {
+      height: 24px;
+    }
+    
+    .bk-progress-content {
+      padding: 0 12px;
+    }
+    
+    .bk-progress-text {
+      font-size: 0.8rem;
+      
+      &.primary {
+        font-size: 0.85rem;
+      }
+    }
+    
+    .bk-progress-stats {
+      gap: 8px;
+      font-size: 0.75rem;
     }
   }
 

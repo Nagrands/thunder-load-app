@@ -72,7 +72,7 @@ export default function renderBackup() {
   container.className = "backup-center";
 
   const html = `
-    <div class="wg-glass">
+      <div class="wg-glass">
       <div class="wg-header">
         <div class="title">
           <i class="fa-solid fa-database"></i>
@@ -88,6 +88,26 @@ export default function renderBackup() {
           <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
           <input type="text" id="bk-filter" placeholder="Поиск профиля, пути..." class="input" style="flex:1;" />
           <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск" style="width:32px; height:32px;"><i class="fa-solid fa-times"></i></button>
+        </div>
+
+        <div id="bk-progress-container" class="bk-progress-container">
+          <div class="bk-progress">
+            <div class="bk-progress-bar" style="width: 0%"></div>
+            <div class="bk-progress-content">
+              <span class="bk-progress-text primary">Выполнение резервного копирования...</span>
+              <div class="bk-progress-stats">
+                <span class="stat">
+                  <i class="fa-solid fa-play-circle"></i>
+                  <span class="bk-progress-text" id="bk-progress-current">0</span>
+                </span>
+                <span class="stat">
+                  <i class="fa-solid fa-list-ol"></i>
+                  <span class="bk-progress-text" id="bk-progress-total">0</span>
+                </span>
+                <span class="bk-progress-text percentage" id="bk-progress-percent">0%</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <h1 class="section-heading">
@@ -1192,6 +1212,22 @@ export default function renderBackup() {
 
     toast(`Запуск Backup для ${list.length} профилей...`, "info");
 
+    // Получаем элементы прогресс-бара
+    const progressContainer = getEl("#bk-progress-container");
+    const progressBar = getEl(".bk-progress-bar");
+    const progressCurrent = getEl("#bk-progress-current");
+    const progressTotal = getEl("#bk-progress-total");
+    const progressPercent = getEl("#bk-progress-percent");
+
+    // Показываем и инициализируем прогресс-бар
+    if (progressContainer && progressBar && progressCurrent && progressTotal && progressPercent) {
+      progressContainer.classList.add("active");
+      progressCurrent.textContent = "0";
+      progressTotal.textContent = String(list.length);
+      progressPercent.textContent = "0%";
+      progressBar.style.width = "0%";
+    }
+
     // Highlight running rows
     const rows = indices
       .map((i) => {
@@ -1202,19 +1238,6 @@ export default function renderBackup() {
       
     rows.forEach((r) => r.classList.add("is-running"));
 
-    // Progress bar
-    const progressEl = getEl("#bk-batch-progress") || (() => {
-      const bar = document.createElement("div");
-      bar.id = "bk-batch-progress";
-      bar.className = "bk-progress";
-      wrapper.querySelector(".wg-header")?.appendChild(bar);
-      return bar;
-    })();
-    
-    let done = 0;
-    progressEl.style.width = "0%";
-    progressEl.style.display = "block";
-
     log(`Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`);
 
     const res = await invoke("backup:run", list);
@@ -1222,13 +1245,19 @@ export default function renderBackup() {
       toast(res?.error || "Ошибка запуска", "error");
       log(`Ошибка: ${res?.error || "unknown"}`);
       rows.forEach((r) => r.classList.remove("is-running"));
-      setTimeout(() => (progressEl.style.display = "none"), 1200);
+      
+      // Скрываем прогресс-бар при ошибке
+      if (progressContainer) {
+        progressContainer.classList.remove("active");
+      }
+      
       toast("Ошибка при выполнении backup", "error");
       expandAndScrollLog();
       return;
     }
 
     // Process results
+    let done = 0;
     res.results.filter(Boolean).forEach((r) => {
       const name = r.name || "Без имени";
       if (r.success) {
@@ -1238,7 +1267,13 @@ export default function renderBackup() {
       }
       done += 1;
       const percent = Math.round((done / list.length) * 100);
-      progressEl.style.width = percent + "%";
+      
+      // Обновляем прогресс-бар
+      if (progressBar && progressCurrent && progressPercent) {
+        progressBar.style.width = percent + "%";
+        progressCurrent.textContent = String(done);
+        progressPercent.textContent = percent + "%";
+      }
     });
 
     await load();
@@ -1253,7 +1288,13 @@ export default function renderBackup() {
     expandAndScrollLog();
 
     rows.forEach((r) => r.classList.remove("is-running"));
-    setTimeout(() => (progressEl.style.display = "none"), 1200);
+    
+    // Скрываем прогресс-бар с задержкой для плавного завершения
+    setTimeout(() => {
+      if (progressContainer) {
+        progressContainer.classList.remove("active");
+      }
+    }, 1500);
   }
 
   /**
