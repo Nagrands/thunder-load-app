@@ -20,9 +20,7 @@
 
 ---
 
-## ⬇️ Download
-
-[Release](https://github.com/Nagrands/thunder-load-app/releases/latest)
+## [⬇️ Download](https://github.com/Nagrands/thunder-load-app/releases/latest)
 
 ---
 

@@ -873,3 +873,13 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     font-size: 13px;
   }
 }
+
+.info-card p {
+  transition: opacity 0.4s ease-in-out;
+  &.fade-out {
+    opacity: 0;
+  }
+  &.fade-in {
+    opacity: 1;
+  }
+}

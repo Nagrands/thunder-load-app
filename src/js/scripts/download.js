@@ -47,9 +47,17 @@ const {
 const Store = require("electron-store");
 
 // Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
-function getStore() {
-  try { return new Store(); } catch { return null; }
+
+let sharedStore = null;
+
+function setSharedStore(store) {
+  sharedStore = store;
 }
+
+function getStore() {
+  return sharedStore;
+}
+
 function getToolsDir() {
   return getEffectiveToolsDir(getStore());
 }
@@ -350,7 +358,44 @@ async function installYtDlp() {
     const ytDlpPath = getYtDlpPath();
     await ensureToolsDir(dir);
     await downloadFile(ytDlpUrl, ytDlpPath);
-    if (process.platform !== "win32") fs.chmodSync(ytDlpPath, 0o755);
+
+    // Улучшенная обработка прав доступа для macOS
+    if (process.platform !== "win32") {
+      try {
+        fs.chmodSync(ytDlpPath, 0o755);
+        log.info(`Set executable permissions for yt-dlp: ${ytDlpPath}`);
+        
+        // Дополнительная проверка для macOS
+        if (process.platform === "darwin") {
+          // Проверяем, что файл действительно исполняемый
+          const stats = fs.statSync(ytDlpPath);
+          const isExecutable = (stats.mode & 0o111) !== 0;
+          log.info(`yt-dlp is executable: ${isExecutable}`);
+          
+          if (!isExecutable) {
+            // Пробуем альтернативный метод
+            const { execSync } = require('child_process');
+            execSync(`chmod +x "${ytDlpPath}"`);
+            log.info("Used chmod +x to set executable permissions");
+          }
+        }
+      } catch (chmodError) {
+        log.error("Failed to set executable permissions:", chmodError);
+      }
+    }
+
+    // Проверяем, что файл установился корректно
+    if (!fs.existsSync(ytDlpPath)) {
+      throw new Error("yt-dlp file was not created after download");
+    }
+    
+    const fileStats = fs.statSync(ytDlpPath);
+    log.info(`yt-dlp file size: ${fileStats.size} bytes`);
+    
+    // Пробуем получить версию сразу после установки
+    const newVersion = await getYtDlpVersion();
+    log.info(`yt-dlp version after install: ${newVersion}`);
+    
     log.info("yt-dlp downloaded successfully.");
   } catch (error) {
     if (error.message && error.message.includes("Failed to parse JSON")) {
@@ -1031,7 +1076,10 @@ module.exports = {
 /**
  * Устанавливает все необходимые зависимости (yt-dlp и ffmpeg).
  */
-async function ensureAllDependencies() {
+async function ensureAllDependencies(store = null) {
+  if (store) {
+    setSharedStore(store);
+  }
   await installYtDlp();
   await installFfmpeg();
 }

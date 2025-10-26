@@ -403,6 +403,18 @@ export async function renderToolsInfo() {
   try {
     const res = await window.electron?.tools?.getVersions?.();
 
+    if (!res) {
+      console.error('No response from tools.getVersions');
+      return;
+    }
+
+    if (res.ytDlp?.error) {
+      console.error('yt-dlp error:', res.ytDlp.error);
+    }
+    if (res.ffmpeg?.error) {
+      console.error('ffmpeg error:', res.ffmpeg.error);
+    }
+
     // Хинт
     const missing = !res?.ytDlp?.ok || !res?.ffmpeg?.ok;
     if (hintEl)

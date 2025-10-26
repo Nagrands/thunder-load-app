@@ -169,7 +169,7 @@ export default function renderBackup() {
   }
 
   // Backup Hints Block
-  const subtitle = container.querySelector(".wg-block");
+  const subtitle = container.querySelector(".wg-header");
   const hintsBlock = document.createElement("div");
   hintsBlock.className = "bk-hints";
   hintsBlock.innerHTML = '<div class="bk-hint-text"></div>';

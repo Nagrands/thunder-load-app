@@ -154,8 +154,33 @@ function setupIpcHandlers(dependencies) {
   });
 
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, () => {
-    // Передаём store, чтобы учитывать кастомную папку инструментов
-    return getToolsVersions(store);
+    try {
+      const tools = getToolsVersions(store);
+      
+      // Детальное логирование для диагностики
+      log.info('Tools versions check result:', {
+        ytDlp: {
+          ok: tools?.ytDlp?.ok,
+          path: tools?.ytDlp?.path,
+          version: tools?.ytDlp?.version,
+          exists: tools?.ytDlp?.path ? fs.existsSync(tools.ytDlp.path) : false
+        },
+        ffmpeg: {
+          ok: tools?.ffmpeg?.ok,
+          path: tools?.ffmpeg?.path,
+          version: tools?.ffmpeg?.version,
+          exists: tools?.ffmpeg?.path ? fs.existsSync(tools.ffmpeg.path) : false
+        }
+      });
+      
+      return tools;
+    } catch (error) {
+      log.error('Error in TOOLS_GETVERSIONS:', error);
+      return {
+        ytDlp: { ok: false, error: error.message },
+        ffmpeg: { ok: false, error: error.message }
+      };
+    }
   });
 
   // Предпросмотр: получить метаданные видео по URL (заголовок, длительность, превью)

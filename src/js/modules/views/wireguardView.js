@@ -132,7 +132,7 @@ export default function renderWireGuard() {
           data-target="#${f.id}"
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          title="Очистить поле"
+          title="Очистить"
         >
           <i class="fa-solid fa-times"></i>
         </button>
@@ -327,7 +327,7 @@ export default function renderWireGuard() {
             <!-- Исправленный переключатель отладки -->
             <div class="debug-toggle" id="debug-toggle">
               <div class="toggle-track"></div>
-              <span class="toggle-label">Отладка</span>
+              <span class="toggle-label">Лог активности</span>
             </div>
           </div>
 
@@ -345,13 +345,11 @@ export default function renderWireGuard() {
                 <i class="fa-solid fa-paper-plane"></i>
                 <span>Отправить</span>
               </button>
-              <button id="wg-reset" class="small-button">
+              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс">
                 <i class="fa-solid fa-rotate-left"></i>
-                <span>Сбросить</span>
               </button>
-              <button id="wg-open-config-folder" class="small-button">
+              <button id="wg-open-config-folder" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Папка настроек">
                 <i class="fa-solid fa-folder-open"></i>
-                <span>Настройки</span>
               </button>
             </div>
             <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
@@ -767,7 +765,7 @@ export default function renderWireGuard() {
       
       // Показываем текущее состояние
       const status = getEl("wg-connection-status", view)?.textContent || "Неактивно";
-      log(`[Текущее состояние] ${status}`);
+      log(`[Текущий статус] ${status}`);
       
     } else {
       debugToggle.classList.remove("is-active");
@@ -797,6 +795,39 @@ export default function renderWireGuard() {
       setupEasterEgg();
       setupEventHandlers();
       await initAutoShutdown();
+
+      // Анимация и автосмена советов
+      const initTipsRotation = async () => {
+        const tipsCard = view.querySelector('.info-card h3 i.fa-lightbulb')?.closest('.info-card');
+        if (!tipsCard) return;
+
+        const p = tipsCard.querySelector('p');
+        if (!p) return;
+
+        try {
+          const response = await fetch("info/tips.json");
+          const data = await response.json();
+          const tips = data.tips || [];
+          if (!tips.length) return;
+
+          let index = 0;
+          p.textContent = tips[index];
+
+          setInterval(() => {
+            index = (index + 1) % tips.length;
+            p.classList.add("fade-out");
+            setTimeout(() => {
+              p.textContent = tips[index];
+              p.classList.remove("fade-out");
+              p.classList.add("fade-in");
+              setTimeout(() => p.classList.remove("fade-in"), 800);
+            }, 400);
+          }, 8000);
+        } catch (err) {
+          console.error("Не удалось загрузить советы:", err);
+        }
+      };
+      await initTipsRotation();
       
       // Инициализация тултипов
       queueMicrotask(() => {
