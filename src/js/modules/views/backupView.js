@@ -42,7 +42,7 @@ export default function renderBackup() {
       return false;
     }
   };
-  
+
   if (_isBackupDisabled()) {
     const placeholder = document.createElement("div");
     placeholder.id = "backup-view";
@@ -52,7 +52,7 @@ export default function renderBackup() {
   }
 
   const ipc = window.electron?.ipcRenderer || window.electron;
-  
+
   /**
    * Wrapper over Electron's ipcRenderer.invoke with a guarded fallback.
    * @param {string} ch
@@ -153,7 +153,7 @@ export default function renderBackup() {
       </div>
     </div>
   `;
-  
+
   container.innerHTML = html;
   wrapper.appendChild(container);
 
@@ -165,10 +165,10 @@ export default function renderBackup() {
       t = setTimeout(() => fn(...args), ms);
     };
   };
-  
+
   const filterInput = container.querySelector("#bk-filter");
   const clearFilterBtn = container.querySelector("#bk-clear-filter");
-  
+
   if (filterInput) {
     filterInput.addEventListener(
       "input",
@@ -178,7 +178,7 @@ export default function renderBackup() {
       }, 150),
     );
   }
-  
+
   if (clearFilterBtn && filterInput) {
     clearFilterBtn.addEventListener("click", () => {
       filterInput.value = "";
@@ -201,7 +201,7 @@ export default function renderBackup() {
     "📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.",
     "🕒 Последнее время успешного копирования видно под именем каждого профиля.",
   ];
-  
+
   let hintIndex = 0;
   const hintEl = hintsBlock.querySelector(".bk-hint-text");
   const showHint = () => {
@@ -212,7 +212,7 @@ export default function renderBackup() {
       hintIndex = (hintIndex + 1) % hints.length;
     }, 400);
   };
-  
+
   showHint();
   setInterval(showHint, 10000);
 
@@ -230,9 +230,9 @@ export default function renderBackup() {
    * @returns {T|null}
    */
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
-  
+
   const logBox = getEl("#bk-log");
-  
+
   // Restore logBox content from localStorage if present
   if (logBox) {
     try {
@@ -281,18 +281,20 @@ export default function renderBackup() {
    * Maintains user's scroll position unless they're at the bottom
    */
   function manageLogScroll() {
-    if (!logBox) return { wasScrolledToBottom: false, restoreScrollPosition: () => {} };
-    
+    if (!logBox)
+      return { wasScrolledToBottom: false, restoreScrollPosition: () => {} };
+
     const threshold = 50;
-    const isNearBottom = logBox.scrollHeight - logBox.clientHeight - logBox.scrollTop <= threshold;
-    
+    const isNearBottom =
+      logBox.scrollHeight - logBox.clientHeight - logBox.scrollTop <= threshold;
+
     return {
       wasScrolledToBottom: isNearBottom,
       restoreScrollPosition: () => {
         if (isNearBottom) {
           logBox.scrollTop = logBox.scrollHeight - logBox.clientHeight;
         }
-      }
+      },
     };
   }
 
@@ -306,44 +308,44 @@ export default function renderBackup() {
    */
   const log = (msg) => {
     if (!logBox) return;
-    
+
     const scrollManager = manageLogScroll();
-    
+
     const line = document.createElement("div");
     line.className = "log-line";
-    
+
     // Color coding based on message content
     if (/✔|успех|success/i.test(msg)) line.classList.add("log-success");
     else if (/✖|ошибка|error/i.test(msg)) line.classList.add("log-error");
     else if (/предупреждение|warn/i.test(msg)) line.classList.add("log-warn");
     else line.classList.add("log-info");
-    
+
     // Format timestamp
     const now = new Date();
-    const date = now.toLocaleDateString('ru-RU').replace(/\./g, '-');
-    const time = now.toLocaleTimeString('ru-RU');
-    
-    const span = document.createElement('span');
-    span.className = 'log-date';
+    const date = now.toLocaleDateString("ru-RU").replace(/\./g, "-");
+    const time = now.toLocaleTimeString("ru-RU");
+
+    const span = document.createElement("span");
+    span.className = "log-date";
     span.textContent = `[${date} ${time}]`;
     line.appendChild(span);
     line.append(` ${msg}`);
-    
+
     // Add to log (append to maintain chronological order)
     logBox.appendChild(line);
-    
+
     // Restore scroll position
     scrollManager.restoreScrollPosition();
-    
+
     // Copy line text on click
-    line.addEventListener('click', () => {
+    line.addEventListener("click", () => {
       navigator.clipboard.writeText(line.textContent.trim()).then(() => {
-        line.classList.add('copied');
-        setTimeout(() => line.classList.remove('copied'), 500);
+        line.classList.add("copied");
+        setTimeout(() => line.classList.remove("copied"), 500);
         showToast("Строка скопирована в буфер", "success");
       });
     });
-    
+
     // Save log to localStorage
     try {
       localStorage.setItem("backupLog", logBox.innerHTML);
@@ -372,7 +374,7 @@ export default function renderBackup() {
       }
     })(),
   };
-  
+
   const actions = () => ({
     del: getEl("#bk-del"),
     runSel: getEl("#bk-run-selected"),
@@ -385,24 +387,24 @@ export default function renderBackup() {
   function updateActionsState() {
     const bkList = getEl("#bk-list");
     if (!bkList) return;
-    
+
     const visibleCheckboxes = Array.from(
       bkList.querySelectorAll(".bk-chk"),
     ).filter((chk) => chk.offsetParent !== null);
-    
+
     const checkedVisibleCheckboxes = visibleCheckboxes.filter(
       (chk) => chk.checked,
     );
-    
+
     const count = checkedVisibleCheckboxes.length;
     const total = visibleCheckboxes.length;
     const { del, runSel } = actions();
-    
+
     if (del) del.disabled = count === 0;
     if (runSel) runSel.disabled = count === 0;
     if (runSel) runSel.title = `Запустить для выбранных (${count})`;
     if (del) del.title = `Удалить выбранные (${count})`;
-    
+
     // Update Bootstrap tooltips
     const updateTooltip = (el, text) => {
       if (!el) return;
@@ -418,24 +420,24 @@ export default function renderBackup() {
         }
       } catch (_) {}
     };
-    
+
     updateTooltip(runSel, runSel ? runSel.title : "");
     updateTooltip(del, del ? del.title : "");
-    
+
     // Update badges
     const delBadge = getEl("#bk-del-count");
     const runBadge = getEl("#bk-run-count");
-    
+
     if (delBadge) {
       delBadge.textContent = String(count);
       delBadge.style.display = count ? "" : "none";
     }
-    
+
     if (runBadge) {
       runBadge.textContent = String(count);
       runBadge.style.display = count ? "" : "none";
     }
-    
+
     const selAll = getEl("#bk-select-all");
     if (selAll) {
       selAll.indeterminate = count > 0 && count < total;
@@ -511,7 +513,7 @@ export default function renderBackup() {
   function renderList() {
     const root = getEl("#bk-list");
     root.innerHTML = "";
-    
+
     const filtered = state.filter
       ? state.programs.filter((p) => {
           const q = state.filter.toLowerCase();
@@ -526,7 +528,7 @@ export default function renderBackup() {
     // Update counts badge
     const cnt = getEl("#bk-count");
     if (cnt) cnt.textContent = `${filtered.length}/${state.programs.length}`;
-    
+
     // Toggle select-all visibility
     const selWrap = getEl("#bk-select-all")?.closest(".checkbox-label");
     if (selWrap) {
@@ -550,11 +552,11 @@ export default function renderBackup() {
             </button>
           </div>
         </div>`;
-      
+
       const { del, runSel } = actions();
       if (del) del.disabled = true;
       if (runSel) runSel.disabled = true;
-      
+
       const addBtn = root.querySelector("#bk-create-first");
       addBtn?.addEventListener("click", () => showEditForm(-1));
       return;
@@ -566,18 +568,19 @@ export default function renderBackup() {
       selAll.checked = false;
       selAll.indeterminate = false;
     }
-    
+
     filtered.forEach((p, index) => {
       const idx = state.programs.indexOf(p);
       const row = document.createElement("div");
       row.className = "bk-row wg-card";
       row.style.animationDelay = `${index * 0.05}s`;
-      
+
       const lbl = lastLabel(state.lastTimes[p.name]);
-      const patterns = Array.isArray(p.config_patterns) && p.config_patterns.length
-        ? p.config_patterns.join(", ")
-        : "все файлы";
-        
+      const patterns =
+        Array.isArray(p.config_patterns) && p.config_patterns.length
+          ? p.config_patterns.join(", ")
+          : "все файлы";
+
       row.innerHTML = `
         <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
         <div class="bk-row-content min-w-0">
@@ -593,22 +596,22 @@ export default function renderBackup() {
           <button class="btn btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
         </div>
       `;
-      
+
       // Enable editing via double-click
       row.addEventListener("dblclick", () => showEditForm(idx));
       root.appendChild(row);
-      
+
       row.setAttribute(
         "aria-label",
         `${p.name}: ${p.source_path} → ${p.backup_path}`,
       );
     });
-    
+
     // Update actions state and attach event listeners
     root.querySelectorAll(".bk-chk").forEach((c) => {
       c.addEventListener("change", updateActionsState);
     });
-    
+
     updateActionsState();
     queueMicrotask(() => initTooltips());
   }
@@ -646,7 +649,14 @@ export default function renderBackup() {
    * @param {boolean} hasPick
    * @returns {string}
    */
-  function renderField(labelText, id, value, hint, required = false, hasPick = false) {
+  function renderField(
+    labelText,
+    id,
+    value,
+    hint,
+    required = false,
+    hasPick = false,
+  ) {
     return `
       <label class="wg-field flex flex-col gap-1 relative" data-hint="${hint}">
         <span class="text-sm">${labelText}</span>
@@ -676,7 +686,7 @@ export default function renderBackup() {
           config_patterns: [],
         }
       : JSON.parse(JSON.stringify(state.programs[idx]));
-    
+
     const nameFieldHTML = renderField(
       "Название *",
       "f-name",
@@ -715,14 +725,14 @@ export default function renderBackup() {
         </div>
       </div>
       `;
-    
+
     // Show modal
     const _docEl = document.documentElement;
     const _prevOverflow = _docEl.style.overflow;
     _docEl.style.overflow = "hidden";
     overlay.style.display = "flex";
     wrapper.appendChild(overlay);
-    
+
     const q = (s) => overlay.querySelector(s);
 
     // Name input field
@@ -734,8 +744,12 @@ export default function renderBackup() {
       const inputContainer = nameInput.closest(".input-container");
       if (!inputContainer) return;
       const inputActions = inputContainer.querySelector(".input-actions");
-      
-      if (state.programs.length > 0 && inputActions && !inputActions.querySelector(".name-list-btn")) {
+
+      if (
+        state.programs.length > 0 &&
+        inputActions &&
+        !inputActions.querySelector(".name-list-btn")
+      ) {
         const btnList = document.createElement("button");
         btnList.type = "button";
         btnList.className = "history-action-button name-list-btn";
@@ -771,26 +785,28 @@ export default function renderBackup() {
               item.textContent = p.name;
               item.style.padding = "6px 10px";
               item.style.cursor = "pointer";
-              
+
               item.addEventListener("mouseenter", () => {
                 item.style.background = "rgba(120,180,255,0.2)";
               });
-              
+
               item.addEventListener("mouseleave", () => {
                 item.style.background = "transparent";
               });
-              
+
               item.addEventListener("click", () => {
                 nameInput.value = p.name;
                 overlay.querySelector("#f-src").value = p.source_path || "";
                 overlay.querySelector("#f-dst").value = p.backup_path || "";
                 overlay.querySelector("#f-prof").value = p.profile_path || "";
-                overlay.querySelector("#f-pats").value = (p.config_patterns || []).join(",");
+                overlay.querySelector("#f-pats").value = (
+                  p.config_patterns || []
+                ).join(",");
                 updatePreview();
                 _debouncedUpdateSave();
                 listBox.remove();
               });
-              
+
               listBox.appendChild(item);
             });
 
@@ -823,6 +839,79 @@ export default function renderBackup() {
       }
     });
 
+    // File Filter Button
+    queueMicrotask(() => {
+      const patsField = overlay.querySelector("#f-pats");
+      if (!patsField) return;
+
+      const inputContainer = patsField.closest(".input-container");
+      if (!inputContainer) return;
+
+      if (!inputContainer.querySelector(".file-filter-btn")) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "history-action-button file-filter-btn";
+        btn.title = "Выбрать тип файла";
+        btn.setAttribute("data-bs-toggle", "tooltip");
+        btn.setAttribute("data-bs-placement", "top");
+        btn.innerHTML = '<i class="fa-solid fa-filter"></i>';
+        inputContainer.querySelector(".input-actions").appendChild(btn);
+
+        btn.addEventListener("click", () => {
+          let listBox = overlay.querySelector(".file-filter-popup");
+          if (!listBox) {
+            listBox = document.createElement("div");
+            listBox.className = "file-filter-popup";
+            inputContainer.style.position = "relative";
+            listBox.style.position = "absolute";
+            listBox.style.top = "100%";
+            listBox.style.left = "0";
+            listBox.style.width = "100%";
+            listBox.style.maxHeight = "200px";
+            listBox.style.overflowY = "auto";
+            listBox.style.background = "rgba(32,32,40,0.95)";
+            listBox.style.border = "1px solid rgba(255,255,255,0.1)";
+            listBox.style.borderRadius = "8px";
+            listBox.style.zIndex = "999";
+            listBox.style.padding = "4px 0";
+            inputContainer.appendChild(listBox);
+
+            const options = ["*.ini", "*.cfg", "*.json", "*.bak", "*.txt", "*.docx", "*.pdf"];
+            options.forEach((opt) => {
+              const item = document.createElement("div");
+              item.className = "file-filter-item";
+              item.textContent = opt;
+              item.style.padding = "6px 10px";
+              item.style.cursor = "pointer";
+
+              item.addEventListener("mouseenter", () => item.style.background = "rgba(120,180,255,0.2)");
+              item.addEventListener("mouseleave", () => item.style.background = "transparent");
+              item.addEventListener("click", () => {
+                const current = patsField.value.split(",").map(s => s.trim()).filter(Boolean);
+                if (!current.includes(opt)) current.push(opt);
+                patsField.value = current.join(",");
+                listBox.remove();
+              });
+
+              listBox.appendChild(item);
+            });
+
+            setTimeout(() => {
+              const closePopup = (e) => {
+                if (!listBox.contains(e.target) && e.target !== btn) {
+                  listBox.remove();
+                  document.removeEventListener("mousedown", closePopup, true);
+                }
+              };
+              document.addEventListener("mousedown", closePopup, true);
+            }, 0);
+          } else {
+            listBox.remove();
+          }
+        });
+      }
+    });
+
     function updateSaveState() {
       const name = q("#f-name")?.value?.trim();
       const src = q("#f-src")?.value?.trim();
@@ -830,13 +919,13 @@ export default function renderBackup() {
       const hasErrors = !!overlay.querySelector(".field-error:not(:empty)");
       const ok = !!name && !!src && !!dst && !hasErrors;
       const btn = q("#bk-save");
-      
+
       if (btn) {
         btn.disabled = !ok;
         btn.title = ok ? "Сохранить" : "Заполните обязательные поля";
       }
     }
-    
+
     const _debouncedUpdateSave = ((fn) => {
       let t;
       return () => {
@@ -850,18 +939,18 @@ export default function renderBackup() {
       const inp = q(`#${id}`);
       const box = overlay.querySelector(`.field-error[data-error-for="${id}"]`);
       if (!inp || !box) return;
-      
+
       if (hasError) {
         inp.classList.add("input-error");
         void inp.offsetWidth; // Force reflow
       } else {
         inp.classList.remove("input-error");
       }
-      
+
       box.textContent = hasError ? message || "" : "";
       if (hasError) box.classList.add("field-error-icon");
       else box.classList.remove("field-error-icon");
-      
+
       _debouncedUpdateSave();
     }
 
@@ -875,7 +964,7 @@ export default function renderBackup() {
         updatePreview();
       });
     });
-    
+
     overlay.querySelectorAll(".clear-field-btn").forEach((btn) => {
       const sel = btn.getAttribute("data-target");
       const input = sel ? q(sel) : null;
@@ -903,7 +992,7 @@ export default function renderBackup() {
         updatePreview();
         _debouncedUpdateSave();
       });
-      
+
       el?.addEventListener("change", () => {
         markFieldError(fid, false, "");
         updatePreview();
@@ -972,13 +1061,13 @@ export default function renderBackup() {
       const parts = norm.split("/").filter(Boolean);
       return parts[parts.length - 1] || "";
     };
-    
+
     function setValid(id, ok) {
       const el = q(`#${id}`);
       if (!el) return;
       el.classList.toggle("input-valid", !!ok);
     }
-    
+
     async function validatePath(id, required) {
       const val = q(`#${id}`)?.value?.trim();
       if (!val) {
@@ -986,7 +1075,7 @@ export default function renderBackup() {
         if (required) markFieldError(id, true, "Поле обязательно");
         return;
       }
-      
+
       try {
         const exists = await invoke("check-file-exists", val);
         setValid(id, exists);
@@ -1011,13 +1100,15 @@ export default function renderBackup() {
       await validatePath("f-src", true);
       _debouncedUpdateSave();
     });
-    
+
     q("#f-dst")?.addEventListener("change", async () => {
       await validatePath("f-dst", true);
       _debouncedUpdateSave();
     });
-    
-    q("#f-prof")?.addEventListener("change", () => validatePath("f-prof", false));
+
+    q("#f-prof")?.addEventListener("change", () =>
+      validatePath("f-prof", false),
+    );
 
     // Initial validation
     validatePath("f-src", !!init.source_path);
@@ -1050,7 +1141,9 @@ export default function renderBackup() {
       }
 
       if (prof) {
-        lines.push(`<div><strong>Папка настроек</strong>: <span class="path-line ${checkPathClass(prof, false)}">${prof}</span></div>`);
+        lines.push(
+          `<div><strong>Папка настроек</strong>: <span class="path-line ${checkPathClass(prof, false)}">${prof}</span></div>`,
+        );
       }
 
       if (pats) {
@@ -1066,7 +1159,7 @@ export default function renderBackup() {
         setTimeout(() => box.classList.remove("flash"), 350);
       }
     }
-    
+
     updatePreview();
 
     const closeOverlay = () => {
@@ -1074,15 +1167,15 @@ export default function renderBackup() {
       window.removeEventListener("keydown", onEsc);
       _docEl.style.overflow = _prevOverflow;
     };
-    
+
     overlay.querySelectorAll(".bk-close").forEach((b) => {
       b.addEventListener("click", closeOverlay);
     });
-    
+
     overlay.addEventListener("mousedown", (e) => {
       if (e.target === overlay) closeOverlay();
     });
-    
+
     const onEsc = (e) => {
       if (e.key === "Escape") {
         closeOverlay();
@@ -1095,9 +1188,9 @@ export default function renderBackup() {
         q("#bk-save")?.click();
       }
     };
-    
+
     window.addEventListener("keydown", onEsc);
-    
+
     // Save handler
     q("#bk-save").addEventListener("click", async () => {
       const name = q("#f-name")?.value?.trim();
@@ -1105,13 +1198,13 @@ export default function renderBackup() {
       const backup_path = q("#f-dst").value.trim();
       const profile_path = q("#f-prof").value.trim();
       const config_patterns = parsePatterns(q("#f-pats").value);
-      
+
       const saveBtn = q("#bk-save");
       if (saveBtn) {
         saveBtn.classList.add("is-loading");
         saveBtn.setAttribute("disabled", "true");
       }
-      
+
       // Validation
       let err = false;
       if (!name) {
@@ -1126,7 +1219,7 @@ export default function renderBackup() {
         markFieldError("f-dst", true, "Укажите папку бэкапа");
         err = true;
       }
-      
+
       if (err) {
         toast("Заполните обязательные поля", "error");
         const firstInvalid = overlay.querySelector(
@@ -1139,12 +1232,12 @@ export default function renderBackup() {
         }
         return;
       }
-      
+
       // Check for duplicate name
       const existingIndex = state.programs.findIndex(
         (p) => p.name === name && (isNew || p !== state.programs[idx]),
       );
-      
+
       if (existingIndex >= 0) {
         markFieldError("f-name", true, "Профиль с таким именем уже существует");
         toast("Нельзя создать профиль с одинаковым именем", "error");
@@ -1154,7 +1247,7 @@ export default function renderBackup() {
         }
         return;
       }
-      
+
       const payload = {
         name,
         source_path,
@@ -1162,7 +1255,7 @@ export default function renderBackup() {
         profile_path,
         config_patterns,
       };
-      
+
       if (isNew) {
         state.programs.unshift(payload);
         log(`Создан новый профиль: ${name}`);
@@ -1170,18 +1263,19 @@ export default function renderBackup() {
         state.programs[idx] = payload;
         log(`Профиль обновлён: ${name}`);
       }
-      
+
       try {
         await save();
         await load();
         toast("Сохранено");
-        
+
         const runAfter = !!q("#bk-save-run")?.checked;
         closeOverlay();
-        
+
         if (runAfter) {
           let i = state.programs.findIndex(
-            (p) => p.name === payload.name && p.backup_path === payload.backup_path,
+            (p) =>
+              p.name === payload.name && p.backup_path === payload.backup_path,
           );
           if (i < 0) i = state.programs.length - 1;
           if (i >= 0) await runForIndices([i]);
@@ -1229,7 +1323,13 @@ export default function renderBackup() {
     const progressPercent = getEl("#bk-progress-percent");
 
     // Показываем и инициализируем прогресс-бар
-    if (progressContainer && progressBar && progressCurrent && progressTotal && progressPercent) {
+    if (
+      progressContainer &&
+      progressBar &&
+      progressCurrent &&
+      progressTotal &&
+      progressPercent
+    ) {
       progressContainer.classList.add("active");
       progressCurrent.textContent = "0";
       progressTotal.textContent = String(list.length);
@@ -1244,22 +1344,24 @@ export default function renderBackup() {
         return chk ? chk.closest(".bk-row") : null;
       })
       .filter(Boolean);
-      
+
     rows.forEach((r) => r.classList.add("is-running"));
 
-    log(`Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`);
+    log(
+      `Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`,
+    );
 
     const res = await invoke("backup:run", list);
     if (!res?.success) {
       toast(res?.error || "Ошибка запуска", "error");
       log(`Ошибка: ${res?.error || "unknown"}`);
       rows.forEach((r) => r.classList.remove("is-running"));
-      
+
       // Скрываем прогресс-бар при ошибке
       if (progressContainer) {
         progressContainer.classList.remove("active");
       }
-      
+
       toast("Ошибка при выполнении backup", "error");
       expandAndScrollLog();
       return;
@@ -1276,7 +1378,7 @@ export default function renderBackup() {
       }
       done += 1;
       const percent = Math.round((done / list.length) * 100);
-      
+
       // Обновляем прогресс-бар
       if (progressBar && progressCurrent && progressPercent) {
         progressBar.style.width = percent + "%";
@@ -1289,15 +1391,21 @@ export default function renderBackup() {
 
     const successCount = res.results.filter((r) => r?.success).length;
     if (successCount === list.length) {
-      toast(`Backup успешно завершен для всех ${successCount} профилей`, "success");
+      toast(
+        `Backup успешно завершен для всех ${successCount} профилей`,
+        "success",
+      );
     } else {
-      toast(`Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`, "error");
+      toast(
+        `Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`,
+        "error",
+      );
     }
 
     expandAndScrollLog();
 
     rows.forEach((r) => r.classList.remove("is-running"));
-    
+
     // Скрываем прогресс-бар с задержкой для плавного завершения
     setTimeout(() => {
       if (progressContainer) {
@@ -1322,22 +1430,22 @@ export default function renderBackup() {
 
   // Event handlers
   getEl("#bk-add").addEventListener("click", () => showEditForm(-1));
-  
+
   getEl("#bk-del").addEventListener("click", async () => {
     const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked")).map(
       (c) => Number(c.dataset.i),
     );
-    
+
     if (!indices.length) {
       toast("Не выбрано ни одного профиля", "warning");
       return;
     }
-    
+
     const names = indices
       .map((i) => state.programs[i]?.name)
       .filter(Boolean)
       .join(", ");
-      
+
     showConfirmationDialog(
       `Вы уверены, что хотите удалить профиль: <b>${names}</b>?`,
       async () => {
@@ -1353,12 +1461,12 @@ export default function renderBackup() {
       },
     );
   });
-  
+
   getEl("#bk-run-selected")?.addEventListener("click", async () => {
     const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked")).map(
       (c) => Number(c.dataset.i),
     );
-    
+
     if (!indices.length) return;
 
     const btn = getEl("#bk-run-selected");
@@ -1373,7 +1481,7 @@ export default function renderBackup() {
       } catch (_) {}
     }
   });
-  
+
   const selAll = getEl("#bk-select-all");
   if (selAll) {
     selAll.addEventListener("change", () => {
@@ -1382,14 +1490,14 @@ export default function renderBackup() {
       updateActionsState();
     });
   }
-  
+
   getEl("#bk-log-clear").addEventListener("click", () => {
     if (logBox) logBox.textContent = "";
     try {
       localStorage.removeItem("backupLog");
     } catch {}
   });
-  
+
   const logCopyBtn = getEl("#bk-log-copy");
   logCopyBtn?.addEventListener("click", async () => {
     const text = logBox?.textContent || "";
@@ -1408,7 +1516,7 @@ export default function renderBackup() {
     const stamp = new Date();
     const pad = (n) => String(n).padStart(2, "0");
     const fname = `backup-log_${stamp.getFullYear()}-${pad(stamp.getMonth() + 1)}-${pad(stamp.getDate())}_${pad(stamp.getHours())}-${pad(stamp.getMinutes())}-${pad(stamp.getSeconds())}.txt`;
-    
+
     try {
       const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -1441,12 +1549,12 @@ export default function renderBackup() {
       state.filter = filterInput.value.trim();
       renderList();
     }, 120);
-    
+
     filterInput.addEventListener("input", () => {
       updateClearVisibility();
       onFilterInput();
     });
-    
+
     updateClearVisibility();
   }
 
@@ -1464,7 +1572,7 @@ export default function renderBackup() {
   wrapper.addEventListener("click", async (e) => {
     const t = e.target.closest("button");
     if (!t) return;
-    
+
     if (t.classList.contains("bk-edit")) {
       showEditForm(Number(t.dataset.i));
     } else if (t.classList.contains("bk-open-src")) {
@@ -1478,7 +1586,7 @@ export default function renderBackup() {
       const btn = t;
       btn.classList.add("is-loading");
       btn.setAttribute("disabled", "true");
-      
+
       try {
         await runForIndices([i]);
       } finally {
@@ -1493,7 +1601,8 @@ export default function renderBackup() {
   // Keyboard shortcuts
   wrapper.addEventListener("keydown", async (e) => {
     const tag = (e.target.tagName || "").toLowerCase();
-    const isTyping = tag === "input" || tag === "textarea" || e.target.isContentEditable;
+    const isTyping =
+      tag === "input" || tag === "textarea" || e.target.isContentEditable;
 
     // Cmd/Ctrl + F → focus search
     if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
@@ -1505,7 +1614,7 @@ export default function renderBackup() {
       }
       return;
     }
-    
+
     // Cmd/Ctrl + A → select all presets
     if (e.key === "a" && (e.metaKey || e.ctrlKey) && !isTyping) {
       e.preventDefault();
@@ -1514,7 +1623,7 @@ export default function renderBackup() {
       updateActionsState();
       return;
     }
-    
+
     // Delete / Backspace → delete selected
     if ((e.key === "Delete" || e.key === "Backspace") && !isTyping) {
       e.preventDefault();
@@ -1522,7 +1631,7 @@ export default function renderBackup() {
       if (delBtn && !delBtn.disabled) delBtn.click();
       return;
     }
-    
+
     // Cmd/Ctrl + Enter → run selected
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !isTyping) {
       e.preventDefault();

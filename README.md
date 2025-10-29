@@ -1,53 +1,102 @@
-<!-- Badges -->
+<p align="center">
+  <img src="assets/icons/icon.png" alt="ThunderLoad Logo" width="120" />
+</p>
 
-<img src="assets/icons/icon.png" alt="ThunderLoad Screenshot" width="15%"/>
+<h1 align="center">Thunder Load</h1>
 
-# Thunder Load
+<p align="center"><em>Your fast, simple, and reliable video, audio, and file downloader</em></p>
 
-[![Build](https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml/badge.svg)](https://github.com/Nagrands/thunder-load-app/actions)
-
-|        **_Downloader_**         |
-| :-----------------------------: |
-| ![](assets/screenshots/app.png) |
-
----
-
-## 📑 Table of Contents
-
-- [English](#english)
-- [Русский](#русский)
-- [Українська](#українська)
+<p align="center">
+  <a href="https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml">
+    <img src="https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml/badge.svg" alt="Build Status" />
+  </a>
+</p>
 
 ---
 
-## [⬇️ Download](https://github.com/Nagrands/thunder-load-app/releases/latest)
+## Quick Start
+
+Get started with ThunderLoad in just a few steps:
+
+```bash
+git clone https://github.com/Nagrands/thunder-load-app.git
+cd thunder-load-app
+npm install
+npm start
+```
+
+To build for production:
+
+```bash
+npm run build
+```
 
 ---
-
-## English
-
-ThunderLoad is a modern, cross‑platform video, audio, and file downloader built with [Electron](https://www.electronjs.org/).  
-Designed for speed, simplicity, and a smooth user experience.
 
 ## Features
 
-- **Fast:** 🚀 Fast video & audio downloading
-- **Formats:** 🎯 Supports many formats: video (MP4, WebM, MKV, etc.) and audio (MP3, AAC, etc.)
-- **Clipboard:** 📥 Clipboard monitoring for instant link detection
-- **Quality:** ⚙️ Quality selection before download
-- **History:** 📜 Download history with quick access
-- **Updates:** 🔄 Automatic in‑app updates
-- **Interface:** 🖥️ Clean & intuitive interface
+- 🚀 **Fast** video & audio downloading  
+- 🎯 Supports multiple formats: video (MP4, WebM, MKV, etc.) and audio (MP3, AAC, etc.)  
+- 📥 Clipboard monitoring for instant link detection  
+- ⚙️ Quality selection before download  
+- 📜 Download history with quick access  
+- 🔄 Automatic in-app updates  
+- 🖥️ Clean and intuitive interface  
+
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/app_main.png" alt="Download Tab" width="45%" />
+  <img src="assets/screenshots/app_backup.png" alt="Backup Tab" width="45%" />
+</p>
+<p align="center">
+  <img src="assets/screenshots/app_settings.png" alt="Settings" width="45%" />
+  <img src="assets/screenshots/app_history.png" alt="Download History" width="45%" />
+</p>
+
+---
+
+## Tech Stack
+
+- **Electron** — Cross-platform desktop application framework  
+- **Node.js** — JavaScript runtime  
+- **npm** — Package manager  
+
+---
+
+## Development
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/Nagrands/thunder-load-app.git
+cd thunder-load-app
+npm install
+```
+
+Run the app in development mode:
+
+```bash
+npm start
+```
+
+Build the app for production:
+
+```bash
+npm run build
+```
+
+---
 
 ## Installation
 
 <details>
-<summary><strong>macOS notice</strong></summary>
-
+<summary><strong>macOS Notice</strong></summary>
 ThunderLoad for macOS is **not notarized**. When running the app, you may see a warning that it is damaged or cannot be opened.  
+
 To run the app:
 
-1. Move the `.app` to `/Applications`.
+1. Move the `.app` to `/Applications`.  
 2. Open Terminal and run:
    ```
    sudo xattr -dr com.apple.quarantine /Applications/Thunder\ Load.app
@@ -56,69 +105,34 @@ To run the app:
 
 </details>
 
-### Prerequisites
-
-Make sure you have the following installed:
-
-- **[Node.js](https://nodejs.org/)** — version 18 or higher recommended  
-  Using a version manager like [`nvm`](https://github.com/nvm-sh/nvm) is advised.
-- **npm** — comes with Node.js
-
-### Steps
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Nagrands/thunder-load-app.git
-   ```
-2. Change directory:
-   ```bash
-   cd thunder-load-app
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-## Usage
-
-To start the application in development mode:
-
-```bash
-npm start
-```
-
-To build the application for production:
-
-```bash
-npm run build
-```
-
 ---
 
-## Русский
+## Translations
+
+### Русский
 
 ThunderLoad — это современный кроссплатформенный загрузчик видео, аудио файлов, созданный на базе [Electron](https://www.electronjs.org/).  
 Разработан для скорости, простоты и комфортного пользовательского опыта.
 
-## Особенности
+#### Особенности
 
-- **Быстрота:** 🚀 Быстрая загрузка видео и аудио
-- **Форматы:** 🎯 Поддержка множества форматов: видео (MP4, WebM, MKV и др.) и аудио (MP3, AAC и др.)
-- **Буфер обмена:** 📥 Мониторинг буфера обмена для мгновенного обнаружения ссылок
-- **Качество:** ⚙️ Выбор качества перед загрузкой
-- **История:** 📜 История загрузок с быстрым доступом
-- **Обновления:** 🔄 Автоматические обновления внутри приложения
-- **Интерфейс:** 🖥️ Чистый и интуитивно понятный интерфейс
+- 🚀 Быстрая загрузка видео и аудио  
+- 🎯 Поддержка множества форматов: видео (MP4, WebM, MKV и др.) и аудио (MP3, AAC и др.)  
+- 📥 Мониторинг буфера обмена для мгновенного обнаружения ссылок  
+- ⚙️ Выбор качества перед загрузкой  
+- 📜 История загрузок с быстрым доступом  
+- 🔄 Автоматические обновления внутри приложения  
+- 🖥️ Чистый и интуитивно понятный интерфейс  
 
-## Установка
+#### Установка
 
 <details>
 <summary><strong>Примечание для macOS</strong></summary>
-
 Приложение ThunderLoad для macOS **не проходит нотарификацию**. При запуске система может показать предупреждение, что приложение повреждено или не может быть открыто.  
+
 Чтобы запустить приложение:
 
-1. Переместите `.app` в папку `/Applications`.
+1. Переместите `.app` в папку `/Applications`.  
 2. Откройте Терминал и выполните команду:
    ```
    sudo xattr -dr com.apple.quarantine /Applications/Thunder\ Load.app
@@ -127,69 +141,32 @@ ThunderLoad — это современный кроссплатформенны
 
 </details>
 
-### Необходимые компоненты
-
-Убедитесь, что у вас установлены следующие компоненты:
-
-- **[Node.js](https://nodejs.org/)** — рекомендуется версия 18 или выше  
-  Рекомендуется использовать менеджер версий, например [`nvm`](https://github.com/nvm-sh/nvm).
-- **npm** — поставляется вместе с Node.js
-
-### Шаги
-
-1. Клонируйте репозиторий:
-   ```bash
-   git clone https://github.com/Nagrands/thunder-load-app.git
-   ```
-2. Перейдите в папку проекта:
-   ```bash
-   cd thunder-load-app
-   ```
-3. Установите зависимости:
-   ```bash
-   npm install
-   ```
-
-## Использование
-
-Чтобы запустить приложение в режиме разработки:
-
-```bash
-npm start
-```
-
-Чтобы собрать приложение для продакшна:
-
-```bash
-npm run build
-```
-
 ---
 
-## Українська
+### Українська
 
 ThunderLoad — це сучасний кросплатформений завантажувач відео, аудіо файлів, створений на основі [Electron](https://www.electronjs.org/).  
 Розроблений для швидкості, простоти та комфортного користувацького досвіду.
 
-## Можливості
+#### Можливості
 
-- **Швидкість:** 🚀 Швидке завантаження відео та аудіо
-- **Формати:** 🎯 Підтримка багатьох форматів: відео (MP4, WebM, MKV тощо) та аудіо (MP3, AAC тощо)
-- **Буфер обміну:** 📥 Моніторинг буфера обміну для миттєвого виявлення посилань
-- **Якість:** ⚙️ Вибір якості перед завантаженням
-- **Історія:** 📜 Історія завантажень із швидким доступом
-- **Оновлення:** 🔄 Автоматичні оновлення в додатку
-- **Інтерфейс:** 🖥️ Чистий та інтуїтивно зрозумілий інтерфейс
+- 🚀 Швидке завантаження відео та аудіо  
+- 🎯 Підтримка багатьох форматів: відео (MP4, WebM, MKV тощо) та аудіо (MP3, AAC тощо)  
+- 📥 Моніторинг буфера обміну для миттєвого виявлення посилань  
+- ⚙️ Вибір якості перед завантаженням  
+- 📜 Історія завантажень із швидким доступом  
+- 🔄 Автоматичні оновлення в додатку  
+- 🖥️ Чистий та інтуїтивно зрозумілий інтерфейс  
 
-## Встановлення
+#### Встановлення
 
 <details>
 <summary><strong>Примітка для macOS</strong></summary>
-
 Додаток ThunderLoad для macOS **не проходить нотаризацію**. Під час запуску система може показати попередження, що додаток пошкоджено або його неможливо відкрити.  
+
 Щоб запустити додаток:
 
-1. Перемістіть `.app` до папки `/Applications`.
+1. Перемістіть `.app` до папки `/Applications`.  
 2. Відкрийте Термінал і виконайте команду:
    ```
    sudo xattr -dr com.apple.quarantine /Applications/Thunder\ Load.app
@@ -198,39 +175,14 @@ ThunderLoad — це сучасний кросплатформений зава�
 
 </details>
 
-### Необхідні компоненти
+---
 
-Переконайтеся, що у вас встановлено наступне:
+## Contributing
 
-- **[Node.js](https://nodejs.org/)** — рекомендовано версію 18 або вище  
-  Рекомендується використовувати менеджер версій, наприклад [`nvm`](https://github.com/nvm-sh/nvm).
-- **npm** — постачається разом із Node.js
+Contributions are welcome! Please open issues and submit pull requests on the [GitHub repository](https://github.com/Nagrands/thunder-load-app).
 
-### Кроки
+---
 
-1. Клонувати репозиторій:
-   ```bash
-   git clone https://github.com/Nagrands/thunder-load-app.git
-   ```
-2. Перейти в папку проекту:
-   ```bash
-   cd thunder-load-app
-   ```
-3. Встановити залежності:
-   ```bash
-   npm install
-   ```
+## License
 
-## Використання
-
-Щоб запустити застосунок у режимі розробки:
-
-```bash
-npm start
-```
-
-Щоб зібрати застосунок для продакшну:
-
-```bash
-npm run build
-```
+This project is licensed under the [MIT License](https://github.com/Nagrands/thunder-load-app/blob/main/LICENSE).

@@ -404,15 +404,15 @@ export async function renderToolsInfo() {
     const res = await window.electron?.tools?.getVersions?.();
 
     if (!res) {
-      console.error('No response from tools.getVersions');
+      console.error("No response from tools.getVersions");
       return;
     }
 
     if (res.ytDlp?.error) {
-      console.error('yt-dlp error:', res.ytDlp.error);
+      console.error("yt-dlp error:", res.ytDlp.error);
     }
     if (res.ffmpeg?.error) {
-      console.error('ffmpeg error:', res.ffmpeg.error);
+      console.error("ffmpeg error:", res.ffmpeg.error);
     }
 
     // Хинт

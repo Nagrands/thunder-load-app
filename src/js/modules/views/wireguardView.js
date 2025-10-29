@@ -15,7 +15,7 @@ export default function renderWireGuard() {
       return true;
     }
   };
-  
+
   if (_isWgDisabled()) {
     const placeholder = document.createElement("div");
     placeholder.id = "wireguard-view";
@@ -54,7 +54,7 @@ export default function renderWireGuard() {
       type: "text",
       placeholder: "например: 192.168.0.10",
       hint: "IPv4 адрес получателя",
-      icon: "fa-network-wired"
+      icon: "fa-network-wired",
     },
     {
       id: "wg-port-remote",
@@ -63,16 +63,16 @@ export default function renderWireGuard() {
       type: "number",
       placeholder: "51820",
       hint: "Порт на удалённом хосте",
-      icon: "fa-signal"
+      icon: "fa-signal",
     },
     {
       id: "wg-port-local",
-      label: "Локальный порт", 
+      label: "Локальный порт",
       key: "lPort",
       type: "number",
       placeholder: "56132",
       hint: "Порт исходящего сокета",
-      icon: "fa-plug"
+      icon: "fa-plug",
     },
   ];
 
@@ -127,14 +127,13 @@ export default function renderWireGuard() {
     }
   };
 
-
   // =============================================
   // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
   // =============================================
 
   const getPayload = () => {
     const payload = fields.reduce((acc, f) => {
-      const val = getEl(f.id, view)?.value || '';
+      const val = getEl(f.id, view)?.value || "";
       acc[f.key] = f.type === "number" ? Number(val) : val.trim();
       return acc;
     }, {});
@@ -157,7 +156,7 @@ export default function renderWireGuard() {
           id="${f.id}" 
           class="input" 
           type="${f.type}" 
-          placeholder="${f.placeholder || ''}" 
+          placeholder="${f.placeholder || ""}" 
           aria-label="${f.label}"
         />
         <button
@@ -171,14 +170,14 @@ export default function renderWireGuard() {
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
-      <div class="field-hint">${f.hint || ''}</div>
+      <div class="field-hint">${f.hint || ""}</div>
       <div class="field-error" data-error-for="${f.id}"></div>
     </div>
   `;
   }
 
   const updateLastSendTime = () => {
-    const timeEl = getEl('wg-last-send-time', view);
+    const timeEl = getEl("wg-last-send-time", view);
     if (timeEl) {
       lastSendTime = new Date();
       const pad = (n) => String(n).padStart(2, "0");
@@ -188,10 +187,10 @@ export default function renderWireGuard() {
   };
 
   const updateConnectionStatus = (status, isError = false) => {
-    const statusEl = getEl('wg-connection-status', view);
+    const statusEl = getEl("wg-connection-status", view);
     if (statusEl) {
       statusEl.textContent = status;
-      statusEl.className = isError ? 'status-error' : 'status-success';
+      statusEl.className = isError ? "status-error" : "status-success";
     }
   };
 
@@ -209,7 +208,9 @@ export default function renderWireGuard() {
   const log = (text, error = false) => {
     // Всегда показывать ошибки, независимо от режима отладки
     const debugToggle = getEl("debug-toggle", view);
-    const debugEnabled = debugToggle ? debugToggle.classList.contains("is-active") : false;
+    const debugEnabled = debugToggle
+      ? debugToggle.classList.contains("is-active")
+      : false;
 
     if (!debugEnabled && !error) return;
 
@@ -221,13 +222,14 @@ export default function renderWireGuard() {
       const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
       const divider = "----------------------------------------";
-      const currentContent = pre.textContent || '';
+      const currentContent = pre.textContent || "";
       let newContent;
       // Добавляем разделитель только если это новая сессия
       if (isNewSession) {
         newContent =
           (currentContent ? currentContent + "\n" : "") +
-          divider + "\n" +
+          divider +
+          "\n" +
           `${timestamp} › ${text}`;
         isNewSession = false;
       } else {
@@ -253,7 +255,7 @@ export default function renderWireGuard() {
       pre.scrollTop = pre.scrollHeight;
 
       // Автоматически раскрывать details при новых сообщениях
-      const details = pre.closest('details');
+      const details = pre.closest("details");
       if (details && !details.open) {
         details.open = true;
       }
@@ -269,7 +271,7 @@ export default function renderWireGuard() {
       new Promise((_, reject) => {
         timer = setTimeout(
           () => reject(new Error("Таймаут ожидания ответа")),
-          ms
+          ms,
         );
       }),
     ]).finally(() => clearTimeout(timer));
@@ -304,8 +306,10 @@ export default function renderWireGuard() {
   const startCountdownWithDeadline = (deadlineMs) => {
     stopCountdown();
     shutdownDeadlineTs = Number(deadlineMs);
-    log(`[Авто-закрытие] Таймер запущен до ${new Date(shutdownDeadlineTs).toLocaleTimeString()}`);
-    
+    log(
+      `[Авто-закрытие] Таймер запущен до ${new Date(shutdownDeadlineTs).toLocaleTimeString()}`,
+    );
+
     if (!Number.isFinite(shutdownDeadlineTs)) return;
 
     const tick = () => {
@@ -341,7 +345,9 @@ export default function renderWireGuard() {
 
       let deadline = null;
       try {
-        deadline = await window.electron.ipcRenderer.invoke("get-auto-shutdown-deadline");
+        deadline = await window.electron.ipcRenderer.invoke(
+          "get-auto-shutdown-deadline",
+        );
       } catch (_) {}
 
       if (enabled) {
@@ -351,7 +357,9 @@ export default function renderWireGuard() {
           log(`[Авто-закрытие] Загружено: включено, завершение в ${eta}`);
         } else {
           startCountdownFromSeconds(seconds);
-          log(`[Авто-закрытие] Загружено: включено, ${Number(seconds) || 30} с`);
+          log(
+            `[Авто-закрытие] Загружено: включено, ${Number(seconds) || 30} с`,
+          );
         }
       } else {
         log(`[Авто-закрытие] Загружено: выключено, ${Number(seconds) || 30} с`);
@@ -469,48 +477,51 @@ export default function renderWireGuard() {
     try {
       const cfg = await window.electron.ipcRenderer.invoke("wg-get-config");
       log("[Настройки] Конфигурация загружена");
-      
+
       currentMsg = cfg.msg ?? ")";
       fields.forEach((f) => {
         const el = getEl(f.id, view);
         if (el) el.value = cfg[f.key] ?? "";
       });
-      
+
       log(`[Настройки] Поля восстановлены (${fields.length})`);
-      
+
       // Инициализация кнопок очистки после загрузки данных
       setTimeout(() => {
         fields.forEach((f) => {
           const input = getEl(f.id, view);
-          const btn = view.querySelector(`.clear-field-btn[data-target="#${f.id}"]`);
+          const btn = view.querySelector(
+            `.clear-field-btn[data-target="#${f.id}"]`,
+          );
           if (input && btn) {
             const hasValue = input.value.length > 0;
             if (hasValue) {
-              btn.classList.add('has-value');
-              btn.style.opacity = '1';
-              btn.style.visibility = 'visible';
+              btn.classList.add("has-value");
+              btn.style.opacity = "1";
+              btn.style.visibility = "visible";
             }
           }
         });
       }, 100);
-      
+
       getEl(fields[0].id, view)?.focus();
-      
+
       // Загрузка состояния отладки
       const debugToggle = getEl("debug-toggle", view);
       if (debugToggle && cfg.debug) {
         debugToggle.classList.add("is-active");
         // Принудительно добавить сообщение при загрузке с включенной отладкой
         setTimeout(() => {
-          log("[Система] WireGuard Unlock инициализирован с включенной отладкой");
+          log(
+            "[Система] WireGuard Unlock инициализирован с включенной отладкой",
+          );
         }, 100);
       }
-      
+
       if (cfg.autosend) {
         log("[Отправка] Планирую автоотправку через 50 мс");
         setTimeout(() => getEl("wg-send", view)?.click(), 50);
       }
-
     } catch (err) {
       toast("Не удалось загрузить настройки", false);
       console.error(err);
@@ -521,27 +532,29 @@ export default function renderWireGuard() {
   const setupFieldEvents = () => {
     fields.forEach((f) => {
       const input = getEl(f.id, view);
-      const btn = view.querySelector(`.clear-field-btn[data-target="#${f.id}"]`);
+      const btn = view.querySelector(
+        `.clear-field-btn[data-target="#${f.id}"]`,
+      );
 
       if (!input || !btn) return;
 
       const updateClearButton = () => {
         const hasValue = input.value.length > 0;
-        
+
         // Управление видимостью через класс
         if (hasValue) {
-          btn.classList.add('has-value');
-          btn.style.opacity = '1';
-          btn.style.visibility = 'visible';
+          btn.classList.add("has-value");
+          btn.style.opacity = "1";
+          btn.style.visibility = "visible";
         } else {
-          btn.classList.remove('has-value');
-          btn.style.opacity = '0';
-          btn.style.visibility = 'hidden';
+          btn.classList.remove("has-value");
+          btn.style.opacity = "0";
+          btn.style.visibility = "hidden";
         }
       };
 
       // События для обновления состояния кнопки
-      ['focus', 'input', 'blur', 'change'].forEach((eventType) => {
+      ["focus", "input", "blur", "change"].forEach((eventType) => {
         input.addEventListener(eventType, updateClearButton);
       });
 
@@ -549,11 +562,11 @@ export default function renderWireGuard() {
       updateClearButton();
 
       // Обработчик клика на кнопку очистки
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         if (input.value) {
-          input.value = '';
-          saveConfig(f.key, '');
+          input.value = "";
+          saveConfig(f.key, "");
           markFieldError(f.id, false);
           updateClearButton(); // Обновляем состояние после очистки
           input.focus(); // Возвращаем фокус на поле
@@ -561,14 +574,14 @@ export default function renderWireGuard() {
       });
 
       // Сохранение значения при изменении
-      input.addEventListener('change', () => {
-        const val = f.type === 'number' ? Number(input.value) : input.value;
+      input.addEventListener("change", () => {
+        const val = f.type === "number" ? Number(input.value) : input.value;
         saveConfig(f.key, val);
         markFieldError(f.id, false);
         updateClearButton(); // Обновляем кнопку
       });
-      
-      input.addEventListener('input', () => {
+
+      input.addEventListener("input", () => {
         markFieldError(f.id, false);
         updateClearButton(); // Обновляем кнопку при вводе
       });
@@ -585,26 +598,30 @@ export default function renderWireGuard() {
         ipInput.value = "127.0.0.2";
         saveConfig("ip", ipInput.value);
         const rPort = getEl("wg-port-remote", view)?.value || "51820";
-        
+
         showConfirmationDialog(
           `Отправить запрос на <b>${ipInput.value}:${rPort}</b>?`,
           () => {
             const payload = getPayload();
             const status = getEl("wg-status-indicator", view);
-            
+
             if (status) {
               status.classList.remove("hidden");
               status.textContent = "⏳ Отправка специального запроса...";
               status.className = "loading";
-              
+
               const hideLater = () =>
                 setTimeout(() => status.classList.add("hidden"), 500);
-                
+
               window.electron.ipcRenderer
                 .invoke("wg-send-udp", payload)
                 .then(() => {
-                  toast(`Специальный запрос отправлен на ${payload.ip}:${payload.rPort}`);
-                  log(`Запрос (kvn) отправлен успешно на ${payload.ip}:${payload.rPort}`);
+                  toast(
+                    `Специальный запрос отправлен на ${payload.ip}:${payload.rPort}`,
+                  );
+                  log(
+                    `Запрос (kvn) отправлен успешно на ${payload.ip}:${payload.rPort}`,
+                  );
                   updateLastSendTime();
                   updateConnectionStatus("Успешно");
                   hideLater();
@@ -619,7 +636,7 @@ export default function renderWireGuard() {
                   hideLater();
                 });
             }
-          }
+          },
         );
       }
     });
@@ -650,14 +667,16 @@ export default function renderWireGuard() {
       const pre = getEl("wg-log", view);
       if (pre) {
         const debugToggle = getEl("debug-toggle", view);
-        const debugEnabled = debugToggle ? debugToggle.classList.contains("is-active") : false;
-        
-        pre.textContent = debugEnabled 
-          ? "[Лог] Очищен пользователем" 
+        const debugEnabled = debugToggle
+          ? debugToggle.classList.contains("is-active")
+          : false;
+
+        pre.textContent = debugEnabled
+          ? "[Лог] Очищен пользователем"
           : "Лог активности. Включите режим отладки для подробного вывода.";
 
         saveLog(); // Сохраняем обновлённый (очищенный) лог
-        
+
         log("[Лог] Очищен пользователем");
       }
     });
@@ -682,7 +701,7 @@ export default function renderWireGuard() {
 
   const handleSend = () => {
     // Автоматически показывать лог при отправке
-    const logDetails = view.querySelector('.wg-log-block');
+    const logDetails = view.querySelector(".wg-log-block");
     if (logDetails && !logDetails.open) {
       logDetails.open = true;
     }
@@ -712,7 +731,7 @@ export default function renderWireGuard() {
 
     const status = getEl("wg-status-indicator", view);
     if (!status) return;
-    
+
     status.classList.remove("hidden");
     status.textContent = "⏳ Отправка запроса...";
     status.className = "loading";
@@ -728,47 +747,50 @@ export default function renderWireGuard() {
     const sendBtn = getEl("wg-send", view);
     const hideLater = () =>
       setTimeout(() => status.classList.add("hidden"), 500);
-      
+
     sendBtn.disabled = true;
     sendBtn.classList.add("is-loading");
 
     log("[Отправка] Запрос IPC: wg-send-udp (таймаут 5000 мс)");
-    
+
     withTimeout(
       window.electron.ipcRenderer.invoke("wg-send-udp", payload),
-      5000
+      5000,
     )
       .then(() => {
         log("[Отправка] Успех: ответ получен от main");
         toast(`Отправлено на ${payload.ip}:${payload.rPort}`);
         log(`Запрос отправлен успешно на ${payload.ip}:${payload.rPort}`);
-        
+
         updateLastSendTime();
         updateConnectionStatus("Успешно отправлено");
         status.textContent = "✅ Успешно отправлено";
         status.className = "success";
-        
+
         view.classList.add("wg-success-pulse");
         setTimeout(() => view.classList.remove("wg-success-pulse"), 2000);
-        
+
         sendBtn.disabled = false;
         sendBtn.classList.remove("is-loading");
         hideLater();
       })
       .catch((err) => {
-        log(`[Отправка] Ошибка IPC: ${err && (err.message || String(err))}`, true);
+        log(
+          `[Отправка] Ошибка IPC: ${err && (err.message || String(err))}`,
+          true,
+        );
         const raw = err && (err.message || String(err));
         const msg = humanizeError(raw);
-        
+
         if (!raw?.includes("EADDRINUSE")) {
           toast(msg, false);
         }
-        
+
         log(msg, true);
         updateConnectionStatus("Ошибка отправки", true);
         status.textContent = "❌ Ошибка отправки";
         status.className = "error";
-        
+
         sendBtn.disabled = false;
         sendBtn.classList.remove("is-loading");
         setTimeout(() => status.classList.add("hidden"), 5000);
@@ -792,16 +814,19 @@ export default function renderWireGuard() {
               markFieldError(f.id, false);
             });
             log(`[Настройки] Поля восстановлены (${fields.length})`);
-            
+
             // При сбросе устанавливаем начальное сообщение в лог
             const pre = getEl("wg-log", view);
             const debugToggle = getEl("debug-toggle", view);
-            const debugEnabled = debugToggle ? debugToggle.classList.contains("is-active") : false;
-            
+            const debugEnabled = debugToggle
+              ? debugToggle.classList.contains("is-active")
+              : false;
+
             if (pre && !debugEnabled) {
-              pre.textContent = "Лог активности. Включите режим отладки для подробного вывода.";
+              pre.textContent =
+                "Лог активности. Включите режим отладки для подробного вывода.";
             }
-            
+
             currentMsg = ")";
             updateConnectionStatus("Сброшено");
           })
@@ -810,30 +835,30 @@ export default function renderWireGuard() {
             console.error(err);
             log(`[Ошибка] Сброс настроек: ${err.message}`, true);
           });
-      }
+      },
     );
   };
 
   const handleDebugToggle = () => {
     const debugToggle = getEl("debug-toggle", view);
     const enabled = !debugToggle.classList.contains("is-active");
-    
+
     if (enabled) {
       debugToggle.classList.add("is-active", "pulse");
       setTimeout(() => debugToggle.classList.remove("pulse"), 600);
-      
+
       // При включении отладки добавляем информационное сообщение
       log("[Режим отладки] Включён - начата запись событий");
-      
+
       // Показываем текущее состояние
-      const status = getEl("wg-connection-status", view)?.textContent || "Неактивно";
+      const status =
+        getEl("wg-connection-status", view)?.textContent || "Неактивно";
       log(`[Текущий статус] ${status}`);
-      
     } else {
       debugToggle.classList.remove("is-active");
       log("[Режим отладки] Выключен - запись событий приостановлена");
     }
-    
+
     window.electron.ipcRenderer.send("wg-set-config", {
       key: "debug",
       val: enabled,
@@ -851,7 +876,8 @@ export default function renderWireGuard() {
       // Сначала устанавливаем начальное сообщение в лог
       const pre = getEl("wg-log", view);
       if (pre && !pre.textContent.trim()) {
-        pre.textContent = "Лог активности. Включите режим отладки для подробного вывода.";
+        pre.textContent =
+          "Лог активности. Включите режим отладки для подробного вывода.";
       }
 
       await loadConfiguration();
@@ -864,10 +890,12 @@ export default function renderWireGuard() {
 
       // Анимация и автосмена советов
       const initTipsRotation = async () => {
-        const tipsCard = view.querySelector('.info-card h3 i.fa-lightbulb')?.closest('.info-card');
+        const tipsCard = view
+          .querySelector(".info-card h3 i.fa-lightbulb")
+          ?.closest(".info-card");
         if (!tipsCard) return;
 
-        const p = tipsCard.querySelector('p');
+        const p = tipsCard.querySelector("p");
         if (!p) return;
 
         try {
@@ -917,7 +945,7 @@ export default function renderWireGuard() {
         });
       };
       initNetworkSettingsButton();
-      
+
       // Инициализация тултипов
       queueMicrotask(() => {
         initTooltips();
@@ -925,18 +953,19 @@ export default function renderWireGuard() {
       });
 
       const dt = Math.round(performance.now() - T0);
-      
+
       // Добавляем отладочную информацию если отладка включена
       const debugToggle = getEl("debug-toggle", view);
-      const debugEnabled = debugToggle ? debugToggle.classList.contains("is-active") : false;
-      
+      const debugEnabled = debugToggle
+        ? debugToggle.classList.contains("is-active")
+        : false;
+
       if (debugEnabled) {
         log(`[Инициализация] Разметка и подготовка за ${dt} мс`);
         const ua = navigator.userAgent || "";
         log(`[Среда] UA: ${ua.split(")")[0]})`);
         log("[Лог] Режим отладки активен - все события будут записываться");
       }
-
     } catch (error) {
       console.error("Ошибка инициализации WireGuard:", error);
       log(`[Ошибка] Инициализация: ${error.message}`, true);

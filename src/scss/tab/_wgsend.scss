@@ -24,7 +24,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -35,7 +35,11 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 @mixin gradient-text {
-  background: linear-gradient(135deg, var(--color-highlight) 0%, var(--color-accent) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-highlight) 0%,
+    var(--color-accent) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -46,29 +50,40 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 // =============================================
 
 @keyframes gradientShift {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { 
-    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.4); 
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.4);
   }
-  50% { 
-    box-shadow: 0 0 0 10px rgba(var(--color-accent-rgb), 0); 
+  50% {
+    box-shadow: 0 0 0 10px rgba(var(--color-accent-rgb), 0);
   }
 }
 
 @keyframes toggle-pulse {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translateX(20px) scale(1);
   }
-  50% { 
+  50% {
     transform: translateX(20px) scale(1.2);
   }
 }
@@ -97,7 +112,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .wireguard-view {
   --focus-ring: 0 0 0 3px rgba(var(--color-accent-rgb), 0.3);
-  
+
   position: relative;
   width: 100%;
   isolation: isolate;
@@ -109,8 +124,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     content: "";
     position: fixed;
     inset: 0;
-    background: 
-      linear-gradient(135deg, rgba(10, 15, 30, 0.9) 0%, rgba(20, 25, 40, 0.8) 100%),
+    background:
+      linear-gradient(
+        135deg,
+        rgba(10, 15, 30, 0.9) 0%,
+        rgba(20, 25, 40, 0.8) 100%
+      ),
       url(#{$wg-bg-img}) no-repeat center center / cover;
     z-index: -2;
     pointer-events: none;
@@ -120,9 +139,17 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     content: "";
     position: fixed;
     inset: 0;
-    background: 
-      radial-gradient(ellipse at 20% 20%, rgba(var(--color-accent-rgb), 0.15) 0%, transparent 40%),
-      radial-gradient(ellipse at 80% 80%, rgba(100, 100, 255, 0.1) 0%, transparent 40%);
+    background:
+      radial-gradient(
+        ellipse at 20% 20%,
+        rgba(var(--color-accent-rgb), 0.15) 0%,
+        transparent 40%
+      ),
+      radial-gradient(
+        ellipse at 80% 80%,
+        rgba(100, 100, 255, 0.1) 0%,
+        transparent 40%
+      );
     z-index: -1;
     pointer-events: none;
     animation: gradientShift 8s ease-in-out infinite;
@@ -135,7 +162,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     grid-template-columns: 1fr 400px;
     gap: 24px;
     align-items: start;
-    
+
     @media (max-width: 1024px) {
       grid-template-columns: 1fr;
       gap: 20px;
@@ -163,13 +190,18 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-accent),
+      transparent
+    );
     opacity: 0.6;
   }
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 
+    box-shadow:
       0 12px 40px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
@@ -190,7 +222,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     padding: 16px 20px;
     border-radius: 12px;
     @include glass-morphism;
-    
+
     i {
       font-size: 24px;
       width: auto;
@@ -279,7 +311,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       }
 
       // Hide number input arrows
-      &[type="number"] {    
+      &[type="number"] {
         &::-webkit-outer-spin-button,
         &::-webkit-inner-spin-button {
           -webkit-appearance: none;
@@ -382,7 +414,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
       transition: left 0.5s ease;
     }
 
@@ -460,11 +497,11 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   padding: 8px 12px;
   border-radius: 8px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.05);
   }
-  
+
   .toggle-track {
     position: relative;
     width: 44px;
@@ -473,7 +510,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     transition: all 0.3s ease;
-    
+
     &::after {
       content: "";
       position: absolute;
@@ -488,45 +525,45 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       will-change: transform;
     }
   }
-  
+
   .toggle-label {
     font-size: 13px;
     color: var(--color-quality);
     font-weight: 500;
     user-select: none;
   }
-  
+
   // Active state
   &.is-active {
     .toggle-track {
       background: rgba(var(--color-accent-rgb), 0.3);
       border-color: var(--color-accent);
-      
+
       &::after {
         background: var(--color-accent);
         transform: translateX(20px);
         box-shadow: 0 2px 6px rgba(var(--color-accent-rgb), 0.4);
       }
     }
-    
+
     .toggle-label {
       color: var(--color-accent);
       font-weight: 600;
     }
   }
-  
+
   // Hover states
   &:hover {
     .toggle-track {
       border-color: rgba(255, 255, 255, 0.3);
       background: rgba(255, 255, 255, 0.15);
     }
-    
+
     &.is-active .toggle-track {
       background: rgba(var(--color-accent-rgb), 0.4);
     }
   }
-  
+
   // Animation
   &.pulse {
     .toggle-track::after {
@@ -618,7 +655,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   &[data-has-new-logs] {
     summary {
       background: rgba(var(--color-accent-rgb), 0.1);
-      
+
       &::after {
         content: " • Новые сообщения";
         color: var(--color-accent);
@@ -634,7 +671,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     max-height: 160px;
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.3);
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+    font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", monospace;
     font-size: 13px;
     line-height: 1.4;
     color: var(--color-accent);
@@ -815,7 +852,8 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   .buttons {
     flex-direction: column;
 
-    .large-button, .small-button {
+    .large-button,
+    .small-button {
       width: 100%;
     }
   }
@@ -833,17 +871,17 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
   .debug-toggle {
     padding: 6px 10px;
-    
+
     .toggle-track {
       width: 40px;
       height: 22px;
-      
+
       &::after {
         width: 16px;
         height: 16px;
       }
     }
-    
+
     &.is-active .toggle-track::after {
       transform: translateX(18px);
     }

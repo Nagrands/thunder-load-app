@@ -6,7 +6,7 @@
   padding-top: 60px; // Высота top-bar
   min-height: calc(100vh - 60px); // Вычитаем высоту top-bar
   box-sizing: border-box;
-  
+
   @media (max-width: 768px) {
     padding-top: 56px; // Высота top-bar на мобильных
     min-height: calc(100vh - 56px);
@@ -18,7 +18,7 @@
   padding-top: 60px;
   min-height: calc(100vh - 60px);
   box-sizing: border-box;
-  
+
   @media (max-width: 768px) {
     padding-top: 56px;
     min-height: calc(100vh - 56px);
@@ -42,7 +42,7 @@
 .sidebar {
   top: 60px; // Размещаем под top-bar
   height: calc(100vh - 60px); // Высота минус top-bar
-  
+
   @media (max-width: 768px) {
     top: 56px;
     height: calc(100vh - 56px);
@@ -135,7 +135,7 @@
   .icon-links a {
     font-size: 1.2em;
   }
-  
+
   // Дополнительные корректировки для мобильных
   #main-view {
     padding-top: 56px;

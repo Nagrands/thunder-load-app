@@ -1,6 +1,6 @@
 // src/scss/tab/_backup.scss
 
-@use "../abstracts/mixins";
+@use "../abstracts/mixins" as mixins;
 
 // =============================================================================
 // BACKUP VIEW STYLES
@@ -321,7 +321,9 @@
       &.copied {
         background-color: rgba(100, 255, 150, 0.25);
         box-shadow: 0 0 6px rgba(100, 255, 150, 0.5);
-        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        transition:
+          background-color 0.3s ease,
+          box-shadow 0.3s ease;
       }
 
       &:hover {
@@ -1039,9 +1041,21 @@
   }
 
   .bk-row {
-    --bk-row-bg: linear-gradient(120deg, rgba(40, 54, 80, 0.93) 0%, rgba(30, 38, 60, 0.93) 100%);
-    --bk-row-bg-hover: linear-gradient(120deg, rgba(60, 80, 130, 0.99) 0%, rgba(38, 48, 78, 0.99) 100%);
-    --bk-row-bg-selected: linear-gradient(120deg, rgba(80, 130, 255, 0.13) 0%, rgba(80, 130, 255, 0.15) 100%);
+    --bk-row-bg: linear-gradient(
+      120deg,
+      rgba(40, 54, 80, 0.93) 0%,
+      rgba(30, 38, 60, 0.93) 100%
+    );
+    --bk-row-bg-hover: linear-gradient(
+      120deg,
+      rgba(60, 80, 130, 0.99) 0%,
+      rgba(38, 48, 78, 0.99) 100%
+    );
+    --bk-row-bg-selected: linear-gradient(
+      120deg,
+      rgba(80, 130, 255, 0.13) 0%,
+      rgba(80, 130, 255, 0.15) 100%
+    );
     --bk-row-border: 1px solid rgba(120, 180, 255, 0.08);
 
     display: flex;
@@ -1055,7 +1069,9 @@
     border-radius: 16px;
     background: var(--bk-row-bg);
     border: var(--bk-row-border);
-    box-shadow: 0 2px 16px 0 rgba(40, 60, 120, 0.10), 0 1.5px 8px 0 rgba(0,0,0,0.09);
+    box-shadow:
+      0 2px 16px 0 rgba(40, 60, 120, 0.1),
+      0 1.5px 8px 0 rgba(0, 0, 0, 0.09);
     transition:
       background 0.33s cubic-bezier(0.4, 0, 0.2, 1),
       box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1066,7 +1082,11 @@
     user-select: none;
 
     &:nth-child(even) {
-      background: linear-gradient(120deg, rgba(46, 54, 70, 0.97) 0%, rgba(36, 44, 60, 0.97) 100%);
+      background: linear-gradient(
+        120deg,
+        rgba(46, 54, 70, 0.97) 0%,
+        rgba(36, 44, 60, 0.97) 100%
+      );
     }
 
     &:hover,
@@ -1093,7 +1113,11 @@
     }
 
     &.is-running {
-      background: linear-gradient(120deg, rgba(80, 130, 255, 0.16) 0%, rgba(120, 180, 255, 0.11) 100%);
+      background: linear-gradient(
+        120deg,
+        rgba(80, 130, 255, 0.16) 0%,
+        rgba(120, 180, 255, 0.11) 100%
+      );
       border-color: rgba(120, 180, 255, 0.32);
       box-shadow:
         0 0 14px 3px rgba(120, 180, 255, 0.22),
@@ -1116,9 +1140,9 @@
     &.bk-skeleton {
       background: linear-gradient(
         90deg,
-        rgba(255, 255, 255, 0.10) 25%,
+        rgba(255, 255, 255, 0.1) 25%,
         rgba(255, 255, 255, 0.16) 50%,
-        rgba(255, 255, 255, 0.10) 75%
+        rgba(255, 255, 255, 0.1) 75%
       );
       background-size: 200% 100%;
       animation: skeleton-loading 1.5s infinite;
@@ -1133,10 +1157,12 @@
       width: 20px;
       height: 20px;
       cursor: pointer;
-      transition: box-shadow 0.18s, border-color 0.18s;
+      transition:
+        box-shadow 0.18s,
+        border-color 0.18s;
       border-radius: 6px;
       box-shadow: 0 0 0 1.5px rgba(120, 180, 255, 0.11);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       &:focus-visible {
         box-shadow: 0 0 0 3px rgba(120, 180, 255, 0.21);
         border-color: var(--color-accent);
@@ -1159,7 +1185,7 @@
         line-height: 1.16;
         margin-bottom: 6px;
         transition: color 0.19s;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         filter: drop-shadow(0 1px 6px rgba(120, 180, 255, 0.04));
       }
 
@@ -1177,7 +1203,11 @@
         font-size: 13.2px;
         padding: 4px 10px 4px 8px;
         border-radius: 8px;
-        background: linear-gradient(90deg, rgba(80, 110, 170, 0.13), rgba(90, 140, 255, 0.13) 95%);
+        background: linear-gradient(
+          90deg,
+          rgba(80, 110, 170, 0.13),
+          rgba(90, 140, 255, 0.13) 95%
+        );
         border: none;
         color: #c8daff;
         max-width: 100%;
@@ -1190,8 +1220,13 @@
         font-weight: 500;
         position: relative;
         outline: none;
-        &:hover, &:focus {
-          background: linear-gradient(90deg, rgba(120, 180, 255, 0.17), rgba(90, 140, 255, 0.18));
+        &:hover,
+        &:focus {
+          background: linear-gradient(
+            90deg,
+            rgba(120, 180, 255, 0.17),
+            rgba(90, 140, 255, 0.18)
+          );
           color: #fff;
           box-shadow: 0 0 0 2px rgba(120, 180, 255, 0.13);
           z-index: 2;
@@ -1208,8 +1243,11 @@
         background: rgba(120, 180, 255, 0.07);
         border-radius: 5px;
         padding: 2px 7px;
-        transition: background 0.19s, color 0.19s;
-        &:hover, &:focus {
+        transition:
+          background 0.19s,
+          color 0.19s;
+        &:hover,
+        &:focus {
           background: rgba(120, 180, 255, 0.16);
           color: var(--color-accent);
         }
@@ -1253,7 +1291,11 @@
 
         &:hover,
         &:focus-visible {
-          background: linear-gradient(90deg, rgba(120, 180, 255, 0.21), rgba(60, 120, 255, 0.13));
+          background: linear-gradient(
+            90deg,
+            rgba(120, 180, 255, 0.21),
+            rgba(60, 120, 255, 0.13)
+          );
           color: #fff;
           transform: translateY(-2px) scale(1.09);
           box-shadow: 0 4px 14px 0 rgba(120, 180, 255, 0.15);
@@ -1313,7 +1355,9 @@
       color 0.18s,
       box-shadow 0.18s,
       transform 0.19s;
-    box-shadow: 0 2px 8px 0 rgba(60, 120, 255, 0.08) inset, 0 0.5px 2px 0 rgba(0,0,0,0.07);
+    box-shadow:
+      0 2px 8px 0 rgba(60, 120, 255, 0.08) inset,
+      0 0.5px 2px 0 rgba(0, 0, 0, 0.07);
     cursor: default;
     letter-spacing: 0.035em;
     margin-left: 4px;
@@ -1322,28 +1366,44 @@
     position: relative;
 
     &.is-fresh {
-      background: linear-gradient(90deg, rgba(60, 200, 120, 0.19) 0%, rgba(80, 255, 180, 0.14) 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(60, 200, 120, 0.19) 0%,
+        rgba(80, 255, 180, 0.14) 100%
+      );
       color: #3fe69f;
       box-shadow: 0 0 7px 1px rgba(60, 200, 120, 0.12);
       border: none;
     }
 
     &.is-recent {
-      background: linear-gradient(90deg, rgba(255, 200, 60, 0.13) 0%, rgba(255, 255, 160, 0.11) 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(255, 200, 60, 0.13) 0%,
+        rgba(255, 255, 160, 0.11) 100%
+      );
       color: #ffdf6a;
       box-shadow: 0 0 7px 1px rgba(255, 200, 60, 0.09);
       border: none;
     }
 
     &.is-stale {
-      background: linear-gradient(90deg, rgba(120, 120, 120, 0.09) 0%, rgba(160, 160, 160, 0.09) 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(120, 120, 120, 0.09) 0%,
+        rgba(160, 160, 160, 0.09) 100%
+      );
       color: #c8c8c8;
-      box-shadow: 0 0 2px 0 rgba(120, 120, 120, 0.10);
+      box-shadow: 0 0 2px 0 rgba(120, 120, 120, 0.1);
       border: none;
     }
 
     &.is-none {
-      background: linear-gradient(90deg, rgba(90, 110, 140, 0.12) 0%, rgba(120, 140, 160, 0.09) 100%);
+      background: linear-gradient(
+        90deg,
+        rgba(90, 110, 140, 0.12) 0%,
+        rgba(120, 140, 160, 0.09) 100%
+      );
       color: #b8c6d9;
       box-shadow: 0 0 2px 0 rgba(90, 110, 140, 0.09);
       border: none;
@@ -1357,70 +1417,71 @@
     margin: 1rem 0 0.5rem;
     padding: 0 0.5rem;
     display: none;
-    
+
     &.active {
       display: block;
       animation: progressSlideIn 0.4s ease-out;
     }
   }
-  
+
   .bk-progress {
     position: relative;
     height: 28px;
     background: rgba(30, 35, 45, 0.8);
     border-radius: 14px;
     border: 1px solid rgba(120, 180, 255, 0.15);
-    box-shadow: 
+    box-shadow:
       0 4px 16px rgba(0, 0, 0, 0.25),
       inset 0 1px 1px rgba(255, 255, 255, 0.1);
     overflow: hidden;
     backdrop-filter: blur(8px);
-    
+
     &::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: 
-        linear-gradient(90deg, 
-          transparent 0%, 
-          rgba(255, 255, 255, 0.1) 50%, 
-          transparent 100%);
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+      );
       opacity: 0.6;
       animation: backgroundShimmer 3s ease-in-out infinite;
     }
   }
 
   .bk-progress-bar {
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--color-accent) 0%,
-    #4fd1ff 30%,
-    #88f7ff 70%,
-    var(--color-accent) 100%
-  );
-  background-size: 200% 100%;
-  border-radius: 12px;
-  position: relative;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: gradientShift 2s ease-in-out infinite;
-  
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
     height: 100%;
     background: linear-gradient(
       90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
+      var(--color-accent) 0%,
+      #4fd1ff 30%,
+      #88f7ff 70%,
+      var(--color-accent) 100%
     );
-    animation: shimmer 1.5s ease-in-out infinite;
+    background-size: 200% 100%;
+    border-radius: 12px;
+    position: relative;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: gradientShift 2s ease-in-out infinite;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
   }
-}
 
   .bk-progress-content {
     position: absolute;
@@ -1439,15 +1500,15 @@
     font-size: 0.85rem;
     font-weight: 700;
     color: #fff;
-    text-shadow: 
+    text-shadow:
       0 1px 2px rgba(0, 0, 0, 0.8),
       0 0 4px rgba(100, 200, 255, 0.5);
     letter-spacing: 0.5px;
-    
+
     &.primary {
       font-size: 0.9rem;
     }
-    
+
     &.percentage {
       background: linear-gradient(180deg, #fff, #e0f7ff);
       -webkit-background-clip: text;
@@ -1464,12 +1525,12 @@
     gap: 12px;
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.9);
-    
+
     .stat {
       display: flex;
       align-items: center;
       gap: 4px;
-      
+
       i {
         font-size: 0.7rem;
         opacity: 0.8;
@@ -1490,7 +1551,8 @@
   }
 
   @keyframes gradientShift {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
@@ -1499,7 +1561,8 @@
   }
 
   @keyframes backgroundShimmer {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.3;
     }
     50% {
@@ -1522,23 +1585,23 @@
       margin: 0.75rem 0 0.5rem;
       padding: 0 0.25rem;
     }
-    
+
     .bk-progress {
       height: 24px;
     }
-    
+
     .bk-progress-content {
       padding: 0 12px;
     }
-    
+
     .bk-progress-text {
       font-size: 0.8rem;
-      
+
       &.primary {
         font-size: 0.85rem;
       }
     }
-    
+
     .bk-progress-stats {
       gap: 8px;
       font-size: 0.75rem;
@@ -1873,18 +1936,7 @@
 
 // Список профилей (name-list-popup)
 .name-list-popup {
-  display: block;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  font-size: 0.95rem;
-  font-weight: 500;
-  background: rgba(32, 32, 40, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  z-index: 10;
-  margin-top: 4px;
-  overflow-y: auto;
-  max-height: 200px;
-  padding: 4px 0;
+  @include mixins.backup-popup;
 }
 
 .name-list-item {
@@ -1996,4 +2048,9 @@
   i {
     pointer-events: none;
   }
+}
+
+
+.file-filter-popup {
+  @include mixins.backup-popup;
 }

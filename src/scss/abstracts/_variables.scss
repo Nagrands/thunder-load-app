@@ -76,49 +76,92 @@ $themes: (
   ),
   light: (
     // Enhanced light theme with a modern, accessible palette
-    color-accent: #2dd4bf, // Vibrant teal for primary accents
-    color-bg-log: #f8fafc, // Softer off-white for logs
-    color-bg-main: #ffffff, // Clean white main background
-    color-bg-secondary: #f1f5f9, // Light gray for cards/panels
-    color-border: #d1d5db, // Softer gray borders for better contrast
-    color-disabled: #9ca3af, // Neutral gray for disabled elements
-    color-highlight: #1e293b, // Dark slate for highlights
-    color-history-scroll: rgba(0, 0, 0, 0.08), // Subtle scroll background
-    color-hover: rgba(45, 212, 191, 0.1), // Teal-based hover effect
-    color-icon-links: #2dd4bf, // Consistent teal for icons/links
-    color-progress-bar: #2dd4bf, // Teal progress bar
-    color-progress-bg: rgba(0, 0, 0, 0.04), // Subtle progress background
-    color-quality: #4b5563, // Muted gray for quality indicators
-    color-toast-bg: #ffffff, // White toast background
-    color-toast-error: #ef4444, // Vibrant red for errors
-    color-toast-success: #22c55e, // Green for success
-    color-toast-text: #1f2a44, // Darker text for readability
-    color-toast-warning: #f59e0b, // Amber for warnings
-    color-url-bg: #f8fafc, // Light background for URLs
-    color-url-border: #d1d5db, // Matching border
-    color-url-link: #2dd4bf, // Teal links
-    color-url-text: #1f2a44, // Darker text for URLs
-    button-cancel: linear-gradient(180deg, #f87171, #fecaca), // Softer red gradient
-    button-color: #1f2a44, // Dark text for buttons
-    button-default: linear-gradient(180deg, #ffffff, #e5e7eb), // Subtle white-gray
-    button-disabled-bg: #e5e7eb, // Light gray disabled background
-    button-disabled: #9ca3af, // Gray disabled text
-    button-download: linear-gradient(180deg, #36d1dc, #2dd4bf), // Teal gradient
-    button-enabled: #1f2a44, // Dark enabled button text
-    button-open-folder: linear-gradient(180deg, #fb923c, #fed7aa), // Warm orange gradient
-    button-open-history: linear-gradient(180deg, #4ade80, #a7f3d0), // Green gradient
-    button-openlast-video: linear-gradient(180deg, #2dd4bf, #a5f3fc), // Teal-cyan gradient
-    sidebar-background: #ffffff, // Clean white sidebar
-    sidebar-color: #1f2a44, // Dark text for sidebar
-    sidebar-list-color: rgba(0, 0, 0, 0.06), // Subtle list background
-    color-text-main: #1f2a44, // Darker main text for readability
-    color-youtube: #ef4444, // Vibrant YouTube red
-    color-twitch: #8b5cf6, // Consistent Twitch purple
-    color-vkvideo: #3b82f6, // Brighter VK blue
-    color-coub: #06b6d4, // Matching Coub cyan
-    badge-size-bg: rgba(0, 0, 0, 0.04), // Subtle badge background
-    badge-size-border: rgba(0, 0, 0, 0.12), // Slightly darker badge border
-    color-delete: rgba(239, 68, 68, 0.2), // Softer red for delete
+    color-accent: #2dd4bf,
+    // Vibrant teal for primary accents
+    color-bg-log: #f8fafc,
+    // Softer off-white for logs
+    color-bg-main: #ffffff,
+    // Clean white main background
+    color-bg-secondary: #f1f5f9,
+    // Light gray for cards/panels
+    color-border: #d1d5db,
+    // Softer gray borders for better contrast
+    color-disabled: #9ca3af,
+    // Neutral gray for disabled elements
+    color-highlight: #1e293b,
+    // Dark slate for highlights
+    color-history-scroll: rgba(0, 0, 0, 0.08),
+    // Subtle scroll background
+    color-hover: rgba(45, 212, 191, 0.1),
+    // Teal-based hover effect
+    color-icon-links: #2dd4bf,
+    // Consistent teal for icons/links
+    color-progress-bar: #2dd4bf,
+    // Teal progress bar
+    color-progress-bg: rgba(0, 0, 0, 0.04),
+    // Subtle progress background
+    color-quality: #4b5563,
+    // Muted gray for quality indicators
+    color-toast-bg: #ffffff,
+    // White toast background
+    color-toast-error: #ef4444,
+    // Vibrant red for errors
+    color-toast-success: #22c55e,
+    // Green for success
+    color-toast-text: #1f2a44,
+    // Darker text for readability
+    color-toast-warning: #f59e0b,
+    // Amber for warnings
+    color-url-bg: #f8fafc,
+    // Light background for URLs
+    color-url-border: #d1d5db,
+    // Matching border
+    color-url-link: #2dd4bf,
+    // Teal links
+    color-url-text: #1f2a44,
+    // Darker text for URLs
+    button-cancel: linear-gradient(180deg, #f87171, #fecaca),
+    // Softer red gradient
+    button-color: #1f2a44,
+    // Dark text for buttons
+    button-default: linear-gradient(180deg, #ffffff, #e5e7eb),
+    // Subtle white-gray
+    button-disabled-bg: #e5e7eb,
+    // Light gray disabled background
+    button-disabled: #9ca3af,
+    // Gray disabled text
+    button-download: linear-gradient(180deg, #36d1dc, #2dd4bf),
+    // Teal gradient
+    button-enabled: #1f2a44,
+    // Dark enabled button text
+    button-open-folder: linear-gradient(180deg, #fb923c, #fed7aa),
+    // Warm orange gradient
+    button-open-history: linear-gradient(180deg, #4ade80, #a7f3d0),
+    // Green gradient
+    button-openlast-video: linear-gradient(180deg, #2dd4bf, #a5f3fc),
+    // Teal-cyan gradient
+    sidebar-background: #ffffff,
+    // Clean white sidebar
+    sidebar-color: #1f2a44,
+    // Dark text for sidebar
+    sidebar-list-color: rgba(0, 0, 0, 0.06),
+    // Subtle list background
+    color-text-main: #1f2a44,
+    // Darker main text for readability
+    color-youtube: #ef4444,
+    // Vibrant YouTube red
+    color-twitch: #8b5cf6,
+    // Consistent Twitch purple
+    color-vkvideo: #3b82f6,
+    // Brighter VK blue
+    color-coub: #06b6d4,
+    // Matching Coub cyan
+    badge-size-bg: rgba(0, 0, 0, 0.04),
+    // Subtle badge background
+    badge-size-border: rgba(0, 0, 0, 0.12),
+    // Slightly darker badge border
+    color-delete: rgba(239, 68, 68, 0.2),
+    // Softer red for delete
   ),
   midnight: (
     color-accent: #5ac8fa,

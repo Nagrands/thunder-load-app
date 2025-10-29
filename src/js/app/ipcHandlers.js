@@ -156,29 +156,31 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, () => {
     try {
       const tools = getToolsVersions(store);
-      
+
       // Детальное логирование для диагностики
-      log.info('Tools versions check result:', {
+      log.info("Tools versions check result:", {
         ytDlp: {
           ok: tools?.ytDlp?.ok,
           path: tools?.ytDlp?.path,
           version: tools?.ytDlp?.version,
-          exists: tools?.ytDlp?.path ? fs.existsSync(tools.ytDlp.path) : false
+          exists: tools?.ytDlp?.path ? fs.existsSync(tools.ytDlp.path) : false,
         },
         ffmpeg: {
           ok: tools?.ffmpeg?.ok,
           path: tools?.ffmpeg?.path,
           version: tools?.ffmpeg?.version,
-          exists: tools?.ffmpeg?.path ? fs.existsSync(tools.ffmpeg.path) : false
-        }
+          exists: tools?.ffmpeg?.path
+            ? fs.existsSync(tools.ffmpeg.path)
+            : false,
+        },
       });
-      
+
       return tools;
     } catch (error) {
-      log.error('Error in TOOLS_GETVERSIONS:', error);
+      log.error("Error in TOOLS_GETVERSIONS:", error);
       return {
         ytDlp: { ok: false, error: error.message },
-        ffmpeg: { ok: false, error: error.message }
+        ffmpeg: { ok: false, error: error.message },
       };
     }
   });
@@ -1218,12 +1220,18 @@ function setupIpcHandlers(dependencies) {
     } else if (process.platform === "darwin") {
       const version = parseFloat(os.release());
       if (version >= 22) {
-        shell.openExternal("x-apple.systempreferences:com.apple.Network-Settings.extension");
+        shell.openExternal(
+          "x-apple.systempreferences:com.apple.Network-Settings.extension",
+        );
       } else {
-        shell.openExternal("x-apple.systempreferences:com.apple.preference.network");
+        shell.openExternal(
+          "x-apple.systempreferences:com.apple.preference.network",
+        );
       }
     } else {
-      log.info("WG_OPEN_NETWORK_SETTINGS: платформа не поддерживается для открытия настроек сети.");
+      log.info(
+        "WG_OPEN_NETWORK_SETTINGS: платформа не поддерживается для открытия настроек сети.",
+      );
     }
   });
 

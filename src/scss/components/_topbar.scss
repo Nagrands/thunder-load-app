@@ -10,7 +10,11 @@
   height: 60px;
   padding: 0 8px;
   padding-left: 7%;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
   backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
@@ -21,7 +25,11 @@
   transition: all 0.3s ease;
 
   &:hover {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
   }
 }
 
@@ -33,7 +41,7 @@
   display: flex;
   align-items: center;
   height: 100%;
-  
+
   .group-menu {
     display: flex;
     align-items: center;
@@ -45,24 +53,24 @@
     overflow-y: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-    
+
     &::-webkit-scrollbar {
       height: 3px;
     }
-    
+
     &::-webkit-scrollbar-track {
       background: transparent;
     }
-    
+
     &::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.3);
       border-radius: 2px;
     }
-    
+
     &::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.5);
     }
-    
+
     .menu-item {
       -webkit-app-region: no-drag;
       display: flex;
@@ -105,18 +113,18 @@
         color: var(--color-disabled);
         cursor: not-allowed;
         pointer-events: none;
-        
+
         &:hover {
           background: transparent;
           transform: none;
         }
       }
-      
+
       .menu-main {
         display: flex;
         align-items: center;
         gap: 6px;
-        
+
         i {
           font-size: 12px;
           width: 16px;
@@ -133,7 +141,7 @@
   align-items: center;
   gap: 12px;
   height: 100%;
-  
+
   .toggle-btn {
     -webkit-app-region: no-drag;
     width: 36px;
@@ -147,17 +155,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     &:hover {
       background: var(--color-accent);
       color: var(--color-highlight);
       transform: scale(1.05);
     }
-    
+
     &:active {
       transform: scale(0.95);
     }
-    
+
     i {
       font-size: 16px;
     }
@@ -191,26 +199,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.1);
       color: var(--color-accent);
     }
-    
+
     &:active {
       transform: scale(0.92);
     }
-    
+
     i {
       font-size: 14px;
     }
-    
+
     // Special styling for close button
     &.btn-close:hover {
       background: #ff4757;
       color: var(--color-highlight);
     }
-    
+
     // Special styling for minimize button
     &.btn-minimize:hover {
       background: rgba(255, 255, 255, 0.15);
@@ -254,7 +262,7 @@
   &.disabled {
     color: var(--color-disabled);
     cursor: not-allowed;
-    
+
     &:hover {
       background: transparent;
       transform: none;
@@ -290,7 +298,7 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
-  
+
   i {
     font-size: 14px;
     border-radius: 50%;
@@ -299,20 +307,20 @@
     transition: all 0.3s ease;
     color: var(--color-accent);
   }
-  
+
   &:hover {
     background: rgba(var(--color-accent-rgb), 0.15);
     color: var(--color-accent);
     transform: translateY(-1px);
     border-color: rgba(var(--color-accent-rgb), 0.3);
-    
+
     i {
       animation: none;
       transform: scale(1.2);
       color: var(--color-accent);
     }
   }
-  
+
   &:active {
     transform: translateY(0);
   }
@@ -326,23 +334,26 @@
   background: transparent;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
-  
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
+
   &:hover {
     color: var(--color-accent);
     font-size: 16px;
     background-color: var(--color-hover);
   }
-  
+
   &:active {
     transform: scale(0.95);
   }
-  
+
   &:focus-visible {
     outline: 2px solid var(--color-hover);
     outline-offset: 2px;
   }
-  
+
   i {
     pointer-events: none;
   }
@@ -360,18 +371,18 @@
     height: 56px;
     padding: 0 12px;
   }
-  
+
   .center-menu .group-menu {
     max-width: 300px;
-    
+
     .menu-item {
       padding: 0 12px;
       font-size: 12px;
       height: 32px;
-      
+
       .menu-main {
         gap: 4px;
-        
+
         i {
           font-size: 11px;
           width: 14px;
@@ -379,17 +390,17 @@
       }
     }
   }
-  
+
   .app-version-label {
     font-size: 10px;
     padding: 6px 8px;
     gap: 6px;
-    
+
     i {
       font-size: 12px;
     }
   }
-  
+
   .menu-item,
   .toggle-btn,
   .window-controls button {
@@ -401,17 +412,17 @@
 @media (max-width: 600px) {
   .center-menu .group-menu {
     max-width: 250px;
-    
+
     .menu-item {
       padding: 0 10px;
       font-size: 11px;
     }
   }
-  
+
   .app-version-label .version-text {
     display: none;
   }
-  
+
   .app-version-label {
     padding: 6px;
   }
@@ -421,14 +432,14 @@
   .top-bar {
     padding: 0 8px;
   }
-  
+
   .center-menu .group-menu {
     max-width: 200px;
-    
+
     .menu-item {
       padding: 0 8px;
       font-size: 10px;
-      
+
       .menu-main i {
         display: none;
       }
@@ -438,7 +449,8 @@
 
 // Animation for version icon
 @keyframes pulseEffect {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.4);
   }
   70% {
@@ -448,5 +460,6 @@
 
 // Add CSS variables if not exists in your theme
 :root {
-  --color-accent-rgb: 96, 165, 250; // Example blue color - adjust to your accent color
+  --color-accent-rgb:
+    96, 165, 250; // Example blue color - adjust to your accent color
 }
