@@ -331,10 +331,16 @@ function selectFormatsByQuality(formats, desiredQuality) {
  */
 async function getYtDlpVersion() {
   const ytDlpPath = getYtDlpPath();
-  if (!fs.existsSync(ytDlpPath)) return null;
+  if (!fs.existsSync(ytDlpPath)) {
+    log.warn("yt-dlp binary not found at path:", ytDlpPath);
+    return null;
+  }
   try {
-    return await runProcess(ytDlpPath, ["--version"]);
+    const version = await runProcess(ytDlpPath, ["--version"]);
+    log.info("yt-dlp version detected:", version);
+    return version;
   } catch (err) {
+    log.error("Failed to run yt-dlp --version:", err.message);
     return null;
   }
 }
@@ -353,28 +359,36 @@ async function installYtDlp() {
     const ytDlpUrl =
       process.platform === "win32"
         ? "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
-        : "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
+        : process.platform === "darwin"
+          ? "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
+          : "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
+
+    const MIN_EXPECTED_SIZE = 1_000_000; // минимальный размер 1 МБ
+
     const dir = getToolsDir();
     const ytDlpPath = getYtDlpPath();
     await ensureToolsDir(dir);
     await downloadFile(ytDlpUrl, ytDlpPath);
 
-    // Улучшенная обработка прав доступа для macOS
+    // Устанавливаем права доступа
     if (process.platform !== "win32") {
       try {
         fs.chmodSync(ytDlpPath, 0o755);
         log.info(`Set executable permissions for yt-dlp: ${ytDlpPath}`);
-        
-        // Дополнительная проверка для macOS
+
         if (process.platform === "darwin") {
-          // Проверяем, что файл действительно исполняемый
+          const { execSync } = require("child_process");
+          try {
+            execSync(`xattr -d com.apple.quarantine "${ytDlpPath}"`);
+            log.info("Removed quarantine attribute from yt-dlp (macOS).");
+          } catch (xattrErr) {
+            log.warn("Failed to remove quarantine attribute:", xattrErr.message);
+          }
+
           const stats = fs.statSync(ytDlpPath);
           const isExecutable = (stats.mode & 0o111) !== 0;
           log.info(`yt-dlp is executable: ${isExecutable}`);
-          
           if (!isExecutable) {
-            // Пробуем альтернативный метод
-            const { execSync } = require('child_process');
             execSync(`chmod +x "${ytDlpPath}"`);
             log.info("Used chmod +x to set executable permissions");
           }
@@ -384,18 +398,38 @@ async function installYtDlp() {
       }
     }
 
-    // Проверяем, что файл установился корректно
+    // Проверяем размер скачанного файла
     if (!fs.existsSync(ytDlpPath)) {
       throw new Error("yt-dlp file was not created after download");
     }
-    
+
     const fileStats = fs.statSync(ytDlpPath);
     log.info(`yt-dlp file size: ${fileStats.size} bytes`);
-    
-    // Пробуем получить версию сразу после установки
+
+    if (fileStats.size < MIN_EXPECTED_SIZE) {
+      log.warn(`yt-dlp file size ${fileStats.size} is less than expected. Removing and retrying.`);
+      try { fs.unlinkSync(ytDlpPath); } catch (_) {}
+      if (process.platform === "darwin") {
+        log.info("Attempting fallback: brew install yt-dlp");
+        try {
+          const { execSync } = require("child_process");
+          execSync("brew install yt-dlp", { stdio: "inherit" });
+          log.info("brew install yt-dlp succeeded");
+        } catch (brewErr) {
+          throw new Error("Fallback brew install yt-dlp failed: " + brewErr.message);
+        }
+      } else {
+        throw new Error("Downloaded yt-dlp binary seems invalid (too small) and no fallback available.");
+      }
+    }
+
+    // Проверяем версию после установки
     const newVersion = await getYtDlpVersion();
     log.info(`yt-dlp version after install: ${newVersion}`);
-    
+    if (!newVersion) {
+      throw new Error("yt-dlp installed but version check failed.");
+    }
+
     log.info("yt-dlp downloaded successfully.");
   } catch (error) {
     if (error.message && error.message.includes("Failed to parse JSON")) {
