@@ -461,14 +461,54 @@ async function chooseDir(mainWindow) {
   return res.filePaths && res.filePaths[0] ? res.filePaths[0] : null;
 }
 
-async function openPath(p) {
-  if (!p) return { success: false, error: "No path" };
-  const st = await fsp.stat(p).catch(() => null);
+async function openPath(input) {
+  if (!input) return { success: false, error: "No path" };
+  let folder, profileName;
+
+  if (typeof input === "string") {
+    folder = input;
+  } else if (typeof input === "object") {
+    folder = input.folder;
+    profileName = input.profileName;
+  }
+
+  if (!folder) return { success: false, error: "No folder specified" };
+
+  const st = await fsp.stat(folder).catch(() => null);
   if (!st) return { success: false, error: "Path not found" };
+
+  // Если указан profileName — ищем последний архив этого профиля
+  if (profileName && st.isDirectory()) {
+    try {
+      const entries = await fsp.readdir(folder, { withFileTypes: true });
+      const prefix = `${profileName}_Backup_`;
+      const zips = entries
+        .filter(
+          (e) => e.isFile() && e.name.startsWith(prefix) && e.name.endsWith(".zip"),
+        )
+        .map((e) => path.join(folder, e.name));
+
+      if (zips.length > 0) {
+        let latest = null;
+        for (const z of zips) {
+          const stz = await fsp.stat(z);
+          if (!latest || stz.mtimeMs > latest.mtimeMs) latest = { file: z, mtimeMs: stz.mtimeMs };
+        }
+        if (latest) {
+          shell.showItemInFolder(latest.file);
+          return { success: true, revealed: latest.file };
+        }
+      }
+    } catch (err) {
+      log.warn(`[backup] Failed to find latest archive for '${profileName}': ${err?.message || err}`);
+    }
+  }
+
+  // Если не найден архив — открыть сам путь
   if (st.isDirectory()) {
-    await shell.openPath(p);
+    await shell.openPath(folder);
   } else {
-    shell.showItemInFolder(p);
+    shell.showItemInFolder(folder);
   }
   return { success: true };
 }

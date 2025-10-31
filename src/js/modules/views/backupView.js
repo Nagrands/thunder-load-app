@@ -1577,10 +1577,14 @@ export default function renderBackup() {
       showEditForm(Number(t.dataset.i));
     } else if (t.classList.contains("bk-open-src")) {
       const p = state.programs[Number(t.dataset.i)];
-      if (p?.source_path) await invoke("backup:openPath", p.source_path);
+      if (p?.source_path) {
+        await invoke("backup:openPath", { folder: p.source_path, profileName: p.name });
+      }
     } else if (t.classList.contains("bk-open")) {
       const p = state.programs[Number(t.dataset.i)];
-      if (p?.backup_path) await invoke("backup:openPath", p.backup_path);
+      if (p?.backup_path) {
+        await invoke("backup:openPath", { folder: p.backup_path, profileName: p.name });
+      }
     } else if (t.classList.contains("bk-run")) {
       const i = Number(t.dataset.i);
       const btn = t;
