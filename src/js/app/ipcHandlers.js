@@ -13,8 +13,8 @@ const { CHANNELS } = require("../ipc/channels");
 
 const { getToolsVersions } = require("./toolsVersions");
 const fs = require("fs");
-const Store = require("electron-store");
-const store = new Store();
+const ElectronStore = require('electron-store').default;
+const store = new ElectronStore();
 const fsPromises = fs.promises;
 const path = require("path");
 const log = require("electron-log");
@@ -158,7 +158,7 @@ function setupIpcHandlers(dependencies) {
       const tools = getToolsVersions(store);
 
       // Детальное логирование для диагностики
-      log.info("Tools versions check result:", {
+      log.info("Downloader → Tools versions check result:", {
         ytDlp: {
           ok: tools?.ytDlp?.ok,
           path: tools?.ytDlp?.path,

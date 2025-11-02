@@ -419,17 +419,10 @@
   flex-basis: 100%;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   margin-top: 10px;
   width: calc(100% - 120px);
-  align-self: center;
-  width: fit-content;
-  // padding: 8px 10px;
-  // background: rgba(0, 0, 0, 0.18);
-  // border: 1px solid var(--color-hover);
-  border-radius: var(--border-radius);
-  backdrop-filter: blur(4px);
 
   &.is-visible {
     display: flex;
@@ -453,26 +446,29 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 10px;
-    font-size: 14px;
-    color: var(--color-text-main);
-    background: var(--color-hover);
-    border: 1px solid var(--color-hover);
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition:
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      color 0.2s ease;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border-radius: 12px;
+    min-height: 32px;
+    color: var(--color-highlight);
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 
     &:hover {
-      background: var(--color-accent);
-      color: var(--color-bg-secondary);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
     }
+
     &.active {
-      color: var(--color-text-main);
-      background: var(--color-bg-secondary);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.3) 0%,
+        rgba(var(--color-accent-rgb), 0.2) 100%
+      );
+      border-color: rgba(var(--color-accent-rgb), 0.4);
     }
+
     i {
       font-size: 12px;
     }

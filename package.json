@@ -23,24 +23,24 @@
     "tag:current": "node -e \"const v='v'+require('./package.json').version; const {execSync}=require('child_process'); execSync(`git tag ${v}`,{stdio:'inherit'}); execSync(`git push origin ${v}`,{stdio:'inherit'});\""
   },
   "dependencies": {
-    "dotenv": "^16.0.0",
-    "electron-log": "^4.4.7",
-    "electron-store": "^7.0.3",
+    "dotenv": "^17.2.3",
+    "electron-log": "^5.4.3",
+    "electron-store": "^11.0.2",
     "electron-updater": "^6.3.3",
     "electron-window-state": "^5.0.3",
-    "marked": "^14.1.2",
+    "marked": "^16.4.1",
     "sudo-prompt": "^9.2.1",
     "tldjs": "^2.3.1",
     "tree-kill": "^1.2.2",
-    "unzipper": "^0.10.11"
+    "unzipper": "^0.12.3"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^7.0.0",
-    "electron": "^37.2.6",
-    "electron-builder": "^25.0.0-alpha.9",
+    "copyfiles": "^2.4.1",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
     "electron-debug": "^4.0.0",
     "prettier": "^3.3.3",
-    "copyfiles": "^2.4.1",
     "sass": "^1.32.8"
   },
   "build": {

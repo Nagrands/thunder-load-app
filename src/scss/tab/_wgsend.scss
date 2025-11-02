@@ -285,14 +285,8 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
     .input {
       width: 100%;
-      padding: 12px 44px 12px 16px;
-      border: 2px solid var(--color-hover);
-      border-radius: var(--border-radius);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--color-highlight);
-      font-size: 14px;
+      color: var(--color-accent);
       transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
       font-family: inherit;
 
       &::placeholder {
@@ -302,6 +296,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
       &:focus {
         background: rgba(255, 255, 255, 0.08);
+        color: var(--color-highlight);
         @include focus-ring;
         outline: none;
       }

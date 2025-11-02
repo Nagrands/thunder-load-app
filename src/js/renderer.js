@@ -69,6 +69,8 @@ async function applyPlatformClass() {
 // document.body.classList.add("is-mac");
 
 // ————————————————————————————————————————————————————————————————
+console.time("Renderer → Initialization");
+
 async function startRenderer() {
   try {
     console.log("[Startup] Bootstrap loaded:", !!window.bootstrap);
@@ -365,7 +367,9 @@ async function startRenderer() {
 
     initUpdateHandler();
     initTooltips(); // ← перемещено сюда, после инициализации всех DOM-элементов
-    // updateProgressBar(25.5);
+    // updateProgressBar(55.5);
+
+    console.timeEnd("Renderer → Initialization");
 
     console.log("All modules initialized with TabSystem v1.0");
 

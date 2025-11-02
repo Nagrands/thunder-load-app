@@ -876,7 +876,15 @@ export default function renderBackup() {
             listBox.style.padding = "4px 0";
             inputContainer.appendChild(listBox);
 
-            const options = ["*.ini", "*.cfg", "*.json", "*.bak", "*.txt", "*.docx", "*.pdf"];
+            const options = [
+              "*.ini",
+              "*.cfg",
+              "*.json",
+              "*.bak",
+              "*.txt",
+              "*.docx",
+              "*.pdf",
+            ];
             options.forEach((opt) => {
               const item = document.createElement("div");
               item.className = "file-filter-item";
@@ -884,10 +892,19 @@ export default function renderBackup() {
               item.style.padding = "6px 10px";
               item.style.cursor = "pointer";
 
-              item.addEventListener("mouseenter", () => item.style.background = "rgba(120,180,255,0.2)");
-              item.addEventListener("mouseleave", () => item.style.background = "transparent");
+              item.addEventListener(
+                "mouseenter",
+                () => (item.style.background = "rgba(120,180,255,0.2)"),
+              );
+              item.addEventListener(
+                "mouseleave",
+                () => (item.style.background = "transparent"),
+              );
               item.addEventListener("click", () => {
-                const current = patsField.value.split(",").map(s => s.trim()).filter(Boolean);
+                const current = patsField.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
                 if (!current.includes(opt)) current.push(opt);
                 patsField.value = current.join(",");
                 listBox.remove();
@@ -1578,12 +1595,18 @@ export default function renderBackup() {
     } else if (t.classList.contains("bk-open-src")) {
       const p = state.programs[Number(t.dataset.i)];
       if (p?.source_path) {
-        await invoke("backup:openPath", { folder: p.source_path, profileName: p.name });
+        await invoke("backup:openPath", {
+          folder: p.source_path,
+          profileName: p.name,
+        });
       }
     } else if (t.classList.contains("bk-open")) {
       const p = state.programs[Number(t.dataset.i)];
       if (p?.backup_path) {
-        await invoke("backup:openPath", { folder: p.backup_path, profileName: p.name });
+        await invoke("backup:openPath", {
+          folder: p.backup_path,
+          profileName: p.name,
+        });
       }
     } else if (t.classList.contains("bk-run")) {
       const i = Number(t.dataset.i);

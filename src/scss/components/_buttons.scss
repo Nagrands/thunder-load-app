@@ -1,9 +1,12 @@
 @use "../abstracts/mixins";
 
 :root {
-  --btn-hover-duration: 1.25s;
-  --btn-ripple-duration: 1.6s;
-  --btn-focus-shadow: rgba(var(--color-accent-rgb), 0.5);
+  --btn-hover-duration: 0.4s;
+  --btn-ripple-duration: 0.8s;
+  --btn-focus-shadow: rgba(var(--color-accent-rgb), 0.6);
+  --glass-blur: 8px;
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 /* ========== Базовые стили кнопок ========== */
@@ -11,62 +14,123 @@
   @include mixins.button-base;
   position: relative;
   overflow: hidden;
-  padding: 0.7em 1.2em;
-  transition:
-    color 0.2s ease-in-out,
-    transform 0.2s ease-in-out;
+  padding: 0.7em 1.4em;
+  transition: all var(--btn-hover-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  
+  /* Liquid Glass эффект */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: 
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  
+  color: var(--color-highlight);
+  border-radius: 16px;
 
+  /* Liquid ripple эффект */
   &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transition: left var(--btn-ripple-duration) ease;
+  }
+
+  &::after {
     content: "";
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 200%;
-    height: 200%;
+    width: 0;
+    height: 0;
     background: radial-gradient(
       circle,
-      rgba(255, 255, 255, 0.3) 10%,
+      rgba(255, 255, 255, 0.3) 0%,
       transparent 70%
     );
-    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
     opacity: 0;
-    pointer-events: none;
+    transition: 
+      width var(--btn-ripple-duration) ease,
+      height var(--btn-ripple-duration) ease,
+      opacity var(--btn-ripple-duration) ease;
   }
 
   &:hover {
-    @include mixins.common-box-shadow;
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.02);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.25) 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+
     &::before {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-      transition:
-        transform var(--btn-ripple-duration) ease-out,
-        opacity var(--btn-ripple-duration) ease-out;
+      left: 100%;
     }
   }
 
   &:active {
-    transform: translateY(0);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-    &::before {
-      animation: ripple var(--btn-ripple-duration) ease-out forwards;
+    transform: translateY(0) scale(0.98);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    transition-duration: 0.1s;
+
+    &::after {
+      width: 300%;
+      height: 300%;
+      opacity: 1;
+      transition-duration: 0.3s;
     }
   }
 
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--btn-focus-shadow);
+    box-shadow: 
+      0 0 0 3px var(--btn-focus-shadow),
+      var(--glass-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   &:disabled,
   &[aria-disabled="true"] {
+    opacity: 0.6;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
     color: var(--button-disabled) !important;
     cursor: not-allowed !important;
     animation: none !important;
     box-shadow: none !important;
     transform: none !important;
-    .shine,
-    &::before {
+    
+    &::before,
+    &::after {
       display: none;
     }
   }
@@ -81,61 +145,101 @@
 .btn,
 .small-button,
 .large-button {
-  // border: 1px solid rgba(255,255,255,0.12);
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.06),
-    rgba(0, 0, 0, 0.12)
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
   );
   color: var(--color-highlight);
-  border-radius: var(--border-radius);
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   line-height: 1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .btn-sm,
 .small-button {
-  min-height: 36px;
-  padding: 0.45rem 0.8rem;
-  font-size: 0.95rem;
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
+
 .btn-lg,
 .large-button {
-  min-height: 44px;
-  padding: 0.6rem 1.1rem;
+  min-height: 48px;
+  padding: 0.7rem 1.4rem;
   font-weight: 600;
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .btn-primary {
-  background: var(--button-default);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.25) 0%,
+    rgba(var(--color-accent-rgb), 0.15) 50%,
+    rgba(var(--color-accent-rgb), 0.08) 100%
+  );
+  border-color: rgba(var(--color-accent-rgb), 0.3);
 }
+
 .btn-primary:hover {
-  background: var(--button-download);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.35) 0%,
+    rgba(var(--color-accent-rgb), 0.22) 50%,
+    rgba(var(--color-accent-rgb), 0.12) 100%
+  );
+  border-color: rgba(var(--color-accent-rgb), 0.5);
 }
+
 .btn-secondary {
   gap: 0;
-  background: var(--button-open-folder);
+  background: linear-gradient(
+    135deg,
+    rgba(100, 150, 255, 0.2) 0%,
+    rgba(100, 150, 255, 0.1) 50%,
+    rgba(100, 150, 255, 0.05) 100%
+  );
+  border-color: rgba(100, 150, 255, 0.25);
 }
+
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
 }
+
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
 }
+
 .btn-danger {
-  background: var(--button-cancel);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 80, 80, 0.25) 0%,
+    rgba(255, 80, 80, 0.15) 50%,
+    rgba(255, 80, 80, 0.08) 100%
+  );
+  border-color: rgba(255, 80, 80, 0.3);
 }
 
 .btn-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   padding: 0;
+  border-radius: 12px;
 }
+
 .btn-icon i {
   margin: 0 !important;
 }
@@ -151,38 +255,40 @@
 .large-button.is-loading {
   position: relative;
   pointer-events: none;
+  
+  &::before {
+    animation: liquidShimmer 2s infinite;
+  }
 }
+
 .btn.is-loading::after,
 .large-button.is-loading::after {
   content: "";
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: var(--color-accent);
   animation: spinY 0.8s linear infinite;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-}
-
-@keyframes spinY {
-  to {
-    transform: translateY(-50%) rotate(360deg);
-  }
+  backdrop-filter: blur(4px);
 }
 
 /* Reduced motion: disable heavy transitions/animations */
 @media (prefers-reduced-motion: reduce) {
   .btn,
   .button {
-    transition: none !important;
+    transition: opacity 0.3s ease !important;
+    
+    &::before,
+    &::after {
+      display: none !important;
+    }
   }
-  .btn::before,
-  .button::before {
-    transition: none !important;
-  }
+  
   .btn.is-loading::after,
   .large-button.is-loading::after {
     animation: none !important;
@@ -193,42 +299,66 @@
 .button--open-folder,
 .button--open-last-video {
   @extend %btn;
-  background: var(--button-default);
-  color: var(--button-color);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.2) 0%,
+    rgba(var(--color-accent-rgb), 0.1) 50%,
+    rgba(var(--color-accent-rgb), 0.05) 100%
+  );
+  border-color: rgba(var(--color-accent-rgb), 0.25);
 
   &:hover {
-    background: var(--button-default);
-    color: #fff;
-    @include mixins.common-box-shadow;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.3) 0%,
+      rgba(var(--color-accent-rgb), 0.18) 50%,
+      rgba(var(--color-accent-rgb), 0.1) 100%
+    );
+    border-color: rgba(var(--color-accent-rgb), 0.4);
   }
 }
 
 .button--download-button {
   @extend %btn;
-  background: var(--button-default);
-  color: var(--color-highlight);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.25) 0%,
+    rgba(var(--color-accent-rgb), 0.15) 50%,
+    rgba(var(--color-accent-rgb), 0.08) 100%
+  );
+  border-color: rgba(var(--color-accent-rgb), 0.3);
   position: relative;
-  background-size: 400% 400%;
+  overflow: hidden;
 
   &.active {
-    background: linear-gradient(45deg, #005bb5, #007bff, #005bb5, #1d3853);
-    color: var(--button-enabled);
+    background: linear-gradient(
+      135deg,
+      rgba(0, 91, 181, 0.4) 0%,
+      rgba(0, 123, 255, 0.3) 25%,
+      rgba(0, 91, 181, 0.4) 50%,
+      rgba(29, 56, 83, 0.3) 100%
+    );
+    animation: liquidFlow 3s ease-in-out infinite;
   }
 
   .shine {
     position: absolute;
     top: 0;
-    left: -75%;
-    width: 50%;
+    left: -100%;
+    width: 60%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: skewX(-20deg);
-    animation: shine var(--btn-ripple-duration) infinite;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+    transform: skewX(-25deg);
+    animation: liquidShine 3s infinite;
   }
 
   &:disabled .button-text {
-    color: var(--button-disabled);
-    text-shadow: none;
+    opacity: 0.7;
   }
 
   i {
@@ -238,41 +368,71 @@
 
 .button--cancel {
   @extend %btn;
-  background: var(--button-cancel);
-  color: var(--button-color);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 80, 80, 0.25) 0%,
+    rgba(255, 80, 80, 0.15) 50%,
+    rgba(255, 80, 80, 0.08) 100%
+  );
+  border-color: rgba(255, 80, 80, 0.3);
   min-width: 64px;
+
   &:hover {
-    background: var(--button-cancel-hover, var(--button-cancel));
-    color: #fff;
-    @include mixins.common-box-shadow;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 80, 80, 0.35) 0%,
+      rgba(255, 80, 80, 0.22) 50%,
+      rgba(255, 80, 80, 0.12) 100%
+    );
+    border-color: rgba(255, 80, 80, 0.5);
   }
 }
 
 .button--quality {
   @extend %btn;
-  background: var(--button-default);
-  color: var(--button-color);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--color-highlight);
   min-width: 64px;
+  
   &:focus {
-    background: var(--color-bg-secondary);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.2) 0%,
+      rgba(var(--color-accent-rgb), 0.1) 50%,
+      rgba(var(--color-accent-rgb), 0.05) 100%
+    );
+    border-color: rgba(var(--color-accent-rgb), 0.4);
     color: var(--color-accent);
   }
+  
   &:hover {
-    background: var(--button-default);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.25);
     color: #fff;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
   }
 }
 
 .button--install-deps {
   @extend %btn;
-  background: var(--button-default);
-  color: var(--button-color);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.2) 0%,
+    rgba(var(--color-accent-rgb), 0.1) 50%,
+    rgba(var(--color-accent-rgb), 0.05) 100%
+  );
+  border-color: rgba(var(--color-accent-rgb), 0.25);
+  color: var(--color-highlight);
   display: flex;
   align-items: center;
   gap: var(--spacing-small);
@@ -282,35 +442,44 @@
   }
 
   &:hover {
-    background: var(--button-default);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.3) 0%,
+      rgba(var(--color-accent-rgb), 0.18) 50%,
+      rgba(var(--color-accent-rgb), 0.1) 100%
+    );
+    border-color: rgba(var(--color-accent-rgb), 0.4);
     color: #fff;
-    @include mixins.common-box-shadow;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+    transform: translateY(-2px);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   &.disabled,
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
   }
 }
 
 /* ========== Группа основных действий ========== */
 .download-quality-group {
-  display: contents; /* расплющить внутрь сетки */
+  display: contents;
 }
 
 .button-group {
   display: grid;
-  grid-template-columns: auto 6fr auto auto; /* без кнопки качества */
+  grid-template-columns: auto 6fr auto auto;
   align-items: center;
   gap: var(--spacing-small);
-  background: rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  border-radius: var(--border-radius);
-  margin: 10px 0 15px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 12px;
+  border-radius: 20px;
+  margin: 12px 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
   > * {
     justify-self: center;
@@ -319,6 +488,7 @@
 
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
+    border-radius: 16px;
   }
 }
 
@@ -413,127 +583,67 @@
 }
 
 /* ========== Стили для выпадающего списка качества ========== */
-.quality-container {
-  position: relative;
-  display: inline-block;
-  z-index: 777;
+#install-deps-btn {
+  @extend .button--install-deps;
+  display: block;
+  width: 100%;
+  justify-content: center;
+  padding: 0.95em 1.4em;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-accent-rgb), 0.25) 0%,
+    rgba(var(--color-accent-rgb), 0.15) 60%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+  min-height: 44px;
+  box-sizing: border-box;
+  clear: both;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40%;
-    height: 2px;
-    background: var(--color-accent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  i {
+    font-size: 18px;
+    margin-right: var(--spacing-small);
   }
 
-  &:hover::after {
-    opacity: 1;
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.35) 0%,
+      rgba(var(--color-accent-rgb), 0.22) 60%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    border-color: rgba(var(--color-accent-rgb), 0.5);
+    color: #fff;
+    box-shadow:
+      0 8px 32px rgba(var(--color-accent-rgb), 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
   }
 
-  .dropdown-menu {
-    position: absolute;
-    top: calc(80% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 260px;
-    padding: 4px 0;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: var(--border-radius);
-    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(3px);
-
-    &[hidden] {
-      display: block !important;
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    li {
-      padding: 8px 10px;
-      margin: 2px 4px;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(
-        to right,
-        transparent 50%,
-        rgba(255, 255, 255, 0.08) 100%
-      );
-
-      &:hover {
-        background: var(--color-border);
-        transform: translateX(2px);
-      }
-
-      &.selected {
-        background: var(--color-hover);
-        .quality-value {
-          color: var(--color-highlight);
-        }
-        .selected-icon {
-          opacity: 1;
-          animation: checkBounce 0.4s ease;
-        }
-      }
-
-      .quality-text {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      i {
-        font-size: 18px;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--border-radius);
-      }
-
-      .quality-label {
-        font-weight: 500;
-        letter-spacing: 0.5px;
-      }
-      .quality-value {
-        font-size: 13px;
-        opacity: 0.8;
-      }
-      .selected-icon {
-        color: var(--color-toast-success);
-        font-size: 16px;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-      }
-    }
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(var(--color-accent-rgb), 0.35),
+      0 8px 32px rgba(var(--color-accent-rgb), 0.25);
   }
 
-  // &:hover .dropdown-menu,
-  &:focus-within .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(5px);
+  &.disabled,
+  &:disabled {
+    opacity: 0.65;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    transform: none;
   }
 }
 
 /* --- Tools section layout fixes (avoid clipping the install button) --- */
 #tools-info {
-  overflow: visible; /* на всякий случай, если где-то унаследовалось hidden */
-  padding-bottom: calc(
-    var(--spacing-large) + 6px
-  ); /* добавить место под кнопку */
+  overflow: visible;
+  padding-bottom: calc(var(--spacing-large) + 6px);
 }
 
 #tools-info .tools-actions {

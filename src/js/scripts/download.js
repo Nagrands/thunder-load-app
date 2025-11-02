@@ -44,7 +44,7 @@ const {
   ensureToolsDir,
   resolveToolPath,
 } = require("../app/toolsPaths");
-const Store = require("electron-store");
+const ElectronStore = require('electron-store').default;
 
 // Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
 
@@ -61,11 +61,18 @@ function getStore() {
 function getToolsDir() {
   return getEffectiveToolsDir(getStore());
 }
-function getYtDlpPath() { return resolveToolPath("yt-dlp", getToolsDir()); }
-function getFfmpegPath() { return resolveToolPath("ffmpeg", getToolsDir()); }
+function getYtDlpPath() {
+  return resolveToolPath("yt-dlp", getToolsDir());
+}
+function getFfmpegPath() {
+  return resolveToolPath("ffmpeg", getToolsDir());
+}
 function getFfprobePath() {
   const dir = getToolsDir();
-  return path.join(dir, process.platform === "win32" ? "ffprobe.exe" : "ffprobe");
+  return path.join(
+    dir,
+    process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
+  );
 }
 
 // Качество скачивания
@@ -130,7 +137,9 @@ function downloadFile(url, dest, redirects = 0) {
     const cleanup = (err) => {
       abortControllers.delete(dest);
       if (err) {
-        try { fs.unlinkSync(dest); } catch (_) {}
+        try {
+          fs.unlinkSync(dest);
+        } catch (_) {}
       }
     };
 
@@ -142,7 +151,10 @@ function downloadFile(url, dest, redirects = 0) {
           response.statusCode < 400 &&
           response.headers.location
         ) {
-          const redirectUrl = new URL(response.headers.location, url).toString();
+          const redirectUrl = new URL(
+            response.headers.location,
+            url,
+          ).toString();
           // перенаправляем, используя тот же dest
           cleanup(); // текущий запрос завершён
           downloadFile(redirectUrl, dest, redirects + 1)
@@ -168,7 +180,9 @@ function downloadFile(url, dest, redirects = 0) {
             reject(err);
           });
         } else {
-          const err = new Error(`Failed to download file. Status code: ${response.statusCode}`);
+          const err = new Error(
+            `Failed to download file. Status code: ${response.statusCode}`,
+          );
           cleanup(err);
           reject(err);
         }
@@ -187,16 +201,25 @@ function downloadFile(url, dest, redirects = 0) {
 function selectFormatsByQuality(formats, desiredQuality) {
   const pickBest = (arr, cmp) => (arr.length ? arr.sort(cmp)[0] : null);
 
-  const onlyAudio = formats.filter((f) => f.acodec !== "none" && f.vcodec === "none");
-  const onlyVideo = formats.filter((f) => f.vcodec !== "none" && f.acodec === "none");
-  const muxed     = formats.filter((f) => f.vcodec !== "none" && f.acodec !== "none");
+  const onlyAudio = formats.filter(
+    (f) => f.acodec !== "none" && f.vcodec === "none",
+  );
+  const onlyVideo = formats.filter(
+    (f) => f.vcodec !== "none" && f.acodec === "none",
+  );
+  const muxed = formats.filter(
+    (f) => f.vcodec !== "none" && f.acodec !== "none",
+  );
 
   // AUDIO ONLY
   if (desiredQuality === QUALITY_AUDIO_ONLY) {
     let audio = pickBest(onlyAudio, (a, b) => (b.abr || 0) - (a.abr || 0));
     // если чистого аудио нет — берём лучший muxed и качаем как есть
     if (!audio) {
-      const m = pickBest(muxed, (a, b) => (b.abr || 0) - (a.abr || 0) || (b.tbr || 0) - (a.tbr || 0));
+      const m = pickBest(
+        muxed,
+        (a, b) => (b.abr || 0) - (a.abr || 0) || (b.tbr || 0) - (a.tbr || 0),
+      );
       if (!m) throw new Error("No audio or muxed formats found");
       return {
         videoFormat: m.format_id,
@@ -222,9 +245,14 @@ function selectFormatsByQuality(formats, desiredQuality) {
   // SOURCE (максимально возможное)
   if (desiredQuality === QUALITY_SOURCE) {
     if (onlyVideo.length && onlyAudio.length) {
-      const v = pickBest(onlyVideo, (a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
+      const v = pickBest(
+        onlyVideo,
+        (a, b) =>
+          (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
+      );
       const a = pickBest(onlyAudio, (x, y) => (y.abr || 0) - (x.abr || 0));
-      if (!v || !a) throw new Error("Suitable formats for source quality not found.");
+      if (!v || !a)
+        throw new Error("Suitable formats for source quality not found.");
       return {
         videoFormat: v.format_id,
         audioFormat: a.format_id,
@@ -235,8 +263,13 @@ function selectFormatsByQuality(formats, desiredQuality) {
         isMuxed: false,
       };
     }
-    const m = pickBest(muxed, (a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0));
-    if (!m) throw new Error("No suitable muxed format found for source quality.");
+    const m = pickBest(
+      muxed,
+      (a, b) =>
+        (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
+    );
+    if (!m)
+      throw new Error("No suitable muxed format found for source quality.");
     return {
       videoFormat: m.format_id,
       audioFormat: null,
@@ -263,14 +296,26 @@ function selectFormatsByQuality(formats, desiredQuality) {
   if (!candidates.length) {
     const lower = onlyVideo.filter((f) => (f.height || 0) <= target);
     if (lower.length) {
-      candidates = [pickBest(lower, (a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0))];
+      candidates = [
+        pickBest(
+          lower,
+          (a, b) =>
+            (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
+        ),
+      ];
     }
   }
   // 3) иначе — ближайшая выше
   if (!candidates.length) {
     const higher = onlyVideo.filter((f) => (f.height || 0) > target);
     if (higher.length) {
-      candidates = [pickBest(higher, (a, b) => (a.height || 0) - (b.height || 0) || (a.tbr || 0) - (b.tbr || 0))];
+      candidates = [
+        pickBest(
+          higher,
+          (a, b) =>
+            (a.height || 0) - (b.height || 0) || (a.tbr || 0) - (b.tbr || 0),
+        ),
+      ];
     }
   }
 
@@ -283,13 +328,15 @@ function selectFormatsByQuality(formats, desiredQuality) {
       // нет отдельного аудио — попробуем подходящий muxed не выше target
       const m = pickBest(
         muxed.filter((f) => (f.height || 0) <= (video.height || target)),
-        (a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0)
+        (a, b) =>
+          (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
       );
       if (m) {
         return {
           videoFormat: m.format_id,
           audioFormat: null,
-          resolution: m.width && m.height ? `${m.width}x${m.height}` : "unknown",
+          resolution:
+            m.width && m.height ? `${m.width}x${m.height}` : "unknown",
           fps: m.fps || null,
           videoExt: m.ext || "mp4",
           audioExt: null,
@@ -301,7 +348,10 @@ function selectFormatsByQuality(formats, desiredQuality) {
     return {
       videoFormat: video.format_id,
       audioFormat: audio.format_id,
-      resolution: video.width && video.height ? `${video.width}x${video.height}` : "unknown",
+      resolution:
+        video.width && video.height
+          ? `${video.width}x${video.height}`
+          : "unknown",
       fps: video.fps || null,
       videoExt: video.ext || "mp4",
       audioExt: audio.ext || "m4a",
@@ -311,9 +361,13 @@ function selectFormatsByQuality(formats, desiredQuality) {
     // нет отдельного видео — возьмём лучший muxed не выше target
     const m = pickBest(
       muxed.filter((f) => (f.height || 0) <= target),
-      (a, b) => (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0)
+      (a, b) =>
+        (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
     );
-    if (!m) throw new Error(`No available video formats for quality ${desiredQuality} or lower`);
+    if (!m)
+      throw new Error(
+        `No available video formats for quality ${desiredQuality} or lower`,
+      );
     return {
       videoFormat: m.format_id,
       audioFormat: null,
@@ -382,7 +436,10 @@ async function installYtDlp() {
             execSync(`xattr -d com.apple.quarantine "${ytDlpPath}"`);
             log.info("Removed quarantine attribute from yt-dlp (macOS).");
           } catch (xattrErr) {
-            log.warn("Failed to remove quarantine attribute:", xattrErr.message);
+            log.warn(
+              "Failed to remove quarantine attribute:",
+              xattrErr.message,
+            );
           }
 
           const stats = fs.statSync(ytDlpPath);
@@ -407,8 +464,12 @@ async function installYtDlp() {
     log.info(`yt-dlp file size: ${fileStats.size} bytes`);
 
     if (fileStats.size < MIN_EXPECTED_SIZE) {
-      log.warn(`yt-dlp file size ${fileStats.size} is less than expected. Removing and retrying.`);
-      try { fs.unlinkSync(ytDlpPath); } catch (_) {}
+      log.warn(
+        `yt-dlp file size ${fileStats.size} is less than expected. Removing and retrying.`,
+      );
+      try {
+        fs.unlinkSync(ytDlpPath);
+      } catch (_) {}
       if (process.platform === "darwin") {
         log.info("Attempting fallback: brew install yt-dlp");
         try {
@@ -416,10 +477,14 @@ async function installYtDlp() {
           execSync("brew install yt-dlp", { stdio: "inherit" });
           log.info("brew install yt-dlp succeeded");
         } catch (brewErr) {
-          throw new Error("Fallback brew install yt-dlp failed: " + brewErr.message);
+          throw new Error(
+            "Fallback brew install yt-dlp failed: " + brewErr.message,
+          );
         }
       } else {
-        throw new Error("Downloaded yt-dlp binary seems invalid (too small) and no fallback available.");
+        throw new Error(
+          "Downloaded yt-dlp binary seems invalid (too small) and no fallback available.",
+        );
       }
     }
 
@@ -482,8 +547,10 @@ async function installFfmpeg() {
       // Поиск бинарников после распаковки
       let foundBinPath = null;
       const subDirs = fs.readdirSync(ffmpegExtractPath);
-      const ffmpegExecutable = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
-      const ffprobeExecutable = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+      const ffmpegExecutable =
+        process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+      const ffprobeExecutable =
+        process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
       for (const dir of subDirs) {
         const potentialBin = path.join(ffmpegExtractPath, dir, "bin");
         if (
@@ -819,7 +886,7 @@ async function downloadMedia(
     // но для читабельности используем ожидаемые по умолчанию
     const videoOutputTemp = path.join(downloadPath, `video_${uniqueId}.mp4`);
     const audioOutputTemp = path.join(downloadPath, `audio_${uniqueId}.m4a`);
-    const mergedOutput    = path.join(downloadPath, `${sanitizedFilename}.mkv`);
+    const mergedOutput = path.join(downloadPath, `${sanitizedFilename}.mkv`);
 
     // Удаление старых фрагментов, если они существуют
     for (const file of [videoOutputTemp, audioOutputTemp]) {
@@ -974,13 +1041,19 @@ async function downloadMedia(
     } else {
       // Если audioFormat не валиден (muxed fallback)
       // Переименовываем скачанный видеофайл с корректным расширением
-      const finalExt = (typeof videoFormat === "string" && videoFormat) ? null : null; // не знаем из format_id
+      const finalExt =
+        typeof videoFormat === "string" && videoFormat ? null : null; // не знаем из format_id
       // попытаемся угадать расширение из resolution-подбора (мы передаём его снаружи как videoExt)
-      const properExt = (typeof audioExt === "string" && audioExt === null) ? null : null; // заглушка, не используется
+      const properExt =
+        typeof audioExt === "string" && audioExt === null ? null : null; // заглушка, не используется
       // так как мы заранее знаем расширение из selectFormatsByQuality, передайте его параметром `fps` далее
       // здесь применяем: если передан fps как объект, проигнорируем — берём videoExt через замыкание
-      const targetExt = (typeof videoExt === "string" && videoExt) ? videoExt : "mp4";
-      const properOutput = path.join(downloadPath, `${sanitizedFilename}.${targetExt}`);
+      const targetExt =
+        typeof videoExt === "string" && videoExt ? videoExt : "mp4";
+      const properOutput = path.join(
+        downloadPath,
+        `${sanitizedFilename}.${targetExt}`,
+      );
       try {
         fs.renameSync(videoOutputTemp, properOutput);
         log.info(`[downloadMedia] Muxed stream saved as ${properOutput}`);
@@ -1090,7 +1163,13 @@ function isDownloadCancelledFunc() {
   return isDownloadCancelled;
 }
 
-log.info("[download.js] tools dir:", getToolsDir(), "(default:", getDefaultToolsDir(), ")");
+log.info(
+  "[download.js] tools dir:",
+  getToolsDir(),
+  "(default:",
+  getDefaultToolsDir(),
+  ")",
+);
 log.info("[download.js] yt-dlp path:", getYtDlpPath());
 log.info("[download.js] ffmpeg path:", getFfmpegPath());
 log.info("[download.js] ffprobe path:", getFfprobePath());

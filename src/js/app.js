@@ -22,7 +22,7 @@
 const path = require("path");
 const fs = require("fs");
 
-const Store = require("electron-store");
+const ElectronStore = require('electron-store').default;
 const log = require("electron-log");
 
 const { app, BrowserWindow, dialog } = require("electron");
@@ -41,7 +41,7 @@ const { setupAutoUpdater } = require("./app/autoUpdater.js");
 const { setupGlobalShortcuts } = require("./app/shortcuts.js");
 
 // Initialize store and logging
-const store = new Store();
+const store = new ElectronStore();
 const isDev = process.argv.includes("--dev");
 
 // Set application user model ID (for Windows notifications)
@@ -69,6 +69,7 @@ const ffprobePath = path.join(
 );
 
 log.info("App starting...");
+console.time("App → Total Startup Time");
 
 let mainWindow;
 let clipboardMonitorInstance;
@@ -240,9 +241,9 @@ if (!app.requestSingleInstanceLock()) {
         mainWindow.webContents.send("download-path-changed", downloadPath);
       }
 
-      log.info(`Download path restored: ${downloadPath}`);
+      log.info(`Downloader → Download path restored: ${downloadPath}`);
     } catch (error) {
-      log.error("Error restoring download path:", error);
+      log.error("Downloader → Error restoring download path:", error);
     }
   }
 
@@ -251,6 +252,7 @@ if (!app.requestSingleInstanceLock()) {
    */
   function initializeMainWindowEvents() {
     mainWindow.webContents.on("did-finish-load", async () => {
+      console.timeLog("App → Total Startup Time", "Renderer finished load");
       try {
         await restoreDownloadPath();
 
@@ -297,7 +299,7 @@ if (!app.requestSingleInstanceLock()) {
       fileExists,
     );
 
-    mainWindow.webContents.openDevTools({ mode: "detach" }); // 👈 добавь эту строку
+    mainWindow.webContents.openDevTools({ mode: "detach" });
 
     dependencies.mainWindow = mainWindow;
 
@@ -312,6 +314,10 @@ if (!app.requestSingleInstanceLock()) {
     // Initialize clipboard monitor
     initializeClipboardMonitor();
 
+    console.timeLog(
+      "App → Total Startup Time",
+      "Main window created & IPC ready",
+    );
     // Setup mainWindow events
     initializeMainWindowEvents();
   }

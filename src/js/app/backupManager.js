@@ -484,7 +484,8 @@ async function openPath(input) {
       const prefix = `${profileName}_Backup_`;
       const zips = entries
         .filter(
-          (e) => e.isFile() && e.name.startsWith(prefix) && e.name.endsWith(".zip"),
+          (e) =>
+            e.isFile() && e.name.startsWith(prefix) && e.name.endsWith(".zip"),
         )
         .map((e) => path.join(folder, e.name));
 
@@ -492,7 +493,8 @@ async function openPath(input) {
         let latest = null;
         for (const z of zips) {
           const stz = await fsp.stat(z);
-          if (!latest || stz.mtimeMs > latest.mtimeMs) latest = { file: z, mtimeMs: stz.mtimeMs };
+          if (!latest || stz.mtimeMs > latest.mtimeMs)
+            latest = { file: z, mtimeMs: stz.mtimeMs };
         }
         if (latest) {
           shell.showItemInFolder(latest.file);
@@ -500,7 +502,9 @@ async function openPath(input) {
         }
       }
     } catch (err) {
-      log.warn(`[backup] Failed to find latest archive for '${profileName}': ${err?.message || err}`);
+      log.warn(
+        `[backup] Failed to find latest archive for '${profileName}': ${err?.message || err}`,
+      );
     }
   }
 
