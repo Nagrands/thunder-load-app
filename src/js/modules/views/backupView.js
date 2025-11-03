@@ -707,8 +707,8 @@ export default function renderBackup() {
           ${nameFieldHTML}
           ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
           ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
-          ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
           ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
+          ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
           <div class="bk-preview-card">
             <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>Предпросмотр</strong></div>
             <div id="bk-preview" class="text-sm bk-preview"></div>
@@ -857,7 +857,7 @@ export default function renderBackup() {
         btn.innerHTML = '<i class="fa-solid fa-filter"></i>';
         inputContainer.querySelector(".input-actions").appendChild(btn);
 
-        btn.addEventListener("click", () => {
+            btn.addEventListener("click", () => {
           let listBox = overlay.querySelector(".file-filter-popup");
           if (!listBox) {
             listBox = document.createElement("div");
@@ -867,63 +867,107 @@ export default function renderBackup() {
             listBox.style.top = "100%";
             listBox.style.left = "0";
             listBox.style.width = "100%";
-            listBox.style.maxHeight = "200px";
+            listBox.style.maxHeight = "260px";
             listBox.style.overflowY = "auto";
-            listBox.style.background = "rgba(32,32,40,0.95)";
+            listBox.style.background = "rgba(32,32,40,0.97)";
             listBox.style.border = "1px solid rgba(255,255,255,0.1)";
             listBox.style.borderRadius = "8px";
             listBox.style.zIndex = "999";
-            listBox.style.padding = "4px 0";
+            listBox.style.padding = "8px 12px";
+            listBox.style.color = "#fff";
             inputContainer.appendChild(listBox);
 
-            const options = [
-              "*.ini",
-              "*.cfg",
-              "*.json",
-              "*.bak",
-              "*.txt",
-              "*.docx",
-              "*.pdf",
-            ];
-            options.forEach((opt) => {
-              const item = document.createElement("div");
-              item.className = "file-filter-item";
-              item.textContent = opt;
-              item.style.padding = "6px 10px";
-              item.style.cursor = "pointer";
+            const categories = {
+              "Конфигурации": ["*.ini", "*.cfg", "*.conf", "*.json"],
+              "Документы": ["*.txt", "*.docx", "*.pdf"],
+              "Прочее": ["*.log", "*.dat", "*.xml"]
+            };
 
-              item.addEventListener(
-                "mouseenter",
-                () => (item.style.background = "rgba(120,180,255,0.2)"),
-              );
-              item.addEventListener(
-                "mouseleave",
-                () => (item.style.background = "transparent"),
-              );
-              item.addEventListener("click", () => {
-                const current = patsField.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                if (!current.includes(opt)) current.push(opt);
-                patsField.value = current.join(",");
-                listBox.remove();
+            const selected = new Set(
+              patsField.value.split(",").map(s => s.trim()).filter(Boolean)
+            );
+
+            for (const [cat, exts] of Object.entries(categories)) {
+              const catBox = document.createElement("fieldset");
+              catBox.className = "filter-category";
+              catBox.style.border = "none";
+              catBox.style.marginBottom = "8px";
+              catBox.innerHTML = `<legend style='font-size:0.8rem;opacity:0.8;margin-bottom:4px;'>${cat}</legend>`;
+              exts.forEach(ext => {
+                const id = `chk-${ext.replace(/[^a-z0-9]/gi, "")}`;
+                const label = document.createElement("label");
+                label.style.display = "flex";
+                label.style.alignItems = "center";
+                label.style.gap = "6px";
+                label.style.cursor = "pointer";
+                label.style.padding = "2px 0";
+                const chk = document.createElement("input");
+                chk.type = "checkbox";
+                chk.id = id;
+                chk.checked = selected.has(ext);
+                chk.addEventListener("change", () => {
+                  if (chk.checked) selected.add(ext);
+                  else selected.delete(ext);
+                });
+                label.appendChild(chk);
+                const span = document.createElement("span");
+                span.textContent = ext;
+                label.appendChild(span);
+                catBox.appendChild(label);
               });
+              listBox.appendChild(catBox);
+            }
 
-              listBox.appendChild(item);
+            const btnBar = document.createElement("div");
+            btnBar.style.display = "flex";
+            btnBar.style.justifyContent = "space-between";
+            btnBar.style.marginTop = "6px";
+            const btnApply = document.createElement("button");
+            btnApply.textContent = "Применить";
+            btnApply.className = "btn btn-xs btn-primary";
+            const btnClear = document.createElement("button");
+            btnClear.textContent = "Очистить";
+            btnClear.className = "btn btn-xs btn-secondary";
+            btnBar.appendChild(btnClear);
+            btnBar.appendChild(btnApply);
+            listBox.appendChild(btnBar);
+
+            btnApply.addEventListener("click", () => {
+              patsField.value = Array.from(selected).join(",");
+              if (listBox) {
+                listBox.classList.add("closing");
+                setTimeout(() => listBox.remove(), 180);
+              }
+              updatePreview();
+            });
+
+            btnClear.addEventListener("click", () => {
+              selected.clear();
+              patsField.value = "";
+              if (listBox) {
+                listBox.classList.add("closing");
+                setTimeout(() => listBox.remove(), 180);
+              }
+              updatePreview();
             });
 
             setTimeout(() => {
               const closePopup = (e) => {
                 if (!listBox.contains(e.target) && e.target !== btn) {
-                  listBox.remove();
+                  if (listBox) {
+                    listBox.classList.add("closing");
+                    setTimeout(() => listBox.remove(), 180);
+                  }
                   document.removeEventListener("mousedown", closePopup, true);
                 }
               };
               document.addEventListener("mousedown", closePopup, true);
             }, 0);
           } else {
-            listBox.remove();
+            if (listBox) {
+              listBox.classList.add("closing");
+              setTimeout(() => listBox.remove(), 180);
+            }
           }
         });
       }
