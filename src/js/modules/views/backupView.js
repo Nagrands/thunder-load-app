@@ -878,9 +878,24 @@ export default function renderBackup() {
             inputContainer.appendChild(listBox);
 
             const categories = {
-              "Конфигурации": ["*.ini", "*.cfg", "*.conf", "*.json"],
-              "Документы": ["*.txt", "*.docx", "*.pdf"],
-              "Прочее": ["*.log", "*.dat", "*.xml"]
+              "Конфигурации": [
+                "*.ini", "*.cfg", "*.conf", "*.json", "*.yaml", "*.yml", "*.xml"
+              ],
+              "Сценарии и программы": [
+                "*.bat", "*.cmd", "*.ps1", "*.sh", "*.exe", "*.msi", "*.jar", "*.py"
+              ],
+              "Документы": [
+                "*.txt", "*.pdf", "*.rtf", "*.doc", "*.docx", "*.xls", "*.xlsx", "*.csv", "*.odt"
+              ],
+              "Изображения": [
+                "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp", "*.svg"
+              ],
+              "Аудио и видео": [
+                "*.mp3", "*.wav", "*.flac", "*.ogg", "*.mp4", "*.mkv", "*.avi", "*.mov", "*.webm"
+              ],
+              "Прочее": [
+                "*.dat", "*.log", "*.bak", "*.tmp", "*.sii"
+              ]
             };
 
             const selected = new Set(
@@ -905,9 +920,25 @@ export default function renderBackup() {
                 chk.type = "checkbox";
                 chk.id = id;
                 chk.checked = selected.has(ext);
+                // Автоматическое обновление поля фильтра при изменении чекбокса
                 chk.addEventListener("change", () => {
-                  if (chk.checked) selected.add(ext);
-                  else selected.delete(ext);
+                  if (chk.checked) {
+                    selected.add(ext);
+                  } else {
+                    selected.delete(ext);
+                  }
+
+                  // Обновляем значение поля
+                  patsField.value = Array.from(selected).join(",");
+
+                  // Принудительно показать кнопку очистки, если поле заполнено
+                  const clearBtn = document.querySelector(`.clear-field-btn[data-target="#${patsField.id}"]`);
+                  if (clearBtn) {
+                    clearBtn.style.display = patsField.value.trim() ? "" : "none";
+                  }
+
+                  // Обновить предпросмотр после изменения
+                  updatePreview();
                 });
                 label.appendChild(chk);
                 const span = document.createElement("span");
@@ -917,39 +948,6 @@ export default function renderBackup() {
               });
               listBox.appendChild(catBox);
             }
-
-            const btnBar = document.createElement("div");
-            btnBar.style.display = "flex";
-            btnBar.style.justifyContent = "space-between";
-            btnBar.style.marginTop = "6px";
-            const btnApply = document.createElement("button");
-            btnApply.textContent = "Применить";
-            btnApply.className = "btn btn-xs btn-primary";
-            const btnClear = document.createElement("button");
-            btnClear.textContent = "Очистить";
-            btnClear.className = "btn btn-xs btn-secondary";
-            btnBar.appendChild(btnClear);
-            btnBar.appendChild(btnApply);
-            listBox.appendChild(btnBar);
-
-            btnApply.addEventListener("click", () => {
-              patsField.value = Array.from(selected).join(",");
-              if (listBox) {
-                listBox.classList.add("closing");
-                setTimeout(() => listBox.remove(), 180);
-              }
-              updatePreview();
-            });
-
-            btnClear.addEventListener("click", () => {
-              selected.clear();
-              patsField.value = "";
-              if (listBox) {
-                listBox.classList.add("closing");
-                setTimeout(() => listBox.remove(), 180);
-              }
-              updatePreview();
-            });
 
             setTimeout(() => {
               const closePopup = (e) => {
