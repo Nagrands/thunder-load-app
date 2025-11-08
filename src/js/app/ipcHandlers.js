@@ -435,7 +435,7 @@ function setupIpcHandlers(dependencies) {
         const txt = await fetchText(addTs(url));
         const m = String(txt || "").match(rx);
         if (m && m[1]) return m[1];
-      } catch (_) {}
+      } catch (_) { }
     }
     try {
       const html = await fetchText(
@@ -445,7 +445,7 @@ function setupIpcHandlers(dependencies) {
         /latest\s+release\s+version\s*:\s*([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i,
       );
       if (m && m[1]) return m[1];
-    } catch (_) {}
+    } catch (_) { }
     return null;
   }
   // ---- /helpers ----
@@ -897,7 +897,7 @@ function setupIpcHandlers(dependencies) {
             ok === total ? "success" : ok ? "warning" : "error",
           );
         }
-      } catch (_) {}
+      } catch (_) { }
       return { success: true, results: res };
     } catch (e) {
       log.error("backup:run error:", e);
@@ -1017,12 +1017,11 @@ function setupIpcHandlers(dependencies) {
         log.info(`Path: ${filePath}`);
         log.info(`Quality: ${quality}`);
         log.info(
-          `Actual: ${
-            videoFormat === null
-              ? `audio: ${resolution}`
-              : resolution !== "unknown"
-                ? `${resolution} ${fps ? fps + "fps" : ""}`
-                : "unknown"
+          `Actual: ${videoFormat === null
+            ? `audio: ${resolution}`
+            : resolution !== "unknown"
+              ? `${resolution} ${fps ? fps + "fps" : ""}`
+              : "unknown"
           }`,
         );
         log.info(`Source: ${url}`);
@@ -1049,12 +1048,11 @@ function setupIpcHandlers(dependencies) {
       log.info(`Path: ${filePath}`);
       log.info(`Quality: ${quality}`);
       log.info(
-        `Actual: ${
-          videoFormat === null
-            ? `audio: ${resolution}`
-            : resolution !== "unknown"
-              ? `${resolution} ${fps ? fps + "fps" : ""}`
-              : "unknown"
+        `Actual: ${videoFormat === null
+          ? `audio: ${resolution}`
+          : resolution !== "unknown"
+            ? `${resolution} ${fps ? fps + "fps" : ""}`
+            : "unknown"
         }`,
       );
       log.info(`Source: ${url}`);
@@ -1201,15 +1199,19 @@ function setupIpcHandlers(dependencies) {
     try {
       const folderPath = app.getPath("userData");
       const filePath = path.join(folderPath, "wireguard.conf");
+
       if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath, { recursive: true });
       }
       if (!fs.existsSync(filePath)) {
         fs.writeFileSync(filePath, "", "utf8");
       }
-      shell.showItemInFolder(filePath);
+
+      shell.openPath(filePath);
+
+      log.info("Конфигурационный файл открыт в текстовом редакторе:", filePath);
     } catch (e) {
-      log.error("wg-open-config-folder error:", e);
+      log.error("wg-open-config-file error:", e);
     }
   });
 
@@ -1232,6 +1234,33 @@ function setupIpcHandlers(dependencies) {
       log.info(
         "WG_OPEN_NETWORK_SETTINGS: платформа не поддерживается для открытия настроек сети.",
       );
+    }
+  });
+
+  // WG Unlock: export log to file
+  ipcMain.on(CHANNELS.WG_EXPORT_LOG, async (event, logContent) => {
+    try {
+      const { filePath } = await dialog.showSaveDialog({
+        title: 'Экспорт лога WireGuard',
+        defaultPath: `wireguard-log-${new Date().toISOString().slice(0, 10)}.txt`,
+        filters: [
+          { name: 'Text Files', extensions: ['txt'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      });
+
+      if (filePath) {
+        await fs.promises.writeFile(filePath, logContent, 'utf8');
+        // Отправляем объект с filePath вместо просто строки
+        event.reply('wg-log-export-success', { filePath });
+        log.info('Лог WireGuard экспортирован:', filePath);
+      } else {
+        // Пользователь отменил диалог
+        event.reply('wg-log-export-error', { error: 'Экспорт отменен пользователем' });
+      }
+    } catch (e) {
+      log.error('wg-log-export error:', e);
+      event.reply('wg-log-export-error', { error: e.message });
     }
   });
 

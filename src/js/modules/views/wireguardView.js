@@ -348,7 +348,7 @@ export default function renderWireGuard() {
         deadline = await window.electron.ipcRenderer.invoke(
           "get-auto-shutdown-deadline",
         );
-      } catch (_) {}
+      } catch (_) { }
 
       if (enabled) {
         if (deadline && Number.isFinite(Number(deadline))) {
@@ -413,8 +413,8 @@ export default function renderWireGuard() {
               <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
-              <button id="wg-open-config-folder" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Папка настроек">
-                <i class="fa-solid fa-folder-open"></i>
+              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию">
+                <i class="fa-solid fa-file-edit"></i>
               </button>
               <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top">
                 <i class="fa-solid fa-network-wired"></i>
@@ -447,7 +447,15 @@ export default function renderWireGuard() {
                 <i class="fa-solid fa-terminal"></i>
                 Лог активности
                 <span class="ml-auto">
-                  <button id="wg-log-clear" type="button" class="small-button" 
+                  <button id="wg-log-copy" type="button" class="log-action-btn" 
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена">
+                    <i class="fa-solid fa-copy"></i>
+                  </button>
+                  <button id="wg-log-export" type="button" class="log-action-btn" 
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
+                    <i class="fa-solid fa-download"></i>
+                  </button>
+                  <button id="wg-log-clear" type="button" class="log-action-btn" 
                     data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
                     <i class="fa-solid fa-trash"></i>
                   </button>
@@ -684,10 +692,103 @@ export default function renderWireGuard() {
     // Отправка UDP-пакета
     getEl("wg-send", view)?.addEventListener("click", handleSend);
 
-    // Открыть папку настроек
-    const openConfigBtn = getEl("wg-open-config-folder", view);
+    `
+<div class="wg-section">
+    <details class="wg-log-block">
+      <summary>
+        <i class="fa-solid fa-terminal"></i>
+        Лог активности
+        <span class="ml-auto">
+          <button id="wg-log-copy" type="button" class="log-action-btn" 
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+          <button id="wg-log-export" type="button" class="log-action-btn" 
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
+            <i class="fa-solid fa-download"></i>
+          </button>
+          <button id="wg-log-clear" type="button" class="log-action-btn" 
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </span>
+      </summary>
+      <pre id="wg-log" class="wg-status console"></pre>
+    </details>
+</div>
+`
+
+    // Добавим новые обработчики после существующего обработчика очистки лога:
+    // После обработчика очистки лога добавить:
+
+    // Копирование лога в буфер обмена
+    const copyLogBtn = getEl("wg-log-copy", view);
+    copyLogBtn?.addEventListener("click", async () => {
+      const pre = getEl("wg-log", view);
+      if (pre && pre.textContent) {
+        try {
+          await navigator.clipboard.writeText(pre.textContent);
+          toast("Лог скопирован в буфер обмена");
+          log("[Лог] Содержимое лога скопировано в буфер обмена");
+
+          // Визуальная обратная связь
+          copyLogBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>Скопировано</span>';
+          copyLogBtn.style.background = 'rgba(var(--color-success-rgb), 0.1)';
+          copyLogBtn.style.borderColor = 'var(--color-success)';
+          copyLogBtn.style.color = 'var(--color-success)';
+
+          setTimeout(() => {
+            copyLogBtn.innerHTML = '<i class="fa-solid fa-copy"></i>';
+            copyLogBtn.style.background = '';
+            copyLogBtn.style.borderColor = '';
+            copyLogBtn.style.color = '';
+          }, 2000);
+        } catch (err) {
+          console.error('Ошибка копирования:', err);
+          toast("Не удалось скопировать лог", false);
+          log(`[Ошибка] Копирование лога: ${err.message}`, true);
+        }
+      } else {
+        toast("Лог пуст", false);
+      }
+    });
+
+    // Экспорт лога в файл
+    const exportLogBtn = getEl("wg-log-export", view);
+    exportLogBtn?.addEventListener("click", () => {
+      const pre = getEl("wg-log", view);
+      if (pre && pre.textContent) {
+        log("[Лог] Экспорт лога в файл");
+        window.electron.ipcRenderer.send("wg-export-log", pre.textContent);
+
+        // Визуальная обратная связь
+        exportLogBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Экспорт...</span>';
+        exportLogBtn.disabled = true;
+
+        setTimeout(() => {
+          exportLogBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+          exportLogBtn.disabled = false;
+        }, 3000);
+      } else {
+        toast("Лог пуст", false);
+      }
+    });
+
+    // Добавим обработчик для события успешного экспорта
+    window.electron.ipcRenderer.on("wg-log-export-success", (event, filePath) => {
+      toast(`Лог экспортирован`);
+      log(`[Лог] Успешно экспортирован в файл: ${filePath}`);
+    });
+
+    window.electron.ipcRenderer.on("wg-log-export-error", (event, error) => {
+      toast("Ошибка при экспорте лога", false);
+      log(`[Ошибка] Экспорт лога: ${error}`, true);
+    });
+
+    // Открыть файл конфигурации
+    const openConfigBtn = getEl("wg-open-config-file", view);
     openConfigBtn?.addEventListener("click", () => {
-      log("[Действие] Открыть папку настроек");
+      log("[Действие] Открыть файл конфигурации");
       window.electron.ipcRenderer.send("wg-open-config-folder");
     });
 

@@ -17114,6 +17114,30 @@ video {
   align-items: center;
   gap: 8px;
 }
+.wg-log-block summary .ml-auto .log-action-btn {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-quality);
+  font-size: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.wg-log-block summary .ml-auto .log-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--color-highlight);
+}
+.wg-log-block summary .ml-auto .log-action-btn:active {
+  transform: translateY(1px);
+}
+.wg-log-block summary .ml-auto .log-action-btn i {
+  font-size: 11px;
+}
 .wg-log-block[open] summary i.fa-chevron-right {
   transform: rotate(90deg);
 }
@@ -17351,6 +17375,16 @@ video {
   opacity: 1;
 }
 
+@media (max-width: 768px) {
+  .wg-log-block summary .ml-auto {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .wg-log-block summary .ml-auto .log-action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
 .backup-view::after {
   content: "";
   position: fixed;
@@ -17919,8 +17953,8 @@ video {
   color: var(--color-highlight);
   border: 1.5px solid var(--color-hover);
   border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 0.97rem;
+  padding: 8px;
+  font-size: 0.88rem;
   outline: none;
   background-clip: padding-box;
   transition: border-color 0.22s, box-shadow 0.22s;
