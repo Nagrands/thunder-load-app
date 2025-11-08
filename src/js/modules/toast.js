@@ -17,19 +17,21 @@ function showToast(
   duration = 5500,
   title = null,
   onClickUndo = null,
-  accent = false
+  accent = false,
 ) {
   const toast = document.createElement("div");
-  const toastClass = accent ? `toast toast-${type} toast-accent-${type}` : `toast toast-${type}`;
+  const toastClass = accent
+    ? `toast toast-${type} toast-accent-${type}`
+    : `toast toast-${type}`;
   toast.className = toastClass;
 
   // Создаем HTML структуру в стиле Liquid Glass
   toast.innerHTML = `
     <i class="toast-icon ${getIconClass(type)}"></i>
     <div class="toast-content">
-      ${title ? `<div class="toast-title">${title}</div>` : ''}
+      ${title ? `<div class="toast-title">${title}</div>` : ""}
       <div class="toast-message">${message}</div>
-      ${onClickUndo ? '<a href="#" class="toast-undo" id="undo-action">Отменить</a>' : ''}
+      ${onClickUndo ? '<a href="#" class="toast-undo" id="undo-action">Отменить</a>' : ""}
     </div>
     <button class="toast-close" aria-label="Закрыть уведомление">
       <i class="fas fa-times"></i>
@@ -40,7 +42,7 @@ function showToast(
   toastContainer.appendChild(toast);
 
   // Устанавливаем анимацию прогресс-бара
-  const progressBar = toast.querySelector('.toast-progress');
+  const progressBar = toast.querySelector(".toast-progress");
   if (progressBar) {
     progressBar.style.animationDuration = `${duration}ms`;
   }
@@ -89,23 +91,23 @@ function setupToastEventHandlers(toast, duration, onClickUndo) {
   // Пауза при наведении (улучшение UX)
   toast.addEventListener("mouseenter", () => {
     clearTimeout(closeTimer);
-    const progressBar = toast.querySelector('.toast-progress');
+    const progressBar = toast.querySelector(".toast-progress");
     if (progressBar) {
-      progressBar.style.animationPlayState = 'paused';
+      progressBar.style.animationPlayState = "paused";
     }
   });
 
   toast.addEventListener("mouseleave", () => {
     closeTimer = setTimeout(() => closeToast(toast), duration);
-    const progressBar = toast.querySelector('.toast-progress');
+    const progressBar = toast.querySelector(".toast-progress");
     if (progressBar) {
-      progressBar.style.animationPlayState = 'running';
+      progressBar.style.animationPlayState = "running";
     }
   });
 
   // Поддержка клавиатуры
   toast.addEventListener("keydown", (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       closeToast(toast);
       clearTimeout(closeTimer);
     }
@@ -136,7 +138,7 @@ function getIconClass(type) {
     success: "fas fa-check-circle",
     error: "fas fa-times-circle",
     warning: "fas fa-exclamation-triangle",
-    info: "fas fa-info-circle"
+    info: "fas fa-info-circle",
   };
   return icons[type] || icons.info;
 }
@@ -193,8 +195,8 @@ function showUndoable(message, undoCallback, title = "Действие выпо�
  * Закрывает все активные тосты
  */
 function closeAllToasts() {
-  const toasts = toastContainer.querySelectorAll('.toast');
-  toasts.forEach(toast => closeToast(toast));
+  const toasts = toastContainer.querySelectorAll(".toast");
+  toasts.forEach((toast) => closeToast(toast));
 }
 
 /**
@@ -215,7 +217,7 @@ function showLoading(message = "Загрузка...", title = "Пожалуйс�
   `;
 
   toastContainer.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.classList.add("show");
   }, 100);
@@ -226,21 +228,21 @@ function showLoading(message = "Загрузка...", title = "Пожалуйс�
   return {
     close: () => closeToast(toast),
     update: (newMessage, newTitle = null) => {
-      const messageEl = toast.querySelector('.toast-message');
-      const titleEl = toast.querySelector('.toast-title');
+      const messageEl = toast.querySelector(".toast-message");
+      const titleEl = toast.querySelector(".toast-title");
       if (messageEl) messageEl.textContent = newMessage;
       if (newTitle && titleEl) titleEl.textContent = newTitle;
-    }
+    },
   };
 }
 
-export { 
-  showToast, 
-  showSuccess, 
-  showError, 
-  showWarning, 
-  showInfo, 
-  showUndoable, 
+export {
+  showToast,
+  showSuccess,
+  showError,
+  showWarning,
+  showInfo,
+  showUndoable,
   closeAllToasts,
-  showLoading 
+  showLoading,
 };

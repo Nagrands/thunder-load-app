@@ -22,7 +22,7 @@
 const path = require("path");
 const fs = require("fs");
 
-const ElectronStore = require('electron-store').default;
+const ElectronStore = require("electron-store").default;
 const log = require("electron-log");
 
 const { app, BrowserWindow, dialog } = require("electron");

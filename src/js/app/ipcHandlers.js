@@ -13,7 +13,7 @@ const { CHANNELS } = require("../ipc/channels");
 
 const { getToolsVersions } = require("./toolsVersions");
 const fs = require("fs");
-const ElectronStore = require('electron-store').default;
+const ElectronStore = require("electron-store").default;
 const store = new ElectronStore();
 const fsPromises = fs.promises;
 const path = require("path");

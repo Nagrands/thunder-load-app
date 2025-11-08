@@ -44,7 +44,7 @@ const {
   ensureToolsDir,
   resolveToolPath,
 } = require("../app/toolsPaths");
-const ElectronStore = require('electron-store').default;
+const ElectronStore = require("electron-store").default;
 
 // Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
 

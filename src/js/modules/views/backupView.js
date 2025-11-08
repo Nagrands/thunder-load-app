@@ -11,6 +11,8 @@ import { initTooltips } from "../tooltipInitializer.js";
  * @property {string} backup_path        - Absolute destination folder for archives.
  * @property {string} [profile_path]     - Optional profile folder to include (placed into "Profiles").
  * @property {string[]} [config_patterns]- Optional list of filename masks (e.g. ['*.ini','*.cfg']). Empty → all files.
+ * @property {string} [archive_type]     - Archive type: 'zip' or 'tar.gz'. Default: 'zip'.
+ * @property {number} [compression_level]- Compression level from 0 to 9. Default: 6.
  */
 
 /**
@@ -214,7 +216,8 @@ export default function renderBackup() {
   };
 
   showHint();
-  setInterval(showHint, 10000);
+  const hintTimer = setInterval(showHint, 10000);
+  wrapper.addEventListener("remove", () => clearInterval(hintTimer));
 
   // Autofocus search when opening the tab
   queueMicrotask(() => {
@@ -408,6 +411,8 @@ export default function renderBackup() {
     // Update Bootstrap tooltips
     const updateTooltip = (el, text) => {
       if (!el) return;
+      // Безопасная проверка наличия Bootstrap Tooltip
+      if (!window.bootstrap?.Tooltip) return;
       try {
         const TT = window.bootstrap && window.bootstrap.Tooltip;
         if (!TT) return;
@@ -488,7 +493,7 @@ export default function renderBackup() {
       if (!res?.success) throw new Error(res?.error || "load failed");
       state.programs = res.programs || [];
       const t = await invoke("backup:getLastTimes");
-      state.lastTimes = t?.success ? t.map || {} : {};
+      state.lastTimes = t?.success ? t.map || t.data || {} : {};
       renderList();
     } catch (error) {
       console.error("Failed to load backup programs:", error);
@@ -510,6 +515,7 @@ export default function renderBackup() {
    * Render the visible list of presets with current filter applied.
    * @returns {void}
    */
+  // TODO: рассмотреть виртуализацию списка при большом количестве профилей
   function renderList() {
     const root = getEl("#bk-list");
     root.innerHTML = "";
@@ -613,6 +619,8 @@ export default function renderBackup() {
     });
 
     updateActionsState();
+    // Сбросить прокрутку списка после фильтрации
+    root.scrollTop = 0;
     queueMicrotask(() => initTooltips());
   }
 
@@ -707,6 +715,30 @@ export default function renderBackup() {
           ${nameFieldHTML}
           ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
           ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
+          <div class="wg-field double-field">
+            <label class="wg-field flex flex-col gap-1">
+              <span class="text-sm">Тип</span>
+              <select id="f-archive-type" class="input">
+                <option value="zip" ${(init.archive_type || "zip") === "zip" ? "selected" : ""}>ZIP</option>
+                <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
+              </select>
+            </label>
+            <label class="wg-field flex flex-col gap-1">
+              <span class="text-sm">Сжатие</span>
+              <select id="f-compression-level" class="input">
+                <option value="0" ${(init.compression_level || 6) === 0 ? "selected" : ""}>0 - Без сжатия (быстрее)</option>
+                <option value="1" ${(init.compression_level || 6) === 1 ? "selected" : ""}>1 - Минимальное</option>
+                <option value="2" ${(init.compression_level || 6) === 2 ? "selected" : ""}>2</option>
+                <option value="3" ${(init.compression_level || 6) === 3 ? "selected" : ""}>3</option>
+                <option value="4" ${(init.compression_level || 6) === 4 ? "selected" : ""}>4</option>
+                <option value="5" ${(init.compression_level || 6) === 5 ? "selected" : ""}>5 - Стандартное</option>
+                <option value="6" ${(init.compression_level || 6) === 6 ? "selected" : ""}>6 - Хорошее (рекомендуется)</option>
+                <option value="7" ${(init.compression_level || 6) === 7 ? "selected" : ""}>7</option>
+                <option value="8" ${(init.compression_level || 6) === 8 ? "selected" : ""}>8</option>
+                <option value="9" ${(init.compression_level || 6) === 9 ? "selected" : ""}>9 - Максимальное (медленнее)</option>
+              </select>
+            </label>
+          </div>
           ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
           ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
           <div class="bk-preview-card">
@@ -857,7 +889,7 @@ export default function renderBackup() {
         btn.innerHTML = '<i class="fa-solid fa-filter"></i>';
         inputContainer.querySelector(".input-actions").appendChild(btn);
 
-            btn.addEventListener("click", () => {
+        btn.addEventListener("click", () => {
           let listBox = overlay.querySelector(".file-filter-popup");
           if (!listBox) {
             listBox = document.createElement("div");
@@ -878,28 +910,64 @@ export default function renderBackup() {
             inputContainer.appendChild(listBox);
 
             const categories = {
-              "Конфигурации": [
-                "*.ini", "*.cfg", "*.conf", "*.json", "*.yaml", "*.yml", "*.xml"
+              Конфигурации: [
+                "*.ini",
+                "*.cfg",
+                "*.conf",
+                "*.json",
+                "*.yaml",
+                "*.yml",
+                "*.xml",
               ],
               "Сценарии и программы": [
-                "*.bat", "*.cmd", "*.ps1", "*.sh", "*.exe", "*.msi", "*.jar", "*.py"
+                "*.bat",
+                "*.cmd",
+                "*.ps1",
+                "*.sh",
+                "*.exe",
+                "*.msi",
+                "*.jar",
+                "*.py",
               ],
-              "Документы": [
-                "*.txt", "*.pdf", "*.rtf", "*.doc", "*.docx", "*.xls", "*.xlsx", "*.csv", "*.odt"
+              Документы: [
+                "*.txt",
+                "*.pdf",
+                "*.rtf",
+                "*.doc",
+                "*.docx",
+                "*.xls",
+                "*.xlsx",
+                "*.csv",
+                "*.odt",
               ],
-              "Изображения": [
-                "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp", "*.svg"
+              Изображения: [
+                "*.png",
+                "*.jpg",
+                "*.jpeg",
+                "*.gif",
+                "*.bmp",
+                "*.webp",
+                "*.svg",
               ],
               "Аудио и видео": [
-                "*.mp3", "*.wav", "*.flac", "*.ogg", "*.mp4", "*.mkv", "*.avi", "*.mov", "*.webm"
+                "*.mp3",
+                "*.wav",
+                "*.flac",
+                "*.ogg",
+                "*.mp4",
+                "*.mkv",
+                "*.avi",
+                "*.mov",
+                "*.webm",
               ],
-              "Прочее": [
-                "*.dat", "*.log", "*.bak", "*.tmp", "*.sii"
-              ]
+              Прочее: ["*.dat", "*.log", "*.bak", "*.tmp", "*.sii"],
             };
 
             const selected = new Set(
-              patsField.value.split(",").map(s => s.trim()).filter(Boolean)
+              patsField.value
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
             );
 
             for (const [cat, exts] of Object.entries(categories)) {
@@ -908,7 +976,7 @@ export default function renderBackup() {
               catBox.style.border = "none";
               catBox.style.marginBottom = "8px";
               catBox.innerHTML = `<legend style='font-size:0.8rem;opacity:0.8;margin-bottom:4px;'>${cat}</legend>`;
-              exts.forEach(ext => {
+              exts.forEach((ext) => {
                 const id = `chk-${ext.replace(/[^a-z0-9]/gi, "")}`;
                 const label = document.createElement("label");
                 label.style.display = "flex";
@@ -932,9 +1000,13 @@ export default function renderBackup() {
                   patsField.value = Array.from(selected).join(",");
 
                   // Принудительно показать кнопку очистки, если поле заполнено
-                  const clearBtn = document.querySelector(`.clear-field-btn[data-target="#${patsField.id}"]`);
+                  const clearBtn = document.querySelector(
+                    `.clear-field-btn[data-target="#${patsField.id}"]`,
+                  );
                   if (clearBtn) {
-                    clearBtn.style.display = patsField.value.trim() ? "" : "none";
+                    clearBtn.style.display = patsField.value.trim()
+                      ? ""
+                      : "none";
                   }
 
                   // Обновить предпросмотр после изменения
@@ -985,13 +1057,7 @@ export default function renderBackup() {
       }
     }
 
-    const _debouncedUpdateSave = ((fn) => {
-      let t;
-      return () => {
-        clearTimeout(t);
-        t = setTimeout(fn, 120);
-      };
-    })(updateSaveState);
+    const _debouncedUpdateSave = debounce(updateSaveState, 120);
 
     // Field error handling
     function markFieldError(id, hasError, message) {
@@ -1169,6 +1235,16 @@ export default function renderBackup() {
       validatePath("f-prof", false),
     );
 
+    q("#f-archive-type")?.addEventListener("change", () => {
+      updatePreview();
+      _debouncedUpdateSave();
+    });
+
+    q("#f-compression-level")?.addEventListener("change", () => {
+      updatePreview();
+      _debouncedUpdateSave();
+    });
+
     // Initial validation
     validatePath("f-src", !!init.source_path);
     validatePath("f-dst", !!init.backup_path);
@@ -1180,6 +1256,24 @@ export default function renderBackup() {
       const dst = q("#f-dst")?.value?.trim();
       const prof = q("#f-prof")?.value?.trim();
       const pats = q("#f-pats")?.value?.trim();
+      const archiveType = q("#f-archive-type")?.value;
+      const compressionLevel = parseInt(q("#f-compression-level")?.value, 10);
+
+      const compressionNames = {
+        0: "без сжатия (самое быстрое)",
+        1: "минимальное",
+        2: "низкое",
+        3: "умеренное",
+        4: "среднее",
+        5: "стандартное",
+        6: "хорошее (рекомендуется)",
+        7: "высокое",
+        8: "максимальное",
+        9: "ультра (самое медленное)",
+      };
+
+      const compressionText =
+        compressionNames[compressionLevel] || `уровень ${compressionLevel}`;
 
       const checkPathClass = (val, required) => {
         if (!val) return required ? "invalid-path" : "optional-path";
@@ -1207,6 +1301,12 @@ export default function renderBackup() {
 
       if (pats) {
         lines.push(`<div><strong>Фильтры</strong>: ${pats}</div>`);
+      }
+
+      if (archiveType) {
+        lines.push(
+          `<div><strong>Тип архива</strong>: ${archiveType.toUpperCase()} (${compressionText})</div>`,
+        );
       }
 
       const box = q("#bk-preview");
@@ -1257,6 +1357,8 @@ export default function renderBackup() {
       const backup_path = q("#f-dst").value.trim();
       const profile_path = q("#f-prof").value.trim();
       const config_patterns = parsePatterns(q("#f-pats").value);
+      const archive_type = q("#f-archive-type").value;
+      const compression_level = parseInt(q("#f-compression-level").value, 10);
 
       const saveBtn = q("#bk-save");
       if (saveBtn) {
@@ -1313,6 +1415,8 @@ export default function renderBackup() {
         backup_path,
         profile_path,
         config_patterns,
+        archive_type,
+        compression_level,
       };
 
       if (isNew) {
@@ -1599,6 +1703,9 @@ export default function renderBackup() {
   function updateClearVisibility() {
     if (!clearFilterBtn) return;
     const has = !!(filterInput && filterInput.value.trim());
+    // Уничтожить tooltip при скрытии кнопки
+    const tip = window.bootstrap?.Tooltip?.getInstance(clearFilterBtn);
+    if (tip) tip.dispose();
     clearFilterBtn.style.display = has ? "" : "none";
     clearFilterBtn.setAttribute("aria-hidden", has ? "false" : "true");
   }

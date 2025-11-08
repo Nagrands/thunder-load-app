@@ -7,8 +7,65 @@ const os = require("os");
 const { app, dialog, shell } = require("electron");
 const log = require("electron-log");
 const { promisify } = require("util");
-const { execFile } = require("child_process");
+const { exec, execFile } = require("child_process");
 const execFileAsync = promisify(execFile);
+const execAsync = promisify(exec);
+
+// Проверка доступности команд архивации
+async function checkCommandExists(command) {
+  try {
+    if (process.platform === "win32") {
+      await execAsync(`where ${command}`);
+    } else {
+      await execAsync(`which ${command}`);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Получение свободного места на диске
+async function getFreeDiskSpace(dirPath) {
+  try {
+    if (process.platform === "win32") {
+      const { stdout } = await execAsync(
+        `wmic logicaldisk where "DeviceID='${path.parse(dirPath).root.replace("\\", "")}'" get FreeSpace /value`,
+      );
+      const freeBytes = parseInt(stdout.split("=")[1].trim());
+      return Math.round(freeBytes / 1024 / 1024); // MB
+    } else {
+      const { stdout } = await execAsync(
+        `df -k "${dirPath}" | tail -1 | awk '{print $4}'`,
+      );
+      const freeKB = parseInt(stdout.trim());
+      return Math.round(freeKB / 1024); // MB
+    }
+  } catch (error) {
+    log.warn(
+      `[backup] Failed to get disk space for ${dirPath}: ${error.message}`,
+    );
+    return null;
+  }
+}
+
+// Нормализация путей для Windows
+function normalizePath(p) {
+  if (!p) return p;
+  // Убрать недопустимые символы Windows
+  const cleanPath = p.replace(/[<>"|?*]/g, "");
+  return path.resolve(cleanPath);
+}
+
+// Подготовка длинных путей для Windows
+function prepareLongPath(filePath) {
+  if (process.platform === "win32" && filePath.length > 240) {
+    if (!filePath.startsWith("\\\\?\\")) {
+      return "\\\\?\\" + path.resolve(filePath);
+    }
+  }
+  return path.resolve(filePath);
+}
 
 function getUserDataDir() {
   try {
@@ -27,7 +84,8 @@ function getConfigPath() {
 }
 
 async function ensureDir(dir) {
-  await fsp.mkdir(dir, { recursive: true });
+  const normalizedDir = normalizePath(dir);
+  await fsp.mkdir(normalizedDir, { recursive: true });
 }
 
 function wildcardToRegex(pattern) {
@@ -54,10 +112,13 @@ function matchByPatterns(fileName, patterns) {
  * @param {number} [delay=500] - Delay between retries in ms
  */
 async function copyFileWithRetry(src, dst, retries = 3, delay = 500) {
+  const srcLong = prepareLongPath(src);
+  const dstLong = prepareLongPath(dst);
+
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      await fsp.access(src, fs.constants.R_OK);
-      await fsp.copyFile(src, dst);
+      await fsp.access(srcLong, fs.constants.R_OK);
+      await fsp.copyFile(srcLong, dstLong);
       return;
     } catch (err) {
       if (err.code === "ENOENT") {
@@ -106,17 +167,19 @@ async function listLastTimes(programs) {
       if (!dir || !name) continue;
       const entries = await fsp.readdir(dir, { withFileTypes: true });
       const prefix = `${name}_Backup_`;
-      const zips = entries
+      const archives = entries
         .filter(
           (e) =>
-            e.isFile() && e.name.startsWith(prefix) && e.name.endsWith(".zip"),
+            e.isFile() &&
+            e.name.startsWith(prefix) &&
+            (e.name.endsWith(".zip") || e.name.endsWith(".tar.gz")),
         )
         .map((e) => path.join(dir, e.name));
       let latest = null;
-      for (const z of zips) {
-        const st = await fsp.stat(z);
+      for (const arch of archives) {
+        const st = await fsp.stat(arch);
         if (!latest || st.mtimeMs > latest.mtimeMs)
-          latest = { file: z, mtimeMs: st.mtimeMs };
+          latest = { file: arch, mtimeMs: st.mtimeMs };
       }
       if (latest) result[name] = latest.mtimeMs;
     } catch (err) {
@@ -130,9 +193,10 @@ async function listLastTimes(programs) {
 
 async function isDirNotEmptyWithPatterns(srcDir, patterns) {
   try {
-    const entries = await fsp.readdir(srcDir, { withFileTypes: true });
+    const srcDirLong = prepareLongPath(srcDir);
+    const entries = await fsp.readdir(srcDirLong, { withFileTypes: true });
     for (const entry of entries) {
-      const fullPath = path.join(srcDir, entry.name);
+      const fullPath = path.join(srcDirLong, entry.name);
       if (entry.isFile()) {
         if (matchByPatterns(entry.name, patterns)) {
           return true;
@@ -151,13 +215,16 @@ async function isDirNotEmptyWithPatterns(srcDir, patterns) {
 }
 
 async function copyTreeFiltered(src, dst, patterns) {
-  const st = await fsp.stat(src);
+  const srcLong = prepareLongPath(src);
+  const dstLong = prepareLongPath(dst);
+
+  const st = await fsp.stat(srcLong);
   if (!st.isDirectory()) throw new Error(`Source is not a directory: ${src}`);
   const stack = [""]; // relative paths
   while (stack.length) {
     const rel = stack.pop();
-    const curSrc = path.join(src, rel);
-    const curDst = path.join(dst, rel);
+    const curSrc = path.join(srcLong, rel);
+    const curDst = path.join(dstLong, rel);
     const items = await fsp.readdir(curSrc, { withFileTypes: true });
     for (const it of items) {
       const srcPath = path.join(curSrc, it.name);
@@ -182,21 +249,27 @@ async function copyTreeFiltered(src, dst, patterns) {
 async function copyProfile(profilePath, dstRoot) {
   if (!profilePath) return;
   try {
-    const st = await fsp.stat(profilePath);
+    const profilePathLong = prepareLongPath(profilePath);
+    const st = await fsp.stat(profilePathLong);
     if (!st.isDirectory()) return;
     const dst = path.join(dstRoot, "Profiles");
-    await copyDir(profilePath, dst);
-  } catch (_) {}
+    await copyDir(profilePathLong, dst);
+  } catch (err) {
+    log.warn(`[backup] Failed to copy profile: ${err.message}`);
+  }
 }
 
 async function copyDir(src, dst) {
-  const st = await fsp.stat(src);
+  const srcLong = prepareLongPath(src);
+  const dstLong = prepareLongPath(dst);
+
+  const st = await fsp.stat(srcLong);
   if (!st.isDirectory()) throw new Error(`Not a directory: ${src}`);
-  await ensureDir(dst);
-  const entries = await fsp.readdir(src, { withFileTypes: true });
+  await ensureDir(dstLong);
+  const entries = await fsp.readdir(srcLong, { withFileTypes: true });
   for (const e of entries) {
-    const s = path.join(src, e.name);
-    const d = path.join(dst, e.name);
+    const s = path.join(srcLong, e.name);
+    const d = path.join(dstLong, e.name);
     if (e.isDirectory()) {
       await copyDir(s, d);
     } else if (e.isFile()) {
@@ -206,43 +279,123 @@ async function copyDir(src, dst) {
   }
 }
 
-async function zipFolder(folderPath, zipPath) {
+async function zipFolder(
+  folderPath,
+  zipPath,
+  archiveType = "zip",
+  compressionLevel = 6,
+) {
   const platform = process.platform;
-  if (platform === "win32") {
-    // Use PowerShell Compress-Archive
-    const ps = "powershell.exe";
-    const args = [
-      "-NoProfile",
-      "-Command",
-      `Compress-Archive -LiteralPath '${folderPath.replace(/'/g, "''")}' -DestinationPath '${zipPath.replace(/'/g, "''")}' -Force`,
-    ];
-    await execFileAsync(ps, args, { windowsHide: true });
-  } else {
-    // Try zip -r
+  const folderPathLong = prepareLongPath(folderPath);
+  const zipPathLong = prepareLongPath(zipPath);
+
+  if (archiveType === "tar.gz") {
+    // Use tar with gzip compression
     try {
-      await execFileAsync("zip", ["-r", zipPath, path.basename(folderPath)], {
-        cwd: path.dirname(folderPath),
-      });
+      const args = [
+        "-czf",
+        zipPathLong,
+        "-C",
+        path.dirname(folderPathLong),
+        path.basename(folderPathLong),
+      ];
+      if (compressionLevel > 0) {
+        // Set compression level for gzip
+        process.env.GZIP = `-${compressionLevel}`;
+      }
+      await execFileAsync("tar", args);
+      return zipPathLong;
     } catch (e) {
-      // fallback: create tar.gz (different extension)
-      const tgz = zipPath.replace(/\.zip$/i, ".tar.gz");
-      await execFileAsync("tar", ["-czf", tgz, path.basename(folderPath)], {
-        cwd: path.dirname(folderPath),
-      });
-      return tgz;
+      log.warn(`[backup] tar.gz failed, trying fallback: ${e.message}`);
+      // Fallback to node-based implementation if tar fails
+      return await createTarGzFallback(
+        folderPathLong,
+        zipPathLong,
+        compressionLevel,
+      );
     }
+  } else {
+    // ZIP format
+    if (platform === "win32") {
+      // Use PowerShell Compress-Archive with compression level
+      const ps = "powershell.exe";
+      const args = [
+        "-NoProfile",
+        "-Command",
+        `$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal; if (${compressionLevel} -eq 0) { $compressionLevel = [System.IO.Compression.CompressionLevel]::NoCompression } elseif (${compressionLevel} -lt 5) { $compressionLevel = [System.IO.Compression.CompressionLevel]::Fastest }; Compress-Archive -LiteralPath '${folderPathLong.replace(/'/g, "''")}' -DestinationPath '${zipPathLong.replace(/'/g, "''")}' -CompressionLevel $compressionLevel -Force`,
+      ];
+      await execFileAsync(ps, args, { windowsHide: true });
+    } else {
+      // Use zip command with compression level - проверяем доступность
+      const zipAvailable = await checkCommandExists("zip");
+      if (zipAvailable) {
+        try {
+          await execFileAsync(
+            "zip",
+            [
+              "-r",
+              "-q",
+              `-${compressionLevel}`,
+              zipPathLong,
+              path.basename(folderPathLong),
+            ],
+            {
+              cwd: path.dirname(folderPathLong),
+            },
+          );
+        } catch (e) {
+          // fallback: create tar.gz if zip is not available
+          log.warn(`[backup] zip failed, falling back to tar.gz: ${e.message}`);
+          const tgz = zipPathLong.replace(/\.zip$/i, ".tar.gz");
+          return await zipFolder(
+            folderPathLong,
+            tgz,
+            "tar.gz",
+            compressionLevel,
+          );
+        }
+      } else {
+        // zip not available, use tar.gz directly
+        log.warn(`[backup] zip command not available, using tar.gz instead`);
+        const tgz = zipPathLong.replace(/\.zip$/i, ".tar.gz");
+        return await zipFolder(folderPathLong, tgz, "tar.gz", compressionLevel);
+      }
+    }
+    return zipPathLong;
   }
-  return zipPath;
+}
+
+// Fallback implementation for tar.gz using node.js
+async function createTarGzFallback(folderPath, zipPath, compressionLevel) {
+  return new Promise((resolve, reject) => {
+    const tar = require("tar");
+    tar
+      .c(
+        {
+          gzip: { level: compressionLevel },
+          file: zipPath,
+          cwd: path.dirname(folderPath),
+        },
+        [path.basename(folderPath)],
+      )
+      .then(() => resolve(zipPath))
+      .catch(reject);
+  });
 }
 
 async function moveOldBackups(backupDir, programName, keep = 7) {
   try {
-    const entries = await fsp.readdir(backupDir, { withFileTypes: true });
+    const backupDirLong = prepareLongPath(backupDir);
+    const entries = await fsp.readdir(backupDirLong, { withFileTypes: true });
     const prefix = `${programName}_Backup_`;
     const targets = [];
     for (const e of entries) {
-      if (e.isFile() && e.name.startsWith(prefix) && e.name.endsWith(".zip")) {
-        const full = path.join(backupDir, e.name);
+      if (
+        e.isFile() &&
+        e.name.startsWith(prefix) &&
+        (e.name.endsWith(".zip") || e.name.endsWith(".tar.gz"))
+      ) {
+        const full = path.join(backupDirLong, e.name);
         const st = await fsp.stat(full);
         targets.push({ file: full, mtimeMs: st.mtimeMs });
       }
@@ -270,6 +423,67 @@ async function moveOldBackups(backupDir, programName, keep = 7) {
   }
 }
 
+// Pre-flight checks
+async function preFlightChecks(program) {
+  const checks = [];
+  const name = program?.name;
+
+  // Проверка существования исходной директории
+  try {
+    const srcLong = prepareLongPath(program.source_path);
+    await fsp.access(srcLong);
+  } catch (error) {
+    checks.push(`Исходный путь не существует: ${program.source_path}`);
+  }
+
+  // Проверка доступности записи в целевую директорию
+  try {
+    const dstLong = prepareLongPath(program.backup_path);
+    await fsp.access(dstLong, fs.constants.W_OK);
+  } catch (error) {
+    checks.push(`Нет прав записи в целевую директорию: ${program.backup_path}`);
+  }
+
+  // Проверка профильной директории если указана
+  if (program.profile_path) {
+    try {
+      const profileLong = prepareLongPath(program.profile_path);
+      await fsp.access(profileLong);
+    } catch (error) {
+      checks.push(`Профильный путь не существует: ${program.profile_path}`);
+    }
+  }
+
+  // Проверка дискового пространства
+  try {
+    const freeSpace = await getFreeDiskSpace(program.backup_path);
+    if (freeSpace && freeSpace < 500) {
+      checks.push(
+        `Мало свободного места: ${freeSpace} MB (минимум 500 MB рекомендуется)`,
+      );
+    }
+  } catch (error) {
+    log.warn(`[backup] Disk space check failed for ${name}: ${error.message}`);
+  }
+
+  // Проверка команд архивации
+  if (program.archive_type === "zip" && process.platform !== "win32") {
+    const zipAvailable = await checkCommandExists("zip");
+    if (!zipAvailable) {
+      checks.push("Команда zip не найдена. Установите: brew install zip");
+    }
+  }
+
+  if (program.archive_type === "tar.gz") {
+    const tarAvailable = await checkCommandExists("tar");
+    if (!tarAvailable) {
+      checks.push("Команда tar не найдена");
+    }
+  }
+
+  return checks;
+}
+
 async function runBackup(program) {
   const name = program?.name;
   const src = program?.source_path;
@@ -278,37 +492,45 @@ async function runBackup(program) {
   const patterns = Array.isArray(program?.config_patterns)
     ? program.config_patterns
     : [];
+  const archiveType = program?.archive_type || "zip";
+  const compressionLevel = program?.compression_level ?? 6;
+
   if (!name || !src || !dstRoot) throw new Error("Invalid program config");
-  log.info(`[backup] Starting backup for program: ${name}`);
+
+  log.info(
+    `[backup] Starting backup for program: ${name}, type: ${archiveType}, compression: ${compressionLevel}`,
+  );
+  log.info(`[backup] Platform: ${process.platform}, Arch: ${process.arch}`);
+  log.info(`[backup] Node.js: ${process.version}`);
+
+  // Pre-flight checks
+  const preflightErrors = await preFlightChecks(program);
+  if (preflightErrors.length > 0) {
+    const errorMsg = `Pre-flight checks failed for ${name}:\n${preflightErrors.join("\n")}`;
+    log.error(`[backup] ${errorMsg}`);
+    throw new Error(errorMsg);
+  }
+
   const ts = new Date();
   const timestamp = `${ts.getFullYear()}-${String(ts.getMonth() + 1).padStart(2, "0")}-${String(ts.getDate()).padStart(2, "0")}_${String(ts.getHours()).padStart(2, "0")}-${String(ts.getMinutes()).padStart(2, "0")}-${String(ts.getSeconds()).padStart(2, "0")}`;
-  const tmpFolder = path.join(os.tmpdir(), `${name}_Backup_${timestamp}`);
+  const uniq = `${timestamp}_${process.pid}`;
+  const tmpFolder = path.join(os.tmpdir(), `${name}_Backup_${uniq}`);
+  const zipOutTmp = path.join(
+    os.tmpdir(),
+    `${name}_Backup_${uniq}.${archiveType}`,
+  );
 
-  const { available } = (await fsp.statvfs?.(dstRoot).catch(() => ({}))) || {};
-  try {
-    const diskInfo = await fsp.statvfs?.(dstRoot);
-    if (diskInfo && diskInfo.f_bavail && diskInfo.f_bsize) {
-      const freeMB = Math.round(
-        (diskInfo.f_bavail * diskInfo.f_bsize) / 1024 / 1024,
-      );
-      if (freeMB < 500) {
-        log.warn(
-          `[backup] Low disk space detected at '${dstRoot}': only ${freeMB} MB available`,
-        );
-      }
-    }
-  } catch {
-    // fallback for platforms without statvfs
-    const freeSpace = os.freemem?.()
-      ? Math.round(os.freemem() / 1024 / 1024)
-      : null;
-    if (freeSpace && freeSpace < 500) {
-      log.warn(`[backup] System memory low, only ${freeSpace} MB free`);
-    }
-  }
+  // ИСПРАВЛЕНИЕ: объявляем startTime ДО блока try
   const startTime = Date.now();
 
   try {
+    // Check available commands
+    const zipAvailable = await checkCommandExists("zip");
+    const tarAvailable = await checkCommandExists("tar");
+    log.info(
+      `[backup] Available commands: zip=${zipAvailable}, tar=${tarAvailable}`,
+    );
+
     const srcStat = await fsp.stat(src).catch(() => null);
     if (!srcStat || !srcStat.isDirectory())
       throw new Error(`Source not found: ${src}`);
@@ -317,8 +539,12 @@ async function runBackup(program) {
     await ensureDir(tmpFolder);
     await copyTreeFiltered(src, tmpFolder, patterns);
     await copyProfile(profile, tmpFolder);
-    const zipOutTmp = path.join(os.tmpdir(), `${name}_Backup_${timestamp}.zip`);
-    const finalZipTmp = await zipFolder(tmpFolder, zipOutTmp);
+    const finalZipTmp = await zipFolder(
+      tmpFolder,
+      zipOutTmp,
+      archiveType,
+      compressionLevel,
+    );
     const finalZipDst = path.join(dstRoot, path.basename(finalZipTmp));
     await fsp.rename(finalZipTmp, finalZipDst).catch(async () => {
       await fsp.copyFile(finalZipTmp, finalZipDst);
@@ -334,24 +560,37 @@ async function runBackup(program) {
   } finally {
     const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(2);
     log.info(`[backup] Backup for '${name}' finished in ${elapsedSec}s`);
+
+    // Enhanced cleanup - remove both temp folder and temp archive
     try {
-      const exists = await fsp
+      // Clean temp folder
+      const tmpFolderExists = await fsp
         .stat(tmpFolder)
         .then(() => true)
         .catch(() => false);
-      if (exists) {
-        const remainingFiles = await fsp.readdir(tmpFolder);
+      if (tmpFolderExists) {
+        const remainingFiles = await fsp.readdir(tmpFolder).catch(() => []);
         if (remainingFiles.length > 0) {
           log.warn(
             `[backup] Temporary backup folder '${tmpFolder}' not empty before deletion. Remaining files: ${remainingFiles.join(", ")}`,
           );
         }
-        log.warn(
-          `[backup] Temporary backup folder '${tmpFolder}' will be removed.`,
-        );
         await fsp.rm(tmpFolder, { recursive: true, force: true });
+        log.info(`[backup] Temporary folder cleaned: ${tmpFolder}`);
       }
-    } catch (_) {}
+
+      // Clean temp archive file if it exists
+      const zipTmpExists = await fsp
+        .stat(zipOutTmp)
+        .then(() => true)
+        .catch(() => false);
+      if (zipTmpExists) {
+        await fsp.unlink(zipOutTmp).catch(() => {});
+        log.info(`[backup] Temporary archive cleaned: ${zipOutTmp}`);
+      }
+    } catch (cleanupError) {
+      log.warn(`[backup] Cleanup error: ${cleanupError.message}`);
+    }
   }
 }
 
@@ -482,19 +721,21 @@ async function openPath(input) {
     try {
       const entries = await fsp.readdir(folder, { withFileTypes: true });
       const prefix = `${profileName}_Backup_`;
-      const zips = entries
+      const archives = entries
         .filter(
           (e) =>
-            e.isFile() && e.name.startsWith(prefix) && e.name.endsWith(".zip"),
+            e.isFile() &&
+            e.name.startsWith(prefix) &&
+            (e.name.endsWith(".zip") || e.name.endsWith(".tar.gz")),
         )
         .map((e) => path.join(folder, e.name));
 
-      if (zips.length > 0) {
+      if (archives.length > 0) {
         let latest = null;
-        for (const z of zips) {
-          const stz = await fsp.stat(z);
+        for (const arch of archives) {
+          const stz = await fsp.stat(arch);
           if (!latest || stz.mtimeMs > latest.mtimeMs)
-            latest = { file: z, mtimeMs: stz.mtimeMs };
+            latest = { file: arch, mtimeMs: stz.mtimeMs };
         }
         if (latest) {
           shell.showItemInFolder(latest.file);
@@ -526,4 +767,9 @@ module.exports = {
   runBackupBatch,
   chooseDir,
   openPath,
+  checkCommandExists,
+  getFreeDiskSpace,
+  normalizePath,
+  prepareLongPath,
+  preFlightChecks,
 };

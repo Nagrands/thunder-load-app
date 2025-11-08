@@ -2,7 +2,7 @@
 
 const { app, globalShortcut } = require("electron");
 const log = require("electron-log");
-const ElectronStore = require('electron-store').default;
+const ElectronStore = require("electron-store").default;
 const store = new ElectronStore();
 
 let shortcutsRegistered = false;

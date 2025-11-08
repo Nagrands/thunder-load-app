@@ -17807,10 +17807,7 @@ video {
   grid-column: 1/-1;
   border-radius: var(--border-radius);
   padding: 10px;
-  background: linear-gradient(135deg, rgba(45, 45, 55, 0.3), rgba(50, 50, 60, 0.25));
   border: 1px solid rgba(90, 160, 255, 0.22);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12);
-  margin-top: 0;
 }
 @media (max-width: 720px) {
   .backup-view .bk-modal .modal-body {
@@ -17896,10 +17893,10 @@ video {
 .backup-view .bk-modal .bk-form-grid .wg-field {
   min-width: 0;
   padding: 4px;
-  margin: 10px 0;
+  margin: 6px 0;
   display: grid;
   grid-template-columns: 1fr 3fr;
-  gap: 15px;
+  gap: 10px;
   transition: box-shadow 0.22s, border-color 0.22s;
   align-items: center;
   justify-items: start;
@@ -17907,15 +17904,89 @@ video {
 }
 .backup-view .bk-modal .bk-form-grid .wg-field:focus-within .text-sm {
   color: var(--color-accent);
-  background: linear-gradient(90deg, var(--color-hover), transparent 60%);
-  border-radius: 4px;
-  padding: 5px;
+  background: linear-gradient(180deg, var(--color-hover), transparent 75%);
+  border-radius: 8px;
   transition: background 0.22s;
 }
 .backup-view .bk-modal .bk-form-grid .wg-field:focus-within .input-container {
   box-shadow: 0 0 0 2px rgba(120, 180, 255, 0.22), 0 6px 18px rgba(0, 0, 0, 0.13);
   border-radius: 12px;
   transition: box-shadow 0.22s;
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input {
+  flex: 1;
+  background: rgba(32, 32, 40, 0.93);
+  color: var(--color-highlight);
+  border: 1.5px solid var(--color-hover);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.97rem;
+  outline: none;
+  background-clip: padding-box;
+  transition: border-color 0.22s, box-shadow 0.22s;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236ecaff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px !important;
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input:hover:not(.input-error):not(:focus) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 6px rgba(120, 180, 255, 0.15);
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(120, 180, 255, 0.22), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input.input-error {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 4px rgba(255, 107, 107, 0.33);
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff6b6b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input option {
+  background: rgba(32, 32, 40, 0.98);
+  color: var(--color-highlight);
+  padding: 8px 12px;
+  border: none;
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input option:checked {
+  background: rgba(120, 180, 255, 0.2);
+}
+.backup-view .bk-modal .bk-form-grid .wg-field select.input option:hover, .backup-view .bk-modal .bk-form-grid .wg-field select.input option:focus {
+  background: rgba(120, 180, 255, 0.2);
+}
+.backup-view .bk-modal .bk-form-grid .wg-field.double-field {
+  padding: 0;
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  align-items: center;
+  justify-items: stretch;
+}
+@media (max-width: 720px) {
+  .backup-view .bk-modal .bk-form-grid .wg-field.double-field {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+.backup-view .bk-modal .bk-form-grid .wg-field.double-field .wg-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* gap: 6px; */
+  /* justify-content: center; */
+}
+.backup-view .bk-modal .bk-form-grid .wg-field.double-field .wg-field .text-sm {
+  color: var(--color-accent);
+  font-weight: 500;
+  margin-bottom: 2px;
 }
 .backup-view .bk-modal .bk-form-grid .wg-field .text-sm {
   color: var(--color-accent);
@@ -18266,21 +18337,15 @@ video {
   animation: slide-in-from-top 0.4s ease-out;
 }
 .backup-view .bk-row {
-  --bk-row-bg: linear-gradient(
-    120deg,
-    rgba(40, 54, 80, 0.93) 0%,
-    rgba(30, 38, 60, 0.93) 100%
-  );
-  --bk-row-bg-hover: linear-gradient(
-    120deg,
-    rgba(60, 80, 130, 0.99) 0%,
-    rgba(38, 48, 78, 0.99) 100%
-  );
-  --bk-row-bg-selected: linear-gradient(
-    120deg,
-    rgba(80, 130, 255, 0.13) 0%,
-    rgba(80, 130, 255, 0.15) 100%
-  );
+  --bk-row-bg: linear-gradient(120deg,
+      rgba(40, 54, 80, 0.93) 0%,
+      rgba(30, 38, 60, 0.93) 100%);
+  --bk-row-bg-hover: linear-gradient(120deg,
+      rgba(60, 80, 130, 0.99) 0%,
+      rgba(38, 48, 78, 0.99) 100%);
+  --bk-row-bg-selected: linear-gradient(120deg,
+      rgba(80, 130, 255, 0.13) 0%,
+      rgba(80, 130, 255, 0.15) 100%);
   --bk-row-border: 1px solid rgba(120, 180, 255, 0.08);
   display: flex;
   flex-direction: row;
