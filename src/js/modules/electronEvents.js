@@ -19,6 +19,12 @@ function initElectronEvents() {
     if (versionElement) {
       versionElement.textContent = `v${version}`;
     }
+    try {
+      const el1 = document.getElementById('settings-app-version');
+      if (el1) el1.textContent = `v${version}`;
+      const el2 = document.getElementById('settings-tabs-version');
+      if (el2) el2.textContent = `v${version}`;
+    } catch {}
   });
 
   // Обработчики уведомлений
