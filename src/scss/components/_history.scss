@@ -586,8 +586,9 @@
 
 .log-actions {
   display: flex;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 2px;
+  padding: 6px;
   margin-left: auto;
   border-radius: var(--border-radius);
 }
