@@ -175,9 +175,9 @@ function setupIpcHandlers(dependencies) {
     try { mainWindow.webContents.send("update-error", String(message || 'Test error')); return true; } catch { return false; }
   });
 
-  ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, () => {
+  ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, async () => {
     try {
-      const tools = getToolsVersions(store);
+      const tools = await getToolsVersions(store);
 
       // Детальное логирование для диагностики
       log.info("Downloader → Tools versions check result:", {

@@ -82,6 +82,15 @@ const QUALITY_FHD = "FHD 1080p";
 const QUALITY_HD = "HD 720p";
 const QUALITY_SD = "SD 360p";
 
+const PREFERRED_AUDIO_LANGS = [
+  "ru",
+  "ru-ru",
+  "rus",
+  "russian",
+  "рус",
+  "русский",
+];
+
 // Флаги и состояние процессов
 let isDownloadCancelled = false;
 let currentDownloadPath = null;
@@ -201,6 +210,34 @@ function downloadFile(url, dest, redirects = 0) {
 function selectFormatsByQuality(formats, desiredQuality) {
   const pickBest = (arr, cmp) => (arr.length ? arr.sort(cmp)[0] : null);
 
+  const normalizeLang = (val) =>
+    typeof val === "string" ? val.toLowerCase() : String(val || "").toLowerCase();
+
+  const getAudioLangScore = (format) => {
+    const candidates = [
+      format?.language,
+      format?.language_preference,
+      format?.languagePreference,
+      format?.lang,
+      format?.format_note,
+    ];
+    for (const value of candidates) {
+      const normalized = normalizeLang(value);
+      if (!normalized) continue;
+      if (PREFERRED_AUDIO_LANGS.some((code) => normalized.includes(code))) return 0;
+    }
+    return 1;
+  };
+
+  const compareAudioFormats = (a, b) => {
+    const langDiff = getAudioLangScore(a) - getAudioLangScore(b);
+    if (langDiff !== 0) return langDiff;
+    const abrA = a?.abr || a?.tbr || 0;
+    const abrB = b?.abr || b?.tbr || 0;
+    if (abrB !== abrA) return abrB - abrA;
+    return (b.filesize || 0) - (a.filesize || 0);
+  };
+
   const onlyAudio = formats.filter(
     (f) => f.acodec !== "none" && f.vcodec === "none",
   );
@@ -213,7 +250,7 @@ function selectFormatsByQuality(formats, desiredQuality) {
 
   // AUDIO ONLY
   if (desiredQuality === QUALITY_AUDIO_ONLY) {
-    let audio = pickBest(onlyAudio, (a, b) => (b.abr || 0) - (a.abr || 0));
+    let audio = pickBest(onlyAudio, compareAudioFormats);
     // если чистого аудио нет — берём лучший muxed и качаем как есть
     if (!audio) {
       const m = pickBest(
@@ -250,7 +287,7 @@ function selectFormatsByQuality(formats, desiredQuality) {
         (a, b) =>
           (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
       );
-      const a = pickBest(onlyAudio, (x, y) => (y.abr || 0) - (x.abr || 0));
+      const a = pickBest(onlyAudio, compareAudioFormats);
       if (!v || !a)
         throw new Error("Suitable formats for source quality not found.");
       return {
@@ -323,7 +360,7 @@ function selectFormatsByQuality(formats, desiredQuality) {
   let audio = null;
 
   if (video) {
-    audio = pickBest(onlyAudio, (a, b) => (b.abr || 0) - (a.abr || 0));
+    audio = pickBest(onlyAudio, compareAudioFormats);
     if (!audio) {
       // нет отдельного аудио — попробуем подходящий muxed не выше target
       const m = pickBest(
