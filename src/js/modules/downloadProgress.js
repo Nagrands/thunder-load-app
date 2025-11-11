@@ -10,6 +10,34 @@ import {
 function initDownloadProgress() {
   let startedAt = null;
   let lastProgress = 0;
+  const topProgress = document.getElementById("top-download-progress");
+  const topProgressFill = document.getElementById(
+    "top-download-progress-fill",
+  );
+  let topProgressHideTimer = null;
+
+  const resetTopIndicator = () => {
+    if (!topProgress || !topProgressFill) return;
+    topProgress.classList.remove("is-visible");
+    topProgressFill.style.width = "0%";
+  };
+
+  const hideTopIndicator = (delay = 600) => {
+    if (!topProgress) return;
+    clearTimeout(topProgressHideTimer);
+    topProgressHideTimer = setTimeout(resetTopIndicator, delay);
+  };
+
+  const showTopIndicator = (progress) => {
+    if (!topProgress || !topProgressFill) return;
+    const normalized = Math.max(0, Math.min(100, progress));
+    topProgressFill.style.width = `${normalized}%`;
+    topProgress.classList.add("is-visible");
+    clearTimeout(topProgressHideTimer);
+    if (normalized >= 99.5) {
+      hideTopIndicator(900);
+    }
+  };
   window.electron.onProgress((progressValue) => {
     if (!state.isDownloading) return;
     const progress = Number(progressValue);
@@ -46,6 +74,13 @@ function initDownloadProgress() {
           progressBarContainer.dataset.eta = "";
         }
       } catch {}
+    }
+    showTopIndicator(progress);
+  });
+
+  window.addEventListener("download:state", (event) => {
+    if (event?.detail?.isDownloading === false) {
+      hideTopIndicator();
     }
   });
 }
