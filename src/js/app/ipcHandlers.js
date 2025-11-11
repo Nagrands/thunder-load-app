@@ -1242,7 +1242,7 @@ function setupIpcHandlers(dependencies) {
     try {
       const { filePath } = await dialog.showSaveDialog({
         title: 'Экспорт лога WireGuard',
-        defaultPath: `wireguard-log-${new Date().toISOString().slice(0, 10)}.txt`,
+        defaultPath: `wg-log-${new Date().toISOString().slice(0, 10)}.txt`,
         filters: [
           { name: 'Text Files', extensions: ['txt'] },
           { name: 'All Files', extensions: ['*'] }

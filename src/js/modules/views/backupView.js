@@ -115,12 +115,11 @@ export default function renderBackup() {
         <h1 class="section-heading">
           <div>
             Профиль 
-            <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="Видимых/всего">0/0</span>
+            <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями">
+              <i class="fa-solid fa-minus"></i>
+            </button>
           </div>
-          <label class="checkbox-label">
-            <input type="checkbox" class="bk-chk" id="bk-select-all" />
-            <span class="text-xs text-muted">выбрать всё</span>
-          </label>
+          
           <div>
             <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
             <div class="bk-actions">
@@ -131,7 +130,7 @@ export default function renderBackup() {
                 <i class="fa-solid fa-trash"></i>
                 <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
               </button>
-              <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled>
+              <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled style="display:none;">
                 <i class="fa-solid fa-play"></i>
                 <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
               </button>
@@ -158,6 +157,217 @@ export default function renderBackup() {
 
   container.innerHTML = html;
   wrapper.appendChild(container);
+
+  // Функция поиска элемента внутри wrapper
+  /**
+   * Shorthand DOM query inside the Backup view wrapper.
+   * @template {Element} T
+   * @param {string} sel
+   * @param {ParentNode} [root]
+   * @returns {T|null}
+   */
+  const getEl = (sel, root = wrapper) => root.querySelector(sel);
+
+  // Кнопка с иконкой «минус» вместо счётчика открывает модальное окно
+  const minusBtn = getEl("#bk-open-delete-modal");
+  if (minusBtn) {
+    minusBtn.addEventListener("click", () => {
+      if (typeof openBackupDeleteModal === "function") {
+        openBackupDeleteModal();
+      }
+    });
+  }
+
+// Добавляем стили для кастомных тултипов
+  const style = document.createElement('style');
+  style.textContent = `
+    .backup-tooltip .tooltip-arrow {
+      display: none !important;
+    }
+    .backup-tooltip .tooltip-inner {
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Удаляем стиль при удалении компонента
+  wrapper.addEventListener('remove', () => {
+    style.remove();
+  });
+
+  // Функция для инициализации тултипов в компоненте Backup
+  const initBackupTooltips = () => {
+    const tooltipTriggerList = wrapper.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+      // Удаляем существующий экземпляр тултипа
+      const existingInstance = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+      if (existingInstance) {
+        existingInstance.dispose();
+      }
+
+      // Создаем новый тултип только если есть title
+      const title = tooltipTriggerEl.getAttribute('title');
+      if (title && title.trim() !== '') {
+        new bootstrap.Tooltip(tooltipTriggerEl, {
+          boundary: wrapper,
+          customClass: 'backup-tooltip'
+        });
+      }
+    });
+  };
+
+// --- Модальное окно удаления/выбора профилей (единый стиль с редактированием) ---
+function openBackupDeleteModal() {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+    <div class="modal-content bk-modal">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-list-check"></i> Управление профилями</h2>
+        <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-select-all mb-2">
+          <label class="checkbox-label" style="gap:.5rem">
+            <input type="checkbox" id="bk-del-select-all"> <span>Выбрать все</span>
+          </label>
+        </div>
+        <div id="bk-delete-list" class="delete-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary bk-close">Отмена</button>
+        <button type="button" id="bk-confirm-delete" class="btn btn-danger">Удалить выбранные</button>
+      </div>
+    </div>
+  `;
+
+  // Показ оверлея, блокируем прокрутку
+  const _docEl = document.documentElement;
+  const _prevOverflow = _docEl.style.overflow;
+  _docEl.style.overflow = "hidden";
+  overlay.style.display = "flex";
+  wrapper.appendChild(overlay);
+
+  const q = (s) => overlay.querySelector(s);
+  const listEl = q("#bk-delete-list");
+  const selectAll = q("#bk-del-select-all");
+  const confirmBtn = q("#bk-confirm-delete");
+
+  // Вычисляем уже выделенные профили по чекбоксам основного списка
+  const selectedIndices = Array.from(wrapper.querySelectorAll('#bk-list .bk-chk:checked'))
+    .map(cb => Number(cb.dataset.i));
+
+  // Генерация списка профилей из состояния
+  listEl.innerHTML = state.programs.map((p, idx) => {
+    const checked = selectedIndices.includes(idx) ? "checked" : "";
+    const name = p.name || `Профиль ${idx + 1}`;
+    return `
+      <div class="form-check">
+        <input class="form-check-input bk-del-chk" type="checkbox" data-index="${idx}" ${checked}>
+        <label class="form-check-label">${name}</label>
+      </div>`;
+  }).join("");
+
+  const syncSelectAllState = () => {
+    const all = listEl.querySelectorAll(".bk-del-chk");
+    const checked = Array.from(all).filter(c => c.checked);
+    if (selectAll) {
+      selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+      selectAll.checked = all.length > 0 && checked.length === all.length;
+    }
+  };
+
+  const onItemChange = (chk) => {
+    const idx = Number(chk.dataset.index);
+    const mainChk = wrapper.querySelector(`.bk-chk[data-i="${idx}"]`);
+    if (mainChk) mainChk.checked = chk.checked;
+    syncSelectAllState();
+    if (typeof updateActionsState === "function") updateActionsState();
+  };
+
+  // Синхронизация чекбоксов между модалкой и основным списком
+  listEl.querySelectorAll(".bk-del-chk").forEach(chk => {
+    chk.addEventListener("change", () => onItemChange(chk));
+  });
+
+  // Обработка чекбокса "Выбрать все"
+  const totalProfiles = state.programs.length;
+  const initiallySelected = selectedIndices.length;
+  if (selectAll) {
+    selectAll.checked = initiallySelected && initiallySelected === totalProfiles;
+    selectAll.addEventListener('change', () => {
+      const all = listEl.querySelectorAll(".bk-del-chk");
+      all.forEach(chk => {
+        chk.checked = !!selectAll.checked;
+        onItemChange(chk);
+      });
+      syncSelectAllState();
+    });
+  }
+
+  // Закрытие как в редакторе профиля
+  const closeOverlay = () => {
+    overlay.remove();
+    window.removeEventListener("keydown", onEsc);
+    _docEl.style.overflow = _prevOverflow;
+    if (typeof updateActionsState === "function") updateActionsState();
+  };
+  overlay.querySelectorAll('.bk-close').forEach(b => b.addEventListener('click', closeOverlay));
+  overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) closeOverlay(); });
+  const onEsc = (e) => { if (e.key === 'Escape') closeOverlay(); };
+  window.addEventListener('keydown', onEsc);
+
+  // Подтверждение удаления
+  confirmBtn.onclick = () => {
+    closeOverlay();
+    const delBtn = getEl('#bk-del');
+    if (delBtn && !delBtn.disabled) delBtn.click();
+  };
+}
+
+  // Добавляем кнопку переключения вида профилей (Full / Compact)
+  const toolbarActions = container.querySelector("#bk-toolbar .bk-actions");
+  if (toolbarActions) {
+    const toggleViewBtn = document.createElement("button");
+    toggleViewBtn.id = "bk-toggle-view";
+    toggleViewBtn.className = "btn btn-sm";
+    toggleViewBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+    toggleViewBtn.title = "Переключить вид";
+    toggleViewBtn.setAttribute("data-bs-toggle", "tooltip");
+    toggleViewBtn.setAttribute("data-bs-placement", "top");
+
+    const runSelectedBtn = toolbarActions.querySelector("#bk-run-selected");
+    if (runSelectedBtn) {
+      toolbarActions.insertBefore(toggleViewBtn, runSelectedBtn);
+    } else {
+      toolbarActions.appendChild(toggleViewBtn);
+    }
+
+    toggleViewBtn.addEventListener("click", () => {
+      const checked = [...document.querySelectorAll(".bk-chk:checked")].map(el => el.dataset.i);
+
+      viewMode = viewMode === "full" ? "compact" : "full";
+      localStorage.setItem("bk_view_mode", JSON.stringify(viewMode));
+      renderList();
+
+      // восстанавливаем выбор
+      checked.forEach(i => {
+        const el = document.querySelector(`.bk-chk[data-i="${i}"]`);
+        if (el) el.checked = true;
+      });
+
+      updateActionsState();
+
+      const icon = toggleViewBtn.querySelector("i");
+      icon.className =
+        viewMode === "full" ? "fa-solid fa-bars" : "fa-solid fa-list";
+    });
+  }
 
   // Search filter logic
   const debounce = (fn, ms = 120) => {
@@ -225,15 +435,6 @@ export default function renderBackup() {
     s && s.focus();
   });
 
-  /**
-   * Shorthand DOM query inside the Backup view wrapper.
-   * @template {Element} T
-   * @param {string} sel
-   * @param {ParentNode} [root]
-   * @returns {T|null}
-   */
-  const getEl = (sel, root = wrapper) => root.querySelector(sel);
-
   const logBox = getEl("#bk-log");
 
   // Restore logBox content from localStorage if present
@@ -243,7 +444,7 @@ export default function renderBackup() {
       if (logData) {
         logBox.innerHTML = logData;
       }
-    } catch {}
+    } catch { }
   }
 
   /**
@@ -285,7 +486,7 @@ export default function renderBackup() {
    */
   function manageLogScroll() {
     if (!logBox)
-      return { wasScrolledToBottom: false, restoreScrollPosition: () => {} };
+      return { wasScrolledToBottom: false, restoreScrollPosition: () => { } };
 
     const threshold = 50;
     const isNearBottom =
@@ -352,10 +553,12 @@ export default function renderBackup() {
     // Save log to localStorage
     try {
       localStorage.setItem("backupLog", logBox.innerHTML);
-    } catch {}
+    } catch { }
   };
 
   const toast = (m, t = "success") => showToast(m, t);
+
+  let viewMode = JSON.parse(localStorage.getItem("bk_view_mode")) || "full";
 
   /** @type {BackupState} */
   const state = {
@@ -411,19 +614,19 @@ export default function renderBackup() {
     // Update Bootstrap tooltips
     const updateTooltip = (el, text) => {
       if (!el) return;
-      // Безопасная проверка наличия Bootstrap Tooltip
-      if (!window.bootstrap?.Tooltip) return;
       try {
-        const TT = window.bootstrap && window.bootstrap.Tooltip;
-        if (!TT) return;
-        const inst = TT.getInstance(el);
-        if (inst && typeof inst.setContent === "function") {
-          inst.setContent({ ".tooltip-inner": text });
-        } else if (inst) {
-          inst.dispose();
-          new TT(el, { title: text, trigger: "hover focus" });
+        const instance = bootstrap.Tooltip.getInstance(el);
+        if (instance) {
+          instance.dispose();
         }
-      } catch (_) {}
+        if (text && text.trim() !== '') {
+          el.setAttribute('title', text);
+          new bootstrap.Tooltip(el, {
+            boundary: wrapper,
+            customClass: 'backup-tooltip'
+          });
+        }
+      } catch (_) { }
     };
 
     updateTooltip(runSel, runSel ? runSel.title : "");
@@ -447,6 +650,18 @@ export default function renderBackup() {
     if (selAll) {
       selAll.indeterminate = count > 0 && count < total;
       selAll.checked = total > 0 && count === total;
+    }
+
+    // Переключение кнопок "Создать профиль" ↔ "Запустить для выбранных"
+    const addBtn = getEl("#bk-add");
+    if (addBtn && runSel) {
+      if (count > 0) {
+        addBtn.style.display = "none";
+        runSel.style.display = "";
+      } else {
+        addBtn.style.display = "";
+        runSel.style.display = "none";
+      }
     }
   }
 
@@ -518,17 +733,18 @@ export default function renderBackup() {
   // TODO: рассмотреть виртуализацию списка при большом количестве профилей
   function renderList() {
     const root = getEl("#bk-list");
+    if (!root || !state.programs) return;
     root.innerHTML = "";
 
     const filtered = state.filter
       ? state.programs.filter((p) => {
-          const q = state.filter.toLowerCase();
-          return (
-            (p.name || "").toLowerCase().includes(q) ||
-            (p.source_path || "").toLowerCase().includes(q) ||
-            (p.backup_path || "").toLowerCase().includes(q)
-          );
-        })
+        const q = state.filter.toLowerCase();
+        return (
+          (p.name || "").toLowerCase().includes(q) ||
+          (p.source_path || "").toLowerCase().includes(q) ||
+          (p.backup_path || "").toLowerCase().includes(q)
+        );
+      })
       : state.programs;
 
     // Update counts badge
@@ -577,6 +793,27 @@ export default function renderBackup() {
 
     filtered.forEach((p, index) => {
       const idx = state.programs.indexOf(p);
+
+      if (viewMode === "compact") {
+        const row = document.createElement("div");
+        row.className = "bk-row bk-row-compact wg-card";
+        row.innerHTML = `
+      <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
+      <div class="bk-row-content">
+        <div class="bk-row-main">
+          <i class="fa-solid fa-database"></i>
+          <span class="bk-name">${p.name}</span>
+        </div>
+      </div>
+      <div class="bk-row-actions">
+        <button class="btn bk-open" data-i="${idx}"><i class="fa-solid fa-folder-open"></i></button>
+        <button class="btn bk-run" data-i="${idx}"><i class="fa-solid fa-play"></i></button>
+      </div>`;
+        row.addEventListener("dblclick", () => showEditForm(idx));
+        root.appendChild(row);
+        return;
+      }
+
       const row = document.createElement("div");
       row.className = "bk-row wg-card";
       row.style.animationDelay = `${index * 0.05}s`;
@@ -588,29 +825,24 @@ export default function renderBackup() {
           : "все файлы";
 
       row.innerHTML = `
-        <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
-        <div class="bk-row-content min-w-0">
-          <div class="font-semibold truncate">${p.name}</div>
-          <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
-          <div class="back-filter">Фильтры: ${patterns}</div>
-          <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString() : ""}">${lbl.text}</span></div>
-        </div>
-        <div class="bk-row-actions">
-          <button class="btn btn-sm bk-edit" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn btn-sm bk-open-src" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
-          <button class="btn btn-sm bk-open" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
-          <button class="btn btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
-        </div>
-      `;
+    <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
+    <div class="bk-row-content min-w-0">
+      <div class="font-semibold truncate">${p.name}</div>
+      <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
+      <div class="back-filter">Фильтры: ${patterns}</div>
+      <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
+    </div>
+    <div class="bk-row-actions">
+      <button class="btn btn-sm bk-edit" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-open" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
+    </div>
+  `;
 
-      // Enable editing via double-click
       row.addEventListener("dblclick", () => showEditForm(idx));
       root.appendChild(row);
-
-      row.setAttribute(
-        "aria-label",
-        `${p.name}: ${p.source_path} → ${p.backup_path}`,
-      );
+      row.setAttribute("aria-label", `${p.name}: ${p.source_path} → ${p.backup_path}`);
     });
 
     // Update actions state and attach event listeners
@@ -621,7 +853,23 @@ export default function renderBackup() {
     updateActionsState();
     // Сбросить прокрутку списка после фильтрации
     root.scrollTop = 0;
-    queueMicrotask(() => initTooltips());
+    queueMicrotask(() => {
+      // Новый блок инициализации тултипов (с фильтрацией по title)
+      const tooltipTriggerList = [...root.querySelectorAll('[data-bs-toggle="tooltip"]')]
+        .filter(el => el.getAttribute("title"));
+      tooltipTriggerList.forEach(el => {
+        const instance = bootstrap.Tooltip.getInstance(el);
+        if (instance) instance.dispose();
+        bootstrap.Tooltip.getOrCreateInstance(el);
+      });
+
+      updateActionsState();
+    });
+  }
+
+  // Функция запуска профиля по индексу (используется в компактном режиме)
+  function runProfile(idx) {
+    runForIndices([idx]);
   }
 
   /**
@@ -687,12 +935,12 @@ export default function renderBackup() {
     const isNew = idx === -1;
     const init = isNew
       ? {
-          name: "",
-          source_path: "",
-          backup_path: "",
-          profile_path: "",
-          config_patterns: [],
-        }
+        name: "",
+        source_path: "",
+        backup_path: "",
+        profile_path: "",
+        config_patterns: [],
+      }
       : JSON.parse(JSON.stringify(state.programs[idx]));
 
     const nameFieldHTML = renderField(
@@ -1454,7 +1702,7 @@ export default function renderBackup() {
     });
 
     // Initialize tooltips
-    queueMicrotask(() => initTooltips());
+    queueMicrotask(() => initBackupTooltips());
   }
 
   /**
@@ -1595,9 +1843,9 @@ export default function renderBackup() {
   getEl("#bk-add").addEventListener("click", () => showEditForm(-1));
 
   getEl("#bk-del").addEventListener("click", async () => {
-    const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked")).map(
-      (c) => Number(c.dataset.i),
-    );
+    const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked"))
+      .filter((chk) => chk.offsetParent !== null) // <-- Добавьте этот фильтр
+      .map((c) => Number(c.dataset.i));
 
     if (!indices.length) {
       toast("Не выбрано ни одного профиля", "warning");
@@ -1626,9 +1874,9 @@ export default function renderBackup() {
   });
 
   getEl("#bk-run-selected")?.addEventListener("click", async () => {
-    const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked")).map(
-      (c) => Number(c.dataset.i),
-    );
+    const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked"))
+      .filter((chk) => chk.offsetParent !== null) // <-- И сюда
+      .map((c) => Number(c.dataset.i));
 
     if (!indices.length) return;
 
@@ -1641,7 +1889,7 @@ export default function renderBackup() {
       try {
         const btnFinal = getEl("#bk-run-selected");
         if (btnFinal) btnFinal.classList.remove("is-loading");
-      } catch (_) {}
+      } catch (_) { }
     }
   });
 
@@ -1658,7 +1906,7 @@ export default function renderBackup() {
     if (logBox) logBox.textContent = "";
     try {
       localStorage.removeItem("backupLog");
-    } catch {}
+    } catch { }
   });
 
   const logCopyBtn = getEl("#bk-log-copy");
@@ -1824,7 +2072,7 @@ export default function renderBackup() {
   });
 
   // Initialize tooltips
-  queueMicrotask(() => initTooltips());
+  queueMicrotask(() => initBackupTooltips());
 
   return wrapper;
 }

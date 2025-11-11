@@ -490,6 +490,98 @@
   // ---------------------------------------------------------------------------
   // Modal Styles
   // ---------------------------------------------------------------------------
+  // Стиль для модального окна выбора/удаления профилей
+  #bk-delete-modal {
+    .modal-dialog {
+      max-width: 420px;
+    }
+
+    .modal-content {
+      border-radius: 16px;
+      border: 1px solid rgba(120, 180, 255, 0.12);
+      background: linear-gradient(120deg, rgba(40, 50, 90, 0.9) 0%, rgba(30, 38, 60, 0.96) 100%);
+      backdrop-filter: blur(18px) saturate(1.12);
+      -webkit-backdrop-filter: blur(18px) saturate(1.12);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      color: var(--color-highlight);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid rgba(120, 180, 255, 0.12);
+      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(46,57,85,.32), rgba(24,32,56,.22));
+    }
+
+    .modal-title { font-weight: 700; font-size: 1rem; }
+
+    .modal-body {
+      padding: 12px 14px;
+      max-height: 360px;
+      overflow-y: auto;
+
+      .delete-select-all {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(120, 180, 255, 0.1);
+        border-radius: 10px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+      }
+
+      .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        transition: background .18s ease;
+
+        &:hover {
+          background: rgba(255,255,255,0.06);
+        }
+
+        .form-check-input {
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+          accent-color: var(--color-accent);
+        }
+
+        .form-check-label {
+          user-select: none;
+          color: var(--color-text-main);
+        }
+      }
+    }
+
+    .modal-footer {
+      border-top: 1px solid rgba(120, 180, 255, 0.12);
+      padding: 12px 14px;
+
+      .btn {
+        border-radius: 12px;
+        padding: 8px 14px;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 6px 18px rgba(0,0,0,.2);
+        transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+
+        &:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,0,0,.24); }
+      }
+
+      .btn-secondary {
+        background: linear-gradient(180deg, #2e3955 0%, #182038 100%);
+        color: var(--color-highlight);
+      }
+
+      #bk-confirm-delete,
+      .btn-danger {
+        background: linear-gradient(180deg, #ff4e4e, #d63a3a);
+        color: #fff;
+        border-color: rgba(255, 90, 90, 0.35);
+      }
+    }
+  }
+
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -644,15 +736,15 @@
             0 2px 8px rgba(0, 0, 0, 0.16);
         }
 
-        &.btn-primary {
-          background: linear-gradient(180deg, #3aa6ff, #1c7ed6);
-          color: #fff;
-        }
+        // &.btn-primary {
+        //   background: linear-gradient(180deg, #3aa6ff, #1c7ed6);
+        //   color: #fff;
+        // }
 
-        &.btn-secondary {
-          background: linear-gradient(180deg, #555, #333);
-          color: #eee;
-        }
+        // &.btn-secondary {
+        //   background: linear-gradient(180deg, #555, #333);
+        //   color: #eee;
+        // }
 
         &.is-loading {
           pointer-events: none;
@@ -1136,29 +1228,33 @@
     }
 
     .checkbox-label {
-      gap: 0.4rem;
+      gap: 0;
       font-size: 14px;
-      background-color: var(--color-hover);
-      border: 1px solid var(--color-hover);
-      border-radius: var(--border-radius);
-      padding: 5px 10px;
+      background: linear-gradient(180deg, rgba(46,57,85,.6) 0%, rgba(24,32,56,.6) 100%);
+      border: 1px solid rgba(120, 180, 255, 0.12);
+      border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
       cursor: pointer;
       align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,.18);
 
       &:hover {
-        background: var(--color-progress-bg);
-        box-shadow:
-          0 6px 18px rgba(60, 120, 255, 0.07),
-          0 2px 8px rgba(0, 0, 0, 0.19);
+        background: linear-gradient(90deg, rgba(120, 180, 255, 0.18), rgba(60, 120, 255, 0.12));
+        box-shadow: 0 6px 16px rgba(0,0,0,.24);
         border-color: rgba(120, 180, 255, 0.22);
       }
 
       input {
         transform: translateY(0);
+        width: 16px;
+        height: 16px;
       }
 
       span {
-        color: var(--color-highlight);
+        display: none; // подпись «выбрать всё» убрана из шапки
       }
     }
 
@@ -1173,6 +1269,29 @@
       font-weight: 600;
       letter-spacing: 5px;
       color: var(--color-text-main);
+    }
+
+    // Кнопка с иконкой «минус» слева от заголовка
+    #bk-open-delete-modal {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid rgba(120, 180, 255, 0.12);
+      background: linear-gradient(180deg, rgba(46,57,85,.6) 0%, rgba(24,32,56,.6) 100%);
+      color: var(--color-highlight);
+      box-shadow: 0 2px 10px rgba(0,0,0,.18);
+      transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        background: linear-gradient(90deg, rgba(120, 180, 255, 0.18), rgba(60, 120, 255, 0.12));
+        box-shadow: 0 6px 16px rgba(0,0,0,.24);
+      }
+
+      i { font-size: 0.95em; }
     }
   }
 
@@ -1468,11 +1587,8 @@
         width: 32px;
         height: 32px;
         padding: 0;
-        border-radius: 9px;
-        background: rgba(255, 255, 255, 0.08);
         color: var(--color-accent);
         border: none;
-        font-size: 1.09em;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -1482,7 +1598,6 @@
           transform 0.16s;
         cursor: pointer;
         outline: none;
-        box-shadow: 0 1.5px 7px 0 rgba(120, 180, 255, 0.07);
 
         &:hover,
         &:focus-visible {
@@ -1504,6 +1619,44 @@
           opacity: 0.55;
           pointer-events: none;
         }
+      }
+    }
+  }
+
+  .bk-row-compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background-color: var(--color-surface-2);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--color-surface-hover);
+    }
+
+    .bk-row-content {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+
+      .bk-name {
+        font-weight: 600;
+        color: var(--color-accent);
+      }
+    }
+
+    .bk-row-actions {
+      display: flex;
+      gap: 6px;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
     }
   }
@@ -2381,4 +2534,45 @@
       flex: 1 1 auto;
     }
   }
+}
+
+/* --- Модальное окно удаления профилей --- */
+#bk-delete-modal .modal-dialog {
+  max-width: 420px;
+}
+
+#bk-delete-modal .modal-body {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#bk-delete-modal .delete-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+#bk-delete-modal .delete-list .form-check {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#bk-delete-modal .delete-list .form-check:last-child {
+  border-bottom: none;
+}
+
+#bk-delete-modal .form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+#bk-delete-modal .form-check-input:checked + .form-check-label {
+  color: var(--accent-color, #0077ff);
+}
+
+#bk-delete-modal .modal-footer {
+  justify-content: space-between;
 }
