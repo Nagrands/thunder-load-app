@@ -84,6 +84,24 @@ const CHANNELS = Object.freeze({
   WG_OPEN_NETWORK_SETTINGS: "open-network-settings",
   WG_EXPORT_LOG: 'wg-export-log',
 
+  // Update window events
+  UPDATE_STATE_EVENT: "update:state",
+  UPDATE_PROGRESS_EVENT: "update:progress",
+  UPDATE_ERROR_EVENT: "update:error",
+  // App update events (main → renderer)
+  UPDATE_AVAILABLE: "update-available",
+  UPDATE_AVAILABLE_INFO: "update-available-info",
+  UPDATE_PROGRESS: "update-progress",
+  UPDATE_DOWNLOADED: "update-downloaded",
+  UPDATE_ERROR: "update-error",
+  UPDATE_MESSAGE: "update-message",
+
+  // Dev helpers (debug only)
+  UPDATE_DEV_OPEN: "update:dev-open",
+  UPDATE_DEV_PROGRESS: "update:dev-progress",
+  UPDATE_DEV_DOWNLOADED: "update:dev-downloaded",
+  UPDATE_DEV_ERROR: "update:dev-error",
+
   // Backup tab
   BACKUP_GET_PROGRAMS: "backup:getPrograms",
   BACKUP_SAVE_PROGRAMS: "backup:savePrograms",

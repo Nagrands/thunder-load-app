@@ -298,6 +298,19 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  position: relative; // allow absolute indicator positioning
+
+  .update-indicator {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 8px rgba(var(--color-accent-rgb), 0.9);
+    animation: updPulse 1.6s ease-in-out infinite;
+  }
 
   i {
     font-size: 14px;
@@ -324,6 +337,11 @@
   &:active {
     transform: translateY(0);
   }
+}
+
+@keyframes updPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.6; }
 }
 
 // Reload app button - возвращены старые стили

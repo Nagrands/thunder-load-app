@@ -446,21 +446,21 @@ export default function renderWireGuard() {
               <summary>
                 <i class="fa-solid fa-terminal"></i>
                 Лог активности
-                <span class="ml-auto">
-                  <button id="wg-log-copy" type="button" class="log-action-btn" 
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена">
-                    <i class="fa-solid fa-copy"></i>
-                  </button>
-                  <button id="wg-log-export" type="button" class="log-action-btn" 
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
-                    <i class="fa-solid fa-download"></i>
-                  </button>
-                  <button id="wg-log-clear" type="button" class="log-action-btn" 
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </span>
               </summary>
+              <div class="log-actions" aria-label="Действия с логом">
+                <button id="wg-log-copy" type="button" class="log-action-btn"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена">
+                  <i class="fa-solid fa-copy"></i>
+                </button>
+                <button id="wg-log-export" type="button" class="log-action-btn"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
+                  <i class="fa-solid fa-download"></i>
+                </button>
+                <button id="wg-log-clear" type="button" class="log-action-btn"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
               <pre id="wg-log" class="wg-status console"></pre>
             </details>
         </div>
@@ -692,32 +692,7 @@ export default function renderWireGuard() {
     // Отправка UDP-пакета
     getEl("wg-send", view)?.addEventListener("click", handleSend);
 
-    `
-<div class="wg-section">
-    <details class="wg-log-block">
-      <summary>
-        <i class="fa-solid fa-terminal"></i>
-        Лог активности
-        <span class="ml-auto">
-          <button id="wg-log-copy" type="button" class="log-action-btn" 
-            data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена">
-            <i class="fa-solid fa-copy"></i>
-          </button>
-          <button id="wg-log-export" type="button" class="log-action-btn" 
-            data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
-            <i class="fa-solid fa-download"></i>
-          </button>
-          <button id="wg-log-clear" type="button" class="log-action-btn" 
-            data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </span>
-      </summary>
-      <pre id="wg-log" class="wg-status console"></pre>
-    </details>
-</div>
-`
-
+    //
     // Добавим новые обработчики после существующего обработчика очистки лога:
     // После обработчика очистки лога добавить:
 

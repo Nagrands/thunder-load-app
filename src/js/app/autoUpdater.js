@@ -3,7 +3,7 @@
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 const path = require("path");
-const { ipcMain, Notification } = require("electron");
+const { ipcMain, Notification, app } = require("electron");
 
 const isMac = process.platform === "darwin";
 const iconPath = path.resolve(
@@ -30,6 +30,12 @@ function setupAutoUpdater(mainWindow) {
   autoUpdater.on("update-available", (info) => {
     const message = "Доступно новое обновление. Хотите загрузить его сейчас?";
     mainWindow.webContents.send("update-available", message);
+    try {
+      mainWindow.webContents.send("update-available-info", {
+        current: app.getVersion(),
+        next: info?.version || null,
+      });
+    } catch {}
 
     if (Notification.isSupported()) {
       new Notification({
@@ -62,8 +68,9 @@ function setupAutoUpdater(mainWindow) {
 
   // Обработчик прогресса загрузки обновления
   autoUpdater.on("download-progress", (progressObj) => {
-    const percent = progressObj.percent;
-    mainWindow.webContents.send("update-progress", percent);
+    try {
+      mainWindow.webContents.send("update-progress", progressObj);
+    } catch {}
   });
 
   // Обработчик события, когда обновление загружено

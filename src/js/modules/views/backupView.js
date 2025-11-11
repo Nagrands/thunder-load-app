@@ -114,7 +114,6 @@ export default function renderBackup() {
 
         <h1 class="section-heading">
           <div>
-            Профиль 
             <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями">
               <i class="fa-solid fa-minus"></i>
             </button>
@@ -143,12 +142,12 @@ export default function renderBackup() {
         <details class="wg-log-block">
           <summary class="log-summary">
             <span class="log-title"><i class="fa-solid fa-terminal"></i> Лог</span>
-            <div class="log-actions">
-              <button id="bk-log-copy" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог"><i class="fa-solid fa-copy"></i></button>
-              <button id="bk-log-export" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспорт в файл"><i class="fa-solid fa-file-arrow-down"></i></button>
-              <button id="bk-log-clear" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог"><i class="fa-solid fa-trash"></i></button>
-            </div>
           </summary>
+          <div class="log-actions" aria-label="Действия с логом">
+            <button id="bk-log-copy" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог"><i class="fa-solid fa-copy"></i></button>
+            <button id="bk-log-export" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспорт в файл"><i class="fa-solid fa-file-arrow-down"></i></button>
+            <button id="bk-log-clear" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог"><i class="fa-solid fa-trash"></i></button>
+          </div>
           <pre id="bk-log" class="wg-status console text-xs overflow-auto"></pre>
         </details>
       </div>
