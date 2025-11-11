@@ -236,6 +236,12 @@ const downloadVideo = async (url, quality) => {
       hour12: false,
     });
     const iconUrl = await window.electron.invoke("get-icon-path", url);
+    // Try to fetch a preview thumbnail for history entry
+    let thumbnail = "";
+    try {
+      const info = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      if (info && info.success && info.thumbnail) thumbnail = info.thumbnail;
+    } catch (_) {}
 
     const newLogEntry = {
       id: Date.now(),
@@ -244,6 +250,7 @@ const downloadVideo = async (url, quality) => {
       quality: actualQuality,
       dateTime: currentDateTime,
       iconUrl,
+      thumbnail,
       sourceUrl,
     };
 

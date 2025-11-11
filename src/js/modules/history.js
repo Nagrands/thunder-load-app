@@ -89,12 +89,20 @@ function createLogEntry(entry, index) {
     /audio/i.test(entry?.resolution || "") ||
     /audio only/i.test(format);
 
+  // Pick preview thumbnail; for audio-only use a placeholder image
+  const audioPlaceholder =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231a1f2e'/><stop offset='1' stop-color='%23243352'/></linearGradient></defs><rect width='320' height='180' fill='url(%23g)'/><g fill='%23a3b3ff' opacity='0.9'><path d='M190 60v58a26 26 0 11-10-20V70l40-10v12z'/></g></svg>"
+    );
+  const thumbSrc = entry?.thumbnail ? entry.thumbnail : (isAudioOnly ? audioPlaceholder : "");
+
   el.innerHTML = `
     <div class="text" data-filepath="${entry.filePath}" data-url="${entry.sourceUrl}" data-filename="${entry.fileName}">
       <div class="date-time-quality">
         <div class="date-time">
           <i class="fa-solid fa-clock"></i> ${entry.dateText || "неизвестно"}
-          ${host ? `<span class="hist-badge type-host ${hostClass}" title="Источник">${host}</span>` : ""}
+          ${host ? `<span class="hist-badge type-host ${hostClass}" title="Источник">${entry.iconUrl ? `<img class="host-icon" src="file://${entry.iconUrl}" alt="">` : ""}${host}</span>` : ""}
         </div>
         <span class="quality">
           <div class="log-badges top">
@@ -111,7 +119,7 @@ function createLogEntry(entry, index) {
       </div>
       <div class="log-filename">
         <span class="log-number">${index + 1}.</span>
-        <img src="file://${entry.iconUrl}" alt="Icon">
+        <img class="log-thumb${thumbSrc ? '' : ' hidden'}" src="${thumbSrc || ''}" alt="Preview" title="Развернуть превью" data-role="preview-toggle">
         <span class="log-name" title="${(entry.fileName || "").replace(/"/g, "&quot;")}">${entry.fileName}</span>
         
         <div class="log-actions">
@@ -135,6 +143,9 @@ function createLogEntry(entry, index) {
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
+      </div>
+      <div class="history-preview-collapsible${thumbSrc ? '' : ' hidden'}">
+        ${thumbSrc ? `<img class="history-preview-image" src="${thumbSrc}" alt="Preview">` : ""}
       </div>
     </div>
   `;
@@ -234,6 +245,64 @@ function createLogEntry(entry, index) {
   };
 
   el.addEventListener("click", el._clickHandler);
+
+  // Upgrade inline thumbnail: wrap with container and add indicator
+  try {
+    const thumbImg = el.querySelector('img[data-role="preview-toggle"]');
+    if (thumbImg) {
+      const wrap = document.createElement('div');
+      wrap.className = 'log-thumb-wrap' + (thumbImg.classList.contains('hidden') ? ' hidden' : '');
+      wrap.setAttribute('data-role', 'preview-toggle');
+      wrap.title = 'Развернуть превью';
+      thumbImg.classList.remove('hidden');
+      thumbImg.removeAttribute('data-role');
+      wrap.appendChild(thumbImg.cloneNode(true));
+      const ind = document.createElement('i');
+      ind.className = 'thumb-indicator fa-solid fa-chevron-down';
+      wrap.appendChild(ind);
+      thumbImg.parentNode.insertBefore(wrap, thumbImg);
+      thumbImg.remove();
+    }
+  } catch (_) {}
+
+  // Preview expand/collapse toggle
+  try {
+    const toggleBtn = el.querySelector('.log-thumb-wrap') || el.querySelector('[data-role="preview-toggle"]');
+    const collapsible = el.querySelector('.history-preview-collapsible');
+    if (toggleBtn && collapsible) {
+      // Fallback for YouTube maxres → hqdefault if 404
+      const attachYtFallback = (imgEl) => {
+        try {
+          if (!imgEl) return;
+          const src = imgEl.getAttribute('src') || '';
+          if (/img\.youtube\.com\/vi\/[^/]+\/maxresdefault\.jpg/i.test(src)) {
+            imgEl.onerror = () => {
+              imgEl.onerror = null;
+              imgEl.src = src.replace('maxresdefault.jpg', 'hqdefault.jpg');
+            };
+          }
+        } catch (_) {}
+      };
+      attachYtFallback(collapsible.querySelector('img'));
+      attachYtFallback(el.querySelector('.log-thumb-wrap .log-thumb'));
+
+      const toggle = (ev) => {
+        ev.stopPropagation();
+        const isOpen = collapsible.classList.toggle('open');
+        toggleBtn.classList.toggle('open', isOpen);
+        if (isOpen) {
+          const img = collapsible.querySelector('img');
+          const targetH = Math.min(420, (img?.naturalHeight || 180));
+          collapsible.style.maxHeight = targetH + 'px';
+          collapsible.style.opacity = '1';
+        } else {
+          collapsible.style.maxHeight = '0px';
+          collapsible.style.opacity = '0';
+        }
+      };
+      toggleBtn.addEventListener('click', toggle);
+    }
+  } catch (_) {}
 
   const folderBtn = el.querySelector(".open-folder-btn");
   if (folderBtn && !entry.isMissing) {

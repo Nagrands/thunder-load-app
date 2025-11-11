@@ -28,7 +28,7 @@ export default function renderDownloader(wrapper) {
 
     // Create glass layout similar to other tabs
     const center = document.createElement('div');
-    center.className = 'wg-center downloader-center';
+    center.className = 'downloader-center';
 
     const glass = document.createElement('div');
     glass.className = 'wg-glass';

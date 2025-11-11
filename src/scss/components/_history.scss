@@ -177,7 +177,7 @@
     }
   }
 
-  img {
+  img:not(.log-thumb):not(.history-preview-image):not(.host-icon) {
     width: 30px;
     height: 30px;
     animation: checkBounce 0.5s ease;
@@ -241,7 +241,7 @@
 
   .log-filename {
     display: grid;
-    grid-template-columns: 32px 30px 1fr auto;
+    grid-template-columns: 32px 72px 1fr auto;
     align-items: center;
     gap: 8px;
   }
@@ -280,6 +280,17 @@
     font-size: 12px;
     line-height: 1;
     white-space: nowrap;
+  }
+
+  // Service icon inside host badge
+  .hist-badge.type-host .host-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    border-radius: 3px;
+    display: inline-block;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
   }
 
   .hist-badge.muted {
@@ -359,6 +370,62 @@
   }
   .log-actions .log-play-btn i {
     color: var(--color-accent);
+  }
+
+  // Small inline thumb near filename
+  .log-thumb-wrap {
+    position: relative;
+    width: 64px;
+    height: 36px;
+    aspect-ratio: 16 / 9;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--color-hover);
+    background: #0e0e11;
+    cursor: zoom-in;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .log-thumb-wrap:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 0 0 1px var(--color-hover); }
+  .log-thumb-wrap.open .thumb-indicator { transform: translate(-2px, -2px) rotate(180deg); opacity: 1; }
+  .log-thumb-wrap.hidden { display: none; }
+  .log-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .thumb-indicator {
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    font-size: 12px;
+    color: var(--color-text-main);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.6));
+    opacity: 0.9;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+    pointer-events: none;
+  }
+
+  // Expandable preview under entry
+  .history-preview-collapsible {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+    margin: 6px 0 8px 0;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25), inset 0 0 0 1px var(--color-hover);
+  }
+  .history-preview-collapsible.hidden { display: none; }
+  .history-preview-collapsible.open { /* state toggled via JS */ }
+  .history-preview-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 420px;
+    object-fit: contain;
+    border-radius: 12px;
   }
 
   .new-entry {
