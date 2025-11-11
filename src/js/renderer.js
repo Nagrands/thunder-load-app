@@ -161,6 +161,48 @@ async function startRenderer() {
       { onShow: () => showHistory(false), onHide: () => showHistory(true) },
     );
 
+    // Apply sidebar visibility for disabled tabs (WG Unlock, Backup)
+    const isWgDisabled = () => {
+      try {
+        const raw = localStorage.getItem("wgUnlockDisabled");
+        return raw === null ? true : JSON.parse(raw) === true;
+      } catch {
+        return true;
+      }
+    };
+    const isBackupDisabled = () => {
+      try {
+        const raw = localStorage.getItem("backupDisabled");
+        return raw === null ? false : JSON.parse(raw) === true;
+      } catch {
+        return false;
+      }
+    };
+
+    function applySidebarTabVisibility() {
+      try {
+        const wgBtn = document.querySelector('#sidebar .sidebar-item[data-tab="wireguard"]');
+        const bkBtn = document.querySelector('#sidebar .sidebar-item[data-tab="backup"]');
+        if (wgBtn) wgBtn.style.display = isWgDisabled() ? "none" : "";
+        if (bkBtn) bkBtn.style.display = isBackupDisabled() ? "none" : "";
+
+        // If currently active tab becomes hidden, TabSystem will switch on next activate call;
+        // ensure active marker in sidebar stays consistent with visible items.
+        const activeId = (tabs && tabs.activeTabId) || null;
+        if (activeId === "wireguard" && isWgDisabled()) {
+          // trigger re-activation to first visible
+          tabs.activateTab("download");
+        } else if (activeId === "backup" && isBackupDisabled()) {
+          tabs.activateTab("download");
+        }
+      } catch {}
+    }
+
+    // Initial apply and subscribe to settings change events dispatched by settings.js
+    applySidebarTabVisibility();
+    window.addEventListener("wg:toggleDisabled", applySidebarTabVisibility);
+    window.addEventListener("backup:toggleDisabled", applySidebarTabVisibility);
+
     // Sidebar navigation: activate tabs from sidebar items
     const sidebarEl = document.getElementById("sidebar");
     if (sidebarEl) {
