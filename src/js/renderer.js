@@ -24,6 +24,7 @@
 import TabSystem from "./modules/tabSystem.js";
 import renderWireGuard from "./modules/views/wireguardView.js";
 import renderBackup from "./modules/views/backupView.js";
+import renderDownloaderView from "./modules/views/downloaderView.js";
 
 import { initHistory, initHistoryState } from "./modules/history.js";
 import { initIconUpdater } from "./modules/iconUpdater.js";
@@ -131,7 +132,11 @@ async function startRenderer() {
       "download",
       "Downloader",
       "fa-solid fa-download",
-      () => downloaderWrapper,
+      () => {
+        // Build "glass" layout for downloader from existing elements once
+        renderDownloaderView(downloaderWrapper);
+        return downloaderWrapper;
+      },
       { onShow: () => showHistory(true), onHide: () => showHistory(false) },
     );
 
