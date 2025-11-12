@@ -106,6 +106,7 @@ export function initSettingsModal() {
 
         await Promise.all([
           window.electron.invoke("toggle-auto-launch", false),
+          window.electron.invoke("set-minimize-on-launch-status", false),
           window.electron.invoke("set-minimize-to-tray-status", false),
           window.electron.invoke("set-close-notification-status", true),
           window.electron.invoke("set-disable-global-shortcuts-status", false),

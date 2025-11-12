@@ -1,6 +1,6 @@
 {
   "version": "1.2.15",
   "changes": [
-    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Вкладка «Downloader»\" dir=\"auto\">Вкладка «Downloader»</h3>\n<ul>\n<li dir=\"auto\">В <strong>настройках</strong> добавлена <em>фоновая проверка обновлений</em> <strong>yt-dlp/ffmpeg</strong>: при появлении новой версии автоматически показывается <em>toast</em> c подсказкой обновить инструменты.</li>\n</ul>\n    </details>"
+    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Исправления\" dir=\"auto\">Исправления</h3>\n<ul>\n<li dir=\"auto\">После полного <strong>сброса настроек</strong> функция <strong>«Сворачивать приложение при запуске»</strong> не восстановила свои исходные параметры.</li>\n</ul>\n<h3 data-heading=\"Вкладка «Downloader»\" dir=\"auto\">Вкладка «Downloader»</h3>\n<ul>\n<li dir=\"auto\">Добавлена <em>фоновая проверка обновлений</em> <strong>yt-dlp/ffmpeg</strong>: при появлении новой версии автоматически показывается <strong>уведомление</strong> c подсказкой обновить инструменты.</li>\n</ul>\n    </details>"
   ]
 }
