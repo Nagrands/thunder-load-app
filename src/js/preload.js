@@ -151,6 +151,27 @@ try {
   }
 
   /**
+   * Информация о версиях среды выполнения.
+   * @typedef {Object} RuntimeInfo
+   * @property {string} electron
+   * @property {string} chrome
+   * @property {string} node
+   */
+
+  /**
+   * Получить версии Electron/Chromium/Node без IPC.
+   * @returns {Promise<RuntimeInfo>}
+   */
+  async function getRuntimeInfo() {
+    const versions = process?.versions || {};
+    return {
+      electron: versions.electron || "unknown",
+      chrome: versions.chrome || "unknown",
+      node: versions.node || "unknown",
+    };
+  }
+
+  /**
    * API для окна (доступно как `window.electron`).
    * @typedef {Object} ElectronBridge
    * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
@@ -186,6 +207,7 @@ try {
    *   removeAllListeners: (channel: string) => void,
    * }} ipcRenderer
    * @property {() => Promise<PlatformInfo>} getPlatformInfo
+   * @property {() => Promise<RuntimeInfo>} getRuntimeInfo
    * @property {() => void} minimize
    * @property {() => void} close
    */
@@ -243,6 +265,7 @@ try {
 
     // Утилиты и совместимость с разными именами каналов
     getPlatformInfo,
+    getRuntimeInfo,
     minimize: () => {
       sendFirstAllowed(["window-minimize", "minimize", "app:minimize"]);
     },

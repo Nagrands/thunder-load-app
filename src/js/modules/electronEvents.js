@@ -20,10 +20,18 @@ function initElectronEvents() {
       versionElement.textContent = `v${version}`;
     }
     try {
-      const el1 = document.getElementById('settings-app-version');
+      const el1 = document.getElementById("settings-app-version");
       if (el1) el1.textContent = `v${version}`;
-      const el2 = document.getElementById('settings-tabs-version');
+      const el2 = document.getElementById("settings-tabs-version");
       if (el2) el2.textContent = `v${version}`;
+
+      const runtimeInfo =
+        (await window.electron?.getRuntimeInfo?.()) || undefined;
+      const electronVersion = runtimeInfo?.electron;
+      const el3 = document.getElementById("settings-tabs-electron-version");
+      if (el3 && electronVersion) {
+        el3.textContent = `v${electronVersion}`;
+      }
     } catch {}
   });
 

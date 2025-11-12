@@ -1205,13 +1205,20 @@
   .tabs-footer {
     margin-top: auto;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
     padding: 10px 10px 6px;
     border-top: 1px dashed rgba(255, 255, 255, 0.12);
     color: var(--color-quality);
     font-size: 12px;
+
+    .tabs-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+    }
 
     i { color: var(--color-accent); }
     strong { color: var(--color-text-main); font-weight: 600; }
