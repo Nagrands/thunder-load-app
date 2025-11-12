@@ -27,6 +27,26 @@ const log = require("electron-log");
 
 const { app, BrowserWindow, dialog } = require("electron");
 
+function configureVersionedLogFile() {
+  let versionTag = "unknown";
+  try {
+    const rawVersion = app.getVersion();
+    if (rawVersion) {
+      versionTag = String(rawVersion).replace(/[^0-9A-Za-z._-]/g, "_");
+    }
+  } catch (error) {
+    console.error("Failed to resolve app version for log file:", error);
+  }
+
+  try {
+    log.transports.file.fileName = `main_v${versionTag}.log`;
+  } catch (error) {
+    console.error("Failed to configure versioned log filename:", error);
+  }
+}
+
+configureVersionedLogFile();
+
 const { createWindow } = require("./app/window.js");
 const { setupIpcHandlers } = require("./app/ipcHandlers.js");
 require("./app/wgunlock.js"); // регистрируем UDP и настройки WG Unlock
