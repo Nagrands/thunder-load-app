@@ -902,8 +902,7 @@ async function initSettings() {
         const name = document.createElement("span");
         name.className = "profile-name";
         const title =
-          (profile?.name || "Без названия").toString().trim() ||
-          "Без названия";
+          (profile?.name || "Без названия").toString().trim() || "Без названия";
         const icon = document.createElement("i");
         icon.className = "fa-solid fa-database";
         const label = document.createElement("span");
@@ -941,7 +940,8 @@ async function initSettings() {
       refreshBtn.disabled = true;
       try {
         const res = await window.electron.invoke("backup:getPrograms");
-        if (!res?.success) throw new Error(res?.error || "Не удалось получить профили");
+        if (!res?.success)
+          throw new Error(res?.error || "Не удалось получить профили");
         renderProfiles(res.programs || []);
       } catch (error) {
         console.error("[settings] backup profiles preview error:", error);

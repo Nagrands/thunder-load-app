@@ -40,6 +40,8 @@ const CHANNELS = Object.freeze({
   GET_THEME: "get-theme",
   GET_VERSION: "get-version",
   GET_WHATS_NEW: "get-whats-new",
+  WHATS_NEW_READY: "whats-new:ready",
+  WHATS_NEW_ACK: "whats-new:ack",
   LOAD_HISTORY: "load-history",
   OPEN_CONFIG_FOLDER: "open-config-folder",
   OPEN_DOWNLOAD_FOLDER: "open-download-folder",
@@ -82,7 +84,7 @@ const CHANNELS = Object.freeze({
   DIALOG_CHOOSE_TOOLS_DIR: "dialog:choose-tools-dir",
   WG_OPEN_CONFIG_FOLDER: "wg-open-config-folder",
   WG_OPEN_NETWORK_SETTINGS: "open-network-settings",
-  WG_EXPORT_LOG: 'wg-export-log',
+  WG_EXPORT_LOG: "wg-export-log",
 
   // Update window events
   UPDATE_STATE_EVENT: "update:state",

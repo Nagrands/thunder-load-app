@@ -186,8 +186,12 @@ async function startRenderer() {
 
     function applySidebarTabVisibility() {
       try {
-        const wgBtn = document.querySelector('#sidebar .sidebar-item[data-tab="wireguard"]');
-        const bkBtn = document.querySelector('#sidebar .sidebar-item[data-tab="backup"]');
+        const wgBtn = document.querySelector(
+          '#sidebar .sidebar-item[data-tab="wireguard"]',
+        );
+        const bkBtn = document.querySelector(
+          '#sidebar .sidebar-item[data-tab="backup"]',
+        );
         if (wgBtn) wgBtn.style.display = isWgDisabled() ? "none" : "";
         if (bkBtn) bkBtn.style.display = isBackupDisabled() ? "none" : "";
 

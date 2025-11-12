@@ -35,9 +35,11 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 @mixin gradient-text {
-  background: linear-gradient(135deg,
-      var(--color-highlight) 0%,
-      var(--color-accent) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-highlight) 0%,
+    var(--color-accent) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -48,7 +50,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 // =============================================
 
 @keyframes gradientShift {
-
   0%,
   100% {
     opacity: 1;
@@ -70,7 +71,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.4);
@@ -82,7 +82,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 @keyframes toggle-pulse {
-
   0%,
   100% {
     transform: translateX(20px) scale(1);
@@ -129,10 +128,13 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     content: "";
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg,
-      rgba(10, 15, 30, 0.9) 0%,
-      rgba(20, 25, 40, 0.8) 100%),
-    url(#{$wg-bg-img}) no-repeat center center / cover;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(10, 15, 30, 0.9) 0%,
+        rgba(20, 25, 40, 0.8) 100%
+      ),
+      url(#{$wg-bg-img}) no-repeat center center / cover;
     z-index: -2;
     pointer-events: none;
   }
@@ -142,12 +144,16 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse at 20% 20%,
+      radial-gradient(
+        ellipse at 20% 20%,
         rgba(var(--color-accent-rgb), 0.15) 0%,
-        transparent 40%),
-      radial-gradient(ellipse at 80% 80%,
+        transparent 40%
+      ),
+      radial-gradient(
+        ellipse at 80% 80%,
         rgba(100, 100, 255, 0.1) 0%,
-        transparent 40%);
+        transparent 40%
+      );
     z-index: -1;
     pointer-events: none;
     animation: gradientShift 8s ease-in-out infinite;
@@ -188,10 +194,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg,
-        transparent,
-        var(--color-accent),
-        transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-accent),
+      transparent
+    );
     opacity: 0.6;
   }
 
@@ -303,7 +311,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
       // Hide number input arrows
       &[type="number"] {
-
         &::-webkit-outer-spin-button,
         &::-webkit-inner-spin-button {
           -webkit-appearance: none;
@@ -347,8 +354,8 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       }
 
       // Показывать кнопку когда поле имеет значение ИЛИ в фокусе
-      .input:focus+.clear-field-btn,
-      .input:not(:placeholder-shown)+.clear-field-btn {
+      .input:focus + .clear-field-btn,
+      .input:not(:placeholder-shown) + .clear-field-btn {
         opacity: 1;
         visibility: visible;
       }
@@ -406,10 +413,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
       transition: left 0.5s ease;
     }
 

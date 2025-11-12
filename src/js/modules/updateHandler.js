@@ -36,20 +36,24 @@ function _getNumberSetting(key, def) {
     if (raw === null || raw === undefined) return def;
     const n = Number(raw);
     return Number.isFinite(n) ? n : def;
-  } catch { return def; }
+  } catch {
+    return def;
+  }
 }
 
 function getTailShiftPx() {
   // Настройка: updFlyoverTailShiftPx (пиксели), смещение хвостика по X; по умолчанию 0
-  return _getNumberSetting('updFlyoverTailShiftPx', 0);
+  return _getNumberSetting("updFlyoverTailShiftPx", 0);
 }
 
 function getFlyoverXOffset() {
   // Настройка: updFlyoverXOffsetPx — базовый сдвиг всей карточки по X; по умолчанию -8
-  return _getNumberSetting('updFlyoverXOffsetPx', -8);
+  return _getNumberSetting("updFlyoverXOffsetPx", -8);
 }
 
-function ensureStyleOnce() { /* стили поставляются из SCSS */ }
+function ensureStyleOnce() {
+  /* стили поставляются из SCSS */
+}
 
 function positionFlyover() {
   const anchor = document.getElementById("app-version-label");
@@ -64,9 +68,12 @@ function positionFlyover() {
     const flyRect = _updFly.getBoundingClientRect();
     const tailLeft = Math.max(
       12,
-      Math.min((r.left + r.width / 2) - left - 6 + getTailShiftPx(), flyRect.width - 24)
+      Math.min(
+        r.left + r.width / 2 - left - 6 + getTailShiftPx(),
+        flyRect.width - 24,
+      ),
     );
-    _updFly.style.setProperty('--tail-left', `${Math.round(tailLeft)}px`);
+    _updFly.style.setProperty("--tail-left", `${Math.round(tailLeft)}px`);
   } catch {}
 }
 
@@ -112,21 +119,25 @@ function ensureFlyover() {
     showProgressPanel(0);
     // Уберём индикатор у бейджа версии сразу после старта
     try {
-      const badge = document.querySelector('.version-container') || document.getElementById('app-version-label');
-      badge?.querySelector('.update-indicator')?.remove();
+      const badge =
+        document.querySelector(".version-container") ||
+        document.getElementById("app-version-label");
+      badge?.querySelector(".update-indicator")?.remove();
     } catch {}
   });
   _updFly.querySelector("#upd-restart")?.addEventListener("click", () => {
     window.electron?.invoke && window.electron.invoke("restart-app");
   });
-  
+
   window.addEventListener("resize", positionFlyover);
   return _updFly;
 }
 
 function switchState(name) {
   if (!_updFly) return;
-  _updFly.querySelectorAll(".state").forEach((el) => (el.style.display = "none"));
+  _updFly
+    .querySelectorAll(".state")
+    .forEach((el) => (el.style.display = "none"));
   const el = _updFly.querySelector(`.state-${name}`);
   if (el) el.style.display = "block";
 }
@@ -134,15 +145,17 @@ function switchState(name) {
 function showAvailable(message) {
   const fly = ensureFlyover();
   fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add('is-visible'));
+  requestAnimationFrame(() => fly.classList.add("is-visible"));
   positionFlyover();
   // маленький индикатор возле бейджа версии
   try {
-    const badge = document.querySelector('.version-container') || document.getElementById('app-version-label');
-    if (badge && !badge.querySelector('.update-indicator')) {
-      const dot = document.createElement('span');
-      dot.className = 'update-indicator';
-      (badge).appendChild(dot);
+    const badge =
+      document.querySelector(".version-container") ||
+      document.getElementById("app-version-label");
+    if (badge && !badge.querySelector(".update-indicator")) {
+      const dot = document.createElement("span");
+      dot.className = "update-indicator";
+      badge.appendChild(dot);
     }
   } catch {}
   switchState("available");
@@ -157,15 +170,17 @@ function showAvailable(message) {
 function showProgressPanel(progress) {
   const fly = ensureFlyover();
   fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add('is-visible'));
+  requestAnimationFrame(() => fly.classList.add("is-visible"));
   positionFlyover();
   switchState("progress");
   const bar = fly.querySelector("#upd-bar");
   const lab = fly.querySelector("#upd-label");
   const nextP = fly.querySelector("#upd-next-p");
   let percent = progress;
-  let bps = null, transferred = null, total = null;
-  if (typeof progress === 'object' && progress) {
+  let bps = null,
+    transferred = null,
+    total = null;
+  if (typeof progress === "object" && progress) {
     percent = progress.percent;
     bps = Number(progress.bytesPerSecond || 0);
     transferred = Number(progress.transferred || 0);
@@ -177,47 +192,55 @@ function showProgressPanel(progress) {
     const parts = [`${Math.round(p)}%`];
     if (bps && bps > 0) {
       const fmt = (n) => {
-        const units = ['B/s','KB/s','MB/s','GB/s'];
-        let u = 0; let v = n;
-        while (v >= 1024 && u < units.length-1) { v /= 1024; u++; }
-        return `${v.toFixed(v>=100?0: v>=10?1:2)} ${units[u]}`;
+        const units = ["B/s", "KB/s", "MB/s", "GB/s"];
+        let u = 0;
+        let v = n;
+        while (v >= 1024 && u < units.length - 1) {
+          v /= 1024;
+          u++;
+        }
+        return `${v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)} ${units[u]}`;
       };
       parts.push(fmt(bps));
     }
     if (bps && bps > 0 && total && transferred >= 0 && total > transferred) {
       const remain = (total - transferred) / bps;
       const eta = Math.max(0, Math.round(remain));
-      const mm = String(Math.floor(eta/60)).padStart(2,'0');
-      const ss = String(eta%60).padStart(2,'0');
+      const mm = String(Math.floor(eta / 60)).padStart(2, "0");
+      const ss = String(eta % 60).padStart(2, "0");
       parts.push(`~${mm}:${ss}`);
     }
-    lab.textContent = parts.join(' • ');
+    lab.textContent = parts.join(" • ");
   }
   if (nextP && _updInfo.next) nextP.textContent = _updInfo.next;
   // На прогрессе индикатор больше не нужен
   try {
-    const badge = document.querySelector('.version-container') || document.getElementById('app-version-label');
-    badge?.querySelector('.update-indicator')?.remove();
+    const badge =
+      document.querySelector(".version-container") ||
+      document.getElementById("app-version-label");
+    badge?.querySelector(".update-indicator")?.remove();
   } catch {}
 }
 
 function showDownloadedPanel() {
   const fly = ensureFlyover();
   fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add('is-visible'));
+  requestAnimationFrame(() => fly.classList.add("is-visible"));
   positionFlyover();
   switchState("done");
   // На этапе «загружено» индикатор также удаляем
   try {
-    const badge = document.querySelector('.version-container') || document.getElementById('app-version-label');
-    badge?.querySelector('.update-indicator')?.remove();
+    const badge =
+      document.querySelector(".version-container") ||
+      document.getElementById("app-version-label");
+    badge?.querySelector(".update-indicator")?.remove();
   } catch {}
 }
 
 function showErrorPanel(error) {
   const fly = ensureFlyover();
   fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add('is-visible'));
+  requestAnimationFrame(() => fly.classList.add("is-visible"));
   positionFlyover();
   switchState("error");
   const e = fly.querySelector("#upd-err");
@@ -236,11 +259,14 @@ function initUpdateHandler() {
   });
   electron.on("update-available-info", (payload) => {
     try {
-      _updInfo = { current: payload?.current || null, next: payload?.next || null };
-      if (_updFly && _updFly.style.display !== 'none') {
-        const curEl = _updFly.querySelector('#upd-cur');
-        const nextEl = _updFly.querySelector('#upd-next');
-        const nextP = _updFly.querySelector('#upd-next-p');
+      _updInfo = {
+        current: payload?.current || null,
+        next: payload?.next || null,
+      };
+      if (_updFly && _updFly.style.display !== "none") {
+        const curEl = _updFly.querySelector("#upd-cur");
+        const nextEl = _updFly.querySelector("#upd-next");
+        const nextP = _updFly.querySelector("#upd-next-p");
         if (curEl && _updInfo.current) curEl.textContent = _updInfo.current;
         if (nextEl && _updInfo.next) nextEl.textContent = _updInfo.next;
         if (nextP && _updInfo.next) nextP.textContent = _updInfo.next;
@@ -268,7 +294,9 @@ function initUpdateHandler() {
     });
   });
 
-  const closeErrorNotificationBtn = document.getElementById("close-error-notification");
+  const closeErrorNotificationBtn = document.getElementById(
+    "close-error-notification",
+  );
   if (closeErrorNotificationBtn) {
     closeErrorNotificationBtn.addEventListener("click", () => {
       closeModal("update-error-modal");

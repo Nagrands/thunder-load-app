@@ -64,6 +64,11 @@ async function showWhatsNew(version) {
     whatsNewModal.style.alignItems = "center";
 
     console.log("Модальное окно 'Что нового?' отображено с содержимым."); // Для отладки
+    try {
+      await window.electron.invoke("whats-new:ack", data.version);
+    } catch (ackError) {
+      console.warn("[WhatsNew] Не удалось подтвердить отображение:", ackError);
+    }
   } catch (error) {
     console.error(
       "Ошибка загрузки данных для модального окна 'Что нового?':",
@@ -114,6 +119,12 @@ function initWhatsNewModal() {
     ]); // Закрываем все модальные окна перед открытием нового
     showWhatsNew(version);
   });
+
+  try {
+    window.electron.invoke("whats-new:ready");
+  } catch (error) {
+    console.warn("[WhatsNew] Не удалось отправить сигнал готовности:", error);
+  }
 }
 
 export { initWhatsNewModal };

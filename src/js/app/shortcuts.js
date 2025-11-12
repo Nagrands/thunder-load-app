@@ -13,23 +13,29 @@ let lastMainWindow = null;
 
 function registerReloadShortcut(targetWindow = lastMainWindow) {
   if (!targetWindow) {
-    log.warn("[shortcuts.js]: Skipping reload shortcut registration: no mainWindow.");
+    log.warn(
+      "[shortcuts.js]: Skipping reload shortcut registration: no mainWindow.",
+    );
     return false;
   }
 
   if (reloadShortcutSuppressed) {
-    log.info("[shortcuts.js]: Reload shortcut suppressed, skipping registration.");
+    log.info(
+      "[shortcuts.js]: Reload shortcut suppressed, skipping registration.",
+    );
     return false;
   }
 
   if (store.get("disableGlobalShortcuts", false)) {
-    log.info("[shortcuts.js]: Global hotkeys disabled; reload shortcut skipped.");
+    log.info(
+      "[shortcuts.js]: Global hotkeys disabled; reload shortcut skipped.",
+    );
     return false;
   }
 
   try {
     globalShortcut.unregister(reloadAccelerator);
-  } catch (_) { }
+  } catch (_) {}
 
   try {
     const success = globalShortcut.register(reloadAccelerator, () => {

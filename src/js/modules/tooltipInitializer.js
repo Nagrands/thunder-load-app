@@ -266,8 +266,7 @@ function initTooltips() {
           ) {
             const tip = tooltip.tip;
             const isActive =
-              (typeof tooltip._isShown === "function" &&
-                tooltip._isShown()) ||
+              (typeof tooltip._isShown === "function" && tooltip._isShown()) ||
               (tip &&
                 tip.classList &&
                 tip.classList.contains("show") &&

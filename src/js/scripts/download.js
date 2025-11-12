@@ -211,7 +211,9 @@ function selectFormatsByQuality(formats, desiredQuality) {
   const pickBest = (arr, cmp) => (arr.length ? arr.sort(cmp)[0] : null);
 
   const normalizeLang = (val) =>
-    typeof val === "string" ? val.toLowerCase() : String(val || "").toLowerCase();
+    typeof val === "string"
+      ? val.toLowerCase()
+      : String(val || "").toLowerCase();
 
   const getAudioLangScore = (format) => {
     const candidates = [
@@ -224,7 +226,8 @@ function selectFormatsByQuality(formats, desiredQuality) {
     for (const value of candidates) {
       const normalized = normalizeLang(value);
       if (!normalized) continue;
-      if (PREFERRED_AUDIO_LANGS.some((code) => normalized.includes(code))) return 0;
+      if (PREFERRED_AUDIO_LANGS.some((code) => normalized.includes(code)))
+        return 0;
     }
     return 1;
   };

@@ -70,7 +70,10 @@ export default function renderBackup() {
     try {
       await invoke("backup:toggleReloadBlock", shouldBlock);
     } catch (error) {
-      console.error("[backupView] Не удалось переключить горячую клавишу Ctrl+R:", error);
+      console.error(
+        "[backupView] Не удалось переключить горячую клавишу Ctrl+R:",
+        error,
+      );
     }
   };
 
@@ -244,7 +247,7 @@ export default function renderBackup() {
   }
 
   // Добавляем стили для кастомных тултипов
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     .backup-tooltip .tooltip-arrow {
       display: none !important;
@@ -261,14 +264,16 @@ export default function renderBackup() {
   document.head.appendChild(style);
 
   // Удаляем стиль при удалении компонента
-  wrapper.addEventListener('remove', () => {
+  wrapper.addEventListener("remove", () => {
     style.remove();
   });
 
   // Функция для инициализации тултипов в компоненте Backup
   const initBackupTooltips = () => {
-    const tooltipTriggerList = wrapper.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltipTriggerList.forEach(tooltipTriggerEl => {
+    const tooltipTriggerList = wrapper.querySelectorAll(
+      '[data-bs-toggle="tooltip"]',
+    );
+    tooltipTriggerList.forEach((tooltipTriggerEl) => {
       // Удаляем существующий экземпляр тултипа
       const existingInstance = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
       if (existingInstance) {
@@ -276,11 +281,11 @@ export default function renderBackup() {
       }
 
       // Создаем новый тултип только если есть title
-      const title = tooltipTriggerEl.getAttribute('title');
-      if (title && title.trim() !== '') {
+      const title = tooltipTriggerEl.getAttribute("title");
+      if (title && title.trim() !== "") {
         new bootstrap.Tooltip(tooltipTriggerEl, {
           boundary: wrapper,
-          customClass: 'backup-tooltip'
+          customClass: "backup-tooltip",
         });
       }
     });
@@ -337,27 +342,30 @@ export default function renderBackup() {
     const counterEl = q("#bk-manage-counter");
 
     // Вычисляем уже выделенные профили по чекбоксам основного списка
-    const selectedIndices = Array.from(wrapper.querySelectorAll('#bk-list .bk-chk:checked'))
-      .map(cb => Number(cb.dataset.i));
+    const selectedIndices = Array.from(
+      wrapper.querySelectorAll("#bk-list .bk-chk:checked"),
+    ).map((cb) => Number(cb.dataset.i));
 
     // Генерация списка профилей из состояния
-  listEl.innerHTML = state.programs.map((p, idx) => {
-    const checked = selectedIndices.includes(idx) ? "checked" : "";
-    const name = p.name || `Профиль ${idx + 1}`;
-    const key = profileKey(p);
-    const locked = lockedProfiles.has(key);
-    const checkedAttr = locked ? "" : checked;
-    return `
+    listEl.innerHTML = state.programs
+      .map((p, idx) => {
+        const checked = selectedIndices.includes(idx) ? "checked" : "";
+        const name = p.name || `Профиль ${idx + 1}`;
+        const key = profileKey(p);
+        const locked = lockedProfiles.has(key);
+        const checkedAttr = locked ? "" : checked;
+        return `
       <div class="form-check">
         <input class="form-check-input bk-del-chk" type="checkbox" data-index="${idx}" ${checkedAttr} ${locked ? "disabled" : ""}>
         <label class="form-check-label">${name}${locked ? ' <span class="locked-badge">В процессе</span>' : ""}</label>
       </div>`;
-  }).join("");
+      })
+      .join("");
 
-  const getCheckedChks = () =>
-    Array.from(listEl.querySelectorAll(".bk-del-chk:not(:disabled)")).filter(
-      (c) => c.checked,
-    );
+    const getCheckedChks = () =>
+      Array.from(listEl.querySelectorAll(".bk-del-chk:not(:disabled)")).filter(
+        (c) => c.checked,
+      );
 
     const updateModalActionsState = () => {
       const all = listEl.querySelectorAll(".bk-del-chk:not(:disabled)");
@@ -382,7 +390,7 @@ export default function renderBackup() {
     };
 
     // Синхронизация чекбоксов между модалкой и основным списком
-    listEl.querySelectorAll(".bk-del-chk").forEach(chk => {
+    listEl.querySelectorAll(".bk-del-chk").forEach((chk) => {
       chk.addEventListener("change", () => onItemChange(chk));
     });
 
@@ -390,7 +398,8 @@ export default function renderBackup() {
     const totalProfiles = state.programs.length;
     const initiallySelected = selectedIndices.length;
     if (selectAll) {
-      selectAll.checked = initiallySelected && initiallySelected === totalProfiles;
+      selectAll.checked =
+        initiallySelected && initiallySelected === totalProfiles;
       selectAll.addEventListener("change", () => {
         const all = listEl.querySelectorAll(".bk-del-chk");
         const want = !!selectAll.checked;
@@ -410,15 +419,21 @@ export default function renderBackup() {
       _docEl.style.overflow = _prevOverflow;
       if (typeof updateActionsState === "function") updateActionsState();
     };
-    overlay.querySelectorAll('.bk-close').forEach(b => b.addEventListener('click', closeOverlay));
-    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) closeOverlay(); });
-    const onEsc = (e) => { if (e.key === 'Escape') closeOverlay(); };
-    window.addEventListener('keydown', onEsc);
+    overlay
+      .querySelectorAll(".bk-close")
+      .forEach((b) => b.addEventListener("click", closeOverlay));
+    overlay.addEventListener("mousedown", (e) => {
+      if (e.target === overlay) closeOverlay();
+    });
+    const onEsc = (e) => {
+      if (e.key === "Escape") closeOverlay();
+    };
+    window.addEventListener("keydown", onEsc);
 
     // Подтверждение удаления
     deleteBtn.onclick = () => {
       closeOverlay();
-      const delBtn = getEl('#bk-del');
+      const delBtn = getEl("#bk-del");
       if (delBtn && !delBtn.disabled) delBtn.click();
     };
 
@@ -449,16 +464,18 @@ export default function renderBackup() {
     }
 
     toggleViewBtn.addEventListener("click", () => {
-      const checked = [...document.querySelectorAll(".bk-chk:checked")].map(el => el.dataset.i);
+      const checked = [...document.querySelectorAll(".bk-chk:checked")].map(
+        (el) => el.dataset.i,
+      );
 
       viewMode = viewMode === "full" ? "compact" : "full";
       try {
         localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
-      } catch { }
+      } catch {}
       renderList();
 
       // восстанавливаем выбор
-      checked.forEach(i => {
+      checked.forEach((i) => {
         const el = document.querySelector(`.bk-chk[data-i="${i}"]`);
         if (el) el.checked = true;
       });
@@ -549,7 +566,7 @@ export default function renderBackup() {
       if (logData) {
         logBox.innerHTML = logData;
       }
-    } catch { }
+    } catch {}
   }
 
   /**
@@ -591,7 +608,7 @@ export default function renderBackup() {
    */
   function manageLogScroll() {
     if (!logBox)
-      return { wasScrolledToBottom: false, restoreScrollPosition: () => { } };
+      return { wasScrolledToBottom: false, restoreScrollPosition: () => {} };
 
     const threshold = 50;
     const isNearBottom =
@@ -658,7 +675,7 @@ export default function renderBackup() {
     // Save log to localStorage
     try {
       localStorage.setItem("backupLog", logBox.innerHTML);
-    } catch { }
+    } catch {}
   };
 
   const toast = (m, t = "success") => showToast(m, t);
@@ -669,7 +686,11 @@ export default function renderBackup() {
       ? window.CSS.escape(value)
       : value.replace(/"/g, '\\"');
   const profileKey = (program) =>
-    [program?.name || "", program?.source_path || "", program?.backup_path || ""]
+    [
+      program?.name || "",
+      program?.source_path || "",
+      program?.backup_path || "",
+    ]
       .map((part) => part ?? "")
       .join("::");
   const applyLockToRow = (row, locked) => {
@@ -739,9 +760,7 @@ export default function renderBackup() {
 
     const visibleCheckboxes = Array.from(
       bkList.querySelectorAll(".bk-chk"),
-    ).filter(
-      (chk) => chk.offsetParent !== null && !chk.disabled,
-    );
+    ).filter((chk) => chk.offsetParent !== null && !chk.disabled);
 
     const checkedVisibleCheckboxes = visibleCheckboxes.filter(
       (chk) => chk.checked,
@@ -764,14 +783,14 @@ export default function renderBackup() {
         if (instance) {
           instance.dispose();
         }
-        if (text && text.trim() !== '') {
-          el.setAttribute('title', text);
+        if (text && text.trim() !== "") {
+          el.setAttribute("title", text);
           new bootstrap.Tooltip(el, {
             boundary: wrapper,
-            customClass: 'backup-tooltip'
+            customClass: "backup-tooltip",
           });
         }
-      } catch (_) { }
+      } catch (_) {}
     };
 
     updateTooltip(runSel, runSel ? runSel.title : "");
@@ -883,13 +902,13 @@ export default function renderBackup() {
 
     const filtered = state.filter
       ? state.programs.filter((p) => {
-        const q = state.filter.toLowerCase();
-        return (
-          (p.name || "").toLowerCase().includes(q) ||
-          (p.source_path || "").toLowerCase().includes(q) ||
-          (p.backup_path || "").toLowerCase().includes(q)
-        );
-      })
+          const q = state.filter.toLowerCase();
+          return (
+            (p.name || "").toLowerCase().includes(q) ||
+            (p.source_path || "").toLowerCase().includes(q) ||
+            (p.backup_path || "").toLowerCase().includes(q)
+          );
+        })
       : state.programs;
 
     // Update counts badge
@@ -992,7 +1011,10 @@ export default function renderBackup() {
 
       row.addEventListener("dblclick", () => showEditForm(idx));
       root.appendChild(row);
-      row.setAttribute("aria-label", `${p.name}: ${p.source_path} → ${p.backup_path}`);
+      row.setAttribute(
+        "aria-label",
+        `${p.name}: ${p.source_path} → ${p.backup_path}`,
+      );
       applyLockToRow(row, locked);
     });
 
@@ -1006,9 +1028,10 @@ export default function renderBackup() {
     root.scrollTop = 0;
     queueMicrotask(() => {
       // Новый блок инициализации тултипов (с фильтрацией по title)
-      const tooltipTriggerList = [...root.querySelectorAll('[data-bs-toggle="tooltip"]')]
-        .filter(el => el.getAttribute("title"));
-      tooltipTriggerList.forEach(el => {
+      const tooltipTriggerList = [
+        ...root.querySelectorAll('[data-bs-toggle="tooltip"]'),
+      ].filter((el) => el.getAttribute("title"));
+      tooltipTriggerList.forEach((el) => {
         const instance = bootstrap.Tooltip.getInstance(el);
         if (instance) instance.dispose();
         bootstrap.Tooltip.getOrCreateInstance(el);
@@ -1086,12 +1109,12 @@ export default function renderBackup() {
     const isNew = idx === -1;
     const init = isNew
       ? {
-        name: "",
-        source_path: "",
-        backup_path: "",
-        profile_path: "",
-        config_patterns: [],
-      }
+          name: "",
+          source_path: "",
+          backup_path: "",
+          profile_path: "",
+          config_patterns: [],
+        }
       : JSON.parse(JSON.stringify(state.programs[idx]));
 
     if (!isNew) {
@@ -2031,7 +2054,7 @@ export default function renderBackup() {
       try {
         const btnFinal = getEl("#bk-run-selected");
         if (btnFinal) btnFinal.classList.remove("is-loading");
-      } catch (_) { }
+      } catch (_) {}
     }
   });
 
@@ -2048,7 +2071,7 @@ export default function renderBackup() {
     if (logBox) logBox.textContent = "";
     try {
       localStorage.removeItem("backupLog");
-    } catch { }
+    } catch {}
   });
 
   const logCopyBtn = getEl("#bk-log-copy");
@@ -2216,7 +2239,7 @@ export default function renderBackup() {
     viewMode = normalized;
     try {
       localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
-    } catch { }
+    } catch {}
     renderList();
     updateViewToggleIcon();
   });
@@ -2228,7 +2251,7 @@ export default function renderBackup() {
     logVisible = visible;
     try {
       localStorage.setItem(LOG_VISIBLE_KEY, JSON.stringify(visible));
-    } catch { }
+    } catch {}
     applyLogVisibility(visible);
   });
 

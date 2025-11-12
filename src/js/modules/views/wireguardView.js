@@ -348,7 +348,7 @@ export default function renderWireGuard() {
         deadline = await window.electron.ipcRenderer.invoke(
           "get-auto-shutdown-deadline",
         );
-      } catch (_) { }
+      } catch (_) {}
 
       if (enabled) {
         if (deadline && Number.isFinite(Number(deadline))) {
@@ -707,19 +707,20 @@ export default function renderWireGuard() {
           log("[Лог] Содержимое лога скопировано в буфер обмена");
 
           // Визуальная обратная связь
-          copyLogBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>Скопировано</span>';
-          copyLogBtn.style.background = 'rgba(var(--color-success-rgb), 0.1)';
-          copyLogBtn.style.borderColor = 'var(--color-success)';
-          copyLogBtn.style.color = 'var(--color-success)';
+          copyLogBtn.innerHTML =
+            '<i class="fa-solid fa-check"></i><span>Скопировано</span>';
+          copyLogBtn.style.background = "rgba(var(--color-success-rgb), 0.1)";
+          copyLogBtn.style.borderColor = "var(--color-success)";
+          copyLogBtn.style.color = "var(--color-success)";
 
           setTimeout(() => {
             copyLogBtn.innerHTML = '<i class="fa-solid fa-copy"></i>';
-            copyLogBtn.style.background = '';
-            copyLogBtn.style.borderColor = '';
-            copyLogBtn.style.color = '';
+            copyLogBtn.style.background = "";
+            copyLogBtn.style.borderColor = "";
+            copyLogBtn.style.color = "";
           }, 2000);
         } catch (err) {
-          console.error('Ошибка копирования:', err);
+          console.error("Ошибка копирования:", err);
           toast("Не удалось скопировать лог", false);
           log(`[Ошибка] Копирование лога: ${err.message}`, true);
         }
@@ -737,7 +738,8 @@ export default function renderWireGuard() {
         window.electron.ipcRenderer.send("wg-export-log", pre.textContent);
 
         // Визуальная обратная связь
-        exportLogBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Экспорт...</span>';
+        exportLogBtn.innerHTML =
+          '<i class="fa-solid fa-spinner fa-spin"></i><span>Экспорт...</span>';
         exportLogBtn.disabled = true;
 
         setTimeout(() => {
@@ -750,10 +752,13 @@ export default function renderWireGuard() {
     });
 
     // Добавим обработчик для события успешного экспорта
-    window.electron.ipcRenderer.on("wg-log-export-success", (event, filePath) => {
-      toast(`Лог экспортирован`);
-      log(`[Лог] Успешно экспортирован в файл: ${filePath}`);
-    });
+    window.electron.ipcRenderer.on(
+      "wg-log-export-success",
+      (event, filePath) => {
+        toast(`Лог экспортирован`);
+        log(`[Лог] Успешно экспортирован в файл: ${filePath}`);
+      },
+    );
 
     window.electron.ipcRenderer.on("wg-log-export-error", (event, error) => {
       toast("Ошибка при экспорте лога", false);

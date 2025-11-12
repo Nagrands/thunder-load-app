@@ -47,7 +47,7 @@ function configureVersionedLogFile() {
 
 configureVersionedLogFile();
 
-const { createWindow } = require("./app/window.js");
+const { createWindow, setReloadMenuEnabled } = require("./app/window.js");
 const { setupIpcHandlers } = require("./app/ipcHandlers.js");
 require("./app/wgunlock.js"); // регистрируем UDP и настройки WG Unlock
 const {
@@ -93,6 +93,7 @@ console.time("App → Total Startup Time");
 
 let mainWindow;
 let clipboardMonitorInstance;
+const WHATS_NEW_PENDING_KEY = "pendingWhatsNewVersion";
 
 // Cache for file existence checks
 const fsCache = new Map();
@@ -173,7 +174,44 @@ if (!app.requestSingleInstanceLock()) {
     notifyDownloadError,
     sendDownloadCompletionNotification,
     showTrayNotification,
+    setReloadMenuEnabled,
+    dispatchPendingWhatsNew: () => false,
+    clearPendingWhatsNewVersion: () => false,
   };
+
+  const getPendingWhatsNewVersion = () =>
+    store.get(WHATS_NEW_PENDING_KEY, null);
+
+  function setPendingWhatsNewVersion(version) {
+    if (!version) return;
+    store.set(WHATS_NEW_PENDING_KEY, version);
+  }
+
+  function clearPendingWhatsNewVersion(version) {
+    const pending = getPendingWhatsNewVersion();
+    if (!pending) return false;
+    if (version && pending !== version) return false;
+    store.delete(WHATS_NEW_PENDING_KEY);
+    log.info(`[WhatsNew] Cleared pending version ${pending}`);
+    return true;
+  }
+
+  function dispatchPendingWhatsNew() {
+    const pending = getPendingWhatsNewVersion();
+    if (!pending) return false;
+    if (!mainWindow || mainWindow.isDestroyed()) return false;
+    try {
+      mainWindow.webContents.send("show-whats-new", pending);
+      log.info(`[WhatsNew] Display request dispatched for version ${pending}`);
+      return true;
+    } catch (error) {
+      log.error("[WhatsNew] Failed to dispatch modal:", error);
+      return false;
+    }
+  }
+
+  dependencies.dispatchPendingWhatsNew = dispatchPendingWhatsNew;
+  dependencies.clearPendingWhatsNewVersion = clearPendingWhatsNewVersion;
 
   /**
    * Проверяет, была ли обновлена версия приложения, и показывает модальное окно "Что нового?", если да.
@@ -181,37 +219,28 @@ if (!app.requestSingleInstanceLock()) {
   async function checkAndShowWhatsNew() {
     try {
       const currentVersion = await getAppVersion();
-      const appVersion = store.get("appVersion", null);
+      const lastRecordedVersion = store.get("appVersion", null);
+      const pendingVersion = getPendingWhatsNewVersion();
 
       log.info(`The current version of the application: ${currentVersion}`);
-      // log.info(`The last saved version: ${appVersion}`);
 
-      if (appVersion !== currentVersion) {
+      if (lastRecordedVersion !== currentVersion) {
         log.info(
-          "The application version has been updated. Displaying the modal window 'Version'.",
+          "The application version has been updated. Queuing the 'What's New' modal.",
         );
-
-        // Обновляем сохранённую версию
         store.set("appVersion", currentVersion);
-        log.info(`appVersion has been updated to: ${currentVersion}`);
-
-        // Отправляем сообщение рендер-процессу для отображения модального окна
-        if (mainWindow && mainWindow.webContents) {
-          try {
-            mainWindow.webContents.send("show-whats-new", currentVersion);
-            log.info(
-              "The 'show-whats-new' message has been sent to the render process.",
-            );
-          } catch (error) {
-            log.error("Error sending the 'show-whats-new' message:", error);
-          }
-        }
-      } else {
-        log.info("The version of the application has not changed.");
+        setPendingWhatsNewVersion(currentVersion);
+      } else if (pendingVersion && pendingVersion !== currentVersion) {
+        // Зафиксирована устаревшая отложенная версия → обновляем её на актуальную
+        setPendingWhatsNewVersion(currentVersion);
+      } else if (!pendingVersion) {
+        log.info("No pending 'What's New' modal to display.");
       }
+
+      dispatchPendingWhatsNew();
     } catch (error) {
       log.error(
-        "Error checking the version and showing the modal window:",
+        "Error checking the version and queuing the 'What's New' modal:",
         error,
       );
     }

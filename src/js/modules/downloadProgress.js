@@ -11,9 +11,7 @@ function initDownloadProgress() {
   let startedAt = null;
   let lastProgress = 0;
   const topProgress = document.getElementById("top-download-progress");
-  const topProgressFill = document.getElementById(
-    "top-download-progress-fill",
-  );
+  const topProgressFill = document.getElementById("top-download-progress-fill");
   let topProgressHideTimer = null;
 
   const resetTopIndicator = () => {

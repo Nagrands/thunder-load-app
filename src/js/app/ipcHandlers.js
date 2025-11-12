@@ -106,6 +106,9 @@ function setupIpcHandlers(dependencies) {
     notifyDownloadError,
     sendDownloadCompletionNotification,
     showTrayNotification,
+    setReloadMenuEnabled,
+    dispatchPendingWhatsNew,
+    clearPendingWhatsNewVersion,
   } = dependencies;
 
   let autoShutdownTimeout = null; // таймер авто‑закрытия WG Unlock
@@ -169,26 +172,74 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(CHANNELS.WHATS_NEW_READY, async () => {
+    try {
+      if (typeof dispatchPendingWhatsNew === "function") {
+        dispatchPendingWhatsNew();
+      }
+      return { success: true };
+    } catch (error) {
+      log.error("whats-new:ready error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WHATS_NEW_ACK, async (_evt, version) => {
+    try {
+      let cleared = false;
+      if (typeof clearPendingWhatsNewVersion === "function") {
+        cleared = clearPendingWhatsNewVersion(version);
+      }
+      return { success: true, cleared };
+    } catch (error) {
+      log.error("whats-new:ack error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
   // ───── Update notification: dev helpers for in-app flyover ─────
   ipcMain.handle(CHANNELS.UPDATE_DEV_OPEN, async () => {
     try {
       const cur = await getAppVersion();
-      mainWindow.webContents.send("update-available", "Доступно новое обновление.");
+      mainWindow.webContents.send(
+        "update-available",
+        "Доступно новое обновление.",
+      );
       mainWindow.webContents.send("update-available-info", {
         current: cur,
         next: "1.3.0",
       });
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
   ipcMain.handle(CHANNELS.UPDATE_DEV_PROGRESS, async (_e, percent) => {
-    try { mainWindow.webContents.send("update-progress", Number(percent) || 0); return true; } catch { return false; }
+    try {
+      mainWindow.webContents.send("update-progress", Number(percent) || 0);
+      return true;
+    } catch {
+      return false;
+    }
   });
   ipcMain.handle(CHANNELS.UPDATE_DEV_DOWNLOADED, async () => {
-    try { mainWindow.webContents.send("update-downloaded"); return true; } catch { return false; }
+    try {
+      mainWindow.webContents.send("update-downloaded");
+      return true;
+    } catch {
+      return false;
+    }
   });
   ipcMain.handle(CHANNELS.UPDATE_DEV_ERROR, async (_e, message) => {
-    try { mainWindow.webContents.send("update-error", String(message || 'Test error')); return true; } catch { return false; }
+    try {
+      mainWindow.webContents.send(
+        "update-error",
+        String(message || "Test error"),
+      );
+      return true;
+    } catch {
+      return false;
+    }
   });
 
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, async () => {
@@ -474,7 +525,7 @@ function setupIpcHandlers(dependencies) {
         const txt = await fetchText(addTs(url));
         const m = String(txt || "").match(rx);
         if (m && m[1]) return m[1];
-      } catch (_) { }
+      } catch (_) {}
     }
     try {
       const html = await fetchText(
@@ -484,7 +535,7 @@ function setupIpcHandlers(dependencies) {
         /latest\s+release\s+version\s*:\s*([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i,
       );
       if (m && m[1]) return m[1];
-    } catch (_) { }
+    } catch (_) {}
     return null;
   }
   // ---- /helpers ----
@@ -936,7 +987,7 @@ function setupIpcHandlers(dependencies) {
             ok === total ? "success" : ok ? "warning" : "error",
           );
         }
-      } catch (_) { }
+      } catch (_) {}
       return { success: true, results: res };
     } catch (e) {
       log.error("backup:run error:", e);
@@ -970,6 +1021,9 @@ function setupIpcHandlers(dependencies) {
       try {
         isReloadShortcutBlocked = Boolean(shouldBlock);
         setReloadShortcutSuppressed(isReloadShortcutBlocked);
+        if (typeof setReloadMenuEnabled === "function") {
+          setReloadMenuEnabled(!isReloadShortcutBlocked);
+        }
         return { success: true, blocked: isReloadShortcutBlocked };
       } catch (error) {
         log.error("backup:toggleReloadBlock error:", error);
@@ -1070,11 +1124,12 @@ function setupIpcHandlers(dependencies) {
         log.info(`Path: ${filePath}`);
         log.info(`Quality: ${quality}`);
         log.info(
-          `Actual: ${videoFormat === null
-            ? `audio: ${resolution}`
-            : resolution !== "unknown"
-              ? `${resolution} ${fps ? fps + "fps" : ""}`
-              : "unknown"
+          `Actual: ${
+            videoFormat === null
+              ? `audio: ${resolution}`
+              : resolution !== "unknown"
+                ? `${resolution} ${fps ? fps + "fps" : ""}`
+                : "unknown"
           }`,
         );
         log.info(`Source: ${url}`);
@@ -1101,11 +1156,12 @@ function setupIpcHandlers(dependencies) {
       log.info(`Path: ${filePath}`);
       log.info(`Quality: ${quality}`);
       log.info(
-        `Actual: ${videoFormat === null
-          ? `audio: ${resolution}`
-          : resolution !== "unknown"
-            ? `${resolution} ${fps ? fps + "fps" : ""}`
-            : "unknown"
+        `Actual: ${
+          videoFormat === null
+            ? `audio: ${resolution}`
+            : resolution !== "unknown"
+              ? `${resolution} ${fps ? fps + "fps" : ""}`
+              : "unknown"
         }`,
       );
       log.info(`Source: ${url}`);
@@ -1294,26 +1350,28 @@ function setupIpcHandlers(dependencies) {
   ipcMain.on(CHANNELS.WG_EXPORT_LOG, async (event, logContent) => {
     try {
       const { filePath } = await dialog.showSaveDialog({
-        title: 'Экспорт лога WireGuard',
+        title: "Экспорт лога WireGuard",
         defaultPath: `wg-log-${new Date().toISOString().slice(0, 10)}.txt`,
         filters: [
-          { name: 'Text Files', extensions: ['txt'] },
-          { name: 'All Files', extensions: ['*'] }
-        ]
+          { name: "Text Files", extensions: ["txt"] },
+          { name: "All Files", extensions: ["*"] },
+        ],
       });
 
       if (filePath) {
-        await fs.promises.writeFile(filePath, logContent, 'utf8');
+        await fs.promises.writeFile(filePath, logContent, "utf8");
         // Отправляем объект с filePath вместо просто строки
-        event.reply('wg-log-export-success', { filePath });
-        log.info('Лог WireGuard экспортирован:', filePath);
+        event.reply("wg-log-export-success", { filePath });
+        log.info("Лог WireGuard экспортирован:", filePath);
       } else {
         // Пользователь отменил диалог
-        event.reply('wg-log-export-error', { error: 'Экспорт отменен пользователем' });
+        event.reply("wg-log-export-error", {
+          error: "Экспорт отменен пользователем",
+        });
       }
     } catch (e) {
-      log.error('wg-log-export error:', e);
-      event.reply('wg-log-export-error', { error: e.message });
+      log.error("wg-log-export error:", e);
+      event.reply("wg-log-export-error", { error: e.message });
     }
   });
 

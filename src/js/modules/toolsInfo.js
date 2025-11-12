@@ -147,10 +147,7 @@ const BACKGROUND_UPDATE_COOLDOWN_MS = 5 * 60 * 1000;
 async function triggerBackgroundToolsUpdateCheck(currentVersions) {
   if (backgroundUpdateState.inProgress) return;
   if (!navigator.onLine) return;
-  if (
-    !currentVersions?.ytDlp?.ok ||
-    !currentVersions?.ffmpeg?.ok
-  ) {
+  if (!currentVersions?.ytDlp?.ok || !currentVersions?.ffmpeg?.ok) {
     return;
   }
 
@@ -199,17 +196,12 @@ async function triggerBackgroundToolsUpdateCheck(currentVersions) {
     if (!notices.length) return;
 
     const signature = signatureParts.join("|");
-    if (
-      signature &&
-      backgroundUpdateState.lastSignature === signature
-    ) {
+    if (signature && backgroundUpdateState.lastSignature === signature) {
       return;
     }
     backgroundUpdateState.lastSignature = signature || null;
 
-    const list = notices
-      .map((entry) => `<strong>${entry}</strong>`)
-      .join(", ");
+    const list = notices.map((entry) => `<strong>${entry}</strong>`).join(", ");
     await window.electron?.invoke?.(
       "toast",
       `Доступны обновления инструментов: ${list}<br><small>Откройте раздел Downloader, чтобы установить.</small>`,

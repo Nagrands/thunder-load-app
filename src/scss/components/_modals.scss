@@ -247,6 +247,47 @@
 
 // Стили для модального окна "What's New"
 .whats-modal {
+  padding: 1.5rem;
+  align-items: center;
+  justify-content: center;
+
+  .whats-modal-content {
+    width: min(520px, 92vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 20px 24px 24px;
+    border-radius: 20px;
+    gap: 0.75rem;
+    background: radial-gradient(
+      circle at 20% -10%,
+      rgba(255, 255, 255, 0.18),
+      rgba(8, 10, 22, 0.8)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 20px 50px rgba(5, 8, 20, 0.65),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  #whats-new-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+  }
+
+  h2 {
+    font-size: 19px;
+    margin-bottom: 4px;
+    color: var(--color-highlight);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: var(--color-accent);
+    }
+  }
+
   ul {
     padding: 0;
 
@@ -258,6 +299,7 @@
         font-weight: 500;
         letter-spacing: 0.5pt;
         text-transform: uppercase;
+        color: var(--color-accent);
       }
     }
 
@@ -265,22 +307,23 @@
       display: flex;
       justify-content: center;
       color: var(--color-highlight);
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 600;
-      margin: 10px 0;
+      margin: 6px 0;
     }
 
     .whats-block {
       display: flex;
       justify-content: center;
       align-items: center;
+      width: 100%;
 
       &-date {
         font-weight: 500;
         color: var(--color-accent);
-        padding: 12px;
+        padding: 10px 12px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 12px;
         backdrop-filter: blur(10px);
@@ -295,8 +338,8 @@
         justify-content: center;
         align-items: center;
         color: var(--color-text-main);
-        font-size: 18px;
-        padding: 12px;
+        font-size: 16px;
+        padding: 10px 12px;
         background: rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         margin: 8px 0;
@@ -310,13 +353,24 @@
         background: rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(10px);
         color: var(--color-highlight);
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 14px 16px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        margin: 8px 0;
+        margin: 6px 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
 
         i {
           padding: 0 5px;
+          color: var(--color-accent);
+          font-size: 0.95em;
+        }
+
+        p {
+          margin: 0;
+          line-height: 1.45;
         }
       }
     }
@@ -1329,8 +1383,13 @@
       width: 100%;
     }
 
-    i { color: var(--color-accent); }
-    strong { color: var(--color-text-main); font-weight: 600; }
+    i {
+      color: var(--color-accent);
+    }
+    strong {
+      color: var(--color-text-main);
+      font-weight: 600;
+    }
   }
 }
 
@@ -1360,8 +1419,15 @@
   border-radius: 14px;
   color: var(--color-text-main);
   // Liquid glass background with subtle gradient and inner glow
-  background: linear-gradient(180deg, rgba(18, 22, 30, 0.72), rgba(20, 24, 34, 0.64)) padding-box,
-    radial-gradient(120% 120% at 0% 0%, rgba(120, 180, 255, 0.22), rgba(120, 180, 255, 0.06)) border-box;
+  background:
+    linear-gradient(180deg, rgba(18, 22, 30, 0.72), rgba(20, 24, 34, 0.64))
+      padding-box,
+    radial-gradient(
+        120% 120% at 0% 0%,
+        rgba(120, 180, 255, 0.22),
+        rgba(120, 180, 255, 0.06)
+      )
+      border-box;
   border: 1px solid rgba(120, 180, 255, 0.14);
   box-shadow:
     0 22px 60px rgba(0, 0, 0, 0.45),
@@ -1371,8 +1437,13 @@
   // base animation state
   opacity: 0;
   transform: translateY(-6px);
-  transition: opacity var(--transition-duration) ease, transform var(--transition-duration) ease;
-  &.is-visible { opacity: 1; transform: translateY(0); }
+  transition:
+    opacity var(--transition-duration) ease,
+    transform var(--transition-duration) ease;
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   // tail position (will be updated from JS relative to version badge)
   --tail-left: 24px;
@@ -1386,10 +1457,14 @@
     width: 12px;
     height: 12px;
     transform: rotate(45deg);
-    background: linear-gradient(180deg, rgba(18,22,30,0.72), rgba(20,24,34,0.64));
+    background: linear-gradient(
+      180deg,
+      rgba(18, 22, 30, 0.72),
+      rgba(20, 24, 34, 0.64)
+    );
     border-left: 1px solid rgba(120, 180, 255, 0.18);
     border-top: 1px solid rgba(120, 180, 255, 0.18);
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
   }
   // Close icon in corner
   .upd-close {
@@ -1406,10 +1481,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease, outline var(--transition-duration) ease;
-    &:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
-    &:active { transform: translateY(1px); }
-    &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    transition:
+      transform var(--transition-duration) ease,
+      box-shadow var(--transition-duration) ease,
+      outline var(--transition-duration) ease;
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+    &:active {
+      transform: translateY(1px);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
   }
 
   .hdr {
@@ -1423,33 +1508,61 @@
     font-size: 12.5px;
     color: rgba(220, 230, 255, 0.82);
     margin-bottom: 10px;
-    .cur { color: #ff9c9c; }
-    .next { color: #7be084; }
+    .cur {
+      color: #ff9c9c;
+    }
+    .next {
+      color: #7be084;
+    }
   }
   .row {
     display: flex;
     justify-content: space-between;
   }
   // Use global .btn styles, adjust slightly for glass
-  .btn { box-shadow: 0 6px 16px rgba(10, 132, 255, 0.16); }
-  .btn:hover { box-shadow: 0 10px 22px rgba(10, 132, 255, 0.2); }
-  .btn-ghost { box-shadow: none; }
+  .btn {
+    box-shadow: 0 6px 16px rgba(10, 132, 255, 0.16);
+  }
+  .btn:hover {
+    box-shadow: 0 10px 22px rgba(10, 132, 255, 0.2);
+  }
+  .btn-ghost {
+    box-shadow: none;
+  }
   progress {
     width: 100%;
     height: 8px;
     border-radius: 999px;
     overflow: hidden;
     background: var(--color-progress-bg);
-    &::-webkit-progress-bar { background: var(--color-progress-bg); }
-    &::-webkit-progress-value { background: var(--color-progress-bar); }
+    &::-webkit-progress-bar {
+      background: var(--color-progress-bg);
+    }
+    &::-webkit-progress-value {
+      background: var(--color-progress-bar);
+    }
   }
-  .muted { color: #9aa6bd; font-size: 12px; }
+  .muted {
+    color: #9aa6bd;
+    font-size: 12px;
+  }
 }
 
 // Light theme adjustments (stronger contrast)
 [data-theme="light"] .upd-flyover {
-  background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(245,247,251,0.86)) padding-box,
-    radial-gradient(120% 120% at 0% 0%, rgba(45, 212, 191, 0.14), rgba(45, 212, 191, 0.06)) border-box;
+  background:
+    linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.82),
+        rgba(245, 247, 251, 0.86)
+      )
+      padding-box,
+    radial-gradient(
+        120% 120% at 0% 0%,
+        rgba(45, 212, 191, 0.14),
+        rgba(45, 212, 191, 0.06)
+      )
+      border-box;
   border: 1px solid rgba(15, 23, 42, 0.09);
   color: #1f2a44;
   box-shadow:
@@ -1457,18 +1570,32 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
   &::after {
-    background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(245,247,251,0.86));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(245, 247, 251, 0.86)
+    );
     border-left: 1px solid rgba(15, 23, 42, 0.12);
     border-top: 1px solid rgba(15, 23, 42, 0.12);
   }
   .ghost {
-    background: linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.03));
+    background: linear-gradient(
+      180deg,
+      rgba(15, 23, 42, 0.06),
+      rgba(15, 23, 42, 0.03)
+    );
     color: #1f2a44;
   }
-  .muted { color: #4b5563; }
+  .muted {
+    color: #4b5563;
+  }
   .upd-close {
-    border-color: rgba(15,23,42,0.18);
-    background: linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.03));
+    border-color: rgba(15, 23, 42, 0.18);
+    background: linear-gradient(
+      180deg,
+      rgba(15, 23, 42, 0.06),
+      rgba(15, 23, 42, 0.03)
+    );
     color: #1f2a44;
   }
 }
@@ -1483,5 +1610,7 @@
     border-left: 1px solid rgba(90, 150, 255, 0.26);
     border-top: 1px solid rgba(90, 150, 255, 0.26);
   }
-  .upd-close { border-color: rgba(90, 150, 255, 0.24); }
+  .upd-close {
+    border-color: rgba(90, 150, 255, 0.24);
+  }
 }

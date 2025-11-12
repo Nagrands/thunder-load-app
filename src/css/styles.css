@@ -14019,7 +14019,9 @@ hr {
 .log-entry .history-preview-collapsible.hidden {
   display: none;
 }
-.log-entry .history-preview-collapsible.open { /* state toggled via JS */ }
+.log-entry .history-preview-collapsible.open {
+  /* state toggled via JS */
+}
 .log-entry .history-preview-image {
   display: block;
   width: 100%;
@@ -14728,6 +14730,38 @@ hr {
   }
 }
 
+.whats-modal {
+  padding: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+.whats-modal .whats-modal-content {
+  width: min(520px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  border-radius: 20px;
+  gap: 0.75rem;
+  background: radial-gradient(circle at 20% -10%, rgba(255, 255, 255, 0.18), rgba(8, 10, 22, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 50px rgba(5, 8, 20, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.whats-modal #whats-new-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+}
+.whats-modal h2 {
+  font-size: 19px;
+  margin-bottom: 4px;
+  color: var(--color-highlight);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.whats-modal h2 i {
+  color: var(--color-accent);
+}
 .whats-modal ul {
   padding: 0;
 }
@@ -14739,26 +14773,28 @@ hr {
   font-weight: 500;
   letter-spacing: 0.5pt;
   text-transform: uppercase;
+  color: var(--color-accent);
 }
 .whats-modal ul h3 {
   display: flex;
   justify-content: center;
   color: var(--color-highlight);
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  margin: 10px 0;
+  margin: 6px 0;
 }
 .whats-modal ul .whats-block {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
 }
 .whats-modal ul .whats-block-date {
   font-weight: 500;
   color: var(--color-accent);
-  padding: 12px;
+  padding: 10px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   backdrop-filter: blur(10px);
@@ -14771,8 +14807,8 @@ hr {
   justify-content: center;
   align-items: center;
   color: var(--color-text-main);
-  font-size: 18px;
-  padding: 12px;
+  font-size: 16px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   margin: 8px 0;
@@ -14784,13 +14820,23 @@ hr {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   color: var(--color-highlight);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 14px;
+  padding: 14px 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 8px 0;
+  margin: 6px 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 .whats-modal ul .whats-block-entry i {
   padding: 0 5px;
+  color: var(--color-accent);
+  font-size: 0.95em;
+}
+.whats-modal ul .whats-block-entry p {
+  margin: 0;
+  line-height: 1.45;
 }
 
 .settings-modal #tools-info {
@@ -16872,20 +16918,27 @@ body.ready #app-preloader {
 }
 
 #whats-new-content {
-  padding: 16px;
+  padding: 12px 4px 6px;
   color: var(--color-text-main);
   line-height: 1.6;
 }
 #whats-new-content details.spoiler {
-  border-radius: var(--border-radius);
-  padding: 12px;
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 16, 30, 0.65);
+  margin-bottom: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 40px rgba(4, 6, 16, 0.35);
 }
 #whats-new-content details.spoiler summary {
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 10px;
   color: var(--color-accent);
+  font-size: 0.95rem;
+  text-transform: uppercase;
 }
 #whats-new-content details.spoiler summary i {
   font-size: 13px;
@@ -16897,9 +16950,9 @@ body.ready #app-preloader {
 }
 #whats-new-content details.spoiler h2,
 #whats-new-content details.spoiler h3 {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
-  margin: 10px 5px;
+  margin: 6px 2px 10px;
   letter-spacing: 0.6pt;
   color: var(--color-url-link);
   display: flex;
@@ -16929,24 +16982,38 @@ body.ready #app-preloader {
   list-style: none;
   padding-left: 0;
   margin: 0;
-  padding: 2px;
+  padding: 4px 0;
 }
 #whats-new-content details.spoiler ul li {
   position: relative;
-  padding: 10px 15px;
+  padding: 10px 14px 10px 34px;
   background-color: transparent;
-  margin: 5px;
+  margin: 4px;
   border-radius: var(--border-radius);
-  border: 1px var(--color-hover) solid;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
 }
 #whats-new-content details.spoiler ul li:hover {
-  background-color: var(--color-hover);
+  background-color: rgba(255, 255, 255, 0.04);
   transition: all 0.6s ease;
+}
+#whats-new-content details.spoiler ul li::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 12px rgba(89, 141, 255, 0.9);
 }
 #whats-new-content details.spoiler ul li i {
   font-size: 14px;
   min-width: 16px;
   color: var(--color-accent);
+  margin-right: 6px;
 }
 #whats-new-content details.spoiler ul li span {
   flex: 1;
@@ -18976,15 +19043,21 @@ video {
   animation: slide-in-from-top 0.4s ease-out;
 }
 .backup-view .bk-row {
-  --bk-row-bg: linear-gradient(120deg,
-      rgba(40, 54, 80, 0.93) 0%,
-      rgba(30, 38, 60, 0.93) 100%);
-  --bk-row-bg-hover: linear-gradient(120deg,
-      rgba(60, 80, 130, 0.99) 0%,
-      rgba(38, 48, 78, 0.99) 100%);
-  --bk-row-bg-selected: linear-gradient(120deg,
-      rgba(80, 130, 255, 0.13) 0%,
-      rgba(80, 130, 255, 0.15) 100%);
+  --bk-row-bg: linear-gradient(
+    120deg,
+    rgba(40, 54, 80, 0.93) 0%,
+    rgba(30, 38, 60, 0.93) 100%
+  );
+  --bk-row-bg-hover: linear-gradient(
+    120deg,
+    rgba(60, 80, 130, 0.99) 0%,
+    rgba(38, 48, 78, 0.99) 100%
+  );
+  --bk-row-bg-selected: linear-gradient(
+    120deg,
+    rgba(80, 130, 255, 0.13) 0%,
+    rgba(80, 130, 255, 0.15) 100%
+  );
   --bk-row-border: 1px solid rgba(120, 180, 255, 0.08);
   display: flex;
   flex-direction: row;

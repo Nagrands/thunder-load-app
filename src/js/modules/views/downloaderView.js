@@ -20,22 +20,22 @@ export default function renderDownloader(wrapper) {
     const find = (sel) => wrapper.querySelector(sel);
 
     // Grab existing blocks we want to group
-    const headerEl = find('header');
-    const buttonGroup = find('nav.button-group');
-    const historySection = find('#history-container');
-    const queueInfo = find('#download-queue-info');
-    const queueStart = find('#queue-start-indicator');
+    const headerEl = find("header");
+    const buttonGroup = find("nav.button-group");
+    const historySection = find("#history-container");
+    const queueInfo = find("#download-queue-info");
+    const queueStart = find("#queue-start-indicator");
 
     // Create glass layout similar to other tabs
-    const center = document.createElement('div');
-    center.className = 'downloader-center';
+    const center = document.createElement("div");
+    center.className = "downloader-center";
 
-    const glass = document.createElement('div');
-    glass.className = 'wg-glass';
+    const glass = document.createElement("div");
+    glass.className = "wg-glass";
 
     // Header block (title + subtitle)
-    const hdr = document.createElement('div');
-    hdr.className = 'wg-header';
+    const hdr = document.createElement("div");
+    hdr.className = "wg-header";
     hdr.innerHTML = `
       <div class="title">
         <i class="fa-solid fa-download"></i>
@@ -56,15 +56,14 @@ export default function renderDownloader(wrapper) {
     center.appendChild(glass);
 
     // Move everything else (if any) below, but keep modals etc. separate
-    wrapper.innerHTML = '';
-    wrapper.classList.add('downloader-view', 'tab-content');
+    wrapper.innerHTML = "";
+    wrapper.classList.add("downloader-view", "tab-content");
     wrapper.appendChild(center);
 
     wrapper.__dl_built = true;
   } catch (e) {
-    console.warn('[DownloaderView] build failed:', e);
+    console.warn("[DownloaderView] build failed:", e);
   }
 
   return wrapper;
 }
-
