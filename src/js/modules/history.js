@@ -406,9 +406,10 @@ document
     updateDeleteSelectedButton();
 
     showToast(
-      `Удалено ${deletedEntries.length} записей. <a href="#" id="undo-delete">Отменить</a>`,
+      `Удалено ${deletedEntries.length} записей.`,
       "info",
       5500,
+      null,
       async () => {
         const restored = [...deletedEntries, ...getHistoryData()];
         setHistoryData(restored);

@@ -110,6 +110,10 @@ async function initSettings() {
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
   const themeLabel = document.getElementById("theme-selected-label");
+  const formatThemeLabel = (theme) =>
+    theme === "system"
+      ? "System"
+      : theme.charAt(0).toUpperCase() + theme.slice(1);
 
   console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
@@ -119,12 +123,7 @@ async function initSettings() {
     } else {
       document.documentElement.setAttribute("data-theme", savedTheme);
     }
-    themeLabel.textContent =
-      savedTheme === "light"
-        ? "Light"
-        : savedTheme === "system"
-          ? "System"
-          : savedTheme.charAt(0).toUpperCase() + savedTheme.slice(1);
+    themeLabel.textContent = formatThemeLabel(savedTheme);
     // Highlight selected theme in dropdown on init
     themeDropdownMenu.querySelectorAll("li").forEach((item) => {
       item.classList.remove("active");
@@ -163,12 +162,7 @@ async function initSettings() {
           localStorage.setItem("theme", selectedTheme);
           document.documentElement.setAttribute("data-theme", selectedTheme);
         }
-        themeLabel.textContent =
-          selectedTheme === "light"
-            ? "Light"
-            : selectedTheme === "system"
-              ? "System"
-              : selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1);
+        themeLabel.textContent = formatThemeLabel(selectedTheme);
         // Highlight selected theme in dropdown
         themeDropdownMenu
           .querySelectorAll("li")

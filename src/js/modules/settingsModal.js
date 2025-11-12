@@ -1,6 +1,5 @@
 // src/js/modules/settingsModal.js
 
-import { toggleTheme, getTheme } from "./themeManager.js";
 import { toggleFontSize, getFontSize } from "./fontSizeManager.js";
 import {
   exportConfig,

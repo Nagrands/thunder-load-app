@@ -1,6 +1,7 @@
 // src/js/modules/themeManager.js
 
 const THEME_KEY = "theme";
+const THEME_CYCLE = ["dark", "midnight", "sunset"];
 
 /**
  * Устанавливает тему вручную или переключает, если параметр не передан
@@ -13,7 +14,13 @@ function toggleTheme(theme) {
   }
 
   const newTheme =
-    theme || (localStorage.getItem(THEME_KEY) === "dark" ? "light" : "dark");
+    theme ||
+    (() => {
+      const current = localStorage.getItem(THEME_KEY) || THEME_CYCLE[0];
+      const index = THEME_CYCLE.indexOf(current);
+      const nextIndex = index === -1 ? 0 : (index + 1) % THEME_CYCLE.length;
+      return THEME_CYCLE[nextIndex];
+    })();
   document.documentElement.setAttribute("data-theme", newTheme);
   localStorage.setItem(THEME_KEY, newTheme);
   return newTheme;

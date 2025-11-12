@@ -42,7 +42,6 @@ import {
   settingsModal,
 } from "./domElements.js";
 import { updateThemeDropdownUI } from "./settingsModal.js";
-import { toggleTheme, getTheme } from "./themeManager.js";
 import { showToast } from "./toast.js";
 import {
   hideSidebar,
@@ -166,7 +165,7 @@ const localHotkeys = new Map([
     "Ctrl+T",
     async () => {
       closeAllModals(modals);
-      const order = ["system", "light", "dark", "midnight"]; // цикл тем с системной
+      const order = ["system", "dark", "midnight", "sunset"]; // цикл тем с системной
       const curAttr = document.documentElement.getAttribute("data-theme");
       const cur = curAttr || localStorage.getItem("theme") || "system";
       const idx = Math.max(0, order.indexOf(cur));
@@ -191,7 +190,7 @@ const localHotkeys = new Map([
     "Meta+T",
     async () => {
       closeAllModals(modals);
-      const order = ["system", "light", "dark", "midnight"]; // цикл тем с системной
+      const order = ["system", "dark", "midnight", "sunset"]; // цикл тем с системной
       const curAttr = document.documentElement.getAttribute("data-theme");
       const cur = curAttr || localStorage.getItem("theme") || "system";
       const idx = Math.max(0, order.indexOf(cur));

@@ -914,7 +914,7 @@ function setupIpcHandlers(dependencies) {
 
   // Обработчики IPC для темы
   ipcMain.handle(CHANNELS.GET_THEME, () => {
-    return store.get("theme", "light"); // 'light' - тема по умолчанию
+    return store.get("theme", "system"); // 'system' - тема по умолчанию
   });
 
   ipcMain.handle(CHANNELS.SET_THEME, (event, theme) => {
