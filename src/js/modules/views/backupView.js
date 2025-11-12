@@ -85,12 +85,6 @@ export default function renderBackup() {
       </div>
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями">
-        <div class="bk-search-container">
-          <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
-          <input type="text" id="bk-filter" placeholder="Поиск профиля, пути..." class="input" style="flex:1;" />
-          <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск" style="width:32px; height:32px;"><i class="fa-solid fa-times"></i></button>
-        </div>
-
         <div id="bk-progress-container" class="bk-progress-container">
           <div class="bk-progress">
             <div class="bk-progress-bar" style="width: 0%"></div>
@@ -112,27 +106,35 @@ export default function renderBackup() {
         </div>
 
         <h1 class="section-heading">
-          <div>
+          <div class="bk-heading-control">
             <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями">
               <i class="fa-solid fa-minus"></i>
             </button>
           </div>
-          
-          <div>
-            <span id="bk-search-info" class="text-xs text-muted" style="margin-left:6px"></span>
-            <div class="bk-actions">
-              <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль">
-                <i class="fa-solid fa-plus"></i>
-              </button>
-              <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
-                <i class="fa-solid fa-trash"></i>
-                <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
-              </button>
-              <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled style="display:none;">
-                <i class="fa-solid fa-play"></i>
-                <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
+
+          <div class="bk-heading-search">
+            <div class="bk-search-container">
+              <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
+              <input type="text" id="bk-filter" placeholder="Поиск профиля, пути..." class="input" />
+              <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск">
+                <i class="fa-solid fa-times"></i>
               </button>
             </div>
+            <span id="bk-search-info" class="text-xs text-muted"></span>
+          </div>
+
+          <div class="bk-actions">
+            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
+              <i class="fa-solid fa-trash"></i>
+              <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
+            </button>
+            <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled style="display:none;">
+              <i class="fa-solid fa-play"></i>
+              <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
+            </button>
           </div>
         </h1>
           
@@ -217,7 +219,7 @@ export default function renderBackup() {
     });
   }
 
-// Добавляем стили для кастомных тултипов
+  // Добавляем стили для кастомных тултипов
   const style = document.createElement('style');
   style.textContent = `
     .backup-tooltip .tooltip-arrow {
@@ -260,11 +262,11 @@ export default function renderBackup() {
     });
   };
 
-// --- Модальное окно удаления/выбора профилей (единый стиль с редактированием) ---
-function openBackupDeleteModal() {
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  overlay.innerHTML = `
+  // --- Модальное окно удаления/выбора профилей (единый стиль с редактированием) ---
+  function openBackupDeleteModal() {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `
     <div class="modal-content bk-modal bk-manage-modal">
       <div class="modal-header">
         <div>
@@ -296,108 +298,113 @@ function openBackupDeleteModal() {
     </div>
   `;
 
-  // Показ оверлея, блокируем прокрутку
-  const _docEl = document.documentElement;
-  const _prevOverflow = _docEl.style.overflow;
-  _docEl.style.overflow = "hidden";
-  overlay.style.display = "flex";
-  wrapper.appendChild(overlay);
+    // Показ оверлея, блокируем прокрутку
+    const _docEl = document.documentElement;
+    const _prevOverflow = _docEl.style.overflow;
+    _docEl.style.overflow = "hidden";
+    overlay.style.display = "flex";
+    wrapper.appendChild(overlay);
 
-  const q = (s) => overlay.querySelector(s);
-  const listEl = q("#bk-delete-list");
-  const selectAll = q("#bk-del-select-all");
-  const deleteBtn = q("#bk-confirm-delete");
-  const runBtn = q("#bk-confirm-run");
-  const counterEl = q("#bk-manage-counter");
+    const q = (s) => overlay.querySelector(s);
+    const listEl = q("#bk-delete-list");
+    const selectAll = q("#bk-del-select-all");
+    const deleteBtn = q("#bk-confirm-delete");
+    const runBtn = q("#bk-confirm-run");
+    const counterEl = q("#bk-manage-counter");
 
-  // Вычисляем уже выделенные профили по чекбоксам основного списка
-  const selectedIndices = Array.from(wrapper.querySelectorAll('#bk-list .bk-chk:checked'))
-    .map(cb => Number(cb.dataset.i));
+    // Вычисляем уже выделенные профили по чекбоксам основного списка
+    const selectedIndices = Array.from(wrapper.querySelectorAll('#bk-list .bk-chk:checked'))
+      .map(cb => Number(cb.dataset.i));
 
-  // Генерация списка профилей из состояния
+    // Генерация списка профилей из состояния
   listEl.innerHTML = state.programs.map((p, idx) => {
     const checked = selectedIndices.includes(idx) ? "checked" : "";
     const name = p.name || `Профиль ${idx + 1}`;
+    const key = profileKey(p);
+    const locked = lockedProfiles.has(key);
+    const checkedAttr = locked ? "" : checked;
     return `
       <div class="form-check">
-        <input class="form-check-input bk-del-chk" type="checkbox" data-index="${idx}" ${checked}>
-        <label class="form-check-label">${name}</label>
+        <input class="form-check-input bk-del-chk" type="checkbox" data-index="${idx}" ${checkedAttr} ${locked ? "disabled" : ""}>
+        <label class="form-check-label">${name}${locked ? ' <span class="locked-badge">В процессе</span>' : ""}</label>
       </div>`;
   }).join("");
 
   const getCheckedChks = () =>
-    Array.from(listEl.querySelectorAll(".bk-del-chk")).filter((c) => c.checked);
+    Array.from(listEl.querySelectorAll(".bk-del-chk:not(:disabled)")).filter(
+      (c) => c.checked,
+    );
 
-  const updateModalActionsState = () => {
-    const all = listEl.querySelectorAll(".bk-del-chk");
-    const checked = getCheckedChks();
-    if (selectAll) {
-      selectAll.indeterminate =
-        checked.length > 0 && checked.length < all.length;
-      selectAll.checked = all.length > 0 && checked.length === all.length;
-    }
-    const any = checked.length > 0;
-    if (deleteBtn) deleteBtn.disabled = !any;
-    if (runBtn) runBtn.disabled = !any;
-    if (counterEl) counterEl.textContent = `${checked.length} выбрано`;
-  };
+    const updateModalActionsState = () => {
+      const all = listEl.querySelectorAll(".bk-del-chk:not(:disabled)");
+      const checked = getCheckedChks();
+      if (selectAll) {
+        selectAll.indeterminate =
+          checked.length > 0 && checked.length < all.length;
+        selectAll.checked = all.length > 0 && checked.length === all.length;
+      }
+      const any = checked.length > 0;
+      if (deleteBtn) deleteBtn.disabled = !any;
+      if (runBtn) runBtn.disabled = !any;
+      if (counterEl) counterEl.textContent = `${checked.length} выбрано`;
+    };
 
-  const onItemChange = (chk) => {
-    const idx = Number(chk.dataset.index);
-    const mainChk = wrapper.querySelector(`.bk-chk[data-i="${idx}"]`);
-    if (mainChk) mainChk.checked = chk.checked;
-    updateModalActionsState();
-    if (typeof updateActionsState === "function") updateActionsState();
-  };
-
-  // Синхронизация чекбоксов между модалкой и основным списком
-  listEl.querySelectorAll(".bk-del-chk").forEach(chk => {
-    chk.addEventListener("change", () => onItemChange(chk));
-  });
-
-  // Обработка чекбокса "Выбрать все"
-  const totalProfiles = state.programs.length;
-  const initiallySelected = selectedIndices.length;
-  if (selectAll) {
-    selectAll.checked = initiallySelected && initiallySelected === totalProfiles;
-    selectAll.addEventListener("change", () => {
-      const all = listEl.querySelectorAll(".bk-del-chk");
-      const want = !!selectAll.checked;
-      all.forEach((chk) => {
-        chk.checked = want;
-        onItemChange(chk);
-      });
+    const onItemChange = (chk) => {
+      const idx = Number(chk.dataset.index);
+      const mainChk = wrapper.querySelector(`.bk-chk[data-i="${idx}"]`);
+      if (mainChk) mainChk.checked = chk.checked;
       updateModalActionsState();
+      if (typeof updateActionsState === "function") updateActionsState();
+    };
+
+    // Синхронизация чекбоксов между модалкой и основным списком
+    listEl.querySelectorAll(".bk-del-chk").forEach(chk => {
+      chk.addEventListener("change", () => onItemChange(chk));
     });
+
+    // Обработка чекбокса "Выбрать все"
+    const totalProfiles = state.programs.length;
+    const initiallySelected = selectedIndices.length;
+    if (selectAll) {
+      selectAll.checked = initiallySelected && initiallySelected === totalProfiles;
+      selectAll.addEventListener("change", () => {
+        const all = listEl.querySelectorAll(".bk-del-chk");
+        const want = !!selectAll.checked;
+        all.forEach((chk) => {
+          chk.checked = want;
+          onItemChange(chk);
+        });
+        updateModalActionsState();
+      });
+    }
+    updateModalActionsState();
+
+    // Закрытие как в редакторе профиля
+    const closeOverlay = () => {
+      overlay.remove();
+      window.removeEventListener("keydown", onEsc);
+      _docEl.style.overflow = _prevOverflow;
+      if (typeof updateActionsState === "function") updateActionsState();
+    };
+    overlay.querySelectorAll('.bk-close').forEach(b => b.addEventListener('click', closeOverlay));
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) closeOverlay(); });
+    const onEsc = (e) => { if (e.key === 'Escape') closeOverlay(); };
+    window.addEventListener('keydown', onEsc);
+
+    // Подтверждение удаления
+    deleteBtn.onclick = () => {
+      closeOverlay();
+      const delBtn = getEl('#bk-del');
+      if (delBtn && !delBtn.disabled) delBtn.click();
+    };
+
+    runBtn.onclick = async () => {
+      const indices = getCheckedChks().map((chk) => Number(chk.dataset.index));
+      if (!indices.length) return;
+      closeOverlay();
+      await runForIndices(indices);
+    };
   }
-  updateModalActionsState();
-
-  // Закрытие как в редакторе профиля
-  const closeOverlay = () => {
-    overlay.remove();
-    window.removeEventListener("keydown", onEsc);
-    _docEl.style.overflow = _prevOverflow;
-    if (typeof updateActionsState === "function") updateActionsState();
-  };
-  overlay.querySelectorAll('.bk-close').forEach(b => b.addEventListener('click', closeOverlay));
-  overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) closeOverlay(); });
-  const onEsc = (e) => { if (e.key === 'Escape') closeOverlay(); };
-  window.addEventListener('keydown', onEsc);
-
-  // Подтверждение удаления
-  deleteBtn.onclick = () => {
-    closeOverlay();
-    const delBtn = getEl('#bk-del');
-    if (delBtn && !delBtn.disabled) delBtn.click();
-  };
-
-  runBtn.onclick = async () => {
-    const indices = getCheckedChks().map((chk) => Number(chk.dataset.index));
-    if (!indices.length) return;
-    closeOverlay();
-    await runForIndices(indices);
-  };
-}
 
   // Добавляем кнопку переключения вида профилей (Full / Compact)
   const toolbarActions = container.querySelector("#bk-toolbar .bk-actions");
@@ -423,7 +430,7 @@ function openBackupDeleteModal() {
       viewMode = viewMode === "full" ? "compact" : "full";
       try {
         localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
-      } catch {}
+      } catch { }
       renderList();
 
       // восстанавливаем выбор
@@ -632,6 +639,46 @@ function openBackupDeleteModal() {
 
   const toast = (m, t = "success") => showToast(m, t);
 
+  const lockedProfiles = new Set();
+  const escapeSelector = (value) =>
+    window.CSS && typeof window.CSS.escape === "function"
+      ? window.CSS.escape(value)
+      : value.replace(/"/g, '\\"');
+  const profileKey = (program) =>
+    [program?.name || "", program?.source_path || "", program?.backup_path || ""]
+      .map((part) => part ?? "")
+      .join("::");
+  const applyLockToRow = (row, locked) => {
+    if (!row) return;
+    row.classList.toggle("is-locked", !!locked);
+    row.querySelectorAll(".bk-chk").forEach((chk) => {
+      chk.disabled = !!locked;
+      if (locked) chk.checked = false;
+    });
+    row
+      .querySelectorAll(
+        ".bk-edit, .bk-open-src, .bk-open, .bk-run, .bk-open-profile",
+      )
+      .forEach((btn) => {
+        btn.disabled = !!locked;
+        btn.setAttribute("aria-disabled", locked ? "true" : "false");
+      });
+  };
+  const applyLockVisuals = (key, locked) => {
+    if (!key) return;
+    const rows = wrapper.querySelectorAll(
+      `.bk-row[data-profile-key="${escapeSelector(key)}"]`,
+    );
+    rows.forEach((row) => applyLockToRow(row, locked));
+  };
+  const setProfileLocked = (key, locked) => {
+    if (!key) return;
+    if (locked) lockedProfiles.add(key);
+    else lockedProfiles.delete(key);
+    applyLockVisuals(key, locked);
+    updateActionsState();
+  };
+
   /** @type {BackupState} */
   const state = {
     programs: [],
@@ -668,7 +715,9 @@ function openBackupDeleteModal() {
 
     const visibleCheckboxes = Array.from(
       bkList.querySelectorAll(".bk-chk"),
-    ).filter((chk) => chk.offsetParent !== null);
+    ).filter(
+      (chk) => chk.offsetParent !== null && !chk.disabled,
+    );
 
     const checkedVisibleCheckboxes = visibleCheckboxes.filter(
       (chk) => chk.checked,
@@ -865,10 +914,13 @@ function openBackupDeleteModal() {
 
     filtered.forEach((p, index) => {
       const idx = state.programs.indexOf(p);
+      const key = profileKey(p);
+      const locked = lockedProfiles.has(key);
 
       if (viewMode === "compact") {
         const row = document.createElement("div");
         row.className = "bk-row bk-row-compact wg-card";
+        row.dataset.profileKey = key;
         row.innerHTML = `
       <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
       <div class="bk-row-content">
@@ -878,17 +930,19 @@ function openBackupDeleteModal() {
         </div>
       </div>
       <div class="bk-row-actions">
-        <button class="btn bk-open" data-i="${idx}"><i class="fa-solid fa-folder-open"></i></button>
-        <button class="btn bk-run" data-i="${idx}"><i class="fa-solid fa-play"></i></button>
+        <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
+        <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
       </div>`;
         row.addEventListener("dblclick", () => showEditForm(idx));
         root.appendChild(row);
+        applyLockToRow(row, locked);
         return;
       }
 
       const row = document.createElement("div");
       row.className = "bk-row wg-card";
       row.style.animationDelay = `${index * 0.05}s`;
+      row.dataset.profileKey = key;
 
       const lbl = lastLabel(state.lastTimes[p.name]);
       const patterns =
@@ -905,16 +959,17 @@ function openBackupDeleteModal() {
       <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
     </div>
     <div class="bk-row-actions">
-      <button class="btn btn-sm bk-edit" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
-      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
-      <button class="btn btn-sm bk-open" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
-      <button class="btn btn-sm bk-run" data-i="${idx}" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
+      <button class="btn btn-sm bk-edit" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-open" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-run" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
     </div>
   `;
 
       row.addEventListener("dblclick", () => showEditForm(idx));
       root.appendChild(row);
       row.setAttribute("aria-label", `${p.name}: ${p.source_path} → ${p.backup_path}`);
+      applyLockToRow(row, locked);
     });
 
     // Update actions state and attach event listeners
@@ -1015,6 +1070,14 @@ function openBackupDeleteModal() {
       }
       : JSON.parse(JSON.stringify(state.programs[idx]));
 
+    if (!isNew) {
+      const key = profileKey(init);
+      if (lockedProfiles.has(key)) {
+        toast("Профиль занят выполняющимся резервным копированием.", "warning");
+        return;
+      }
+    }
+
     const nameFieldHTML = renderField(
       "Название *",
       "f-name",
@@ -1035,15 +1098,13 @@ function openBackupDeleteModal() {
           ${nameFieldHTML}
           ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
           ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
-          <div class="wg-field">
-            <label class="wg-field flex flex-col gap-1">
+          <label class="wg-field flex flex-col gap-1">
               <span class="text-sm">Тип архива</span>
               <select id="f-archive-type" class="input">
                 <option value="zip" ${(init.archive_type || "zip") === "zip" ? "selected" : ""}>ZIP</option>
                 <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
               </select>
-            </label>
-          </div>
+          </label>
           ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
           ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
           <div class="bk-preview-card">
@@ -1795,11 +1856,28 @@ function openBackupDeleteModal() {
       `Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`,
     );
 
-    const res = await invoke("backup:run", list);
+    const lockedKeys = list.map((program) => profileKey(program));
+    lockedKeys.forEach((key) => setProfileLocked(key, true));
+
+    let res;
+    try {
+      res = await invoke("backup:run", list);
+    } catch (invokeError) {
+      lockedKeys.forEach((key) => setProfileLocked(key, false));
+      rows.forEach((r) => r.classList.remove("is-running"));
+      if (progressContainer) {
+        progressContainer.classList.remove("active");
+      }
+      toast(invokeError?.message || "Ошибка запуска backup", "error");
+      log(`Ошибка: ${invokeError?.message || invokeError || "unknown"}`);
+      expandAndScrollLog();
+      return;
+    }
     if (!res?.success) {
       toast(res?.error || "Ошибка запуска", "error");
       log(`Ошибка: ${res?.error || "unknown"}`);
       rows.forEach((r) => r.classList.remove("is-running"));
+      lockedKeys.forEach((key) => setProfileLocked(key, false));
 
       // Скрываем прогресс-бар при ошибке
       if (progressContainer) {
@@ -1856,6 +1934,8 @@ function openBackupDeleteModal() {
         progressContainer.classList.remove("active");
       }
     }, 1500);
+
+    lockedKeys.forEach((key) => setProfileLocked(key, false));
   }
 
   /**
@@ -1929,7 +2009,7 @@ function openBackupDeleteModal() {
   const selAll = getEl("#bk-select-all");
   if (selAll) {
     selAll.addEventListener("change", () => {
-      const all = wrapper.querySelectorAll(".bk-chk");
+      const all = wrapper.querySelectorAll(".bk-chk:not(:disabled)");
       all.forEach((cb) => (cb.checked = selAll.checked));
       updateActionsState();
     });
@@ -2107,7 +2187,7 @@ function openBackupDeleteModal() {
     viewMode = normalized;
     try {
       localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
-    } catch {}
+    } catch { }
     renderList();
     updateViewToggleIcon();
   });
@@ -2119,7 +2199,7 @@ function openBackupDeleteModal() {
     logVisible = visible;
     try {
       localStorage.setItem(LOG_VISIBLE_KEY, JSON.stringify(visible));
-    } catch {}
+    } catch { }
     applyLogVisibility(visible);
   });
 
