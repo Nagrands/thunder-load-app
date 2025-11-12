@@ -109,6 +109,7 @@ const CHANNELS = Object.freeze({
   BACKUP_CHOOSE_DIR: "backup:chooseDir",
   BACKUP_OPEN_PATH: "backup:openPath",
   BACKUP_GET_LAST_TIMES: "backup:getLastTimes",
+  BACKUP_TOGGLE_RELOAD_BLOCK: "backup:toggleReloadBlock",
 });
 
 /**

@@ -65,6 +65,30 @@ export default function renderBackup() {
       ? ipc.invoke(ch, ...args)
       : Promise.reject(new Error("IPC not available"));
 
+  let activeBackupRuns = 0;
+  const toggleReloadShortcut = async (shouldBlock) => {
+    try {
+      await invoke("backup:toggleReloadBlock", shouldBlock);
+    } catch (error) {
+      console.error("[backupView] Не удалось переключить горячую клавишу Ctrl+R:", error);
+    }
+  };
+
+  const acquireReloadShortcutBlock = () => {
+    activeBackupRuns += 1;
+    if (activeBackupRuns === 1) {
+      void toggleReloadShortcut(true);
+    }
+  };
+
+  const releaseReloadShortcutBlock = () => {
+    if (activeBackupRuns === 0) return;
+    activeBackupRuns -= 1;
+    if (activeBackupRuns === 0) {
+      void toggleReloadShortcut(false);
+    }
+  };
+
   const wrapper = document.createElement("div");
   wrapper.id = "backup-view";
   wrapper.className = "backup-view tab-content p-4 space-y-4";
@@ -108,7 +132,7 @@ export default function renderBackup() {
         <h1 class="section-heading">
           <div class="bk-heading-control">
             <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями">
-              <i class="fa-solid fa-minus"></i>
+              <i class="fa-solid fa-list-check"></i>
             </button>
           </div>
 
@@ -1859,83 +1883,88 @@ export default function renderBackup() {
     const lockedKeys = list.map((program) => profileKey(program));
     lockedKeys.forEach((key) => setProfileLocked(key, true));
 
-    let res;
+    acquireReloadShortcutBlock();
     try {
-      res = await invoke("backup:run", list);
-    } catch (invokeError) {
-      lockedKeys.forEach((key) => setProfileLocked(key, false));
-      rows.forEach((r) => r.classList.remove("is-running"));
-      if (progressContainer) {
-        progressContainer.classList.remove("active");
+      let res;
+      try {
+        res = await invoke("backup:run", list);
+      } catch (invokeError) {
+        lockedKeys.forEach((key) => setProfileLocked(key, false));
+        rows.forEach((r) => r.classList.remove("is-running"));
+        if (progressContainer) {
+          progressContainer.classList.remove("active");
+        }
+        toast(invokeError?.message || "Ошибка запуска backup", "error");
+        log(`Ошибка: ${invokeError?.message || invokeError || "unknown"}`);
+        expandAndScrollLog();
+        return;
       }
-      toast(invokeError?.message || "Ошибка запуска backup", "error");
-      log(`Ошибка: ${invokeError?.message || invokeError || "unknown"}`);
-      expandAndScrollLog();
-      return;
-    }
-    if (!res?.success) {
-      toast(res?.error || "Ошибка запуска", "error");
-      log(`Ошибка: ${res?.error || "unknown"}`);
-      rows.forEach((r) => r.classList.remove("is-running"));
-      lockedKeys.forEach((key) => setProfileLocked(key, false));
+      if (!res?.success) {
+        toast(res?.error || "Ошибка запуска", "error");
+        log(`Ошибка: ${res?.error || "unknown"}`);
+        rows.forEach((r) => r.classList.remove("is-running"));
+        lockedKeys.forEach((key) => setProfileLocked(key, false));
 
-      // Скрываем прогресс-бар при ошибке
-      if (progressContainer) {
-        progressContainer.classList.remove("active");
+        // Скрываем прогресс-бар при ошибке
+        if (progressContainer) {
+          progressContainer.classList.remove("active");
+        }
+
+        toast("Ошибка при выполнении backup", "error");
+        expandAndScrollLog();
+        return;
       }
 
-      toast("Ошибка при выполнении backup", "error");
-      expandAndScrollLog();
-      return;
-    }
+      // Process results
+      let done = 0;
+      res.results.filter(Boolean).forEach((r) => {
+        const name = r.name || "Без имени";
+        if (r.success) {
+          log(`✔ ${name}: ${r.zipPath || ""}`);
+        } else {
+          log(`✖ ${name}: ${r.error || "неизвестная ошибка"}`);
+        }
+        done += 1;
+        const percent = Math.round((done / list.length) * 100);
 
-    // Process results
-    let done = 0;
-    res.results.filter(Boolean).forEach((r) => {
-      const name = r.name || "Без имени";
-      if (r.success) {
-        log(`✔ ${name}: ${r.zipPath || ""}`);
+        // Обновляем прогресс-бар
+        if (progressBar && progressCurrent && progressPercent) {
+          progressBar.style.width = percent + "%";
+          progressCurrent.textContent = String(done);
+          progressPercent.textContent = percent + "%";
+        }
+      });
+
+      await load();
+
+      const successCount = res.results.filter((r) => r?.success).length;
+      if (successCount === list.length) {
+        toast(
+          `Backup успешно завершен для всех ${successCount} профилей`,
+          "success",
+        );
       } else {
-        log(`✖ ${name}: ${r.error || "неизвестная ошибка"}`);
+        toast(
+          `Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`,
+          "error",
+        );
       }
-      done += 1;
-      const percent = Math.round((done / list.length) * 100);
 
-      // Обновляем прогресс-бар
-      if (progressBar && progressCurrent && progressPercent) {
-        progressBar.style.width = percent + "%";
-        progressCurrent.textContent = String(done);
-        progressPercent.textContent = percent + "%";
-      }
-    });
+      expandAndScrollLog();
 
-    await load();
+      rows.forEach((r) => r.classList.remove("is-running"));
 
-    const successCount = res.results.filter((r) => r?.success).length;
-    if (successCount === list.length) {
-      toast(
-        `Backup успешно завершен для всех ${successCount} профилей`,
-        "success",
-      );
-    } else {
-      toast(
-        `Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`,
-        "error",
-      );
+      // Скрываем прогресс-бар с задержкой для плавного завершения
+      setTimeout(() => {
+        if (progressContainer) {
+          progressContainer.classList.remove("active");
+        }
+      }, 1500);
+
+      lockedKeys.forEach((key) => setProfileLocked(key, false));
+    } finally {
+      releaseReloadShortcutBlock();
     }
-
-    expandAndScrollLog();
-
-    rows.forEach((r) => r.classList.remove("is-running"));
-
-    // Скрываем прогресс-бар с задержкой для плавного завершения
-    setTimeout(() => {
-      if (progressContainer) {
-        progressContainer.classList.remove("active");
-      }
-    }, 1500);
-
-    lockedKeys.forEach((key) => setProfileLocked(key, false));
   }
 
   /**

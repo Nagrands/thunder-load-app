@@ -23,6 +23,7 @@ const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 const backup = require("./backupManager");
+const { setReloadShortcutSuppressed } = require("./shortcuts.js");
 const {
   installYtDlp,
   installFfmpeg,
@@ -109,6 +110,21 @@ function setupIpcHandlers(dependencies) {
 
   let autoShutdownTimeout = null; // таймер авто‑закрытия WG Unlock
   let autoShutdownDeadlineMs = null; // абсолютный дедлайн (ms) для синхронизации обратного отсчёта
+  let isReloadShortcutBlocked = false;
+
+  if (mainWindow?.webContents) {
+    mainWindow.webContents.on("before-input-event", (event, input) => {
+      if (
+        isReloadShortcutBlocked &&
+        input?.type === "keyDown" &&
+        typeof input?.key === "string" &&
+        input.key.toLowerCase() === "r" &&
+        (input.control || input.meta)
+      ) {
+        event.preventDefault();
+      }
+    });
+  }
 
   // Initialize auto-shutdown on startup (single source of truth)
   try {
@@ -947,6 +963,20 @@ function setupIpcHandlers(dependencies) {
       return { success: false, error: e.message };
     }
   });
+
+  ipcMain.handle(
+    CHANNELS.BACKUP_TOGGLE_RELOAD_BLOCK,
+    async (_evt, shouldBlock) => {
+      try {
+        isReloadShortcutBlocked = Boolean(shouldBlock);
+        setReloadShortcutSuppressed(isReloadShortcutBlocked);
+        return { success: true, blocked: isReloadShortcutBlocked };
+      } catch (error) {
+        log.error("backup:toggleReloadBlock error:", error);
+        return { success: false, error: error.message || String(error) };
+      }
+    },
+  );
 
   // Проверка на отмену загрузки
   function checkIfCancelled(step) {
