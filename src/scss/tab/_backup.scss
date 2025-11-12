@@ -151,9 +151,21 @@
   .wg-header {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
     margin-bottom: 1.25rem;
     backdrop-filter: blur(6px);
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex-direction: row;
+
+    .title {
+      flex: 1 1 280px;
+    }
+
+    .bk-hints {
+      margin-top: 0;
+      flex: 1 1 320px;
+      min-width: 260px;
+    }
 
     .actions {
       display: flex;
@@ -263,145 +275,10 @@
   }
 
   .wg-log-block {
-    border-radius: 16px;
-    background: linear-gradient(
-      120deg,
-      rgba(32, 36, 56, 0.95) 0%,
-      rgba(22, 23, 32, 0.95) 100%
-    );
-    border: 1.5px solid rgba(120, 180, 255, 0.1);
-    overflow: hidden;
     margin: 1.25rem 0;
-    opacity: 0;
-    transition:
-      max-height 0.4s cubic-bezier(0.5, 0, 0.2, 1),
-      box-shadow 0.3s,
-      opacity 0.3s;
-    max-height: 0;
-    position: relative;
-    box-shadow: 0 2px 16px 0 rgba(60, 120, 255, 0.03);
-
-    &[open] {
-      max-height: 480px;
-      box-shadow:
-        0 8px 28px rgba(0, 0, 0, 0.25),
-        0 1.5px 8px 0 rgba(120, 180, 255, 0.08);
-      animation: fadeExpand 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      opacity: 1;
-    }
-
-    .log-summary {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.7rem 1rem 0.7rem 1.1rem;
-      background: linear-gradient(
-        90deg,
-        rgba(40, 44, 62, 0.98) 0%,
-        rgba(22, 23, 32, 0.96) 100%
-      );
-      border-bottom: 1px solid rgba(120, 180, 255, 0.09);
-      cursor: pointer;
-      user-select: none;
-      color: var(--color-accent);
-      font-weight: 700;
-      font-size: 1.03rem;
-      letter-spacing: 0.01em;
-      box-shadow: 0 2px 12px 0 rgba(120, 180, 255, 0.03);
-
-      .log-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 1em;
-        color: var(--color-accent);
-
-        i {
-          color: var(--color-accent);
-          font-size: 1.05em;
-          margin-right: 4px;
-        }
-      }
-
-      .log-actions {
-        display: flex;
-        gap: 6px;
-
-        button {
-          @include backup-icon-button();
-          background: linear-gradient(180deg, #2e3955 0%, #182038 100%);
-          border: 1px solid rgba(120, 180, 255, 0.1);
-          color: var(--color-accent);
-          font-size: 1.09em;
-          transition:
-            background 0.18s,
-            box-shadow 0.18s,
-            color 0.18s;
-          box-shadow: 0 1.5px 7px 0 rgba(120, 180, 255, 0.04);
-
-          &:hover,
-          &:focus-visible {
-            background: linear-gradient(
-              90deg,
-              rgba(120, 180, 255, 0.21),
-              rgba(60, 120, 255, 0.13)
-            );
-            color: #fff;
-            box-shadow: 0 4px 14px 0 rgba(120, 180, 255, 0.12);
-          }
-        }
-      }
-    }
-
-    pre {
-      margin: 0;
-      padding: 1.1rem 1.2rem 1.1rem 1.2rem;
-      font-family:
-        "JetBrains Mono", "Fira Mono", "Menlo", "Consolas", monospace;
-      font-size: 0.97rem;
-      line-height: 1.6;
-      color: #e9eefd;
-      background: linear-gradient(
-        90deg,
-        rgba(32, 39, 54, 0.98) 0%,
-        rgba(22, 23, 32, 0.98) 100%
-      );
-      border-radius: 0 0 16px 16px;
-      max-height: 420px;
-      overflow-y: auto;
-      box-shadow: 0 2px 14px 0 rgba(120, 180, 255, 0.06) inset;
-      transition: background 0.22s;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-accent) rgba(0, 0, 0, 0.05);
-    }
   }
 
-  // Log styles with fixed height and proper scroll behavior
   #bk-log {
-    max-height: 240px;
-    overflow-y: auto;
-    transition: max-height 0.4s cubic-bezier(0.5, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem 0 0.5rem 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    scroll-behavior: smooth;
-    font-family: "JetBrains Mono", "Fira Mono", "Menlo", "Consolas", monospace;
-    font-size: 0.97rem;
-    background: none;
-    border-radius: 0 0 16px 16px;
-    gap: 0;
-    box-shadow: none;
-
     &.expanded {
       max-height: 420px;
     }
@@ -2347,22 +2224,34 @@
 // Backup Hints Block
 // ---------------------------------------------------------------------------
 .bk-hints {
+  @include backup-glass-panel(1.25rem, rgba(255, 255, 255, 0.1), 18px);
+  background: rgba(255, 255, 255, 0.05);
   margin-top: 1.5rem;
-  padding: 8px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 12px;
+  text-align: left;
   color: var(--color-highlight);
-  background-color: var(--color-hover);
-  border-radius: var(--border-radius);
-  opacity: 0.85;
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
-  min-height: 24px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: var(--color-accent);
+    }
+  }
 
   .bk-hint-text {
-    display: inline-block;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-quality);
     opacity: 0;
     transition:
       opacity 0.4s ease,

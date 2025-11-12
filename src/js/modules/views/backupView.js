@@ -168,15 +168,22 @@ export default function renderBackup() {
         <div id="bk-list" class="bk-list space-y-2"></div>
 
         <details class="wg-log-block">
-          <summary class="log-summary">
-            <span class="log-title"><i class="fa-solid fa-terminal"></i> Лог</span>
+          <summary>
+            <i class="fa-solid fa-terminal"></i>
+            Лог активности
           </summary>
           <div class="log-actions" aria-label="Действия с логом">
-            <button id="bk-log-copy" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог"><i class="fa-solid fa-copy"></i></button>
-            <button id="bk-log-export" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспорт в файл"><i class="fa-solid fa-file-arrow-down"></i></button>
-            <button id="bk-log-clear" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог"><i class="fa-solid fa-trash"></i></button>
+            <button id="bk-log-copy" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+            <button id="bk-log-export" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button id="bk-log-clear" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </div>
-          <pre id="bk-log" class="wg-status console text-xs overflow-auto"></pre>
+          <pre id="bk-log" class="wg-status console"></pre>
         </details>
       </div>
     </div>
@@ -525,9 +532,12 @@ export default function renderBackup() {
   // Backup Hints Block
   const subtitle = container.querySelector(".wg-header");
   const hintsBlock = document.createElement("div");
-  hintsBlock.className = "bk-hints";
-  hintsBlock.innerHTML = '<div class="bk-hint-text"></div>';
-  subtitle.insertAdjacentElement("afterend", hintsBlock);
+  hintsBlock.className = "info-card bk-hints";
+  hintsBlock.innerHTML = `
+    <h3><i class="fa-solid fa-lightbulb"></i> Советы</h3>
+    <p class="bk-hint-text"></p>
+  `;
+  subtitle?.appendChild(hintsBlock);
 
   const hints = [
     "💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.",
