@@ -14880,6 +14880,97 @@ hr {
 .settings-modal #tools-info.no-footer {
   padding-bottom: 12px;
 }
+.settings-modal #backup-settings .backup-profiles-section {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.settings-modal #backup-settings .backup-profiles-preview {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.settings-modal #backup-settings .backup-profiles-preview .profiles-preview-text {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--color-text-main);
+}
+.settings-modal #backup-settings .backup-profiles-preview .profiles-preview-text i {
+  font-size: 1.2rem;
+  color: var(--color-accent);
+  margin-top: 4px;
+}
+.settings-modal #backup-settings .backup-profiles-preview .profiles-preview-text strong {
+  display: block;
+  font-size: 0.95rem;
+}
+.settings-modal #backup-settings .backup-profiles-preview .profiles-preview-text p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+.settings-modal #backup-settings .backup-profiles-preview .profiles-preview-text .text-xs {
+  display: block;
+  margin-top: 4px;
+}
+.settings-modal #backup-settings .backup-profiles-preview .history-action-button {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+}
+.settings-modal #backup-settings .backup-profiles-list {
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  max-height: 190px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.35;
+  transition: border-color 0.2s ease;
+}
+.settings-modal #backup-settings .backup-profiles-list.is-empty {
+  font-style: italic;
+  color: var(--color-quality);
+}
+.settings-modal #backup-settings .backup-profiles-list[data-state=loading] {
+  opacity: 0.8;
+}
+.settings-modal #backup-settings .backup-profiles-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.settings-modal #backup-settings .backup-profiles-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.settings-modal #backup-settings .backup-profiles-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.settings-modal #backup-settings .backup-profiles-list li .profile-name {
+  font-weight: 600;
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.settings-modal #backup-settings .backup-profiles-list li .profile-name i {
+  color: var(--color-accent);
+}
+.settings-modal #backup-settings .backup-profiles-list li .profile-paths {
+  font-size: 12px;
+  color: var(--color-quality);
+  word-break: break-all;
+}
 @media screen and (max-width: 720px) {
   .settings-modal #tools-info .tools-footer {
     flex-direction: column;
@@ -18132,7 +18223,7 @@ video {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 6vh 16px 24px;
   background: rgba(0, 0, 0, 0.45);
@@ -18221,8 +18312,7 @@ video {
 .backup-view .bk-modal .modal-footer {
   padding: 12px 18px 16px;
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  justify-content: center;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .backup-view .bk-modal .modal-footer .checkbox-label {
@@ -19670,45 +19760,74 @@ video {
   }
 }
 
-/* --- Модальное окно удаления профилей --- */
-#bk-delete-modal .modal-dialog {
-  max-width: 420px;
+.bk-manage-modal {
+  max-width: 520px;
+  backdrop-filter: blur(18px);
 }
-
-#bk-delete-modal .modal-body {
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 10px;
+.bk-manage-modal .modal-header {
+  align-items: flex-start;
 }
-
-#bk-delete-modal .delete-select-all {
+.bk-manage-modal .modal-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-quality);
+}
+.bk-manage-modal .bk-manage-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
-  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 12px;
 }
-
-#bk-delete-modal .delete-list .form-check {
-  padding: 6px 0;
+.bk-manage-modal #bk-manage-counter {
+  font-size: 0.85rem;
+}
+.bk-manage-modal .delete-list {
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 14px;
+}
+.bk-manage-modal .delete-list .form-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-#bk-delete-modal .delete-list .form-check:last-child {
+.bk-manage-modal .delete-list .form-check:last-child {
   border-bottom: none;
 }
-
-#bk-delete-modal .form-check-label {
+.bk-manage-modal .delete-list .form-check .form-check-label {
+  flex: 1;
   cursor: pointer;
   user-select: none;
+  color: var(--color-text-main);
 }
-
-#bk-delete-modal .form-check-input:checked + .form-check-label {
-  color: var(--accent-color, #0077ff);
+.bk-manage-modal .delete-list .form-check .form-check-input {
+  margin-top: 0;
 }
-
-#bk-delete-modal .modal-footer {
+.bk-manage-modal .modal-footer {
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.bk-manage-modal .modal-footer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bk-manage-modal .modal-footer-actions .btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 body.is-mac .btn-minimize,

@@ -586,7 +586,7 @@
     position: fixed;
     inset: 0;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     padding: 6vh 16px 24px;
     background: rgba(0, 0, 0, 0.45);
@@ -703,8 +703,7 @@
     .modal-footer {
       padding: 12px 18px 16px;
       display: flex;
-      gap: 10px;
-      justify-content: flex-end;
+      justify-content: center;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
 
       .checkbox-label {
@@ -735,16 +734,6 @@
             0 8px 24px rgba(60, 120, 255, 0.15),
             0 2px 8px rgba(0, 0, 0, 0.16);
         }
-
-        // &.btn-primary {
-        //   background: linear-gradient(180deg, #3aa6ff, #1c7ed6);
-        //   color: #fff;
-        // }
-
-        // &.btn-secondary {
-        //   background: linear-gradient(180deg, #555, #333);
-        //   color: #eee;
-        // }
 
         &.is-loading {
           pointer-events: none;
@@ -2536,43 +2525,84 @@
   }
 }
 
-/* --- Модальное окно удаления профилей --- */
-#bk-delete-modal .modal-dialog {
-  max-width: 420px;
-}
+.bk-manage-modal {
+  max-width: 520px;
+  backdrop-filter: blur(18px);
 
-#bk-delete-modal .modal-body {
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
+  .modal-header {
+    align-items: flex-start;
+  }
 
-#bk-delete-modal .delete-select-all {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  font-weight: 500;
-}
+  .modal-subtitle {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: var(--color-quality);
+  }
 
-#bk-delete-modal .delete-list .form-check {
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
+  .bk-manage-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 12px;
+  }
 
-#bk-delete-modal .delete-list .form-check:last-child {
-  border-bottom: none;
-}
+  #bk-manage-counter {
+    font-size: 0.85rem;
+  }
 
-#bk-delete-modal .form-check-label {
-  cursor: pointer;
-  user-select: none;
-}
+  .delete-list {
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.25);
+    padding: 10px 14px;
 
-#bk-delete-modal .form-check-input:checked + .form-check-label {
-  color: var(--accent-color, #0077ff);
-}
+    .form-check {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-#bk-delete-modal .modal-footer {
-  justify-content: space-between;
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .form-check-label {
+        flex: 1;
+        cursor: pointer;
+        user-select: none;
+        color: var(--color-text-main);
+      }
+
+      .form-check-input {
+        margin-top: 0;
+      }
+    }
+  }
+
+  .modal-footer {
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .modal-footer-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .modal-footer-actions .btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }

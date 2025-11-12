@@ -1082,6 +1082,63 @@
                       <strong>Отключить вкладку</strong>
                     </label>
                   </li>
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="backup-compact-toggle" />
+                    <label
+                      for="backup-compact-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Переключает отображение профилей между подробным и компактным режимом."
+                    >
+                      <i class="fa-solid fa-list"></i>
+                      <strong>Компактный список профилей</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="backup-log-toggle" />
+                    <label
+                      for="backup-log-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрыть или показать блок с логом операций резервного копирования."
+                    >
+                      <i class="fa-solid fa-terminal"></i>
+                      <strong>Показывать лог операций</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select backup-profiles-section">
+                    <div class="backup-profiles-preview">
+                      <div class="profiles-preview-text">
+                        <i class="fa-solid fa-list-check"></i>
+                        <div>
+                          <strong>Список профилей</strong>
+                          <p class="muted">
+                            Быстрый просмотр сохранённых профилей и их путей.
+                          </p>
+                          <span
+                            id="backup-profiles-count"
+                            class="text-xs muted"
+                          ></span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        id="backup-profiles-refresh"
+                        class="history-action-button"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Обновить список"
+                      >
+                        <i class="fa-solid fa-rotate"></i>
+                      </button>
+                    </div>
+                    <div
+                      id="backup-profiles-list"
+                      class="backup-profiles-list muted"
+                    >
+                      Нажмите «Обновить список», чтобы загрузить профили.
+                    </div>
+                  </li>
                 </ul>
               </div>
 

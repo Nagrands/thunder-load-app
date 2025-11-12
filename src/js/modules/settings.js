@@ -786,6 +786,180 @@ async function initSettings() {
   })();
   // === /Backup: отключение вкладки ===
 
+  // === Backup: компактный список профилей ===
+  (function initBackupViewModeToggle() {
+    const input = document.getElementById("backup-compact-toggle");
+    if (!input) return;
+    const KEY = "bk_view_mode";
+    const read = () => {
+      try {
+        const raw = localStorage.getItem(KEY);
+        const parsed = raw ? JSON.parse(raw) : "full";
+        return parsed === "compact";
+      } catch {
+        return false;
+      }
+    };
+    const write = (compact, source = "settings") => {
+      const mode = compact ? "compact" : "full";
+      try {
+        localStorage.setItem(KEY, JSON.stringify(mode));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("backup:viewMode", { detail: { mode, source } }),
+      );
+    };
+    input.checked = read();
+    input.addEventListener("change", () => write(input.checked, "settings"));
+    window.addEventListener("backup:viewMode", (event) => {
+      const mode = event?.detail?.mode;
+      if (!mode) return;
+      const shouldCheck = mode === "compact";
+      if (input.checked !== shouldCheck) {
+        input.checked = shouldCheck;
+      }
+    });
+    window.electron?.on?.("open-settings", () => {
+      const val = read();
+      if (input.checked !== val) input.checked = val;
+    });
+  })();
+
+  // === Backup: показ/скрытие лога ===
+  (function initBackupLogToggle() {
+    const input = document.getElementById("backup-log-toggle");
+    if (!input) return;
+    const KEY = "bk_log_visible";
+    const read = () => {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw === null) return true;
+        return JSON.parse(raw) !== false;
+      } catch {
+        return true;
+      }
+    };
+    const write = (visible, source = "settings") => {
+      const flag = !!visible;
+      try {
+        localStorage.setItem(KEY, JSON.stringify(flag));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("backup:logVisible", {
+          detail: { visible: flag, source },
+        }),
+      );
+    };
+    input.checked = read();
+    input.addEventListener("change", () => write(input.checked, "settings"));
+    window.addEventListener("backup:logVisible", (event) => {
+      const detail = event?.detail;
+      if (!detail) return;
+      const visible = detail.visible !== false;
+      if (input.checked !== visible) input.checked = visible;
+    });
+    window.electron?.on?.("open-settings", () => {
+      const visible = read();
+      if (input.checked !== visible) input.checked = visible;
+    });
+  })();
+
+  // === Backup: предпросмотр профилей ===
+  (function initBackupProfilesPreview() {
+    const listEl = document.getElementById("backup-profiles-list");
+    const refreshBtn = document.getElementById("backup-profiles-refresh");
+    const countEl = document.getElementById("backup-profiles-count");
+    if (!listEl || !refreshBtn) return;
+
+    const setPlaceholder = (text, { state = "idle", isEmpty = false } = {}) => {
+      listEl.dataset.state = state;
+      listEl.classList.toggle("is-empty", isEmpty);
+      listEl.classList.add("muted");
+      listEl.textContent = text;
+    };
+
+    const renderProfiles = (programs) => {
+      const list = Array.isArray(programs) ? programs : [];
+      if (countEl) {
+        countEl.textContent = list.length
+          ? `${list.length} проф.`
+          : "Профили отсутствуют";
+      }
+      if (!list.length) {
+        setPlaceholder("Профили не найдены.", { isEmpty: true });
+        return;
+      }
+
+      listEl.dataset.state = "ready";
+      listEl.classList.remove("is-empty");
+      listEl.classList.remove("muted");
+      listEl.innerHTML = "";
+
+      const ul = document.createElement("ul");
+      const limit = 25;
+      list.slice(0, limit).forEach((profile) => {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "profile-name";
+        const title =
+          (profile?.name || "Без названия").toString().trim() ||
+          "Без названия";
+        const icon = document.createElement("i");
+        icon.className = "fa-solid fa-database";
+        const label = document.createElement("span");
+        label.textContent = title;
+        name.appendChild(icon);
+        name.appendChild(label);
+
+        const paths = document.createElement("span");
+        paths.className = "profile-paths";
+        const src = profile?.source_path || "—";
+        const dst = profile?.backup_path || "—";
+        paths.textContent = `${src} → ${dst}`;
+
+        li.appendChild(name);
+        li.appendChild(paths);
+        ul.appendChild(li);
+      });
+      listEl.appendChild(ul);
+
+      if (list.length > limit) {
+        const more = document.createElement("div");
+        more.className = "text-xs muted";
+        more.textContent = `Показаны первые ${limit} профилей из ${list.length}`;
+        listEl.appendChild(more);
+      }
+    };
+
+    const loadProfiles = async () => {
+      if (!window.electron?.invoke) {
+        setPlaceholder("IPC недоступен.", { isEmpty: true });
+        if (countEl) countEl.textContent = "IPC недоступен";
+        return;
+      }
+      setPlaceholder("Загрузка…", { state: "loading" });
+      refreshBtn.disabled = true;
+      try {
+        const res = await window.electron.invoke("backup:getPrograms");
+        if (!res?.success) throw new Error(res?.error || "Не удалось получить профили");
+        renderProfiles(res.programs || []);
+      } catch (error) {
+        console.error("[settings] backup profiles preview error:", error);
+        setPlaceholder(`Ошибка: ${error.message}`, {
+          state: "error",
+          isEmpty: true,
+        });
+        if (countEl) countEl.textContent = "Ошибка загрузки";
+      } finally {
+        refreshBtn.disabled = false;
+      }
+    };
+
+    refreshBtn.addEventListener("click", () => loadProfiles());
+    window.electron?.on?.("open-settings", () => loadProfiles());
+    loadProfiles();
+  })();
+
   // === WG Unlock: авто‑закрытие (toggle + range 10–60s) ===
   const wgAutoToggle = document.getElementById("wg-auto-shutdown-toggle");
   const wgRangeWrap = document.getElementById("wg-auto-shutdown-range");

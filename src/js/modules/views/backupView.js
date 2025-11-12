@@ -12,7 +12,6 @@ import { initTooltips } from "../tooltipInitializer.js";
  * @property {string} [profile_path]     - Optional profile folder to include (placed into "Profiles").
  * @property {string[]} [config_patterns]- Optional list of filename masks (e.g. ['*.ini','*.cfg']). Empty → all files.
  * @property {string} [archive_type]     - Archive type: 'zip' or 'tar.gz'. Default: 'zip'.
- * @property {number} [compression_level]- Compression level from 0 to 9. Default: 6.
  */
 
 /**
@@ -157,6 +156,47 @@ export default function renderBackup() {
   container.innerHTML = html;
   wrapper.appendChild(container);
 
+  const VIEW_MODE_KEY = "bk_view_mode";
+  const LOG_VISIBLE_KEY = "bk_log_visible";
+
+  const readViewMode = () => {
+    try {
+      const raw = localStorage.getItem(VIEW_MODE_KEY);
+      const parsed = raw ? JSON.parse(raw) : "full";
+      return parsed === "compact" ? "compact" : "full";
+    } catch {
+      return "full";
+    }
+  };
+
+  const readLogVisible = () => {
+    try {
+      const raw = localStorage.getItem(LOG_VISIBLE_KEY);
+      if (raw === null) return true;
+      return JSON.parse(raw) !== false;
+    } catch {
+      return true;
+    }
+  };
+
+  let viewMode = readViewMode();
+  let logVisible = readLogVisible();
+
+  const logBlock = container.querySelector(".wg-log-block");
+  const applyLogVisibility = (visible) => {
+    if (logBlock) {
+      logBlock.style.display = visible ? "" : "none";
+    }
+  };
+  applyLogVisibility(logVisible);
+
+  function updateViewToggleIcon(targetMode = viewMode) {
+    const icon = wrapper.querySelector("#bk-toggle-view i");
+    if (!icon) return;
+    icon.className =
+      targetMode === "full" ? "fa-solid fa-bars" : "fa-solid fa-list";
+  }
+
   // Функция поиска элемента внутри wrapper
   /**
    * Shorthand DOM query inside the Backup view wrapper.
@@ -225,22 +265,33 @@ function openBackupDeleteModal() {
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `
-    <div class="modal-content bk-modal">
+    <div class="modal-content bk-modal bk-manage-modal">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-list-check"></i> Управление профилями</h2>
+        <div>
+          <h2><i class="fa-solid fa-list-check"></i> Управление профилями</h2>
+          <p class="modal-subtitle">Переключайте профили, чтобы удалить или запустить несколько за раз.</p>
+        </div>
         <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="delete-select-all mb-2">
+        <div class="bk-manage-toolbar">
           <label class="checkbox-label" style="gap:.5rem">
-            <input type="checkbox" id="bk-del-select-all"> <span>Выбрать все</span>
+            <input type="checkbox" id="bk-del-select-all">
+            <span>Выбрать все</span>
           </label>
+          <span id="bk-manage-counter" class="muted">0 выбрано</span>
         </div>
         <div id="bk-delete-list" class="delete-list"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary bk-close">Отмена</button>
-        <button type="button" id="bk-confirm-delete" class="btn btn-danger">Удалить выбранные</button>
+        <div class="modal-footer-actions">
+          <button type="button" id="bk-confirm-run" class="btn btn-primary" disabled>
+            <i class="fa-solid fa-play"></i> Запустить выбранные
+          </button>
+          <button type="button" id="bk-confirm-delete" class="btn btn-danger" disabled>
+            <i class="fa-solid fa-trash"></i> Удалить выбранные
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -255,7 +306,9 @@ function openBackupDeleteModal() {
   const q = (s) => overlay.querySelector(s);
   const listEl = q("#bk-delete-list");
   const selectAll = q("#bk-del-select-all");
-  const confirmBtn = q("#bk-confirm-delete");
+  const deleteBtn = q("#bk-confirm-delete");
+  const runBtn = q("#bk-confirm-run");
+  const counterEl = q("#bk-manage-counter");
 
   // Вычисляем уже выделенные профили по чекбоксам основного списка
   const selectedIndices = Array.from(wrapper.querySelectorAll('#bk-list .bk-chk:checked'))
@@ -272,20 +325,28 @@ function openBackupDeleteModal() {
       </div>`;
   }).join("");
 
-  const syncSelectAllState = () => {
+  const getCheckedChks = () =>
+    Array.from(listEl.querySelectorAll(".bk-del-chk")).filter((c) => c.checked);
+
+  const updateModalActionsState = () => {
     const all = listEl.querySelectorAll(".bk-del-chk");
-    const checked = Array.from(all).filter(c => c.checked);
+    const checked = getCheckedChks();
     if (selectAll) {
-      selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+      selectAll.indeterminate =
+        checked.length > 0 && checked.length < all.length;
       selectAll.checked = all.length > 0 && checked.length === all.length;
     }
+    const any = checked.length > 0;
+    if (deleteBtn) deleteBtn.disabled = !any;
+    if (runBtn) runBtn.disabled = !any;
+    if (counterEl) counterEl.textContent = `${checked.length} выбрано`;
   };
 
   const onItemChange = (chk) => {
     const idx = Number(chk.dataset.index);
     const mainChk = wrapper.querySelector(`.bk-chk[data-i="${idx}"]`);
     if (mainChk) mainChk.checked = chk.checked;
-    syncSelectAllState();
+    updateModalActionsState();
     if (typeof updateActionsState === "function") updateActionsState();
   };
 
@@ -299,15 +360,17 @@ function openBackupDeleteModal() {
   const initiallySelected = selectedIndices.length;
   if (selectAll) {
     selectAll.checked = initiallySelected && initiallySelected === totalProfiles;
-    selectAll.addEventListener('change', () => {
+    selectAll.addEventListener("change", () => {
       const all = listEl.querySelectorAll(".bk-del-chk");
-      all.forEach(chk => {
-        chk.checked = !!selectAll.checked;
+      const want = !!selectAll.checked;
+      all.forEach((chk) => {
+        chk.checked = want;
         onItemChange(chk);
       });
-      syncSelectAllState();
+      updateModalActionsState();
     });
   }
+  updateModalActionsState();
 
   // Закрытие как в редакторе профиля
   const closeOverlay = () => {
@@ -322,10 +385,17 @@ function openBackupDeleteModal() {
   window.addEventListener('keydown', onEsc);
 
   // Подтверждение удаления
-  confirmBtn.onclick = () => {
+  deleteBtn.onclick = () => {
     closeOverlay();
     const delBtn = getEl('#bk-del');
     if (delBtn && !delBtn.disabled) delBtn.click();
+  };
+
+  runBtn.onclick = async () => {
+    const indices = getCheckedChks().map((chk) => Number(chk.dataset.index));
+    if (!indices.length) return;
+    closeOverlay();
+    await runForIndices(indices);
   };
 }
 
@@ -351,7 +421,9 @@ function openBackupDeleteModal() {
       const checked = [...document.querySelectorAll(".bk-chk:checked")].map(el => el.dataset.i);
 
       viewMode = viewMode === "full" ? "compact" : "full";
-      localStorage.setItem("bk_view_mode", JSON.stringify(viewMode));
+      try {
+        localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
+      } catch {}
       renderList();
 
       // восстанавливаем выбор
@@ -361,11 +433,14 @@ function openBackupDeleteModal() {
       });
 
       updateActionsState();
-
-      const icon = toggleViewBtn.querySelector("i");
-      icon.className =
-        viewMode === "full" ? "fa-solid fa-bars" : "fa-solid fa-list";
+      updateViewToggleIcon();
+      window.dispatchEvent(
+        new CustomEvent("backup:viewMode", {
+          detail: { mode: viewMode, source: "backupView" },
+        }),
+      );
     });
+    updateViewToggleIcon();
   }
 
   // Search filter logic
@@ -556,8 +631,6 @@ function openBackupDeleteModal() {
   };
 
   const toast = (m, t = "success") => showToast(m, t);
-
-  let viewMode = JSON.parse(localStorage.getItem("bk_view_mode")) || "full";
 
   /** @type {BackupState} */
   const state = {
@@ -962,27 +1035,12 @@ function openBackupDeleteModal() {
           ${nameFieldHTML}
           ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
           ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
-          <div class="wg-field double-field">
+          <div class="wg-field">
             <label class="wg-field flex flex-col gap-1">
-              <span class="text-sm">Тип</span>
+              <span class="text-sm">Тип архива</span>
               <select id="f-archive-type" class="input">
                 <option value="zip" ${(init.archive_type || "zip") === "zip" ? "selected" : ""}>ZIP</option>
                 <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
-              </select>
-            </label>
-            <label class="wg-field flex flex-col gap-1">
-              <span class="text-sm">Сжатие</span>
-              <select id="f-compression-level" class="input">
-                <option value="0" ${(init.compression_level || 6) === 0 ? "selected" : ""}>0 - Без сжатия (быстрее)</option>
-                <option value="1" ${(init.compression_level || 6) === 1 ? "selected" : ""}>1 - Минимальное</option>
-                <option value="2" ${(init.compression_level || 6) === 2 ? "selected" : ""}>2</option>
-                <option value="3" ${(init.compression_level || 6) === 3 ? "selected" : ""}>3</option>
-                <option value="4" ${(init.compression_level || 6) === 4 ? "selected" : ""}>4</option>
-                <option value="5" ${(init.compression_level || 6) === 5 ? "selected" : ""}>5 - Стандартное</option>
-                <option value="6" ${(init.compression_level || 6) === 6 ? "selected" : ""}>6 - Хорошее (рекомендуется)</option>
-                <option value="7" ${(init.compression_level || 6) === 7 ? "selected" : ""}>7</option>
-                <option value="8" ${(init.compression_level || 6) === 8 ? "selected" : ""}>8</option>
-                <option value="9" ${(init.compression_level || 6) === 9 ? "selected" : ""}>9 - Максимальное (медленнее)</option>
               </select>
             </label>
           </div>
@@ -1487,11 +1545,6 @@ function openBackupDeleteModal() {
       _debouncedUpdateSave();
     });
 
-    q("#f-compression-level")?.addEventListener("change", () => {
-      updatePreview();
-      _debouncedUpdateSave();
-    });
-
     // Initial validation
     validatePath("f-src", !!init.source_path);
     validatePath("f-dst", !!init.backup_path);
@@ -1504,23 +1557,6 @@ function openBackupDeleteModal() {
       const prof = q("#f-prof")?.value?.trim();
       const pats = q("#f-pats")?.value?.trim();
       const archiveType = q("#f-archive-type")?.value;
-      const compressionLevel = parseInt(q("#f-compression-level")?.value, 10);
-
-      const compressionNames = {
-        0: "без сжатия (самое быстрое)",
-        1: "минимальное",
-        2: "низкое",
-        3: "умеренное",
-        4: "среднее",
-        5: "стандартное",
-        6: "хорошее (рекомендуется)",
-        7: "высокое",
-        8: "максимальное",
-        9: "ультра (самое медленное)",
-      };
-
-      const compressionText =
-        compressionNames[compressionLevel] || `уровень ${compressionLevel}`;
 
       const checkPathClass = (val, required) => {
         if (!val) return required ? "invalid-path" : "optional-path";
@@ -1552,7 +1588,7 @@ function openBackupDeleteModal() {
 
       if (archiveType) {
         lines.push(
-          `<div><strong>Тип архива</strong>: ${archiveType.toUpperCase()} (${compressionText})</div>`,
+          `<div><strong>Тип архива</strong>: ${archiveType.toUpperCase()}</div>`,
         );
       }
 
@@ -1605,7 +1641,6 @@ function openBackupDeleteModal() {
       const profile_path = q("#f-prof").value.trim();
       const config_patterns = parsePatterns(q("#f-pats").value);
       const archive_type = q("#f-archive-type").value;
-      const compression_level = parseInt(q("#f-compression-level").value, 10);
 
       const saveBtn = q("#bk-save");
       if (saveBtn) {
@@ -1663,7 +1698,6 @@ function openBackupDeleteModal() {
         profile_path,
         config_patterns,
         archive_type,
-        compression_level,
       };
 
       if (isNew) {
@@ -2062,6 +2096,44 @@ function openBackupDeleteModal() {
       if (runBtn && !runBtn.disabled) runBtn.click();
       return;
     }
+  });
+
+  window.addEventListener("backup:viewMode", (event) => {
+    if (event?.detail?.source === "backupView") return;
+    const mode = event?.detail?.mode;
+    if (!mode) return;
+    const normalized = mode === "compact" ? "compact" : "full";
+    if (normalized === viewMode) return;
+    viewMode = normalized;
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
+    } catch {}
+    renderList();
+    updateViewToggleIcon();
+  });
+
+  window.addEventListener("backup:logVisible", (event) => {
+    if (event?.detail?.source === "backupView") return;
+    const visible = event?.detail?.visible !== false;
+    if (visible === logVisible) return;
+    logVisible = visible;
+    try {
+      localStorage.setItem(LOG_VISIBLE_KEY, JSON.stringify(visible));
+    } catch {}
+    applyLogVisibility(visible);
+  });
+
+  queueMicrotask(() => {
+    window.dispatchEvent(
+      new CustomEvent("backup:viewMode", {
+        detail: { mode: viewMode, source: "backupView" },
+      }),
+    );
+    window.dispatchEvent(
+      new CustomEvent("backup:logVisible", {
+        detail: { visible: logVisible, source: "backupView" },
+      }),
+    );
   });
 
   // Initial load

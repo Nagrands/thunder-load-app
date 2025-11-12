@@ -418,6 +418,116 @@
     }
   }
 
+  #backup-settings {
+    .backup-profiles-section {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .backup-profiles-preview {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+
+      .profiles-preview-text {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        color: var(--color-text-main);
+
+        i {
+          font-size: 1.2rem;
+          color: var(--color-accent);
+          margin-top: 4px;
+        }
+
+        strong {
+          display: block;
+          font-size: 0.95rem;
+        }
+
+        p {
+          margin: 2px 0 0;
+          font-size: 0.85rem;
+        }
+
+        .text-xs {
+          display: block;
+          margin-top: 4px;
+        }
+      }
+
+      .history-action-button {
+        min-width: 36px;
+        min-height: 36px;
+        border-radius: 10px;
+      }
+    }
+
+    .backup-profiles-list {
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 12px;
+      max-height: 190px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.35;
+      transition: border-color 0.2s ease;
+
+      &.is-empty {
+        font-style: italic;
+        color: var(--color-quality);
+      }
+
+      &[data-state="loading"] {
+        opacity: 0.8;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      li {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+        &:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+
+        .profile-name {
+          font-weight: 600;
+          color: var(--color-text-main);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          i {
+            color: var(--color-accent);
+          }
+        }
+
+        .profile-paths {
+          font-size: 12px;
+          color: var(--color-quality);
+          word-break: break-all;
+        }
+      }
+    }
+  }
+
   // Адаптив под узкие окна
   @media screen and (max-width: 720px) {
     #tools-info {
