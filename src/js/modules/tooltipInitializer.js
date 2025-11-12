@@ -39,6 +39,65 @@ function removeDuplicateModifiers(text) {
 }
 
 let tooltipInstances = [];
+let tooltipSafetyPatched = false;
+let bodyClickListenerAttached = false;
+
+function ensureTooltipSafety() {
+  if (tooltipSafetyPatched) return;
+  const Tooltip = window.bootstrap?.Tooltip;
+  if (!Tooltip || !Tooltip.prototype) return;
+
+  const proto = Tooltip.prototype;
+
+  const originalHide = typeof proto.hide === "function" ? proto.hide : null;
+  if (originalHide) {
+    proto.hide = function (...args) {
+      try {
+        if (!this.tip || typeof this.tip.remove !== "function") {
+          this._activeTrigger = {};
+          this._isHovered = false;
+          const tip =
+            typeof this.tip === "function"
+              ? this.tip()
+              : this.tip || this.getTipElement?.();
+          if (
+            tip &&
+            tip.parentNode &&
+            typeof tip.parentNode.removeChild === "function"
+          ) {
+            tip.parentNode.removeChild(tip);
+          }
+          this.tip = null;
+          return this;
+        }
+        return originalHide.apply(this, args);
+      } catch (error) {
+        console.warn("[Tooltips] Ошибка при скрытии tooltip:", error);
+        return this;
+      }
+    };
+  }
+
+  const originalQueue =
+    typeof proto._queueCallback === "function" ? proto._queueCallback : null;
+  if (originalQueue) {
+    proto._queueCallback = function (callback, element, isAnimated = true) {
+      if (!element) {
+        if (typeof callback === "function") {
+          try {
+            callback.call(this);
+          } catch (error) {
+            console.warn("[Tooltips] Ошибка в безопасном callback:", error);
+          }
+        }
+        return;
+      }
+      return originalQueue.call(this, callback, element, isAnimated);
+    };
+  }
+
+  tooltipSafetyPatched = true;
+}
 
 function replaceModifiers(text, isMac) {
   if (!isMac) return text;
@@ -64,17 +123,9 @@ function initTooltips() {
     );
     return;
   }
+  ensureTooltipSafety();
   // Очистка предыдущих тултипов
-  tooltipInstances.forEach((tooltip) => {
-    try {
-      if (tooltip && tooltip._element?.isConnected) {
-        tooltip.dispose();
-      }
-    } catch (e) {
-      console.warn("Ошибка при очистке tooltip:", e);
-    }
-  });
-  tooltipInstances = [];
+  disposeAllTooltips();
 
   const isMac = navigator.platform.toUpperCase().includes("MAC");
 
@@ -150,18 +201,6 @@ function initTooltips() {
           boundary: "window",
         });
 
-        tooltip._activeTrigger = tooltip._activeTrigger || {};
-
-        const originalHide = tooltip.hide;
-        tooltip.hide = function () {
-          try {
-            if (!this._activeTrigger || !this.tip) return;
-            return originalHide.call(this);
-          } catch (e) {
-            console.warn("Защита: ошибка при вызове tooltip.hide():", e);
-          }
-        };
-
         queueMicrotask(() => {
           el.addEventListener("click", () => {
             try {
@@ -213,29 +252,43 @@ function initTooltips() {
     });
 
   // Глобальное скрытие тултипов при клике вне
-  document.body.addEventListener("click", () => {
-    tooltipInstances.forEach((tooltip) => {
-      try {
-        if (
-          tooltip &&
-          typeof tooltip.hide === "function" &&
-          tooltip._activeTrigger &&
-          tooltip.tip &&
-          tooltip._element?.isConnected
-        ) {
-          tooltip.hide();
+  if (!bodyClickListenerAttached) {
+    document.body.addEventListener("click", () => {
+      tooltipInstances = tooltipInstances.filter(
+        (tooltip) => tooltip && tooltip._element,
+      );
+      tooltipInstances.forEach((tooltip) => {
+        try {
+          if (
+            tooltip &&
+            tooltip._element?.isConnected &&
+            typeof tooltip.hide === "function"
+          ) {
+            const tip = tooltip.tip;
+            const isActive =
+              (typeof tooltip._isShown === "function" &&
+                tooltip._isShown()) ||
+              (tip &&
+                tip.classList &&
+                tip.classList.contains("show") &&
+                tip.parentNode);
+            if (isActive) {
+              tooltip.hide();
+            }
+          }
+        } catch (e) {
+          console.warn("Ошибка при глобальном скрытии tooltip:", e);
         }
-      } catch (e) {
-        console.warn("Ошибка при глобальном скрытии tooltip:", e);
-      }
+      });
     });
-  });
+    bodyClickListenerAttached = true;
+  }
 }
 
 function disposeAllTooltips() {
   tooltipInstances.forEach((tooltip) => {
     try {
-      if (tooltip && tooltip._element?.isConnected) {
+      if (tooltip && typeof tooltip.dispose === "function") {
         tooltip.dispose();
       }
     } catch (e) {

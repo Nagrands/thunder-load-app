@@ -33,7 +33,7 @@ const {
   selectFormatsByQuality,
   isDownloadCancelled,
 } = require("../scripts/download.js");
-const { isValidUrl, isSupportedUrl } = require("./utils.js");
+const { isValidUrl, normalizeUrl } = require("./utils.js");
 const {
   getDefaultToolsDir,
   getEffectiveToolsDir,
@@ -210,8 +210,9 @@ function setupIpcHandlers(dependencies) {
   // Предпросмотр: получить метаданные видео по URL (заголовок, длительность, превью)
   ipcMain.handle(CHANNELS.GET_VIDEO_INFO, async (_evt, url) => {
     try {
-      if (!isValidUrl(url)) throw new Error("Invalid URL");
-      const info = await getVideoInfo(url);
+      const normalizedUrl = normalizeUrl(url);
+      if (!normalizedUrl) throw new Error("Invalid URL");
+      const info = await getVideoInfo(normalizedUrl);
       const title = info?.title || "";
       const duration = Number(info?.duration || 0);
       // thumbnails: yt-dlp отдаёт массив; возьмём самый широкий
@@ -1396,15 +1397,16 @@ function setupIpcHandlers(dependencies) {
       throw new Error("Загрузка уже выполняется");
     }
 
-    if (!isValidUrl(url) || !isSupportedUrl(url)) {
-      throw new Error("Недопустимый или неподдерживаемый URL");
+    const normalizedUrl = normalizeUrl(url);
+    if (!normalizedUrl) {
+      throw new Error("Недопустимый URL");
     }
 
     downloadState.downloadInProgress = true;
     try {
-      const result = await startDownloadProcess(event, url, quality);
+      const result = await startDownloadProcess(event, normalizedUrl, quality);
       downloadState.downloadInProgress = false;
-      return { ...result, sourceUrl: url };
+      return { ...result, sourceUrl: normalizedUrl };
     } catch (error) {
       downloadState.downloadInProgress = false;
       if (error.message === "Download cancelled") {
@@ -1549,14 +1551,15 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.OPEN_EXTERNAL_LINK, async (event, url) => {
     log.info("Opening external link:", url);
     try {
-      if (!isValidUrl(url)) throw new Error("Invalid URL");
+      const normalizedUrl = normalizeUrl(url);
+      if (!isValidUrl(normalizedUrl)) throw new Error("Invalid URL");
 
-      const parsedUrl = new URL(url);
+      const parsedUrl = new URL(normalizedUrl);
       if (!["http:", "https:"].includes(parsedUrl.protocol)) {
         throw new Error("Invalid or unsupported URL protocol");
       }
 
-      await shell.openExternal(url);
+      await shell.openExternal(normalizedUrl);
       return { success: true };
     } catch (error) {
       log.error("Error opening external link:", error);

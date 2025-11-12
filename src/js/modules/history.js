@@ -457,9 +457,9 @@ function renderHistory(entries) {
   const emptyMessage = document.getElementById("empty-history");
   const isEmpty = entries.length === 0;
 
-  clearHistoryContainer(container);
-
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
+
+  clearHistoryContainer(container);
 
   if (isEmpty) {
     if (emptyMessage) {
