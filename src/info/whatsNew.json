@@ -1,6 +1,6 @@
 {
   "version": "1.2.15",
   "changes": [
-    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Общие\" dir=\"auto\">Общие</h3>\n<ul>\n<li dir=\"auto\">Добавлено <strong>новое окно обновления</strong> приложения.</li>\n</ul>\n    </details>"
+    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Вкладка «Downloader»\" dir=\"auto\">Вкладка «Downloader»</h3>\n<ul>\n<li dir=\"auto\">В <strong>настройках</strong> добавлена <em>фоновая проверка обновлений</em> <strong>yt-dlp/ffmpeg</strong>: при появлении новой версии автоматически показывается <em>toast</em> c подсказкой обновить инструменты.</li>\n</ul>\n    </details>"
   ]
 }

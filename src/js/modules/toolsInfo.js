@@ -132,6 +132,96 @@ function applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking) {
   if (forceBtn) forceBtn.disabled = offline || isInstalling || isChecking;
 }
 
+const backgroundUpdateState = {
+  inProgress: false,
+  lastSignature: null,
+  lastRun: 0,
+};
+const BACKGROUND_UPDATE_COOLDOWN_MS = 5 * 60 * 1000;
+
+/**
+ * Фоновая проверка обновлений инструментов с уведомлением через toast.
+ * Запускается только когда оба инструмента установлены и вкладка настроек открыта.
+ * @param {object} currentVersions
+ */
+async function triggerBackgroundToolsUpdateCheck(currentVersions) {
+  if (backgroundUpdateState.inProgress) return;
+  if (!navigator.onLine) return;
+  if (
+    !currentVersions?.ytDlp?.ok ||
+    !currentVersions?.ffmpeg?.ok
+  ) {
+    return;
+  }
+
+  const now = Date.now();
+  if (now - backgroundUpdateState.lastRun < BACKGROUND_UPDATE_COOLDOWN_MS) {
+    return;
+  }
+
+  backgroundUpdateState.inProgress = true;
+  backgroundUpdateState.lastRun = now;
+
+  try {
+    const updates = await window.electron?.tools?.checkUpdates?.({
+      background: true,
+      noCache: false,
+    });
+    if (!updates) return;
+
+    const notices = [];
+    const signatureParts = [];
+
+    const ytLatest = normVer(updates?.ytDlp?.latest || "");
+    const ytCurrent = normVer(
+      updates?.ytDlp?.current ||
+        updates?.ytDlp?.local ||
+        firstLine(currentVersions?.ytDlp?.version || "").replace(/^v/i, ""),
+    );
+    if (ytLatest && ytCurrent && cmpYtDlp(ytLatest, ytCurrent) === 1) {
+      notices.push(`yt-dlp ${updates.ytDlp.latest}`);
+      signatureParts.push(`yt:${updates.ytDlp.latest}`);
+    }
+
+    const ffLatest = normVer(updates?.ffmpeg?.latest || "");
+    const ffCurrent = normVer(
+      updates?.ffmpeg?.current ||
+        updates?.ffmpeg?.local ||
+        firstLine(currentVersions?.ffmpeg?.version || "")
+          .replace(/^ffmpeg version\s*/i, "")
+          .split(" ")[0],
+    );
+    if (ffLatest && ffCurrent && cmpFfSemver(ffLatest, ffCurrent) === 1) {
+      notices.push(`ffmpeg ${updates.ffmpeg.latest}`);
+      signatureParts.push(`ff:${updates.ffmpeg.latest}`);
+    }
+
+    if (!notices.length) return;
+
+    const signature = signatureParts.join("|");
+    if (
+      signature &&
+      backgroundUpdateState.lastSignature === signature
+    ) {
+      return;
+    }
+    backgroundUpdateState.lastSignature = signature || null;
+
+    const list = notices
+      .map((entry) => `<strong>${entry}</strong>`)
+      .join(", ");
+    await window.electron?.invoke?.(
+      "toast",
+      `Доступны обновления инструментов: ${list}<br><small>Откройте раздел Downloader, чтобы установить.</small>`,
+      "info",
+    );
+  } catch (error) {
+    console.warn("[toolsInfo] background update check failed:", error);
+  } finally {
+    backgroundUpdateState.inProgress = false;
+  }
+}
+
 /**
  * Рендер секции «Инструменты» и навешивание обработчиков.
  * Делает безопасные IPC вызовы через preload‑bridge `window.electron.tools`.
@@ -830,6 +920,10 @@ export async function renderToolsInfo() {
       }
       statusEl.innerHTML = `<div class="tool-badges tools-status-animate">${parts.join(" ")}</div>`;
       statusEl.setAttribute("aria-live", "polite");
+    }
+
+    if (!missing) {
+      triggerBackgroundToolsUpdateCheck(res);
     }
   } catch (e) {
     if (hintEl) hintEl.textContent = "Не удалось получить версии инструментов.";
