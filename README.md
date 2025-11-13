@@ -62,6 +62,16 @@ npm run build
 - **Node.js** — JavaScript runtime
 - **npm** — Package manager
 
+## Toolchain
+
+Thunder Load автоматически загружает утилиты, необходимые для загрузок:
+
+- `yt-dlp` — основной движок скачивания
+- `ffmpeg` — конвертация и mux
+- `Deno` — JavaScript-рантайм, требуемый yt-dlp (>= 2025.11.12) для YouTube
+
+Все бинарники помещаются в каталог `userData/tools` (или пользовательский путь из настроек) и обновляются через `ensureAllDependencies`.
+
 ---
 
 ## Development

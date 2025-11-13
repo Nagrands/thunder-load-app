@@ -74,6 +74,47 @@ function getFfprobePath() {
     process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
   );
 }
+function getDenoPath() {
+  return resolveToolPath("deno", getToolsDir());
+}
+
+function ensureDenoCacheDir() {
+  const cacheDir = path.join(getToolsDir(), "deno-cache");
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+  }
+  return cacheDir;
+}
+
+function appendToolsDirToPath(currentPath = "") {
+  const toolsDir = getToolsDir();
+  const parts = currentPath.split(path.delimiter).filter(Boolean);
+  if (!parts.includes(toolsDir)) {
+    parts.unshift(toolsDir);
+  }
+  return parts.join(path.delimiter);
+}
+
+function getYtDlpEnvironment() {
+  const env = { ...process.env };
+  env.PATH = appendToolsDirToPath(env.PATH || "");
+  const denoPath = getDenoPath();
+  if (fs.existsSync(denoPath)) {
+    try {
+      env.DENO_DIR = ensureDenoCacheDir();
+    } catch (err) {
+      log.warn("Failed to prepare DENO_DIR:", err.message);
+    }
+  }
+  return env;
+}
+
+function getYtDlpSpawnOptions() {
+  return {
+    env: getYtDlpEnvironment(),
+    windowsHide: true,
+  };
+}
 
 // Качество скачивания
 const QUALITY_AUDIO_ONLY = "Audio Only";
@@ -547,6 +588,137 @@ async function installYtDlp() {
   }
 }
 
+function findFileRecursive(dir, target) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const found = findFileRecursive(fullPath, target);
+      if (found) return found;
+    } else if (entry.isFile() && entry.name === target) {
+      return fullPath;
+    }
+  }
+  return null;
+}
+
+async function getDenoVersion() {
+  const denoPath = getDenoPath();
+  if (!fs.existsSync(denoPath)) return null;
+  try {
+    const versionOutput = await runProcess(denoPath, ["--version"]);
+    const firstLine = versionOutput.split("\n")[0] || versionOutput;
+    log.info("Deno version detected:", firstLine);
+    return firstLine;
+  } catch (err) {
+    log.error("Failed to run deno --version:", err.message);
+    return null;
+  }
+}
+
+function getDenoDownloadInfo() {
+  const arch = process.arch;
+  const platform = process.platform;
+  const baseUrl = "https://github.com/denoland/deno/releases/latest/download";
+  const binaryName = platform === "win32" ? "deno.exe" : "deno";
+  let fileName = null;
+
+  if (platform === "win32") {
+    if (arch === "x64" || arch === "amd64") {
+      fileName = "deno-x86_64-pc-windows-msvc.zip";
+    } else if (arch === "arm64") {
+      fileName = "deno-aarch64-pc-windows-msvc.zip";
+    }
+  } else if (platform === "darwin") {
+    if (arch === "arm64") {
+      fileName = "deno-aarch64-apple-darwin.zip";
+    } else if (arch === "x64") {
+      fileName = "deno-x86_64-apple-darwin.zip";
+    }
+  } else if (platform === "linux") {
+    if (arch === "x64") {
+      fileName = "deno-x86_64-unknown-linux-gnu.zip";
+    } else if (arch === "arm64") {
+      fileName = "deno-aarch64-unknown-linux-gnu.zip";
+    }
+  }
+
+  if (!fileName) {
+    throw new Error(
+      `Unsupported platform/architecture for Deno runtime (${platform}/${arch}).`,
+    );
+  }
+
+  return {
+    url: `${baseUrl}/${fileName}`,
+    binaryName,
+  };
+}
+
+async function installDeno() {
+  let zipPath = null;
+  let extractPath = null;
+  try {
+    const version = await getDenoVersion();
+    if (version) {
+      log.info(`Deno ${version} is already installed.`);
+      return;
+    }
+
+    const { url, binaryName } = getDenoDownloadInfo();
+    log.info("Downloading Deno runtime from", url);
+    zipPath = path.join(os.tmpdir(), `deno-${Date.now()}.zip`);
+    extractPath = path.join(os.tmpdir(), `deno-extract-${Date.now()}`);
+    await fs.promises.mkdir(extractPath, { recursive: true });
+    await downloadFile(url, zipPath);
+
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(zipPath)
+        .pipe(unzipper.Extract({ path: extractPath }))
+        .on("close", resolve)
+        .on("error", reject);
+    });
+
+    const extractedBinary = findFileRecursive(extractPath, binaryName);
+    if (!extractedBinary) {
+      throw new Error("Deno binary not found after extraction.");
+    }
+
+    const targetDir = getToolsDir();
+    await ensureToolsDir(targetDir);
+    const targetPath = getDenoPath();
+    fs.copyFileSync(extractedBinary, targetPath);
+    if (process.platform !== "win32") {
+      fs.chmodSync(targetPath, 0o755);
+    }
+    log.info("Deno runtime installed to", targetPath);
+    ensureDenoCacheDir();
+
+    const newVersion = await getDenoVersion();
+    if (!newVersion) {
+      throw new Error("Deno installed but version check failed.");
+    }
+  } catch (error) {
+    log.error("Error in installDeno:", error);
+    throw error;
+  } finally {
+    if (zipPath) {
+      try {
+        fs.unlinkSync(zipPath);
+      } catch {}
+    }
+    if (extractPath) {
+      try {
+        if (fs.rmSync) {
+          fs.rmSync(extractPath, { recursive: true, force: true });
+        } else {
+          fs.rmdirSync(extractPath, { recursive: true });
+        }
+      } catch {}
+    }
+  }
+}
+
 /**
  * Получает версию ffmpeg.
  */
@@ -709,14 +881,18 @@ function getVideoInfo(url) {
   return new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
-    activeProcesses.getVideoInfo = spawn(ytDlpPath, [
-      "-J",
-      url,
-      "--ffmpeg-location",
-      ffmpegDir,
-      "--no-warnings",
-      "--ignore-config",
-    ]);
+    activeProcesses.getVideoInfo = spawn(
+      ytDlpPath,
+      [
+        "-J",
+        url,
+        "--ffmpeg-location",
+        ffmpegDir,
+        "--no-warnings",
+        "--ignore-config",
+      ],
+      getYtDlpSpawnOptions(),
+    );
     let output = "";
     activeProcesses.getVideoInfo.stdout.on(
       "data",
@@ -756,18 +932,22 @@ function spawnDownloadProcess(format, outputPath, url, progressCallback) {
   return new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
-    const proc = spawn(ytDlpPath, [
-      "-f",
-      format,
-      "-o",
-      outputPath,
-      url,
-      "--ffmpeg-location",
-      ffmpegDir,
-      "--newline",
-      "--ignore-errors",
-      "--no-warnings",
-    ]);
+    const proc = spawn(
+      ytDlpPath,
+      [
+        "-f",
+        format,
+        "-o",
+        outputPath,
+        url,
+        "--ffmpeg-location",
+        ffmpegDir,
+        "--newline",
+        "--ignore-errors",
+        "--no-warnings",
+      ],
+      getYtDlpSpawnOptions(),
+    );
     proc.stdout.on("data", (data) => {
       data
         .toString()
@@ -813,10 +993,29 @@ async function downloadMedia(
     if (!fs.existsSync(downloadPath))
       fs.mkdirSync(downloadPath, { recursive: true });
     currentDownloadPath = downloadPath;
+    log.info("[download] Starting new job", {
+      url,
+      downloadPath,
+      sanitizedFilename,
+      quality,
+      resolution,
+      fps,
+      audioFormat,
+      videoFormat,
+      audioExt: audioExt || "m4a",
+      videoExt: videoExt || "mp4",
+    });
 
     // Подготовим пути к инструментам один раз для всей функции
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
+    const denoPath = getDenoPath();
+    log.info("[download] Tools being used", {
+      ytDlpPath,
+      ffmpegDir,
+      denoPath: fs.existsSync(denoPath) ? denoPath : "deno not found",
+      envPath: getYtDlpEnvironment().PATH,
+    });
 
     // Audio Only режим
     if (quality === QUALITY_AUDIO_ONLY) {
@@ -831,19 +1030,28 @@ async function downloadMedia(
           }
           event.sender.send("download-progress", progress);
         };
-        activeProcesses.audioDownload = spawn(ytDlpPath, [
-          "-o",
-          audioOutput,
+        log.info("[download] Spawning yt-dlp for Twitch audio", {
+          output: audioOutput,
+          format: "mp3",
           url,
-          "--ffmpeg-location",
-          ffmpegDir,
-          "--extract-audio",
-          "--audio-format",
-          "mp3",
-          "--newline",
-          "--ignore-errors",
-          "--no-warnings",
-        ]);
+        });
+        activeProcesses.audioDownload = spawn(
+          ytDlpPath,
+          [
+            "-o",
+            audioOutput,
+            url,
+            "--ffmpeg-location",
+            ffmpegDir,
+            "--extract-audio",
+            "--audio-format",
+            "mp3",
+            "--newline",
+            "--ignore-errors",
+            "--no-warnings",
+          ],
+          getYtDlpSpawnOptions(),
+        );
         activeProcesses.audioDownload.stdout.on("data", (data) => {
           data
             .toString()
@@ -883,18 +1091,27 @@ async function downloadMedia(
           }
           event.sender.send("download-progress", progress);
         };
-        activeProcesses.audioDownload = spawn(ytDlpPath, [
-          "-f",
+        log.info("[download] Spawning yt-dlp for audio-only download", {
+          output: audioOutput,
           audioFormat,
-          "-o",
-          audioOutput,
           url,
-          "--ffmpeg-location",
-          ffmpegDir,
-          "--newline",
-          "--ignore-errors",
-          "--no-warnings",
-        ]);
+        });
+        activeProcesses.audioDownload = spawn(
+          ytDlpPath,
+          [
+            "-f",
+            audioFormat,
+            "-o",
+            audioOutput,
+            url,
+            "--ffmpeg-location",
+            ffmpegDir,
+            "--newline",
+            "--ignore-errors",
+            "--no-warnings",
+          ],
+          getYtDlpSpawnOptions(),
+        );
         activeProcesses.audioDownload.stdout.on("data", (data) => {
           data
             .toString()
@@ -958,19 +1175,28 @@ async function downloadMedia(
     };
 
     // Скачивание видео
+    log.info("[download] Spawning yt-dlp for video part", {
+      videoFormat,
+      output: videoOutputTemp,
+      url,
+    });
     await new Promise((resolve, reject) => {
-      activeProcesses.videoDownload = spawn(ytDlpPath, [
-        "-f",
-        videoFormat,
-        "-o",
-        videoOutputTemp,
-        url,
-        "--ffmpeg-location",
-        ffmpegDir,
-        "--newline",
-        "--ignore-errors",
-        "--no-warnings",
-      ]);
+      activeProcesses.videoDownload = spawn(
+        ytDlpPath,
+        [
+          "-f",
+          videoFormat,
+          "-o",
+          videoOutputTemp,
+          url,
+          "--ffmpeg-location",
+          ffmpegDir,
+          "--newline",
+          "--ignore-errors",
+          "--no-warnings",
+        ],
+        getYtDlpSpawnOptions(),
+      );
       activeProcesses.videoDownload.stdout.on("data", (data) => {
         data
           .toString()
@@ -1002,19 +1228,28 @@ async function downloadMedia(
       typeof audioFormat === "string" &&
       audioFormat.trim() !== ""
     ) {
+      log.info("[download] Spawning yt-dlp for audio part (mux mode)", {
+        audioFormat,
+        output: audioOutputTemp,
+        url,
+      });
       await new Promise((resolve, reject) => {
-        activeProcesses.audioDownload = spawn(ytDlpPath, [
-          "-f",
-          audioFormat,
-          "-o",
-          audioOutputTemp,
-          url,
-          "--ffmpeg-location",
-          ffmpegDir,
-          "--newline",
-          "--ignore-errors",
-          "--no-warnings",
-        ]);
+        activeProcesses.audioDownload = spawn(
+          ytDlpPath,
+          [
+            "-f",
+            audioFormat,
+            "-o",
+            audioOutputTemp,
+            url,
+            "--ffmpeg-location",
+            ffmpegDir,
+            "--newline",
+            "--ignore-errors",
+            "--no-warnings",
+          ],
+          getYtDlpSpawnOptions(),
+        );
         activeProcesses.audioDownload.stdout.on("data", (data) => {
           data
             .toString()
@@ -1042,6 +1277,11 @@ async function downloadMedia(
       });
 
       // Слияние видео и аудио через ffmpeg
+      log.info("[download] Spawning ffmpeg to merge tracks", {
+        videoInput: videoOutputTemp,
+        audioInput: audioOutputTemp,
+        output: mergedOutput,
+      });
       await new Promise((resolve, reject) => {
         const ffmpegPath = getFfmpegPath();
         activeProcesses.merge = spawn(ffmpegPath, [
@@ -1057,6 +1297,7 @@ async function downloadMedia(
         activeProcesses.merge.on("close", async (code) => {
           activeProcesses.merge = null;
           if (code !== 0 && !isDownloadCancelled) {
+            log.error(`[download] ffmpeg merge exited with code ${code}`);
             return reject(new Error(`ffmpeg exited with code ${code}`));
           }
           if (isDownloadCancelled)
@@ -1094,6 +1335,10 @@ async function downloadMedia(
         downloadPath,
         `${sanitizedFilename}.${targetExt}`,
       );
+      log.info("[download] Audio format missing, renaming video output", {
+        from: videoOutputTemp,
+        to: properOutput,
+      });
       try {
         fs.renameSync(videoOutputTemp, properOutput);
         log.info(`[downloadMedia] Muxed stream saved as ${properOutput}`);
@@ -1213,10 +1458,12 @@ log.info(
 log.info("[download.js] yt-dlp path:", getYtDlpPath());
 log.info("[download.js] ffmpeg path:", getFfmpegPath());
 log.info("[download.js] ffprobe path:", getFfprobePath());
+log.info("[download.js] deno path:", getDenoPath());
 
 module.exports = {
   installYtDlp,
   installFfmpeg,
+  installDeno,
   getVideoInfo,
   downloadMedia,
   stopDownload,
@@ -1233,6 +1480,7 @@ async function ensureAllDependencies(store = null) {
   if (store) {
     setSharedStore(store);
   }
+  await installDeno();
   await installYtDlp();
   await installFfmpeg();
 }

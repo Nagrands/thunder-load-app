@@ -25,6 +25,21 @@ function firstLine(s = "") {
 }
 
 /**
+ * Привести deno --version к компактному виду «deno X.Y.Z».
+ * @param {string} [s=""]
+ * @returns {string}
+ */
+function formatDenoVersion(s = "") {
+  const line = firstLine(s).trim();
+  if (!line) return "";
+  const parts = line.split(/\s+/);
+  if (parts.length >= 2 && parts[0].toLowerCase() === "deno") {
+    return `${parts[0]} ${parts[1]}`;
+  }
+  return line;
+}
+
+/**
  * Нормализовать строку версии: обрезать префикс `v`, трим, в нижний регистр.
  * Пустые/«—» → пустая строка.
  * @param {string} [v=""]
@@ -147,7 +162,11 @@ const BACKGROUND_UPDATE_COOLDOWN_MS = 5 * 60 * 1000;
 async function triggerBackgroundToolsUpdateCheck(currentVersions) {
   if (backgroundUpdateState.inProgress) return;
   if (!navigator.onLine) return;
-  if (!currentVersions?.ytDlp?.ok || !currentVersions?.ffmpeg?.ok) {
+  if (
+    !currentVersions?.ytDlp?.ok ||
+    !currentVersions?.ffmpeg?.ok ||
+    !currentVersions?.deno?.ok
+  ) {
     return;
   }
 
@@ -496,12 +515,15 @@ export async function renderToolsInfo() {
     if (res.ffmpeg?.error) {
       console.error("ffmpeg error:", res.ffmpeg.error);
     }
+    if (res.deno?.error) {
+      console.error("deno error:", res.deno.error);
+    }
 
     // Хинт
-    const missing = !res?.ytDlp?.ok || !res?.ffmpeg?.ok;
+    const missing = !res?.ytDlp?.ok || !res?.ffmpeg?.ok || !res?.deno?.ok;
     if (hintEl)
       hintEl.textContent = missing
-        ? "Некоторые инструменты не найдены. Установите их или нажмите ‘Скачать зависимости’."
+        ? "Некоторые инструменты (Deno, yt-dlp, ffmpeg) не найдены. Установите их или нажмите ‘Скачать зависимости’."
         : "";
 
     if (moreWrap) moreWrap.style.display = missing ? "none" : "";
@@ -566,7 +588,7 @@ export async function renderToolsInfo() {
           if (moreWrap) moreWrap.style.display = "";
           forceBtn.onclick = () => {
             showConfirmationDialog(
-              "Вы действительно хотите переустановить инструменты?<br><small>Существующие файлы yt-dlp и ffmpeg в выбранной папке будут заменены.</small>",
+              "Вы действительно хотите переустановить инструменты?<br><small>Существующие файлы Deno, yt-dlp и ffmpeg в выбранной папке будут заменены.</small>",
               async () => {
                 if (!navigator.onLine) {
                   await window.electron?.invoke?.(
@@ -659,6 +681,7 @@ export async function renderToolsInfo() {
             // Собираем версию «current» и «latest»
             const yCurUpd = normVer(upd?.ytDlp?.current || "");
             const fCurUpd = normVer(upd?.ffmpeg?.current || "");
+            const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
             const yLatN = normVer(upd?.ytDlp?.latest || "");
             const fLatN = normVer(upd?.ffmpeg?.latest || "");
 
@@ -670,9 +693,11 @@ export async function renderToolsInfo() {
                 .replace(/^ffmpeg version\s*/i, "")
                 .split(" ")[0],
             );
+            const dCurLocal = formatDenoVersion(cur?.deno?.version || "");
 
             const ytCur = yCurUpd || yCurLocal || "";
             const ffCur = fCurUpd || fCurLocal || "";
+            const denoCur = dCurUpd || dCurLocal || "";
             const ytLatest = yLatN;
             const ffLatest = fLatN;
 
@@ -711,8 +736,14 @@ export async function renderToolsInfo() {
                 msgs.push(`ffmpeg: текущая версия (${ffCur})`);
               }
             }
+            if (denoCur) {
+              msgs.push(`Deno: ${denoCur}`);
+            } else if (cur?.deno?.ok === false) {
+              msgs.push("Deno: не найден");
+            }
             const ytMsg = msgs.find((m) => m.startsWith("yt-dlp")) || "";
             const ffMsg = msgs.find((m) => m.startsWith("ffmpeg")) || "";
+            const denoMsg = msgs.find((m) => m.startsWith("Deno")) || "";
             if (statusEl) {
               const badges = [];
               if (cur?.ytDlp?.ok) {
@@ -739,6 +770,16 @@ export async function renderToolsInfo() {
               } else {
                 badges.push(
                   `<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> ffmpeg</span>`,
+                );
+              }
+              if (cur?.deno?.ok) {
+                const curTxt = dCurLocal || dCurUpd || "—";
+                badges.push(
+                  `<span class=\"tool-badge ok\"><i class=\"fa-solid fa-check\"></i> Deno ${curTxt}</span>`,
+                );
+              } else {
+                badges.push(
+                  `<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> Deno</span>`,
                 );
               }
               statusEl.innerHTML = `<div class=\"tool-badges\">${badges.join(" ")}<\/div>`;
@@ -824,7 +865,7 @@ export async function renderToolsInfo() {
               promotedToUpdateMode = true;
               await window.electron?.invoke?.(
                 "toast",
-                [ytMsg, ffMsg].filter(Boolean).join("; ") ||
+                [ytMsg, ffMsg, denoMsg].filter(Boolean).join("; ") ||
                   "Доступны обновления",
                 "success",
               );
@@ -833,7 +874,7 @@ export async function renderToolsInfo() {
               enableForceReinstall();
               await window.electron?.invoke?.(
                 "toast",
-                [ytMsg, ffMsg].filter(Boolean).join("; ") ||
+                [ytMsg, ffMsg, denoMsg].filter(Boolean).join("; ") ||
                   "Обновлений не найдено",
                 "success",
               );
@@ -877,7 +918,11 @@ export async function renderToolsInfo() {
               .replace(/^ffmpeg version\s*/i, "")
               .split(" ")[0]
           : "—";
-        statusEl.setAttribute("title", `yt-dlp: ${curY}; ffmpeg: ${curF}`);
+        const curD = res?.deno?.ok ? formatDenoVersion(res.deno.version) : "—";
+        statusEl.setAttribute(
+          "title",
+          `yt-dlp: ${curY}; ffmpeg: ${curF}; Deno: ${curD}`,
+        );
         statusEl.setAttribute("data-bs-toggle", "tooltip");
       } else {
         statusEl.removeAttribute("title");
@@ -908,6 +953,16 @@ export async function renderToolsInfo() {
       } else {
         parts.push(
           `<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> ffmpeg</span>`,
+        );
+      }
+      if (res?.deno?.ok) {
+        const curD = formatDenoVersion(res.deno.version || "");
+        parts.push(
+          `<span class=\"tool-badge ok\"><i class=\"fa-solid fa-check\"></i> Deno ${curD}</span>`,
+        );
+      } else {
+        parts.push(
+          `<span class=\"tool-badge missing\"><i class=\"fa-solid fa-xmark\"></i> Deno</span>`,
         );
       }
       statusEl.innerHTML = `<div class="tool-badges tools-status-animate">${parts.join(" ")}</div>`;

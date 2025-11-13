@@ -50,13 +50,14 @@ function runVersion(cmd, args, timeoutMs = 2000) {
 }
 
 /**
- * Get current versions of yt-dlp and ffmpeg from effective tools directory.
+ * Get current versions of yt-dlp, ffmpeg and deno from effective tools directory.
  * @param {any} store optional store/getter to resolve custom dir
  */
 async function getToolsVersions(store) {
   const dir = getEffectiveToolsDir(store);
   const ytPath = resolveToolPath("yt-dlp", dir);
   const ffPath = resolveToolPath("ffmpeg", dir);
+  const denoPath = resolveToolPath("deno", dir);
 
   const ytExists = fs.existsSync(ytPath);
   let yt = { ok: ytExists, path: ytPath };
@@ -72,7 +73,14 @@ async function getToolsVersions(store) {
     if (ver) ff.version = ver;
   }
 
-  return { ytDlp: yt, ffmpeg: ff };
+  const denoExists = fs.existsSync(denoPath);
+  let deno = { ok: denoExists, path: denoPath };
+  if (denoExists) {
+    const ver = await runVersion(denoPath, ["--version"]);
+    if (ver) deno.version = ver;
+  }
+
+  return { ytDlp: yt, ffmpeg: ff, deno };
 }
 
 module.exports = { getToolsVersions };

@@ -27,6 +27,7 @@ const { setReloadShortcutSuppressed } = require("./shortcuts.js");
 const {
   installYtDlp,
   installFfmpeg,
+  installDeno,
   getVideoInfo,
   downloadMedia,
   stopDownload,
@@ -740,6 +741,10 @@ function setupIpcHandlers(dependencies) {
         }
       }
 
+      const denoCurrent = tools?.deno?.ok
+        ? (tools.deno.version || "").split("\n")[0]
+        : null;
+
       const result = {
         ytDlp: {
           current: ytCurrent || null,
@@ -753,6 +758,12 @@ function setupIpcHandlers(dependencies) {
           latest: ffLatest || null,
           canUpdate: canUpdate(ffCurrent, ffLatest),
           unknownLatest: !ffLatest,
+        },
+        deno: {
+          current: denoCurrent || null,
+          latest: null,
+          canUpdate: false,
+          unknownLatest: true,
         },
       };
 
@@ -771,6 +782,23 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_INSTALLALL, async () => {
     try {
       const tools = await getToolsVersions(store);
+
+      // --- deno: remove old runtime to force overwrite ---
+      const denoInfo = tools?.deno;
+      if (denoInfo?.ok && denoInfo?.path) {
+        try {
+          log.info(
+            `[tools:installAll] Removing existing Deno at ${denoInfo.path}`,
+          );
+          await fsPromises.unlink(denoInfo.path);
+        } catch (e) {
+          log.warn(`[tools:installAll] Could not remove Deno: ${e.message}`);
+        }
+      }
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send("status-message", "Скачиваю Deno…");
+      }
+      await installDeno();
 
       // --- yt-dlp: remove old binary if exists to force overwrite ---
       const ytDlpInfo = tools?.ytDlp;
@@ -813,7 +841,7 @@ function setupIpcHandlers(dependencies) {
         );
         mainWindow.webContents.send(
           "toast",
-          "Зависимости установлены",
+          "Зависимости (Deno, yt-dlp, ffmpeg) установлены",
           "success",
         );
       }

@@ -15,11 +15,11 @@ const os = require("os");
 const { app } = require("electron");
 
 const TOOLS_KEY = "tools.dir"; // ключ настроек для кастомной папки инструментов
-const TOOL_NAMES = /** @type {const} */ (["yt-dlp", "ffmpeg"]);
+const TOOL_NAMES = /** @type {const} */ (["yt-dlp", "ffmpeg", "deno"]);
 
 /**
  * Возвращает имя исполняемого файла под платформу
- * @param {('yt-dlp'|'ffmpeg')} tool
+ * @param {('yt-dlp'|'ffmpeg'|'deno')} tool
  */
 function getExecName(tool) {
   const base = tool;
@@ -83,7 +83,7 @@ async function ensureToolsDir(dir) {
 
 /**
  * Абсолютный путь к бинарнику инструмента в выбранной папке
- * @param {('yt-dlp'|'ffmpeg')} tool
+ * @param {('yt-dlp'|'ffmpeg'|'deno')} tool
  * @param {string} dir
  */
 function resolveToolPath(tool, dir) {
@@ -92,7 +92,7 @@ function resolveToolPath(tool, dir) {
 
 /**
  * Проверка наличия бинарника и исполнимости (где это применимо)
- * @param {('yt-dlp'|'ffmpeg')} tool
+ * @param {('yt-dlp'|'ffmpeg'|'deno')} tool
  * @param {string} dir
  */
 async function isToolPresent(tool, dir) {
@@ -140,7 +140,7 @@ function legacyCandidates() {
 
 /**
  * Ищет старые установки инструментов и возвращает найденные пути
- * @returns {Promise<{dir:string, tools:Partial<Record<'yt-dlp'|'ffmpeg', string>>}[]>}
+ * @returns {Promise<{dir:string, tools:Partial<Record<'yt-dlp'|'ffmpeg'|'deno', string>>}[]>}
  */
 async function detectLegacyLocations() {
   const out = [];
