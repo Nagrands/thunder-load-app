@@ -7,6 +7,7 @@ import {
   settingsModal,
   collapseSidebarButton,
   compactSidebarButton,
+  settingsButton,
 } from "./domElements.js";
 import { disposeAllTooltips, initTooltips } from "./tooltipInitializer.js";
 
@@ -55,12 +56,59 @@ function hideSidebar() {
 /**
  * Функция для открытия настроек
  */
+let __prevFocusedEl = null;
+let __trapHandler = null;
+
+function getTabbables(root) {
+  const sel = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(',');
+  return Array.from(root.querySelectorAll(sel)).filter(
+    (el) => el.offsetParent !== null,
+  );
+}
+
 function openSettings() {
   settingsModal.style.display = "flex";
   settingsModal.style.justifyContent = "center";
   settingsModal.style.alignItems = "center";
-  // overlay.classList.add("active");
   hideSidebar();
+
+  // Focus trap setup
+  __prevFocusedEl = document.activeElement;
+  const tabbables = getTabbables(settingsModal);
+  if (tabbables.length) {
+    // Prefer active tab button
+    const activeTab = settingsModal.querySelector('.tab-link.active');
+    (activeTab || tabbables[0]).focus();
+  } else {
+    settingsModal.focus?.();
+  }
+
+  __trapHandler = (e) => {
+    if (e.key !== 'Tab') return;
+    const nodes = getTabbables(settingsModal);
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+  window.addEventListener('keydown', __trapHandler, true);
 }
 
 /**
@@ -69,6 +117,15 @@ function openSettings() {
 function closeSettings() {
   settingsModal.style.display = "none";
   overlay.classList.remove("active");
+  if (__trapHandler) {
+    window.removeEventListener('keydown', __trapHandler, true);
+    __trapHandler = null;
+  }
+  // Restore focus to the opener if possible
+  try {
+    (settingsButton || __prevFocusedEl)?.focus?.();
+  } catch {}
+  __prevFocusedEl = null;
 }
 
 document.getElementById("open-github")?.addEventListener("click", () => {

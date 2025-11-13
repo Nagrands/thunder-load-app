@@ -12,9 +12,9 @@ import {
   settingsDisableCompleteModalToggle,
 } from "./domElements.js";
 
-import { getTheme } from "./themeManager.js";
-import { getFontSize, setFontSize } from "./fontSizeManager.js";
+import { getTheme, getFontSize, setFontSize, setTheme } from "./settingsStore.js";
 import { renderToolsInfo } from "./toolsInfo.js";
+import { showConfirmationDialog } from "./modals.js";
 
 /**
  * Функция для инициализации настроек
@@ -93,12 +93,7 @@ async function initSettings() {
           li.classList.add("active");
         }
       });
-      document.documentElement.style.setProperty(
-        "--font-size",
-        `${defaultSize}px`,
-      );
-      document.body.style.setProperty("--font-size", `${defaultSize}px`);
-      await window.electron.invoke("set-font-size", defaultSize);
+      await setFontSize(defaultSize);
       window.electron.invoke(
         "toast",
         `<strong>Размер шрифта</strong> сброшен на <strong>${defaultSize}px</strong>`,
@@ -153,23 +148,14 @@ async function initSettings() {
     themeDropdownMenu.querySelectorAll("li").forEach((item) => {
       item.addEventListener("click", async () => {
         const selectedTheme = item.getAttribute("data-value");
-        // плавный переход
         document.documentElement.classList.add("theme-transition");
-        if (selectedTheme === "system") {
-          localStorage.removeItem("theme");
-          document.documentElement.removeAttribute("data-theme");
-        } else {
-          localStorage.setItem("theme", selectedTheme);
-          document.documentElement.setAttribute("data-theme", selectedTheme);
-        }
+        await setTheme(selectedTheme);
         themeLabel.textContent = formatThemeLabel(selectedTheme);
-        // Highlight selected theme in dropdown
         themeDropdownMenu
           .querySelectorAll("li")
           .forEach((li) => li.classList.remove("active"));
         item.classList.add("active");
         themeDropdownMenu.classList.remove("show");
-        await window.electron.invoke("set-theme", selectedTheme);
         setTimeout(
           () => document.documentElement.classList.remove("theme-transition"),
           260,
@@ -206,13 +192,10 @@ async function initSettings() {
   const resetThemeBtn = document.getElementById("reset-theme");
   if (resetThemeBtn && themeDropdownMenu && themeLabel) {
     resetThemeBtn.addEventListener("click", async () => {
-      const defaultTheme = "system"; // сбрасываем на системную тему
-      // storage + DOM attribute
+      const defaultTheme = "system";
       document.documentElement.classList.add("theme-transition");
-      localStorage.removeItem("theme");
-      document.documentElement.removeAttribute("data-theme");
+      await setTheme(defaultTheme);
       themeLabel.textContent = "System";
-      // Обновляем активный элемент в выпадающем меню
       themeDropdownMenu.querySelectorAll("li").forEach((li) => {
         li.classList.remove("active");
         if (li.getAttribute("data-value") === defaultTheme) {
@@ -220,7 +203,6 @@ async function initSettings() {
         }
       });
       themeDropdownMenu.classList.remove("show");
-      await window.electron.invoke("set-theme", defaultTheme);
       setTimeout(
         () => document.documentElement.classList.remove("theme-transition"),
         260,
@@ -1239,8 +1221,7 @@ async function initSettings() {
   // === /Tools location UI ===
 }
 
-export async function exportConfig() {
-  // Параллельно получаем все необходимые настройки:
+async function collectCurrentConfig() {
   const [
     theme,
     fontSize,
@@ -1267,7 +1248,6 @@ export async function exportConfig() {
     getDefaultTab(),
   ]);
 
-  // Формируем объект конфигурации
   const config = {
     general: {
       autoLaunch,
@@ -1293,6 +1273,11 @@ export async function exportConfig() {
       openOnCopyUrl,
     },
   };
+  return config;
+}
+
+export async function exportConfig() {
+  const config = await collectCurrentConfig();
 
   // Создаем blob и инициируем скачивание файла config.json
   const blob = new Blob([JSON.stringify(config, null, 2)], {
@@ -1323,71 +1308,126 @@ export async function importConfig(file) {
   try {
     const config = JSON.parse(text);
 
-    // Тема и шрифт — localStorage + визуальное применение
-    if (config.appearance?.theme)
-      localStorage.setItem("theme", config.appearance.theme);
-    if (config.appearance?.fontSize)
-      localStorage.setItem("fontSize", config.appearance.fontSize);
+    // Build diff preview
+    const current = await collectCurrentConfig();
+    const changes = [];
+    const walk = (a, b, p = []) => {
+      const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+      for (const k of keys) {
+        const pa = [...p, k];
+        const va = a ? a[k] : undefined;
+        const vb = b ? b[k] : undefined;
+        const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+        if (isObj(va) || isObj(vb)) walk(va || {}, vb || {}, pa);
+        else if (JSON.stringify(va) !== JSON.stringify(vb))
+          changes.push({ path: pa.join("."), from: va, to: vb });
+      }
+    };
+    walk(current, config);
 
-    // Применяем остальные настройки через Electron
-    if (typeof config.general?.autoLaunch !== "undefined") {
-      await window.electron.invoke(
-        "toggle-auto-launch",
-        config.general.autoLaunch,
-      );
-    }
-    if (typeof config.general?.minimizeOnLaunch !== "undefined") {
-      await window.electron.invoke(
-        "set-minimize-on-launch-status",
-        config.general.minimizeOnLaunch,
-      );
-    }
-    if (typeof config.notifications?.closeNotification !== "undefined") {
-      await window.electron.invoke(
-        "set-close-notification-status",
-        config.notifications.closeNotification,
-      );
-    }
-    if (typeof config.shortcuts?.disableGlobalShortcuts !== "undefined") {
-      await window.electron.invoke(
-        "set-disable-global-shortcuts-status",
-        config.shortcuts.disableGlobalShortcuts,
-      );
-    }
-    if (typeof config.clipboard?.openOnCopyUrl !== "undefined") {
-      await window.electron.invoke(
-        "set-open-on-copy-url-status",
-        config.clipboard.openOnCopyUrl,
-      );
-    }
-    if (typeof config.window?.expandWindowOnDownloadComplete !== "undefined") {
-      await window.electron.invoke(
-        "set-open-on-download-complete-status",
-        config.window.expandWindowOnDownloadComplete,
-      );
-    }
-    if (typeof config.general?.minimizeInsteadOfClose !== "undefined") {
-      await window.electron.invoke(
-        "set-minimize-instead-of-close",
-        config.general.minimizeInsteadOfClose,
-      );
-    }
-    if (typeof config.window?.defaultTab !== "undefined") {
-      await window.electron.invoke("set-default-tab", config.window.defaultTab);
-    }
-    if (typeof config.notifications?.disableCompleteModal !== "undefined") {
-      await window.electron.invoke(
-        "set-disable-complete-modal-status",
-        config.notifications.disableCompleteModal,
-      );
-    }
+    const previewItems = changes
+      .slice(0, 50)
+      .map(
+        (c) =>
+          `<li><code>${c.path}</code>: <em>${JSON.stringify(c.from)}</em> → <strong>${JSON.stringify(c.to)}</strong></li>`,
+      )
+      .join("");
+    const moreNote =
+      changes.length > 50
+        ? `<li>… и ещё ${changes.length - 50} изменений</li>`
+        : "";
 
-    await window.electron.invoke(
-      "toast",
-      "Конфигурация успешно импортирована",
-      "success",
-    );
-    location.reload();
+    const html = `
+      <div class="toast-message">
+        <p>Будут применены ${changes.length} изменений. Создать резервную копию текущей конфигурации и продолжить?</p>
+        <ul>${previewItems}${moreNote}</ul>
+      </div>`;
+
+    showConfirmationDialog(html, async () => {
+      // Backup current config
+      try {
+        const backup = new Blob([JSON.stringify(current, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(backup);
+        const a = document.createElement("a");
+        const stamp = new Date()
+          .toISOString()
+          .replace(/[:T]/g, "-")
+          .slice(0, 19);
+        a.href = url;
+        a.download = `config.backup-${stamp}.json`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+      } catch {}
+
+      // Apply imported config (existing logic)
+      await (async () => {
+        // Тема и шрифт — localStorage + визуальное применение
+        if (config.appearance?.theme) await setTheme(config.appearance.theme);
+        if (config.appearance?.fontSize) await setFontSize(config.appearance.fontSize);
+
+        if (typeof config.general?.autoLaunch !== "undefined") {
+          await window.electron.invoke(
+            "toggle-auto-launch",
+            config.general.autoLaunch,
+          );
+        }
+        if (typeof config.general?.minimizeOnLaunch !== "undefined") {
+          await window.electron.invoke(
+            "set-minimize-on-launch-status",
+            config.general.minimizeOnLaunch,
+          );
+        }
+        if (typeof config.notifications?.closeNotification !== "undefined") {
+          await window.electron.invoke(
+            "set-close-notification-status",
+            config.notifications.closeNotification,
+          );
+        }
+        if (typeof config.shortcuts?.disableGlobalShortcuts !== "undefined") {
+          await window.electron.invoke(
+            "set-disable-global-shortcuts-status",
+            config.shortcuts.disableGlobalShortcuts,
+          );
+        }
+        if (typeof config.clipboard?.openOnCopyUrl !== "undefined") {
+          await window.electron.invoke(
+            "set-open-on-copy-url-status",
+            config.clipboard.openOnCopyUrl,
+          );
+        }
+        if (typeof config.window?.expandWindowOnDownloadComplete !== "undefined") {
+          await window.electron.invoke(
+            "set-open-on-download-complete-status",
+            config.window.expandWindowOnDownloadComplete,
+          );
+        }
+        if (typeof config.general?.minimizeInsteadOfClose !== "undefined") {
+          await window.electron.invoke(
+            "set-minimize-instead-of-close",
+            config.general.minimizeInsteadOfClose,
+          );
+        }
+        if (typeof config.window?.defaultTab !== "undefined") {
+          await window.electron.invoke("set-default-tab", config.window.defaultTab);
+        }
+        if (typeof config.notifications?.disableCompleteModal !== "undefined") {
+          await window.electron.invoke(
+            "set-disable-complete-modal-status",
+            config.notifications.disableCompleteModal,
+          );
+        }
+
+        await window.electron.invoke(
+          "toast",
+          "Конфигурация успешно импортирована",
+          "success",
+        );
+        location.reload();
+      })();
+    });
+
   } catch (e) {
     alert("Ошибка импорта: " + e.message);
   }

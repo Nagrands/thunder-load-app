@@ -1,0 +1,97 @@
+      <!--
+      ==========================
+      Модальные окна обновлений
+      ==========================
+      -->
+
+      <!-- Доступно новое обновление -->
+      <div
+        id="update-available-modal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="update-available-title"
+        style="display: none"
+      >
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="update-available-title">Новое обновление</h2>
+            <button class="close-modal" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>Доступно новое обновление. Хотите загрузить сейчас?</p>
+          </div>
+          <div class="modal-footer">
+            <button class="confirm-button" id="download-update-btn">
+              <i class="fa-solid fa-download"></i> Загрузить
+            </button>
+            <button class="cancel-button" id="later-update-btn">
+              <i class="fa-solid fa-times"></i> Позже
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Обновление загружено -->
+      <div
+        id="update-downloaded-modal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="update-downloaded-title"
+        style="display: none"
+      >
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="update-downloaded-title">Загрузка обновления завершена</h2>
+            <button class="close-modal" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>
+              Обновление успешно загружено. Перезапустить приложение для
+              установки?
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="confirm-button" id="restart-app-btn">
+              <i class="fa-solid fa-redo"></i> Перезапустить
+            </button>
+            <button class="cancel-button" id="later-restart-btn">
+              <i class="fa-solid fa-times"></i> Позже
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ошибка обновления -->
+      <div
+        id="update-error-modal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="update-error-title"
+        style="display: none"
+      >
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="update-error-title">Ошибка обновления</h2>
+            <button class="close-modal" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p id="update-error-message">
+              Произошла ошибка при проверке обновлений.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="confirm-button" id="close-error-notification">
+              <i class="fa-solid fa-check"></i> Закрыть
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Прогресс-бар обновлений -->
+      <div id="update-progress-container">
+        <span id="update-progress-text">Идет загрузка обновления...</span>
+        <progress id="update-progress-bar" value="0" max="100"></progress>
+      </div>

@@ -1,0 +1,75 @@
+<!-- History Section -->
+<section id="history-container">
+  <details class="spoiler-history" open>
+    <summary>
+      <i class="fa-solid fa-clock-rotate-left fa-fade"></i> История загрузок:
+    </summary>
+
+    <div class="filter-clear-container input-container">
+      <div class="history-actions">
+        <div class="history-search-wrapper">
+          <i id="icon-filter-search" class="fas fa-search search-icon"></i>
+          <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+          <button
+            id="clear-filter-input"
+            class="history-action-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Очистить поиск"
+          >
+            &times;
+          </button>
+
+          <button
+            id="refresh-button"
+            class="history-action-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Обновить"
+          >
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+          </button>
+          <button
+            id="sort-button"
+            class="history-action-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Сортировка"
+          >
+            <i class="fa-solid"></i>
+          </button>
+          <button
+            id="clear-history"
+            class="history-action-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Очистить"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
+          <button
+            id="delete-selected"
+            class="history-action-button hidden"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Удалить выбранные"
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+
+          <button
+            id="history-header"
+            class="history-action-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Записей истории"
+          >
+            <span id="total-downloads">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </details>
+  <div id="history" role="list"></div>
+  <div id="empty-history" class="empty-history">История загрузок не содержит данных.</div>
+</section>

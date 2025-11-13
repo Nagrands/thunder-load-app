@@ -1,0 +1,98 @@
+<div class="top-bar">
+  <div class="left">
+    <!-- Кнопка бокового меню -->
+    <button
+      class="toggle-btn"
+      id="toggle-btn"
+      data-bs-toggle="tooltip"
+      data-bs-placement="top"
+      title="Открыть Боковое меню"
+    >
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <div
+      class="app-version-label version-container"
+      id="app-version-label"
+      data-bs-toggle="tooltip"
+      data-bs-placement="bottom"
+      title="Версия приложения"
+    >
+      <i class="fas fa-bolt fa-beat-fade"></i>
+      <span class="version">v<span id="app-version">?</span></span>
+    </div>
+
+    <div class="center-menu">
+      <!-- Меню вкладок -->
+      <div class="group-menu"></div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="window-controls">
+      <button
+        class="menu-item"
+        id="open-history"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="История загрузок"
+        data-hotkey="Ctrl+H"
+      >
+        <span class="menu-main">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </span>
+      </button>
+
+      <button
+        class="menu-item"
+        id="shortcuts-button"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Горячие клавиши"
+        data-hotkey="Ctrl+P"
+      >
+        <span class="menu-main">
+          <i class="fas fa-keyboard"></i>
+        </span>
+      </button>
+
+      <button
+        class="menu-item"
+        id="settings-button"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Настройки"
+        data-hotkey="Ctrl+,"
+      >
+        <span class="menu-main">
+          <i class="fa-solid fa-gear"></i>
+        </span>
+      </button>
+      <button
+        id="reload-app"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Обновить окно"
+        data-hotkey="Ctrl+R"
+      >
+        <i class="fa-solid fa-arrow-rotate-right"></i>
+      </button>
+      <button
+        class="btn-minimize"
+        title="Свернуть"
+        onclick="window.electron.minimize()"
+      >
+        <i class="fas fa-window-minimize"></i>
+      </button>
+      <button class="btn-close" title="Закрыть" onclick="window.electron.close()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+  <div
+    id="top-download-progress"
+    class="top-download-progress"
+    aria-hidden="true"
+  >
+    <div id="top-download-progress-fill" class="top-download-progress-fill"></div>
+  </div>
+</div>

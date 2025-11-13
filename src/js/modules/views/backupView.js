@@ -569,6 +569,13 @@ export default function renderBackup() {
 
   const logBox = getEl("#bk-log");
 
+  const getLogPlainText = () => {
+    if (!logBox) return "";
+    const lines = Array.from(logBox.querySelectorAll(".log-line"));
+    if (!lines.length) return logBox.textContent?.trim() || "";
+    return lines.map((line) => line.textContent.trim()).join("\n");
+  };
+
   // Restore logBox content from localStorage if present
   if (logBox) {
     try {
@@ -2086,7 +2093,11 @@ export default function renderBackup() {
 
   const logCopyBtn = getEl("#bk-log-copy");
   logCopyBtn?.addEventListener("click", async () => {
-    const text = logBox?.textContent || "";
+    const text = getLogPlainText();
+    if (!text) {
+      toast("Лог пуст", "warning");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(text);
       toast("Лог скопирован");
@@ -2098,7 +2109,11 @@ export default function renderBackup() {
   // Export log to file
   const logExportBtn = getEl("#bk-log-export");
   logExportBtn?.addEventListener("click", () => {
-    const text = logBox?.textContent || "";
+    const text = getLogPlainText();
+    if (!text) {
+      toast("Лог пуст", "warning");
+      return;
+    }
     const stamp = new Date();
     const pad = (n) => String(n).padStart(2, "0");
     const fname = `backup-log_${stamp.getFullYear()}-${pad(stamp.getMonth() + 1)}-${pad(stamp.getDate())}_${pad(stamp.getHours())}-${pad(stamp.getMinutes())}-${pad(stamp.getSeconds())}.txt`;

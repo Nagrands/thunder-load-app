@@ -80,6 +80,13 @@ Run the app in development mode:
 npm start
 ```
 
+### HTML templates
+
+- The renderer HTML now lives under `templates/` (`layouts`, `pages`, `partials`).
+- Edit the `.njk` files and run `npm run templates:build` to regenerate `src/index.html`. The command runs automatically before `npm run dev`, `npm start`, and `npm run build`.
+- Use `npm run templates:watch` during UI work to rebuild HTML automatically whenever `.njk` files change.
+- Commit both the template changes and the generated `src/index.html` so Electron always has a ready-to-ship entry point.
+
 Build the app for production:
 
 ```bash
