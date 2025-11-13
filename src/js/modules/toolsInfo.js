@@ -34,9 +34,9 @@ function formatDenoVersion(s = "") {
   if (!line) return "";
   const parts = line.split(/\s+/);
   if (parts.length >= 2 && parts[0].toLowerCase() === "deno") {
-    return `${parts[0]} ${parts[1]}`;
+    return parts[1];
   }
-  return line;
+  return line.replace(/^deno\s+/i, "").trim();
 }
 
 /**
@@ -699,12 +699,15 @@ export async function renderToolsInfo() {
             const ffCur = fCurUpd || fCurLocal || "";
             const denoCur = dCurUpd || dCurLocal || "";
             const ytLatest = yLatN;
-            const ffLatest = fLatN;
+            const ffSkip = !!upd?.ffmpeg?.skipUpdates;
+            const ffLatest = ffSkip ? ffCur : fLatN;
 
             let ytCmp = null,
               ffCmp = null;
             if (ytCur && ytLatest) ytCmp = cmpYtDlp(ytLatest, ytCur);
-            if (ffCur && ffLatest) ffCmp = cmpFfSemver(ffLatest, ffCur);
+            if (!ffSkip && ffCur && ffLatest) {
+              ffCmp = cmpFfSemver(ffLatest, ffCur);
+            }
 
             // Текст статуса
             const msgs = [];
@@ -723,7 +726,11 @@ export async function renderToolsInfo() {
               }
             }
             if (upd?.ffmpeg) {
-              if (ffCur && ffLatest) {
+              if (ffSkip && ffCur) {
+                msgs.push(
+                  `ffmpeg: обновления отключены на macOS (текущая ${ffCur})`,
+                );
+              } else if (ffCur && ffLatest) {
                 if (ffCmp === 1)
                   msgs.push(
                     `ffmpeg: доступна ${upd.ffmpeg.latest} (текущая ${upd.ffmpeg.current || upd.ffmpeg.local || fCurLocal || "—"})`,
@@ -762,10 +769,15 @@ export async function renderToolsInfo() {
               if (cur?.ffmpeg?.ok) {
                 const curTxt = fCurLocal || fCurUpd || "—";
                 const cls = ffCmp === 1 ? "update" : "ok";
-                const icon = ffCmp === 1 ? "fa-rotate-right" : "fa-check";
-                const latestTxt = ffLatest ? ` → ${ffLatest}` : "";
+                const icon = ffSkip
+                  ? "fa-circle-minus"
+                  : ffCmp === 1
+                    ? "fa-rotate-right"
+                    : "fa-check";
+                const latestTxt =
+                  !ffSkip && ffLatest ? ` → ${ffLatest}` : ffSkip ? "" : "";
                 badges.push(
-                  `<span class=\"tool-badge ${cls}\"><i class=\"fa-solid ${icon}\"></i> ffmpeg ${curTxt}${latestTxt}</span>`,
+                  `<span class=\"tool-badge ${ffSkip ? "ok" : cls}\"><i class=\"fa-solid ${icon}\"></i> ffmpeg ${curTxt}${latestTxt}${ffSkip ? " (macOS)" : ""}</span>`,
                 );
               } else {
                 badges.push(
@@ -787,7 +799,7 @@ export async function renderToolsInfo() {
             }
 
             const ytCan = ytCmp === 1;
-            const ffCan = ffCmp === 1;
+            const ffCan = !ffSkip && ffCmp === 1;
             const anyUpdate = ytCan || ffCan;
 
             if (anyUpdate) {
@@ -947,8 +959,9 @@ export async function renderToolsInfo() {
         const curF = firstLine(res.ffmpeg.version)
           .replace(/^ffmpeg version\s*/i, "")
           .split(" ")[0];
+        const skip = !!res?.ffmpeg?.skipUpdates;
         parts.push(
-          `<span class=\"tool-badge ok\"><i class=\"fa-solid fa-check\"></i> ffmpeg ${curF}</span>`,
+          `<span class=\"tool-badge ok\"><i class=\"fa-solid ${skip ? "fa-circle-minus" : "fa-check"}\"></i> ffmpeg ${curF}${skip ? " (macOS)" : ""}</span>`,
         );
       } else {
         parts.push(

@@ -246,6 +246,9 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, async () => {
     try {
       const tools = await getToolsVersions(store);
+      if (process.platform === "darwin" && tools?.ffmpeg) {
+        tools.ffmpeg.skipUpdates = true;
+      }
 
       // Детальное логирование для диагностики
       log.info("Downloader → Tools versions check result:", {
@@ -745,6 +748,7 @@ function setupIpcHandlers(dependencies) {
         ? (tools.deno.version || "").split("\n")[0]
         : null;
 
+      const isMac = process.platform === "darwin";
       const result = {
         ytDlp: {
           current: ytCurrent || null,
@@ -766,6 +770,13 @@ function setupIpcHandlers(dependencies) {
           unknownLatest: true,
         },
       };
+
+      if (isMac) {
+        result.ffmpeg.skipUpdates = true;
+        result.ffmpeg.latest = result.ffmpeg.current;
+        result.ffmpeg.canUpdate = false;
+        result.ffmpeg.unknownLatest = false;
+      }
 
       return result;
     } catch (e) {

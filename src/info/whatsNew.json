@@ -1,6 +1,6 @@
 {
-  "version": "1.2.16",
+  "version": "1.2.17",
   "changes": [
-    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Исправления\" dir=\"auto\">Исправления</h3>\n<h3 data-heading=\"Вкладка «Downloader»\" dir=\"auto\">Вкладка «Downloader»</h3>\n<h3 data-heading=\"Вкладка «Backup»\" dir=\"auto\">Вкладка «Backup»</h3>\n    </details>"
+    "<details class=\"spoiler\" open>\n    <summary><i class='fa-chevron-right fas'></i>Что нового?</summary>\n      <h3 data-heading=\"Исправления\" dir=\"auto\">Исправления</h3>\n<h3 data-heading=\"Вкладка «Downloader»\" dir=\"auto\">Вкладка «Downloader»</h3>\n<blockquote dir=\"auto\">\n<p>С версии <em>2025.11.12</em> <strong>yt-dlp</strong> требует <strong>JavaScript-рантайма</strong> для работы с YouTube.</p>\n</blockquote>\n<ul>\n<li dir=\"auto\">В приложение добавлена возможность установки и учета <strong>Deno</strong> — среды выполнения JavaScript. Вместе с <strong>yt-dlp</strong> и <strong>ffmpeg</strong> он будет загружаться автоматически, отображаться в настройках и участвовать в проверках и переустановках инструментов.</li>\n</ul>\n    </details>"
   ]
 }

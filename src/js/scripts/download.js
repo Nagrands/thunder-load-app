@@ -143,6 +143,46 @@ const activeProcesses = {
   merge: null,
 };
 const abortControllers = new Map();
+const videoInfoCache = new Map(); // url -> { timestamp, data }
+const VIDEO_INFO_CACHE_TTL = 60 * 1000; // 1 минута
+const videoInfoInFlight = new Map(); // url -> Promise
+
+function fetchJson(url, options = {}) {
+  const { timeout = 10000 } = options;
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, (res) => {
+      const { statusCode } = res;
+      if (statusCode !== 200) {
+        res.resume();
+        return reject(
+          new Error(
+            `Failed to fetch ${url}. Status code: ${statusCode}`,
+          ),
+        );
+      }
+      let raw = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => (raw += chunk));
+      res.on("end", () => {
+        try {
+          const data = JSON.parse(raw);
+          resolve(data);
+        } catch (err) {
+          reject(
+            new Error(
+              `Failed to parse JSON from ${url}: ${err.message}`,
+            ),
+          );
+        }
+      });
+    });
+    req.on("error", reject);
+    req.setTimeout(timeout, () => {
+      req.destroy();
+      reject(new Error(`Request to ${url} timed out after ${timeout}ms`));
+    });
+  });
+}
 
 /**
  * Запускает дочерний процесс и возвращает его вывод.
@@ -809,21 +849,95 @@ async function installFfmpeg() {
         }
       }
     } else if (process.platform === "darwin") {
-      // macOS: скачать бинарник ffmpeg напрямую и применить chmod
-      const isArm64 = process.arch === "arm64";
-      ffmpegUrl = isArm64
-        ? "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-arm64"
-        : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-x64";
-
       const dir = getToolsDir();
       const ffmpegPath = getFfmpegPath();
       const ffprobePath = getFfprobePath();
       await ensureToolsDir(dir);
 
+      const downloadReleaseList = async () => {
+        const endpoint =
+          "https://evermeet.cx/ffmpeg/info/ffmpeg.json?t=" + Date.now();
+        return fetchJson(endpoint, { timeout: 10000 });
+      };
+
+      const installFromEvermeet = async () => {
+        const releases = await downloadReleaseList();
+        if (!releases || !releases.length) {
+          throw new Error("No releases returned from evermeet");
+        }
+        const archKey = process.arch === "arm64" ? "arm64" : "x86_64";
+        const latest = releases[0];
+        const version = latest?.version || "latest";
+        const ffmpegUrl = `https://evermeet.cx/ffmpeg/ffmpeg-${archKey}-${version}.zip`;
+        const ffprobeUrl = `https://evermeet.cx/ffmpeg/ffprobe-${archKey}-${version}.zip`;
+        const tmpDir = path.join(os.tmpdir(), `ffmpeg-evermeet-${Date.now()}`);
+        const ffmpegZipPath = path.join(tmpDir, "ffmpeg.zip");
+        const ffprobeZipPath = path.join(tmpDir, "ffprobe.zip");
+        await fs.promises.mkdir(tmpDir, { recursive: true });
+
+        async function extractSingleBinary(zipPath, targetPath, binaryName) {
+          const extractTo = path.join(tmpDir, binaryName);
+          await fs.promises.mkdir(extractTo, { recursive: true });
+          await new Promise((resolve, reject) => {
+            fs.createReadStream(zipPath)
+              .pipe(unzipper.Extract({ path: extractTo }))
+              .on("close", resolve)
+              .on("error", reject);
+          });
+          const extractedBinary = path.join(extractTo, binaryName);
+          if (!fs.existsSync(extractedBinary)) {
+            throw new Error(
+              `Binary ${binaryName} not found in archive ${zipPath}`,
+            );
+          }
+          fs.copyFileSync(extractedBinary, targetPath);
+          fs.chmodSync(targetPath, 0o755);
+        }
+
+        try {
+          log.info(
+            `[ffmpeg] Downloading macOS build ${version} (${archKey}) from evermeet.cx…`,
+          );
+          await downloadFile(ffmpegUrl, ffmpegZipPath);
+          await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg");
+          log.info("[ffmpeg] ffmpeg installed from evermeet.cx");
+        } catch (err) {
+          throw new Error(`Failed to install ffmpeg from evermeet: ${err}`);
+        }
+
+        try {
+          await downloadFile(ffprobeUrl, ffprobeZipPath);
+          await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe");
+          log.info("[ffmpeg] ffprobe installed from evermeet.cx");
+        } catch (err) {
+          log.warn(
+            `Failed to install ffprobe from evermeet (optional): ${err.message}`,
+          );
+        } finally {
+          try {
+            await fs.promises.rm(tmpDir, { recursive: true, force: true });
+          } catch {}
+        }
+      };
+
+      try {
+        await installFromEvermeet();
+        return;
+      } catch (err) {
+        log.warn(
+          `evermeet installation failed (${err.message}). Falling back to GitHub binary…`,
+        );
+      }
+
+      const isArm64 = process.arch === "arm64";
+      ffmpegUrl = isArm64
+        ? "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-arm64"
+        : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-x64";
+
       try {
         await downloadFile(ffmpegUrl, ffmpegPath);
         fs.chmodSync(ffmpegPath, 0o755);
-        log.info("ffmpeg binary downloaded and chmod applied (macOS).");
+        log.info("ffmpeg binary downloaded and chmod applied (macOS fallback).");
       } catch (err) {
         log.warn("Failed to download ffmpeg. Trying fallback from Homebrew...");
         const brewPath = "/opt/homebrew/bin/ffmpeg";
@@ -842,10 +956,11 @@ async function installFfmpeg() {
         fs.copyFileSync(ffprobeBrewPath, ffprobePath);
         fs.chmodSync(ffprobePath, 0o755);
         log.info("ffprobe copied from Homebrew path.");
+      } else {
+        log.warn(
+          "ffprobe не установлен автоматически. Установите его вручную или используйте 'brew install ffmpeg'.",
+        );
       }
-      log.warn(
-        "ffprobe не установлен автоматически. Установите его вручную или используйте 'brew install ffmpeg'.",
-      );
       return;
     } else if (process.platform === "linux") {
       throw new Error(
@@ -878,7 +993,20 @@ async function installFfmpeg() {
  */
 function getVideoInfo(url) {
   log.info(`Getting video information for URL: ${url}`);
-  return new Promise((resolve, reject) => {
+  const key = String(url || "").trim();
+  if (videoInfoCache.has(key)) {
+    const cached = videoInfoCache.get(key);
+    if (Date.now() - cached.timestamp < VIDEO_INFO_CACHE_TTL) {
+      log.info(`[download] Using cached video info for ${key}`);
+      return Promise.resolve(cached.data);
+    }
+    videoInfoCache.delete(key);
+  }
+  if (videoInfoInFlight.has(key)) {
+    log.info(`[download] Awaiting in-flight video info for ${key}`);
+    return videoInfoInFlight.get(key);
+  }
+  const promise = new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
     activeProcesses.getVideoInfo = spawn(
@@ -912,6 +1040,7 @@ function getVideoInfo(url) {
       }
       try {
         const info = JSON.parse(output);
+        videoInfoCache.set(key, { timestamp: Date.now(), data: info });
         resolve(info);
       } catch (err) {
         log.error(`Error parsing video information: ${err.message}`);
@@ -923,31 +1052,45 @@ function getVideoInfo(url) {
       reject(err);
     });
   });
+  videoInfoInFlight.set(key, promise);
+  return promise.finally(() => {
+    videoInfoInFlight.delete(key);
+  });
 }
 
 /**
  * Унифицированная функция для скачивания с отслеживанием прогресса.
  */
-function spawnDownloadProcess(format, outputPath, url, progressCallback) {
+function spawnDownloadProcess(
+  format,
+  outputPath,
+  url,
+  progressCallback,
+  options = {},
+) {
+  const { extraArgs = [], processKey = "videoDownload" } = options;
   return new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
-    const proc = spawn(
-      ytDlpPath,
-      [
-        "-f",
-        format,
-        "-o",
-        outputPath,
-        url,
-        "--ffmpeg-location",
-        ffmpegDir,
-        "--newline",
-        "--ignore-errors",
-        "--no-warnings",
-      ],
-      getYtDlpSpawnOptions(),
+    const args = [];
+    if (format) {
+      args.push("-f", format);
+    }
+    args.push(
+      "-o",
+      outputPath,
+      url,
+      "--ffmpeg-location",
+      ffmpegDir,
+      "--newline",
+      "--ignore-errors",
+      "--no-warnings",
     );
+    if (extraArgs.length) {
+      args.push(...extraArgs);
+    }
+    const proc = spawn(ytDlpPath, args, getYtDlpSpawnOptions());
+    activeProcesses[processKey] = proc;
     proc.stdout.on("data", (data) => {
       data
         .toString()
@@ -959,13 +1102,57 @@ function spawnDownloadProcess(format, outputPath, url, progressCallback) {
     });
     proc.stderr.on("data", (data) => log.error(data.toString()));
     proc.on("close", (code) => {
+      activeProcesses[processKey] = null;
       if (code !== 0 && !isDownloadCancelled) {
         return reject(new Error(`yt-dlp exited with code ${code}`));
       }
       if (isDownloadCancelled) return reject(new Error("Download cancelled"));
       resolve();
     });
+    proc.on("error", (err) => {
+      activeProcesses[processKey] = null;
+      reject(err);
+    });
   });
+}
+
+function safeMoveFile(src, dest) {
+  if (!fs.existsSync(src)) return;
+  try {
+    if (fs.existsSync(dest)) {
+      fs.unlinkSync(dest);
+    }
+  } catch (err) {
+    log.warn(`Failed to remove existing file ${dest}:`, err.message);
+  }
+  fs.renameSync(src, dest);
+}
+
+function createOverallProgressTracker(segmentCount, event) {
+  const totalSegments = Math.max(1, segmentCount || 1);
+  let segmentIndex = 0;
+  let lastRaw = 0;
+  let lastLogged = 0;
+  return (rawPercent) => {
+    let percent = Number(rawPercent);
+    if (!Number.isFinite(percent)) percent = 0;
+    percent = Math.max(0, Math.min(100, percent));
+    if (percent + 1 < lastRaw && segmentIndex < totalSegments - 1) {
+      segmentIndex += 1;
+    }
+    lastRaw = percent;
+    const overall =
+      ((segmentIndex + percent / 100) / totalSegments) * 100;
+    if (overall - lastLogged >= 5 || overall >= 100) {
+      log.info(`Overall progress: ${overall.toFixed(2)}%`);
+      lastLogged = overall;
+    }
+    try {
+      event.sender.send("download-progress", overall);
+    } catch (err) {
+      log.warn("Failed to send progress update:", err.message);
+    }
+  };
 }
 
 /**
@@ -1079,9 +1266,13 @@ async function downloadMedia(
       } else {
         // Для не-Twitch источников: используем формат аудио, как возвращён из selectFormatsByQuality
         const audioExtension = audioExt; // audioExt, полученный из selectFormatsByQuality
-        const audioOutput = path.join(
+        const finalAudioPath = path.join(
           downloadPath,
           `${sanitizedFilename}.${audioExtension}`,
+        );
+        const tempAudioPath = path.join(
+          downloadPath,
+          `audio_${uniqueId}.${audioExtension}`,
         );
         let lastLogged = 0;
         const updateProgress = (progress) => {
@@ -1092,264 +1283,133 @@ async function downloadMedia(
           event.sender.send("download-progress", progress);
         };
         log.info("[download] Spawning yt-dlp for audio-only download", {
-          output: audioOutput,
+          output: tempAudioPath,
           audioFormat,
           url,
         });
-        activeProcesses.audioDownload = spawn(
-          ytDlpPath,
-          [
-            "-f",
-            audioFormat,
-            "-o",
-            audioOutput,
-            url,
-            "--ffmpeg-location",
-            ffmpegDir,
-            "--newline",
-            "--ignore-errors",
-            "--no-warnings",
-          ],
-          getYtDlpSpawnOptions(),
-        );
-        activeProcesses.audioDownload.stdout.on("data", (data) => {
-          data
-            .toString()
-            .split("\n")
-            .forEach((line) => {
-              const p = parseProgress(line);
-              if (p !== null) updateProgress(p);
-            });
-        });
-        await new Promise((resolve, reject) => {
-          activeProcesses.audioDownload.on("close", (code) => {
-            activeProcesses.audioDownload = null;
-            if (code !== 0 && !isDownloadCancelled) {
-              return reject(new Error(`yt-dlp audio exited with code ${code}`));
-            }
-            if (isDownloadCancelled)
-              return reject(new Error("Download cancelled"));
-            log.info(`Audio downloaded: ${audioOutput}`);
-            event.sender.send("download-progress", 100);
-            isDownloadCancelled = false;
-            resolve();
-          });
-        });
-        return audioOutput;
-      }
-    }
-
-    // временные файлы — расширения здесь не критичны (ffmpeg понимает по контейнеру),
-    // но для читабельности используем ожидаемые по умолчанию
-    const videoOutputTemp = path.join(downloadPath, `video_${uniqueId}.mp4`);
-    const audioOutputTemp = path.join(downloadPath, `audio_${uniqueId}.m4a`);
-    const mergedOutput = path.join(downloadPath, `${sanitizedFilename}.mkv`);
-
-    // Удаление старых фрагментов, если они существуют
-    for (const file of [videoOutputTemp, audioOutputTemp]) {
-      if (fs.existsSync(file)) {
         try {
-          await fs.promises.unlink(file);
+          await spawnDownloadProcess(
+            String(audioFormat),
+            tempAudioPath,
+            url,
+            updateProgress,
+            { processKey: "audioDownload" },
+          );
         } catch (err) {
-          log.error(`Error deleting ${file}:`, err);
+          if (fs.existsSync(tempAudioPath)) {
+            try {
+              await fs.promises.unlink(tempAudioPath);
+            } catch {}
+          }
+          throw err;
         }
+        safeMoveFile(tempAudioPath, finalAudioPath);
+        log.info(`Audio downloaded: ${finalAudioPath}`);
+        event.sender.send("download-progress", 100);
+        isDownloadCancelled = false;
+        return finalAudioPath;
       }
     }
 
-    let videoProgress = 0,
-      audioProgress = 0,
-      lastLoggedProgress = 0;
-    const progressHistory = [];
-    const updateProgress = () => {
-      const total = (videoProgress + audioProgress) / 2;
-      progressHistory.push(total);
-      if (progressHistory.length > 10) progressHistory.shift();
-      const smoothed =
-        progressHistory.reduce((acc, val) => acc + val, 0) /
-        progressHistory.length;
-      if (smoothed - lastLoggedProgress >= 5 || smoothed >= 100) {
-        log.info(`Overall progress: ${smoothed.toFixed(2)}%`);
-        lastLoggedProgress = smoothed;
-      }
-      event.sender.send("download-progress", smoothed);
+    const hasFormat = (fmt) => {
+      if (typeof fmt === "string") return fmt.trim().length > 0;
+      return fmt !== null && fmt !== undefined;
     };
-
-    // Скачивание видео
-    log.info("[download] Spawning yt-dlp for video part", {
+    const combinedAvailable = hasFormat(videoFormat) && hasFormat(audioFormat);
+    log.info("[download] Combined pipeline check", {
       videoFormat,
-      output: videoOutputTemp,
-      url,
-    });
-    await new Promise((resolve, reject) => {
-      activeProcesses.videoDownload = spawn(
-        ytDlpPath,
-        [
-          "-f",
-          videoFormat,
-          "-o",
-          videoOutputTemp,
-          url,
-          "--ffmpeg-location",
-          ffmpegDir,
-          "--newline",
-          "--ignore-errors",
-          "--no-warnings",
-        ],
-        getYtDlpSpawnOptions(),
-      );
-      activeProcesses.videoDownload.stdout.on("data", (data) => {
-        data
-          .toString()
-          .split("\n")
-          .forEach((line) => {
-            const p = parseProgress(line);
-            if (p !== null) {
-              videoProgress = p;
-              updateProgress();
-            }
-          });
-      });
-      activeProcesses.videoDownload.stderr.on("data", (data) =>
-        log.error(`Video: ${data}`),
-      );
-      activeProcesses.videoDownload.on("close", (code) => {
-        activeProcesses.videoDownload = null;
-        if (code !== 0 && !isDownloadCancelled) {
-          return reject(new Error(`yt-dlp video exited with code ${code}`));
-        }
-        if (isDownloadCancelled) return reject(new Error("Download cancelled"));
-        resolve();
-      });
+      audioFormat,
+      combinedAvailable,
     });
 
-    // Если audioFormat валиден, скачиваем аудио и выполняем слияние
-    if (
-      audioFormat &&
-      typeof audioFormat === "string" &&
-      audioFormat.trim() !== ""
-    ) {
-      log.info("[download] Spawning yt-dlp for audio part (mux mode)", {
-        audioFormat,
-        output: audioOutputTemp,
+    const progressTracker = createOverallProgressTracker(
+      combinedAvailable ? 2 : 1,
+      event,
+    );
+
+    if (combinedAvailable) {
+      const mergedExt = "mkv";
+      const finalMergedOutput = path.join(
+        downloadPath,
+        `${sanitizedFilename}.${mergedExt}`,
+      );
+      const tempMergedOutput = path.join(
+        downloadPath,
+        `combined_${uniqueId}.${mergedExt}`,
+      );
+      log.info("[download] Spawning yt-dlp for combined download", {
+        format: `${videoFormat}+${audioFormat}`,
+        tempOutput: tempMergedOutput,
+        finalOutput: finalMergedOutput,
         url,
       });
-      await new Promise((resolve, reject) => {
-        activeProcesses.audioDownload = spawn(
-          ytDlpPath,
-          [
-            "-f",
-            audioFormat,
-            "-o",
-            audioOutputTemp,
-            url,
-            "--ffmpeg-location",
-            ffmpegDir,
-            "--newline",
-            "--ignore-errors",
-            "--no-warnings",
-          ],
-          getYtDlpSpawnOptions(),
-        );
-        activeProcesses.audioDownload.stdout.on("data", (data) => {
-          data
-            .toString()
-            .split("\n")
-            .forEach((line) => {
-              const p = parseProgress(line);
-              if (p !== null) {
-                audioProgress = p;
-                updateProgress();
-              }
-            });
-        });
-        activeProcesses.audioDownload.stderr.on("data", (data) =>
-          log.error(`Audio: ${data}`),
-        );
-        activeProcesses.audioDownload.on("close", (code) => {
-          activeProcesses.audioDownload = null;
-          if (code !== 0 && !isDownloadCancelled) {
-            return reject(new Error(`yt-dlp audio exited with code ${code}`));
-          }
-          if (isDownloadCancelled)
-            return reject(new Error("Download cancelled"));
-          resolve();
-        });
-      });
-
-      // Слияние видео и аудио через ffmpeg
-      log.info("[download] Spawning ffmpeg to merge tracks", {
-        videoInput: videoOutputTemp,
-        audioInput: audioOutputTemp,
-        output: mergedOutput,
-      });
-      await new Promise((resolve, reject) => {
-        const ffmpegPath = getFfmpegPath();
-        activeProcesses.merge = spawn(ffmpegPath, [
-          "-i",
-          videoOutputTemp,
-          "-i",
-          audioOutputTemp,
-          "-c",
-          "copy",
-          "-y",
-          mergedOutput,
-        ]);
-        activeProcesses.merge.on("close", async (code) => {
-          activeProcesses.merge = null;
-          if (code !== 0 && !isDownloadCancelled) {
-            log.error(`[download] ffmpeg merge exited with code ${code}`);
-            return reject(new Error(`ffmpeg exited with code ${code}`));
-          }
-          if (isDownloadCancelled)
-            return reject(new Error("Download cancelled"));
-          log.info(`Merged file saved at ${mergedOutput}`);
-          // Очистка временных файлов
-          for (const file of [videoOutputTemp, audioOutputTemp]) {
-            if (fs.existsSync(file)) {
-              try {
-                await fs.promises.unlink(file);
-              } catch (err) {
-                log.error(`Error deleting temp file ${file}:`, err);
-              }
-            }
-          }
-          event.sender.send("download-progress", 100);
-          isDownloadCancelled = false;
-          resolve();
-        });
-      });
-      return mergedOutput;
-    } else {
-      // Если audioFormat не валиден (muxed fallback)
-      // Переименовываем скачанный видеофайл с корректным расширением
-      const finalExt =
-        typeof videoFormat === "string" && videoFormat ? null : null; // не знаем из format_id
-      // попытаемся угадать расширение из resolution-подбора (мы передаём его снаружи как videoExt)
-      const properExt =
-        typeof audioExt === "string" && audioExt === null ? null : null; // заглушка, не используется
-      // так как мы заранее знаем расширение из selectFormatsByQuality, передайте его параметром `fps` далее
-      // здесь применяем: если передан fps как объект, проигнорируем — берём videoExt через замыкание
-      const targetExt =
-        typeof videoExt === "string" && videoExt ? videoExt : "mp4";
-      const properOutput = path.join(
-        downloadPath,
-        `${sanitizedFilename}.${targetExt}`,
-      );
-      log.info("[download] Audio format missing, renaming video output", {
-        from: videoOutputTemp,
-        to: properOutput,
-      });
       try {
-        fs.renameSync(videoOutputTemp, properOutput);
-        log.info(`[downloadMedia] Muxed stream saved as ${properOutput}`);
+        const combinedFormat = `${String(videoFormat)}+${String(audioFormat)}`;
+        await spawnDownloadProcess(
+          combinedFormat,
+          tempMergedOutput,
+          url,
+          progressTracker,
+          {
+            extraArgs: ["--merge-output-format", mergedExt],
+            processKey: "videoDownload",
+          },
+        );
       } catch (err) {
-        log.error(`[downloadMedia] Error renaming muxed file: ${err}`);
-        return videoOutputTemp;
+        if (fs.existsSync(tempMergedOutput)) {
+          try {
+            await fs.promises.unlink(tempMergedOutput);
+          } catch {}
+        }
+        throw err;
       }
+      safeMoveFile(tempMergedOutput, finalMergedOutput);
       event.sender.send("download-progress", 100);
       isDownloadCancelled = false;
-      return properOutput;
+      log.info(`[download] Combined stream saved as ${finalMergedOutput}`);
+      return finalMergedOutput;
     }
+
+    const directFormat = videoFormat || audioFormat;
+    if (!directFormat) {
+      throw new Error("Не удалось подобрать формат загрузки");
+    }
+    const finalExt = videoFormat ? videoExt : audioExt || "mp4";
+    const finalOutput = path.join(
+      downloadPath,
+      `${sanitizedFilename}.${finalExt}`,
+    );
+    const tempOutput = path.join(
+      downloadPath,
+      `direct_${uniqueId}.${finalExt}`,
+    );
+    log.info("[download] Spawning yt-dlp for direct stream download", {
+      format: directFormat,
+      tempOutput,
+      finalOutput,
+      url,
+    });
+    try {
+      await spawnDownloadProcess(
+        String(directFormat),
+        tempOutput,
+        url,
+        progressTracker,
+        { processKey: "videoDownload" },
+      );
+    } catch (err) {
+      if (fs.existsSync(tempOutput)) {
+        try {
+          await fs.promises.unlink(tempOutput);
+        } catch {}
+      }
+      throw err;
+    }
+    safeMoveFile(tempOutput, finalOutput);
+    event.sender.send("download-progress", 100);
+    isDownloadCancelled = false;
+    log.info(`[download] Direct stream saved as ${finalOutput}`);
+    return finalOutput;
   } catch (error) {
     if (error.message && error.message.includes("Failed to parse JSON")) {
       throw new Error(
