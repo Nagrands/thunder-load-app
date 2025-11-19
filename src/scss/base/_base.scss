@@ -32,6 +32,10 @@ body {
   background-blend-mode: multiply;
 }
 
+body.modal-scroll-lock {
+  overflow: hidden;
+}
+
 /* **** Стили для ссылок **** */
 a {
   color: var(--color-accent);
@@ -55,11 +59,14 @@ a {
 h1,
 h2,
 h3,
-h4,
+h4 {
+  font-weight: normal;
+  color: var(--color-accent);
+}
+
 h5,
 h6 {
   font-weight: normal;
-  color: var(--color-accent);
 }
 
 strong {
@@ -110,4 +117,14 @@ strong {
     outline-color 220ms ease,
     fill 220ms ease,
     stroke 220ms ease;
+}
+
+// Reduced-effects mode: disable heavy filters/animations when toggled
+body.low-effects,
+body.low-effects * {
+  animation: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
 }

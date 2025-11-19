@@ -15,6 +15,8 @@ const elements = {
     ?.querySelector(".button-text"),
   history: document.getElementById("history"),
   historyContainer: document.getElementById("history-container"),
+  historyCards: document.getElementById("history-cards"),
+  historyCardsEmpty: document.getElementById("history-cards-empty"),
   clearHistoryButton: document.getElementById("clear-history"),
   openFolderButton: document.getElementById("open-folder"),
   iconPlaceholder:
@@ -64,6 +66,9 @@ const elements = {
   settingsDisableGlobalShortcutsToggle: document.getElementById(
     "settings-disable-global-shortcuts-toggle",
   ),
+  settingsLowEffectsToggle: document.getElementById(
+    "settings-low-effects-toggle",
+  ),
   settingsCloseToTrayRadio: document.getElementById("settings-close-to-tray"),
   settingsCloseAppRadio: document.getElementById("settings-close-app-radio"),
   sidebar: document.getElementById("sidebar"),
@@ -80,14 +85,18 @@ const elements = {
   ),
 };
 
+const OPTIONAL_KEYS = new Set(["historyCards", "historyCardsEmpty"]);
+
 // Проверка наличия всех элементов и вывод ошибок
 for (const [key, element] of Object.entries(elements)) {
-  if (!element) {
+  if (!element && !OPTIONAL_KEYS.has(key)) {
     console.error(`Element with key '${key}' is missing in the DOM.`);
   }
 }
 
-if (Object.values(elements).some((el) => !el)) {
+if (
+  Object.entries(elements).some(([key, el]) => !el && !OPTIONAL_KEYS.has(key))
+) {
   console.error("One or more elements are missing in the DOM.");
 }
 
@@ -105,6 +114,8 @@ export const {
   buttonText,
   history,
   historyContainer,
+  historyCards,
+  historyCardsEmpty,
   clearHistoryButton,
   openFolderButton,
   iconPlaceholder,
@@ -138,6 +149,7 @@ export const {
   settingsCloseToTrayRadio,
   settingsCloseAppRadio,
   settingsDisableGlobalShortcutsToggle,
+  settingsLowEffectsToggle,
   sidebar,
   overlay,
   toggleBtn,

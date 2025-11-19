@@ -35,13 +35,13 @@ export default function renderDownloader(wrapper) {
 
     // Header block (title + subtitle)
     const hdr = document.createElement("div");
-    hdr.className = "wg-header";
+    hdr.className = "downloader-header";
     hdr.innerHTML = `
       <div class="title">
         <i class="fa-solid fa-download"></i>
         <div class="text">
           <h2>Downloader</h2>
-          <p class="subtitle text-muted">Загрузка видео и аудио из различных источников</p>
+          <p class="subtitle">Загрузка видео и аудио из различных источников</p>
         </div>
       </div>`;
 

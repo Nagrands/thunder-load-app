@@ -6,7 +6,7 @@
 
 #filter-input {
   @include mixins.input-base(
-    var(--spacing-small) 210px var(--spacing-small) 50px
+    var(--spacing-small) 35px var(--spacing-small) 40px
   );
   color: var(--color-accent);
   font-size: 14px;
@@ -17,7 +17,6 @@
   &:focus {
     color: var(--color-highlight);
     transition: var(--transition-duration);
-    animation: gradientAnimation 9s infinite;
   }
 
   &::placeholder {
@@ -26,7 +25,7 @@
   }
 
   $icon-buttons: (
-    clear-filter-input: 170px,
+    clear-filter-input: 10px,
     sort-button: 130px,
     refresh-button: 90px,
     clear-history: 50px,
@@ -161,7 +160,6 @@
     letter-spacing: 0.6px;
     color: var(--color-accent);
     transition: var(--transition-duration);
-    animation: gradientAnimation 6s infinite;
   }
 
   &::placeholder {
@@ -409,75 +407,6 @@
   margin-top: 8px;
   color: var(--color-quality);
   font-size: 12px;
-}
-
-/* Быстрые пресеты качества */
-.quality-presets {
-  display: none; // По умолчанию скрыто до ввода валидного URL
-  /* Располагаем пресеты на отдельной строке под полем */
-  order: 2;
-  flex-basis: 100%;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  margin-top: 10px;
-  width: calc(100% - 120px);
-
-  &.is-visible {
-    display: flex;
-    justify-content: center;
-  }
-
-  &.is-disabled {
-    pointer-events: none;
-    opacity: 0.6;
-    filter: grayscale(0.1);
-  }
-
-  /* Узкие экраны: убираем боковые отступы, растягиваемся */
-  @media (max-width: 720px) {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
-  }
-
-  .preset {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-    border-radius: 12px;
-    min-height: 32px;
-    color: var(--color-highlight);
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-
-    &.active {
-      background: linear-gradient(
-        135deg,
-        rgba(var(--color-accent-rgb), 0.3) 0%,
-        rgba(var(--color-accent-rgb), 0.2) 100%
-      );
-      border-color: rgba(var(--color-accent-rgb), 0.4);
-    }
-
-    i {
-      font-size: 12px;
-    }
-  }
-  /* Респонсив: на очень узких экранах растягиваем по ширине */
-  @media (max-width: 720px) {
-    width: 100%;
-    justify-content: flex-start;
-  }
 }
 
 .input-container {

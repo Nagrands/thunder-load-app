@@ -16,10 +16,11 @@ import {
   updateDownloadCount,
   updateDeleteSelectedButton,
 } from "./history.js";
+import { setFilterInputValue } from "./historyFilter.js";
 import { showConfirmationDialog } from "./modals.js";
 import { showToast } from "./toast.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
-import { state } from "./state.js";
+import { state, setHistoryData } from "./state.js";
 
 /**
  * Обработчик очистки истории
@@ -31,12 +32,15 @@ async function handleClearHistory() {
       try {
         await window.electron.invoke("clear-history");
         state.downloadHistory = [];
+        setHistoryData([]);
 
         // ✅ очищаем интерфейс и локальное состояние
         state.currentSearchQuery = "";
         localStorage.removeItem("lastSearch");
+        setFilterInputValue("");
         renderHistory([]);
         await updateDownloadCount();
+        await loadHistory(true);
         localStorage.setItem("historyVisible", "false");
 
         showToast("История загрузок успешно очищена.", "success");

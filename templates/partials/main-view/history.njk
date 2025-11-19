@@ -1,75 +1,73 @@
 <!-- History Section -->
 <section id="history-container">
-  <details class="spoiler-history" open>
-    <summary>
-      <i class="fa-solid fa-clock-rotate-left fa-fade"></i> История загрузок:
-    </summary>
-
-    <div class="filter-clear-container input-container">
-      <div class="history-actions">
-        <div class="history-search-wrapper">
+  <div class="history-cards-area" aria-live="polite">
+    <div class="history-cards-header">
+      <div>
+        <p class="history-cards-subtitle">Недавние загрузки</p>
+        <h3 class="history-cards-title">История загрузок</h3>
+      </div>
+      <div class="history-cards-search history-actions">
+        <div class="history-search-wrapper history-input-wrapper">
           <i id="icon-filter-search" class="fas fa-search search-icon"></i>
           <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
           <button
             id="clear-filter-input"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Очистить поиск"
+            aria-label="Очистить поиск"
+            data-hint="Сбросить поисковый запрос"
           >
             &times;
           </button>
-
+        </div>
+        <div class="history-search-actions">
           <button
             id="refresh-button"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Обновить"
+            aria-label="Обновить список"
+            data-hint="Обновить список"
           >
             <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
           <button
             id="sort-button"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Сортировка"
+            aria-label="Сортировка"
+            data-hint="Сменить порядок сортировки"
           >
             <i class="fa-solid"></i>
           </button>
           <button
             id="clear-history"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Очистить"
+            aria-label="Очистить историю"
+            data-hint="Очистить всю историю"
           >
             <i class="fa-solid fa-trash"></i>
           </button>
           <button
             id="delete-selected"
             class="history-action-button hidden"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Удалить выбранные"
+            aria-label="Удалить выбранные записи"
+            data-hint="Удалить выбранные"
           >
             <i class="fa-solid fa-trash-can"></i>
           </button>
-
           <button
             id="history-header"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Записей истории"
+            aria-label="Количество записей"
+            data-hint="Количество записей"
           >
             <span id="total-downloads">0</span>
           </button>
         </div>
       </div>
     </div>
-  </details>
-  <div id="history" role="list"></div>
-  <div id="empty-history" class="empty-history">История загрузок не содержит данных.</div>
+    <div id="history" role="list"></div>
+    <div id="empty-history" class="empty-history">История загрузок не содержит данных.</div>
+    <div id="history-cards" class="history-card-grid" role="list"></div>
+    <div id="history-cards-empty" class="history-cards-empty">
+      Недавних загрузок пока нет.
+    </div>
+  </div>
 </section>

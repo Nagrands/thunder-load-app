@@ -110,35 +110,11 @@ function initQualitySelector() {
     }
   });
 
-  // Быстрые пресеты качества (если присутствуют в DOM)
-  const presets = document.querySelectorAll(".quality-presets [data-quality]");
-  presets.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (state.isDownloading) {
-        showToast("Нельзя менять качество во время загрузки.", "warning");
-        return;
-      }
-      const q = btn.getAttribute("data-quality");
-      setSelectedQuality(q);
-      // визуальная активность
-      presets.forEach((b) => b.classList.toggle("active", b === btn));
-    });
-  });
-  // начальная подсветка выбранного
-  presets.forEach((b) =>
-    b.classList.toggle(
-      "active",
-      b.getAttribute("data-quality") === selectedQuality,
-    ),
-  );
-
   // Блокировка/разблокировка пресетов и дропдауна при загрузке
-  const presetsBox = document.querySelector(".quality-presets");
   const setControlsDisabled = (flag) => {
     try {
       qualityButton.disabled = !!flag;
       qualityButton.setAttribute("aria-disabled", String(!!flag));
-      if (presetsBox) presetsBox.classList.toggle("is-disabled", !!flag);
       if (flag) qualityDropdown.hidden = true;
     } catch {}
   };

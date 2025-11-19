@@ -19,9 +19,12 @@ const fsPromises = fs.promises;
 const path = require("path");
 const log = require("electron-log");
 const https = require("https");
+const http = require("http");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
+const { pipeline } = require("stream");
 const execFileAsync = promisify(execFile);
+const streamPipeline = promisify(pipeline);
 const backup = require("./backupManager");
 const { setReloadShortcutSuppressed } = require("./shortcuts.js");
 const {
@@ -100,6 +103,7 @@ function setupIpcHandlers(dependencies) {
     getAppVersion,
     setDownloadPath,
     historyFilePath,
+    previewCacheDir,
     fsCache,
     iconCache,
     clipboardMonitor,
@@ -115,6 +119,141 @@ function setupIpcHandlers(dependencies) {
   let autoShutdownTimeout = null; // таймер авто‑закрытия WG Unlock
   let autoShutdownDeadlineMs = null; // абсолютный дедлайн (ms) для синхронизации обратного отсчёта
   let isReloadShortcutBlocked = false;
+  const previewDirPath =
+    (typeof previewCacheDir === "string" && previewCacheDir) ||
+    path.join(app.getPath("temp"), "thunderload-previews");
+  const PREVIEW_REDIRECT_LIMIT = 5;
+  const PREVIEW_USER_AGENT = "ThunderLoad/1.0 PreviewCache";
+
+  async function ensurePreviewCacheDir() {
+    try {
+      await fsPromises.mkdir(previewDirPath, { recursive: true });
+    } catch (error) {
+      log.warn("Failed to create preview cache directory:", error);
+    }
+    return previewDirPath;
+  }
+
+  function sanitizePreviewName(name = "preview") {
+    try {
+      return (
+        String(name || "preview")
+          .normalize("NFKD")
+          .replace(/[^\w.-]+/g, "_")
+          .replace(/^_+|_+$/g, "")
+          .slice(0, 48) || "preview"
+      );
+    } catch {
+      return "preview";
+    }
+  }
+
+  function getExtensionFromMime(mime = "") {
+    if (mime.includes("png")) return ".png";
+    if (mime.includes("gif")) return ".gif";
+    if (mime.includes("webp")) return ".webp";
+    if (mime.includes("svg")) return ".svg";
+    if (mime.includes("bmp")) return ".bmp";
+    return ".jpg";
+  }
+
+  function getMimeFromDataUrl(dataUrl = "") {
+    const match = dataUrl.match(/^data:(.+?);/i);
+    return match ? match[1] : "";
+  }
+
+  function getExtensionFromUrl(inputUrl = "") {
+    try {
+      const parsed = new URL(inputUrl);
+      const ext = path.extname(parsed.pathname);
+      if (ext && ext.length <= 5) return ext.toLowerCase();
+    } catch {
+      // ignore
+    }
+    return ".jpg";
+  }
+
+  async function saveDataUrlPreview(dataUrl, targetPath) {
+    const match = dataUrl.match(/^data:(.+?);base64,(.+)$/i);
+    if (!match) throw new Error("Unsupported data URL");
+    const buffer = Buffer.from(match[2], "base64");
+    await fsPromises.writeFile(targetPath, buffer);
+    return targetPath;
+  }
+
+  async function downloadPreviewToFile(
+    imageUrl,
+    targetPath,
+    redirectCount = 0,
+  ) {
+    if (redirectCount > PREVIEW_REDIRECT_LIMIT) {
+      throw new Error("Too many redirects while downloading preview");
+    }
+    const parsed = new URL(imageUrl);
+    const client = parsed.protocol === "http:" ? http : https;
+    const requestOptions = {
+      headers: { "User-Agent": PREVIEW_USER_AGENT },
+    };
+    await new Promise((resolve, reject) => {
+      const req = client.get(parsed, requestOptions, (res) => {
+        const { statusCode = 0, headers } = res;
+        if (
+          [301, 302, 303, 307, 308].includes(Number(statusCode)) &&
+          headers.location
+        ) {
+          res.resume();
+          const nextUrl = new URL(headers.location, parsed).toString();
+          downloadPreviewToFile(nextUrl, targetPath, redirectCount + 1)
+            .then(resolve)
+            .catch(reject);
+          return;
+        }
+
+        if (statusCode !== 200) {
+          res.resume();
+          reject(
+            new Error(
+              `Unexpected status ${statusCode} while downloading preview`,
+            ),
+          );
+          return;
+        }
+
+        const fileStream = fs.createWriteStream(targetPath);
+        streamPipeline(res, fileStream)
+          .then(resolve)
+          .catch((error) => {
+            fsPromises.rm(targetPath, { force: true }).catch(() => {});
+            reject(error);
+          });
+      });
+      req.on("error", (error) => reject(error));
+    });
+    return targetPath;
+  }
+
+  async function deletePreviewFiles(targets) {
+    if (!targets) return 0;
+    const list = Array.isArray(targets) ? targets : [targets];
+    if (!list.length) return 0;
+    const baseDir = path.resolve(previewDirPath);
+    let removed = 0;
+    for (const filePath of list) {
+      if (!filePath || typeof filePath !== "string") continue;
+      try {
+        const resolved = path.resolve(filePath);
+        if (!isPathInsideBaseDir(resolved, baseDir)) {
+          log.warn("Skip deleting preview outside cache dir:", resolved);
+          continue;
+        }
+        await fsPromises.rm(resolved, { force: true });
+        removed += 1;
+      } catch (error) {
+        log.warn("Failed to delete preview file:", error);
+      }
+    }
+    return removed;
+  }
 
   if (mainWindow?.webContents) {
     mainWindow.webContents.on("before-input-event", (event, input) => {
@@ -314,6 +453,13 @@ function setupIpcHandlers(dependencies) {
         thumbnail: thumb,
         playlistCount,
         entries,
+        uploader: info?.uploader || info?.channel || "",
+        channel: info?.channel || "",
+        webpage_url: info?.webpage_url || info?.original_url || normalizedUrl,
+        original_url: info?.original_url || normalizedUrl,
+        formats: info?.formats || [],
+        is_live: info?.is_live || false,
+        extractor: info?.extractor || "",
       };
     } catch (e) {
       log.warn("get-video-info error:", e?.message || e);
@@ -1584,6 +1730,48 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(CHANNELS.CACHE_HISTORY_PREVIEW, async (_event, payload) => {
+    try {
+      const { url, entryId, fileName } = payload || {};
+      if (!url || typeof url !== "string" || !url.length) {
+        return { success: false, error: "Invalid preview URL" };
+      }
+      await ensurePreviewCacheDir();
+      const safeBase = sanitizePreviewName(fileName || "preview");
+      const uniqueSuffix =
+        (entryId ? String(entryId) : Date.now().toString()).replace(
+          /[^\w.-]/g,
+          "",
+        ) || Date.now().toString();
+      const ext = url.startsWith("data:")
+        ? getExtensionFromMime(getMimeFromDataUrl(url))
+        : getExtensionFromUrl(url);
+      const targetPath = path.join(
+        previewDirPath,
+        `${safeBase}-${uniqueSuffix}${ext}`,
+      );
+      if (url.startsWith("data:")) {
+        await saveDataUrlPreview(url, targetPath);
+      } else {
+        await downloadPreviewToFile(url, targetPath);
+      }
+      return { success: true, filePath: targetPath };
+    } catch (error) {
+      log.warn("cache-history-preview error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.DELETE_HISTORY_PREVIEW, async (_event, payload) => {
+    try {
+      const removed = await deletePreviewFiles(payload);
+      return { success: true, removed };
+    } catch (error) {
+      log.warn("delete-history-preview error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
   ipcMain.handle(CHANNELS.LOAD_HISTORY, async () => {
     try {
       if (!fs.existsSync(historyFilePath)) {
@@ -1615,6 +1803,12 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.CLEAR_HISTORY, async () => {
     try {
       await fs.promises.writeFile(historyFilePath, JSON.stringify([]), "utf-8");
+      try {
+        await fsPromises.rm(previewDirPath, { recursive: true, force: true });
+      } catch (error) {
+        log.warn("Failed to clear preview cache directory:", error);
+      }
+      await ensurePreviewCacheDir();
       try {
         mainWindow?.webContents?.send("history-updated", { count: 0 });
       } catch (e) {

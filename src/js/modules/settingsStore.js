@@ -1,7 +1,10 @@
 // src/js/modules/settingsStore.js
 
 import { getTheme as tmGetTheme } from "./themeManager.js";
-import { setFontSize as fsSetFontSize, getFontSize as fsGetFontSize } from "./fontSizeManager.js";
+import {
+  setFontSize as fsSetFontSize,
+  getFontSize as fsGetFontSize,
+} from "./fontSizeManager.js";
 
 // Lightweight event bus for settings updates
 const bus = new EventTarget();
@@ -61,4 +64,3 @@ export async function toggleFontSize() {
   const next = current === "18" ? "16" : "18";
   return setFontSize(next);
 }
-

@@ -15,7 +15,7 @@
     rgba(0, 0, 0, 0.25) 0%,
     rgba(0, 0, 0, 0.15) 100%
   );
-  backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(4px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: space-between;
@@ -23,14 +23,6 @@
   @include mixins.fade-in(0.4s);
   z-index: 1000;
   transition: all 0.3s ease;
-
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.3) 0%,
-      rgba(0, 0, 0, 0.2) 100%
-    );
-  }
 }
 
 .top-bar .top-download-progress {
@@ -337,16 +329,15 @@
     border-radius: 50%;
     background: var(--color-accent);
     box-shadow: 0 0 8px rgba(var(--color-accent-rgb), 0.9);
-    animation: updPulse 1.6s ease-in-out infinite;
   }
 
   i {
     font-size: 14px;
     border-radius: 50%;
     padding: 3px;
-    animation: pulseEffect 2s infinite;
     transition: all 0.3s ease;
     color: var(--color-accent);
+    animation: none;
   }
 
   &:hover {
@@ -364,18 +355,6 @@
 
   &:active {
     transform: translateY(0);
-  }
-}
-
-@keyframes updPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.35);
-    opacity: 0.6;
   }
 }
 

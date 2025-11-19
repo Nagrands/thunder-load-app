@@ -12,7 +12,8 @@
 
 @mixin media-breakpoint-up($breakpoint) {
   $min-width: map.get($grid-breakpoints, $breakpoint);
-  @if $min-width != null and $min-width > 0 {
+
+  @if $min-width !=null and $min-width >0 {
     @media (min-width: $min-width) {
       @content;
     }
@@ -86,7 +87,7 @@
 // Миксин иконки закрытия
 @mixin close-button {
   position: absolute;
-  font-size: 12px;
+  font-size: 14px;
   top: 10px;
   right: 10px;
   width: 24px;
@@ -134,6 +135,27 @@
   background-color: rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
   animation: fadeIn 0.5s ease-in-out;
+}
+
+@mixin header-style {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@mixin glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  // box-shadow:
+  //   0 8px 32px rgba(0, 0, 0, 0.2),
+  //   inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @mixin modal-content-base {

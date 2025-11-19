@@ -61,13 +61,13 @@ let __trapHandler = null;
 
 function getTabbables(root) {
   const sel = [
-    'a[href]',
-    'button:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
     '[tabindex]:not([tabindex="-1"])',
-  ].join(',');
+  ].join(",");
   return Array.from(root.querySelectorAll(sel)).filter(
     (el) => el.offsetParent !== null,
   );
@@ -79,19 +79,23 @@ function openSettings() {
   settingsModal.style.alignItems = "center";
   hideSidebar();
 
+  try {
+    window.dispatchEvent(new Event("settings:opened"));
+  } catch {}
+
   // Focus trap setup
   __prevFocusedEl = document.activeElement;
   const tabbables = getTabbables(settingsModal);
   if (tabbables.length) {
     // Prefer active tab button
-    const activeTab = settingsModal.querySelector('.tab-link.active');
+    const activeTab = settingsModal.querySelector(".tab-link.active");
     (activeTab || tabbables[0]).focus();
   } else {
     settingsModal.focus?.();
   }
 
   __trapHandler = (e) => {
-    if (e.key !== 'Tab') return;
+    if (e.key !== "Tab") return;
     const nodes = getTabbables(settingsModal);
     if (!nodes.length) return;
     const first = nodes[0];
@@ -108,7 +112,7 @@ function openSettings() {
       }
     }
   };
-  window.addEventListener('keydown', __trapHandler, true);
+  window.addEventListener("keydown", __trapHandler, true);
 }
 
 /**
@@ -118,7 +122,7 @@ function closeSettings() {
   settingsModal.style.display = "none";
   overlay.classList.remove("active");
   if (__trapHandler) {
-    window.removeEventListener('keydown', __trapHandler, true);
+    window.removeEventListener("keydown", __trapHandler, true);
     __trapHandler = null;
   }
   // Restore focus to the opener if possible

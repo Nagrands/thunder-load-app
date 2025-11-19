@@ -91,7 +91,8 @@ export function initSettingsModal() {
 
     (async () => {
       const currentFontSize = await getFontSize();
-      fontSizeToggle.checked = String(currentFontSize) === "18" || String(currentFontSize) === "18px";
+      fontSizeToggle.checked =
+        String(currentFontSize) === "18" || String(currentFontSize) === "18px";
     })();
   }
 

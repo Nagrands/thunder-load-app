@@ -78,7 +78,7 @@
   width: 100%;
   flex-wrap: wrap;
   max-width: 1020px;
-  overflow-y: auto;
+  // overflow-y: auto;
   @include mixins.fade-in(0.5s);
   transition:
     background-color var(--transition-duration),
@@ -90,9 +90,9 @@
 .footer-info {
   text-transform: uppercase;
   color: var(--color-quality);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
   opacity: 0.85;
   user-select: none;
   text-decoration: none;

@@ -100,16 +100,16 @@ export default function renderBackup() {
   container.className = "backup-center";
 
   const html = `
-      <div class="wg-glass">
       <div class="wg-header">
         <div class="title">
           <i class="fa-solid fa-database"></i>
           <div class="text">
             <h2>BackUp Manager</h2>
-            <p class="subtitle text-muted">Резервное копирование файлов и папок</p>
+            <p class="subtitle">Резервное копирование файлов и папок</p>
           </div>
         </div>
       </div>
+      <div class="wg-glass">
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями">
         <div id="bk-progress-container" class="bk-progress-container">
@@ -154,13 +154,13 @@ export default function renderBackup() {
             <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль">
               <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
-              <i class="fa-solid fa-trash"></i>
-              <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
-            </button>
             <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled style="display:none;">
               <i class="fa-solid fa-play"></i>
               <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
+            </button>
+            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
+              <i class="fa-solid fa-trash"></i>
+              <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
           </div>
         </h1>
@@ -1156,32 +1156,39 @@ export default function renderBackup() {
       <div class="modal-content bk-modal">
         <div class="modal-header">
           <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? "Создание профиля" : `Редактирование профиля - ${init.name}`}</h2>
-          <button class="close-modal bk-close" aria-label="Закрыть" data-bs-toggle="tooltip" data-bs-placement="top" title="Закрыть">&times;</button>
+          <button class="close-modal bk-close" aria-label="Закрыть" title="Закрыть">&times;</button>
         </div>
-        <div class="modal-body bk-form-grid">
-          ${nameFieldHTML}
-          ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
-          ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
-          <label class="wg-field flex flex-col gap-1">
-              <span class="text-sm">Тип архива</span>
-              <select id="f-archive-type" class="input">
-                <option value="zip" ${(init.archive_type || "zip") === "zip" ? "selected" : ""}>ZIP</option>
-                <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
-              </select>
-          </label>
-          ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
-          ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
+        <div class="modal-body bk-form-grid bk-form-split" data-preview-visible="true">
+          <div class="bk-form-main">
+            ${nameFieldHTML}
+            ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
+            ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
+            <label class="wg-field flex flex-col gap-1">
+                <span class="text-sm">Тип архива</span>
+                <select id="f-archive-type" class="input">
+                  <option value="zip" ${(init.archive_type || "zip") === "zip" ? "selected" : ""}>ZIP</option>
+                  <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
+                </select>
+            </label>
+            ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
+            ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
+          </div>
           <div class="bk-preview-card">
             <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>Предпросмотр</strong></div>
             <div id="bk-preview" class="text-sm bk-preview"></div>
           </div>
         </div>
         <div class="modal-footer flex gap-3">
-          <label class="checkbox-label" style="margin-right:auto; gap:.5rem">
-            <input type="checkbox" id="bk-save-run" />
-            <i class="fa-solid fa-play"></i>
-            <span class="text-xs text-muted">Запустить</span>
-          </label>
+          <div class="bk-footer-left">
+            <label class="checkbox-label bk-run-checkbox">
+              <input type="checkbox" id="bk-save-run" />
+              <i class="fa-solid fa-play"></i>
+              <span class="text-xs text-muted">Запустить</span>
+            </label>
+            </div>
+          <button class="bk-preview-toggle" id="bk-preview-toggle" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Скрыть предпросмотр" title="Скрыть предпросмотр" data-hint="Показать/скрыть предпросмотр">
+              <i class="fa-regular fa-eye-slash"></i>
+          </button>
           <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
           <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
         </div>
@@ -1196,6 +1203,53 @@ export default function renderBackup() {
     wrapper.appendChild(overlay);
 
     const q = (s) => overlay.querySelector(s);
+
+    // Handle preview toggle
+    (function initPreviewToggle() {
+      const modalBody = q(".bk-form-grid");
+      const previewCard = q(".bk-preview-card");
+      const toggleBtn = q("#bk-preview-toggle");
+      const ICON_SHOW = "fa-regular fa-eye";
+      const ICON_HIDE = "fa-regular fa-eye-slash";
+      const LS_KEY = "backupPreviewHidden";
+      const readHidden = () => {
+        try {
+          return JSON.parse(localStorage.getItem(LS_KEY)) === true;
+        } catch {
+          return false;
+        }
+      };
+      const writeHidden = (v) => {
+        try {
+          localStorage.setItem(LS_KEY, JSON.stringify(!!v));
+        } catch {}
+      };
+      const apply = (hidden) => {
+        if (!modalBody || !previewCard || !toggleBtn) return;
+        modalBody.setAttribute(
+          "data-preview-visible",
+          hidden ? "false" : "true",
+        );
+        previewCard.style.display = hidden ? "none" : "";
+        const icon = toggleBtn.querySelector("i");
+        if (icon) icon.className = hidden ? ICON_SHOW : ICON_HIDE;
+        toggleBtn.setAttribute(
+          "aria-label",
+          hidden ? "Показать предпросмотр" : "Скрыть предпросмотр",
+        );
+        toggleBtn.title = hidden
+          ? "Показать предпросмотр"
+          : "Скрыть предпросмотр";
+      };
+      const hidden = readHidden();
+      apply(hidden);
+      toggleBtn?.addEventListener("click", () => {
+        const next =
+          modalBody?.getAttribute("data-preview-visible") !== "false";
+        apply(next);
+        writeHidden(next);
+      });
+    })();
 
     // Name input field
     const nameInput = overlay.querySelector("#f-name");

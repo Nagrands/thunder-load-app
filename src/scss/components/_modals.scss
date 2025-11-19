@@ -24,13 +24,12 @@
 #update-downloaded-modal .modal-content,
 #update-error-modal .modal-content {
   @include mixins.modal-content-base;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.08);
+  // backdrop-filter: blur(20px);
+  background: var(--color-bg-secondary);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  // box-shadow:
+  //   0 8px 32px rgba(0, 0, 0, 0.2),
+  //   inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 // ----------------------------------------
@@ -40,8 +39,9 @@
 .shortcuts-modal {
   .shortcuts-modal-content {
     max-width: 780px;
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    // Avoid expensive heavy blurs inside modal
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   ul {
@@ -381,17 +381,16 @@
 .settings-modal {
   // === Инструменты (yt-dlp / ffmpeg) ===
   #tools-info {
-    padding: 16px 18px 20px;
+    padding: 8px 10px;
     background: rgba(255, 255, 255, 0.05);
     // backdrop-filter: blur(15px);
     border-radius: 16px;
-    margin-top: 16px;
+    margin: 0;
     overflow: visible;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 
     h2 {
       font-weight: 500;
-      margin: 8px 2px;
+      margin: 2px;
     }
 
     #tools-hint {
@@ -435,11 +434,11 @@
       min-width: 60px;
       background: linear-gradient(
         135deg,
-        rgba(var(--color-accent-rgb), 0.25) 0%,
-        rgba(var(--color-accent-rgb), 0.15) 50%,
+        rgba(var(--color-accent-rgb), 0.22) 0%,
+        rgba(var(--color-accent-rgb), 0.14) 50%,
         rgba(var(--color-accent-rgb), 0.08) 100%
       );
-      backdrop-filter: blur(12px);
+      backdrop-filter: none;
       border: 1px solid rgba(var(--color-accent-rgb), 0.3);
       border-radius: 12px;
       color: var(--color-highlight);
@@ -620,7 +619,7 @@
     font-style: italic;
     color: var(--color-highlight);
     padding: 8px;
-    line-height: 1.4;
+    line-height: 1.35;
   }
 
   // === Списки и элементы ===
@@ -628,7 +627,7 @@
     display: flex;
     align-items: center;
     padding: 10px 12px;
-    margin: 4px;
+    margin: 0;
     border-radius: 12px;
     color: var(--color-text-main);
     background: rgba(255, 255, 255, 0.03);
@@ -993,9 +992,7 @@
 
       li.custom-theme-select {
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
-        padding: 12px 14px;
         margin: 0;
         transition: all 0.3s ease;
 
@@ -1158,19 +1155,18 @@
 .close,
 .close-whats-new,
 .close-settings,
-.close-modal {
+.close-modal,
+.history-card-preview-close,
+.quality-modal-close {
   @include mixins.close-button;
-  backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
   &:hover,
   &:focus {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-hover);
     border-color: rgba(255, 255, 255, 0.3);
-    color: var(--color-highlight);
-    transform: scale(1.1);
+    color: var(--color-accent);
   }
 }
 
@@ -1335,6 +1331,7 @@
   display: flex;
   flex-direction: column;
   min-width: 210px;
+  min-height: 430px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1423,9 +1420,9 @@
   z-index: 3000;
   min-width: 320px;
   max-width: 380px;
-  padding: 14px 14px 12px;
-  border-radius: 14px;
-  color: var(--color-text-main);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  color: var(--color-highlight);
   // Liquid glass background with subtle gradient and inner glow
   background:
     linear-gradient(180deg, rgba(18, 22, 30, 0.72), rgba(20, 24, 34, 0.64))
@@ -1436,7 +1433,7 @@
         rgba(120, 180, 255, 0.06)
       )
       border-box;
-  border: 1px solid rgba(120, 180, 255, 0.14);
+  border: 1px solid var(--color-hover);
   box-shadow:
     0 22px 60px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -1506,11 +1503,11 @@
   }
 
   .hdr {
-    margin: 0 0 6px;
-    font-weight: 800;
-    font-size: 15px;
+    margin: 0 0 15px;
+    font-weight: 600;
+    font-size: 16px;
     color: var(--color-accent);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.03em;
   }
   .ver {
     font-size: 12.5px;
@@ -1551,8 +1548,9 @@
     }
   }
   .muted {
-    color: #9aa6bd;
-    font-size: 12px;
+    padding: 5px;
+    color: var(--color-highlight);
+    font-size: 13px;
   }
 }
 

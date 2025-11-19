@@ -2,20 +2,11 @@
 
 /* **** Стили для footer **** */
 footer {
-  padding: 8px;
+  padding: 6px;
   position: fixed;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  bottom: 0;
-  width: 100%;
-
-  p {
-    color: var(--color-accent);
-
-    &:hover {
-      color: var(--color-highlight);
-    }
-  }
+  bottom: 4px;
+  background-color: var(--color-hover);
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(12px) saturate(180%);
+  /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
 }

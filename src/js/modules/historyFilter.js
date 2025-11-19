@@ -50,7 +50,9 @@ function filterAndSortHistory(
 
   const filtered = query
     ? entries.filter((entry) =>
-        entry.title.toLowerCase().includes(query.toLowerCase()),
+        (entry.title || entry.fileName || "")
+          .toLowerCase()
+          .includes(query.toLowerCase()),
       )
     : entries;
 

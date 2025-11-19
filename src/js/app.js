@@ -73,6 +73,12 @@ const historyFilePath = path.join(
   "download_history.json",
 );
 let downloadPath = path.join(app.getPath("videos"), "Download");
+const previewCacheDir = path.join(app.getPath("temp"), "thunderload-previews");
+try {
+  fs.mkdirSync(previewCacheDir, { recursive: true });
+} catch (error) {
+  log.error("Failed to ensure preview cache directory:", error);
+}
 
 const binDir = path.join(process.resourcesPath, "bin");
 const ytDlpPath = path.join(
@@ -144,6 +150,7 @@ if (!app.requestSingleInstanceLock()) {
       downloadPath,
       downloadInProgress: false,
     },
+    previewCacheDir,
     getAppVersion,
     setDownloadPath: (newPath) => {
       try {
@@ -348,7 +355,10 @@ if (!app.requestSingleInstanceLock()) {
       fileExists,
     );
 
-    mainWindow.webContents.openDevTools({ mode: "detach" });
+    // DevTools noticeably increase GPU usage; keep them closed in production
+    if (isDev || process.env.OPEN_DEVTOOLS === "1") {
+      mainWindow.webContents.openDevTools({ mode: "detach" });
+    }
 
     dependencies.mainWindow = mainWindow;
 

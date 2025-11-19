@@ -19,16 +19,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   padding: 0 20px;
 }
 
-@mixin glass-morphism {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
 @mixin focus-ring {
   outline: none;
   box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.3);
@@ -214,18 +204,13 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 // Header Component
 .wg-header {
   display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  margin-bottom: 32px;
+  justify-content: space-between;
+  margin-bottom: 30px;
   position: relative;
 
   .title {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
-    border-radius: 12px;
-    @include glass-morphism;
+    @include header-style;
+    // @include glass-morphism;
 
     i {
       font-size: 24px;
@@ -610,7 +595,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   @include glass-morphism;
   border-radius: 12px;
   overflow: hidden;
-  width: 100%;
 
   summary {
     padding: 16px 20px;

@@ -293,6 +293,14 @@
   .large-button.is-loading::after {
     animation: none !important;
   }
+
+  .button--download-button {
+    animation: none !important;
+
+    &::after {
+      animation: none !important;
+    }
+  }
 }
 
 /* ========== Модификаторы кнопок ========== */
@@ -320,25 +328,86 @@
 
 .button--download-button {
   @extend %btn;
-  background: linear-gradient(
-    135deg,
-    rgba(var(--color-accent-rgb), 0.25) 0%,
-    rgba(var(--color-accent-rgb), 0.15) 50%,
-    rgba(var(--color-accent-rgb), 0.08) 100%
-  );
-  border-color: rgba(var(--color-accent-rgb), 0.3);
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(var(--color-accent-rgb), 0.55),
+      transparent 45%
+    ),
+    linear-gradient(
+      130deg,
+      rgba(var(--color-accent-rgb), 0.4) 0%,
+      rgba(var(--color-accent-rgb), 0.2) 45%,
+      rgba(12, 18, 32, 0.9) 100%
+    );
+  border: 1px solid rgba(var(--color-accent-rgb), 0.45);
+  box-shadow: 0 8px 25px rgba(40, 110, 255, 0.25);
   position: relative;
   overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: inherit;
+    z-index: 0;
+  }
+
+  &::before {
+    background: linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.02)
+    );
+    mix-blend-mode: screen;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  &::after {
+    background: radial-gradient(
+      circle at 0% 0%,
+      rgba(255, 255, 255, 0.25),
+      transparent 55%
+    );
+    transform: translate3d(-30%, -40%, 0) scale(0.5);
+    opacity: 0.5;
+    animation: downloadOrb 6s ease-in-out infinite;
+  }
+
+  &:not(:disabled):hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 14px 30px rgba(40, 110, 255, 0.35);
+    border-color: rgba(var(--color-accent-rgb), 0.7);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:not(:disabled):active {
+    transform: translateY(0);
+    box-shadow: 0 6px 18px rgba(20, 50, 130, 0.35);
+  }
 
   &.active {
-    background: linear-gradient(
-      135deg,
-      rgba(0, 91, 181, 0.4) 0%,
-      rgba(0, 123, 255, 0.3) 25%,
-      rgba(0, 91, 181, 0.4) 50%,
-      rgba(29, 56, 83, 0.3) 100%
-    );
-    animation: liquidFlow 3s ease-in-out infinite;
+    background:
+      linear-gradient(125deg, rgba(36, 102, 255, 0.65), rgba(15, 24, 42, 0.9)),
+      linear-gradient(
+        110deg,
+        rgba(var(--color-accent-rgb), 0.6) 0%,
+        rgba(12, 36, 92, 0.85) 100%
+      );
+    animation:
+      liquidFlow 3s ease-in-out infinite,
+      downloadPulse 2s ease-in-out infinite;
+    border-color: rgba(var(--color-accent-rgb), 0.8);
   }
 
   .shine {
@@ -359,10 +428,19 @@
 
   &:disabled .button-text {
     opacity: 0.7;
+    filter: grayscale(0.3);
   }
 
   i {
     margin-right: var(--spacing-small);
+    position: relative;
+    z-index: 1;
+  }
+
+  .button-text {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
   }
 }
 
@@ -652,4 +730,29 @@
   align-items: center;
   margin-top: var(--spacing-medium);
   overflow: visible;
+}
+
+@keyframes downloadOrb {
+  0% {
+    transform: translate3d(-40%, -50%, 0) scale(0.45);
+    opacity: 0.35;
+  }
+  45% {
+    transform: translate3d(80%, 40%, 0) scale(1.15);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate3d(140%, -30%, 0) scale(0.6);
+    opacity: 0.2;
+  }
+}
+
+@keyframes downloadPulse {
+  0%,
+  100% {
+    box-shadow: 0 10px 30px rgba(44, 116, 255, 0.35);
+  }
+  50% {
+    box-shadow: 0 16px 36px rgba(88, 156, 255, 0.55);
+  }
 }

@@ -16,6 +16,7 @@ import {
   openLastVideoButton,
 } from "./domElements.js";
 import { getSelectedQuality } from "./qualitySelector.js";
+import { openDownloadQualityModal } from "./downloadQualityModal.js";
 import { hideUrlActionButtons } from "./urlInputHandler.js";
 import { initTooltips } from "./tooltipInitializer.js";
 
@@ -63,10 +64,29 @@ function normalizeUrl(u) {
     if (url.pathname !== "/" && url.pathname.endsWith("/")) {
       url.pathname = url.pathname.replace(/\/+$/, "");
     }
+    // If short youtu.be link — canonicalize to youtube.com/watch?v=ID
+    const hostLower = url.hostname.toLowerCase();
+    if (hostLower === "youtu.be") {
+      const videoId = url.pathname.replace(/^\/+/, "");
+      if (videoId) {
+        url.hostname = "www.youtube.com";
+        url.pathname = "/watch";
+        url.searchParams.set("v", videoId);
+      }
+    }
+
     // drop hash except time-like (#t=) to reduce dupes
     if (!/^t=/.test(url.hash?.slice(1) || "")) url.hash = "";
     url.username = "";
     url.password = "";
+    // remove playlist parameter when a specific video is requested
+    const youtubeHostPattern = /(^|\.)youtube\.com$/;
+    if (
+      (youtubeHostPattern.test(hostLower) || hostLower === "youtu.be") &&
+      url.searchParams.has("v")
+    ) {
+      url.searchParams.delete("list");
+    }
     return url.toString();
   } catch {
     return (u || "").trim();
@@ -159,6 +179,12 @@ function updateQueueDisplay() {
 
 let lastInputBeforeDownload = null;
 
+const getQualityLabel = (quality) => {
+  if (!quality) return "Source";
+  if (typeof quality === "string") return quality;
+  return quality.label || "Custom";
+};
+
 const downloadVideo = async (url, quality) => {
   console.log("Инициирование загрузки по URL:", url, "с качеством:", quality);
   state.isDownloading = true;
@@ -195,7 +221,7 @@ const downloadVideo = async (url, quality) => {
     progressBar.style.width = "0%";
 
     const shortUrl = new URL(url).hostname.replace("www.", "");
-    buttonText.textContent = `\u23F3 ${shortUrl} (${quality})...`;
+    buttonText.textContent = `\u23F3 ${shortUrl} (${getQualityLabel(quality)})...`;
 
     downloadButton.setAttribute("data-bs-toggle", "tooltip");
     downloadButton.setAttribute("title", url);
@@ -236,8 +262,10 @@ const downloadVideo = async (url, quality) => {
       hour12: false,
     });
     const iconUrl = await window.electron.invoke("get-icon-path", url);
+    const entryId = Date.now();
     // Try to fetch a preview thumbnail for history entry
     let thumbnail = "";
+    let thumbnailCacheFile = "";
     try {
       const info = await window.electron.ipcRenderer.invoke(
         "get-video-info",
@@ -245,15 +273,33 @@ const downloadVideo = async (url, quality) => {
       );
       if (info && info.success && info.thumbnail) thumbnail = info.thumbnail;
     } catch (_) {}
+    if (thumbnail) {
+      try {
+        const cacheResult = await window.electron.invoke(
+          "cache-history-preview",
+          {
+            url: thumbnail,
+            entryId,
+            fileName,
+          },
+        );
+        if (cacheResult?.success && cacheResult.filePath) {
+          thumbnailCacheFile = cacheResult.filePath;
+        }
+      } catch (err) {
+        console.warn("Failed to cache preview thumbnail:", err);
+      }
+    }
 
     const newLogEntry = {
-      id: Date.now(),
+      id: entryId,
       fileName,
       filePath,
       quality: actualQuality,
       dateTime: currentDateTime,
       iconUrl,
       thumbnail,
+      thumbnailCacheFile,
       sourceUrl,
     };
 
@@ -274,6 +320,10 @@ const downloadVideo = async (url, quality) => {
   } catch (error) {
     if (error.message === "Download cancelled") {
       showToast("Загрузка отменена.", "warning");
+    } else if (error.message === "Загрузка уже выполняется") {
+      const result = enqueueMany([url], quality);
+      const summary = summarizeEnqueueResult(result) || "добавлено в очередь";
+      showToast(`Загрузка в процессе — ${summary}.`, "info");
     } else {
       console.error("Ошибка при загрузке видео:", error);
       showToast(
@@ -342,8 +392,6 @@ const initiateDownload = async (url, quality) => {
 const handleDownloadButtonClick = async (options = {}) => {
   const selectedQuality = getSelectedQuality();
   const raw = urlInput.value.trim();
-  let quality = selectedQuality || "Source";
-  if (options.forceAudioOnly) quality = "Audio Only";
 
   // Извлекаем URL из произвольного текста
   const validUrls = extractUrls(raw).filter(
@@ -359,11 +407,11 @@ const handleDownloadButtonClick = async (options = {}) => {
     const first = validUrls[0];
     const rest = validUrls.slice(1);
     if (state.isDownloading || options.enqueueOnly) {
-      const res = enqueueMany(validUrls, quality, options);
+      const res = enqueueMany(validUrls, selectedQuality || "Source", options);
       showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
     } else {
-      await initiateDownload(first, quality);
-      const res = enqueueMany(rest, quality, options);
+      await initiateDownload(first, selectedQuality || "Source");
+      const res = enqueueMany(rest, selectedQuality || "Source", options);
       if (res.added || res.duplicates || res.invalid) {
         showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
       }
@@ -377,6 +425,11 @@ const handleDownloadButtonClick = async (options = {}) => {
 
   // Один URL
   const url = validUrls[0];
+  const selection = await openDownloadQualityModal(url, {
+    presetQuality: selectedQuality,
+    forceAudioOnly: options.forceAudioOnly,
+  });
+  if (!selection) return;
   if (state.isDownloading || options.enqueueOnly) {
     const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
     if (nCurr === normalizeUrl(url)) {
@@ -391,7 +444,7 @@ const handleDownloadButtonClick = async (options = {}) => {
       showToast("Этот URL уже есть в очереди.", "info");
       return;
     }
-    state.downloadQueue.push({ url, quality });
+    state.downloadQueue.push({ url, quality: selection });
     showToast("Добавлено в очередь загрузки.", "info");
     urlInput.value = "";
     try {
@@ -399,7 +452,7 @@ const handleDownloadButtonClick = async (options = {}) => {
     } catch {}
     updateQueueDisplay();
   } else {
-    await initiateDownload(url, quality);
+    await initiateDownload(url, selection);
   }
 };
 

@@ -9,9 +9,6 @@
         id="url"
         placeholder="Введите URL видео или аудио"
         aria-label="Введите URL видео или аудио"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Вставьте ссылку или перетащите сюда. Enter — скачать; Shift+Enter — очередь; Alt+Enter — только аудио."
       />
       <div class="button-grid">
         <button
@@ -44,70 +41,12 @@
         </button>
       </div>
     </div>
-    <!-- Quick quality presets -->
-    <div class="quality-presets">
-      <button
-        type="button"
-        class="preset"
-        data-quality="Audio Only"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Скачать только аудио"
-      >
-        <i class="fa-solid fa-music"></i>
-        Audio
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="Source"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Максимальное доступное качество"
-      >
-        <i class="fa-solid fa-bullseye"></i>
-        Source
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="FHD 1080p"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="1080p"
-      >
-        <i class="fa-solid fa-tv"></i>
-        1080p
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="HD 720p"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="720p"
-      >
-        <i class="fa-solid fa-display"></i>
-        720p
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="SD 360p"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="360p"
-      >
-        <i class="fa-solid fa-mobile-screen"></i>
-        360p
-      </button>
-    </div>
-
     <!-- Preview -->
     <div id="preview-card" class="preview-card" style="display: none">
       <img
         id="preview-thumb"
         alt="Превью"
+        loading="lazy"
         style="display: none; max-height: 80px; border-radius: 6px; margin-right: 8px"
       />
       <div class="preview-meta">

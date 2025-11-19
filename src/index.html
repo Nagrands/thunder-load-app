@@ -142,9 +142,6 @@
         id="url"
         placeholder="Введите URL видео или аудио"
         aria-label="Введите URL видео или аудио"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Вставьте ссылку или перетащите сюда. Enter — скачать; Shift+Enter — очередь; Alt+Enter — только аудио."
       />
       <div class="button-grid">
         <button
@@ -177,70 +174,12 @@
         </button>
       </div>
     </div>
-    <!-- Quick quality presets -->
-    <div class="quality-presets">
-      <button
-        type="button"
-        class="preset"
-        data-quality="Audio Only"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Скачать только аудио"
-      >
-        <i class="fa-solid fa-music"></i>
-        Audio
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="Source"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Максимальное доступное качество"
-      >
-        <i class="fa-solid fa-bullseye"></i>
-        Source
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="FHD 1080p"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="1080p"
-      >
-        <i class="fa-solid fa-tv"></i>
-        1080p
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="HD 720p"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="720p"
-      >
-        <i class="fa-solid fa-display"></i>
-        720p
-      </button>
-      <button
-        type="button"
-        class="preset"
-        data-quality="SD 360p"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="360p"
-      >
-        <i class="fa-solid fa-mobile-screen"></i>
-        360p
-      </button>
-    </div>
-
     <!-- Preview -->
     <div id="preview-card" class="preview-card" style="display: none">
       <img
         id="preview-thumb"
         alt="Превью"
+        loading="lazy"
         style="display: none; max-height: 80px; border-radius: 6px; margin-right: 8px"
       />
       <div class="preview-meta">
@@ -293,7 +232,7 @@
   </div>
 
   <div class="logo-container">
-    <img src="../assets/icons/thunder-logo.png" alt="Логотип Thunder Load" class="logo" />
+    <img src="../assets/icons/thunder-logo.png" alt="Логотип Thunder Load" class="logo" loading="lazy" />
     <span class="logo-text">Thunder Load</span>
   </div>
 
@@ -561,6 +500,123 @@
   </button>
 </nav>
 
+<!-- Модальное окно выбора качества -->
+<div
+  id="download-quality-modal"
+  class="modal-overlay download-quality-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="download-quality-title"
+>
+  <div class="modal-content download-quality-content">
+    <div class="quality-modal-header">
+      <div>
+        <p class="quality-modal-subtitle">Загрузка</p>
+        <h3 id="download-quality-title">Выбор качества</h3>
+      </div>
+      <button
+        type="button"
+        class="quality-modal-close"
+        aria-label="Закрыть окно"
+        data-quality-close
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="quality-modal-body">
+      <div class="quality-preview">
+        <div class="quality-thumb">
+          <img id="download-quality-thumb" alt="" loading="lazy" />
+        </div>
+        <div class="quality-info">
+          <h4 id="download-quality-name"></h4>
+          <p id="download-quality-uploader"></p>
+          <p id="download-quality-duration"></p>
+          <button
+            type="button"
+            id="download-quality-open-source"
+            class="btn-link"
+          >
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть
+            источник
+          </button>
+        </div>
+      </div>
+
+      <div class="quality-selector">
+        <div class="quality-tabs-row">
+          <div class="quality-tabs" role="tablist">
+            <button
+              type="button"
+              class="quality-tab active"
+              data-quality-tab="video"
+            >
+              Видео + аудио
+            </button>
+            <button
+              type="button"
+              class="quality-tab"
+              data-quality-tab="video-only"
+            >
+              Только видео
+            </button>
+            <button type="button" class="quality-tab" data-quality-tab="audio">
+              Только аудио
+            </button>
+          </div>
+          <button
+            type="button"
+            id="download-quality-best"
+            class="quality-best-link"
+          >
+            <i class="fa-solid fa-bullseye"></i>
+            Максимальное качество
+          </button>
+        </div>
+        <div id="download-quality-loading" class="quality-loading">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Загрузка доступных форматов...
+        </div>
+        <div id="download-quality-empty" class="quality-empty hidden">
+          Нет вариантов для выбранного режима.
+        </div>
+        <div
+          id="download-quality-options"
+          class="quality-options"
+          role="radiogroup"
+          aria-live="polite"
+        ></div>
+      </div>
+    </div>
+
+    <div class="quality-modal-footer">
+      <div class="quality-hint">
+        <i class="fa-regular fa-circle-question"></i>
+        Двойной клик по варианту сразу начнёт загрузку.
+      </div>
+      <div class="quality-actions">
+        <button
+          type="button"
+          id="download-quality-cancel"
+          class="btn-ghost"
+        >
+          Отмена
+        </button>
+        <button
+          type="button"
+          id="download-quality-confirm"
+          class="btn-primary"
+          disabled
+        >
+          Скачать выбранное
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <div id="download-queue-info" class="download-queue-info hidden">
   В очереди: <span id="queue-count">0</span> ссылок
 </div>
@@ -571,78 +627,76 @@
 
   <!-- History Section -->
 <section id="history-container">
-  <details class="spoiler-history" open>
-    <summary>
-      <i class="fa-solid fa-clock-rotate-left fa-fade"></i> История загрузок:
-    </summary>
-
-    <div class="filter-clear-container input-container">
-      <div class="history-actions">
-        <div class="history-search-wrapper">
+  <div class="history-cards-area" aria-live="polite">
+    <div class="history-cards-header">
+      <div>
+        <p class="history-cards-subtitle">Недавние загрузки</p>
+        <h3 class="history-cards-title">История загрузок</h3>
+      </div>
+      <div class="history-cards-search history-actions">
+        <div class="history-search-wrapper history-input-wrapper">
           <i id="icon-filter-search" class="fas fa-search search-icon"></i>
           <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
           <button
             id="clear-filter-input"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Очистить поиск"
+            aria-label="Очистить поиск"
+            data-hint="Сбросить поисковый запрос"
           >
             &times;
           </button>
-
+        </div>
+        <div class="history-search-actions">
           <button
             id="refresh-button"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Обновить"
+            aria-label="Обновить список"
+            data-hint="Обновить список"
           >
             <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
           <button
             id="sort-button"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Сортировка"
+            aria-label="Сортировка"
+            data-hint="Сменить порядок сортировки"
           >
             <i class="fa-solid"></i>
           </button>
           <button
             id="clear-history"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Очистить"
+            aria-label="Очистить историю"
+            data-hint="Очистить всю историю"
           >
             <i class="fa-solid fa-trash"></i>
           </button>
           <button
             id="delete-selected"
             class="history-action-button hidden"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Удалить выбранные"
+            aria-label="Удалить выбранные записи"
+            data-hint="Удалить выбранные"
           >
             <i class="fa-solid fa-trash-can"></i>
           </button>
-
           <button
             id="history-header"
             class="history-action-button"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Записей истории"
+            aria-label="Количество записей"
+            data-hint="Количество записей"
           >
             <span id="total-downloads">0</span>
           </button>
         </div>
       </div>
     </div>
-  </details>
-  <div id="history" role="list"></div>
-  <div id="empty-history" class="empty-history">История загрузок не содержит данных.</div>
+    <div id="history" role="list"></div>
+    <div id="empty-history" class="empty-history">История загрузок не содержит данных.</div>
+    <div id="history-cards" class="history-card-grid" role="list"></div>
+    <div id="history-cards-empty" class="history-cards-empty">
+      Недавних загрузок пока нет.
+    </div>
+  </div>
 </section>
 
 </div>
@@ -1193,6 +1247,13 @@
                       Отключить <strong>специальные</strong> (горячие) клавиши
                     </label>
                   </li>
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="settings-low-effects-toggle" />
+                    <label for="settings-low-effects-toggle">
+                      <i class="fa-solid fa-leaf"></i>
+                      Режим <strong>экономии эффектов</strong> (без анимаций/размытия)
+                    </label>
+                  </li>
                 </ul>
                 <div class="module export-import-section">
                   <h3>Настройки приложения</h3>
@@ -1229,28 +1290,58 @@
       <nav id="context-menu" class="context-menu" aria-label="Контекстное меню">
         <ul>
           <li id="open-video">
-            <i class="fa-solid fa-circle-play fa-fade"></i>
-            <span>Открыть видео</span>
+            <div class="cm-icon">
+              <i class="fa-solid fa-circle-play"></i>
+            </div>
+            <div class="cm-text">
+              <span class="cm-title">Открыть видео</span>
+              <span class="cm-desc">Воспроизвести файл</span>
+            </div>
           </li>
           <li id="open-folderc">
-            <i class="fa-regular fa-folder-open"></i>
-            <span>Открыть папку</span>
+            <div class="cm-icon">
+              <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <div class="cm-text">
+              <span class="cm-title">Открыть папку</span>
+              <span class="cm-desc">Показать расположение файла</span>
+            </div>
           </li>
           <li id="open-site">
-            <i class="fa-solid fa-link"></i>
-            <span>Открыть сайт</span>
+            <div class="cm-icon">
+              <i class="fa-solid fa-link"></i>
+            </div>
+            <div class="cm-text">
+              <span class="cm-title">Открыть сайт</span>
+              <span class="cm-desc">Перейти на источник загрузки</span>
+            </div>
           </li>
           <li id="delete-entry">
-            <i class="fa-regular fa-calendar-xmark"></i>
-            <span>Удалить запись</span>
+            <div class="cm-icon">
+              <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <div class="cm-text">
+              <span class="cm-title">Удалить запись</span>
+              <span class="cm-desc">Убрать строку из истории</span>
+            </div>
           </li>
           <li id="delete-file">
-            <i class="fa-solid fa-trash"></i>
-            <span>Удалить файл</span>
+            <div class="cm-icon">
+              <i class="fa-solid fa-trash"></i>
+            </div>
+            <div class="cm-text">
+              <span class="cm-title">Удалить файл</span>
+              <span class="cm-desc">Удалить физически с диска</span>
+            </div>
           </li>
           <li id="retry-download">
-            <i class="fa-solid fa-arrow-rotate-right"></i>
-            <span>Повторить загрузку</span>
+            <div class="cm-icon">
+              <i class="fa-solid fa-arrow-rotate-right"></i>
+            </div>
+            <div class="cm-text">
+              <span class="cm-title">Повторить загрузку</span>
+              <span class="cm-desc">Добавить ссылку снова</span>
+            </div>
           </li>
         </ul>
       </nav>

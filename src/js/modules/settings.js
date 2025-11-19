@@ -10,11 +10,22 @@ import {
   settingsCloseToTrayRadio,
   settingsCloseAppRadio,
   settingsDisableCompleteModalToggle,
+  settingsLowEffectsToggle,
 } from "./domElements.js";
 
-import { getTheme, getFontSize, setFontSize, setTheme } from "./settingsStore.js";
+import {
+  getTheme,
+  getFontSize,
+  setFontSize,
+  setTheme,
+} from "./settingsStore.js";
 import { renderToolsInfo } from "./toolsInfo.js";
 import { showConfirmationDialog } from "./modals.js";
+import { getLowEffects, setLowEffects } from "./effectsMode.js";
+
+// Lazy-render guards
+let toolsInfoRendered = false;
+let toolsRenderPromise = null;
 
 /**
  * Функция для инициализации настроек
@@ -99,6 +110,15 @@ async function initSettings() {
         `<strong>Размер шрифта</strong> сброшен на <strong>${defaultSize}px</strong>`,
         "success",
       );
+    });
+  }
+
+  // Low effects (disable blur/animations) toggle
+  if (settingsLowEffectsToggle) {
+    settingsLowEffectsToggle.checked = getLowEffects();
+    settingsLowEffectsToggle.addEventListener("change", (e) => {
+      const enabled = e.target.checked;
+      setLowEffects(enabled);
     });
   }
 
@@ -1047,20 +1067,28 @@ async function initSettings() {
   }
   // === /WG Unlock: авто‑закрытие ===
 
-  // Отрисовать версии инструментов при загрузке настроек
-  try {
-    await renderToolsInfo();
-  } catch (e) {
-    console.error("[settings] renderToolsInfo failed on init:", e);
+  async function ensureToolsInfo(force = false) {
+    if (toolsRenderPromise) return toolsRenderPromise;
+    if (toolsInfoRendered && !force) return null;
+    toolsRenderPromise = renderToolsInfo()
+      .then(() => {
+        toolsInfoRendered = true;
+      })
+      .catch((e) => {
+        console.error("[settings] renderToolsInfo failed:", e);
+      })
+      .finally(() => {
+        toolsRenderPromise = null;
+      });
+    return toolsRenderPromise;
   }
 
-  // Обновлять блок версий при каждом открытии настроек
+  // Обновлять блок версий только при открытии настроек
   window.electron.on("open-settings", async () => {
-    try {
-      await renderToolsInfo();
-    } catch (e) {
-      console.error("[settings] renderToolsInfo failed on open:", e);
-    }
+    await ensureToolsInfo(false);
+  });
+  window.addEventListener("settings:opened", () => {
+    ensureToolsInfo(false);
   });
 
   // === Tools location (yt-dlp, ffmpeg) — UI bindings ===
@@ -1126,7 +1154,7 @@ async function initSettings() {
           await refreshLocation();
           toast("Папка инструментов обновлена", "success");
           try {
-            await renderToolsInfo();
+            await ensureToolsInfo(true);
           } catch {}
         } else {
           toast(
@@ -1162,7 +1190,7 @@ async function initSettings() {
             "success",
           );
           try {
-            await renderToolsInfo();
+            await ensureToolsInfo(true);
           } catch {}
         } else {
           toast(
@@ -1200,7 +1228,7 @@ async function initSettings() {
           );
           await refreshLocation();
           try {
-            await renderToolsInfo();
+            await ensureToolsInfo(true);
           } catch {}
         } else {
           toast(
@@ -1214,8 +1242,7 @@ async function initSettings() {
       }
     });
 
-    // Инициализация при открытии настроек
-    refreshLocation();
+    // Инициализация только при открытии настроек
     window.electron.on("open-settings", refreshLocation);
   })();
   // === /Tools location UI ===
@@ -1365,7 +1392,8 @@ export async function importConfig(file) {
       await (async () => {
         // Тема и шрифт — localStorage + визуальное применение
         if (config.appearance?.theme) await setTheme(config.appearance.theme);
-        if (config.appearance?.fontSize) await setFontSize(config.appearance.fontSize);
+        if (config.appearance?.fontSize)
+          await setFontSize(config.appearance.fontSize);
 
         if (typeof config.general?.autoLaunch !== "undefined") {
           await window.electron.invoke(
@@ -1397,7 +1425,9 @@ export async function importConfig(file) {
             config.clipboard.openOnCopyUrl,
           );
         }
-        if (typeof config.window?.expandWindowOnDownloadComplete !== "undefined") {
+        if (
+          typeof config.window?.expandWindowOnDownloadComplete !== "undefined"
+        ) {
           await window.electron.invoke(
             "set-open-on-download-complete-status",
             config.window.expandWindowOnDownloadComplete,
@@ -1410,7 +1440,10 @@ export async function importConfig(file) {
           );
         }
         if (typeof config.window?.defaultTab !== "undefined") {
-          await window.electron.invoke("set-default-tab", config.window.defaultTab);
+          await window.electron.invoke(
+            "set-default-tab",
+            config.window.defaultTab,
+          );
         }
         if (typeof config.notifications?.disableCompleteModal !== "undefined") {
           await window.electron.invoke(
@@ -1427,7 +1460,6 @@ export async function importConfig(file) {
         location.reload();
       })();
     });
-
   } catch (e) {
     alert("Ошибка импорта: " + e.message);
   }

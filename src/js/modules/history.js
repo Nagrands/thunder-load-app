@@ -3,6 +3,8 @@
 import {
   history,
   historyContainer,
+  historyCards,
+  historyCardsEmpty,
   totalDownloads,
   iconFilterSearch,
   refreshButton,
@@ -10,6 +12,8 @@ import {
   clearHistoryButton,
   sortButton,
   openHistoryButton,
+  urlInput,
+  downloadButton,
 } from "./domElements.js";
 import {
   state,
@@ -26,9 +30,204 @@ import { normalizeEntry } from "./normalizeEntry.js";
 import { handleDeleteEntry } from "./contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "./tooltipInitializer.js";
 
-function updateSpoilerVisibility(open = true) {
-  const spoiler = document.querySelector(".spoiler-history");
-  if (spoiler) spoiler.open = open;
+const RECENT_HISTORY_LIMIT = 8;
+const HISTORY_AUDIO_PLACEHOLDER =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231a1f2e'/><stop offset='1' stop-color='%23243352'/></linearGradient></defs><rect width='320' height='180' fill='url(%23g)'/><g fill='%23a3b3ff' opacity='0.9'><path d='M190 60v58a26 26 0 11-10-20V70l40-10v12z'/></g></svg>",
+  );
+
+let historyCardsRoot = historyCards;
+let historyCardsEmptyRoot = historyCardsEmpty;
+let historyCardPreviewOverlay = null;
+let historyCardPreviewImage = null;
+let historyCardPreviewCaption = null;
+
+function ensureHistoryCardsElements() {
+  if (!historyCardsRoot || !historyCardsRoot.isConnected) {
+    historyCardsRoot = document.getElementById("history-cards");
+  }
+  if (!historyCardsEmptyRoot || !historyCardsEmptyRoot.isConnected) {
+    historyCardsEmptyRoot = document.getElementById("history-cards-empty");
+  }
+  if (historyCardsRoot && historyCardsEmptyRoot) return;
+
+  let area = document.querySelector(".history-cards-area");
+  if (!area) {
+    area = document.createElement("div");
+    area.className = "history-cards-area";
+    area.setAttribute("aria-live", "polite");
+    area.innerHTML = `
+      <div class="history-cards-header">
+        <div>
+          <p class="history-cards-subtitle">Недавние загрузки</p>
+          <h3 class="history-cards-title">История загрузок</h3>
+        </div>
+        <div class="history-cards-search history-actions">
+          <div class="history-search-wrapper history-input-wrapper">
+            <i id="icon-filter-search" class="fas fa-search search-icon"></i>
+            <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+            <button
+              id="clear-filter-input"
+              class="history-action-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Очистить поиск"
+            >
+              &times;
+            </button>
+          </div>
+          <div class="history-search-actions">
+            <button
+              id="refresh-button"
+              class="history-action-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Обновить"
+            >
+              <i class="fa-solid fa-arrow-rotate-right"></i>
+            </button>
+            <button
+              id="sort-button"
+              class="history-action-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Сортировка"
+            >
+              <i class="fa-solid"></i>
+            </button>
+            <button
+              id="clear-history"
+              class="history-action-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Очистить"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            <button
+              id="delete-selected"
+              class="history-action-button hidden"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Удалить выбранные"
+            >
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <button
+              id="history-header"
+              class="history-action-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Записей истории"
+            >
+              <span id="total-downloads">0</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="history-cards" class="history-card-grid" role="list"></div>
+      <div id="history-cards-empty" class="history-cards-empty">
+        Недавних загрузок пока нет.
+      </div>
+    `;
+    const container =
+      historyContainer || document.getElementById("history-container");
+    if (container) {
+      const listAnchor = container.querySelector("#history");
+      if (listAnchor) container.insertBefore(area, listAnchor);
+      else container.appendChild(area);
+    } else {
+      document.body.appendChild(area);
+    }
+  }
+  historyCardsRoot = area.querySelector("#history-cards");
+  historyCardsEmptyRoot = area.querySelector("#history-cards-empty");
+}
+
+function ensureHistoryCardPreviewOverlay() {
+  if (historyCardPreviewOverlay) return historyCardPreviewOverlay;
+
+  const overlay = document.createElement("div");
+  overlay.className = "history-card-preview-overlay hidden";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.setAttribute("aria-label", "Просмотр превью загрузки");
+  overlay.tabIndex = -1;
+  overlay.innerHTML = `
+    <div class="history-card-preview-dialog">
+      <button
+        type="button"
+        class="history-card-preview-close"
+        aria-label="Закрыть превью"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img class="history-card-preview-image" alt="" />
+      <p class="history-card-preview-caption"></p>
+    </div>
+  `;
+
+  const closeBtn = overlay.querySelector(".history-card-preview-close");
+  closeBtn.addEventListener("click", closeHistoryCardPreview);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeHistoryCardPreview();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      historyCardPreviewOverlay &&
+      !historyCardPreviewOverlay.classList.contains("hidden")
+    ) {
+      closeHistoryCardPreview();
+    }
+  });
+
+  historyCardPreviewOverlay = overlay;
+  historyCardPreviewImage = overlay.querySelector(
+    ".history-card-preview-image",
+  );
+  historyCardPreviewCaption = overlay.querySelector(
+    ".history-card-preview-caption",
+  );
+
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function openHistoryCardPreview(src, title = "") {
+  if (!src) return;
+  const overlay = ensureHistoryCardPreviewOverlay();
+  historyCardPreviewImage.src = src;
+  historyCardPreviewImage.alt = title || "Preview";
+  historyCardPreviewCaption.textContent = title || "";
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+  overlay.focus();
+}
+
+function closeHistoryCardPreview() {
+  if (!historyCardPreviewOverlay) return;
+  historyCardPreviewOverlay.classList.add("hidden");
+  historyCardPreviewOverlay.setAttribute("aria-hidden", "true");
+  if (historyCardPreviewImage) historyCardPreviewImage.src = "";
+}
+
+async function openHistorySourceLink(url) {
+  if (!url) {
+    showToast("Ссылка на источник недоступна.", "warning");
+    return;
+  }
+  try {
+    await window.electron.invoke("open-external-link", url);
+  } catch (error) {
+    console.error("Ошибка открытия источника:", error);
+    showToast("Не удалось открыть источник загрузки.", "error");
+  }
 }
 
 function showFilterInput() {
@@ -57,6 +256,227 @@ function updateDeleteSelectedButton() {
   }
 }
 
+const detectHost = (url = "") => {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch (_) {
+    return "";
+  }
+};
+
+const isAudioEntry = (entry) => {
+  const quality = entry?.quality || entry?.resolution || entry?.format || "";
+  return /audio/i.test(quality) || /audio only/i.test(quality);
+};
+
+const formatCardDate = (entry) => {
+  if (!entry) return "";
+  if (entry.timestamp) {
+    try {
+      const d = new Date(entry.timestamp);
+      if (!Number.isNaN(d.getTime())) {
+        return d.toLocaleString([], {
+          dateStyle: "medium",
+          timeStyle: "short",
+          hour12: false,
+        });
+      }
+    } catch (_) {}
+  }
+  return entry.dateText || "";
+};
+
+const formatSizeLabel = (entry) => {
+  if (entry?.isMissing) return "Файл удалён";
+  if (entry?.formattedSize) return entry.formattedSize;
+  return "Размер не определён";
+};
+
+async function openHistoryCardFile(entry) {
+  if (!entry?.filePath) return;
+  try {
+    const exists = await window.electron.invoke(
+      "check-file-exists",
+      entry.filePath,
+    );
+    if (!exists) {
+      entry.isMissing = true;
+      renderHistoryCards(getHistoryData());
+      return showToast("Файл не найден на диске.", "error");
+    }
+    await window.electron.invoke("open-last-video", entry.filePath);
+  } catch (error) {
+    console.error("Ошибка при открытии файла истории:", error);
+    showToast("Не удалось открыть файл.", "error");
+  }
+}
+
+function retryHistoryCardDownload(entry) {
+  if (!entry?.sourceUrl || !urlInput || !downloadButton) {
+    showToast("Ссылка для повторной загрузки недоступна.", "warning");
+    return;
+  }
+  urlInput.value = entry.sourceUrl;
+  try {
+    urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+    urlInput.dispatchEvent(new Event("force-preview"));
+  } catch (_) {}
+  updateButtonState();
+  downloadButton.classList.add("active");
+  showToast(
+    `Повторная загрузка: <strong>${entry.fileName || entry.sourceUrl}</strong>.`,
+    "info",
+  );
+}
+
+function renderHistoryCards(entries = []) {
+  ensureHistoryCardsElements();
+  if (!historyCardsRoot) return;
+  const subset = (entries || []).slice(0, RECENT_HISTORY_LIMIT);
+  historyCardsRoot.innerHTML = "";
+  if (subset.length === 0) {
+    if (historyCardsEmptyRoot) historyCardsEmptyRoot.style.display = "";
+    return;
+  }
+  if (historyCardsEmptyRoot) historyCardsEmptyRoot.style.display = "none";
+
+  subset.forEach((entry) => {
+    const card = document.createElement("article");
+    card.className = `history-card${entry.isMissing ? " is-missing" : ""}`;
+    card.setAttribute("role", "listitem");
+    card.dataset.id = entry.id || "";
+    card.dataset.filepath = entry.filePath || "";
+    card.dataset.url = entry.sourceUrl || "";
+    card.dataset.filename = entry.fileName || "";
+    card.dataset.quality = entry.quality || "";
+    card.dataset.datetime = entry.dateText || "";
+    card.dataset.resolution = entry.resolution || "";
+    card.dataset.size = entry.formattedSize || "";
+
+    const thumb = document.createElement("div");
+    const thumbSrc = entry?.thumbnail
+      ? entry.thumbnail
+      : isAudioEntry(entry)
+        ? HISTORY_AUDIO_PLACEHOLDER
+        : "";
+    thumb.className = `history-card-thumb${thumbSrc ? "" : " placeholder"}`;
+    if (thumbSrc) {
+      const img = document.createElement("img");
+      img.src = thumbSrc;
+      img.alt = entry.fileName || "Preview";
+      img.loading = "lazy";
+
+      const zoomBtn = document.createElement("button");
+      zoomBtn.type = "button";
+      zoomBtn.className = "history-card-thumb-button";
+      zoomBtn.title = "Увеличить превью";
+      zoomBtn.setAttribute("data-bs-toggle", "tooltip");
+      zoomBtn.setAttribute("data-bs-placement", "top");
+      zoomBtn.addEventListener("click", () =>
+        openHistoryCardPreview(thumbSrc, entry.fileName || entry.sourceUrl),
+      );
+      const zoomBadge = document.createElement("span");
+      zoomBadge.className = "history-card-thumb-zoom";
+      zoomBadge.innerHTML =
+        '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+
+      zoomBtn.append(img, zoomBadge);
+      thumb.appendChild(zoomBtn);
+    } else {
+      const icon = document.createElement("i");
+      icon.className = "fa-regular fa-image";
+      thumb.appendChild(icon);
+    }
+    if (entry.quality) {
+      const chip = document.createElement("span");
+      chip.className = "history-card-chip";
+      chip.textContent = entry.quality;
+      thumb.appendChild(chip);
+    }
+
+    const body = document.createElement("div");
+    body.className = "history-card-body";
+
+    const name = document.createElement("h4");
+    name.className = "history-card-name";
+    name.title = entry.fileName || "";
+    name.textContent = entry.fileName || "Без названия";
+    body.appendChild(name);
+
+    const meta = document.createElement("div");
+    meta.className = "history-card-meta";
+    const host = detectHost(entry.sourceUrl);
+    if (host) {
+      const hostBadge = document.createElement("span");
+      hostBadge.className = "history-card-host";
+
+      const hostLabel = document.createElement("span");
+      hostLabel.className = "history-card-host-label";
+
+      const hostButton = document.createElement("button");
+      hostButton.type = "button";
+      hostButton.className = "history-card-host-link";
+      hostButton.textContent = host;
+      hostButton.title = "Открыть источник загрузки";
+      hostButton.setAttribute("data-bs-toggle", "tooltip");
+      hostButton.setAttribute("data-bs-placement", "top");
+      hostButton.addEventListener("click", () =>
+        openHistorySourceLink(entry.sourceUrl),
+      );
+
+      hostBadge.append(hostLabel, hostButton);
+      meta.appendChild(hostBadge);
+    }
+    const size = document.createElement("span");
+    size.textContent = formatSizeLabel(entry);
+    meta.appendChild(size);
+    body.appendChild(meta);
+
+    const dateLabel = formatCardDate(entry);
+    if (dateLabel) {
+      const date = document.createElement("p");
+      date.className = "history-card-date";
+      date.textContent = dateLabel;
+      body.appendChild(date);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "history-card-actions";
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "history-card-btn";
+    openBtn.dataset.action = "open";
+    openBtn.innerHTML =
+      '<i class="fa-regular fa-file-video"></i><span>Открыть</span>';
+    openBtn.title = "Открыть файл на диске";
+    openBtn.setAttribute("data-bs-toggle", "tooltip");
+    openBtn.setAttribute("data-bs-placement", "top");
+    openBtn.disabled = entry.isMissing;
+    openBtn.addEventListener("click", () => openHistoryCardFile(entry));
+
+    const retryBtn = document.createElement("button");
+    retryBtn.type = "button";
+    retryBtn.className = "history-card-btn ghost";
+    retryBtn.dataset.action = "retry";
+    retryBtn.innerHTML =
+      '<i class="fa-solid fa-arrow-rotate-right"></i><span>Скачать снова</span>';
+    retryBtn.title = "Скачать эту запись повторно";
+    retryBtn.setAttribute("data-bs-toggle", "tooltip");
+    retryBtn.setAttribute("data-bs-placement", "top");
+    retryBtn.disabled = !entry.sourceUrl;
+    if (entry.sourceUrl) {
+      retryBtn.addEventListener("click", () => retryHistoryCardDownload(entry));
+    }
+
+    actions.append(openBtn, retryBtn);
+    body.appendChild(actions);
+
+    card.append(thumb, body);
+    historyCardsRoot.appendChild(card);
+  });
+}
+
 function createLogEntry(entry, index) {
   const el = document.createElement("div");
   el.className = "log-entry fade-in";
@@ -64,6 +484,13 @@ function createLogEntry(entry, index) {
   el.setAttribute("data-id", entry.id);
   el.setAttribute("data-url", entry.sourceUrl);
   el.setAttribute("data-timestamp", entry.timestamp || "");
+  el.dataset.filepath = entry.filePath || "";
+  el.dataset.url = entry.sourceUrl || "";
+  el.dataset.filename = entry.fileName || "";
+  el.dataset.quality = entry.quality || "";
+  el.dataset.datetime = entry.dateText || "";
+  el.dataset.resolution = entry.resolution || "";
+  el.dataset.size = entry.formattedSize || "";
 
   if (!entry.dateText) console.warn("⚠️ Нет dateText у записи:", entry);
   if (entry.isMissing) el.classList.add("missing");
@@ -84,21 +511,13 @@ function createLogEntry(entry, index) {
       else if (/coub\.com/.test(h)) hostClass = "host-coub";
     }
   } catch {}
-  const isAudioOnly =
-    /audio/i.test(entry?.quality || "") ||
-    /audio/i.test(entry?.resolution || "") ||
-    /audio only/i.test(format);
+  const isAudioOnly = isAudioEntry(entry);
 
   // Pick preview thumbnail; for audio-only use a placeholder image
-  const audioPlaceholder =
-    "data:image/svg+xml;utf8," +
-    encodeURIComponent(
-      "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231a1f2e'/><stop offset='1' stop-color='%23243352'/></linearGradient></defs><rect width='320' height='180' fill='url(%23g)'/><g fill='%23a3b3ff' opacity='0.9'><path d='M190 60v58a26 26 0 11-10-20V70l40-10v12z'/></g></svg>",
-    );
   const thumbSrc = entry?.thumbnail
     ? entry.thumbnail
     : isAudioOnly
-      ? audioPlaceholder
+      ? HISTORY_AUDIO_PLACEHOLDER
       : "";
 
   el.innerHTML = `
@@ -383,6 +802,9 @@ document
     console.log("История до удаления:", currentHistory);
     console.log("IDs к удалению:", idsToDelete);
     console.log("История после удаления:", updatedHistory);
+    const previewPaths = deletedEntries
+      .map((entry) => entry.thumbnailCacheFile)
+      .filter(Boolean);
 
     console.log("Перед обновлением истории:", getHistoryData());
     setHistoryData(updatedHistory); // ✅ обновляем локальное состояние
@@ -405,12 +827,27 @@ document
     await updateDownloadCount();
     updateDeleteSelectedButton();
 
+    let cleanupTimer = null;
+    if (previewPaths.length) {
+      cleanupTimer = setTimeout(() => {
+        window.electron
+          .invoke("delete-history-preview", previewPaths)
+          .catch((error) =>
+            console.warn("Не удалось очистить превью после удаления:", error),
+          );
+      }, 6000);
+    }
+
     showToast(
       `Удалено ${deletedEntries.length} записей.`,
       "info",
       5500,
       null,
       async () => {
+        if (cleanupTimer) {
+          clearTimeout(cleanupTimer);
+          cleanupTimer = null;
+        }
         const restored = [...deletedEntries, ...getHistoryData()];
         setHistoryData(restored);
         await window.electron.invoke("save-history", restored);
@@ -490,7 +927,6 @@ function renderHistory(entries) {
     const actions = document.querySelector(".history-actions");
     if (actions) actions.classList.toggle("hidden", isCompletelyEmpty);
 
-    updateSpoilerVisibility(true);
     setTimeout(() => initTooltips(), 0);
     return;
   }
@@ -510,8 +946,6 @@ function renderHistory(entries) {
 
   const actions = document.querySelector(".history-actions");
   if (actions) actions.classList.remove("hidden");
-
-  updateSpoilerVisibility(true);
 
   const count = entries.length;
   entries.forEach((entry, index) => {
@@ -534,6 +968,7 @@ function renderHistory(entries) {
     document.querySelectorAll(".log-entry.selected"),
   ).map((el) => el.dataset.id);
   updateDeleteSelectedButton();
+  renderHistoryCards(entries);
 }
 
 async function initHistoryState() {
@@ -641,19 +1076,24 @@ const addNewEntryToHistory = async (newEntryRaw) => {
       (entry) => entry.filePath === normalized.filePath,
     );
 
-    let updated;
-
+    let removedPreviews = [];
     if (existingIndex !== -1) {
-      // Если файл уже есть — заменяем и перемещаем в начало
-      existingHistory.splice(existingIndex, 1); // удаляем старую запись
-      updated = [normalized, ...existingHistory]; // вставляем новую в начало
-    } else {
-      // Иначе добавляем новую запись
-      updated = [normalized, ...existingHistory];
+      const [replacedEntry] = existingHistory.splice(existingIndex, 1);
+      if (replacedEntry?.thumbnailCacheFile) {
+        removedPreviews.push(replacedEntry.thumbnailCacheFile);
+      }
     }
+    const updated = [normalized, ...existingHistory];
 
     setHistoryData(updated);
     await window.electron.invoke("save-history", updated);
+    if (removedPreviews.length) {
+      try {
+        await window.electron.invoke("delete-history-preview", removedPreviews);
+      } catch (err) {
+        console.warn("Не удалось удалить старое превью:", err);
+      }
+    }
     filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder);
 
     await updateDownloadCount();

@@ -38,7 +38,7 @@ function removeDuplicateModifiers(text) {
   return [...orderedModifiers, ...keys].join(" + ");
 }
 
-let tooltipInstances = [];
+const tooltipInstances = new Map();
 let tooltipSafetyPatched = false;
 let bodyClickListenerAttached = false;
 
@@ -53,6 +53,9 @@ function ensureTooltipSafety() {
   if (originalHide) {
     proto.hide = function (...args) {
       try {
+        if (!this._element) {
+          return this;
+        }
         if (!this.tip || typeof this.tip.remove !== "function") {
           this._activeTrigger = {};
           this._isHovered = false;
@@ -82,7 +85,7 @@ function ensureTooltipSafety() {
     typeof proto._queueCallback === "function" ? proto._queueCallback : null;
   if (originalQueue) {
     proto._queueCallback = function (callback, element, isAnimated = true) {
-      if (!element) {
+      if (!element || !this) {
         if (typeof callback === "function") {
           try {
             callback.call(this);
@@ -93,6 +96,51 @@ function ensureTooltipSafety() {
         return;
       }
       return originalQueue.call(this, callback, element, isAnimated);
+    };
+  }
+
+  const originalLeave =
+    typeof proto._leave === "function" ? proto._leave : null;
+  if (originalLeave) {
+    proto._leave = function (...args) {
+      try {
+        if (!this || !this._config || !this._config.delay) {
+          // если конфиг потерян, просто скрываем
+          try {
+            this.hide?.();
+          } catch {}
+          return;
+        }
+        return originalLeave.apply(this, args);
+      } catch (error) {
+        console.warn(
+          "[Tooltips] Ошибка в _leave, безопасное завершение:",
+          error,
+        );
+        try {
+          this.hide?.();
+        } catch {}
+        return;
+      }
+    };
+  }
+
+  const originalDispose =
+    typeof proto.dispose === "function" ? proto.dispose : null;
+  if (originalDispose) {
+    proto.dispose = function (...args) {
+      try {
+        if (
+          !this._element ||
+          typeof this._element.removeAttribute !== "function"
+        ) {
+          return this;
+        }
+        return originalDispose.apply(this, args);
+      } catch (error) {
+        console.warn("[Tooltips] Ошибка при dispose tooltip:", error);
+        return this;
+      }
     };
   }
 
@@ -115,8 +163,54 @@ function replaceModifiers(text, isMac) {
   return text;
 }
 
+function createTooltip(el) {
+  if (!el || tooltipInstances.has(el)) return tooltipInstances.get(el);
+  const sidebar = document.getElementById("sidebar");
+  const isCollapsed = sidebar?.classList?.contains("is-collapsed");
+  const insideSidebar = !!el.closest("#sidebar");
+  const isNavItem = el.classList?.contains("sidebar-item");
+  const isServiceIcon = !!el.closest(".social-links .icon-links");
+  let placementOption = el.getAttribute("data-bs-placement") || "top";
+  if (insideSidebar && isCollapsed && (isNavItem || isServiceIcon)) {
+    placementOption = "right";
+  }
+  const tooltip = new bootstrap.Tooltip(el, {
+    trigger: "hover focus",
+    customClass: "tooltip-inner",
+    template:
+      '<div class="tooltip" role="tooltip"><div class="tooltip-inner"></div></div>',
+    placement: placementOption,
+    offset: [0, 8],
+    boundary: "window",
+  });
+  // hide on click of trigger
+  el.addEventListener(
+    "click",
+    () => {
+      try {
+        tooltip.hide();
+      } catch {}
+    },
+    { once: false },
+  );
+  tooltipInstances.set(el, tooltip);
+  return tooltip;
+}
+
+function bindLazyTooltip(el) {
+  if (!el || el.dataset.tooltipBound === "1") return;
+  const handler = () => {
+    const t = createTooltip(el);
+    try {
+      t?.show();
+    } catch {}
+  };
+  el.addEventListener("pointerenter", handler, { once: true, passive: true });
+  el.addEventListener("focusin", handler, { once: true });
+  el.dataset.tooltipBound = "1";
+}
+
 function initTooltips() {
-  // Если Bootstrap не загружен, спокойно выходим без ошибок
   if (!(window.bootstrap && window.bootstrap.Tooltip)) {
     console.info(
       "[Tooltips] Bootstrap is not available. Skipping tooltip init.",
@@ -124,7 +218,6 @@ function initTooltips() {
     return;
   }
   ensureTooltipSafety();
-  // Очистка предыдущих тултипов
   disposeAllTooltips();
 
   const isMac = navigator.platform.toUpperCase().includes("MAC");
@@ -170,59 +263,11 @@ function initTooltips() {
   });
 
   tooltipTriggerList.forEach((el) => {
-    setTimeout(() => {
-      try {
-        const sidebar = document.getElementById("sidebar");
-        const isCollapsed = sidebar?.classList?.contains("is-collapsed");
-        const insideSidebar = !!el.closest("#sidebar");
-        const isNavItem = el.classList?.contains("sidebar-item");
-        const isServiceIcon = !!el.closest(".social-links .icon-links");
-        // Base placement from attribute, fallback to top
-        let placementOption = el.getAttribute("data-bs-placement") || "top";
-        // Override for compact sidebar: nav buttons and service icons should show to the right
-        if (insideSidebar && isCollapsed && (isNavItem || isServiceIcon)) {
-          placementOption = "right";
-        }
-        if (
-          !el ||
-          typeof el.getAttribute !== "function" ||
-          el.getAttribute("title") === null
-        ) {
-          return;
-        }
-
-        const tooltip = new bootstrap.Tooltip(el, {
-          trigger: "hover focus",
-          customClass: "tooltip-inner",
-          template:
-            '<div class="tooltip" role="tooltip"><div class="tooltip-inner"></div></div>',
-          placement: placementOption,
-          offset: [0, 8],
-          boundary: "window",
-        });
-
-        queueMicrotask(() => {
-          el.addEventListener("click", () => {
-            try {
-              if (
-                tooltip &&
-                typeof tooltip.hide === "function" &&
-                tooltip._activeTrigger &&
-                tooltip.tip
-              ) {
-                tooltip.hide();
-              }
-            } catch (e) {
-              console.warn("Не удалось скрыть tooltip:", e);
-            }
-          });
-        });
-
-        tooltipInstances.push(tooltip);
-      } catch (e) {
-        console.warn("Ошибка при создании tooltip:", e);
-      }
-    }, 0);
+    try {
+      bindLazyTooltip(el);
+    } catch (e) {
+      console.warn("Ошибка при создании tooltip:", e);
+    }
   });
 
   // Обработка текста горячих клавиш в модальном окне (кроме блока "открытие сайтов")
@@ -254,16 +299,13 @@ function initTooltips() {
   // Глобальное скрытие тултипов при клике вне
   if (!bodyClickListenerAttached) {
     document.body.addEventListener("click", () => {
-      tooltipInstances = tooltipInstances.filter(
-        (tooltip) => tooltip && tooltip._element,
-      );
-      tooltipInstances.forEach((tooltip) => {
+      tooltipInstances.forEach((tooltip, el) => {
+        if (!(tooltip && tooltip._element?.isConnected)) {
+          tooltipInstances.delete(el);
+          return;
+        }
         try {
-          if (
-            tooltip &&
-            tooltip._element?.isConnected &&
-            typeof tooltip.hide === "function"
-          ) {
+          if (typeof tooltip.hide === "function") {
             const tip = tooltip.tip;
             const isActive =
               (typeof tooltip._isShown === "function" && tooltip._isShown()) ||
@@ -285,7 +327,7 @@ function initTooltips() {
 }
 
 function disposeAllTooltips() {
-  tooltipInstances.forEach((tooltip) => {
+  tooltipInstances.forEach((tooltip, el) => {
     try {
       if (tooltip && typeof tooltip.dispose === "function") {
         tooltip.dispose();
@@ -293,8 +335,11 @@ function disposeAllTooltips() {
     } catch (e) {
       console.warn("Ошибка при очистке tooltip:", e);
     }
+    try {
+      el?.removeAttribute("data-tooltip-bound");
+    } catch {}
   });
-  tooltipInstances = [];
+  tooltipInstances.clear();
 }
 
 // Проверка на наличие активного триггера для тултипа

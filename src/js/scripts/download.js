@@ -155,9 +155,7 @@ function fetchJson(url, options = {}) {
       if (statusCode !== 200) {
         res.resume();
         return reject(
-          new Error(
-            `Failed to fetch ${url}. Status code: ${statusCode}`,
-          ),
+          new Error(`Failed to fetch ${url}. Status code: ${statusCode}`),
         );
       }
       let raw = "";
@@ -168,11 +166,7 @@ function fetchJson(url, options = {}) {
           const data = JSON.parse(raw);
           resolve(data);
         } catch (err) {
-          reject(
-            new Error(
-              `Failed to parse JSON from ${url}: ${err.message}`,
-            ),
-          );
+          reject(new Error(`Failed to parse JSON from ${url}: ${err.message}`));
         }
       });
     });
@@ -290,6 +284,26 @@ function downloadFile(url, dest, redirects = 0) {
  */
 function selectFormatsByQuality(formats, desiredQuality) {
   const pickBest = (arr, cmp) => (arr.length ? arr.sort(cmp)[0] : null);
+
+  if (desiredQuality && typeof desiredQuality === "object") {
+    const findFmt = (id) =>
+      id ? formats.find((fmt) => fmt?.format_id === id) : null;
+    const videoFmt = findFmt(desiredQuality.videoFormatId);
+    const audioFmt = findFmt(desiredQuality.audioFormatId);
+    const resolution =
+      desiredQuality.resolution ||
+      videoFmt?.resolution ||
+      (videoFmt?.height ? `${videoFmt.height}p` : "custom");
+    const fps = desiredQuality.fps || videoFmt?.fps || null;
+    return {
+      videoFormat: desiredQuality.videoFormatId || null,
+      audioFormat: desiredQuality.audioFormatId || null,
+      resolution,
+      fps,
+      videoExt: desiredQuality.videoExt || videoFmt?.ext || null,
+      audioExt: desiredQuality.audioExt || audioFmt?.ext || null,
+    };
+  }
 
   const normalizeLang = (val) =>
     typeof val === "string"
@@ -937,7 +951,9 @@ async function installFfmpeg() {
       try {
         await downloadFile(ffmpegUrl, ffmpegPath);
         fs.chmodSync(ffmpegPath, 0o755);
-        log.info("ffmpeg binary downloaded and chmod applied (macOS fallback).");
+        log.info(
+          "ffmpeg binary downloaded and chmod applied (macOS fallback).",
+        );
       } catch (err) {
         log.warn("Failed to download ffmpeg. Trying fallback from Homebrew...");
         const brewPath = "/opt/homebrew/bin/ffmpeg";
@@ -1141,8 +1157,7 @@ function createOverallProgressTracker(segmentCount, event) {
       segmentIndex += 1;
     }
     lastRaw = percent;
-    const overall =
-      ((segmentIndex + percent / 100) / totalSegments) * 100;
+    const overall = ((segmentIndex + percent / 100) / totalSegments) * 100;
     if (overall - lastLogged >= 5 || overall >= 100) {
       log.info(`Overall progress: ${overall.toFixed(2)}%`);
       lastLogged = overall;
@@ -1351,7 +1366,7 @@ async function downloadMedia(
           url,
           progressTracker,
           {
-            extraArgs: ["--merge-output-format", mergedExt],
+            extraArgs: ["--no-playlist", "--merge-output-format", mergedExt],
             processKey: "videoDownload",
           },
         );
@@ -1395,7 +1410,10 @@ async function downloadMedia(
         tempOutput,
         url,
         progressTracker,
-        { processKey: "videoDownload" },
+        {
+          extraArgs: ["--no-playlist"],
+          processKey: "videoDownload",
+        },
       );
     } catch (err) {
       if (fs.existsSync(tempOutput)) {

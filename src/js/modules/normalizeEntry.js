@@ -1,5 +1,18 @@
 // src/js/modules/normalizeEntry.js
 
+function filePathToUrl(filePath) {
+  if (!filePath || typeof filePath !== "string") return "";
+  if (filePath.startsWith("file://")) return filePath;
+  try {
+    let normalized = filePath.replace(/\\/g, "/");
+    if (/^[A-Za-z]:/.test(normalized)) normalized = "/" + normalized;
+    const encoded = encodeURI(normalized).replace(/#/g, "%23");
+    return `file://${encoded}`;
+  } catch {
+    return "";
+  }
+}
+
 export async function normalizeEntry(entry) {
   const normalized = {
     id: entry.id || "",
@@ -9,11 +22,17 @@ export async function normalizeEntry(entry) {
     quality: entry.quality || "",
     iconUrl: entry.iconUrl || "",
     thumbnail: entry.thumbnail || "",
+    thumbnailCacheFile: entry.thumbnailCacheFile || "",
     dateText: entry.dateTime || entry.dateText || "неизвестно",
     timestamp: "",
     formattedSize: "",
     isMissing: false,
   };
+
+  if (normalized.thumbnailCacheFile) {
+    const fileUrl = filePathToUrl(normalized.thumbnailCacheFile);
+    if (fileUrl) normalized.thumbnail = fileUrl;
+  }
 
   // Try to derive a YouTube thumbnail for old records (if not audio-only)
   try {

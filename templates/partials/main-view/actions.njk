@@ -107,3 +107,120 @@
     <i class="fa-regular fa-folder-open"></i>
   </button>
 </nav>
+
+<!-- Модальное окно выбора качества -->
+<div
+  id="download-quality-modal"
+  class="modal-overlay download-quality-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="download-quality-title"
+>
+  <div class="modal-content download-quality-content">
+    <div class="quality-modal-header">
+      <div>
+        <p class="quality-modal-subtitle">Загрузка</p>
+        <h3 id="download-quality-title">Выбор качества</h3>
+      </div>
+      <button
+        type="button"
+        class="quality-modal-close"
+        aria-label="Закрыть окно"
+        data-quality-close
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="quality-modal-body">
+      <div class="quality-preview">
+        <div class="quality-thumb">
+          <img id="download-quality-thumb" alt="" loading="lazy" />
+        </div>
+        <div class="quality-info">
+          <h4 id="download-quality-name"></h4>
+          <p id="download-quality-uploader"></p>
+          <p id="download-quality-duration"></p>
+          <button
+            type="button"
+            id="download-quality-open-source"
+            class="btn-link"
+          >
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть
+            источник
+          </button>
+        </div>
+      </div>
+
+      <div class="quality-selector">
+        <div class="quality-tabs-row">
+          <div class="quality-tabs" role="tablist">
+            <button
+              type="button"
+              class="quality-tab active"
+              data-quality-tab="video"
+            >
+              Видео + аудио
+            </button>
+            <button
+              type="button"
+              class="quality-tab"
+              data-quality-tab="video-only"
+            >
+              Только видео
+            </button>
+            <button type="button" class="quality-tab" data-quality-tab="audio">
+              Только аудио
+            </button>
+          </div>
+          <button
+            type="button"
+            id="download-quality-best"
+            class="quality-best-link"
+          >
+            <i class="fa-solid fa-bullseye"></i>
+            Максимальное качество
+          </button>
+        </div>
+        <div id="download-quality-loading" class="quality-loading">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Загрузка доступных форматов...
+        </div>
+        <div id="download-quality-empty" class="quality-empty hidden">
+          Нет вариантов для выбранного режима.
+        </div>
+        <div
+          id="download-quality-options"
+          class="quality-options"
+          role="radiogroup"
+          aria-live="polite"
+        ></div>
+      </div>
+    </div>
+
+    <div class="quality-modal-footer">
+      <div class="quality-hint">
+        <i class="fa-regular fa-circle-question"></i>
+        Двойной клик по варианту сразу начнёт загрузку.
+      </div>
+      <div class="quality-actions">
+        <button
+          type="button"
+          id="download-quality-cancel"
+          class="btn-ghost"
+        >
+          Отмена
+        </button>
+        <button
+          type="button"
+          id="download-quality-confirm"
+          class="btn-primary"
+          disabled
+        >
+          Скачать выбранное
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

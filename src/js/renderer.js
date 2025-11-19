@@ -55,6 +55,7 @@ import { initUpdateHandler } from "./modules/updateHandler.js";
 
 import { initializeTheme } from "./modules/themeManager.js";
 import { initializeFontSize } from "./modules/fontSizeManager.js";
+import { initLowEffectsFromStore } from "./modules/effectsMode.js";
 
 async function applyPlatformClass() {
   try {
@@ -75,6 +76,7 @@ console.time("Renderer → Initialization");
 async function startRenderer() {
   try {
     console.log("[Startup] Bootstrap loaded:", !!window.bootstrap);
+    initLowEffectsFromStore();
     applyPlatformClass();
     await initializeTheme();
     await initializeFontSize();

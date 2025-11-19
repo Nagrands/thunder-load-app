@@ -12,7 +12,6 @@ const selectFolderButton = document.getElementById("select-folder");
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
 
-  const presetsBox = document.querySelector(".quality-presets");
   const inputContainer = document.querySelector(".input-container");
   const wrapperEl = document.querySelector(".url-input-wrapper");
   const syncIconPosition = () => {
@@ -34,13 +33,6 @@ function initUrlInputHandler() {
       }
     } catch (_) {}
   };
-  const setPresetsVisible = (flag) => {
-    if (!presetsBox) return;
-    presetsBox.classList.toggle("is-visible", !!flag);
-    // Пересчитываем позицию иконки, т.к. высота контейнера меняется
-    requestAnimationFrame(syncIconPosition);
-  };
-
   const toggleButtons = () => {
     const isEmpty = urlInput.value.trim() === "";
     clearButton.classList.toggle("hidden", isEmpty);
@@ -252,10 +244,8 @@ function initUrlInputHandler() {
     const url = urlInput.value.trim();
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
       renderPreview(null);
-      setPresetsVisible(false);
       return;
     }
-    setPresetsVisible(true);
     syncIconPosition();
     if (url === lastPreviewUrl) return; // не повторяем
     lastPreviewUrl = url;
@@ -289,7 +279,6 @@ function initUrlInputHandler() {
       if (previewTimer) clearTimeout(previewTimer);
       lastPreviewUrl = "";
       renderPreview(null);
-      setPresetsVisible(false);
       requestAnimationFrame(syncIconPosition);
       return;
     }
@@ -333,7 +322,6 @@ function initUrlInputHandler() {
     // Немедленно скрываем превью
     lastPreviewUrl = "";
     renderPreview(null);
-    setPresetsVisible(false);
     urlInput.focus();
   });
 
@@ -384,13 +372,8 @@ function initUrlInputHandler() {
     });
   }
 
-  // Первичная синхронизация видимости пресетов
-  (function initPresetsVisibility() {
-    const v = urlInput.value.trim();
-    setPresetsVisible(isValidUrl(v) && isSupportedUrl(v));
-    // И первоначально выставим корректную позицию иконки
-    requestAnimationFrame(syncIconPosition);
-  })();
+  // Изначально выставим позицию иконки/прогресса
+  requestAnimationFrame(syncIconPosition);
 
   // Пересчёт при ресайзе окна
   window.addEventListener("resize", () =>
