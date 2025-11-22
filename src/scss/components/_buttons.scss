@@ -446,41 +446,6 @@
   }
 }
 
-.button--quality {
-  @extend %btn;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.18);
-  color: var(--color-highlight);
-  min-width: 64px;
-
-  &:focus {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--color-accent-rgb), 0.2) 0%,
-      rgba(var(--color-accent-rgb), 0.1) 50%,
-      rgba(var(--color-accent-rgb), 0.05) 100%
-    );
-    border-color: rgba(var(--color-accent-rgb), 0.4);
-    color: var(--color-accent);
-  }
-
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.06) 100%
-    );
-    border-color: rgba(255, 255, 255, 0.25);
-    color: #fff;
-  }
-}
-
 .button--install-deps {
   @extend %btn;
   background: linear-gradient(
@@ -559,9 +524,6 @@
 .btn--cancel {
   @extend .button--cancel;
 }
-.btn--quality {
-  @extend .button--quality;
-}
 .btn--open-folder {
   @extend .button--open-folder;
 }
@@ -579,9 +541,6 @@
 }
 #download-cancel {
   @extend .button--cancel;
-}
-#quality-button {
-  @extend .button--quality;
 }
 #open-folder {
   @extend .button--open-folder;

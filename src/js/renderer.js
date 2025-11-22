@@ -47,7 +47,6 @@ import { initElectronEvents } from "./modules/electronEvents.js";
 import { initDownloadProgress } from "./modules/downloadProgress.js";
 import { initClipboardHandler } from "./modules/clipboardHandler.js";
 import { initInterfaceHandlers } from "./modules/interfaceHandlers.js";
-import { initQualitySelector } from "./modules/qualitySelector.js";
 import { initSettingsModal } from "./modules/settingsModal.js";
 import { initUpdateHandler } from "./modules/updateHandler.js";
 // import { updateProgressBar }              from "./modules/updateHandler.js";
@@ -213,7 +212,6 @@ async function startRenderer() {
     initDownloadProgress();
     initClipboardHandler();
     initInterfaceHandlers();
-    initQualitySelector();
     initSettingsModal();
 
     // ——— WireGuard autosend checkbox sync ———

@@ -6,9 +6,6 @@
 const elements = {
   urlInput: document.getElementById("url"),
   downloadButton: document.getElementById("download-button"),
-  qualityContainer: document.querySelector(".quality-container"),
-  qualityButton: document.getElementById("quality-button"),
-  qualityDropdown: document.getElementById("quality-dropdown"),
   downloadCancelButton: document.getElementById("download-cancel"),
   buttonText: document
     .getElementById("download-button")
@@ -102,9 +99,6 @@ export default elements;
 export const {
   urlInput,
   downloadButton,
-  qualityContainer,
-  qualityButton,
-  qualityDropdown,
   downloadCancelButton,
   buttonText,
   history,

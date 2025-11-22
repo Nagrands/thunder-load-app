@@ -15,7 +15,6 @@ import {
   progressBar,
   openLastVideoButton,
 } from "./domElements.js";
-import { getSelectedQuality } from "./qualitySelector.js";
 import { openDownloadQualityModal } from "./downloadQualityModal.js";
 import { hideUrlActionButtons } from "./urlInputHandler.js";
 import { initTooltips } from "./tooltipInitializer.js";
@@ -178,6 +177,7 @@ function updateQueueDisplay() {
 }
 
 let lastInputBeforeDownload = null;
+let lastChosenQuality = null;
 
 const getQualityLabel = (quality) => {
   if (!quality) return "Source";
@@ -390,7 +390,6 @@ const initiateDownload = async (url, quality) => {
 };
 
 const handleDownloadButtonClick = async (options = {}) => {
-  const selectedQuality = getSelectedQuality();
   const raw = urlInput.value.trim();
 
   // Извлекаем URL из произвольного текста
@@ -406,12 +405,19 @@ const handleDownloadButtonClick = async (options = {}) => {
   if (validUrls.length > 1) {
     const first = validUrls[0];
     const rest = validUrls.slice(1);
+    const selection = await openDownloadQualityModal(first, {
+      presetQuality: lastChosenQuality,
+      forceAudioOnly: options.forceAudioOnly,
+    });
+    if (!selection) return;
+    lastChosenQuality = selection;
+
     if (state.isDownloading || options.enqueueOnly) {
-      const res = enqueueMany(validUrls, selectedQuality || "Source", options);
+      const res = enqueueMany(validUrls, selection, options);
       showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
     } else {
-      await initiateDownload(first, selectedQuality || "Source");
-      const res = enqueueMany(rest, selectedQuality || "Source", options);
+      await initiateDownload(first, selection);
+      const res = enqueueMany(rest, selection, options);
       if (res.added || res.duplicates || res.invalid) {
         showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");
       }
@@ -426,10 +432,11 @@ const handleDownloadButtonClick = async (options = {}) => {
   // Один URL
   const url = validUrls[0];
   const selection = await openDownloadQualityModal(url, {
-    presetQuality: selectedQuality,
+    presetQuality: lastChosenQuality,
     forceAudioOnly: options.forceAudioOnly,
   });
   if (!selection) return;
+  lastChosenQuality = selection;
   if (state.isDownloading || options.enqueueOnly) {
     const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
     if (nCurr === normalizeUrl(url)) {
@@ -471,7 +478,7 @@ function initDownloadButton() {
   // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
   window.addEventListener("queue:addMany", (e) => {
     const urls = Array.isArray(e.detail?.urls) ? e.detail.urls : [];
-    const q = e.detail?.quality || getSelectedQuality() || "Source";
+    const q = e.detail?.quality || lastChosenQuality || "Source";
     const res = enqueueMany(urls, q, {});
     if (res.added || res.duplicates || res.invalid) {
       showToast(`Очередь: ${summarizeEnqueueResult(res)}`, "info");

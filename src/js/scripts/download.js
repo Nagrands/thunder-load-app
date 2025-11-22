@@ -21,10 +21,9 @@
  *  - getVideoInfo
  *  - downloadMedia
  *  - stopDownload
- *  - resetDownloadCancelledFlag
  *  - selectFormatsByQuality
- *  - isDownloadCancelled
  *  - ensureAllDependencies
+ *  - createDownloadToken
  */
 
 // src/js/scripts/download.js
@@ -116,7 +115,7 @@ function getYtDlpSpawnOptions() {
   };
 }
 
-// Качество скачивания
+// Предустановленные профили качества
 const QUALITY_AUDIO_ONLY = "Audio Only";
 const QUALITY_SOURCE = "Source";
 const QUALITY_FHD = "FHD 1080p";
@@ -132,20 +131,60 @@ const PREFERRED_AUDIO_LANGS = [
   "русский",
 ];
 
-// Флаги и состояние процессов
-let isDownloadCancelled = false;
-let currentDownloadPath = null;
+// Флаги и состояние процессов (переведено на токены)
+function createDownloadToken() {
+  return {
+    id: `dl-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    cancelled: false,
+    cancelReason: null,
+    abortControllers: new Map(),
+    activeProcesses: {
+      getVideoInfo: null,
+      videoDownload: null,
+      audioDownload: null,
+      merge: null,
+    },
+    currentDownloadPath: null,
+  };
+}
 
-const activeProcesses = {
-  getVideoInfo: null,
-  videoDownload: null,
-  audioDownload: null,
-  merge: null,
-};
-const abortControllers = new Map();
+let activeDownloadToken = null;
+const globalAbortControllers = new Map();
 const videoInfoCache = new Map(); // url -> { timestamp, data }
 const VIDEO_INFO_CACHE_TTL = 60 * 1000; // 1 минута
+const VIDEO_INFO_CACHE_MAX = 50;
 const videoInfoInFlight = new Map(); // url -> Promise
+const TOOL_DOWNLOAD_OPTIONS = {
+  maxRetries: 4,
+  requestTimeout: 30000,
+  idleTimeout: 20000,
+  backoffBase: 800,
+  backoffFactor: 2,
+};
+
+const getAbortStore = (token) =>
+  token?.abortControllers instanceof Map
+    ? token.abortControllers
+    : globalAbortControllers;
+
+const getProcessStore = (token) =>
+  token?.activeProcesses || {
+    getVideoInfo: null,
+    videoDownload: null,
+    audioDownload: null,
+    merge: null,
+  };
+
+const isCancelled = (token) => !!token?.cancelled;
+const cancelToken = (token, reason = "Download cancelled") => {
+  if (!token) return;
+  token.cancelled = true;
+  token.cancelReason = reason;
+};
+
+const setActiveDownloadToken = (token) => {
+  activeDownloadToken = token || null;
+};
 
 function fetchJson(url, options = {}) {
   const { timeout = 10000 } = options;
@@ -181,13 +220,26 @@ function fetchJson(url, options = {}) {
 /**
  * Запускает дочерний процесс и возвращает его вывод.
  */
-function runProcess(cmd, args) {
+function runProcess(cmd, args, options = {}) {
+  const { env = getYtDlpEnvironment(), token = null } = options;
   return new Promise((resolve, reject) => {
-    const proc = spawn(cmd, args);
+    if (isCancelled(token)) {
+      return reject(new Error(token.cancelReason || "Download cancelled"));
+    }
+    const proc = spawn(cmd, args, { env, windowsHide: true });
     let output = "";
-    proc.stdout.on("data", (data) => (output += data.toString()));
+    proc.stdout.on("data", (data) => {
+      if (isCancelled(token)) {
+        proc.kill("SIGTERM");
+        return;
+      }
+      output += data.toString();
+    });
     proc.stderr.on("data", (data) => log.error(data.toString()));
     proc.on("close", (code) => {
+      if (isCancelled(token)) {
+        return reject(new Error(token.cancelReason || "Download cancelled"));
+      }
       if (code === 0) resolve(output.trim());
       else reject(new Error(`Process ${cmd} exited with code ${code}`));
     });
@@ -205,21 +257,65 @@ function parseProgress(line) {
 }
 
 /**
- * Загружает файл по URL с поддержкой редиректов и возможности отмены.
+ * Загружает файл по URL с таймаутами, ретраями и проверкой размера (если есть content-length).
  */
-function downloadFile(url, dest, redirects = 0) {
-  const MAX_REDIRECTS = 10;
+function downloadFile(
+  url,
+  dest,
+  redirects = 0,
+  attempt = 1,
+  options = {},
+) {
+  const {
+    maxRedirects = 10,
+    maxRetries = 3,
+    requestTimeout = 15000,
+    idleTimeout = 10000,
+    backoffBase = 500,
+    backoffFactor = 2,
+    token = null,
+  } = options;
+
   return new Promise((resolve, reject) => {
-    if (redirects > MAX_REDIRECTS) {
+    if (redirects > maxRedirects) {
       return reject(new Error("Too many redirects"));
     }
+
+    if (token && isCancelled(token)) {
+      return reject(new Error(token.cancelReason || "Download cancelled"));
+    }
+
     const controller = new AbortController();
     const { signal } = controller;
-    // ключ — конечный путь файла, чтобы проще отменять по назначению
-    abortControllers.set(dest, controller);
+    const controllerStore = getAbortStore(token);
+    controllerStore.set(dest, controller);
+
+    let bytesWritten = 0;
+    let contentLength = null;
+    let idleTimer = null;
+    let settled = false;
+    let request;
+
+    const clearIdle = () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+        idleTimer = null;
+      }
+    };
+
+    const resetIdle = () => {
+      if (!idleTimeout) return;
+      clearIdle();
+      idleTimer = setTimeout(() => {
+        request?.destroy(
+          new Error(`Download stalled for ${idleTimeout}ms (no data)`),
+        );
+      }, idleTimeout);
+    };
 
     const cleanup = (err) => {
-      abortControllers.delete(dest);
+      controllerStore.delete(dest);
+      clearIdle();
       if (err) {
         try {
           fs.unlinkSync(dest);
@@ -227,9 +323,39 @@ function downloadFile(url, dest, redirects = 0) {
       }
     };
 
-    https
-      .get(url, { signal }, (response) => {
-        // handle redirect
+    const scheduleRetry = (err) => {
+      if (settled) return;
+      cleanup(err);
+      if (
+        signal.aborted ||
+        err?.name === "AbortError" ||
+        isCancelled(token)
+      ) {
+        settled = true;
+        return reject(
+          isCancelled(token)
+            ? new Error(token.cancelReason || "Download cancelled")
+            : err,
+        );
+      }
+      if (attempt >= maxRetries) {
+        settled = true;
+        return reject(err);
+      }
+      const delay = backoffBase * Math.pow(backoffFactor, attempt - 1);
+      log.warn(
+        `Retry ${attempt}/${maxRetries} for ${url}: ${err?.message || err}`,
+      );
+      setTimeout(() => {
+        downloadFile(url, dest, 0, attempt + 1, options)
+          .then(resolve)
+          .catch(reject);
+      }, delay);
+    };
+
+    try {
+      request = https.get(url, { signal }, (response) => {
+        // redirect
         if (
           response.statusCode >= 300 &&
           response.statusCode < 400 &&
@@ -239,42 +365,79 @@ function downloadFile(url, dest, redirects = 0) {
             response.headers.location,
             url,
           ).toString();
-          // перенаправляем, используя тот же dest
-          cleanup(); // текущий запрос завершён
-          downloadFile(redirectUrl, dest, redirects + 1)
-            .then(resolve)
-            .catch(reject);
-          return;
-        }
+          cleanup();
+        downloadFile(redirectUrl, dest, redirects + 1, attempt, options)
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
 
-        if (response.statusCode === 200) {
-          const fileStream = fs.createWriteStream(dest);
-          response.pipe(fileStream);
-
-          fileStream.on("finish", () => {
-            fileStream.close(() => {
-              cleanup();
-              resolve();
-            });
-          });
-
-          fileStream.on("error", (err) => {
-            fileStream.destroy();
-            cleanup(err);
-            reject(err);
-          });
-        } else {
+        // non-success statuses: 5xx/429 — пробуем ретрай, остальное — ошибка
+        if (response.statusCode !== 200) {
           const err = new Error(
             `Failed to download file. Status code: ${response.statusCode}`,
           );
+          if (response.statusCode >= 500 || response.statusCode === 429) {
+            return scheduleRetry(err);
+          }
           cleanup(err);
-          reject(err);
+          settled = true;
+          return reject(err);
         }
-      })
-      .on("error", (err) => {
-        cleanup(err);
-        reject(new Error(`Download error: ${err.message}`));
+
+        contentLength = Number(response.headers["content-length"] || 0) || null;
+        const fileStream = fs.createWriteStream(dest);
+
+        response.on("data", (chunk) => {
+          bytesWritten += chunk.length;
+          resetIdle();
+        });
+
+        response.on("aborted", () => {
+          const err = new Error("Download aborted by server");
+          scheduleRetry(err);
+        });
+
+        response.pipe(fileStream);
+        resetIdle();
+
+        fileStream.on("finish", () => {
+          fileStream.close(() => {
+            clearIdle();
+            cleanup();
+            if (contentLength && bytesWritten !== contentLength) {
+              const err = new Error(
+                `Downloaded size mismatch (${bytesWritten}/${contentLength})`,
+              );
+              return scheduleRetry(err);
+            }
+            if (!settled) {
+              settled = true;
+              resolve();
+            }
+          });
+        });
+
+        fileStream.on("error", (err) => {
+          fileStream.destroy();
+          scheduleRetry(err);
+        });
       });
+    } catch (err) {
+      return scheduleRetry(err);
+    }
+
+    if (!request) {
+      return scheduleRetry(new Error("Failed to start request"));
+    }
+
+    request.setTimeout(requestTimeout, () => {
+      request.destroy(new Error(`Request timed out after ${requestTimeout}ms`));
+    });
+
+    request.on("error", (err) => {
+      scheduleRetry(err);
+    });
   });
 }
 
@@ -518,14 +681,14 @@ function selectFormatsByQuality(formats, desiredQuality) {
 /**
  * Получает версию yt-dlp.
  */
-async function getYtDlpVersion() {
+async function getYtDlpVersion(token = null) {
   const ytDlpPath = getYtDlpPath();
   if (!fs.existsSync(ytDlpPath)) {
     log.warn("yt-dlp binary not found at path:", ytDlpPath);
     return null;
   }
   try {
-    const version = await runProcess(ytDlpPath, ["--version"]);
+    const version = await runProcess(ytDlpPath, ["--version"], { token });
     log.info("yt-dlp version detected:", version);
     return version;
   } catch (err) {
@@ -537,9 +700,9 @@ async function getYtDlpVersion() {
 /**
  * Устанавливает yt-dlp, если его нет.
  */
-async function installYtDlp() {
+async function installYtDlp(token = null) {
   try {
-    const version = await getYtDlpVersion();
+    const version = await getYtDlpVersion(token);
     if (version) {
       log.info(`yt-dlp version ${version} is already installed.`);
       return;
@@ -557,7 +720,7 @@ async function installYtDlp() {
     const dir = getToolsDir();
     const ytDlpPath = getYtDlpPath();
     await ensureToolsDir(dir);
-    await downloadFile(ytDlpUrl, ytDlpPath);
+    await downloadFile(ytDlpUrl, ytDlpPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
 
     // Устанавливаем права доступа
     if (process.platform !== "win32") {
@@ -656,11 +819,11 @@ function findFileRecursive(dir, target) {
   return null;
 }
 
-async function getDenoVersion() {
+async function getDenoVersion(token = null) {
   const denoPath = getDenoPath();
   if (!fs.existsSync(denoPath)) return null;
   try {
-    const versionOutput = await runProcess(denoPath, ["--version"]);
+    const versionOutput = await runProcess(denoPath, ["--version"], { token });
     const firstLine = versionOutput.split("\n")[0] || versionOutput;
     log.info("Deno version detected:", firstLine);
     return firstLine;
@@ -709,11 +872,11 @@ function getDenoDownloadInfo() {
   };
 }
 
-async function installDeno() {
+async function installDeno(token = null) {
   let zipPath = null;
   let extractPath = null;
   try {
-    const version = await getDenoVersion();
+    const version = await getDenoVersion(token);
     if (version) {
       log.info(`Deno ${version} is already installed.`);
       return;
@@ -724,7 +887,7 @@ async function installDeno() {
     zipPath = path.join(os.tmpdir(), `deno-${Date.now()}.zip`);
     extractPath = path.join(os.tmpdir(), `deno-extract-${Date.now()}`);
     await fs.promises.mkdir(extractPath, { recursive: true });
-    await downloadFile(url, zipPath);
+    await downloadFile(url, zipPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
 
     await new Promise((resolve, reject) => {
       fs.createReadStream(zipPath)
@@ -776,25 +939,24 @@ async function installDeno() {
 /**
  * Получает версию ffmpeg.
  */
-async function getFfmpegVersion() {
+async function getFfmpegVersion(token = null) {
   const ffmpegPath = getFfmpegPath();
   if (!fs.existsSync(ffmpegPath)) return null;
-  return runProcess(ffmpegPath, ["-version"]);
+  return runProcess(ffmpegPath, ["-version"], { token });
 }
 
 /**
  * Устанавливает ffmpeg (для Windows и macOS).
  */
-async function installFfmpeg() {
+async function installFfmpeg(token = null) {
   try {
-    const version = await getFfmpegVersion();
+    const version = await getFfmpegVersion(token);
     if (version) {
       log.info(
         `ffmpeg version ${version.split("\n")[0]} is already installed.`,
       );
       return;
     }
-    if (isDownloadCancelled) throw new Error("Download cancelled");
     log.info("ffmpeg not found, starting installation...");
     let ffmpegUrl, ffmpegZipPath, ffmpegExtractPath;
     if (process.platform === "win32") {
@@ -802,7 +964,13 @@ async function installFfmpeg() {
         "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
       ffmpegZipPath = path.join(os.tmpdir(), "ffmpeg-release-essentials.zip");
       ffmpegExtractPath = path.join(os.tmpdir(), "ffmpeg-extract");
-      await downloadFile(ffmpegUrl, ffmpegZipPath);
+      await downloadFile(
+        ffmpegUrl,
+        ffmpegZipPath,
+        0,
+        1,
+        TOOL_DOWNLOAD_OPTIONS,
+      );
       log.info("ffmpeg downloaded successfully. Starting extraction...");
       await new Promise((resolve, reject) => {
         fs.createReadStream(ffmpegZipPath)
@@ -912,7 +1080,7 @@ async function installFfmpeg() {
           log.info(
             `[ffmpeg] Downloading macOS build ${version} (${archKey}) from evermeet.cx…`,
           );
-          await downloadFile(ffmpegUrl, ffmpegZipPath);
+          await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
           await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg");
           log.info("[ffmpeg] ffmpeg installed from evermeet.cx");
         } catch (err) {
@@ -920,7 +1088,7 @@ async function installFfmpeg() {
         }
 
         try {
-          await downloadFile(ffprobeUrl, ffprobeZipPath);
+          await downloadFile(ffprobeUrl, ffprobeZipPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
           await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe");
           log.info("[ffmpeg] ffprobe installed from evermeet.cx");
         } catch (err) {
@@ -949,7 +1117,7 @@ async function installFfmpeg() {
         : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-x64";
 
       try {
-        await downloadFile(ffmpegUrl, ffmpegPath);
+        await downloadFile(ffmpegUrl, ffmpegPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
         fs.chmodSync(ffmpegPath, 0o755);
         log.info(
           "ffmpeg binary downloaded and chmod applied (macOS fallback).",
@@ -1007,9 +1175,22 @@ async function installFfmpeg() {
 /**
  * Получает информацию о видео с помощью yt-dlp.
  */
-function getVideoInfo(url) {
+function normalizeCacheKey(url) {
+  try {
+    const u = new URL(url);
+    u.hash = "";
+    // оставляем базовый путь и query без лишнего мусора (например, t=...)
+    u.searchParams.delete("t");
+    u.searchParams.delete("time_continue");
+    return u.toString();
+  } catch {
+    return String(url || "").trim();
+  }
+}
+
+function getVideoInfo(url, token = null) {
   log.info(`Getting video information for URL: ${url}`);
-  const key = String(url || "").trim();
+  const key = normalizeCacheKey(url);
   if (videoInfoCache.has(key)) {
     const cached = videoInfoCache.get(key);
     if (Date.now() - cached.timestamp < VIDEO_INFO_CACHE_TTL) {
@@ -1022,10 +1203,11 @@ function getVideoInfo(url) {
     log.info(`[download] Awaiting in-flight video info for ${key}`);
     return videoInfoInFlight.get(key);
   }
+  const processStore = getProcessStore(token);
   const promise = new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
-    activeProcesses.getVideoInfo = spawn(
+    processStore.getVideoInfo = spawn(
       ytDlpPath,
       [
         "-J",
@@ -1038,16 +1220,19 @@ function getVideoInfo(url) {
       getYtDlpSpawnOptions(),
     );
     let output = "";
-    activeProcesses.getVideoInfo.stdout.on(
-      "data",
-      (data) => (output += data.toString()),
-    );
-    activeProcesses.getVideoInfo.stderr.on("data", (data) =>
+    processStore.getVideoInfo.stdout.on("data", (data) => {
+      if (isCancelled(token)) {
+        processStore.getVideoInfo?.kill("SIGTERM");
+        return;
+      }
+      output += data.toString();
+    });
+    processStore.getVideoInfo.stderr.on("data", (data) =>
       log.error(`Error: ${data}`),
     );
-    activeProcesses.getVideoInfo.on("close", (code) => {
-      activeProcesses.getVideoInfo = null;
-      if (isDownloadCancelled) {
+    processStore.getVideoInfo.on("close", (code) => {
+      processStore.getVideoInfo = null;
+      if (isCancelled(token)) {
         log.info("getVideoInfo operation cancelled.");
         return reject(new Error("Download cancelled"));
       }
@@ -1056,6 +1241,12 @@ function getVideoInfo(url) {
       }
       try {
         const info = JSON.parse(output);
+        if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
+          const oldestKey = [...videoInfoCache.entries()].sort(
+            (a, b) => a[1].timestamp - b[1].timestamp,
+          )[0]?.[0];
+          if (oldestKey) videoInfoCache.delete(oldestKey);
+        }
         videoInfoCache.set(key, { timestamp: Date.now(), data: info });
         resolve(info);
       } catch (err) {
@@ -1063,8 +1254,8 @@ function getVideoInfo(url) {
         reject(err);
       }
     });
-    activeProcesses.getVideoInfo.on("error", (err) => {
-      activeProcesses.getVideoInfo = null;
+    processStore.getVideoInfo.on("error", (err) => {
+      processStore.getVideoInfo = null;
       reject(err);
     });
   });
@@ -1084,7 +1275,8 @@ function spawnDownloadProcess(
   progressCallback,
   options = {},
 ) {
-  const { extraArgs = [], processKey = "videoDownload" } = options;
+  const { extraArgs = [], processKey = "videoDownload", token = null } = options;
+  const processStore = getProcessStore(token);
   return new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();
     const ffmpegDir = getToolsDir();
@@ -1106,8 +1298,12 @@ function spawnDownloadProcess(
       args.push(...extraArgs);
     }
     const proc = spawn(ytDlpPath, args, getYtDlpSpawnOptions());
-    activeProcesses[processKey] = proc;
+    processStore[processKey] = proc;
     proc.stdout.on("data", (data) => {
+      if (isCancelled(token)) {
+        proc.kill("SIGTERM");
+        return;
+      }
       data
         .toString()
         .split("\n")
@@ -1118,15 +1314,17 @@ function spawnDownloadProcess(
     });
     proc.stderr.on("data", (data) => log.error(data.toString()));
     proc.on("close", (code) => {
-      activeProcesses[processKey] = null;
-      if (code !== 0 && !isDownloadCancelled) {
+      processStore[processKey] = null;
+      if (isCancelled(token)) {
+        return reject(new Error(token.cancelReason || "Download cancelled"));
+      }
+      if (code !== 0) {
         return reject(new Error(`yt-dlp exited with code ${code}`));
       }
-      if (isDownloadCancelled) return reject(new Error("Download cancelled"));
       resolve();
     });
     proc.on("error", (err) => {
-      activeProcesses[processKey] = null;
+      processStore[processKey] = null;
       reject(err);
     });
   });
@@ -1185,8 +1383,12 @@ async function downloadMedia(
   fps,
   audioExt,
   videoExt,
+  token = null,
 ) {
   try {
+    token = token || createDownloadToken();
+    setActiveDownloadToken(token);
+    const processStore = getProcessStore(token);
     const sanitizedFilename = outputFilename.replace(/[\\/:*?"<>|]/g, "");
     const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     // дефолт расширений (если вызывающий код ещё не передаёт videoExt/audioExt)
@@ -1194,7 +1396,7 @@ async function downloadMedia(
     videoExt = videoExt || "mp4";
     if (!fs.existsSync(downloadPath))
       fs.mkdirSync(downloadPath, { recursive: true });
-    currentDownloadPath = downloadPath;
+    token.currentDownloadPath = downloadPath;
     log.info("[download] Starting new job", {
       url,
       downloadPath,
@@ -1237,7 +1439,7 @@ async function downloadMedia(
           format: "mp3",
           url,
         });
-        activeProcesses.audioDownload = spawn(
+        processStore.audioDownload = spawn(
           ytDlpPath,
           [
             "-o",
@@ -1254,7 +1456,11 @@ async function downloadMedia(
           ],
           getYtDlpSpawnOptions(),
         );
-        activeProcesses.audioDownload.stdout.on("data", (data) => {
+        processStore.audioDownload.stdout.on("data", (data) => {
+          if (isCancelled(token)) {
+            processStore.audioDownload?.kill("SIGTERM");
+            return;
+          }
           data
             .toString()
             .split("\n")
@@ -1264,16 +1470,18 @@ async function downloadMedia(
             });
         });
         await new Promise((resolve, reject) => {
-          activeProcesses.audioDownload.on("close", (code) => {
-            activeProcesses.audioDownload = null;
-            if (code !== 0 && !isDownloadCancelled) {
+          processStore.audioDownload.on("close", (code) => {
+            processStore.audioDownload = null;
+            if (isCancelled(token)) {
+              return reject(
+                new Error(token.cancelReason || "Download cancelled"),
+              );
+            }
+            if (code !== 0) {
               return reject(new Error(`yt-dlp audio exited with code ${code}`));
             }
-            if (isDownloadCancelled)
-              return reject(new Error("Download cancelled"));
             log.info(`Audio downloaded: ${audioOutput}`);
             event.sender.send("download-progress", 100);
-            isDownloadCancelled = false;
             resolve();
           });
         });
@@ -1308,7 +1516,7 @@ async function downloadMedia(
             tempAudioPath,
             url,
             updateProgress,
-            { processKey: "audioDownload" },
+            { processKey: "audioDownload", token },
           );
         } catch (err) {
           if (fs.existsSync(tempAudioPath)) {
@@ -1321,7 +1529,6 @@ async function downloadMedia(
         safeMoveFile(tempAudioPath, finalAudioPath);
         log.info(`Audio downloaded: ${finalAudioPath}`);
         event.sender.send("download-progress", 100);
-        isDownloadCancelled = false;
         return finalAudioPath;
       }
     }
@@ -1368,6 +1575,7 @@ async function downloadMedia(
           {
             extraArgs: ["--no-playlist", "--merge-output-format", mergedExt],
             processKey: "videoDownload",
+            token,
           },
         );
       } catch (err) {
@@ -1380,7 +1588,6 @@ async function downloadMedia(
       }
       safeMoveFile(tempMergedOutput, finalMergedOutput);
       event.sender.send("download-progress", 100);
-      isDownloadCancelled = false;
       log.info(`[download] Combined stream saved as ${finalMergedOutput}`);
       return finalMergedOutput;
     }
@@ -1413,6 +1620,7 @@ async function downloadMedia(
         {
           extraArgs: ["--no-playlist"],
           processKey: "videoDownload",
+          token,
         },
       );
     } catch (err) {
@@ -1425,7 +1633,6 @@ async function downloadMedia(
     }
     safeMoveFile(tempOutput, finalOutput);
     event.sender.send("download-progress", 100);
-    isDownloadCancelled = false;
     log.info(`[download] Direct stream saved as ${finalOutput}`);
     return finalOutput;
   } catch (error) {
@@ -1436,25 +1643,31 @@ async function downloadMedia(
     }
     log.error("Error in downloadMedia:", error);
     throw error;
+  } finally {
+    setActiveDownloadToken(null);
   }
 }
 
 /**
  * Останавливает все активные процессы и выполняет очистку.
  */
-async function stopDownload() {
-  isDownloadCancelled = true;
-  // Отмена активных сетевых запросов
-  for (const controller of abortControllers.values()) {
+async function stopDownload(token = activeDownloadToken) {
+  if (!token) {
+    log.info("No active download token to cancel.");
+    return;
+  }
+  cancelToken(token);
+  const controllerStore = getAbortStore(token);
+  for (const controller of controllerStore.values()) {
     controller.abort();
   }
-  abortControllers.clear();
+  controllerStore.clear();
 
   const processes = [
-    { proc: activeProcesses.getVideoInfo, name: "getVideoInfo" },
-    { proc: activeProcesses.videoDownload, name: "video download" },
-    { proc: activeProcesses.audioDownload, name: "audio download" },
-    { proc: activeProcesses.merge, name: "merge" },
+    { proc: token.activeProcesses?.getVideoInfo, name: "getVideoInfo" },
+    { proc: token.activeProcesses?.videoDownload, name: "video download" },
+    { proc: token.activeProcesses?.audioDownload, name: "audio download" },
+    { proc: token.activeProcesses?.merge, name: "merge" },
   ];
   const killPromises = processes.map(({ proc, name }) => {
     return new Promise((resolve) => {
@@ -1482,20 +1695,22 @@ async function stopDownload() {
     });
   });
   await Promise.all(killPromises);
-  activeProcesses.getVideoInfo = null;
-  activeProcesses.videoDownload = null;
-  activeProcesses.audioDownload = null;
-  activeProcesses.merge = null;
+  if (token.activeProcesses) {
+    token.activeProcesses.getVideoInfo = null;
+    token.activeProcesses.videoDownload = null;
+    token.activeProcesses.audioDownload = null;
+    token.activeProcesses.merge = null;
+  }
 
   // Очистка временных файлов с расширениями .part и .ytdl
-  if (currentDownloadPath) {
+  if (token.currentDownloadPath) {
     try {
-      const files = await fs.promises.readdir(currentDownloadPath);
+      const files = await fs.promises.readdir(token.currentDownloadPath);
       const tempFiles = files.filter(
         (file) => file.endsWith(".part") || file.endsWith(".ytdl"),
       );
       for (const file of tempFiles) {
-        const fullPath = path.join(currentDownloadPath, file);
+        const fullPath = path.join(token.currentDownloadPath, file);
         try {
           await fs.promises.unlink(fullPath);
           log.info(`Temporary file deleted: ${fullPath}`);
@@ -1506,24 +1721,11 @@ async function stopDownload() {
     } catch (err) {
       log.error("Error scanning download directory for temporary files:", err);
     }
-    currentDownloadPath = null;
+    token.currentDownloadPath = null;
   }
 
+  setActiveDownloadToken(null);
   log.info("Download cancelled.");
-}
-
-/**
- * Сбрасывает флаг отмены загрузки.
- */
-function resetDownloadCancelledFlag() {
-  isDownloadCancelled = false;
-}
-
-/**
- * Возвращает состояние отмены загрузки.
- */
-function isDownloadCancelledFunc() {
-  return isDownloadCancelled;
 }
 
 log.info(
@@ -1542,12 +1744,12 @@ module.exports = {
   installYtDlp,
   installFfmpeg,
   installDeno,
+  createDownloadToken,
+  setActiveDownloadToken,
   getVideoInfo,
   downloadMedia,
   stopDownload,
-  resetDownloadCancelledFlag,
   selectFormatsByQuality,
-  isDownloadCancelled: isDownloadCancelledFunc,
   ensureAllDependencies,
 };
 
@@ -1558,7 +1760,10 @@ async function ensureAllDependencies(store = null) {
   if (store) {
     setSharedStore(store);
   }
-  await installDeno();
-  await installYtDlp();
-  await installFfmpeg();
+  const token = createDownloadToken();
+  setActiveDownloadToken(token);
+  await installDeno(token);
+  await installYtDlp(token);
+  await installFfmpeg(token);
+  setActiveDownloadToken(null);
 }

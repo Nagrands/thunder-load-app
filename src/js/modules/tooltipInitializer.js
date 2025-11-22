@@ -130,7 +130,7 @@ function ensureTooltipSafety() {
     proto.dispose = function (...args) {
       try {
         if (
-          !this._element ||
+          !this?._element ||
           typeof this._element.removeAttribute !== "function"
         ) {
           return this;
@@ -138,6 +138,9 @@ function ensureTooltipSafety() {
         return originalDispose.apply(this, args);
       } catch (error) {
         console.warn("[Tooltips] Ошибка при dispose tooltip:", error);
+        try {
+          this._element?.removeAttribute?.("aria-describedby");
+        } catch {}
         return this;
       }
     };

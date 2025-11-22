@@ -12487,7 +12487,7 @@ hr {
 }
 
 /* ========== Базовые стили кнопок ========== */
-.button--install-deps, #install-deps-btn, .btn--install-deps, .button--quality, #quality-button, .btn--quality, .button--cancel, #download-cancel, .btn--cancel, .button--download-button, #download-button, .btn--download, .button--open-folder, #open-folder, .btn--open-folder,
+.button--install-deps, #install-deps-btn, .btn--install-deps, .button--cancel, #download-cancel, .btn--cancel, .button--download-button, #download-button, .btn--download, .button--open-folder, #open-folder, .btn--open-folder,
 .button--open-last-video,
 #open-last-video,
 .btn--open-last-video, .button,
@@ -12519,7 +12519,7 @@ hr {
   border-radius: 16px;
   /* Liquid ripple эффект */
 }
-.button--install-deps::before, #install-deps-btn::before, .btn--install-deps::before, .button--quality::before, #quality-button::before, .btn--quality::before, .button--cancel::before, #download-cancel::before, .btn--cancel::before, .button--download-button::before, #download-button::before, .btn--download::before, .button--open-folder::before, #open-folder::before, .btn--open-folder::before,
+.button--install-deps::before, #install-deps-btn::before, .btn--install-deps::before, .button--cancel::before, #download-cancel::before, .btn--cancel::before, .button--download-button::before, #download-button::before, .btn--download::before, .button--open-folder::before, #open-folder::before, .btn--open-folder::before,
 .button--open-last-video::before,
 #open-last-video::before,
 .btn--open-last-video::before, .button::before,
@@ -12533,7 +12533,7 @@ hr {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   transition: left var(--btn-ripple-duration) ease;
 }
-.button--install-deps::after, #install-deps-btn::after, .btn--install-deps::after, .button--quality::after, #quality-button::after, .btn--quality::after, .button--cancel::after, #download-cancel::after, .btn--cancel::after, .button--download-button::after, #download-button::after, .btn--download::after, .button--open-folder::after, #open-folder::after, .btn--open-folder::after,
+.button--install-deps::after, #install-deps-btn::after, .btn--install-deps::after, .button--cancel::after, #download-cancel::after, .btn--cancel::after, .button--download-button::after, #download-button::after, .btn--download::after, .button--open-folder::after, #open-folder::after, .btn--open-folder::after,
 .button--open-last-video::after,
 #open-last-video::after,
 .btn--open-last-video::after, .button::after,
@@ -12550,7 +12550,7 @@ hr {
   opacity: 0;
   transition: width var(--btn-ripple-duration) ease, height var(--btn-ripple-duration) ease, opacity var(--btn-ripple-duration) ease;
 }
-.button--install-deps:hover, #install-deps-btn:hover, .btn--install-deps:hover, .button--quality:hover, #quality-button:hover, .btn--quality:hover, .button--cancel:hover, #download-cancel:hover, .btn--cancel:hover, .button--download-button:hover, #download-button:hover, .btn--download:hover, .button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover,
+.button--install-deps:hover, #install-deps-btn:hover, .btn--install-deps:hover, .button--cancel:hover, #download-cancel:hover, .btn--cancel:hover, .button--download-button:hover, #download-button:hover, .btn--download:hover, .button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover,
 .button--open-last-video:hover,
 #open-last-video:hover,
 .btn--open-last-video:hover, .button:hover,
@@ -12560,14 +12560,14 @@ hr {
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.15);
 }
-.button--install-deps:hover::before, #install-deps-btn:hover::before, .btn--install-deps:hover::before, .button--quality:hover::before, #quality-button:hover::before, .btn--quality:hover::before, .button--cancel:hover::before, #download-cancel:hover::before, .btn--cancel:hover::before, .button--download-button:hover::before, #download-button:hover::before, .btn--download:hover::before, .button--open-folder:hover::before, #open-folder:hover::before, .btn--open-folder:hover::before,
+.button--install-deps:hover::before, #install-deps-btn:hover::before, .btn--install-deps:hover::before, .button--cancel:hover::before, #download-cancel:hover::before, .btn--cancel:hover::before, .button--download-button:hover::before, #download-button:hover::before, .btn--download:hover::before, .button--open-folder:hover::before, #open-folder:hover::before, .btn--open-folder:hover::before,
 .button--open-last-video:hover::before,
 #open-last-video:hover::before,
 .btn--open-last-video:hover::before, .button:hover::before,
 .btn:hover::before {
   left: 100%;
 }
-.button--install-deps:active, #install-deps-btn:active, .btn--install-deps:active, .button--quality:active, #quality-button:active, .btn--quality:active, .button--cancel:active, #download-cancel:active, .btn--cancel:active, .button--download-button:active, #download-button:active, .btn--download:active, .button--open-folder:active, #open-folder:active, .btn--open-folder:active,
+.button--install-deps:active, #install-deps-btn:active, .btn--install-deps:active, .button--cancel:active, #download-cancel:active, .btn--cancel:active, .button--download-button:active, #download-button:active, .btn--download:active, .button--open-folder:active, #open-folder:active, .btn--open-folder:active,
 .button--open-last-video:active,
 #open-last-video:active,
 .btn--open-last-video:active, .button:active,
@@ -12576,7 +12576,7 @@ hr {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.02) 100%);
   transition-duration: 0.1s;
 }
-.button--install-deps:active::after, #install-deps-btn:active::after, .btn--install-deps:active::after, .button--quality:active::after, #quality-button:active::after, .btn--quality:active::after, .button--cancel:active::after, #download-cancel:active::after, .btn--cancel:active::after, .button--download-button:active::after, #download-button:active::after, .btn--download:active::after, .button--open-folder:active::after, #open-folder:active::after, .btn--open-folder:active::after,
+.button--install-deps:active::after, #install-deps-btn:active::after, .btn--install-deps:active::after, .button--cancel:active::after, #download-cancel:active::after, .btn--cancel:active::after, .button--download-button:active::after, #download-button:active::after, .btn--download:active::after, .button--open-folder:active::after, #open-folder:active::after, .btn--open-folder:active::after,
 .button--open-last-video:active::after,
 #open-last-video:active::after,
 .btn--open-last-video:active::after, .button:active::after,
@@ -12586,7 +12586,7 @@ hr {
   opacity: 1;
   transition-duration: 0.3s;
 }
-.button--install-deps:focus-visible, #install-deps-btn:focus-visible, .btn--install-deps:focus-visible, .button--quality:focus-visible, #quality-button:focus-visible, .btn--quality:focus-visible, .button--cancel:focus-visible, #download-cancel:focus-visible, .btn--cancel:focus-visible, .button--download-button:focus-visible, #download-button:focus-visible, .btn--download:focus-visible, .button--open-folder:focus-visible, #open-folder:focus-visible, .btn--open-folder:focus-visible,
+.button--install-deps:focus-visible, #install-deps-btn:focus-visible, .btn--install-deps:focus-visible, .button--cancel:focus-visible, #download-cancel:focus-visible, .btn--cancel:focus-visible, .button--download-button:focus-visible, #download-button:focus-visible, .btn--download:focus-visible, .button--open-folder:focus-visible, #open-folder:focus-visible, .btn--open-folder:focus-visible,
 .button--open-last-video:focus-visible,
 #open-last-video:focus-visible,
 .btn--open-last-video:focus-visible, .button:focus-visible,
@@ -12594,11 +12594,11 @@ hr {
   outline: none;
   box-shadow: 0 0 0 3px var(--btn-focus-shadow), var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
-.button--install-deps:disabled, #install-deps-btn:disabled, .btn--install-deps:disabled, .button--quality:disabled, #quality-button:disabled, .btn--quality:disabled, .button--cancel:disabled, #download-cancel:disabled, .btn--cancel:disabled, .button--download-button:disabled, #download-button:disabled, .btn--download:disabled, .button--open-folder:disabled, #open-folder:disabled, .btn--open-folder:disabled,
+.button--install-deps:disabled, #install-deps-btn:disabled, .btn--install-deps:disabled, .button--cancel:disabled, #download-cancel:disabled, .btn--cancel:disabled, .button--download-button:disabled, #download-button:disabled, .btn--download:disabled, .button--open-folder:disabled, #open-folder:disabled, .btn--open-folder:disabled,
 .button--open-last-video:disabled,
 #open-last-video:disabled,
 .btn--open-last-video:disabled, .button:disabled,
-.btn:disabled, [aria-disabled=true].button--install-deps, [aria-disabled=true]#install-deps-btn, [aria-disabled=true].btn--install-deps, [aria-disabled=true].button--quality, [aria-disabled=true]#quality-button, [aria-disabled=true].btn--quality, [aria-disabled=true].button--cancel, [aria-disabled=true]#download-cancel, [aria-disabled=true].btn--cancel, [aria-disabled=true].button--download-button, [aria-disabled=true]#download-button, [aria-disabled=true].btn--download, [aria-disabled=true].button--open-folder, [aria-disabled=true]#open-folder, [aria-disabled=true].btn--open-folder,
+.btn:disabled, [aria-disabled=true].button--install-deps, [aria-disabled=true]#install-deps-btn, [aria-disabled=true].btn--install-deps, [aria-disabled=true].button--cancel, [aria-disabled=true]#download-cancel, [aria-disabled=true].btn--cancel, [aria-disabled=true].button--download-button, [aria-disabled=true]#download-button, [aria-disabled=true].btn--download, [aria-disabled=true].button--open-folder, [aria-disabled=true]#open-folder, [aria-disabled=true].btn--open-folder,
 [aria-disabled=true].button--open-last-video,
 [aria-disabled=true]#open-last-video,
 [aria-disabled=true].btn--open-last-video, [aria-disabled=true].button,
@@ -12612,19 +12612,19 @@ hr {
   box-shadow: none !important;
   transform: none !important;
 }
-.button--install-deps:disabled::before, #install-deps-btn:disabled::before, .btn--install-deps:disabled::before, .button--quality:disabled::before, #quality-button:disabled::before, .btn--quality:disabled::before, .button--cancel:disabled::before, #download-cancel:disabled::before, .btn--cancel:disabled::before, .button--download-button:disabled::before, #download-button:disabled::before, .btn--download:disabled::before, .button--open-folder:disabled::before, #open-folder:disabled::before, .btn--open-folder:disabled::before,
+.button--install-deps:disabled::before, #install-deps-btn:disabled::before, .btn--install-deps:disabled::before, .button--cancel:disabled::before, #download-cancel:disabled::before, .btn--cancel:disabled::before, .button--download-button:disabled::before, #download-button:disabled::before, .btn--download:disabled::before, .button--open-folder:disabled::before, #open-folder:disabled::before, .btn--open-folder:disabled::before,
 .button--open-last-video:disabled::before,
 #open-last-video:disabled::before,
 .btn--open-last-video:disabled::before, .button:disabled::before,
-.btn:disabled::before, .button--install-deps:disabled::after, #install-deps-btn:disabled::after, .btn--install-deps:disabled::after, .button--quality:disabled::after, #quality-button:disabled::after, .btn--quality:disabled::after, .button--cancel:disabled::after, #download-cancel:disabled::after, .btn--cancel:disabled::after, .button--download-button:disabled::after, #download-button:disabled::after, .btn--download:disabled::after, .button--open-folder:disabled::after, #open-folder:disabled::after, .btn--open-folder:disabled::after,
+.btn:disabled::before, .button--install-deps:disabled::after, #install-deps-btn:disabled::after, .btn--install-deps:disabled::after, .button--cancel:disabled::after, #download-cancel:disabled::after, .btn--cancel:disabled::after, .button--download-button:disabled::after, #download-button:disabled::after, .btn--download:disabled::after, .button--open-folder:disabled::after, #open-folder:disabled::after, .btn--open-folder:disabled::after,
 .button--open-last-video:disabled::after,
 #open-last-video:disabled::after,
 .btn--open-last-video:disabled::after, .button:disabled::after,
-.btn:disabled::after, [aria-disabled=true].button--install-deps::before, [aria-disabled=true]#install-deps-btn::before, [aria-disabled=true].btn--install-deps::before, [aria-disabled=true].button--quality::before, [aria-disabled=true]#quality-button::before, [aria-disabled=true].btn--quality::before, [aria-disabled=true].button--cancel::before, [aria-disabled=true]#download-cancel::before, [aria-disabled=true].btn--cancel::before, [aria-disabled=true].button--download-button::before, [aria-disabled=true]#download-button::before, [aria-disabled=true].btn--download::before, [aria-disabled=true].button--open-folder::before, [aria-disabled=true]#open-folder::before, [aria-disabled=true].btn--open-folder::before,
+.btn:disabled::after, [aria-disabled=true].button--install-deps::before, [aria-disabled=true]#install-deps-btn::before, [aria-disabled=true].btn--install-deps::before, [aria-disabled=true].button--cancel::before, [aria-disabled=true]#download-cancel::before, [aria-disabled=true].btn--cancel::before, [aria-disabled=true].button--download-button::before, [aria-disabled=true]#download-button::before, [aria-disabled=true].btn--download::before, [aria-disabled=true].button--open-folder::before, [aria-disabled=true]#open-folder::before, [aria-disabled=true].btn--open-folder::before,
 [aria-disabled=true].button--open-last-video::before,
 [aria-disabled=true]#open-last-video::before,
 [aria-disabled=true].btn--open-last-video::before, [aria-disabled=true].button::before,
-[aria-disabled=true].btn::before, [aria-disabled=true].button--install-deps::after, [aria-disabled=true]#install-deps-btn::after, [aria-disabled=true].btn--install-deps::after, [aria-disabled=true].button--quality::after, [aria-disabled=true]#quality-button::after, [aria-disabled=true].btn--quality::after, [aria-disabled=true].button--cancel::after, [aria-disabled=true]#download-cancel::after, [aria-disabled=true].btn--cancel::after, [aria-disabled=true].button--download-button::after, [aria-disabled=true]#download-button::after, [aria-disabled=true].btn--download::after, [aria-disabled=true].button--open-folder::after, [aria-disabled=true]#open-folder::after, [aria-disabled=true].btn--open-folder::after,
+[aria-disabled=true].btn::before, [aria-disabled=true].button--install-deps::after, [aria-disabled=true]#install-deps-btn::after, [aria-disabled=true].btn--install-deps::after, [aria-disabled=true].button--cancel::after, [aria-disabled=true]#download-cancel::after, [aria-disabled=true].btn--cancel::after, [aria-disabled=true].button--download-button::after, [aria-disabled=true]#download-button::after, [aria-disabled=true].btn--download::after, [aria-disabled=true].button--open-folder::after, [aria-disabled=true]#open-folder::after, [aria-disabled=true].btn--open-folder::after,
 [aria-disabled=true].button--open-last-video::after,
 [aria-disabled=true]#open-last-video::after,
 [aria-disabled=true].btn--open-last-video::after, [aria-disabled=true].button::after,
@@ -12846,23 +12846,6 @@ hr {
 .button--cancel:hover, #download-cancel:hover, .btn--cancel:hover {
   background: linear-gradient(135deg, rgba(255, 80, 80, 0.35) 0%, rgba(255, 80, 80, 0.22) 50%, rgba(255, 80, 80, 0.12) 100%);
   border-color: rgba(255, 80, 80, 0.5);
-}
-
-.button--quality, #quality-button, .btn--quality {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 100%);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: var(--color-highlight);
-  min-width: 64px;
-}
-.button--quality:focus, #quality-button:focus, .btn--quality:focus {
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.2) 0%, rgba(var(--color-accent-rgb), 0.1) 50%, rgba(var(--color-accent-rgb), 0.05) 100%);
-  border-color: rgba(var(--color-accent-rgb), 0.4);
-  color: var(--color-accent);
-}
-.button--quality:hover, #quality-button:hover, .btn--quality:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.06) 100%);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
 }
 
 .button--install-deps, #install-deps-btn, .btn--install-deps {

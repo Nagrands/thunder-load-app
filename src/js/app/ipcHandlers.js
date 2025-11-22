@@ -34,9 +34,9 @@ const {
   getVideoInfo,
   downloadMedia,
   stopDownload,
-  resetDownloadCancelledFlag,
+  setActiveDownloadToken,
   selectFormatsByQuality,
-  isDownloadCancelled,
+  createDownloadToken,
 } = require("../scripts/download.js");
 const { isValidUrl, normalizeUrl } = require("./utils.js");
 const {
@@ -1218,17 +1218,18 @@ function setupIpcHandlers(dependencies) {
   );
 
   // Проверка на отмену загрузки
-  function checkIfCancelled(step) {
-    if (isDownloadCancelled()) {
+  function checkIfCancelled(token, step) {
+    if (token?.cancelled) {
       log.error(`Download cancelled at step: ${step}`);
-      throw new Error("Download cancelled");
+      throw new Error(token.cancelReason || "Download cancelled");
     }
   }
 
   // Функция для начала процесса загрузки
   async function startDownloadProcess(event, url, quality) {
     try {
-      resetDownloadCancelledFlag();
+      const token = createDownloadToken();
+      setActiveDownloadToken(token);
 
       // Проверяем наличие утилит, не устанавливаем автоматически
       const tools = await getToolsVersions();
@@ -1249,8 +1250,8 @@ function setupIpcHandlers(dependencies) {
         throw new Error("Отсутствуют необходимые инструменты (yt-dlp/ffmpeg)");
       }
 
-      const videoInfo = await getVideoInfo(url);
-      checkIfCancelled("getVideoInfo");
+      const videoInfo = await getVideoInfo(url, token);
+      checkIfCancelled(token, "getVideoInfo");
 
       const formats = videoInfo.formats;
       const title = videoInfo.title.replace(/[\\/:*?"<>|]/g, "");
@@ -1267,7 +1268,7 @@ function setupIpcHandlers(dependencies) {
       const resolution = selectedFormats.resolution;
       const fps = selectedFormats.fps;
 
-      checkIfCancelled("before downloadMedia");
+      checkIfCancelled(token, "before downloadMedia");
 
       let filePath;
       try {
@@ -1283,6 +1284,7 @@ function setupIpcHandlers(dependencies) {
           fps,
           audioExt,
           videoExt,
+          token,
         );
       } catch (error) {
         if (mainWindow && mainWindow.webContents) {
@@ -1688,6 +1690,8 @@ function setupIpcHandlers(dependencies) {
         notifyDownloadError(error);
         throw error;
       }
+    } finally {
+      setActiveDownloadToken(null);
     }
   });
 
