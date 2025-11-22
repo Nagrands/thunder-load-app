@@ -720,7 +720,10 @@ async function installYtDlp(token = null) {
     const dir = getToolsDir();
     const ytDlpPath = getYtDlpPath();
     await ensureToolsDir(dir);
-    await downloadFile(ytDlpUrl, ytDlpPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
+    await downloadFile(ytDlpUrl, ytDlpPath, 0, 1, {
+      ...TOOL_DOWNLOAD_OPTIONS,
+      token,
+    });
 
     // Устанавливаем права доступа
     if (process.platform !== "win32") {
@@ -887,7 +890,10 @@ async function installDeno(token = null) {
     zipPath = path.join(os.tmpdir(), `deno-${Date.now()}.zip`);
     extractPath = path.join(os.tmpdir(), `deno-extract-${Date.now()}`);
     await fs.promises.mkdir(extractPath, { recursive: true });
-    await downloadFile(url, zipPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
+    await downloadFile(url, zipPath, 0, 1, {
+      ...TOOL_DOWNLOAD_OPTIONS,
+      token,
+    });
 
     await new Promise((resolve, reject) => {
       fs.createReadStream(zipPath)
@@ -964,13 +970,10 @@ async function installFfmpeg(token = null) {
         "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
       ffmpegZipPath = path.join(os.tmpdir(), "ffmpeg-release-essentials.zip");
       ffmpegExtractPath = path.join(os.tmpdir(), "ffmpeg-extract");
-      await downloadFile(
-        ffmpegUrl,
-        ffmpegZipPath,
-        0,
-        1,
-        TOOL_DOWNLOAD_OPTIONS,
-      );
+          await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, {
+            ...TOOL_DOWNLOAD_OPTIONS,
+            token,
+          });
       log.info("ffmpeg downloaded successfully. Starting extraction...");
       await new Promise((resolve, reject) => {
         fs.createReadStream(ffmpegZipPath)
@@ -1080,7 +1083,10 @@ async function installFfmpeg(token = null) {
           log.info(
             `[ffmpeg] Downloading macOS build ${version} (${archKey}) from evermeet.cx…`,
           );
-          await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
+          await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, {
+            ...TOOL_DOWNLOAD_OPTIONS,
+            token,
+          });
           await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg");
           log.info("[ffmpeg] ffmpeg installed from evermeet.cx");
         } catch (err) {
@@ -1088,7 +1094,10 @@ async function installFfmpeg(token = null) {
         }
 
         try {
-          await downloadFile(ffprobeUrl, ffprobeZipPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
+          await downloadFile(ffprobeUrl, ffprobeZipPath, 0, 1, {
+            ...TOOL_DOWNLOAD_OPTIONS,
+            token,
+          });
           await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe");
           log.info("[ffmpeg] ffprobe installed from evermeet.cx");
         } catch (err) {
@@ -1117,7 +1126,10 @@ async function installFfmpeg(token = null) {
         : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-x64";
 
       try {
-        await downloadFile(ffmpegUrl, ffmpegPath, 0, 1, TOOL_DOWNLOAD_OPTIONS);
+        await downloadFile(ffmpegUrl, ffmpegPath, 0, 1, {
+          ...TOOL_DOWNLOAD_OPTIONS,
+          token,
+        });
         fs.chmodSync(ffmpegPath, 0o755);
         log.info(
           "ffmpeg binary downloaded and chmod applied (macOS fallback).",
@@ -1329,6 +1341,11 @@ function spawnDownloadProcess(
     });
   });
 }
+
+const isCancelError = (err) =>
+  err && typeof err.message === "string"
+    ? err.message.includes("Download cancelled")
+    : false;
 
 function safeMoveFile(src, dest) {
   if (!fs.existsSync(src)) return;
@@ -1641,7 +1658,9 @@ async function downloadMedia(
         "❗ Видео требует авторизации. Сохраните cookies.txt из браузера и поместите в папку Thunder Load.",
       );
     }
-    log.error("Error in downloadMedia:", error);
+    if (!isCancelError(error)) {
+      log.error("Error in downloadMedia:", error);
+    }
     throw error;
   } finally {
     setActiveDownloadToken(null);
