@@ -291,25 +291,29 @@ async function handleDeleteEntry(logEntry) {
     .replace(entryQuality, "")
     .trim();
   const confirmationMessage = `
-    <h4 class="toast-warning">Вы уверены, что хотите удалить запись?</h4>
-    <br>
     <div class="info-entry">
-        <div class="date-time-quality">
-            <span class="date-time">
-              <i class="fa-solid fa-clock"></i> ${entryDateTime}
-            </span>
-            <span class="quality">
-              <i class="fa-regular fa-rectangle-list"></i>${entryQuality}
-            </span>
-        </div>
-        <span class="info-note">
-            <p><i class="fa-solid fa-film"></i>
-            ${formattedName}</p>
+      <div class="info-note">
+        <p><i class="fa-solid fa-film"></i> ${formattedName}</p>
+      </div>
+      <div class="date-time-quality">
+        <span class="date-time">
+          <i class="fa-solid fa-clock"></i> ${entryDateTime || "Без даты"}
         </span>
+        <span class="quality">
+          <i class="fa-regular fa-rectangle-list"></i> ${entryQuality || "—"}
+        </span>
+      </div>
     </div>
     `;
 
-  const confirmed = await showConfirmationDialog(confirmationMessage);
+  const confirmed = await showConfirmationDialog({
+    title: "Удалить запись?",
+    subtitle: "История загрузок",
+    message: confirmationMessage,
+    confirmText: "Удалить",
+    cancelText: "Отмена",
+    tone: "danger",
+  });
   if (!confirmed) return;
 
   try {
@@ -401,30 +405,33 @@ async function handleDeleteFile(logEntry) {
     return;
   }
 
-  // Подтверждение удаления файла
   const { fileName, dateTime, quality } = getEntryData(logEntry);
   const entryDateTime = dateTime || "";
   const entryQuality = quality || "";
   const confirmationMessage = `
-    <h4 class="toast-warning">Вы уверены, что хотите удалить файл?</h4>
-    <br>
     <div class="info-entry">
-        <div class="date-time-quality">
-            <span class="date-time">
-              <i class="fa-solid fa-clock"></i>${entryDateTime}
-            </span>
-            <span class="quality">
-              <i class="fa-regular fa-rectangle-list"></i>${entryQuality}
-            </span>
-        </div>
-        <span class="info-delete">
-            <p><i class="fa-solid fa-film"></i>
-            ${fileName}</p>
+      <div class="info-delete">
+        <p><i class="fa-solid fa-film"></i> ${fileName}</p>
+      </div>
+      <div class="date-time-quality">
+        <span class="date-time">
+          <i class="fa-solid fa-clock"></i> ${entryDateTime || "Без даты"}
         </span>
+        <span class="quality">
+          <i class="fa-regular fa-rectangle-list"></i> ${entryQuality || "—"}
+        </span>
+      </div>
     </div>
     `;
 
-  const confirmed = await showConfirmationDialog(confirmationMessage);
+  const confirmed = await showConfirmationDialog({
+    title: "Удалить файл?",
+    subtitle: "Файл на диске",
+    message: confirmationMessage,
+    confirmText: "Удалить",
+    cancelText: "Отмена",
+    tone: "danger",
+  });
   if (!confirmed) return;
 
   try {
@@ -465,19 +472,8 @@ async function handleDeleteFile(logEntry) {
  * @param {string} message - Сообщение для подтверждения
  * @returns {Promise<boolean>} - Возвращает true, если пользователь подтвердил, иначе false
  */
-async function showConfirmationDialog(message) {
-  return new Promise((resolve) => {
-    // Предполагаем, что showConfirmationDialog принимает сообщение и колбэки для подтверждения и отмены
-    showConfirmationModal(
-      message,
-      () => {
-        resolve(true); // Пользователь подтвердил
-      },
-      () => {
-        resolve(false); // Пользователь отменил
-      },
-    );
-  });
+async function showConfirmationDialog(options) {
+  return showConfirmationModal(options);
 }
 
 /**

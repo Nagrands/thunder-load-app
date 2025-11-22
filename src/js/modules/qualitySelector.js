@@ -26,12 +26,8 @@ function updateSelectedQuality() {
     }
   });
 
-  // Обновляем текст на кнопке скачивания
-  if (selectedQuality === "Audio Only") {
-    buttonText.textContent = "Скачать аудио";
-  } else {
-    buttonText.textContent = `Скачать «${selectedQuality}»`;
-  }
+  // Подпись кнопки скачивания теперь не зависит от выбранного качества
+  buttonText.textContent = "Скачать";
 }
 
 /**

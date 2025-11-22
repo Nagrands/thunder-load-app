@@ -151,13 +151,12 @@
   .wg-header {
     display: flex;
     margin-bottom: 1.25rem;
-    backdrop-filter: blur(6px);
     gap: 1rem;
     flex-wrap: wrap;
     flex-direction: row;
 
     .title {
-      flex: 1 1 280px;
+      flex: 1 1 320px;
 
       .subtitle {
         font-size: 14px;
@@ -1515,7 +1514,6 @@ h1.section-heading {
     border-color: rgba(120, 180, 255, 0.19);
     z-index: 2;
     outline: none;
-    transform: scale(1.01);
   }
 
   &:has(.bk-chk:checked),
@@ -2350,7 +2348,6 @@ h1.section-heading {
 // ---------------------------------------------------------------------------
 .bk-hints {
   @include backup-glass-panel(1.25rem, rgba(255, 255, 255, 0.1), 18px);
-  background: rgba(255, 255, 255, 0.05);
   margin-top: 1.5rem;
   border-radius: 20px;
   text-align: left;

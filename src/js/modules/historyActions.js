@@ -27,7 +27,14 @@ import { state, setHistoryData } from "./state.js";
  */
 async function handleClearHistory() {
   showConfirmationDialog(
-    "Вы уверены, что хотите удалить всю историю загрузок?",
+    {
+      title: "Очистить историю?",
+      subtitle: "История загрузок",
+      message: "Вы уверены, что хотите удалить всю историю загрузок?",
+      confirmText: "Очистить",
+      cancelText: "Отмена",
+      tone: "danger",
+    },
     async () => {
       try {
         await window.electron.invoke("clear-history");

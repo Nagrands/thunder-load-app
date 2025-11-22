@@ -6,8 +6,8 @@
 $breakpoint-mobile: 668px;
 $breakpoint-tablet: 1280px;
 
-$modal-padding: 15px;
-$modal-border-radius: 18px;
+$modal-padding: 14px;
+$modal-border-radius: 24px;
 $modal-max-width: 600px;
 $animation-duration: 0.1s;
 
@@ -192,6 +192,58 @@ $themes: (
     badge-size-border: rgba(255, 255, 255, 0.12),
     color-delete: rgba(255, 65, 65, 0.132),
   ),
+  violet: (
+    // Dreamy violet palette with neon-inspired accents
+    color-accent: #c084fc,
+    color-bg-log: #120c1a,
+    color-bg-main: #180f24,
+    color-bg-secondary: #1f142de5,
+    color-border: #2c1d3e,
+    menu-item-active: linear-gradient(180deg, #c084fc, #7c3aed),
+    menu-item-hover: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.35),
+        rgba(255, 255, 255, 0.08)
+      ),
+    color-disabled: #7a6a93,
+    color-highlight: #f4e9ff,
+    color-history-scroll: rgba(192, 132, 252, 0.25),
+    color-hover: rgba(192, 132, 252, 0.12),
+    color-icon-links: #a855f7,
+    color-progress-bar: #c084fc,
+    color-progress-bg: rgba(16, 10, 26, 0.7),
+    color-quality: rgba(226, 210, 255, 0.55),
+    color-toast-bg: #201330,
+    color-toast-error: #ff6b9e,
+    color-toast-success: #6ee7b7,
+    color-toast-text: #fef7ff,
+    color-toast-warning: #fbbf24,
+    color-url-bg: rgba(22, 12, 36, 0.7),
+    color-url-border: #3b2359,
+    color-url-link: #c084fc,
+    color-url-text: #f7edff,
+    button-cancel: linear-gradient(180deg, #ff6b9e, #381f47),
+    button-color: #fef7ff,
+    button-default: linear-gradient(180deg, rgba(192, 132, 252, 0.6), #170e23),
+    button-disabled-bg: rgba(122, 106, 147, 0.45),
+    button-disabled: #d7c9f5,
+    button-download: linear-gradient(180deg, #c084fc, #6d28d9),
+    button-enabled: #fef7ff,
+    button-open-folder: linear-gradient(180deg, #a855f7, #341b4e),
+    button-open-history: linear-gradient(180deg, #c084fc, #2b153d),
+    button-openlast-video: linear-gradient(180deg, #a78bfa, #2f1a45),
+    sidebar-background: #140c21cc,
+    sidebar-color: #f7edff,
+    sidebar-list-color: rgba(250, 245, 255, 0.1),
+    color-text-main: #f7edff,
+    color-youtube: #ff739b,
+    color-twitch: #c084fc,
+    color-vkvideo: #a78bfa,
+    color-coub: #c084fc,
+    badge-size-bg: rgba(247, 237, 255, 0.08),
+    badge-size-border: rgba(247, 237, 255, 0.24),
+    color-delete: rgba(255, 93, 157, 0.16),
+  ),
 );
 
 // Mixin для экспорта переменных в CSS
@@ -234,4 +286,13 @@ $themes: (
     #{color.channel(theme-value(sunset, color-accent), "red", $space: rgb)},
     #{color.channel(theme-value(sunset, color-accent), "green", $space: rgb)},
     #{color.channel(theme-value(sunset, color-accent), "blue", $space: rgb)};
+}
+
+// CSS переменные для темы Violet
+[data-theme="violet"] {
+  @include export-css-variables(map.get($themes, violet));
+  --color-accent-rgb:
+    #{color.channel(theme-value(violet, color-accent), "red", $space: rgb)},
+    #{color.channel(theme-value(violet, color-accent), "green", $space: rgb)},
+    #{color.channel(theme-value(violet, color-accent), "blue", $space: rgb)};
 }

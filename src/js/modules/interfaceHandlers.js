@@ -4,28 +4,16 @@ import {
   settingsModal,
   settingsButton,
   closeSettingsButton,
-  overlay,
-  sidebar,
-  toggleBtn,
-  closeBtn,
   filterInput,
   clearFilterInputButton,
+  githubButton,
 } from "./domElements.js";
-import {
-  toggleSidebar,
-  openSettings,
-  closeSettings,
-  closeSidebarForced,
-} from "./sidebar.js";
+import { openSettings, closeSettings } from "./settingsModal.js";
 import { state } from "./state.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 
 function initInterfaceHandlers() {
-  // Обработчики событий для кнопок
-  toggleBtn.addEventListener("click", toggleSidebar);
-  closeBtn.addEventListener("click", closeSidebarForced);
-
-  settingsButton.addEventListener("click", () => {
+  settingsButton?.addEventListener("click", () => {
     if (settingsModal.style.display === "flex") {
       closeSettings();
     } else {
@@ -33,24 +21,19 @@ function initInterfaceHandlers() {
     }
   });
 
-  closeSettingsButton.addEventListener("click", closeSettings);
-
-  overlay.addEventListener("click", () => {
-    if (settingsModal.style.display === "flex") {
-      closeSettings();
-    } else if (
-      sidebar.classList.contains("active") &&
-      !sidebar.classList.contains("is-pinned")
-    ) {
-      toggleSidebar();
-    }
-  });
+  closeSettingsButton?.addEventListener("click", closeSettings);
 
   window.addEventListener("click", (event) => {
     if (event.target === settingsModal) {
       settingsModal.style.display = "none";
-      overlay.classList.remove("active");
     }
+  });
+
+  githubButton?.addEventListener("click", () => {
+    window.electron.invoke(
+      "open-external-link",
+      "https://github.com/Nagrands/thunder-load-app",
+    );
   });
 
   clearFilterInputButton.addEventListener("click", () => {

@@ -253,28 +253,6 @@ export default function renderBackup() {
     });
   }
 
-  // Добавляем стили для кастомных тултипов
-  const style = document.createElement("style");
-  style.textContent = `
-    .backup-tooltip .tooltip-arrow {
-      display: none !important;
-    }
-    .backup-tooltip .tooltip-inner {
-      background: rgba(0, 0, 0, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 12px;
-      backdrop-filter: blur(10px);
-    }
-  `;
-  document.head.appendChild(style);
-
-  // Удаляем стиль при удалении компонента
-  wrapper.addEventListener("remove", () => {
-    style.remove();
-  });
-
   // Функция для инициализации тултипов в компоненте Backup
   const initBackupTooltips = () => {
     const tooltipTriggerList = wrapper.querySelectorAll(
@@ -292,7 +270,6 @@ export default function renderBackup() {
       if (title && title.trim() !== "") {
         new bootstrap.Tooltip(tooltipTriggerEl, {
           boundary: wrapper,
-          customClass: "backup-tooltip",
         });
       }
     });
@@ -804,7 +781,6 @@ export default function renderBackup() {
           el.setAttribute("title", text);
           new bootstrap.Tooltip(el, {
             boundary: wrapper,
-            customClass: "backup-tooltip",
           });
         }
       } catch (_) {}

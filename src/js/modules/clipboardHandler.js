@@ -42,11 +42,7 @@ function initClipboardHandler() {
         const tabBtn = document.querySelector(
           '.group-menu [data-menu="download"]',
         );
-        if (tabBtn) tabBtn.click();
-        else
-          document
-            .querySelector('#sidebar .sidebar-item[data-tab="download"]')
-            ?.click();
+        tabBtn?.click();
       } catch {}
 
       urlInput.value = clipboardContent;

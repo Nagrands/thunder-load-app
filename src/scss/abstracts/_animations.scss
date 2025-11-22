@@ -158,32 +158,6 @@
   }
 }
 
-@keyframes shine {
-  0% {
-    left: -50%;
-    box-shadow: 0 0 10px var(--color-accent);
-  }
-  50% {
-    left: 100%;
-    box-shadow:
-      0 0 20px var(--color-accent),
-      0 0 30px var(--color-accent);
-  }
-  100% {
-    left: 150%;
-    box-shadow: 0 0 10px var(--color-accent);
-  }
-}
-
-@keyframes shineEffect {
-  from {
-    background-position: -200%;
-  }
-  to {
-    background-position: 200%;
-  }
-}
-
 @keyframes gradientAnimation {
   0% {
     box-shadow: 0 0 4px var(--color-accent);

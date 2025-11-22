@@ -3,25 +3,41 @@
 
 // Основной контейнер приложения с учетом высоты top-bar
 #main-view {
-  padding-top: 60px; // Высота top-bar
-  min-height: calc(100vh - 60px); // Вычитаем высоту top-bar
+  --topbar-safe-space: clamp(96px, 12vh, 150px);
+  padding-top: var(--topbar-safe-space); // Высота top-bar + запас
+  min-height: calc(100vh - var(--topbar-safe-space)); // Вычитаем top-bar
   box-sizing: border-box;
 
+  @media (max-width: 1100px) {
+    --topbar-safe-space: clamp(116px, 16vh, 190px);
+  }
+
+  @media (max-width: 900px) {
+    --topbar-safe-space: clamp(104px, 18vh, 172px);
+  }
+
   @media (max-width: 768px) {
-    padding-top: 56px; // Высота top-bar на мобильных
-    min-height: calc(100vh - 56px);
+    --topbar-safe-space: 78px; // Высота top-bar на мобильных
   }
 }
 
 // Дополнительные контейнеры, которые могут появляться
 #app-preloader {
-  padding-top: 60px;
-  min-height: calc(100vh - 60px);
+  --topbar-safe-space: clamp(96px, 12vh, 150px);
+  padding-top: var(--topbar-safe-space);
+  min-height: calc(100vh - var(--topbar-safe-space));
   box-sizing: border-box;
 
+  @media (max-width: 1100px) {
+    --topbar-safe-space: clamp(116px, 16vh, 190px);
+  }
+
+  @media (max-width: 900px) {
+    --topbar-safe-space: clamp(104px, 18vh, 172px);
+  }
+
   @media (max-width: 768px) {
-    padding-top: 56px;
-    min-height: calc(100vh - 56px);
+    --topbar-safe-space: 78px;
   }
 }
 
@@ -38,28 +54,10 @@
   z-index: 1001; // Выше чем top-bar (z-index: 1000)
 }
 
-// Сайдбар - учитывает top-bar
-.sidebar {
-  top: 60px; // Размещаем под top-bar
-  height: calc(100vh - 60px); // Высота минус top-bar
-
-  @media (max-width: 768px) {
-    top: 56px;
-    height: calc(100vh - 56px);
-  }
-}
-
 // Toast-уведомления - поверх всего
 .toast-container {
   top: 80px !important; // Ниже top-bar но выше контента
   z-index: 1002;
-}
-
-// Оверлей - на весь экран
-.overlay {
-  top: 0;
-  height: 100vh;
-  z-index: 999; // Ниже top-bar но выше основного контента
 }
 
 .header {
@@ -118,12 +116,6 @@
   }
 }
 
-/* Link icons tweaks */
-.icon-links,
-.icon-links a {
-  transition: color var(--transition-duration);
-}
-
 /* Responsive tweaks formerly in _ui.scss */
 @media (max-width: 600px) {
   header h1 {
@@ -138,7 +130,6 @@
 
   // Дополнительные корректировки для мобильных
   #main-view {
-    padding-top: 56px;
-    min-height: calc(100vh - 56px);
+    --topbar-safe-space: 72px;
   }
 }

@@ -3,45 +3,46 @@
 // src/scss/components/_tooltips.scss
 
 // Параметры для tooltip (их можно переопределять в основном файле)
-$tooltip-bg-color: var(--tooltip-bg-color, rgba(16, 16, 16, 0.9));
+$tooltip-bg-color: var(--tooltip-bg-color, rgba(5, 5, 8, 0.9));
 $tooltip-text-color: var(--tooltip-text-color, #fff);
-$tooltip-border-color: var(--color-hover);
-$tooltip-border-radius: var(--tooltip-border-radius, 0.6rem);
-$tooltip-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-// $tooltip-max-width: 220px;
-$tooltip-padding: 0.4rem 0.6rem;
+$tooltip-border-color: var(--tooltip-border-color, rgba(255, 255, 255, 0.12));
+$tooltip-border-radius: var(--tooltip-border-radius, 0.45rem);
+$tooltip-box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
+$tooltip-padding: var(--tooltip-padding, 0.35rem 0.7rem);
+$tooltip-font-size: var(--tooltip-font-size, 0.75rem);
+$tooltip-letter-spacing: 0.01em;
 
 .tooltip {
   position: absolute;
   z-index: 1070;
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: $tooltip-font-size;
   opacity: 0;
   pointer-events: none;
   transition: opacity variables.$transition-duration ease;
+  backdrop-filter: blur(10px);
 
   &.show {
     opacity: 1;
   }
 
   .tooltip-inner {
-    // max-width: $tooltip-max-width;
     padding: $tooltip-padding;
     color: $tooltip-text-color;
     text-align: left;
     background-color: $tooltip-bg-color;
     border: 1px solid $tooltip-border-color;
     border-radius: $tooltip-border-radius;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    box-shadow: $tooltip-box-shadow;
     position: relative;
+    font-size: inherit;
+    letter-spacing: $tooltip-letter-spacing;
+    backdrop-filter: blur(10px);
   }
 
   // Стили для стрелки tooltip
   .tooltip-arrow {
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
+    display: none;
   }
 
   // Стрелка для tooltip, отображаемого сверху

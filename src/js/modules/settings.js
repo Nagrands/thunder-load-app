@@ -782,6 +782,77 @@ async function initSettings() {
   })();
   // === /Backup: отключение вкладки ===
 
+  // === Randomizer: отключение вкладки (settings toggle) ===
+  (function initRandomizerDisableToggle() {
+    const KEY = "randomizerDisabled";
+    const read = () => {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw === null) return true;
+        return JSON.parse(raw) === true;
+      } catch {
+        return true;
+      }
+    };
+
+    function toggleRandomizerControlsDisabled(disabled) {
+      const view =
+        document.getElementById("randomizer-view") ||
+        document.getElementById("randomizer-view-wrapper");
+      if (!view) return;
+      const ctrls = view.querySelectorAll("input, button, select, textarea");
+      ctrls.forEach((el) => {
+        el.disabled = !!disabled;
+        const label = el.closest(
+          "label, .form-check, .settings-row, .control-row",
+        );
+        if (label) label.classList.toggle("is-disabled", !!disabled);
+      });
+    }
+
+    const write = (v) => {
+      const val = !!v;
+      try {
+        localStorage.setItem(KEY, JSON.stringify(val));
+      } catch {}
+      try {
+        window.electron?.send?.("settings:set", { key: KEY, value: val });
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("randomizer:toggleDisabled", {
+          detail: { disabled: val },
+        }),
+      );
+      toggleRandomizerControlsDisabled(val);
+      window.electron?.invoke?.(
+        "toast",
+        val
+          ? "Вкладка <strong>Randomizer</strong> отключена"
+          : "Вкладка <strong>Randomizer</strong> включена",
+        val ? "info" : "success",
+      );
+    };
+
+    const modal =
+      document.getElementById("settings-modal") ||
+      document.querySelector("#settings");
+    if (!modal) return;
+    const input = modal.querySelector(
+      "#randomizer-settings #randomizer-disable-toggle, #randomizer-disable-toggle",
+    );
+    if (!input) return;
+    input.checked = read();
+    input.addEventListener("change", () => write(input.checked));
+    window.electron?.on?.("open-settings", () => {
+      const val = read();
+      input.checked = val;
+      toggleRandomizerControlsDisabled(val);
+    });
+
+    toggleRandomizerControlsDisabled(read());
+  })();
+  // === /Randomizer: отключение вкладки ===
+
   // === Backup: компактный список профилей ===
   (function initBackupViewModeToggle() {
     const input = document.getElementById("backup-compact-toggle");
@@ -867,15 +938,76 @@ async function initSettings() {
     const countEl = document.getElementById("backup-profiles-count");
     if (!listEl || !refreshBtn) return;
 
+    let cachedPrograms = [];
+
     const setPlaceholder = (text, { state = "idle", isEmpty = false } = {}) => {
       listEl.dataset.state = state;
       listEl.classList.toggle("is-empty", isEmpty);
       listEl.classList.add("muted");
-      listEl.textContent = text;
+      listEl.innerHTML = "";
+      const placeholder = document.createElement("div");
+      placeholder.className = "backup-profiles-placeholder";
+      placeholder.textContent = text;
+      listEl.appendChild(placeholder);
     };
 
-    const renderProfiles = (programs) => {
-      const list = Array.isArray(programs) ? programs : [];
+    const createPathRow = (labelText, valueText) => {
+      const row = document.createElement("div");
+      row.className = "profile-path";
+      const label = document.createElement("span");
+      label.className = "profile-path-label";
+      label.textContent = labelText;
+      const value = document.createElement("span");
+      value.className = "profile-path-value";
+      value.textContent = valueText || "—";
+      row.appendChild(label);
+      row.appendChild(value);
+      return row;
+    };
+
+    const handleDeleteProfile = async (index, trigger) => {
+      const target = cachedPrograms[index];
+      if (!target) return;
+      const title =
+        (target.name || "Без названия").toString().trim() || "Без названия";
+      const confirmed = window.confirm(`Удалить профиль «${title}» ?`);
+      if (!confirmed) return;
+      if (!window.electron?.invoke) {
+        alert("Удаление профилей недоступно в этом окружении.");
+        return;
+      }
+      trigger?.setAttribute("aria-busy", "true");
+      trigger?.classList.add("is-busy");
+      trigger?.setAttribute("disabled", "true");
+      try {
+        const updated = cachedPrograms.filter((_, idx) => idx !== index);
+        const res = await window.electron.invoke(
+          "backup:savePrograms",
+          updated,
+        );
+        if (!res?.success)
+          throw new Error(res?.error || "Не удалось удалить профиль");
+        cachedPrograms = updated;
+        renderProfiles();
+        try {
+          await window.electron.invoke(
+            "toast",
+            `Профиль <strong>${title}</strong> удалён`,
+            "success",
+          );
+        } catch {}
+      } catch (error) {
+        console.error("[settings] backup profile delete error:", error);
+        alert(`Не удалось удалить профиль: ${error.message}`);
+      } finally {
+        trigger?.removeAttribute("aria-busy");
+        trigger?.classList.remove("is-busy");
+        trigger?.removeAttribute("disabled");
+      }
+    };
+
+    const renderProfiles = () => {
+      const list = Array.isArray(cachedPrograms) ? cachedPrograms : [];
       if (countEl) {
         countEl.textContent = list.length
           ? `${list.length} проф.`
@@ -892,38 +1024,56 @@ async function initSettings() {
       listEl.innerHTML = "";
 
       const ul = document.createElement("ul");
-      const limit = 25;
-      list.slice(0, limit).forEach((profile) => {
+      list.forEach((profile, index) => {
         const li = document.createElement("li");
-        const name = document.createElement("span");
+        li.className = "profile-entry";
+        const head = document.createElement("div");
+        head.className = "profile-head";
+
+        const name = document.createElement("div");
         name.className = "profile-name";
-        const title =
-          (profile?.name || "Без названия").toString().trim() || "Без названия";
         const icon = document.createElement("i");
         icon.className = "fa-solid fa-database";
         const label = document.createElement("span");
-        label.textContent = title;
+        label.textContent =
+          (profile?.name || "Без названия").toString().trim() || "Без названия";
         name.appendChild(icon);
         name.appendChild(label);
 
-        const paths = document.createElement("span");
-        paths.className = "profile-paths";
-        const src = profile?.source_path || "—";
-        const dst = profile?.backup_path || "—";
-        paths.textContent = `${src} → ${dst}`;
+        const actions = document.createElement("div");
+        actions.className = "profile-actions";
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "profile-delete";
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        deleteBtn.title = "Удалить профиль";
+        deleteBtn.addEventListener("click", () =>
+          handleDeleteProfile(index, deleteBtn),
+        );
+        actions.appendChild(deleteBtn);
 
-        li.appendChild(name);
-        li.appendChild(paths);
+        head.appendChild(name);
+        head.appendChild(actions);
+        li.appendChild(head);
+
+        const meta = document.createElement("div");
+        meta.className = "profile-paths";
+        meta.appendChild(
+          createPathRow("Источник", profile?.source_path || "—"),
+        );
+        meta.appendChild(
+          createPathRow("Назначение", profile?.backup_path || "—"),
+        );
+        if (profile?.profile_path) {
+          meta.appendChild(
+            createPathRow("Профили", profile.profile_path || "—"),
+          );
+        }
+        li.appendChild(meta);
+
         ul.appendChild(li);
       });
       listEl.appendChild(ul);
-
-      if (list.length > limit) {
-        const more = document.createElement("div");
-        more.className = "text-xs muted";
-        more.textContent = `Показаны первые ${limit} профилей из ${list.length}`;
-        listEl.appendChild(more);
-      }
     };
 
     const loadProfiles = async () => {
@@ -938,7 +1088,8 @@ async function initSettings() {
         const res = await window.electron.invoke("backup:getPrograms");
         if (!res?.success)
           throw new Error(res?.error || "Не удалось получить профили");
-        renderProfiles(res.programs || []);
+        cachedPrograms = Array.isArray(res.programs) ? res.programs : [];
+        renderProfiles();
       } catch (error) {
         console.error("[settings] backup profiles preview error:", error);
         setPlaceholder(`Ошибка: ${error.message}`, {

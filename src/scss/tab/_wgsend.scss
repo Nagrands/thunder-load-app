@@ -153,9 +153,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   .wg-main-container {
     @include wg-constrained;
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 450px;
     gap: 24px;
-    align-items: start;
+    align-items: center;
 
     @media (max-width: 1024px) {
       grid-template-columns: 1fr;
@@ -210,7 +210,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
   .title {
     @include header-style;
-    // @include glass-morphism;
 
     i {
       font-size: 24px;

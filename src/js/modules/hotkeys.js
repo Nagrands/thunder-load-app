@@ -38,18 +38,14 @@ import {
   shortcutsModal,
   whatsNewModal,
   confirmationModal,
-  toggleBtn,
   settingsModal,
 } from "./domElements.js";
-import { updateThemeDropdownUI } from "./settingsModal.js";
-import { showToast } from "./toast.js";
 import {
-  hideSidebar,
-  toggleSidebar,
-  toggleCollapsed,
+  updateThemeDropdownUI,
   openSettings,
   closeSettings,
-} from "./sidebar.js";
+} from "./settingsModal.js";
+import { showToast } from "./toast.js";
 import { closeAllModals } from "./modalManager.js"; // Импортируем функцию закрытия всех модалов
 
 // Список всех модальных окон
@@ -63,18 +59,6 @@ const modals = [
 
 // Определяем список локальных горячих клавиш
 const localHotkeys = new Map([
-  [
-    "Ctrl+Alt+B",
-    () => {
-      toggleCollapsed();
-    },
-  ],
-  [
-    "Meta+Alt+B",
-    () => {
-      toggleCollapsed();
-    },
-  ],
   [
     "Ctrl+1",
     () => {
@@ -130,11 +114,28 @@ const localHotkeys = new Map([
     },
   ],
   [
+    "Ctrl+4",
+    () => {
+      if (tabSystemReference) {
+        tabSystemReference.activateTab("randomizer");
+        console.log("Переключено на вкладку Randomizer (Ctrl+4)");
+      }
+    },
+  ],
+  [
+    "Meta+4",
+    () => {
+      if (tabSystemReference) {
+        tabSystemReference.activateTab("randomizer");
+        console.log("Переключено на вкладку Randomizer (Meta+4)");
+      }
+    },
+  ],
+  [
     "Ctrl+D",
     () => {
       closeAllModals(modals);
       downloadButton.click();
-      hideSidebar();
     },
   ],
   [
@@ -142,7 +143,6 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       downloadButton.click();
-      hideSidebar();
     },
   ],
   [
@@ -165,7 +165,7 @@ const localHotkeys = new Map([
     "Ctrl+T",
     async () => {
       closeAllModals(modals);
-      const order = ["system", "dark", "midnight", "sunset"]; // цикл тем с системной
+      const order = ["system", "dark", "midnight", "sunset", "violet"]; // цикл тем с системной
       const curAttr = document.documentElement.getAttribute("data-theme");
       const cur = curAttr || localStorage.getItem("theme") || "system";
       const idx = Math.max(0, order.indexOf(cur));
@@ -190,7 +190,7 @@ const localHotkeys = new Map([
     "Meta+T",
     async () => {
       closeAllModals(modals);
-      const order = ["system", "dark", "midnight", "sunset"]; // цикл тем с системной
+      const order = ["system", "dark", "midnight", "sunset", "violet"]; // цикл тем с системной
       const curAttr = document.documentElement.getAttribute("data-theme");
       const cur = curAttr || localStorage.getItem("theme") || "system";
       const idx = Math.max(0, order.indexOf(cur));
@@ -216,7 +216,6 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       openHistoryButton.click();
-      hideSidebar();
     },
   ],
   [
@@ -224,7 +223,6 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       openHistoryButton.click();
-      hideSidebar();
     },
   ],
   [
@@ -255,30 +253,6 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       clearHistoryButton.click();
-    },
-  ],
-  [
-    "Ctrl+B",
-    () => {
-      closeAllModals(modals);
-      if (settingsModal.style.display === "flex") {
-        closeSettings();
-      } else {
-        toggleSidebar();
-        highlightToggleBtn();
-      }
-    },
-  ],
-  [
-    "Meta+B",
-    () => {
-      closeAllModals(modals);
-      if (settingsModal.style.display === "flex") {
-        closeSettings();
-      } else {
-        toggleSidebar();
-        highlightToggleBtn();
-      }
     },
   ],
   [
@@ -315,7 +289,6 @@ const localHotkeys = new Map([
         shortcutsModal.style.flexWrap = "wrap";
         shortcutsModal.style.justifyContent = "center";
         shortcutsModal.style.alignItems = "center";
-        hideSidebar();
       }
     },
   ],
@@ -331,7 +304,6 @@ const localHotkeys = new Map([
         shortcutsModal.style.flexWrap = "wrap";
         shortcutsModal.style.justifyContent = "center";
         shortcutsModal.style.alignItems = "center";
-        hideSidebar();
       }
     },
   ],
@@ -456,16 +428,6 @@ function disableHotkeys() {
   document.removeEventListener("keyup", handleKeyUp);
   pressedKeys.clear(); // очищаем кэш комбинаций
   hotkeysEnabled = false;
-}
-
-/**
- * Временно подсвечивает кнопку toggle.
- */
-function highlightToggleBtn() {
-  toggleBtn.classList.add("highlight");
-  setTimeout(() => {
-    toggleBtn.classList.remove("highlight");
-  }, 300); // Подсветка длится 300 мс
 }
 
 export { initHotkeys, enableHotkeys, disableHotkeys };

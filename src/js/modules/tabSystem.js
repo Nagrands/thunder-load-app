@@ -14,19 +14,28 @@ export default class TabSystem {
     this._WG_ID = "wireguard";
     // Backup visibility wiring
     this._BK_ID = "backup";
+    // Randomizer visibility wiring
+    this._RZ_ID = "randomizer";
     this._applyWgVisibility =
       this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
     this._applyBackupVisibility =
       this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
+    this._applyRandomizerVisibility =
+      this._applyRandomizerVisibility?.bind(this) ||
+      this._applyRandomizerVisibility;
     window.addEventListener("wg:toggleDisabled", () =>
       this._applyWgVisibility(),
     );
     window.addEventListener("backup:toggleDisabled", () =>
       this._applyBackupVisibility(),
     );
+    window.addEventListener("randomizer:toggleDisabled", () =>
+      this._applyRandomizerVisibility(),
+    );
     // применить сразу (если вкладка уже есть)
     this._applyWgVisibility();
     this._applyBackupVisibility();
+    this._applyRandomizerVisibility();
   }
 
   addTab(id, label, iconCls, renderCb, hooks = {}) {
@@ -50,6 +59,7 @@ export default class TabSystem {
     this.tabs.set(id, { button: btn, render: renderCb, ...hooks });
     if (id === this._WG_ID) this._applyWgVisibility();
     if (id === this._BK_ID) this._applyBackupVisibility();
+    if (id === this._RZ_ID) this._applyRandomizerVisibility();
   }
 
   activateTab(id) {
@@ -72,6 +82,16 @@ export default class TabSystem {
       });
       if (firstVisible) return this.activateTab(firstVisible);
       return; // нет доступных вкладок
+    }
+    // Guard: не позволяем активировать Randomizer, если вкладка отключена
+    if (id === this._RZ_ID && this._isRandomizerDisabled()) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) return this.activateTab(firstVisible);
+      return;
     }
     if (!this.tabs.has(id) || id === this.activeTabId) return;
 
@@ -207,6 +227,42 @@ export default class TabSystem {
         rec.element.style.display = "none";
         rec.onHide?.();
       }
+    }
+  }
+
+  _isRandomizerDisabled() {
+    try {
+      const raw = localStorage.getItem("randomizerDisabled");
+      if (raw === null) return true;
+      return JSON.parse(raw) === true;
+    } catch {
+      return true;
+    }
+  }
+
+  _applyRandomizerVisibility() {
+    const id = this._RZ_ID;
+    if (!id || !this.tabs?.has(id)) return;
+    const rec = this.tabs.get(id);
+    const disabled = this._isRandomizerDisabled();
+
+    if (rec.button) rec.button.style.display = disabled ? "none" : "";
+
+    if (disabled && this.activeTabId === id) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) this.activateTab(firstVisible);
+      else this.activeTabId = null;
+    }
+
+    if (rec.element && disabled) {
+      rec.element.classList.remove("tab-show");
+      rec.element.classList.add("tab-hide");
+      rec.element.style.display = "none";
+      rec.onHide?.();
     }
   }
 }

@@ -4,12 +4,10 @@ import {
   shortcutsButton,
   shortcutsModal,
   closeSpan,
-  versionContainer,
   whatsNewModal,
   confirmationModal,
   settingsModal,
 } from "./domElements.js";
-import { hideSidebar } from "./sidebar.js";
 import { closeAllModals } from "./modalManager.js";
 
 function initModalHandlers() {
@@ -25,7 +23,6 @@ function initModalHandlers() {
   // Обработчик открытия модального окна с горячими клавишами
   shortcutsButton.addEventListener("click", () => {
     closeAllModals(modals); // Закрываем все модальные окна перед открытием нового
-    hideSidebar();
     shortcutsModal.style.display = "flex";
     shortcutsModal.style.flexWrap = "wrap";
     shortcutsModal.style.justifyContent = "center";
@@ -35,12 +32,6 @@ function initModalHandlers() {
   // Обработчик закрытия модального окна
   closeSpan.addEventListener("click", () => {
     closeAllModals(modals);
-  });
-
-  // Обработчик открытия модального окна "Что нового"
-  versionContainer.addEventListener("click", () => {
-    closeAllModals(modals); // Закрываем все модальные окна перед открытием нового
-    hideSidebar();
   });
 
   // Закрытие модальных окон при клике вне их области

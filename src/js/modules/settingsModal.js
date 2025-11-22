@@ -7,6 +7,77 @@ import {
   getDefaultTab,
   setDefaultTab,
 } from "./settings.js";
+import { settingsModal, settingsButton } from "./domElements.js";
+
+let previousFocus = null;
+let trapHandler = null;
+
+function getTabbables(root) {
+  if (!root) return [];
+  const selector = [
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(",");
+  return Array.from(root.querySelectorAll(selector)).filter(
+    (el) => el.offsetParent !== null,
+  );
+}
+
+export function openSettings() {
+  if (!settingsModal) return;
+  settingsModal.style.display = "flex";
+  settingsModal.style.justifyContent = "center";
+  settingsModal.style.alignItems = "center";
+  previousFocus = document.activeElement;
+
+  try {
+    window.dispatchEvent(new Event("settings:opened"));
+  } catch {}
+
+  const tabbables = getTabbables(settingsModal);
+  if (tabbables.length) {
+    const activeTab = settingsModal.querySelector(".tab-link.active");
+    (activeTab || tabbables[0]).focus();
+  } else {
+    settingsModal.focus?.();
+  }
+
+  trapHandler = (event) => {
+    if (event.key !== "Tab") return;
+    const nodes = getTabbables(settingsModal);
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (event.shiftKey) {
+      if (document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      }
+    } else if (document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  window.addEventListener("keydown", trapHandler, true);
+}
+
+export function closeSettings() {
+  if (!settingsModal) return;
+  settingsModal.style.display = "none";
+  if (trapHandler) {
+    window.removeEventListener("keydown", trapHandler, true);
+    trapHandler = null;
+  }
+  try {
+    (settingsButton || previousFocus)?.focus?.();
+  } catch {}
+  previousFocus = null;
+}
 
 export function updateThemeDropdownUI(theme) {
   const label = document.getElementById("theme-selected-label");

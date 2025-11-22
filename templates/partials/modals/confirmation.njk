@@ -1,42 +1,52 @@
       <!-- Confirmation Modal -->
       <div
         id="confirmation-modal"
-        class="modal-overlay"
+        class="modal-overlay confirmation-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-title"
         aria-describedby="confirmation-message"
       >
         <div class="modal-content">
-          <div class="modal-header">
-            <h2 id="confirmation-title">Подтверждение действия</h2>
+          <div class="modal-header confirmation-header">
+            <div class="confirmation-title-block">
+              <div class="confirmation-icon" aria-hidden="true">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <p id="confirmation-subtitle" class="confirmation-subtitle">
+                  Подтверждение
+                </p>
+                <h2 id="confirmation-title">Подтверждение действия</h2>
+              </div>
+            </div>
             <button class="close-modal" aria-label="Закрыть">&times;</button>
           </div>
-          <div class="modal-body">
-            <hr />
-            <p
+          <div class="modal-body confirmation-body">
+            <div
               id="confirmation-message"
-              class="confirmation-message toast-warning"
-            ></p>
+              class="confirmation-message"
+              role="document"
+            ></div>
           </div>
-          <div class="modal-footer">
-            <button
-              class="confirm-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Да"
-              aria-label="Да"
-            >
-              <i class="fa-solid fa-check"></i>
-            </button>
+          <div class="modal-footer confirmation-footer">
             <button
               class="cancel-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Нет"
-              aria-label="Нет"
+              title="Отмена"
+              aria-label="Отмена"
             >
-              <i class="fa-solid fa-xmark"></i>
+              Отмена
+            </button>
+            <button
+              class="confirm-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Подтвердить"
+              aria-label="Подтвердить"
+            >
+              Подтвердить
             </button>
           </div>
         </div>

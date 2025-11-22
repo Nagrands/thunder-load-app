@@ -6,7 +6,6 @@
  * Responsibilities:
  *  - Normalize and format hotkey strings (remove duplicates, reorder modifiers)
  *  - Replace modifier text with macOS-specific symbols (⌘, ⌥, ⌃, ⇧)
- *  - Adjust sidebar tooltip placement based on collapse state
  *  - Patch Bootstrap's internal methods for stability
  *  - Initialize tooltips for all `[data-bs-toggle="tooltip"]` elements
  *  - Handle cleanup and disposal of tooltip instances
@@ -165,15 +164,7 @@ function replaceModifiers(text, isMac) {
 
 function createTooltip(el) {
   if (!el || tooltipInstances.has(el)) return tooltipInstances.get(el);
-  const sidebar = document.getElementById("sidebar");
-  const isCollapsed = sidebar?.classList?.contains("is-collapsed");
-  const insideSidebar = !!el.closest("#sidebar");
-  const isNavItem = el.classList?.contains("sidebar-item");
-  const isServiceIcon = !!el.closest(".social-links .icon-links");
   let placementOption = el.getAttribute("data-bs-placement") || "top";
-  if (insideSidebar && isCollapsed && (isNavItem || isServiceIcon)) {
-    placementOption = "right";
-  }
   const tooltip = new bootstrap.Tooltip(el, {
     trigger: "hover focus",
     customClass: "tooltip-inner",

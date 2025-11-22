@@ -900,7 +900,6 @@ function renderHistory(entries) {
   console.trace("renderHistory stack");
 
   const container = document.getElementById("history");
-  const emptyMessage = document.getElementById("empty-history");
   const isEmpty = entries.length === 0;
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
@@ -908,12 +907,6 @@ function renderHistory(entries) {
   clearHistoryContainer(container);
 
   if (isEmpty) {
-    if (emptyMessage) {
-      emptyMessage.textContent = state.currentSearchQuery
-        ? `По запросу «${state.currentSearchQuery}» ничего не найдено.`
-        : "История загрузок не содержит данных.";
-      emptyMessage.style.display = "block";
-    }
 
     const searchWrapper = document.querySelector(".history-search-wrapper");
     const isCompletelyEmpty = state.currentSearchQuery === "";
@@ -929,12 +922,6 @@ function renderHistory(entries) {
 
     setTimeout(() => initTooltips(), 0);
     return;
-  }
-
-  // Удаляем сообщение о пустой истории
-  if (emptyMessage) {
-    emptyMessage.textContent = "";
-    emptyMessage.style.display = "none";
   }
 
   // Показываем элементы поиска и действий

@@ -6,10 +6,6 @@ body.is-mac {
     display: none !important;
   }
 
-  .sidebar.is-collapsed {
-    padding-top: 40px;
-  }
-
   .window-controls {
     border: 1px var(--color-accent);
     // margin-right: 1rem;
@@ -17,5 +13,9 @@ body.is-mac {
 
   #reload-app {
     color: var(--color-highlight);
+  }
+
+  .top-bar .top-download-progress {
+    margin: 0 -104px -8px;
   }
 }

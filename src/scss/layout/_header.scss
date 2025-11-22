@@ -2,13 +2,5 @@
 
 /* **** Стили для header **** */
 header {
-  display: grid;
-  text-align: center;
-  justify-items: center;
-  align-items: center;
-  align-content: center;
-  // margin-top: 8vh;
   padding: 10px;
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: var(--border-radius);
 }

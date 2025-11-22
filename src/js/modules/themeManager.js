@@ -1,7 +1,7 @@
 // src/js/modules/themeManager.js
 
 const THEME_KEY = "theme";
-const THEME_CYCLE = ["dark", "midnight", "sunset"];
+const THEME_CYCLE = ["dark", "midnight", "sunset", "violet"];
 
 /**
  * Устанавливает тему вручную или переключает, если параметр не передан

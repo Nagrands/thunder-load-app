@@ -36,7 +36,6 @@
 
   .title {
     @include header-style;
-    @include glass-morphism;
 
     i {
       font-size: 24px;
@@ -219,13 +218,9 @@
         border-color 0.2s ease;
 
       &.active {
-        background: linear-gradient(
-          135deg,
-          rgba(99, 132, 255, 0.3),
-          rgba(53, 86, 221, 0.4)
-        );
+        background-color: transparent;
         border-color: rgba(120, 180, 255, 0.5);
-        color: #fff;
+        color: var(--color-accent);
       }
     }
   }

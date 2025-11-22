@@ -22,44 +22,44 @@
   <body>
     
   <div class="toast-container" id="toast-container"></div>
-<div class="overlay" id="overlay"></div>
 
   <div class="top-bar">
-  <div class="left">
-    <!-- Кнопка бокового меню -->
-    <button
-      class="toggle-btn"
-      id="toggle-btn"
-      data-bs-toggle="tooltip"
-      data-bs-placement="top"
-      title="Открыть Боковое меню"
-    >
-      <i class="fas fa-bars"></i>
-    </button>
-
-    <div
-      class="app-version-label version-container"
-      id="app-version-label"
-      data-bs-toggle="tooltip"
-      data-bs-placement="bottom"
-      title="Версия приложения"
-    >
-      <i class="fas fa-bolt fa-beat-fade"></i>
-      <span class="version">v<span id="app-version">?</span></span>
+  <div class="top-bar__left">
+    <div class="brand-chip">
+      <img
+        src="../assets/icons/thunder-logo.png"
+        alt="Логотип Thunder Load"
+        loading="lazy"
+      />
+      <div class="brand-meta">
+        <span class="brand-title">Thunder</span>
+        <div
+          class="app-version-label version-container"
+          id="app-version-label"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Версия приложения"
+        >
+          <i class="fas fa-bolt fa-beat-fade"></i>
+          <span class="version">v<span id="app-version">?</span></span>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="center-menu">
-      <!-- Меню вкладок -->
+  <div class="top-bar__center">
+    <div class="center-menu" role="tablist" aria-label="Навигация по разделам">
       <div class="group-menu"></div>
     </div>
   </div>
-  <div class="right">
-    <div class="window-controls">
+
+  <div class="top-bar__right">
+    <div class="quick-actions">
       <button
         class="menu-item"
         id="open-history"
         data-bs-toggle="tooltip"
-        data-bs-placement="top"
+        data-bs-placement="bottom"
         title="История загрузок"
         data-hotkey="Ctrl+H"
       >
@@ -72,7 +72,7 @@
         class="menu-item"
         id="shortcuts-button"
         data-bs-toggle="tooltip"
-        data-bs-placement="top"
+        data-bs-placement="bottom"
         title="Горячие клавиши"
         data-hotkey="Ctrl+P"
       >
@@ -85,7 +85,7 @@
         class="menu-item"
         id="settings-button"
         data-bs-toggle="tooltip"
-        data-bs-placement="top"
+        data-bs-placement="bottom"
         title="Настройки"
         data-hotkey="Ctrl+,"
       >
@@ -93,15 +93,31 @@
           <i class="fa-solid fa-gear"></i>
         </span>
       </button>
+
+      <button
+        class="menu-item"
+        id="open-github"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="Открыть репозиторий на GitHub"
+      >
+        <span class="menu-main">
+          <i class="fa-brands fa-github"></i>
+        </span>
+      </button>
+
       <button
         id="reload-app"
         data-bs-toggle="tooltip"
-        data-bs-placement="top"
+        data-bs-placement="bottom"
         title="Обновить окно"
         data-hotkey="Ctrl+R"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
       </button>
+    </div>
+
+    <div class="window-controls">
       <button
         class="btn-minimize"
         title="Свернуть"
@@ -114,6 +130,7 @@
       </button>
     </div>
   </div>
+
   <div
     id="top-download-progress"
     class="top-download-progress"
@@ -202,194 +219,6 @@
   </div>
 </header>
 
-  <!-- Sidebar -->
-<aside class="sidebar" id="sidebar" role="navigation" aria-label="Боковое меню">
-  <!-- Панель действий сайдбара: закрепить/закрыть -->
-  <div class="sidebar-actions">
-    <button
-      class="pin-btn"
-      id="collapse-sidebar"
-      aria-label="Закрепить меню"
-      data-bs-toggle="tooltip"
-      data-bs-placement="right"
-      title="Закрепить/открепить меню"
-    >
-      <i class="fa-solid fa-thumbtack"></i>
-    </button>
-    <button
-      class="pin-btn"
-      id="compact-sidebar"
-      aria-label="Свернуть в компактный вид"
-      data-bs-toggle="tooltip"
-      data-bs-placement="right"
-      title="Свернуть/развернуть меню (компактный режим)"
-    >
-      <i class="fa-solid fa-compress"></i>
-    </button>
-    <button class="close-btn" id="close-btn" aria-label="Закрыть меню">
-      <i class="fa-solid fa-angles-left"></i>
-    </button>
-  </div>
-
-  <div class="logo-container">
-    <img src="../assets/icons/thunder-logo.png" alt="Логотип Thunder Load" class="logo" loading="lazy" />
-    <span class="logo-text">Thunder Load</span>
-  </div>
-
-  <div class="sidebar-group" id="sidebar-nav">
-    <div
-      class="sidebar-title"
-      role="button"
-      tabindex="0"
-      data-group="nav"
-      aria-controls="group-nav"
-      aria-expanded="true"
-    >
-      Навигация
-    </div>
-    <div class="sidebar-collapse" id="group-nav">
-      <button
-        class="sidebar-item"
-        data-tab="download"
-        data-id="download"
-        title="Downloader"
-        data-bs-toggle="tooltip"
-        data-bs-placement="right"
-        data-hotkey="Ctrl+1"
-      >
-        <i class="fa-solid fa-download"></i>
-        <span>Downloader</span>
-      </button>
-      <button
-        class="sidebar-item"
-        data-tab="wireguard"
-        data-id="wireguard"
-        title="WG Unlock"
-        data-bs-toggle="tooltip"
-        data-bs-placement="right"
-        data-hotkey="Ctrl+2"
-      >
-        <i class="fa-solid fa-unlock-keyhole"></i>
-        <span>WG Unlock</span>
-      </button>
-      <button
-        class="sidebar-item"
-        data-tab="backup"
-        data-id="backup"
-        title="Backup"
-        data-bs-toggle="tooltip"
-        data-bs-placement="right"
-        data-hotkey="Ctrl+3"
-      >
-        <i class="fa-solid fa-box-archive"></i>
-        <span>Backup</span>
-      </button>
-      <button
-        class="sidebar-item"
-        id="sb-open-history"
-        data-id="history"
-        title="История загрузок"
-        data-bs-toggle="tooltip"
-        data-bs-placement="right"
-        data-hotkey="Ctrl+H"
-      >
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span>История</span>
-        <span class="badge" id="sb-history-count">0</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Иконки видео-сервисов -->
-  <div class="sidebar-group" id="sidebar-services">
-    <div
-      class="sidebar-title"
-      role="button"
-      tabindex="0"
-      data-group="services"
-      aria-controls="group-services"
-      aria-expanded="true"
-    >
-      Сервисы
-    </div>
-    <div class="sidebar-collapse" id="group-services">
-      <nav class="social-links">
-        <div class="icon-links">
-          <a
-            href="https://www.youtube.com"
-            data-link="https://www.youtube.com"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="YouTube"
-            data-hotkey="Ctrl+Shift+1"
-            aria-label="YouTube"
-          >
-            <i class="fab fa-youtube"></i>
-          </a>
-          <a
-            href="https://www.twitch.tv"
-            data-link="https://www.twitch.tv"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Twitch"
-            data-hotkey="Ctrl+Shift+2"
-            aria-label="Twitch"
-          >
-            <i class="fab fa-twitch"></i>
-          </a>
-          <a
-            href="https://vkvideo.ru"
-            data-link="https://vkvideo.ru"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="VK Video"
-            data-hotkey="Ctrl+Shift+3"
-            aria-label="VK"
-          >
-            <i class="fab fa-vk"></i>
-          </a>
-          <a
-            href="https://www.coub.com"
-            data-link="https://www.coub.com"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Coub"
-            data-hotkey="Ctrl+Shift+4"
-            aria-label="Coub"
-          >
-            <i class="fas fa-video"></i>
-          </a>
-        </div>
-      </nav>
-    </div>
-  </div>
-
-  <div class="sidebar-footer" id="sidebar-others">
-    <div
-      class="sidebar-title"
-      role="button"
-      tabindex="0"
-      data-group="others"
-      aria-controls="group-others"
-      aria-expanded="true"
-    >
-      Прочее
-    </div>
-    <div class="sidebar-collapse" id="group-others">
-      <button
-        id="open-github"
-        class="sidebar-item"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Репозиторий приложения"
-      >
-        <i class="fa-brands fa-github"></i>
-        <span>GitHub</span>
-      </button>
-    </div>
-  </div>
-</aside>
-
   <!-- Группа кнопок -->
 <nav class="button-group" aria-label="Основные действия">
   <!-- Кнопка открытия последнего видео -->
@@ -411,7 +240,6 @@
     <button id="download-button" class="large-button btn btn-lg btn-primary" disabled aria-disabled="true">
       <i class="fas fa-download"></i>
       <span class="button-text">Скачать</span>
-      <div class="shine"></div>
     </button>
 
     <!-- Кнопка отмены скачивания -->
@@ -631,7 +459,7 @@
     <div class="history-cards-header">
       <div>
         <p class="history-cards-subtitle">Недавние загрузки</p>
-        <h3 class="history-cards-title">История загрузок</h3>
+        <h3 class="history-cards-title">История</h3>
       </div>
       <div class="history-cards-search history-actions">
         <div class="history-search-wrapper history-input-wrapper">
@@ -691,10 +519,9 @@
       </div>
     </div>
     <div id="history" role="list"></div>
-    <div id="empty-history" class="empty-history">История загрузок не содержит данных.</div>
     <div id="history-cards" class="history-card-grid" role="list"></div>
     <div id="history-cards-empty" class="history-cards-empty">
-      Недавних загрузок пока нет.
+      Список пуст
     </div>
   </div>
 </section>
@@ -704,42 +531,52 @@
         <!-- Confirmation Modal -->
       <div
         id="confirmation-modal"
-        class="modal-overlay"
+        class="modal-overlay confirmation-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-title"
         aria-describedby="confirmation-message"
       >
         <div class="modal-content">
-          <div class="modal-header">
-            <h2 id="confirmation-title">Подтверждение действия</h2>
+          <div class="modal-header confirmation-header">
+            <div class="confirmation-title-block">
+              <div class="confirmation-icon" aria-hidden="true">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <p id="confirmation-subtitle" class="confirmation-subtitle">
+                  Подтверждение
+                </p>
+                <h2 id="confirmation-title">Подтверждение действия</h2>
+              </div>
+            </div>
             <button class="close-modal" aria-label="Закрыть">&times;</button>
           </div>
-          <div class="modal-body">
-            <hr />
-            <p
+          <div class="modal-body confirmation-body">
+            <div
               id="confirmation-message"
-              class="confirmation-message toast-warning"
-            ></p>
+              class="confirmation-message"
+              role="document"
+            ></div>
           </div>
-          <div class="modal-footer">
-            <button
-              class="confirm-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Да"
-              aria-label="Да"
-            >
-              <i class="fa-solid fa-check"></i>
-            </button>
+          <div class="modal-footer confirmation-footer">
             <button
               class="cancel-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Нет"
-              aria-label="Нет"
+              title="Отмена"
+              aria-label="Отмена"
             >
-              <i class="fa-solid fa-xmark"></i>
+              Отмена
+            </button>
+            <button
+              class="confirm-button"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Подтвердить"
+              aria-label="Подтвердить"
+            >
+              Подтвердить
             </button>
           </div>
         </div>
@@ -777,6 +614,9 @@
               </button>
               <button class="tab-link" data-tab="backup-settings">
                 <i class="fa-solid fa-box-archive"></i>Backup
+              </button>
+              <button class="tab-link" data-tab="randomizer-settings">
+                <i class="fa-solid fa-shuffle"></i>Randomizer
               </button>
               <button class="tab-link" data-tab="appearance-settings">
                 <i class="fa-solid fa-palette"></i>Внешний вид
@@ -883,6 +723,18 @@
                     <label for="settings-tab-backup">
                       <i class="fa-solid fa-box-archive"></i>
                       <strong>Backup</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select">
+                    <input
+                      type="radio"
+                      id="settings-tab-randomizer"
+                      name="defaultTab"
+                      value="randomizer"
+                    />
+                    <label for="settings-tab-randomizer">
+                      <i class="fa-solid fa-shuffle"></i>
+                      <strong>Randomizer</strong>
                     </label>
                   </li>
                 </ul>
@@ -1157,6 +1009,24 @@
                 </ul>
               </div>
 
+              <div id="randomizer-settings" class="tab-pane">
+                <h2>Вкладка «Randomizer»</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="randomizer-disable-toggle" checked />
+                    <label
+                      for="randomizer-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку Randomizer и отключает все её элементы управления."
+                    >
+                      <i class="fa-solid fa-shuffle"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
               <!-- Appearance Settings Tab -->
               <div id="appearance-settings" class="tab-pane">
                 <h2>Внешний вид приложения</h2>
@@ -1177,6 +1047,7 @@
                         <li data-value="dark">Dark</li>
                         <li data-value="midnight">Midnight</li>
                         <li data-value="sunset">Sunset</li>
+                        <li data-value="violet">Violet</li>
                       </ul>
                     </div>
                     <button
@@ -1390,16 +1261,16 @@
                 <strong>Ctrl + 3</strong>
                 <p><i class="fa-solid fa-box-archive"></i> Вкладка «Backup»</p>
               </li>
-              <hr />
-              <li>
-                <strong>Ctrl + B</strong>
-                <p><i class="fas fa-bars"></i> Боковое меню</p>
-              </li>
-              <li>
-                <strong>Ctrl + H</strong>
-                <p>
-                  <i class="fa-solid fa-clock-rotate-left"></i> История загрузок
-                </p>
+            <li>
+              <strong>Ctrl + 4</strong>
+              <p><i class="fa-solid fa-shuffle"></i> Вкладка «Randomizer»</p>
+            </li>
+            <hr />
+            <li>
+              <strong>Ctrl + H</strong>
+              <p>
+                <i class="fa-solid fa-clock-rotate-left"></i> История загрузок
+              </p>
               </li>
               <li>
                 <strong>Ctrl + K</strong>

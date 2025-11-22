@@ -31,6 +31,9 @@
               <button class="tab-link" data-tab="backup-settings">
                 <i class="fa-solid fa-box-archive"></i>Backup
               </button>
+              <button class="tab-link" data-tab="randomizer-settings">
+                <i class="fa-solid fa-shuffle"></i>Randomizer
+              </button>
               <button class="tab-link" data-tab="appearance-settings">
                 <i class="fa-solid fa-palette"></i>Внешний вид
               </button>
@@ -136,6 +139,18 @@
                     <label for="settings-tab-backup">
                       <i class="fa-solid fa-box-archive"></i>
                       <strong>Backup</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select">
+                    <input
+                      type="radio"
+                      id="settings-tab-randomizer"
+                      name="defaultTab"
+                      value="randomizer"
+                    />
+                    <label for="settings-tab-randomizer">
+                      <i class="fa-solid fa-shuffle"></i>
+                      <strong>Randomizer</strong>
                     </label>
                   </li>
                 </ul>
@@ -410,6 +425,24 @@
                 </ul>
               </div>
 
+              <div id="randomizer-settings" class="tab-pane">
+                <h2>Вкладка «Randomizer»</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="randomizer-disable-toggle" checked />
+                    <label
+                      for="randomizer-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку Randomizer и отключает все её элементы управления."
+                    >
+                      <i class="fa-solid fa-shuffle"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
               <!-- Appearance Settings Tab -->
               <div id="appearance-settings" class="tab-pane">
                 <h2>Внешний вид приложения</h2>
@@ -430,6 +463,7 @@
                         <li data-value="dark">Dark</li>
                         <li data-value="midnight">Midnight</li>
                         <li data-value="sunset">Sunset</li>
+                        <li data-value="violet">Violet</li>
                       </ul>
                     </div>
                     <button
