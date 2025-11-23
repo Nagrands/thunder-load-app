@@ -45,6 +45,28 @@ export default function renderDownloader(wrapper) {
         </div>
       </div>`;
 
+    // Tools readiness status (yt-dlp / ffmpeg)
+    const toolsStatus = document.createElement("div");
+    toolsStatus.className = "downloader-tools-status";
+    toolsStatus.innerHTML = `
+      <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
+        <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
+        <span id="dl-tools-text">Проверяем инструменты…</span>
+        <div class="tool-badges" id="dl-tools-badges"></div>
+      </div>
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm"
+        id="dl-tools-reinstall"
+        title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
+        data-bs-toggle="tooltip"
+      >
+        <i class="fa-solid fa-arrow-rotate-right"></i>
+        <span>Переустановить</span>
+      </button>
+    `;
+    hdr.appendChild(toolsStatus);
+
     // Compose sections in order
     glass.appendChild(hdr);
     if (headerEl) glass.appendChild(headerEl);

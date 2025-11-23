@@ -49,6 +49,7 @@ import { initClipboardHandler } from "./modules/clipboardHandler.js";
 import { initInterfaceHandlers } from "./modules/interfaceHandlers.js";
 import { initSettingsModal } from "./modules/settingsModal.js";
 import { initUpdateHandler } from "./modules/updateHandler.js";
+import { initDownloaderToolsStatus } from "./modules/downloaderToolsStatus.js";
 // import { updateProgressBar }              from "./modules/updateHandler.js";
 
 import { initializeTheme } from "./modules/themeManager.js";
@@ -140,6 +141,7 @@ async function startRenderer() {
       () => {
         // Build "glass" layout for downloader from existing elements once
         renderDownloaderView(downloaderWrapper);
+        initDownloaderToolsStatus();
         return downloaderWrapper;
       },
       { onShow: () => showHistory(true), onHide: () => showHistory(false) },

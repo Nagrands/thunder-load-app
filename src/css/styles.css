@@ -17351,6 +17351,56 @@ video {
   opacity: 0.8;
 }
 
+.downloader-tools-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+.downloader-tools-status .status-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--border-radius);
+  font-size: 13px;
+  line-height: 1.2;
+  border: 1px solid var(--color-hover);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-quality);
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.08s ease;
+}
+.downloader-tools-status .status-line:hover {
+  transform: translateY(-1px);
+}
+.downloader-tools-status .status-line.is-ok {
+  border-color: var(--color-hover);
+  color: var(--color-highlight);
+  background-color: rgba(18, 97, 33, 0.12);
+}
+.downloader-tools-status .status-line.is-error {
+  border-color: #d9534f;
+  background: rgba(217, 83, 79, 0.12);
+  color: #ffa657;
+}
+.downloader-tools-status .status-line.is-loading {
+  border-color: rgba(var(--color-accent-rgb), 0.5);
+  color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.08);
+}
+.downloader-tools-status #dl-tools-reinstall {
+  margin-left: auto;
+  white-space: nowrap;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 10px;
+}
+.downloader-tools-status #dl-tools-reinstall.hidden {
+  display: none;
+}
+
 .download-quality-modal {
   display: none;
   align-items: center;

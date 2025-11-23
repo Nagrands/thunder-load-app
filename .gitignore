@@ -39,7 +39,8 @@ pnpm-lock.yaml
 dist/
 bin/
 build/
-docs/
+
+__tests__/
 
 # ─── Environment & Local Config ────────────────────────────
 .env
@@ -47,6 +48,7 @@ docs/
 .env.*.local
 *.local.config
 *.dev.config
+*.cjs
 
 # ─── Obsidian ──────────────────────────────────────────────
 .obsidian/

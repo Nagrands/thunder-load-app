@@ -60,6 +60,56 @@
   }
 }
 
+.downloader-tools-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+
+  .status-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--color-quality);
+
+    &.is-ok {
+      color: var(--color-highlight);
+    }
+
+    &.is-error {
+      color: #ffa657;
+    }
+
+    &.is-loading {
+      color: #ffc107;
+    }
+
+    .tool-badges {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+  }
+
+  #dl-tools-reinstall {
+    margin-left: auto;
+    white-space: nowrap;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-hover);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 10px;
+
+    &.hidden {
+      display: none;
+    }
+  }
+}
+
 .download-quality-modal {
   display: none;
   align-items: center;

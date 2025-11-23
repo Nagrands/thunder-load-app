@@ -120,6 +120,57 @@ function cmpFfSemver(latest, current) {
 }
 
 /**
+ * Унифицированная сводка состояния инструментов: наличие и строки версий.
+ * Используется и в настройках, и в шапке Downloader.
+ * @param {object} res результат tools.getVersions()
+ * @returns {{state:'ok'|'error', hasAll:boolean, missing:string[], text:string, versions:{yt?:string, ff?:string, deno?:string}, details:Array<{id:'yt'|'ff'|'deno', label:string, ok:boolean, version:string|null, skip?:boolean}>}}
+ */
+export function summarizeToolsState(res) {
+  const yt = res?.ytDlp;
+  const ff = res?.ffmpeg;
+  const dn = res?.deno;
+
+  const hasYt = !!(yt?.ok && yt?.path);
+  const hasFf = !!(ff?.ok && ff?.path);
+  const hasDn = !!(dn?.ok && dn?.path);
+
+  const ytVer = hasYt
+    ? firstLine(yt.version || "").replace(/^v/i, "")
+    : null;
+  const ffVer = hasFf
+    ? firstLine(ff.version || "").replace(/^ffmpeg version\s*/i, "").split(" ")[0]
+    : null;
+  const dnVer = hasDn ? formatDenoVersion(dn.version || "") : null;
+
+  const versions = { yt: ytVer, ff: ffVer, deno: dnVer };
+
+  const missing = [];
+  if (!hasYt) missing.push("yt-dlp");
+  if (!hasFf) missing.push("ffmpeg");
+  if (!hasDn) missing.push("Deno");
+
+  const details = [
+    { id: "yt", label: "yt-dlp", ok: hasYt, version: ytVer },
+    { id: "ff", label: "ffmpeg", ok: hasFf, version: ffVer, skip: ff?.skipUpdates },
+    { id: "deno", label: "Deno", ok: hasDn, version: dnVer },
+  ];
+
+  if (!missing.length) {
+    const ffNote = ff?.skipUpdates ? " (macOS)" : "";
+    const text = `Готово: yt-dlp ${ytVer || "—"}, ffmpeg ${ffVer || "—"}${ffNote}, Deno ${dnVer || "—"}`;
+    return { state: "ok", hasAll: true, missing, text, versions, details };
+  }
+  return {
+    state: "error",
+    hasAll: false,
+    missing,
+    text: `Не найдено: ${missing.join(", ")}`,
+    versions,
+    details,
+  };
+}
+
+/**
  * Запуск «аниматора точек» у кнопки (… → …)
  * @param {HTMLElement} labelEl
  * @param {string} base
