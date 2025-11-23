@@ -38,7 +38,7 @@ async function handleOpenFolder() {
         );
       } else {
         showToast(
-          "Последний файл не найден. Открываю текущую папку загрузок…",
+          "Последний файл не найден. Откройте текущую папку загрузок.",
           "warning",
         );
         await openCurrentDownloadDir();
@@ -71,13 +71,13 @@ async function handleOpenLastVideo() {
           "Failed to open last video:",
           result ? result.error : "Unknown error",
         );
-        showToast("Ошибка открытия последнего видео.", "error");
+        showToast("Не удалось открыть последнее видео.", "error");
       } else {
         console.log("Последнее видео успешно открыто.");
       }
     } catch (error) {
       console.error("Error opening last video:", error);
-      showToast("Ошибка открытия последнего видео.", "error");
+      showToast("Не удалось открыть последнее видео.", "error");
     }
   } else {
     console.warn("No last downloaded file path found.");
@@ -94,11 +94,11 @@ async function handleSelectDownloadFolder() {
     if (result.success) {
       // Тост приходит из события "download-path-changed"; здесь ничего не делаем
     } else {
-      showToast("Выбор папки был отменен.", "warning");
+      showToast("Выбор папки отменён.", "warning");
     }
   } catch (error) {
     console.error("Error selecting folder:", error);
-    showToast("Ошибка при выборе папки.", "error");
+    showToast("Не удалось выбрать папку.", "error");
   }
 }
 

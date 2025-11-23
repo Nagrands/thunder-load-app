@@ -89,8 +89,8 @@ async function fetchStatus() {
 
 async function reinstallTools() {
   if (!window.electron?.tools?.installAll) {
-    showToast("Перестановка недоступна в этой сборке.", "warning");
-    setState("error", "Перестановка недоступна");
+    showToast("Переустановка недоступна в этой сборке.", "warning");
+    setState("error", "Переустановка недоступна");
     return;
   }
   if (isLoading) return;

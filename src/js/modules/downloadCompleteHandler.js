@@ -40,7 +40,7 @@ function initDownloadCompleteHandler() {
             await window.electron.invoke("open-last-video", filePath);
           } catch (error) {
             console.error("Error opening last video:", error);
-            showToast("Ошибка открытия последнего видео.", "error");
+            showToast("Не удалось открыть последнее видео.", "error");
           }
         },
       );

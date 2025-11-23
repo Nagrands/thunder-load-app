@@ -326,10 +326,7 @@ const downloadVideo = async (url, quality) => {
       showToast(`Загрузка в процессе — ${summary}.`, "info");
     } else {
       console.error("Ошибка при загрузке видео:", error);
-      showToast(
-        "Не удалось загрузить видео. Пожалуйста, попробуйте еще раз.",
-        "error",
-      );
+      showToast("Не удалось загрузить. Повторите попытку.", "error");
     }
     // На ошибке — вернём исходный URL в поле (если меняли)
     try {
@@ -397,7 +394,7 @@ const handleDownloadButtonClick = async (options = {}) => {
     (u) => isValidUrl(u) && isSupportedUrl(u),
   );
   if (validUrls.length === 0) {
-    showToast("Пожалуйста, введите корректный URL.", "warning");
+    showToast("Введите корректный URL.", "warning");
     return;
   }
 
@@ -440,7 +437,7 @@ const handleDownloadButtonClick = async (options = {}) => {
   if (state.isDownloading || options.enqueueOnly) {
     const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
     if (nCurr === normalizeUrl(url)) {
-      showToast("Этот URL уже загружается.", "warning");
+      showToast("URL уже загружается.", "warning");
       return;
     }
     if (
@@ -448,11 +445,11 @@ const handleDownloadButtonClick = async (options = {}) => {
         (item) => normalizeUrl(item.url) === normalizeUrl(url),
       )
     ) {
-      showToast("Этот URL уже есть в очереди.", "info");
+      showToast("URL уже есть в очереди.", "info");
       return;
     }
     state.downloadQueue.push({ url, quality: selection });
-    showToast("Добавлено в очередь загрузки.", "info");
+    showToast("Добавлено в очередь.", "info");
     urlInput.value = "";
     try {
       urlInput.dispatchEvent(new Event("input", { bubbles: true }));

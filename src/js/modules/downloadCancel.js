@@ -21,7 +21,7 @@ function initDownloadCancel() {
       if (result.success) {
         showToast("Загрузка отменена.", "warning");
       } else {
-        showToast("Ошибка при отмене загрузки: " + result.error, "error");
+        showToast("Не удалось отменить загрузку.", "error");
       }
 
       urlInput.value = "";

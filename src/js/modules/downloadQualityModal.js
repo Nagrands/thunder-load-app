@@ -436,7 +436,7 @@ function selectBestFromTab(tab) {
 function selectBestVideoOption(showWarning = false) {
   const ok = selectBestFromTab("video");
   if (!ok && showWarning) {
-    showToast("Варианты с видео недоступны для этой ссылки.", "warning");
+    showToast("Видео варианты недоступны для этой ссылки.", "warning");
   }
   return ok;
 }
@@ -491,7 +491,7 @@ function bindEvents() {
 
 async function openDownloadQualityModal(url, opts = {}) {
   if (!modal) {
-    showToast("Окно выбора качества недоступно.", "error");
+    showToast("Не удалось открыть выбор качества.", "error");
     return null;
   }
   bindEvents();
@@ -521,7 +521,7 @@ async function openDownloadQualityModal(url, opts = {}) {
       if (state.forceAudio || state.defaultQuality === "Audio Only") {
         const audioSelected = selectBestFromTab("audio");
         if (!audioSelected) {
-          showToast("Аудио форматы недоступны для этой ссылки.", "warning");
+          showToast("Аудио варианты недоступны для этой ссылки.", "warning");
           selectBestVideoOption();
         } else if (state.forceAudio) {
           confirmSelection();
