@@ -441,6 +441,26 @@ function selectBestVideoOption(showWarning = false) {
   return ok;
 }
 
+function selectByPreferredLabel(label) {
+  if (!label) return false;
+  const tabs = ["video", "video-only", "audio"];
+  for (const tab of tabs) {
+    const options = state.optionMap.get(tab) || [];
+    const match = options.find(
+      (opt) =>
+        opt?.payload?.label === label ||
+        opt?.title === label ||
+        opt?.payload?.resolution === label,
+    );
+    if (match) {
+      setActiveTab(tab);
+      selectOption(match);
+      return true;
+    }
+  }
+  return false;
+}
+
 function closeModal(result = null) {
   setModalOpen(false);
   resetModalState();
@@ -518,17 +538,25 @@ async function openDownloadQualityModal(url, opts = {}) {
       }
       const targetTab = state.forceAudio ? "audio" : "video";
       setActiveTab(targetTab);
-      if (state.forceAudio || state.defaultQuality === "Audio Only") {
-        const audioSelected = selectBestFromTab("audio");
-        if (!audioSelected) {
-          showToast("Аудио варианты недоступны для этой ссылки.", "warning");
-          selectBestVideoOption();
-        } else if (state.forceAudio) {
-          confirmSelection();
-        }
-      } else {
-        if (!selectBestVideoOption() && !selectBestFromTab("video-only")) {
-          selectBestFromTab("audio");
+      const preferredLabel = opts.preferredLabel || null;
+      let picked = false;
+      if (preferredLabel) {
+        picked = selectByPreferredLabel(preferredLabel);
+      }
+
+      if (!picked) {
+        if (state.forceAudio || state.defaultQuality === "Audio Only") {
+          const audioSelected = selectBestFromTab("audio");
+          if (!audioSelected) {
+            showToast("Аудио варианты недоступны для этой ссылки.", "warning");
+            selectBestVideoOption();
+          } else if (state.forceAudio) {
+            confirmSelection();
+          }
+        } else {
+          if (!selectBestVideoOption() && !selectBestFromTab("video-only")) {
+            selectBestFromTab("audio");
+          }
         }
       }
     } catch (error) {

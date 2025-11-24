@@ -16791,7 +16791,7 @@ hr {
 }
 
 .settings-section .module {
-  padding: 12px 0;
+  padding: 12px 6px;
 }
 
 .settings-section .module + .module {
@@ -17319,7 +17319,6 @@ video {
 }
 
 .downloader-header {
-  margin: 20px 0;
   position: relative;
 }
 .downloader-header .title {
@@ -17331,6 +17330,7 @@ video {
   padding: 12px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
 }
 .downloader-header .title i {
   font-size: 24px;
@@ -17353,49 +17353,63 @@ video {
 
 .downloader-tools-status {
   display: flex;
-  align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
-  padding: 6px 0;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px;
+  gap: 10px;
+}
+.downloader-tools-status.hidden {
+  display: none;
+}
+.downloader-tools-status #dl-tools-toggle {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-quality);
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+.downloader-tools-status #dl-tools-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-accent);
 }
 .downloader-tools-status .status-line {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  border-radius: var(--border-radius);
-  font-size: 13px;
+  padding: 0;
+  font-size: 12px;
   line-height: 1.2;
-  border: 1px solid var(--color-hover);
-  background: rgba(255, 255, 255, 0.05);
   color: var(--color-quality);
-  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.08s ease;
-}
-.downloader-tools-status .status-line:hover {
-  transform: translateY(-1px);
 }
 .downloader-tools-status .status-line.is-ok {
-  border-color: var(--color-hover);
   color: var(--color-highlight);
-  background-color: rgba(18, 97, 33, 0.12);
 }
 .downloader-tools-status .status-line.is-error {
-  border-color: #d9534f;
-  background: rgba(217, 83, 79, 0.12);
   color: #ffa657;
 }
 .downloader-tools-status .status-line.is-loading {
-  border-color: rgba(var(--color-accent-rgb), 0.5);
-  color: var(--color-accent);
-  background: rgba(var(--color-accent-rgb), 0.08);
+  color: #ffc107;
+}
+.downloader-tools-status .status-line .tool-badges {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .downloader-tools-status #dl-tools-reinstall {
   margin-left: auto;
   white-space: nowrap;
   border-radius: var(--border-radius);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 6px 10px;
+  border: 1px solid var(--color-hover);
+  background: var(--color-hover);
+  color: var(--color-highlight);
+  font-size: 14px;
 }
 .downloader-tools-status #dl-tools-reinstall.hidden {
   display: none;

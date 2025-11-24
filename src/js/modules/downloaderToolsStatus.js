@@ -3,16 +3,19 @@
 import { showToast } from "./toast.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { summarizeToolsState } from "./toolsInfo.js";
+import { openSettingsWithTab } from "./settingsModal.js";
 
 let isInitialized = false;
 let isLoading = false;
 
 const el = {
+  container: null,
   line: null,
   icon: null,
   text: null,
   reinstall: null,
   badges: null,
+  toggle: null,
 };
 
 const setBadges = (details = []) => {
@@ -71,8 +74,7 @@ async function fetchStatus() {
   try {
     const res = await window.electron.tools.getVersions();
     const summary = summarizeToolsState(res);
-    const msg =
-      summary.state === "ok" ? "Инструменты готовы" : summary.text;
+    const msg = summary.state === "ok" ? "Инструменты готовы" : summary.text;
     setState(summary.state, msg, summary.details);
     if (summary.state === "ok") {
       el.reinstall.classList.add("hidden");
@@ -88,42 +90,75 @@ async function fetchStatus() {
 }
 
 async function reinstallTools() {
-  if (!window.electron?.tools?.installAll) {
-    showToast("Переустановка недоступна в этой сборке.", "warning");
-    setState("error", "Переустановка недоступна");
-    return;
-  }
-  if (isLoading) return;
-  isLoading = true;
-  el.reinstall.disabled = true;
-  setState("loading", "Переустанавливаем зависимости…");
-  try {
-    await window.electron.tools.installAll({ force: true });
-    showToast("Инструменты переустановлены", "success");
-  } catch (error) {
-    console.error("[downloaderToolsStatus] installAll failed:", error);
-    showToast(
-      "Не удалось переустановить инструменты. Проверьте логи.",
-      "error",
-    );
-    setState("error", "Ошибка переустановки");
-  } finally {
-    el.reinstall.disabled = false;
-    isLoading = false;
-    fetchStatus();
-  }
+  // Вместо фоновой переустановки открываем настройки с вкладкой Downloader,
+  // где есть полный менеджер инструментов.
+  openSettingsWithTab("window-settings");
 }
 
 function bindDom() {
+  el.container = document.querySelector(".downloader-tools-status");
   el.line = document.getElementById("dl-tools-status");
   el.icon = document.getElementById("dl-tools-icon");
   el.text = document.getElementById("dl-tools-text");
   el.reinstall = document.getElementById("dl-tools-reinstall");
   el.badges = document.getElementById("dl-tools-badges");
-  if (!el.line || !el.icon || !el.text || !el.reinstall || !el.badges)
+  el.toggle = document.getElementById("dl-tools-toggle");
+  if (
+    !el.container ||
+    !el.line ||
+    !el.icon ||
+    !el.text ||
+    !el.reinstall ||
+    !el.badges ||
+    !el.toggle
+  )
     return false;
 
+  // На случай старого состояния скрытия (display: none)
+  el.container.classList.remove("hidden");
+
+  const HIDDEN_KEY = "downloaderToolsStatusHidden";
+  try {
+    if (localStorage.getItem(HIDDEN_KEY) === "1") {
+      el.container.classList.add("hidden");
+    }
+  } catch {}
+
   el.reinstall.addEventListener("click", () => reinstallTools());
+  el.toggle.addEventListener("click", () => {
+    el.container.classList.add("hidden");
+    try {
+      localStorage.setItem(HIDDEN_KEY, "1");
+    } catch {}
+    window.dispatchEvent(
+      new CustomEvent("tools:visibility", { detail: { hidden: true } }),
+    );
+  });
+  window.addEventListener("tools:visibility", (ev) => {
+    const hidden = ev?.detail?.hidden === true;
+    el.container.classList.toggle("hidden", hidden);
+    try {
+      if (hidden) localStorage.setItem(HIDDEN_KEY, "1");
+      else localStorage.removeItem(HIDDEN_KEY);
+    } catch {}
+    if (!hidden) fetchStatus();
+  });
+  // Слушаем broadcast от блока настроек, чтобы обновлять UI после переустановки
+  window.addEventListener("tools:status", (ev) => {
+    const summary = ev?.detail?.summary;
+    if (summary) {
+      const msg =
+        summary.state === "ok" ? "Инструменты готовы" : summary.text;
+      setState(summary.state, msg, summary.details);
+      if (summary.state === "ok") {
+        el.reinstall.classList.add("hidden");
+      } else {
+        el.reinstall.classList.remove("hidden");
+      }
+    } else {
+      fetchStatus();
+    }
+  });
   return true;
 }
 

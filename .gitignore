@@ -40,15 +40,12 @@ dist/
 bin/
 build/
 
-__tests__/
-
 # ─── Environment & Local Config ────────────────────────────
 .env
 .env.local
 .env.*.local
 *.local.config
 *.dev.config
-*.cjs
 
 # ─── Obsidian ──────────────────────────────────────────────
 .obsidian/

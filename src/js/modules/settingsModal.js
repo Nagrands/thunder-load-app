@@ -66,6 +66,21 @@ export function openSettings() {
   window.addEventListener("keydown", trapHandler, true);
 }
 
+function activateSettingsTab(tabId) {
+  if (!tabId) return;
+  const tabLinks = document.querySelectorAll(".tab-link");
+  tabLinks.forEach((btn) => {
+    if (btn.dataset.tab === tabId) {
+      btn.click();
+    }
+  });
+}
+
+export function openSettingsWithTab(tabId) {
+  openSettings();
+  setTimeout(() => activateSettingsTab(tabId), 0);
+}
+
 export function closeSettings() {
   if (!settingsModal) return;
   settingsModal.style.display = "none";
@@ -135,10 +150,7 @@ export function initSettingsModal() {
     // Восстанавливаем вкладку при открытии
     const savedTab = localStorage.getItem("lastSettingsTab");
     if (savedTab) {
-      const buttonToActivate = document.querySelector(
-        `.tab-link[data-tab="${savedTab}"]`,
-      );
-      if (buttonToActivate) buttonToActivate.click();
+      activateSettingsTab(savedTab);
     }
   }
 

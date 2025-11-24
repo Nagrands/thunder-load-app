@@ -11,18 +11,14 @@
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(
-        80% 60% at 50% 40%,
+      radial-gradient(80% 60% at 50% 40%,
         rgba(0, 0, 0, 0) 60%,
-        rgba(0, 0, 0, 0.35) 100%
-      ),
-      linear-gradient(
-        180deg,
+        rgba(0, 0, 0, 0.35) 100%),
+      linear-gradient(180deg,
         rgba(0, 0, 0, 0.35) 0%,
         rgba(0, 0, 0, 0.15) 25%,
         rgba(0, 0, 0, 0.15) 75%,
-        rgba(0, 0, 0, 0.35) 100%
-      ),
+        rgba(0, 0, 0, 0.35) 100%),
       url("../../assets/img/bg-downloader.jpeg") center/cover no-repeat;
     opacity: 0.58;
     z-index: -1;
@@ -31,11 +27,11 @@
 }
 
 .downloader-header {
-  margin: 20px 0;
   position: relative;
 
   .title {
     @include header-style;
+    margin-bottom: 20px;
 
     i {
       font-size: 24px;
@@ -62,10 +58,36 @@
 
 .downloader-tools-status {
   display: flex;
-  align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
-  padding: 6px 0;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px;
+  gap: 10px;
+
+  &.hidden {
+    display: none;
+  }
+
+  #dl-tools-toggle {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    display: inline-grid;
+    place-items: center;
+    color: var(--color-quality);
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease,
+      color 0.16s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-accent);
+    }
+  }
 
   .status-line {
     display: inline-flex;
@@ -101,8 +123,9 @@
     white-space: nowrap;
     border-radius: var(--border-radius);
     border: 1px solid var(--color-hover);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px 10px;
+    background: var(--color-hover);
+    color: var(--color-highlight);
+    font-size: 14px;
 
     &.hidden {
       display: none;
@@ -476,18 +499,14 @@
 @media (max-width: 620px) {
   .downloader-view::after {
     background:
-      radial-gradient(
-        80% 60% at 50% 40%,
+      radial-gradient(80% 60% at 50% 40%,
         rgba(0, 0, 0, 0) 60%,
-        rgba(0, 0, 0, 0.28) 100%
-      ),
-      linear-gradient(
-        180deg,
+        rgba(0, 0, 0, 0.28) 100%),
+      linear-gradient(180deg,
         rgba(0, 0, 0, 0.25) 0%,
         rgba(0, 0, 0, 0.08) 25%,
         rgba(0, 0, 0, 0.08) 75%,
-        rgba(0, 0, 0, 0.25) 100%
-      ),
+        rgba(0, 0, 0, 0.25) 100%),
       url("../../assets/img/bg-downloader.jpeg") center/cover no-repeat;
   }
 }

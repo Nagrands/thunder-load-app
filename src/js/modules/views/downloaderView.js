@@ -56,10 +56,18 @@ export default function renderDownloader(wrapper) {
       </div>
       <button
         type="button"
-        class="btn btn-ghost btn-sm"
+        id="dl-tools-toggle"
+        title="Скрыть статус"
+        data-bs-toggle="tooltip"
+        aria-label="Скрыть статус инструментов"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <button
+        type="button"
         id="dl-tools-reinstall"
         title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
-        data-bs-toggle="tooltip"
+      data-bs-toggle="tooltip"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
         <span>Переустановить</span>

@@ -727,6 +727,39 @@
               <!-- Window Settings Tab -->
               <div id="window-settings" class="tab-pane">
                 <h2>Вкладка «Downloader»</h2>
+                    <ul class="module default-tab-group" id="quality-profile-group">
+                      <p>
+                        <h3>Выбор качества загрузки по умолчанию</h3>
+                    <small class="muted"
+                      >Применяется при открытии окна выбора качества.</small
+                    >
+                        </p>
+                      <li>
+                        <input
+                          type="radio"
+                          id="quality-profile-remember"
+                          name="downloadQualityProfile"
+                          value="remember"
+                          checked
+                        />
+                        <label for="quality-profile-remember">
+                          <i class="fa-solid fa-rotate"></i>
+                          <strong>Запоминать последний выбор</strong>
+                        </label>
+                      </li>
+                      <li>
+                        <input
+                          type="radio"
+                          id="quality-profile-audio"
+                          name="downloadQualityProfile"
+                          value="audio"
+                        />
+                        <label for="quality-profile-audio">
+                          <i class="fa-solid fa-music"></i>
+                          <strong>Только Audio</strong>
+                        </label>
+                      </li>
+                    </ul>
                 <ul class="module">
                   <li>
                     <input
@@ -756,7 +789,19 @@
                       завершения загрузки
                     </label>
                   </li>
+                  <li>
+                    <input
+                      type="checkbox"
+                      id="settings-show-tools-status"
+                      checked
+                    />
+                    <label for="settings-show-tools-status">
+                      <i class="fa-solid fa-eye"></i>
+                      Показывать статус инструментов
+                    </label>
+                  </li>
                 </ul>
+
                 <section id="tools-info" class="settings-section">
                   <h2>Инструменты</h2>
                   <div class="module tools-location">

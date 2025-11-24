@@ -170,6 +170,33 @@ export function summarizeToolsState(res) {
   };
 }
 
+function emitToolsStatus(res) {
+  try {
+    const summary = summarizeToolsState(res || {});
+    window.dispatchEvent(
+      new CustomEvent("tools:status", { detail: { summary, raw: res } }),
+    );
+  } catch (e) {
+    console.warn("[toolsInfo] emitToolsStatus failed:", e);
+  }
+}
+
+/**
+ * Единый хелпер для переустановки всех инструментов (yt-dlp, ffmpeg, Deno).
+ * Используется как в настройках, так и в шапке Downloader.
+ * @param {object} options
+ * @returns {Promise<any>}
+ */
+export async function installAllTools(options = {}) {
+  if (!window.electron?.tools?.installAll) {
+    throw new Error("installAll недоступен в этой сборке");
+  }
+  return window.electron.tools.installAll({
+    force: true,
+    ...options,
+  });
+}
+
 /**
  * Запуск «аниматора точек» у кнопки (… → …)
  * @param {HTMLElement} labelEl
@@ -1036,9 +1063,11 @@ export async function renderToolsInfo() {
     if (!missing) {
       triggerBackgroundToolsUpdateCheck(res);
     }
+    emitToolsStatus(res);
   } catch (e) {
     if (hintEl) hintEl.textContent = "Не удалось получить версии инструментов.";
     console.error("[toolsInfo] getVersions failed:", e);
+    emitToolsStatus(null);
   }
 
   try {

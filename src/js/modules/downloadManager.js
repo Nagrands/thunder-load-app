@@ -178,11 +178,49 @@ function updateQueueDisplay() {
 
 let lastInputBeforeDownload = null;
 let lastChosenQuality = null;
+let lastChosenQualityLabel = null;
 
 const getQualityLabel = (quality) => {
   if (!quality) return "Source";
   if (typeof quality === "string") return quality;
   return quality.label || "Custom";
+};
+
+const QUALITY_PROFILE_KEY = "downloadQualityProfile";
+const QUALITY_LAST_KEY = "downloadLastQuality";
+const QUALITY_PROFILE_DEFAULT = "remember";
+
+const readQualityProfile = () => {
+  try {
+    return (
+      window.localStorage.getItem(QUALITY_PROFILE_KEY) ||
+      QUALITY_PROFILE_DEFAULT
+    );
+  } catch {
+    return QUALITY_PROFILE_DEFAULT;
+  }
+};
+
+const readLastQuality = () => {
+  try {
+    return window.localStorage.getItem(QUALITY_LAST_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+
+const persistLastQuality = (quality) => {
+  try {
+    if (quality) window.localStorage.setItem(QUALITY_LAST_KEY, quality);
+  } catch {}
+};
+
+const resolvePresetQuality = () => {
+  const profile = readQualityProfile();
+  if (profile === "audio") return "Audio Only";
+  if (profile === "best") return "Source";
+  const remembered = lastChosenQualityLabel || readLastQuality();
+  return remembered || "Source";
 };
 
 const downloadVideo = async (url, quality) => {
@@ -403,11 +441,15 @@ const handleDownloadButtonClick = async (options = {}) => {
     const first = validUrls[0];
     const rest = validUrls.slice(1);
     const selection = await openDownloadQualityModal(first, {
-      presetQuality: lastChosenQuality,
+      presetQuality: resolvePresetQuality(),
+      preferredLabel: lastChosenQualityLabel || readLastQuality(),
       forceAudioOnly: options.forceAudioOnly,
     });
     if (!selection) return;
     lastChosenQuality = selection;
+    lastChosenQualityLabel =
+      typeof selection === "string" ? selection : selection.label || null;
+    persistLastQuality(lastChosenQualityLabel);
 
     if (state.isDownloading || options.enqueueOnly) {
       const res = enqueueMany(validUrls, selection, options);
@@ -429,11 +471,15 @@ const handleDownloadButtonClick = async (options = {}) => {
   // Один URL
   const url = validUrls[0];
   const selection = await openDownloadQualityModal(url, {
-    presetQuality: lastChosenQuality,
+    presetQuality: resolvePresetQuality(),
+    preferredLabel: lastChosenQualityLabel || readLastQuality(),
     forceAudioOnly: options.forceAudioOnly,
   });
   if (!selection) return;
   lastChosenQuality = selection;
+  lastChosenQualityLabel =
+    typeof selection === "string" ? selection : selection.label || null;
+  persistLastQuality(lastChosenQualityLabel);
   if (state.isDownloading || options.enqueueOnly) {
     const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
     if (nCurr === normalizeUrl(url)) {
@@ -489,4 +535,5 @@ export {
   handleDownloadButtonClick,
   initDownloadButton,
   updateQueueDisplay,
+  resolvePresetQuality,
 };

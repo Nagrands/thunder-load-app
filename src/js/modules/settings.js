@@ -27,6 +27,9 @@ import { getLowEffects, setLowEffects } from "./effectsMode.js";
 let toolsInfoRendered = false;
 let toolsRenderPromise = null;
 
+const QUALITY_PROFILE_KEY = "downloadQualityProfile";
+const QUALITY_PROFILE_DEFAULT = "remember"; // remember | best | audio
+
 /**
  * Функция для инициализации настроек
  */
@@ -40,6 +43,52 @@ async function initSettings() {
       window.electron.invoke("open-config-folder");
     });
   }
+
+  // Downloader: профиль качества по умолчанию
+  (function initDownloadQualityProfile() {
+    const radios = document.querySelectorAll(
+      'input[name="downloadQualityProfile"]',
+    );
+    if (!radios || !radios.length) return;
+
+    const read = () => {
+      try {
+        return (
+          localStorage.getItem(QUALITY_PROFILE_KEY) || QUALITY_PROFILE_DEFAULT
+        );
+      } catch {
+        return QUALITY_PROFILE_DEFAULT;
+      }
+    };
+    const write = (val) => {
+      const v = val || QUALITY_PROFILE_DEFAULT;
+      try {
+        localStorage.setItem(QUALITY_PROFILE_KEY, v);
+      } catch {}
+      window.electron
+        ?.invoke?.("toast", "Профиль качества сохранён.", "success")
+        .catch(() => {});
+    };
+
+    const apply = (val) => {
+      radios.forEach((r) => {
+        r.checked = r.value === val;
+      });
+    };
+
+    const current = read();
+    apply(current);
+
+    radios.forEach((r) =>
+      r.addEventListener("change", () => {
+        if (r.checked) write(r.value);
+      }),
+    );
+
+    window.electron.on("open-settings", () => {
+      apply(read());
+    });
+  })();
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");
   const fontSizeDropdownMenu = document.getElementById(
     "font-size-dropdown-menu",
@@ -1241,6 +1290,35 @@ async function initSettings() {
   window.addEventListener("settings:opened", () => {
     ensureToolsInfo(false);
   });
+
+  // Переключатель отображения статуса инструментов в шапке Downloader
+  (function initToolsStatusVisibilityToggle() {
+    const checkbox = document.getElementById("settings-show-tools-status");
+    if (!checkbox) return;
+    const KEY = "downloaderToolsStatusHidden";
+    const syncFromStore = () => {
+      try {
+        checkbox.checked = localStorage.getItem(KEY) !== "1";
+      } catch {
+        checkbox.checked = true;
+      }
+    };
+    syncFromStore();
+    checkbox.addEventListener("change", () => {
+      const hidden = !checkbox.checked;
+      try {
+        if (hidden) localStorage.setItem(KEY, "1");
+        else localStorage.removeItem(KEY);
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("tools:visibility", { detail: { hidden } }),
+      );
+    });
+    window.addEventListener("tools:visibility", (ev) => {
+      const hidden = ev?.detail?.hidden === true;
+      checkbox.checked = !hidden;
+    });
+  })();
 
   // === Tools location (yt-dlp, ffmpeg) — UI bindings ===
   (function initToolsLocationControls() {
