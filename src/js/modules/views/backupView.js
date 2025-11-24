@@ -15,12 +15,15 @@ import { initTooltips } from "../tooltipInitializer.js";
  */
 
 /**
- * @typedef {Object} BackupState
- * @property {BackupProgram[]} programs          - Current list of backup presets.
- * @property {Record<string, number>} lastTimes  - Map: preset name → timestamp (ms) of last successful backup.
- * @property {string} filter                     - Text filter (applied to name/source/destination).
- * @property {boolean} autoscroll                - If true, the log autoscrolls to bottom on updates.
- * @property {boolean} mono                      - If true, log uses monospace font.
+  * @typedef {Object} BackupState
+  * @property {BackupProgram[]} programs          - Current list of backup presets.
+  * @property {Record<string, number>} lastTimes  - Map: preset name → timestamp (ms) of last successful backup.
+  * @property {string} filter                     - Text filter (applied to name/source/destination).
+  * @property {"all"|"zip"|"tar.gz"} archiveFilter - Archive type filter.
+  * @property {number} page                      - Current page for pagination.
+  * @property {number} pageSize                  - Page size for pagination.
+  * @property {boolean} autoscroll                - If true, the log autoscrolls to bottom on updates.
+  * @property {boolean} mono                      - If true, log uses monospace font.
  */
 
 /**
@@ -144,7 +147,7 @@ export default function renderBackup() {
           <div class="bk-heading-search">
             <div class="bk-search-container">
               <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
-              <input type="text" id="bk-filter" placeholder="Поиск профиля, пути..." class="input" />
+              <input type="text" id="bk-filter" placeholder="Поиск профиля, тега, пути..." class="input" />
               <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск">
                 <i class="fa-solid fa-times"></i>
               </button>
@@ -166,6 +169,32 @@ export default function renderBackup() {
             </button>
           </div>
         </h1>
+
+        <div class="bk-filters-advanced">
+          <label class="bk-filter-control">
+            <span class="label">Тип архива</span>
+            <select id="bk-filter-archive" class="input input-sm">
+              <option value="all">Все</option>
+              <option value="zip">ZIP</option>
+              <option value="tar.gz">TAR.GZ</option>
+            </select>
+          </label>
+          <div class="bk-pagination">
+            <button id="bk-page-prev" class="history-action-button" title="Предыдущая страница">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span id="bk-page-info" class="text-xs muted">1 / 1</span>
+            <button id="bk-page-next" class="history-action-button" title="Следующая страница">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <select id="bk-page-size" class="input input-sm bk-page-size">
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+            </select>
+          </div>
+        </div>
           
         <div id="bk-list" class="bk-list space-y-2"></div>
 
@@ -488,12 +517,17 @@ export default function renderBackup() {
 
   const filterInput = container.querySelector("#bk-filter");
   const clearFilterBtn = container.querySelector("#bk-clear-filter");
+  const archiveFilterSelect = container.querySelector("#bk-filter-archive");
+  const pagePrevBtn = container.querySelector("#bk-page-prev");
+  const pageNextBtn = container.querySelector("#bk-page-next");
+  const pageSizeSelect = container.querySelector("#bk-page-size");
 
   if (filterInput) {
     filterInput.addEventListener(
       "input",
       debounce(() => {
         state.filter = filterInput.value.trim();
+        state.page = 1;
         renderList();
       }, 150),
     );
@@ -503,8 +537,42 @@ export default function renderBackup() {
     clearFilterBtn.addEventListener("click", () => {
       filterInput.value = "";
       state.filter = "";
+      state.page = 1;
       renderList();
       filterInput.focus();
+    });
+  }
+
+  if (archiveFilterSelect) {
+    archiveFilterSelect.addEventListener("change", () => {
+      state.archiveFilter = archiveFilterSelect.value || "all";
+      state.page = 1;
+      renderList();
+    });
+  }
+
+  if (pagePrevBtn) {
+    pagePrevBtn.addEventListener("click", () => {
+      if (state.page > 1) {
+        state.page -= 1;
+        renderList();
+      }
+    });
+  }
+
+  if (pageNextBtn) {
+    pageNextBtn.addEventListener("click", () => {
+      state.page += 1;
+      renderList();
+    });
+  }
+
+  if (pageSizeSelect) {
+    pageSizeSelect.addEventListener("change", () => {
+      const size = Math.max(3, Number(pageSizeSelect.value) || 10);
+      state.pageSize = size;
+      state.page = 1;
+      renderList();
     });
   }
 
@@ -832,6 +900,9 @@ export default function renderBackup() {
     programs: [],
     lastTimes: {},
     filter: "",
+    archiveFilter: "all",
+    page: 1,
+    pageSize: 10,
     autoscroll: (() => {
       try {
         return JSON.parse(localStorage.getItem("bk_log_autoscroll") || "true");
@@ -972,7 +1043,12 @@ export default function renderBackup() {
     try {
       const res = await invoke("backup:getPrograms");
       if (!res?.success) throw new Error(res?.error || "load failed");
-      state.programs = res.programs || [];
+      state.programs = (res.programs || []).map((p) => ({
+        ...p,
+        tags: Array.isArray(p?.tags)
+          ? p.tags.filter(Boolean)
+          : parseTags(p?.tags || ""),
+      }));
       const t = await invoke("backup:getLastTimes");
       state.lastTimes = t?.success ? t.map || t.data || {} : {};
       renderList();
@@ -1002,16 +1078,45 @@ export default function renderBackup() {
     if (!root || !state.programs) return;
     root.innerHTML = "";
 
-    const filtered = state.filter
-      ? state.programs.filter((p) => {
-          const q = state.filter.toLowerCase();
-          return (
-            (p.name || "").toLowerCase().includes(q) ||
-            (p.source_path || "").toLowerCase().includes(q) ||
-            (p.backup_path || "").toLowerCase().includes(q)
-          );
-        })
-      : state.programs;
+    const matchesArchive =
+      state.archiveFilter === "all"
+        ? () => true
+        : (p) =>
+            (p.archive_type || "zip").toLowerCase() ===
+            state.archiveFilter.toLowerCase();
+
+    const filtered = state.programs.filter((p) => {
+      const q = state.filter.toLowerCase();
+      const normalizeTags = (tags) =>
+        (Array.isArray(tags) ? tags : parseTags(tags || "")).map((t) =>
+          t.toLowerCase(),
+        );
+      const matchesSearch = q
+        ? (p.name || "").toLowerCase().includes(q) ||
+          (p.source_path || "").toLowerCase().includes(q) ||
+          (p.backup_path || "").toLowerCase().includes(q) ||
+          normalizeTags(p.tags).some((t) => t.includes(q))
+        : true;
+      return matchesSearch && matchesArchive(p);
+    });
+
+    const pageSize = Math.max(3, Number(state.pageSize) || 10);
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    if (state.page > totalPages) state.page = totalPages;
+    if (state.page < 1) state.page = 1;
+    const start = (state.page - 1) * pageSize;
+    const paged = filtered.slice(start, start + pageSize);
+
+    const pageInfo = getEl("#bk-page-info");
+    if (pageInfo) pageInfo.textContent = `${state.page} / ${totalPages}`;
+    const prevBtn = getEl("#bk-page-prev");
+    const nextBtn = getEl("#bk-page-next");
+    if (prevBtn) prevBtn.disabled = state.page <= 1;
+    if (nextBtn) nextBtn.disabled = state.page >= totalPages;
+    const sizeSel = getEl("#bk-page-size");
+    if (sizeSel && sizeSel.value !== String(pageSize)) {
+      sizeSel.value = String(pageSize);
+    }
 
     // Update counts badge
     const cnt = getEl("#bk-count");
@@ -1025,7 +1130,10 @@ export default function renderBackup() {
 
     const sinfo = getEl("#bk-search-info");
     if (sinfo) {
-      sinfo.textContent = state.filter ? `найдено: ${filtered.length}` : "";
+      const anyFilter = state.filter || state.archiveFilter !== "all";
+      sinfo.textContent = anyFilter
+        ? `найдено: ${filtered.length}`
+        : "";
     }
 
     // Handle empty state
@@ -1057,7 +1165,7 @@ export default function renderBackup() {
       selAll.indeterminate = false;
     }
 
-    filtered.forEach((p, index) => {
+    paged.forEach((p, index) => {
       const idx = state.programs.indexOf(p);
       const key = profileKey(p);
       const locked = lockedProfiles.has(key);
@@ -1149,6 +1257,19 @@ export default function renderBackup() {
   }
 
   /**
+   * Parse comma/semicolon-separated tags into normalized array.
+   * @param {string} input
+   * @returns {string[]}
+   */
+  function parseTags(input) {
+    if (!input) return [];
+    return input
+      .split(/[,;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  /**
    * Parse comma-separated patterns string into a normalized string array.
    * @param {string} input
    * @returns {string[]}
@@ -1216,8 +1337,13 @@ export default function renderBackup() {
           backup_path: "",
           profile_path: "",
           config_patterns: [],
+          tags: [],
         }
       : JSON.parse(JSON.stringify(state.programs[idx]));
+
+    if (!Array.isArray(init.tags)) {
+      init.tags = parseTags(init.tags || "");
+    }
 
     if (!isNew) {
       const key = profileKey(init);
@@ -1255,6 +1381,7 @@ export default function renderBackup() {
                   <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
                 </select>
             </label>
+            ${renderField("Теги", "f-tags", (init.tags || []).join(","), "Через запятую: games,configs", false)}
             ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
             ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
           </div>
@@ -1694,7 +1821,7 @@ export default function renderBackup() {
       });
     });
 
-    ["#f-prof", "#f-pats"].forEach((fid) => {
+    ["#f-prof", "#f-pats", "#f-tags"].forEach((fid) => {
       const el = q(fid);
       el?.addEventListener("input", () => {
         updatePreview();
@@ -1821,6 +1948,7 @@ export default function renderBackup() {
       const prof = q("#f-prof")?.value?.trim();
       const pats = q("#f-pats")?.value?.trim();
       const archiveType = q("#f-archive-type")?.value;
+      const tags = parseTags(q("#f-tags")?.value);
 
       const checkPathClass = (val, required) => {
         if (!val) return required ? "invalid-path" : "optional-path";
@@ -1848,6 +1976,10 @@ export default function renderBackup() {
 
       if (pats) {
         lines.push(`<div><strong>Фильтры</strong>: ${pats}</div>`);
+      }
+
+      if (tags && tags.length) {
+        lines.push(`<div><strong>Теги</strong>: ${tags.join(", ")}</div>`);
       }
 
       if (archiveType) {
@@ -1905,6 +2037,7 @@ export default function renderBackup() {
       const profile_path = q("#f-prof").value.trim();
       const config_patterns = parsePatterns(q("#f-pats").value);
       const archive_type = q("#f-archive-type").value;
+      const tags = parseTags(q("#f-tags").value);
 
       const saveBtn = q("#bk-save");
       if (saveBtn) {
@@ -1962,6 +2095,7 @@ export default function renderBackup() {
         profile_path,
         config_patterns,
         archive_type,
+        tags,
       };
 
       if (isNew) {
@@ -2330,6 +2464,7 @@ export default function renderBackup() {
   if (filterInput) {
     const onFilterInput = debounce(() => {
       state.filter = filterInput.value.trim();
+      state.page = 1;
       renderList();
     }, 120);
 
