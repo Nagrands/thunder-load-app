@@ -209,6 +209,12 @@
   color: var(--color-quality);
 }
 
+.randomizer-list-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .randomizer-list {
   display: flex;
   flex-wrap: wrap;
@@ -227,12 +233,51 @@
   padding: 8px 14px;
   font-size: 0.95rem;
   color: var(--color-text-main);
+  cursor: grab;
+  user-select: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    transform 0.1s ease;
 
   .text {
     max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &.selected {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px rgba(128, 140, 255, 0.35);
+    background: rgba(128, 140, 255, 0.08);
+  }
+
+  &.dragging {
+    opacity: 0.85;
+    cursor: grabbing;
+    transform: scale(1.02);
+  }
+
+  &.drop-target {
+    border-style: dashed;
+    border-color: var(--color-accent);
+  }
+
+  .chip-edit-input {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 4px 8px;
+    color: var(--color-text-main);
+    min-width: 220px;
+    outline: none;
+
+    &:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px rgba(128, 140, 255, 0.2);
+    }
   }
 }
 

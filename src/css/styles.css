@@ -20922,6 +20922,12 @@ h1.section-heading .bk-heading-search #bk-search-info {
   color: var(--color-quality);
 }
 
+.randomizer-list-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .randomizer-list {
   display: flex;
   flex-wrap: wrap;
@@ -20940,12 +20946,42 @@ h1.section-heading .bk-heading-search #bk-search-info {
   padding: 8px 14px;
   font-size: 0.95rem;
   color: var(--color-text-main);
+  cursor: grab;
+  user-select: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.1s ease;
 }
 .randomizer-chip .text {
   max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.randomizer-chip.selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px rgba(128, 140, 255, 0.35);
+  background: rgba(128, 140, 255, 0.08);
+}
+.randomizer-chip.dragging {
+  opacity: 0.85;
+  cursor: grabbing;
+  transform: scale(1.02);
+}
+.randomizer-chip.drop-target {
+  border-style: dashed;
+  border-color: var(--color-accent);
+}
+.randomizer-chip .chip-edit-input {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: var(--color-text-main);
+  min-width: 220px;
+  outline: none;
+}
+.randomizer-chip .chip-edit-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(128, 140, 255, 0.2);
 }
 
 .chip-remove {

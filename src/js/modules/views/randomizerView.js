@@ -19,6 +19,7 @@ const DEFAULT_ITEMS = [
 ];
 
 const MAX_HISTORY = 15;
+const MAX_ITEM_LENGTH = 160;
 
 const cloneValue = (value) =>
   Array.isArray(value)
@@ -57,6 +58,7 @@ export default function renderRandomizerView() {
     noRepeat: true,
   });
   let pool = readJson(STORAGE_KEYS.POOL, []);
+  let selectedItems = new Set();
   if (!Array.isArray(pool)) pool = [];
   else pool = pool.filter((entry) => items.includes(entry));
   if (!pool.length) pool = [...items];
@@ -128,9 +130,14 @@ export default function renderRandomizerView() {
         <div class="randomizer-divider"></div>
         <div class="randomizer-list-header">
           <span id="randomizer-count">0 вариантов</span>
-          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
-            <i class="fa-solid fa-copy"></i>
-          </button>
+          <div class="randomizer-list-actions">
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-delete-selected" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить выбранные варианты">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </div>
         <div id="randomizer-list" class="randomizer-list" aria-live="polite"></div>
       </section>
@@ -188,6 +195,7 @@ export default function renderRandomizerView() {
   const resultMeta = wrapper.querySelector("#randomizer-result-meta");
   const resultCard = wrapper.querySelector(".randomizer-result-card");
   const resultContainer = wrapper.querySelector("#randomizer-result");
+  const bulkDeleteButton = wrapper.querySelector("#randomizer-delete-selected");
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -218,7 +226,125 @@ export default function renderRandomizerView() {
     saveJson(STORAGE_KEYS.SETTINGS, settings);
   };
 
+  const pruneSelection = () => {
+    selectedItems = new Set(
+      [...selectedItems].filter((value) => items.includes(value)),
+    );
+  };
+
+  const updateBulkActions = () => {
+    pruneSelection();
+    if (bulkDeleteButton) {
+      bulkDeleteButton.disabled = selectedItems.size === 0;
+      bulkDeleteButton.classList.toggle("hidden", items.length === 0);
+      const label = bulkDeleteButton.querySelector("span");
+      if (label) {
+        label.textContent =
+          selectedItems.size > 0
+            ? `Удалить (${selectedItems.size})`
+            : "Удалить выбранные";
+      }
+    }
+  };
+
+  const toggleSelection = (value, chipEl) => {
+    if (selectedItems.has(value)) {
+      selectedItems.delete(value);
+      chipEl?.classList.remove("selected");
+    } else {
+      selectedItems.add(value);
+      chipEl?.classList.add("selected");
+    }
+    updateBulkActions();
+  };
+
+  const replaceItemValue = (oldValue, newValue) => {
+    const trimmed = newValue.trim();
+    if (!trimmed) {
+      showToast("Текст не может быть пустым", "warning");
+      return false;
+    }
+    if (trimmed.length > MAX_ITEM_LENGTH) {
+      showToast("Слишком длинный текст", "warning");
+      return false;
+    }
+    const duplicate = items.some(
+      (entry) =>
+        entry.toLowerCase() === trimmed.toLowerCase() &&
+        entry.toLowerCase() !== oldValue.toLowerCase(),
+    );
+    if (duplicate) {
+      showToast("Такой вариант уже есть", "info");
+      return false;
+    }
+    const idx = items.indexOf(oldValue);
+    if (idx === -1) return false;
+    items.splice(idx, 1, trimmed);
+
+    if (selectedItems.has(oldValue)) {
+      selectedItems.delete(oldValue);
+      selectedItems.add(trimmed);
+    }
+    persistItems();
+    renderItems();
+    return true;
+  };
+
+  const startInlineEdit = (chipEl, value) => {
+    if (!chipEl || chipEl.dataset.editing === "1") return;
+    chipEl.dataset.editing = "1";
+    const textEl = chipEl.querySelector(".text");
+    if (!textEl) return;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "chip-edit-input";
+    input.value = value;
+    input.maxLength = MAX_ITEM_LENGTH;
+    chipEl.classList.add("editing");
+    textEl.replaceWith(input);
+    input.focus();
+    input.select();
+
+    const finish = (commit) => {
+      chipEl.classList.remove("editing");
+      chipEl.dataset.editing = "0";
+      if (commit) {
+        const ok = replaceItemValue(value, input.value);
+        if (ok) return;
+      }
+      const newText = document.createElement("span");
+      newText.className = "text";
+      newText.textContent = value;
+      input.replaceWith(newText);
+    };
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        finish(true);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        finish(false);
+      }
+    });
+
+    input.addEventListener("blur", () => finish(true));
+  };
+
+  const moveItem = (fromValue, toValue) => {
+    if (!fromValue || !toValue || fromValue === toValue) return;
+    const fromIndex = items.indexOf(fromValue);
+    const toIndex = items.indexOf(toValue);
+    if (fromIndex === -1 || toIndex === -1) return;
+    const [moved] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, moved);
+    persistItems();
+    renderItems();
+  };
+
   const renderItems = () => {
+    pruneSelection();
     listEl.innerHTML = "";
     if (!items.length) {
       const empty = document.createElement("p");
@@ -226,16 +352,23 @@ export default function renderRandomizerView() {
       empty.textContent = "Пока нет вариантов. Добавьте несколько элементов.";
       listEl.appendChild(empty);
       setCountLabel();
+      updateBulkActions();
       return;
     }
 
     const fragment = document.createDocumentFragment();
+    let dragSource = null;
+
     items.forEach((item) => {
       const chip = document.createElement("div");
       chip.className = "randomizer-chip";
+      chip.draggable = true;
+      chip.dataset.value = item;
+
       const text = document.createElement("span");
       text.className = "text";
       text.textContent = item;
+
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "chip-remove";
@@ -243,14 +376,59 @@ export default function renderRandomizerView() {
       remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
       remove.addEventListener("click", () => {
         items = items.filter((value) => value !== item);
+        selectedItems.delete(item);
         persistItems();
         renderItems();
       });
+
       chip.append(text, remove);
+
+      chip.addEventListener("click", (event) => {
+        if (event.detail > 1) return;
+        if (event.target.closest(".chip-remove")) return;
+        if (event.target.classList.contains("chip-edit-input")) return;
+        toggleSelection(item, chip);
+      });
+
+      chip.addEventListener("dblclick", () => startInlineEdit(chip, item));
+
+      chip.addEventListener("dragstart", (event) => {
+        dragSource = item;
+        chip.classList.add("dragging");
+        event.dataTransfer?.setData("text/plain", item);
+        event.dataTransfer?.setDragImage(chip, 10, 10);
+      });
+
+      chip.addEventListener("dragend", () => {
+        dragSource = null;
+        chip.classList.remove("dragging");
+        chip.classList.remove("drop-target");
+      });
+
+      chip.addEventListener("dragover", (event) => {
+        if (!dragSource || dragSource === item) return;
+        event.preventDefault();
+        chip.classList.add("drop-target");
+      });
+
+      chip.addEventListener("dragleave", () => {
+        chip.classList.remove("drop-target");
+      });
+
+      chip.addEventListener("drop", (event) => {
+        event.preventDefault();
+        chip.classList.remove("drop-target");
+        if (!dragSource || dragSource === item) return;
+        moveItem(dragSource, item);
+      });
+
+      if (selectedItems.has(item)) chip.classList.add("selected");
       fragment.appendChild(chip);
     });
+
     listEl.appendChild(fragment);
     setCountLabel();
+    updateBulkActions();
   };
 
   const renderHistory = () => {
@@ -308,6 +486,10 @@ export default function renderRandomizerView() {
     const normalized = value.trim();
     if (!normalized) {
       if (!silent) showToast("Введите текст варианта", "warning");
+      return;
+    }
+    if (normalized.length > MAX_ITEM_LENGTH) {
+      if (!silent) showToast("Слишком длинный вариант", "warning");
       return;
     }
     const exists = items.some(
@@ -408,6 +590,7 @@ export default function renderRandomizerView() {
     if (!items.length) return;
     if (confirm("Очистить все варианты? Действие нельзя отменить.")) {
       items = [];
+      selectedItems.clear();
       persistItems();
       renderItems();
       clearResult();
@@ -481,6 +664,29 @@ export default function renderRandomizerView() {
       resetPool();
       showToast("Пул без повторов обновлён", "success");
     });
+
+  bulkDeleteButton?.addEventListener("click", () => {
+    if (!selectedItems.size) {
+      showToast("Не выбрано ни одного варианта", "info");
+      return;
+    }
+    if (
+      !confirm(
+        `Удалить ${selectedItems.size} ${declOfNum(selectedItems.size, [
+          "вариант",
+          "варианта",
+          "вариантов",
+        ])}?`,
+      )
+    )
+      return;
+    items = items.filter((value) => !selectedItems.has(value));
+    selectedItems.clear();
+    persistItems();
+    renderItems();
+    clearResult();
+    showToast("Выбранные варианты удалены", "success");
+  });
 
   noRepeatToggle.checked = !!settings.noRepeat;
   noRepeatToggle.addEventListener("change", () => {
