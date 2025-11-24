@@ -89,8 +89,8 @@
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(18px);
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   gap: 16px;
 
@@ -303,13 +303,13 @@
   flex-wrap: wrap;
   gap: 12px;
   flex-direction: row;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .randomizer-chip {
   display: inline-flex;
-  align-items: center;
   gap: 10px;
+  flex: 1;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
@@ -318,11 +318,10 @@
   color: var(--color-text-main);
   cursor: grab;
   user-select: none;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease,
-    transform 0.1s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.1s ease;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
 
   .text {
     max-width: 280px;

@@ -11985,7 +11985,6 @@ body.is-mac .window-controls .btn-minimize {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-hover);
   border: none;
   border-radius: 8px;
   color: var(--color-text-main);
@@ -12073,9 +12072,8 @@ body.is-mac .window-controls .btn-minimize {
 
 /* Карточка предпросмотра для Downloader */
 #preview-card {
-  display: none; /* управление показом через JS */
-  /* По умолчанию — потоковый блок ПОД инпутом и на ширину поля + пресетов */
-  position: relative; /* чтобы абсолютные кнопки позиционировались относительно карточки */
+  display: none;
+  position: relative;
   margin-top: 14px;
   z-index: auto;
   width: 100%;
@@ -12083,11 +12081,9 @@ body.is-mac .window-controls .btn-minimize {
   border-radius: var(--border-radius);
   background: var(--color-hover);
   border: 1px solid var(--color-hover);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
   overflow: hidden; /* чтобы внутренние элементы не выходили за скругления */
   color: var(--color-text-main);
   gap: 12px;
-  backdrop-filter: blur(4px);
   align-items: center;
   display: grid;
   grid-template-columns: auto 1fr; /* превью + текст */
@@ -12882,7 +12878,6 @@ hr {
   grid-template-columns: auto 6fr auto auto;
   align-items: center;
   gap: var(--spacing-small);
-  background: var(--color-hover);
   padding: 12px;
   border-radius: 20px;
   margin: 12px 0 18px;
@@ -13234,7 +13229,7 @@ hr {
 .history-action-button {
   width: 38px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13334,8 +13329,6 @@ hr {
 .history-cards-search .history-search-actions .history-action-button {
   width: 34px;
   height: 32px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.9);
 }
 .history-cards-search .history-search-actions #history-header {
   min-width: 34px;
@@ -13385,7 +13378,6 @@ hr {
   background: rgba(0, 0, 0, 0.35);
   /* backdrop-filter: blur(12px); */
   border: 1px solid var(--color-hover);
-  box-shadow: 0 12px 30px rgba(5, 7, 18, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.4, 1), border-color 0.35s ease, background 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   min-height: 150px;
   opacity: 0;
@@ -17355,36 +17347,31 @@ video {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin: 10px;
-  gap: 10px;
+  gap: 25px;
 }
 .downloader-tools-status.hidden {
   display: none;
 }
 .downloader-tools-status #dl-tools-toggle {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
   display: inline-grid;
   place-items: center;
   color: var(--color-quality);
   transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
 .downloader-tools-status #dl-tools-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
   color: var(--color-accent);
 }
 .downloader-tools-status .status-line {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   padding: 0;
   font-size: 12px;
-  line-height: 1.2;
   color: var(--color-quality);
 }
 .downloader-tools-status .status-line.is-ok {
@@ -18731,7 +18718,7 @@ video {
   font-weight: 600;
   display: flex;
   gap: 8px;
-  align-items: flex-start;
+  align-items: center;
 }
 .backup-view .bk-preflight .pf-issue .pf-title i {
   margin-top: 2px;
@@ -19861,7 +19848,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 
 .bk-row {
-  --bk-row-bg: var(--color-bg-main);
+  --bk-row-bg: var(--color-hover);
   --bk-row-bg-hover: linear-gradient(120deg,
       rgba(60, 80, 130, 0.99) 0%,
       rgba(38, 48, 78, 0.99) 100%);
@@ -19887,7 +19874,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   user-select: none;
 }
 .bk-row:nth-child(even) {
-  background: var(--color-bg-secondary);
+  background: rgba(0, 0, 0, 0.3);
 }
 .bk-row:hover, .bk-row:focus-within {
   background: var(--bk-row-bg-hover);
@@ -20080,7 +20067,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   padding: 8px 14px;
   margin-bottom: 6px;
   border-radius: 6px;
-  background-color: var(--color-surface-2);
+  background-color: var(--color-hover);
   transition: background-color 0.2s ease;
 }
 .bk-row-compact:hover {
@@ -20621,9 +20608,8 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 10px;
   align-items: center;
   width: 100%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 100%);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem 1rem;
+  background: var(--color-hover);
+  padding: 0.3rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--color-hover);
   position: relative;
@@ -20974,8 +20960,8 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-radius: 24px;
   padding: 12px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(18px);
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   gap: 16px;
 }
@@ -21168,13 +21154,13 @@ h1.section-heading .bk-heading-search #bk-search-info {
   flex-wrap: wrap;
   gap: 12px;
   flex-direction: row;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .randomizer-chip {
   display: inline-flex;
-  align-items: center;
   gap: 10px;
+  flex: 1;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
@@ -21184,6 +21170,9 @@ h1.section-heading .bk-heading-search #bk-search-info {
   cursor: grab;
   user-select: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.1s ease;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
 }
 .randomizer-chip .text {
   max-width: 280px;

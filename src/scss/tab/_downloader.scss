@@ -64,21 +64,18 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin: 10px;
-  gap: 10px;
+  gap: 25px;
 
   &.hidden {
     display: none;
   }
 
   #dl-tools-toggle {
-    width: 26px;
-    height: 26px;
+    width: 18px;
+    height: 18px;
     padding: 0;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
     display: inline-grid;
     place-items: center;
     color: var(--color-quality);
@@ -88,7 +85,6 @@
       color 0.16s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
       color: var(--color-accent);
     }
   }
@@ -96,10 +92,9 @@
   .status-line {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     padding: 0;
     font-size: 12px;
-    line-height: 1.2;
     color: var(--color-quality);
 
     &.is-ok {

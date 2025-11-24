@@ -381,7 +381,7 @@
         font-weight: 600;
         display: flex;
         gap: 8px;
-        align-items: flex-start;
+        align-items: center;
 
         i {
           margin-top: 2px;
@@ -1636,7 +1636,7 @@ h1.section-heading {
 }
 
 .bk-row {
-  --bk-row-bg: var(--color-bg-main);
+  --bk-row-bg: var(--color-hover);
   --bk-row-bg-hover: linear-gradient(120deg,
       rgba(60, 80, 130, 0.99) 0%,
       rgba(38, 48, 78, 0.99) 100%);
@@ -1669,7 +1669,7 @@ h1.section-heading {
   user-select: none;
 
   &:nth-child(even) {
-    background: var(--color-bg-secondary);
+    background: rgba(0, 0, 0, 0.3);
   }
 
   &:hover,
@@ -1909,7 +1909,7 @@ h1.section-heading {
   padding: 8px 14px;
   margin-bottom: 6px;
   border-radius: 6px;
-  background-color: var(--color-surface-2);
+  background-color: var(--color-hover);
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -2589,12 +2589,8 @@ h1.section-heading {
   gap: 10px;
   align-items: center;
   width: 100%;
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.06) 50%,
-      rgba(255, 255, 255, 0.03) 100%);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem 1rem;
+  background: var(--color-hover);
+  padding: 0.3rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--color-hover);
   position: relative;

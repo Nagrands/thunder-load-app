@@ -77,8 +77,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  background: var(--color-hover);
   border: none;
   border-radius: 8px;
   color: var(--color-text-main);
@@ -170,27 +168,18 @@
 
 /* Карточка предпросмотра для Downloader */
 #preview-card {
-  display: none; /* управление показом через JS */
-  /* По умолчанию — потоковый блок ПОД инпутом и на ширину поля + пресетов */
-  position: relative; /* чтобы абсолютные кнопки позиционировались относительно карточки */
+  display: none;
+  position: relative;
   margin-top: 14px;
   z-index: auto;
   width: 100%;
-  // width: calc(100% - 120px);        /* 50px слева под иконку + 70px справа под кнопки */
-  // margin-left: 50px;
-  // margin-right: 70px;
-
   padding: 10px 44px 10px 12px; /* справа место под крестик */
   border-radius: var(--border-radius);
   background: var(--color-hover);
   border: 1px solid var(--color-hover);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
   overflow: hidden; /* чтобы внутренние элементы не выходили за скругления */
   color: var(--color-text-main);
   gap: 12px;
-  backdrop-filter: blur(4px);
   align-items: center;
   display: grid;
   grid-template-columns: auto 1fr; /* превью + текст */

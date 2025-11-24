@@ -129,6 +129,14 @@ export default function renderBackup() {
                   <i class="fa-solid fa-list-ol"></i>
                   <span class="bk-progress-text" id="bk-progress-total">0</span>
                 </span>
+                <span class="stat">
+                  <i class="fa-solid fa-database"></i>
+                  <span class="bk-progress-text" id="bk-progress-size">—</span>
+                </span>
+                <span class="stat">
+                  <i class="fa-solid fa-gauge-high"></i>
+                  <span class="bk-progress-text" id="bk-progress-speed">—</span>
+                </span>
                 <span class="bk-progress-text percentage" id="bk-progress-percent">0%</span>
               </div>
             </div>
@@ -2136,6 +2144,44 @@ export default function renderBackup() {
     queueMicrotask(() => initBackupTooltips());
   }
 
+  const formatBytes = (bytes) => {
+    const value = Number(bytes);
+    if (!Number.isFinite(value) || value < 0) return "—";
+    if (value === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const idx = Math.min(
+      Math.floor(Math.log(value) / Math.log(1024)),
+      units.length - 1,
+    );
+    const num = value / 1024 ** idx;
+    const rounded = num >= 10 ? num.toFixed(0) : num.toFixed(1);
+    return `${rounded} ${units[idx]}`;
+  };
+
+  const formatDuration = (ms) => {
+    const value = Number(ms);
+    if (!Number.isFinite(value) || value < 0) return "—";
+    if (value < 1000) return `${Math.round(value)} мс`;
+    const totalSec = value / 1000;
+    if (totalSec < 60) {
+      const rounded = totalSec >= 10 ? totalSec.toFixed(0) : totalSec.toFixed(1);
+      return `${rounded} с`;
+    }
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = Math.round(totalSec % 60);
+    return `${minutes} мин ${String(seconds).padStart(2, "0")} с`;
+  };
+
+  const formatSpeed = (bytes, ms) => {
+    const b = Number(bytes);
+    const t = Number(ms);
+    if (!Number.isFinite(b) || b <= 0) return "—";
+    if (!Number.isFinite(t) || t <= 0) return "—";
+    const perSec = b / (t / 1000);
+    if (!Number.isFinite(perSec) || perSec <= 0) return "—";
+    return `${formatBytes(perSec)}/s`;
+  };
+
   /**
    * Run backup for a subset of presets by indices.
    * @param {number[]} indices
@@ -2203,6 +2249,36 @@ export default function renderBackup() {
     const progressCurrent = getEl("#bk-progress-current");
     const progressTotal = getEl("#bk-progress-total");
     const progressPercent = getEl("#bk-progress-percent");
+    const progressSize = getEl("#bk-progress-size");
+    const progressSpeed = getEl("#bk-progress-speed");
+
+    let bytesDone = 0;
+    let durationDone = 0;
+
+    const resetProgressStats = () => {
+      if (progressSize) progressSize.textContent = "—";
+      if (progressSpeed) progressSpeed.textContent = "—";
+    };
+
+    const updateProgressStats = (result) => {
+      if (result?.success && Number(result.sizeBytes) > 0) {
+        bytesDone += Number(result.sizeBytes);
+      }
+      if (result?.success && Number(result.durationMs) > 0) {
+        durationDone += Number(result.durationMs);
+      }
+      if (progressSize) {
+        progressSize.textContent =
+          bytesDone > 0 ? formatBytes(bytesDone) : "—";
+      }
+      if (progressSpeed) {
+        const avgSpeed =
+          bytesDone > 0 && durationDone > 0
+            ? `${formatBytes(bytesDone / (durationDone / 1000))}/s`
+            : "—";
+        progressSpeed.textContent = avgSpeed;
+      }
+    };
 
     // Показываем и инициализируем прогресс-бар
     if (
@@ -2217,6 +2293,7 @@ export default function renderBackup() {
       progressTotal.textContent = String(list.length);
       progressPercent.textContent = "0%";
       progressBar.style.width = "0%";
+      resetProgressStats();
     }
 
     // Highlight running rows
@@ -2270,10 +2347,18 @@ export default function renderBackup() {
 
       // Process results
       let done = 0;
-      res.results.filter(Boolean).forEach((r) => {
+      const results = Array.isArray(res.results)
+        ? res.results.filter(Boolean)
+        : [];
+      results.forEach((r) => {
         const name = r.name || "Без имени";
         if (r.success) {
-          log(`✔ ${name}: ${r.zipPath || ""}`);
+          const sizeLabel = formatBytes(r.sizeBytes);
+          const durationLabel = formatDuration(r.durationMs);
+          const speedLabel = formatSpeed(r.sizeBytes, r.durationMs);
+          log(
+            `✔ ${name}: ${sizeLabel} за ${durationLabel} (${speedLabel}) → ${r.zipPath || "архив сохранён"}`,
+          );
         } else {
           log(`✖ ${name}: ${r.error || "неизвестная ошибка"}`);
         }
@@ -2286,11 +2371,21 @@ export default function renderBackup() {
           progressCurrent.textContent = String(done);
           progressPercent.textContent = percent + "%";
         }
+        updateProgressStats(r);
       });
+
+      if (bytesDone > 0) {
+        const totalDurationLabel = formatDuration(durationDone);
+        const avgSpeedLabel = formatSpeed(bytesDone, durationDone);
+        log(
+          `Итог: ${formatBytes(bytesDone)} за ${totalDurationLabel} (средняя скорость ${avgSpeedLabel})`,
+        );
+      }
 
       await load();
 
-      const successCount = res.results.filter((r) => r?.success).length;
+      const successCount = results.filter((r) => r?.success).length;
+      const failedCount = Math.max(0, list.length - successCount);
       if (successCount === list.length) {
         toast(
           `Backup успешно завершен для всех ${successCount} профилей`,
@@ -2298,7 +2393,7 @@ export default function renderBackup() {
         );
       } else {
         toast(
-          `Backup завершен: ${successCount} успешно, ${list.length - successCount} с ошибками`,
+          `Backup завершен: ${successCount} успешно, ${failedCount} с ошибками`,
           "error",
         );
       }

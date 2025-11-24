@@ -658,7 +658,20 @@ async function runBackup(program) {
       await fsp.unlink(finalZipTmp);
     });
     log.info(`[backup] Backup completed successfully for program: ${name}`);
-    return { zipPath: finalZipDst };
+    const archiveStats = await fsp.stat(finalZipDst).catch((err) => {
+      log.warn(
+        `[backup] Failed to stat archive '${finalZipDst}': ${err?.message || err}`,
+      );
+      return null;
+    });
+    const durationMs = Math.max(1, Date.now() - startTime);
+    const sizeBytes = archiveStats?.size ?? null;
+    const speedBytesPerSec =
+      sizeBytes && durationMs > 0 ? sizeBytes / (durationMs / 1000) : null;
+    log.info(
+      `[backup] Metrics for '${name}': size=${sizeBytes ?? "?"} bytes, duration=${durationMs}ms, speed=${speedBytesPerSec ? speedBytesPerSec.toFixed(2) : "?"} B/s`,
+    );
+    return { zipPath: finalZipDst, sizeBytes, durationMs, speedBytesPerSec };
   } catch (error) {
     log.error(
       `[backup] Backup failed for program: ${name} - ${error?.message || error}`,
