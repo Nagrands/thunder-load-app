@@ -20984,13 +20984,14 @@ h1.section-heading .bk-heading-search #bk-search-info {
   box-shadow: 0 0 0 2px rgba(128, 140, 255, 0.2);
 }
 .randomizer-chip .chip-weight {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 0 6px;
 }
 .randomizer-chip .chip-weight-slider {
-  width: 96px;
+  width: 120px;
   accent-color: var(--color-accent);
 }
 .randomizer-chip .chip-weight-number {
@@ -21010,6 +21011,19 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-chip .chip-weight-label {
   font-size: 0.85rem;
   color: var(--color-quality);
+}
+.randomizer-chip .chip-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.randomizer-chip .chip-stat {
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .chip-remove {

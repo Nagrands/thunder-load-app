@@ -281,14 +281,15 @@
   }
 
   .chip-weight {
-    display: inline-flex;
+    display: inline-grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 8px;
     padding: 0 6px;
   }
 
   .chip-weight-slider {
-    width: 96px;
+    width: 120px;
     accent-color: var(--color-accent);
   }
 
@@ -311,6 +312,21 @@
   .chip-weight-label {
     font-size: 0.85rem;
     color: var(--color-quality);
+  }
+
+  .chip-stats {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .chip-stat {
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
 

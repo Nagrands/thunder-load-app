@@ -60,6 +60,12 @@ const clampWeight = (raw) => {
   return Math.min(WEIGHT_MAX, Math.max(WEIGHT_MIN, Math.round(n)));
 };
 
+const clampHits = (raw) => {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.floor(n);
+};
+
 const normalizeItems = (rawItems) => {
   const list = Array.isArray(rawItems) ? rawItems : [];
   const seen = new Set();
@@ -76,11 +82,18 @@ const normalizeItems = (rawItems) => {
     const weight = clampWeight(
       typeof entry === "object" && entry !== null ? entry.weight : DEFAULT_WEIGHT,
     );
-    normalized.push({ value, weight });
+    const hits = clampHits(
+      typeof entry === "object" && entry !== null ? entry.hits : 0,
+    );
+    normalized.push({ value, weight, hits });
   });
 
   if (!normalized.length) {
-    return DEFAULT_ITEMS.map((value) => ({ value, weight: DEFAULT_WEIGHT }));
+    return DEFAULT_ITEMS.map((value) => ({
+      value,
+      weight: DEFAULT_WEIGHT,
+      hits: 0,
+    }));
   }
 
   return normalized;
@@ -453,6 +466,19 @@ export default function renderRandomizerView() {
       weightLabel.className = "chip-weight-label";
       weightLabel.textContent = `x${getItemWeight(item)}`;
 
+      const statWrap = document.createElement("div");
+      statWrap.className = "chip-stats";
+      const hitsEl = document.createElement("span");
+      hitsEl.className = "chip-stat";
+      hitsEl.textContent = `Выпадений: ${getItemHits(item)}`;
+      const inPoolCount = pool.filter((val) => val === item.value).length;
+      const poolEl = document.createElement("span");
+      poolEl.className = "chip-stat";
+      poolEl.textContent = settings.noRepeat
+        ? `В пуле: ${inPoolCount}`
+        : "В пуле: ∞";
+      statWrap.append(hitsEl, poolEl);
+
       const syncWeight = (nextWeight) => {
         const sanitized = clampWeight(nextWeight);
         if (sanitized === getItemWeight(item)) {
@@ -481,7 +507,7 @@ export default function renderRandomizerView() {
         syncWeight(event.target.value);
       });
       weightLabel.addEventListener("click", stopChipEvent);
-      weightWrap.append(weightSlider, weightNumber, weightLabel);
+      weightWrap.append(weightSlider, weightNumber, weightLabel, statWrap);
 
       const remove = document.createElement("button");
       remove.type = "button";
@@ -598,6 +624,7 @@ export default function renderRandomizerView() {
   };
 
   const getItemWeight = (item) => clampWeight(item?.weight ?? DEFAULT_WEIGHT);
+  const getItemHits = (item) => clampHits(item?.hits ?? 0);
 
   const pickWeightedItem = (candidates) => {
     const totalWeight = candidates.reduce(
@@ -631,6 +658,7 @@ export default function renderRandomizerView() {
       return;
     }
     const newItem = { value: normalized, weight: DEFAULT_WEIGHT };
+    newItem.hits = 0;
     items.push(newItem);
     pool.push(newItem.value);
     persistItems({ resetPool: false });
@@ -677,6 +705,8 @@ export default function renderRandomizerView() {
       }
 
       const value = picked.value;
+      picked.hits = getItemHits(picked) + 1;
+      persistItems({ resetPool: false });
       if (settings.noRepeat) {
         pool = pool.filter((entry) => entry !== value);
         savePool();
@@ -690,6 +720,7 @@ export default function renderRandomizerView() {
       }).format(Date.now());
       activateResultCard();
       addHistoryEntry(value);
+      renderItems();
     }, 350);
   };
 
