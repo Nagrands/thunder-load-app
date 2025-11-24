@@ -19,6 +19,9 @@ const DEFAULT_ITEMS = [
 ];
 
 const MAX_HISTORY = 15;
+const WEIGHT_MIN = 1;
+const WEIGHT_MAX = 10;
+const DEFAULT_WEIGHT = 1;
 const MAX_ITEM_LENGTH = 160;
 
 const cloneValue = (value) =>
@@ -51,8 +54,40 @@ const saveJson = (key, value) => {
   }
 };
 
+const clampWeight = (raw) => {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return DEFAULT_WEIGHT;
+  return Math.min(WEIGHT_MAX, Math.max(WEIGHT_MIN, Math.round(n)));
+};
+
+const normalizeItems = (rawItems) => {
+  const list = Array.isArray(rawItems) ? rawItems : [];
+  const seen = new Set();
+  const normalized = [];
+
+  list.forEach((entry) => {
+    const rawValue =
+      typeof entry === "string" ? entry : typeof entry?.value === "string" ? entry.value : "";
+    const value = rawValue.trim();
+    if (!value) return;
+    const key = value.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    const weight = clampWeight(
+      typeof entry === "object" && entry !== null ? entry.weight : DEFAULT_WEIGHT,
+    );
+    normalized.push({ value, weight });
+  });
+
+  if (!normalized.length) {
+    return DEFAULT_ITEMS.map((value) => ({ value, weight: DEFAULT_WEIGHT }));
+  }
+
+  return normalized;
+};
+
 export default function renderRandomizerView() {
-  let items = readJson(STORAGE_KEYS.ITEMS, DEFAULT_ITEMS);
+  let items = normalizeItems(readJson(STORAGE_KEYS.ITEMS, DEFAULT_ITEMS));
   let history = readJson(STORAGE_KEYS.HISTORY, []);
   let settings = readJson(STORAGE_KEYS.SETTINGS, {
     noRepeat: true,
@@ -60,8 +95,11 @@ export default function renderRandomizerView() {
   let pool = readJson(STORAGE_KEYS.POOL, []);
   let selectedItems = new Set();
   if (!Array.isArray(pool)) pool = [];
-  else pool = pool.filter((entry) => items.includes(entry));
-  if (!pool.length) pool = [...items];
+  else
+    pool = pool.filter((entry) =>
+      items.some((item) => item.value === entry),
+    );
+  if (!pool.length) pool = items.map((item) => item.value);
 
   const wrapper = document.createElement("div");
   wrapper.id = "randomizer-view";
@@ -136,6 +174,7 @@ export default function renderRandomizerView() {
             </button>
             <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-delete-selected" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить выбранные варианты">
               <i class="fa-solid fa-trash"></i>
+              <span>Удалить выбранные</span>
             </button>
           </div>
         </div>
@@ -208,14 +247,30 @@ export default function renderRandomizerView() {
           ])}`;
   };
 
-  const resetPool = () => {
-    pool = [...items];
+  const savePool = () => {
     saveJson(STORAGE_KEYS.POOL, pool);
   };
 
-  const persistItems = () => {
+  const normalizePool = () => {
+    pool = (Array.isArray(pool) ? pool : []).filter((value) =>
+      items.some((item) => item.value === value),
+    );
+    if (!pool.length) {
+      pool = items.map((item) => item.value);
+    }
+    savePool();
+  };
+
+  const resetPool = () => {
+    pool = items.map((item) => item.value);
+    savePool();
+  };
+
+  const persistItems = (options = {}) => {
+    const { resetPool: shouldResetPool = false } = options;
     saveJson(STORAGE_KEYS.ITEMS, items);
-    resetPool();
+    if (shouldResetPool) resetPool();
+    else savePool();
   };
 
   const persistHistory = () => {
@@ -226,9 +281,13 @@ export default function renderRandomizerView() {
     saveJson(STORAGE_KEYS.SETTINGS, settings);
   };
 
+  normalizePool();
+
   const pruneSelection = () => {
     selectedItems = new Set(
-      [...selectedItems].filter((value) => items.includes(value)),
+      [...selectedItems].filter((value) =>
+        items.some((item) => item.value === value),
+      ),
     );
   };
 
@@ -270,22 +329,25 @@ export default function renderRandomizerView() {
     }
     const duplicate = items.some(
       (entry) =>
-        entry.toLowerCase() === trimmed.toLowerCase() &&
-        entry.toLowerCase() !== oldValue.toLowerCase(),
+        entry.value.toLowerCase() === trimmed.toLowerCase() &&
+        entry.value.toLowerCase() !== oldValue.toLowerCase(),
     );
     if (duplicate) {
       showToast("Такой вариант уже есть", "info");
       return false;
     }
-    const idx = items.indexOf(oldValue);
+    const idx = items.findIndex((entry) => entry.value === oldValue);
     if (idx === -1) return false;
-    items.splice(idx, 1, trimmed);
+    const current = items[idx];
+    items.splice(idx, 1, { ...current, value: trimmed });
+
+    pool = pool.map((value) => (value === oldValue ? trimmed : value));
 
     if (selectedItems.has(oldValue)) {
       selectedItems.delete(oldValue);
       selectedItems.add(trimmed);
     }
-    persistItems();
+    persistItems({ resetPool: false });
     renderItems();
     return true;
   };
@@ -334,12 +396,12 @@ export default function renderRandomizerView() {
 
   const moveItem = (fromValue, toValue) => {
     if (!fromValue || !toValue || fromValue === toValue) return;
-    const fromIndex = items.indexOf(fromValue);
-    const toIndex = items.indexOf(toValue);
+    const fromIndex = items.findIndex((entry) => entry.value === fromValue);
+    const toIndex = items.findIndex((entry) => entry.value === toValue);
     if (fromIndex === -1 || toIndex === -1) return;
     const [moved] = items.splice(fromIndex, 1);
     items.splice(toIndex, 0, moved);
-    persistItems();
+    persistItems({ resetPool: false });
     renderItems();
   };
 
@@ -363,39 +425,92 @@ export default function renderRandomizerView() {
       const chip = document.createElement("div");
       chip.className = "randomizer-chip";
       chip.draggable = true;
-      chip.dataset.value = item;
+      chip.dataset.value = item.value;
 
       const text = document.createElement("span");
       text.className = "text";
-      text.textContent = item;
+      text.textContent = item.value;
+
+      const weightWrap = document.createElement("div");
+      weightWrap.className = "chip-weight";
+      const weightSlider = document.createElement("input");
+      weightSlider.type = "range";
+      weightSlider.min = WEIGHT_MIN;
+      weightSlider.max = WEIGHT_MAX;
+      weightSlider.step = 1;
+      weightSlider.value = getItemWeight(item);
+      weightSlider.className = "chip-weight-slider";
+
+      const weightNumber = document.createElement("input");
+      weightNumber.type = "number";
+      weightNumber.min = WEIGHT_MIN;
+      weightNumber.max = WEIGHT_MAX;
+      weightNumber.step = 1;
+      weightNumber.value = getItemWeight(item);
+      weightNumber.className = "chip-weight-number";
+
+      const weightLabel = document.createElement("span");
+      weightLabel.className = "chip-weight-label";
+      weightLabel.textContent = `x${getItemWeight(item)}`;
+
+      const syncWeight = (nextWeight) => {
+        const sanitized = clampWeight(nextWeight);
+        if (sanitized === getItemWeight(item)) {
+          weightSlider.value = sanitized;
+          weightNumber.value = sanitized;
+          weightLabel.textContent = `x${sanitized}`;
+          return;
+        }
+        item.weight = sanitized;
+        weightSlider.value = sanitized;
+        weightNumber.value = sanitized;
+        weightLabel.textContent = `x${sanitized}`;
+        persistItems({ resetPool: false });
+        renderItems();
+      };
+
+      const stopChipEvent = (event) => event.stopPropagation();
+      weightSlider.addEventListener("click", stopChipEvent);
+      weightSlider.addEventListener("input", (event) => {
+        event.stopPropagation();
+        syncWeight(event.target.value);
+      });
+      weightNumber.addEventListener("click", stopChipEvent);
+      weightNumber.addEventListener("input", (event) => {
+        event.stopPropagation();
+        syncWeight(event.target.value);
+      });
+      weightLabel.addEventListener("click", stopChipEvent);
+      weightWrap.append(weightSlider, weightNumber, weightLabel);
 
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "chip-remove";
-      remove.setAttribute("aria-label", `Удалить ${item}`);
+      remove.setAttribute("aria-label", `Удалить ${item.value}`);
       remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
       remove.addEventListener("click", () => {
-        items = items.filter((value) => value !== item);
-        selectedItems.delete(item);
-        persistItems();
+        items = items.filter((entry) => entry.value !== item.value);
+        selectedItems.delete(item.value);
+        pool = pool.filter((entry) => entry !== item.value);
+        persistItems({ resetPool: false });
         renderItems();
       });
 
-      chip.append(text, remove);
+      chip.append(text, weightWrap, remove);
 
       chip.addEventListener("click", (event) => {
         if (event.detail > 1) return;
         if (event.target.closest(".chip-remove")) return;
         if (event.target.classList.contains("chip-edit-input")) return;
-        toggleSelection(item, chip);
+        toggleSelection(item.value, chip);
       });
 
-      chip.addEventListener("dblclick", () => startInlineEdit(chip, item));
+      chip.addEventListener("dblclick", () => startInlineEdit(chip, item.value));
 
       chip.addEventListener("dragstart", (event) => {
-        dragSource = item;
+        dragSource = item.value;
         chip.classList.add("dragging");
-        event.dataTransfer?.setData("text/plain", item);
+        event.dataTransfer?.setData("text/plain", item.value);
         event.dataTransfer?.setDragImage(chip, 10, 10);
       });
 
@@ -418,11 +533,11 @@ export default function renderRandomizerView() {
       chip.addEventListener("drop", (event) => {
         event.preventDefault();
         chip.classList.remove("drop-target");
-        if (!dragSource || dragSource === item) return;
-        moveItem(dragSource, item);
+        if (!dragSource || dragSource === item.value) return;
+        moveItem(dragSource, item.value);
       });
 
-      if (selectedItems.has(item)) chip.classList.add("selected");
+      if (selectedItems.has(item.value)) chip.classList.add("selected");
       fragment.appendChild(chip);
     });
 
@@ -482,6 +597,22 @@ export default function renderRandomizerView() {
     renderHistory();
   };
 
+  const getItemWeight = (item) => clampWeight(item?.weight ?? DEFAULT_WEIGHT);
+
+  const pickWeightedItem = (candidates) => {
+    const totalWeight = candidates.reduce(
+      (sum, item) => sum + getItemWeight(item),
+      0,
+    );
+    if (totalWeight <= 0) return null;
+    let rollValue = Math.random() * totalWeight;
+    for (const item of candidates) {
+      rollValue -= getItemWeight(item);
+      if (rollValue <= 0) return item;
+    }
+    return candidates[candidates.length - 1] || null;
+  };
+
   const addItem = (value, silent = false) => {
     const normalized = value.trim();
     if (!normalized) {
@@ -493,14 +624,16 @@ export default function renderRandomizerView() {
       return;
     }
     const exists = items.some(
-      (item) => item.toLowerCase() === normalized.toLowerCase(),
+      (item) => item.value.toLowerCase() === normalized.toLowerCase(),
     );
     if (exists) {
       if (!silent) showToast("Такой вариант уже есть", "info");
       return;
     }
-    items.push(normalized);
-    persistItems();
+    const newItem = { value: normalized, weight: DEFAULT_WEIGHT };
+    items.push(newItem);
+    pool.push(newItem.value);
+    persistItems({ resetPool: false });
     renderItems();
   };
 
@@ -526,20 +659,29 @@ export default function renderRandomizerView() {
       showToast("Сначала добавьте варианты", "warning");
       return;
     }
+    normalizePool();
+    const candidates = settings.noRepeat
+      ? items.filter((item) => pool.includes(item.value))
+      : items;
+    if (!candidates.length) {
+      showToast("Нет доступных вариантов", "info");
+      return;
+    }
     resultCard.classList.add("rolling");
     setTimeout(() => {
       resultCard.classList.remove("rolling");
-      let value;
-      if (settings.noRepeat) {
-        if (!pool.length) pool = [...items];
-        const idx = Math.floor(Math.random() * pool.length);
-        [value] = pool.splice(idx, 1);
-        saveJson(STORAGE_KEYS.POOL, pool);
-      } else {
-        const idx = Math.floor(Math.random() * items.length);
-        value = items[idx];
+      const picked = pickWeightedItem(candidates);
+      if (!picked) {
+        showToast("Нет доступных вариантов", "info");
+        return;
       }
-      if (!value) return;
+
+      const value = picked.value;
+      if (settings.noRepeat) {
+        pool = pool.filter((entry) => entry !== value);
+        savePool();
+      }
+
       resultText.textContent = value;
       resultMeta.textContent = new Intl.DateTimeFormat("ru-RU", {
         hour: "2-digit",
@@ -591,7 +733,8 @@ export default function renderRandomizerView() {
     if (confirm("Очистить все варианты? Действие нельзя отменить.")) {
       items = [];
       selectedItems.clear();
-      persistItems();
+      pool = [];
+      persistItems({ resetPool: false });
       renderItems();
       clearResult();
     }
@@ -651,7 +794,9 @@ export default function renderRandomizerView() {
         return;
       }
       try {
-        await navigator.clipboard.writeText(items.join("\n"));
+        await navigator.clipboard.writeText(
+          items.map((item) => item.value).join("\n"),
+        );
         showToast("Список скопирован", "success");
       } catch {
         showToast("Не удалось скопировать список", "error");
@@ -680,9 +825,10 @@ export default function renderRandomizerView() {
       )
     )
       return;
-    items = items.filter((value) => !selectedItems.has(value));
+    items = items.filter((item) => !selectedItems.has(item.value));
+    pool = pool.filter((value) => !selectedItems.has(value));
     selectedItems.clear();
-    persistItems();
+    persistItems({ resetPool: false });
     renderItems();
     clearResult();
     showToast("Выбранные варианты удалены", "success");

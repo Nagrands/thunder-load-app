@@ -279,6 +279,39 @@
       box-shadow: 0 0 0 2px rgba(128, 140, 255, 0.2);
     }
   }
+
+  .chip-weight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px;
+  }
+
+  .chip-weight-slider {
+    width: 96px;
+    accent-color: var(--color-accent);
+  }
+
+  .chip-weight-number {
+    width: 58px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: var(--color-text-main);
+    padding: 4px 6px;
+    font-size: 0.9rem;
+    outline: none;
+
+    &:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px rgba(128, 140, 255, 0.2);
+    }
+  }
+
+  .chip-weight-label {
+    font-size: 0.85rem;
+    color: var(--color-quality);
+  }
 }
 
 .chip-remove {
