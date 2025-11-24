@@ -3,7 +3,8 @@
 jest.mock("../toast.js", () => ({ showToast: jest.fn() }));
 jest.mock("../tooltipInitializer.js", () => ({ initTooltips: jest.fn() }));
 jest.mock("../toolsInfo.js", () => ({
-  summarizeToolsState: jest.requireActual("../toolsInfo.js").summarizeToolsState,
+  summarizeToolsState:
+    jest.requireActual("../toolsInfo.js").summarizeToolsState,
 }));
 jest.mock("../settingsModal.js", () => ({
   openSettingsWithTab: jest.fn(),
@@ -75,16 +76,14 @@ describe("downloaderToolsStatus", () => {
     expect(document.getElementById("dl-tools-text").textContent).toContain(
       "Инструменты готовы",
     );
-    const badges = Array.from(
-      document.querySelectorAll(".tool-badge"),
-    ).map((el) => el.textContent.trim());
-    expect(badges).toEqual([
-      "yt-dlp 2024.01.01",
-      "ffmpeg 7.1",
-      "Deno 2.0.0",
-    ]);
+    const badges = Array.from(document.querySelectorAll(".tool-badge")).map(
+      (el) => el.textContent.trim(),
+    );
+    expect(badges).toEqual(["yt-dlp 2024.01.01", "ffmpeg 7.1", "Deno 2.0.0"]);
     expect(
-      document.getElementById("dl-tools-reinstall").classList.contains("hidden"),
+      document
+        .getElementById("dl-tools-reinstall")
+        .classList.contains("hidden"),
     ).toBe(true);
     const container = document.querySelector(".downloader-tools-status");
     expect(container.outerHTML).toMatchInlineSnapshot(`
@@ -120,7 +119,9 @@ describe("downloaderToolsStatus", () => {
       "yt-dlp, Deno",
     );
     expect(
-      document.getElementById("dl-tools-reinstall").classList.contains("hidden"),
+      document
+        .getElementById("dl-tools-reinstall")
+        .classList.contains("hidden"),
     ).toBe(false);
   });
 

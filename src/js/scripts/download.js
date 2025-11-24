@@ -259,13 +259,7 @@ function parseProgress(line) {
 /**
  * Загружает файл по URL с таймаутами, ретраями и проверкой размера (если есть content-length).
  */
-function downloadFile(
-  url,
-  dest,
-  redirects = 0,
-  attempt = 1,
-  options = {},
-) {
+function downloadFile(url, dest, redirects = 0, attempt = 1, options = {}) {
   const {
     maxRedirects = 10,
     maxRetries = 3,
@@ -326,11 +320,7 @@ function downloadFile(
     const scheduleRetry = (err) => {
       if (settled) return;
       cleanup(err);
-      if (
-        signal.aborted ||
-        err?.name === "AbortError" ||
-        isCancelled(token)
-      ) {
+      if (signal.aborted || err?.name === "AbortError" || isCancelled(token)) {
         settled = true;
         return reject(
           isCancelled(token)
@@ -366,11 +356,11 @@ function downloadFile(
             url,
           ).toString();
           cleanup();
-        downloadFile(redirectUrl, dest, redirects + 1, attempt, options)
-          .then(resolve)
-          .catch(reject);
-        return;
-      }
+          downloadFile(redirectUrl, dest, redirects + 1, attempt, options)
+            .then(resolve)
+            .catch(reject);
+          return;
+        }
 
         // non-success statuses: 5xx/429 — пробуем ретрай, остальное — ошибка
         if (response.statusCode !== 200) {
@@ -970,10 +960,10 @@ async function installFfmpeg(token = null) {
         "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
       ffmpegZipPath = path.join(os.tmpdir(), "ffmpeg-release-essentials.zip");
       ffmpegExtractPath = path.join(os.tmpdir(), "ffmpeg-extract");
-          await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, {
-            ...TOOL_DOWNLOAD_OPTIONS,
-            token,
-          });
+      await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, {
+        ...TOOL_DOWNLOAD_OPTIONS,
+        token,
+      });
       log.info("ffmpeg downloaded successfully. Starting extraction...");
       await new Promise((resolve, reject) => {
         fs.createReadStream(ffmpegZipPath)
@@ -1287,7 +1277,11 @@ function spawnDownloadProcess(
   progressCallback,
   options = {},
 ) {
-  const { extraArgs = [], processKey = "videoDownload", token = null } = options;
+  const {
+    extraArgs = [],
+    processKey = "videoDownload",
+    token = null,
+  } = options;
   const processStore = getProcessStore(token);
   return new Promise((resolve, reject) => {
     const ytDlpPath = getYtDlpPath();

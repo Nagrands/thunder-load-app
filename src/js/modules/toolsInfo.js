@@ -134,11 +134,11 @@ export function summarizeToolsState(res) {
   const hasFf = !!(ff?.ok && ff?.path);
   const hasDn = !!(dn?.ok && dn?.path);
 
-  const ytVer = hasYt
-    ? firstLine(yt.version || "").replace(/^v/i, "")
-    : null;
+  const ytVer = hasYt ? firstLine(yt.version || "").replace(/^v/i, "") : null;
   const ffVer = hasFf
-    ? firstLine(ff.version || "").replace(/^ffmpeg version\s*/i, "").split(" ")[0]
+    ? firstLine(ff.version || "")
+        .replace(/^ffmpeg version\s*/i, "")
+        .split(" ")[0]
     : null;
   const dnVer = hasDn ? formatDenoVersion(dn.version || "") : null;
 
@@ -151,7 +151,13 @@ export function summarizeToolsState(res) {
 
   const details = [
     { id: "yt", label: "yt-dlp", ok: hasYt, version: ytVer },
-    { id: "ff", label: "ffmpeg", ok: hasFf, version: ffVer, skip: ff?.skipUpdates },
+    {
+      id: "ff",
+      label: "ffmpeg",
+      ok: hasFf,
+      version: ffVer,
+      skip: ff?.skipUpdates,
+    },
     { id: "deno", label: "Deno", ok: hasDn, version: dnVer },
   ];
 

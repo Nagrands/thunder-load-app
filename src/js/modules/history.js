@@ -36,6 +36,7 @@ const HISTORY_AUDIO_PLACEHOLDER =
   encodeURIComponent(
     "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231a1f2e'/><stop offset='1' stop-color='%23243352'/></linearGradient></defs><rect width='320' height='180' fill='url(%23g)'/><g fill='%23a3b3ff' opacity='0.9'><path d='M190 60v58a26 26 0 11-10-20V70l40-10v12z'/></g></svg>",
   );
+const attemptedPreviewRestores = new Set();
 
 let historyCardsRoot = historyCards;
 let historyCardsEmptyRoot = historyCardsEmpty;
@@ -268,6 +269,232 @@ const detectHost = (url = "") => {
 const isAudioEntry = (entry) => {
   const quality = entry?.quality || entry?.resolution || entry?.format || "";
   return /audio/i.test(quality) || /audio only/i.test(quality);
+};
+
+const isCacheableThumbnailUrl = (url) =>
+  typeof url === "string" &&
+  (url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("data:"));
+
+const isFileUrl = (url) =>
+  typeof url === "string" && url.toLowerCase().startsWith("file://");
+
+const fileUrlToPath = (url) => {
+  if (!isFileUrl(url)) return "";
+  try {
+    return decodeURI(url.replace(/^file:\/\//i, ""));
+  } catch {
+    return "";
+  }
+};
+
+const filePathToUrl = (filePath) => {
+  if (!filePath || typeof filePath !== "string") return "";
+  if (filePath.startsWith("file://")) return filePath;
+  try {
+    let normalized = filePath.replace(/\\/g, "/");
+    if (/^[A-Za-z]:/.test(normalized)) normalized = "/" + normalized;
+    const encoded = encodeURI(normalized).replace(/#/g, "%23");
+    return `file://${encoded}`;
+  } catch {
+    return "";
+  }
+};
+
+const resolveLocalPreviewPath = (entry) => {
+  if (!entry) return "";
+  if (entry.thumbnailCacheFile) return entry.thumbnailCacheFile;
+  if (entry.thumbnail && isFileUrl(entry.thumbnail)) {
+    return fileUrlToPath(entry.thumbnail);
+  }
+  return "";
+};
+
+const deriveYoutubeThumbnail = (sourceUrl = "") => {
+  if (!sourceUrl) return "";
+  try {
+    const u = new URL(sourceUrl);
+    const host = (u.hostname || "").replace(/^www\./, "").toLowerCase();
+    const isYt = /youtube\.com|youtu\.be/.test(host);
+    if (!isYt) return "";
+
+    let id = "";
+    if (host.includes("youtu.be")) {
+      id = (u.pathname || "").split("/").filter(Boolean)[0] || "";
+    } else if (u.searchParams.has("v")) {
+      id = u.searchParams.get("v") || "";
+    } else if ((u.pathname || "").includes("/embed/")) {
+      id = (u.pathname.split("/embed/")[1] || "").split("/")[0] || "";
+    } else if ((u.pathname || "").includes("/shorts/")) {
+      id = (u.pathname.split("/shorts/")[1] || "").split("/")[0] || "";
+    }
+
+    return id
+      ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg`
+      : "";
+  } catch {
+    return "";
+  }
+};
+
+const resolveThumbnailSource = (entry) => {
+  if (!entry) return "";
+  if (isCacheableThumbnailUrl(entry.thumbnail)) return entry.thumbnail;
+  if (isAudioEntry(entry)) return "";
+  return deriveYoutubeThumbnail(entry.sourceUrl);
+};
+
+const pickInfoThumbnail = (info) => {
+  if (!info) return "";
+  if (info.thumbnail) return info.thumbnail;
+  if (Array.isArray(info.thumbnails) && info.thumbnails.length) {
+    return (
+      info.thumbnails
+        .slice()
+        .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || ""
+    );
+  }
+  return "";
+};
+
+const fetchThumbnailFromSource = async (entry) => {
+  if (!entry?.sourceUrl) return "";
+  try {
+    const info = await window.electron.invoke(
+      "get-video-info",
+      entry.sourceUrl,
+    );
+    if (info?.success === false) return "";
+    return pickInfoThumbnail(info);
+  } catch (error) {
+    console.warn(
+      `Не удалось получить данные видео для превью (${entry.sourceUrl}):`,
+      error,
+    );
+    return "";
+  }
+};
+
+const hasLocalThumbnail = async (entry) => {
+  const localPath = resolveLocalPreviewPath(entry);
+  if (!localPath) return false;
+  try {
+    return await window.electron.invoke("check-file-exists", localPath);
+  } catch {
+    return false;
+  }
+};
+
+const restoreThumbnailForEntry = async (entry, rawEntry) => {
+  if (!entry?.id) return { changed: false, updatedEntry: entry, updatedRaw: rawEntry };
+
+  const updatedEntry = { ...entry };
+  const updatedRaw = rawEntry ? { ...rawEntry } : null;
+  let changed = false;
+
+  const localPath = resolveLocalPreviewPath(updatedEntry);
+  const localExists = await hasLocalThumbnail(updatedEntry);
+  if (localExists && localPath) {
+    const localUrl = filePathToUrl(localPath);
+    if (localUrl && updatedEntry.thumbnail !== localUrl) {
+      updatedEntry.thumbnail = localUrl;
+      changed = true;
+    }
+    return { changed, updatedEntry, updatedRaw };
+  }
+
+  const sourceUrl = resolveThumbnailSource(updatedRaw || updatedEntry);
+  let candidateUrl = sourceUrl;
+
+  // Fallback: try to fetch fresh metadata for thumbnail if nothing obvious to reuse
+  if (!candidateUrl) {
+    candidateUrl = await fetchThumbnailFromSource(updatedRaw || updatedEntry);
+  }
+
+  if (!candidateUrl) return { changed, updatedEntry, updatedRaw };
+
+  try {
+    const cacheResult = await window.electron.invoke("cache-history-preview", {
+      url: candidateUrl,
+      entryId: updatedEntry.id,
+      fileName: updatedEntry.fileName || "preview",
+    });
+
+    if (cacheResult?.success && cacheResult.filePath) {
+      const fileUrl = filePathToUrl(cacheResult.filePath);
+      updatedEntry.thumbnailCacheFile = cacheResult.filePath;
+      updatedEntry.thumbnail = fileUrl || updatedEntry.thumbnail || candidateUrl;
+      if (updatedRaw) {
+        updatedRaw.thumbnailCacheFile = cacheResult.filePath;
+        updatedRaw.thumbnail = fileUrl || updatedRaw.thumbnail || candidateUrl;
+      }
+      changed = true;
+    }
+  } catch (error) {
+    console.warn(
+      `Не удалось восстановить превью для записи ${updatedEntry.id}:`,
+      error,
+    );
+  }
+
+  return { changed, updatedEntry, updatedRaw };
+};
+
+const restoreMissingHistoryPreviews = async (entries, rawHistory) => {
+  if (!Array.isArray(entries) || !entries.length) return;
+  if (!Array.isArray(rawHistory) || !rawHistory.length) return;
+
+  const normalizedById = new Map(
+    entries.map((item) => [String(item.id), { ...item }]),
+  );
+  const rawById = new Map(
+    rawHistory.map((item) => [String(item.id), { ...item }]),
+  );
+
+  let hasChanges = false;
+
+  for (const entry of entries) {
+    const id = String(entry.id || "");
+    if (!id || attemptedPreviewRestores.has(id)) continue;
+    attemptedPreviewRestores.add(id);
+
+    const rawEntry = rawById.get(id);
+    const result = await restoreThumbnailForEntry(
+      normalizedById.get(id),
+      rawEntry,
+    );
+    if (result.changed) {
+      hasChanges = true;
+      if (result.updatedEntry) normalizedById.set(id, result.updatedEntry);
+      if (result.updatedRaw) rawById.set(id, result.updatedRaw);
+    }
+  }
+
+  if (!hasChanges) return;
+
+  const updatedEntries = entries.map(
+    (entry) => normalizedById.get(String(entry.id)) || entry,
+  );
+  const updatedRawHistory = rawHistory.map(
+    (entry) => rawById.get(String(entry.id)) || entry,
+  );
+
+  setHistoryData(updatedEntries);
+  filterAndSortHistory(
+    state.currentSearchQuery,
+    state.currentSortOrder,
+    true,
+  );
+
+  try {
+    await window.electron.invoke("save-history", updatedRawHistory);
+  } catch (error) {
+    console.warn(
+      "Не удалось сохранить историю после восстановления превью:",
+      error,
+    );
+  }
 };
 
 const formatCardDate = (entry) => {
@@ -907,7 +1134,6 @@ function renderHistory(entries) {
   clearHistoryContainer(container);
 
   if (isEmpty) {
-
     const searchWrapper = document.querySelector(".history-search-wrapper");
     const isCompletelyEmpty = state.currentSearchQuery === "";
     if (searchWrapper) {
@@ -1013,13 +1239,16 @@ const updateDownloadCount = async () => {
 const loadHistory = async (forceRender = false) => {
   try {
     const loadedHistory = await window.electron.invoke("load-history");
+    const rawHistory = Array.isArray(loadedHistory)
+      ? loadedHistory.map((entry) => ({ ...entry }))
+      : [];
     const entries = [];
 
     if (
-      Array.isArray(loadedHistory) &&
-      loadedHistory.some((e) => e?.fileName)
+      Array.isArray(rawHistory) &&
+      rawHistory.some((e) => e?.fileName)
     ) {
-      for (const rawEntry of loadedHistory) {
+      for (const rawEntry of rawHistory) {
         const normalized = await normalizeEntry(rawEntry);
         entries.push(normalized);
       }
@@ -1047,6 +1276,10 @@ const loadHistory = async (forceRender = false) => {
       state.currentSortOrder,
       forceRender,
     );
+
+    restoreMissingHistoryPreviews(entries, rawHistory).catch((error) => {
+      console.warn("Ошибка при восстановлении превью истории:", error);
+    });
   } catch (error) {
     console.error("Ошибка загрузки истории:", error);
     showToast("Ошибка загрузки истории.", "error");

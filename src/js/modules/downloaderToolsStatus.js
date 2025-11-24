@@ -147,8 +147,7 @@ function bindDom() {
   window.addEventListener("tools:status", (ev) => {
     const summary = ev?.detail?.summary;
     if (summary) {
-      const msg =
-        summary.state === "ok" ? "Инструменты готовы" : summary.text;
+      const msg = summary.state === "ok" ? "Инструменты готовы" : summary.text;
       setState(summary.state, msg, summary.details);
       if (summary.state === "ok") {
         el.reinstall.classList.add("hidden");

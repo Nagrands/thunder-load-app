@@ -40,9 +40,11 @@
   padding: 6px 14px;
   border-radius: 16px;
   background:
-    radial-gradient(circle at 0% 0%,
+    radial-gradient(
+      circle at 0% 0%,
       rgba(255, 255, 255, 0.18),
-      transparent 70%),
+      transparent 70%
+    ),
     rgba(255, 255, 255, 0.02);
   position: relative;
   overflow: hidden;
@@ -52,9 +54,11 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(140deg,
-        rgba(var(--color-accent-rgb), 0.2),
-        transparent 45%);
+    background: linear-gradient(
+      140deg,
+      rgba(var(--color-accent-rgb), 0.2),
+      transparent 45%
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -170,9 +174,11 @@
   }
 
   &.active {
-    background: linear-gradient(135deg,
-        rgba(var(--color-accent-rgb), 0.9),
-        rgba(var(--color-accent-rgb), 0.65));
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.9),
+      rgba(var(--color-accent-rgb), 0.65)
+    );
     color: var(--color-highlight);
     border-color: transparent;
   }
@@ -285,9 +291,11 @@
   .top-download-progress-fill {
     height: 100%;
     width: 0;
-    background: linear-gradient(90deg,
-        rgba(var(--color-accent-rgb), 0.95),
-        var(--color-highlight));
+    background: linear-gradient(
+      90deg,
+      rgba(var(--color-accent-rgb), 0.95),
+      var(--color-highlight)
+    );
     transition: width 0.25s ease;
   }
 }

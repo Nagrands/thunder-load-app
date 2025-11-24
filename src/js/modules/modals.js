@@ -31,9 +31,7 @@ function closeAllModalsFunction() {
  */
 function showConfirmationDialog(options, onConfirm, onCancel) {
   const opts =
-    typeof options === "string"
-      ? { message: options }
-      : { ...(options || {}) };
+    typeof options === "string" ? { message: options } : { ...(options || {}) };
 
   const {
     message = "",
