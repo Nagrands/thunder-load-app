@@ -424,24 +424,85 @@ async function moveOldBackups(backupDir, programName, keep = 7) {
 }
 
 // Pre-flight checks
-async function preFlightChecks(program) {
-  const checks = [];
-  const name = program?.name;
+function buildPreflightIssue(code, message, hint, severity = "error") {
+  return { code, message, hint, severity };
+}
 
-  // Проверка существования исходной директории
-  try {
-    const srcLong = prepareLongPath(program.source_path);
-    await fsp.access(srcLong);
-  } catch (error) {
-    checks.push(`Исходный путь не существует: ${program.source_path}`);
+function getInstallHint(tool) {
+  if (process.platform === "darwin") return `Установите через Homebrew: brew install ${tool}`;
+  if (process.platform === "win32")
+    return `Установите ${tool} (например, через winget/choco) или добавьте в PATH`;
+  return `Установите ${tool} через пакетный менеджер (apt/yum/pacman) и добавьте в PATH`;
+}
+
+async function preFlightChecksDetailed(program) {
+  const name = program?.name || "Без имени";
+  const result = {
+    name,
+    archiveType: program?.archive_type || "zip",
+    errors: [],
+    warnings: [],
+    status: "ok",
+  };
+
+  if (!program) {
+    result.errors.push(
+      buildPreflightIssue(
+        "invalid-config",
+        "Повреждён профиль резервного копирования",
+        "Создайте профиль заново или отредактируйте его.",
+      ),
+    );
+    result.status = "error";
+    return result;
   }
 
-  // Проверка доступности записи в целевую директорию
-  try {
+  // Проверка исходной директории
+  if (!program.source_path) {
+    result.errors.push(
+      buildPreflightIssue(
+        "src-missing",
+        "Не указан исходный путь",
+        "Заполните поле «Исходная папка» в профиле.",
+      ),
+    );
+  } else {
+    const srcLong = prepareLongPath(program.source_path);
+    try {
+      await fsp.access(srcLong);
+    } catch {
+      result.errors.push(
+        buildPreflightIssue(
+          "src-access",
+          `Исходный путь не существует или недоступен: ${program.source_path}`,
+          "Проверьте путь и права доступа или выберите другую папку.",
+        ),
+      );
+    }
+  }
+
+  // Проверка целевой директории
+  if (!program.backup_path) {
+    result.errors.push(
+      buildPreflightIssue(
+        "dst-missing",
+        "Не указана папка бэкапа",
+        "Заполните поле «Папка бэкапа» или выберите путь через кнопку папки.",
+      ),
+    );
+  } else {
     const dstLong = prepareLongPath(program.backup_path);
-    await fsp.access(dstLong, fs.constants.W_OK);
-  } catch (error) {
-    checks.push(`Нет прав записи в целевую директорию: ${program.backup_path}`);
+    try {
+      await fsp.access(dstLong, fs.constants.W_OK);
+    } catch {
+      result.errors.push(
+        buildPreflightIssue(
+          "dst-access",
+          `Нет прав записи в целевую директорию: ${program.backup_path}`,
+          "Откройте права записи или выберите другую папку назначения.",
+        ),
+      );
+    }
   }
 
   // Проверка профильной директории если указана
@@ -449,39 +510,85 @@ async function preFlightChecks(program) {
     try {
       const profileLong = prepareLongPath(program.profile_path);
       await fsp.access(profileLong);
-    } catch (error) {
-      checks.push(`Профильный путь не существует: ${program.profile_path}`);
+    } catch {
+      result.errors.push(
+        buildPreflightIssue(
+          "profile-access",
+          `Папка профиля не найдена: ${program.profile_path}`,
+          "Укажите существующую папку профилей или очистите поле, если она не нужна.",
+        ),
+      );
     }
   }
 
   // Проверка дискового пространства
-  try {
-    const freeSpace = await getFreeDiskSpace(program.backup_path);
-    if (freeSpace && freeSpace < 500) {
-      checks.push(
-        `Мало свободного места: ${freeSpace} MB (минимум 500 MB рекомендуется)`,
+  if (program.backup_path) {
+    try {
+      const freeSpace = await getFreeDiskSpace(program.backup_path);
+      if (freeSpace && freeSpace < 500) {
+        result.errors.push(
+          buildPreflightIssue(
+            "disk-space",
+            `Мало свободного места: ${freeSpace} MB`,
+            "Освободите место или выберите другую папку бэкапа (рекомендуется ≥ 500 MB).",
+          ),
+        );
+      } else if (!freeSpace) {
+        result.warnings.push(
+          buildPreflightIssue(
+            "disk-unknown",
+            "Не удалось определить свободное место",
+            "Проверьте права доступа к диску или попробуйте другой путь назначения.",
+            "warning",
+          ),
+        );
+      }
+    } catch (error) {
+      log.warn(
+        `[backup] Disk space check failed for ${name}: ${error.message}`,
       );
     }
-  } catch (error) {
-    log.warn(`[backup] Disk space check failed for ${name}: ${error.message}`);
   }
 
   // Проверка команд архивации
   if (program.archive_type === "zip" && process.platform !== "win32") {
     const zipAvailable = await checkCommandExists("zip");
     if (!zipAvailable) {
-      checks.push("Команда zip не найдена. Установите: brew install zip");
+      result.errors.push(
+        buildPreflightIssue(
+          "zip-missing",
+          "Команда zip не найдена",
+          getInstallHint("zip"),
+        ),
+      );
     }
   }
 
   if (program.archive_type === "tar.gz") {
     const tarAvailable = await checkCommandExists("tar");
     if (!tarAvailable) {
-      checks.push("Команда tar не найдена");
+      result.errors.push(
+        buildPreflightIssue(
+          "tar-missing",
+          "Команда tar не найдена",
+          getInstallHint("tar"),
+        ),
+      );
     }
   }
 
-  return checks;
+  result.status = result.errors.length
+    ? "error"
+    : result.warnings.length
+      ? "warning"
+      : "ok";
+
+  return result;
+}
+
+async function preFlightChecks(program) {
+  const detailed = await preFlightChecksDetailed(program);
+  return detailed.errors.map((err) => err.message);
 }
 
 async function runBackup(program) {
@@ -772,4 +879,5 @@ module.exports = {
   normalizePath,
   prepareLongPath,
   preFlightChecks,
+  preFlightChecksDetailed,
 };

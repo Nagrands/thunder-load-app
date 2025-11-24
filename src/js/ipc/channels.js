@@ -110,6 +110,7 @@ const CHANNELS = Object.freeze({
   BACKUP_GET_PROGRAMS: "backup:getPrograms",
   BACKUP_SAVE_PROGRAMS: "backup:savePrograms",
   BACKUP_RUN: "backup:run",
+  BACKUP_PREFLIGHT: "backup:preflight",
   BACKUP_CHOOSE_DIR: "backup:chooseDir",
   BACKUP_OPEN_PATH: "backup:openPath",
   BACKUP_GET_LAST_TIMES: "backup:getLastTimes",

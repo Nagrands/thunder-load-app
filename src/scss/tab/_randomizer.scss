@@ -20,11 +20,9 @@
     padding: 16px 24px;
     border-radius: 24px;
     background:
-      linear-gradient(
-        135deg,
+      linear-gradient(135deg,
         rgba(var(--color-accent-rgb), 0.15),
-        rgba(255, 255, 255, 0.02)
-      ),
+        rgba(255, 255, 255, 0.02)),
       rgba(10, 14, 24, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
@@ -44,11 +42,9 @@
       height: 64px;
       border-radius: 18px;
       background:
-        radial-gradient(
-          circle at 30% 30%,
+        radial-gradient(circle at 30% 30%,
           rgba(255, 255, 255, 0.45),
-          transparent 60%
-        ),
+          transparent 60%),
         rgba(var(--color-accent-rgb), 0.25);
       display: grid;
       place-items: center;
@@ -197,12 +193,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   margin-bottom: 12px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 
   .preset-label {
     font-size: 0.9rem;
@@ -512,11 +510,9 @@
   .result-value {
     font-size: clamp(1.4rem, 3vw, 2rem);
     font-weight: 600;
-    background: linear-gradient(
-      120deg,
-      var(--color-accent),
-      rgba(255, 255, 255, 0.9)
-    );
+    background: linear-gradient(120deg,
+        var(--color-accent),
+        rgba(255, 255, 255, 0.9));
     color: transparent;
     text-align: center;
     background-clip: text;

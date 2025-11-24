@@ -187,19 +187,15 @@ export default function renderRandomizerView() {
           <select id="randomizer-preset-select" class="preset-select"></select>
           <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить текущий пресет">
             <i class="fa-solid fa-floppy-disk"></i>
-            <span>Сохранить</span>
-          </button>
-          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пресет из текущего списка">
-            <i class="fa-solid fa-copy"></i>
-            <span>Сохранить как</span>
-          </button>
-          <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный пресет">
-            <i class="fa-solid fa-trash"></i>
-            <span>Удалить</span>
           </button>
           <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-default" data-bs-toggle="tooltip" data-bs-placement="top" title="Сделать пресет стартовым">
             <i class="fa-solid fa-star"></i>
-            <span>По умолчанию</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пресет из текущего списка">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный пресет">
+            <i class="fa-solid fa-trash"></i>
           </button>
         </div>
         <div class="randomizer-add-row">
@@ -211,22 +207,18 @@ export default function renderRandomizerView() {
           />
           <button type="button" class="btn btn-primary" id="randomizer-add">
             <i class="fa-solid fa-plus"></i>
-            <span>Добавить</span>
           </button>
-        </div>
-        <div class="randomizer-editor-actions">
-          <button type="button" class="btn btn-ghost" id="randomizer-paste">
-            <i class="fa-solid fa-paste"></i>
-            <span>Вставить список</span>
-          </button>
-          <button type="button" class="btn btn-ghost" id="randomizer-sample">
-            <i class="fa-solid fa-list-check"></i>
-            <span>Пример</span>
-          </button>
-          <button type="button" class="btn btn-ghost danger" id="randomizer-clear">
-            <i class="fa-solid fa-broom"></i>
-            <span>Очистить</span>
-          </button>
+          <div class="randomizer-editor-actions">
+            <button type="button" class="btn btn-ghost" id="randomizer-paste" data-bs-toggle="tooltip" data-bs-placement="top" title="Вставить список">
+              <i class="fa-solid fa-paste"></i>
+            </button>
+            <button type="button" class="btn btn-ghost" id="randomizer-sample" data-bs-toggle="tooltip" data-bs-placement="top" title="Пример">
+              <i class="fa-solid fa-list-check"></i>
+            </button>
+            <button type="button" class="btn btn-ghost danger" id="randomizer-clear" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить">
+              <i class="fa-solid fa-broom"></i>
+            </button>
+          </div>
         </div>
         <div class="randomizer-divider"></div>
         <div class="randomizer-list-header">

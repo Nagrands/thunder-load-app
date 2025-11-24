@@ -18596,6 +18596,93 @@ video {
 .backup-view .wg-block {
   padding: 0.2rem;
 }
+.backup-view .bk-preflight {
+  margin: 0.25rem 0.7rem 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 180, 255, 0.12);
+  background: rgba(120, 180, 255, 0.06);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.18);
+}
+.backup-view .bk-preflight.is-warn {
+  border-color: rgba(255, 224, 102, 0.4);
+  background: linear-gradient(135deg, rgba(255, 224, 102, 0.1), rgba(255, 224, 102, 0.04));
+}
+.backup-view .bk-preflight.is-error {
+  border-color: rgba(255, 110, 170, 0.38);
+  background: linear-gradient(135deg, rgba(255, 110, 170, 0.1), rgba(255, 110, 170, 0.04));
+}
+.backup-view .bk-preflight.is-ok {
+  border-color: rgba(80, 220, 160, 0.35);
+  background: linear-gradient(135deg, rgba(80, 220, 160, 0.12), rgba(80, 220, 160, 0.05));
+}
+.backup-view .bk-preflight .pf-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.backup-view .bk-preflight .pf-head .pf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+.backup-view .bk-preflight .pf-head .pf-status i {
+  color: currentColor;
+}
+.backup-view .bk-preflight .pf-head .pf-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.backup-view .bk-preflight .pf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.backup-view .bk-preflight .pf-issue {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.backup-view .bk-preflight .pf-issue .pf-title {
+  font-weight: 600;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.backup-view .bk-preflight .pf-issue .pf-title i {
+  margin-top: 2px;
+}
+.backup-view .bk-preflight .pf-issue .pf-hint {
+  color: #c2d6ff;
+  font-size: 0.9rem;
+  margin-left: 20px;
+  margin-top: 4px;
+}
+.backup-view .bk-preflight .pf-issue.pf-error {
+  border-color: rgba(255, 110, 170, 0.35);
+  background: rgba(255, 110, 170, 0.08);
+  color: #ffc2d9;
+}
+.backup-view .bk-preflight .pf-issue.pf-warn {
+  border-color: rgba(255, 224, 102, 0.3);
+  background: rgba(255, 224, 102, 0.07);
+  color: #ffe8a3;
+}
+.backup-view .bk-preflight .pf-issue.pf-ok {
+  border-color: rgba(80, 220, 160, 0.3);
+  background: rgba(80, 220, 160, 0.08);
+  color: #c7ffe4;
+}
 .backup-view .history-action-button {
   width: 32px;
   height: 32px;
@@ -20910,12 +20997,14 @@ h1.section-heading .bk-heading-search #bk-search-info {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   margin-bottom: 12px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 .randomizer-presets .preset-label {
   font-size: 0.9rem;

@@ -1155,6 +1155,21 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(CHANNELS.BACKUP_PREFLIGHT, async (_evt, programs) => {
+    try {
+      const list = Array.isArray(programs)
+        ? programs
+        : await backup.readPrograms();
+      const results = await Promise.all(
+        list.map((p) => backup.preFlightChecksDetailed(p)),
+      );
+      return { success: true, results };
+    } catch (e) {
+      log.error("backup:preflight error:", e);
+      return { success: false, error: e.message };
+    }
+  });
+
   ipcMain.handle(CHANNELS.BACKUP_RUN, async (_evt, programs) => {
     try {
       const list = Array.isArray(programs)

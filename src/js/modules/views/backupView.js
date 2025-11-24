@@ -132,6 +132,8 @@ export default function renderBackup() {
           </div>
         </div>
 
+        <div id="bk-preflight" class="bk-preflight" style="display:none;"></div>
+
         <h1 class="section-heading">
           <div class="bk-heading-control">
             <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями">
@@ -545,6 +547,7 @@ export default function renderBackup() {
   });
 
   const logBox = getEl("#bk-log");
+  const preflightBox = getEl("#bk-preflight");
 
   const getLogPlainText = () => {
     if (!logBox) return "";
@@ -673,6 +676,112 @@ export default function renderBackup() {
   };
 
   const toast = (m, t = "success") => showToast(m, t);
+
+  const clearPreflightSummary = () => {
+    if (!preflightBox) return;
+    preflightBox.innerHTML = "";
+    preflightBox.style.display = "none";
+    preflightBox.dataset.state = "";
+    preflightBox.classList.remove("is-error", "is-warn", "is-ok");
+  };
+
+  const renderPreflightSummary = (results) => {
+    if (!preflightBox) return;
+    if (!Array.isArray(results) || !results.length) {
+      clearPreflightSummary();
+      return;
+    }
+
+    const errors = [];
+    const warnings = [];
+    const oks = [];
+
+    results.forEach((r) => {
+      const name = r?.name || "Без имени";
+      if (Array.isArray(r?.errors) && r.errors.length) {
+        r.errors.forEach((e) =>
+          errors.push({ ...e, name, severity: "error" }),
+        );
+      }
+      if (Array.isArray(r?.warnings) && r.warnings.length) {
+        r.warnings.forEach((w) =>
+          warnings.push({ ...w, name, severity: "warning" }),
+        );
+      }
+      if (
+        (!r?.errors || r.errors.length === 0) &&
+        (!r?.warnings || r.warnings.length === 0)
+      ) {
+        oks.push(name);
+      }
+    });
+
+    const hasErrors = errors.length > 0;
+    const hasWarnings = warnings.length > 0;
+
+    const statusClass = hasErrors
+      ? "is-error"
+      : hasWarnings
+        ? "is-warn"
+        : "is-ok";
+    const icon = hasErrors
+      ? "fa-circle-xmark"
+      : hasWarnings
+        ? "fa-circle-exclamation"
+        : "fa-circle-check";
+    const summaryText = hasErrors
+      ? `Префлайт: ${errors.length} ошибок, ${warnings.length} предупреждений`
+      : hasWarnings
+        ? `Префлайт: предупреждения (${warnings.length})`
+        : `Префлайт: готово (${results.length})`;
+
+    const items = [];
+    errors.forEach((issue) => {
+      items.push(
+        `<li class="pf-issue pf-error">
+          <div class="pf-title"><i class="fa-solid fa-circle-xmark"></i> ${issue.name}: ${issue.message}</div>
+          ${issue.hint ? `<div class="pf-hint">🔧 ${issue.hint}</div>` : ""}
+        </li>`,
+      );
+    });
+    warnings.forEach((issue) => {
+      items.push(
+        `<li class="pf-issue pf-warn">
+          <div class="pf-title"><i class="fa-solid fa-triangle-exclamation"></i> ${issue.name}: ${issue.message}</div>
+          ${issue.hint ? `<div class="pf-hint">💡 ${issue.hint}</div>` : ""}
+        </li>`,
+      );
+    });
+    if (!items.length) {
+      items.push(
+        `<li class="pf-issue pf-ok">
+          <div class="pf-title"><i class="fa-solid fa-circle-check"></i> Проверка пройдена для ${oks.length || results.length} профиля(ей)</div>
+        </li>`,
+      );
+    }
+
+    preflightBox.innerHTML = `
+      <div class="pf-head ${statusClass}">
+        <div class="pf-status">
+          <i class="fa-solid ${icon}"></i>
+          <span>${summaryText}</span>
+        </div>
+        <div class="pf-actions">
+          <button type="button" class="history-action-button pf-hide" title="Скрыть">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <ul class="pf-list">${items.join("")}</ul>
+    `;
+    preflightBox.style.display = "";
+    preflightBox.dataset.state = statusClass;
+    preflightBox.classList.remove("is-error", "is-warn", "is-ok");
+    preflightBox.classList.add(statusClass);
+    preflightBox
+      .querySelector(".pf-hide")
+      ?.addEventListener("click", clearPreflightSummary);
+  };
 
   const lockedProfiles = new Set();
   const escapeSelector = (value) =>
@@ -1910,6 +2019,46 @@ export default function renderBackup() {
       toast("Нет доступных профилей для запуска", "warning");
       log("⚠ Нет доступных профилей для запуска");
       return;
+    }
+
+    clearPreflightSummary();
+    let preflight;
+    try {
+      preflight = await invoke("backup:preflight", list);
+    } catch (error) {
+      toast("Не удалось выполнить префлайт-проверку", "error");
+      log(`✖ Префлайт не выполнен: ${error?.message || error}`);
+      expandAndScrollLog();
+      return;
+    }
+
+    if (!preflight?.success) {
+      toast(preflight?.error || "Ошибка префлайта", "error");
+      log(`✖ Префлайт не выполнен: ${preflight?.error || "unknown"}`);
+      expandAndScrollLog();
+      return;
+    }
+
+    renderPreflightSummary(preflight.results || []);
+
+    const hasPreflightErrors = (preflight.results || []).some(
+      (r) => Array.isArray(r?.errors) && r.errors.length,
+    );
+    const hasPreflightWarnings = (preflight.results || []).some(
+      (r) => Array.isArray(r?.warnings) && r.warnings.length,
+    );
+
+    if (hasPreflightErrors) {
+      toast("Префлайт не пройдён — исправьте ошибки и повторите", "error");
+      log("✖ Префлайт не пройдён: проверьте пути, права и инструменты zip/tar.");
+      expandAndScrollLog();
+      return;
+    }
+
+    if (hasPreflightWarnings) {
+      toast("Есть предупреждения префлайта — проверьте блок выше", "warning");
+    } else {
+      toast(`Префлайт пройден для ${list.length} профилей`, "success");
     }
 
     toast(`Запуск Backup для ${list.length} профилей...`, "info");
