@@ -18,6 +18,7 @@ const setup = (options = {}) => {
   localStorage.clear();
   jest.clearAllMocks();
   global.confirm = jest.fn(() => true);
+  global.prompt = jest.fn();
   global.navigator.clipboard = {
     readText: jest.fn(),
     writeText: jest.fn(),
@@ -27,6 +28,15 @@ const setup = (options = {}) => {
   }
   if (options.settings) {
     localStorage.setItem("randomizerSettings", JSON.stringify(options.settings));
+  }
+  if (options.presets) {
+    localStorage.setItem("randomizerPresets", JSON.stringify(options.presets));
+  }
+  if (options.currentPreset) {
+    localStorage.setItem("randomizerCurrentPreset", options.currentPreset);
+  }
+  if (options.defaultPreset) {
+    localStorage.setItem("randomizerDefaultPreset", options.defaultPreset);
   }
   const view = renderRandomizerView();
   document.body.appendChild(view);
@@ -40,6 +50,8 @@ const getStoredItems = () =>
   JSON.parse(localStorage.getItem("randomizerItems") || "[]");
 const getStoredValues = () =>
   getStoredItems().map((item) => (item?.value ? item.value : item));
+const getStoredPresets = () =>
+  JSON.parse(localStorage.getItem("randomizerPresets") || "[]");
 
 describe("Randomizer view", () => {
   test("renders default items as chips", () => {
@@ -132,5 +144,30 @@ describe("Randomizer view", () => {
 
     Math.random = originalRandom;
     jest.useRealTimers();
+  });
+
+  test("creates a new preset via 'save as' and switches presets", () => {
+    const view = setup({
+      presets: [
+        { name: "Base", items: [{ value: "A" }] },
+        { name: "Alt", items: [{ value: "B" }] },
+      ],
+      currentPreset: "Base",
+      defaultPreset: "Base",
+    });
+
+    // Switch to Alt
+    const select = view.querySelector("#randomizer-preset-select");
+    select.value = "Alt";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(getChips(view).map((chip) => chip.querySelector(".text").textContent)).toEqual(["B"]);
+
+    // Save current list as new preset
+    global.prompt.mockReturnValueOnce("NewPreset");
+    view.querySelector("#randomizer-preset-save-as").click();
+
+    const presets = getStoredPresets();
+    expect(presets.some((p) => p.name === "NewPreset")).toBe(true);
   });
 });

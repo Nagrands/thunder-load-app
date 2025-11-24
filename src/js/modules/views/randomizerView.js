@@ -8,6 +8,9 @@ const STORAGE_KEYS = {
   HISTORY: "randomizerHistory",
   SETTINGS: "randomizerSettings",
   POOL: "randomizerPool",
+  PRESETS: "randomizerPresets",
+  CURRENT_PRESET: "randomizerCurrentPreset",
+  DEFAULT_PRESET: "randomizerDefaultPreset",
 };
 
 const DEFAULT_ITEMS = [
@@ -22,6 +25,7 @@ const MAX_HISTORY = 15;
 const WEIGHT_MIN = 1;
 const WEIGHT_MAX = 10;
 const DEFAULT_WEIGHT = 1;
+const DEFAULT_PRESET_NAME = "Основной";
 const MAX_ITEM_LENGTH = 160;
 
 const cloneValue = (value) =>
@@ -99,7 +103,33 @@ const normalizeItems = (rawItems) => {
   return normalized;
 };
 
+const normalizePresets = (rawPresets) => {
+  const list = Array.isArray(rawPresets) ? rawPresets : [];
+  const seen = new Set();
+  const normalized = [];
+
+  list.forEach((preset) => {
+    const name =
+      typeof preset?.name === "string" && preset.name.trim()
+        ? preset.name.trim()
+        : "";
+    if (!name) return;
+    const key = name.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    const items = normalizeItems(preset?.items || []);
+    normalized.push({ name, items });
+  });
+
+  return normalized;
+};
+
 export default function renderRandomizerView() {
+  let presets = normalizePresets(readJson(STORAGE_KEYS.PRESETS, []));
+  let currentPresetName =
+    localStorage.getItem(STORAGE_KEYS.CURRENT_PRESET) || "";
+  let defaultPresetName =
+    localStorage.getItem(STORAGE_KEYS.DEFAULT_PRESET) || "";
   let items = normalizeItems(readJson(STORAGE_KEYS.ITEMS, DEFAULT_ITEMS));
   let history = readJson(STORAGE_KEYS.HISTORY, []);
   let settings = readJson(STORAGE_KEYS.SETTINGS, {
@@ -152,6 +182,26 @@ export default function renderRandomizerView() {
           </label>
         </header>
         <p class="hint">Добавляйте идеи по одной или вставьте целый список через буфер обмена.</p>
+        <div class="randomizer-presets">
+          <label for="randomizer-preset-select" class="preset-label">Пресеты:</label>
+          <select id="randomizer-preset-select" class="preset-select"></select>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить текущий пресет">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Сохранить</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пресет из текущего списка">
+            <i class="fa-solid fa-copy"></i>
+            <span>Сохранить как</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный пресет">
+            <i class="fa-solid fa-trash"></i>
+            <span>Удалить</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-default" data-bs-toggle="tooltip" data-bs-placement="top" title="Сделать пресет стартовым">
+            <i class="fa-solid fa-star"></i>
+            <span>По умолчанию</span>
+          </button>
+        </div>
         <div class="randomizer-add-row">
           <input
             type="text"
@@ -248,6 +298,12 @@ export default function renderRandomizerView() {
   const resultCard = wrapper.querySelector(".randomizer-result-card");
   const resultContainer = wrapper.querySelector("#randomizer-result");
   const bulkDeleteButton = wrapper.querySelector("#randomizer-delete-selected");
+  const presetSelect = wrapper.querySelector("#randomizer-preset-select");
+  const presetSaveBtn = wrapper.querySelector("#randomizer-preset-save");
+  const presetSaveAsBtn = wrapper.querySelector("#randomizer-preset-save-as");
+  const presetDeleteBtn = wrapper.querySelector("#randomizer-preset-delete");
+  const presetDefaultBtn = wrapper.querySelector("#randomizer-preset-default");
+  let presetPromptEl = null;
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -280,8 +336,12 @@ export default function renderRandomizerView() {
   };
 
   const persistItems = (options = {}) => {
-    const { resetPool: shouldResetPool = false } = options;
+    const {
+      resetPool: shouldResetPool = false,
+      updatePreset = true,
+    } = options;
     saveJson(STORAGE_KEYS.ITEMS, items);
+    if (updatePreset) syncCurrentPresetItems();
     if (shouldResetPool) resetPool();
     else savePool();
   };
@@ -294,7 +354,180 @@ export default function renderRandomizerView() {
     saveJson(STORAGE_KEYS.SETTINGS, settings);
   };
 
-  normalizePool();
+  const savePresets = () => {
+    saveJson(STORAGE_KEYS.PRESETS, presets);
+    if (currentPresetName) {
+      localStorage.setItem(STORAGE_KEYS.CURRENT_PRESET, currentPresetName);
+    }
+    if (defaultPresetName) {
+      localStorage.setItem(STORAGE_KEYS.DEFAULT_PRESET, defaultPresetName);
+    }
+  };
+
+  const ensurePresetExists = () => {
+    if (!presets.length) {
+      presets = [
+        {
+          name: DEFAULT_PRESET_NAME,
+          items: items.length ? items : normalizeItems(DEFAULT_ITEMS),
+        },
+      ];
+    }
+    if (!currentPresetName) currentPresetName = presets[0].name;
+    if (!defaultPresetName) defaultPresetName = presets[0].name;
+    if (defaultPresetName && !presets.some((p) => p.name === defaultPresetName))
+      defaultPresetName = "";
+    savePresets();
+  };
+
+  const refreshPresetSelect = () => {
+    if (!presetSelect) return;
+    presetSelect.innerHTML = "";
+    presets.forEach((preset) => {
+      const option = document.createElement("option");
+      option.value = preset.name;
+      option.textContent =
+        preset.name === defaultPresetName
+          ? `${preset.name} •`
+          : preset.name;
+      if (preset.name === currentPresetName) option.selected = true;
+      presetSelect.appendChild(option);
+    });
+    presetDeleteBtn.disabled = presets.length <= 1;
+    presetDefaultBtn.disabled = !currentPresetName;
+  };
+
+  const applyPreset = (name) => {
+    const preset = presets.find((p) => p.name === name);
+    if (!preset) return false;
+    currentPresetName = preset.name;
+    items = normalizeItems(preset.items);
+    selectedItems.clear();
+    resetPool();
+    savePresets();
+    renderItems();
+    setCountLabel();
+    updateBulkActions();
+    return true;
+  };
+
+  const syncCurrentPresetItems = () => {
+    const preset = presets.find((p) => p.name === currentPresetName);
+    if (!preset) return;
+    preset.items = items.map((item) => ({ ...item }));
+    savePresets();
+    refreshPresetSelect();
+  };
+
+  const createPreset = (name) => {
+    const trimmed = (name || "").trim();
+    if (!trimmed) return;
+    const exists = presets.some(
+      (p) => p.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (exists) {
+      const replace = confirm(
+        "Пресет с таким именем уже есть. Перезаписать его текущим списком?",
+      );
+      if (!replace) return;
+      presets = presets.map((p) =>
+        p.name.toLowerCase() === trimmed.toLowerCase()
+          ? { ...p, name: trimmed, items: items.map((item) => ({ ...item })) }
+          : p,
+      );
+      currentPresetName = trimmed;
+    } else {
+      presets.push({ name: trimmed, items: items.map((item) => ({ ...item })) });
+      currentPresetName = trimmed;
+    }
+    savePresets();
+    refreshPresetSelect();
+  };
+
+  const ensurePresetPrompt = () => {
+    if (presetPromptEl) return presetPromptEl;
+    const overlay = document.createElement("div");
+    overlay.className = "preset-prompt-overlay hidden";
+    overlay.innerHTML = `
+      <div class="preset-prompt">
+        <h4>Название пресета</h4>
+        <input type="text" class="preset-prompt-input" maxlength="80" />
+        <div class="preset-prompt-actions">
+          <button type="button" class="btn btn-ghost" data-action="cancel">Отмена</button>
+          <button type="button" class="btn btn-primary" data-action="ok">Сохранить</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    presetPromptEl = overlay;
+    return presetPromptEl;
+  };
+
+  const askPresetName = (initialValue = "") =>
+    new Promise((resolve) => {
+      const overlay = ensurePresetPrompt();
+      const input = overlay.querySelector(".preset-prompt-input");
+      const btnOk = overlay.querySelector('[data-action="ok"]');
+      const btnCancel = overlay.querySelector('[data-action="cancel"]');
+
+      const cleanup = (result = null) => {
+        overlay.classList.add("hidden");
+        overlay.setAttribute("aria-hidden", "true");
+        btnOk.removeEventListener("click", onOk);
+        btnCancel.removeEventListener("click", onCancel);
+        overlay.removeEventListener("click", onBackdrop);
+        input.removeEventListener("keydown", onKey);
+        resolve(result);
+      };
+
+      const onOk = () => {
+        const value = input.value.trim();
+        if (!value) {
+          showToast("Введите название пресета", "warning");
+          return;
+        }
+        cleanup(value);
+      };
+
+      const onCancel = () => cleanup(null);
+      const onBackdrop = (event) => {
+        if (event.target === overlay) cleanup(null);
+      };
+      const onKey = (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          onOk();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          onCancel();
+        }
+      };
+
+      overlay.classList.remove("hidden");
+      overlay.setAttribute("aria-hidden", "false");
+      input.value = initialValue;
+      input.focus();
+      input.select();
+
+      btnOk.addEventListener("click", onOk);
+      btnCancel.addEventListener("click", onCancel);
+      overlay.addEventListener("click", onBackdrop);
+      input.addEventListener("keydown", onKey);
+    });
+
+  const deletePreset = (name) => {
+    if (presets.length <= 1) return;
+    presets = presets.filter((p) => p.name !== name);
+    if (defaultPresetName === name) defaultPresetName = "";
+    if (currentPresetName === name) {
+      currentPresetName = presets[0]?.name || "";
+      items = presets[0]?.items ? normalizeItems(presets[0].items) : items;
+      resetPool();
+    }
+    savePresets();
+    refreshPresetSelect();
+    renderItems();
+  };
 
   const pruneSelection = () => {
     selectedItems = new Set(
@@ -416,6 +649,23 @@ export default function renderRandomizerView() {
     items.splice(toIndex, 0, moved);
     persistItems({ resetPool: false });
     renderItems();
+  };
+
+  const getItemWeight = (item) => clampWeight(item?.weight ?? DEFAULT_WEIGHT);
+  const getItemHits = (item) => clampHits(item?.hits ?? 0);
+
+  const pickWeightedItem = (candidates) => {
+    const totalWeight = candidates.reduce(
+      (sum, item) => sum + getItemWeight(item),
+      0,
+    );
+    if (totalWeight <= 0) return null;
+    let rollValue = Math.random() * totalWeight;
+    for (const item of candidates) {
+      rollValue -= getItemWeight(item);
+      if (rollValue <= 0) return item;
+    }
+    return candidates[candidates.length - 1] || null;
   };
 
   const renderItems = () => {
@@ -572,6 +822,15 @@ export default function renderRandomizerView() {
     updateBulkActions();
   };
 
+  ensurePresetExists();
+  refreshPresetSelect();
+  if (defaultPresetName && presets.some((p) => p.name === defaultPresetName)) {
+    applyPreset(defaultPresetName);
+  } else if (currentPresetName) {
+    applyPreset(currentPresetName);
+  }
+  normalizePool();
+
   const renderHistory = () => {
     historyList.innerHTML = "";
     if (!history.length) {
@@ -621,23 +880,6 @@ export default function renderRandomizerView() {
     history = history.slice(0, MAX_HISTORY);
     persistHistory();
     renderHistory();
-  };
-
-  const getItemWeight = (item) => clampWeight(item?.weight ?? DEFAULT_WEIGHT);
-  const getItemHits = (item) => clampHits(item?.hits ?? 0);
-
-  const pickWeightedItem = (candidates) => {
-    const totalWeight = candidates.reduce(
-      (sum, item) => sum + getItemWeight(item),
-      0,
-    );
-    if (totalWeight <= 0) return null;
-    let rollValue = Math.random() * totalWeight;
-    for (const item of candidates) {
-      rollValue -= getItemWeight(item);
-      if (rollValue <= 0) return item;
-    }
-    return candidates[candidates.length - 1] || null;
   };
 
   const addItem = (value, silent = false) => {
@@ -840,6 +1082,51 @@ export default function renderRandomizerView() {
       resetPool();
       showToast("Пул без повторов обновлён", "success");
     });
+
+  presetSelect?.addEventListener("change", (event) => {
+    const name = event.target.value;
+    if (!name) return;
+    applyPreset(name);
+    refreshPresetSelect();
+    showToast(`Пресет «${name}» загружен`, "success");
+  });
+
+  presetSaveBtn?.addEventListener("click", () => {
+    syncCurrentPresetItems();
+    showToast("Пресет сохранён", "success");
+  });
+
+  presetSaveAsBtn?.addEventListener("click", async () => {
+    const suggested =
+      currentPresetName && currentPresetName !== DEFAULT_PRESET_NAME
+        ? `${currentPresetName} (копия)`
+        : "Новый пресет";
+    const name = await askPresetName(suggested);
+    if (!name) return;
+    createPreset(name);
+    refreshPresetSelect();
+    showToast(`Пресет «${name.trim()}» сохранён`, "success");
+  });
+
+  presetDeleteBtn?.addEventListener("click", () => {
+    if (!currentPresetName || presets.length <= 1) return;
+    if (
+      !confirm(
+        `Удалить пресет «${currentPresetName}»? Варианты будут удалены только из этого пресета.`,
+      )
+    )
+      return;
+    deletePreset(currentPresetName);
+    showToast("Пресет удалён", "success");
+  });
+
+  presetDefaultBtn?.addEventListener("click", () => {
+    if (!currentPresetName) return;
+    defaultPresetName = currentPresetName;
+    savePresets();
+    refreshPresetSelect();
+    showToast(`Пресет «${currentPresetName}» выбран по умолчанию`, "success");
+  });
 
   bulkDeleteButton?.addEventListener("click", () => {
     if (!selectedItems.size) {
