@@ -22,42 +22,47 @@ import { showToast } from "./toast.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 import { state, setHistoryData } from "./state.js";
 
+let isClearingHistory = false;
+
 /**
  * Обработчик очистки истории
  */
 async function handleClearHistory() {
-  showConfirmationDialog(
-    {
+  if (isClearingHistory) return;
+  isClearingHistory = true;
+
+  try {
+    const confirmed = await showConfirmationDialog({
       title: "Очистить историю?",
       subtitle: "История загрузок",
       message: "Вы уверены, что хотите удалить всю историю загрузок?",
       confirmText: "Очистить",
       cancelText: "Отмена",
       tone: "danger",
-    },
-    async () => {
-      try {
-        await window.electron.invoke("clear-history");
-        state.downloadHistory = [];
-        setHistoryData([]);
+    });
+    if (!confirmed) return;
 
-        // ✅ очищаем интерфейс и локальное состояние
-        state.currentSearchQuery = "";
-        localStorage.removeItem("lastSearch");
-        setFilterInputValue("");
-        renderHistory([]);
-        await updateDownloadCount();
-        await loadHistory(true);
-        localStorage.setItem("historyVisible", "false");
+    await window.electron.invoke("clear-history");
+    state.downloadHistory = [];
+    setHistoryData([]);
 
-        showToast("История загрузок успешно очищена.", "success");
-        console.log("История успешно очищена.");
-      } catch (error) {
-        console.error("Error clearing history:", error);
-        showToast("Ошибка очистки истории загрузок.", "error");
-      }
-    },
-  );
+    // ✅ очищаем интерфейс и локальное состояние
+    state.currentSearchQuery = "";
+    localStorage.removeItem("lastSearch");
+    setFilterInputValue("");
+    renderHistory([]);
+    await updateDownloadCount();
+    await loadHistory(true);
+    localStorage.setItem("historyVisible", "false");
+
+    showToast("История загрузок успешно очищена.", "success");
+    console.log("История успешно очищена.");
+  } catch (error) {
+    console.error("Error clearing history:", error);
+    showToast("Ошибка очистки истории загрузок.", "error");
+  } finally {
+    isClearingHistory = false;
+  }
 }
 
 /**

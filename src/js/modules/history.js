@@ -1146,6 +1146,7 @@ function renderHistory(entries) {
     const actions = document.querySelector(".history-actions");
     if (actions) actions.classList.toggle("hidden", isCompletelyEmpty);
 
+    renderHistoryCards([]); // синхронизируем карточки с пустым состоянием
     setTimeout(() => initTooltips(), 0);
     return;
   }

@@ -28,8 +28,10 @@
 
 /* Базовые стили тоста */
 .toast {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: var(--spacing-medium);
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.12) 0%,
@@ -90,7 +92,6 @@
 /* Структура контента тоста */
 .toast-icon {
   font-size: 1.5rem;
-  margin-right: var(--spacing-medium);
   color: inherit;
   display: flex;
   align-items: center;
@@ -108,7 +109,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0; // Предотвращает переполнение
 }
 
@@ -146,8 +147,10 @@
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   flex-shrink: 0;
-  margin-left: var(--spacing-small);
+  margin-left: 0;
   border: none;
+  align-self: center;
+  justify-self: end;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -428,12 +431,12 @@
 
   .toast {
     padding: var(--spacing-small);
+    column-gap: var(--spacing-small);
 
     &-icon {
       font-size: 1.3rem;
       width: 28px;
       height: 28px;
-      margin-right: var(--spacing-small);
     }
 
     &-title {
@@ -444,14 +447,14 @@
       font-size: 0.85rem;
     }
 
-    &-close {
-      width: 28px;
-      height: 28px;
-      font-size: 1.1rem;
-      margin-left: var(--spacing-small);
+      &-close {
+        width: 28px;
+        height: 28px;
+        font-size: 1.1rem;
+        margin-left: 0;
+      }
     }
   }
-}
 
 /* Поддержка reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -506,12 +509,12 @@
 
 .toast-compact {
   padding: var(--spacing-small);
+  column-gap: var(--spacing-small);
 
   .toast-icon {
     width: 24px;
     height: 24px;
     font-size: 1.2rem;
-    margin-right: var(--spacing-small);
   }
 
   .toast-title {
@@ -524,11 +527,22 @@
 }
 
 .toast-autoshutdown {
+  .toast-message {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
   .toast-countdown-row {
     display: flex;
     align-items: center;
-    gap: var(--spacing-small);
+    justify-content: space-between;
+    gap: var(--spacing-medium);
     flex-wrap: wrap;
+    width: 100%;
   }
 
   .toast-countdown-value {
@@ -542,6 +556,9 @@
     font-weight: 700;
     color: var(--color-toast-text);
     line-height: 1.2;
+    min-width: 78px;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .toast-action-btn {
@@ -549,15 +566,21 @@
     align-items: center;
     gap: 6px;
     font-size: 14px;
-    margin-bottom: 8px;
-    padding: 6px 12px;
+    margin: 0 0 0 auto;
+    padding: 8px 14px;
     border-radius: 12px;
-    border: 1px solid rgba(var(--color-toast-warning-rgb, 255, 152, 0), 0.35);
-    background: rgba(var(--color-toast-warning-rgb, 255, 152, 0), 0.15);
+    border: 1px solid rgba(var(--color-toast-warning-rgb, 255, 152, 0), 0.4);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-toast-warning-rgb, 255, 152, 0), 0.18),
+      rgba(var(--color-toast-warning-rgb, 255, 152, 0), 0.12)
+    );
     color: var(--color-toast-text);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    min-height: 36px;
+    flex-shrink: 0;
 
     &:hover {
       background: rgba(var(--color-toast-warning-rgb, 255, 152, 0), 0.22);

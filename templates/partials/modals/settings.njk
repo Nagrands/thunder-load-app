@@ -203,10 +203,8 @@
               <div id="window-settings" class="tab-pane">
                 <h2>Вкладка «Downloader»</h2>
                     <ul class="module default-tab-group" id="quality-profile-group">
-                      <section>
                     <h3>Выбор качества загрузки по умолчанию</h3>
                     <small class="muted">Применяется при открытии окна выбора качества</small>
-                      </section>
                       <li>
                         <input
                           type="radio"
@@ -552,6 +550,16 @@
                       <i class="fa-solid fa-rotate-left"></i>
                     </button>
                   </li>
+
+                  <li>
+                    <input type="checkbox" id="settings-low-effects-toggle" />
+                    <label for="settings-low-effects-toggle" data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Отключает анимации и эффекты размытия">
+                      <i class="fa-solid fa-leaf"></i>
+                      Режим <strong>экономии эффектов</strong>
+                    </label>
+                  </li>
                 </ul>
               </div>
 
@@ -567,7 +575,7 @@
                   ></i>
                 </h2>
                 <ul class="module">
-                  <li class="custom-theme-select">
+                  <li>
                     <input
                       type="checkbox"
                       id="settings-disable-global-shortcuts-toggle"
@@ -575,13 +583,6 @@
                     <label for="settings-disable-global-shortcuts-toggle">
                       <i class="fa-solid fa-keyboard"></i>
                       Отключить <strong>специальные</strong> (горячие) клавиши
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="settings-low-effects-toggle" />
-                    <label for="settings-low-effects-toggle">
-                      <i class="fa-solid fa-leaf"></i>
-                      Режим <strong>экономии эффектов</strong> (без анимаций/размытия)
                     </label>
                   </li>
                 </ul>
