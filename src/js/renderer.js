@@ -50,6 +50,7 @@ import { initInterfaceHandlers } from "./modules/interfaceHandlers.js";
 import { initSettingsModal } from "./modules/settingsModal.js";
 import { initUpdateHandler } from "./modules/updateHandler.js";
 import { initDownloaderToolsStatus } from "./modules/downloaderToolsStatus.js";
+import { initWgAutoShutdownNotifier } from "./modules/wgAutoShutdownNotifier.js";
 // import { updateProgressBar }              from "./modules/updateHandler.js";
 
 import { initializeTheme } from "./modules/themeManager.js";
@@ -190,6 +191,7 @@ async function startRenderer() {
     const cfg = await window.electron.ipcRenderer.invoke("wg-get-config");
     const tabToActivate = cfg.autosend ? "wireguard" : defaultTab;
 
+    initWgAutoShutdownNotifier({ autosend: !!cfg.autosend });
     tabs.activateTab(tabToActivate);
 
     // Инициализация остальных модулей
