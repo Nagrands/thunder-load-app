@@ -699,7 +699,21 @@ function renderHistoryCards(entries = []) {
     actions.append(openBtn, retryBtn);
     body.appendChild(actions);
 
-    card.append(thumb, body);
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "history-card-delete";
+    deleteBtn.setAttribute("aria-label", "Удалить запись");
+    deleteBtn.title = "Удалить запись";
+    deleteBtn.setAttribute("data-bs-toggle", "tooltip");
+    deleteBtn.setAttribute("data-bs-placement", "top");
+    deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    deleteBtn.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      await handleDeleteEntry(card);
+    });
+
+    card.append(deleteBtn, thumb, body);
     historyCardsRoot.appendChild(card);
   });
 }

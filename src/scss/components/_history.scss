@@ -300,6 +300,7 @@
   min-height: 150px;
   opacity: 1;
   transform: none;
+  position: relative;
 
   // Анимация входа только при включенных эффектах.
   body:not(.low-effects) & {
@@ -332,6 +333,55 @@
     border-style: dashed;
     opacity: 0.35;
     background-color: #ff6b6b3b;
+  }
+}
+
+.history-card-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.45);
+  color: #f9f9f9;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.92);
+  z-index: 2;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+
+  i {
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: rgba(255, 92, 92, 0.18);
+    border-color: rgba(255, 92, 92, 0.55);
+    color: #ff8f8f;
+    transform: scale(1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 92, 92, 0.65);
+    outline-offset: 2px;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .history-card:hover & {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
