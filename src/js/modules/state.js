@@ -20,6 +20,17 @@ const state = {
   lastPastedUrl: "",
   downloadQueue: [],
   selectedEntries: [], // выбранные ID
+  historyPage: 1,
+  historyPageSize: (() => {
+    try {
+      const raw = window.localStorage.getItem("historyPageSize");
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n <= 0) return 20;
+      return Math.max(4, Math.min(200, n));
+    } catch {
+      return 20;
+    }
+  })(),
 };
 
 // Временное хранилище истории (без привязки к DOM)

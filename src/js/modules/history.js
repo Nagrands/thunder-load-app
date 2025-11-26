@@ -36,6 +36,7 @@ const HISTORY_AUDIO_PLACEHOLDER =
   encodeURIComponent(
     "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231a1f2e'/><stop offset='1' stop-color='%23243352'/></linearGradient></defs><rect width='320' height='180' fill='url(%23g)'/><g fill='%23a3b3ff' opacity='0.9'><path d='M190 60v58a26 26 0 11-10-20V70l40-10v12z'/></g></svg>",
   );
+const HISTORY_PAGE_SIZES = [4, 10, 20];
 const attemptedPreviewRestores = new Set();
 
 let historyCardsRoot = historyCards;
@@ -43,6 +44,125 @@ let historyCardsEmptyRoot = historyCardsEmpty;
 let historyCardPreviewOverlay = null;
 let historyCardPreviewImage = null;
 let historyCardPreviewCaption = null;
+let paginationRoot = null;
+let paginationInfo = null;
+let paginationPrev = null;
+let paginationNext = null;
+let paginationSize = null;
+let lastPaginationMeta = {
+  page: state.historyPage || 1,
+  totalPages: 1,
+  totalEntries: 0,
+  pageSize: state.historyPageSize || HISTORY_PAGE_SIZES[0],
+};
+
+const pluralize = (value, [one, few, many]) => {
+  const n = Math.abs(Number(value)) || 0;
+  const n10 = n % 10;
+  const n100 = n % 100;
+  if (n10 === 1 && n100 !== 11) return one;
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return few;
+  return many;
+};
+
+const normalizePageSize = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return HISTORY_PAGE_SIZES[0];
+  return Math.max(4, Math.min(200, Math.floor(n)));
+};
+
+function goToPage(target) {
+  const nextPage = Math.max(1, Math.min(target, lastPaginationMeta.totalPages));
+  if (nextPage === state.historyPage) return;
+  state.historyPage = nextPage;
+  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+}
+
+function changePageSize(value) {
+  const nextSize = normalizePageSize(value);
+  if (nextSize === state.historyPageSize) return;
+  state.historyPageSize = nextSize;
+  state.historyPage = 1;
+  try {
+    localStorage.setItem("historyPageSize", String(nextSize));
+  } catch {}
+  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+}
+
+function ensurePaginationElements() {
+  if (paginationRoot && paginationRoot.isConnected) return;
+
+  paginationRoot = document.createElement("div");
+  paginationRoot.id = "history-pagination";
+  paginationRoot.className = "history-pagination";
+  paginationRoot.innerHTML = `
+    <button type="button" class="history-action-button history-page-btn" id="history-page-prev" aria-label="Предыдущая страница">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <span class="history-page-info" id="history-page-info">Стр. 1 / 1 · 0 записей</span>
+    <button type="button" class="history-action-button history-page-btn" id="history-page-next" aria-label="Следующая страница">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <label class="history-page-size">
+      <span>по</span>
+      <select id="history-page-size" class="input input-sm history-page-size-select" aria-label="Записей на странице">
+        ${HISTORY_PAGE_SIZES.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
+      </select>
+    </label>
+  `;
+
+  paginationPrev = paginationRoot.querySelector("#history-page-prev");
+  paginationNext = paginationRoot.querySelector("#history-page-next");
+  paginationInfo = paginationRoot.querySelector("#history-page-info");
+  paginationSize = paginationRoot.querySelector("#history-page-size");
+
+  paginationPrev?.addEventListener("click", () => goToPage(state.historyPage - 1));
+  paginationNext?.addEventListener("click", () => goToPage(state.historyPage + 1));
+  paginationSize?.addEventListener("change", (e) => changePageSize(e.target.value));
+
+  const host = historyContainer || history?.parentElement || document.body;
+  host.appendChild(paginationRoot);
+}
+
+function updatePaginationControls(meta) {
+  ensurePaginationElements();
+  lastPaginationMeta = {
+    page: meta.page,
+    totalPages: meta.totalPages,
+    totalEntries: meta.totalEntries,
+    pageSize: meta.pageSize,
+  };
+
+  if (paginationInfo) {
+    const countLabel = pluralize(meta.totalEntries, [
+      "запись",
+      "записи",
+      "записей",
+    ]);
+    paginationInfo.textContent = `Стр. ${meta.page} / ${meta.totalPages} · ${meta.totalEntries} ${countLabel}`;
+  }
+  if (paginationPrev) {
+    paginationPrev.disabled = meta.page <= 1;
+    paginationPrev.setAttribute("aria-disabled", paginationPrev.disabled);
+  }
+  if (paginationNext) {
+    paginationNext.disabled = meta.page >= meta.totalPages;
+    paginationNext.setAttribute("aria-disabled", paginationNext.disabled);
+  }
+  if (paginationSize) {
+    if (!HISTORY_PAGE_SIZES.includes(meta.pageSize)) {
+      const opt = document.createElement("option");
+      opt.value = String(meta.pageSize);
+      opt.textContent = meta.pageSize;
+      paginationSize.appendChild(opt);
+    }
+    paginationSize.value = String(meta.pageSize);
+  }
+
+  if (paginationRoot) {
+    paginationRoot.style.display = meta.totalEntries > 0 ? "flex" : "none";
+  }
+}
 
 function ensureHistoryCardsElements() {
   if (!historyCardsRoot || !historyCardsRoot.isConnected) {
@@ -539,6 +659,25 @@ async function openHistoryCardFile(entry) {
   }
 }
 
+async function openHistoryCardFolder(entry) {
+  if (!entry?.filePath) return;
+  try {
+    const exists = await window.electron.invoke(
+      "check-file-exists",
+      entry.filePath,
+    );
+    if (!exists) {
+      entry.isMissing = true;
+      renderHistoryCards(getHistoryData());
+      return showToast("Папка не найдена на диске.", "error");
+    }
+    await window.electron.invoke("open-download-folder", entry.filePath);
+  } catch (error) {
+    console.error("Ошибка при открытии папки истории:", error);
+    showToast("Не удалось открыть папку.", "error");
+  }
+}
+
 function retryHistoryCardDownload(entry) {
   if (!entry?.sourceUrl || !urlInput || !downloadButton) {
     showToast("Ссылка для повторной загрузки недоступна.", "warning");
@@ -645,7 +784,7 @@ function renderHistoryCards(entries = []) {
       hostButton.type = "button";
       hostButton.className = "history-card-host-link";
       hostButton.textContent = host;
-      hostButton.title = "Открыть источник загрузки";
+      hostButton.title = "Открыть источник";
       hostButton.setAttribute("data-bs-toggle", "tooltip");
       hostButton.setAttribute("data-bs-placement", "top");
       hostButton.addEventListener("click", () =>
@@ -675,12 +814,26 @@ function renderHistoryCards(entries = []) {
     openBtn.className = "history-card-btn";
     openBtn.dataset.action = "open";
     openBtn.innerHTML =
-      '<i class="fa-regular fa-file-video"></i><span>Открыть</span>';
-    openBtn.title = "Открыть файл на диске";
+      '<i class="fa-solid fa-circle-play"></i><span>Открыть</span>';
+    openBtn.title = "Открыть файл";
     openBtn.setAttribute("data-bs-toggle", "tooltip");
     openBtn.setAttribute("data-bs-placement", "top");
     openBtn.disabled = entry.isMissing;
     openBtn.addEventListener("click", () => openHistoryCardFile(entry));
+
+    const openFolderBtn = document.createElement("button");
+    openFolderBtn.type = "button";
+    openFolderBtn.className = "history-card-btn ghost";
+    openFolderBtn.dataset.action = "open-folder";
+    openFolderBtn.innerHTML =
+      '<i class="fa-solid fa-folder-open"></i><span>Папка</span>';
+    openFolderBtn.title = "Открыть папку с файлом";
+    openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
+    openFolderBtn.setAttribute("data-bs-placement", "top");
+    openFolderBtn.disabled = entry.isMissing;
+    openFolderBtn.addEventListener("click", () =>
+      openHistoryCardFolder(entry),
+    );
 
     const retryBtn = document.createElement("button");
     retryBtn.type = "button";
@@ -688,7 +841,7 @@ function renderHistoryCards(entries = []) {
     retryBtn.dataset.action = "retry";
     retryBtn.innerHTML =
       '<i class="fa-solid fa-arrow-rotate-right"></i><span>Скачать снова</span>';
-    retryBtn.title = "Скачать эту запись повторно";
+    retryBtn.title = "Повторно скачать файл";
     retryBtn.setAttribute("data-bs-toggle", "tooltip");
     retryBtn.setAttribute("data-bs-placement", "top");
     retryBtn.disabled = !entry.sourceUrl;
@@ -696,7 +849,7 @@ function renderHistoryCards(entries = []) {
       retryBtn.addEventListener("click", () => retryHistoryCardDownload(entry));
     }
 
-    actions.append(openBtn, retryBtn);
+    actions.append(openBtn, openFolderBtn, retryBtn);
     body.appendChild(actions);
 
     const deleteBtn = document.createElement("button");
@@ -1131,17 +1284,49 @@ function attachOpenFolderListeners() {
   });
 }
 
-function renderHistory(entries) {
+function renderHistory(entries, meta = {}) {
+  const allEntries = Array.isArray(entries) ? entries : getHistoryData();
+  const fullEntries =
+    Array.isArray(meta.fullEntries) && meta.fullEntries.length
+      ? meta.fullEntries
+      : allEntries;
+  const totalEntries =
+    typeof meta.totalEntries === "number"
+      ? meta.totalEntries
+      : fullEntries.length;
+
+  const pageSize = normalizePageSize(
+    meta.pageSize ?? state.historyPageSize ?? HISTORY_PAGE_SIZES[0],
+  );
+  state.historyPageSize = pageSize;
+
+  const totalPages =
+    meta.totalPages ||
+    Math.max(1, Math.ceil(totalEntries / Math.max(pageSize, 1)));
+  let page =
+    meta.page ||
+    state.historyPage ||
+    (state.currentSortOrder === "asc" ? totalPages : 1);
+  if (page > totalPages) page = totalPages;
+  if (page < 1) page = 1;
+  state.historyPage = page;
+
+  const start = (page - 1) * pageSize;
+  const pageEntries =
+    meta.paged === true && Array.isArray(entries)
+      ? allEntries
+      : allEntries.slice(start, start + pageSize);
+  const count = totalEntries;
+  const isEmpty = totalEntries === 0;
+
   // ВСТАВКА: лог в начале renderHistory
   console.log(
     "🧾 renderHistory получил entries:",
-    entries.map((e) => e.id),
+    fullEntries.map((e) => e.id),
   );
   console.log("renderHistory called at", new Date().toISOString());
-  console.trace("renderHistory stack");
 
   const container = document.getElementById("history");
-  const isEmpty = entries.length === 0;
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
 
@@ -1161,6 +1346,12 @@ function renderHistory(entries) {
     if (actions) actions.classList.toggle("hidden", isCompletelyEmpty);
 
     renderHistoryCards([]); // синхронизируем карточки с пустым состоянием
+    updatePaginationControls({
+      page,
+      totalPages: 1,
+      totalEntries: 0,
+      pageSize,
+    });
     setTimeout(() => initTooltips(), 0);
     return;
   }
@@ -1175,9 +1366,12 @@ function renderHistory(entries) {
   const actions = document.querySelector(".history-actions");
   if (actions) actions.classList.remove("hidden");
 
-  const count = entries.length;
-  entries.forEach((entry, index) => {
-    const order = state.currentSortOrder === "asc" ? index + 1 : count - index;
+  pageEntries.forEach((entry, index) => {
+    const absoluteIndex = start + index;
+    const order =
+      state.currentSortOrder === "asc"
+        ? absoluteIndex + 1
+        : count - absoluteIndex;
 
     const { el, divider } = createLogEntry(entry, order - 1);
     container.appendChild(el);
@@ -1196,7 +1390,15 @@ function renderHistory(entries) {
     document.querySelectorAll(".log-entry.selected"),
   ).map((el) => el.dataset.id);
   updateDeleteSelectedButton();
-  renderHistoryCards(entries);
+  // Карточки истории показываем только текущую страницу, чтобы соответствовать пагинации списка.
+  renderHistoryCards(pageEntries);
+
+  updatePaginationControls({
+    page,
+    totalPages,
+    totalEntries: count,
+    pageSize,
+  });
 }
 
 async function initHistoryState() {
@@ -1233,8 +1435,7 @@ function initHistory() {
 
 const sortHistory = (order = "desc") => {
   state.currentSortOrder = order;
-  const entries = getHistoryData(); // Получаем актуальные данные
-  renderHistory(entries); // Перерисовываем историю
+  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
 };
 
 const updateDownloadCount = async () => {
@@ -1270,6 +1471,7 @@ const loadHistory = async (forceRender = false) => {
     }
 
     setHistoryData(entries);
+    state.historyPage = 1;
 
     const hasRealEntries = entries.length > 0;
     const filteredEntries = entries.filter((entry) =>
@@ -1321,6 +1523,7 @@ const addNewEntryToHistory = async (newEntryRaw) => {
     const updated = [normalized, ...existingHistory];
 
     setHistoryData(updated);
+    state.historyPage = 1;
     await window.electron.invoke("save-history", updated);
     if (removedPreviews.length) {
       try {

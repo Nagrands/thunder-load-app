@@ -2,6 +2,7 @@
 
 import { filterInput } from "./domElements.js";
 import { state } from "./state.js";
+import { filterAndSortHistory as filterAndSortHistoryCore } from "./filterAndSortHistory.js";
 
 /**
  * Функция для инициализации фильтрации истории
@@ -21,8 +22,9 @@ function initHistoryFilter() {
       lastQuery = value;
 
       state.currentSearchQuery = value;
+      state.historyPage = 1;
       localStorage.setItem("lastSearch", value);
-      filterAndSortHistory(value, state.currentSortOrder);
+      filterAndSortHistoryCore(value, state.currentSortOrder, true);
     }, 300);
   });
 }
@@ -38,33 +40,8 @@ function setFilterInputValue(value) {
   }, 0);
 }
 
-import { getHistoryData } from "./state.js";
-import { renderHistory } from "./history.js";
-
-function filterAndSortHistory(
-  query = "",
-  sortOrder = "desc",
-  forceRender = false,
-) {
-  const entries = getHistoryData();
-
-  const filtered = query
-    ? entries.filter((entry) =>
-        (entry.title || entry.fileName || "")
-          .toLowerCase()
-          .includes(query.toLowerCase()),
-      )
-    : entries;
-
-  const sorted = [...filtered].sort((a, b) =>
-    sortOrder === "asc" ? a.timestamp - b.timestamp : b.timestamp - a.timestamp,
-  );
-
-  if (forceRender) {
-    renderHistory(sorted);
-  }
-
-  return sorted;
-}
-
-export { initHistoryFilter, setFilterInputValue, filterAndSortHistory };
+export {
+  initHistoryFilter,
+  setFilterInputValue,
+  filterAndSortHistoryCore as filterAndSortHistory,
+};

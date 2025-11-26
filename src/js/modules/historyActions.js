@@ -48,6 +48,7 @@ async function handleClearHistory() {
 
     // ✅ очищаем интерфейс и локальное состояние
     state.currentSearchQuery = "";
+    state.historyPage = 1;
     localStorage.removeItem("lastSearch");
     setFilterInputValue("");
     renderHistory([]);
@@ -103,8 +104,9 @@ function initHistoryActions() {
     clearFilterInputButton.addEventListener("click", () => {
       filterInput.value = "";
       state.currentSearchQuery = "";
+      state.historyPage = 1;
       localStorage.removeItem("lastSearch");
-      filterAndSortHistory("", state.currentSortOrder);
+      filterAndSortHistory("", state.currentSortOrder, true);
     });
   }
 }
