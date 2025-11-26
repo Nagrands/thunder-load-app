@@ -1201,7 +1201,7 @@ export default function renderBackup() {
       }
 
       const row = document.createElement("div");
-      row.className = "bk-row wg-card";
+      row.className = "bk-row";
       row.style.animationDelay = `${index * 0.05}s`;
       row.dataset.profileKey = key;
 

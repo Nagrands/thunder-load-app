@@ -212,7 +212,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     @include header-style;
 
     i {
-      font-size: 24px;
+      font-size: 18px;
       width: auto;
       color: var(--color-accent);
       background: rgba(var(--color-accent-rgb), 0.1);

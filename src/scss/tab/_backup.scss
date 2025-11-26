@@ -741,7 +741,7 @@
     overflow: hidden;
     transform-origin: top center;
     animation: bk-scale-in 0.16s ease-out;
-    max-width: 800px;
+    max-width: 860px;
     width: 100%;
 
     &::before {
@@ -883,15 +883,11 @@
 
       .wg-field {
         min-width: 0;
-        padding: 10px 12px;
-        margin: 6px 0;
+        padding: 4px 12px;
+        margin: 4px 0;
         display: grid;
         grid-template-columns: 1fr 3fr;
-        gap: 10px;
-        transition:
-          box-shadow 0.22s,
-          border-color 0.22s,
-          background 0.22s;
+        gap: 8px;
         align-items: center;
         justify-items: start;
         position: relative;
@@ -1011,6 +1007,7 @@
         }
 
         .text-sm {
+          font-size: 15px;
           color: var(--color-accent);
           transition: color 0.18s;
           font-weight: 600;
@@ -1186,8 +1183,8 @@
       // Split layout (form + preview) for editor modal
       &.bk-form-split {
         display: grid !important;
-        grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
-        gap: 16px;
+        grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+        gap: 14px;
         align-items: start;
         width: 100%;
 

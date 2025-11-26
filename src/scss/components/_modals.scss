@@ -1098,10 +1098,11 @@
       display: flex;
       gap: 8px;
       padding: 10px;
-      align-items: stretch;
       flex-direction: row;
       flex-wrap: wrap;
-      justify-content: flex-start;
+      align-items: center;
+      align-content: center;
+      justify-content: center;
     }
 
     ul.module.default-tab-group li.custom-theme-select {

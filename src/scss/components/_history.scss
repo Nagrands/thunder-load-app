@@ -298,10 +298,16 @@
     background 0.35s ease,
     transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   min-height: 150px;
-  opacity: 0;
-  transform: translate3d(0, 20px, 0) scale(0.98);
-  animation: historyCardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  will-change: transform, opacity;
+  opacity: 1;
+  transform: none;
+
+  // Анимация входа только при включенных эффектах.
+  body:not(.low-effects) & {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.98);
+    animation: historyCardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
 
   &.selected {
     border-color: var(--color-accent);

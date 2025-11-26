@@ -11625,7 +11625,7 @@ footer {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
   color: var(--color-highlight);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -13377,6 +13377,10 @@ hr {
   border: 1px solid var(--color-hover);
   transition: box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.4, 1), border-color 0.35s ease, background 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   min-height: 150px;
+  opacity: 1;
+  transform: none;
+}
+body:not(.low-effects) .history-card {
   opacity: 0;
   transform: translate3d(0, 20px, 0) scale(0.98);
   animation: historyCardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -15540,10 +15544,11 @@ hr {
   display: flex;
   gap: 8px;
   padding: 10px;
-  align-items: stretch;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select,
@@ -17395,7 +17400,7 @@ video {
   margin-bottom: 20px;
 }
 .downloader-header .title i {
-  font-size: 24px;
+  font-size: 18px;
   width: auto;
   color: var(--color-accent);
   background: rgba(var(--color-accent-rgb), 0.1);
@@ -17906,7 +17911,7 @@ video {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .wg-header .title i {
-  font-size: 24px;
+  font-size: 18px;
   width: auto;
   color: var(--color-accent);
   background: rgba(var(--color-accent-rgb), 0.1);
@@ -19123,7 +19128,7 @@ video {
   overflow: hidden;
   transform-origin: top center;
   animation: bk-scale-in 0.16s ease-out;
-  max-width: 800px;
+  max-width: 860px;
   width: 100%;
 }
 .backup-view .bk-modal::before {
@@ -19291,12 +19296,11 @@ video {
 }
 .backup-view .bk-modal .bk-form-grid .wg-field {
   min-width: 0;
-  padding: 10px 12px;
-  margin: 6px 0;
+  padding: 4px 12px;
+  margin: 4px 0;
   display: grid;
   grid-template-columns: 1fr 3fr;
-  gap: 10px;
-  transition: box-shadow 0.22s, border-color 0.22s, background 0.22s;
+  gap: 8px;
   align-items: center;
   justify-items: start;
   position: relative;
@@ -19392,6 +19396,7 @@ video {
   margin-bottom: 2px;
 }
 .backup-view .bk-modal .bk-form-grid .wg-field .text-sm {
+  font-size: 15px;
   color: var(--color-accent);
   transition: color 0.18s;
   font-weight: 600;
@@ -19545,8 +19550,8 @@ video {
 }
 .backup-view .bk-modal .bk-form-grid.bk-form-split {
   display: grid !important;
-  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 14px;
   align-items: start;
   width: 100%;
 }

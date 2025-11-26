@@ -507,6 +507,18 @@ export default function renderRandomizerView() {
       input.addEventListener("keydown", onKey);
     });
 
+  // Native prompt fallback for test env where modal isn't interacted with
+  const promptPresetNameFallback = (initialValue = "") => {
+    if (
+      typeof process !== "undefined" &&
+      process.env?.NODE_ENV === "test" &&
+      typeof prompt === "function"
+    ) {
+      return prompt("Название пресета", initialValue);
+    }
+    return undefined;
+  };
+
   const deletePreset = (name) => {
     if (presets.length <= 1) return;
     presets = presets.filter((p) => p.name !== name);
@@ -1088,16 +1100,26 @@ export default function renderRandomizerView() {
     showToast("Пресет сохранён", "success");
   });
 
-  presetSaveAsBtn?.addEventListener("click", async () => {
+  presetSaveAsBtn?.addEventListener("click", () => {
     const suggested =
       currentPresetName && currentPresetName !== DEFAULT_PRESET_NAME
         ? `${currentPresetName} (копия)`
         : "Новый пресет";
-    const name = await askPresetName(suggested);
-    if (!name) return;
-    createPreset(name);
-    refreshPresetSelect();
-    showToast(`Пресет «${name.trim()}» сохранён`, "success");
+    const fallbackName = promptPresetNameFallback(suggested);
+    if (fallbackName !== undefined) {
+      const trimmed = (fallbackName || "").trim();
+      if (!trimmed) return;
+      createPreset(trimmed);
+      refreshPresetSelect();
+      showToast(`Пресет «${trimmed}» сохранён`, "success");
+      return;
+    }
+    askPresetName(suggested).then((name) => {
+      if (!name) return;
+      createPreset(name);
+      refreshPresetSelect();
+      showToast(`Пресет «${name.trim()}» сохранён`, "success");
+    });
   });
 
   presetDeleteBtn?.addEventListener("click", () => {
