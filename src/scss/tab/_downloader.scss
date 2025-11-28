@@ -512,7 +512,7 @@
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
-  background-image: url("../../assets/img/bg-downloader.jpeg");
+  // background-image: url("../../assets/img/bg-downloader.jpeg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -539,7 +539,7 @@
         rgba(0, 0, 0, 0.08) 25%,
         rgba(0, 0, 0, 0.08) 75%,
         rgba(0, 0, 0, 0.25) 100%
-      ),
-      url("../../assets/img/bg-downloader.jpeg") center/cover no-repeat;
+      )
+      // url("../../assets/img/bg-downloader.jpeg") center/cover no-repeat;
   }
 }
