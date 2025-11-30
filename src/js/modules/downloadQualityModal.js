@@ -2,10 +2,15 @@
 
 import { showToast } from "./toast.js";
 
+const INFO_REQUEST_TIMEOUT = 15000;
+
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
 const loadingEl = document.getElementById("download-quality-loading");
 const emptyEl = document.getElementById("download-quality-empty");
+const errorEl = document.getElementById("download-quality-error");
+const errorTextEl = errorEl?.querySelector(".quality-error-text");
+const retryBtn = document.getElementById("download-quality-retry");
 const confirmBtn = document.getElementById("download-quality-confirm");
 const cancelBtn = document.getElementById("download-quality-cancel");
 const closeBtn = modal?.querySelector("[data-quality-close]");
@@ -42,13 +47,14 @@ const secondsToTime = (sec) => {
 
 const state = {
   resolver: null,
-  rejecter: null,
   currentTab: "video",
   selectedOption: null,
   optionMap: new Map(),
   info: null,
   forceAudio: false,
   defaultQuality: "Source",
+  currentUrl: "",
+  currentFetchToken: 0,
 };
 
 const extractHeight = (fmt) => {
@@ -104,6 +110,7 @@ function resetModalState() {
   confirmBtn.disabled = true;
   confirmBtn.textContent = "Скачать выбранное";
   emptyEl?.classList.add("hidden");
+  errorEl?.classList.add("hidden");
 }
 
 function setLoading(flag) {
@@ -112,6 +119,53 @@ function setLoading(flag) {
   } else {
     loadingEl?.classList.add("hidden");
   }
+}
+
+function beginFetchView() {
+  setLoading(true);
+  errorEl?.classList.add("hidden");
+  emptyEl?.classList.add("hidden");
+  optionsContainer.innerHTML = "";
+  confirmBtn.disabled = true;
+  if (bestBtn) bestBtn.disabled = true;
+}
+
+function showError(message) {
+  if (!errorEl) return;
+  setLoading(false);
+  optionsContainer.innerHTML = "";
+  errorEl.classList.remove("hidden");
+  emptyEl?.classList.add("hidden");
+  confirmBtn.disabled = true;
+  if (bestBtn) bestBtn.disabled = true;
+  if (errorTextEl) {
+    errorTextEl.textContent =
+      message || "Не удалось получить информацию о видео.";
+  }
+}
+
+function showEmpty() {
+  emptyEl?.classList.remove("hidden");
+  optionsContainer.innerHTML = "";
+  confirmBtn.disabled = true;
+  if (bestBtn) bestBtn.disabled = true;
+}
+
+function withTimeout(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("timeout"));
+    }, ms);
+    promise
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
 }
 
 function renderPreview(info, url) {
@@ -412,6 +466,92 @@ function handleOptionClick(event) {
   }
 }
 
+async function loadFormatsWithRetry(
+  url,
+  { preferredLabel = null, force = false } = {},
+) {
+  if (!url) {
+    showError("Ссылка недоступна. Повторите ещё раз.");
+    return false;
+  }
+  if (!force && state.optionMap.size > 0 && state.currentUrl === url) {
+    return true;
+  }
+
+  const token = Date.now();
+  state.currentFetchToken = token;
+  state.currentUrl = url;
+
+  beginFetchView();
+
+  try {
+    const info = await withTimeout(
+      window.electron.ipcRenderer.invoke("get-video-info", url),
+      INFO_REQUEST_TIMEOUT,
+    );
+    if (state.currentFetchToken !== token) return false;
+
+    state.info = info;
+    renderPreview(info, url);
+    const groups = buildOptions(info);
+    state.optionMap = new Map(Object.entries(groups));
+
+    const totalOptions = Array.from(state.optionMap.values()).reduce(
+      (acc, list) => acc + ((list || []).length || 0),
+      0,
+    );
+
+    setLoading(false);
+
+    if (totalOptions === 0) {
+      showEmpty();
+      return false;
+    }
+
+    if (bestBtn) {
+      bestBtn.disabled = !((state.optionMap.get("video") || []).length > 0);
+    }
+    const targetTab = state.forceAudio ? "audio" : "video";
+    setActiveTab(targetTab);
+    let picked = false;
+    if (preferredLabel) {
+      picked = selectByPreferredLabel(preferredLabel);
+    }
+
+    if (!picked) {
+      if (state.forceAudio || state.defaultQuality === "Audio Only") {
+        const audioSelected = selectBestFromTab("audio");
+        if (!audioSelected) {
+          showToast("Аудио варианты недоступны для этой ссылки.", "warning");
+          selectBestVideoOption();
+        } else if (state.forceAudio) {
+          confirmSelection();
+        }
+      } else {
+        if (!selectBestVideoOption() && !selectBestFromTab("video-only")) {
+          selectBestFromTab("audio");
+        }
+      }
+    }
+    return true;
+  } catch (error) {
+    if (state.currentFetchToken !== token) return false;
+    console.error("Ошибка получения форматов:", error);
+    const message = (() => {
+      const text = String(error?.message || error || "");
+      if (text.toLowerCase().includes("timeout")) {
+        return "Превышено время ожидания. Попробуйте ещё раз.";
+      }
+      return `Не удалось получить доступные качества: ${error?.message || "ошибка"}`;
+    })();
+    showError(message);
+    showToast("Не удалось получить доступные качества.", "error");
+    return false;
+  } finally {
+    if (state.currentFetchToken === token) setLoading(false);
+  }
+}
+
 function setActiveTab(tab) {
   state.currentTab = tab;
   tabButtons.forEach((btn) =>
@@ -505,6 +645,10 @@ function bindEvents() {
       if (bestBtn.disabled) return;
       selectBestVideoOption(true);
     });
+    retryBtn?.addEventListener("click", () => {
+      if (!state.currentUrl) return;
+      loadFormatsWithRetry(state.currentUrl, { force: true });
+    });
     modal.dataset.listenerAttached = "1";
   }
 }
@@ -517,56 +661,17 @@ async function openDownloadQualityModal(url, opts = {}) {
   bindEvents();
   state.forceAudio = !!opts.forceAudioOnly;
   state.defaultQuality = opts.presetQuality || "Source";
+  state.currentUrl = url;
   setModalOpen(true);
   setLoading(true);
   if (bestBtn) bestBtn.disabled = true;
   resetModalState();
   return new Promise(async (resolve) => {
     state.resolver = resolve;
-    try {
-      const info = await window.electron.ipcRenderer.invoke(
-        "get-video-info",
-        url,
-      );
-      state.info = info;
-      renderPreview(info, url);
-      const groups = buildOptions(info);
-      state.optionMap = new Map(Object.entries(groups));
-      setLoading(false);
-      if (bestBtn) {
-        bestBtn.disabled = !((state.optionMap.get("video") || []).length > 0);
-      }
-      const targetTab = state.forceAudio ? "audio" : "video";
-      setActiveTab(targetTab);
-      const preferredLabel = opts.preferredLabel || null;
-      let picked = false;
-      if (preferredLabel) {
-        picked = selectByPreferredLabel(preferredLabel);
-      }
-
-      if (!picked) {
-        if (state.forceAudio || state.defaultQuality === "Audio Only") {
-          const audioSelected = selectBestFromTab("audio");
-          if (!audioSelected) {
-            showToast("Аудио варианты недоступны для этой ссылки.", "warning");
-            selectBestVideoOption();
-          } else if (state.forceAudio) {
-            confirmSelection();
-          }
-        } else {
-          if (!selectBestVideoOption() && !selectBestFromTab("video-only")) {
-            selectBestFromTab("audio");
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Ошибка получения форматов:", error);
-      showToast("Не удалось получить доступные качества.", "error");
-      closeModal(null);
-      resolve(null);
-    } finally {
-      setLoading(false);
-    }
+    await loadFormatsWithRetry(url, {
+      preferredLabel: opts.preferredLabel,
+      force: true,
+    });
   });
 }
 

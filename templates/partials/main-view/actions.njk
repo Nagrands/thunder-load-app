@@ -127,6 +127,24 @@
           <i class="fa-solid fa-spinner fa-spin"></i>
           Загрузка доступных форматов...
         </div>
+        <div
+          id="download-quality-error"
+          class="quality-error hidden"
+          role="alert"
+          aria-live="assertive"
+        >
+          <div class="quality-error-text">
+            Не удалось получить информацию о видео.
+          </div>
+          <button
+            type="button"
+            id="download-quality-retry"
+            class="quality-retry-btn"
+          >
+            <i class="fa-solid fa-rotate-right"></i>
+            Повторить
+          </button>
+        </div>
         <div id="download-quality-empty" class="quality-empty hidden">
           Нет вариантов для выбранного режима.
         </div>

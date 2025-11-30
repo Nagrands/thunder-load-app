@@ -360,7 +360,8 @@
   }
 
   .quality-loading,
-  .quality-empty {
+  .quality-empty,
+  .quality-error {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -373,6 +374,40 @@
 
     &.hidden {
       display: none;
+    }
+  }
+
+  .quality-error {
+    justify-content: space-between;
+    gap: 12px;
+    border-color: rgba(255, 90, 90, 0.4);
+    background: rgba(255, 90, 90, 0.08);
+    color: #ffb3b3;
+
+    .quality-error-text {
+      flex: 1;
+    }
+
+    .quality-retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      i {
+        font-size: 0.95rem;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.14);
+        transform: translateY(-1px);
+      }
     }
   }
 
