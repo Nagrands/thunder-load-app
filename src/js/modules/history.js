@@ -31,11 +31,8 @@ import { handleDeleteEntry } from "./contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "./tooltipInitializer.js";
 
 const RECENT_HISTORY_LIMIT = 8;
-const HISTORY_AUDIO_PLACEHOLDER =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231a1f2e'/><stop offset='1' stop-color='%23243352'/></linearGradient></defs><rect width='320' height='180' fill='url(%23g)'/><g fill='%23a3b3ff' opacity='0.9'><path d='M190 60v58a26 26 0 11-10-20V70l40-10v12z'/></g></svg>",
-  );
+
+const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
 const attemptedPreviewRestores = new Set();
 
@@ -69,6 +66,17 @@ const normalizePageSize = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return HISTORY_PAGE_SIZES[0];
   return Math.max(4, Math.min(200, Math.floor(n)));
+};
+
+const attachPlaceholderOnError = (img, placeholderSrc, container) => {
+  if (!img) return;
+  const fallback = placeholderSrc || HISTORY_IMAGE_PLACEHOLDER;
+  img.addEventListener("error", () => {
+    if (img.dataset.fallbackApplied === "1") return;
+    img.dataset.fallbackApplied = "1";
+    img.src = fallback;
+    if (container) container.classList.add("placeholder");
+  });
 };
 
 function goToPage(target) {
@@ -711,6 +719,12 @@ function renderHistoryCards(entries = []) {
   if (historyCardsEmptyRoot) historyCardsEmptyRoot.style.display = "none";
 
   subset.forEach((entry) => {
+    const hasPreview = Boolean(entry?.thumbnail);
+    const thumbSrc = hasPreview
+      ? entry.thumbnail
+      : HISTORY_IMAGE_PLACEHOLDER;
+    const isPlaceholder = !hasPreview;
+
     const card = document.createElement("article");
     card.className = `history-card${entry.isMissing ? " is-missing" : ""}`;
     card.setAttribute("role", "listitem");
@@ -724,14 +738,12 @@ function renderHistoryCards(entries = []) {
     card.dataset.size = entry.formattedSize || "";
 
     const thumb = document.createElement("div");
-    const thumbSrc = entry?.thumbnail
-      ? entry.thumbnail
-      : isAudioEntry(entry)
-        ? HISTORY_AUDIO_PLACEHOLDER
-        : "";
-    thumb.className = `history-card-thumb${thumbSrc ? "" : " placeholder"}`;
+    thumb.className = `history-card-thumb${
+      isPlaceholder ? " placeholder" : ""
+    }`;
     if (thumbSrc) {
       const img = document.createElement("img");
+      attachPlaceholderOnError(img, HISTORY_IMAGE_PLACEHOLDER, thumb);
       img.src = thumbSrc;
       img.alt = entry.fileName || "Preview";
       img.loading = "lazy";
@@ -743,7 +755,10 @@ function renderHistoryCards(entries = []) {
       zoomBtn.setAttribute("data-bs-toggle", "tooltip");
       zoomBtn.setAttribute("data-bs-placement", "top");
       zoomBtn.addEventListener("click", () =>
-        openHistoryCardPreview(thumbSrc, entry.fileName || entry.sourceUrl),
+        openHistoryCardPreview(
+          img.src || thumbSrc,
+          entry.fileName || entry.sourceUrl,
+        ),
       );
       const zoomBadge = document.createElement("span");
       zoomBadge.className = "history-card-thumb-zoom";
@@ -908,14 +923,12 @@ function createLogEntry(entry, index) {
       else if (/coub\.com/.test(h)) hostClass = "host-coub";
     }
   } catch {}
-  const isAudioOnly = isAudioEntry(entry);
 
-  // Pick preview thumbnail; for audio-only use a placeholder image
-  const thumbSrc = entry?.thumbnail
+  // Pick preview thumbnail; fall back to placeholder image
+  const hasPreview = Boolean(entry?.thumbnail);
+  const thumbSrc = hasPreview
     ? entry.thumbnail
-    : isAudioOnly
-      ? HISTORY_AUDIO_PLACEHOLDER
-      : "";
+    : HISTORY_IMAGE_PLACEHOLDER;
 
   el.innerHTML = `
     <div class="text" data-filepath="${entry.filePath}" data-url="${entry.sourceUrl}" data-filename="${entry.fileName}">
@@ -1086,6 +1099,18 @@ function createLogEntry(entry, index) {
       thumbImg.remove();
     }
   } catch (_) {}
+
+  const fallbackSrc = HISTORY_IMAGE_PLACEHOLDER;
+  const inlineThumb =
+    el.querySelector(".log-thumb-wrap img") || el.querySelector(".log-thumb");
+  if (inlineThumb) {
+    inlineThumb.loading = "lazy";
+    attachPlaceholderOnError(inlineThumb, fallbackSrc, inlineThumb.parentElement);
+  }
+  const previewImg = el.querySelector(".history-preview-image");
+  if (previewImg) {
+    attachPlaceholderOnError(previewImg, fallbackSrc, previewImg.parentElement);
+  }
 
   // Preview expand/collapse toggle
   try {
