@@ -699,7 +699,10 @@ function retryHistoryCardDownload(entry) {
 function renderHistoryCards(entries = []) {
   ensureHistoryCardsElements();
   if (!historyCardsRoot) return;
-  const subset = (entries || []).slice(0, RECENT_HISTORY_LIMIT);
+  const cardsLimit = normalizePageSize(
+    state.historyPageSize || RECENT_HISTORY_LIMIT,
+  );
+  const subset = (entries || []).slice(0, cardsLimit);
   historyCardsRoot.innerHTML = "";
   if (subset.length === 0) {
     if (historyCardsEmptyRoot) historyCardsEmptyRoot.style.display = "";
