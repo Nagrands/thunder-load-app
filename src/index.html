@@ -429,7 +429,29 @@
             &times;
           </button>
         </div>
-        <div class="history-search-actions">
+        <div class="history-search-actions history-toolbar">
+          <div class="history-filter-group">
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-globe"></i>
+              <select
+                id="history-source-filter"
+                class="history-filter-select"
+                aria-label="Фильтр по источнику"
+              >
+                <option value="">Все источники</option>
+              </select>
+            </div>
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-sliders"></i>
+              <select
+                id="history-quality-filter"
+                class="history-filter-select"
+                aria-label="Фильтр по качеству"
+              >
+                <option value="">Любое качество</option>
+              </select>
+            </div>
+          </div>
           <button
             id="refresh-button"
             class="history-action-button"
@@ -461,6 +483,30 @@
             data-hint="Удалить выбранные"
           >
             <i class="fa-solid fa-trash-can"></i>
+          </button>
+          <button
+            id="restore-history"
+            class="history-action-button"
+            aria-label="Восстановить удалённые записи"
+            data-hint="Восстановить удалённые"
+          >
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button
+            id="history-export-json"
+            class="history-action-button"
+            aria-label="Экспорт в JSON"
+            data-hint="Экспорт в JSON"
+          >
+            <i class="fa-solid fa-file-code"></i>
+          </button>
+          <button
+            id="history-export-csv"
+            class="history-action-button"
+            aria-label="Экспорт в CSV"
+            data-hint="Экспорт в CSV"
+          >
+            <i class="fa-solid fa-file-csv"></i>
           </button>
           <button
             id="history-header"

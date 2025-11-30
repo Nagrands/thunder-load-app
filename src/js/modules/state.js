@@ -21,6 +21,21 @@ const state = {
   downloadQueue: [],
   selectedEntries: [], // выбранные ID
   historyPage: 1,
+  historySourceFilter: (() => {
+    try {
+      return window.localStorage.getItem("historySourceFilter") || "";
+    } catch {
+      return "";
+    }
+  })(),
+  historyQualityFilter: (() => {
+    try {
+      return window.localStorage.getItem("historyQualityFilter") || "";
+    } catch {
+      return "";
+    }
+  })(),
+  deletedHistoryBuffer: [],
   historyPageSize: (() => {
     try {
       const raw = window.localStorage.getItem("historyPageSize");

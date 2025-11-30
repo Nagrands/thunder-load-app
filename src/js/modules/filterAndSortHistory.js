@@ -10,6 +10,15 @@ const MIN_PAGE_SIZE = 4;
 const MAX_PAGE_SIZE = 200;
 const DEFAULT_PAGE_SIZE = 20;
 
+const getHost = (url = "") => {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
 const normalizePageSize = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return DEFAULT_PAGE_SIZE;
@@ -25,6 +34,8 @@ const normalizePageSize = (value) => {
 function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
   const allEntries = getHistoryData();
   const q = query.trim().toLowerCase();
+  const sourceFilter = (state.historySourceFilter || "").toLowerCase();
+  const qualityFilter = (state.historyQualityFilter || "").toLowerCase();
 
   if (q !== lastQuery) {
     lastQuery = q;
@@ -48,7 +59,20 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
       )
     : allEntries;
 
-  const sorted = filtered.sort((a, b) => {
+  const filteredByFacet = filtered.filter((entry) => {
+    const host = getHost(entry.sourceUrl).toLowerCase();
+    const quality = (
+      entry.quality ||
+      entry.resolution ||
+      ""
+    ).toLowerCase();
+    const matchesSource = !sourceFilter || host === sourceFilter;
+    const matchesQuality =
+      !qualityFilter || quality === qualityFilter || quality.includes(qualityFilter);
+    return matchesSource && matchesQuality;
+  });
+
+  const sorted = filteredByFacet.sort((a, b) => {
     const aTime = new Date(a.timestamp);
     const bTime = new Date(b.timestamp);
     return sortOrder === "asc" ? aTime - bTime : bTime - aTime;
@@ -64,9 +88,9 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
   }
   if (state.historyPage < 1) state.historyPage = 1;
 
-  const renderKey = `${sorted
+  const renderKey = `${filteredByFacet
     .map((e) => `${e.id}|${e.timestamp}`)
-    .join(",")}|p${state.historyPage}|s${state.historyPageSize}`;
+    .join(",")}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|q${qualityFilter}`;
 
   if (!forceRender && renderKey === lastRenderedKey) {
     return;

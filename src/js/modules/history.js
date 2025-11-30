@@ -41,6 +41,11 @@ let historyCardsEmptyRoot = historyCardsEmpty;
 let historyCardPreviewOverlay = null;
 let historyCardPreviewImage = null;
 let historyCardPreviewCaption = null;
+let historySourceFilterSelect = null;
+let historyQualityFilterSelect = null;
+let historyExportJsonButton = null;
+let historyExportCsvButton = null;
+let restoreHistoryButton = null;
 let paginationRoot = null;
 let paginationInfo = null;
 let paginationPrev = null;
@@ -52,6 +57,7 @@ let lastPaginationMeta = {
   totalEntries: 0,
   pageSize: state.historyPageSize || HISTORY_PAGE_SIZES[0],
 };
+let lastRenderedFiltered = [];
 
 const pluralize = (value, [one, few, many]) => {
   const n = Math.abs(Number(value)) || 0;
@@ -274,6 +280,26 @@ function ensureHistoryCardsElements() {
   historyCardsEmptyRoot = area.querySelector("#history-cards-empty");
 }
 
+function ensureHistoryControlElements() {
+  if (!historySourceFilterSelect || !historySourceFilterSelect.isConnected) {
+    historySourceFilterSelect = document.getElementById("history-source-filter");
+  }
+  if (!historyQualityFilterSelect || !historyQualityFilterSelect.isConnected) {
+    historyQualityFilterSelect = document.getElementById(
+      "history-quality-filter",
+    );
+  }
+  if (!historyExportJsonButton || !historyExportJsonButton.isConnected) {
+    historyExportJsonButton = document.getElementById("history-export-json");
+  }
+  if (!historyExportCsvButton || !historyExportCsvButton.isConnected) {
+    historyExportCsvButton = document.getElementById("history-export-csv");
+  }
+  if (!restoreHistoryButton || !restoreHistoryButton.isConnected) {
+    restoreHistoryButton = document.getElementById("restore-history");
+  }
+}
+
 function ensureHistoryCardPreviewOverlay() {
   if (historyCardPreviewOverlay) return historyCardPreviewOverlay;
 
@@ -326,6 +352,64 @@ function ensureHistoryCardPreviewOverlay() {
 
   document.body.appendChild(overlay);
   return overlay;
+}
+
+function updateRestoreButton() {
+  ensureHistoryControlElements();
+  if (!restoreHistoryButton) return;
+  const hasBuffer =
+    Array.isArray(state.deletedHistoryBuffer) &&
+    state.deletedHistoryBuffer.length > 0;
+  restoreHistoryButton.disabled = !hasBuffer;
+  restoreHistoryButton.classList.toggle("hidden", !hasBuffer);
+}
+
+function buildFilterOptions(entries = []) {
+  ensureHistoryControlElements();
+  const hosts = new Set();
+  const qualities = new Set();
+  entries.forEach((entry) => {
+    const host = detectHost(entry.sourceUrl);
+    if (host) hosts.add(host);
+    const q = entry.quality || entry.resolution;
+    if (q) qualities.add(q);
+  });
+
+  const applyOptions = (select, values, placeholder) => {
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = "";
+    const base = document.createElement("option");
+    base.value = "";
+    base.textContent = placeholder;
+    select.appendChild(base);
+    Array.from(values)
+      .sort((a, b) => a.localeCompare(b))
+      .forEach((value) => {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = value;
+        select.appendChild(opt);
+      });
+    if (current && !values.has(current)) {
+      const opt = document.createElement("option");
+      opt.value = current;
+      opt.textContent = current;
+      select.appendChild(opt);
+    }
+    select.value = current || "";
+  };
+
+  applyOptions(
+    historySourceFilterSelect,
+    hosts,
+    "Все источники",
+  );
+  applyOptions(
+    historyQualityFilterSelect,
+    qualities,
+    "Любое качество",
+  );
 }
 
 function openHistoryCardPreview(src, title = "") {
@@ -1278,10 +1362,18 @@ document
           state.currentSortOrder,
           true,
         );
+        if (Array.isArray(state.deletedHistoryBuffer)) {
+          state.deletedHistoryBuffer = state.deletedHistoryBuffer.filter(
+            (entry) => !idsToDelete.includes(String(entry.id)),
+          );
+          updateRestoreButton();
+        }
         await updateDownloadCount();
         showToast("Удаление отменено.", "success");
       },
     );
+    rememberDeletedEntries(deletedEntries);
+    updateRestoreButton();
   });
 
 function attachOpenFolderListeners() {
@@ -1312,12 +1404,114 @@ function attachOpenFolderListeners() {
   });
 }
 
+function rememberDeletedEntries(entries = []) {
+  if (!Array.isArray(entries) || !entries.length) return;
+  const normalized = entries.filter(Boolean);
+  if (!normalized.length) return;
+  state.deletedHistoryBuffer = [
+    ...normalized,
+    ...(state.deletedHistoryBuffer || []),
+  ].slice(0, 200);
+  updateRestoreButton();
+}
+
+async function restoreDeletedEntries() {
+  const buffer = Array.isArray(state.deletedHistoryBuffer)
+    ? state.deletedHistoryBuffer
+    : [];
+  if (!buffer.length) return;
+
+  const mergedMap = new Map();
+  [...buffer, ...getHistoryData()].forEach((entry) => {
+    if (!entry) return;
+    mergedMap.set(entry.id ?? entry.filePath ?? Math.random(), entry);
+  });
+  const merged = Array.from(mergedMap.values());
+  setHistoryData(merged);
+  state.deletedHistoryBuffer = [];
+  updateRestoreButton();
+  await window.electron.invoke("save-history", merged);
+  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+  await updateDownloadCount();
+  showToast(`Восстановлено ${buffer.length} записей.`, "success");
+}
+
+const toCsvValue = (value) =>
+  `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+function buildCsv(entries = []) {
+  const header = [
+    "id",
+    "fileName",
+    "sourceUrl",
+    "host",
+    "quality",
+    "resolution",
+    "size",
+    "date",
+  ];
+  const rows = entries.map((entry) => [
+    entry.id,
+    entry.fileName,
+    entry.sourceUrl,
+    detectHost(entry.sourceUrl),
+    entry.quality || "",
+    entry.resolution || "",
+    entry.formattedSize || entry.size || "",
+    entry.dateText || "",
+  ]);
+  return [header.map(toCsvValue).join(","), ...rows.map((row) => row.map(toCsvValue).join(","))].join("\n");
+}
+
+function downloadTextFile(filename, content, mime = "text/plain") {
+  try {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  } catch (error) {
+    console.error("Ошибка экспорта истории:", error);
+    showToast("Не удалось сохранить файл экспорта.", "error");
+  }
+}
+
+function exportHistory(format = "json") {
+  const entries = lastRenderedFiltered.length
+    ? lastRenderedFiltered
+    : getHistoryData();
+  if (!entries.length) {
+    showToast("История пуста, экспорт невозможен.", "warning");
+    return;
+  }
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[:.]/g, "-")
+    .replace("T", "_")
+    .replace("Z", "");
+  if (format === "csv") {
+    const csv = buildCsv(entries);
+    downloadTextFile(`history_${timestamp}.csv`, csv, "text/csv");
+    showToast("Экспорт в CSV выполнен.", "success");
+    return;
+  }
+  const json = JSON.stringify(entries, null, 2);
+  downloadTextFile(`history_${timestamp}.json`, json, "application/json");
+  showToast("Экспорт в JSON выполнен.", "success");
+}
+
 function renderHistory(entries, meta = {}) {
   const allEntries = Array.isArray(entries) ? entries : getHistoryData();
   const fullEntries =
     Array.isArray(meta.fullEntries) && meta.fullEntries.length
       ? meta.fullEntries
-      : allEntries;
+    : allEntries;
   const totalEntries =
     typeof meta.totalEntries === "number"
       ? meta.totalEntries
@@ -1346,6 +1540,9 @@ function renderHistory(entries, meta = {}) {
       : allEntries.slice(start, start + pageSize);
   const count = totalEntries;
   const isEmpty = totalEntries === 0;
+  lastRenderedFiltered = fullEntries;
+  buildFilterOptions(fullEntries);
+  updateRestoreButton();
 
   // ВСТАВКА: лог в начале renderHistory
   console.log(
@@ -1431,6 +1628,13 @@ function renderHistory(entries, meta = {}) {
 
 async function initHistoryState() {
   try {
+    ensureHistoryControlElements();
+    if (historySourceFilterSelect) {
+      historySourceFilterSelect.value = state.historySourceFilter || "";
+    }
+    if (historyQualityFilterSelect) {
+      historyQualityFilterSelect.value = state.historyQualityFilter || "";
+    }
     await loadHistory(true); // 👈 forceRender=true — гарантируем перерисовку
 
     setFilterInputValue(state.currentSearchQuery || "");
@@ -1445,6 +1649,29 @@ async function initHistoryState() {
 }
 
 function initHistory() {
+  ensureHistoryControlElements();
+  historySourceFilterSelect?.addEventListener("change", (e) => {
+    state.historySourceFilter = e.target.value || "";
+    localStorage.setItem("historySourceFilter", state.historySourceFilter);
+    state.historyPage = 1;
+    filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+  });
+  historyQualityFilterSelect?.addEventListener("change", (e) => {
+    state.historyQualityFilter = e.target.value || "";
+    localStorage.setItem("historyQualityFilter", state.historyQualityFilter);
+    state.historyPage = 1;
+    filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+  });
+  historyExportJsonButton?.addEventListener("click", () =>
+    exportHistory("json"),
+  );
+  historyExportCsvButton?.addEventListener("click", () =>
+    exportHistory("csv"),
+  );
+  restoreHistoryButton?.addEventListener("click", () =>
+    restoreDeletedEntries(),
+  );
+
   openHistoryButton.addEventListener("click", () => {
     const newVisibility = !state.historyVisible;
     toggleHistoryVisibility(newVisibility);
@@ -1579,4 +1806,5 @@ export {
   loadHistory,
   addNewEntryToHistory,
   updateDeleteSelectedButton,
+  rememberDeletedEntries,
 };

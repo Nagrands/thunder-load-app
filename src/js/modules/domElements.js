@@ -15,6 +15,11 @@ const elements = {
   historyCards: document.getElementById("history-cards"),
   historyCardsEmpty: document.getElementById("history-cards-empty"),
   clearHistoryButton: document.getElementById("clear-history"),
+  restoreHistoryButton: document.getElementById("restore-history"),
+  historyExportJsonButton: document.getElementById("history-export-json"),
+  historyExportCsvButton: document.getElementById("history-export-csv"),
+  historySourceFilter: document.getElementById("history-source-filter"),
+  historyQualityFilter: document.getElementById("history-quality-filter"),
   openFolderButton: document.getElementById("open-folder"),
   iconPlaceholder:
     document.getElementById("icon-url-globe") ||
@@ -106,6 +111,11 @@ export const {
   historyCards,
   historyCardsEmpty,
   clearHistoryButton,
+  restoreHistoryButton,
+  historyExportJsonButton,
+  historyExportCsvButton,
+  historySourceFilter,
+  historyQualityFilter,
   openFolderButton,
   iconPlaceholder,
   iconFilterSearch,

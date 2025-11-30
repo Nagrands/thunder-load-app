@@ -320,9 +320,17 @@ async function handleDeleteEntry(logEntry) {
     console.log(`Удаление элемента из DOM \n"${formattedName}"`);
     logEntry.remove(); // Удаление записи из DOM
 
-    const { currentHistory, wasDeleted } =
+  const { currentHistory, wasDeleted, deletedEntry } =
       await deleteEntryFromHistory(entryId); // Удаление записи из истории
     setHistoryData(currentHistory);
+    if (deletedEntry) {
+      try {
+        const { rememberDeletedEntries } = await import("./history.js");
+        rememberDeletedEntries([deletedEntry]);
+      } catch (err) {
+        console.warn("Не удалось сохранить удалённую запись:", err);
+      }
+    }
     console.log("(ContextMenu) Обновлённая история:", getHistoryData());
     filterAndSortHistory(
       state.currentSearchQuery,
@@ -375,7 +383,7 @@ async function deleteEntryFromHistory(entryId) {
   }
 
   const wasDeleted = currentHistory.length < initialHistoryLength;
-  return { currentHistory, wasDeleted };
+  return { currentHistory, wasDeleted, deletedEntry: entryToDelete };
 }
 
 /**
