@@ -286,7 +286,6 @@
 
 .history-pagination {
   width: 100%;
-  max-width: 640px;
   margin: 14px auto 70px;
   padding: 6px 8px;
   display: flex;
@@ -549,7 +548,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   min-width: 0;
-  align-items: flex-start;
+  // align-items: flex-start;
 }
 
 .history-card-name {
