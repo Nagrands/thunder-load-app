@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 @mixin backup-glass-panel($padding: 1rem,
   $border: rgba(255, 255, 255, 0.06),
-  $blur: 8px // $shadow: 0 8px 24px rgba(0, 0, 0, 0.25)
+  $blur: 0px // $shadow: 0 8px 24px rgba(0, 0, 0, 0.25)
 
 ) {
   padding: $padding;
@@ -102,42 +102,17 @@
   // Background & Layout
   // ---------------------------------------------------------------------------
   &::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(320px 320px at 90% 92%,
-        rgba(255, 255, 255, 0.08),
-        transparent 62%);
-    opacity: 0.16;
-    pointer-events: none;
-    z-index: -1;
+    content: none;
   }
 
   &::after {
     content: "";
     position: fixed;
     inset: 0;
-    background:
-      radial-gradient(120% 90% at 20% 20%,
-        rgba(120, 190, 255, 0.18),
-        transparent 55%),
-      radial-gradient(95% 75% at 82% 18%,
-        rgba(255, 150, 220, 0.14),
-        transparent 58%),
-      radial-gradient(120% 90% at 28% 82%,
-        rgba(80, 255, 200, 0.12),
-        transparent 55%),
-      repeating-linear-gradient(115deg,
-        rgba(255, 255, 255, 0.04) 0,
-        rgba(255, 255, 255, 0.04) 1px,
-        transparent 1px,
-        transparent 18px),
-      linear-gradient(180deg,
+    background: linear-gradient(180deg,
         rgba(6, 8, 16, 0.95) 0%,
-        rgba(6, 8, 16, 0.92) 30%,
-        rgba(10, 14, 24, 0.94) 100%);
-    opacity: 0.58;
+        rgba(10, 14, 24, 0.95) 100%);
+    opacity: 0.5;
     z-index: -2;
     pointer-events: none;
   }
@@ -159,7 +134,7 @@
 
   .wg-glass {
     @include backup-glass-panel();
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: #0f1626;
     padding: 0;
   }
 
@@ -621,9 +596,9 @@
       background: linear-gradient(120deg,
           rgba(40, 50, 90, 0.9) 0%,
           rgba(30, 38, 60, 0.96) 100%);
-      backdrop-filter: blur(18px) saturate(1.12);
-      -webkit-backdrop-filter: blur(18px) saturate(1.12);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px) saturate(1.06);
+      -webkit-backdrop-filter: blur(4px) saturate(1.06);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
       color: var(--color-highlight);
       overflow: hidden;
     }
@@ -776,29 +751,18 @@
         font-size: 1.35rem;
         font-weight: 700;
         color: var(--color-accent);
-        text-shadow:
-          0 2px 8px rgba(30, 60, 120, 0.15),
-          0 1px 4px rgba(0, 0, 0, 0.35);
         letter-spacing: 0.01em;
       }
 
       i {
         color: var(--color-accent);
-        filter: drop-shadow(0 0 6px rgba(90, 160, 255, 0.31));
-        text-shadow:
-          0 0 8px rgba(90, 160, 255, 0.18),
-          0 1px 2px rgba(0, 0, 0, 0.11);
         font-size: 1.3em;
         transition:
-          filter 0.18s,
-          text-shadow 0.18s;
+          filter 0.18s;
 
         &:hover,
         &:focus {
-          filter: drop-shadow(0 0 12px rgba(90, 200, 255, 0.45));
-          text-shadow:
-            0 0 16px rgba(90, 200, 255, 0.22),
-            0 1px 2px rgba(0, 0, 0, 0.13);
+          filter: brightness(1.05);
         }
       }
 
@@ -1576,7 +1540,7 @@ h1.section-heading {
         rgba(80, 140, 255, 0.24));
     border: 1px solid rgba(120, 180, 255, 0.25);
     box-shadow:
-      0 10px 26px rgba(0, 0, 0, 0.22),
+      0 6px 18px rgba(0, 0, 0, 0.2),
       0 1px 0 rgba(255, 255, 255, 0.08) inset;
     color: #f4f7ff;
 
@@ -1585,7 +1549,7 @@ h1.section-heading {
           rgba(140, 200, 255, 0.35),
           rgba(90, 150, 255, 0.3));
       box-shadow:
-        0 14px 30px rgba(90, 150, 255, 0.18),
+        0 10px 24px rgba(90, 150, 255, 0.16),
         0 2px 0 rgba(255, 255, 255, 0.1) inset;
     }
 
@@ -1673,15 +1637,9 @@ h1.section-heading {
 }
 
 .bk-row {
-  --bk-row-bg: linear-gradient(120deg,
-      rgba(20, 28, 50, 0.92) 0%,
-      rgba(16, 22, 38, 0.94) 100%);
-  --bk-row-bg-hover: linear-gradient(120deg,
-      rgba(40, 70, 130, 0.98) 0%,
-      rgba(26, 44, 84, 0.98) 100%);
-  --bk-row-bg-selected: linear-gradient(120deg,
-      rgba(90, 150, 255, 0.26) 0%,
-      rgba(70, 130, 255, 0.32) 100%);
+  --bk-row-bg: rgba(18, 24, 38, 0.95);
+  --bk-row-bg-hover: rgba(28, 38, 58, 0.97);
+  --bk-row-bg-selected: rgba(36, 52, 82, 0.98);
   --bk-row-border: 1px solid rgba(120, 180, 255, 0.16);
 
   display: flex;
@@ -1706,48 +1664,21 @@ h1.section-heading {
     transform 0.18s ease,
     filter 0.2s ease;
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 6px auto 6px 0;
-    width: 4px;
-    border-radius: 10px;
-    background: linear-gradient(180deg, var(--color-accent), #7bd7ff);
-    opacity: 0.35;
-    transform: scaleY(0.7);
-    transition: all 0.18s ease;
-  }
-
   &:hover,
   &:focus-within {
     background: var(--bk-row-bg-hover);
-    box-shadow:
-      0 8px 26px 0 rgba(60, 120, 255, 0.12),
-      0 2px 10px 0 rgba(0, 0, 0, 0.18);
-    border-color: rgba(120, 180, 255, 0.26);
+    box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16);
+    border-color: rgba(120, 180, 255, 0.18);
     z-index: 2;
     outline: none;
 
-    &::before {
-      opacity: 0.65;
-      transform: scaleY(1);
-    }
   }
 
   &.is-selected {
     background: var(--bk-row-bg-selected);
-    border-color: rgba(120, 180, 255, 0.38);
+    border-color: rgba(120, 180, 255, 0.3);
     z-index: 3;
-    transform: translateY(-1px);
-    box-shadow:
-      0 12px 32px rgba(80, 140, 255, 0.18),
-      0 3px 12px rgba(0, 0, 0, 0.24);
-
-    &::before {
-      width: 6px;
-      opacity: 1;
-      transform: scaleY(1);
-    }
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
   }
 
   &.is-running {
@@ -1755,10 +1686,8 @@ h1.section-heading {
         rgba(80, 130, 255, 0.16) 0%,
         rgba(120, 180, 255, 0.11) 100%);
     border-color: rgba(120, 180, 255, 0.32);
-    box-shadow:
-      0 0 14px 3px rgba(120, 180, 255, 0.22),
-      0 2px 8px rgba(0, 0, 0, 0.13);
-    animation: gentle-pulse 2s ease-in-out infinite;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+    animation: none;
     position: relative;
 
     &::before {
@@ -1769,7 +1698,7 @@ h1.section-heading {
       right: 0;
       height: 2.5px;
       background: linear-gradient(90deg, var(--color-accent), #88f);
-      animation: progress-line 2s ease-in-out infinite;
+      animation: none;
       border-radius: 2px 2px 0 0;
     }
   }
@@ -1803,7 +1732,6 @@ h1.section-heading {
         rgba(255, 255, 255, 0.16) 50%,
         rgba(255, 255, 255, 0.1) 75%);
     background-size: 200% 100%;
-    animation: skeleton-loading 1.5s infinite;
     border-radius: 14px;
     box-shadow: none;
 
@@ -1849,8 +1777,6 @@ h1.section-heading {
       letter-spacing: 0.02em;
       line-height: 1.12;
       margin-bottom: 6px;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      filter: drop-shadow(0 1px 6px rgba(120, 180, 255, 0.04));
     }
 
     .back-path,
@@ -1868,10 +1794,8 @@ h1.section-heading {
       font-size: 12.8px;
       padding: 3px 10px 3px 8px;
       border-radius: 10px;
-      background: linear-gradient(90deg,
-          rgba(80, 110, 170, 0.12),
-          rgba(90, 140, 255, 0.12) 95%);
-      border: 1px solid rgba(120, 180, 255, 0.1);
+      background: #1b253a;
+      border: 1px solid rgba(120, 180, 255, 0.08);
       color: #c8daff;
       max-width: 100%;
       margin-bottom: 2px;
@@ -1937,10 +1861,10 @@ h1.section-heading {
       background: linear-gradient(180deg,
           rgba(120, 180, 255, 0.18),
           rgba(70, 110, 200, 0.16));
-      border: 1px solid rgba(120, 180, 255, 0.2);
+      border: 1px solid rgba(120, 180, 255, 0.18);
       box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        0 3px 10px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
       &:hover,
       &:focus-visible {
@@ -1949,8 +1873,8 @@ h1.section-heading {
             rgba(60, 120, 255, 0.13));
         color: #fff;
         border-color: rgba(140, 200, 255, 0.45);
-        transform: translateY(-2px) scale(1.06);
-        box-shadow: 0 10px 24px rgba(60, 120, 255, 0.18);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(60, 120, 255, 0.14);
       }
 
       &:active {
@@ -2113,22 +2037,12 @@ h1.section-heading {
   background: rgba(30, 35, 45, 0.8);
   border-radius: 14px;
   border: 1px solid rgba(120, 180, 255, 0.15);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.25),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
 
   &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        transparent 100%);
-    opacity: 0.6;
-    animation: backgroundShimmer 3s ease-in-out infinite;
+    content: none;
   }
 }
 
@@ -2136,27 +2050,13 @@ h1.section-heading {
   height: 100%;
   background: linear-gradient(90deg,
       var(--color-accent) 0%,
-      #4fd1ff 30%,
-      #88f7ff 70%,
-      var(--color-accent) 100%);
-  background-size: 200% 100%;
+      #6ecaff 100%);
   border-radius: 12px;
   position: relative;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: gradientShift 2s ease-in-out infinite;
 
   &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent);
-    animation: shimmer 1.5s ease-in-out infinite;
+    content: none;
   }
 }
 
@@ -2177,9 +2077,6 @@ h1.section-heading {
   font-size: 0.85rem;
   font-weight: 700;
   color: #fff;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.8),
-    0 0 4px rgba(100, 200, 255, 0.5);
   letter-spacing: 0.5px;
 
   &.primary {
@@ -2192,16 +2089,15 @@ h1.section-heading {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 800;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
   }
 }
 
-.bk-progress-stats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.9);
+  .bk-progress-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
 
   .stat {
     display: flex;
@@ -2545,6 +2441,18 @@ h1.section-heading {
     transition: none !important;
     transform: none !important;
     box-shadow: none !important;
+  }
+
+  .wg-glass,
+  .bk-modal .modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .backup-view::after {
+    background: linear-gradient(180deg,
+        rgba(6, 8, 16, 0.94) 0%,
+        rgba(10, 14, 24, 0.94) 100%) !important;
   }
 
   .bk-skeleton {

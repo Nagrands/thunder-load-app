@@ -1,11 +1,11 @@
 @use "../abstracts/mixins";
 
 :root {
-  --btn-hover-duration: 0.4s;
-  --btn-ripple-duration: 0.8s;
-  --btn-focus-shadow: rgba(var(--color-accent-rgb), 0.6);
-  --glass-blur: 8px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --btn-hover-duration: 0.2s;
+  --btn-ripple-duration: 0.45s;
+  --btn-focus-shadow: rgba(var(--color-accent-rgb), 0.35);
+  --glass-blur: 0px;
+  --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
 
 /* ========== Базовые стили кнопок ========== */
@@ -16,82 +16,40 @@
   padding: 0.7em 1.4em;
   transition: all var(--btn-hover-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  /* Liquid Glass эффект */
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.05) 100%
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 100%
   );
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow:
     var(--glass-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
 
   color: var(--color-highlight);
   border-radius: 16px;
 
-  /* Liquid ripple эффект */
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    );
-    transition: left var(--btn-ripple-duration) ease;
-  }
-
+  &::before,
   &::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: radial-gradient(
-      circle,
-      rgba(255, 255, 255, 0.3) 0%,
-      transparent 70%
-    );
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition:
-      width var(--btn-ripple-duration) ease,
-      height var(--btn-ripple-duration) ease,
-      opacity var(--btn-ripple-duration) ease;
+    display: none;
   }
 
   &:hover {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-1px);
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.25) 0%,
-      rgba(255, 255, 255, 0.15) 50%,
-      rgba(255, 255, 255, 0.08) 100%
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.06) 100%
     );
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.18);
     box-shadow:
-      0 12px 40px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-
-    &::before {
-      left: 100%;
-    }
+      0 8px 20px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   }
 
   &:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0);
     background: linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.1) 0%,
@@ -99,21 +57,14 @@
       rgba(255, 255, 255, 0.02) 100%
     );
     transition-duration: 0.1s;
-
-    &::after {
-      width: 300%;
-      height: 300%;
-      opacity: 1;
-      transition-duration: 0.3s;
-    }
   }
 
   &:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 3px var(--btn-focus-shadow),
+      0 0 0 2px var(--btn-focus-shadow),
       var(--glass-shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   &:disabled,
@@ -145,9 +96,8 @@
 .large-button {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 100%
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.04) 100%
   );
   color: var(--color-highlight);
   border-radius: 14px;
@@ -156,8 +106,8 @@
   justify-content: center;
   gap: 8px;
   line-height: 1;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .btn-sm,
@@ -174,8 +124,8 @@
   padding: 0.7rem 1.4rem;
   font-weight: 600;
   border-radius: 18px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .btn-primary {
