@@ -429,7 +429,8 @@ function buildPreflightIssue(code, message, hint, severity = "error") {
 }
 
 function getInstallHint(tool) {
-  if (process.platform === "darwin") return `Установите через Homebrew: brew install ${tool}`;
+  if (process.platform === "darwin")
+    return `Установите через Homebrew: brew install ${tool}`;
   if (process.platform === "win32")
     return `Установите ${tool} (например, через winget/choco) или добавьте в PATH`;
   return `Установите ${tool} через пакетный менеджер (apt/yum/pacman) и добавьте в PATH`;

@@ -320,7 +320,7 @@ async function handleDeleteEntry(logEntry) {
     console.log(`Удаление элемента из DOM \n"${formattedName}"`);
     logEntry.remove(); // Удаление записи из DOM
 
-  const { currentHistory, wasDeleted, deletedEntry } =
+    const { currentHistory, wasDeleted, deletedEntry } =
       await deleteEntryFromHistory(entryId); // Удаление записи из истории
     setHistoryData(currentHistory);
     if (deletedEntry) {

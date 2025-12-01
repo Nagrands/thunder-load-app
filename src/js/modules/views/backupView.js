@@ -15,15 +15,15 @@ import { initTooltips } from "../tooltipInitializer.js";
  */
 
 /**
-  * @typedef {Object} BackupState
-  * @property {BackupProgram[]} programs          - Current list of backup presets.
-  * @property {Record<string, number>} lastTimes  - Map: preset name → timestamp (ms) of last successful backup.
-  * @property {string} filter                     - Text filter (applied to name/source/destination).
-  * @property {"all"|"zip"|"tar.gz"} archiveFilter - Archive type filter.
-  * @property {number} page                      - Current page for pagination.
-  * @property {number} pageSize                  - Page size for pagination.
-  * @property {boolean} autoscroll                - If true, the log autoscrolls to bottom on updates.
-  * @property {boolean} mono                      - If true, log uses monospace font.
+ * @typedef {Object} BackupState
+ * @property {BackupProgram[]} programs          - Current list of backup presets.
+ * @property {Record<string, number>} lastTimes  - Map: preset name → timestamp (ms) of last successful backup.
+ * @property {string} filter                     - Text filter (applied to name/source/destination).
+ * @property {"all"|"zip"|"tar.gz"} archiveFilter - Archive type filter.
+ * @property {number} page                      - Current page for pagination.
+ * @property {number} pageSize                  - Page size for pagination.
+ * @property {boolean} autoscroll                - If true, the log autoscrolls to bottom on updates.
+ * @property {boolean} mono                      - If true, log uses monospace font.
  */
 
 /**
@@ -548,7 +548,12 @@ export default function renderBackup() {
       label.textContent = opt ? opt.textContent : "";
       menu
         .querySelectorAll(".bk-select-option")
-        .forEach((item) => item.classList.toggle("is-active", item.dataset.value === selectEl.value));
+        .forEach((item) =>
+          item.classList.toggle(
+            "is-active",
+            item.dataset.value === selectEl.value,
+          ),
+        );
     };
 
     Array.from(selectEl.options).forEach((opt) => {
@@ -571,12 +576,10 @@ export default function renderBackup() {
 
     const toggleMenu = () => {
       const willOpen = menu.hidden;
-      document
-        .querySelectorAll(".bk-select-menu")
-        .forEach((m) => {
-          m.hidden = true;
-          m.parentElement?.classList.remove("is-open");
-        });
+      document.querySelectorAll(".bk-select-menu").forEach((m) => {
+        m.hidden = true;
+        m.parentElement?.classList.remove("is-open");
+      });
       if (willOpen) {
         menu.hidden = false;
         wrapper.classList.add("is-open");
@@ -866,9 +869,7 @@ export default function renderBackup() {
     results.forEach((r) => {
       const name = r?.name || "Без имени";
       if (Array.isArray(r?.errors) && r.errors.length) {
-        r.errors.forEach((e) =>
-          errors.push({ ...e, name, severity: "error" }),
-        );
+        r.errors.forEach((e) => errors.push({ ...e, name, severity: "error" }));
       }
       if (Array.isArray(r?.warnings) && r.warnings.length) {
         r.warnings.forEach((w) =>
@@ -973,7 +974,7 @@ export default function renderBackup() {
     }
     row
       .querySelectorAll(
-        "[data-lockable=\"true\"], .bk-edit, .bk-open-src, .bk-open, .bk-run, .bk-open-profile",
+        '[data-lockable="true"], .bk-edit, .bk-open-src, .bk-open, .bk-run, .bk-open-profile',
       )
       .forEach((btn) => {
         btn.disabled = !!locked;
@@ -1111,9 +1112,7 @@ export default function renderBackup() {
     );
 
     const visibleKeys = new Set(
-      visibleRows
-        .map((row) => row.dataset.profileKey)
-        .filter(Boolean),
+      visibleRows.map((row) => row.dataset.profileKey).filter(Boolean),
     );
 
     const selectedVisible = Array.from(selectedKeys).filter((key) =>
@@ -1313,9 +1312,7 @@ export default function renderBackup() {
     const sinfo = getEl("#bk-search-info");
     if (sinfo) {
       const anyFilter = state.filter || state.archiveFilter !== "all";
-      sinfo.textContent = anyFilter
-        ? `найдено: ${filtered.length}`
-        : "";
+      sinfo.textContent = anyFilter ? `найдено: ${filtered.length}` : "";
     }
 
     // Handle empty state
@@ -1381,7 +1378,10 @@ export default function renderBackup() {
       </div>`;
         row.addEventListener("dblclick", () => showEditForm(idx));
         row.addEventListener("click", (event) => {
-          if (event.target.closest(".bk-row-actions") || event.target.closest("button")) {
+          if (
+            event.target.closest(".bk-row-actions") ||
+            event.target.closest("button")
+          ) {
             return;
           }
           toggleRowSelection(row);
@@ -1427,7 +1427,10 @@ export default function renderBackup() {
 
       row.addEventListener("dblclick", () => showEditForm(idx));
       row.addEventListener("click", (event) => {
-        if (event.target.closest(".bk-row-actions") || event.target.closest("button")) {
+        if (
+          event.target.closest(".bk-row-actions") ||
+          event.target.closest("button")
+        ) {
           return;
         }
         toggleRowSelection(row);
@@ -2379,7 +2382,8 @@ export default function renderBackup() {
     if (value < 1000) return `${Math.round(value)} мс`;
     const totalSec = value / 1000;
     if (totalSec < 60) {
-      const rounded = totalSec >= 10 ? totalSec.toFixed(0) : totalSec.toFixed(1);
+      const rounded =
+        totalSec >= 10 ? totalSec.toFixed(0) : totalSec.toFixed(1);
       return `${rounded} с`;
     }
     const minutes = Math.floor(totalSec / 60);
@@ -2445,7 +2449,9 @@ export default function renderBackup() {
 
     if (hasPreflightErrors) {
       toast("Префлайт не пройдён — исправьте ошибки и повторите", "error");
-      log("✖ Префлайт не пройдён: проверьте пути, права и инструменты zip/tar.");
+      log(
+        "✖ Префлайт не пройдён: проверьте пути, права и инструменты zip/tar.",
+      );
       expandAndScrollLog();
       return;
     }
@@ -2483,8 +2489,7 @@ export default function renderBackup() {
         durationDone += Number(result.durationMs);
       }
       if (progressSize) {
-        progressSize.textContent =
-          bytesDone > 0 ? formatBytes(bytesDone) : "—";
+        progressSize.textContent = bytesDone > 0 ? formatBytes(bytesDone) : "—";
       }
       if (progressSpeed) {
         const avgSpeed =
@@ -2697,9 +2702,7 @@ export default function renderBackup() {
       if (selAll.checked) {
         selectAllVisible();
       } else {
-        const visibleKeys = Array.from(
-          wrapper.querySelectorAll(".bk-row"),
-        )
+        const visibleKeys = Array.from(wrapper.querySelectorAll(".bk-row"))
           .map((row) => row.dataset.profileKey)
           .filter(Boolean);
         visibleKeys.forEach((key) => clearSelectionForKey(key));

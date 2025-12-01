@@ -27,7 +27,10 @@ const setup = (options = {}) => {
     localStorage.setItem("randomizerItems", JSON.stringify(options.items));
   }
   if (options.settings) {
-    localStorage.setItem("randomizerSettings", JSON.stringify(options.settings));
+    localStorage.setItem(
+      "randomizerSettings",
+      JSON.stringify(options.settings),
+    );
   }
   if (options.presets) {
     localStorage.setItem("randomizerPresets", JSON.stringify(options.presets));
@@ -61,6 +64,20 @@ describe("Randomizer view", () => {
     expect(view.querySelector("#randomizer-count")?.textContent).toContain(
       "вариант",
     );
+  });
+
+  test("keeps list empty after clearing and reload", () => {
+    const view = setup({
+      items: [],
+      presets: [{ name: "Основной", items: [] }],
+      currentPreset: "Основной",
+      defaultPreset: "Основной",
+    });
+    expect(getChips(view).length).toBe(0);
+    expect(
+      view.querySelector("#randomizer-list .placeholder")?.textContent,
+    ).toMatch(/Пока нет вариантов/);
+    expect(getStoredItems()).toEqual([]);
   });
 
   test("adds a new item and persists it", () => {
@@ -138,15 +155,15 @@ describe("Randomizer view", () => {
     view.querySelector("#randomizer-roll").click();
     jest.advanceTimersByTime(400);
 
-    expect(
-      view.querySelector("#randomizer-result-text").textContent,
-    ).toBe("High");
+    expect(view.querySelector("#randomizer-result-text").textContent).toBe(
+      "High",
+    );
 
     Math.random = originalRandom;
     jest.useRealTimers();
   });
 
-  test("creates a new preset via 'save as' and switches presets", () => {
+  test("creates a new template via 'save as' and switches templates", () => {
     const view = setup({
       presets: [
         { name: "Base", items: [{ value: "A" }] },
@@ -161,7 +178,9 @@ describe("Randomizer view", () => {
     select.value = "Alt";
     select.dispatchEvent(new Event("change", { bubbles: true }));
 
-    expect(getChips(view).map((chip) => chip.querySelector(".text").textContent)).toEqual(["B"]);
+    expect(
+      getChips(view).map((chip) => chip.querySelector(".text").textContent),
+    ).toEqual(["B"]);
 
     // Save current list as new preset
     global.prompt.mockReturnValueOnce("NewPreset");
@@ -169,5 +188,23 @@ describe("Randomizer view", () => {
 
     const presets = getStoredPresets();
     expect(presets.some((p) => p.name === "NewPreset")).toBe(true);
+  });
+
+  test("creates an empty template via the new button", () => {
+    const view = setup({
+      items: [{ value: "One" }],
+      presets: [{ name: "Основной", items: [{ value: "One" }] }],
+      currentPreset: "Основной",
+      defaultPreset: "Основной",
+    });
+
+    global.prompt.mockReturnValueOnce("Empty");
+    view.querySelector("#randomizer-preset-new").click();
+
+    const presets = getStoredPresets();
+    const created = presets.find((p) => p.name === "Empty");
+    expect(created).toBeTruthy();
+    expect(created.items).toEqual([]);
+    expect(getChips(view).length).toBe(0);
   });
 });

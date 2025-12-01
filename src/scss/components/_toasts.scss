@@ -447,14 +447,14 @@
       font-size: 0.85rem;
     }
 
-      &-close {
-        width: 28px;
-        height: 28px;
-        font-size: 1.1rem;
-        margin-left: 0;
-      }
+    &-close {
+      width: 28px;
+      height: 28px;
+      font-size: 1.1rem;
+      margin-left: 0;
     }
   }
+}
 
 /* Поддержка reduced motion */
 @media (prefers-reduced-motion: reduce) {

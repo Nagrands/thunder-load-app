@@ -10,12 +10,11 @@
     content: "";
     position: fixed;
     inset: 0;
-    background:
-      radial-gradient(
-        340px 340px at 50% 88%,
-        rgba(255, 255, 255, 0.08),
-        transparent 64%
-      );
+    background: radial-gradient(
+      340px 340px at 50% 88%,
+      rgba(255, 255, 255, 0.08),
+      transparent 64%
+    );
     opacity: 0.16;
     pointer-events: none;
     z-index: -1;
@@ -574,7 +573,7 @@
         rgba(0, 0, 0, 0.08) 25%,
         rgba(0, 0, 0, 0.08) 75%,
         rgba(0, 0, 0, 0.25) 100%
-      )
-      // url("../../assets/img/bg-downloader.jpeg") center/cover no-repeat;
+      );
+    // url("../../assets/img/bg-downloader.jpeg") center/cover no-repeat;
   }
 }

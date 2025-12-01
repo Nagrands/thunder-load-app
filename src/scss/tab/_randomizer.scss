@@ -5,6 +5,60 @@
 }
 
 .randomizer-view {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+      340px 340px at 50% 88%,
+      rgba(255, 255, 255, 0.08),
+      transparent 64%
+    );
+    opacity: 0.16;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  &::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(
+        120% 90% at 18% 18%,
+        rgba(110, 180, 255, 0.2),
+        transparent 55%
+      ),
+      radial-gradient(
+        110% 80% at 80% 12%,
+        rgba(140, 240, 255, 0.16),
+        transparent 58%
+      ),
+      radial-gradient(
+        120% 100% at 72% 82%,
+        rgba(255, 170, 120, 0.12),
+        transparent 60%
+      ),
+      repeating-linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.045) 0,
+        rgba(255, 255, 255, 0.045) 1px,
+        transparent 1px,
+        transparent 22px
+      ),
+      linear-gradient(
+        185deg,
+        rgba(6, 8, 18, 0.92) 0%,
+        rgba(8, 10, 20, 0.9) 40%,
+        rgba(10, 12, 22, 0.94) 100%
+      );
+    opacity: 0.58;
+    z-index: -2;
+    pointer-events: none;
+  }
+
   min-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
@@ -20,9 +74,11 @@
     padding: 16px 24px;
     border-radius: 24px;
     background:
-      linear-gradient(135deg,
+      linear-gradient(
+        135deg,
         rgba(var(--color-accent-rgb), 0.15),
-        rgba(255, 255, 255, 0.02)),
+        rgba(255, 255, 255, 0.02)
+      ),
       rgba(10, 14, 24, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
@@ -42,9 +98,11 @@
       height: 64px;
       border-radius: 18px;
       background:
-        radial-gradient(circle at 30% 30%,
+        radial-gradient(
+          circle at 30% 30%,
           rgba(255, 255, 255, 0.45),
-          transparent 60%),
+          transparent 60%
+        ),
         rgba(var(--color-accent-rgb), 0.25);
       display: grid;
       place-items: center;
@@ -336,7 +394,11 @@
   color: var(--color-text-main);
   cursor: grab;
   user-select: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.1s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    transform 0.1s ease;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
@@ -527,9 +589,11 @@
   .result-value {
     font-size: clamp(1.4rem, 3vw, 2rem);
     font-weight: 600;
-    background: linear-gradient(120deg,
-        var(--color-accent),
-        rgba(255, 255, 255, 0.9));
+    background: linear-gradient(
+      120deg,
+      var(--color-accent),
+      rgba(255, 255, 255, 0.9)
+    );
     color: transparent;
     text-align: center;
     background-clip: text;

@@ -79,13 +79,11 @@ const updateCountdown = () => {
   const remainingMs = target - now;
   const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
 
-  if (countdownValueEl) countdownValueEl.textContent = formatSeconds(remainingSec);
+  if (countdownValueEl)
+    countdownValueEl.textContent = formatSeconds(remainingSec);
 
   if (progressEl) {
-    const ratio = Math.min(
-      1,
-      Math.max(0, remainingMs / (totalSeconds * 1000)),
-    );
+    const ratio = Math.min(1, Math.max(0, remainingMs / (totalSeconds * 1000)));
     progressEl.style.transform = `scaleX(${ratio})`;
   }
 
@@ -219,9 +217,7 @@ const startCountdown = (deadlineMs, seconds) => {
 
   totalSeconds = newSeconds;
   startedAtMs = now;
-  deadlineTs = Number.isFinite(dl)
-    ? dl
-    : Date.now() + totalSeconds * 1000;
+  deadlineTs = Number.isFinite(dl) ? dl : Date.now() + totalSeconds * 1000;
   lastDeadlineMs = deadlineTs;
   lastSeconds = totalSeconds;
 
@@ -238,10 +234,7 @@ const handleUpdate = ({ enabled, seconds, deadline }) => {
   const shouldRun = autosendEnabled || enabled === true;
 
   if (shouldRun) {
-    startCountdown(
-      Number.isFinite(dl) ? dl : Date.now() + secs * 1000,
-      secs,
-    );
+    startCountdown(Number.isFinite(dl) ? dl : Date.now() + secs * 1000, secs);
     return;
   }
 
@@ -289,10 +282,7 @@ const syncFromMain = async () => {
     if (!shouldShow) return; // не трогаем тост, если нет явного запроса показывать
 
     const dl = isValidDeadline(deadline) ? Number(deadline) : null;
-    startCountdown(
-      Number.isFinite(dl) ? dl : Date.now() + secs * 1000,
-      secs,
-    );
+    startCountdown(Number.isFinite(dl) ? dl : Date.now() + secs * 1000, secs);
   } catch (error) {
     console.error("[wg-autoshutdown] toast init error:", error);
   }

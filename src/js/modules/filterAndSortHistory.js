@@ -61,14 +61,12 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
 
   const filteredByFacet = filtered.filter((entry) => {
     const host = getHost(entry.sourceUrl).toLowerCase();
-    const quality = (
-      entry.quality ||
-      entry.resolution ||
-      ""
-    ).toLowerCase();
+    const quality = (entry.quality || entry.resolution || "").toLowerCase();
     const matchesSource = !sourceFilter || host === sourceFilter;
     const matchesQuality =
-      !qualityFilter || quality === qualityFilter || quality.includes(qualityFilter);
+      !qualityFilter ||
+      quality === qualityFilter ||
+      quality.includes(qualityFilter);
     return matchesSource && matchesQuality;
   });
 
@@ -90,7 +88,9 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
 
   const renderKey = `${filteredByFacet
     .map((e) => `${e.id}|${e.timestamp}`)
-    .join(",")}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|q${qualityFilter}`;
+    .join(
+      ",",
+    )}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|q${qualityFilter}`;
 
   if (!forceRender && renderKey === lastRenderedKey) {
     return;

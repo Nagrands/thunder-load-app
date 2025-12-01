@@ -83,9 +83,11 @@
       flex-direction: row;
       min-width: 20%;
       color: var(--color-accent);
-      background: linear-gradient(135deg,
-          rgba(255, 255, 255, 0.1) 0%,
-          rgba(255, 255, 255, 0.05) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
       backdrop-filter: blur(10px);
       border-radius: 10px;
       letter-spacing: 0.7px;
@@ -96,9 +98,11 @@
 
       &:hover {
         color: var(--color-highlight);
-        background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.15) 0%,
-            rgba(255, 255, 255, 0.08) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.15) 0%,
+          rgba(255, 255, 255, 0.08) 100%
+        );
         transform: translateY(-1px);
       }
     }
@@ -164,7 +168,6 @@
   }
 
   @media (min-width: 760px) {
-
     .main-hotkeys,
     .additional-hotkeys {
       grid-template-columns: 1fr 1fr;
@@ -226,9 +229,11 @@
       "Courier New", monospace;
     letter-spacing: 0.2px;
     color: var(--color-accent);
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.12) 0%,
-        rgba(255, 255, 255, 0.06) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
@@ -237,7 +242,6 @@
 
   // Адаптив для совсем узких окон — одна колонка
   @media (max-width: 560px) {
-
     .main-hotkeys,
     .additional-hotkeys {
       grid-template-columns: 1fr;
@@ -258,9 +262,11 @@
     padding: 20px 24px 24px;
     border-radius: 20px;
     gap: 0.75rem;
-    background: radial-gradient(circle at 20% -10%,
-        rgba(255, 255, 255, 0.18),
-        rgba(8, 10, 22, 0.8));
+    background: radial-gradient(
+      circle at 20% -10%,
+      rgba(255, 255, 255, 0.18),
+      rgba(8, 10, 22, 0.8)
+    );
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow:
       0 20px 50px rgba(5, 8, 20, 0.65),
@@ -377,7 +383,6 @@
 
 // Стили для модального окна "Настройки"
 .settings-modal {
-
   // === Инструменты (yt-dlp / ffmpeg) ===
   #tools-info {
     padding: 8px 10px;
@@ -431,10 +436,12 @@
       height: 40px;
       padding: 0 16px;
       min-width: 60px;
-      background: linear-gradient(135deg,
-          rgba(var(--color-accent-rgb), 0.22) 0%,
-          rgba(var(--color-accent-rgb), 0.14) 50%,
-          rgba(var(--color-accent-rgb), 0.08) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.22) 0%,
+        rgba(var(--color-accent-rgb), 0.14) 50%,
+        rgba(var(--color-accent-rgb), 0.08) 100%
+      );
       backdrop-filter: none;
       border: 1px solid rgba(var(--color-accent-rgb), 0.3);
       border-radius: 12px;
@@ -446,10 +453,12 @@
       }
 
       &:hover {
-        background: linear-gradient(135deg,
-            rgba(var(--color-accent-rgb), 0.35) 0%,
-            rgba(var(--color-accent-rgb), 0.22) 50%,
-            rgba(var(--color-accent-rgb), 0.12) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--color-accent-rgb), 0.35) 0%,
+          rgba(var(--color-accent-rgb), 0.22) 50%,
+          rgba(var(--color-accent-rgb), 0.12) 100%
+        );
         color: var(--color-text-main);
       }
 
@@ -620,9 +629,11 @@
     }
 
     &.active {
-      background: linear-gradient(135deg,
-          rgba(var(--color-accent-rgb), 0.25) 0%,
-          rgba(var(--color-accent-rgb), 0.15) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.25) 0%,
+        rgba(var(--color-accent-rgb), 0.15) 100%
+      );
       border-color: rgba(var(--color-accent-rgb), 0.3);
       color: var(--color-text-main);
     }
@@ -706,9 +717,11 @@
       align-items: center;
       font-size: 14px;
       border-radius: 12px;
-      background: linear-gradient(135deg,
-          rgba(255, 255, 255, 0.1) 0%,
-          rgba(255, 255, 255, 0.05) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
       backdrop-filter: blur(12px);
       color: var(--color-text-main);
       border: 1px solid rgba(255, 255, 255, 0.15);
@@ -776,9 +789,11 @@
       }
 
       &:hover {
-        background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.15) 0%,
-            rgba(255, 255, 255, 0.08) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.15) 0%,
+          rgba(255, 255, 255, 0.08) 100%
+        );
         border-color: rgba(255, 255, 255, 0.25);
         transform: translateY(-1px);
       }
@@ -835,9 +850,11 @@
       margin: 0 10px;
       padding: 0 12px;
       color: #fff;
-      background: linear-gradient(135deg,
-          rgba(255, 80, 80, 0.25) 0%,
-          rgba(255, 80, 80, 0.15) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 80, 80, 0.25) 0%,
+        rgba(255, 80, 80, 0.15) 100%
+      );
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 80, 80, 0.3);
       border-radius: 10px;
@@ -849,9 +866,11 @@
       }
 
       &:hover {
-        background: linear-gradient(135deg,
-            rgba(255, 80, 80, 0.35) 0%,
-            rgba(255, 80, 80, 0.22) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 80, 80, 0.35) 0%,
+          rgba(255, 80, 80, 0.22) 100%
+        );
         border-color: rgba(255, 80, 80, 0.5);
         transform: translateY(-1px);
       }
@@ -865,7 +884,6 @@
   #randomizer-settings,
   #appearance-settings,
   #other-settings {
-
     // Карточный вид строк
     ul.module {
       display: flex;
@@ -966,11 +984,13 @@
         }
 
         &[data-value="system"]::before {
-          background: conic-gradient(from 45deg,
-              #f5f5f5 0 25%,
-              #d6d6d6 25% 50%,
-              #3a3a3a 50% 75%,
-              #121212 75% 100%);
+          background: conic-gradient(
+            from 45deg,
+            #f5f5f5 0 25%,
+            #d6d6d6 25% 50%,
+            #3a3a3a 50% 75%,
+            #121212 75% 100%
+          );
         }
 
         &[data-value="midnight"]::before {
@@ -1096,16 +1116,20 @@
   }
 
   .confirm-button {
-    background: linear-gradient(135deg,
-        rgba(var(--color-accent-rgb), 0.25) 0%,
-        rgba(var(--color-accent-rgb), 0.15) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.25) 0%,
+      rgba(var(--color-accent-rgb), 0.15) 100%
+    );
     border-color: rgba(var(--color-accent-rgb), 0.3);
     color: var(--color-highlight);
 
     &:hover {
-      background: linear-gradient(135deg,
-          rgba(var(--color-accent-rgb), 0.35) 0%,
-          rgba(var(--color-accent-rgb), 0.22) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.35) 0%,
+        rgba(var(--color-accent-rgb), 0.22) 100%
+      );
       border-color: rgba(var(--color-accent-rgb), 0.5);
       color: #fff;
       transform: translateY(-2px);
@@ -1113,16 +1137,20 @@
   }
 
   .cancel-button {
-    background: linear-gradient(135deg,
-        rgba(255, 80, 80, 0.25) 0%,
-        rgba(255, 80, 80, 0.15) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 80, 80, 0.25) 0%,
+      rgba(255, 80, 80, 0.15) 100%
+    );
     border-color: rgba(255, 80, 80, 0.3);
     color: var(--color-highlight);
 
     &:hover {
-      background: linear-gradient(135deg,
-          rgba(255, 80, 80, 0.35) 0%,
-          rgba(255, 80, 80, 0.22) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 80, 80, 0.35) 0%,
+        rgba(255, 80, 80, 0.22) 100%
+      );
       border-color: rgba(255, 80, 80, 0.5);
       color: #fff;
       transform: translateY(-2px);
@@ -1159,9 +1187,11 @@
     display: grid;
     place-items: center;
     border-radius: 12px;
-    background: linear-gradient(135deg,
-        rgba(255, 99, 99, 0.25),
-        rgba(255, 99, 99, 0.12));
+    background: linear-gradient(
+      135deg,
+      rgba(255, 99, 99, 0.25),
+      rgba(255, 99, 99, 0.12)
+    );
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--color-accent);
   }
@@ -1232,16 +1262,20 @@
   }
 
   &[data-tone="danger"] .confirmation-icon {
-    background: linear-gradient(135deg,
-        rgba(255, 99, 99, 0.3),
-        rgba(255, 99, 99, 0.16));
+    background: linear-gradient(
+      135deg,
+      rgba(255, 99, 99, 0.3),
+      rgba(255, 99, 99, 0.16)
+    );
     color: #ff7a7a;
   }
 
   &[data-tone="info"] .confirmation-icon {
-    background: linear-gradient(135deg,
-        rgba(0, 160, 255, 0.28),
-        rgba(0, 160, 255, 0.14));
+    background: linear-gradient(
+      135deg,
+      rgba(0, 160, 255, 0.28),
+      rgba(0, 160, 255, 0.14)
+    );
     color: var(--color-accent);
   }
 }
@@ -1350,9 +1384,11 @@
     border-radius: 12px;
 
     &.active {
-      background: linear-gradient(135deg,
-          rgba(var(--color-accent-rgb), 0.2) 0%,
-          rgba(var(--color-accent-rgb), 0.1) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.2) 0%,
+        rgba(var(--color-accent-rgb), 0.1) 100%
+      );
       border: 1px solid rgba(var(--color-accent-rgb), 0.3);
       color: var(--color-text-main);
 
@@ -1423,10 +1459,14 @@
   color: var(--color-highlight);
   // Liquid glass background with subtle gradient and inner glow
   background:
-    linear-gradient(180deg, rgba(18, 22, 30, 0.72), rgba(20, 24, 34, 0.64)) padding-box,
-    radial-gradient(120% 120% at 0% 0%,
-      rgba(120, 180, 255, 0.22),
-      rgba(120, 180, 255, 0.06)) border-box;
+    linear-gradient(180deg, rgba(18, 22, 30, 0.72), rgba(20, 24, 34, 0.64))
+      padding-box,
+    radial-gradient(
+        120% 120% at 0% 0%,
+        rgba(120, 180, 255, 0.22),
+        rgba(120, 180, 255, 0.06)
+      )
+      border-box;
   border: 1px solid var(--color-hover);
   box-shadow:
     0 22px 60px rgba(0, 0, 0, 0.45),
@@ -1457,9 +1497,11 @@
     width: 12px;
     height: 12px;
     transform: rotate(45deg);
-    background: linear-gradient(180deg,
-        rgba(18, 22, 30, 0.72),
-        rgba(20, 24, 34, 0.64));
+    background: linear-gradient(
+      180deg,
+      rgba(18, 22, 30, 0.72),
+      rgba(20, 24, 34, 0.64)
+    );
     border-left: 1px solid rgba(120, 180, 255, 0.18);
     border-top: 1px solid rgba(120, 180, 255, 0.18);
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));

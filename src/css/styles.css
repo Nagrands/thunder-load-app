@@ -13141,7 +13141,6 @@ hr {
 
 .history-actions {
   flex-grow: 1;
-  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -13175,24 +13174,20 @@ hr {
 
 .history-filter-group {
   display: inline-flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-start;
+  margin-right: 20px;
 }
 .history-filter-group .history-filter-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  gap: 6px;
 }
 .history-filter-group .history-filter-pill i {
   color: var(--color-accent);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 .history-filter-group .history-filter-select {
   min-width: 150px;
@@ -13241,8 +13236,8 @@ hr {
 }
 
 .history-action-button {
-  width: 38px;
-  height: 28px;
+  /* width: 38px; */
+  /* height: 28px; */
   border-radius: var(--border-radius);
   display: flex;
   align-items: center;
@@ -13250,7 +13245,7 @@ hr {
   color: var(--color-highlight);
   transition: background-color 0.2s ease, color 0.2s ease;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* border: 1px solid rgba(255, 255, 255, 0.08); */
 }
 .history-action-button:hover {
   color: var(--color-accent);
@@ -13303,11 +13298,9 @@ hr {
 .history-cards-search {
   position: relative;
   display: flex;
+  flex-direction: column-reverse;
   align-items: center;
-  justify-content: space-between;
   gap: 14px;
-  padding: 10px;
-  border-radius: var(--border-radius);
 }
 .history-cards-search .history-input-wrapper i.search-icon {
   left: 14px;
@@ -13335,6 +13328,9 @@ hr {
 .history-cards-search .history-search-actions {
   display: inline-flex;
   gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 .history-cards-search .history-search-actions .history-action-button {
   width: 34px;
@@ -13351,10 +13347,10 @@ hr {
 
 .history-cards-subtitle {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.09em;
+  color: var(--color-quality);
 }
 
 .history-cards-title {
@@ -18511,14 +18507,20 @@ video {
   isolation: isolate;
 }
 .backup-view::before {
-  content: none;
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(340px 340px at 50% 88%, rgba(255, 255, 255, 0.08), transparent 64%);
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: -1;
 }
 .backup-view::after {
   content: "";
   position: fixed;
   inset: 0;
-  background: linear-gradient(180deg, rgba(6, 8, 16, 0.95) 0%, rgba(10, 14, 24, 0.95) 100%);
-  opacity: 0.5;
+  background: radial-gradient(120% 90% at 18% 18%, rgba(110, 180, 255, 0.2), transparent 55%), radial-gradient(110% 80% at 80% 12%, rgba(140, 240, 255, 0.16), transparent 58%), radial-gradient(120% 100% at 72% 82%, rgba(255, 170, 120, 0.12), transparent 60%), repeating-linear-gradient(160deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 1px, transparent 1px, transparent 22px), linear-gradient(185deg, rgba(6, 8, 18, 0.92) 0%, rgba(8, 10, 20, 0.9) 40%, rgba(10, 12, 22, 0.94) 100%);
+  opacity: 0.58;
   z-index: -2;
   pointer-events: none;
 }
@@ -20098,7 +20100,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   --bk-row-border: 1px solid rgba(120, 180, 255, 0.16);
   display: flex;
   flex-direction: row;
-  align-items: center;
   gap: 12px;
   padding: 12px 16px;
   min-height: 0;
@@ -20245,7 +20246,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   padding: 2px 8px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
-  transition: background 0.19s, color 0.19s;
 }
 .bk-row .bk-row-content .back-filter:hover, .bk-row .bk-row-content .back-filter:focus {
   color: var(--color-accent);
@@ -20260,9 +20260,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 .bk-row .bk-row-actions {
   display: flex;
-  flex-direction: column;
   gap: 6px;
-  align-items: center;
   flex-shrink: 0;
 }
 .bk-row .bk-row-actions button {
@@ -21120,6 +21118,28 @@ h1.section-heading .bk-heading-search #bk-search-info {
   width: 100%;
 }
 
+.randomizer-view {
+  position: relative;
+  isolation: isolate;
+}
+.randomizer-view::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(340px 340px at 50% 88%, rgba(255, 255, 255, 0.08), transparent 64%);
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: -1;
+}
+.randomizer-view::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(120% 90% at 18% 18%, rgba(110, 180, 255, 0.2), transparent 55%), radial-gradient(110% 80% at 80% 12%, rgba(140, 240, 255, 0.16), transparent 58%), radial-gradient(120% 100% at 72% 82%, rgba(255, 170, 120, 0.12), transparent 60%), repeating-linear-gradient(160deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 1px, transparent 1px, transparent 22px), linear-gradient(185deg, rgba(6, 8, 18, 0.92) 0%, rgba(8, 10, 20, 0.9) 40%, rgba(10, 12, 22, 0.94) 100%);
+  opacity: 0.58;
+  z-index: -2;
+  pointer-events: none;
+}
 .randomizer-view {
   min-height: calc(100vh - 120px);
   display: flex;

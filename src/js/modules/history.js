@@ -89,7 +89,9 @@ const syncHistorySelectValues = () => {
     historySelectUIs.quality?.updateLabel?.();
   }
   if (paginationSize) {
-    paginationSize.value = String(state.historyPageSize || HISTORY_PAGE_SIZES[0]);
+    paginationSize.value = String(
+      state.historyPageSize || HISTORY_PAGE_SIZES[0],
+    );
     historySelectUIs.pageSize?.updateLabel?.();
   }
 };
@@ -153,9 +155,15 @@ function ensurePaginationElements() {
     historySelectUIs.pageSize = enhanceSelect(paginationSize);
   }
 
-  paginationPrev?.addEventListener("click", () => goToPage(state.historyPage - 1));
-  paginationNext?.addEventListener("click", () => goToPage(state.historyPage + 1));
-  paginationSize?.addEventListener("change", (e) => changePageSize(e.target.value));
+  paginationPrev?.addEventListener("click", () =>
+    goToPage(state.historyPage - 1),
+  );
+  paginationNext?.addEventListener("click", () =>
+    goToPage(state.historyPage + 1),
+  );
+  paginationSize?.addEventListener("change", (e) =>
+    changePageSize(e.target.value),
+  );
 
   const host = historyContainer || history?.parentElement || document.body;
   host.appendChild(paginationRoot);
@@ -335,7 +343,10 @@ function enhanceSelect(selectEl) {
     menu
       .querySelectorAll(".bk-select-option")
       .forEach((item) =>
-        item.classList.toggle("is-active", item.dataset.value === selectEl.value),
+        item.classList.toggle(
+          "is-active",
+          item.dataset.value === selectEl.value,
+        ),
       );
   };
 
@@ -405,7 +416,9 @@ function enhanceSelect(selectEl) {
 
 function ensureHistoryControlElements() {
   if (!historySourceFilterSelect || !historySourceFilterSelect.isConnected) {
-    historySourceFilterSelect = document.getElementById("history-source-filter");
+    historySourceFilterSelect = document.getElementById(
+      "history-source-filter",
+    );
   }
   if (!historyQualityFilterSelect || !historyQualityFilterSelect.isConnected) {
     historyQualityFilterSelect = document.getElementById(
@@ -541,16 +554,8 @@ function buildFilterOptions(entries = []) {
     ui?.updateLabel?.();
   };
 
-  applyOptions(
-    historySourceFilterSelect,
-    hosts,
-    "Все источники",
-  );
-  applyOptions(
-    historyQualityFilterSelect,
-    qualities,
-    "Любое качество",
-  );
+  applyOptions(historySourceFilterSelect, hosts, "Все источники");
+  applyOptions(historyQualityFilterSelect, qualities, "Любое качество");
   syncHistorySelectValues();
 }
 
@@ -684,9 +689,7 @@ const deriveYoutubeThumbnail = (sourceUrl = "") => {
       id = (u.pathname.split("/shorts/")[1] || "").split("/")[0] || "";
     }
 
-    return id
-      ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg`
-      : "";
+    return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : "";
   } catch {
     return "";
   }
@@ -704,9 +707,8 @@ const pickInfoThumbnail = (info) => {
   if (info.thumbnail) return info.thumbnail;
   if (Array.isArray(info.thumbnails) && info.thumbnails.length) {
     return (
-      info.thumbnails
-        .slice()
-        .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || ""
+      info.thumbnails.slice().sort((a, b) => (b.width || 0) - (a.width || 0))[0]
+        ?.url || ""
     );
   }
   return "";
@@ -741,7 +743,8 @@ const hasLocalThumbnail = async (entry) => {
 };
 
 const restoreThumbnailForEntry = async (entry, rawEntry) => {
-  if (!entry?.id) return { changed: false, updatedEntry: entry, updatedRaw: rawEntry };
+  if (!entry?.id)
+    return { changed: false, updatedEntry: entry, updatedRaw: rawEntry };
 
   const updatedEntry = { ...entry };
   const updatedRaw = rawEntry ? { ...rawEntry } : null;
@@ -778,7 +781,8 @@ const restoreThumbnailForEntry = async (entry, rawEntry) => {
     if (cacheResult?.success && cacheResult.filePath) {
       const fileUrl = filePathToUrl(cacheResult.filePath);
       updatedEntry.thumbnailCacheFile = cacheResult.filePath;
-      updatedEntry.thumbnail = fileUrl || updatedEntry.thumbnail || candidateUrl;
+      updatedEntry.thumbnail =
+        fileUrl || updatedEntry.thumbnail || candidateUrl;
       if (updatedRaw) {
         updatedRaw.thumbnailCacheFile = cacheResult.filePath;
         updatedRaw.thumbnail = fileUrl || updatedRaw.thumbnail || candidateUrl;
@@ -835,11 +839,7 @@ const restoreMissingHistoryPreviews = async (entries, rawHistory) => {
   );
 
   setHistoryData(updatedEntries);
-  filterAndSortHistory(
-    state.currentSearchQuery,
-    state.currentSortOrder,
-    true,
-  );
+  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
 
   try {
     await window.electron.invoke("save-history", updatedRawHistory);
@@ -946,9 +946,7 @@ function renderHistoryCards(entries = []) {
 
   subset.forEach((entry) => {
     const hasPreview = Boolean(entry?.thumbnail);
-    const thumbSrc = hasPreview
-      ? entry.thumbnail
-      : HISTORY_IMAGE_PLACEHOLDER;
+    const thumbSrc = hasPreview ? entry.thumbnail : HISTORY_IMAGE_PLACEHOLDER;
     const isPlaceholder = !hasPreview;
 
     const card = document.createElement("article");
@@ -1075,9 +1073,7 @@ function renderHistoryCards(entries = []) {
     openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
     openFolderBtn.setAttribute("data-bs-placement", "top");
     openFolderBtn.disabled = entry.isMissing;
-    openFolderBtn.addEventListener("click", () =>
-      openHistoryCardFolder(entry),
-    );
+    openFolderBtn.addEventListener("click", () => openHistoryCardFolder(entry));
 
     const retryBtn = document.createElement("button");
     retryBtn.type = "button";
@@ -1152,9 +1148,7 @@ function createLogEntry(entry, index) {
 
   // Pick preview thumbnail; fall back to placeholder image
   const hasPreview = Boolean(entry?.thumbnail);
-  const thumbSrc = hasPreview
-    ? entry.thumbnail
-    : HISTORY_IMAGE_PLACEHOLDER;
+  const thumbSrc = hasPreview ? entry.thumbnail : HISTORY_IMAGE_PLACEHOLDER;
 
   el.innerHTML = `
     <div class="text" data-filepath="${entry.filePath}" data-url="${entry.sourceUrl}" data-filename="${entry.fileName}">
@@ -1331,7 +1325,11 @@ function createLogEntry(entry, index) {
     el.querySelector(".log-thumb-wrap img") || el.querySelector(".log-thumb");
   if (inlineThumb) {
     inlineThumb.loading = "lazy";
-    attachPlaceholderOnError(inlineThumb, fallbackSrc, inlineThumb.parentElement);
+    attachPlaceholderOnError(
+      inlineThumb,
+      fallbackSrc,
+      inlineThumb.parentElement,
+    );
   }
   const previewImg = el.querySelector(".history-preview-image");
   if (previewImg) {
@@ -1578,8 +1576,7 @@ async function restoreDeletedEntries() {
   showToast(`Восстановлено ${buffer.length} записей.`, "success");
 }
 
-const toCsvValue = (value) =>
-  `"${String(value ?? "").replace(/"/g, '""')}"`;
+const toCsvValue = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
 
 function buildCsv(entries = []) {
   const header = [
@@ -1602,7 +1599,10 @@ function buildCsv(entries = []) {
     entry.formattedSize || entry.size || "",
     entry.dateText || "",
   ]);
-  return [header.map(toCsvValue).join(","), ...rows.map((row) => row.map(toCsvValue).join(","))].join("\n");
+  return [
+    header.map(toCsvValue).join(","),
+    ...rows.map((row) => row.map(toCsvValue).join(",")),
+  ].join("\n");
 }
 
 function downloadTextFile(filename, content, mime = "text/plain") {
@@ -1653,7 +1653,7 @@ function renderHistory(entries, meta = {}) {
   const fullEntries =
     Array.isArray(meta.fullEntries) && meta.fullEntries.length
       ? meta.fullEntries
-    : allEntries;
+      : allEntries;
   const totalEntries =
     typeof meta.totalEntries === "number"
       ? meta.totalEntries
@@ -1792,21 +1792,27 @@ function initHistory() {
     localStorage.setItem("historySourceFilter", state.historySourceFilter);
     state.historyPage = 1;
     historySelectUIs.source?.updateLabel?.();
-    filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+    filterAndSortHistory(
+      state.currentSearchQuery,
+      state.currentSortOrder,
+      true,
+    );
   });
   historyQualityFilterSelect?.addEventListener("change", (e) => {
     state.historyQualityFilter = e.target.value || "";
     localStorage.setItem("historyQualityFilter", state.historyQualityFilter);
     state.historyPage = 1;
     historySelectUIs.quality?.updateLabel?.();
-    filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+    filterAndSortHistory(
+      state.currentSearchQuery,
+      state.currentSortOrder,
+      true,
+    );
   });
   historyExportJsonButton?.addEventListener("click", () =>
     exportHistory("json"),
   );
-  historyExportCsvButton?.addEventListener("click", () =>
-    exportHistory("csv"),
-  );
+  historyExportCsvButton?.addEventListener("click", () => exportHistory("csv"));
   restoreHistoryButton?.addEventListener("click", () =>
     restoreDeletedEntries(),
   );
@@ -1854,10 +1860,7 @@ const loadHistory = async (forceRender = false) => {
       : [];
     const entries = [];
 
-    if (
-      Array.isArray(rawHistory) &&
-      rawHistory.some((e) => e?.fileName)
-    ) {
+    if (Array.isArray(rawHistory) && rawHistory.some((e) => e?.fileName)) {
       for (const rawEntry of rawHistory) {
         const normalized = await normalizeEntry(rawEntry);
         entries.push(normalized);
