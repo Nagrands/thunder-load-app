@@ -51,6 +51,11 @@ let paginationInfo = null;
 let paginationPrev = null;
 let paginationNext = null;
 let paginationSize = null;
+let historySelectUIs = {
+  source: null,
+  quality: null,
+  pageSize: null,
+};
 let lastPaginationMeta = {
   page: state.historyPage || 1,
   totalPages: 1,
@@ -72,6 +77,21 @@ const normalizePageSize = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return HISTORY_PAGE_SIZES[0];
   return Math.max(4, Math.min(200, Math.floor(n)));
+};
+
+const syncHistorySelectValues = () => {
+  if (historySourceFilterSelect) {
+    historySourceFilterSelect.value = state.historySourceFilter || "";
+    historySelectUIs.source?.updateLabel?.();
+  }
+  if (historyQualityFilterSelect) {
+    historyQualityFilterSelect.value = state.historyQualityFilter || "";
+    historySelectUIs.quality?.updateLabel?.();
+  }
+  if (paginationSize) {
+    paginationSize.value = String(state.historyPageSize || HISTORY_PAGE_SIZES[0]);
+    historySelectUIs.pageSize?.updateLabel?.();
+  }
 };
 
 const attachPlaceholderOnError = (img, placeholderSrc, container) => {
@@ -119,7 +139,7 @@ function ensurePaginationElements() {
     </button>
     <label class="history-page-size">
       <span>по</span>
-      <select id="history-page-size" class="input input-sm history-page-size-select" aria-label="Записей на странице">
+      <select id="history-page-size" class="input input-sm history-page-size-select bk-select-init" aria-label="Записей на странице">
         ${HISTORY_PAGE_SIZES.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
       </select>
     </label>
@@ -129,6 +149,9 @@ function ensurePaginationElements() {
   paginationNext = paginationRoot.querySelector("#history-page-next");
   paginationInfo = paginationRoot.querySelector("#history-page-info");
   paginationSize = paginationRoot.querySelector("#history-page-size");
+  if (!historySelectUIs.pageSize) {
+    historySelectUIs.pageSize = enhanceSelect(paginationSize);
+  }
 
   paginationPrev?.addEventListener("click", () => goToPage(state.historyPage - 1));
   paginationNext?.addEventListener("click", () => goToPage(state.historyPage + 1));
@@ -171,6 +194,8 @@ function updatePaginationControls(meta) {
       paginationSize.appendChild(opt);
     }
     paginationSize.value = String(meta.pageSize);
+    historySelectUIs.pageSize?.rebuild?.();
+    historySelectUIs.pageSize?.updateLabel?.();
   }
 
   if (paginationRoot) {
@@ -280,6 +305,104 @@ function ensureHistoryCardsElements() {
   historyCardsEmptyRoot = area.querySelector("#history-cards-empty");
 }
 
+// Универсальный кастомный селект (общий стиль с Backup)
+function enhanceSelect(selectEl) {
+  if (!selectEl || selectEl.dataset.enhanced === "true") return null;
+  selectEl.dataset.enhanced = "true";
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "bk-select-wrapper";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "bk-select-trigger";
+  const labelEl = document.createElement("span");
+  labelEl.className = "bk-select-label";
+  const icon = document.createElement("i");
+  icon.className = "fa-solid fa-chevron-down";
+  trigger.append(labelEl, icon);
+
+  const menu = document.createElement("div");
+  menu.className = "bk-select-menu";
+  menu.hidden = true;
+
+  const updateLabel = () => {
+    const opt =
+      selectEl.selectedOptions && selectEl.selectedOptions[0]
+        ? selectEl.selectedOptions[0]
+        : selectEl.options[selectEl.selectedIndex];
+    labelEl.textContent = opt ? opt.textContent : "";
+    menu
+      .querySelectorAll(".bk-select-option")
+      .forEach((item) =>
+        item.classList.toggle("is-active", item.dataset.value === selectEl.value),
+      );
+  };
+
+  const rebuild = () => {
+    menu.innerHTML = "";
+    Array.from(selectEl.options).forEach((opt) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "bk-select-option";
+      item.dataset.value = opt.value;
+      item.textContent = opt.textContent;
+      item.addEventListener("click", () => {
+        if (selectEl.value !== opt.value) {
+          selectEl.value = opt.value;
+          selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        updateLabel();
+        menu.hidden = true;
+        wrapper.classList.remove("is-open");
+      });
+      menu.appendChild(item);
+    });
+    updateLabel();
+  };
+
+  const closeAll = (e) => {
+    if (e && wrapper.contains(e.target)) return;
+    menu.hidden = true;
+    wrapper.classList.remove("is-open");
+  };
+
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const willOpen = menu.hidden;
+    document
+      .querySelectorAll(".bk-select-wrapper.is-open .bk-select-menu")
+      .forEach((m) => {
+        m.hidden = true;
+        m.parentElement?.classList.remove("is-open");
+      });
+    if (willOpen) {
+      menu.hidden = false;
+      wrapper.classList.add("is-open");
+    } else {
+      closeAll();
+    }
+  });
+
+  document.addEventListener("mousedown", closeAll);
+  document.addEventListener("focusin", closeAll);
+  trigger.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAll();
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      menu.hidden = false;
+      wrapper.classList.add("is-open");
+    }
+  });
+
+  selectEl.classList.add("bk-select-hidden");
+  selectEl.parentNode.insertBefore(wrapper, selectEl);
+  wrapper.append(trigger, selectEl, menu);
+  rebuild();
+
+  return { rebuild, updateLabel };
+}
+
 function ensureHistoryControlElements() {
   if (!historySourceFilterSelect || !historySourceFilterSelect.isConnected) {
     historySourceFilterSelect = document.getElementById("history-source-filter");
@@ -297,6 +420,13 @@ function ensureHistoryControlElements() {
   }
   if (!restoreHistoryButton || !restoreHistoryButton.isConnected) {
     restoreHistoryButton = document.getElementById("restore-history");
+  }
+
+  if (!historySelectUIs.source) {
+    historySelectUIs.source = enhanceSelect(historySourceFilterSelect);
+  }
+  if (!historySelectUIs.quality) {
+    historySelectUIs.quality = enhanceSelect(historyQualityFilterSelect);
   }
 }
 
@@ -398,6 +528,17 @@ function buildFilterOptions(entries = []) {
       select.appendChild(opt);
     }
     select.value = current || "";
+
+    const ui =
+      select === historySourceFilterSelect
+        ? historySelectUIs.source
+        : select === historyQualityFilterSelect
+          ? historySelectUIs.quality
+          : select === paginationSize
+            ? historySelectUIs.pageSize
+            : null;
+    ui?.rebuild?.();
+    ui?.updateLabel?.();
   };
 
   applyOptions(
@@ -410,6 +551,7 @@ function buildFilterOptions(entries = []) {
     qualities,
     "Любое качество",
   );
+  syncHistorySelectValues();
 }
 
 function openHistoryCardPreview(src, title = "") {
@@ -1629,12 +1771,7 @@ function renderHistory(entries, meta = {}) {
 async function initHistoryState() {
   try {
     ensureHistoryControlElements();
-    if (historySourceFilterSelect) {
-      historySourceFilterSelect.value = state.historySourceFilter || "";
-    }
-    if (historyQualityFilterSelect) {
-      historyQualityFilterSelect.value = state.historyQualityFilter || "";
-    }
+    syncHistorySelectValues();
     await loadHistory(true); // 👈 forceRender=true — гарантируем перерисовку
 
     setFilterInputValue(state.currentSearchQuery || "");
@@ -1654,12 +1791,14 @@ function initHistory() {
     state.historySourceFilter = e.target.value || "";
     localStorage.setItem("historySourceFilter", state.historySourceFilter);
     state.historyPage = 1;
+    historySelectUIs.source?.updateLabel?.();
     filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
   });
   historyQualityFilterSelect?.addEventListener("change", (e) => {
     state.historyQualityFilter = e.target.value || "";
     localStorage.setItem("historyQualityFilter", state.historyQualityFilter);
     state.historyPage = 1;
+    historySelectUIs.quality?.updateLabel?.();
     filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
   });
   historyExportJsonButton?.addEventListener("click", () =>

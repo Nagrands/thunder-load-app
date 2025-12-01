@@ -252,11 +252,11 @@
           background: rgba(255, 255, 255, 0.06);
         }
       }
-    }
+  }
 
-    .bk-pagination {
-      display: flex;
-      align-items: center;
+  .bk-pagination {
+    display: flex;
+    align-items: center;
       gap: 1rem;
       margin-left: auto;
       flex-wrap: wrap;
@@ -268,12 +268,7 @@
       }
 
       .bk-page-size {
-        color: var(--color-accent);
-        width: 60px;
-        min-height: 34px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        width: 72px;
       }
 
       button.history-action-button {
@@ -295,6 +290,47 @@
           transform: none;
           box-shadow: none;
         }
+      }
+    }
+
+    // Фолбэк-стиль для селектов (пока не инициализирован кастомный)
+    select:not(.bk-select-hidden),
+    .bk-page-size:not(.bk-select-hidden) {
+      appearance: none;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--color-highlight);
+      border-radius: 10px;
+      padding: 0.45rem 2.25rem 0.45rem 0.6rem;
+      min-height: 36px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236ecaff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 14px;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+
+      &:hover {
+        border-color: rgba(120, 180, 255, 0.25);
+        box-shadow: 0 0 0 1px rgba(120, 180, 255, 0.18);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: rgba(120, 180, 255, 0.7);
+        box-shadow:
+          0 0 0 2px rgba(120, 180, 255, 0.22),
+          0 4px 10px rgba(0, 0, 0, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      option {
+        background: rgba(20, 24, 36, 0.98);
+        color: var(--color-highlight);
       }
     }
   }
@@ -706,7 +742,6 @@
     position: relative;
     border-radius: var(--border-radius);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
     overflow: hidden;
     transform-origin: top center;
     animation: bk-scale-in 0.16s ease-out;
@@ -1400,6 +1435,131 @@
         color: var(--color-accent);
       }
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Global select styling (for modалки редактирования/создания)
+// ---------------------------------------------------------------------------
+.bk-select-hidden {
+  display: none;
+}
+
+.bk-select-wrapper {
+  position: relative;
+  min-width: 120px;
+}
+
+.bk-select-trigger {
+  width: 100%;
+  min-height: 36px;
+  font-size: 14px;
+  padding: 0.45rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-highlight);
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+
+  .bk-select-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  i {
+    font-size: 0.85rem;
+    color: #6ecaff;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    border-color: rgba(120, 180, 255, 0.25);
+    box-shadow: 0 0 0 1px rgba(120, 180, 255, 0.18);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(120, 180, 255, 0.7);
+    box-shadow:
+      0 0 0 2px rgba(120, 180, 255, 0.22),
+      0 4px 10px rgba(0, 0, 0, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.bk-select-wrapper.is-open .bk-select-trigger {
+  border-color: rgba(120, 180, 255, 0.6);
+  box-shadow:
+    0 0 0 2px rgba(120, 180, 255, 0.18),
+    0 6px 16px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+
+  i {
+    transform: rotate(180deg);
+  }
+}
+
+.bk-select-menu {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto 0;
+  background: var(--color-bg-main);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 10px 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+.bk-select-wrapper.is-open .bk-select-menu {
+  display: flex;
+}
+
+.bk-select-option {
+  border: none;
+  background: transparent;
+  color: var(--color-highlight);
+  text-align: left;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.16s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--color-accent);
+    outline: none;
+  }
+  
+  &.is-active {
+    background: var(--color-hover);
+    color: var(--color-highlight);
+    font-weight: 700;
   }
 }
 

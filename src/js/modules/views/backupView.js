@@ -518,6 +518,106 @@ export default function renderBackup() {
   const pagePrevBtn = container.querySelector("#bk-page-prev");
   const pageNextBtn = container.querySelector("#bk-page-next");
   const pageSizeSelect = container.querySelector("#bk-page-size");
+  let archiveTypeSelectUI = null;
+
+  // Единый стиль кастомных селектов (архив/пагинация)
+  const enhanceSelect = (selectEl) => {
+    if (!selectEl || selectEl.dataset.enhanced) return null;
+    selectEl.dataset.enhanced = "true";
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "bk-select-wrapper";
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "bk-select-trigger";
+    const label = document.createElement("span");
+    label.className = "bk-select-label";
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-chevron-down";
+    trigger.append(label, icon);
+
+    const menu = document.createElement("div");
+    menu.className = "bk-select-menu";
+    menu.hidden = true;
+
+    const updateLabel = () => {
+      const opt =
+        selectEl.selectedOptions && selectEl.selectedOptions[0]
+          ? selectEl.selectedOptions[0]
+          : selectEl.options[selectEl.selectedIndex];
+      label.textContent = opt ? opt.textContent : "";
+      menu
+        .querySelectorAll(".bk-select-option")
+        .forEach((item) => item.classList.toggle("is-active", item.dataset.value === selectEl.value));
+    };
+
+    Array.from(selectEl.options).forEach((opt) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "bk-select-option";
+      item.dataset.value = opt.value;
+      item.textContent = opt.textContent;
+      item.addEventListener("click", () => {
+        if (selectEl.value !== opt.value) {
+          selectEl.value = opt.value;
+          selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        updateLabel();
+        menu.hidden = true;
+        wrapper.classList.remove("is-open");
+      });
+      menu.appendChild(item);
+    });
+
+    const toggleMenu = () => {
+      const willOpen = menu.hidden;
+      document
+        .querySelectorAll(".bk-select-menu")
+        .forEach((m) => {
+          m.hidden = true;
+          m.parentElement?.classList.remove("is-open");
+        });
+      if (willOpen) {
+        menu.hidden = false;
+        wrapper.classList.add("is-open");
+      }
+    };
+
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    const closeOnOutside = (e) => {
+      if (!wrapper.contains(e.target)) {
+        menu.hidden = true;
+        wrapper.classList.remove("is-open");
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutside);
+    document.addEventListener("focusin", closeOnOutside);
+    trigger.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        menu.hidden = true;
+        wrapper.classList.remove("is-open");
+      }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        toggleMenu();
+      }
+    });
+
+    selectEl.classList.add("bk-select-hidden");
+    selectEl.parentNode.insertBefore(wrapper, selectEl);
+    wrapper.append(trigger, selectEl, menu);
+    updateLabel();
+
+    selectEl.addEventListener("change", updateLabel);
+    return { updateLabel };
+  };
+
+  const archiveSelectUI = enhanceSelect(archiveFilterSelect);
+  const pageSizeSelectUI = enhanceSelect(pageSizeSelect);
 
   if (filterInput) {
     filterInput.addEventListener(
@@ -2048,7 +2148,13 @@ export default function renderBackup() {
       validatePath("f-prof", false),
     );
 
+    const archiveSelect = q("#f-archive-type");
+    if (archiveSelect && !archiveTypeSelectUI) {
+      archiveTypeSelectUI = enhanceSelect(archiveSelect);
+    }
+
     q("#f-archive-type")?.addEventListener("change", () => {
+      if (archiveTypeSelectUI?.updateLabel) archiveTypeSelectUI.updateLabel();
       updatePreview();
       _debouncedUpdateSave();
     });
