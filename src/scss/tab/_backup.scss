@@ -79,18 +79,12 @@
   }
 }
 
-@mixin backup-icon-button($size: 32px, $radius: 8px) {
-  width: $size;
+@mixin backup-icon-button($size: 26px) {
+  // width: $size;
   height: $size;
-  min-width: $size;
-  min-height: $size;
-  border-radius: $radius;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s;
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -1277,9 +1271,10 @@
     }
 
     .bk-preview-toggle {
-      @include backup-icon-button(34px, 10px);
+      @include backup-icon-button(34px);
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
       color: var(--color-highlight);
       position: relative;
 
@@ -1470,14 +1465,6 @@ h1.section-heading {
   gap: 14px;
   flex-wrap: wrap;
 
-  .bk-chk {
-    accent-color: var(--color-accent);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    transition: box-shadow 0.17s;
-  }
-
   .checkbox-label {
     gap: 0;
     font-size: 14px;
@@ -1580,6 +1567,35 @@ h1.section-heading {
   justify-content: flex-end;
   flex: 0 0 auto;
 
+  .btn {
+    @include backup-button-base(12px);
+    min-height: 36px;
+    padding: 0.45rem 0.85rem;
+    background: linear-gradient(120deg,
+        rgba(120, 180, 255, 0.28),
+        rgba(80, 140, 255, 0.24));
+    border: 1px solid rgba(120, 180, 255, 0.25);
+    box-shadow:
+      0 10px 26px rgba(0, 0, 0, 0.22),
+      0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    color: #f4f7ff;
+
+    &:hover {
+      background: linear-gradient(120deg,
+          rgba(140, 200, 255, 0.35),
+          rgba(90, 150, 255, 0.3));
+      box-shadow:
+        0 14px 30px rgba(90, 150, 255, 0.18),
+        0 2px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
   .history-action-button {
     width: auto;
     min-width: 32px;
@@ -1638,7 +1654,7 @@ h1.section-heading {
   margin-bottom: 0.8rem;
   max-height: 450px;
   overflow-y: auto;
-  padding: 12px;
+  padding: 10px;
   box-sizing: border-box;
   overflow-x: hidden;
 
@@ -1657,59 +1673,81 @@ h1.section-heading {
 }
 
 .bk-row {
-  --bk-row-bg: var(--color-hover);
+  --bk-row-bg: linear-gradient(120deg,
+      rgba(20, 28, 50, 0.92) 0%,
+      rgba(16, 22, 38, 0.94) 100%);
   --bk-row-bg-hover: linear-gradient(120deg,
-      rgba(60, 80, 130, 0.99) 0%,
-      rgba(38, 48, 78, 0.99) 100%);
+      rgba(40, 70, 130, 0.98) 0%,
+      rgba(26, 44, 84, 0.98) 100%);
   --bk-row-bg-selected: linear-gradient(120deg,
-      rgba(80, 130, 255, 0.13) 0%,
-      rgba(80, 130, 255, 0.15) 100%);
-  --bk-row-border: 1px solid rgba(120, 180, 255, 0.08);
+      rgba(90, 150, 255, 0.26) 0%,
+      rgba(70, 130, 255, 0.32) 100%);
+  --bk-row-border: 1px solid rgba(120, 180, 255, 0.16);
 
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 14px 22px;
-  min-height: 54px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 0;
   flex-shrink: 0;
   min-width: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--bk-row-bg);
   border: var(--bk-row-border);
-  box-shadow:
-    0 2px 16px 0 rgba(40, 60, 120, 0.1),
-    0 1.5px 8px 0 rgba(0, 0, 0, 0.09);
-  transition:
-    background 0.33s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   cursor: pointer;
   user-select: none;
+  overflow: hidden;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.18s ease,
+    filter 0.2s ease;
 
-  &:nth-child(even) {
-    background: rgba(0, 0, 0, 0.3);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 6px auto 6px 0;
+    width: 4px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--color-accent), #7bd7ff);
+    opacity: 0.35;
+    transform: scaleY(0.7);
+    transition: all 0.18s ease;
   }
 
   &:hover,
   &:focus-within {
     background: var(--bk-row-bg-hover);
     box-shadow:
-      0 10px 32px 0 rgba(60, 120, 255, 0.11),
-      0 2.5px 12px 0 rgba(0, 0, 0, 0.14);
-    border-color: rgba(120, 180, 255, 0.19);
+      0 8px 26px 0 rgba(60, 120, 255, 0.12),
+      0 2px 10px 0 rgba(0, 0, 0, 0.18);
+    border-color: rgba(120, 180, 255, 0.26);
     z-index: 2;
     outline: none;
+
+    &::before {
+      opacity: 0.65;
+      transform: scaleY(1);
+    }
   }
 
-  &:has(.bk-chk:checked),
-  &.selected {
+  &.is-selected {
     background: var(--bk-row-bg-selected);
-    border-color: rgba(120, 180, 255, 0.29);
+    border-color: rgba(120, 180, 255, 0.38);
     z-index: 3;
-    transform: scale(1.018);
+    transform: translateY(-1px);
+    box-shadow:
+      0 12px 32px rgba(80, 140, 255, 0.18),
+      0 3px 12px rgba(0, 0, 0, 0.24);
+
+    &::before {
+      width: 6px;
+      opacity: 1;
+      transform: scaleY(1);
+    }
   }
 
   &.is-running {
@@ -1768,25 +1806,9 @@ h1.section-heading {
     animation: skeleton-loading 1.5s infinite;
     border-radius: 14px;
     box-shadow: none;
-  }
 
-  // Checkbox
-  .bk-chk {
-    margin-right: 12px;
-    accent-color: var(--color-accent);
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    transition:
-      box-shadow 0.18s,
-      border-color 0.18s;
-    border-radius: 6px;
-    box-shadow: 0 0 0 1.5px rgba(120, 180, 255, 0.11);
-    background: rgba(255, 255, 255, 0.03);
-
-    &:focus-visible {
-      box-shadow: 0 0 0 3px rgba(120, 180, 255, 0.21);
-      border-color: var(--color-accent);
+    &::before {
+      display: none;
     }
   }
 
@@ -1795,17 +1817,38 @@ h1.section-heading {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3.5px;
+    gap: 6px;
     min-width: 0;
     flex: 1 1 auto;
 
+    .bk-row-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: var(--color-highlight);
+
+      i {
+        color: var(--color-accent);
+      }
+    }
+
+    .bk-row-meta {
+      font-size: 12px;
+      color: var(--color-quality);
+      opacity: 0.95;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .font-semibold {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       color: var(--color-accent);
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 0.02em;
-      line-height: 1.16;
-      margin-bottom: 12px;
+      line-height: 1.12;
+      margin-bottom: 6px;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       filter: drop-shadow(0 1px 6px rgba(120, 180, 255, 0.04));
     }
@@ -1822,20 +1865,16 @@ h1.section-heading {
 
     .back-path {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 13.2px;
-      padding: 4px 10px 4px 8px;
-      border-radius: 8px;
+      font-size: 12.8px;
+      padding: 3px 10px 3px 8px;
+      border-radius: 10px;
       background: linear-gradient(90deg,
-          rgba(80, 110, 170, 0.13),
-          rgba(90, 140, 255, 0.13) 95%);
+          rgba(80, 110, 170, 0.12),
+          rgba(90, 140, 255, 0.12) 95%);
+      border: 1px solid rgba(120, 180, 255, 0.1);
       color: #c8daff;
       max-width: 100%;
       margin-bottom: 2px;
-      box-shadow: 0 1.5px 6px 0 rgba(90, 140, 255, 0.09) inset;
-      transition:
-        background 0.22s,
-        color 0.22s,
-        box-shadow 0.19s;
       font-weight: 500;
       position: relative;
       outline: none;
@@ -1856,9 +1895,11 @@ h1.section-heading {
       color: var(--color-highlight);
       font-weight: 500;
       max-width: 100%;
-      margin-bottom: 1.5px;
-      letter-spacing: 0.04em;
-      padding: 2px 7px;
+      margin-bottom: 0;
+      letter-spacing: 0.02em;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
       transition:
         background 0.19s,
         color 0.19s;
@@ -1872,7 +1913,7 @@ h1.section-heading {
     .text-xs.text-muted {
       font-size: 11.5px;
       color: var(--color-quality);
-      margin-top: 6px;
+      margin-top: 2px;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -1889,15 +1930,17 @@ h1.section-heading {
 
     button {
       @include backup-icon-button();
-      display: inline-flex;
-      padding: 0;
-      border: none;
-      background: transparent;
-      color: var(--color-accent);
-      transition:
-        background 0.18s,
-        box-shadow 0.18s,
-        transform 0.16s;
+      width: 34px;
+      min-width: 34px;
+      border-radius: 10px;
+      color: #e2ecff;
+      background: linear-gradient(180deg,
+          rgba(120, 180, 255, 0.18),
+          rgba(70, 110, 200, 0.16));
+      border: 1px solid rgba(120, 180, 255, 0.2);
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
       &:hover,
       &:focus-visible {
@@ -1905,8 +1948,9 @@ h1.section-heading {
             rgba(120, 180, 255, 0.21),
             rgba(60, 120, 255, 0.13));
         color: #fff;
-        transform: translateY(-2px) scale(1.09);
-        box-shadow: 0 4px 14px 0 rgba(120, 180, 255, 0.15);
+        border-color: rgba(140, 200, 255, 0.45);
+        transform: translateY(-2px) scale(1.06);
+        box-shadow: 0 10px 24px rgba(60, 120, 255, 0.18);
       }
 
       &:active {
@@ -1924,39 +1968,40 @@ h1.section-heading {
 }
 
 .bk-row-compact {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  margin-bottom: 6px;
-  border-radius: 6px;
-  background-color: var(--color-hover);
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: var(--color-surface-hover);
-  }
+  padding: 10px 14px;
+  gap: 10px;
 
   .bk-row-content {
     flex: 1;
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    flex-direction: column;
+    gap: 4px;
 
-    .bk-name {
-      font-weight: 600;
-      color: var(--color-accent);
+    .bk-row-main {
+      gap: 8px;
+
+      .bk-name {
+        font-weight: 700;
+        color: var(--color-highlight);
+      }
+    }
+
+    .bk-row-meta {
+      max-width: 100%;
     }
   }
 
   .bk-row-actions {
     display: flex;
+    flex-direction: row;
     gap: 6px;
 
     button {
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 32px;
+      height: 32px;
     }
   }
 }
@@ -2656,7 +2701,7 @@ h1.section-heading {
   }
 
   button#bk-clear-filter {
-    @include backup-icon-button(34px, 10px);
+    @include backup-icon-button(34px);
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.8);

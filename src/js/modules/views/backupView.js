@@ -364,10 +364,8 @@ export default function renderBackup() {
     const runBtn = q("#bk-confirm-run");
     const counterEl = q("#bk-manage-counter");
 
-    // Вычисляем уже выделенные профили по чекбоксам основного списка
-    const selectedIndices = Array.from(
-      wrapper.querySelectorAll("#bk-list .bk-chk:checked"),
-    ).map((cb) => Number(cb.dataset.i));
+    // Вычисляем уже выделенные профили по текущему состоянию выбора
+    const selectedIndices = getSelectedIndices();
 
     // Генерация списка профилей из состояния
     listEl.innerHTML = state.programs
@@ -406,8 +404,9 @@ export default function renderBackup() {
 
     const onItemChange = (chk) => {
       const idx = Number(chk.dataset.index);
-      const mainChk = wrapper.querySelector(`.bk-chk[data-i="${idx}"]`);
-      if (mainChk) mainChk.checked = chk.checked;
+      const program = state.programs[idx];
+      const key = profileKey(program);
+      setSelectionForKey(key, chk.checked);
       updateModalActionsState();
       if (typeof updateActionsState === "function") updateActionsState();
     };
@@ -487,21 +486,11 @@ export default function renderBackup() {
     }
 
     toggleViewBtn.addEventListener("click", () => {
-      const checked = [...document.querySelectorAll(".bk-chk:checked")].map(
-        (el) => el.dataset.i,
-      );
-
       viewMode = viewMode === "full" ? "compact" : "full";
       try {
         localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
       } catch {}
       renderList();
-
-      // восстанавливаем выбор
-      checked.forEach((i) => {
-        const el = document.querySelector(`.bk-chk[data-i="${i}"]`);
-        if (el) el.checked = true;
-      });
 
       updateActionsState();
       updateViewToggleIcon();
@@ -596,6 +585,7 @@ export default function renderBackup() {
 
   const hints = [
     "💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.",
+    "👆 Выделяйте профили одним кликом по карточке — чекбоксы больше не нужны.",
     "⚙️ Используйте кнопку «Запустить для выбранных», чтобы копировать несколько профилей сразу.",
     "📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.",
     "🕒 Последнее время успешного копирования видно под именем каждого профиля.",
@@ -663,12 +653,13 @@ export default function renderBackup() {
       skeleton.className = "bk-row bk-skeleton";
       skeleton.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-          <div style="width: 18px; height: 18px; border-radius: 4px;"></div>
-          <div style="flex: 1;">
-            <div style="height: 16px; width: 60%; margin-bottom: 8px; border-radius: 4px;"></div>
-            <div style="height: 12px; width: 80%; margin-bottom: 4px; border-radius: 3px;"></div>
-            <div style="height: 12px; width: 40%; border-radius: 3px;"></div>
+          <div style="width: 6px; height: 44px; border-radius: 4px;"></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+            <div style="height: 14px; width: 60%; border-radius: 6px;"></div>
+            <div style="height: 12px; width: 80%; border-radius: 6px;"></div>
+            <div style="height: 12px; width: 48%; border-radius: 6px;"></div>
           </div>
+          <div style="width: 68px; height: 26px; border-radius: 10px;"></div>
         </div>
       `;
       root.appendChild(skeleton);
@@ -860,6 +851,7 @@ export default function renderBackup() {
   };
 
   const lockedProfiles = new Set();
+  const selectedKeys = new Set();
   const escapeSelector = (value) =>
     window.CSS && typeof window.CSS.escape === "function"
       ? window.CSS.escape(value)
@@ -874,14 +866,14 @@ export default function renderBackup() {
       .join("::");
   const applyLockToRow = (row, locked) => {
     if (!row) return;
+    const key = row.dataset.profileKey;
     row.classList.toggle("is-locked", !!locked);
-    row.querySelectorAll(".bk-chk").forEach((chk) => {
-      chk.disabled = !!locked;
-      if (locked) chk.checked = false;
-    });
+    if (locked && key) {
+      clearSelectionForKey(key);
+    }
     row
       .querySelectorAll(
-        ".bk-edit, .bk-open-src, .bk-open, .bk-run, .bk-open-profile",
+        "[data-lockable=\"true\"], .bk-edit, .bk-open-src, .bk-open, .bk-run, .bk-open-profile",
       )
       .forEach((btn) => {
         btn.disabled = !!locked;
@@ -932,6 +924,77 @@ export default function renderBackup() {
     runSel: getEl("#bk-run-selected"),
   });
 
+  const findIndexByKey = (key) =>
+    state.programs.findIndex((p) => profileKey(p) === key);
+
+  function clearSelectionForKey(key) {
+    if (!key || !selectedKeys.has(key)) return;
+    selectedKeys.delete(key);
+    const rows = wrapper.querySelectorAll(
+      `.bk-row[data-profile-key="${escapeSelector(key)}"]`,
+    );
+    rows.forEach((row) => {
+      row.classList.remove("is-selected");
+      row.setAttribute("aria-pressed", "false");
+    });
+  }
+
+  function setSelectionForKey(key, selected) {
+    if (!key) return;
+    if (selected && lockedProfiles.has(key)) return;
+    if (selected) selectedKeys.add(key);
+    else selectedKeys.delete(key);
+
+    const rows = wrapper.querySelectorAll(
+      `.bk-row[data-profile-key="${escapeSelector(key)}"]`,
+    );
+    rows.forEach((row) => {
+      row.classList.toggle("is-selected", selected);
+      row.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+  }
+
+  function toggleRowSelection(row) {
+    if (!row || row.classList.contains("is-locked")) return;
+    const key = row.dataset.profileKey;
+    if (!key) return;
+    const shouldSelect = !selectedKeys.has(key);
+    if (shouldSelect) {
+      setSelectionForKey(key, true);
+    } else {
+      clearSelectionForKey(key);
+    }
+    updateActionsState();
+  }
+
+  function getSelectedIndices() {
+    return Array.from(selectedKeys)
+      .map((key) => findIndexByKey(key))
+      .filter((i) => i >= 0);
+  }
+
+  function selectAllVisible() {
+    const visibleRows = Array.from(
+      wrapper.querySelectorAll(".bk-row:not(.bk-skeleton):not(.is-locked)"),
+    );
+    visibleRows.forEach((row) =>
+      setSelectionForKey(row.dataset.profileKey, true),
+    );
+    updateActionsState();
+  }
+
+  function pruneSelection(allowedKeys) {
+    if (!allowedKeys) return;
+    let changed = false;
+    selectedKeys.forEach((key) => {
+      if (!allowedKeys.has(key)) {
+        clearSelectionForKey(key);
+        changed = true;
+      }
+    });
+    if (changed) updateActionsState();
+  }
+
   /**
    * Update toolbar actions availability, titles, badges and select-all state.
    * @returns {void}
@@ -940,16 +1003,25 @@ export default function renderBackup() {
     const bkList = getEl("#bk-list");
     if (!bkList) return;
 
-    const visibleCheckboxes = Array.from(
-      bkList.querySelectorAll(".bk-chk"),
-    ).filter((chk) => chk.offsetParent !== null && !chk.disabled);
-
-    const checkedVisibleCheckboxes = visibleCheckboxes.filter(
-      (chk) => chk.checked,
+    const visibleRows = Array.from(
+      bkList.querySelectorAll(".bk-row:not(.bk-skeleton)"),
+    ).filter(
+      (row) =>
+        row.offsetParent !== null && !row.classList.contains("is-locked"),
     );
 
-    const count = checkedVisibleCheckboxes.length;
-    const total = visibleCheckboxes.length;
+    const visibleKeys = new Set(
+      visibleRows
+        .map((row) => row.dataset.profileKey)
+        .filter(Boolean),
+    );
+
+    const selectedVisible = Array.from(selectedKeys).filter((key) =>
+      visibleKeys.has(key),
+    );
+
+    const count = selectedVisible.length;
+    const total = visibleKeys.size;
     const { del, runSel } = actions();
 
     if (del) del.disabled = count === 0;
@@ -1108,6 +1180,8 @@ export default function renderBackup() {
       return matchesSearch && matchesArchive(p);
     });
 
+    pruneSelection(new Set(filtered.map((item) => profileKey(item))));
+
     const pageSize = Math.max(3, Number(state.pageSize) || 10);
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
     if (state.page > totalPages) state.page = totalPages;
@@ -1173,28 +1247,51 @@ export default function renderBackup() {
       selAll.indeterminate = false;
     }
 
+    const visibleKeys = new Set(paged.map((item) => profileKey(item)));
+    pruneSelection(visibleKeys);
+
     paged.forEach((p, index) => {
       const idx = state.programs.indexOf(p);
       const key = profileKey(p);
       const locked = lockedProfiles.has(key);
+      const isSelected = selectedKeys.has(key);
 
       if (viewMode === "compact") {
         const row = document.createElement("div");
         row.className = "bk-row bk-row-compact wg-card";
+        row.style.animationDelay = `${index * 0.04}s`;
         row.dataset.profileKey = key;
+        row.dataset.index = String(idx);
+        row.dataset.i = String(idx);
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        if (isSelected) row.classList.add("is-selected");
         row.innerHTML = `
-      <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
       <div class="bk-row-content">
         <div class="bk-row-main">
           <i class="fa-solid fa-database"></i>
           <span class="bk-name">${p.name}</span>
         </div>
+        <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
       </div>
       <div class="bk-row-actions">
         <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
         <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
       </div>`;
         row.addEventListener("dblclick", () => showEditForm(idx));
+        row.addEventListener("click", (event) => {
+          if (event.target.closest(".bk-row-actions") || event.target.closest("button")) {
+            return;
+          }
+          toggleRowSelection(row);
+        });
+        row.addEventListener("keydown", (event) => {
+          if (event.key === " " || event.key === "Enter") {
+            event.preventDefault();
+            toggleRowSelection(row);
+          }
+        });
         root.appendChild(row);
         applyLockToRow(row, locked);
         return;
@@ -1204,6 +1301,8 @@ export default function renderBackup() {
       row.className = "bk-row";
       row.style.animationDelay = `${index * 0.05}s`;
       row.dataset.profileKey = key;
+      row.dataset.index = String(idx);
+      row.dataset.i = String(idx);
 
       const lbl = lastLabel(state.lastTimes[p.name]);
       const patterns =
@@ -1212,7 +1311,6 @@ export default function renderBackup() {
           : "все файлы";
 
       row.innerHTML = `
-    <input type="checkbox" class="bk-chk" data-i="${idx}" aria-label="Выбрать профиль ${p.name}" />
     <div class="bk-row-content min-w-0">
       <div class="font-semibold truncate">${p.name}</div>
       <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
@@ -1228,17 +1326,28 @@ export default function renderBackup() {
   `;
 
       row.addEventListener("dblclick", () => showEditForm(idx));
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".bk-row-actions") || event.target.closest("button")) {
+          return;
+        }
+        toggleRowSelection(row);
+      });
+      row.addEventListener("keydown", (event) => {
+        if (event.key === " " || event.key === "Enter") {
+          event.preventDefault();
+          toggleRowSelection(row);
+        }
+      });
+      row.classList.toggle("is-selected", isSelected);
+      row.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      row.tabIndex = 0;
+      row.setAttribute("role", "button");
       root.appendChild(row);
       row.setAttribute(
         "aria-label",
         `${p.name}: ${p.source_path} → ${p.backup_path}`,
       );
       applyLockToRow(row, locked);
-    });
-
-    // Update actions state and attach event listeners
-    root.querySelectorAll(".bk-chk").forEach((c) => {
-      c.addEventListener("change", updateActionsState);
     });
 
     updateActionsState();
@@ -2298,10 +2407,7 @@ export default function renderBackup() {
 
     // Highlight running rows
     const rows = indices
-      .map((i) => {
-        const chk = wrapper.querySelector(`.bk-chk[data-i="${i}"]`);
-        return chk ? chk.closest(".bk-row") : null;
-      })
+      .map((i) => wrapper.querySelector(`.bk-row[data-index="${i}"]`))
       .filter(Boolean);
 
     rows.forEach((r) => r.classList.add("is-running"));
@@ -2433,9 +2539,7 @@ export default function renderBackup() {
   getEl("#bk-add").addEventListener("click", () => showEditForm(-1));
 
   getEl("#bk-del").addEventListener("click", async () => {
-    const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked"))
-      .filter((chk) => chk.offsetParent !== null) // <-- Добавьте этот фильтр
-      .map((c) => Number(c.dataset.i));
+    const indices = getSelectedIndices();
 
     if (!indices.length) {
       toast("Не выбрано ни одного профиля", "warning");
@@ -2464,9 +2568,7 @@ export default function renderBackup() {
   });
 
   getEl("#bk-run-selected")?.addEventListener("click", async () => {
-    const indices = Array.from(wrapper.querySelectorAll(".bk-chk:checked"))
-      .filter((chk) => chk.offsetParent !== null) // <-- И сюда
-      .map((c) => Number(c.dataset.i));
+    const indices = getSelectedIndices();
 
     if (!indices.length) return;
 
@@ -2486,8 +2588,16 @@ export default function renderBackup() {
   const selAll = getEl("#bk-select-all");
   if (selAll) {
     selAll.addEventListener("change", () => {
-      const all = wrapper.querySelectorAll(".bk-chk:not(:disabled)");
-      all.forEach((cb) => (cb.checked = selAll.checked));
+      if (selAll.checked) {
+        selectAllVisible();
+      } else {
+        const visibleKeys = Array.from(
+          wrapper.querySelectorAll(".bk-row"),
+        )
+          .map((row) => row.dataset.profileKey)
+          .filter(Boolean);
+        visibleKeys.forEach((key) => clearSelectionForKey(key));
+      }
       updateActionsState();
     });
   }
@@ -2641,9 +2751,7 @@ export default function renderBackup() {
     // Cmd/Ctrl + A → select all presets
     if (e.key === "a" && (e.metaKey || e.ctrlKey) && !isTyping) {
       e.preventDefault();
-      const all = wrapper.querySelectorAll(".bk-chk");
-      all.forEach((cb) => (cb.checked = true));
-      updateActionsState();
+      selectAllVisible();
       return;
     }
 
