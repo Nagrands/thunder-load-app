@@ -500,22 +500,9 @@
       left: 50%;
       width: 0;
       height: 0;
-      background: rgba(255, 255, 255, 0.1);
       border-radius: 50%;
       transition: all 0.3s ease;
       transform: translate(-50%, -50%);
-    }
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-      background: rgba(120, 180, 255, 0.18);
-
-      &::before {
-        width: 100%;
-        height: 100%;
-        border-radius: inherit;
-      }
     }
 
     &.is-loading {
@@ -1159,6 +1146,7 @@
             button {
               pointer-events: auto;
               @include backup-icon-button();
+              width: 36px;
               background: rgba(255, 255, 255, 0.06);
               border: 1px solid rgba(255, 255, 255, 0.1);
               color: var(--color-highlight);
@@ -1640,6 +1628,7 @@ h1.section-heading {
   font-size: 18px;
   display: flex;
   align-items: center;
+  font-weight: 500;
   position: relative;
   justify-content: flex-start;
   flex-direction: row;
@@ -2072,6 +2061,26 @@ h1.section-heading {
       display: flex;
       align-items: center;
       gap: 4px;
+    }
+
+    .bk-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 2px 0 4px;
+
+      .bk-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(120, 180, 255, 0.12);
+        color: var(--color-text-main);
+        font-size: 11px;
+        line-height: 1.2;
+        border: 1px solid rgba(120, 180, 255, 0.16);
+        letter-spacing: 0.02em;
+      }
     }
   }
 
@@ -2804,7 +2813,6 @@ h1.section-heading {
   background: var(--color-hover);
   padding: 0.3rem 1rem;
   border-radius: 12px;
-  border: 1px solid var(--color-hover);
   position: relative;
   transition:
     border-color 0.22s,
@@ -2848,18 +2856,10 @@ h1.section-heading {
 
   button#bk-clear-filter {
     @include backup-icon-button(34px);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.8);
-    transition:
-      background 0.18s,
-      box-shadow 0.18s,
-      border-color 0.18s;
 
     &:hover {
-      background: rgba(120, 180, 255, 0.18);
-      border-color: rgba(120, 180, 255, 0.38);
-      box-shadow: 0 2px 8px rgba(120, 180, 255, 0.22);
+      color: var(--color-accent);
     }
   }
 }

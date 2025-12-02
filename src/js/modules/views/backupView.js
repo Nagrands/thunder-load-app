@@ -176,6 +176,8 @@ export default function renderBackup() {
               <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
           </div>
+
+          <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="Отфильтровано / всего">0/0</span>
         </h1>
 
         <div class="bk-filters-advanced">
@@ -1104,6 +1106,18 @@ export default function renderBackup() {
     const bkList = getEl("#bk-list");
     if (!bkList) return;
 
+    // Синхронизируем выбранные ключи с существующими программами
+    const programKeys = new Set(
+      state.programs.map((p) => profileKey(p)).filter(Boolean),
+    );
+    let removedStale = false;
+    selectedKeys.forEach((key) => {
+      if (!programKeys.has(key)) {
+        selectedKeys.delete(key);
+        removedStale = true;
+      }
+    });
+
     const visibleRows = Array.from(
       bkList.querySelectorAll(".bk-row:not(.bk-skeleton)"),
     ).filter(
@@ -1119,7 +1133,10 @@ export default function renderBackup() {
       visibleKeys.has(key),
     );
 
-    const count = selectedVisible.length;
+    const totalSelected = Array.from(selectedKeys).filter((key) =>
+      programKeys.has(key),
+    ).length;
+    const count = totalSelected;
     const total = visibleKeys.size;
     const { del, runSel } = actions();
 
@@ -1164,8 +1181,9 @@ export default function renderBackup() {
 
     const selAll = getEl("#bk-select-all");
     if (selAll) {
-      selAll.indeterminate = count > 0 && count < total;
-      selAll.checked = total > 0 && count === total;
+      const visibleCount = selectedVisible.length;
+      selAll.indeterminate = visibleCount > 0 && visibleCount < total;
+      selAll.checked = total > 0 && visibleCount === total;
     }
 
     // Переключение кнопок "Создать профиль" ↔ "Запустить для выбранных"
@@ -1178,6 +1196,14 @@ export default function renderBackup() {
         addBtn.style.display = "";
         runSel.style.display = "none";
       }
+    }
+
+    if (removedStale) {
+      // Обновляем состояние виджетов, если удалили устаревшие выборы
+      const delBtn = getEl("#bk-del");
+      const runBtn = getEl("#bk-run-selected");
+      delBtn?.classList.toggle("is-loading", false);
+      runBtn?.classList.toggle("is-loading", false);
     }
   }
 
@@ -1257,6 +1283,19 @@ export default function renderBackup() {
     if (!root || !state.programs) return;
     root.innerHTML = "";
 
+    // Если выбран тип архива, которого больше нет, сбрасываем фильтр на "all"
+    const availableArchiveTypes = new Set(
+      state.programs
+        .map((p) => (p.archive_type || "zip").toLowerCase())
+        .filter(Boolean),
+    );
+    const desiredArchive = (state.archiveFilter || "all").toLowerCase();
+    if (desiredArchive !== "all" && !availableArchiveTypes.has(desiredArchive)) {
+      state.archiveFilter = "all";
+      if (archiveFilterSelect) archiveFilterSelect.value = "all";
+      archiveSelectUI?.updateLabel?.();
+    }
+
     const matchesArchive =
       state.archiveFilter === "all"
         ? () => true
@@ -1315,16 +1354,40 @@ export default function renderBackup() {
       sinfo.textContent = anyFilter ? `найдено: ${filtered.length}` : "";
     }
 
+    const resetFilters = () => {
+      if (filterInput) filterInput.value = "";
+      state.filter = "";
+      state.archiveFilter = "all";
+      if (archiveFilterSelect) archiveFilterSelect.value = "all";
+      archiveSelectUI?.updateLabel?.();
+      state.page = 1;
+      renderList();
+      filterInput?.focus();
+    };
+
     // Handle empty state
     if (!filtered.length) {
+      const hasPrograms = state.programs.length > 0;
       root.innerHTML = `
         <div class="wg-alert is-muted">
           <div class="wg-alert-icon"><i class="fa-solid fa-circle-info"></i></div>
-          <div class="wg-alert-content">Нет профиля — добавьте первый.</div>
+          <div class="wg-alert-content">
+            ${
+              hasPrograms
+                ? "Нет профилей по текущим фильтрам."
+                : "Нет профиля — добавьте первый."
+            }
+          </div>
           <div class="wg-alert-actions">
-            <button id="bk-create-first" class="btn btn-primary btn-sm">
-              <i class="fa-solid fa-plus" style="margin-right:6px"></i>Создать
-            </button>
+            ${
+              hasPrograms
+                ? `<button id="bk-reset-filters" class="btn btn-sm">
+                    <i class="fa-solid fa-rotate-left" style="margin-right:6px"></i>Сбросить фильтры
+                  </button>`
+                : `<button id="bk-create-first" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-plus" style="margin-right:6px"></i>Создать
+                  </button>`
+            }
           </div>
         </div>`;
 
@@ -1332,8 +1395,15 @@ export default function renderBackup() {
       if (del) del.disabled = true;
       if (runSel) runSel.disabled = true;
 
-      const addBtn = root.querySelector("#bk-create-first");
-      addBtn?.addEventListener("click", () => showEditForm(-1));
+      if (hasPrograms) {
+        root
+          .querySelector("#bk-reset-filters")
+          ?.addEventListener("click", resetFilters);
+      } else {
+        root
+          .querySelector("#bk-create-first")
+          ?.addEventListener("click", () => showEditForm(-1));
+      }
       return;
     }
 
@@ -1352,6 +1422,7 @@ export default function renderBackup() {
       const key = profileKey(p);
       const locked = lockedProfiles.has(key);
       const isSelected = selectedKeys.has(key);
+      const tags = Array.isArray(p.tags) ? p.tags.filter(Boolean) : [];
 
       if (viewMode === "compact") {
         const row = document.createElement("div");
@@ -1364,18 +1435,25 @@ export default function renderBackup() {
         row.setAttribute("role", "button");
         row.setAttribute("aria-pressed", isSelected ? "true" : "false");
         if (isSelected) row.classList.add("is-selected");
-        row.innerHTML = `
-      <div class="bk-row-content">
-        <div class="bk-row-main">
-          <i class="fa-solid fa-database"></i>
-          <span class="bk-name">${p.name}</span>
-        </div>
-        <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
+      row.innerHTML = `
+    <div class="bk-row-content">
+      <div class="bk-row-main">
+        <i class="fa-solid fa-database"></i>
+        <span class="bk-name">${p.name}</span>
       </div>
-      <div class="bk-row-actions">
-        <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
-        <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
-      </div>`;
+      <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
+      ${
+        tags.length
+          ? `<div class="bk-tags" aria-label="Теги">${tags
+              .map((t) => `<span class="bk-tag">${t}</span>`)
+              .join("")}</div>`
+          : ""
+      }
+    </div>
+    <div class="bk-row-actions">
+      <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
+      <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
+    </div>`;
         row.addEventListener("dblclick", () => showEditForm(idx));
         row.addEventListener("click", (event) => {
           if (
@@ -1415,6 +1493,13 @@ export default function renderBackup() {
       <div class="font-semibold truncate">${p.name}</div>
       <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
       <div class="back-filter">Фильтры: ${patterns}</div>
+      ${
+        tags.length
+          ? `<div class="bk-tags" aria-label="Теги">${tags
+              .map((t) => `<span class="bk-tag">${t}</span>`)
+              .join("")}</div>`
+          : ""
+      }
       <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
     </div>
     <div class="bk-row-actions">
