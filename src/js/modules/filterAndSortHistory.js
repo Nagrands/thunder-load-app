@@ -25,13 +25,12 @@ const normalizePageSize = (value) => {
   return Math.max(MIN_PAGE_SIZE, Math.min(MAX_PAGE_SIZE, Math.floor(n)));
 };
 
-/**
- * Фильтрует и сортирует записи истории.
- * @param {string} query - Текст из строки поиска.
- * @param {string} sortOrder - Порядок сортировки: "asc" или "desc".
- * @param {boolean} forceRender - Принудительно вызвать renderHistory даже при совпадении данных.
- */
-function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
+function filterAndSortHistory(
+  query,
+  sortOrder = "desc",
+  forceRender = false,
+  _isRetry = false,
+) {
   const allEntries = getHistoryData();
   const q = query.trim().toLowerCase();
   const sourceFilter = (state.historySourceFilter || "").toLowerCase();
@@ -40,6 +39,37 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
   if (q !== lastQuery) {
     lastQuery = q;
     state.historyPage = 1;
+  }
+
+  // Сброс "зависших" фильтров, когда таких значений больше нет в данных.
+  const availableHosts = new Set();
+  const availableQualities = new Set();
+  allEntries.forEach((entry) => {
+    const host = getHost(entry.sourceUrl).toLowerCase();
+    if (host) availableHosts.add(host);
+    const quality = (entry.quality || entry.resolution || "").toLowerCase();
+    if (quality) availableQualities.add(quality);
+  });
+
+  let filtersNormalized = false;
+  if (sourceFilter && !availableHosts.has(sourceFilter)) {
+    state.historySourceFilter = "";
+    try {
+      localStorage.removeItem("historySourceFilter");
+    } catch {}
+    filtersNormalized = true;
+  }
+  if (qualityFilter && !availableQualities.has(qualityFilter)) {
+    state.historyQualityFilter = "";
+    try {
+      localStorage.removeItem("historyQualityFilter");
+    } catch {}
+    filtersNormalized = true;
+  }
+
+  if (filtersNormalized && !_isRetry) {
+    // Повторяем фильтрацию с очищенными фильтрами, чтобы вернуть результаты.
+    return filterAndSortHistory(query, sortOrder, true, true);
   }
 
   // Поддерживаем валидный размер страницы (с сохранением в localStorage).

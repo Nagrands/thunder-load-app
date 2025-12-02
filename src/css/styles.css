@@ -13178,7 +13178,6 @@ hr {
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-start;
-  margin-right: 20px;
 }
 .history-filter-group .history-filter-pill {
   display: inline-flex;

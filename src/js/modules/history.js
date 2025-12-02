@@ -1700,17 +1700,29 @@ function renderHistory(entries, meta = {}) {
   clearHistoryContainer(container);
 
   if (isEmpty) {
+    const hasActiveFilters =
+      Boolean(state.currentSearchQuery?.trim()) ||
+      Boolean(state.historySourceFilter) ||
+      Boolean(state.historyQualityFilter);
+    const hasUnderlyingHistory = getHistoryData().length > 0;
+    const shouldHideControls = !hasActiveFilters && !hasUnderlyingHistory;
+
     const searchWrapper = document.querySelector(".history-search-wrapper");
-    const isCompletelyEmpty = state.currentSearchQuery === "";
     if (searchWrapper) {
-      searchWrapper.style.display = isCompletelyEmpty ? "none" : "block";
+      searchWrapper.style.display = shouldHideControls ? "none" : "block";
     }
 
     const iconSearch = document.getElementById("icon-filter-search");
-    if (iconSearch) iconSearch.classList.toggle("hidden", isCompletelyEmpty);
+    if (iconSearch) iconSearch.classList.toggle("hidden", shouldHideControls);
 
     const actions = document.querySelector(".history-actions");
-    if (actions) actions.classList.toggle("hidden", isCompletelyEmpty);
+    if (actions) actions.classList.toggle("hidden", shouldHideControls);
+
+    if (historyCardsEmptyRoot) {
+      historyCardsEmptyRoot.textContent = hasActiveFilters
+        ? "Нет записей по текущим фильтрам."
+        : "Недавних загрузок пока нет.";
+    }
 
     renderHistoryCards([]); // синхронизируем карточки с пустым состоянием
     updatePaginationControls({
