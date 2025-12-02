@@ -68,9 +68,8 @@ describe("downloaderToolsStatus", () => {
       },
       deno: { ok: true, path: "/tmp/deno", version: "deno 2.0.0" },
     });
-    const { initDownloaderToolsStatus } = await import(
-      "../downloaderToolsStatus.js"
-    );
+    const { initDownloaderToolsStatus } =
+      await import("../downloaderToolsStatus.js");
     initDownloaderToolsStatus();
     await tick();
     expect(document.getElementById("dl-tools-text").textContent).toContain(
@@ -110,9 +109,8 @@ describe("downloaderToolsStatus", () => {
       ffmpeg: { ok: true, path: "/tmp/ffmpeg", version: "ffmpeg version 7.1" },
       deno: { ok: false },
     });
-    const { initDownloaderToolsStatus } = await import(
-      "../downloaderToolsStatus.js"
-    );
+    const { initDownloaderToolsStatus } =
+      await import("../downloaderToolsStatus.js");
     initDownloaderToolsStatus();
     await tick();
     expect(document.getElementById("dl-tools-text").textContent).toContain(
@@ -147,9 +145,8 @@ describe("downloaderToolsStatus", () => {
       );
     window.electron.tools.installAll.mockResolvedValue({ success: true });
 
-    const { initDownloaderToolsStatus } = await import(
-      "../downloaderToolsStatus.js"
-    );
+    const { initDownloaderToolsStatus } =
+      await import("../downloaderToolsStatus.js");
     initDownloaderToolsStatus();
     await tick();
 
@@ -171,9 +168,8 @@ describe("downloaderToolsStatus", () => {
       },
       deno: { ok: true, path: "/tmp/deno", version: "deno 2.0.0" },
     });
-    const { initDownloaderToolsStatus } = await import(
-      "../downloaderToolsStatus.js"
-    );
+    const { initDownloaderToolsStatus } =
+      await import("../downloaderToolsStatus.js");
     initDownloaderToolsStatus();
     await tick();
 

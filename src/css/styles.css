@@ -19281,8 +19281,8 @@ video {
 }
 .backup-view .bk-modal .bk-form-grid .wg-field {
   min-width: 0;
-  padding: 4px 12px;
-  margin: 4px 0;
+  margin: 2px 0;
+  padding: 2px 12px;
   display: grid;
   grid-template-columns: 1fr 3fr;
   gap: 8px;
@@ -21269,12 +21269,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-radius: 16px;
   padding: 14px 16px;
   color: var(--color-text-main);
-  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 .randomizer-add-row input:focus {
   border-color: rgba(var(--color-accent-rgb), 0.6);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.2);
 }
 
 .randomizer-editor-actions {

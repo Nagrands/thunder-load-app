@@ -1290,7 +1290,10 @@ export default function renderBackup() {
         .filter(Boolean),
     );
     const desiredArchive = (state.archiveFilter || "all").toLowerCase();
-    if (desiredArchive !== "all" && !availableArchiveTypes.has(desiredArchive)) {
+    if (
+      desiredArchive !== "all" &&
+      !availableArchiveTypes.has(desiredArchive)
+    ) {
       state.archiveFilter = "all";
       if (archiveFilterSelect) archiveFilterSelect.value = "all";
       archiveSelectUI?.updateLabel?.();
@@ -1435,7 +1438,7 @@ export default function renderBackup() {
         row.setAttribute("role", "button");
         row.setAttribute("aria-pressed", isSelected ? "true" : "false");
         if (isSelected) row.classList.add("is-selected");
-      row.innerHTML = `
+        row.innerHTML = `
     <div class="bk-row-content">
       <div class="bk-row-main">
         <i class="fa-solid fa-database"></i>

@@ -213,14 +213,10 @@
     border-radius: 16px;
     padding: 14px 16px;
     color: var(--color-text-main);
-    transition:
-      border 0.2s ease,
-      box-shadow 0.2s ease;
 
     &:focus {
       border-color: rgba(var(--color-accent-rgb), 0.6);
       outline: none;
-      box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.2);
     }
   }
 }

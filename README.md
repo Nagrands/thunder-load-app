@@ -7,6 +7,10 @@
 <p align="center"><em>Your fast, simple, and reliable video, audio, and file downloader</em></p>
 
 <p align="center">
+  <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.uk.md">Українська</a>
+</p>
+
+<p align="center">
   <a href="https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml">
     <img src="https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml/badge.svg" alt="Build Status" />
   </a>
@@ -14,34 +18,23 @@
 
 ---
 
-## Quick Start
+## Downloads
 
-Get started with ThunderLoad in just a few steps:
-
-```bash
-git clone https://github.com/Nagrands/thunder-load-app.git
-cd thunder-load-app
-npm install
-npm start
-```
-
-To build for production:
-
-```bash
-npm run build
-```
+- macOS (Apple/Intel), Windows, Linux builds are published on the [Releases](https://github.com/Nagrands/thunder-load-app/releases) page.
+- Choose installer or portable (where available); macOS builds are **not notarized** (see Installation notes).
 
 ---
 
 ## Features
 
-- 🚀 **Fast** video & audio downloading
-- 🎯 Supports multiple formats: video (MP4, WebM, MKV, etc.) and audio (MP3, AAC, etc.)
-- 📥 Clipboard monitoring for instant link detection
-- ⚙️ Quality selection before download
-- 📜 Download history with quick access
-- 🔄 Automatic in-app updates
-- 🖥️ Clean and intuitive interface
+- 🚀 Fast video & audio downloads via yt-dlp
+- 🎯 Multiple formats: MP4, WebM, MKV, MP3, AAC, etc.
+- 📥 Clipboard watcher and quick paste
+- ⚙️ Quality/resolution selection before download
+- 📜 Download history with filters, pagination, CSV/JSON export
+- 💾 Backup tab with reusable profiles (source → destination), filtering, and bulk actions
+- 🔄 Automatic in-app updates and dependency bootstrap (yt-dlp, ffmpeg, Deno)
+- 🖥️ Clean UI with tooltips and keyboard shortcuts
 
 ## 📸 Screenshots
 
@@ -56,21 +49,25 @@ npm run build
 
 ---
 
-## Tech Stack
+## Tech Stack & Tooling
 
 - **Electron** — Cross-platform desktop application framework
 - **Node.js** — JavaScript runtime
 - **npm** — Package manager
+- **yt-dlp**, **ffmpeg**, **Deno** — auto-managed binaries stored under `userData/tools`
 
-## Toolchain
+### Scripts
 
-Thunder Load автоматически загружает утилиты, необходимые для загрузок:
-
-- `yt-dlp` — основной движок скачивания
-- `ffmpeg` — конвертация и mux
-- `Deno` — JavaScript-рантайм, требуемый yt-dlp (>= 2025.11.12) для YouTube
-
-Все бинарники помещаются в каталог `userData/tools` (или пользовательский путь из настроек) и обновляются через `ensureAllDependencies`.
+| Command                                     | Purpose                                            |
+| ------------------------------------------- | -------------------------------------------------- |
+| `npm start`                                 | Run the Electron app (builds templates beforehand) |
+| `npm run dev`                               | Run in dev mode with `--dev` flag                  |
+| `npm run build`                             | Package the app for your platform                  |
+| `npm run build-mac` / `npm run build-linux` | Platform-specific builds                           |
+| `npm test`                                  | Run Jest tests                                     |
+| `npm run templates:build`                   | Rebuild HTML from Nunjucks templates               |
+| `npm run templates:watch`                   | Watch & rebuild templates on change                |
+| `npm run format`                            | Format sources with Prettier                       |
 
 ---
 
@@ -89,21 +86,6 @@ Run the app in development mode:
 ```bash
 npm start
 ```
-
-### HTML templates
-
-- The renderer HTML now lives under `templates/` (`layouts`, `pages`, `partials`).
-- Edit the `.njk` files and run `npm run templates:build` to regenerate `src/index.html`. The command runs automatically before `npm run dev`, `npm start`, and `npm run build`.
-- Use `npm run templates:watch` during UI work to rebuild HTML automatically whenever `.njk` files change.
-- Commit both the template changes and the generated `src/index.html` so Electron always has a ready-to-ship entry point.
-
-Build the app for production:
-
-```bash
-npm run build
-```
-
----
 
 ## Installation
 
@@ -124,82 +106,12 @@ To run the app:
 
 ---
 
-## Translations
+## Configuration
 
-### Русский
-
-ThunderLoad — это современный кроссплатформенный загрузчик видео, аудио файлов, созданный на базе [Electron](https://www.electronjs.org/).  
-Разработан для скорости, простоты и комфортного пользовательского опыта.
-
-#### Особенности
-
-- 🚀 Быстрая загрузка видео и аудио
-- 🎯 Поддержка множества форматов: видео (MP4, WebM, MKV и др.) и аудио (MP3, AAC и др.)
-- 📥 Мониторинг буфера обмена для мгновенного обнаружения ссылок
-- ⚙️ Выбор качества перед загрузкой
-- 📜 История загрузок с быстрым доступом
-- 🔄 Автоматические обновления внутри приложения
-- 🖥️ Чистый и интуитивно понятный интерфейс
-
-#### Установка
-
-<details>
-<summary><strong>Примечание для macOS</strong></summary>
-Приложение ThunderLoad для macOS **не проходит нотарификацию**. При запуске система может показать предупреждение, что приложение повреждено или не может быть открыто.
-
-Чтобы запустить приложение:
-
-1. Переместите `.app` в папку `/Applications`.
-2. Откройте Терминал и выполните команду:
-   ```
-   sudo xattr -dr com.apple.quarantine /Applications/Thunder\ Load.app
-   ```
-3. Затем откройте приложение обычным способом.
-
-</details>
-
----
-
-### Українська
-
-ThunderLoad — це сучасний кросплатформений завантажувач відео, аудіо файлів, створений на основі [Electron](https://www.electronjs.org/).  
-Розроблений для швидкості, простоти та комфортного користувацького досвіду.
-
-#### Можливості
-
-- 🚀 Швидке завантаження відео та аудіо
-- 🎯 Підтримка багатьох форматів: відео (MP4, WebM, MKV тощо) та аудіо (MP3, AAC тощо)
-- 📥 Моніторинг буфера обміну для миттєвого виявлення посилань
-- ⚙️ Вибір якості перед завантаженням
-- 📜 Історія завантажень із швидким доступом
-- 🔄 Автоматичні оновлення в додатку
-- 🖥️ Чистий та інтуїтивно зрозумілий інтерфейс
-
-#### Встановлення
-
-<details>
-<summary><strong>Примітка для macOS</strong></summary>
-Додаток ThunderLoad для macOS **не проходить нотаризацію**. Під час запуску система може показати попередження, що додаток пошкоджено або його неможливо відкрити.
-
-Щоб запустити додаток:
-
-1. Перемістіть `.app` до папки `/Applications`.
-2. Відкрийте Термінал і виконайте команду:
-   ```
-   sudo xattr -dr com.apple.quarantine /Applications/Thunder\ Load.app
-   ```
-3. Після цього відкрийте додаток як зазвичай.
-
-</details>
-
----
+- Change downloads folder or tools directory in **Settings**.
+- Default data locations: macOS `~/Library/Application Support/Thunder Load`, Windows `%APPDATA%/Thunder Load`, Linux `~/.config/Thunder Load`.
+- To reset tools if they break, delete `userData/tools` and relaunch (will re-download).
 
 ## Contributing
 
 Contributions are welcome! Please open issues and submit pull requests on the [GitHub repository](https://github.com/Nagrands/thunder-load-app).
-
----
-
-## License
-
-This project is licensed under the [MIT License](https://github.com/Nagrands/thunder-load-app/blob/main/LICENSE).
