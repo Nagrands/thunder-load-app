@@ -21193,6 +21193,43 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 12px;
   flex-wrap: wrap;
 }
+.randomizer-view .spin-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-quality);
+  font-size: 0.9rem;
+}
+.randomizer-view .spin-control .spin-label {
+  font-weight: 600;
+}
+.randomizer-view .spin-control .spin-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 4px 8px;
+}
+.randomizer-view .spin-control .spin-input input {
+  width: 72px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  outline: none;
+  font-weight: 700;
+  text-align: right;
+  padding: 2px 0;
+}
+.randomizer-view .spin-control .spin-input .unit {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
 .randomizer-view .randomizer-summary {
   margin: 8px 0 24px;
   display: grid;

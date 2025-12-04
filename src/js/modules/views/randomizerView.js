@@ -75,6 +75,13 @@ export default function renderRandomizerView() {
           <i class="fa-solid fa-dice"></i>
           <span>Запустить</span>
         </button>
+        <label class="spin-control" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Длительность анимации перед выбором (до 60 секунд)">
+          <span class="spin-label">Прокрутка</span>
+          <span class="spin-input">
+            <input type="number" id="randomizer-spin-seconds" min="0" max="60" step="0.1" />
+            <span class="unit">сек</span>
+          </span>
+        </label>
         <button type="button" class="btn btn-ghost" id="randomizer-reset-pool" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Очистить пул без повторов">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
@@ -262,6 +269,7 @@ export default function renderRandomizerView() {
   const historyRunBtn = wrapper.querySelector("#randomizer-history-run");
   let listActionsUI = null;
   let carouselTimer = null;
+  const spinDurationInput = wrapper.querySelector("#randomizer-spin-seconds");
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -291,6 +299,8 @@ export default function renderRandomizerView() {
       btn.classList.toggle("is-disabled", disabled);
     });
   };
+  const clampSpinSeconds = (value) =>
+    Math.min(60, Math.max(0, Number(value ?? 0.4)));
   const updateRollAvailability = () => {
     const { items, pool, settings } = state.getState();
     const disabled =
@@ -655,6 +665,17 @@ export default function renderRandomizerView() {
   normalizePool();
   updateSummary();
 
+  if (spinDurationInput) {
+    const current = clampSpinSeconds(settings.spinSeconds);
+    spinDurationInput.value = current.toFixed(1);
+    spinDurationInput.addEventListener("change", () => {
+      const next = clampSpinSeconds(spinDurationInput.value);
+      settings.spinSeconds = next;
+      spinDurationInput.value = next.toFixed(1);
+      persistSettings();
+    });
+  }
+
   const resultUI = createResultUI({
     resultCard,
     resultContainer,
@@ -754,41 +775,48 @@ export default function renderRandomizerView() {
       stopCarousel();
       return;
     }
+    const spinMs = Math.min(
+      60000,
+      Math.max(0, Number(settings.spinSeconds ?? 0.4) * 1000),
+    );
     updateRollAvailability();
     resultCard.classList.add("rolling");
-    startCarousel(candidates);
-    setTimeout(() => {
-      stopCarousel();
-      resultCard.classList.remove("rolling");
-      const picked = pickWeightedItem(candidates);
-      if (!picked) {
-        showToast("Нет доступных вариантов", "info");
-        return;
-      }
+    if (spinMs > 0) startCarousel(candidates);
+    setTimeout(
+      () => {
+        stopCarousel();
+        resultCard.classList.remove("rolling");
+        const picked = pickWeightedItem(candidates);
+        if (!picked) {
+          showToast("Нет доступных вариантов", "info");
+          return;
+        }
 
-      const value = picked.value;
-      picked.hits = getItemHits(picked) + 1;
-      persistItems({ resetPool: false });
-      if (settings.noRepeat) {
-        state.consumeFromPool(value);
-        syncState();
-        updateSummary();
-        updatePoolHint();
-      }
+        const value = picked.value;
+        picked.hits = getItemHits(picked) + 1;
+        persistItems({ resetPool: false });
+        if (settings.noRepeat) {
+          state.consumeFromPool(value);
+          syncState();
+          updateSummary();
+          updatePoolHint();
+        }
 
-      resultUI.setResult(
-        value,
-        new Intl.DateTimeFormat("ru-RU", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }).format(Date.now()),
-      );
-      resultUI.pulse();
-      addHistoryEntry(value);
-      renderItems();
-      updateRollAvailability();
-    }, 650);
+        resultUI.setResult(
+          value,
+          new Intl.DateTimeFormat("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }).format(Date.now()),
+        );
+        resultUI.pulse();
+        addHistoryEntry(value);
+        renderItems();
+        updateRollAvailability();
+      },
+      Math.max(0, spinMs || 0),
+    );
   };
 
   wireRollControls(wrapper, roll);

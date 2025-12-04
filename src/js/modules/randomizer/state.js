@@ -35,6 +35,13 @@ export function createRandomizerState(storage) {
   });
   let history = readJson(STORAGE_KEYS.HISTORY, []);
   let settings = readJson(STORAGE_KEYS.SETTINGS, { noRepeat: true });
+  settings = {
+    noRepeat: !!settings?.noRepeat,
+    spinSeconds: Math.min(
+      60,
+      Math.max(0, Number(settings?.spinSeconds ?? 0.4)),
+    ),
+  };
   let pool = readJson(STORAGE_KEYS.POOL, []);
 
   const savePresets = () => {
