@@ -181,6 +181,25 @@ export default function renderRandomizerView() {
       </div>
     </div>
 
+    <div class="randomizer-summary" id="randomizer-summary">
+      <div class="summary-item">
+        <span class="label">Варианты</span>
+        <strong id="randomizer-summary-count">0</strong>
+      </div>
+      <div class="summary-item">
+        <span class="label">Шаблон</span>
+        <strong id="randomizer-summary-preset">—</strong>
+      </div>
+      <div class="summary-item">
+        <span class="label">Режим</span>
+        <strong id="randomizer-summary-mode">—</strong>
+      </div>
+      <div class="summary-item">
+        <span class="label">В пуле</span>
+        <strong id="randomizer-summary-pool">—</strong>
+      </div>
+    </div>
+
     <div class="randomizer-grid">
       <section class="randomizer-card randomizer-editor">
         <header>
@@ -329,6 +348,10 @@ export default function renderRandomizerView() {
   let presetSelectUI = null;
   const poolHintEl = wrapper.querySelector("#randomizer-pool-hint");
   const poolRefreshBtn = wrapper.querySelector("#randomizer-pool-refresh");
+  const summaryCountEl = wrapper.querySelector("#randomizer-summary-count");
+  const summaryPresetEl = wrapper.querySelector("#randomizer-summary-preset");
+  const summaryModeEl = wrapper.querySelector("#randomizer-summary-mode");
+  const summaryPoolEl = wrapper.querySelector("#randomizer-summary-pool");
   const presetSaveBtn = wrapper.querySelector("#randomizer-preset-save");
   const presetNewBtn = wrapper.querySelector("#randomizer-preset-new");
   const presetSaveAsBtn = wrapper.querySelector("#randomizer-preset-save-as");
@@ -461,12 +484,15 @@ export default function renderRandomizerView() {
     }
     savePool();
     updatePoolHint();
+    updateSummary();
   };
 
   const resetPool = () => {
     pool = items.map((item) => item.value);
     savePool();
     updatePoolHint();
+    updateSummary();
+    triggerPulse(summaryPoolEl);
   };
 
   const persistItems = (options = {}) => {
@@ -483,6 +509,33 @@ export default function renderRandomizerView() {
 
   const persistSettings = () => {
     saveJson(STORAGE_KEYS.SETTINGS, settings);
+  };
+
+  const triggerPulse = (el, className = "pulse") => {
+    if (!el) return;
+    el.classList.remove(className);
+    // force reflow
+    void el.offsetWidth;
+    el.classList.add(className);
+  };
+
+  const updateSummary = () => {
+    if (summaryCountEl) summaryCountEl.textContent = items.length;
+    if (summaryPresetEl) summaryPresetEl.textContent = currentPresetName || "—";
+    if (summaryModeEl)
+      summaryModeEl.textContent = settings.noRepeat
+        ? "Без повторов"
+        : "С повторами";
+    if (summaryPoolEl) {
+      const poolValue = settings.noRepeat
+        ? `${pool.length}/${items.length || 0}`
+        : "∞";
+      summaryPoolEl.textContent = poolValue;
+      summaryPoolEl.classList.toggle(
+        "is-warning",
+        settings.noRepeat && items.length > 0 && pool.length === 0,
+      );
+    }
   };
 
   const updatePoolHint = () => {
@@ -991,6 +1044,7 @@ export default function renderRandomizerView() {
     setCountLabel();
     updateBulkActions();
     updatePoolHint();
+    updateSummary();
   };
 
   ensurePresetExists();
@@ -1001,6 +1055,7 @@ export default function renderRandomizerView() {
   if (initialPresetName) applyPreset(initialPresetName);
   refreshPresetSelect();
   normalizePool();
+  updateSummary();
 
   const renderHistory = () => {
     historyList.innerHTML = "";
@@ -1133,6 +1188,7 @@ export default function renderRandomizerView() {
         second: "2-digit",
       }).format(Date.now());
       activateResultCard();
+      triggerPulse(resultContainer, "pop");
       addHistoryEntry(value);
       renderItems();
     }, 350);
