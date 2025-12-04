@@ -798,6 +798,12 @@ export default function renderRandomizerView() {
           showToast("Буфер обмена пуст", "info");
           return;
         }
+        const preview = entries.slice(0, 5).join("\n");
+        const confirmText =
+          entries.length > 5
+            ? `${preview}\n...и ещё ${entries.length - 5} строк. Добавить?`
+            : `${preview}\nДобавить эти строки?`;
+        if (!confirm(confirmText)) return;
         bulkAdd(entries);
       } catch {
         showToast("Не удалось прочитать буфер обмена", "error");
