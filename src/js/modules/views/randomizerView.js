@@ -832,8 +832,8 @@ export default function renderRandomizerView() {
   wrapper
     .querySelector("#randomizer-history-clear")
     ?.addEventListener("click", () => {
-      history = [];
-      persistHistory();
+      state.clearHistory();
+      syncState();
       renderHistory();
     });
 

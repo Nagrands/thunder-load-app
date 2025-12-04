@@ -160,6 +160,11 @@ export function createRandomizerState(storage) {
     persistHistory();
   };
 
+  const clearHistory = () => {
+    history = [];
+    persistHistory();
+  };
+
   const updateItem = (oldValue, newValue, options = {}) => {
     const trimmed = newValue.trim();
     if (!trimmed) return false;
@@ -262,5 +267,6 @@ export function createRandomizerState(storage) {
     setWeight,
     pickCandidates,
     consumeFromPool,
+    clearHistory,
   };
 }
