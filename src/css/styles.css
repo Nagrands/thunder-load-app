@@ -21471,10 +21471,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 12px;
   flex: 1 1 420px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
-  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)), rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 14px 16px;
   font-size: 0.95rem;
   color: var(--color-text-main);
   cursor: grab;
@@ -21497,18 +21497,20 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-chip .chip-drag-handle:hover {
   border-color: rgba(var(--color-accent-rgb), 0.5);
   color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.12);
 }
 .randomizer-chip .text {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 .randomizer-chip.selected {
   border-color: rgba(var(--color-accent-rgb), 0.9);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(var(--color-accent-rgb), 0.35);
-  background: rgba(128, 140, 255, 0.12);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.18), rgba(255, 255, 255, 0.05)), rgba(128, 140, 255, 0.12);
 }
 .randomizer-chip.dragging {
   opacity: 0.85;
@@ -21540,10 +21542,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   grid-template-columns: minmax(140px, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 .randomizer-chip .chip-weight-slider {
   width: 100%;
@@ -21577,10 +21579,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   margin-top: 4px;
 }
 .randomizer-chip .chip-stat {
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 .randomizer-chip .chip-weight-slider,
 .randomizer-chip .chip-weight-number {
@@ -21592,7 +21594,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-chip:hover .chip-weight-slider, .randomizer-chip:hover .chip-weight-number,
 .randomizer-chip .chip-weight:focus-within .chip-weight-slider,
 .randomizer-chip .chip-weight:focus-within .chip-weight-number, .randomizer-chip.selected .chip-weight-slider, .randomizer-chip.selected .chip-weight-number {
-  max-height: 80px;
+  max-height: 90px;
   opacity: 1;
   pointer-events: auto;
 }
@@ -21602,8 +21604,8 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border: none;
   color: var(--color-quality);
   cursor: pointer;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   display: inline-grid;
   place-items: center;
   justify-content: center;
@@ -21613,6 +21615,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .chip-remove:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-accent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 @media (max-width: 960px) {
