@@ -2,159 +2,62 @@
 
 import { showToast } from "../toast.js";
 import { initTooltips } from "../tooltipInitializer.js";
-
-const STORAGE_KEYS = {
-  ITEMS: "randomizerItems",
-  HISTORY: "randomizerHistory",
-  SETTINGS: "randomizerSettings",
-  POOL: "randomizerPool",
-  PRESETS: "randomizerPresets",
-  CURRENT_PRESET: "randomizerCurrentPreset",
-  DEFAULT_PRESET: "randomizerDefaultPreset",
-};
-
-const DEFAULT_ITEMS = [
-  "Новый ролик с YouTube",
-  "Клип с Twitch",
-  "Видео из VK",
-  "Музыкальный трек",
-  "Файл для резервной копии",
-];
-
-const MAX_HISTORY = 15;
-const WEIGHT_MIN = 1;
-const WEIGHT_MAX = 10;
-const DEFAULT_WEIGHT = 1;
-const DEFAULT_PRESET_NAME = "Основной";
-const MAX_ITEM_LENGTH = 160;
-
-const cloneValue = (value) =>
-  Array.isArray(value)
-    ? value.slice()
-    : typeof value === "object" && value !== null
-      ? { ...value }
-      : value;
-
-const readJson = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return cloneValue(fallback);
-    const parsed = JSON.parse(raw);
-    return Array.isArray(fallback)
-      ? Array.isArray(parsed)
-        ? parsed
-        : cloneValue(fallback)
-      : { ...cloneValue(fallback), ...(parsed || {}) };
-  } catch {
-    return cloneValue(fallback);
-  }
-};
-
-const saveJson = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.warn("[Randomizer] Unable to persist", key, error);
-  }
-};
-
-const clampWeight = (raw) => {
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return DEFAULT_WEIGHT;
-  return Math.min(WEIGHT_MAX, Math.max(WEIGHT_MIN, Math.round(n)));
-};
-
-const clampHits = (raw) => {
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n < 0) return 0;
-  return Math.floor(n);
-};
-
-const normalizeItems = (rawItems, { allowEmpty = false } = {}) => {
-  const list = Array.isArray(rawItems) ? rawItems : [];
-  const seen = new Set();
-  const normalized = [];
-
-  list.forEach((entry) => {
-    const rawValue =
-      typeof entry === "string"
-        ? entry
-        : typeof entry?.value === "string"
-          ? entry.value
-          : "";
-    const value = rawValue.trim();
-    if (!value) return;
-    const key = value.toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-    const weight = clampWeight(
-      typeof entry === "object" && entry !== null
-        ? entry.weight
-        : DEFAULT_WEIGHT,
-    );
-    const hits = clampHits(
-      typeof entry === "object" && entry !== null ? entry.hits : 0,
-    );
-    normalized.push({ value, weight, hits });
-  });
-
-  if (!normalized.length) {
-    if (allowEmpty && Array.isArray(rawItems)) return [];
-    return DEFAULT_ITEMS.map((value) => ({
-      value,
-      weight: DEFAULT_WEIGHT,
-      hits: 0,
-    }));
-  }
-
-  return normalized;
-};
-
-const normalizePresets = (rawPresets, { allowEmptyItems = false } = {}) => {
-  const list = Array.isArray(rawPresets) ? rawPresets : [];
-  const seen = new Set();
-  const normalized = [];
-
-  list.forEach((preset) => {
-    const name =
-      typeof preset?.name === "string" && preset.name.trim()
-        ? preset.name.trim()
-        : "";
-    if (!name) return;
-    const key = name.toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-    const items = normalizeItems(preset?.items || [], {
-      allowEmpty: allowEmptyItems,
-    });
-    normalized.push({ name, items });
-  });
-
-  return normalized;
-};
+import {
+  DEFAULT_ITEMS,
+  WEIGHT_MIN,
+  WEIGHT_MAX,
+  DEFAULT_WEIGHT,
+  DEFAULT_PRESET_NAME,
+  MAX_ITEM_LENGTH,
+  readJson,
+  saveJson,
+  clampWeight,
+  clampHits,
+  triggerPulse,
+  declOfNum,
+} from "../randomizer/helpers.js";
+import { createRandomizerState } from "../randomizer/state.js";
+import { createSummary } from "../randomizer/ui/summary.js";
+import { createHistoryRenderer } from "../randomizer/ui/history.js";
+import { createItemsRenderer } from "../randomizer/ui/items.js";
+import { createResultUI } from "../randomizer/ui/result.js";
+import { createPresetsUI } from "../randomizer/ui/presets.js";
+import { wireRollControls } from "../randomizer/ui/controls.js";
 
 export default function renderRandomizerView() {
-  const hasStoredItems = localStorage.getItem(STORAGE_KEYS.ITEMS) !== null;
-  let presets = normalizePresets(readJson(STORAGE_KEYS.PRESETS, []), {
-    allowEmptyItems: true,
-  });
-  let currentPresetName =
-    localStorage.getItem(STORAGE_KEYS.CURRENT_PRESET) || "";
-  let defaultPresetName =
-    localStorage.getItem(STORAGE_KEYS.DEFAULT_PRESET) || "";
-  let items = normalizeItems(readJson(STORAGE_KEYS.ITEMS, DEFAULT_ITEMS), {
-    allowEmpty: hasStoredItems,
-  });
-  let history = readJson(STORAGE_KEYS.HISTORY, []);
-  let settings = readJson(STORAGE_KEYS.SETTINGS, {
-    noRepeat: true,
-  });
-  let pool = readJson(STORAGE_KEYS.POOL, []);
+  const storage = {
+    readJson,
+    saveJson,
+    hasKey: (key) => localStorage.getItem(key) !== null,
+    readText: (key) => localStorage.getItem(key) || "",
+    setItem: (key, value) => localStorage.setItem(key, value),
+  };
+
+  const state = createRandomizerState(storage);
+  let items;
+  let presets;
+  let history;
+  let settings;
+  let pool;
+  let currentPresetName;
+  let defaultPresetName;
   let selectedItems = new Set();
-  if (!Array.isArray(pool)) pool = [];
-  else
-    pool = pool.filter((entry) => items.some((item) => item.value === entry));
-  if (!pool.length) pool = items.map((item) => item.value);
+
+  const syncState = () => {
+    ({
+      items,
+      presets,
+      history,
+      settings,
+      pool,
+      currentPresetName,
+      defaultPresetName,
+    } = state.getState());
+  };
+
+  syncState();
+  state.normalizePool();
+  syncState();
 
   const wrapper = document.createElement("div");
   wrapper.id = "randomizer-view";
@@ -345,7 +248,6 @@ export default function renderRandomizerView() {
   const resultContainer = wrapper.querySelector("#randomizer-result");
   const bulkDeleteButton = wrapper.querySelector("#randomizer-delete-selected");
   const presetSelect = wrapper.querySelector("#randomizer-preset-select");
-  let presetSelectUI = null;
   const poolHintEl = wrapper.querySelector("#randomizer-pool-hint");
   const poolRefreshBtn = wrapper.querySelector("#randomizer-pool-refresh");
   const summaryCountEl = wrapper.querySelector("#randomizer-summary-count");
@@ -372,233 +274,23 @@ export default function renderRandomizerView() {
   };
 
   // Универсальный кастомный селект (общий с Backup)
-  const enhanceSelect = (selectEl) => {
-    if (!selectEl || selectEl.dataset.enhanced === "true") return null;
-    selectEl.dataset.enhanced = "true";
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "bk-select-wrapper";
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className = "bk-select-trigger";
-    const labelEl = document.createElement("span");
-    labelEl.className = "bk-select-label";
-    const icon = document.createElement("i");
-    icon.className = "fa-solid fa-chevron-down";
-    trigger.append(labelEl, icon);
-
-    const menu = document.createElement("div");
-    menu.className = "bk-select-menu";
-    menu.hidden = true;
-
-    const updateLabel = () => {
-      const opt =
-        selectEl.selectedOptions && selectEl.selectedOptions[0]
-          ? selectEl.selectedOptions[0]
-          : selectEl.options[selectEl.selectedIndex];
-      labelEl.textContent = opt ? opt.textContent : "";
-      menu
-        .querySelectorAll(".bk-select-option")
-        .forEach((item) =>
-          item.classList.toggle(
-            "is-active",
-            item.dataset.value === selectEl.value,
-          ),
-        );
-    };
-
-    const rebuild = () => {
-      menu.innerHTML = "";
-      Array.from(selectEl.options).forEach((opt) => {
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "bk-select-option";
-        item.dataset.value = opt.value;
-        item.textContent = opt.textContent;
-        item.addEventListener("click", () => {
-          if (selectEl.value !== opt.value) {
-            selectEl.value = opt.value;
-            selectEl.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-          updateLabel();
-          menu.hidden = true;
-          wrapper.classList.remove("is-open");
-        });
-        menu.appendChild(item);
-      });
-      updateLabel();
-    };
-
-    const closeAll = (e) => {
-      if (e && wrapper.contains(e.target)) return;
-      menu.hidden = true;
-      wrapper.classList.remove("is-open");
-    };
-
-    trigger.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const willOpen = menu.hidden;
-      document
-        .querySelectorAll(".bk-select-wrapper.is-open .bk-select-menu")
-        .forEach((m) => {
-          m.hidden = true;
-          m.parentElement?.classList.remove("is-open");
-        });
-      if (willOpen) {
-        menu.hidden = false;
-        wrapper.classList.add("is-open");
-      } else {
-        closeAll();
-      }
-    });
-
-    document.addEventListener("mousedown", closeAll);
-    document.addEventListener("focusin", closeAll);
-    trigger.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeAll();
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        menu.hidden = false;
-        wrapper.classList.add("is-open");
-      }
-    });
-
-    selectEl.classList.add("bk-select-hidden");
-    selectEl.parentNode.insertBefore(wrapper, selectEl);
-    wrapper.append(trigger, selectEl, menu);
-    rebuild();
-
-    return { rebuild, updateLabel };
-  };
-
-  const savePool = () => {
-    saveJson(STORAGE_KEYS.POOL, pool);
-  };
-
-  const normalizePool = () => {
-    pool = (Array.isArray(pool) ? pool : []).filter((value) =>
-      items.some((item) => item.value === value),
-    );
-    if (!pool.length) {
-      pool = items.map((item) => item.value);
-    }
-    savePool();
-    updatePoolHint();
-    updateSummary();
-  };
-
-  const resetPool = () => {
-    pool = items.map((item) => item.value);
-    savePool();
-    updatePoolHint();
-    updateSummary();
-    triggerPulse(summaryPoolEl);
-  };
-
-  const persistItems = (options = {}) => {
-    const { resetPool: shouldResetPool = false, updatePreset = true } = options;
-    saveJson(STORAGE_KEYS.ITEMS, items);
-    if (updatePreset) syncCurrentPresetItems();
-    if (shouldResetPool) resetPool();
-    else savePool();
-  };
-
-  const persistHistory = () => {
-    saveJson(STORAGE_KEYS.HISTORY, history);
-  };
-
-  const persistSettings = () => {
-    saveJson(STORAGE_KEYS.SETTINGS, settings);
-  };
-
-  const triggerPulse = (el, className = "pulse") => {
-    if (!el) return;
-    el.classList.remove(className);
-    // force reflow
-    void el.offsetWidth;
-    el.classList.add(className);
-  };
-
-  const updateSummary = () => {
-    if (summaryCountEl) summaryCountEl.textContent = items.length;
-    if (summaryPresetEl) summaryPresetEl.textContent = currentPresetName || "—";
-    if (summaryModeEl)
-      summaryModeEl.textContent = settings.noRepeat
-        ? "Без повторов"
-        : "С повторами";
-    if (summaryPoolEl) {
-      const poolValue = settings.noRepeat
-        ? `${pool.length}/${items.length || 0}`
-        : "∞";
-      summaryPoolEl.textContent = poolValue;
-      summaryPoolEl.classList.toggle(
-        "is-warning",
-        settings.noRepeat && items.length > 0 && pool.length === 0,
-      );
-    }
-  };
-
-  const updatePoolHint = () => {
-    if (!poolHintEl) return;
-    const exhausted =
-      settings.noRepeat && items.length > 0 && (pool?.length || 0) === 0;
-    poolHintEl.classList.toggle("hidden", !exhausted);
-  };
-
-  const savePresets = () => {
-    saveJson(STORAGE_KEYS.PRESETS, presets);
-    if (currentPresetName) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_PRESET, currentPresetName);
-    }
-    if (defaultPresetName) {
-      localStorage.setItem(STORAGE_KEYS.DEFAULT_PRESET, defaultPresetName);
-    }
-  };
-
-  const ensurePresetExists = () => {
-    if (!presets.length) {
-      presets = [
-        {
-          name: DEFAULT_PRESET_NAME,
-          items: items.length ? items : normalizeItems(DEFAULT_ITEMS),
-        },
-      ];
-    }
-    if (!currentPresetName) currentPresetName = presets[0].name;
-    if (!defaultPresetName) defaultPresetName = presets[0].name;
-    if (defaultPresetName && !presets.some((p) => p.name === defaultPresetName))
-      defaultPresetName = "";
-    savePresets();
-  };
-
-  const refreshPresetSelect = () => {
-    if (!presetSelect) return;
-    presetSelect.innerHTML = "";
-    presets.forEach((preset) => {
-      const option = document.createElement("option");
-      option.value = preset.name;
-      option.textContent =
-        preset.name === defaultPresetName ? `${preset.name} •` : preset.name;
-      if (preset.name === currentPresetName) option.selected = true;
-      presetSelect.appendChild(option);
-    });
-    presetDeleteBtn.disabled = presets.length <= 1;
-    presetDefaultBtn.disabled = !currentPresetName;
-
-    if (!presetSelectUI) {
-      presetSelectUI = enhanceSelect(presetSelect);
-    }
-    presetSelectUI?.rebuild?.();
-  };
+  const { updateSummary, updatePoolHint, pulsePool } = createSummary({
+    getState: () => state.getState(),
+    elements: {
+      summaryCountEl,
+      summaryPresetEl,
+      summaryModeEl,
+      summaryPoolEl,
+      poolHintEl,
+    },
+  });
 
   const applyPreset = (name) => {
-    const preset = presets.find((p) => p.name === name);
-    if (!preset) return false;
-    currentPresetName = preset.name;
-    items = normalizeItems(preset.items, { allowEmpty: true });
+    const applied = state.applyPreset(name);
+    syncState();
+    if (!applied) return false;
     selectedItems.clear();
     resetPool();
-    savePresets();
     renderItems();
     setCountLabel();
     updateBulkActions();
@@ -606,11 +298,46 @@ export default function renderRandomizerView() {
   };
 
   const syncCurrentPresetItems = () => {
-    const preset = presets.find((p) => p.name === currentPresetName);
-    if (!preset) return;
-    preset.items = items.map((item) => ({ ...item }));
-    savePresets();
-    refreshPresetSelect();
+    state.syncCurrentPresetItems();
+    syncState();
+    state.savePresets();
+    presetsUI?.refreshPresetSelect?.();
+  };
+
+  const normalizePool = () => {
+    state.normalizePool();
+    syncState();
+    updatePoolHint();
+    updateSummary();
+  };
+
+  const resetPool = () => {
+    state.resetPool();
+    syncState();
+    updatePoolHint();
+    updateSummary();
+    pulsePool();
+  };
+
+  const persistItems = (options = {}) => {
+    state.persistItems(options);
+    syncState();
+  };
+
+  const persistHistory = () => {
+    state.persistHistory();
+    syncState();
+  };
+
+  const persistSettings = () => {
+    state.persistSettings();
+    syncState();
+  };
+
+  const ensurePresetExists = () => {
+    state.ensurePresetExists();
+    syncState();
+    updateSummary();
   };
 
   const createPreset = (name, sourceItems = items) => {
@@ -619,28 +346,15 @@ export default function renderRandomizerView() {
     const exists = presets.some(
       (p) => p.name.toLowerCase() === trimmed.toLowerCase(),
     );
-    const baseItems = normalizeItems(
-      Array.isArray(sourceItems) ? sourceItems : items,
-      { allowEmpty: true },
-    );
-    const clonedItems = baseItems.map((item) => ({ ...item }));
     if (exists) {
       const replace = confirm(
         "Шаблон с таким именем уже есть. Перезаписать его текущим списком?",
       );
       if (!replace) return;
-      presets = presets.map((p) =>
-        p.name.toLowerCase() === trimmed.toLowerCase()
-          ? { ...p, name: trimmed, items: clonedItems }
-          : p,
-      );
-      currentPresetName = trimmed;
-    } else {
-      presets.push({ name: trimmed, items: clonedItems });
-      currentPresetName = trimmed;
     }
-    savePresets();
-    refreshPresetSelect();
+    state.createPreset(trimmed, sourceItems);
+    syncState();
+    state.savePresets();
   };
 
   const ensurePresetPrompt = () => {
@@ -727,20 +441,34 @@ export default function renderRandomizerView() {
   };
 
   const deletePreset = (name) => {
-    if (presets.length <= 1) return;
-    presets = presets.filter((p) => p.name !== name);
-    if (defaultPresetName === name) defaultPresetName = "";
-    if (currentPresetName === name) {
-      currentPresetName = presets[0]?.name || "";
-      items = presets[0]?.items
-        ? normalizeItems(presets[0].items, { allowEmpty: true })
-        : items;
-      resetPool();
-    }
-    savePresets();
-    refreshPresetSelect();
+    state.deletePreset(name);
+    syncState();
+    presetsUI?.refreshPresetSelect?.();
     renderItems();
   };
+
+  const presetsUI = createPresetsUI({
+    presetSelect,
+    presetSaveBtn,
+    presetNewBtn,
+    presetSaveAsBtn,
+    presetDeleteBtn,
+    presetDefaultBtn,
+    askPresetName,
+    promptPresetNameFallback,
+    createPreset,
+    applyPreset,
+    refreshPresets: syncCurrentPresetItems,
+    deletePreset,
+    setDefault: (name) => {
+      defaultPresetName = name;
+      state.savePresets();
+      syncState();
+      updateSummary();
+    },
+    showToast,
+    getState: () => state.getState(),
+  });
 
   const pruneSelection = () => {
     selectedItems = new Set(
@@ -795,18 +523,13 @@ export default function renderRandomizerView() {
       showToast("Такой вариант уже есть", "info");
       return false;
     }
-    const idx = items.findIndex((entry) => entry.value === oldValue);
-    if (idx === -1) return false;
-    const current = items[idx];
-    items.splice(idx, 1, { ...current, value: trimmed });
-
-    pool = pool.map((value) => (value === oldValue ? trimmed : value));
-
+    const ok = state.updateItem(oldValue, trimmed, { resetPool: false });
+    if (!ok) return false;
+    syncState();
     if (selectedItems.has(oldValue)) {
       selectedItems.delete(oldValue);
       selectedItems.add(trimmed);
     }
-    persistItems({ resetPool: false });
     renderItems();
     return true;
   };
@@ -854,13 +577,9 @@ export default function renderRandomizerView() {
   };
 
   const moveItem = (fromValue, toValue) => {
-    if (!fromValue || !toValue || fromValue === toValue) return;
-    const fromIndex = items.findIndex((entry) => entry.value === fromValue);
-    const toIndex = items.findIndex((entry) => entry.value === toValue);
-    if (fromIndex === -1 || toIndex === -1) return;
-    const [moved] = items.splice(fromIndex, 1);
-    items.splice(toIndex, 0, moved);
-    persistItems({ resetPool: false });
+    const ok = state.moveItem(fromValue, toValue);
+    if (!ok) return;
+    syncState();
     renderItems();
   };
 
@@ -881,170 +600,42 @@ export default function renderRandomizerView() {
     return candidates[candidates.length - 1] || null;
   };
 
+  const renderItemsImpl = createItemsRenderer({
+    getState: () => state.getState(),
+    listEl,
+    getSelected: () => selectedItems,
+    onUpdateCount: setCountLabel,
+    onUpdateBulk: updateBulkActions,
+    onUpdatePoolHint: updatePoolHint,
+    onUpdateSummary: updateSummary,
+    onSelectToggle: toggleSelection,
+    onRemoveSelected: (toRemove, { silent } = {}) => {
+      state.removeItems(toRemove);
+      syncState();
+      toRemove.forEach((v) => selectedItems.delete(v));
+      renderItems();
+      clearResult();
+      if (!silent) showToast("Выбранные варианты удалены", "success");
+    },
+    onReplaceItem: replaceItemValue,
+    onMoveItem: (from, to) => {
+      moveItem(from, to);
+    },
+    onSyncWeight: {
+      clamp: clampWeight,
+      clampHits,
+      set: (value, weight) => {
+        state.setWeight(value, weight);
+        syncState();
+      },
+    },
+    onStartInlineEdit: (chip, value) => startInlineEdit(chip, value),
+  });
+
   const renderItems = () => {
+    syncState();
     pruneSelection();
-    listEl.innerHTML = "";
-    if (!items.length) {
-      const empty = document.createElement("p");
-      empty.className = "placeholder";
-      empty.textContent = "Пока нет вариантов. Добавьте несколько элементов.";
-      listEl.appendChild(empty);
-      setCountLabel();
-      updateBulkActions();
-      return;
-    }
-
-    const fragment = document.createDocumentFragment();
-    let dragSource = null;
-
-    items.forEach((item) => {
-      const chip = document.createElement("div");
-      chip.className = "randomizer-chip";
-      chip.dataset.value = item.value;
-      chip.draggable = false;
-
-      const dragHandle = document.createElement("button");
-      dragHandle.type = "button";
-      dragHandle.className = "chip-drag-handle";
-      dragHandle.setAttribute("aria-label", "Перетащить вариант");
-      dragHandle.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
-      dragHandle.draggable = true;
-
-      const text = document.createElement("span");
-      text.className = "text";
-      text.textContent = item.value;
-
-      const weightWrap = document.createElement("div");
-      weightWrap.className = "chip-weight";
-      const weightSlider = document.createElement("input");
-      weightSlider.type = "range";
-      weightSlider.min = WEIGHT_MIN;
-      weightSlider.max = WEIGHT_MAX;
-      weightSlider.step = 1;
-      weightSlider.value = getItemWeight(item);
-      weightSlider.className = "chip-weight-slider";
-
-      const weightNumber = document.createElement("input");
-      weightNumber.type = "number";
-      weightNumber.min = WEIGHT_MIN;
-      weightNumber.max = WEIGHT_MAX;
-      weightNumber.step = 1;
-      weightNumber.value = getItemWeight(item);
-      weightNumber.className = "chip-weight-number";
-
-      const weightLabel = document.createElement("span");
-      weightLabel.className = "chip-weight-label";
-      weightLabel.textContent = `x${getItemWeight(item)}`;
-
-      const statWrap = document.createElement("div");
-      statWrap.className = "chip-stats";
-      const hitsEl = document.createElement("span");
-      hitsEl.className = "chip-stat";
-      hitsEl.textContent = `Выпадений: ${getItemHits(item)}`;
-      const inPoolCount = pool.filter((val) => val === item.value).length;
-      const poolEl = document.createElement("span");
-      poolEl.className = "chip-stat";
-      poolEl.textContent = settings.noRepeat
-        ? `В пуле: ${inPoolCount}`
-        : "В пуле: ∞";
-      statWrap.append(hitsEl, poolEl);
-
-      const syncWeight = (nextWeight) => {
-        const sanitized = clampWeight(nextWeight);
-        if (sanitized === getItemWeight(item)) {
-          weightSlider.value = sanitized;
-          weightNumber.value = sanitized;
-          weightLabel.textContent = `x${sanitized}`;
-          return;
-        }
-        item.weight = sanitized;
-        weightSlider.value = sanitized;
-        weightNumber.value = sanitized;
-        weightLabel.textContent = `x${sanitized}`;
-        persistItems({ resetPool: false });
-        renderItems();
-      };
-
-      const stopChipEvent = (event) => event.stopPropagation();
-      weightSlider.addEventListener("click", stopChipEvent);
-      weightSlider.addEventListener("input", (event) => {
-        event.stopPropagation();
-        syncWeight(event.target.value);
-      });
-      weightNumber.addEventListener("click", stopChipEvent);
-      weightNumber.addEventListener("input", (event) => {
-        event.stopPropagation();
-        syncWeight(event.target.value);
-      });
-      weightLabel.addEventListener("click", stopChipEvent);
-      weightWrap.append(weightSlider, weightNumber, weightLabel, statWrap);
-
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "chip-remove";
-      remove.setAttribute("aria-label", `Удалить ${item.value}`);
-      remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-      remove.addEventListener("click", () => {
-        items = items.filter((entry) => entry.value !== item.value);
-        selectedItems.delete(item.value);
-        pool = pool.filter((entry) => entry !== item.value);
-        persistItems({ resetPool: false });
-        renderItems();
-      });
-
-      chip.append(dragHandle, text, weightWrap, remove);
-
-      chip.addEventListener("click", (event) => {
-        if (event.detail > 1) return;
-        if (event.target.closest(".chip-remove")) return;
-        if (event.target.classList.contains("chip-edit-input")) return;
-        toggleSelection(item.value, chip);
-      });
-
-      chip.addEventListener("dblclick", () =>
-        startInlineEdit(chip, item.value),
-      );
-
-      chip.addEventListener("dragover", (event) => {
-        if (!dragSource || dragSource === item.value) return;
-        event.preventDefault();
-        chip.classList.add("drop-target");
-      });
-
-      chip.addEventListener("dragleave", () => {
-        chip.classList.remove("drop-target");
-      });
-
-      chip.addEventListener("drop", (event) => {
-        event.preventDefault();
-        chip.classList.remove("drop-target");
-        if (!dragSource || dragSource === item.value) return;
-        moveItem(dragSource, item.value);
-      });
-
-      dragHandle.addEventListener("click", (event) => event.stopPropagation());
-      dragHandle.addEventListener("dragstart", (event) => {
-        dragSource = item.value;
-        chip.classList.add("dragging");
-        event.dataTransfer?.setData("text/plain", item.value);
-        event.dataTransfer?.setDragImage(chip, 10, 10);
-      });
-
-      dragHandle.addEventListener("dragend", () => {
-        dragSource = null;
-        chip.classList.remove("dragging");
-        chip.classList.remove("drop-target");
-      });
-
-      if (selectedItems.has(item.value)) chip.classList.add("selected");
-      fragment.appendChild(chip);
-    });
-
-    listEl.appendChild(fragment);
-    setCountLabel();
-    updateBulkActions();
-    updatePoolHint();
-    updateSummary();
+    renderItemsImpl();
   };
 
   ensurePresetExists();
@@ -1053,58 +644,30 @@ export default function renderRandomizerView() {
       ? defaultPresetName
       : currentPresetName;
   if (initialPresetName) applyPreset(initialPresetName);
-  refreshPresetSelect();
+  presetsUI.refreshPresetSelect();
   normalizePool();
   updateSummary();
 
-  const renderHistory = () => {
-    historyList.innerHTML = "";
-    if (!history.length) {
-      historyEmpty.classList.remove("hidden");
-      return;
-    }
-    historyEmpty.classList.add("hidden");
-    const fragment = document.createDocumentFragment();
-    history.forEach((entry) => {
-      const li = document.createElement("li");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "history-entry";
-      button.dataset.value = entry.value;
-      button.innerHTML = `
-        <span class="text">${escapeHtml(entry.value)}</span>
-        <span class="time">${new Intl.DateTimeFormat("ru-RU", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(entry.ts)}</span>
-      `;
-      button.addEventListener("click", () => {
-        resultText.textContent = entry.value;
-        resultMeta.textContent = "Выбрано ранее";
-        activateResultCard();
-      });
-      li.appendChild(button);
-      fragment.appendChild(li);
-    });
-    historyList.appendChild(fragment);
-  };
+  const resultUI = createResultUI({
+    resultCard,
+    resultContainer,
+    resultText,
+    resultMeta,
+  });
+  const { clear: clearResult } = resultUI;
 
-  const activateResultCard = () => {
-    resultCard.classList.add("active");
-    resultContainer.classList.add("has-result");
-  };
-
-  const clearResult = () => {
-    resultText.textContent = "";
-    resultMeta.textContent = "";
-    resultCard.classList.remove("active");
-    resultContainer.classList.remove("has-result");
-  };
+  const renderHistory = createHistoryRenderer({
+    getState: () => state.getState(),
+    historyList,
+    historyEmpty,
+    onSelectEntry: (value) => {
+      resultUI.setResult(value, "Выбрано ранее");
+    },
+  });
 
   const addHistoryEntry = (value) => {
-    history.unshift({ value, ts: Date.now() });
-    history = history.slice(0, MAX_HISTORY);
-    persistHistory();
+    state.addHistoryEntry(value);
+    syncState();
     renderHistory();
   };
 
@@ -1125,21 +688,15 @@ export default function renderRandomizerView() {
       if (!silent) showToast("Такой вариант уже есть", "info");
       return;
     }
-    const newItem = { value: normalized, weight: DEFAULT_WEIGHT };
-    newItem.hits = 0;
-    items.push(newItem);
-    pool.push(newItem.value);
-    persistItems({ resetPool: false });
+    state.addItem(normalized);
+    syncState();
     renderItems();
   };
 
   const bulkAdd = (values) => {
-    let added = 0;
-    values.forEach((value) => {
-      const before = items.length;
-      addItem(value, true);
-      if (items.length > before) added += 1;
-    });
+    const added = state.bulkAdd(values);
+    syncState();
+    renderItems();
     if (added) {
       showToast(
         `Добавлено ${added} ${declOfNum(added, ["элемент", "элемента", "элементов"])}`,
@@ -1177,37 +734,27 @@ export default function renderRandomizerView() {
       picked.hits = getItemHits(picked) + 1;
       persistItems({ resetPool: false });
       if (settings.noRepeat) {
-        pool = pool.filter((entry) => entry !== value);
-        savePool();
+        state.consumeFromPool(value);
+        syncState();
+        updateSummary();
+        updatePoolHint();
       }
 
-      resultText.textContent = value;
-      resultMeta.textContent = new Intl.DateTimeFormat("ru-RU", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }).format(Date.now());
-      activateResultCard();
-      triggerPulse(resultContainer, "pop");
+      resultUI.setResult(
+        value,
+        new Intl.DateTimeFormat("ru-RU", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(Date.now()),
+      );
+      resultUI.pulse();
       addHistoryEntry(value);
       renderItems();
     }, 350);
   };
 
-  wrapper
-    .querySelectorAll(".randomizer-roll")
-    .forEach((btn) => btn.addEventListener("click", roll));
-
-  wrapper
-    .querySelectorAll("#randomizer-roll, #randomizer-roll-hero")
-    .forEach((btn) =>
-      btn.addEventListener("keyup", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          roll();
-        }
-      }),
-    );
+  wireRollControls(wrapper, roll);
 
   wrapper.querySelector("#randomizer-add")?.addEventListener("click", () => {
     addItem(inputEl.value);
@@ -1318,84 +865,7 @@ export default function renderRandomizerView() {
 
   historyRunBtn?.addEventListener("click", roll);
 
-  presetSelect?.addEventListener("change", (event) => {
-    const name = event.target.value;
-    if (!name) return;
-    applyPreset(name);
-    refreshPresetSelect();
-    presetSelectUI?.updateLabel?.();
-    showToast(`Шаблон «${name}» загружен`, "success");
-  });
-
-  presetSaveBtn?.addEventListener("click", () => {
-    syncCurrentPresetItems();
-    showToast("Шаблон сохранён", "success");
-  });
-
-  presetNewBtn?.addEventListener("click", () => {
-    const suggested = "Новый шаблон";
-    const handleCreate = (name) => {
-      const trimmed = (name || "").trim();
-      if (!trimmed) return;
-      createPreset(trimmed, []);
-      applyPreset(trimmed);
-      refreshPresetSelect();
-      showToast(`Шаблон «${trimmed}» создан`, "success");
-    };
-
-    const fallbackName = promptPresetNameFallback(suggested);
-    if (fallbackName !== undefined) {
-      handleCreate(fallbackName);
-      return;
-    }
-
-    askPresetName(suggested).then((name) => {
-      if (!name) return;
-      handleCreate(name);
-    });
-  });
-
-  presetSaveAsBtn?.addEventListener("click", () => {
-    const suggested =
-      currentPresetName && currentPresetName !== DEFAULT_PRESET_NAME
-        ? `${currentPresetName} (копия)`
-        : "Новый шаблон";
-    const fallbackName = promptPresetNameFallback(suggested);
-    if (fallbackName !== undefined) {
-      const trimmed = (fallbackName || "").trim();
-      if (!trimmed) return;
-      createPreset(trimmed);
-      refreshPresetSelect();
-      showToast(`Шаблон «${trimmed}» сохранён`, "success");
-      return;
-    }
-    askPresetName(suggested).then((name) => {
-      if (!name) return;
-      createPreset(name);
-      refreshPresetSelect();
-      showToast(`Шаблон «${name.trim()}» сохранён`, "success");
-    });
-  });
-
-  presetDeleteBtn?.addEventListener("click", () => {
-    if (!currentPresetName || presets.length <= 1) return;
-    if (
-      !confirm(
-        `Удалить шаблон «${currentPresetName}»? Варианты будут удалены только из этого шаблона.`,
-      )
-    )
-      return;
-    deletePreset(currentPresetName);
-    showToast("Шаблон удалён", "success");
-  });
-
-  presetDefaultBtn?.addEventListener("click", () => {
-    if (!currentPresetName) return;
-    defaultPresetName = currentPresetName;
-    savePresets();
-    refreshPresetSelect();
-    showToast(`Шаблон «${currentPresetName}» выбран по умолчанию`, "success");
-  });
+  presetsUI.wire();
 
   bulkDeleteButton?.addEventListener("click", () => {
     if (!selectedItems.size) {
@@ -1412,10 +882,9 @@ export default function renderRandomizerView() {
       )
     )
       return;
-    items = items.filter((item) => !selectedItems.has(item.value));
-    pool = pool.filter((value) => !selectedItems.has(value));
+    state.removeItems(selectedItems);
+    syncState();
     selectedItems.clear();
-    persistItems({ resetPool: false });
     renderItems();
     clearResult();
     showToast("Выбранные варианты удалены", "success");
@@ -1433,17 +902,4 @@ export default function renderRandomizerView() {
   setTimeout(() => initTooltips(), 0);
 
   return wrapper;
-}
-
-function declOfNum(n, titles) {
-  const cases = [2, 0, 1, 1, 1, 2];
-  return titles[
-    n % 100 > 4 && n % 100 < 20 ? 2 : cases[n % 10 < 5 ? n % 10 : 5]
-  ];
-}
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
 }
