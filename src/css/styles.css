@@ -21254,7 +21254,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   flex-direction: row;
   gap: 16px;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
 }
 .randomizer-card header h3 {
   margin: 2px 0 0;
@@ -21468,7 +21468,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 
 .randomizer-chip {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   flex: 1 1 420px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)), rgba(255, 255, 255, 0.03);
@@ -21541,11 +21541,12 @@ h1.section-heading .bk-heading-search #bk-search-info {
   display: grid;
   grid-template-columns: minmax(140px, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
 }
 .randomizer-chip .chip-weight-slider {
   width: 100%;
@@ -21570,6 +21571,27 @@ h1.section-heading .bk-heading-search #bk-search-info {
   color: var(--color-quality);
   font-weight: 600;
 }
+.randomizer-chip .chip-weight-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.randomizer-chip .chip-weight-presets .chip-weight-pill {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+.randomizer-chip .chip-weight-presets .chip-weight-pill:hover {
+  border-color: rgba(var(--color-accent-rgb), 0.6);
+  color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.1);
+}
 .randomizer-chip .chip-stats {
   display: flex;
   gap: 8px;
@@ -21591,10 +21613,11 @@ h1.section-heading .bk-heading-search #bk-search-info {
   pointer-events: none;
   transition: opacity 0.16s ease, max-height 0.16s ease;
 }
-.randomizer-chip:hover .chip-weight-slider, .randomizer-chip:hover .chip-weight-number,
+.randomizer-chip:hover .chip-weight-slider, .randomizer-chip:hover .chip-weight-number, .randomizer-chip:hover .chip-weight-presets,
 .randomizer-chip .chip-weight:focus-within .chip-weight-slider,
-.randomizer-chip .chip-weight:focus-within .chip-weight-number, .randomizer-chip.selected .chip-weight-slider, .randomizer-chip.selected .chip-weight-number {
-  max-height: 90px;
+.randomizer-chip .chip-weight:focus-within .chip-weight-number,
+.randomizer-chip .chip-weight:focus-within .chip-weight-presets, .randomizer-chip.selected .chip-weight-slider, .randomizer-chip.selected .chip-weight-number, .randomizer-chip.selected .chip-weight-presets {
+  max-height: 100px;
   opacity: 1;
   pointer-events: auto;
 }

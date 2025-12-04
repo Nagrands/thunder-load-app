@@ -93,13 +93,6 @@ export function createItemsRenderer({
 
       const weightWrap = document.createElement("div");
       weightWrap.className = "chip-weight";
-      const weightSlider = document.createElement("input");
-      weightSlider.type = "range";
-      weightSlider.min = WEIGHT_MIN;
-      weightSlider.max = WEIGHT_MAX;
-      weightSlider.step = 1;
-      weightSlider.value = getItemWeight(item);
-      weightSlider.className = "chip-weight-slider";
 
       const weightNumber = document.createElement("input");
       weightNumber.type = "number";
@@ -112,6 +105,20 @@ export function createItemsRenderer({
       const weightLabel = document.createElement("span");
       weightLabel.className = "chip-weight-label";
       weightLabel.textContent = `x${getItemWeight(item)}`;
+
+      const weightPresets = document.createElement("div");
+      weightPresets.className = "chip-weight-presets";
+      [1, 2, 3, 5, 10].forEach((val) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip-weight-pill";
+        btn.textContent = `x${val}`;
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          syncWeight(val);
+        });
+        weightPresets.appendChild(btn);
+      });
 
       const statWrap = document.createElement("div");
       statWrap.className = "chip-stats";
@@ -129,31 +136,24 @@ export function createItemsRenderer({
       const syncWeight = (nextWeight) => {
         const sanitized = onSyncWeight?.clamp(nextWeight);
         if (!onSyncWeight || sanitized === getItemWeight(item)) {
-          weightSlider.value = sanitized;
           weightNumber.value = sanitized;
           weightLabel.textContent = `x${sanitized}`;
           return;
         }
         onSyncWeight.set(item.value, sanitized);
-        weightSlider.value = sanitized;
         weightNumber.value = sanitized;
         weightLabel.textContent = `x${sanitized}`;
         renderItemsDebounced();
       };
 
       const stopChipEvent = (event) => event.stopPropagation();
-      weightSlider.addEventListener("click", stopChipEvent);
-      weightSlider.addEventListener("input", (event) => {
-        event.stopPropagation();
-        syncWeight(event.target.value);
-      });
       weightNumber.addEventListener("click", stopChipEvent);
       weightNumber.addEventListener("input", (event) => {
         event.stopPropagation();
         syncWeight(event.target.value);
       });
       weightLabel.addEventListener("click", stopChipEvent);
-      weightWrap.append(weightSlider, weightNumber, weightLabel, statWrap);
+      weightWrap.append(weightNumber, weightLabel, weightPresets, statWrap);
 
       const remove = document.createElement("button");
       remove.type = "button";

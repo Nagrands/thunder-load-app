@@ -199,7 +199,7 @@
     flex-direction: row;
     gap: 16px;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
 
     h3 {
       margin: 2px 0 0;
@@ -440,7 +440,7 @@
 
 .randomizer-chip {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   flex: 1 1 420px;
   background: linear-gradient(
@@ -541,11 +541,12 @@
     display: grid;
     grid-template-columns: minmax(140px, 1fr) auto;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 10px;
+    padding: 10px 12px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.12);
+    position: relative;
   }
 
   .chip-weight-slider {
@@ -573,6 +574,33 @@
     font-size: 0.85rem;
     color: var(--color-quality);
     font-weight: 600;
+  }
+
+  .chip-weight-presets {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    .chip-weight-pill {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-main);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition:
+        border-color 0.16s ease,
+        background 0.16s ease,
+        color 0.16s ease;
+
+      &:hover {
+        border-color: rgba(var(--color-accent-rgb), 0.6);
+        color: var(--color-accent);
+        background: rgba(var(--color-accent-rgb), 0.1);
+      }
+    }
   }
 
   .chip-stats {
@@ -603,11 +631,14 @@
 
   &:hover .chip-weight-slider,
   &:hover .chip-weight-number,
+  &:hover .chip-weight-presets,
   .chip-weight:focus-within .chip-weight-slider,
   .chip-weight:focus-within .chip-weight-number,
+  .chip-weight:focus-within .chip-weight-presets,
   &.selected .chip-weight-slider,
-  &.selected .chip-weight-number {
-    max-height: 90px;
+  &.selected .chip-weight-number,
+  &.selected .chip-weight-presets {
+    max-height: 100px;
     opacity: 1;
     pointer-events: auto;
   }
