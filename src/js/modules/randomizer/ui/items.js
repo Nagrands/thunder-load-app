@@ -80,6 +80,9 @@ export function createItemsRenderer({
       chip.dataset.value = item.value;
       chip.draggable = false;
 
+      const chipMain = document.createElement("div");
+      chipMain.className = "chip-main";
+
       const dragHandle = document.createElement("button");
       dragHandle.type = "button";
       dragHandle.className = "chip-drag-handle";
@@ -87,9 +90,12 @@ export function createItemsRenderer({
       dragHandle.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
       dragHandle.draggable = true;
 
+      const textWrap = document.createElement("div");
+      textWrap.className = "chip-text";
       const text = document.createElement("span");
       text.className = "text";
       text.textContent = item.value;
+      textWrap.appendChild(text);
 
       const weightWrap = document.createElement("div");
       weightWrap.className = "chip-weight";
@@ -153,7 +159,7 @@ export function createItemsRenderer({
         syncWeight(event.target.value);
       });
       weightLabel.addEventListener("click", stopChipEvent);
-      weightWrap.append(weightNumber, weightLabel, weightPresets, statWrap);
+      weightWrap.append(weightNumber, weightPresets);
 
       const remove = document.createElement("button");
       remove.type = "button";
@@ -164,7 +170,8 @@ export function createItemsRenderer({
         onRemoveSelected(new Set([item.value]), { silent: true });
       });
 
-      chip.append(dragHandle, text, weightWrap, remove);
+      chipMain.append(dragHandle, textWrap, weightLabel, remove);
+      chip.append(chipMain, weightWrap, statWrap);
 
       chip.addEventListener("click", (event) => {
         if (event.detail > 1) return;

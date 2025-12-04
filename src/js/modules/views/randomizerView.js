@@ -261,6 +261,7 @@ export default function renderRandomizerView() {
   let presetPromptEl = null;
   const historyRunBtn = wrapper.querySelector("#randomizer-history-run");
   let listActionsUI = null;
+  let carouselTimer = null;
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -293,9 +294,8 @@ export default function renderRandomizerView() {
   const updateRollAvailability = () => {
     const { items, pool, settings } = state.getState();
     const disabled =
-      settings.noRepeat &&
-      items.length > 0 &&
-      (!Array.isArray(pool) || pool.length === 0);
+      !items.length ||
+      (settings.noRepeat && (!Array.isArray(pool) || pool.length === 0));
     setRollDisabled(disabled);
   };
 
@@ -661,7 +661,31 @@ export default function renderRandomizerView() {
     resultText,
     resultMeta,
   });
-  const { clear: clearResult } = resultUI;
+  const stopCarousel = () => {
+    if (carouselTimer) {
+      clearInterval(carouselTimer);
+      carouselTimer = null;
+    }
+    resultContainer.classList.remove("carousel");
+  };
+
+  const startCarousel = (values) => {
+    stopCarousel();
+    if (!values?.length) return;
+    const queue = values.map((item) => item.value);
+    let index = 0;
+    resultContainer.classList.add("carousel");
+    carouselTimer = setInterval(() => {
+      resultUI.setResult(queue[index % queue.length], "Перемешиваем…");
+      index += 1;
+    }, 90);
+  };
+
+  const { clear: clearResultBase } = resultUI;
+  const clearResult = () => {
+    stopCarousel();
+    clearResultBase();
+  };
 
   const renderHistory = createHistoryRenderer({
     getState: () => state.getState(),
@@ -727,11 +751,14 @@ export default function renderRandomizerView() {
       showToast("Нет доступных вариантов", "info");
       updatePoolHint();
       updateRollAvailability();
+      stopCarousel();
       return;
     }
     updateRollAvailability();
     resultCard.classList.add("rolling");
+    startCarousel(candidates);
     setTimeout(() => {
+      stopCarousel();
       resultCard.classList.remove("rolling");
       const picked = pickWeightedItem(candidates);
       if (!picked) {
@@ -760,7 +787,8 @@ export default function renderRandomizerView() {
       resultUI.pulse();
       addHistoryEntry(value);
       renderItems();
-    }, 350);
+      updateRollAvailability();
+    }, 650);
   };
 
   wireRollControls(wrapper, roll);
