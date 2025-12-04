@@ -21196,9 +21196,14 @@ h1.section-heading .bk-heading-search #bk-search-info {
 
 .randomizer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: minmax(520px, 2fr) minmax(360px, 1fr);
   gap: 24px;
   align-items: start;
+}
+@media (max-width: 1100px) {
+  .randomizer-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .randomizer-card {
@@ -21247,12 +21252,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 
 .randomizer-editor {
-  grid-column: span 2;
-}
-@media (max-width: 1100px) {
-  .randomizer-editor {
-    grid-column: span 1;
-  }
+  grid-column: 1;
 }
 
 .randomizer-add-row {
@@ -21563,6 +21563,12 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-result-card {
   position: relative;
   overflow: hidden;
+  grid-column: 2;
+}
+@media (max-width: 1100px) {
+  .randomizer-result-card {
+    grid-column: 1;
+  }
 }
 .randomizer-result-card.rolling {
   animation: randomizerPulse 0.35s linear;
@@ -21570,6 +21576,19 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-result-card.active {
   border-color: rgba(var(--color-accent-rgb), 0.6);
   box-shadow: 0 0 30px rgba(var(--color-accent-rgb), 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.randomizer-outcome-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.outcome-divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0;
 }
 
 .randomizer-result {
@@ -21630,7 +21649,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 
 .randomizer-history-card {
-  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 240px;
 }
 
 .randomizer-history {

@@ -251,44 +251,48 @@ export default function renderRandomizerView() {
         <div id="randomizer-list" class="randomizer-list" aria-live="polite"></div>
       </section>
 
-      <section class="randomizer-card randomizer-result-card">
-        <header>
-          <p class="eyebrow">Результат</p>
-          <h3>Случайный выбор</h3>
-        </header>
-        <div class="randomizer-result" id="randomizer-result">
-          <div class="placeholder">
-            <i class="fa-solid fa-dice"></i>
-            <p>Добавьте варианты и нажмите «Запустить»</p>
+      <section class="randomizer-card randomizer-result-card randomizer-outcome-card">
+        <div class="outcome-section">
+          <header>
+            <p class="eyebrow">Результат</p>
+            <h3>Случайный выбор</h3>
+          </header>
+          <div class="randomizer-result" id="randomizer-result">
+            <div class="placeholder">
+              <i class="fa-solid fa-dice"></i>
+              <p>Добавьте варианты и нажмите «Запустить»</p>
+            </div>
+            <div class="result-value" id="randomizer-result-text"></div>
+            <p class="result-meta" id="randomizer-result-meta"></p>
           </div>
-          <div class="result-value" id="randomizer-result-text"></div>
-          <p class="result-meta" id="randomizer-result-meta"></p>
+          <div class="randomizer-result-actions">
+            <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll">
+              <i class="fa-solid fa-play"></i>
+              <span>Ещё раз</span>
+            </button>
+            <button type="button" class="btn btn-ghost" id="randomizer-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать результат">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
         </div>
-        <div class="randomizer-result-actions">
-          <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll">
-            <i class="fa-solid fa-play"></i>
-            <span>Ещё раз</span>
-          </button>
-          <button type="button" class="btn btn-ghost" id="randomizer-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать результат">
-            <i class="fa-solid fa-copy"></i>
-          </button>
-        </div>
-      </section>
 
-      <section class="randomizer-card randomizer-history-card">
-        <header>
-          <p class="eyebrow">История</p>
-          <h3>Последние результаты</h3>
-        </header>
-        <div id="randomizer-history" class="randomizer-history">
-          <p id="randomizer-history-empty" class="placeholder">Ещё ничего не выбрано.</p>
-          <ul id="randomizer-history-list"></ul>
-        </div>
-        <div class="randomizer-history-actions">
-          <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
-            <i class="fa-solid fa-trash"></i>
-            <span>Очистить историю</span>
-          </button>
+        <div class="outcome-divider"></div>
+
+        <div class="randomizer-history-card">
+          <header>
+            <p class="eyebrow">История</p>
+            <h3>Последние результаты</h3>
+          </header>
+          <div id="randomizer-history" class="randomizer-history">
+            <p id="randomizer-history-empty" class="placeholder">Ещё ничего не выбрано.</p>
+            <ul id="randomizer-history-list"></ul>
+          </div>
+          <div class="randomizer-history-actions">
+            <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
+              <i class="fa-solid fa-trash"></i>
+              <span>Очистить историю</span>
+            </button>
+          </div>
         </div>
       </section>
     </div>
@@ -953,12 +957,12 @@ export default function renderRandomizerView() {
   };
 
   ensurePresetExists();
+  const initialPresetName =
+    defaultPresetName && presets.some((p) => p.name === defaultPresetName)
+      ? defaultPresetName
+      : currentPresetName;
+  if (initialPresetName) applyPreset(initialPresetName);
   refreshPresetSelect();
-  if (defaultPresetName && presets.some((p) => p.name === defaultPresetName)) {
-    applyPreset(defaultPresetName);
-  } else if (currentPresetName) {
-    applyPreset(currentPresetName);
-  }
   normalizePool();
 
   const renderHistory = () => {
