@@ -248,6 +248,16 @@ export default function renderRandomizerView() {
             </button>
           </div>
         </div>
+        <div id="randomizer-pool-hint" class="randomizer-pool-hint hidden">
+          <div class="text">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Пул без повторов пуст. Обновите его, чтобы продолжить.</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-pool-refresh">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>Обновить пул</span>
+          </button>
+        </div>
         <div id="randomizer-list" class="randomizer-list" aria-live="polite"></div>
       </section>
 
@@ -284,7 +294,13 @@ export default function renderRandomizerView() {
             <h3>Последние результаты</h3>
           </header>
           <div id="randomizer-history" class="randomizer-history">
-            <p id="randomizer-history-empty" class="placeholder">Ещё ничего не выбрано.</p>
+            <div id="randomizer-history-empty" class="placeholder">
+              <span>Ещё ничего не выбрано.</span>
+              <button type="button" class="btn btn-sm btn-primary" id="randomizer-history-run">
+                <i class="fa-solid fa-dice"></i>
+                <span>Запустить</span>
+              </button>
+            </div>
             <ul id="randomizer-history-list"></ul>
           </div>
           <div class="randomizer-history-actions">
@@ -311,12 +327,15 @@ export default function renderRandomizerView() {
   const bulkDeleteButton = wrapper.querySelector("#randomizer-delete-selected");
   const presetSelect = wrapper.querySelector("#randomizer-preset-select");
   let presetSelectUI = null;
+  const poolHintEl = wrapper.querySelector("#randomizer-pool-hint");
+  const poolRefreshBtn = wrapper.querySelector("#randomizer-pool-refresh");
   const presetSaveBtn = wrapper.querySelector("#randomizer-preset-save");
   const presetNewBtn = wrapper.querySelector("#randomizer-preset-new");
   const presetSaveAsBtn = wrapper.querySelector("#randomizer-preset-save-as");
   const presetDeleteBtn = wrapper.querySelector("#randomizer-preset-delete");
   const presetDefaultBtn = wrapper.querySelector("#randomizer-preset-default");
   let presetPromptEl = null;
+  const historyRunBtn = wrapper.querySelector("#randomizer-history-run");
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -441,11 +460,13 @@ export default function renderRandomizerView() {
       pool = items.map((item) => item.value);
     }
     savePool();
+    updatePoolHint();
   };
 
   const resetPool = () => {
     pool = items.map((item) => item.value);
     savePool();
+    updatePoolHint();
   };
 
   const persistItems = (options = {}) => {
@@ -462,6 +483,13 @@ export default function renderRandomizerView() {
 
   const persistSettings = () => {
     saveJson(STORAGE_KEYS.SETTINGS, settings);
+  };
+
+  const updatePoolHint = () => {
+    if (!poolHintEl) return;
+    const exhausted =
+      settings.noRepeat && items.length > 0 && (pool?.length || 0) === 0;
+    poolHintEl.classList.toggle("hidden", !exhausted);
   };
 
   const savePresets = () => {
@@ -819,8 +847,15 @@ export default function renderRandomizerView() {
     items.forEach((item) => {
       const chip = document.createElement("div");
       chip.className = "randomizer-chip";
-      chip.draggable = true;
       chip.dataset.value = item.value;
+      chip.draggable = false;
+
+      const dragHandle = document.createElement("button");
+      dragHandle.type = "button";
+      dragHandle.className = "chip-drag-handle";
+      dragHandle.setAttribute("aria-label", "Перетащить вариант");
+      dragHandle.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
+      dragHandle.draggable = true;
 
       const text = document.createElement("span");
       text.className = "text";
@@ -904,7 +939,7 @@ export default function renderRandomizerView() {
         renderItems();
       });
 
-      chip.append(text, weightWrap, remove);
+      chip.append(dragHandle, text, weightWrap, remove);
 
       chip.addEventListener("click", (event) => {
         if (event.detail > 1) return;
@@ -917,21 +952,8 @@ export default function renderRandomizerView() {
         startInlineEdit(chip, item.value),
       );
 
-      chip.addEventListener("dragstart", (event) => {
-        dragSource = item.value;
-        chip.classList.add("dragging");
-        event.dataTransfer?.setData("text/plain", item.value);
-        event.dataTransfer?.setDragImage(chip, 10, 10);
-      });
-
-      chip.addEventListener("dragend", () => {
-        dragSource = null;
-        chip.classList.remove("dragging");
-        chip.classList.remove("drop-target");
-      });
-
       chip.addEventListener("dragover", (event) => {
-        if (!dragSource || dragSource === item) return;
+        if (!dragSource || dragSource === item.value) return;
         event.preventDefault();
         chip.classList.add("drop-target");
       });
@@ -947,6 +969,20 @@ export default function renderRandomizerView() {
         moveItem(dragSource, item.value);
       });
 
+      dragHandle.addEventListener("click", (event) => event.stopPropagation());
+      dragHandle.addEventListener("dragstart", (event) => {
+        dragSource = item.value;
+        chip.classList.add("dragging");
+        event.dataTransfer?.setData("text/plain", item.value);
+        event.dataTransfer?.setDragImage(chip, 10, 10);
+      });
+
+      dragHandle.addEventListener("dragend", () => {
+        dragSource = null;
+        chip.classList.remove("dragging");
+        chip.classList.remove("drop-target");
+      });
+
       if (selectedItems.has(item.value)) chip.classList.add("selected");
       fragment.appendChild(chip);
     });
@@ -954,6 +990,7 @@ export default function renderRandomizerView() {
     listEl.appendChild(fragment);
     setCountLabel();
     updateBulkActions();
+    updatePoolHint();
   };
 
   ensurePresetExists();
@@ -1069,6 +1106,7 @@ export default function renderRandomizerView() {
       : items;
     if (!candidates.length) {
       showToast("Нет доступных вариантов", "info");
+      updatePoolHint();
       return;
     }
     resultCard.classList.add("rolling");
@@ -1216,6 +1254,13 @@ export default function renderRandomizerView() {
       resetPool();
       showToast("Пул без повторов обновлён", "success");
     });
+
+  poolRefreshBtn?.addEventListener("click", () => {
+    resetPool();
+    showToast("Пул без повторов обновлён", "success");
+  });
+
+  historyRunBtn?.addEventListener("click", roll);
 
   presetSelect?.addEventListener("change", (event) => {
     const name = event.target.value;
