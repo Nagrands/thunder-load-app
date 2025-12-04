@@ -1,0 +1,116 @@
+<div class="top-bar">
+  <div class="top-bar__left">
+    <div class="brand-chip">
+      {# <img
+        src="../assets/icons/thunder-logo.png"
+        alt="Логотип Thunder Load"
+        loading="lazy"
+      /> #}
+      <div class="brand-meta">
+        <span class="brand-title">Thunder</span>
+        <div
+          class="app-version-label version-container"
+          id="app-version-label"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Версия приложения"
+        >
+          <i class="fas fa-bolt fa-beat-fade"></i>
+          <span class="version">v<span id="app-version">?</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="top-bar__center">
+    <div class="center-menu" role="tablist" aria-label="Навигация по разделам">
+      <div class="group-menu"></div>
+    </div>
+  </div>
+
+  <div class="top-bar__right">
+    <div class="quick-actions">
+      <button
+        class="menu-item"
+        id="open-history"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="История загрузок"
+        data-hotkey="Ctrl+H"
+      >
+        <span class="menu-main">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </span>
+      </button>
+
+      <button
+        class="menu-item"
+        id="shortcuts-button"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="Горячие клавиши"
+        data-hotkey="Ctrl+P"
+      >
+        <span class="menu-main">
+          <i class="fas fa-keyboard"></i>
+        </span>
+      </button>
+
+      <button
+        class="menu-item"
+        id="settings-button"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="Настройки"
+        data-hotkey="Ctrl+,"
+      >
+        <span class="menu-main">
+          <i class="fa-solid fa-gear"></i>
+        </span>
+      </button>
+
+      <button
+        class="menu-item"
+        id="open-github"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="Открыть репозиторий на GitHub"
+      >
+        <span class="menu-main">
+          <i class="fa-brands fa-github"></i>
+        </span>
+      </button>
+
+      <button
+        id="reload-app"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="Обновить окно"
+        data-hotkey="Ctrl+R"
+      >
+        <i class="fa-solid fa-arrow-rotate-right"></i>
+      </button>
+    </div>
+
+    <div class="window-controls">
+      <button
+        class="btn-minimize"
+        title="Свернуть"
+        onclick="window.electron.minimize()"
+      >
+        <i class="fas fa-window-minimize"></i>
+      </button>
+      <button class="btn-close" title="Закрыть" onclick="window.electron.close()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="top-download-progress"
+    class="top-download-progress"
+    aria-hidden="true"
+  >
+    <div id="top-download-progress-fill" class="top-download-progress-fill"></div>
+  </div>
+</div>

@@ -1,0 +1,585 @@
+      <!-- Settings Modal -->
+      <div
+        id="settings-modal"
+        class="settings-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        style="display: none"
+      >
+        <div class="settings-modal-content">
+          <button class="close-settings" aria-label="Закрыть настройки">
+            &times;
+          </button>
+          <h1 id="settings-title">
+            <i class="fa-solid fa-gear"></i> Настройки
+          </h1>
+
+          <div class="settings-layout">
+            <!-- Tab Navigation -->
+            <div class="settings-tabs">
+              <!-- <div class="tab-navigation"> -->
+              <button class="tab-link active" data-tab="general-settings">
+                <i class="fa-solid fa-house"></i>Общие
+              </button>
+              <button class="tab-link" data-tab="window-settings">
+                <i class="fa-solid fa-download"></i>Downloader
+              </button>
+              <button class="tab-link" data-tab="wgunlock-settings">
+                <i class="fa-solid fa-unlock-keyhole"></i>WG Unlock
+              </button>
+              <button class="tab-link" data-tab="backup-settings">
+                <i class="fa-solid fa-box-archive"></i>Backup
+              </button>
+              <button class="tab-link" data-tab="randomizer-settings">
+                <i class="fa-solid fa-shuffle"></i>Randomizer
+              </button>
+              <button class="tab-link" data-tab="appearance-settings">
+                <i class="fa-solid fa-palette"></i>Внешний вид
+              </button>
+              <button class="tab-link" data-tab="other-settings">
+                <i class="fa-solid fa-wrench"></i>Другое
+              </button>
+              <!-- </div> -->
+              <div class="tabs-footer">
+                <div class="tabs-footer-row">
+                  <span class="muted">
+                    <i class="fa-solid fa-bolt"></i>
+                    Thunderload
+                  </span>
+                  <strong id="settings-tabs-version" class="muted">—</strong>
+                </div>
+                <div class="tabs-footer-row">
+                  <span class="muted">
+                    <i class="fa-solid fa-microchip"></i>
+                    Electron
+                  </span>
+                  <strong id="settings-tabs-electron-version" class="muted"
+                    >—</strong
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+              <!-- General Settings Tab -->
+              <div id="general-settings" class="tab-pane active">
+                <h2>
+                  Настройки запуска
+                  <i
+                    class="fa-solid fa-circle-info"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Настройте параметры запуска для удобного использования."
+                  ></i>
+                </h2>
+                <ul class="module">
+                  <li>
+                    <input type="checkbox" id="settings-auto-launch-toggle" />
+                    <label for="settings-auto-launch-toggle">
+                      <i class="fa-brands fa-windows"></i>
+                      <strong>Автоматически запускать</strong> при старте
+                      системы
+                    </label>
+                  </li>
+                  <li>
+                    <input
+                      type="checkbox"
+                      id="settings-minimize-on-launch-toggle"
+                    />
+                    <label for="settings-minimize-on-launch-toggle">
+                      <i class="fa fa-window-restore"></i>
+                      <strong>Сворачивать</strong> приложение при запуске
+                    </label>
+                  </li>
+                </ul>
+                <h2>
+                  При запуске открывать
+                  <i
+                    class="fa-solid fa-circle-info"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Выберите вкладку, которая будет открываться по умолчанию при запуске приложения."
+                  ></i>
+                </h2>
+                <ul class="module default-tab-group">
+                  <li class="custom-theme-select">
+                    <input
+                      type="radio"
+                      id="settings-tab-downloader"
+                      name="defaultTab"
+                      value="download"
+                      checked
+                    />
+                    <label for="settings-tab-downloader">
+                      <i class="fa-solid fa-download"></i>
+                      <strong>Downloader</strong></label
+                    >
+                  </li>
+                  <li class="custom-theme-select">
+                    <input
+                      type="radio"
+                      id="settings-tab-wgsend"
+                      name="defaultTab"
+                      value="wireguard"
+                    />
+                    <label for="settings-tab-wgsend">
+                      <i class="fa-solid fa-unlock-keyhole"></i>
+                      <strong>WG Unlock</strong></label
+                    >
+                  </li>
+                  <li class="custom-theme-select">
+                    <input
+                      type="radio"
+                      id="settings-tab-backup"
+                      name="defaultTab"
+                      value="backup"
+                    />
+                    <label for="settings-tab-backup">
+                      <i class="fa-solid fa-box-archive"></i>
+                      <strong>Backup</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select">
+                    <input
+                      type="radio"
+                      id="settings-tab-randomizer"
+                      name="defaultTab"
+                      value="randomizer"
+                    />
+                    <label for="settings-tab-randomizer">
+                      <i class="fa-solid fa-shuffle"></i>
+                      <strong>Randomizer</strong>
+                    </label>
+                  </li>
+                </ul>
+                <h2>
+                  Закрытие приложения
+                  <i
+                    class="fa-solid fa-circle-info"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Выберите, как приложение должно вести себя при закрытии."
+                  ></i>
+                </h2>
+                <ul class="module">
+                  <li>
+                    <input
+                      type="radio"
+                      id="settings-close-to-tray"
+                      name="closeOption"
+                    />
+                    <label for="settings-close-to-tray">
+                      <i class="fa-regular fa-message"></i>
+                      <strong>Сворачивать</strong> в трей
+                    </label>
+                  </li>
+                  <li class="submenu">
+                    <input
+                      type="checkbox"
+                      id="settings-close-notification-toggle"
+                    />
+                    <label for="settings-close-notification-toggle">
+                      <i class="fa-solid fa-bell"></i>
+                      <strong>Уведомление</strong> о сворачивании
+                    </label>
+                  </li>
+                  <li>
+                    <input
+                      type="radio"
+                      id="settings-close-app-radio"
+                      name="closeOption"
+                    />
+                    <label for="settings-close-app-radio">
+                      <i class="fa-solid fa-circle-xmark"></i>
+                      <strong>Выйти</strong> из приложения
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Window Settings Tab -->
+              <div id="window-settings" class="tab-pane">
+                <h2>Вкладка «Downloader»</h2>
+                    <ul class="module default-tab-group" id="quality-profile-group">
+                    <h3>Выбор качества загрузки по умолчанию</h3>
+                    <small class="muted">Применяется при открытии окна выбора качества</small>
+                      <li>
+                        <input
+                          type="radio"
+                          id="quality-profile-remember"
+                          name="downloadQualityProfile"
+                          value="remember"
+                          checked
+                        />
+                        <label for="quality-profile-remember">
+                          <i class="fa-solid fa-rotate"></i>
+                          <strong>Запомнить последний выбор</strong>
+                        </label>
+                      </li>
+                      <li>
+                        <input
+                          type="radio"
+                          id="quality-profile-audio"
+                          name="downloadQualityProfile"
+                          value="audio"
+                        />
+                        <label for="quality-profile-audio">
+                          <i class="fa-solid fa-music"></i>
+                          <strong>Только Audio</strong>
+                        </label>
+                      </li>
+                    </ul>
+                <ul class="module">
+                  <li>
+                    <input
+                      type="checkbox"
+                      id="settings-expand-window-after-load"
+                    />
+                    <label for="settings-expand-window-after-load">
+                      <i class="fa-solid fa-maximize"></i>
+                      Разворачивать окно <strong>по окончанию загрузки</strong>
+                    </label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="settings-expand-window-copy" />
+                    <label for="settings-expand-window-copy">
+                      <i class="fa-solid fa-maximize"></i>
+                      Разворачивать окно <strong>при копировании URL</strong>
+                    </label>
+                  </li>
+                  <li>
+                    <input
+                      type="checkbox"
+                      id="settings-disable-complete-modal-toggle"
+                    />
+                    <label for="settings-disable-complete-modal-toggle">
+                      <i class="fa-solid fa-window-close"></i>
+                      Отключить <strong>окно открытия файла</strong> после
+                      завершения загрузки
+                    </label>
+                  </li>
+                  <li>
+                    <input
+                      type="checkbox"
+                      id="settings-show-tools-status"
+                      checked
+                    />
+                    <label for="settings-show-tools-status">
+                      <i class="fa-solid fa-eye"></i>
+                      Показывать статус инструментов
+                    </label>
+                  </li>
+                </ul>
+
+                <section id="tools-info" class="settings-section">
+                  <h2>Инструменты</h2>
+                  <div class="module tools-location">
+                    <label for="tools-location-path">
+                      <i class="fa-solid fa-folder"></i>
+                      Папка инструментов
+                    </label>
+                    <div class="tools-location-row">
+                      <input id="tools-location-path" type="text" readonly />
+                      <button
+                        id="tools-location-choose"
+                        data-bs-toggle="tooltip"
+                        title="Выбрать папку"
+                      >
+                        <i class="fa-solid fa-folder-open"></i>
+                      </button>
+                      <button
+                        id="tools-location-open"
+                        data-bs-toggle="tooltip"
+                        title="Открыть папку"
+                      >
+                        <i class="fa-regular fa-folder-open"></i>
+                      </button>
+                      <button
+                        id="tools-location-reset"
+                        data-bs-toggle="tooltip"
+                        title="Сбросить по умолчанию"
+                      >
+                        <i class="fa-solid fa-rotate-left"></i>
+                      </button>
+                      <button
+                        id="tools-location-migrate"
+                        data-bs-toggle="tooltip"
+                        title="Мигрировать из старого места"
+                      >
+                        <i class="fa-solid fa-database"></i>
+                      </button>
+                    </div>
+                    <small id="tools-location-hint" class="muted"
+                      >Папка сохраняется между обновлениями и может быть
+                      изменена.</small
+                    >
+                  </div>
+                  <div class="kv">
+                    <div>yt-dlp:</div>
+                    <div id="yt-dlp-version">—</div>
+                  </div>
+                  <div class="kv">
+                    <div>ffmpeg:</div>
+                    <div id="ffmpeg-version">—</div>
+                  </div>
+                  <div class="kv">
+                    <div>deno:</div>
+                    <div id="deno-version">—</div>
+                  </div>
+                  <small id="tools-hint" class="muted"></small>
+                </section>
+              </div>
+
+              <div id="wgunlock-settings" class="tab-pane">
+                <h2>Вкладка «WireGuard Unlock»</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="wg-disable-toggle" checked />
+                    <label
+                      for="wg-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’."
+                    >
+                      <i class="fa-solid fa-unlock-keyhole"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="wg-autosend" />
+                    <label for="wg-autosend">
+                      <i class="fa-solid fa-share"></i>
+                      Авто‑отправка при запуске
+                    </label>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="wg-auto-shutdown-toggle" />
+                    <label
+                      for="wg-auto-shutdown-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Включить/выключить авто‑закрытие приложения"
+                    >
+                      <i class="fa-solid fa-power-off"></i>
+                      Авто‑закрытие приложения
+                    </label>
+                  </li>
+                  <li
+                    id="wg-auto-shutdown-range"
+                    class="submenu"
+                    style="display: none"
+                  >
+                    <label for="wg-auto-shutdown-seconds">
+                      <i class="fa-solid fa-hourglass-half"></i>
+                      Закрытие приложения через:
+                      <strong
+                        ><span id="wg-auto-shutdown-value">30</span>
+                        сек.</strong
+                      >
+                    </label>
+                    <input
+                      type="range"
+                      id="wg-auto-shutdown-seconds"
+                      min="10"
+                      max="60"
+                      step="1"
+                      aria-label="Время до авто‑закрытия в секундах"
+                    />
+                  </li>
+                </ul>
+              </div>
+
+              <div id="backup-settings" class="tab-pane">
+                <h2>Вкладка «Backup»</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="backup-disable-toggle" />
+                    <label
+                      for="backup-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку и отключает её инициализацию."
+                    >
+                      <i class="fa-solid fa-box-archive"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="backup-compact-toggle" />
+                    <label
+                      for="backup-compact-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Переключает отображение профилей между подробным и компактным режимом."
+                    >
+                      <i class="fa-solid fa-list"></i>
+                      <strong>Компактный список профилей</strong>
+                    </label>
+                  </li>
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="backup-log-toggle" />
+                    <label
+                      for="backup-log-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрыть или показать блок с логом операций резервного копирования."
+                    >
+                      <i class="fa-solid fa-terminal"></i>
+                      <strong>Показывать лог операций</strong>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
+              <div id="randomizer-settings" class="tab-pane">
+                <h2>Вкладка «Randomizer»</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <input type="checkbox" id="randomizer-disable-toggle" checked />
+                    <label
+                      for="randomizer-disable-toggle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Скрывает вкладку Randomizer и отключает все её элементы управления."
+                    >
+                      <i class="fa-solid fa-shuffle"></i>
+                      <strong>Отключить вкладку</strong>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Appearance Settings Tab -->
+              <div id="appearance-settings" class="tab-pane">
+                <h2>Внешний вид приложения</h2>
+                <ul class="module">
+                  <li class="custom-theme-select">
+                    <label for="theme-dropdown-btn">
+                      <i class="fa-solid fa-brush"></i>
+                      <span>Цветовая тема</span>
+                    </label>
+
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" id="theme-dropdown-btn">
+                        <span id="theme-selected-label">Системная</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </button>
+                      <ul class="dropdown-menu" id="theme-dropdown-menu">
+                        <li data-value="system">System</li>
+                        <li data-value="dark">Dark</li>
+                        <li data-value="midnight">Midnight</li>
+                        <li data-value="sunset">Sunset</li>
+                        <li data-value="violet">Violet</li>
+                      </ul>
+                    </div>
+                    <button
+                      id="reset-theme"
+                      class="dropdown-reset"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Сбросить тему по умолчанию"
+                    >
+                      <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                  </li>
+
+                  <li class="custom-theme-select">
+                    <label for="font-size-dropdown-btn">
+                      <i class="fa-solid fa-text-height"></i>
+                      <span>Размер текста</span>
+                    </label>
+
+                    <div class="dropdown">
+                      <button
+                        class="dropdown-toggle"
+                        id="font-size-dropdown-btn"
+                      >
+                        <span id="font-size-selected-label">16 px</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </button>
+                      <ul class="dropdown-menu" id="font-size-dropdown-menu">
+                        <li data-value="14">14 px</li>
+                        <li data-value="16">16 px</li>
+                        <li data-value="18">18 px</li>
+                        <li data-value="20">20 px</li>
+                      </ul>
+                    </div>
+
+                    <button
+                      id="reset-font-size"
+                      class="dropdown-reset"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Сбросить размер шрифта по умолчанию"
+                    >
+                      <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                  </li>
+
+                  <li>
+                    <input type="checkbox" id="settings-low-effects-toggle" />
+                    <label for="settings-low-effects-toggle" data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Отключает анимации и эффекты размытия">
+                      <i class="fa-solid fa-leaf"></i>
+                      Режим <strong>экономии эффектов</strong>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Other Settings Tab -->
+              <div id="other-settings" class="tab-pane">
+                <h2>
+                  Другие настройки
+                  <i
+                    class="fa-solid fa-circle-info"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Дополнительные параметры для детальной настройки поведения приложения."
+                  ></i>
+                </h2>
+                <ul class="module">
+                  <li>
+                    <input
+                      type="checkbox"
+                      id="settings-disable-global-shortcuts-toggle"
+                    />
+                    <label for="settings-disable-global-shortcuts-toggle">
+                      <i class="fa-solid fa-keyboard"></i>
+                      Отключить <strong>специальные</strong> (горячие) клавиши
+                    </label>
+                  </li>
+                </ul>
+                <div class="module export-import-section">
+                  <h3>Настройки приложения</h3>
+                  <button id="export-config-button">
+                    <i class="fa-solid fa-download"></i> Сохранить
+                  </button>
+                  <button id="import-config-button">
+                    <i class="fa-solid fa-upload"></i> Загрузить
+                  </button>
+                  <button id="open-config-folder-button">
+                    <i class="fa-solid fa-folder-open"></i> Папка настроек
+                  </button>
+                  <input
+                    type="file"
+                    id="import-config-input"
+                    accept=".json"
+                    style="display: none"
+                  />
+                </div>
+                <div class="module reset-settings-section">
+                  <h3>Сброс настроек</h3>
+                  <button id="reset-config-button">
+                    <i class="fa-solid fa-rotate-left"></i> Настройки по
+                    умолчанию
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>

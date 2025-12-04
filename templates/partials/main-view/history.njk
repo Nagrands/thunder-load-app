@@ -1,0 +1,118 @@
+<!-- History Section -->
+<section id="history-container">
+  <div class="history-cards-area" aria-live="polite">
+    <div class="history-cards-header">
+      <div>
+        <p class="history-cards-subtitle">Недавние загрузки</p>
+        <h3 class="history-cards-title">История</h3>
+      </div>
+      <div class="history-cards-search history-actions">
+        <div class="history-search-wrapper history-input-wrapper">
+          <i id="icon-filter-search" class="fas fa-search search-icon"></i>
+          <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+          <button
+            id="clear-filter-input"
+            class="history-action-button"
+            aria-label="Очистить поиск"
+            data-hint="Сбросить поисковый запрос"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="history-search-actions history-toolbar">
+          <div class="history-filter-group">
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-globe"></i>
+              <select
+                id="history-source-filter"
+                class="history-filter-select"
+                aria-label="Фильтр по источнику"
+              >
+                <option value="">Все источники</option>
+              </select>
+            </div>
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-sliders"></i>
+              <select
+                id="history-quality-filter"
+                class="history-filter-select"
+                aria-label="Фильтр по качеству"
+              >
+                <option value="">Любое качество</option>
+              </select>
+            </div>
+          </div>
+          <button
+            id="refresh-button"
+            class="history-action-button"
+            aria-label="Обновить список"
+            data-hint="Обновить список"
+          >
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+          </button>
+          <button
+            id="sort-button"
+            class="history-action-button"
+            aria-label="Сортировка"
+            data-hint="Сменить порядок сортировки"
+          >
+            <i class="fa-solid"></i>
+          </button>
+          <button
+            id="clear-history"
+            class="history-action-button"
+            aria-label="Очистить историю"
+            data-hint="Очистить всю историю"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
+          <button
+            id="delete-selected"
+            class="history-action-button hidden"
+            aria-label="Удалить выбранные записи"
+            data-hint="Удалить выбранные"
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+          <button
+            id="restore-history"
+            class="history-action-button"
+            aria-label="Восстановить удалённые записи"
+            data-hint="Восстановить удалённые"
+          >
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button
+            id="history-export-json"
+            class="history-action-button"
+            aria-label="Экспорт в JSON"
+            data-hint="Экспорт в JSON"
+          >
+            <i class="fa-solid fa-file-code"></i>
+          </button>
+          <button
+            id="history-export-csv"
+            class="history-action-button"
+            aria-label="Экспорт в CSV"
+            data-hint="Экспорт в CSV"
+          >
+            <i class="fa-solid fa-file-csv"></i>
+          </button>
+          <button
+            id="history-header"
+            class="history-action-button"
+            aria-label="Количество записей"
+            data-hint="Количество записей"
+          >
+            <span id="total-downloads">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="history" role="list"></div>
+    <div id="history-cards" class="history-card-grid" role="list"></div>
+    <div id="history-cards-empty" class="history-cards-empty">
+      Список пуст
+    </div>
+  </div>
+</section>

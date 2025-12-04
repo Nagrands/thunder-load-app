@@ -1,0 +1,12 @@
+// src/scss/layout/_footer.scss
+
+/* **** Стили для footer **** */
+footer {
+  padding: 6px;
+  position: fixed;
+  bottom: 4px;
+  background-color: var(--color-hover);
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(12px) saturate(180%);
+  /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
+}

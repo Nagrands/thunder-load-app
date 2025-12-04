@@ -1,0 +1,137 @@
+{
+  "name": "thunder-load-app",
+  "productName": "Thunder Load",
+  "version": "1.3.1",
+  "description": "Thunder Load",
+  "main": "src/js/app.js",
+  "private": true,
+  "scripts": {
+    "predev": "npm run templates:build",
+    "dev": "electron . --dev",
+    "prestart": "npm run templates:build",
+    "start": "electron .",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "build": "electron-builder",
+    "build-linux": "electron-builder --linux AppImage",
+    "build-mac": "electron-builder --mac",
+    "sass": "sass --watch src/scss:src/css",
+    "fa:copy": "copyfiles -f node_modules/@fortawesome/fontawesome-free/webfonts/* src/assets/webfonts",
+    "postinstall": "npm run fa:copy",
+    "prebuild": "npm run templates:build && npm run fa:copy",
+    "templates:build": "node scripts/build-templates.mjs",
+    "templates:watch": "nodemon --watch templates --ext njk --exec \"npm run templates:build\"",
+    "format": "prettier --write .",
+    "dist": "electron-builder --publish always",
+    "release:patch": "npm version patch -m \"chore(release): %s\" && git push && git push --tags",
+    "release:minor": "npm version minor -m \"chore(release): %s\" && git push && git push --tags",
+    "release:major": "npm version major -m \"chore(release): %s\" && git push && git push --tags",
+    "tag:current": "node -e \"const v='v'+require('./package.json').version; const {execSync}=require('child_process'); execSync(`git tag ${v}`,{stdio:'inherit'}); execSync(`git push origin ${v}`,{stdio:'inherit'});\""
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "electron-log": "^5.4.3",
+    "electron-store": "^11.0.2",
+    "electron-updater": "^6.3.3",
+    "electron-window-state": "^5.0.3",
+    "marked": "^16.4.1",
+    "sudo-prompt": "^9.2.1",
+    "tree-kill": "^1.2.2",
+    "unzipper": "^0.12.3"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.5",
+    "@fortawesome/fontawesome-free": "^7.0.0",
+    "babel-jest": "^30.2.0",
+    "copyfiles": "^2.4.1",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
+    "electron-debug": "^4.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "nunjucks": "^3.2.4",
+    "prettier": "^3.3.3",
+    "sass": "^1.32.8"
+  },
+  "build": {
+    "appId": "com.thunderload.app",
+    "productName": "Thunder Load",
+    "asar": true,
+    "extraResources": [
+      {
+        "from": "assets/icons/",
+        "to": "usr/share/icons/hicolor/256x256/apps"
+      }
+    ],
+    "files": [
+      "bin/**/*",
+      "assets/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Nagrands",
+        "repo": "thunder-load-app",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icons/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "assets/icons/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "assets/icons/macOS/icon.icns",
+      "category": "public.app-category.utilities"
+    }
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nagrands/thunder-load-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nagrands/thunder-load-app/issues"
+  },
+  "keywords": [
+    "electron",
+    "video",
+    "audio",
+    "downloader",
+    "backup",
+    "tools"
+  ],
+  "author": "Spotlight"
+}

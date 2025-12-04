@@ -1,0 +1,96 @@
+@use "../abstracts/variables";
+
+// src/scss/components/_tooltips.scss
+
+// Параметры для tooltip (их можно переопределять в основном файле)
+$tooltip-bg-color: var(--tooltip-bg-color, rgba(5, 5, 8, 0.9));
+$tooltip-text-color: var(--tooltip-text-color, #fff);
+$tooltip-border-color: var(--tooltip-border-color, rgba(255, 255, 255, 0.12));
+$tooltip-border-radius: var(--tooltip-border-radius, 0.45rem);
+$tooltip-box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
+$tooltip-padding: var(--tooltip-padding, 0.35rem 0.7rem);
+$tooltip-font-size: var(--tooltip-font-size, 0.75rem);
+$tooltip-letter-spacing: 0.01em;
+
+.tooltip {
+  position: absolute;
+  z-index: 1070;
+  font-weight: 500;
+  font-size: $tooltip-font-size;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity variables.$transition-duration ease;
+  backdrop-filter: blur(10px);
+
+  &.show {
+    opacity: 1;
+  }
+
+  .tooltip-inner {
+    padding: $tooltip-padding;
+    color: $tooltip-text-color;
+    text-align: left;
+    background-color: $tooltip-bg-color;
+    border: 1px solid $tooltip-border-color;
+    border-radius: $tooltip-border-radius;
+    box-shadow: $tooltip-box-shadow;
+    position: relative;
+    font-size: inherit;
+    letter-spacing: $tooltip-letter-spacing;
+    backdrop-filter: blur(10px);
+  }
+
+  // Стили для стрелки tooltip
+  .tooltip-arrow {
+    display: none;
+  }
+
+  // Стрелка для tooltip, отображаемого сверху
+  &.bs-tooltip-top {
+    .tooltip-arrow {
+      bottom: -0.4rem;
+      left: calc(50% - 0.4rem);
+      border-width: 0.4rem 0.4rem 0 0.4rem;
+      border-color: $tooltip-bg-color transparent transparent transparent;
+    }
+  }
+
+  // Стрелка для tooltip, отображаемого снизу
+  &.bs-tooltip-bottom {
+    .tooltip-arrow {
+      top: -0.4rem;
+      left: calc(50% - 0.4rem);
+      border-width: 0 0.4rem 0.4rem 0.4rem;
+      border-color: transparent transparent $tooltip-bg-color transparent;
+    }
+  }
+
+  // Стрелка для tooltip, отображаемого слева
+  &.bs-tooltip-left {
+    .tooltip-arrow {
+      top: calc(50% - 0.4rem);
+      right: -0.4rem;
+      border-width: 0.4rem 0 0.4rem 0.4rem;
+      border-color: transparent transparent transparent $tooltip-bg-color;
+    }
+  }
+
+  // Стрелка для tooltip, отображаемого справа
+  &.bs-tooltip-right {
+    .tooltip-arrow {
+      top: calc(50% - 0.4rem);
+      left: -0.4rem;
+      border-width: 0.4rem 0.4rem 0.4rem 0;
+      border-color: transparent $tooltip-bg-color transparent transparent;
+    }
+  }
+
+  // Медиазапрос для мобильных устройств
+  @media (max-width: 576px) {
+    font-size: 0.9rem;
+    .tooltip-inner {
+      padding: 0.5rem 0.75rem;
+      max-width: 180px;
+    }
+  }
+}

@@ -1,0 +1,17 @@
+// src/scss/vendor/_fontawesome.scss
+// Путь от скомпилированного CSS (src/css/styles.css) до шрифтов: ../assets/webfonts
+
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/variables" with (
+  $font-path: "../assets/webfonts"
+);
+
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome";
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/fa" as fa;
+
+// Подключаем только нужные стили (меньше вес)
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/solid" as
+  fa-solid;
+@use "../../../node_modules/@fortawesome/fontawesome-free/scss/brands" as
+  fa-brands;
+// Если понадобятся:
+// @use "../../node_modules/@fortawesome/fontawesome-free/scss/regular" as fa-regular;

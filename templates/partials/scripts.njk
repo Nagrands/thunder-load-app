@@ -1,0 +1,39 @@
+    <!-- Scripts -->
+    <script>
+      (function () {
+        function loadRenderer() {
+          var s = document.createElement("script");
+          s.type = "module";
+          s.src = "js/renderer.js";
+          document.head.appendChild(s);
+        }
+        window._startRenderer = loadRenderer;
+        window._loadBootstrapCdnAndStart = function () {
+          var cdn = document.createElement("script");
+          cdn.src =
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js";
+          cdn.integrity =
+            "sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q";
+          cdn.crossOrigin = "anonymous";
+          cdn.onload = loadRenderer;
+          cdn.onerror = loadRenderer;
+          document.head.appendChild(cdn);
+        };
+      })();
+    </script>
+    <script
+      src="../assets/vendor/bootstrap/bootstrap.bundle.min.js"
+      onload="window._startRenderer()"
+      onerror="window._loadBootstrapCdnAndStart()"
+    ></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("current-year").textContent =
+          new Date().getFullYear();
+      });
+    </script>
+    <script>
+      document.getElementById("reload-app").addEventListener("click", () => {
+        location.reload();
+      });
+    </script>

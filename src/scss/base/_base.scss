@@ -1,0 +1,130 @@
+@use "../abstracts/variables";
+
+// src\scss\base\_base.scss
+
+.close-btn,
+.close,
+.close-settings,
+.close-whats-new,
+.group-menu button,
+.app-version-label,
+.brand-chip,
+.quick-actions,
+.window-controls button {
+  -webkit-app-region: no-drag;
+}
+
+/* **** Стили для body **** */
+body {
+  display: flex;
+  justify-content: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+  height: 100vh;
+  position: relative;
+  user-select: none;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-blend-mode: multiply;
+}
+
+body.modal-scroll-lock {
+  overflow: hidden;
+}
+
+/* **** Стили для ссылок **** */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition:
+    color 0.3s ease,
+    text-decoration 0.3s ease;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    outline: none;
+  }
+
+  &:focus {
+    outline: 2px solid var(--color-accent);
+  }
+}
+
+/* **** Стили для заголовков **** */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: normal;
+  color: var(--color-accent);
+}
+
+h5,
+h6 {
+  font-weight: normal;
+}
+
+strong {
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-history-scroll);
+  border-radius: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-highlight);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-accent); /* Цвет при наведении */
+}
+
+/* **** Адаптивность для header **** */
+@media (max-width: variables.$breakpoint-mobile) {
+  header {
+    grid-gap: var(--spacing-small);
+  }
+}
+
+/* **** Дополнительные медиазапросы для адаптивности **** */
+@media (max-width: variables.$breakpoint-tablet) {
+  footer {
+    font-size: 12px;
+  }
+}
+
+// Плавный переход цветовых переменных при смене темы
+.theme-transition,
+.theme-transition * {
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease,
+    outline-color 220ms ease,
+    fill 220ms ease,
+    stroke 220ms ease;
+}
+
+// Reduced-effects mode: disable heavy filters/animations when toggled
+body.low-effects,
+body.low-effects * {
+  animation: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}

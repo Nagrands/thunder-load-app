@@ -1,0 +1,135 @@
+// src/scss/components/_layout-ui.scss
+@use "../abstracts/mixins";
+
+// Основной контейнер приложения с учетом высоты top-bar
+#main-view {
+  --topbar-safe-space: clamp(96px, 12vh, 150px);
+  padding-top: var(--topbar-safe-space); // Высота top-bar + запас
+  min-height: calc(100vh - var(--topbar-safe-space)); // Вычитаем top-bar
+  box-sizing: border-box;
+
+  @media (max-width: 1100px) {
+    --topbar-safe-space: clamp(116px, 16vh, 190px);
+  }
+
+  @media (max-width: 900px) {
+    --topbar-safe-space: clamp(104px, 18vh, 172px);
+  }
+
+  @media (max-width: 768px) {
+    --topbar-safe-space: 78px; // Высота top-bar на мобильных
+  }
+}
+
+// Дополнительные контейнеры, которые могут появляться
+#app-preloader {
+  --topbar-safe-space: clamp(96px, 12vh, 150px);
+  padding-top: var(--topbar-safe-space);
+  min-height: calc(100vh - var(--topbar-safe-space));
+  box-sizing: border-box;
+
+  @media (max-width: 1100px) {
+    --topbar-safe-space: clamp(116px, 16vh, 190px);
+  }
+
+  @media (max-width: 900px) {
+    --topbar-safe-space: clamp(104px, 18vh, 172px);
+  }
+
+  @media (max-width: 768px) {
+    --topbar-safe-space: 78px;
+  }
+}
+
+// Модальные окна - должны быть поверх top-bar
+#settings-modal,
+#shortcuts-modal,
+#whats-new-modal,
+#confirmation-modal,
+#update-available-modal,
+#update-downloaded-modal,
+#update-error-modal {
+  padding-top: 0 !important;
+  min-height: 100vh !important;
+  z-index: 1001; // Выше чем top-bar (z-index: 1000)
+}
+
+// Toast-уведомления - поверх всего
+.toast-container {
+  top: 80px !important; // Ниже top-bar но выше контента
+  z-index: 1002;
+}
+
+.header {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+  transition:
+    background-color var(--transition-duration),
+    color var(--transition-duration);
+}
+
+.container {
+  min-height: calc(100vh - 80px - 60px); // Учитываем и top-bar и footer
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-wrap: wrap;
+  max-width: 1020px;
+  // overflow-y: auto;
+  @include mixins.fade-in(0.5s);
+  transition:
+    background-color var(--transition-duration),
+    color var(--transition-duration),
+    border-color var(--transition-duration),
+    box-shadow var(--transition-duration);
+}
+
+.footer-info {
+  text-transform: uppercase;
+  color: var(--color-quality);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  opacity: 0.85;
+  user-select: none;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease,
+    text-decoration-color 0.2s ease;
+  &:hover {
+    color: var(--color-accent);
+    opacity: 1;
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  @media (max-width: 480px) {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Responsive tweaks formerly in _ui.scss */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.7rem;
+  }
+  .button {
+    font-size: 14px;
+  }
+  .icon-links a {
+    font-size: 1.2em;
+  }
+
+  // Дополнительные корректировки для мобильных
+  #main-view {
+    --topbar-safe-space: 72px;
+  }
+}

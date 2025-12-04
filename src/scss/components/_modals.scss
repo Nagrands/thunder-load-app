@@ -1,0 +1,1622 @@
+@use "../abstracts/mixins";
+
+// ----------------------------------------
+//  Основные модалки
+// ----------------------------------------
+
+%modal-base {
+  @include mixins.modal-overlay;
+}
+
+.modal-overlay,
+.shortcuts-modal,
+.whats-modal,
+.settings-modal {
+  @extend %modal-base;
+}
+
+.modal-content,
+.shortcuts-modal-content,
+.whats-modal-content,
+.settings-modal-content,
+.bk-modal,
+#update-available-modal .modal-content,
+#update-downloaded-modal .modal-content,
+#update-error-modal .modal-content {
+  @include mixins.modal-content-base;
+  // backdrop-filter: blur(20px);
+  background: var(--color-bg-main);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  // box-shadow:
+  //   0 8px 32px rgba(0, 0, 0, 0.2),
+  //   inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+// ----------------------------------------
+// ⌨️ Модалка "Горячие клавиши"
+// ----------------------------------------
+
+.shortcuts-modal {
+  .shortcuts-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px;
+    max-width: 780px;
+    // Avoid expensive heavy blurs inside modal
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    .short-info {
+      display: flex;
+      color: var(--color-quality);
+      margin: 5px;
+      font-weight: 400;
+      font-size: 13px;
+      font-style: italic;
+    }
+  }
+
+  li {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    color: var(--color-highlight);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 12px;
+    margin: 2px 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+
+    strong {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: row;
+      min-width: 20%;
+      color: var(--color-accent);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      letter-spacing: 0.7px;
+      padding: 4px 10px;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: var(--color-highlight);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.15) 0%,
+          rgba(255, 255, 255, 0.08) 100%
+        );
+        transform: translateY(-1px);
+      }
+    }
+
+    i {
+      width: 25px;
+      margin: 0 15px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--color-text-main);
+      transform: translateX(4px);
+    }
+  }
+
+  // Секции (details/summary) — компактные карточки
+  details.spoiler {
+    margin-top: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  details.spoiler summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    padding: 5px;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+  }
+
+  details.spoiler summary:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  details.spoiler summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.spoiler summary i {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  details.spoiler[open] summary i {
+    transform: rotate(90deg);
+  }
+
+  // Списки хоткеев — грид 2 колонки на широких окнах
+  .main-hotkeys,
+  .additional-hotkeys {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  @media (min-width: 760px) {
+    .main-hotkeys,
+    .additional-hotkeys {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  // Разделители внутри grid — на всю ширину
+  .main-hotkeys hr,
+  .additional-hotkeys hr {
+    grid-column: 1 / -1;
+    opacity: 0.15;
+    margin: 8px 0;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  // Элементы хоткеев: key → описание
+  .main-hotkeys li,
+  .additional-hotkeys li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .main-hotkeys li:hover,
+  .additional-hotkeys li:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--color-text-main);
+    transform: translateY(-1px);
+  }
+
+  // Значок/текст описания
+  .main-hotkeys li p,
+  .additional-hotkeys li p {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--color-highlight);
+  }
+
+  // Бейдж комбинации клавиш (kbd‑стиль)
+  .main-hotkeys li strong,
+  .additional-hotkeys li strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: auto;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    letter-spacing: 0.2px;
+    color: var(--color-accent);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+
+  // Адаптив для совсем узких окон — одна колонка
+  @media (max-width: 560px) {
+    .main-hotkeys,
+    .additional-hotkeys {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Стили для модального окна "What's New"
+.whats-modal {
+  padding: 1.5rem;
+  align-items: center;
+  justify-content: center;
+
+  .whats-modal-content {
+    width: min(520px, 92vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 20px 24px 24px;
+    border-radius: 20px;
+    gap: 0.75rem;
+    background: radial-gradient(
+      circle at 20% -10%,
+      rgba(255, 255, 255, 0.18),
+      rgba(8, 10, 22, 0.8)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 20px 50px rgba(5, 8, 20, 0.65),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  #whats-new-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+  }
+
+  h2 {
+    font-size: 19px;
+    margin-bottom: 4px;
+    color: var(--color-highlight);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: var(--color-accent);
+    }
+  }
+
+  ul {
+    padding: 0;
+
+    li {
+      color: var(--color-highlight);
+
+      b {
+        margin: 10px 0;
+        font-weight: 500;
+        letter-spacing: 0.5pt;
+        text-transform: uppercase;
+        color: var(--color-accent);
+      }
+    }
+
+    h3 {
+      display: flex;
+      justify-content: center;
+      color: var(--color-highlight);
+      font-size: 20px;
+      font-weight: 600;
+      margin: 6px 0;
+    }
+
+    .whats-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+      &-date {
+        font-weight: 500;
+        color: var(--color-accent);
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+
+        i {
+          padding-right: 10px;
+        }
+      }
+
+      &-head {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--color-text-main);
+        font-size: 16px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        margin: 8px 0;
+
+        i {
+          padding-right: 10px;
+        }
+      }
+
+      &-entry {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        color: var(--color-highlight);
+        border-radius: 14px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 6px 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+
+        i {
+          padding: 0 5px;
+          color: var(--color-accent);
+          font-size: 0.95em;
+        }
+
+        p {
+          margin: 0;
+          line-height: 1.45;
+        }
+      }
+    }
+  }
+}
+
+// Стили для модального окна "Настройки"
+.settings-modal {
+  // === Инструменты (yt-dlp / ffmpeg) ===
+  #tools-info {
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    // backdrop-filter: blur(15px);
+    border-radius: 16px;
+    margin: 0;
+    overflow: visible;
+
+    h2 {
+      font-weight: 500;
+      margin: 2px;
+    }
+
+    #tools-hint {
+      display: block;
+      margin-top: 8px;
+      color: var(--color-highlight);
+      opacity: 0.8;
+    }
+
+    // --- Footer: status + check updates button ---
+    .tools-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    #tools-status {
+      flex: 1 1 220px;
+      min-height: 18px;
+      font-size: 12px;
+      color: var(--color-quality);
+      opacity: 0.95;
+      line-height: 1.35;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    // Обновляем кнопки инструментов в стиле Liquid Glass
+    #tools-primary-btn,
+    #open-tools-folder,
+    #tools-force-btn {
+      @include mixins.button-base;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 40px;
+      padding: 0 16px;
+      min-width: 60px;
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.22) 0%,
+        rgba(var(--color-accent-rgb), 0.14) 50%,
+        rgba(var(--color-accent-rgb), 0.08) 100%
+      );
+      backdrop-filter: none;
+      border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+      border-radius: 12px;
+      color: var(--color-highlight);
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+      i {
+        font-size: 1rem;
+      }
+
+      &:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(var(--color-accent-rgb), 0.35) 0%,
+          rgba(var(--color-accent-rgb), 0.22) 50%,
+          rgba(var(--color-accent-rgb), 0.12) 100%
+        );
+        color: var(--color-text-main);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+
+    // Модификатор при скрытом футере
+    &.no-footer {
+      padding-bottom: 12px;
+    }
+  }
+
+  // Адаптив под узкие окна
+  @media screen and (max-width: 720px) {
+    #tools-info {
+      .tools-footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  }
+
+  // === Переменные ===
+  $transition-time: 0.3s;
+  $input-size: 20px;
+  $tab-padding: 12px 20px;
+
+  // === Заголовки ===
+  h1 {
+    font-size: 24px;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 600;
+
+    i {
+      color: var(--color-quality);
+      font-size: 16px;
+      padding: 0 10px;
+    }
+  }
+
+  p {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--color-highlight);
+    padding: 8px;
+    line-height: 1.35;
+  }
+
+  // === Списки и элементы ===
+  li {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    margin: 0;
+    border-radius: 12px;
+    color: var(--color-text-main);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    &.submenu {
+      padding-left: 45px;
+      position: relative;
+
+      &::before {
+        position: absolute;
+        left: 25px;
+        color: var(--color-highlight);
+      }
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--color-highlight);
+    }
+
+    label {
+      width: 100%;
+      gap: 8px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+
+      i {
+        font-size: 1em;
+        min-width: 24px;
+        text-align: center;
+        color: var(--color-accent);
+        margin: 0 8px;
+      }
+
+      span {
+        min-width: 130px;
+      }
+    }
+  }
+
+  // Группа радиокнопок "При запуске открывать" — в одну строку
+  .default-tab-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    label {
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input[type="radio"] {
+      margin-right: 6px;
+    }
+  }
+
+  // === Табы в стиле Liquid Glass ===
+  .tab-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .tab-link {
+    padding: $tab-padding;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-highlight);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    i {
+      color: var(--color-quality);
+      margin-right: 6px;
+    }
+
+    &.active {
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.25) 0%,
+        rgba(var(--color-accent-rgb), 0.15) 100%
+      );
+      border-color: rgba(var(--color-accent-rgb), 0.3);
+      color: var(--color-text-main);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--color-accent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  .tab-content {
+    flex-grow: 1;
+
+    .tab-pane {
+      display: none;
+      animation: fadeInTf $transition-time ease;
+
+      &.active {
+        display: block;
+      }
+    }
+  }
+
+  // === Выбор темы в стиле Liquid Glass ===
+  .custom-theme-select {
+    display: flex;
+    align-items: center;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      i {
+        font-size: 14px;
+        min-width: 18px;
+        text-align: center;
+        margin-right: 0;
+        color: var(--color-accent);
+      }
+
+      span {
+        font-weight: 500;
+        color: var(--color-highlight);
+      }
+    }
+
+    .dropdown {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      position: relative;
+      flex: 1 1 auto;
+    }
+
+    .dropdown-reset {
+      height: 40px;
+    }
+  }
+
+  // === Выпадающее меню в стиле Liquid Glass ===
+  .dropdown {
+    width: 100%;
+
+    &-toggle,
+    &-reset {
+      height: 40px;
+    }
+
+    &-toggle {
+      width: 200px;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      border-radius: 12px;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
+      backdrop-filter: blur(12px);
+      color: var(--color-text-main);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.3s ease;
+
+      // Встроенный свотч темы
+      position: relative;
+
+      &::before {
+        content: "";
+        position: absolute;
+        right: 35px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 12px;
+        border-radius: 10px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        background:
+          radial-gradient(circle at 20% 50%, #f5f5f5 0 3px, transparent 4px),
+          radial-gradient(circle at 50% 50%, #d6d6d6 0 3px, transparent 4px),
+          radial-gradient(circle at 80% 50%, #bfbfbf 0 3px, transparent 4px);
+      }
+
+      &[data-current-theme="dark"]::before {
+        background:
+          radial-gradient(circle at 20% 50%, #3a3a3a 0 3px, transparent 4px),
+          radial-gradient(circle at 50% 50%, #202020 0 3px, transparent 4px),
+          radial-gradient(circle at 80% 50%, #121212 0 3px, transparent 4px);
+      }
+
+      &[data-current-theme="midnight"]::before {
+        background:
+          radial-gradient(circle at 20% 50%, #163a6b 0 3px, transparent 4px),
+          radial-gradient(circle at 50% 50%, #0a84ff 0 3px, transparent 4px),
+          radial-gradient(circle at 80% 50%, #0b1220 0 3px, transparent 4px);
+      }
+
+      &[data-current-theme="sunset"]::before {
+        background:
+          radial-gradient(circle at 20% 50%, #fb923c 0 3px, transparent 4px),
+          radial-gradient(circle at 50% 50%, #f472b6 0 3px, transparent 4px),
+          radial-gradient(circle at 80% 50%, #2a162d 0 3px, transparent 4px);
+      }
+
+      &[data-current-theme="violet"]::before {
+        background:
+          radial-gradient(circle at 20% 50%, #c084fc 0 3px, transparent 4px),
+          radial-gradient(circle at 50% 50%, #a855f7 0 3px, transparent 4px),
+          radial-gradient(circle at 80% 50%, #1f142d 0 3px, transparent 4px);
+      }
+
+      &[data-current-theme="system"]::before {
+        background:
+          radial-gradient(circle at 20% 50%, #f5f5f5 0 3px, transparent 4px),
+          radial-gradient(circle at 50% 50%, #d6d6d6 0 3px, transparent 4px),
+          radial-gradient(circle at 80% 50%, #121212 0 3px, transparent 4px);
+      }
+
+      i {
+        margin-left: 8px;
+        font-size: 12px;
+      }
+
+      &:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.15) 0%,
+          rgba(255, 255, 255, 0.08) 100%
+        );
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-1px);
+      }
+    }
+
+    &-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 50%;
+      padding: 1px;
+      z-index: 100;
+      background-color: var(--color-bg-main);
+      border: 1px solid var(--color-hover);
+      border-radius: 6px;
+
+      &.show {
+        display: block;
+      }
+
+      li {
+        padding: 8px 12px;
+        margin: 2px;
+        color: var(--color-text-main);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: transparent;
+        border: 1px solid transparent;
+
+        i {
+          margin-right: 0 !important;
+        }
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.2);
+          color: var(--color-accent);
+        }
+
+        &.active {
+          background: rgba(var(--color-accent-rgb), 0.2);
+          border-color: rgba(var(--color-accent-rgb), 0.3);
+          color: #fff;
+        }
+      }
+    }
+
+    &-reset {
+      @include mixins.button-base;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 10px;
+      padding: 0 12px;
+      color: #fff;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 80, 80, 0.25) 0%,
+        rgba(255, 80, 80, 0.15) 100%
+      );
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 80, 80, 0.3);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      i {
+        font-size: 1rem;
+      }
+
+      &:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 80, 80, 0.35) 0%,
+          rgba(255, 80, 80, 0.22) 100%
+        );
+        border-color: rgba(255, 80, 80, 0.5);
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  #general-settings,
+  #window-settings,
+  #wgunlock-settings,
+  #backup-settings,
+  #randomizer-settings,
+  #appearance-settings,
+  #other-settings {
+    // Карточный вид строк
+    ul.module {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+
+      li.custom-theme-select {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        margin: 0;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+
+    // Выравнивание дропдаунов и размера кнопок
+    .custom-theme-select {
+      .dropdown-toggle {
+        width: 220px;
+        height: 38px;
+      }
+
+      .dropdown-reset {
+        height: 38px;
+      }
+    }
+
+    // Override: группа "При запуске открывать" — в ряд, компактные пилюли
+    ul.module.default-tab-group {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      align-content: center;
+      justify-content: center;
+    }
+
+    ul.module.default-tab-group li.custom-theme-select {
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    ul.module.default-tab-group li.custom-theme-select:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    ul.module.default-tab-group label {
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    ul.module.default-tab-group input[type="radio"] {
+      margin-right: 6px;
+    }
+
+    // Меню тем — превью свотчи
+    .dropdown-menu {
+      min-width: 220px;
+      left: auto;
+      right: 0;
+
+      li {
+        position: relative;
+        padding-left: 28px;
+
+        &::before {
+          content: "";
+          position: absolute;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+        }
+
+        &[data-value="dark"]::before {
+          background: radial-gradient(circle at 30% 30%, #3a3a3a, #121212 70%);
+        }
+
+        &[data-value="system"]::before {
+          background: conic-gradient(
+            from 45deg,
+            #f5f5f5 0 25%,
+            #d6d6d6 25% 50%,
+            #3a3a3a 50% 75%,
+            #121212 75% 100%
+          );
+        }
+
+        &[data-value="midnight"]::before {
+          background: radial-gradient(circle at 30% 30%, #163a6b, #0b1220 70%);
+          box-shadow: inset 0 0 0 2px rgba(90, 200, 250, 0.25);
+        }
+
+        &[data-value="sunset"]::before {
+          background: radial-gradient(circle at 30% 30%, #fb923c, #2a162d 70%);
+          box-shadow: inset 0 0 0 2px rgba(244, 114, 182, 0.35);
+        }
+
+        &[data-value="violet"]::before {
+          background: radial-gradient(circle at 30% 30%, #c084fc, #1b0f2b 70%);
+          box-shadow: inset 0 0 0 2px rgba(192, 132, 252, 0.4);
+        }
+      }
+    }
+
+    .dropdown-menu li.active {
+      outline: 1px solid var(--color-accent);
+      outline-offset: -1px;
+      position: relative;
+
+      &::after {
+        content: "✓";
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-accent);
+        font-size: 13px;
+        font-weight: 700;
+      }
+    }
+
+    // Фокус‑состояния для доступности
+    .dropdown-toggle:focus-visible,
+    .dropdown-reset:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  // === Чекбоксы и радио ===
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: $input-size;
+    height: $input-size;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      filter: brightness(1.2);
+      transform: scale(1.05);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+    }
+  }
+}
+
+// Заголовок модального окна
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// Кнопки закрытия модальных окон
+.close,
+.close-whats-new,
+.close-settings,
+.close-modal,
+.history-card-preview-close,
+.quality-modal-close {
+  @include mixins.close-button;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  &:hover,
+  &:focus {
+    background: var(--color-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--color-accent);
+  }
+}
+
+// Тело модального окна
+.modal-body {
+  padding: 0;
+  margin: 18px 0;
+  color: var(--color-highlight);
+}
+
+// Футер модального окна с кнопками в стиле Liquid Glass
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0;
+  text-align: right;
+  gap: 12px;
+
+  .confirm-button,
+  .cancel-button {
+    @include mixins.button-base;
+    margin-left: 0;
+    width: 140px;
+    height: 44px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    border: 1px solid;
+
+    i {
+      // padding-right: 5px;
+      margin: 0 5px;
+      border-radius: var(--border-radius);
+    }
+  }
+
+  .confirm-button {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.25) 0%,
+      rgba(var(--color-accent-rgb), 0.15) 100%
+    );
+    border-color: rgba(var(--color-accent-rgb), 0.3);
+    color: var(--color-highlight);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.35) 0%,
+        rgba(var(--color-accent-rgb), 0.22) 100%
+      );
+      border-color: rgba(var(--color-accent-rgb), 0.5);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+  }
+
+  .cancel-button {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 80, 80, 0.25) 0%,
+      rgba(255, 80, 80, 0.15) 100%
+    );
+    border-color: rgba(255, 80, 80, 0.3);
+    color: var(--color-highlight);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(255, 80, 80, 0.35) 0%,
+        rgba(255, 80, 80, 0.22) 100%
+      );
+      border-color: rgba(255, 80, 80, 0.5);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// ----------------------------------------
+// Подтверждение (delete/file/history)
+// ----------------------------------------
+.confirmation-modal {
+  .modal-content {
+    max-width: 520px;
+    width: 100%;
+  }
+
+  .confirmation-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px 0;
+  }
+
+  .confirmation-title-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .confirmation-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 99, 99, 0.25),
+      rgba(255, 99, 99, 0.12)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--color-accent);
+  }
+
+  .confirmation-subtitle {
+    margin: 2px 0 6px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-quality);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--color-highlight);
+  }
+
+  .confirmation-body {
+    padding: 10px 20px 0;
+  }
+
+  .confirmation-message {
+    color: var(--color-text-main);
+    line-height: 1.55;
+    display: grid;
+    gap: 10px;
+
+    .info-entry {
+      display: grid;
+      gap: 6px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .date-time-quality {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--color-quality);
+      font-size: 13px;
+
+      i {
+        margin-right: 6px;
+        color: var(--color-accent);
+      }
+    }
+
+    .info-note,
+    .info-delete {
+      p {
+        margin: 0;
+        color: var(--color-highlight);
+      }
+
+      i {
+        margin-right: 6px;
+        color: var(--color-accent);
+      }
+    }
+  }
+
+  .confirmation-footer {
+    justify-content: flex-end;
+    padding: 8px 20px 20px;
+  }
+
+  &[data-tone="danger"] .confirmation-icon {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 99, 99, 0.3),
+      rgba(255, 99, 99, 0.16)
+    );
+    color: #ff7a7a;
+  }
+
+  &[data-tone="info"] .confirmation-icon {
+    background: linear-gradient(
+      135deg,
+      rgba(0, 160, 255, 0.28),
+      rgba(0, 160, 255, 0.14)
+    );
+    color: var(--color-accent);
+  }
+}
+
+// Прогресс-Бар для обновлений в стиле Liquid Glass
+#update-progress-container {
+  display: none;
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  padding: 20px 24px;
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 1000;
+  color: var(--color-text-main);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s ease;
+
+  &.show {
+    display: flex;
+    animation: fadeInUp 0.3s ease;
+  }
+
+  #update-progress-text {
+    text-align: center;
+    font-size: 15px;
+    color: var(--color-highlight);
+  }
+
+  #update-progress-bar {
+    width: 100%;
+    height: 16px;
+    appearance: none;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    // Webkit-only
+    &::-webkit-progress-bar {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    &::-webkit-progress-value {
+      background: linear-gradient(90deg, var(--color-accent), #0a84ff);
+      transition: width 0.3s ease;
+    }
+
+    // Firefox
+    &::-moz-progress-bar {
+      background: linear-gradient(90deg, var(--color-accent), #0a84ff);
+    }
+  }
+}
+
+// Адаптивность
+@media screen and (max-width: 480px) {
+  .modal-content {
+    width: 90%;
+  }
+}
+
+// Вертикальные вкладки в настройках в стиле Liquid Glass
+.settings-layout {
+  display: flex;
+  gap: 24px;
+  overflow: visible;
+  position: relative;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  min-height: 430px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  padding: 8px;
+
+  .tab-link {
+    background: transparent;
+    color: var(--color-highlight);
+    border: none;
+    padding: 12px 16px;
+    margin: 4px;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 0.02rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+
+    &.active {
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.2) 0%,
+        rgba(var(--color-accent-rgb), 0.1) 100%
+      );
+      border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+      color: var(--color-text-main);
+
+      i {
+        color: var(--color-accent);
+      }
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .tabs-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 10px 6px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    color: var(--color-quality);
+    font-size: 12px;
+
+    .tabs-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+    }
+
+    i {
+      color: var(--color-accent);
+    }
+
+    strong {
+      color: var(--color-text-main);
+      font-weight: 600;
+    }
+  }
+}
+
+.tab-content {
+  overflow: visible;
+}
+
+.tab-pane {
+  overflow: visible;
+}
+
+.dropdown-menu {
+  z-index: 9999;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+// Update Flyover (Liquid Glass)
+.upd-flyover {
+  position: fixed;
+  z-index: 3000;
+  min-width: 320px;
+  max-width: 380px;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  color: var(--color-highlight);
+  // Liquid glass background with subtle gradient and inner glow
+  background:
+    linear-gradient(180deg, rgba(18, 22, 30, 0.72), rgba(20, 24, 34, 0.64))
+      padding-box,
+    radial-gradient(
+        120% 120% at 0% 0%,
+        rgba(120, 180, 255, 0.22),
+        rgba(120, 180, 255, 0.06)
+      )
+      border-box;
+  border: 1px solid var(--color-hover);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px) saturate(1.35);
+  -webkit-backdrop-filter: blur(12px) saturate(1.35);
+  // base animation state
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity var(--transition-duration) ease,
+    transform var(--transition-duration) ease;
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  // tail position (will be updated from JS relative to version badge)
+  --tail-left: 24px;
+
+  // Small tail (pointer) to the version badge
+  &::after {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: var(--tail-left);
+    width: 12px;
+    height: 12px;
+    transform: rotate(45deg);
+    background: linear-gradient(
+      180deg,
+      rgba(18, 22, 30, 0.72),
+      rgba(20, 24, 34, 0.64)
+    );
+    border-left: 1px solid rgba(120, 180, 255, 0.18);
+    border-top: 1px solid rgba(120, 180, 255, 0.18);
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+  }
+
+  // Close icon in corner
+  .upd-close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    color: var(--button-enabled);
+    cursor: pointer;
+    line-height: 22px;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      transform var(--transition-duration) ease,
+      box-shadow var(--transition-duration) ease,
+      outline var(--transition-duration) ease;
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  .hdr {
+    margin: 0 0 15px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--color-accent);
+    letter-spacing: 0.03em;
+  }
+
+  .ver {
+    font-size: 12.5px;
+    color: rgba(220, 230, 255, 0.82);
+    margin-bottom: 10px;
+
+    .cur {
+      color: #ff9c9c;
+    }
+
+    .next {
+      color: #7be084;
+    }
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  // Use global .btn styles, adjust slightly for glass
+  .btn {
+    box-shadow: 0 6px 16px rgba(10, 132, 255, 0.16);
+  }
+
+  .btn:hover {
+    box-shadow: 0 10px 22px rgba(10, 132, 255, 0.2);
+  }
+
+  .btn-ghost {
+    box-shadow: none;
+  }
+
+  progress {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--color-progress-bg);
+
+    &::-webkit-progress-bar {
+      background: var(--color-progress-bg);
+    }
+
+    &::-webkit-progress-value {
+      background: var(--color-progress-bar);
+    }
+  }
+
+  .muted {
+    padding: 5px;
+    color: var(--color-highlight);
+    font-size: 13px;
+  }
+}
+
+// Midnight theme tweaks (crisper edges)
+[data-theme="midnight"] .upd-flyover {
+  border: 1px solid rgba(90, 150, 255, 0.22);
+  box-shadow:
+    0 24px 60px rgba(0, 10, 25, 0.55),
+    inset 0 1px 0 rgba(160, 200, 255, 0.08);
+
+  &::after {
+    border-left: 1px solid rgba(90, 150, 255, 0.26);
+    border-top: 1px solid rgba(90, 150, 255, 0.26);
+  }
+
+  .upd-close {
+    border-color: rgba(90, 150, 255, 0.24);
+  }
+}

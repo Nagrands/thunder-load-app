@@ -1,0 +1,30 @@
+// src\scss\styles.scss
+
+@use "vendor/fontawesome";
+
+// Абстрактные модули
+@use "abstracts/variables";
+@use "abstracts/mixins";
+@use "abstracts/animations";
+
+// Базовые стили
+@use "base/reset";
+@use "base/visibility";
+@use "base/typography";
+@use "base/base";
+
+// Layout
+@use "layout/header";
+@use "layout/footer";
+
+// Компоненты (агрегатор)
+@use "components/index";
+
+// Вкладки
+@use "tab/downloader";
+@use "tab/wgsend";
+@use "tab/backup";
+@use "tab/randomizer";
+
+// Платформенные стили
+@use "platform/macos";

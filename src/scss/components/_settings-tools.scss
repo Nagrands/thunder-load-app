@@ -1,0 +1,414 @@
+// src/scss/components/_settings-tools.scss
+
+// Улучшения UI для окна «Настройки» и блока «Инструменты»
+
+// Общие модули внутри настроек
+.settings-section .module {
+  padding: 12px 6px;
+}
+.settings-section .module + .module {
+  margin-top: 10px;
+}
+
+// Единый стиль «серой подсказки»
+.muted {
+  opacity: 0.75;
+}
+
+// --- Блок выбора папки инструментов
+.tools-location {
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .tools-location-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto auto; // input + 4 кнопки
+    gap: 8px;
+    align-items: center;
+  }
+
+  #tools-location-path,
+  #ti-tools-location-path {
+    width: 100%;
+    height: 36px;
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-highlight);
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition:
+      border-color 0.16s ease,
+      background 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+
+  #tools-location-path:focus-visible,
+  #ti-tools-location-path:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(78, 93, 148, 0.35);
+  }
+
+  #tools-location-choose,
+  #tools-location-open,
+  #tools-location-reset,
+  #tools-location-migrate,
+  #ti-tools-location-choose,
+  #ti-tools-location-open,
+  #ti-tools-location-reset,
+  #ti-tools-location-migrate {
+    height: 36px;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: var(--color-highlight);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0 10px;
+    transition:
+      transform 0.08s ease,
+      background 0.16s ease,
+      border-color 0.16s ease;
+    cursor: pointer;
+  }
+
+  // hover/active
+  #tools-location-choose:hover,
+  #tools-location-open:hover,
+  #tools-location-reset:hover,
+  #tools-location-migrate:hover,
+  #ti-tools-location-choose:hover,
+  #ti-tools-location-open:hover,
+  #ti-tools-location-reset:hover,
+  #ti-tools-location-migrate:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  #tools-location-choose:active,
+  #tools-location-open:active,
+  #tools-location-reset:active,
+  #tools-location-migrate:active,
+  #ti-tools-location-choose:active,
+  #ti-tools-location-open:active,
+  #ti-tools-location-reset:active,
+  #ti-tools-location-migrate:active {
+    transform: translateY(1px);
+  }
+
+  #tools-location-choose:focus-visible,
+  #tools-location-open:focus-visible,
+  #tools-location-reset:focus-visible,
+  #tools-location-migrate:focus-visible,
+  #ti-tools-location-choose:focus-visible,
+  #ti-tools-location-open:focus-visible,
+  #ti-tools-location-reset:focus-visible,
+  #ti-tools-location-migrate:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  // disabled
+  #tools-location-reset:disabled,
+  #ti-tools-location-reset:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+// --- Футер инструментов
+.tools-footer {
+  display: grid;
+  grid-template-columns: 1fr auto auto; // статус • основная • форс
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+
+  #tools-primary-btn,
+  #tools-force-btn {
+    height: 36px;
+    border-radius: 14px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text-main);
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease,
+      transform 0.08s ease;
+
+    i {
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    &:active {
+      transform: translateY(1px);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  #tools-status {
+    text-align: left;
+    min-height: 18px; // чтобы не прыгала сетка при смене текста
+  }
+
+  // сгруппируем действия справа
+  #tools-primary-btn {
+    justify-self: end;
+  }
+  .tools-more {
+    justify-self: end;
+  }
+}
+
+// --- Адаптив под узкие окна
+@media (max-width: 720px) {
+  .tools-location .tools-location-row {
+    grid-template-columns: 1fr 1fr 1fr; // input + 2 колонки
+    grid-auto-flow: row;
+
+    // раскладываем кнопки на две строки
+    #tools-location-choose,
+    #ti-tools-location-choose {
+      grid-column: 2 / span 1;
+    }
+    #tools-location-open,
+    #ti-tools-location-open {
+      grid-column: 3 / span 1;
+    }
+
+    #tools-location-reset,
+    #ti-tools-location-reset {
+      grid-column: 2 / span 1;
+    }
+    #tools-location-migrate,
+    #ti-tools-location-migrate {
+      grid-column: 3 / span 1;
+    }
+  }
+
+  .tools-footer {
+    grid-template-columns: 1fr; // всё в столбец
+    #tools-status {
+      order: 1;
+    }
+    #tools-primary-btn {
+      order: 2;
+    }
+    #tools-force-btn {
+      order: 3;
+    }
+  }
+}
+
+// --- Бейджи статуса инструментов
+.tool-badges {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--border-radius);
+  font-size: 12px;
+  line-height: 1.2;
+  border: 1px solid var(--color-hover);
+  background: rgba(255, 255, 255, 0.05);
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.08s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &.ok {
+    border-color: var(--color-hover);
+    color: var(--color-highlight);
+    background-color: rgba(18, 97, 33, 0.12);
+  }
+  &.missing {
+    border-color: #d9534f;
+    background: rgba(217, 83, 79, 0.12);
+  }
+  &.update {
+    border-color: #e6a700; // amber-ish
+    background: rgba(230, 167, 0, 0.12);
+    color: #ffc107;
+  }
+}
+
+// Небольшая анимация появления статуса
+.tools-status-animate {
+  animation: toolsFadeIn 0.18s ease both;
+}
+@keyframes toolsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Иконкo-кнопка «Открыть папку» в левой части
+#open-tools-folder {
+  height: 28px;
+  width: 36px;
+  border-radius: var(--border-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  margin-right: 6px;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.08s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// --- Меню «троеточие» для дополнительных действий ---
+.tools-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.tools-more-btn {
+  height: 36px;
+  width: 40px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.08s ease;
+  cursor: pointer;
+}
+.tools-more-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.tools-more-btn:active {
+  transform: translateY(1px);
+}
+.tools-more-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tools-more.is-open .tools-more-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.tools-more-menu {
+  position: absolute;
+  right: 0;
+  bottom: 110%;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 20, 20, 0.92);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(6px);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0.16s ease;
+  z-index: 1200; // выше z-index тултипов
+
+  &::before {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transform: rotate(45deg);
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+  }
+}
+.tools-more.is-open .tools-more-menu {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+.tools-more-menu button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  padding: 0 8px;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease;
+  cursor: pointer;
+}
+.tools-more-menu button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+// Блок статусов — выравнивание бейджей и текста
+.tool-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}

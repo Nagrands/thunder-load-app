@@ -1,0 +1,18 @@
+{% extends "layouts/base.njk" %}
+
+{% block body %}
+  {% include "partials/toast-overlay.njk" %}
+  {% include "partials/top-bar.njk" %}
+  {% include "partials/preloader.njk" %}
+  {% include "partials/main-view.njk" %}
+  {% include "partials/modals/confirmation.njk" %}
+  {% include "partials/modals/settings.njk" %}
+  {% include "partials/context-menu.njk" %}
+  {% include "partials/modals/shortcuts.njk" %}
+  {% include "partials/modals/whats-new.njk" %}
+  {% include "partials/modals/updates.njk" %}
+  {% include "partials/startup-status.njk" %}
+  {% include "partials/footer.njk" %}
+  {% include "partials/scripts.njk" %}
+
+{% endblock %}

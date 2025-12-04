@@ -1,0 +1,16 @@
+// src/scss/platform/_macos.scss
+
+body.is-mac {
+  .btn-minimize,
+  .btn-close {
+    display: none !important;
+  }
+
+  .window-controls {
+    border: 1px var(--color-accent);
+  }
+
+  .top-bar .top-download-progress {
+    margin: 0 -104px -8px;
+  }
+}

@@ -1,0 +1,952 @@
+// src/scss/tab/_wgsend.scss
+
+@use "../abstracts/mixins" as *;
+
+// =============================================
+// VARIABLES
+// =============================================
+
+$wg-max-width: 1200px;
+$wg-bg-img: "../../assets/img/bg-wgunlock.png";
+
+// =============================================
+// MIXINS
+// =============================================
+
+@mixin wg-constrained {
+  max-width: $wg-max-width;
+  margin-inline: auto;
+  padding: 0 20px;
+}
+
+@mixin focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.3);
+}
+
+@mixin gradient-text {
+  background: linear-gradient(
+    135deg,
+    var(--color-highlight) 0%,
+    var(--color-accent) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// =============================================
+// ANIMATIONS
+// =============================================
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(var(--color-accent-rgb), 0);
+  }
+}
+
+@keyframes toggle-pulse {
+  0%,
+  100% {
+    transform: translateX(20px) scale(1);
+  }
+
+  50% {
+    transform: translateX(20px) scale(1.2);
+  }
+}
+
+// =============================================
+// BASE STYLES
+// =============================================
+
+#wireguard-view-wrapper {
+  width: 100%;
+}
+
+.wg-center {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  @include wg-constrained;
+  padding: 40px 0;
+}
+
+// =============================================
+// MAIN CONTAINER
+// =============================================
+
+.wireguard-view {
+  --focus-ring: 0 0 0 3px rgba(var(--color-accent-rgb), 0.3);
+
+  position: relative;
+  width: 100%;
+  isolation: isolate;
+  overflow-x: hidden;
+  box-sizing: border-box;
+
+  // Background layers
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(10, 15, 30, 0.9) 0%,
+        rgba(20, 25, 40, 0.8) 100%
+      ),
+      url(#{$wg-bg-img}) no-repeat center center / cover;
+    z-index: -2;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(
+        ellipse at 20% 20%,
+        rgba(var(--color-accent-rgb), 0.15) 0%,
+        transparent 40%
+      ),
+      radial-gradient(
+        ellipse at 80% 80%,
+        rgba(100, 100, 255, 0.1) 0%,
+        transparent 40%
+      );
+    z-index: -1;
+    pointer-events: none;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  // Main layout
+  .wg-main-container {
+    @include wg-constrained;
+    display: grid;
+    grid-template-columns: 1fr 450px;
+    gap: 24px;
+    align-items: center;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+}
+
+// =============================================
+// COMPONENTS
+// =============================================
+
+// Card Component
+.wg-card {
+  @include glass-morphism;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-accent),
+      transparent
+    );
+    opacity: 0.6;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+// Header Component
+.wg-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  position: relative;
+
+  .title {
+    @include header-style;
+
+    i {
+      font-size: 18px;
+      width: auto;
+      color: var(--color-accent);
+      background: rgba(var(--color-accent-rgb), 0.1);
+      padding: 12px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    &:hover i {
+      transform: scale(1.1);
+      background: rgba(var(--color-accent-rgb), 0.2);
+    }
+  }
+
+  .title-content {
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      @include gradient-text;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--color-quality);
+      opacity: 0.8;
+      line-height: 1.4;
+      max-width: 400px;
+    }
+  }
+}
+
+// Form Field Component
+.wg-field {
+  position: relative;
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-highlight);
+
+    i {
+      color: var(--color-accent);
+      font-size: 12px;
+      width: 14px;
+      text-align: center;
+    }
+  }
+
+  .input-with-clear {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .input {
+      width: 100%;
+      color: var(--color-accent);
+      transition: all 0.3s ease;
+      font-family: inherit;
+
+      &::placeholder {
+        color: var(--color-quality);
+        opacity: 0.6;
+      }
+
+      &:focus {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--color-highlight);
+        @include focus-ring;
+        outline: none;
+      }
+
+      &:hover {
+        border-color: var(--color-accent);
+      }
+
+      // Hide number input arrows
+      &[type="number"] {
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+      }
+
+      &.input-error {
+        border-color: var(--color-toast-error);
+        background: rgba(239, 68, 68, 0.05);
+      }
+    }
+
+    // В секции .wg-field .input-with-clear .clear-field-btn
+    .clear-field-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      color: var(--color-quality);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      opacity: 0;
+      visibility: hidden;
+
+      i {
+        font-size: 10px;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: var(--color-highlight);
+      }
+
+      // Показывать кнопку когда поле имеет значение ИЛИ в фокусе
+      .input:focus + .clear-field-btn,
+      .input:not(:placeholder-shown) + .clear-field-btn {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      // Альтернативный вариант - всегда показывать если есть значение
+      &.has-value {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+
+  .field-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--color-quality);
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+
+  .field-error {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--color-toast-error);
+    font-weight: 500;
+    min-height: 1.2em;
+  }
+}
+
+// Button Components
+.buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .large-button {
+    flex: 1;
+    min-width: 140px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--color-accent) 0%, #4f46e5 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transition: left 0.5s ease;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(var(--color-accent-rgb), 0.3);
+
+      &::before {
+        left: 100%;
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    &.is-loading {
+      opacity: 0.8;
+      pointer-events: none;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin: -8px 0 0 -8px;
+        border: 2px solid transparent;
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+
+  .small-button {
+    padding: 10px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-highlight);
+    font-size: 13px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// Debug Toggle Component
+.debug-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .toggle-track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: var(--color-quality);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      will-change: transform;
+    }
+  }
+
+  .toggle-label {
+    font-size: 13px;
+    color: var(--color-quality);
+    font-weight: 500;
+    user-select: none;
+  }
+
+  // Active state
+  &.is-active {
+    .toggle-track {
+      background: rgba(var(--color-accent-rgb), 0.3);
+      border-color: var(--color-accent);
+
+      &::after {
+        background: var(--color-accent);
+        transform: translateX(20px);
+        box-shadow: 0 2px 6px rgba(var(--color-accent-rgb), 0.4);
+      }
+    }
+
+    .toggle-label {
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+  }
+
+  // Hover states
+  &:hover {
+    .toggle-track {
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &.is-active .toggle-track {
+      background: rgba(var(--color-accent-rgb), 0.4);
+    }
+  }
+
+  // Animation
+  &.pulse {
+    .toggle-track::after {
+      animation: toggle-pulse 0.6s ease-in-out;
+    }
+  }
+}
+
+// =============================================
+// LAYOUT COMPONENTS
+// =============================================
+
+// Grid System
+.wg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.wg-section {
+  margin-bottom: 24px;
+}
+
+.section-heading {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+
+  &.mt {
+    margin-top: 24px;
+  }
+}
+
+// Log Section
+.wg-log-section {
+  grid-column: 1 / -1;
+  margin-top: 24px;
+}
+
+.wg-log-block {
+  @include glass-morphism;
+  border-radius: 12px;
+  overflow: hidden;
+
+  summary {
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: var(--color-highlight);
+    transition: all 0.3s ease;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    i {
+      color: var(--color-accent);
+      transition: transform 0.3s ease;
+    }
+
+    .ml-auto {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      // Новые стили для кнопок в логе
+      .log-action-btn {
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--color-quality);
+        font-size: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
+          color: var(--color-highlight);
+        }
+
+        &:active {
+          transform: translateY(1px);
+        }
+
+        i {
+          font-size: 11px;
+        }
+      }
+    }
+  }
+
+  &[open] summary i.fa-chevron-right {
+    transform: rotate(90deg);
+  }
+
+  // Автоматически открывать при новых сообщениях в режиме отладки
+  &[data-has-new-logs] {
+    summary {
+      background: rgba(var(--color-accent-rgb), 0.1);
+
+      &::after {
+        content: " • Новые сообщения";
+        color: var(--color-accent);
+        font-size: 0.8em;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  pre {
+    margin: 0;
+    padding: 20px;
+    max-height: 160px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-accent);
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    @media (max-width: 768px) {
+      max-height: 140px;
+    }
+
+    @media (max-width: 480px) {
+      max-height: 100px;
+    }
+
+    &.error-log {
+      color: var(--color-toast-error);
+    }
+
+    // Scrollbar styling
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+  }
+}
+
+// Side Panel
+.wg-side-panel {
+  .info-card {
+    @include glass-morphism;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      color: var(--color-highlight);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      i {
+        color: var(--color-accent);
+      }
+    }
+
+    p {
+      font-size: 13px;
+      color: var(--color-quality);
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+}
+
+// Status Components
+#wg-status-indicator {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  text-align: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &:not(.hidden) {
+    display: block;
+  }
+
+  &.hidden {
+    display: none;
+  }
+
+  &.success {
+    background: rgba(var(--color-success-rgb), 0.1);
+    color: var(--color-success);
+    border: 1px solid rgba(var(--color-success-rgb), 0.2);
+  }
+
+  &.error {
+    background: rgba(var(--color-error-rgb), 0.1);
+    color: var(--color-error);
+    border: 1px solid rgba(var(--color-error-rgb), 0.2);
+  }
+
+  &.loading {
+    background: rgba(var(--color-info-rgb), 0.1);
+    color: var(--color-info);
+    border: 1px solid rgba(var(--color-info-rgb), 0.2);
+  }
+}
+
+.status-success {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.status-error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+// =============================================
+// UTILITY CLASSES
+// =============================================
+
+.wg-success-pulse {
+  animation: pulse-glow 2s ease-in-out;
+}
+
+.wg-text-gradient {
+  @include gradient-text;
+}
+
+.wg-glass-effect {
+  @include glass-morphism;
+}
+
+.hidden {
+  display: none !important;
+}
+
+// Preload optimization
+.wg-bg-preload {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  background-image: url(#{$wg-bg-img});
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  z-index: -9999;
+}
+
+// =============================================
+// RESPONSIVE DESIGN
+// =============================================
+
+@media (max-width: 768px) {
+  .wg-main-container {
+    padding: 0 16px;
+  }
+
+  .wg-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+
+    .title {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .debug-toggle {
+      margin-left: 0;
+      align-self: center;
+    }
+  }
+
+  .wg-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .buttons {
+    flex-direction: column;
+
+    .large-button,
+    .small-button {
+      width: 100%;
+    }
+  }
+
+  .wg-log-block pre {
+    max-height: 300px;
+    padding: 16px;
+    font-size: 12px;
+  }
+
+  .wg-card {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .debug-toggle {
+    padding: 6px 10px;
+
+    .toggle-track {
+      width: 40px;
+      height: 22px;
+
+      &::after {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    &.is-active .toggle-track::after {
+      transform: translateX(18px);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .wg-center {
+    padding: 20px 0;
+  }
+
+  .wg-card {
+    padding: 16px;
+  }
+
+  .wg-header .title-content h1 {
+    font-size: 24px;
+  }
+
+  .wg-field .input-with-clear .input {
+    padding: 10px 40px 10px 12px;
+    font-size: 13px;
+  }
+
+  .buttons .large-button {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+}
+
+.info-card p {
+  transition: opacity 0.4s ease-in-out;
+
+  &.fade-out {
+    opacity: 0;
+  }
+
+  &.fade-in {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .wg-log-block {
+    summary {
+      .ml-auto {
+        flex-direction: column;
+        gap: 4px;
+
+        .log-action-btn {
+          padding: 4px 8px;
+          font-size: 11px;
+        }
+      }
+    }
+  }
+}
