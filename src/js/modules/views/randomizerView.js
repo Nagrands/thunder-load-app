@@ -4,16 +4,12 @@ import { showToast } from "../toast.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import {
   DEFAULT_ITEMS,
-  WEIGHT_MIN,
-  WEIGHT_MAX,
   DEFAULT_WEIGHT,
-  DEFAULT_PRESET_NAME,
   MAX_ITEM_LENGTH,
   readJson,
   saveJson,
   clampWeight,
   clampHits,
-  triggerPulse,
   declOfNum,
 } from "../randomizer/helpers.js";
 import { createRandomizerState } from "../randomizer/state.js";
@@ -23,6 +19,7 @@ import { createItemsRenderer } from "../randomizer/ui/items.js";
 import { createResultUI } from "../randomizer/ui/result.js";
 import { createPresetsUI } from "../randomizer/ui/presets.js";
 import { wireRollControls } from "../randomizer/ui/controls.js";
+import { wireListActions } from "../randomizer/ui/listActions.js";
 
 export default function renderRandomizerView() {
   const storage = {
@@ -247,6 +244,8 @@ export default function renderRandomizerView() {
   const resultCard = wrapper.querySelector(".randomizer-result-card");
   const resultContainer = wrapper.querySelector("#randomizer-result");
   const bulkDeleteButton = wrapper.querySelector("#randomizer-delete-selected");
+  const exportButton = wrapper.querySelector("#randomizer-export");
+  const rollButtons = wrapper.querySelectorAll(".randomizer-roll");
   const presetSelect = wrapper.querySelector("#randomizer-preset-select");
   const poolHintEl = wrapper.querySelector("#randomizer-pool-hint");
   const poolRefreshBtn = wrapper.querySelector("#randomizer-pool-refresh");
@@ -261,6 +260,7 @@ export default function renderRandomizerView() {
   const presetDefaultBtn = wrapper.querySelector("#randomizer-preset-default");
   let presetPromptEl = null;
   const historyRunBtn = wrapper.querySelector("#randomizer-history-run");
+  let listActionsUI = null;
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -284,6 +284,20 @@ export default function renderRandomizerView() {
       poolHintEl,
     },
   });
+  const setRollDisabled = (disabled) => {
+    rollButtons.forEach((btn) => {
+      btn.disabled = disabled;
+      btn.classList.toggle("is-disabled", disabled);
+    });
+  };
+  const updateRollAvailability = () => {
+    const { items, pool, settings } = state.getState();
+    const disabled =
+      settings.noRepeat &&
+      items.length > 0 &&
+      (!Array.isArray(pool) || pool.length === 0);
+    setRollDisabled(disabled);
+  };
 
   const applyPreset = (name) => {
     const applied = state.applyPreset(name);
@@ -309,6 +323,7 @@ export default function renderRandomizerView() {
     syncState();
     updatePoolHint();
     updateSummary();
+    updateRollAvailability();
   };
 
   const resetPool = () => {
@@ -317,6 +332,7 @@ export default function renderRandomizerView() {
     updatePoolHint();
     updateSummary();
     pulsePool();
+    updateRollAvailability();
   };
 
   const persistItems = (options = {}) => {
@@ -480,17 +496,7 @@ export default function renderRandomizerView() {
 
   const updateBulkActions = () => {
     pruneSelection();
-    if (bulkDeleteButton) {
-      bulkDeleteButton.disabled = selectedItems.size === 0;
-      bulkDeleteButton.classList.toggle("hidden", items.length === 0);
-      const label = bulkDeleteButton.querySelector("span");
-      if (label) {
-        label.textContent =
-          selectedItems.size > 0
-            ? `Удалить (${selectedItems.size})`
-            : "Удалить выбранные";
-      }
-    }
+    listActionsUI?.updateBulkButton?.(selectedItems.size);
   };
 
   const toggleSelection = (value, chipEl) => {
@@ -636,6 +642,7 @@ export default function renderRandomizerView() {
     syncState();
     pruneSelection();
     renderItemsImpl();
+    updateRollAvailability();
   };
 
   ensurePresetExists();
@@ -719,8 +726,10 @@ export default function renderRandomizerView() {
     if (!candidates.length) {
       showToast("Нет доступных вариантов", "info");
       updatePoolHint();
+      updateRollAvailability();
       return;
     }
+    updateRollAvailability();
     resultCard.classList.add("rolling");
     setTimeout(() => {
       resultCard.classList.remove("rolling");
@@ -773,18 +782,6 @@ export default function renderRandomizerView() {
         showToast("Вариант добавлен", "success");
       }
       inputEl.value = "";
-    }
-  });
-
-  wrapper.querySelector("#randomizer-clear")?.addEventListener("click", () => {
-    if (!items.length) return;
-    if (confirm("Очистить все варианты? Действие нельзя отменить.")) {
-      items = [];
-      selectedItems.clear();
-      pool = [];
-      persistItems({ resetPool: false });
-      renderItems();
-      clearResult();
     }
   });
 
@@ -867,27 +864,33 @@ export default function renderRandomizerView() {
 
   presetsUI.wire();
 
-  bulkDeleteButton?.addEventListener("click", () => {
-    if (!selectedItems.size) {
-      showToast("Не выбрано ни одного варианта", "info");
-      return;
-    }
-    if (
-      !confirm(
-        `Удалить ${selectedItems.size} ${declOfNum(selectedItems.size, [
-          "вариант",
-          "варианта",
-          "вариантов",
-        ])}?`,
-      )
-    )
-      return;
-    state.removeItems(selectedItems);
-    syncState();
-    selectedItems.clear();
-    renderItems();
-    clearResult();
-    showToast("Выбранные варианты удалены", "success");
+  listActionsUI = wireListActions({
+    listActions: wrapper.querySelector(".randomizer-list-actions"),
+    exportButton,
+    bulkDeleteButton,
+    clearButton: wrapper.querySelector("#randomizer-clear"),
+    getItems: () => state.getState().items,
+    getSelected: () => selectedItems,
+    onExport: () => {},
+    onBulkDelete: (selected) => {
+      state.removeItems(selected);
+      syncState();
+      selectedItems.clear();
+      renderItems();
+      clearResult();
+      showToast("Выбранные варианты удалены", "success");
+    },
+    onClear: () => {
+      state.removeItems(
+        new Set(state.getState().items.map((item) => item.value)),
+      );
+      syncState();
+      selectedItems.clear();
+      renderItems();
+      clearResult();
+      showToast("Список очищен", "success");
+    },
+    showToast,
   });
 
   noRepeatToggle.checked = !!settings.noRepeat;

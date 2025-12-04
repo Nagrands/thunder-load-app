@@ -17,9 +17,44 @@ export function createItemsRenderer({
   onSyncWeight,
   onStartInlineEdit,
 }) {
+  const debounce = (fn, delay = 50) => {
+    let t = null;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), delay);
+    };
+  };
+
+  const throttle = (fn, delay = 50) => {
+    let last = 0;
+    let queued = null;
+    return (...args) => {
+      const now = Date.now();
+      if (now - last >= delay) {
+        last = now;
+        fn(...args);
+      } else {
+        queued = args;
+        setTimeout(
+          () => {
+            if (queued) {
+              last = Date.now();
+              fn(...queued);
+              queued = null;
+            }
+          },
+          delay - (now - last),
+        );
+      }
+    };
+  };
+
   const getItemWeight = (item) =>
     onSyncWeight?.clamp(item?.weight ?? DEFAULT_WEIGHT);
   const getItemHits = (item) => onSyncWeight?.clampHits(item?.hits ?? 0);
+
+  const renderItemsDebounced = debounce(() => renderItems(), 40);
+  const onMoveThrottled = throttle((from, to) => onMoveItem(from, to), 60);
 
   return function renderItems() {
     const { items, pool, settings } = getState();
@@ -103,7 +138,7 @@ export function createItemsRenderer({
         weightSlider.value = sanitized;
         weightNumber.value = sanitized;
         weightLabel.textContent = `x${sanitized}`;
-        renderItems();
+        renderItemsDebounced();
       };
 
       const stopChipEvent = (event) => event.stopPropagation();
@@ -156,7 +191,7 @@ export function createItemsRenderer({
         event.preventDefault();
         chip.classList.remove("drop-target");
         if (!dragSource || dragSource === item.value) return;
-        onMoveItem(dragSource, item.value);
+        onMoveThrottled(dragSource, item.value);
       });
 
       dragHandle.addEventListener("click", (event) => event.stopPropagation());
