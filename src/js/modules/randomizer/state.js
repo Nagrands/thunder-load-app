@@ -23,6 +23,17 @@ const STORAGE_KEYS = {
 export function createRandomizerState(storage) {
   const { readJson, saveJson, readText, writeText, hasKey, setItem } = storage;
 
+  const clampSpinSeconds = (value) =>
+    Math.min(60, Math.max(0, Number(value ?? 0.4)));
+  const clampAutoInterval = (value) =>
+    Math.min(3600, Math.max(1, Math.round(Number(value ?? 5))));
+  const clampAutoStopCount = (value) =>
+    Math.min(9999, Math.max(1, Math.round(Number(value ?? 5))));
+  const normalizeStopMode = (raw) =>
+    ["none", "count", "match"].includes(raw) ? raw : "none";
+  const normalizeStopMatch = (value) =>
+    typeof value === "string" ? value.slice(0, 120) : "";
+
   const hasStoredItems = hasKey(STORAGE_KEYS.ITEMS);
   let presets = normalizePresets(readJson(STORAGE_KEYS.PRESETS, []), {
     allowEmptyItems: true,
@@ -35,13 +46,27 @@ export function createRandomizerState(storage) {
     defaultItems: DEFAULT_ITEMS,
   });
   let history = readJson(STORAGE_KEYS.HISTORY, []);
-  let settings = readJson(STORAGE_KEYS.SETTINGS, { noRepeat: true });
+  let settings = readJson(STORAGE_KEYS.SETTINGS, {
+    noRepeat: true,
+    spinSeconds: 0.4,
+    autoRollInterval: 5,
+    autoStopMode: "none",
+    autoStopCount: 5,
+    autoStopMatch: "",
+    autoStopOnPoolDepletion: true,
+    autoNotifySound: true,
+    autoNotifyFlash: true,
+  });
   settings = {
     noRepeat: !!settings?.noRepeat,
-    spinSeconds: Math.min(
-      60,
-      Math.max(0, Number(settings?.spinSeconds ?? 0.4)),
-    ),
+    spinSeconds: clampSpinSeconds(settings?.spinSeconds),
+    autoRollInterval: clampAutoInterval(settings?.autoRollInterval),
+    autoStopMode: normalizeStopMode(settings?.autoStopMode),
+    autoStopCount: clampAutoStopCount(settings?.autoStopCount),
+    autoStopMatch: normalizeStopMatch(settings?.autoStopMatch),
+    autoStopOnPoolDepletion: settings?.autoStopOnPoolDepletion !== false,
+    autoNotifySound: settings?.autoNotifySound !== false,
+    autoNotifyFlash: settings?.autoNotifyFlash !== false,
   };
   let pool = readJson(STORAGE_KEYS.POOL, []);
 

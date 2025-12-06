@@ -3,7 +3,7 @@
 export function wireRollControls(wrapper, rollFn) {
   wrapper
     .querySelectorAll(".randomizer-roll")
-    .forEach((btn) => btn.addEventListener("click", rollFn));
+    .forEach((btn) => btn.addEventListener("click", () => rollFn()));
 
   wrapper
     .querySelectorAll("#randomizer-roll, #randomizer-roll-hero")

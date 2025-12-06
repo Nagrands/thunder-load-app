@@ -251,4 +251,46 @@ describe("Randomizer view", () => {
     expect(created.items).toEqual([]);
     expect(getChips(view).length).toBe(0);
   });
+
+  test("auto-roll stops after reaching the configured count", async () => {
+    jest.useFakeTimers();
+    try {
+      const view = setup({
+        items: [
+          { value: "One", weight: 1 },
+          { value: "Two", weight: 1 },
+        ],
+        settings: {
+          noRepeat: false,
+          spinSeconds: 0,
+          autoRollInterval: 1,
+          autoStopMode: "count",
+          autoStopCount: 2,
+          autoNotifySound: false,
+          autoNotifyFlash: false,
+        },
+      });
+
+      view.querySelector("#randomizer-auto-toggle").click();
+
+      jest.advanceTimersByTime(1000);
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+      jest.advanceTimersByTime(1000);
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+
+      const stopCall = showToast.mock.calls.find(
+        ([msg]) =>
+          typeof msg === "string" && msg.includes("Авто-ролл остановлен"),
+      );
+      expect(stopCall?.[1]).toBe("info");
+
+      const historyItems = view.querySelectorAll("#randomizer-history-list li");
+      expect(historyItems.length).toBe(2);
+    } finally {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    }
+  });
 });
