@@ -101,6 +101,15 @@ export default function renderRandomizerView() {
             <input type="number" id="randomizer-spin-seconds" min="0" max="60" step="0.1" />
             <span class="unit">сек</span>
           </span>
+          <span
+            class="spin-countdown"
+            id="randomizer-spin-countdown"
+            aria-live="polite"
+            aria-label="Обратный отсчёт"
+          >
+            <i class="fa-solid fa-clock"></i>
+            <span class="value">—</span>
+          </span>
         </label>
       </div>
     </div>
@@ -266,6 +275,9 @@ export default function renderRandomizerView() {
   let listActionsUI = null;
   let carouselTimer = null;
   const spinDurationInput = wrapper.querySelector("#randomizer-spin-seconds");
+  const spinCountdownEl = wrapper.querySelector("#randomizer-spin-countdown");
+  const spinCountdownValueEl = spinCountdownEl?.querySelector(".value");
+  let spinCountdownTimer = null;
 
   const setCountLabel = () => {
     countEl.textContent =
@@ -296,6 +308,25 @@ export default function renderRandomizerView() {
   };
   const clampSpinSeconds = (value) =>
     Math.min(60, Math.max(0, Number(value ?? 0.4)));
+  const clearSpinCountdown = () => {
+    if (spinCountdownTimer) {
+      clearInterval(spinCountdownTimer);
+      spinCountdownTimer = null;
+    }
+    if (spinCountdownValueEl) spinCountdownValueEl.textContent = "—";
+  };
+  const startSpinCountdown = (ms) => {
+    if (!spinCountdownValueEl || !ms) return;
+    clearSpinCountdown();
+    const endAt = Date.now() + ms;
+    const tick = () => {
+      const left = Math.max(0, endAt - Date.now());
+      spinCountdownValueEl.textContent = `${(left / 1000).toFixed(1)}с`;
+      if (left <= 0) clearSpinCountdown();
+    };
+    tick();
+    spinCountdownTimer = setInterval(tick, 80);
+  };
   const updateRollAvailability = () => {
     const { items, pool, settings } = state.getState();
     const disabled =
@@ -755,6 +786,7 @@ export default function renderRandomizerView() {
   };
 
   const roll = () => {
+    clearSpinCountdown();
     if (!items.length) {
       showToast("Сначала добавьте варианты", "warning");
       return;
@@ -768,6 +800,7 @@ export default function renderRandomizerView() {
       updatePoolHint();
       updateRollAvailability();
       stopCarousel();
+      clearSpinCountdown();
       return;
     }
     const spinMs = Math.min(
@@ -776,10 +809,14 @@ export default function renderRandomizerView() {
     );
     updateRollAvailability();
     resultCard.classList.add("rolling");
-    if (spinMs > 0) startCarousel(candidates);
+    if (spinMs > 0) {
+      startCarousel(candidates);
+      startSpinCountdown(spinMs);
+    }
     setTimeout(
       () => {
         stopCarousel();
+        clearSpinCountdown();
         resultCard.classList.remove("rolling");
         const picked = pickWeightedItem(candidates);
         if (!picked) {

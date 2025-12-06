@@ -21196,6 +21196,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-view .spin-control {
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   border-radius: 14px;
   color: var(--color-quality);
@@ -21230,9 +21231,30 @@ h1.section-heading .bk-heading-search #bk-search-info {
   justify-content: space-between;
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.06);
+  gap: 10px;
 }
 .randomizer-view .spin-control .randomizer-summary .spin-input input {
   font-size: 1.05rem;
+}
+.randomizer-view .spin-control .randomizer-summary .spin-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: var(--color-quality);
+  font-weight: 700;
+  min-width: 92px;
+  justify-content: flex-end;
+}
+.randomizer-view .spin-control .randomizer-summary .spin-countdown .value {
+  color: var(--color-text-main);
+  font-variant-numeric: tabular-nums;
+}
+.randomizer-view .spin-control .randomizer-summary .spin-countdown i {
+  color: var(--color-accent);
 }
 .randomizer-view .randomizer-summary {
   margin: 8px 0 24px;
@@ -21510,7 +21532,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-chip {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   flex: 1 1 420px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)), rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -21555,18 +21577,19 @@ h1.section-heading .bk-heading-search #bk-search-info {
   max-width: 100%;
   white-space: normal;
   word-break: break-word;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 500;
   letter-spacing: 0.01em;
-  line-height: 1.35;
+  line-height: 1.5;
 }
 .randomizer-chip .chip-weight-label {
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
+  border-radius: var(--border-radius);
   font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--color-text-main);
+  font-weight: 500;
+  color: var(--color-accent);
   min-width: 54px;
   text-align: center;
 }
@@ -21628,16 +21651,13 @@ h1.section-heading .bk-heading-search #bk-search-info {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  justify-content: flex-end;
 }
 .randomizer-chip .chip-weight-number {
   width: 72px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
+  border-radius: var(--border-radius);
   color: var(--color-text-main);
   padding: 6px 8px;
   font-size: 0.9rem;
@@ -21654,9 +21674,9 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 .randomizer-chip .chip-weight-pill {
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--color-text-main);
-  border-radius: 999px;
+  /* background: rgba(255, 255, 255, 0.04); */
+  color: var(--color-accent);
+  border-radius: var(--border-radius);
   padding: 4px 8px;
   font-size: 0.82rem;
   cursor: pointer;
@@ -21672,7 +21692,8 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 8px;
   flex-wrap: wrap;
   font-size: 0.85rem;
-  color: var(--color-muted);
+  color: var(--color-highlight);
+  justify-content: flex-end;
 }
 .randomizer-chip .chip-stat {
   padding: 6px 10px;

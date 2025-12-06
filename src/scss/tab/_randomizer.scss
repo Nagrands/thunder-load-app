@@ -134,6 +134,7 @@
   .spin-control {
     display: inline-flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     border-radius: 14px;
     color: var(--color-quality);
@@ -173,10 +174,34 @@
         justify-content: space-between;
         padding: 10px 12px;
         background: rgba(255, 255, 255, 0.06);
+        gap: 10px;
       }
 
       .spin-input input {
         font-size: 1.05rem;
+      }
+
+      .spin-countdown {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--color-quality);
+        font-weight: 700;
+        min-width: 92px;
+        justify-content: flex-end;
+
+        .value {
+          color: var(--color-text-main);
+          font-variant-numeric: tabular-nums;
+        }
+
+        i {
+          color: var(--color-accent);
+        }
       }
     }
   }
@@ -491,7 +516,7 @@
 .randomizer-chip {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   flex: 1 1 420px;
   background:
     linear-gradient(
@@ -553,19 +578,20 @@
     max-width: 100%;
     white-space: normal;
     word-break: break-word;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 500;
     letter-spacing: 0.01em;
-    line-height: 1.35;
+    line-height: 1.5;
   }
 
   .chip-weight-label {
     padding: 6px 10px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-hover);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
+    border-radius: var(--border-radius);
     font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--color-text-main);
+    font-weight: 500;
+    color: var(--color-accent);
     min-width: 54px;
     text-align: center;
   }
@@ -654,17 +680,14 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 12px;
-    border: 1px dashed rgba(255, 255, 255, 0.12);
+    justify-content: flex-end;
   }
 
   .chip-weight-number {
     width: 72px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     color: var(--color-text-main);
     padding: 6px 8px;
     font-size: 0.9rem;
@@ -684,9 +707,9 @@
 
   .chip-weight-pill {
     border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--color-text-main);
-    border-radius: 999px;
+    /* background: rgba(255, 255, 255, 0.04); */
+    color: var(--color-accent);
+    border-radius: var(--border-radius);
     padding: 4px 8px;
     font-size: 0.82rem;
     cursor: pointer;
@@ -707,7 +730,8 @@
     gap: 8px;
     flex-wrap: wrap;
     font-size: 0.85rem;
-    color: var(--color-muted);
+    color: var(--color-highlight);
+    justify-content: flex-end;
   }
 
   .chip-stat {
