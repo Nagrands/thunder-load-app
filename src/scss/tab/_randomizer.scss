@@ -314,10 +314,10 @@
 .randomizer-add-row {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 
+  textarea,
   input {
     flex: 1 1 240px;
     background: rgba(255, 255, 255, 0.03);
@@ -325,6 +325,9 @@
     border-radius: 16px;
     padding: 14px 16px;
     color: var(--color-text-main);
+    min-height: 64px;
+    resize: vertical;
+    line-height: 1.4;
 
     &:focus {
       border-color: rgba(var(--color-accent-rgb), 0.6);
@@ -338,6 +341,7 @@
   flex-wrap: wrap;
   gap: 12px;
   justify-content: center;
+  flex-direction: column;
 
   .btn {
     gap: 6px;

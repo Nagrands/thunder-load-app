@@ -147,12 +147,12 @@ export default function renderRandomizerView() {
           </button>
         </div>
         <div class="randomizer-add-row">
-          <input
-            type="text"
+          <textarea
             id="randomizer-input"
-            placeholder="Например, &quot;Плейлист с YouTube&quot;"
-            maxlength="160"
-          />
+            placeholder="Добавляйте свои варианты. Каждый новый вариант — это отдельная строка. Можно использовать точку с запятой для разделения.
+"
+            rows="3"
+          ></textarea>
           <button type="button" class="btn btn-primary" id="randomizer-add">
             <i class="fa-solid fa-plus"></i>
           </button>
@@ -749,26 +749,33 @@ export default function renderRandomizerView() {
     renderHistory();
   };
 
+  const parseEntries = (raw) =>
+    (raw || "")
+      .split(/[\n;,]/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+
   const addItem = (value, silent = false) => {
     const normalized = value.trim();
     if (!normalized) {
       if (!silent) showToast("Введите текст варианта", "warning");
-      return;
+      return false;
     }
     if (normalized.length > MAX_ITEM_LENGTH) {
       if (!silent) showToast("Слишком длинный вариант", "warning");
-      return;
+      return false;
     }
     const exists = items.some(
       (item) => item.value.toLowerCase() === normalized.toLowerCase(),
     );
     if (exists) {
       if (!silent) showToast("Такой вариант уже есть", "info");
-      return;
+      return false;
     }
     state.addItem(normalized);
     syncState();
     renderItems();
+    return true;
   };
 
   const bulkAdd = (values) => {
@@ -854,22 +861,26 @@ export default function renderRandomizerView() {
   wireRollControls(wrapper, roll);
 
   wrapper.querySelector("#randomizer-add")?.addEventListener("click", () => {
-    addItem(inputEl.value);
-    if (inputEl.value.trim()) {
-      showToast("Вариант добавлен", "success");
+    const entries = parseEntries(inputEl.value);
+    if (!entries.length) {
+      showToast("Введите текст варианта", "warning");
+      inputEl.focus();
+      return;
+    }
+    if (entries.length === 1) {
+      const ok = addItem(entries[0], true);
+      if (ok) showToast("Вариант добавлен", "success");
+    } else {
+      bulkAdd(entries);
     }
     inputEl.value = "";
     inputEl.focus();
   });
 
   inputEl?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
-      addItem(inputEl.value);
-      if (inputEl.value.trim()) {
-        showToast("Вариант добавлен", "success");
-      }
-      inputEl.value = "";
+      wrapper.querySelector("#randomizer-add")?.click();
     }
   });
 
@@ -893,6 +904,7 @@ export default function renderRandomizerView() {
             : `${preview}\nДобавить эти строки?`;
         if (!confirm(confirmText)) return;
         bulkAdd(entries);
+        inputEl.value = "";
       } catch {
         showToast("Не удалось прочитать буфер обмена", "error");
       }
