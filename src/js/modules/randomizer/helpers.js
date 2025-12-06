@@ -18,6 +18,12 @@ export const DEFAULT_FAVORITE = false;
 export const DEFAULT_EXCLUDED = false;
 export const RARE_STREAK = 5;
 
+export const clampRareThreshold = (raw) => {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return RARE_STREAK;
+  return Math.min(9999, Math.max(1, Math.round(n)));
+};
+
 const cloneValue = (value) =>
   Array.isArray(value)
     ? value.slice()
@@ -186,4 +192,5 @@ export default {
   triggerPulse,
   declOfNum,
   escapeHtml,
+  clampRareThreshold,
 };

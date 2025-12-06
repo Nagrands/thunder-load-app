@@ -293,4 +293,110 @@ describe("Randomizer view", () => {
       jest.useRealTimers();
     }
   });
+
+  test("favorite filter shows only starred items", () => {
+    const view = setup({
+      items: [
+        { value: "One", weight: 1 },
+        { value: "Two", weight: 1 },
+      ],
+    });
+    const firstChip = getChips(view)[0];
+    const starBtn = firstChip.querySelector(".chip-quick-btn");
+    starBtn.click(); // mark favorite
+
+    const favFilter = view.querySelector("#randomizer-fav-filter");
+    favFilter.click();
+
+    const visible = getChips(view);
+    expect(visible.length).toBe(1);
+    expect(visible[0].querySelector(".text").textContent).toBe("One");
+  });
+
+  test("stats reset clears hits and misses", () => {
+    const view = setup({
+      items: [
+        { value: "A", weight: 1, hits: 3, misses: 4 },
+        { value: "B", weight: 1, hits: 1, misses: 7 },
+      ],
+      currentPreset: "Основной",
+      defaultPreset: "Основной",
+      presets: [{ name: "Основной", items: [] }],
+    });
+
+    // Reset stats
+    view.querySelector("#randomizer-stats-reset").click();
+
+    const items = JSON.parse(localStorage.getItem("randomizerItems") || "[]");
+    expect(items.every((item) => (item.hits || 0) === 0)).toBe(true);
+    expect(items.every((item) => (item.misses || 0) === 0)).toBe(true);
+  });
+
+  test("rare filter respects adjustable threshold", () => {
+    const view = setup({
+      items: [
+        { value: "Common", misses: 2 },
+        { value: "Rare", misses: 6 },
+      ],
+      currentPreset: "Основной",
+      defaultPreset: "Основной",
+      presets: [
+        {
+          name: "Основной",
+          items: [
+            { value: "Common", misses: 2 },
+            { value: "Rare", misses: 6 },
+          ],
+        },
+      ],
+    });
+
+    const statsRows = () =>
+      Array.from(view.querySelectorAll("#randomizer-stats .stats-row")).slice(
+        1,
+      );
+
+    expect(statsRows().length).toBe(2);
+
+    const rareToggle = view.querySelector("#randomizer-history-rare-toggle");
+    rareToggle.click();
+    expect(statsRows().length).toBe(1);
+
+    const threshold = view.querySelector("#randomizer-rare-threshold");
+    threshold.value = "2";
+    threshold.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(statsRows().length).toBe(2);
+  });
+
+  test("clear favorites resets filter and flags", () => {
+    const view = setup({
+      items: [
+        { value: "One", favorite: true },
+        { value: "Two", favorite: false },
+      ],
+      presets: [
+        {
+          name: "Основной",
+          items: [
+            { value: "One", favorite: true },
+            { value: "Two", favorite: false },
+          ],
+        },
+      ],
+      currentPreset: "Основной",
+      defaultPreset: "Основной",
+    });
+
+    const favFilter = view.querySelector("#randomizer-fav-filter");
+    favFilter.click();
+    expect(getChips(view).length).toBe(1);
+
+    const clearFavs = view.querySelector("#randomizer-clear-favorites");
+    clearFavs.click();
+
+    expect(getChips(view).length).toBe(2);
+    expect(favFilter.dataset.state).toBe("all");
+    expect(getStoredItems().every((item) => !item.favorite)).toBe(true);
+  });
 });

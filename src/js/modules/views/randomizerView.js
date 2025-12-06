@@ -12,6 +12,8 @@ import {
   clampHits,
   clampMisses,
   declOfNum,
+  clampRareThreshold,
+  RARE_STREAK,
 } from "../randomizer/helpers.js";
 import { createRandomizerState } from "../randomizer/state.js";
 import { createSummary } from "../randomizer/ui/summary.js";
@@ -143,6 +145,8 @@ export default function renderRandomizerView() {
   let favoritesOnly = false;
   let rareOnly = false;
   let renderHistory = () => {};
+  const getRareThreshold = () =>
+    clampRareThreshold(settings?.rareThreshold ?? RARE_STREAK);
 
   const syncState = () => {
     ({
@@ -159,6 +163,13 @@ export default function renderRandomizerView() {
   syncState();
   state.normalizePool();
   syncState();
+  settings.rareThreshold = getRareThreshold();
+  favoritesOnly = !!settings.favoritesOnly;
+  rareOnly = !!settings.rareOnly;
+  settings.statsTab =
+    settings.statsTab === "history" || settings.statsTab === "stats"
+      ? settings.statsTab
+      : "stats";
 
   const wrapper = document.createElement("div");
   wrapper.id = "randomizer-view";
@@ -313,10 +324,13 @@ export default function renderRandomizerView() {
             <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
               <i class="fa-solid fa-copy"></i>
             </button>
-            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-delete-selected" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить выбранные варианты">
-              <i class="fa-solid fa-trash"></i>
-              <span>Удалить выбранные</span>
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-clear-favorites" data-bs-toggle="tooltip" data-bs-placement="left" title="Снять отметку избранного со всех вариантов">
+              <i class="fa-solid fa-star-half-stroke"></i>
             </button>
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-clear-excluded" data-bs-toggle="tooltip" data-bs-placement="left" title="Вернуть исключённые варианты в пул">
+              <i class="fa-solid fa-eye"></i>            </button>
+            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-delete-selected" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить выбранные варианты">
+              <i class="fa-solid fa-trash"></i>            </button>
           </div>
         </div>
         <div id="randomizer-pool-hint" class="randomizer-pool-hint hidden">
@@ -413,17 +427,15 @@ export default function renderRandomizerView() {
               <h3>Последние результаты</h3>
             </div>
             <div class="history-tabs">
-              <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history">
+              <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history" data-bs-toggle="tooltip" data-bs-placement="top" title="История">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                <span>История</span>
               </button>
-              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats">
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats" data-bs-toggle="tooltip" data-bs-placement="top" title="Статистика">
                 <i class="fa-solid fa-chart-line"></i>
-                <span>Статистика</span>
               </button>
             </div>
           </header>
-          <div class="history-panel" id="randomizer-history-panel" data-tab="history">
+          <div class="history-panel hidden" id="randomizer-history-panel" data-tab="history">
             <div id="randomizer-history" class="randomizer-history">
               <div id="randomizer-history-empty" class="placeholder">
                 <span>Ещё ничего не выбрано.</span>
@@ -434,25 +446,31 @@ export default function renderRandomizerView() {
               </div>
               <ul id="randomizer-history-list"></ul>
             </div>
-            <div class="randomizer-history-actions">
-              <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
-                <i class="fa-solid fa-trash"></i>
-                <span>Очистить историю</span>
-              </button>
-            </div>
+          <div class="randomizer-history-actions">
+            <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
+              <i class="fa-solid fa-trash"></i>
+              <span>Очистить историю</span>
+            </button>
           </div>
-          <div class="history-panel hidden" id="randomizer-stats-panel" data-tab="stats">
-            <div class="history-controls">
-              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-history-rare-toggle" data-state="all" data-bs-toggle="tooltip" data-bs-placement="top" title="Показать только редкие (долго не выпадали)">
-                <i class="fa-solid fa-star-half-stroke"></i>
-                <span>Все</span>
-              </button>
-              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-stats-export" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать статистику в буфер">
-                <i class="fa-solid fa-file-export"></i>
-              </button>
-            </div>
-            <div class="randomizer-stats" id="randomizer-stats"></div>
+        </div>
+        <div class="history-panel" id="randomizer-stats-panel" data-tab="stats">
+          <div class="history-controls">
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-history-rare-toggle" data-state="all" data-bs-toggle="tooltip" data-bs-placement="top" title="Показать только редкие (долго не выпадали)">
+              <i class="fa-solid fa-star-half-stroke"></i>
+              <span>Все</span>
+            </button>
+            <label class="stat-threshold" title="Порог редкости (промахи)">
+              <span>Порог:</span>
+              <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
+            </label>
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-stats-export" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать статистику в буфер">
+              <i class="fa-solid fa-file-export"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-stats-reset" data-bs-toggle="tooltip" data-bs-placement="top" title="Сбросить счётчики выпадений и промахов">
+              <i class="fa-solid fa-eraser"></i>
+            </button>
           </div>
+          <div class="randomizer-stats" id="randomizer-stats"></div>
         </div>
       </section>
     </div>
@@ -468,7 +486,11 @@ export default function renderRandomizerView() {
   const rareToggleBtn = wrapper.querySelector(
     "#randomizer-history-rare-toggle",
   );
+  const rareThresholdInput = wrapper.querySelector(
+    "#randomizer-rare-threshold",
+  );
   const statsExportBtn = wrapper.querySelector("#randomizer-stats-export");
+  const statsResetBtn = wrapper.querySelector("#randomizer-stats-reset");
   const resultText = wrapper.querySelector("#randomizer-result-text");
   const resultMeta = wrapper.querySelector("#randomizer-result-meta");
   const resultCard = wrapper.querySelector(".randomizer-result-card");
@@ -493,6 +515,10 @@ export default function renderRandomizerView() {
   const presetDeleteBtn = wrapper.querySelector("#randomizer-preset-delete");
   const presetDefaultBtn = wrapper.querySelector("#randomizer-preset-default");
   const favFilterBtn = wrapper.querySelector("#randomizer-fav-filter");
+  const clearFavoritesBtn = wrapper.querySelector(
+    "#randomizer-clear-favorites",
+  );
+  const clearExcludedBtn = wrapper.querySelector("#randomizer-clear-excluded");
   const historyTabs = {
     history: wrapper.querySelector("#randomizer-tab-history"),
     stats: wrapper.querySelector("#randomizer-tab-stats"),
@@ -611,12 +637,33 @@ export default function renderRandomizerView() {
     if (span) span.textContent = favoritesOnly ? "Избранные" : "Все";
     favFilterBtn.classList.toggle("is-active", favoritesOnly);
   };
-  const setHistoryTab = (tab) => {
+  const getStatsSort = () => ({
+    key:
+      ["value", "hits", "misses"].includes(settings?.statsSortKey) &&
+      settings?.statsSortKey
+        ? settings.statsSortKey
+        : "misses",
+    dir: settings?.statsSortDir === "asc" ? "asc" : "desc",
+  });
+  const setStatsSort = ({ key, dir }) => {
+    const nextKey = ["value", "hits", "misses"].includes(key) ? key : "misses";
+    const nextDir = dir === "asc" ? "asc" : "desc";
+    settings.statsSortKey = nextKey;
+    settings.statsSortDir = nextDir;
+    persistSettings();
+    renderHistory();
+  };
+  const setHistoryTab = (tab, { persist = false } = {}) => {
+    const target = tab === "history" ? "history" : "stats";
     const keys = Object.keys(historyPanels);
     keys.forEach((key) => {
-      historyTabs[key]?.classList.toggle("is-active", key === tab);
-      historyPanels[key]?.classList.toggle("hidden", key !== tab);
+      historyTabs[key]?.classList.toggle("is-active", key === target);
+      historyPanels[key]?.classList.toggle("hidden", key !== target);
     });
+    if (persist) {
+      settings.statsTab = target;
+      persistSettings();
+    }
   };
   const clearSpinCountdown = () => {
     if (spinCountdownTimer) {
@@ -674,7 +721,10 @@ export default function renderRandomizerView() {
   };
   const renderSparkline = () => {
     if (!sparklineEl) return;
-    const { items } = state.getState();
+    const { items, settings } = state.getState();
+    const rareThreshold = clampRareThreshold(
+      settings?.rareThreshold ?? RARE_STREAK,
+    );
     const activeItems = items.filter((item) => !item.excluded);
     sparklineEl.innerHTML = "";
     if (!activeItems.length) return;
@@ -697,7 +747,7 @@ export default function renderRandomizerView() {
       bar.dataset.bsToggle = "tooltip";
       bar.dataset.bsPlacement = "top";
       bar.setAttribute("aria-label", tooltip);
-      bar.classList.toggle("is-rare", miss >= 3);
+      bar.classList.toggle("is-rare", miss >= rareThreshold);
       bar.classList.toggle("is-empty", miss === 0);
       sparklineEl.appendChild(bar);
     });
@@ -1148,6 +1198,17 @@ export default function renderRandomizerView() {
     renderItems();
     return true;
   };
+  const resetStats = () => {
+    state.persistItems({ resetPool: false });
+    items.forEach((item) => {
+      item.hits = 0;
+      item.misses = 0;
+    });
+    persistItems({ resetPool: false });
+    renderItems();
+    renderHistory();
+    showToast("Статистика сброшена", "success");
+  };
 
   const startInlineEdit = (chipEl, value) => {
     if (!chipEl || chipEl.dataset.editing === "1") return;
@@ -1254,6 +1315,7 @@ export default function renderRandomizerView() {
     onStartInlineEdit: (chip, value) => startInlineEdit(chip, value),
     onToggleFavorite: (value) => state.toggleFavorite(value),
     onToggleExclude: (value) => state.toggleExclude(value),
+    getRareThreshold: () => getRareThreshold(),
     favoritesOnly: () => favoritesOnly,
   });
 
@@ -1295,11 +1357,26 @@ export default function renderRandomizerView() {
     });
   }
 
+  if (rareThresholdInput) {
+    const thresholdValue = getRareThreshold();
+    settings.rareThreshold = thresholdValue;
+    rareThresholdInput.value = thresholdValue;
+    rareThresholdInput.addEventListener("change", () => {
+      const next = clampRareThreshold(rareThresholdInput.value);
+      settings.rareThreshold = next;
+      rareThresholdInput.value = next;
+      persistSettings();
+      renderItems();
+      renderHistory();
+      updateVisuals();
+    });
+  }
+
   syncAutoControls();
   updateAutoToggleUi();
   updateListVisibility(false);
   updateFavFilterUi();
-  setHistoryTab("history");
+  setHistoryTab(settings.statsTab || "history");
 
   const resultUI = createResultUI({
     resultCard,
@@ -1377,6 +1454,9 @@ export default function renderRandomizerView() {
     },
     statsTable,
     getRareOnly: () => rareOnly,
+    getRareThreshold: () => getRareThreshold(),
+    getSort: () => getStatsSort(),
+    onChangeSort: (sort) => setStatsSort(sort),
     onStatsToggle: (rare) => {
       if (!rareToggleBtn) return;
       rareToggleBtn.dataset.state = rare ? "rare" : "all";
@@ -1385,7 +1465,9 @@ export default function renderRandomizerView() {
       rareToggleBtn.classList.toggle("is-active", rare);
     },
     onExportStats: (getText) => {
-      statsExportBtn?.addEventListener("click", async () => {
+      if (!statsExportBtn || statsExportBtn.dataset.wired === "1") return;
+      statsExportBtn.dataset.wired = "1";
+      statsExportBtn.addEventListener("click", async () => {
         const data = getText(rareToggleBtn?.dataset.state === "rare");
         if (!data) {
           showToast("Статистика пуста", "info");
@@ -1608,9 +1690,42 @@ export default function renderRandomizerView() {
 
   favFilterBtn?.addEventListener("click", () => {
     favoritesOnly = !favoritesOnly;
+    settings.favoritesOnly = favoritesOnly;
     updateFavFilterUi();
     renderItems();
     updateVisuals();
+    persistSettings();
+  });
+
+  clearFavoritesBtn?.addEventListener("click", () => {
+    const changed = state.clearFavorites();
+    favoritesOnly = false;
+    settings.favoritesOnly = false;
+    persistSettings();
+    syncState();
+    updateFavFilterUi();
+    renderItems();
+    updateVisuals();
+    showToast(
+      changed ? "Избранное очищено" : "Нечего сбрасывать",
+      changed ? "success" : "info",
+    );
+  });
+
+  clearExcludedBtn?.addEventListener("click", () => {
+    const restored = state.clearExcluded();
+    syncState();
+    updateSummary();
+    updatePoolHint();
+    renderItems();
+    updateRollAvailability();
+    updateVisuals();
+    showToast(
+      restored
+        ? "Исключённые варианты возвращены в пул"
+        : "Исключённых нет в списке",
+      restored ? "success" : "info",
+    );
   });
 
   wireRollControls(wrapper, () => roll());
@@ -1694,13 +1809,23 @@ export default function renderRandomizerView() {
 
   rareToggleBtn?.addEventListener("click", () => {
     rareOnly = !rareOnly;
+    settings.rareOnly = rareOnly;
+    persistSettings();
     renderHistory();
   });
 
+  statsResetBtn?.addEventListener("click", () => {
+    if (!confirm("Сбросить счётчики выпадений и промахов для всех вариантов?"))
+      return;
+    resetStats();
+  });
+
   historyTabs.history?.addEventListener("click", () =>
-    setHistoryTab("history"),
+    setHistoryTab("history", { persist: true }),
   );
-  historyTabs.stats?.addEventListener("click", () => setHistoryTab("stats"));
+  historyTabs.stats?.addEventListener("click", () =>
+    setHistoryTab("stats", { persist: true }),
+  );
 
   wrapper
     .querySelector("#randomizer-export")

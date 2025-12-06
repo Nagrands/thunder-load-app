@@ -1,8 +1,12 @@
 // src/js/modules/randomizer/ui/items.js
 
-import { DEFAULT_WEIGHT, WEIGHT_MIN, WEIGHT_MAX } from "../helpers.js";
-
-const RARE_STREAK = 5;
+import {
+  DEFAULT_WEIGHT,
+  WEIGHT_MIN,
+  WEIGHT_MAX,
+  RARE_STREAK,
+  clampRareThreshold,
+} from "../helpers.js";
 
 export function createItemsRenderer({
   getState,
@@ -21,6 +25,7 @@ export function createItemsRenderer({
   onStartInlineEdit,
   onToggleFavorite,
   onToggleExclude,
+  getRareThreshold,
   favoritesOnly = false,
 }) {
   const debounce = (fn, delay = 50) => {
@@ -59,6 +64,10 @@ export function createItemsRenderer({
     onSyncWeight?.clamp(item?.weight ?? DEFAULT_WEIGHT);
   const getItemHits = (item) => onSyncWeight?.clampHits(item?.hits ?? 0);
   const getItemMisses = (item) => Math.max(0, Math.floor(item?.misses ?? 0));
+  const getRareStreak = () =>
+    clampRareThreshold(
+      typeof getRareThreshold === "function" ? getRareThreshold() : RARE_STREAK,
+    );
 
   const renderItemsDebounced = debounce(() => renderItems(), 40);
   const onMoveThrottled = throttle((from, to) => onMoveItem(from, to), 60);
@@ -209,7 +218,8 @@ export function createItemsRenderer({
       const missesEl = document.createElement("span");
       missesEl.className = "chip-stat";
       missesEl.textContent = `Не выпадал: ${misses}`;
-      if (!isDepleted && misses >= RARE_STREAK) {
+      const rareThreshold = getRareStreak();
+      if (!isDepleted && misses >= rareThreshold) {
         missesEl.classList.add("rare");
       }
       statWrap.append(hitsEl, poolEl, missesEl);
@@ -365,7 +375,7 @@ export function createItemsRenderer({
       if (isDepleted) {
         chip.classList.add("is-depleted");
         chip.dataset.depleted = "1";
-      } else if (misses >= RARE_STREAK) {
+      } else if (misses >= rareThreshold) {
         chip.classList.add("is-rare");
       }
       if (selected.has(item.value)) chip.classList.add("selected");

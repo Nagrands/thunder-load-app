@@ -8,6 +8,8 @@ import {
   normalizePresets,
   clampWeight,
   clampMisses,
+  clampRareThreshold,
+  RARE_STREAK,
 } from "./helpers.js";
 
 const STORAGE_KEYS = {
@@ -67,6 +69,17 @@ export function createRandomizerState(storage) {
     autoStopOnPoolDepletion: settings?.autoStopOnPoolDepletion !== false,
     autoNotifySound: settings?.autoNotifySound !== false,
     autoNotifyFlash: settings?.autoNotifyFlash !== false,
+    favoritesOnly: !!settings?.favoritesOnly,
+    rareOnly: !!settings?.rareOnly,
+    rareThreshold: clampRareThreshold(settings?.rareThreshold),
+    statsTab:
+      settings?.statsTab === "history" || settings?.statsTab === "stats"
+        ? settings.statsTab
+        : "stats",
+    statsSortKey: ["misses", "hits", "value"].includes(settings?.statsSortKey)
+      ? settings.statsSortKey
+      : "misses",
+    statsSortDir: settings?.statsSortDir === "asc" ? "asc" : "desc",
   };
   let pool = readJson(STORAGE_KEYS.POOL, []);
 
@@ -307,6 +320,33 @@ export function createRandomizerState(storage) {
     return next;
   };
 
+  const clearFavorites = () => {
+    let changed = 0;
+    items.forEach((item) => {
+      if (item.favorite) {
+        item.favorite = false;
+        changed += 1;
+      }
+    });
+    if (changed) persistItems({ resetPool: false });
+    return changed;
+  };
+
+  const clearExcluded = () => {
+    let changed = 0;
+    items.forEach((item) => {
+      if (item.excluded) {
+        item.excluded = false;
+        changed += 1;
+      }
+    });
+    if (changed) {
+      resetPool();
+      persistItems({ resetPool: false });
+    }
+    return changed;
+  };
+
   return {
     STORAGE_KEYS,
     getState: () => ({
@@ -343,5 +383,7 @@ export function createRandomizerState(storage) {
     clearHistory,
     toggleFavorite,
     toggleExclude,
+    clearFavorites,
+    clearExcluded,
   };
 }
