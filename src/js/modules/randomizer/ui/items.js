@@ -69,7 +69,7 @@ export function createItemsRenderer({
       typeof getRareThreshold === "function" ? getRareThreshold() : RARE_STREAK,
     );
 
-  const renderItemsDebounced = debounce(() => renderItems(), 40);
+  let renderItemsDebounced;
   const onMoveThrottled = throttle((from, to) => onMoveItem(from, to), 60);
   const setDragState = (active) => {
     if (!listEl) return;
@@ -113,7 +113,7 @@ export function createItemsRenderer({
     });
   };
 
-  return function renderItems() {
+  function renderItems() {
     const { items, pool, settings } = getState();
     const onlyFav =
       typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
@@ -388,5 +388,8 @@ export function createItemsRenderer({
     onUpdatePoolHint();
     onUpdateSummary();
     updateProbabilities();
-  };
+  }
+
+  renderItemsDebounced = debounce(renderItems, 40);
+  return renderItems;
 }
