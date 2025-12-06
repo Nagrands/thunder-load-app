@@ -780,6 +780,36 @@
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
+
+  .chip-prob {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+
+  .chip-prob-track {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+  }
+
+  .chip-prob-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      rgba(var(--color-accent-rgb), 0.5),
+      rgba(255, 255, 255, 0.85)
+    );
+    transition: width 0.2s ease;
+  }
 }
 
 .chip-remove {

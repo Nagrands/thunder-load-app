@@ -59,10 +59,56 @@ export function createItemsRenderer({
     if (!listEl) return;
     listEl.classList.toggle("drag-active", !!active);
   };
+  const updateProbabilities = () => {
+    const { items, pool, settings } = getState();
+    const poolEntries = Array.isArray(pool) ? pool : [];
+    const poolCounts = poolEntries.reduce((acc, value) => {
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {});
+    const totalWeight = items.reduce((sum, item) => {
+      const available =
+        !settings?.noRepeat || (poolCounts[item.value] || 0) > 0;
+      return available ? sum + getItemWeight(item) : sum;
+    }, 0);
+    if (!listEl) return;
+    listEl.querySelectorAll(".randomizer-chip").forEach((chip) => {
+      const value = chip.dataset.value;
+      const item = items.find((entry) => entry.value === value);
+      if (!item) return;
+      const inPoolCount = poolCounts[value] || 0;
+      const isDepleted = settings?.noRepeat && inPoolCount === 0;
+      const probability =
+        totalWeight > 0 && !isDepleted
+          ? (getItemWeight(item) / totalWeight) * 100
+          : 0;
+      const label = chip.querySelector(".chip-prob-label");
+      if (label) {
+        label.textContent = `Вероятность: ${
+          probability >= 10 ? probability.toFixed(0) : probability.toFixed(1)
+        }%`;
+      }
+      const bar = chip.querySelector(".chip-prob-bar");
+      if (bar) {
+        const barWidth =
+          probability > 0 ? Math.min(100, Math.max(probability, 6)) : 0;
+        bar.style.width = `${barWidth}%`;
+      }
+    });
+  };
 
   return function renderItems() {
     const { items, pool, settings } = getState();
     const poolEntries = Array.isArray(pool) ? pool : [];
+    const poolCounts = poolEntries.reduce((acc, value) => {
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {});
+    const totalWeight = items.reduce((sum, item) => {
+      const inPoolCount = poolCounts[item.value] || 0;
+      const available = !settings?.noRepeat || inPoolCount > 0;
+      return available ? sum + getItemWeight(item) : sum;
+    }, 0);
     const selected = getSelected ? getSelected() : new Set();
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -136,9 +182,7 @@ export function createItemsRenderer({
       const hitsEl = document.createElement("span");
       hitsEl.className = "chip-stat";
       hitsEl.textContent = `Выпадений: ${getItemHits(item)}`;
-      const inPoolCount = poolEntries.filter(
-        (val) => val === item.value,
-      ).length;
+      const inPoolCount = poolCounts[item.value] || 0;
       const isDepleted = settings?.noRepeat && inPoolCount === 0;
       const poolEl = document.createElement("span");
       poolEl.className = "chip-stat";
@@ -146,6 +190,29 @@ export function createItemsRenderer({
         ? `В пуле: ${inPoolCount}`
         : "В пуле: ∞";
       statWrap.append(hitsEl, poolEl);
+
+      const probability =
+        totalWeight > 0 && !isDepleted
+          ? (getItemWeight(item) / totalWeight) * 100
+          : 0;
+      const probLabel = document.createElement("span");
+      probLabel.className = "chip-stat chip-prob-label";
+      probLabel.textContent = `Вероятность: ${
+        probability >= 10 ? probability.toFixed(0) : probability.toFixed(1)
+      }%`;
+
+      const probTrack = document.createElement("div");
+      probTrack.className = "chip-prob-track";
+      const probBar = document.createElement("div");
+      probBar.className = "chip-prob-bar";
+      const barWidth =
+        probability > 0 ? Math.min(100, Math.max(probability, 6)) : 0;
+      probBar.style.width = `${barWidth}%`;
+      probTrack.appendChild(probBar);
+
+      const probWrap = document.createElement("div");
+      probWrap.className = "chip-prob";
+      probWrap.append(probLabel, probTrack);
 
       const syncWeight = (nextWeight) => {
         const sanitized = onSyncWeight?.clamp(nextWeight);
@@ -158,6 +225,7 @@ export function createItemsRenderer({
         weightNumber.value = sanitized;
         weightLabel.textContent = `x${sanitized}`;
         renderItemsDebounced();
+        updateProbabilities();
       };
 
       const stopChipEvent = (event) => event.stopPropagation();
@@ -179,7 +247,7 @@ export function createItemsRenderer({
       });
 
       chipMain.append(dragHandle, textWrap, weightLabel, remove);
-      chip.append(chipMain, weightWrap, statWrap);
+      chip.append(chipMain, weightWrap, statWrap, probWrap);
 
       chip.addEventListener("click", (event) => {
         if (event.detail > 1) return;
@@ -238,5 +306,6 @@ export function createItemsRenderer({
     onUpdateBulk();
     onUpdatePoolHint();
     onUpdateSummary();
+    updateProbabilities();
   };
 }
