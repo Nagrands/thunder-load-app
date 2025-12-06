@@ -161,8 +161,8 @@ export function createRandomizerState(storage) {
     return true;
   };
 
-  const addHistoryEntry = (value) => {
-    history.unshift({ value, ts: Date.now() });
+  const addHistoryEntry = (value, presetName = currentPresetName) => {
+    history.unshift({ value, ts: Date.now(), preset: presetName || "" });
     history = history.slice(0, MAX_HISTORY);
     persistHistory();
   };

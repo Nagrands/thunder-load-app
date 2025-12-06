@@ -744,7 +744,7 @@ export default function renderRandomizerView() {
   });
 
   const addHistoryEntry = (value) => {
-    state.addHistoryEntry(value);
+    state.addHistoryEntry(value, currentPresetName);
     syncState();
     renderHistory();
   };

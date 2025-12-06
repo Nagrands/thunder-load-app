@@ -21921,9 +21921,25 @@ h1.section-heading .bk-heading-search #bk-search-info {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.history-entry .time {
+.history-entry .meta {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
   font-size: 0.85rem;
   color: var(--color-quality);
+  white-space: nowrap;
+}
+.history-entry .meta .preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--color-text-main);
 }
 
 .randomizer-roll {

@@ -23,12 +23,16 @@ export function createHistoryRenderer({
       button.type = "button";
       button.className = "history-entry";
       button.dataset.value = entry.value;
+      const presetLabel = entry.preset ? escapeHtml(entry.preset) : "—";
       button.innerHTML = `
         <span class="text">${escapeHtml(entry.value)}</span>
-        <span class="time">${new Intl.DateTimeFormat("ru-RU", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(entry.ts)}</span>
+        <span class="meta">
+          <span class="preset" title="Шаблон">${presetLabel}</span>
+          <span class="time">${new Intl.DateTimeFormat("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(entry.ts)}</span>
+        </span>
       `;
       button.addEventListener("click", () => {
         onSelectEntry(entry.value);
