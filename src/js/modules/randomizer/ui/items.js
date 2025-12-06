@@ -55,6 +55,10 @@ export function createItemsRenderer({
 
   const renderItemsDebounced = debounce(() => renderItems(), 40);
   const onMoveThrottled = throttle((from, to) => onMoveItem(from, to), 60);
+  const setDragState = (active) => {
+    if (!listEl) return;
+    listEl.classList.toggle("drag-active", !!active);
+  };
 
   return function renderItems() {
     const { items, pool, settings } = getState();
@@ -209,6 +213,7 @@ export function createItemsRenderer({
       dragHandle.addEventListener("dragstart", (event) => {
         dragSource = item.value;
         chip.classList.add("dragging");
+        setDragState(true);
         event.dataTransfer?.setData("text/plain", item.value);
         event.dataTransfer?.setDragImage(chip, 10, 10);
       });
@@ -217,6 +222,7 @@ export function createItemsRenderer({
         dragSource = null;
         chip.classList.remove("dragging");
         chip.classList.remove("drop-target");
+        setDragState(false);
       });
 
       if (isDepleted) {

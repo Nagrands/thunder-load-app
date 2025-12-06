@@ -209,8 +209,8 @@ export default function renderRandomizerView() {
           </div>
           <div class="randomizer-result-actions">
             <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll">
-              <i class="fa-solid fa-play"></i>
-              <span>Ещё раз</span>
+              <i class="fa-solid fa-dice"></i>
+              <span>Запустить</span>
             </button>
             <button type="button" class="btn btn-ghost" id="randomizer-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать результат">
               <i class="fa-solid fa-copy"></i>
@@ -280,14 +280,17 @@ export default function renderRandomizerView() {
   let spinCountdownTimer = null;
 
   const setCountLabel = () => {
-    countEl.textContent =
-      items.length === 1
+    const isEmpty = items.length === 0;
+    countEl.textContent = isEmpty
+      ? "Список пуст"
+      : items.length === 1
         ? "1 вариант"
         : `${items.length} ${declOfNum(items.length, [
             "вариант",
             "варианта",
             "вариантов",
           ])}`;
+    exportButton.classList.toggle("hidden", isEmpty);
   };
 
   // Универсальный кастомный селект (общий с Backup)

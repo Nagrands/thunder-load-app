@@ -492,6 +492,11 @@
   gap: 16px;
   flex-direction: row;
   justify-content: flex-start;
+
+  &.drag-active .randomizer-chip:not(.dragging) {
+    opacity: 0.92;
+    transition: opacity 0.12s ease;
+  }
 }
 
 .randomizer-pool-hint {
@@ -520,19 +525,20 @@
 .randomizer-chip {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex: 1 1 420px;
+  gap: 12px;
+  flex: 1 1 360px;
+  position: relative;
   background:
     linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.08),
-      rgba(255, 255, 255, 0.03)
+      rgba(255, 255, 255, 0.02)
     ),
     rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
-  padding: 12px 14px;
-  font-size: 0.95rem;
+  padding: 10px 12px;
+  font-size: 0.92rem;
   color: var(--color-text-main);
   cursor: grab;
   user-select: none;
@@ -542,16 +548,28 @@
     background 0.18s ease,
     transform 0.12s ease;
 
+  &:hover {
+    border-color: rgba(var(--color-accent-rgb), 0.4);
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.28),
+      0 0 0 1px rgba(var(--color-accent-rgb), 0.08);
+    transform: translateY(-1px);
+  }
+
   .chip-main {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
+
+    .drop-cue {
+      display: none;
+    }
   }
 
   .chip-drag-handle {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
@@ -576,27 +594,32 @@
     flex-direction: column;
     gap: 4px;
     min-width: 0;
+
+    .chip-subtitle {
+      color: var(--color-quality);
+      font-size: 0.85rem;
+    }
   }
 
   .text {
     max-width: 100%;
     white-space: normal;
     word-break: break-word;
-    font-size: 18px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     letter-spacing: 0.01em;
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   .chip-weight-label {
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: var(--color-hover);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.88rem;
+    font-weight: 600;
     color: var(--color-accent);
-    min-width: 54px;
+    min-width: 48px;
     text-align: center;
   }
 
@@ -660,15 +683,24 @@
   }
 
   &.drop-target {
-    border-style: dashed;
-    border-color: var(--color-accent);
+    border-color: rgba(var(--color-accent-rgb), 0.75);
+    box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.25);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border: 1px dashed rgba(var(--color-accent-rgb), 0.7);
+      border-radius: 18px;
+      pointer-events: none;
+    }
   }
 
   .chip-edit-input {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    padding: 4px 8px;
+    padding: 4px 6px;
     color: var(--color-text-main);
     min-width: 220px;
     outline: none;
@@ -682,19 +714,22 @@
   .chip-weight {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 6px 8px;
   }
 
   .chip-weight-number {
-    width: 72px;
+    width: 64px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: var(--border-radius);
     color: var(--color-text-main);
-    padding: 6px 8px;
-    font-size: 0.9rem;
+    padding: 5px 8px;
+    font-size: 0.88rem;
     outline: none;
 
     &:focus {
@@ -705,7 +740,7 @@
 
   .chip-weight-presets {
     display: flex;
-    gap: 6px;
+    gap: 5px;
     flex-wrap: wrap;
   }
 
@@ -714,8 +749,8 @@
     /* background: rgba(255, 255, 255, 0.04); */
     color: var(--color-accent);
     border-radius: var(--border-radius);
-    padding: 4px 8px;
-    font-size: 0.82rem;
+    padding: 3px 8px;
+    font-size: 0.8rem;
     cursor: pointer;
     transition:
       border-color 0.16s ease,
@@ -726,20 +761,21 @@
       border-color: rgba(var(--color-accent-rgb), 0.6);
       color: var(--color-accent);
       background: rgba(var(--color-accent-rgb), 0.12);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
   }
 
   .chip-stats {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--color-highlight);
     justify-content: flex-end;
   }
 
   .chip-stat {
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -762,20 +798,18 @@
     color 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
     color: var(--color-accent);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   }
 }
 
 @media (max-width: 960px) {
   .randomizer-chip {
-    gap: 8px;
+    gap: 6px;
   }
 
   .randomizer-chip .chip-main {
     grid-template-columns: auto 1fr auto;
-    gap: 8px;
+    gap: 6px;
   }
 }
 
