@@ -90,12 +90,12 @@ export default function renderRandomizerView() {
 
     <div class="randomizer-summary" id="randomizer-summary">
       <div class="summary-item">
-        <span class="label">Варианты</span>
-        <strong id="randomizer-summary-count">0</strong>
-      </div>
-      <div class="summary-item">
         <span class="label">Шаблон</span>
         <strong id="randomizer-summary-preset">—</strong>
+      </div>
+      <div class="summary-item">
+        <span class="label">Варианты</span>
+        <strong id="randomizer-summary-count">0</strong>
       </div>
       <div class="summary-item">
         <span class="label">Режим</span>
@@ -191,7 +191,6 @@ export default function renderRandomizerView() {
         <div class="outcome-section">
           <header>
             <p class="eyebrow">Результат</p>
-            <h3>Случайный выбор</h3>
           </header>
           <div class="randomizer-result" id="randomizer-result">
             <div class="placeholder">
@@ -914,11 +913,13 @@ export default function renderRandomizerView() {
     .querySelector("#randomizer-reset-pool")
     ?.addEventListener("click", () => {
       resetPool();
+      renderItems();
       showToast("Пул без повторов обновлён", "success");
     });
 
   poolRefreshBtn?.addEventListener("click", () => {
     resetPool();
+    renderItems();
     showToast("Пул без повторов обновлён", "success");
   });
 
@@ -960,6 +961,7 @@ export default function renderRandomizerView() {
     settings.noRepeat = noRepeatToggle.checked;
     persistSettings();
     resetPool();
+    renderItems();
   });
 
   renderItems();

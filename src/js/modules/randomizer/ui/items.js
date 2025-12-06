@@ -58,6 +58,7 @@ export function createItemsRenderer({
 
   return function renderItems() {
     const { items, pool, settings } = getState();
+    const poolEntries = Array.isArray(pool) ? pool : [];
     const selected = getSelected ? getSelected() : new Set();
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -131,7 +132,10 @@ export function createItemsRenderer({
       const hitsEl = document.createElement("span");
       hitsEl.className = "chip-stat";
       hitsEl.textContent = `Выпадений: ${getItemHits(item)}`;
-      const inPoolCount = pool.filter((val) => val === item.value).length;
+      const inPoolCount = poolEntries.filter(
+        (val) => val === item.value,
+      ).length;
+      const isDepleted = settings?.noRepeat && inPoolCount === 0;
       const poolEl = document.createElement("span");
       poolEl.className = "chip-stat";
       poolEl.textContent = settings.noRepeat
@@ -215,6 +219,10 @@ export function createItemsRenderer({
         chip.classList.remove("drop-target");
       });
 
+      if (isDepleted) {
+        chip.classList.add("is-depleted");
+        chip.dataset.depleted = "1";
+      }
       if (selected.has(item.value)) chip.classList.add("selected");
       fragment.appendChild(chip);
     });

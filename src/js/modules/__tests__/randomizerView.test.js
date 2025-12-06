@@ -26,6 +26,9 @@ const setup = (options = {}) => {
   if (options.items) {
     localStorage.setItem("randomizerItems", JSON.stringify(options.items));
   }
+  if ("pool" in options) {
+    localStorage.setItem("randomizerPool", JSON.stringify(options.pool));
+  }
   if (options.settings) {
     localStorage.setItem(
       "randomizerSettings",
@@ -188,6 +191,47 @@ describe("Randomizer view", () => {
 
     const presets = getStoredPresets();
     expect(presets.some((p) => p.name === "NewPreset")).toBe(true);
+  });
+
+  test("marks chips that left the pool", () => {
+    jest.useFakeTimers();
+    const originalRandom = Math.random;
+    Math.random = jest.fn(() => 0); // pick the first item
+
+    try {
+      const view = setup({
+        items: [
+          { value: "One", weight: 1 },
+          { value: "Two", weight: 1 },
+        ],
+        settings: { noRepeat: true, spinSeconds: 0 },
+      });
+
+      view.querySelector("#randomizer-roll").click();
+      jest.runAllTimers();
+
+      const chipByValue = (value) =>
+        getChips(view).find(
+          (chip) => chip.querySelector(".text")?.textContent === value,
+        );
+
+      const chipOne = chipByValue("One");
+      const chipTwo = chipByValue("Two");
+
+      expect(chipOne?.classList.contains("is-depleted")).toBe(true);
+      expect(chipTwo?.classList.contains("is-depleted")).toBe(false);
+
+      const toggle = view.querySelector("#randomizer-no-repeat");
+      toggle.checked = false;
+      toggle.dispatchEvent(new Event("change", { bubbles: true }));
+
+      expect(
+        getChips(view).some((chip) => chip.classList.contains("is-depleted")),
+      ).toBe(false);
+    } finally {
+      Math.random = originalRandom;
+      jest.useRealTimers();
+    }
   });
 
   test("creates an empty template via the new button", () => {
