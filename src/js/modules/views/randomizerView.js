@@ -10,6 +10,7 @@ import {
   saveJson,
   clampWeight,
   clampHits,
+  clampMisses,
   declOfNum,
 } from "../randomizer/helpers.js";
 import { createRandomizerState } from "../randomizer/state.js";
@@ -630,6 +631,7 @@ export default function renderRandomizerView() {
 
   const getItemWeight = (item) => clampWeight(item?.weight ?? DEFAULT_WEIGHT);
   const getItemHits = (item) => clampHits(item?.hits ?? 0);
+  const getItemMisses = (item) => clampMisses(item?.misses ?? 0);
 
   const pickWeightedItem = (candidates) => {
     const totalWeight = candidates.reduce(
@@ -813,6 +815,7 @@ export default function renderRandomizerView() {
       clearSpinCountdown();
       return;
     }
+    const candidateValues = new Set(candidates.map((item) => item.value));
     const spinMs = Math.min(
       60000,
       Math.max(0, Number(settings.spinSeconds ?? 0.4) * 1000),
@@ -835,7 +838,14 @@ export default function renderRandomizerView() {
         }
 
         const value = picked.value;
-        picked.hits = getItemHits(picked) + 1;
+        items.forEach((item) => {
+          if (item.value === value) {
+            item.hits = getItemHits(item) + 1;
+            item.misses = 0;
+          } else if (candidateValues.has(item.value)) {
+            item.misses = clampMisses(getItemMisses(item) + 1);
+          }
+        });
         persistItems({ resetPool: false });
         if (settings.noRepeat) {
           state.consumeFromPool(value);

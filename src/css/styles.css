@@ -21735,6 +21735,11 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
+.randomizer-chip .chip-stat.rare {
+  color: var(--color-accent);
+  border-color: rgba(var(--color-accent-rgb), 0.5);
+  background: rgba(var(--color-accent-rgb), 0.08);
+}
 .randomizer-chip .chip-prob {
   display: grid;
   gap: 6px;
@@ -21757,6 +21762,11 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-radius: inherit;
   background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.5), rgba(255, 255, 255, 0.85));
   transition: width 0.2s ease;
+}
+
+.randomizer-chip.is-rare:not(.is-depleted) {
+  border-color: rgba(var(--color-accent-rgb), 0.65);
+  box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.18), 0 12px 30px rgba(0, 0, 0, 0.32);
 }
 
 .chip-remove {

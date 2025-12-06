@@ -7,6 +7,7 @@ import {
   normalizeItems,
   normalizePresets,
   clampWeight,
+  clampMisses,
 } from "./helpers.js";
 
 const STORAGE_KEYS = {
@@ -197,7 +198,12 @@ export function createRandomizerState(storage) {
       (item) => item.value.toLowerCase() === normalized.toLowerCase(),
     );
     if (exists) return false;
-    const newItem = { value: normalized, weight: clampWeight(), hits: 0 };
+    const newItem = {
+      value: normalized,
+      weight: clampWeight(),
+      hits: 0,
+      misses: 0,
+    };
     items.push(newItem);
     pool.push(newItem.value);
     persistItems({ resetPool: false });

@@ -2,6 +2,8 @@
 
 import { DEFAULT_WEIGHT, WEIGHT_MIN, WEIGHT_MAX } from "../helpers.js";
 
+const RARE_STREAK = 5;
+
 export function createItemsRenderer({
   getState,
   listEl,
@@ -52,6 +54,7 @@ export function createItemsRenderer({
   const getItemWeight = (item) =>
     onSyncWeight?.clamp(item?.weight ?? DEFAULT_WEIGHT);
   const getItemHits = (item) => onSyncWeight?.clampHits(item?.hits ?? 0);
+  const getItemMisses = (item) => Math.max(0, Math.floor(item?.misses ?? 0));
 
   const renderItemsDebounced = debounce(() => renderItems(), 40);
   const onMoveThrottled = throttle((from, to) => onMoveItem(from, to), 60);
@@ -184,12 +187,19 @@ export function createItemsRenderer({
       hitsEl.textContent = `Выпадений: ${getItemHits(item)}`;
       const inPoolCount = poolCounts[item.value] || 0;
       const isDepleted = settings?.noRepeat && inPoolCount === 0;
+      const misses = getItemMisses(item);
       const poolEl = document.createElement("span");
       poolEl.className = "chip-stat";
       poolEl.textContent = settings.noRepeat
         ? `В пуле: ${inPoolCount}`
         : "В пуле: ∞";
-      statWrap.append(hitsEl, poolEl);
+      const missesEl = document.createElement("span");
+      missesEl.className = "chip-stat";
+      missesEl.textContent = `Не выпадал: ${misses}`;
+      if (!isDepleted && misses >= RARE_STREAK) {
+        missesEl.classList.add("rare");
+      }
+      statWrap.append(hitsEl, poolEl, missesEl);
 
       const probability =
         totalWeight > 0 && !isDepleted
@@ -296,6 +306,8 @@ export function createItemsRenderer({
       if (isDepleted) {
         chip.classList.add("is-depleted");
         chip.dataset.depleted = "1";
+      } else if (misses >= RARE_STREAK) {
+        chip.classList.add("is-rare");
       }
       if (selected.has(item.value)) chip.classList.add("selected");
       fragment.appendChild(chip);

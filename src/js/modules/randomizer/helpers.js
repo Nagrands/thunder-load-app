@@ -57,6 +57,12 @@ export const clampHits = (raw) => {
   return Math.floor(n);
 };
 
+export const clampMisses = (raw) => {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.floor(n);
+};
+
 export const normalizeItems = (
   rawItems,
   { allowEmpty = false, defaultItems = DEFAULT_ITEMS } = {},
@@ -85,7 +91,10 @@ export const normalizeItems = (
     const hits = clampHits(
       typeof entry === "object" && entry !== null ? entry.hits : 0,
     );
-    normalized.push({ value, weight, hits });
+    const misses = clampMisses(
+      typeof entry === "object" && entry !== null ? entry.misses : 0,
+    );
+    normalized.push({ value, weight, hits, misses });
   });
 
   if (!normalized.length) {
@@ -94,6 +103,7 @@ export const normalizeItems = (
       value,
       weight: DEFAULT_WEIGHT,
       hits: 0,
+      misses: 0,
     }));
   }
 
