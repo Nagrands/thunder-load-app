@@ -14,6 +14,8 @@ export const WEIGHT_MAX = 10;
 export const DEFAULT_WEIGHT = 1;
 export const DEFAULT_PRESET_NAME = "Основной";
 export const MAX_ITEM_LENGTH = 160;
+export const DEFAULT_FAVORITE = false;
+export const DEFAULT_EXCLUDED = false;
 
 const cloneValue = (value) =>
   Array.isArray(value)
@@ -94,7 +96,15 @@ export const normalizeItems = (
     const misses = clampMisses(
       typeof entry === "object" && entry !== null ? entry.misses : 0,
     );
-    normalized.push({ value, weight, hits, misses });
+    const favorite =
+      typeof entry === "object" && entry !== null
+        ? !!entry.favorite
+        : DEFAULT_FAVORITE;
+    const excluded =
+      typeof entry === "object" && entry !== null
+        ? !!entry.excluded
+        : DEFAULT_EXCLUDED;
+    normalized.push({ value, weight, hits, misses, favorite, excluded });
   });
 
   if (!normalized.length) {

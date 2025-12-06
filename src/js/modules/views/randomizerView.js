@@ -140,6 +140,7 @@ export default function renderRandomizerView() {
   let currentPresetName;
   let defaultPresetName;
   let selectedItems = new Set();
+  let favoritesOnly = false;
 
   const syncState = () => {
     ({
@@ -161,11 +162,11 @@ export default function renderRandomizerView() {
   wrapper.id = "randomizer-view";
   wrapper.className = "randomizer-view tab-content p-4";
   wrapper.innerHTML = `
-    <div class="randomizer-hero">
-      <div class="randomizer-heading">
-        <div class="icon">
-          <i class="fa-solid fa-shuffle"></i>
-        </div>
+      <div class="randomizer-hero">
+        <div class="randomizer-heading">
+          <div class="icon">
+            <i class="fa-solid fa-shuffle"></i>
+          </div>
         <div class="text">
           <h2>Randomizer</h2>
           <p>Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.</p>
@@ -178,6 +179,10 @@ export default function renderRandomizerView() {
         </button>
         <button type="button" class="btn btn-ghost" id="randomizer-reset-pool" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Очистить пул без повторов">
           <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+        <button type="button" class="btn btn-ghost mobile-only" id="randomizer-toggle-list" data-state="shown">
+          <i class="fa-solid fa-list"></i>
+          <span>Скрыть список</span>
         </button>
       </div>
     </div>
@@ -217,6 +222,27 @@ export default function renderRandomizerView() {
             <span class="value">—</span>
           </span>
         </label>
+      </div>
+    </div>
+
+    <div class="randomizer-visuals" id="randomizer-visuals">
+      <div class="visual-card">
+        <div class="visual-header">
+          <span class="label">Пул</span>
+          <span class="value" id="randomizer-pool-progress-value">—</span>
+        </div>
+        <div class="pool-progress">
+          <div class="pool-progress-bar">
+            <span class="fill" id="randomizer-pool-progress"></span>
+          </div>
+        </div>
+      </div>
+      <div class="visual-card">
+        <div class="visual-header">
+          <span class="label">Редкость</span>
+          <span class="value">Промахи</span>
+        </div>
+        <div class="sparkline" id="randomizer-sparkline" aria-label="Спарклайн промахов по вариантам"></div>
       </div>
     </div>
 
@@ -278,6 +304,10 @@ export default function renderRandomizerView() {
         <div class="randomizer-list-header">
           <span id="randomizer-count">0 вариантов</span>
           <div class="randomizer-list-actions">
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-fav-filter" data-state="all" data-bs-toggle="tooltip" data-bs-placement="left" title="Показывать только избранные варианты">
+              <i class="fa-solid fa-star"></i>
+              <span>Все</span>
+            </button>
             <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
               <i class="fa-solid fa-copy"></i>
             </button>
@@ -421,11 +451,17 @@ export default function renderRandomizerView() {
   const summaryCountEl = wrapper.querySelector("#randomizer-summary-count");
   const summaryPresetEl = wrapper.querySelector("#randomizer-summary-preset");
   const summaryPoolEl = wrapper.querySelector("#randomizer-summary-pool");
+  const poolProgressFill = wrapper.querySelector("#randomizer-pool-progress");
+  const poolProgressValue = wrapper.querySelector(
+    "#randomizer-pool-progress-value",
+  );
+  const sparklineEl = wrapper.querySelector("#randomizer-sparkline");
   const presetSaveBtn = wrapper.querySelector("#randomizer-preset-save");
   const presetNewBtn = wrapper.querySelector("#randomizer-preset-new");
   const presetSaveAsBtn = wrapper.querySelector("#randomizer-preset-save-as");
   const presetDeleteBtn = wrapper.querySelector("#randomizer-preset-delete");
   const presetDefaultBtn = wrapper.querySelector("#randomizer-preset-default");
+  const favFilterBtn = wrapper.querySelector("#randomizer-fav-filter");
   let presetPromptEl = null;
   const historyRunBtn = wrapper.querySelector("#randomizer-history-run");
   let listActionsUI = null;
@@ -455,6 +491,7 @@ export default function renderRandomizerView() {
   );
   const autoStopExtras = wrapper.querySelectorAll(".stop-extra");
   const autoStopSelectUI = enhanceSelect(autoStopModeSelect);
+  const toggleListBtn = wrapper.querySelector("#randomizer-toggle-list");
   let autoTimer = null;
   let autoRuns = 0;
   let autoStatusTimer = null;
@@ -464,18 +501,29 @@ export default function renderRandomizerView() {
   let isRolling = false;
   let flashTimer = null;
   let audioContext = null;
+  let isListHidden = false;
 
+  const getVisibleItems = () =>
+    favoritesOnly ? items.filter((item) => item.favorite) : items;
   const setCountLabel = () => {
-    const isEmpty = items.length === 0;
-    countEl.textContent = isEmpty
-      ? "Список пуст"
-      : items.length === 1
+    const visible = getVisibleItems();
+    const isEmpty = visible.length === 0;
+    const baseLabel = isEmpty
+      ? favoritesOnly
+        ? "Избранных нет"
+        : "Список пуст"
+      : visible.length === 1
         ? "1 вариант"
-        : `${items.length} ${declOfNum(items.length, [
+        : `${visible.length} ${declOfNum(visible.length, [
             "вариант",
             "варианта",
             "вариантов",
           ])}`;
+    const extra =
+      favoritesOnly && visible.length !== items.length
+        ? ` из ${items.length}`
+        : "";
+    countEl.textContent = `${baseLabel}${extra}`;
     exportButton.classList.toggle("hidden", isEmpty);
   };
 
@@ -505,6 +553,25 @@ export default function renderRandomizerView() {
     ["none", "count", "match"].includes(raw) ? raw : "none";
   const sanitizeStopMatch = (value = "") =>
     (value ?? "").toString().slice(0, 120).trim();
+  const updateListVisibility = (hidden) => {
+    isListHidden = hidden;
+    wrapper.classList.toggle("is-list-hidden", hidden);
+    if (toggleListBtn) {
+      const span = toggleListBtn.querySelector("span");
+      const icon = toggleListBtn.querySelector("i");
+      toggleListBtn.dataset.state = hidden ? "hidden" : "shown";
+      if (span) span.textContent = hidden ? "Показать список" : "Скрыть список";
+      if (icon)
+        icon.className = hidden ? "fa-solid fa-list" : "fa-solid fa-list-check";
+    }
+  };
+  const updateFavFilterUi = () => {
+    if (!favFilterBtn) return;
+    favFilterBtn.dataset.state = favoritesOnly ? "favorites" : "all";
+    const span = favFilterBtn.querySelector("span");
+    if (span) span.textContent = favoritesOnly ? "Избранные" : "Все";
+    favFilterBtn.classList.toggle("is-active", favoritesOnly);
+  };
   const clearSpinCountdown = () => {
     if (spinCountdownTimer) {
       clearInterval(spinCountdownTimer);
@@ -526,12 +593,73 @@ export default function renderRandomizerView() {
   };
   const updateRollAvailability = () => {
     const { items, pool, settings } = state.getState();
+    const activeItems = items.filter((item) => !item.excluded);
+    const visibleItems = favoritesOnly
+      ? activeItems.filter((item) => item.favorite)
+      : activeItems;
+    const poolSet = new Set(pool || []);
+    const poolHasVisible =
+      !settings.noRepeat ||
+      visibleItems.some((item) => poolSet.has(item.value));
     const disabled =
-      !items.length ||
-      (settings.noRepeat && (!Array.isArray(pool) || pool.length === 0)) ||
-      isRolling ||
-      autoEnabled;
+      !visibleItems.length || !poolHasVisible || isRolling || autoEnabled;
     setRollDisabled(disabled);
+  };
+  const updatePoolProgress = () => {
+    if (!poolProgressFill || !poolProgressValue) return;
+    const { items, pool, settings } = state.getState();
+    if (!items.length) {
+      poolProgressFill.style.width = "0%";
+      poolProgressValue.textContent = "—";
+      poolProgressFill.classList.remove("is-warning");
+      return;
+    }
+    const total = items.length || 1;
+    const current = settings.noRepeat ? pool.length : total;
+    const ratio = Math.max(
+      0,
+      Math.min(1, settings.noRepeat ? current / total : 1),
+    );
+    poolProgressFill.style.width = `${(ratio * 100).toFixed(0)}%`;
+    poolProgressValue.textContent = settings.noRepeat
+      ? `${current}/${total}`
+      : "∞";
+    poolProgressFill.classList.toggle("is-warning", ratio < 0.35);
+  };
+  const renderSparkline = () => {
+    if (!sparklineEl) return;
+    const { items } = state.getState();
+    const activeItems = items.filter((item) => !item.excluded);
+    sparklineEl.innerHTML = "";
+    if (!activeItems.length) return;
+    const sorted = activeItems
+      .slice()
+      .sort((a, b) => clampMisses(b.misses || 0) - clampMisses(a.misses || 0))
+      .slice(0, 14);
+    const maxMiss = Math.max(
+      1,
+      ...sorted.map((item) => clampMisses(item.misses || 0)),
+    );
+    sorted.forEach((item) => {
+      const miss = clampMisses(item.misses || 0);
+      const hit = clampHits(item.hits || 0);
+      const bar = document.createElement("div");
+      bar.className = "spark-bar";
+      bar.style.setProperty("--h", `${Math.max(6, (miss / maxMiss) * 100)}%`);
+      const tooltip = `${item.value}: ${miss} промахов, ${hit} попаданий`;
+      bar.title = tooltip;
+      bar.dataset.bsToggle = "tooltip";
+      bar.dataset.bsPlacement = "top";
+      bar.setAttribute("aria-label", tooltip);
+      bar.classList.toggle("is-rare", miss >= 3);
+      bar.classList.toggle("is-empty", miss === 0);
+      sparklineEl.appendChild(bar);
+    });
+    setTimeout(() => initTooltips(), 0);
+  };
+  const updateVisuals = () => {
+    updatePoolProgress();
+    renderSparkline();
   };
   const setRolling = (value) => {
     isRolling = value;
@@ -753,6 +881,7 @@ export default function renderRandomizerView() {
     updatePoolHint();
     updateSummary();
     updateRollAvailability();
+    updateVisuals();
   };
 
   const resetPool = () => {
@@ -762,11 +891,13 @@ export default function renderRandomizerView() {
     updateSummary();
     pulsePool();
     updateRollAvailability();
+    updateVisuals();
   };
 
   const persistItems = (options = {}) => {
     state.persistItems(options);
     syncState();
+    updateVisuals();
   };
 
   const persistHistory = () => {
@@ -783,6 +914,7 @@ export default function renderRandomizerView() {
     state.ensurePresetExists();
     syncState();
     updateSummary();
+    updateVisuals();
   };
 
   const createPreset = (name, sourceItems = items) => {
@@ -800,6 +932,7 @@ export default function renderRandomizerView() {
     state.createPreset(trimmed, sourceItems);
     syncState();
     state.savePresets();
+    updateVisuals();
   };
 
   const ensurePresetPrompt = () => {
@@ -890,6 +1023,7 @@ export default function renderRandomizerView() {
     syncState();
     presetsUI?.refreshPresetSelect?.();
     renderItems();
+    updateVisuals();
   };
 
   const presetsUI = createPresetsUI({
@@ -1037,13 +1171,19 @@ export default function renderRandomizerView() {
   };
 
   const renderItemsImpl = createItemsRenderer({
-    getState: () => state.getState(),
+    getState: () => {
+      const base = state.getState();
+      return favoritesOnly
+        ? { ...base, items: base.items.filter((item) => item.favorite) }
+        : base;
+    },
     listEl,
     getSelected: () => selectedItems,
     onUpdateCount: setCountLabel,
     onUpdateBulk: updateBulkActions,
     onUpdatePoolHint: updatePoolHint,
     onUpdateSummary: updateSummary,
+    onUpdateVisuals: updateVisuals,
     onSelectToggle: toggleSelection,
     onRemoveSelected: (toRemove, { silent } = {}) => {
       state.removeItems(toRemove);
@@ -1066,6 +1206,9 @@ export default function renderRandomizerView() {
       },
     },
     onStartInlineEdit: (chip, value) => startInlineEdit(chip, value),
+    onToggleFavorite: (value) => state.toggleFavorite(value),
+    onToggleExclude: (value) => state.toggleExclude(value),
+    favoritesOnly: () => favoritesOnly,
   });
 
   const renderItems = () => {
@@ -1073,6 +1216,7 @@ export default function renderRandomizerView() {
     pruneSelection();
     renderItemsImpl();
     updateRollAvailability();
+    updateVisuals();
   };
 
   ensurePresetExists();
@@ -1106,6 +1250,8 @@ export default function renderRandomizerView() {
 
   syncAutoControls();
   updateAutoToggleUi();
+  updateListVisibility(false);
+  updateFavFilterUi();
 
   const resultUI = createResultUI({
     resultCard,
@@ -1239,10 +1385,17 @@ export default function renderRandomizerView() {
       showToast("Сначала добавьте варианты", "warning");
       return Promise.resolve(null);
     }
+    const sourceItems = favoritesOnly
+      ? items.filter((item) => item.favorite)
+      : items;
+    if (!sourceItems.length) {
+      showToast("Отметьте избранные варианты или отключите фильтр", "info");
+      return Promise.resolve(null);
+    }
     normalizePool();
     const candidates = settings.noRepeat
-      ? items.filter((item) => pool.includes(item.value))
-      : items;
+      ? sourceItems.filter((item) => pool.includes(item.value))
+      : sourceItems;
     if (!candidates.length) {
       showToast("Нет доступных вариантов", "info");
       updatePoolHint();
@@ -1308,6 +1461,7 @@ export default function renderRandomizerView() {
           addHistoryEntry(value);
           renderItems();
           updateRollAvailability();
+          updateVisuals();
           lastResultValue = value;
           finish({ value, meta, source });
         },
@@ -1374,6 +1528,17 @@ export default function renderRandomizerView() {
       return;
     }
     startAutoRoll({ immediate: true });
+  });
+
+  toggleListBtn?.addEventListener("click", () => {
+    updateListVisibility(!isListHidden);
+  });
+
+  favFilterBtn?.addEventListener("click", () => {
+    favoritesOnly = !favoritesOnly;
+    updateFavFilterUi();
+    renderItems();
+    updateVisuals();
   });
 
   wireRollControls(wrapper, () => roll());

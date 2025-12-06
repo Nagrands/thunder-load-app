@@ -96,14 +96,15 @@ export function createRandomizerState(storage) {
 
   const normalizePool = () => {
     pool = (Array.isArray(pool) ? pool : []).filter((value) =>
-      items.some((item) => item.value === value),
+      items.some((item) => item.value === value && !item.excluded),
     );
-    if (!pool.length) pool = items.map((item) => item.value);
+    if (!pool.length)
+      pool = items.filter((item) => !item.excluded).map((item) => item.value);
     saveJson(STORAGE_KEYS.POOL, pool);
   };
 
   const resetPool = () => {
-    pool = items.map((item) => item.value);
+    pool = items.filter((item) => !item.excluded).map((item) => item.value);
     saveJson(STORAGE_KEYS.POOL, pool);
   };
 
@@ -228,6 +229,8 @@ export function createRandomizerState(storage) {
       weight: clampWeight(),
       hits: 0,
       misses: 0,
+      favorite: false,
+      excluded: false,
     };
     items.push(newItem);
     pool.push(newItem.value);
@@ -271,7 +274,31 @@ export function createRandomizerState(storage) {
   };
 
   const pickCandidates = (noRepeat) =>
-    noRepeat ? items.filter((item) => pool.includes(item.value)) : items;
+    noRepeat
+      ? items.filter((item) => !item.excluded && pool.includes(item.value))
+      : items.filter((item) => !item.excluded);
+
+  const toggleFavorite = (value) => {
+    const idx = items.findIndex((entry) => entry.value === value);
+    if (idx === -1) return false;
+    items[idx].favorite = !items[idx].favorite;
+    persistItems({ resetPool: false });
+    return items[idx].favorite;
+  };
+
+  const toggleExclude = (value) => {
+    const idx = items.findIndex((entry) => entry.value === value);
+    if (idx === -1) return false;
+    const next = !items[idx].excluded;
+    items[idx].excluded = next;
+    if (next) {
+      pool = pool.filter((entry) => entry !== value);
+    } else if (settings.noRepeat && !pool.includes(value)) {
+      pool.push(value);
+    }
+    persistItems({ resetPool: false });
+    return next;
+  };
 
   return {
     STORAGE_KEYS,
@@ -306,5 +333,7 @@ export function createRandomizerState(storage) {
     pickCandidates,
     consumeFromPool,
     clearHistory,
+    toggleFavorite,
+    toggleExclude,
   };
 }

@@ -12,12 +12,16 @@ export function createItemsRenderer({
   onUpdateBulk,
   onUpdatePoolHint,
   onUpdateSummary,
+  onUpdateVisuals,
   onSelectToggle,
   onRemoveSelected,
   onReplaceItem,
   onMoveItem,
   onSyncWeight,
   onStartInlineEdit,
+  onToggleFavorite,
+  onToggleExclude,
+  favoritesOnly = false,
 }) {
   const debounce = (fn, delay = 50) => {
     let t = null;
@@ -102,6 +106,11 @@ export function createItemsRenderer({
 
   return function renderItems() {
     const { items, pool, settings } = getState();
+    const onlyFav =
+      typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
+    const visibleItems = onlyFav
+      ? items.filter((item) => item.favorite)
+      : items;
     const poolEntries = Array.isArray(pool) ? pool : [];
     const poolCounts = poolEntries.reduce((acc, value) => {
       acc[value] = (acc[value] || 0) + 1;
@@ -109,16 +118,20 @@ export function createItemsRenderer({
     }, {});
     const totalWeight = items.reduce((sum, item) => {
       const inPoolCount = poolCounts[item.value] || 0;
-      const available = !settings?.noRepeat || inPoolCount > 0;
+      const available =
+        !item.excluded &&
+        (!settings?.noRepeat || (inPoolCount > 0 && !item.excluded));
       return available ? sum + getItemWeight(item) : sum;
     }, 0);
     const selected = getSelected ? getSelected() : new Set();
     if (!listEl) return;
     listEl.innerHTML = "";
-    if (!items.length) {
+    if (!visibleItems.length) {
       const empty = document.createElement("p");
       empty.className = "placeholder";
-      empty.textContent = "Пока нет вариантов. Добавьте несколько элементов.";
+      empty.textContent = onlyFav
+        ? "Нет избранных элементов. Отметьте ★ нужные варианты."
+        : "Пока нет вариантов. Добавьте несколько элементов.";
       listEl.appendChild(empty);
       onUpdateCount();
       onUpdateBulk();
@@ -128,7 +141,7 @@ export function createItemsRenderer({
     const fragment = document.createDocumentFragment();
     let dragSource = null;
 
-    items.forEach((item) => {
+    visibleItems.forEach((item) => {
       const chip = document.createElement("div");
       chip.className = "randomizer-chip";
       chip.dataset.value = item.value;
@@ -256,7 +269,51 @@ export function createItemsRenderer({
         onRemoveSelected(new Set([item.value]), { silent: true });
       });
 
-      chipMain.append(dragHandle, textWrap, weightLabel, remove);
+      const quick = document.createElement("div");
+      quick.className = "chip-quick";
+      const favBtn = document.createElement("button");
+      favBtn.type = "button";
+      favBtn.className = "chip-quick-btn";
+      favBtn.setAttribute("aria-label", "Избранное");
+      const favIcon = document.createElement("i");
+      favIcon.className = item.favorite
+        ? "fa-solid fa-star"
+        : "fa-regular fa-star";
+      favBtn.appendChild(favIcon);
+      favBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const next = onToggleFavorite(item.value);
+        favIcon.className = next ? "fa-solid fa-star" : "fa-regular fa-star";
+        chip.classList.toggle("is-favorite", next);
+        onUpdateVisuals?.();
+        renderItemsDebounced();
+      });
+
+      const excludeBtn = document.createElement("button");
+      excludeBtn.type = "button";
+      excludeBtn.className = "chip-quick-btn";
+      excludeBtn.setAttribute("aria-label", "Исключить из пула");
+      const excludeIcon = document.createElement("i");
+      excludeIcon.className = item.excluded
+        ? "fa-solid fa-eye-slash"
+        : "fa-solid fa-eye";
+      excludeBtn.appendChild(excludeIcon);
+      excludeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const next = onToggleExclude(item.value);
+        excludeIcon.className = next
+          ? "fa-solid fa-eye-slash"
+          : "fa-solid fa-eye";
+        chip.classList.toggle("is-excluded", next);
+        onUpdateSummary?.();
+        onUpdatePoolHint?.();
+        onUpdateVisuals?.();
+        renderItemsDebounced();
+      });
+
+      quick.append(favBtn, excludeBtn, remove);
+
+      chipMain.append(dragHandle, textWrap, weightLabel, quick);
       chip.append(chipMain, weightWrap, statWrap, probWrap);
 
       chip.addEventListener("click", (event) => {
@@ -303,6 +360,8 @@ export function createItemsRenderer({
         setDragState(false);
       });
 
+      if (item.favorite) chip.classList.add("is-favorite");
+      if (item.excluded) chip.classList.add("is-excluded");
       if (isDepleted) {
         chip.classList.add("is-depleted");
         chip.dataset.depleted = "1";

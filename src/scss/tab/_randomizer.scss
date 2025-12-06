@@ -85,6 +85,13 @@
       0 30px 80px rgba(0, 0, 0, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(18px);
+
+    @media (max-width: 1100px) {
+      position: sticky;
+      top: 10px;
+      z-index: 6;
+      margin-bottom: 4px;
+    }
   }
 
   .randomizer-heading {
@@ -129,6 +136,16 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+
+    .mobile-only {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .mobile-only {
+        display: inline-flex;
+      }
+    }
   }
 
   .spin-control {
@@ -244,6 +261,128 @@
   }
 }
 
+.randomizer-visuals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+
+  .visual-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 8px 24px rgba(0, 0, 0, 0.22);
+  }
+
+  .visual-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    .label {
+      color: var(--color-quality);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.8rem;
+    }
+
+    .value {
+      font-weight: 700;
+      color: var(--color-text-main);
+    }
+  }
+
+  .pool-progress {
+    width: 100%;
+
+    .pool-progress-bar {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(
+        90deg,
+        rgba(var(--color-accent-rgb), 0.4),
+        rgba(255, 255, 255, 0.9)
+      );
+      transition: width 0.35s ease;
+      box-shadow:
+        0 4px 10px rgba(var(--color-accent-rgb), 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+      &.is-warning {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 120, 120, 0.7),
+          rgba(255, 255, 255, 0.65)
+        );
+      }
+    }
+  }
+
+  .sparkline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8px, 1fr));
+    gap: 6px;
+    align-items: end;
+    min-height: 56px;
+  }
+
+  .spark-bar {
+    width: 100%;
+    height: var(--h, 10%);
+    background: linear-gradient(
+      180deg,
+      rgba(var(--color-accent-rgb), 0.9),
+      rgba(var(--color-accent-rgb), 0.55)
+    );
+    border-radius: 6px;
+    box-shadow:
+      0 6px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+    position: relative;
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    &.is-rare {
+      background: linear-gradient(
+        180deg,
+        rgba(255, 160, 120, 0.9),
+        rgba(255, 120, 120, 0.65)
+      );
+    }
+
+    &.is-empty {
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
 .randomizer-grid {
   display: grid;
   grid-template-columns: minmax(520px, 2fr) minmax(360px, 1fr);
@@ -252,6 +391,28 @@
 
   @media (max-width: 1100px) {
     grid-template-columns: 1fr;
+  }
+
+  &.is-list-hidden {
+    grid-template-columns: 1fr;
+  }
+}
+
+.randomizer-view.is-list-hidden {
+  .randomizer-editor {
+    display: none;
+  }
+
+  .randomizer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .randomizer-view.is-list-hidden {
+    .randomizer-grid {
+      grid-template-columns: 1fr;
+    }
   }
 }
 
@@ -435,6 +596,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+
+  .btn.is-active {
+    border-color: rgba(var(--color-accent-rgb), 0.7);
+    color: var(--color-accent);
+    box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.2);
+  }
 }
 
 .preset-prompt-overlay {
@@ -672,6 +839,37 @@
     }
   }
 
+  &.is-excluded {
+    opacity: 0.6;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.04),
+        rgba(255, 255, 255, 0.01)
+      ),
+      rgba(255, 255, 255, 0.02);
+    border-style: dashed;
+
+    .text {
+      color: var(--color-muted);
+      text-decoration: line-through;
+    }
+  }
+
+  &.is-favorite:not(.is-depleted) {
+    border-color: rgba(var(--color-accent-rgb), 0.8);
+    box-shadow:
+      0 8px 18px rgba(0, 0, 0, 0.28),
+      0 0 0 1px rgba(var(--color-accent-rgb), 0.35);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.16),
+        rgba(255, 255, 255, 0.08)
+      ),
+      rgba(128, 140, 255, 0.12);
+  }
+
   &.dragging {
     opacity: 0.85;
     cursor: grabbing;
@@ -708,6 +906,34 @@
     &:focus {
       border-color: var(--color-accent);
       box-shadow: 0 0 0 2px rgba(128, 140, 255, 0.2);
+    }
+  }
+
+  .chip-quick {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    .chip-quick-btn {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-quality);
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      cursor: pointer;
+      transition:
+        border-color 0.15s ease,
+        color 0.15s ease,
+        background 0.15s ease;
+
+      &:hover {
+        color: var(--color-accent);
+        border-color: rgba(var(--color-accent-rgb), 0.6);
+        background: rgba(var(--color-accent-rgb), 0.12);
+      }
     }
   }
 
@@ -777,7 +1003,7 @@
   .chip-stat {
     padding: 5px 8px;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     border: 1px solid rgba(255, 255, 255, 0.12);
 
     &.rare {
@@ -974,7 +1200,6 @@
   flex: 1;
   display: grid;
   gap: 16px;
-  margin-bottom: 20px;
   transition: transform 0.2s ease;
   padding: 16px;
   border-radius: 18px;
@@ -986,9 +1211,6 @@
     ),
     rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 12px 30px rgba(0, 0, 0, 0.28);
 
   &.pop {
     animation: randomizerResultPop 0.32s ease;

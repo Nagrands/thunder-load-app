@@ -8,16 +8,17 @@ export function createSummary({ getState, elements }) {
 
   const updateSummary = () => {
     const { items, currentPresetName, settings, pool } = getState();
-    if (summaryCountEl) summaryCountEl.textContent = items.length;
+    const activeItems = items.filter((item) => !item.excluded);
+    if (summaryCountEl) summaryCountEl.textContent = activeItems.length;
     if (summaryPresetEl) summaryPresetEl.textContent = currentPresetName || "—";
     if (summaryPoolEl) {
       const poolValue = settings.noRepeat
-        ? `${pool.length}/${items.length || 0}`
+        ? `${pool.length}/${activeItems.length || 0}`
         : "∞";
       summaryPoolEl.textContent = poolValue;
       summaryPoolEl.classList.toggle(
         "is-warning",
-        settings.noRepeat && items.length > 0 && pool.length === 0,
+        settings.noRepeat && activeItems.length > 0 && pool.length === 0,
       );
     }
   };
@@ -25,8 +26,9 @@ export function createSummary({ getState, elements }) {
   const updatePoolHint = () => {
     if (!poolHintEl) return;
     const { items, pool, settings } = getState();
+    const activeItems = items.filter((item) => !item.excluded);
     const exhausted =
-      settings.noRepeat && items.length > 0 && (pool?.length || 0) === 0;
+      settings.noRepeat && activeItems.length > 0 && (pool?.length || 0) === 0;
     poolHintEl.classList.toggle("hidden", !exhausted);
   };
 
