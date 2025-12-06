@@ -141,6 +141,8 @@ export default function renderRandomizerView() {
   let defaultPresetName;
   let selectedItems = new Set();
   let favoritesOnly = false;
+  let rareOnly = false;
+  let renderHistory = () => {};
 
   const syncState = () => {
     ({
@@ -410,22 +412,46 @@ export default function renderRandomizerView() {
               <p class="eyebrow">История</p>
               <h3>Последние результаты</h3>
             </div>
-          </header>
-          <div id="randomizer-history" class="randomizer-history">
-            <div id="randomizer-history-empty" class="placeholder">
-              <span>Ещё ничего не выбрано.</span>
-              <button type="button" class="btn btn-sm btn-primary" id="randomizer-history-run">
-                <i class="fa-solid fa-dice"></i>
-                <span>Запустить</span>
+            <div class="history-tabs">
+              <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>История</span>
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Статистика</span>
               </button>
             </div>
-            <ul id="randomizer-history-list"></ul>
+          </header>
+          <div class="history-panel" id="randomizer-history-panel" data-tab="history">
+            <div id="randomizer-history" class="randomizer-history">
+              <div id="randomizer-history-empty" class="placeholder">
+                <span>Ещё ничего не выбрано.</span>
+                <button type="button" class="btn btn-sm btn-primary" id="randomizer-history-run">
+                  <i class="fa-solid fa-dice"></i>
+                  <span>Запустить</span>
+                </button>
+              </div>
+              <ul id="randomizer-history-list"></ul>
+            </div>
+            <div class="randomizer-history-actions">
+              <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
+                <i class="fa-solid fa-trash"></i>
+                <span>Очистить историю</span>
+              </button>
+            </div>
           </div>
-          <div class="randomizer-history-actions">
-            <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
-              <i class="fa-solid fa-trash"></i>
-              <span>Очистить историю</span>
-            </button>
+          <div class="history-panel hidden" id="randomizer-stats-panel" data-tab="stats">
+            <div class="history-controls">
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-history-rare-toggle" data-state="all" data-bs-toggle="tooltip" data-bs-placement="top" title="Показать только редкие (долго не выпадали)">
+                <i class="fa-solid fa-star-half-stroke"></i>
+                <span>Все</span>
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-stats-export" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать статистику в буфер">
+                <i class="fa-solid fa-file-export"></i>
+              </button>
+            </div>
+            <div class="randomizer-stats" id="randomizer-stats"></div>
           </div>
         </div>
       </section>
@@ -438,6 +464,11 @@ export default function renderRandomizerView() {
   const noRepeatToggle = wrapper.querySelector("#randomizer-no-repeat");
   const historyList = wrapper.querySelector("#randomizer-history-list");
   const historyEmpty = wrapper.querySelector("#randomizer-history-empty");
+  const statsTable = wrapper.querySelector("#randomizer-stats");
+  const rareToggleBtn = wrapper.querySelector(
+    "#randomizer-history-rare-toggle",
+  );
+  const statsExportBtn = wrapper.querySelector("#randomizer-stats-export");
   const resultText = wrapper.querySelector("#randomizer-result-text");
   const resultMeta = wrapper.querySelector("#randomizer-result-meta");
   const resultCard = wrapper.querySelector(".randomizer-result-card");
@@ -462,6 +493,14 @@ export default function renderRandomizerView() {
   const presetDeleteBtn = wrapper.querySelector("#randomizer-preset-delete");
   const presetDefaultBtn = wrapper.querySelector("#randomizer-preset-default");
   const favFilterBtn = wrapper.querySelector("#randomizer-fav-filter");
+  const historyTabs = {
+    history: wrapper.querySelector("#randomizer-tab-history"),
+    stats: wrapper.querySelector("#randomizer-tab-stats"),
+  };
+  const historyPanels = {
+    history: wrapper.querySelector("#randomizer-history-panel"),
+    stats: wrapper.querySelector("#randomizer-stats-panel"),
+  };
   let presetPromptEl = null;
   const historyRunBtn = wrapper.querySelector("#randomizer-history-run");
   let listActionsUI = null;
@@ -571,6 +610,13 @@ export default function renderRandomizerView() {
     const span = favFilterBtn.querySelector("span");
     if (span) span.textContent = favoritesOnly ? "Избранные" : "Все";
     favFilterBtn.classList.toggle("is-active", favoritesOnly);
+  };
+  const setHistoryTab = (tab) => {
+    const keys = Object.keys(historyPanels);
+    keys.forEach((key) => {
+      historyTabs[key]?.classList.toggle("is-active", key === tab);
+      historyPanels[key]?.classList.toggle("hidden", key !== tab);
+    });
   };
   const clearSpinCountdown = () => {
     if (spinCountdownTimer) {
@@ -1217,6 +1263,7 @@ export default function renderRandomizerView() {
     renderItemsImpl();
     updateRollAvailability();
     updateVisuals();
+    renderHistory();
   };
 
   ensurePresetExists();
@@ -1252,6 +1299,7 @@ export default function renderRandomizerView() {
   updateAutoToggleUi();
   updateListVisibility(false);
   updateFavFilterUi();
+  setHistoryTab("history");
 
   const resultUI = createResultUI({
     resultCard,
@@ -1320,12 +1368,36 @@ export default function renderRandomizerView() {
     clearResultBase();
   };
 
-  const renderHistory = createHistoryRenderer({
+  renderHistory = createHistoryRenderer({
     getState: () => state.getState(),
     historyList,
     historyEmpty,
     onSelectEntry: (value) => {
       resultUI.setResult(value, "Выбрано ранее");
+    },
+    statsTable,
+    getRareOnly: () => rareOnly,
+    onStatsToggle: (rare) => {
+      if (!rareToggleBtn) return;
+      rareToggleBtn.dataset.state = rare ? "rare" : "all";
+      const span = rareToggleBtn.querySelector("span");
+      if (span) span.textContent = rare ? "Редкие" : "Все";
+      rareToggleBtn.classList.toggle("is-active", rare);
+    },
+    onExportStats: (getText) => {
+      statsExportBtn?.addEventListener("click", async () => {
+        const data = getText(rareToggleBtn?.dataset.state === "rare");
+        if (!data) {
+          showToast("Статистика пуста", "info");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(data);
+          showToast("Статистика скопирована", "success");
+        } catch {
+          showToast("Не удалось скопировать", "error");
+        }
+      });
     },
   });
 
@@ -1619,6 +1691,16 @@ export default function renderRandomizerView() {
       syncState();
       renderHistory();
     });
+
+  rareToggleBtn?.addEventListener("click", () => {
+    rareOnly = !rareOnly;
+    renderHistory();
+  });
+
+  historyTabs.history?.addEventListener("click", () =>
+    setHistoryTab("history"),
+  );
+  historyTabs.stats?.addEventListener("click", () => setHistoryTab("stats"));
 
   wrapper
     .querySelector("#randomizer-export")

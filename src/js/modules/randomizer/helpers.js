@@ -16,6 +16,7 @@ export const DEFAULT_PRESET_NAME = "Основной";
 export const MAX_ITEM_LENGTH = 160;
 export const DEFAULT_FAVORITE = false;
 export const DEFAULT_EXCLUDED = false;
+export const RARE_STREAK = 5;
 
 const cloneValue = (value) =>
   Array.isArray(value)
