@@ -273,6 +273,13 @@ export function createRandomizerState(storage) {
     return true;
   };
 
+  const setDefaultPreset = (name) => {
+    const exists = presets.some((p) => p.name === name);
+    defaultPresetName = exists ? name : "";
+    savePresets();
+    return exists;
+  };
+
   const pickCandidates = (noRepeat) =>
     noRepeat
       ? items.filter((item) => !item.excluded && pool.includes(item.value))
@@ -330,6 +337,7 @@ export function createRandomizerState(storage) {
     removeItems,
     moveItem,
     setWeight,
+    setDefaultPreset,
     pickCandidates,
     consumeFromPool,
     clearHistory,

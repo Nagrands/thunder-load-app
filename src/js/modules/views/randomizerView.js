@@ -1086,10 +1086,10 @@ export default function renderRandomizerView() {
     refreshPresets: syncCurrentPresetItems,
     deletePreset,
     setDefault: (name) => {
-      defaultPresetName = name;
-      state.savePresets();
+      state.setDefaultPreset(name);
       syncState();
       updateSummary();
+      renderHistory();
     },
     showToast,
     getState: () => state.getState(),
