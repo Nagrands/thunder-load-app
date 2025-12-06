@@ -75,13 +75,6 @@ export default function renderRandomizerView() {
           <i class="fa-solid fa-dice"></i>
           <span>Запустить</span>
         </button>
-        <label class="spin-control" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Длительность анимации перед выбором (до 60 секунд)">
-          <span class="spin-label">Прокрутка</span>
-          <span class="spin-input">
-            <input type="number" id="randomizer-spin-seconds" min="0" max="60" step="0.1" />
-            <span class="unit">сек</span>
-          </span>
-        </label>
         <button type="button" class="btn btn-ghost" id="randomizer-reset-pool" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Очистить пул без повторов">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
@@ -98,12 +91,17 @@ export default function renderRandomizerView() {
         <strong id="randomizer-summary-count">0</strong>
       </div>
       <div class="summary-item">
-        <span class="label">Режим</span>
-        <strong id="randomizer-summary-mode">—</strong>
-      </div>
-      <div class="summary-item">
         <span class="label">В пуле</span>
         <strong id="randomizer-summary-pool">—</strong>
+      </div>
+      <div class="summary-item">
+        <span class="label">Таймер</span>
+        <label class="spin-control" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Длительность анимации перед выбором (до 60 секунд)">
+          <span class="spin-input">
+            <input type="number" id="randomizer-spin-seconds" min="0" max="60" step="0.1" />
+            <span class="unit">сек</span>
+          </span>
+        </label>
       </div>
     </div>
 
@@ -257,7 +255,6 @@ export default function renderRandomizerView() {
   const poolRefreshBtn = wrapper.querySelector("#randomizer-pool-refresh");
   const summaryCountEl = wrapper.querySelector("#randomizer-summary-count");
   const summaryPresetEl = wrapper.querySelector("#randomizer-summary-preset");
-  const summaryModeEl = wrapper.querySelector("#randomizer-summary-mode");
   const summaryPoolEl = wrapper.querySelector("#randomizer-summary-pool");
   const presetSaveBtn = wrapper.querySelector("#randomizer-preset-save");
   const presetNewBtn = wrapper.querySelector("#randomizer-preset-new");
@@ -287,7 +284,6 @@ export default function renderRandomizerView() {
     elements: {
       summaryCountEl,
       summaryPresetEl,
-      summaryModeEl,
       summaryPoolEl,
       poolHintEl,
     },
@@ -698,7 +694,7 @@ export default function renderRandomizerView() {
     carouselTimer = setInterval(() => {
       resultUI.setResult(queue[index % queue.length], "Перемешиваем…");
       index += 1;
-    }, 90);
+    }, 160);
   };
 
   const { clear: clearResultBase } = resultUI;

@@ -3,15 +3,13 @@
 import { triggerPulse } from "../helpers.js";
 
 export function createSummary({ getState, elements }) {
-  const { summaryCountEl, summaryPresetEl, summaryModeEl, summaryPoolEl, poolHintEl } =
+  const { summaryCountEl, summaryPresetEl, summaryPoolEl, poolHintEl } =
     elements;
 
   const updateSummary = () => {
     const { items, currentPresetName, settings, pool } = getState();
     if (summaryCountEl) summaryCountEl.textContent = items.length;
     if (summaryPresetEl) summaryPresetEl.textContent = currentPresetName || "—";
-    if (summaryModeEl)
-      summaryModeEl.textContent = settings.noRepeat ? "Без повторов" : "С повторами";
     if (summaryPoolEl) {
       const poolValue = settings.noRepeat
         ? `${pool.length}/${items.length || 0}`
