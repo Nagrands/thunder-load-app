@@ -149,4 +149,28 @@ describe("renderToolsInfo", () => {
     expect(window.electron.tools.installAll).toHaveBeenCalled();
     expect(badgeAfter?.textContent).toMatch(/Готово|OK/i);
   });
+
+  it("migrate button respects overwrite confirmation", async () => {
+    window.electron.tools.detectLegacy = jest
+      .fn()
+      .mockResolvedValue({
+        success: true,
+        found: [{ dir: "/old", tools: {} }],
+      });
+    window.electron.tools.migrateOld = jest
+      .fn()
+      .mockResolvedValue({ success: true, copied: ["/old/bin"], skipped: [] });
+
+    const { showConfirmationDialog } = require("../modals.js");
+    showConfirmationDialog.mockResolvedValueOnce(true);
+
+    await renderToolsInfo();
+    const migrateBtn = document.getElementById("ti-tools-location-migrate");
+    expect(migrateBtn).not.toBeNull();
+    migrateBtn?.click();
+    await flush();
+    expect(window.electron.tools.migrateOld).toHaveBeenCalledWith(
+      expect.objectContaining({ overwrite: true }),
+    );
+  });
 });

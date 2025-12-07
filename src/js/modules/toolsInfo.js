@@ -609,14 +609,29 @@ export async function renderToolsInfo() {
         await toast("Старые установки не найдены", "info");
         return;
       }
+      let overwrite = false;
+      try {
+        if (typeof showConfirmationDialog === "function") {
+          const confirmed = await showConfirmationDialog({
+            title: "Перезаписать существующие файлы?",
+            subtitle: "Миграция инструментов",
+            message:
+              "Найдены старые установки. Перезаписать существующие версии инструментов в выбранной папке?",
+            confirmText: "Да, заменить",
+            cancelText: "Оставить текущие",
+            tone: "danger",
+          });
+          overwrite = !!confirmed;
+        }
+      } catch {}
       const res = await window.electron?.tools?.migrateOld?.({
-        overwrite: false,
+        overwrite,
       });
       if (res?.success) {
         const copied = res.copied?.length || 0;
         const skipped = res.skipped?.length || 0;
         await toast(
-          `Миграция завершена: скопировано ${copied}, пропущено ${skipped}`,
+          `Миграция завершена (${overwrite ? "с заменой" : "без замены"}): скопировано ${copied}, пропущено ${skipped}`,
           "success",
         );
         await refreshLocationUI();
