@@ -16919,6 +16919,168 @@ body:not(.low-effects) .history-card {
   opacity: 0.75;
 }
 
+.tools-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.tools-panel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.tools-panel summary::-webkit-details-marker {
+  display: none;
+}
+.tools-panel__summary-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tools-panel__titles h2 {
+  margin: 0;
+}
+.tools-panel__titles small {
+  display: block;
+  padding: 0;
+  margin-top: 2px;
+}
+.tools-panel__summary-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-quality);
+}
+.tools-panel__summary-right i {
+  transition: transform 0.2s ease;
+}
+.tools-panel[open] .fa-chevron-down {
+  transform: rotate(180deg);
+}
+.tools-panel__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-hover);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04);
+}
+.tools-panel__dot--ok {
+  background: #3bd68c;
+  box-shadow: 0 0 0 4px rgba(59, 214, 140, 0.2);
+}
+.tools-panel__dot--update {
+  background: #ffb347;
+  box-shadow: 0 0 0 4px rgba(255, 179, 71, 0.2);
+}
+.tools-panel__dot--missing, .tools-panel__dot--error {
+  background: #ff6b6b;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
+}
+.tools-panel__dot--checking {
+  background: #7cc2ff;
+  box-shadow: 0 0 0 4px rgba(124, 194, 255, 0.2);
+}
+.tools-panel__dot--neutral {
+  background: rgba(255, 255, 255, 0.12);
+}
+.tools-panel__badge {
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-highlight);
+}
+.tools-panel__badge--ok {
+  border-color: rgba(59, 214, 140, 0.4);
+  background: rgba(59, 214, 140, 0.16);
+  color: #cbffe3;
+}
+.tools-panel__badge--update {
+  border-color: rgba(255, 179, 71, 0.45);
+  background: rgba(255, 179, 71, 0.16);
+  color: #ffe6c2;
+}
+.tools-panel__badge--missing, .tools-panel__badge--error {
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.16);
+  color: #ffd7d7;
+}
+.tools-panel__badge--checking {
+  border-color: rgba(124, 194, 255, 0.4);
+  background: rgba(124, 194, 255, 0.16);
+  color: #e1f1ff;
+}
+.tools-panel__body {
+  padding: 12px 14px 16px;
+  display: grid;
+  gap: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tools-status-cards {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.tool-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.tool-card__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+.tool-card__label {
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+.tool-card__version {
+  font-size: 13px;
+  color: var(--color-quality);
+}
+.tool-card--ok {
+  border-color: rgba(59, 214, 140, 0.35);
+}
+.tool-card--ok .tool-card__dot {
+  background: #3bd68c;
+  box-shadow: 0 0 0 3px rgba(59, 214, 140, 0.2);
+}
+.tool-card--update {
+  border-color: rgba(255, 179, 71, 0.4);
+  background: rgba(255, 179, 71, 0.08);
+}
+.tool-card--update .tool-card__dot {
+  background: #ffb347;
+  box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.2);
+}
+.tool-card--missing {
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.08);
+}
+.tool-card--missing .tool-card__dot {
+  background: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+}
+
 .tools-location label {
   display: inline-flex;
   align-items: center;

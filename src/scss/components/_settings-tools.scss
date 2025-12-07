@@ -15,6 +15,195 @@
   opacity: 0.75;
 }
 
+.tools-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  box-shadow:
+    0 8px 26px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__summary-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__titles h2 {
+    margin: 0;
+  }
+
+  &__titles small {
+    display: block;
+    padding: 0;
+    margin-top: 2px;
+  }
+
+  &__summary-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-quality);
+
+    i {
+      transition: transform 0.2s ease;
+    }
+  }
+
+  &[open] .fa-chevron-down {
+    transform: rotate(180deg);
+  }
+
+  &__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--color-hover);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04);
+
+    &--ok {
+      background: #3bd68c;
+      box-shadow: 0 0 0 4px rgba(59, 214, 140, 0.2);
+    }
+
+    &--update {
+      background: #ffb347;
+      box-shadow: 0 0 0 4px rgba(255, 179, 71, 0.2);
+    }
+
+    &--missing,
+    &--error {
+      background: #ff6b6b;
+      box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
+    }
+
+    &--checking {
+      background: #7cc2ff;
+      box-shadow: 0 0 0 4px rgba(124, 194, 255, 0.2);
+    }
+
+    &--neutral {
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  &__badge {
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-highlight);
+
+    &--ok {
+      border-color: rgba(59, 214, 140, 0.4);
+      background: rgba(59, 214, 140, 0.16);
+      color: #cbffe3;
+    }
+    &--update {
+      border-color: rgba(255, 179, 71, 0.45);
+      background: rgba(255, 179, 71, 0.16);
+      color: #ffe6c2;
+    }
+    &--missing,
+    &--error {
+      border-color: rgba(255, 107, 107, 0.4);
+      background: rgba(255, 107, 107, 0.16);
+      color: #ffd7d7;
+    }
+    &--checking {
+      border-color: rgba(124, 194, 255, 0.4);
+      background: rgba(124, 194, 255, 0.16);
+      color: #e1f1ff;
+    }
+  }
+
+  &__body {
+    padding: 12px 14px 16px;
+    display: grid;
+    gap: 12px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.tools-status-cards {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.tool-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  }
+
+  &__label {
+    font-weight: 600;
+    color: var(--color-text-main);
+  }
+
+  &__version {
+    font-size: 13px;
+    color: var(--color-quality);
+  }
+
+  &--ok {
+    border-color: rgba(59, 214, 140, 0.35);
+    .tool-card__dot {
+      background: #3bd68c;
+      box-shadow: 0 0 0 3px rgba(59, 214, 140, 0.2);
+    }
+  }
+
+  &--update {
+    border-color: rgba(255, 179, 71, 0.4);
+    background: rgba(255, 179, 71, 0.08);
+    .tool-card__dot {
+      background: #ffb347;
+      box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.2);
+    }
+  }
+
+  &--missing {
+    border-color: rgba(255, 107, 107, 0.35);
+    background: rgba(255, 107, 107, 0.08);
+    .tool-card__dot {
+      background: #ff6b6b;
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+    }
+  }
+}
+
 // --- Блок выбора папки инструментов
 .tools-location {
   label {

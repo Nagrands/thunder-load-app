@@ -15,30 +15,37 @@ function runVersion(cmd, args, timeoutMs = 2000) {
   return new Promise((resolve) => {
     let output = "";
     let resolved = false;
+    let timer = null;
+    let proc = null;
     const done = (value) => {
       if (resolved) return;
       resolved = true;
       resolve(value);
     };
 
-    let proc;
-    const timer = setTimeout(() => {
-      try {
-        proc?.kill("SIGKILL");
-      } catch {}
-      done(null);
-    }, timeoutMs);
+    try {
+      timer = setTimeout(() => {
+        try {
+          proc?.kill("SIGKILL");
+        } catch {}
+        done(null);
+      }, timeoutMs);
 
-    proc = spawn(cmd, args);
+      proc = spawn(cmd, args);
+    } catch {
+      if (timer) clearTimeout(timer);
+      return done(null);
+    }
+
     proc.stdout.on("data", (chunk) => {
       output += chunk.toString();
     });
     proc.on("error", () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       done(null);
     });
     proc.on("close", (code) => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       if (code === 0) {
         const line = output.split("\n")[0].trim();
         done(line || null);

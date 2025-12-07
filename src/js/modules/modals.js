@@ -84,7 +84,17 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     };
 
     // Обработчики событий
+    const disableControls = (state) => {
+      confirmButton.disabled = state;
+      cancelButton.disabled = state;
+      confirmButton.setAttribute("aria-busy", String(!!state));
+    };
+
     const onConfirmClick = async () => {
+      if (confirmButton.disabled) return;
+      disableControls(true);
+      // Скрываем окно сразу, чтобы пользователь видел отклик
+      closeModal(false);
       try {
         if (typeof confirmCb === "function") await confirmCb();
         if (typeof onConfirm === "function") await onConfirm();
@@ -92,7 +102,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
       } catch (err) {
         console.error("Ошибка в обработчике подтверждения:", err);
       } finally {
-        closeModal();
+        disableControls(false);
       }
     };
 
@@ -108,13 +118,14 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
       }
     };
 
-    const closeModal = () => {
+    const closeModal = (returnFocus = true) => {
       confirmationModal.style.display = "none";
       confirmationModal.removeAttribute("data-tone");
       confirmButton.removeEventListener("click", onConfirmClick);
       cancelButton.removeEventListener("click", onCancelClick);
       closeModalIcon.removeEventListener("click", onCancelClick);
       window.removeEventListener("keydown", onKeyDown);
+      if (returnFocus) confirmButton.blur();
     };
 
     const onKeyDown = (event) => {

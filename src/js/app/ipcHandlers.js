@@ -37,6 +37,7 @@ const {
   setActiveDownloadToken,
   selectFormatsByQuality,
   createDownloadToken,
+  setSharedStore,
 } = require("../scripts/download.js");
 const { isValidUrl, normalizeUrl } = require("./utils.js");
 const {
@@ -115,6 +116,12 @@ function setupIpcHandlers(dependencies) {
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;
+
+  try {
+    setSharedStore(store);
+  } catch (e) {
+    log.warn("Unable to set shared store for tools paths:", e);
+  }
 
   let autoShutdownTimeout = null; // таймер авто‑закрытия WG Unlock
   let autoShutdownDeadlineMs = null; // абсолютный дедлайн (ms) для синхронизации обратного отсчёта

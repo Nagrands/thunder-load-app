@@ -1764,6 +1764,7 @@ module.exports = {
   stopDownload,
   selectFormatsByQuality,
   ensureAllDependencies,
+  setSharedStore,
 };
 
 /**
