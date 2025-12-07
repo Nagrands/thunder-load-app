@@ -6,6 +6,7 @@ import {
   importConfig,
   getDefaultTab,
   setDefaultTab,
+  resetConfigToDefaults,
 } from "./settings.js";
 import { settingsModal, settingsButton } from "./domElements.js";
 
@@ -184,22 +185,7 @@ export function initSettingsModal() {
       if (!confirm("Вы уверены, что хотите сбросить все настройки?")) return;
 
       try {
-        localStorage.removeItem("theme");
-        localStorage.removeItem("fontSize");
-
-        await Promise.all([
-          window.electron.invoke("toggle-auto-launch", false),
-          window.electron.invoke("set-minimize-on-launch-status", false),
-          window.electron.invoke("set-minimize-to-tray-status", false),
-          window.electron.invoke("set-close-notification-status", true),
-          window.electron.invoke("set-disable-global-shortcuts-status", false),
-          window.electron.invoke("set-open-on-copy-url-status", false),
-          window.electron.invoke("set-open-on-download-complete-status", false),
-          window.electron.invoke("set-minimize-instead-of-close", false),
-          setDefaultTab("download"),
-        ]);
-
-        location.reload();
+        await resetConfigToDefaults();
       } catch (error) {
         console.error("Ошибка при сбросе настроек:", error);
         alert(

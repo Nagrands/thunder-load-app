@@ -30,6 +30,50 @@ let toolsRenderPromise = null;
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 const QUALITY_PROFILE_DEFAULT = "remember"; // remember | best | audio
 
+const DEFAULT_CONFIG = {
+  general: {
+    autoLaunch: false,
+    minimizeOnLaunch: false,
+    minimizeInsteadOfClose: false,
+    minimizeToTray: false,
+    closeNotification: true,
+  },
+  window: {
+    defaultTab: "download",
+    expandWindowOnDownloadComplete: false,
+    openOnCopyUrl: false,
+    disableCompleteModal: true,
+    downloadQualityProfile: QUALITY_PROFILE_DEFAULT,
+    showToolsStatus: true,
+  },
+  appearance: {
+    theme: "system",
+    fontSize: "16",
+    lowEffects: false,
+  },
+  shortcuts: {
+    disableGlobalShortcuts: false,
+  },
+  modules: {
+    wgUnlockDisabled: true,
+    backupDisabled: false,
+    randomizerDisabled: true,
+  },
+  backup: {
+    viewMode: "full",
+    logVisible: true,
+  },
+  wg: {
+    autoShutdownEnabled: false,
+    autoShutdownSeconds: 30,
+    autosend: false,
+  },
+  tools: {
+    resetLocation: false,
+    locationPath: null,
+  },
+};
+
 /**
  * Функция для инициализации настроек
  */
@@ -1147,6 +1191,19 @@ async function initSettings() {
   // === Tools location (yt-dlp, ffmpeg) — UI bindings ===
 }
 
+function deepMergeConfig(base, override) {
+  const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+  const result = { ...base };
+  Object.entries(override || {}).forEach(([key, val]) => {
+    if (isObj(val) && isObj(base[key])) {
+      result[key] = deepMergeConfig(base[key], val);
+    } else if (val !== undefined) {
+      result[key] = val;
+    }
+  });
+  return result;
+}
+
 async function collectCurrentConfig() {
   const [
     theme,
@@ -1160,6 +1217,10 @@ async function collectCurrentConfig() {
     minimizeInsteadOfClose,
     disableCompleteModal,
     defaultTab,
+    minimizeToTray,
+    autoShutdownEnabled,
+    autoShutdownSeconds,
+    toolsLocation,
   ] = await Promise.all([
     getTheme(),
     getFontSize(),
@@ -1172,40 +1233,229 @@ async function collectCurrentConfig() {
     window.electron.invoke("get-minimize-instead-of-close-status"),
     window.electron.invoke("get-disable-complete-modal-status"),
     getDefaultTab(),
+    window.electron.invoke("get-minimize-to-tray-status").catch(() => false),
+    window.electron.invoke("get-auto-shutdown-status").catch(() => false),
+    window.electron.invoke("get-auto-shutdown-seconds").catch(() => 30),
+    window.electron.tools?.getLocation?.().catch(() => null),
   ]);
 
-  const config = {
+  const qualityProfile = (() => {
+    try {
+      return (
+        localStorage.getItem(QUALITY_PROFILE_KEY) || QUALITY_PROFILE_DEFAULT
+      );
+    } catch {
+      return QUALITY_PROFILE_DEFAULT;
+    }
+  })();
+
+  const showToolsStatus = (() => {
+    try {
+      return localStorage.getItem("downloaderToolsStatusHidden") !== "1";
+    } catch {
+      return true;
+    }
+  })();
+
+  const readJsonFlag = (key, defVal) => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) return defVal;
+      return JSON.parse(raw) === true;
+    } catch {
+      return defVal;
+    }
+  };
+
+  const backupViewMode = (() => {
+    try {
+      const raw = localStorage.getItem("bk_view_mode");
+      const parsed = raw ? JSON.parse(raw) : "full";
+      return parsed === "compact" ? "compact" : "full";
+    } catch {
+      return "full";
+    }
+  })();
+
+  const backupLogVisible = (() => {
+    try {
+      const raw = localStorage.getItem("bk_log_visible");
+      if (raw === null) return true;
+      return JSON.parse(raw) !== false;
+    } catch {
+      return true;
+    }
+  })();
+
+  let wgAutosend = false;
+  try {
+    const cfg = await window.electron?.ipcRenderer?.invoke?.("wg-get-config");
+    if (cfg && typeof cfg.autosend !== "undefined") {
+      wgAutosend = !!cfg.autosend;
+    }
+  } catch {}
+
+  const merged = deepMergeConfig(DEFAULT_CONFIG, {
     general: {
       autoLaunch,
       minimizeOnLaunch,
       minimizeInsteadOfClose,
+      minimizeToTray,
+      closeNotification,
     },
     window: {
       defaultTab,
       expandWindowOnDownloadComplete,
+      openOnCopyUrl,
+      disableCompleteModal,
+      downloadQualityProfile: qualityProfile,
+      showToolsStatus,
     },
     appearance: {
       theme,
       fontSize,
-    },
-    notifications: {
-      closeNotification,
-      disableCompleteModal,
+      lowEffects: getLowEffects(),
     },
     shortcuts: {
       disableGlobalShortcuts,
     },
-    clipboard: {
-      openOnCopyUrl,
+    modules: {
+      wgUnlockDisabled: readJsonFlag("wgUnlockDisabled", true),
+      backupDisabled: readJsonFlag("backupDisabled", false),
+      randomizerDisabled: readJsonFlag("randomizerDisabled", true),
     },
+    backup: {
+      viewMode: backupViewMode,
+      logVisible: backupLogVisible,
+    },
+    wg: {
+      autoShutdownEnabled,
+      autoShutdownSeconds,
+      autosend: wgAutosend,
+    },
+    tools: {
+      resetLocation: false,
+      locationPath: toolsLocation?.path || null,
+      isDefault: toolsLocation?.isDefault ?? null,
+    },
+  });
+
+  return merged;
+}
+
+async function applyConfig(config, options = {}) {
+  const cfg = deepMergeConfig(DEFAULT_CONFIG, config || {});
+
+  await setTheme(cfg.appearance.theme);
+  await setFontSize(String(cfg.appearance.fontSize));
+  setLowEffects(!!cfg.appearance.lowEffects);
+
+  try {
+    localStorage.setItem(
+      QUALITY_PROFILE_KEY,
+      cfg.window.downloadQualityProfile || QUALITY_PROFILE_DEFAULT,
+    );
+  } catch {}
+
+  try {
+    if (cfg.window.showToolsStatus) {
+      localStorage.removeItem("downloaderToolsStatusHidden");
+    } else {
+      localStorage.setItem("downloaderToolsStatusHidden", "1");
+    }
+  } catch {}
+
+  const writeJson = (key, value) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
   };
-  return config;
+
+  writeJson("wgUnlockDisabled", !!cfg.modules.wgUnlockDisabled);
+  writeJson("backupDisabled", !!cfg.modules.backupDisabled);
+  writeJson("randomizerDisabled", !!cfg.modules.randomizerDisabled);
+  writeJson(
+    "bk_view_mode",
+    cfg.backup.viewMode === "compact" ? "compact" : "full",
+  );
+  writeJson("bk_log_visible", !!cfg.backup.logVisible);
+
+  try {
+    window.electron?.ipcRenderer?.send?.("wg-set-config", {
+      key: "autosend",
+      val: !!cfg.wg.autosend,
+    });
+  } catch {}
+
+  const ipcTasks = [
+    window.electron.invoke("toggle-auto-launch", !!cfg.general.autoLaunch),
+    window.electron.invoke(
+      "set-minimize-on-launch-status",
+      !!cfg.general.minimizeOnLaunch,
+    ),
+    window.electron.invoke(
+      "set-close-notification-status",
+      !!cfg.general.closeNotification,
+    ),
+    window.electron.invoke(
+      "set-disable-global-shortcuts-status",
+      !!cfg.shortcuts.disableGlobalShortcuts,
+    ),
+    window.electron.invoke(
+      "set-open-on-copy-url-status",
+      !!cfg.window.openOnCopyUrl,
+    ),
+    window.electron.invoke(
+      "set-open-on-download-complete-status",
+      !!cfg.window.expandWindowOnDownloadComplete,
+    ),
+    window.electron.invoke(
+      "set-minimize-instead-of-close",
+      !!cfg.general.minimizeInsteadOfClose,
+    ),
+    window.electron.invoke("set-default-tab", cfg.window.defaultTab),
+    window.electron.invoke(
+      "set-disable-complete-modal-status",
+      !!cfg.window.disableCompleteModal,
+    ),
+    window.electron.invoke(
+      "set-minimize-to-tray-status",
+      !!cfg.general.minimizeToTray,
+    ),
+  ];
+
+  await Promise.all(ipcTasks);
+
+  await window.electron
+    .invoke(
+      "set-auto-shutdown-seconds",
+      Number(cfg.wg.autoShutdownSeconds) || 30,
+    )
+    .catch(() => {});
+  await window.electron
+    .invoke("set-auto-shutdown-status", !!cfg.wg.autoShutdownEnabled)
+    .catch(() => {});
+
+  if (options.forceToolsReset || cfg.tools.resetLocation) {
+    try {
+      await window.electron.tools?.resetLocation?.();
+    } catch {}
+  } else if (cfg.tools.locationPath) {
+    try {
+      await window.electron.tools?.setLocation?.(cfg.tools.locationPath);
+    } catch {}
+  }
+
+  if (options.refreshToolsInfo) {
+    try {
+      await ensureToolsInfo(true);
+    } catch {}
+  }
 }
 
 export async function exportConfig() {
   const config = await collectCurrentConfig();
 
-  // Создаем blob и инициируем скачивание файла config.json
   const blob = new Blob([JSON.stringify(config, null, 2)], {
     type: "application/json",
   });
@@ -1234,7 +1484,6 @@ export async function importConfig(file) {
   try {
     const config = JSON.parse(text);
 
-    // Build diff preview
     const current = await collectCurrentConfig();
     const changes = [];
     const walk = (a, b, p = []) => {
@@ -1270,7 +1519,6 @@ export async function importConfig(file) {
       </div>`;
 
     showConfirmationDialog(html, async () => {
-      // Backup current config
       try {
         const backup = new Blob([JSON.stringify(current, null, 2)], {
           type: "application/json",
@@ -1287,81 +1535,34 @@ export async function importConfig(file) {
         setTimeout(() => URL.revokeObjectURL(url), 0);
       } catch {}
 
-      // Apply imported config (existing logic)
-      await (async () => {
-        // Тема и шрифт — localStorage + визуальное применение
-        if (config.appearance?.theme) await setTheme(config.appearance.theme);
-        if (config.appearance?.fontSize)
-          await setFontSize(config.appearance.fontSize);
+      await applyConfig(config, {
+        forceToolsReset: config?.tools?.resetLocation === true,
+        refreshToolsInfo: true,
+      });
 
-        if (typeof config.general?.autoLaunch !== "undefined") {
-          await window.electron.invoke(
-            "toggle-auto-launch",
-            config.general.autoLaunch,
-          );
-        }
-        if (typeof config.general?.minimizeOnLaunch !== "undefined") {
-          await window.electron.invoke(
-            "set-minimize-on-launch-status",
-            config.general.minimizeOnLaunch,
-          );
-        }
-        if (typeof config.notifications?.closeNotification !== "undefined") {
-          await window.electron.invoke(
-            "set-close-notification-status",
-            config.notifications.closeNotification,
-          );
-        }
-        if (typeof config.shortcuts?.disableGlobalShortcuts !== "undefined") {
-          await window.electron.invoke(
-            "set-disable-global-shortcuts-status",
-            config.shortcuts.disableGlobalShortcuts,
-          );
-        }
-        if (typeof config.clipboard?.openOnCopyUrl !== "undefined") {
-          await window.electron.invoke(
-            "set-open-on-copy-url-status",
-            config.clipboard.openOnCopyUrl,
-          );
-        }
-        if (
-          typeof config.window?.expandWindowOnDownloadComplete !== "undefined"
-        ) {
-          await window.electron.invoke(
-            "set-open-on-download-complete-status",
-            config.window.expandWindowOnDownloadComplete,
-          );
-        }
-        if (typeof config.general?.minimizeInsteadOfClose !== "undefined") {
-          await window.electron.invoke(
-            "set-minimize-instead-of-close",
-            config.general.minimizeInsteadOfClose,
-          );
-        }
-        if (typeof config.window?.defaultTab !== "undefined") {
-          await window.electron.invoke(
-            "set-default-tab",
-            config.window.defaultTab,
-          );
-        }
-        if (typeof config.notifications?.disableCompleteModal !== "undefined") {
-          await window.electron.invoke(
-            "set-disable-complete-modal-status",
-            config.notifications.disableCompleteModal,
-          );
-        }
-
-        await window.electron.invoke(
-          "toast",
-          "Конфигурация успешно импортирована",
-          "success",
-        );
-        location.reload();
-      })();
+      await window.electron.invoke(
+        "toast",
+        "Конфигурация успешно импортирована",
+        "success",
+      );
+      location.reload();
     });
   } catch (e) {
     alert("Ошибка импорта: " + e.message);
   }
+}
+
+export async function resetConfigToDefaults() {
+  await applyConfig(DEFAULT_CONFIG, {
+    forceToolsReset: true,
+    refreshToolsInfo: true,
+  });
+  await window.electron.invoke(
+    "toast",
+    "Настройки сброшены на значения по умолчанию",
+    "success",
+  );
+  location.reload();
 }
 
 export const getDefaultTab = () => window.electron.invoke("get-default-tab");
