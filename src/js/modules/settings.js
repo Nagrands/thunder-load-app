@@ -46,6 +46,7 @@ function updateModuleBadge(moduleKey, disabled) {
   if (!btn || !badge) return;
   const isDisabled = !!disabled;
   badge.hidden = false;
+  badge.removeAttribute("hidden");
   badge.classList.toggle("tab-badge-off", isDisabled);
   btn.classList.toggle("tab-disabled", isDisabled);
   btn.dataset.disabled = isDisabled ? "1" : "0";
@@ -719,7 +720,9 @@ async function initSettings() {
       "#wgunlock-settings #wg-disable-toggle, #wg-disable-toggle",
     );
     if (staticToggle) {
-      staticToggle.checked = read();
+      const initialVal = read();
+      staticToggle.checked = initialVal;
+      updateModuleBadge("wg", initialVal);
       staticToggle.addEventListener("change", () =>
         write(staticToggle.checked),
       );
@@ -727,6 +730,7 @@ async function initSettings() {
         const val = read();
         staticToggle.checked = val;
         toggleAutoSendDisabled(val);
+        updateModuleBadge("wg", val);
       });
       toggleAutoSendDisabled(read());
       return;

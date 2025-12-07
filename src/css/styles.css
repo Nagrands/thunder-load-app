@@ -15519,6 +15519,8 @@ body:not(.low-effects) .history-card {
   align-items: center;
   align-content: center;
   justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select,
@@ -15527,36 +15529,70 @@ body:not(.low-effects) .history-card {
 .settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select {
+  position: relative;
   display: inline-flex;
   align-items: center;
   margin: 0;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 14px;
+  overflow: visible;
+  isolation: isolate;
 }
-.settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select:hover,
-.settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select:hover,
-.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select:hover,
-.settings-modal #backup-settings ul.module.default-tab-group li.custom-theme-select:hover,
-.settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select:hover,
-.settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select:hover,
-.settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-.settings-modal #general-settings ul.module.default-tab-group label,
-.settings-modal #window-settings ul.module.default-tab-group label,
-.settings-modal #wgunlock-settings ul.module.default-tab-group label,
-.settings-modal #backup-settings ul.module.default-tab-group label,
-.settings-modal #randomizer-settings ul.module.default-tab-group label,
-.settings-modal #appearance-settings ul.module.default-tab-group label,
-.settings-modal #other-settings ul.module.default-tab-group label {
+.settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label,
+.settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label,
+.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select label,
+.settings-modal #backup-settings ul.module.default-tab-group li.custom-theme-select label,
+.settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select label,
+.settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label,
+.settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label {
   width: auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  color: var(--color-text-main);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label i,
+.settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label i,
+.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select label i,
+.settings-modal #backup-settings ul.module.default-tab-group li.custom-theme-select label i,
+.settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select label i,
+.settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label i,
+.settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label i {
+  margin-right: 2px;
+}
+.settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label::before,
+.settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label::before,
+.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select label::before,
+.settings-modal #backup-settings ul.module.default-tab-group li.custom-theme-select label::before,
+.settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select label::before,
+.settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label::before,
+.settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select:hover label,
+.settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select:hover label,
+.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select:hover label,
+.settings-modal #backup-settings ul.module.default-tab-group li.custom-theme-select:hover label,
+.settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select:hover label,
+.settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select:hover label,
+.settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select:hover label {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio],
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio],
@@ -15565,7 +15601,60 @@ body:not(.low-effects) .history-card {
 .settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio],
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio],
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio] {
-  margin-right: 6px;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.settings-modal #general-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
+.settings-modal #window-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
+.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
+.settings-modal #backup-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
+.settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
+.settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
+.settings-modal #other-settings ul.module.default-tab-group input[type=radio]:focus-visible + label {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label,
+.settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label,
+.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label,
+.settings-modal #backup-settings ul.module.default-tab-group input[type=radio]:checked + label,
+.settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio]:checked + label,
+.settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label,
+.settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label {
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.26) 0%, rgba(var(--color-accent-rgb), 0.14) 100%);
+  border-color: rgba(var(--color-accent-rgb), 0.45);
+  color: var(--color-text-main);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
+.settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
+.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
+.settings-modal #backup-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
+.settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
+.settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
+.settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label::before {
+  background: var(--color-accent);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 4px rgba(var(--color-accent-rgb), 0.2);
+}
+.settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label i,
+.settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label i,
+.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label i,
+.settings-modal #backup-settings ul.module.default-tab-group input[type=radio]:checked + label i,
+.settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio]:checked + label i,
+.settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label i,
+.settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label i {
+  color: var(--color-text-main);
+}
+.settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
+.settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
+.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
+.settings-modal #backup-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
+.settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
+.settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
+.settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label strong {
+  color: var(--color-text-main);
 }
 .settings-modal #general-settings .dropdown-menu,
 .settings-modal #window-settings .dropdown-menu,

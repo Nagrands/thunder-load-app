@@ -33,8 +33,22 @@ describe("randomizer helpers", () => {
       { allowEmpty: true },
     );
     expect(normalized).toEqual([
-      { value: "A", weight: 2, hits: 0 },
-      { value: "B", weight: 1, hits: 0 },
+      {
+        value: "A",
+        weight: 2,
+        hits: 0,
+        misses: 0,
+        favorite: false,
+        excluded: false,
+      },
+      {
+        value: "B",
+        weight: 1,
+        hits: 0,
+        misses: 0,
+        favorite: false,
+        excluded: false,
+      },
     ]);
   });
 
@@ -54,15 +68,41 @@ describe("randomizer helpers", () => {
       { allowEmptyItems: true },
     );
     expect(presets).toEqual([
-      { name: "One", items: [{ value: "A", weight: 1, hits: 0 }] },
-      { name: "Two", items: [{ value: "C", weight: 1, hits: 0 }] },
+      {
+        name: "One",
+        items: [
+          {
+            value: "A",
+            weight: 1,
+            hits: 0,
+            misses: 0,
+            favorite: false,
+            excluded: false,
+          },
+        ],
+      },
+      {
+        name: "Two",
+        items: [
+          {
+            value: "C",
+            weight: 1,
+            hits: 0,
+            misses: 0,
+            favorite: false,
+            excluded: false,
+          },
+        ],
+      },
     ]);
   });
 
   test("declOfNum picks correct russian endings", () => {
     expect(declOfNum(1, ["вариант", "варианта", "вариантов"])).toBe("вариант");
     expect(declOfNum(2, ["вариант", "варианта", "вариантов"])).toBe("варианта");
-    expect(declOfNum(5, ["вариант", "варианта", "вариантов"])).toBe("вариантов");
+    expect(declOfNum(5, ["вариант", "варианта", "вариантов"])).toBe(
+      "вариантов",
+    );
   });
 
   test("MAX_ITEM_LENGTH matches constraint", () => {
