@@ -622,6 +622,9 @@
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 
     i {
       color: var(--color-quality);
@@ -647,6 +650,29 @@
     &:focus-visible {
       outline: 2px solid var(--color-accent);
       outline-offset: 2px;
+    }
+
+    .tab-badge {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      text-transform: none;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-quality);
+
+      &.tab-badge-off {
+        background: rgba(255, 80, 80, 0.12);
+        border-color: rgba(255, 80, 80, 0.3);
+        color: #ffb3b3;
+      }
+    }
+
+    &.tab-disabled .tab-badge {
+      display: inline-flex;
     }
   }
 

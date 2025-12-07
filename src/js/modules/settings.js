@@ -30,6 +30,38 @@ let toolsRenderPromise = null;
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 const QUALITY_PROFILE_DEFAULT = "remember"; // remember | best | audio
 
+const moduleBadgeMap = {
+  wg: { tab: "wgunlock-settings", badgeId: "tab-badge-wg" },
+  backup: { tab: "backup-settings", badgeId: "tab-badge-backup" },
+  randomizer: { tab: "randomizer-settings", badgeId: "tab-badge-randomizer" },
+};
+
+function updateModuleBadge(moduleKey, disabled) {
+  const map = moduleBadgeMap[moduleKey];
+  if (!map) return;
+  const btn = document.querySelector(`.tab-link[data-tab="${map.tab}"]`);
+  const badge =
+    (map.badgeId && document.getElementById(map.badgeId)) ||
+    btn?.querySelector(".tab-badge");
+  if (!btn || !badge) return;
+  const isDisabled = !!disabled;
+  badge.hidden = false;
+  badge.classList.toggle("tab-badge-off", isDisabled);
+  btn.classList.toggle("tab-disabled", isDisabled);
+  btn.dataset.disabled = isDisabled ? "1" : "0";
+  badge.textContent = isDisabled ? "Выкл" : "Вкл";
+  badge.setAttribute(
+    "aria-label",
+    isDisabled ? "Вкладка отключена" : "Вкладка включена",
+  );
+  badge.setAttribute("aria-hidden", isDisabled ? "false" : "true");
+  if (!isDisabled) {
+    badge.style.display = "none";
+  } else {
+    badge.style.display = "";
+  }
+}
+
 const DEFAULT_CONFIG = {
   general: {
     autoLaunch: false,
@@ -672,6 +704,7 @@ async function initSettings() {
           : "Вкладка <strong>WG Unlock</strong> включена",
         val ? "info" : "success",
       );
+      updateModuleBadge("wg", val);
     };
 
     // Находим контейнер модалки и WG‑секцию
@@ -796,10 +829,13 @@ async function initSettings() {
       const val = read();
       input.checked = val;
       toggleAutoSendDisabled(val);
+      updateModuleBadge("wg", val);
     });
 
     // Применим блокировку автосенд на старте
-    toggleAutoSendDisabled(read());
+    const initVal = read();
+    toggleAutoSendDisabled(initVal);
+    updateModuleBadge("wg", initVal);
   })();
   // === /WG Unlock: отключение вкладки ===
 
@@ -845,6 +881,7 @@ async function initSettings() {
       );
       // Блокируем/разблокируем контролы во вью
       toggleBackupControlsDisabled(val);
+      updateModuleBadge("backup", val);
       window.electron?.invoke?.(
         "toast",
         val
@@ -868,10 +905,13 @@ async function initSettings() {
       const val = read();
       input.checked = val;
       toggleBackupControlsDisabled(val);
+      updateModuleBadge("backup", val);
     });
 
     // Применим блокировку контролов при инициализации
-    toggleBackupControlsDisabled(read());
+    const initVal = read();
+    toggleBackupControlsDisabled(initVal);
+    updateModuleBadge("backup", initVal);
   })();
   // === /Backup: отключение вкладки ===
 
@@ -917,6 +957,7 @@ async function initSettings() {
         }),
       );
       toggleRandomizerControlsDisabled(val);
+      updateModuleBadge("randomizer", val);
       window.electron?.invoke?.(
         "toast",
         val
@@ -940,9 +981,12 @@ async function initSettings() {
       const val = read();
       input.checked = val;
       toggleRandomizerControlsDisabled(val);
+      updateModuleBadge("randomizer", val);
     });
 
-    toggleRandomizerControlsDisabled(read());
+    const initVal = read();
+    toggleRandomizerControlsDisabled(initVal);
+    updateModuleBadge("randomizer", initVal);
   })();
   // === /Randomizer: отключение вкладки ===
 
@@ -1568,5 +1612,8 @@ export async function resetConfigToDefaults() {
 export const getDefaultTab = () => window.electron.invoke("get-default-tab");
 export const setDefaultTab = (tabId) =>
   window.electron.invoke("set-default-tab", tabId);
+
+// Тестовая прокладка для unit-тестов
+export const __test_updateModuleBadge = updateModuleBadge;
 
 export { initSettings };
