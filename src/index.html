@@ -804,35 +804,60 @@
               <!-- Window Settings Tab -->
               <div id="window-settings" class="tab-pane">
                 <h2>Вкладка «Downloader»</h2>
-                    <ul class="module default-tab-group" id="quality-profile-group">
-                    <h3>Выбор качества загрузки по умолчанию</h3>
-                    <small class="muted">Применяется при открытии окна выбора качества</small>
-                      <li>
-                        <input
-                          type="radio"
-                          id="quality-profile-remember"
-                          name="downloadQualityProfile"
-                          value="remember"
-                          checked
-                        />
-                        <label for="quality-profile-remember">
+                <div class="quality-profile-card">
+                  <div class="quality-profile-header">
+                    <div>
+                      <p class="quality-profile-eyebrow">Окно выбора качества</p>
+                      <h3>Выбор качества загрузки по умолчанию</h3>
+                      <p class="quality-profile-note">
+                        Применяется при открытии окна выбора качества
+                      </p>
+                    </div>
+                    <div class="quality-profile-chip">
+                      <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                      Downloader
+                    </div>
+                  </div>
+                  <ul class="quality-profile-options" id="quality-profile-group">
+                    <li>
+                      <input
+                        type="radio"
+                        id="quality-profile-remember"
+                        name="downloadQualityProfile"
+                        value="remember"
+                        checked
+                      />
+                      <label for="quality-profile-remember">
+                        <span class="quality-option-icon" aria-hidden="true">
                           <i class="fa-solid fa-rotate"></i>
+                        </span>
+                        <span class="quality-option-text">
                           <strong>Запомнить последний выбор</strong>
-                        </label>
-                      </li>
-                      <li>
-                        <input
-                          type="radio"
-                          id="quality-profile-audio"
-                          name="downloadQualityProfile"
-                          value="audio"
-                        />
-                        <label for="quality-profile-audio">
+                          <small>Откроет тот же тип потока, что и в прошлый раз.</small>
+                        </span>
+                        <span class="quality-option-check" aria-hidden="true"></span>
+                      </label>
+                    </li>
+                    <li>
+                      <input
+                        type="radio"
+                        id="quality-profile-audio"
+                        name="downloadQualityProfile"
+                        value="audio"
+                      />
+                      <label for="quality-profile-audio">
+                        <span class="quality-option-icon" aria-hidden="true">
                           <i class="fa-solid fa-music"></i>
+                        </span>
+                        <span class="quality-option-text">
                           <strong>Только Audio</strong>
-                        </label>
-                      </li>
-                    </ul>
+                          <small>Открывает только звуковые дорожки без видео.</small>
+                        </span>
+                        <span class="quality-option-check" aria-hidden="true"></span>
+                      </label>
+                    </li>
+                  </ul>
+                </div>
                 <ul class="module">
                   <li>
                     <input
