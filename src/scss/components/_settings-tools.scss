@@ -3,11 +3,9 @@
 // Улучшения UI для окна «Настройки» и блока «Инструменты»
 
 // Общие модули внутри настроек
-.settings-section .module {
-  padding: 12px 6px;
-}
+
 .settings-section .module + .module {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 // Единый стиль «серой подсказки»

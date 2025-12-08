@@ -1689,8 +1689,8 @@ export default function renderBackup() {
                   <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
                 </select>
             </label>
-            ${renderField("Теги", "f-tags", (init.tags || []).join(","), "Через запятую: games,configs", false)}
             ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
+            ${renderField("Теги", "f-tags", (init.tags || []).join(","), "Через запятую: games,configs", false)}
             ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
           </div>
           <div class="bk-preview-card">
