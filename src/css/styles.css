@@ -15508,15 +15508,13 @@ body:not(.low-effects) .history-card {
 .settings-modal #appearance-settings ul.module.default-tab-group,
 .settings-modal #other-settings ul.module.default-tab-group {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   padding: 10px;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   align-content: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select,
@@ -15547,13 +15545,12 @@ body:not(.low-effects) .history-card {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) padding-box;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
-  color: var(--color-text-main);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.22s ease;
+  color: var(--color-highlight);
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label i,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label i,
@@ -15563,6 +15560,7 @@ body:not(.low-effects) .history-card {
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label i,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label i {
   margin-right: 2px;
+  color: var(--color-accent);
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label::before,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label::before,
@@ -15572,10 +15570,10 @@ body:not(.low-effects) .history-card {
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label::before,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label::before {
   content: "";
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.06);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -15586,8 +15584,8 @@ body:not(.low-effects) .history-card {
 .settings-modal #randomizer-settings ul.module.default-tab-group li.custom-theme-select:hover label,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select:hover label,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select:hover label {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) padding-box;
+  border-color: rgba(var(--color-accent-rgb), 0.28);
   transform: translateY(-1px);
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio],
@@ -15618,10 +15616,9 @@ body:not(.low-effects) .history-card {
 .settings-modal #randomizer-settings ul.module.default-tab-group input[type=radio]:checked + label,
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label,
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label {
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.26) 0%, rgba(var(--color-accent-rgb), 0.14) 100%);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.32) 0%, rgba(var(--color-accent-rgb), 0.18) 100%);
   border-color: rgba(var(--color-accent-rgb), 0.45);
   color: var(--color-text-main);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
@@ -15632,7 +15629,6 @@ body:not(.low-effects) .history-card {
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label::before {
   background: var(--color-accent);
   border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 4px rgba(var(--color-accent-rgb), 0.2);
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label i,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label i,
@@ -15978,7 +15974,6 @@ body:not(.low-effects) .history-card {
   display: grid;
   place-items: center;
   position: relative;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.25);
   transition: all 0.22s ease;
   color: var(--color-accent);
 }
@@ -16028,7 +16023,6 @@ body:not(.low-effects) .history-card {
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.22);
   transition: all 0.22s ease;
   display: grid;
   place-items: center;
