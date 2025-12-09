@@ -39,7 +39,7 @@
   &__summary-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
   }
 
   &__titles h2 {
@@ -133,9 +133,9 @@
   }
 
   &__body {
-    padding: 12px 14px 16px;
+    padding: 12px;
     display: grid;
-    gap: 12px;
+    gap: 8px;
     border-top: 1px dashed rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
   }
@@ -145,6 +145,7 @@
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 10px;
 }
 
 .tool-card {
@@ -166,7 +167,7 @@
   }
 
   &__label {
-    font-weight: 600;
+    font-size: 14px;
     color: var(--color-text-main);
   }
 

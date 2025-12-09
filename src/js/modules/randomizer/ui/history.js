@@ -20,6 +20,7 @@ export function createHistoryRenderer({
   onChangeSort,
   onStatsToggle,
   onExportStats,
+  initTooltips,
 }) {
   const getThreshold = () =>
     clampRareThreshold(getRareThreshold ? getRareThreshold() : RARE_STREAK);
@@ -98,17 +99,24 @@ export function createHistoryRenderer({
     const textHead = document.createElement("div");
     textHead.appendChild(buildSortButton("Вариант", "value"));
     const missHead = document.createElement("div");
-    missHead.appendChild(buildSortButton("Промахи", "misses"));
-    const hitHead = document.createElement("div");
-    hitHead.appendChild(buildSortButton("Выпадения", "hits"));
-    header.append(textHead, missHead, hitHead);
-    statsTable.appendChild(header);
+      missHead.appendChild(buildSortButton("Промахи", "misses"));
+      const hitHead = document.createElement("div");
+      hitHead.appendChild(buildSortButton("Выпадения", "hits"));
+      header.append(textHead, missHead, hitHead);
+      statsTable.appendChild(header);
+
+    const ensureTooltips = () => {
+      if (typeof initTooltips === "function") {
+        setTimeout(() => initTooltips(), 0);
+      }
+    };
 
     rows.slice(0, 30).forEach((item) => {
       const row = document.createElement("div");
       row.className = "stats-row";
+      const valueText = escapeHtml(item.value);
       row.innerHTML = `
-        <span class="stat-text">${escapeHtml(item.value)}</span>
+        <span class="stat-text" title="${valueText}" data-bs-toggle="tooltip" data-bs-placement="top">${valueText}</span>
         <span class="stat-miss">${clampMisses(item.misses || 0)}</span>
         <span class="stat-hit">${clampHits(item.hits || 0)}</span>
       `;
@@ -117,6 +125,7 @@ export function createHistoryRenderer({
       }
       statsTable.appendChild(row);
     });
+    ensureTooltips();
   };
 
   const makeExportText = (rareOnlyItems = false) => {

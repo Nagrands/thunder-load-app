@@ -15041,7 +15041,6 @@ body:not(.low-effects) .history-card {
 }
 .settings-modal #tools-info h2 {
   font-weight: 500;
-  margin: 2px;
 }
 .settings-modal #tools-info #tools-hint {
   display: block;
@@ -15149,7 +15148,7 @@ body:not(.low-effects) .history-card {
 .settings-modal li {
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 10px;
   border-radius: var(--border-radius);
   color: var(--color-highlight);
   background: rgba(255, 255, 255, 0.03);
@@ -15157,7 +15156,7 @@ body:not(.low-effects) .history-card {
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .settings-modal li.submenu {
-  padding-left: 45px;
+  padding-left: 36px;
   position: relative;
 }
 .settings-modal li.submenu::before {
@@ -15779,8 +15778,8 @@ body:not(.low-effects) .history-card {
 }
 .settings-modal #window-settings .quality-profile-card {
   position: relative;
-  margin: 10px;
-  padding: 16px;
+  margin: 4px;
+  padding: 10px;
   border-radius: var(--border-radius);
   overflow: hidden;
   z-index: 0;
@@ -15840,7 +15839,7 @@ body:not(.low-effects) .history-card {
   gap: 10px;
 }
 .settings-modal #window-settings .quality-profile-options li {
-  margin: 0;
+  padding: 0;
   position: relative;
 }
 .settings-modal #window-settings #quality-profile-group input[type=radio] {
@@ -15850,13 +15849,11 @@ body:not(.low-effects) .history-card {
 }
 .settings-modal #window-settings #quality-profile-group label {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  width: 100%;
+  align-items: stretch;
+  gap: 10px;
   padding: 14px;
   border-radius: var(--border-radius);
   background: linear-gradient(125deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)), rgba(8, 12, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--color-highlight);
   cursor: pointer;
   transition: all 0.25s ease;
@@ -15871,13 +15868,12 @@ body:not(.low-effects) .history-card {
 .settings-modal #window-settings .quality-option-icon {
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   display: grid;
   place-items: center;
   background: rgba(var(--color-accent-rgb), 0.14);
   border: 1px solid rgba(var(--color-accent-rgb), 0.32);
   color: var(--color-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
 .settings-modal #window-settings .quality-option-text {
@@ -15888,11 +15884,10 @@ body:not(.low-effects) .history-card {
 .settings-modal #window-settings .quality-option-text strong {
   color: var(--color-text-main);
   font-size: 15px;
-  line-height: 1.3;
 }
 .settings-modal #window-settings .quality-option-text small {
   color: var(--color-quality);
-  line-height: 1.4;
+  font-style: italic;
 }
 .settings-modal #window-settings .quality-option-check {
   margin-left: auto;
@@ -15927,8 +15922,7 @@ body:not(.low-effects) .history-card {
 }
 .settings-modal #window-settings #quality-profile-group input[type=radio]:checked + label {
   background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.22) 0%, rgba(var(--color-accent-rgb), 0.12) 100%);
-  border-color: rgba(var(--color-accent-rgb), 0.45);
-  color: var(--color-text-main);
+  color: var(--color-highlight);
   transform: translateY(-1px);
 }
 .settings-modal #window-settings #quality-profile-group input[type=radio]:checked + label .quality-option-icon {
@@ -16189,7 +16183,7 @@ body:not(.low-effects) .history-card {
 }
 .confirmation-modal .confirmation-title-block {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
 }
 .confirmation-modal .confirmation-icon {
@@ -17295,7 +17289,7 @@ body:not(.low-effects) .history-card {
 .tools-panel__summary-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 .tools-panel__titles h2 {
   margin: 0;
@@ -17373,9 +17367,9 @@ body:not(.low-effects) .history-card {
   color: #e1f1ff;
 }
 .tools-panel__body {
-  padding: 12px 14px 16px;
+  padding: 12px;
   display: grid;
-  gap: 12px;
+  gap: 8px;
   border-top: 1px dashed rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
 }
@@ -17384,6 +17378,7 @@ body:not(.low-effects) .history-card {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 10px;
 }
 
 .tool-card {
@@ -17404,7 +17399,7 @@ body:not(.low-effects) .history-card {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 .tool-card__label {
-  font-weight: 600;
+  font-size: 14px;
   color: var(--color-text-main);
 }
 .tool-card__version {
@@ -19153,8 +19148,6 @@ video {
   padding: 1rem;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(0px);
-  background-color: #0f1626;
   padding: 0;
 }
 .backup-view .wg-header {
@@ -20400,7 +20393,7 @@ video {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 14px;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
@@ -20408,10 +20401,12 @@ video {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
 }
 .bk-select-trigger i {
   font-size: 0.85rem;
-  color: #6ecaff;
+  color: var(--color-accent);
   transition: transform 0.2s ease;
 }
 .bk-select-trigger:hover {
@@ -20439,9 +20434,9 @@ video {
   inset: calc(100% + 6px) 0 auto 0;
   background: var(--color-bg-main);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  padding: 10px 8px;
+  padding: 6px;
   max-height: 260px;
   overflow-y: auto;
   z-index: 30;
@@ -20478,9 +20473,11 @@ video {
   outline: none;
 }
 .bk-select-option.is-active {
+  font-size: 14px;
+  padding: 10px;
   background: var(--color-hover);
   color: var(--color-highlight);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 @media (max-width: 520px) {
@@ -21367,7 +21364,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   padding: 1.25rem;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(18px);
   margin-top: 1.5rem;
   border-radius: 20px;
   text-align: left;
@@ -22226,6 +22222,36 @@ h1.section-heading .bk-heading-search #bk-search-info {
   box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.2);
 }
 
+.stat-threshold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--color-quality);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.stat-threshold input {
+  width: 78px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 5px 6px;
+  color: var(--color-text-main);
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+.stat-threshold input:focus {
+  outline: none;
+  border-color: rgba(var(--color-accent-rgb), 0.7);
+  box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.16);
+}
+
 .preset-prompt-overlay {
   position: fixed;
   inset: 0;
@@ -22334,7 +22360,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   display: none;
 }
 .randomizer-chip .chip-drag-handle {
-  width: 28px;
   height: 28px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -22943,35 +22968,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-color: rgba(var(--color-accent-rgb), 0.7);
   color: var(--color-accent);
   box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.2);
-}
-.randomizer-history-card .history-controls .stat-threshold {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: var(--color-quality);
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-.randomizer-history-card .history-controls .stat-threshold input {
-  width: 78px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 5px 6px;
-  color: var(--color-text-main);
-  text-align: center;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
-}
-.randomizer-history-card .history-controls .stat-threshold input:focus {
-  outline: none;
-  border-color: rgba(var(--color-accent-rgb), 0.7);
-  box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.16);
 }
 
 .randomizer-history {

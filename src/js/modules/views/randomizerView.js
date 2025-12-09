@@ -317,6 +317,10 @@ export default function renderRandomizerView() {
         <div class="randomizer-list-header">
           <span id="randomizer-count">0 вариантов</span>
           <div class="randomizer-list-actions">
+            <label class="stat-threshold" title="Порог редкости (промахи)">
+              <span>Порог:</span>
+              <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
+            </label>
             <button type="button" class="btn btn-sm btn-ghost" id="randomizer-fav-filter" data-state="all" data-bs-toggle="tooltip" data-bs-placement="left" title="Показывать только избранные варианты">
               <i class="fa-solid fa-star"></i>
               <span>Все</span>
@@ -459,10 +463,6 @@ export default function renderRandomizerView() {
               <i class="fa-solid fa-star-half-stroke"></i>
               <span>Все</span>
             </button>
-            <label class="stat-threshold" title="Порог редкости (промахи)">
-              <span>Порог:</span>
-              <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
-            </label>
             <button type="button" class="btn btn-sm btn-ghost" id="randomizer-stats-export" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать статистику в буфер">
               <i class="fa-solid fa-file-export"></i>
             </button>
@@ -742,7 +742,9 @@ export default function renderRandomizerView() {
       const bar = document.createElement("div");
       bar.className = "spark-bar";
       bar.style.setProperty("--h", `${Math.max(6, (miss / maxMiss) * 100)}%`);
-      const tooltip = `${item.value}: ${miss} промахов, ${hit} попаданий`;
+      const missLabel = declOfNum(miss, ["промах", "промаха", "промахов"]);
+      const hitLabel = declOfNum(hit, ["попадание", "попадания", "попаданий"]);
+      const tooltip = `${item.value}: ${miss} ${missLabel}, ${hit} ${hitLabel}`;
       bar.title = tooltip;
       bar.dataset.bsToggle = "tooltip";
       bar.dataset.bsPlacement = "top";
@@ -1457,6 +1459,7 @@ export default function renderRandomizerView() {
     getRareThreshold: () => getRareThreshold(),
     getSort: () => getStatsSort(),
     onChangeSort: (sort) => setStatsSort(sort),
+    initTooltips,
     onStatsToggle: (rare) => {
       if (!rareToggleBtn) return;
       rareToggleBtn.dataset.state = rare ? "rare" : "all";

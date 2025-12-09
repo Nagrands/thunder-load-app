@@ -13,8 +13,6 @@
   padding: $padding;
   border-radius: var(--border-radius);
   border: 1px solid $border;
-  backdrop-filter: blur($blur);
-  // box-shadow: $shadow;
 }
 
 @mixin backup-button-base($radius: 8px) {
@@ -170,7 +168,6 @@
 
   .wg-glass {
     @include backup-glass-panel();
-    background-color: #0f1626;
     padding: 0;
   }
 
@@ -1509,7 +1506,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 14px;
   cursor: pointer;
   transition:
     border-color 0.2s ease,
@@ -1520,11 +1517,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   i {
     font-size: 0.85rem;
-    color: #6ecaff;
+    color: var(--color-accent);
     transition: transform 0.2s ease;
   }
 
@@ -1560,11 +1559,11 @@
   inset: calc(100% + 6px) 0 auto 0;
   background: var(--color-bg-main);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow:
     0 12px 26px rgba(0, 0, 0, 0.32),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  padding: 10px 8px;
+  padding: 6px;
   max-height: 260px;
   overflow-y: auto;
   z-index: 30;
@@ -1604,9 +1603,11 @@
   }
 
   &.is-active {
+    font-size: 14px;
+    padding: 10px;
     background: var(--color-hover);
     color: var(--color-highlight);
-    font-weight: 700;
+    font-weight: 600;
   }
 }
 
