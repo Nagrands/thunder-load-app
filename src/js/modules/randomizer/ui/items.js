@@ -27,6 +27,11 @@ export function createItemsRenderer({
   onToggleExclude,
   getRareThreshold,
   favoritesOnly = false,
+  prepareItems,
+  getSearchQuery,
+  canDrag = () => true,
+  onRequestSample,
+  onRequestPaste,
 }) {
   const debounce = (fn, delay = 50) => {
     let t = null;
@@ -117,15 +122,21 @@ export function createItemsRenderer({
     const { items, pool, settings } = getState();
     const onlyFav =
       typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
-    const visibleItems = onlyFav
+    const baseVisible = onlyFav
       ? items.filter((item) => item.favorite)
       : items;
+    const visibleItems = prepareItems
+      ? prepareItems(baseVisible.slice())
+      : baseVisible;
+    const isSearching =
+      typeof getSearchQuery === "function" &&
+      (getSearchQuery() || "").trim().length > 0;
     const poolEntries = Array.isArray(pool) ? pool : [];
     const poolCounts = poolEntries.reduce((acc, value) => {
       acc[value] = (acc[value] || 0) + 1;
       return acc;
     }, {});
-    const totalWeight = items.reduce((sum, item) => {
+    const totalWeight = visibleItems.reduce((sum, item) => {
       const inPoolCount = poolCounts[item.value] || 0;
       const available =
         !item.excluded &&
@@ -136,11 +147,31 @@ export function createItemsRenderer({
     if (!listEl) return;
     listEl.innerHTML = "";
     if (!visibleItems.length) {
-      const empty = document.createElement("p");
+      const empty = document.createElement("div");
       empty.className = "placeholder";
-      empty.textContent = onlyFav
-        ? "Нет избранных элементов. Отметьте ★ нужные варианты."
-        : "Пока нет вариантов. Добавьте несколько элементов.";
+      const message = document.createElement("p");
+      message.textContent = isSearching
+        ? "По запросу ничего не найдено. Очистите поиск или добавьте варианты."
+        : onlyFav
+          ? "Нет избранных элементов. Отметьте ★ нужные варианты."
+          : "Пока нет вариантов. Добавьте несколько элементов.";
+      empty.appendChild(message);
+
+      const actions = document.createElement("div");
+      actions.className = "placeholder-actions";
+      const sampleBtn = document.createElement("button");
+      sampleBtn.type = "button";
+      sampleBtn.className = "btn btn-sm btn-primary";
+      sampleBtn.innerHTML = '<i class="fa-solid fa-list-check"></i><span>Заполнить примером</span>';
+      sampleBtn.addEventListener("click", () => onRequestSample?.());
+      const pasteBtn = document.createElement("button");
+      pasteBtn.type = "button";
+      pasteBtn.className = "btn btn-sm btn-ghost";
+      pasteBtn.innerHTML = '<i class="fa-solid fa-paste"></i><span>Импорт из буфера</span>';
+      pasteBtn.addEventListener("click", () => onRequestPaste?.());
+      actions.append(sampleBtn, pasteBtn);
+      empty.appendChild(actions);
+
       listEl.appendChild(empty);
       onUpdateCount();
       onUpdateBulk();
@@ -164,7 +195,8 @@ export function createItemsRenderer({
       dragHandle.className = "chip-drag-handle";
       dragHandle.setAttribute("aria-label", "Перетащить вариант");
       dragHandle.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
-      dragHandle.draggable = true;
+      const dragEnabled = !!canDrag();
+      dragHandle.draggable = dragEnabled;
 
       const textWrap = document.createElement("div");
       textWrap.className = "chip-text";
@@ -247,6 +279,20 @@ export function createItemsRenderer({
       probWrap.className = "chip-prob";
       probWrap.append(probLabel, probTrack);
 
+      const details = document.createElement("div");
+      details.className = "chip-details";
+      details.append(weightWrap, statWrap, probWrap);
+
+      const toggleDetails = document.createElement("button");
+      toggleDetails.type = "button";
+      toggleDetails.className = "chip-toggle-details";
+      toggleDetails.innerHTML = '<span>Подробнее</span><i class="fa-solid fa-chevron-down"></i>';
+      toggleDetails.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const expanded = chip.classList.toggle("is-expanded");
+        toggleDetails.classList.toggle("is-active", expanded);
+      });
+
       const syncWeight = (nextWeight) => {
         const sanitized = onSyncWeight?.clamp(nextWeight);
         if (!onSyncWeight || sanitized === getItemWeight(item)) {
@@ -289,11 +335,13 @@ export function createItemsRenderer({
       favIcon.className = item.favorite
         ? "fa-solid fa-star"
         : "fa-regular fa-star";
+      if (item.favorite) favBtn.classList.add("is-active");
       favBtn.appendChild(favIcon);
       favBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         const next = onToggleFavorite(item.value);
         favIcon.className = next ? "fa-solid fa-star" : "fa-regular fa-star";
+        favBtn.classList.toggle("is-active", next);
         chip.classList.toggle("is-favorite", next);
         onUpdateVisuals?.();
         renderItemsDebounced();
@@ -323,8 +371,8 @@ export function createItemsRenderer({
 
       quick.append(favBtn, excludeBtn, remove);
 
-      chipMain.append(dragHandle, textWrap, weightLabel, quick);
-      chip.append(chipMain, weightWrap, statWrap, probWrap);
+      chipMain.append(dragHandle, textWrap, weightLabel, quick, toggleDetails);
+      chip.append(chipMain, details);
 
       chip.addEventListener("click", (event) => {
         if (event.detail > 1) return;
@@ -356,6 +404,10 @@ export function createItemsRenderer({
 
       dragHandle.addEventListener("click", (event) => event.stopPropagation());
       dragHandle.addEventListener("dragstart", (event) => {
+        if (!dragEnabled) {
+          event.preventDefault();
+          return;
+        }
         dragSource = item.value;
         chip.classList.add("dragging");
         setDragState(true);

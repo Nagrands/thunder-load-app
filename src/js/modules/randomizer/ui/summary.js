@@ -3,14 +3,26 @@
 import { triggerPulse } from "../helpers.js";
 
 export function createSummary({ getState, elements }) {
-  const { summaryCountEl, summaryPresetEl, summaryPoolEl, poolHintEl } =
-    elements;
+  const {
+    summaryCountEl,
+    summaryPresetEl,
+    summaryPoolEl,
+    summaryPoolModeEl,
+    summaryDefaultBadgeEl,
+    poolHintEl,
+  } = elements;
 
   const updateSummary = () => {
-    const { items, currentPresetName, settings, pool } = getState();
+    const { items, currentPresetName, defaultPresetName, settings, pool } =
+      getState();
     const activeItems = items.filter((item) => !item.excluded);
     if (summaryCountEl) summaryCountEl.textContent = activeItems.length;
     if (summaryPresetEl) summaryPresetEl.textContent = currentPresetName || "—";
+    if (summaryDefaultBadgeEl) {
+      const isDefault =
+        currentPresetName && currentPresetName === defaultPresetName;
+      summaryDefaultBadgeEl.classList.toggle("hidden", !isDefault);
+    }
     if (summaryPoolEl) {
       const poolValue = settings.noRepeat
         ? `${pool.length}/${activeItems.length || 0}`
@@ -20,6 +32,13 @@ export function createSummary({ getState, elements }) {
         "is-warning",
         settings.noRepeat && activeItems.length > 0 && pool.length === 0,
       );
+    }
+    if (summaryPoolModeEl) {
+      const noRepeat = !!settings.noRepeat;
+      summaryPoolModeEl.textContent = noRepeat
+        ? "Без повторов"
+        : "Повторы включены";
+      summaryPoolModeEl.dataset.mode = noRepeat ? "no-repeat" : "repeat";
     }
   };
 

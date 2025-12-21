@@ -175,16 +175,7 @@
     width: min(1040px, 94vw);
     border-radius: 24px;
     padding: 28px;
-    // background: radial-gradient(
-    //     circle at top,
-    //     rgba(255, 255, 255, 0.08),
-    //     transparent 60%
-    //   ),
-    //   rgba(8, 12, 24, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow:
-      0 25px 60px rgba(0, 0, 0, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -319,8 +310,8 @@
         border-color 0.2s ease;
 
       &.active {
-        background-color: transparent;
-        border-color: rgba(120, 180, 255, 0.5);
+        background-color: var(--color-bg-main);
+        border-color: var(--color-accent);
         color: var(--color-accent);
       }
     }
@@ -427,8 +418,8 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.03);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgb(0 0 0 / 20%);
+    color: var(--color-accent);
     cursor: pointer;
     text-align: left;
     transition:
@@ -437,15 +428,15 @@
       transform 0.15s ease;
 
     &.active {
-      border-color: rgba(120, 180, 255, 0.6);
+      border-color: var(--color-accent);
       background: rgba(120, 180, 255, 0.08);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      transform: translateX(4px);
     }
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.15);
+      background-color: var(--color-hover);
       border-color: var(--color-hover);
-      transform: translateX(3px);
+      transform: translateX(2px);
     }
 
     .quality-option-title {
@@ -457,7 +448,8 @@
     .quality-option-desc {
       margin: 4px 0 0;
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
+      color: var(--color-highlight);
     }
 
     .quality-option-tags {

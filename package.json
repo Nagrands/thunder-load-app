@@ -126,12 +126,15 @@
     "url": "https://github.com/Nagrands/thunder-load-app/issues"
   },
   "keywords": [
-    "electron",
+    "downloader",
     "video",
     "audio",
-    "downloader",
     "backup",
-    "tools"
+    "randomizer",
+    "tools",
+    "ytdlp",
+    "ffmpeg",
+    "electron"
   ],
-  "author": "Spotlight"
+  "author": "ThunderDev"
 }

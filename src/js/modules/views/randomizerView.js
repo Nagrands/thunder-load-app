@@ -24,6 +24,8 @@ import { createPresetsUI } from "../randomizer/ui/presets.js";
 import { wireRollControls } from "../randomizer/ui/controls.js";
 import { wireListActions } from "../randomizer/ui/listActions.js";
 
+// NOTE: функция навешивает document-level listeners.
+// Используется один раз на view, при размонтировании потребуется cleanup.
 // Lightweight clone of backup select styling
 const enhanceSelect = (selectEl) => {
   if (!selectEl || selectEl.dataset.enhanced === "true") return null;
@@ -144,9 +146,34 @@ export default function renderRandomizerView() {
   let selectedItems = new Set();
   let favoritesOnly = false;
   let rareOnly = false;
+  let searchQuery = "";
+  let sortMode = "order";
+
+  const sortByMode = (list) => {
+    const itemsCopy = list.slice();
+    switch (sortMode) {
+      case "alpha":
+        return itemsCopy.sort((a, b) =>
+          a.value.localeCompare(b.value, "ru", { sensitivity: "base" }),
+        );
+      case "weight":
+        return itemsCopy.sort(
+          (a, b) => clampWeight(b.weight) - clampWeight(a.weight),
+        );
+      case "rare":
+        return itemsCopy.sort(
+          (a, b) => clampMisses(b.misses || 0) - clampMisses(a.misses || 0),
+        );
+      default:
+        return itemsCopy;
+    }
+  };
   let renderHistory = () => {};
   const getRareThreshold = () =>
     clampRareThreshold(settings?.rareThreshold ?? RARE_STREAK);
+  const normalizeSortMode = (value) =>
+    ["order", "alpha", "weight", "rare"].includes(value) ? value : "order";
+  const isSearchActive = () => (searchQuery || "").trim().length > 0;
 
   const syncState = () => {
     ({
@@ -161,7 +188,7 @@ export default function renderRandomizerView() {
   };
 
   syncState();
-  state.normalizePool();
+  state.normalizePool(); // normalizePool мутирует state, поэтому перечитываем значения
   syncState();
   settings.rareThreshold = getRareThreshold();
   favoritesOnly = !!settings.favoritesOnly;
@@ -180,41 +207,55 @@ export default function renderRandomizerView() {
           <div class="icon">
             <i class="fa-solid fa-shuffle"></i>
           </div>
-        <div class="text">
-          <h2>Randomizer</h2>
-          <p>Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.</p>
+          <div class="text">
+            <h2>Randomizer</h2>
+            <p>Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.</p>
+          </div>
+        </div>
+        <div class="randomizer-hero-meta">
+          <div class="randomizer-auto-chip" id="randomizer-auto-chip">
+            <div class="chip-label">Авто</div>
+            <div class="chip-value" id="randomizer-auto-status-mini">Авто выключен</div>
+            <div class="chip-sub">
+              Следующий через <span id="randomizer-auto-countdown-mini">—</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-auto-toggle-hero">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>Старт</span>
+            </button>
+          </div>
+          <div class="randomizer-hero-actions">
+            <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll-hero">
+              <i class="fa-solid fa-dice"></i>
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <span>Запустить</span>
+            </button>
+            <button type="button" class="btn btn-ghost" id="randomizer-reset-pool" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Очистить пул без повторов">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Сбросить пул</span>
+            </button>
+            <button type="button" class="btn btn-ghost mobile-only" id="randomizer-toggle-list" data-state="shown">
+              <i class="fa-solid fa-list"></i>
+              <span>Скрыть список</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="randomizer-hero-actions">
-        <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll-hero">
-          <i class="fa-solid fa-dice"></i>
-          <span>Запустить</span>
-        </button>
-        <button type="button" class="btn btn-ghost" id="randomizer-reset-pool" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Очистить пул без повторов">
-          <i class="fa-solid fa-arrows-rotate"></i>
-        </button>
-        <button type="button" class="btn btn-ghost mobile-only" id="randomizer-toggle-list" data-state="shown">
-          <i class="fa-solid fa-list"></i>
-          <span>Скрыть список</span>
-        </button>
-      </div>
-    </div>
 
     <div class="randomizer-summary" id="randomizer-summary">
       <div class="summary-item">
         <span class="label">Шаблон</span>
-        <strong id="randomizer-summary-preset">—</strong>
+        <div class="summary-main">
+          <strong id="randomizer-summary-preset">—</strong>
+          <span class="summary-pill hidden" id="randomizer-summary-default-badge">По умолчанию</span>
+        </div>
       </div>
       <div class="summary-item">
         <span class="label">Варианты</span>
         <strong id="randomizer-summary-count">0</strong>
       </div>
       <div class="summary-item">
-        <span class="label">В пуле</span>
-        <strong id="randomizer-summary-pool">—</strong>
-      </div>
-      <div class="summary-item">
-        <span class="label">Таймер</span>
+        <span class="label">Таймер / Авто</span>
         <label
           class="spin-control"
           data-bs-toggle="tooltip"
@@ -273,23 +314,54 @@ export default function renderRandomizerView() {
         </header>
         <p class="hint">Добавляйте идеи по одной или вставьте целый список через буфер обмена.</p>
         <div class="randomizer-presets">
-          <label for="randomizer-preset-select" class="preset-label">Шаблоны:</label>
-          <select id="randomizer-preset-select" class="preset-select"></select>
-          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить текущий шаблон">
-            <i class="fa-solid fa-floppy-disk"></i>
-          </button>
-          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-new" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пустой шаблон">
-            <i class="fa-solid fa-file-circle-plus"></i>
-          </button>
-          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-default" data-bs-toggle="tooltip" data-bs-placement="top" title="Сделать шаблон стартовым">
-            <i class="fa-solid fa-star"></i>
-          </button>
-          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить как новый шаблон">
-            <i class="fa-solid fa-copy"></i>
-          </button>
-          <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный шаблон">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+        <label for="randomizer-preset-select" class="preset-label">Шаблоны:</label>
+        <select id="randomizer-preset-select" class="preset-select"></select>
+        <div class="preset-actions">
+          <div class="preset-primary">
+            <button type="button" class="btn btn-sm btn-primary" id="randomizer-preset-save" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить текущий шаблон">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Сохранить</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-new" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пустой шаблон">
+              <i class="fa-solid fa-file-circle-plus"></i>
+              <span>Новый</span>
+            </button>
+          </div>
+          <div class="preset-secondary">
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-default" data-bs-toggle="tooltip" data-bs-placement="top" title="Сделать шаблон стартовым">
+              <i class="fa-solid fa-star"></i>
+              <span>По умолчанию</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить как новый шаблон">
+              <i class="fa-solid fa-copy"></i>
+              <span>Сохранить как</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный шаблон">
+              <i class="fa-solid fa-trash"></i>
+              <span>Удалить</span>
+            </button>
+          </div>
+        </div>
+        </div>
+        <div class="randomizer-toolbar">
+          <label class="randomizer-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="search"
+              id="randomizer-search"
+              placeholder="Поиск по вариантам"
+              autocomplete="off"
+            />
+          </label>
+          <label class="randomizer-sort">
+            <span>Сортировка</span>
+            <select id="randomizer-sort">
+              <option value="order">По порядку</option>
+              <option value="alpha">А–Я</option>
+              <option value="weight">По весу</option>
+              <option value="rare">Редкие</option>
+            </select>
+          </label>
         </div>
         <div class="randomizer-add-row">
           <textarea
@@ -315,26 +387,38 @@ export default function renderRandomizerView() {
         </div>
         <div class="randomizer-divider"></div>
         <div class="randomizer-list-header">
-          <span id="randomizer-count">0 вариантов</span>
+          <div class="randomizer-list-heading">
+            <span id="randomizer-count">0 вариантов</span>
+            <span class="list-sub">Фильтры и действия ниже</span>
+          </div>
           <div class="randomizer-list-actions">
-            <label class="stat-threshold" title="Порог редкости (промахи)">
-              <span>Порог:</span>
-              <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
-            </label>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-fav-filter" data-state="all" data-bs-toggle="tooltip" data-bs-placement="left" title="Показывать только избранные варианты">
-              <i class="fa-solid fa-star"></i>
-              <span>Все</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
-              <i class="fa-solid fa-copy"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-clear-favorites" data-bs-toggle="tooltip" data-bs-placement="left" title="Снять отметку избранного со всех вариантов">
-              <i class="fa-solid fa-star-half-stroke"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-clear-excluded" data-bs-toggle="tooltip" data-bs-placement="left" title="Вернуть исключённые варианты в пул">
-              <i class="fa-solid fa-eye"></i>            </button>
-            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-delete-selected" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить выбранные варианты">
-              <i class="fa-solid fa-trash"></i>            </button>
+            <div class="list-actions-group">
+              <span class="group-label">Фильтры</span>
+              <label class="stat-threshold" title="Порог редкости (промахи)">
+                <span>Порог:</span>
+                <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
+              </label>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-fav-filter" data-state="all" data-bs-toggle="tooltip" data-bs-placement="left" title="Показывать только избранные варианты">
+                <i class="fa-solid fa-star"></i>
+                <span>Все</span>
+              </button>
+            </div>
+            <div class="list-actions-group">
+              <span class="group-label">Действия</span>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-clear-favorites" data-bs-toggle="tooltip" data-bs-placement="left" title="Снять отметку избранного со всех вариантов">
+                <i class="fa-solid fa-star-half-stroke"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-clear-excluded" data-bs-toggle="tooltip" data-bs-placement="left" title="Вернуть исключённые варианты в пул">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-delete-selected" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить выбранные варианты">
+                <i class="fa-solid fa-trash"></i>
+                <span></span>
+              </button>
+            </div>
           </div>
         </div>
         <div id="randomizer-pool-hint" class="randomizer-pool-hint hidden">
@@ -358,6 +442,7 @@ export default function renderRandomizerView() {
           <div class="randomizer-result-actions">
             <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll">
               <i class="fa-solid fa-dice"></i>
+              <span class="btn-spinner" aria-hidden="true"></span>
               <span>Запустить</span>
             </button>
             <button type="button" class="btn btn-ghost" id="randomizer-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать результат">
@@ -433,9 +518,11 @@ export default function renderRandomizerView() {
             <div class="history-tabs">
               <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history" data-bs-toggle="tooltip" data-bs-placement="top" title="История">
                 <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>История</span>
               </button>
               <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats" data-bs-toggle="tooltip" data-bs-placement="top" title="Статистика">
                 <i class="fa-solid fa-chart-line"></i>
+                <span>Статистика</span>
               </button>
             </div>
           </header>
@@ -504,6 +591,12 @@ export default function renderRandomizerView() {
   const summaryCountEl = wrapper.querySelector("#randomizer-summary-count");
   const summaryPresetEl = wrapper.querySelector("#randomizer-summary-preset");
   const summaryPoolEl = wrapper.querySelector("#randomizer-summary-pool");
+  const summaryPoolModeEl = wrapper.querySelector(
+    "#randomizer-summary-pool-mode",
+  );
+  const summaryDefaultBadgeEl = wrapper.querySelector(
+    "#randomizer-summary-default-badge",
+  );
   const poolProgressFill = wrapper.querySelector("#randomizer-pool-progress");
   const poolProgressValue = wrapper.querySelector(
     "#randomizer-pool-progress-value",
@@ -536,8 +629,18 @@ export default function renderRandomizerView() {
   const spinCountdownValueEl = spinCountdownEl?.querySelector(".value");
   let spinCountdownTimer = null;
   const autoToggleBtn = wrapper.querySelector("#randomizer-auto-toggle");
+  const autoToggleHeroBtn = wrapper.querySelector(
+    "#randomizer-auto-toggle-hero",
+  );
   const autoRunOnceBtn = wrapper.querySelector("#randomizer-auto-run-once");
   const autoStatusEl = wrapper.querySelector("#randomizer-auto-status");
+  const autoChipEl = wrapper.querySelector("#randomizer-auto-chip");
+  const autoStatusMiniEl = wrapper.querySelector(
+    "#randomizer-auto-status-mini",
+  );
+  const autoCountdownMiniEl = wrapper.querySelector(
+    "#randomizer-auto-countdown-mini",
+  );
   const autoStopModeSelect = wrapper.querySelector(
     "#randomizer-auto-stop-mode",
   );
@@ -557,6 +660,9 @@ export default function renderRandomizerView() {
   const autoStopExtras = wrapper.querySelectorAll(".stop-extra");
   const autoStopSelectUI = enhanceSelect(autoStopModeSelect);
   const toggleListBtn = wrapper.querySelector("#randomizer-toggle-list");
+  const searchInput = wrapper.querySelector("#randomizer-search");
+  const sortSelect = wrapper.querySelector("#randomizer-sort");
+  const sortSelectUI = enhanceSelect(sortSelect);
   let autoTimer = null;
   let autoRuns = 0;
   let autoStatusTimer = null;
@@ -568,10 +674,18 @@ export default function renderRandomizerView() {
   let audioContext = null;
   let isListHidden = false;
 
-  const getVisibleItems = () =>
+  const getBaseVisibleItems = () =>
     favoritesOnly ? items.filter((item) => item.favorite) : items;
+  const applySearchFilter = (list) => {
+    if (!isSearchActive()) return list;
+    const needle = searchQuery.trim().toLowerCase();
+    return list.filter((item) => item.value.toLowerCase().includes(needle));
+  };
+  const getDisplayItems = () =>
+    sortByMode(applySearchFilter(getBaseVisibleItems()));
   const setCountLabel = () => {
-    const visible = getVisibleItems();
+    const base = getBaseVisibleItems();
+    const visible = getDisplayItems();
     const isEmpty = visible.length === 0;
     const baseLabel = isEmpty
       ? favoritesOnly
@@ -585,8 +699,9 @@ export default function renderRandomizerView() {
             "вариантов",
           ])}`;
     const extra =
-      favoritesOnly && visible.length !== items.length
-        ? ` из ${items.length}`
+      (favoritesOnly && visible.length !== items.length) ||
+      (isSearchActive() && visible.length !== base.length)
+        ? ` из ${favoritesOnly ? items.length : base.length}`
         : "";
     countEl.textContent = `${baseLabel}${extra}`;
     exportButton.classList.toggle("hidden", isEmpty);
@@ -599,6 +714,8 @@ export default function renderRandomizerView() {
       summaryCountEl,
       summaryPresetEl,
       summaryPoolEl,
+      summaryPoolModeEl,
+      summaryDefaultBadgeEl,
       poolHintEl,
     },
   });
@@ -761,6 +878,8 @@ export default function renderRandomizerView() {
   };
   const setRolling = (value) => {
     isRolling = value;
+    wrapper.classList.toggle("is-rolling", value);
+    rollButtons.forEach((btn) => btn.classList.toggle("is-busy", value));
     updateRollAvailability();
   };
   const updateAutoStopExtraVisibility = () => {
@@ -780,10 +899,18 @@ export default function renderRandomizerView() {
     autoStatusTimer = setInterval(() => refreshAutoStatus(), 200);
   };
   const refreshAutoStatus = (overrideText) => {
-    if (!autoStatusEl) return;
+    const idleText = overrideText || "Авто-ролл выключен";
+    const setCountdown = (text) => {
+      if (autoCountdownMiniEl) autoCountdownMiniEl.textContent = text;
+    };
     if (!autoEnabled) {
-      autoStatusEl.textContent = overrideText || "Авто-ролл выключен";
-      autoStatusEl.dataset.state = "idle";
+      if (autoStatusEl) {
+        autoStatusEl.textContent = idleText;
+        autoStatusEl.dataset.state = "idle";
+      }
+      if (autoStatusMiniEl) autoStatusMiniEl.textContent = idleText;
+      if (autoChipEl) autoChipEl.dataset.state = "idle";
+      setCountdown("—");
       return;
     }
     const now = Date.now();
@@ -801,20 +928,34 @@ export default function renderRandomizerView() {
           ? `ищем «${settings.autoStopMatch}»`
           : "стоп вручную";
     const lastLabel = lastResultValue ? ` · было: ${lastResultValue}` : "";
-    autoStatusEl.textContent =
+    const text =
       overrideText ||
       `Авто · каждые ${settings.autoRollInterval}с · ${limitLabel} · следующий через ${secondsLeft}с${lastLabel}`;
-    autoStatusEl.dataset.state = "running";
+    if (autoStatusEl) {
+      autoStatusEl.textContent = text;
+      autoStatusEl.dataset.state = "running";
+    }
+    if (autoStatusMiniEl) autoStatusMiniEl.textContent = text;
+    if (autoChipEl) autoChipEl.dataset.state = "running";
+    setCountdown(`${secondsLeft}с`);
   };
   const updateAutoToggleUi = () => {
-    if (!autoToggleBtn) return;
-    const textEl = autoToggleBtn.querySelector("span");
-    const iconEl = autoToggleBtn.querySelector("i");
-    autoToggleBtn.classList.toggle("is-active", autoEnabled);
+    const textEl = autoToggleBtn?.querySelector("span");
+    const iconEl = autoToggleBtn?.querySelector("i");
+    autoToggleBtn?.classList.toggle("is-active", autoEnabled);
     if (textEl)
       textEl.textContent = autoEnabled ? "Остановить" : "Старт таймера";
     if (iconEl)
       iconEl.className = autoEnabled
+        ? "fa-solid fa-stop"
+        : "fa-solid fa-clock-rotate-left";
+
+    const miniText = autoToggleHeroBtn?.querySelector("span");
+    const miniIcon = autoToggleHeroBtn?.querySelector("i");
+    autoToggleHeroBtn?.classList.toggle("is-active", autoEnabled);
+    if (miniText) miniText.textContent = autoEnabled ? "Стоп" : "Старт";
+    if (miniIcon)
+      miniIcon.className = autoEnabled
         ? "fa-solid fa-stop"
         : "fa-solid fa-clock-rotate-left";
   };
@@ -1280,12 +1421,7 @@ export default function renderRandomizerView() {
   };
 
   const renderItemsImpl = createItemsRenderer({
-    getState: () => {
-      const base = state.getState();
-      return favoritesOnly
-        ? { ...base, items: base.items.filter((item) => item.favorite) }
-        : base;
-    },
+    getState: () => state.getState(),
     listEl,
     getSelected: () => selectedItems,
     onUpdateCount: setCountLabel,
@@ -1319,6 +1455,23 @@ export default function renderRandomizerView() {
     onToggleExclude: (value) => state.toggleExclude(value),
     getRareThreshold: () => getRareThreshold(),
     favoritesOnly: () => favoritesOnly,
+    getSearchQuery: () => searchQuery,
+    prepareItems: (list) => sortByMode(applySearchFilter(list)),
+    canDrag: () => sortMode === "order",
+    onRequestSample: () => bulkAdd(DEFAULT_ITEMS),
+    onRequestPaste: async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        const entries = parseEntries(text);
+        if (!entries.length) {
+          showToast("Буфер обмена пуст", "info");
+          return;
+        }
+        bulkAdd(entries);
+      } catch {
+        showToast("Не удалось прочитать буфер обмена", "error");
+      }
+    },
   });
 
   const renderItems = () => {
@@ -1379,6 +1532,24 @@ export default function renderRandomizerView() {
   updateListVisibility(false);
   updateFavFilterUi();
   setHistoryTab(settings.statsTab || "history");
+  if (searchInput) {
+    searchInput.value = searchQuery;
+    searchInput.addEventListener("input", () => {
+      searchQuery = searchInput.value || "";
+      renderItems();
+    });
+  }
+  if (sortSelect) {
+    sortMode = normalizeSortMode(sortSelect.value);
+    sortSelect.value = sortMode;
+    sortSelect.addEventListener("change", () => {
+      sortMode = normalizeSortMode(sortSelect.value);
+      sortSelect.value = sortMode;
+      renderItems();
+    });
+    sortSelectUI?.rebuild?.();
+    sortSelectUI?.updateLabel?.();
+  }
 
   const resultUI = createResultUI({
     resultCard,
@@ -1668,6 +1839,13 @@ export default function renderRandomizerView() {
   });
 
   autoToggleBtn?.addEventListener("click", () => {
+    if (autoEnabled) {
+      stopAutoRoll("остановлено вручную");
+    } else {
+      startAutoRoll();
+    }
+  });
+  autoToggleHeroBtn?.addEventListener("click", () => {
     if (autoEnabled) {
       stopAutoRoll("остановлено вручную");
     } else {
