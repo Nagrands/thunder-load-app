@@ -22553,6 +22553,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   color: var(--color-text-main);
   cursor: grab;
   user-select: none;
+  will-change: transform, opacity;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, transform 0.12s ease;
 }
 .randomizer-chip:hover {
@@ -22928,7 +22929,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 
 .randomizer-result-card {
-  position: relative;
   overflow: hidden;
   grid-column: 2;
   position: sticky;
@@ -22939,6 +22939,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 12px;
   padding: 12px;
   box-sizing: border-box;
+  will-change: transform, opacity;
 }
 @media (max-width: 1100px) {
   .randomizer-result-card {
