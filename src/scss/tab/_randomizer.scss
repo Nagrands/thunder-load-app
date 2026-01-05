@@ -159,7 +159,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    flex: 1 1 280px;
+    flex: 1 1 560px;
 
     .icon {
       width: 64px;
@@ -610,10 +610,8 @@
   flex-wrap: wrap;
   gap: 15px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  margin-bottom: 12px;
+  border-radius: var(--border-radius);
   flex-direction: row;
   justify-content: center;
   align-items: center;
@@ -1673,12 +1671,11 @@
   }
 
   .auto-status {
-    font-size: 0.95rem;
-    color: var(--color-text-main);
-    padding: 8px 12px;
+    font-size: 0.75rem;
+    color: var(--color-quality);
+    padding: 4px 6px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
     transition:
       border-color 0.18s ease,
       color 0.18s ease,
@@ -1767,9 +1764,9 @@
   border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
-  color: var(--color-text-main);
+  color: var(--color-accent);
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   cursor: pointer;
 
   input {
@@ -1924,8 +1921,10 @@
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
+    flex-direction: column;
     gap: 6px;
+    width: 100%;
     padding: 8px 10px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1980,7 +1979,7 @@
     &.stats-head {
       background: transparent;
       padding-bottom: 8px;
-      font-size: 9px;
+      font-size: 0.59em;
       box-shadow: none;
     }
 

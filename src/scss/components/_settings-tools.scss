@@ -167,8 +167,10 @@
   }
 
   &__label {
-    font-size: 14px;
-    color: var(--color-text-main);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
   }
 
   &__version {
@@ -200,6 +202,33 @@
       background: #ff6b6b;
       box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
     }
+  }
+}
+
+.tool-external-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 0.85em;
+  line-height: 1;
+  opacity: 0.6;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    opacity: 0.8;
   }
 }
 

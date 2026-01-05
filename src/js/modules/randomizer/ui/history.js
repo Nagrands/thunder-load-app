@@ -99,11 +99,11 @@ export function createHistoryRenderer({
     const textHead = document.createElement("div");
     textHead.appendChild(buildSortButton("Вариант", "value"));
     const missHead = document.createElement("div");
-      missHead.appendChild(buildSortButton("Промахи", "misses"));
-      const hitHead = document.createElement("div");
-      hitHead.appendChild(buildSortButton("Выпадения", "hits"));
-      header.append(textHead, missHead, hitHead);
-      statsTable.appendChild(header);
+    missHead.appendChild(buildSortButton("Промахи", "misses"));
+    const hitHead = document.createElement("div");
+    hitHead.appendChild(buildSortButton("Выпадения", "hits"));
+    header.append(textHead, missHead, hitHead);
+    statsTable.appendChild(header);
 
     const ensureTooltips = () => {
       if (typeof initTooltips === "function") {

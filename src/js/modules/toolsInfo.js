@@ -323,6 +323,12 @@ async function triggerBackgroundToolsUpdateCheck(currentVersions) {
  *
  * @returns {Promise<void>}
  */
+const TOOL_LINKS = {
+  yt: "https://github.com/yt-dlp/yt-dlp",
+  ff: "https://ffmpeg.org",
+  deno: "https://deno.com",
+};
+
 export async function renderToolsInfo() {
   const section = document.getElementById("tools-info");
   if (!section) return;
@@ -343,10 +349,10 @@ export async function renderToolsInfo() {
           <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
         </div>
       </summary>
-
+  
       <div class="tools-panel__body">
         <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
-
+  
         <div class="tools-location module">
           <label for="ti-tools-location-path">
             <i class="fa-solid fa-folder"></i>
@@ -368,10 +374,10 @@ export async function renderToolsInfo() {
             </button>
           </div>
         </div>
-
+  
         <small id="tools-hint" class="muted"></small>
         <small id="ti-tools-location-info" class="muted"></small>
-
+  
         <div class="tools-footer">
           <small id="tools-status" class="muted"></small>
           <button id="tools-primary-btn" type="button" title="">
@@ -497,7 +503,18 @@ export async function renderToolsInfo() {
           ({ id, label, version, state }) => `
           <div class="tool-card tool-card--${state}" data-tool="${id}" role="listitem">
             <span class="tool-card__dot"></span>
-            <div class="tool-card__label">${label}</div>
+            <div class="tool-card__label">
+  ${label}
+  ${
+    TOOL_LINKS[id]
+      ? `<span
+           class="tool-external-link"
+           data-tool="${id}"
+           title="Открыть официальный сайт"
+         ><i class="fa-solid fa-arrow-up-right-from-square"></i></span>`
+      : ""
+  }
+</div>
             <div class="tool-card__version">${version || "—"}</div>
           </div>`,
         )
@@ -1127,6 +1144,19 @@ export async function renderToolsInfo() {
   }
 
   try {
+    section.querySelectorAll(".tool-external-link").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const tool = el.dataset.tool;
+        const url = TOOL_LINKS[tool];
+
+        if (url) {
+          window.electron?.openExternal(url);
+        }
+      });
+    });
     initTooltips();
   } catch (e) {
     console.warn("[toolsInfo] initTooltips skipped:", e);

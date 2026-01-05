@@ -151,12 +151,10 @@ describe("renderToolsInfo", () => {
   });
 
   it("migrate button respects overwrite confirmation", async () => {
-    window.electron.tools.detectLegacy = jest
-      .fn()
-      .mockResolvedValue({
-        success: true,
-        found: [{ dir: "/old", tools: {} }],
-      });
+    window.electron.tools.detectLegacy = jest.fn().mockResolvedValue({
+      success: true,
+      found: [{ dir: "/old", tools: {} }],
+    });
     window.electron.tools.migrateOld = jest
       .fn()
       .mockResolvedValue({ success: true, copied: ["/old/bin"], skipped: [] });

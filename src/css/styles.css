@@ -17398,8 +17398,10 @@ body:not(.low-effects) .history-card {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 .tool-card__label {
-  font-size: 14px;
-  color: var(--color-text-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
 }
 .tool-card__version {
   font-size: 13px;
@@ -17427,6 +17429,26 @@ body:not(.low-effects) .history-card {
 .tool-card--missing .tool-card__dot {
   background: #ff6b6b;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+}
+
+.tool-external-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  line-height: 1;
+  opacity: 0.6;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.tool-external-link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.tool-external-link:active {
+  transform: translateY(0);
+  opacity: 0.8;
 }
 
 .tools-location label {
@@ -21848,7 +21870,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex: 1 1 280px;
+  flex: 1 1 560px;
 }
 .randomizer-view .randomizer-heading .icon {
   width: 64px;
@@ -22218,10 +22240,8 @@ h1.section-heading .bk-heading-search #bk-search-info {
   flex-wrap: wrap;
   gap: 15px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  margin-bottom: 12px;
+  border-radius: var(--border-radius);
   flex-direction: row;
   justify-content: center;
   align-items: center;
@@ -23058,12 +23078,11 @@ h1.section-heading .bk-heading-search #bk-search-info {
   color: var(--color-quality);
 }
 .randomizer-auto-card .auto-status {
-  font-size: 0.95rem;
-  color: var(--color-text-main);
-  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: var(--color-quality);
+  padding: 4px 6px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
   transition: border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 .randomizer-auto-card .auto-status[data-state=running] {
@@ -23140,9 +23159,9 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
-  color: var(--color-text-main);
+  color: var(--color-accent);
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   cursor: pointer;
 }
 .auto-toggle input {
@@ -23265,8 +23284,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
+  flex-direction: column;
   gap: 6px;
+  width: 100%;
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -23311,7 +23332,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .randomizer-stats .stats-row.stats-head {
   background: transparent;
   padding-bottom: 8px;
-  font-size: 9px;
+  font-size: 0.59em;
   box-shadow: none;
 }
 .randomizer-stats .stats-row.is-rare {

@@ -122,9 +122,7 @@ export function createItemsRenderer({
     const { items, pool, settings } = getState();
     const onlyFav =
       typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
-    const baseVisible = onlyFav
-      ? items.filter((item) => item.favorite)
-      : items;
+    const baseVisible = onlyFav ? items.filter((item) => item.favorite) : items;
     const visibleItems = prepareItems
       ? prepareItems(baseVisible.slice())
       : baseVisible;
@@ -162,12 +160,14 @@ export function createItemsRenderer({
       const sampleBtn = document.createElement("button");
       sampleBtn.type = "button";
       sampleBtn.className = "btn btn-sm btn-primary";
-      sampleBtn.innerHTML = '<i class="fa-solid fa-list-check"></i><span>Заполнить примером</span>';
+      sampleBtn.innerHTML =
+        '<i class="fa-solid fa-list-check"></i><span>Заполнить примером</span>';
       sampleBtn.addEventListener("click", () => onRequestSample?.());
       const pasteBtn = document.createElement("button");
       pasteBtn.type = "button";
       pasteBtn.className = "btn btn-sm btn-ghost";
-      pasteBtn.innerHTML = '<i class="fa-solid fa-paste"></i><span>Импорт из буфера</span>';
+      pasteBtn.innerHTML =
+        '<i class="fa-solid fa-paste"></i><span>Импорт из буфера</span>';
       pasteBtn.addEventListener("click", () => onRequestPaste?.());
       actions.append(sampleBtn, pasteBtn);
       empty.appendChild(actions);
@@ -286,7 +286,8 @@ export function createItemsRenderer({
       const toggleDetails = document.createElement("button");
       toggleDetails.type = "button";
       toggleDetails.className = "chip-toggle-details";
-      toggleDetails.innerHTML = '<span>Подробнее</span><i class="fa-solid fa-chevron-down"></i>';
+      toggleDetails.innerHTML =
+        '<span>Подробнее</span><i class="fa-solid fa-chevron-down"></i>';
       toggleDetails.addEventListener("click", (event) => {
         event.stopPropagation();
         const expanded = chip.classList.toggle("is-expanded");

@@ -20,7 +20,9 @@ export function wireListActions({
         return;
       }
       try {
-        await navigator.clipboard.writeText(items.map((item) => item.value).join("\n"));
+        await navigator.clipboard.writeText(
+          items.map((item) => item.value).join("\n"),
+        );
         showToast("Список скопирован", "success");
       } catch {
         showToast("Не удалось скопировать список", "error");
@@ -45,12 +47,7 @@ export function wireListActions({
         showToast("Не выбрано ни одного варианта", "info");
         return;
       }
-      if (
-        !confirm(
-          `Удалить ${selected.size} вариантов?`,
-        )
-      )
-        return;
+      if (!confirm(`Удалить ${selected.size} вариантов?`)) return;
       onBulkDelete(selected);
     });
   }
@@ -63,7 +60,9 @@ export function wireListActions({
       const label = bulkDeleteButton.querySelector("span");
       if (label) {
         label.textContent =
-          selectedCount > 0 ? `Удалить (${selectedCount})` : "Удалить выбранные";
+          selectedCount > 0
+            ? `Удалить (${selectedCount})`
+            : "Удалить выбранные";
       }
     },
   };

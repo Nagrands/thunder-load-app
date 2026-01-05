@@ -253,6 +253,7 @@ try {
     onNotification: (cb) => safeOn("download-notification", cb),
     onPasteNotification: (cb) => safeOn("paste-notification", cb),
     onToast: (cb) => safeOn("toast", cb),
+    openExternal: (url) => safeInvoke("open-external", url),
 
     // Прямой прокси IPC
     ipcRenderer: {

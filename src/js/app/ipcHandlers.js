@@ -389,6 +389,12 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle("open-external", (_e, url) => {
+    if (typeof url === "string" && url.startsWith("https://")) {
+      shell.openExternal(url);
+    }
+  });
+
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, async () => {
     try {
       const tools = await getToolsVersions(store);

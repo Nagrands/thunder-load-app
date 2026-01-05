@@ -17,1248 +17,1295 @@
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="css/styles.css" />
-    
   </head>
   <body>
-    
-  <div class="toast-container" id="toast-container"></div>
+    <div class="toast-container" id="toast-container"></div>
 
-  <div class="top-bar">
-  <div class="top-bar__left">
-    <div class="brand-chip">
-      
-      <div class="brand-meta">
-        <span class="brand-title">Thunder</span>
-        <div
-          class="app-version-label version-container"
-          id="app-version-label"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="Версия приложения"
-        >
-          <i class="fas fa-bolt fa-beat-fade"></i>
-          <span class="version">v<span id="app-version">?</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="top-bar__center">
-    <div class="center-menu" role="tablist" aria-label="Навигация по разделам">
-      <div class="group-menu"></div>
-    </div>
-  </div>
-
-  <div class="top-bar__right">
-    <div class="quick-actions">
-      <button
-        class="menu-item"
-        id="open-history"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="История загрузок"
-        data-hotkey="Ctrl+H"
-      >
-        <span class="menu-main">
-          <i class="fa-solid fa-clock-rotate-left"></i>
-        </span>
-      </button>
-
-      <button
-        class="menu-item"
-        id="shortcuts-button"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Горячие клавиши"
-        data-hotkey="Ctrl+P"
-      >
-        <span class="menu-main">
-          <i class="fas fa-keyboard"></i>
-        </span>
-      </button>
-
-      <button
-        class="menu-item"
-        id="settings-button"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Настройки"
-        data-hotkey="Ctrl+,"
-      >
-        <span class="menu-main">
-          <i class="fa-solid fa-gear"></i>
-        </span>
-      </button>
-
-      <button
-        class="menu-item"
-        id="open-github"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Открыть репозиторий на GitHub"
-      >
-        <span class="menu-main">
-          <i class="fa-brands fa-github"></i>
-        </span>
-      </button>
-
-      <button
-        id="reload-app"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Обновить окно"
-        data-hotkey="Ctrl+R"
-      >
-        <i class="fa-solid fa-arrow-rotate-right"></i>
-      </button>
-    </div>
-
-    <div class="window-controls">
-      <button
-        class="btn-minimize"
-        title="Свернуть"
-        onclick="window.electron.minimize()"
-      >
-        <i class="fas fa-window-minimize"></i>
-      </button>
-      <button class="btn-close" title="Закрыть" onclick="window.electron.close()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-  </div>
-
-  <div
-    id="top-download-progress"
-    class="top-download-progress"
-    aria-hidden="true"
-  >
-    <div id="top-download-progress-fill" class="top-download-progress-fill"></div>
-  </div>
-</div>
-
-  <div id="app-preloader">
-  <div class="preloader-icon">
-    <i class="fas fa-bolt fa-beat-fade"></i>
-    <div class="preloader-text">Загрузка…</div>
-  </div>
-</div>
-
-  <div id="main-view" class="container">
-  <!-- Меню в правом верхнем углу -->
-<header>
-  <!-- Input Container -->
-  <div class="input-container">
-    <div class="url-input-wrapper">
-      <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
-      <input
-        type="text"
-        id="url"
-        placeholder="Введите URL видео или аудио"
-        aria-label="Введите URL видео или аудио"
-      />
-      <div class="button-grid">
-        <button
-          id="paste-url"
-          class="paste-button hidden"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Вставить из буфера"
-        >
-          <i class="fas fa-paste"></i>
-        </button>
-        <button
-          id="clear-url"
-          class="clear-button hidden"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Очистить"
-        >
-          &times;
-        </button>
-        <button
-          id="select-folder"
-          class="folder-button"
-          aria-label="Выбор папки"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Выбор папки"
-        >
-          <i class="fas fa-folder-open"></i>
-        </button>
-      </div>
-    </div>
-    <!-- Preview -->
-    <div id="preview-card" class="preview-card" style="display: none">
-      <img
-        id="preview-thumb"
-        alt="Превью"
-        loading="lazy"
-        style="display: none; max-height: 80px; border-radius: 6px; margin-right: 8px"
-      />
-      <div class="preview-meta">
-        <div id="preview-title" class="preview-title" style="font-weight: 600"></div>
-        <small id="preview-duration" class="muted"></small>
-      </div>
-    </div>
-
-    <!-- Progress Bar -->
-    <div
-      id="progress-bar-container"
-      class="progress-bar-container"
-      role="progressbar"
-      aria-valuenow="0"
-      aria-valuemin="0"
-      aria-valuemax="100"
-    >
-      <div id="progress-bar" class="progress-bar"></div>
-    </div>
-  </div>
-</header>
-
-  <!-- Группа кнопок -->
-<nav class="button-group" aria-label="Основные действия">
-  <!-- Кнопка открытия последнего видео -->
-  <button
-    id="open-last-video"
-    class="small-button btn btn-sm btn-secondary"
-    aria-label="Открыть последнее скачанное видео"
-    disabled
-    data-bs-toggle="tooltip"
-    data-bs-placement="top"
-    title="Последнее видео"
-  >
-    <i class="fa fa-play" aria-hidden="true"></i>
-  </button>
-
-  <!-- Группа кнопок скачивания и выбора качества -->
-  <div class="download-quality-group">
-    <!-- Кнопка скачивания -->
-    <button id="download-button" class="large-button btn btn-lg btn-primary" disabled aria-disabled="true">
-      <i class="fas fa-download"></i>
-      <span class="button-text">Скачать</span>
-    </button>
-
-    <!-- Кнопка отмены скачивания -->
-    <button
-      id="download-cancel"
-      class="small-button btn btn-sm btn-danger"
-      aria-label="Отменить скачивание"
-      disabled
-      data-bs-toggle="tooltip"
-      data-bs-placement="top"
-      title="Отменить скачивание"
-    >
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-  </div>
-
-  <!-- Кнопка открытия папки с видео -->
-  <button
-    id="open-folder"
-    class="small-button btn btn-sm btn-secondary"
-    aria-label="Открыть папку с видео"
-    data-bs-toggle="tooltip"
-    data-bs-placement="top"
-    title="Папка с видео"
-  >
-    <i class="fa-regular fa-folder-open"></i>
-  </button>
-</nav>
-
-<!-- Модальное окно выбора качества -->
-<div
-  id="download-quality-modal"
-  class="modal-overlay download-quality-modal"
-  role="dialog"
-  aria-modal="true"
-  aria-hidden="true"
-  aria-labelledby="download-quality-title"
->
-  <div class="modal-content download-quality-content">
-    <div class="quality-modal-header">
-      <div>
-        <p class="quality-modal-subtitle">Загрузка</p>
-        <h3 id="download-quality-title">Выбор качества</h3>
-      </div>
-      <button
-        type="button"
-        class="quality-modal-close"
-        aria-label="Закрыть окно"
-        data-quality-close
-      >
-        &times;
-      </button>
-    </div>
-
-    <div class="quality-modal-body">
-      <div class="quality-preview">
-        <div class="quality-thumb">
-          <img id="download-quality-thumb" alt="" loading="lazy" />
-        </div>
-        <div class="quality-info">
-          <h4 id="download-quality-name"></h4>
-          <p id="download-quality-uploader"></p>
-          <p id="download-quality-duration"></p>
-          <button
-            type="button"
-            id="download-quality-open-source"
-            class="btn-link"
-          >
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть
-            источник
-          </button>
-        </div>
-      </div>
-
-      <div class="quality-selector">
-        <div class="quality-tabs-row">
-          <div class="quality-tabs" role="tablist">
-            <button
-              type="button"
-              class="quality-tab active"
-              data-quality-tab="video"
+    <div class="top-bar">
+      <div class="top-bar__left">
+        <div class="brand-chip">
+          <div class="brand-meta">
+            <span class="brand-title">Thunder</span>
+            <div
+              class="app-version-label version-container"
+              id="app-version-label"
+              data-bs-toggle="tooltip"
+              data-bs-placement="bottom"
+              title="Версия приложения"
             >
-              Видео + аудио
-            </button>
-            <button
-              type="button"
-              class="quality-tab"
-              data-quality-tab="video-only"
-            >
-              Только видео
-            </button>
-            <button type="button" class="quality-tab" data-quality-tab="audio">
-              Только аудио
-            </button>
+              <i class="fas fa-bolt fa-beat-fade"></i>
+              <span class="version">v<span id="app-version">?</span></span>
+            </div>
           </div>
-          <button
-            type="button"
-            id="download-quality-best"
-            class="quality-best-link"
-          >
-            <i class="fa-solid fa-bullseye"></i>
-            Максимальное качество
-          </button>
         </div>
-        <div id="download-quality-loading" class="quality-loading">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          Загрузка доступных форматов...
-        </div>
+      </div>
+
+      <div class="top-bar__center">
         <div
-          id="download-quality-error"
-          class="quality-error hidden"
-          role="alert"
-          aria-live="assertive"
+          class="center-menu"
+          role="tablist"
+          aria-label="Навигация по разделам"
         >
-          <div class="quality-error-text">
-            Не удалось получить информацию о видео.
-          </div>
+          <div class="group-menu"></div>
+        </div>
+      </div>
+
+      <div class="top-bar__right">
+        <div class="quick-actions">
           <button
-            type="button"
-            id="download-quality-retry"
-            class="quality-retry-btn"
+            class="menu-item"
+            id="open-history"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            title="История загрузок"
+            data-hotkey="Ctrl+H"
           >
-            <i class="fa-solid fa-rotate-right"></i>
-            Повторить
+            <span class="menu-main">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </span>
+          </button>
+
+          <button
+            class="menu-item"
+            id="shortcuts-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            title="Горячие клавиши"
+            data-hotkey="Ctrl+P"
+          >
+            <span class="menu-main">
+              <i class="fas fa-keyboard"></i>
+            </span>
+          </button>
+
+          <button
+            class="menu-item"
+            id="settings-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            title="Настройки"
+            data-hotkey="Ctrl+,"
+          >
+            <span class="menu-main">
+              <i class="fa-solid fa-gear"></i>
+            </span>
+          </button>
+
+          <button
+            class="menu-item"
+            id="open-github"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            title="Открыть репозиторий на GitHub"
+          >
+            <span class="menu-main">
+              <i class="fa-brands fa-github"></i>
+            </span>
+          </button>
+
+          <button
+            id="reload-app"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            title="Обновить окно"
+            data-hotkey="Ctrl+R"
+          >
+            <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
         </div>
-        <div id="download-quality-empty" class="quality-empty hidden">
-          Нет вариантов для выбранного режима.
+
+        <div class="window-controls">
+          <button
+            class="btn-minimize"
+            title="Свернуть"
+            onclick="window.electron.minimize()"
+          >
+            <i class="fas fa-window-minimize"></i>
+          </button>
+          <button
+            class="btn-close"
+            title="Закрыть"
+            onclick="window.electron.close()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
         </div>
+      </div>
+
+      <div
+        id="top-download-progress"
+        class="top-download-progress"
+        aria-hidden="true"
+      >
         <div
-          id="download-quality-options"
-          class="quality-options"
-          role="radiogroup"
-          aria-live="polite"
+          id="top-download-progress-fill"
+          class="top-download-progress-fill"
         ></div>
       </div>
     </div>
 
-    <div class="quality-modal-footer">
-      <div class="quality-hint">
-        <i class="fa-regular fa-circle-question"></i>
-        Двойной клик по варианту сразу начнёт загрузку.
+    <div id="app-preloader">
+      <div class="preloader-icon">
+        <i class="fas fa-bolt fa-beat-fade"></i>
+        <div class="preloader-text">Загрузка…</div>
       </div>
-      <div class="quality-actions">
+    </div>
+
+    <div id="main-view" class="container">
+      <!-- Меню в правом верхнем углу -->
+      <header>
+        <!-- Input Container -->
+        <div class="input-container">
+          <div class="url-input-wrapper">
+            <i
+              id="icon-url-globe"
+              class="fas fa-globe search-icon"
+              aria-hidden="true"
+            ></i>
+            <input
+              type="text"
+              id="url"
+              placeholder="Введите URL видео или аудио"
+              aria-label="Введите URL видео или аудио"
+            />
+            <div class="button-grid">
+              <button
+                id="paste-url"
+                class="paste-button hidden"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="Вставить из буфера"
+              >
+                <i class="fas fa-paste"></i>
+              </button>
+              <button
+                id="clear-url"
+                class="clear-button hidden"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="Очистить"
+              >
+                &times;
+              </button>
+              <button
+                id="select-folder"
+                class="folder-button"
+                aria-label="Выбор папки"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="Выбор папки"
+              >
+                <i class="fas fa-folder-open"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Preview -->
+          <div id="preview-card" class="preview-card" style="display: none">
+            <img
+              id="preview-thumb"
+              alt="Превью"
+              loading="lazy"
+              style="
+                display: none;
+                max-height: 80px;
+                border-radius: 6px;
+                margin-right: 8px;
+              "
+            />
+            <div class="preview-meta">
+              <div
+                id="preview-title"
+                class="preview-title"
+                style="font-weight: 600"
+              ></div>
+              <small id="preview-duration" class="muted"></small>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div
+            id="progress-bar-container"
+            class="progress-bar-container"
+            role="progressbar"
+            aria-valuenow="0"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Группа кнопок -->
+      <nav class="button-group" aria-label="Основные действия">
+        <!-- Кнопка открытия последнего видео -->
         <button
-          type="button"
-          id="download-quality-cancel"
-          class="btn-ghost"
-        >
-          Отмена
-        </button>
-        <button
-          type="button"
-          id="download-quality-confirm"
-          class="btn-primary"
+          id="open-last-video"
+          class="small-button btn btn-sm btn-secondary"
+          aria-label="Открыть последнее скачанное видео"
           disabled
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Последнее видео"
         >
-          Скачать выбранное
+          <i class="fa fa-play" aria-hidden="true"></i>
         </button>
-      </div>
-    </div>
-  </div>
-</div>
 
-  <div id="download-queue-info" class="download-queue-info hidden">
-  В очереди: <span id="queue-count">0</span> ссылок
-</div>
-
-<div id="queue-start-indicator" class="queue-start-indicator hidden">
-  ⏳ Загрузка из очереди...
-</div>
-
-  <!-- History Section -->
-<section id="history-container">
-  <div class="history-cards-area" aria-live="polite">
-    <div class="history-cards-header">
-      <div>
-        <p class="history-cards-subtitle">Недавние загрузки</p>
-        <h3 class="history-cards-title">История</h3>
-      </div>
-      <div class="history-cards-search history-actions">
-        <div class="history-search-wrapper history-input-wrapper">
-          <i id="icon-filter-search" class="fas fa-search search-icon"></i>
-          <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+        <!-- Группа кнопок скачивания и выбора качества -->
+        <div class="download-quality-group">
+          <!-- Кнопка скачивания -->
           <button
-            id="clear-filter-input"
-            class="history-action-button"
-            aria-label="Очистить поиск"
-            data-hint="Сбросить поисковый запрос"
+            id="download-button"
+            class="large-button btn btn-lg btn-primary"
+            disabled
+            aria-disabled="true"
           >
-            &times;
+            <i class="fas fa-download"></i>
+            <span class="button-text">Скачать</span>
+          </button>
+
+          <!-- Кнопка отмены скачивания -->
+          <button
+            id="download-cancel"
+            class="small-button btn btn-sm btn-danger"
+            aria-label="Отменить скачивание"
+            disabled
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Отменить скачивание"
+          >
+            <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-        <div class="history-search-actions history-toolbar">
-          <div class="history-filter-group">
-            <div class="history-filter-pill">
-              <i class="fa-solid fa-globe"></i>
-              <select
-                id="history-source-filter"
-                class="history-filter-select"
-                aria-label="Фильтр по источнику"
-              >
-                <option value="">Все источники</option>
-              </select>
-            </div>
-            <div class="history-filter-pill">
-              <i class="fa-solid fa-sliders"></i>
-              <select
-                id="history-quality-filter"
-                class="history-filter-select"
-                aria-label="Фильтр по качеству"
-              >
-                <option value="">Любое качество</option>
-              </select>
-            </div>
-          </div>
-          <button
-            id="refresh-button"
-            class="history-action-button"
-            aria-label="Обновить список"
-            data-hint="Обновить список"
-          >
-            <i class="fa-solid fa-arrow-rotate-right"></i>
-          </button>
-          <button
-            id="sort-button"
-            class="history-action-button"
-            aria-label="Сортировка"
-            data-hint="Сменить порядок сортировки"
-          >
-            <i class="fa-solid"></i>
-          </button>
-          <button
-            id="clear-history"
-            class="history-action-button"
-            aria-label="Очистить историю"
-            data-hint="Очистить всю историю"
-          >
-            <i class="fa-solid fa-trash"></i>
-          </button>
-          <button
-            id="delete-selected"
-            class="history-action-button hidden"
-            aria-label="Удалить выбранные записи"
-            data-hint="Удалить выбранные"
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-          <button
-            id="restore-history"
-            class="history-action-button"
-            aria-label="Восстановить удалённые записи"
-            data-hint="Восстановить удалённые"
-          >
-            <i class="fa-solid fa-rotate-left"></i>
-          </button>
-          <button
-            id="history-export-json"
-            class="history-action-button"
-            aria-label="Экспорт в JSON"
-            data-hint="Экспорт в JSON"
-          >
-            <i class="fa-solid fa-file-code"></i>
-          </button>
-          <button
-            id="history-export-csv"
-            class="history-action-button"
-            aria-label="Экспорт в CSV"
-            data-hint="Экспорт в CSV"
-          >
-            <i class="fa-solid fa-file-csv"></i>
-          </button>
-          <button
-            id="history-header"
-            class="history-action-button"
-            aria-label="Количество записей"
-            data-hint="Количество записей"
-          >
-            <span id="total-downloads">0</span>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div id="history" role="list"></div>
-    <div id="history-cards" class="history-card-grid" role="list"></div>
-    <div id="history-cards-empty" class="history-cards-empty">
-      Список пуст
-    </div>
-  </div>
-</section>
 
-</div>
-
-        <!-- Confirmation Modal -->
-      <div
-        id="confirmation-modal"
-        class="modal-overlay confirmation-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="confirmation-title"
-        aria-describedby="confirmation-message"
-      >
-        <div class="modal-content">
-          <div class="modal-header confirmation-header">
-            <div class="confirmation-title-block">
-              <div class="confirmation-icon" aria-hidden="true">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-              </div>
-              <div>
-                <p id="confirmation-subtitle" class="confirmation-subtitle">
-                  Подтверждение
-                </p>
-                <h2 id="confirmation-title">Подтверждение действия</h2>
-              </div>
-            </div>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
-          </div>
-          <div class="modal-body confirmation-body">
-            <div
-              id="confirmation-message"
-              class="confirmation-message"
-              role="document"
-            ></div>
-          </div>
-          <div class="modal-footer confirmation-footer">
-            <button
-              class="cancel-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Отмена"
-              aria-label="Отмена"
-            >
-              Отмена
-            </button>
-            <button
-              class="confirm-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Подтвердить"
-              aria-label="Подтвердить"
-            >
-              Подтвердить
-            </button>
-          </div>
-        </div>
-      </div>
-
-        <!-- Settings Modal -->
-      <div
-        id="settings-modal"
-        class="settings-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-title"
-        style="display: none"
-      >
-        <div class="settings-modal-content">
-          <button class="close-settings" aria-label="Закрыть настройки">
-            &times;
-          </button>
-          <h1 id="settings-title">
-            <i class="fa-solid fa-gear"></i> Настройки
-          </h1>
-
-          <div class="settings-layout">
-            <!-- Tab Navigation -->
-            <div class="settings-tabs">
-              <!-- <div class="tab-navigation"> -->
-              <button class="tab-link active" data-tab="general-settings">
-                <i class="fa-solid fa-house"></i>Общие
-              </button>
-              <button class="tab-link" data-tab="window-settings">
-                <i class="fa-solid fa-download"></i>Downloader
-              </button>
-              <button class="tab-link" data-tab="wgunlock-settings">
-                <i class="fa-solid fa-unlock-keyhole"></i>WG Unlock
-                <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
-                  Выкл
-                </span>
-              </button>
-              <button class="tab-link" data-tab="backup-settings">
-                <i class="fa-solid fa-box-archive"></i>Backup
-                <span
-                  class="tab-badge tab-badge-off"
-                  id="tab-badge-backup"
-                  hidden
-                >
-                  Выкл
-                </span>
-              </button>
-              <button class="tab-link" data-tab="randomizer-settings">
-                <i class="fa-solid fa-shuffle"></i>Randomizer
-                <span
-                  class="tab-badge tab-badge-off"
-                  id="tab-badge-randomizer"
-                  hidden
-                >
-                  Выкл
-                </span>
-              </button>
-              <button class="tab-link" data-tab="appearance-settings">
-                <i class="fa-solid fa-palette"></i>Внешний вид
-              </button>
-              <button class="tab-link" data-tab="other-settings">
-                <i class="fa-solid fa-wrench"></i>Другое
-              </button>
-              <!-- </div> -->
-              <div class="tabs-footer">
-                <div class="tabs-footer-row">
-                  <span class="muted">
-                    <i class="fa-solid fa-bolt"></i>
-                    Thunderload
-                  </span>
-                  <strong id="settings-tabs-version" class="muted">—</strong>
-                </div>
-                <div class="tabs-footer-row">
-                  <span class="muted">
-                    <i class="fa-solid fa-microchip"></i>
-                    Electron
-                  </span>
-                  <strong id="settings-tabs-electron-version" class="muted"
-                    >—</strong
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="tab-content">
-              <!-- General Settings Tab -->
-              <div id="general-settings" class="tab-pane active">
-                <h2>
-                  Настройки запуска
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Настройте параметры запуска для удобного использования."
-                  ></i>
-                </h2>
-                <ul class="module">
-                  <li>
-                    <input type="checkbox" id="settings-auto-launch-toggle" />
-                    <label for="settings-auto-launch-toggle">
-                      <i class="fa-brands fa-windows"></i>
-                      <strong>Автоматически запускать</strong> при старте
-                      системы
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-minimize-on-launch-toggle"
-                    />
-                    <label for="settings-minimize-on-launch-toggle">
-                      <i class="fa fa-window-restore"></i>
-                      <strong>Сворачивать</strong> приложение при запуске
-                    </label>
-                  </li>
-                </ul>
-                <h2>
-                  При запуске открывать
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Выберите вкладку, которая будет открываться по умолчанию при запуске приложения."
-                  ></i>
-                </h2>
-                <ul class="module default-tab-group">
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-downloader"
-                      name="defaultTab"
-                      value="download"
-                      checked
-                    />
-                    <label for="settings-tab-downloader">
-                      <i class="fa-solid fa-download"></i>
-                      <strong>Downloader</strong></label
-                    >
-                  </li>
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-wgsend"
-                      name="defaultTab"
-                      value="wireguard"
-                    />
-                    <label for="settings-tab-wgsend">
-                      <i class="fa-solid fa-unlock-keyhole"></i>
-                      <strong>WG Unlock</strong></label
-                    >
-                  </li>
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-backup"
-                      name="defaultTab"
-                      value="backup"
-                    />
-                    <label for="settings-tab-backup">
-                      <i class="fa-solid fa-box-archive"></i>
-                      <strong>Backup</strong>
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-randomizer"
-                      name="defaultTab"
-                      value="randomizer"
-                    />
-                    <label for="settings-tab-randomizer">
-                      <i class="fa-solid fa-shuffle"></i>
-                      <strong>Randomizer</strong>
-                    </label>
-                  </li>
-                </ul>
-                <h2>
-                  Закрытие приложения
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Выберите, как приложение должно вести себя при закрытии."
-                  ></i>
-                </h2>
-                <ul class="module">
-                  <li>
-                    <input
-                      type="radio"
-                      id="settings-close-to-tray"
-                      name="closeOption"
-                    />
-                    <label for="settings-close-to-tray">
-                      <i class="fa-regular fa-message"></i>
-                      <strong>Сворачивать</strong> в трей
-                    </label>
-                  </li>
-                  <li class="submenu">
-                    <input
-                      type="checkbox"
-                      id="settings-close-notification-toggle"
-                    />
-                    <label for="settings-close-notification-toggle">
-                      <i class="fa-solid fa-bell"></i>
-                      <strong>Уведомление</strong> о сворачивании
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="radio"
-                      id="settings-close-app-radio"
-                      name="closeOption"
-                    />
-                    <label for="settings-close-app-radio">
-                      <i class="fa-solid fa-circle-xmark"></i>
-                      <strong>Выйти</strong> из приложения
-                    </label>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Window Settings Tab -->
-              <div id="window-settings" class="tab-pane">
-                <h2>Вкладка «Downloader»</h2>
-                    <div class="quality-profile-card">
-                  <div class="quality-profile-header">
-                    <div>
-                      <p class="quality-profile-eyebrow">При открытии</p>
-                      <h3>Выбор качества загрузки</h3>
-                    </div>
-                    <div class="quality-profile-chip">
-                      <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
-                      по умолчанию
-                    </div>
-                  </div>
-                  <ul class="quality-profile-options" id="quality-profile-group">
-                    <li>
-                      <input
-                        type="radio"
-                        id="quality-profile-remember"
-                        name="downloadQualityProfile"
-                        value="remember"
-                        checked
-                      />
-                      <label for="quality-profile-remember">
-                        <span class="quality-option-icon" aria-hidden="true">
-                          <i class="fa-solid fa-rotate"></i>
-                        </span>
-                        <span class="quality-option-text">
-                          <strong>Последний выбор</strong>
-                          <small>Откроет тот же тип потока, что и в прошлый раз.</small>
-                        </span>
-                        <span class="quality-option-check" aria-hidden="true"></span>
-                      </label>
-                    </li>
-                    <li>
-                      <input
-                        type="radio"
-                        id="quality-profile-audio"
-                        name="downloadQualityProfile"
-                        value="audio"
-                      />
-                      <label for="quality-profile-audio">
-                        <span class="quality-option-icon" aria-hidden="true">
-                          <i class="fa-solid fa-music"></i>
-                        </span>
-                        <span class="quality-option-text">
-                          <strong>Аудио</strong>
-                          <small>Открывает только звуковые дорожки без видео.</small>
-                        </span>
-                        <span class="quality-option-check" aria-hidden="true"></span>
-                      </label>
-                    </li>
-                  </ul>
-                </div>
-                <ul class="module">
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-expand-window-after-load"
-                    />
-                    <label for="settings-expand-window-after-load">
-                      <i class="fa-solid fa-maximize"></i>
-                      Разворачивать окно <strong>по окончанию загрузки</strong>
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="settings-expand-window-copy" />
-                    <label for="settings-expand-window-copy">
-                      <i class="fa-solid fa-maximize"></i>
-                      Разворачивать окно <strong>при копировании URL</strong>
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-disable-complete-modal-toggle"
-                    />
-                    <label for="settings-disable-complete-modal-toggle">
-                      <i class="fa-solid fa-window-close"></i>
-                      Отключить <strong>окно открытия файла</strong> после
-                      завершения загрузки
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-show-tools-status"
-                      checked
-                    />
-                    <label for="settings-show-tools-status">
-                      <i class="fa-solid fa-eye"></i>
-                      Показывать статус инструментов
-                    </label>
-                  </li>
-                </ul>
-
-                <section id="tools-info" class="settings-section">
-                  <h2>Инструменты</h2>
-                  <p class="muted">Загружаем сведения о зависимостях…</p>
-                </section>
-              </div>
-
-              <div id="wgunlock-settings" class="tab-pane">
-                <h2>Вкладка «WireGuard Unlock»</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="wg-disable-toggle" checked />
-                    <label
-                      for="wg-disable-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’."
-                    >
-                      <i class="fa-solid fa-unlock-keyhole"></i>
-                      <strong>Отключить вкладку</strong>
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="wg-autosend" />
-                    <label for="wg-autosend">
-                      <i class="fa-solid fa-share"></i>
-                      Авто‑отправка при запуске
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="wg-auto-shutdown-toggle" />
-                    <label
-                      for="wg-auto-shutdown-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Включить/выключить авто‑закрытие приложения"
-                    >
-                      <i class="fa-solid fa-power-off"></i>
-                      Авто‑закрытие приложения
-                    </label>
-                  </li>
-                  <li
-                    id="wg-auto-shutdown-range"
-                    class="submenu"
-                    style="display: none"
-                  >
-                    <label for="wg-auto-shutdown-seconds">
-                      <i class="fa-solid fa-hourglass-half"></i>
-                      Закрытие приложения через:
-                      <strong
-                        ><span id="wg-auto-shutdown-value">30</span>
-                        сек.</strong
-                      >
-                    </label>
-                    <input
-                      type="range"
-                      id="wg-auto-shutdown-seconds"
-                      min="10"
-                      max="60"
-                      step="1"
-                      aria-label="Время до авто‑закрытия в секундах"
-                    />
-                  </li>
-                </ul>
-              </div>
-
-              <div id="backup-settings" class="tab-pane">
-                <h2>Вкладка «Backup»</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="backup-disable-toggle" />
-                    <label
-                      for="backup-disable-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрывает вкладку и отключает её инициализацию."
-                    >
-                      <i class="fa-solid fa-box-archive"></i>
-                      <strong>Отключить вкладку</strong>
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="backup-compact-toggle" />
-                    <label
-                      for="backup-compact-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Переключает отображение профилей между подробным и компактным режимом."
-                    >
-                      <i class="fa-solid fa-list"></i>
-                      <strong>Компактный список профилей</strong>
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="backup-log-toggle" />
-                    <label
-                      for="backup-log-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрыть или показать блок с логом операций резервного копирования."
-                    >
-                      <i class="fa-solid fa-terminal"></i>
-                      <strong>Показывать лог операций</strong>
-                    </label>
-                  </li>
-                </ul>
-              </div>
-
-              <div id="randomizer-settings" class="tab-pane">
-                <h2>Вкладка «Randomizer»</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="randomizer-disable-toggle" checked />
-                    <label
-                      for="randomizer-disable-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрывает вкладку Randomizer и отключает все её элементы управления."
-                    >
-                      <i class="fa-solid fa-shuffle"></i>
-                      <strong>Отключить вкладку</strong>
-                    </label>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Appearance Settings Tab -->
-              <div id="appearance-settings" class="tab-pane">
-                <h2>Внешний вид приложения</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <label for="theme-dropdown-btn">
-                      <i class="fa-solid fa-brush"></i>
-                      <span>Цветовая тема</span>
-                    </label>
-
-                    <div class="dropdown">
-                      <button class="dropdown-toggle" id="theme-dropdown-btn">
-                        <span id="theme-selected-label">Системная</span>
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </button>
-                      <ul class="dropdown-menu" id="theme-dropdown-menu">
-                        <li data-value="system">System</li>
-                        <li data-value="dark">Dark</li>
-                        <li data-value="midnight">Midnight</li>
-                        <li data-value="sunset">Sunset</li>
-                        <li data-value="violet">Violet</li>
-                      </ul>
-                    </div>
-                    <button
-                      id="reset-theme"
-                      class="dropdown-reset"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Сбросить тему по умолчанию"
-                    >
-                      <i class="fa-solid fa-rotate-left"></i>
-                    </button>
-                  </li>
-
-                  <li class="custom-theme-select">
-                    <label for="font-size-dropdown-btn">
-                      <i class="fa-solid fa-text-height"></i>
-                      <span>Размер текста</span>
-                    </label>
-
-                    <div class="dropdown">
-                      <button
-                        class="dropdown-toggle"
-                        id="font-size-dropdown-btn"
-                      >
-                        <span id="font-size-selected-label">16 px</span>
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </button>
-                      <ul class="dropdown-menu" id="font-size-dropdown-menu">
-                        <li data-value="14">14 px</li>
-                        <li data-value="16">16 px</li>
-                        <li data-value="18">18 px</li>
-                        <li data-value="20">20 px</li>
-                      </ul>
-                    </div>
-
-                    <button
-                      id="reset-font-size"
-                      class="dropdown-reset"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Сбросить размер шрифта по умолчанию"
-                    >
-                      <i class="fa-solid fa-rotate-left"></i>
-                    </button>
-                  </li>
-
-                  <li>
-                    <input type="checkbox" id="settings-low-effects-toggle" />
-                    <label for="settings-low-effects-toggle" data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Отключает анимации и эффекты размытия">
-                      <i class="fa-solid fa-leaf"></i>
-                      Режим <strong>экономии эффектов</strong>
-                    </label>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Other Settings Tab -->
-              <div id="other-settings" class="tab-pane">
-                <h2>
-                  Другие настройки
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Дополнительные параметры для детальной настройки поведения приложения."
-                  ></i>
-                </h2>
-                <ul class="module">
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-disable-global-shortcuts-toggle"
-                    />
-                    <label for="settings-disable-global-shortcuts-toggle">
-                      <i class="fa-solid fa-keyboard"></i>
-                      Отключить <strong>специальные</strong> (горячие) клавиши
-                    </label>
-                  </li>
-                </ul>
-                <div class="module export-import-section">
-                  <h3>Настройки приложения</h3>
-                  <button id="export-config-button">
-                    <i class="fa-solid fa-download"></i> Сохранить
-                  </button>
-                  <button id="import-config-button">
-                    <i class="fa-solid fa-upload"></i> Загрузить
-                  </button>
-                  <button id="open-config-folder-button">
-                    <i class="fa-solid fa-folder-open"></i> Папка настроек
-                  </button>
-                  <input
-                    type="file"
-                    id="import-config-input"
-                    accept=".json"
-                    style="display: none"
-                  />
-                </div>
-                <div class="module reset-settings-section">
-                  <h3>Сброс настроек</h3>
-                  <button id="reset-config-button">
-                    <i class="fa-solid fa-rotate-left"></i> Настройки по
-                    умолчанию
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-        <!-- Context Menu -->
-      <nav id="context-menu" class="context-menu" aria-label="Контекстное меню">
-        <ul>
-          <li id="open-video">
-            <div class="cm-icon">
-              <i class="fa-solid fa-circle-play"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title">Открыть видео</span>
-              <span class="cm-desc">Воспроизвести файл</span>
-            </div>
-          </li>
-          <li id="open-folderc">
-            <div class="cm-icon">
-              <i class="fa-regular fa-folder-open"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title">Открыть папку</span>
-              <span class="cm-desc">Показать расположение файла</span>
-            </div>
-          </li>
-          <li id="open-site">
-            <div class="cm-icon">
-              <i class="fa-solid fa-link"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title">Открыть сайт</span>
-              <span class="cm-desc">Перейти на источник загрузки</span>
-            </div>
-          </li>
-          <li id="delete-entry">
-            <div class="cm-icon">
-              <i class="fa-regular fa-calendar-xmark"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title">Удалить запись</span>
-              <span class="cm-desc">Убрать строку из истории</span>
-            </div>
-          </li>
-          <li id="delete-file">
-            <div class="cm-icon">
-              <i class="fa-solid fa-trash"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title">Удалить файл</span>
-              <span class="cm-desc">Удалить физически с диска</span>
-            </div>
-          </li>
-          <li id="retry-download">
-            <div class="cm-icon">
-              <i class="fa-solid fa-arrow-rotate-right"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title">Повторить загрузку</span>
-              <span class="cm-desc">Добавить ссылку снова</span>
-            </div>
-          </li>
-        </ul>
+        <!-- Кнопка открытия папки с видео -->
+        <button
+          id="open-folder"
+          class="small-button btn btn-sm btn-secondary"
+          aria-label="Открыть папку с видео"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Папка с видео"
+        >
+          <i class="fa-regular fa-folder-open"></i>
+        </button>
       </nav>
 
-        <!-- Shortcuts Modal -->
+      <!-- Модальное окно выбора качества -->
       <div
-        id="shortcuts-modal"
-        class="shortcuts-modal"
+        id="download-quality-modal"
+        class="modal-overlay download-quality-modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="shortcuts-title"
+        aria-hidden="true"
+        aria-labelledby="download-quality-title"
       >
-        <div class="shortcuts-modal-content">
-          <button class="close" aria-label="Закрыть">&times;</button>
-          <h2 id="shortcuts-title">
-            <i class="far fa-keyboard"></i> Горячие клавиши
-          </h2>
-          <details class="spoiler" open>
-            <summary><i class="fas fa-chevron-right"></i> Основные</summary>
-            <ul class="main-hotkeys">
-              <hr />
-              <li>
-                <strong>Ctrl + P</strong>
-                <p><i class="far fa-keyboard"></i> Горячие клавиши</p>
-              </li>
-              <li>
-                <strong>Ctrl + ,</strong>
-                <p><i class="fa-solid fa-gear"></i> Настройки</p>
-              </li>
-              <li>
-                <strong>Ctrl + T</strong>
-                <p><i class="fa-solid fa-toggle-on"></i> Переключить тему</p>
-              </li>
-              <hr />
-              <li>
-                <strong>Ctrl + 1</strong>
-                <p><i class="fa-solid fa-download"></i> Вкладка «Downloader»</p>
-              </li>
-              <li>
-                <strong>Ctrl + 2</strong>
-                <p>
-                  <i class="fa-solid fa-unlock-keyhole"></i> Вкладка «WG Unlock»
-                </p>
-              </li>
-              <li>
-                <strong>Ctrl + 3</strong>
-                <p><i class="fa-solid fa-box-archive"></i> Вкладка «Backup»</p>
-              </li>
+        <div class="modal-content download-quality-content">
+          <div class="quality-modal-header">
+            <div>
+              <p class="quality-modal-subtitle">Загрузка</p>
+              <h3 id="download-quality-title">Выбор качества</h3>
+            </div>
+            <button
+              type="button"
+              class="quality-modal-close"
+              aria-label="Закрыть окно"
+              data-quality-close
+            >
+              &times;
+            </button>
+          </div>
+
+          <div class="quality-modal-body">
+            <div class="quality-preview">
+              <div class="quality-thumb">
+                <img id="download-quality-thumb" alt="" loading="lazy" />
+              </div>
+              <div class="quality-info">
+                <h4 id="download-quality-name"></h4>
+                <p id="download-quality-uploader"></p>
+                <p id="download-quality-duration"></p>
+                <button
+                  type="button"
+                  id="download-quality-open-source"
+                  class="btn-link"
+                >
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть
+                  источник
+                </button>
+              </div>
+            </div>
+
+            <div class="quality-selector">
+              <div class="quality-tabs-row">
+                <div class="quality-tabs" role="tablist">
+                  <button
+                    type="button"
+                    class="quality-tab active"
+                    data-quality-tab="video"
+                  >
+                    Видео + аудио
+                  </button>
+                  <button
+                    type="button"
+                    class="quality-tab"
+                    data-quality-tab="video-only"
+                  >
+                    Только видео
+                  </button>
+                  <button
+                    type="button"
+                    class="quality-tab"
+                    data-quality-tab="audio"
+                  >
+                    Только аудио
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  id="download-quality-best"
+                  class="quality-best-link"
+                >
+                  <i class="fa-solid fa-bullseye"></i>
+                  Максимальное качество
+                </button>
+              </div>
+              <div id="download-quality-loading" class="quality-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Загрузка доступных форматов...
+              </div>
+              <div
+                id="download-quality-error"
+                class="quality-error hidden"
+                role="alert"
+                aria-live="assertive"
+              >
+                <div class="quality-error-text">
+                  Не удалось получить информацию о видео.
+                </div>
+                <button
+                  type="button"
+                  id="download-quality-retry"
+                  class="quality-retry-btn"
+                >
+                  <i class="fa-solid fa-rotate-right"></i>
+                  Повторить
+                </button>
+              </div>
+              <div id="download-quality-empty" class="quality-empty hidden">
+                Нет вариантов для выбранного режима.
+              </div>
+              <div
+                id="download-quality-options"
+                class="quality-options"
+                role="radiogroup"
+                aria-live="polite"
+              ></div>
+            </div>
+          </div>
+
+          <div class="quality-modal-footer">
+            <div class="quality-hint">
+              <i class="fa-regular fa-circle-question"></i>
+              Двойной клик по варианту сразу начнёт загрузку.
+            </div>
+            <div class="quality-actions">
+              <button
+                type="button"
+                id="download-quality-cancel"
+                class="btn-ghost"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                id="download-quality-confirm"
+                class="btn-primary"
+                disabled
+              >
+                Скачать выбранное
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="download-queue-info" class="download-queue-info hidden">
+        В очереди: <span id="queue-count">0</span> ссылок
+      </div>
+
+      <div id="queue-start-indicator" class="queue-start-indicator hidden">
+        ⏳ Загрузка из очереди...
+      </div>
+
+      <!-- History Section -->
+      <section id="history-container">
+        <div class="history-cards-area" aria-live="polite">
+          <div class="history-cards-header">
+            <div>
+              <p class="history-cards-subtitle">Недавние загрузки</p>
+              <h3 class="history-cards-title">История</h3>
+            </div>
+            <div class="history-cards-search history-actions">
+              <div class="history-search-wrapper history-input-wrapper">
+                <i
+                  id="icon-filter-search"
+                  class="fas fa-search search-icon"
+                ></i>
+                <input
+                  type="text"
+                  id="filter-input"
+                  placeholder="Поиск по истории"
+                  aria-label="Поиск по истории"
+                />
+                <button
+                  id="clear-filter-input"
+                  class="history-action-button"
+                  aria-label="Очистить поиск"
+                  data-hint="Сбросить поисковый запрос"
+                >
+                  &times;
+                </button>
+              </div>
+              <div class="history-search-actions history-toolbar">
+                <div class="history-filter-group">
+                  <div class="history-filter-pill">
+                    <i class="fa-solid fa-globe"></i>
+                    <select
+                      id="history-source-filter"
+                      class="history-filter-select"
+                      aria-label="Фильтр по источнику"
+                    >
+                      <option value="">Все источники</option>
+                    </select>
+                  </div>
+                  <div class="history-filter-pill">
+                    <i class="fa-solid fa-sliders"></i>
+                    <select
+                      id="history-quality-filter"
+                      class="history-filter-select"
+                      aria-label="Фильтр по качеству"
+                    >
+                      <option value="">Любое качество</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  id="refresh-button"
+                  class="history-action-button"
+                  aria-label="Обновить список"
+                  data-hint="Обновить список"
+                >
+                  <i class="fa-solid fa-arrow-rotate-right"></i>
+                </button>
+                <button
+                  id="sort-button"
+                  class="history-action-button"
+                  aria-label="Сортировка"
+                  data-hint="Сменить порядок сортировки"
+                >
+                  <i class="fa-solid"></i>
+                </button>
+                <button
+                  id="clear-history"
+                  class="history-action-button"
+                  aria-label="Очистить историю"
+                  data-hint="Очистить всю историю"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+                <button
+                  id="delete-selected"
+                  class="history-action-button hidden"
+                  aria-label="Удалить выбранные записи"
+                  data-hint="Удалить выбранные"
+                >
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <button
+                  id="restore-history"
+                  class="history-action-button"
+                  aria-label="Восстановить удалённые записи"
+                  data-hint="Восстановить удалённые"
+                >
+                  <i class="fa-solid fa-rotate-left"></i>
+                </button>
+                <button
+                  id="history-export-json"
+                  class="history-action-button"
+                  aria-label="Экспорт в JSON"
+                  data-hint="Экспорт в JSON"
+                >
+                  <i class="fa-solid fa-file-code"></i>
+                </button>
+                <button
+                  id="history-export-csv"
+                  class="history-action-button"
+                  aria-label="Экспорт в CSV"
+                  data-hint="Экспорт в CSV"
+                >
+                  <i class="fa-solid fa-file-csv"></i>
+                </button>
+                <button
+                  id="history-header"
+                  class="history-action-button"
+                  aria-label="Количество записей"
+                  data-hint="Количество записей"
+                >
+                  <span id="total-downloads">0</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="history" role="list"></div>
+          <div id="history-cards" class="history-card-grid" role="list"></div>
+          <div id="history-cards-empty" class="history-cards-empty">
+            Список пуст
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div
+      id="confirmation-modal"
+      class="modal-overlay confirmation-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmation-title"
+      aria-describedby="confirmation-message"
+    >
+      <div class="modal-content">
+        <div class="modal-header confirmation-header">
+          <div class="confirmation-title-block">
+            <div class="confirmation-icon" aria-hidden="true">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+              <p id="confirmation-subtitle" class="confirmation-subtitle">
+                Подтверждение
+              </p>
+              <h2 id="confirmation-title">Подтверждение действия</h2>
+            </div>
+          </div>
+          <button class="close-modal" aria-label="Закрыть">&times;</button>
+        </div>
+        <div class="modal-body confirmation-body">
+          <div
+            id="confirmation-message"
+            class="confirmation-message"
+            role="document"
+          ></div>
+        </div>
+        <div class="modal-footer confirmation-footer">
+          <button
+            class="cancel-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Отмена"
+            aria-label="Отмена"
+          >
+            Отмена
+          </button>
+          <button
+            class="confirm-button"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Подтвердить"
+            aria-label="Подтвердить"
+          >
+            Подтвердить
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div
+      id="settings-modal"
+      class="settings-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
+      style="display: none"
+    >
+      <div class="settings-modal-content">
+        <button class="close-settings" aria-label="Закрыть настройки">
+          &times;
+        </button>
+        <h1 id="settings-title"><i class="fa-solid fa-gear"></i> Настройки</h1>
+
+        <div class="settings-layout">
+          <!-- Tab Navigation -->
+          <div class="settings-tabs">
+            <!-- <div class="tab-navigation"> -->
+            <button class="tab-link active" data-tab="general-settings">
+              <i class="fa-solid fa-house"></i>Общие
+            </button>
+            <button class="tab-link" data-tab="window-settings">
+              <i class="fa-solid fa-download"></i>Downloader
+            </button>
+            <button class="tab-link" data-tab="wgunlock-settings">
+              <i class="fa-solid fa-unlock-keyhole"></i>WG Unlock
+              <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
+                Выкл
+              </span>
+            </button>
+            <button class="tab-link" data-tab="backup-settings">
+              <i class="fa-solid fa-box-archive"></i>Backup
+              <span
+                class="tab-badge tab-badge-off"
+                id="tab-badge-backup"
+                hidden
+              >
+                Выкл
+              </span>
+            </button>
+            <button class="tab-link" data-tab="randomizer-settings">
+              <i class="fa-solid fa-shuffle"></i>Randomizer
+              <span
+                class="tab-badge tab-badge-off"
+                id="tab-badge-randomizer"
+                hidden
+              >
+                Выкл
+              </span>
+            </button>
+            <button class="tab-link" data-tab="appearance-settings">
+              <i class="fa-solid fa-palette"></i>Внешний вид
+            </button>
+            <button class="tab-link" data-tab="other-settings">
+              <i class="fa-solid fa-wrench"></i>Другое
+            </button>
+            <!-- </div> -->
+            <div class="tabs-footer">
+              <div class="tabs-footer-row">
+                <span class="muted">
+                  <i class="fa-solid fa-bolt"></i>
+                  Thunderload
+                </span>
+                <strong id="settings-tabs-version" class="muted">—</strong>
+              </div>
+              <div class="tabs-footer-row">
+                <span class="muted">
+                  <i class="fa-solid fa-microchip"></i>
+                  Electron
+                </span>
+                <strong id="settings-tabs-electron-version" class="muted"
+                  >—</strong
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="tab-content">
+            <!-- General Settings Tab -->
+            <div id="general-settings" class="tab-pane active">
+              <h2>
+                Настройки запуска
+                <i
+                  class="fa-solid fa-circle-info"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Настройте параметры запуска для удобного использования."
+                ></i>
+              </h2>
+              <ul class="module">
+                <li>
+                  <input type="checkbox" id="settings-auto-launch-toggle" />
+                  <label for="settings-auto-launch-toggle">
+                    <i class="fa-brands fa-windows"></i>
+                    <strong>Автоматически запускать</strong> при старте системы
+                  </label>
+                </li>
+                <li>
+                  <input
+                    type="checkbox"
+                    id="settings-minimize-on-launch-toggle"
+                  />
+                  <label for="settings-minimize-on-launch-toggle">
+                    <i class="fa fa-window-restore"></i>
+                    <strong>Сворачивать</strong> приложение при запуске
+                  </label>
+                </li>
+              </ul>
+              <h2>
+                При запуске открывать
+                <i
+                  class="fa-solid fa-circle-info"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Выберите вкладку, которая будет открываться по умолчанию при запуске приложения."
+                ></i>
+              </h2>
+              <ul class="module default-tab-group">
+                <li class="custom-theme-select">
+                  <input
+                    type="radio"
+                    id="settings-tab-downloader"
+                    name="defaultTab"
+                    value="download"
+                    checked
+                  />
+                  <label for="settings-tab-downloader">
+                    <i class="fa-solid fa-download"></i>
+                    <strong>Downloader</strong></label
+                  >
+                </li>
+                <li class="custom-theme-select">
+                  <input
+                    type="radio"
+                    id="settings-tab-wgsend"
+                    name="defaultTab"
+                    value="wireguard"
+                  />
+                  <label for="settings-tab-wgsend">
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    <strong>WG Unlock</strong></label
+                  >
+                </li>
+                <li class="custom-theme-select">
+                  <input
+                    type="radio"
+                    id="settings-tab-backup"
+                    name="defaultTab"
+                    value="backup"
+                  />
+                  <label for="settings-tab-backup">
+                    <i class="fa-solid fa-box-archive"></i>
+                    <strong>Backup</strong>
+                  </label>
+                </li>
+                <li class="custom-theme-select">
+                  <input
+                    type="radio"
+                    id="settings-tab-randomizer"
+                    name="defaultTab"
+                    value="randomizer"
+                  />
+                  <label for="settings-tab-randomizer">
+                    <i class="fa-solid fa-shuffle"></i>
+                    <strong>Randomizer</strong>
+                  </label>
+                </li>
+              </ul>
+              <h2>
+                Закрытие приложения
+                <i
+                  class="fa-solid fa-circle-info"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Выберите, как приложение должно вести себя при закрытии."
+                ></i>
+              </h2>
+              <ul class="module">
+                <li>
+                  <input
+                    type="radio"
+                    id="settings-close-to-tray"
+                    name="closeOption"
+                  />
+                  <label for="settings-close-to-tray">
+                    <i class="fa-regular fa-message"></i>
+                    <strong>Сворачивать</strong> в трей
+                  </label>
+                </li>
+                <li class="submenu">
+                  <input
+                    type="checkbox"
+                    id="settings-close-notification-toggle"
+                  />
+                  <label for="settings-close-notification-toggle">
+                    <i class="fa-solid fa-bell"></i>
+                    <strong>Уведомление</strong> о сворачивании
+                  </label>
+                </li>
+                <li>
+                  <input
+                    type="radio"
+                    id="settings-close-app-radio"
+                    name="closeOption"
+                  />
+                  <label for="settings-close-app-radio">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <strong>Выйти</strong> из приложения
+                  </label>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Window Settings Tab -->
+            <div id="window-settings" class="tab-pane">
+              <h2>Вкладка «Downloader»</h2>
+              <div class="quality-profile-card">
+                <div class="quality-profile-header">
+                  <div>
+                    <p class="quality-profile-eyebrow">При открытии</p>
+                    <h3>Выбор качества загрузки</h3>
+                  </div>
+                  <div class="quality-profile-chip">
+                    <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                    по умолчанию
+                  </div>
+                </div>
+                <ul class="quality-profile-options" id="quality-profile-group">
+                  <li>
+                    <input
+                      type="radio"
+                      id="quality-profile-remember"
+                      name="downloadQualityProfile"
+                      value="remember"
+                      checked
+                    />
+                    <label for="quality-profile-remember">
+                      <span class="quality-option-icon" aria-hidden="true">
+                        <i class="fa-solid fa-rotate"></i>
+                      </span>
+                      <span class="quality-option-text">
+                        <strong>Последний выбор</strong>
+                        <small
+                          >Откроет тот же тип потока, что и в прошлый
+                          раз.</small
+                        >
+                      </span>
+                      <span
+                        class="quality-option-check"
+                        aria-hidden="true"
+                      ></span>
+                    </label>
+                  </li>
+                  <li>
+                    <input
+                      type="radio"
+                      id="quality-profile-audio"
+                      name="downloadQualityProfile"
+                      value="audio"
+                    />
+                    <label for="quality-profile-audio">
+                      <span class="quality-option-icon" aria-hidden="true">
+                        <i class="fa-solid fa-music"></i>
+                      </span>
+                      <span class="quality-option-text">
+                        <strong>Аудио</strong>
+                        <small
+                          >Открывает только звуковые дорожки без видео.</small
+                        >
+                      </span>
+                      <span
+                        class="quality-option-check"
+                        aria-hidden="true"
+                      ></span>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+              <ul class="module">
+                <li>
+                  <input
+                    type="checkbox"
+                    id="settings-expand-window-after-load"
+                  />
+                  <label for="settings-expand-window-after-load">
+                    <i class="fa-solid fa-maximize"></i>
+                    Разворачивать окно <strong>по окончанию загрузки</strong>
+                  </label>
+                </li>
+                <li>
+                  <input type="checkbox" id="settings-expand-window-copy" />
+                  <label for="settings-expand-window-copy">
+                    <i class="fa-solid fa-maximize"></i>
+                    Разворачивать окно <strong>при копировании URL</strong>
+                  </label>
+                </li>
+                <li>
+                  <input
+                    type="checkbox"
+                    id="settings-disable-complete-modal-toggle"
+                  />
+                  <label for="settings-disable-complete-modal-toggle">
+                    <i class="fa-solid fa-window-close"></i>
+                    Отключить <strong>окно открытия файла</strong> после
+                    завершения загрузки
+                  </label>
+                </li>
+                <li>
+                  <input
+                    type="checkbox"
+                    id="settings-show-tools-status"
+                    checked
+                  />
+                  <label for="settings-show-tools-status">
+                    <i class="fa-solid fa-eye"></i>
+                    Показывать статус инструментов
+                  </label>
+                </li>
+              </ul>
+
+              <section id="tools-info" class="settings-section">
+                <h2>Инструменты</h2>
+                <p class="muted">Загружаем сведения о зависимостях…</p>
+              </section>
+            </div>
+
+            <div id="wgunlock-settings" class="tab-pane">
+              <h2>Вкладка «WireGuard Unlock»</h2>
+              <ul class="module">
+                <li class="custom-theme-select">
+                  <input type="checkbox" id="wg-disable-toggle" checked />
+                  <label
+                    for="wg-disable-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’."
+                  >
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    <strong>Отключить вкладку</strong>
+                  </label>
+                </li>
+                <li>
+                  <input type="checkbox" id="wg-autosend" />
+                  <label for="wg-autosend">
+                    <i class="fa-solid fa-share"></i>
+                    Авто‑отправка при запуске
+                  </label>
+                </li>
+                <li>
+                  <input type="checkbox" id="wg-auto-shutdown-toggle" />
+                  <label
+                    for="wg-auto-shutdown-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Включить/выключить авто‑закрытие приложения"
+                  >
+                    <i class="fa-solid fa-power-off"></i>
+                    Авто‑закрытие приложения
+                  </label>
+                </li>
+                <li
+                  id="wg-auto-shutdown-range"
+                  class="submenu"
+                  style="display: none"
+                >
+                  <label for="wg-auto-shutdown-seconds">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    Закрытие приложения через:
+                    <strong
+                      ><span id="wg-auto-shutdown-value">30</span> сек.</strong
+                    >
+                  </label>
+                  <input
+                    type="range"
+                    id="wg-auto-shutdown-seconds"
+                    min="10"
+                    max="60"
+                    step="1"
+                    aria-label="Время до авто‑закрытия в секундах"
+                  />
+                </li>
+              </ul>
+            </div>
+
+            <div id="backup-settings" class="tab-pane">
+              <h2>Вкладка «Backup»</h2>
+              <ul class="module">
+                <li class="custom-theme-select">
+                  <input type="checkbox" id="backup-disable-toggle" />
+                  <label
+                    for="backup-disable-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Скрывает вкладку и отключает её инициализацию."
+                  >
+                    <i class="fa-solid fa-box-archive"></i>
+                    <strong>Отключить вкладку</strong>
+                  </label>
+                </li>
+                <li class="custom-theme-select">
+                  <input type="checkbox" id="backup-compact-toggle" />
+                  <label
+                    for="backup-compact-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Переключает отображение профилей между подробным и компактным режимом."
+                  >
+                    <i class="fa-solid fa-list"></i>
+                    <strong>Компактный список профилей</strong>
+                  </label>
+                </li>
+                <li class="custom-theme-select">
+                  <input type="checkbox" id="backup-log-toggle" />
+                  <label
+                    for="backup-log-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Скрыть или показать блок с логом операций резервного копирования."
+                  >
+                    <i class="fa-solid fa-terminal"></i>
+                    <strong>Показывать лог операций</strong>
+                  </label>
+                </li>
+              </ul>
+            </div>
+
+            <div id="randomizer-settings" class="tab-pane">
+              <h2>Вкладка «Randomizer»</h2>
+              <ul class="module">
+                <li class="custom-theme-select">
+                  <input
+                    type="checkbox"
+                    id="randomizer-disable-toggle"
+                    checked
+                  />
+                  <label
+                    for="randomizer-disable-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Скрывает вкладку Randomizer и отключает все её элементы управления."
+                  >
+                    <i class="fa-solid fa-shuffle"></i>
+                    <strong>Отключить вкладку</strong>
+                  </label>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Appearance Settings Tab -->
+            <div id="appearance-settings" class="tab-pane">
+              <h2>Внешний вид приложения</h2>
+              <ul class="module">
+                <li class="custom-theme-select">
+                  <label for="theme-dropdown-btn">
+                    <i class="fa-solid fa-brush"></i>
+                    <span>Цветовая тема</span>
+                  </label>
+
+                  <div class="dropdown">
+                    <button class="dropdown-toggle" id="theme-dropdown-btn">
+                      <span id="theme-selected-label">Системная</span>
+                      <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu" id="theme-dropdown-menu">
+                      <li data-value="system">System</li>
+                      <li data-value="dark">Dark</li>
+                      <li data-value="midnight">Midnight</li>
+                      <li data-value="sunset">Sunset</li>
+                      <li data-value="violet">Violet</li>
+                    </ul>
+                  </div>
+                  <button
+                    id="reset-theme"
+                    class="dropdown-reset"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Сбросить тему по умолчанию"
+                  >
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                </li>
+
+                <li class="custom-theme-select">
+                  <label for="font-size-dropdown-btn">
+                    <i class="fa-solid fa-text-height"></i>
+                    <span>Размер текста</span>
+                  </label>
+
+                  <div class="dropdown">
+                    <button class="dropdown-toggle" id="font-size-dropdown-btn">
+                      <span id="font-size-selected-label">16 px</span>
+                      <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu" id="font-size-dropdown-menu">
+                      <li data-value="14">14 px</li>
+                      <li data-value="16">16 px</li>
+                      <li data-value="18">18 px</li>
+                      <li data-value="20">20 px</li>
+                    </ul>
+                  </div>
+
+                  <button
+                    id="reset-font-size"
+                    class="dropdown-reset"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Сбросить размер шрифта по умолчанию"
+                  >
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                </li>
+
+                <li>
+                  <input type="checkbox" id="settings-low-effects-toggle" />
+                  <label
+                    for="settings-low-effects-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Отключает анимации и эффекты размытия"
+                  >
+                    <i class="fa-solid fa-leaf"></i>
+                    Режим <strong>экономии эффектов</strong>
+                  </label>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Other Settings Tab -->
+            <div id="other-settings" class="tab-pane">
+              <h2>
+                Другие настройки
+                <i
+                  class="fa-solid fa-circle-info"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Дополнительные параметры для детальной настройки поведения приложения."
+                ></i>
+              </h2>
+              <ul class="module">
+                <li>
+                  <input
+                    type="checkbox"
+                    id="settings-disable-global-shortcuts-toggle"
+                  />
+                  <label for="settings-disable-global-shortcuts-toggle">
+                    <i class="fa-solid fa-keyboard"></i>
+                    Отключить <strong>специальные</strong> (горячие) клавиши
+                  </label>
+                </li>
+              </ul>
+              <div class="module export-import-section">
+                <h3>Настройки приложения</h3>
+                <button id="export-config-button">
+                  <i class="fa-solid fa-download"></i> Сохранить
+                </button>
+                <button id="import-config-button">
+                  <i class="fa-solid fa-upload"></i> Загрузить
+                </button>
+                <button id="open-config-folder-button">
+                  <i class="fa-solid fa-folder-open"></i> Папка настроек
+                </button>
+                <input
+                  type="file"
+                  id="import-config-input"
+                  accept=".json"
+                  style="display: none"
+                />
+              </div>
+              <div class="module reset-settings-section">
+                <h3>Сброс настроек</h3>
+                <button id="reset-config-button">
+                  <i class="fa-solid fa-rotate-left"></i> Настройки по умолчанию
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Menu -->
+    <nav id="context-menu" class="context-menu" aria-label="Контекстное меню">
+      <ul>
+        <li id="open-video">
+          <div class="cm-icon">
+            <i class="fa-solid fa-circle-play"></i>
+          </div>
+          <div class="cm-text">
+            <span class="cm-title">Открыть видео</span>
+            <span class="cm-desc">Воспроизвести файл</span>
+          </div>
+        </li>
+        <li id="open-folderc">
+          <div class="cm-icon">
+            <i class="fa-regular fa-folder-open"></i>
+          </div>
+          <div class="cm-text">
+            <span class="cm-title">Открыть папку</span>
+            <span class="cm-desc">Показать расположение файла</span>
+          </div>
+        </li>
+        <li id="open-site">
+          <div class="cm-icon">
+            <i class="fa-solid fa-link"></i>
+          </div>
+          <div class="cm-text">
+            <span class="cm-title">Открыть сайт</span>
+            <span class="cm-desc">Перейти на источник загрузки</span>
+          </div>
+        </li>
+        <li id="delete-entry">
+          <div class="cm-icon">
+            <i class="fa-regular fa-calendar-xmark"></i>
+          </div>
+          <div class="cm-text">
+            <span class="cm-title">Удалить запись</span>
+            <span class="cm-desc">Убрать строку из истории</span>
+          </div>
+        </li>
+        <li id="delete-file">
+          <div class="cm-icon">
+            <i class="fa-solid fa-trash"></i>
+          </div>
+          <div class="cm-text">
+            <span class="cm-title">Удалить файл</span>
+            <span class="cm-desc">Удалить физически с диска</span>
+          </div>
+        </li>
+        <li id="retry-download">
+          <div class="cm-icon">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+          </div>
+          <div class="cm-text">
+            <span class="cm-title">Повторить загрузку</span>
+            <span class="cm-desc">Добавить ссылку снова</span>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Shortcuts Modal -->
+    <div
+      id="shortcuts-modal"
+      class="shortcuts-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shortcuts-title"
+    >
+      <div class="shortcuts-modal-content">
+        <button class="close" aria-label="Закрыть">&times;</button>
+        <h2 id="shortcuts-title">
+          <i class="far fa-keyboard"></i> Горячие клавиши
+        </h2>
+        <details class="spoiler" open>
+          <summary><i class="fas fa-chevron-right"></i> Основные</summary>
+          <ul class="main-hotkeys">
+            <hr />
+            <li>
+              <strong>Ctrl + P</strong>
+              <p><i class="far fa-keyboard"></i> Горячие клавиши</p>
+            </li>
+            <li>
+              <strong>Ctrl + ,</strong>
+              <p><i class="fa-solid fa-gear"></i> Настройки</p>
+            </li>
+            <li>
+              <strong>Ctrl + T</strong>
+              <p><i class="fa-solid fa-toggle-on"></i> Переключить тему</p>
+            </li>
+            <hr />
+            <li>
+              <strong>Ctrl + 1</strong>
+              <p><i class="fa-solid fa-download"></i> Вкладка «Downloader»</p>
+            </li>
+            <li>
+              <strong>Ctrl + 2</strong>
+              <p>
+                <i class="fa-solid fa-unlock-keyhole"></i> Вкладка «WG Unlock»
+              </p>
+            </li>
+            <li>
+              <strong>Ctrl + 3</strong>
+              <p><i class="fa-solid fa-box-archive"></i> Вкладка «Backup»</p>
+            </li>
             <li>
               <strong>Ctrl + 4</strong>
               <p><i class="fa-solid fa-shuffle"></i> Вкладка «Randomizer»</p>
@@ -1269,189 +1316,187 @@
               <p>
                 <i class="fa-solid fa-clock-rotate-left"></i> История загрузок
               </p>
-              </li>
-              <li>
-                <strong>Ctrl + K</strong>
-                <p>
-                  <i class="fa-regular fa-folder-open"></i> Папка с загрузками
-                </p>
-              </li>
-              <li
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="При наличии ссылки в поле ввода URL"
-              >
-                <strong>Ctrl + D</strong>
-                <p><i class="fas fa-download"></i> Начать скачивание</p>
-              </li>
-              <li>
-                <strong>Ctrl + L</strong>
-                <p>
-                  <i class="fa-solid fa-circle-play"></i> Последнее загруженное
-                  видео
-                </p>
-              </li>
-              <li>
-                <strong>Ctrl + M</strong>
-                <p>
-                  <i class="fas fa-trash-alt"></i> Очистить историю загрузок
-                </p>
-              </li>
-            </ul>
-          </details>
+            </li>
+            <li>
+              <strong>Ctrl + K</strong>
+              <p>
+                <i class="fa-regular fa-folder-open"></i> Папка с загрузками
+              </p>
+            </li>
+            <li
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="При наличии ссылки в поле ввода URL"
+            >
+              <strong>Ctrl + D</strong>
+              <p><i class="fas fa-download"></i> Начать скачивание</p>
+            </li>
+            <li>
+              <strong>Ctrl + L</strong>
+              <p>
+                <i class="fa-solid fa-circle-play"></i> Последнее загруженное
+                видео
+              </p>
+            </li>
+            <li>
+              <strong>Ctrl + M</strong>
+              <p><i class="fas fa-trash-alt"></i> Очистить историю загрузок</p>
+            </li>
+          </ul>
+        </details>
 
-          <details class="spoiler">
-            <summary>
-              <i class="fas fa-chevron-right"></i> Специальные клавиши
-            </summary>
-            <ul class="additional-hotkeys">
-              <span class="short-info">Открытие сайтов</span>
-              <hr />
-              <li>
-                <strong>Ctrl + Shift + 1</strong>
-                <p><i class="fab fa-youtube"></i> YouTube</p>
-              </li>
-              <li>
-                <strong>Ctrl + Shift + 2</strong>
-                <p><i class="fab fa-twitch"></i> Twitch</p>
-              </li>
-              <li>
-                <strong>Ctrl + Shift + 3</strong>
-                <p><i class="fab fa-vk"></i> VK Видео</p>
-              </li>
-              <li>
-                <strong>Ctrl + Shift + 4</strong>
-                <p><i class="fas fa-video"></i> Coub</p>
-              </li>
-            </ul>
-          </details>
-        </div>
+        <details class="spoiler">
+          <summary>
+            <i class="fas fa-chevron-right"></i> Специальные клавиши
+          </summary>
+          <ul class="additional-hotkeys">
+            <span class="short-info">Открытие сайтов</span>
+            <hr />
+            <li>
+              <strong>Ctrl + Shift + 1</strong>
+              <p><i class="fab fa-youtube"></i> YouTube</p>
+            </li>
+            <li>
+              <strong>Ctrl + Shift + 2</strong>
+              <p><i class="fab fa-twitch"></i> Twitch</p>
+            </li>
+            <li>
+              <strong>Ctrl + Shift + 3</strong>
+              <p><i class="fab fa-vk"></i> VK Видео</p>
+            </li>
+            <li>
+              <strong>Ctrl + Shift + 4</strong>
+              <p><i class="fas fa-video"></i> Coub</p>
+            </li>
+          </ul>
+        </details>
       </div>
+    </div>
 
-        <!-- What's New Modal -->
-      <div
-        id="whats-new-modal"
-        class="whats-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="whats-new-title"
-      >
-        <div class="whats-modal-content">
-          <button class="close-whats-new" aria-label="Закрыть">&times;</button>
-          <h2 id="whats-new-title">
-            <i class="fa fa-question-circle" aria-hidden="true"></i> Что нового?
-          </h2>
-          <hr />
-          <div id="whats-new-content"></div>
-        </div>
+    <!-- What's New Modal -->
+    <div
+      id="whats-new-modal"
+      class="whats-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="whats-new-title"
+    >
+      <div class="whats-modal-content">
+        <button class="close-whats-new" aria-label="Закрыть">&times;</button>
+        <h2 id="whats-new-title">
+          <i class="fa fa-question-circle" aria-hidden="true"></i> Что нового?
+        </h2>
+        <hr />
+        <div id="whats-new-content"></div>
       </div>
+    </div>
 
-        <!--
+    <!--
       ==========================
       Модальные окна обновлений
       ==========================
       -->
 
-      <!-- Доступно новое обновление -->
-      <div
-        id="update-available-modal"
-        class="modal-overlay"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="update-available-title"
-        style="display: none"
-      >
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2 id="update-available-title">Новое обновление</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
-          </div>
-          <div class="modal-body">
-            <p>Доступно новое обновление. Хотите загрузить сейчас?</p>
-          </div>
-          <div class="modal-footer">
-            <button class="confirm-button" id="download-update-btn">
-              <i class="fa-solid fa-download"></i> Загрузить
-            </button>
-            <button class="cancel-button" id="later-update-btn">
-              <i class="fa-solid fa-times"></i> Позже
-            </button>
-          </div>
+    <!-- Доступно новое обновление -->
+    <div
+      id="update-available-modal"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="update-available-title"
+      style="display: none"
+    >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="update-available-title">Новое обновление</h2>
+          <button class="close-modal" aria-label="Закрыть">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Доступно новое обновление. Хотите загрузить сейчас?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="confirm-button" id="download-update-btn">
+            <i class="fa-solid fa-download"></i> Загрузить
+          </button>
+          <button class="cancel-button" id="later-update-btn">
+            <i class="fa-solid fa-times"></i> Позже
+          </button>
         </div>
       </div>
+    </div>
 
-      <!-- Обновление загружено -->
-      <div
-        id="update-downloaded-modal"
-        class="modal-overlay"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="update-downloaded-title"
-        style="display: none"
-      >
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2 id="update-downloaded-title">Загрузка обновления завершена</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
-          </div>
-          <div class="modal-body">
-            <p>
-              Обновление успешно загружено. Перезапустить приложение для
-              установки?
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button class="confirm-button" id="restart-app-btn">
-              <i class="fa-solid fa-redo"></i> Перезапустить
-            </button>
-            <button class="cancel-button" id="later-restart-btn">
-              <i class="fa-solid fa-times"></i> Позже
-            </button>
-          </div>
+    <!-- Обновление загружено -->
+    <div
+      id="update-downloaded-modal"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="update-downloaded-title"
+      style="display: none"
+    >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="update-downloaded-title">Загрузка обновления завершена</h2>
+          <button class="close-modal" aria-label="Закрыть">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Обновление успешно загружено. Перезапустить приложение для
+            установки?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="confirm-button" id="restart-app-btn">
+            <i class="fa-solid fa-redo"></i> Перезапустить
+          </button>
+          <button class="cancel-button" id="later-restart-btn">
+            <i class="fa-solid fa-times"></i> Позже
+          </button>
         </div>
       </div>
+    </div>
 
-      <!-- Ошибка обновления -->
-      <div
-        id="update-error-modal"
-        class="modal-overlay"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="update-error-title"
-        style="display: none"
-      >
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2 id="update-error-title">Ошибка обновления</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
-          </div>
-          <div class="modal-body">
-            <p id="update-error-message">
-              Произошла ошибка при проверке обновлений.
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button class="confirm-button" id="close-error-notification">
-              <i class="fa-solid fa-check"></i> Закрыть
-            </button>
-          </div>
+    <!-- Ошибка обновления -->
+    <div
+      id="update-error-modal"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="update-error-title"
+      style="display: none"
+    >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="update-error-title">Ошибка обновления</h2>
+          <button class="close-modal" aria-label="Закрыть">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="update-error-message">
+            Произошла ошибка при проверке обновлений.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="confirm-button" id="close-error-notification">
+            <i class="fa-solid fa-check"></i> Закрыть
+          </button>
         </div>
       </div>
+    </div>
 
-      <!-- Прогресс-бар обновлений -->
-      <div id="update-progress-container">
-        <span id="update-progress-text">Идет загрузка обновления...</span>
-        <progress id="update-progress-bar" value="0" max="100"></progress>
-      </div>
+    <!-- Прогресс-бар обновлений -->
+    <div id="update-progress-container">
+      <span id="update-progress-text">Идет загрузка обновления...</span>
+      <progress id="update-progress-bar" value="0" max="100"></progress>
+    </div>
 
-  <div
-  id="startup-status"
-  role="status"
-  aria-live="polite"
-  style="text-align: center; padding: 0.5rem; color: #aaa"
-></div>
+    <div
+      id="startup-status"
+      role="status"
+      aria-live="polite"
+      style="text-align: center; padding: 0.5rem; color: #aaa"
+    ></div>
 
-      <!-- Footer -->
+    <!-- Footer -->
     <footer>
       <p class="footer-info">
         &copy; <span id="current-year"></span> Thunder
@@ -1461,7 +1506,7 @@
 
     <div class="downloader-bg-preload"></div>
 
-      <!-- Scripts -->
+    <!-- Scripts -->
     <script>
       (function () {
         function loadRenderer() {
@@ -1500,8 +1545,5 @@
         location.reload();
       });
     </script>
-
-
-
   </body>
 </html>
