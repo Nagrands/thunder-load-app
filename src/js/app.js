@@ -434,7 +434,7 @@ if (!app.requestSingleInstanceLock()) {
 app.on("before-quit", () => {
   fsCache.clear();
   iconCache.clear();
-  app.isQuiting = true;
+  app.isQuitting = true;
 
   // Reset the notification flag
   store.set("isCloseNotificationShown", false);

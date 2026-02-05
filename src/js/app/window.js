@@ -133,7 +133,7 @@ function createWindow(
     const minimizeInsteadOfClose = store.get("minimizeInsteadOfClose", false);
     const showCloseNotification = store.get("closeNotification", true);
 
-    if (!app.isQuiting && minimizeInsteadOfClose) {
+    if (!app.isQuitting && minimizeInsteadOfClose) {
       event.preventDefault();
       mainWindow.hide();
       if (
@@ -311,7 +311,7 @@ function createTray(mainWindow, app, store, downloadPath) {
       label: "Выйти",
       icon: path.join(__dirname, "../../../assets/icons/logout.png"),
       click: () => {
-        app.isQuiting = true;
+        app.isQuitting = true;
         app.quit();
       },
     },

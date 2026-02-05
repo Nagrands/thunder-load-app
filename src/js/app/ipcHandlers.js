@@ -23,6 +23,7 @@ const http = require("http");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const { pipeline } = require("stream");
+const { marked } = require("marked");
 const execFileAsync = promisify(execFile);
 const streamPipeline = promisify(pipeline);
 const backup = require("./backupManager");
@@ -48,6 +49,11 @@ const {
   migrateLegacy,
 } = require("./toolsPaths");
 console.log("ipcHandlers loaded");
+
+function parseWhatsNewVersion(markdown = "") {
+  const match = String(markdown).match(/version:\s*([0-9A-Za-z._-]+)/i);
+  return match ? match[1] : null;
+}
 /**
  * Проверяет, находится ли filePath внутри baseDir
  * @param {string} filePath - Абсолютный путь к файлу
@@ -308,13 +314,19 @@ function setupIpcHandlers(dependencies) {
         app.getAppPath(),
         "src",
         "info",
-        "whatsNew.json",
+        "whatsNew.md",
       );
       log.info(`Reading the file: ${whatsNewPath}`);
-      const data = await fs.promises.readFile(whatsNewPath, "utf-8");
-      return JSON.parse(data);
+      const markdown = await fs.promises.readFile(whatsNewPath, "utf-8");
+      const version =
+        parseWhatsNewVersion(markdown) || (await getAppVersion());
+      const html = marked.parse(markdown, {
+        mangle: false,
+        headerIds: false,
+      });
+      return { version, changes: [html], source: "markdown" };
     } catch (error) {
-      log.error("Reading error: whatsNew.json:", error);
+      log.error("Reading error: whatsNew.md:", error);
       return { version: "unknown", changes: [] };
     }
   });

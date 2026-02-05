@@ -1,0 +1,50 @@
+# Рабочий процесс проекта Thunder Load
+
+Короткий файл для понимания, что где находится, и какие действия обычно делают
+при разработке и выпуске.
+
+## Что это за проект
+Thunder Load — Electron‑приложение для загрузки видео/аудио и управления
+сопутствующими инструментами (yt‑dlp, ffmpeg, Deno).
+
+## Основные папки
+- `src/` — исходники приложения (main/renderer, стили, шаблоны).
+- `templates/` — Nunjucks‑шаблоны, из них собирается `src/index.html`.
+- `assets/` — иконки, изображения, ресурсы.
+- `docs/` — документация.
+- `scripts/` — служебные скрипты для сборки.
+
+## Где править UI
+- HTML генерируется из `templates/` → итоговый файл `src/index.html`.
+- Перед запуском/сборкой выполните `npm run templates:build`, иначе правки
+  в шаблонах не попадут в `src/index.html`.
+
+## Где править логику
+- Main‑процесс: `src/js/app/`.
+- Renderer‑процесс: `src/js/renderer.js` и модули в `src/js/modules/`.
+- IPC и preload: `src/js/preload.js`, `src/js/ipc/`.
+
+## Быстрый старт разработки
+1. `npm install`
+2. `npm start`
+
+## Шаблоны
+- Один раз: `npm run templates:build`
+- В режиме наблюдения: `npm run templates:watch`
+
+## Проверки и тесты
+- `npm test` — unit‑тесты (Jest).
+- `npm run lint` — базовый линт (ESLint).
+- `npm run check` — единая команда проверки (lint + тесты).
+
+## Сборка
+- `npm run build` — сборка под текущую платформу.
+- `npm run build-mac` / `npm run build-linux` — платформенные сборки.
+
+## Что нового (WhatsNew)
+- Данные живут в `src/info/whatsNew.md`.
+- Версия в Markdown должна совпадать с `package.json`.
+
+## Что важно помнить
+- В проекте включены `contextIsolation` и `sandbox` — не ломайте модель безопасности.
+- Не подключайте внешние CDN без сильной причины (в Electron это риск).
