@@ -1,12 +1,17 @@
-<!-- version: 1.3.4 -->
-## version: 1.3.4
+<!-- version: 1.3.5 -->
+## version: 1.3.5
 
-### Randomizer tab
+### Interface and localization
 
-- **Improved** display of the **selected preset** after restart.
-- **Improved cards** for variants.
-- **Presets** are more **compact**, and there is a **Details** button for more information.
+- **Added** UI localization system (RU/EN).
+- **Added** a language switcher in settings.
+- **Localized** interface texts, notifications, and Randomizer.
 
-### Settings window
+### Security and What’s New
 
-- **Added** external links for **tools** (yt-dlp → GitHub, ffmpeg → ffmpeg.org, Deno → deno.com)
+- **Safe** HTML rendering in the “What’s New” modal via DOMPurify.
+- **Added** an English “What’s New” version.
+
+### Quality and tests
+
+- **Expanded** unit tests for “What’s New”, Randomizer, and Tools status modules.
