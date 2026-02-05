@@ -37,6 +37,7 @@ import {
   closeSettings,
 } from "./settingsModal.js";
 import { showToast } from "./toast.js";
+import { t } from "./i18n.js";
 import { closeAllModals } from "./modalManager.js"; // Импортируем функцию закрытия всех модалов
 
 // Список всех модальных окон
@@ -141,7 +142,7 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       openFolderButton.click();
-      showToast("Открытие папки с последним видео.", "info");
+      showToast(t("hotkeys.openLastFolder"), "info");
     },
   ],
   [
@@ -149,7 +150,7 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       openFolderButton.click();
-      showToast("Открытие папки с последним видео.", "info");
+      showToast(t("hotkeys.openLastFolder"), "info");
     },
   ],
   [
@@ -221,7 +222,7 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       openLastVideoButton.click();
-      showToast("Открытие последнего видео.", "info");
+      showToast(t("hotkeys.openLastVideo"), "info");
     },
   ],
   [
@@ -229,7 +230,7 @@ const localHotkeys = new Map([
     () => {
       closeAllModals(modals);
       openLastVideoButton.click();
-      showToast("Открытие последнего видео.", "info");
+      showToast(t("hotkeys.openLastVideo"), "info");
     },
   ],
   [

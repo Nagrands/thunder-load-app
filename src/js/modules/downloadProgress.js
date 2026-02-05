@@ -6,6 +6,7 @@ import {
   progressBar,
   progressBarContainer,
 } from "./domElements.js";
+import { t } from "./i18n.js";
 
 function initDownloadProgress() {
   let startedAt = null;
@@ -45,16 +46,21 @@ function initDownloadProgress() {
     }
     lastProgress = progress;
     // ETA на основе скорости изменения процента
-    let suffix = "";
+    let etaLabel = "";
     if (progress > 0 && startedAt) {
       const elapsed = (Date.now() - startedAt) / 1000; // sec
       const rate = progress / Math.max(0.5, elapsed); // %/s
       const remaining = (100 - progress) / Math.max(0.1, rate);
       const mm = Math.floor(remaining / 60);
       const ss = Math.floor(remaining % 60);
-      suffix = ` • ~${mm}:${String(ss).padStart(2, "0")}`;
+      const time = `${mm}:${String(ss).padStart(2, "0")}`;
+      etaLabel = t("download.eta", { time });
     }
-    buttonText.textContent = `Скачивание... ${progressStr}%${suffix}`;
+    const etaSuffix = etaLabel ? ` ${etaLabel}` : "";
+    buttonText.textContent = t("download.progress", {
+      progress: progressStr,
+      eta: etaSuffix,
+    });
     progressBar.style.width = `${progress}%`;
     if (progressBarContainer) {
       progressBarContainer.setAttribute("aria-valuenow", progressStr);
@@ -67,7 +73,9 @@ function initDownloadProgress() {
           const remaining = (100 - progress) / Math.max(0.1, rate);
           const mm = Math.floor(remaining / 60);
           const ss = Math.floor(remaining % 60);
-          progressBarContainer.dataset.eta = `~${mm}:${String(ss).padStart(2, "0")}`;
+          progressBarContainer.dataset.eta = t("download.eta", {
+            time: `${mm}:${String(ss).padStart(2, "0")}`,
+          });
         } else {
           progressBarContainer.dataset.eta = "";
         }

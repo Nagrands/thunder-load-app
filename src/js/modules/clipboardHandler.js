@@ -26,6 +26,7 @@ import { isValidUrl, isSupportedUrl } from "./validation.js";
 import { urlInput } from "./domElements.js";
 import { updateIcon } from "./iconUpdater.js";
 import { showToast } from "./toast.js";
+import { t } from "./i18n.js";
 
 function initClipboardHandler() {
   window.electron.onWindowFocused((clipboardContent) => {
@@ -55,7 +56,7 @@ function initClipboardHandler() {
         urlInput.dispatchEvent(new Event("force-preview"));
       } catch {}
 
-      showToast("Ссылка из буфера обмена вставлена автоматически.", "info");
+      showToast(t("clipboard.autoPaste"), "info");
       state.lastPastedUrl = clipboardContent;
     }
   });

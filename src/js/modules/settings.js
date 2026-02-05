@@ -22,7 +22,7 @@ import {
 import { renderToolsInfo } from "./toolsInfo.js";
 import { showConfirmationDialog } from "./modals.js";
 import { getLowEffects, setLowEffects } from "./effectsMode.js";
-import { getLanguage, setLanguage, t } from "./i18n.js";
+import { applyI18n, getLanguage, setLanguage, t } from "./i18n.js";
 
 // Lazy-render guards
 let toolsInfoRendered = false;
@@ -67,10 +67,12 @@ function updateModuleBadge(moduleKey, disabled) {
   badge.classList.toggle("tab-badge-off", isDisabled);
   btn.classList.toggle("tab-disabled", isDisabled);
   btn.dataset.disabled = isDisabled ? "1" : "0";
-  badge.textContent = isDisabled ? t("settings.tab.disabled") : t("settings.tab.enabled");
+  badge.textContent = isDisabled
+    ? t("settings.tab.disabled")
+    : t("settings.tab.enabled");
   badge.setAttribute(
     "aria-label",
-    isDisabled ? "Вкладка отключена" : "Вкладка включена",
+    isDisabled ? t("settings.tab.disabled.aria") : t("settings.tab.enabled.aria"),
   );
   badge.setAttribute("aria-hidden", isDisabled ? "false" : "true");
   if (!isDisabled) {
@@ -190,7 +192,7 @@ async function initSettings() {
         localStorage.setItem(QUALITY_PROFILE_KEY, v);
       } catch {}
       window.electron
-        ?.invoke?.("toast", "Профиль качества сохранён.", "success")
+        ?.invoke?.("toast", t("settings.qualityProfile.saved"), "success")
         .catch(() => {});
     };
 
@@ -251,7 +253,7 @@ async function initSettings() {
         fontSizeDropdownMenu.classList.remove("show");
         window.electron.invoke(
           "toast",
-          `<strong>Размер шрифта</strong> установлен на <strong>${newSize}px</strong>`,
+          t("settings.fontSize.set", { size: newSize }),
           "success",
         );
       });
@@ -280,7 +282,7 @@ async function initSettings() {
       await setFontSize(defaultSize);
       window.electron.invoke(
         "toast",
-        `<strong>Размер шрифта</strong> сброшен на <strong>${defaultSize}px</strong>`,
+        t("settings.fontSize.reset", { size: defaultSize }),
         "success",
       );
     });
@@ -298,10 +300,16 @@ async function initSettings() {
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
   const themeLabel = document.getElementById("theme-selected-label");
-  const formatThemeLabel = (theme) =>
-    theme === "system"
-      ? "System"
-      : theme.charAt(0).toUpperCase() + theme.slice(1);
+  const formatThemeLabel = (theme) => {
+    const map = {
+      system: t("settings.appearance.theme.system"),
+      dark: t("settings.appearance.theme.dark"),
+      midnight: t("settings.appearance.theme.midnight"),
+      sunset: t("settings.appearance.theme.sunset"),
+      violet: t("settings.appearance.theme.violet"),
+    };
+    return map[theme] || theme;
+  };
 
   console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
@@ -355,10 +363,15 @@ async function initSettings() {
         );
         window.electron.invoke(
           "toast",
-          `Выбрана тема: <strong>${themeLabel.textContent}</strong>`,
+          t("settings.theme.set", { theme: themeLabel.textContent }),
           "success",
         );
       });
+    });
+
+    window.addEventListener("i18n:changed", async () => {
+      const currentTheme = await getTheme();
+      themeLabel.textContent = formatThemeLabel(currentTheme);
     });
 
     // Глобальный обработчик клика вне меню только для темы
@@ -388,7 +401,7 @@ async function initSettings() {
       const defaultTheme = "system";
       document.documentElement.classList.add("theme-transition");
       await setTheme(defaultTheme);
-      themeLabel.textContent = "System";
+      themeLabel.textContent = formatThemeLabel(defaultTheme);
       themeDropdownMenu.querySelectorAll("li").forEach((li) => {
         li.classList.remove("active");
         if (li.getAttribute("data-value") === defaultTheme) {
@@ -402,7 +415,7 @@ async function initSettings() {
       );
       window.electron.invoke(
         "toast",
-        `<strong>Тема</strong> сброшена на <strong>System</strong>`,
+        t("settings.theme.reset", { theme: formatThemeLabel(defaultTheme) }),
         "success",
       );
     });
@@ -609,8 +622,8 @@ async function initSettings() {
         .invoke("set-disable-complete-modal-status", enable)
         .then(() => {
           const message = enable
-            ? "Модальное окно после загрузки <strong>отключено</strong>"
-            : "Модальное окно после загрузки <strong>включено</strong>";
+            ? t("settings.downloadCompleteModal.disabled")
+            : t("settings.downloadCompleteModal.enabled");
           window.electron.invoke("toast", message, "success");
           console.log(
             `Отключение модального окна завершения загрузки ${enable ? "включено" : "отключено"}`,
@@ -748,8 +761,8 @@ async function initSettings() {
       window.electron?.invoke?.(
         "toast",
         val
-          ? "Вкладка <strong>WG Unlock</strong> отключена"
-          : "Вкладка <strong>WG Unlock</strong> включена",
+          ? t("settings.module.wg.disabled")
+          : t("settings.module.wg.enabled"),
         val ? "info" : "success",
       );
       updateModuleBadge("wg", val);
@@ -804,15 +817,16 @@ async function initSettings() {
     const row = document.createElement("div");
     row.className = "settings-row settings-row--wg-disable";
     row.innerHTML = `
-      <label class="checkbox-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.">
+      <label class="checkbox-label" data-bs-toggle="tooltip" data-bs-placement="top" title="${t("settings.wg.disable.hint")}" data-i18n-title="settings.wg.disable.hint">
         <input id="wg-disable-toggle" type="checkbox" />
         <i class="fa-solid fa-bolt"></i>
-        Отключить вкладку WG Unlock
+        <span data-i18n="settings.disableTab">Отключить вкладку</span> WG Unlock
       </label>
-      <p class="field-hint">Применяется сразу. Можно включить обратно в любое время.</p>
+      <p class="field-hint" data-i18n="settings.wg.disable.note">Применяется сразу. Можно включить обратно в любое время.</p>
     `;
 
     target.appendChild(row);
+    applyI18n(row);
 
     // Видимость: показывать блок только на активной WG-секции
     function isWgSectionActive() {
@@ -936,8 +950,8 @@ async function initSettings() {
       window.electron?.invoke?.(
         "toast",
         val
-          ? "Вкладка <strong>Backup</strong> отключена"
-          : "Вкладка <strong>Backup</strong> включена",
+          ? t("settings.module.backup.disabled")
+          : t("settings.module.backup.enabled"),
         val ? "info" : "success",
       );
     };
@@ -1012,8 +1026,8 @@ async function initSettings() {
       window.electron?.invoke?.(
         "toast",
         val
-          ? "Вкладка <strong>Randomizer</strong> отключена"
-          : "Вкладка <strong>Randomizer</strong> включена",
+          ? t("settings.module.randomizer.disabled")
+          : t("settings.module.randomizer.enabled"),
         val ? "info" : "success",
       );
     };
@@ -1545,13 +1559,13 @@ export async function exportConfig() {
   a.click();
   window.electron.invoke(
     "toast",
-    "Файл конфигурации успешно сохранён",
+    t("settings.config.export.success"),
     "success",
   );
   setTimeout(() => {
     window.electron.invoke(
       "toast",
-      "Вы можете загрузить файл на другом устройстве",
+      t("settings.config.export.hint"),
       "info",
     );
   }, 3000);
@@ -1588,12 +1602,12 @@ export async function importConfig(file) {
       .join("");
     const moreNote =
       changes.length > 50
-        ? `<li>… и ещё ${changes.length - 50} изменений</li>`
+        ? `<li>${t("settings.config.import.more", { count: changes.length - 50 })}</li>`
         : "";
 
     const html = `
       <div class="toast-message">
-        <p>Будут применены ${changes.length} изменений. Создать резервную копию текущей конфигурации и продолжить?</p>
+        <p>${t("settings.config.import.confirm", { count: changes.length })}</p>
         <ul>${previewItems}${moreNote}</ul>
       </div>`;
 
@@ -1621,13 +1635,13 @@ export async function importConfig(file) {
 
       await window.electron.invoke(
         "toast",
-        "Конфигурация успешно импортирована",
+        t("settings.config.import.success"),
         "success",
       );
       location.reload();
     });
   } catch (e) {
-    alert("Ошибка импорта: " + e.message);
+    alert(t("settings.config.import.error", { error: e.message }));
   }
 }
 
@@ -1638,7 +1652,7 @@ export async function resetConfigToDefaults() {
   });
   await window.electron.invoke(
     "toast",
-    "Настройки сброшены на значения по умолчанию",
+    t("settings.reset.success"),
     "success",
   );
   location.reload();

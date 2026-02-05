@@ -9,6 +9,7 @@ import {
   resetConfigToDefaults,
 } from "./settings.js";
 import { settingsModal, settingsButton } from "./domElements.js";
+import { t } from "./i18n.js";
 
 let previousFocus = null;
 let trapHandler = null;
@@ -182,15 +183,13 @@ export function initSettingsModal() {
 
   if (resetBtn) {
     resetBtn.addEventListener("click", async () => {
-      if (!confirm("Вы уверены, что хотите сбросить все настройки?")) return;
+      if (!confirm(t("settings.reset.confirm"))) return;
 
       try {
         await resetConfigToDefaults();
       } catch (error) {
         console.error("Ошибка при сбросе настроек:", error);
-        alert(
-          "Не удалось сбросить настройки. Проверьте консоль для подробностей.",
-        );
+        alert(t("settings.reset.error"));
       }
     });
   }

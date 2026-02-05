@@ -1,5 +1,8 @@
 // src/js/modules/randomizer/ui/presets.js
 
+import { t } from "../../i18n.js";
+import { DEFAULT_PRESET_NAME } from "../helpers.js";
+
 // Локальный helper для кастомного select, заимствован из randomizerView.
 const enhanceSelect = (selectEl) => {
   if (!selectEl || selectEl.dataset.enhanced === "true") return null;
@@ -147,24 +150,24 @@ export function createPresetsUI({
       applyPreset(name);
       refreshPresetSelect();
       presetSelectUI?.updateLabel?.();
-      showToast(`Шаблон «${name}» загружен`, "success");
+      showToast(t("randomizer.preset.loaded", { name }), "success");
     });
 
     presetSaveBtn?.addEventListener("click", () => {
       refreshPresets();
-      showToast("Шаблон сохранён", "success");
+      showToast(t("randomizer.preset.saved"), "success");
       refreshPresetSelect();
     });
 
     presetNewBtn?.addEventListener("click", () => {
-      const suggested = "Новый шаблон";
+      const suggested = t("randomizer.preset.newName");
       const handleCreate = (name) => {
         const trimmed = (name || "").trim();
         if (!trimmed) return;
         createPreset(trimmed, []);
         applyPreset(trimmed);
         refreshPresetSelect();
-        showToast(`Шаблон «${trimmed}» создан`, "success");
+        showToast(t("randomizer.preset.created", { name: trimmed }), "success");
       };
 
       const fallbackName = promptPresetNameFallback(suggested);
@@ -182,23 +185,26 @@ export function createPresetsUI({
     presetSaveAsBtn?.addEventListener("click", () => {
       const { currentPresetName } = getState();
       const suggested =
-        currentPresetName && currentPresetName !== "Основной"
-          ? `${currentPresetName} (копия)`
-          : "Новый шаблон";
+        currentPresetName && currentPresetName !== DEFAULT_PRESET_NAME
+          ? t("randomizer.preset.copyName", { name: currentPresetName })
+          : t("randomizer.preset.newName");
       const fallbackName = promptPresetNameFallback(suggested);
       if (fallbackName !== undefined) {
         const trimmed = (fallbackName || "").trim();
         if (!trimmed) return;
         createPreset(trimmed);
         refreshPresetSelect();
-        showToast(`Шаблон «${trimmed}» сохранён`, "success");
+        showToast(t("randomizer.preset.savedAs", { name: trimmed }), "success");
         return;
       }
       askPresetName(suggested).then((name) => {
         if (!name) return;
         createPreset(name);
         refreshPresetSelect();
-        showToast(`Шаблон «${name.trim()}» сохранён`, "success");
+        showToast(
+          t("randomizer.preset.savedAs", { name: name.trim() }),
+          "success",
+        );
       });
     });
 
@@ -207,12 +213,12 @@ export function createPresetsUI({
       if (!currentPresetName || presets.length <= 1) return;
       if (
         !confirm(
-          `Удалить шаблон «${currentPresetName}»? Варианты будут удалены только из этого шаблона.`,
+          t("randomizer.preset.deleteConfirm", { name: currentPresetName }),
         )
       )
         return;
       deletePreset(currentPresetName);
-      showToast("Шаблон удалён", "success");
+      showToast(t("randomizer.preset.deleted"), "success");
       refreshPresetSelect();
     });
 
@@ -221,7 +227,10 @@ export function createPresetsUI({
       if (!currentPresetName) return;
       setDefault(currentPresetName);
       refreshPresetSelect();
-      showToast(`Шаблон «${currentPresetName}» выбран по умолчанию`, "success");
+      showToast(
+        t("randomizer.preset.setDefault", { name: currentPresetName }),
+        "success",
+      );
     });
   };
 

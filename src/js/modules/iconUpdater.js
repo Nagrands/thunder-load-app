@@ -3,6 +3,7 @@
 import { urlInput, iconPlaceholder } from "./domElements.js";
 import { updateButtonState } from "./state.js";
 import { showToast } from "./toast.js";
+import { t } from "./i18n.js";
 
 let iconUpdateTimeout;
 
@@ -53,7 +54,7 @@ const updateIcon = async (url) => {
       if (iconUrl) {
         // show favicon as <img>
         const img = document.createElement("img");
-        img.setAttribute("alt", "Icon");
+        img.setAttribute("alt", t("icon.alt"));
         img.setAttribute("draggable", "false");
         img.src = `file://${iconUrl}`;
         swapIcon(mount, img);
@@ -66,7 +67,7 @@ const updateIcon = async (url) => {
       }
     } catch (error) {
       console.error("Error updating icon:", error);
-      showToast("Ошибка обновления иконки.", "error");
+      showToast(t("icon.updateError"), "error");
     }
   }, 500);
 };

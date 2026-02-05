@@ -12,6 +12,7 @@ import { state, updateButtonState } from "./state.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { showToast } from "./toast.js";
 import { showUrlActionButtons } from "./urlInputHandler.js";
+import { t } from "./i18n.js";
 
 function initDownloadCancel() {
   // Обработчик отмены загрузки
@@ -19,9 +20,9 @@ function initDownloadCancel() {
     try {
       const result = await window.electron.invoke("stop-download");
       if (result.success) {
-        showToast("Загрузка отменена.", "warning");
+        showToast(t("download.cancelled"), "warning");
       } else {
-        showToast("Не удалось отменить загрузку.", "error");
+        showToast(t("download.cancel.failed"), "error");
       }
 
       urlInput.value = "";
@@ -36,7 +37,7 @@ function initDownloadCancel() {
       initTooltips();
     } catch (error) {
       console.error("Error stopping download:", error);
-      showToast("Ошибка при отмене загрузки.", "error");
+      showToast(t("download.cancel.error"), "error");
     } finally {
       state.isDownloading = false;
       urlInput.disabled = false;
@@ -45,7 +46,7 @@ function initDownloadCancel() {
       downloadCancelButton.disabled = true;
       progressBarContainer.style.opacity = 0;
       progressBar.style.width = "0%";
-      buttonText.textContent = "Скачать";
+      buttonText.textContent = t("actions.download");
     }
   });
 }

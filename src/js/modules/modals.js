@@ -7,6 +7,7 @@ import {
   confirmationModal,
   settingsModal,
 } from "./domElements.js";
+import { t } from "./i18n.js";
 
 /**
  * Закрывает все модальные окна.
@@ -35,10 +36,10 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
 
   const {
     message = "",
-    title = "Подтверждение действия",
-    subtitle = "Подтверждение",
-    confirmText = "Да",
-    cancelText = "Нет",
+    title = t("confirm.default.title"),
+    subtitle = t("confirm.default.subtitle"),
+    confirmText = t("confirm.default.confirm"),
+    cancelText = t("confirm.default.cancel"),
     tone = "danger",
     onConfirm: confirmCb,
     onCancel: cancelCb,
@@ -63,7 +64,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     !titleEl ||
     !subtitleEl
   ) {
-    console.error("Элементы модального окна подтверждения отсутствуют.");
+    console.error(t("confirm.error.missing"));
     return Promise.resolve(false);
   }
 

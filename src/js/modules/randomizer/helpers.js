@@ -1,18 +1,20 @@
 // src/js/modules/randomizer/helpers.js
 
+import { t } from "../i18n.js";
+
 export const DEFAULT_ITEMS = [
-  "Новый ролик с YouTube",
-  "Клип с Twitch",
-  "Видео из VK",
-  "Музыкальный трек",
-  "Файл для резервной копии",
+  t("randomizer.defaults.youtube"),
+  t("randomizer.defaults.twitch"),
+  t("randomizer.defaults.vk"),
+  t("randomizer.defaults.music"),
+  t("randomizer.defaults.backup"),
 ];
 
 export const MAX_HISTORY = 15;
 export const WEIGHT_MIN = 1;
 export const WEIGHT_MAX = 10;
 export const DEFAULT_WEIGHT = 1;
-export const DEFAULT_PRESET_NAME = "Основной";
+export const DEFAULT_PRESET_NAME = t("randomizer.defaults.preset");
 export const MAX_ITEM_LENGTH = 160;
 export const DEFAULT_FAVORITE = false;
 export const DEFAULT_EXCLUDED = false;

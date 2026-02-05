@@ -1,6 +1,7 @@
 // src/js/modules/randomizer/ui/summary.js
 
 import { triggerPulse } from "../helpers.js";
+import { t } from "../../i18n.js";
 
 export function createSummary({ getState, elements }) {
   const {
@@ -36,8 +37,8 @@ export function createSummary({ getState, elements }) {
     if (summaryPoolModeEl) {
       const noRepeat = !!settings.noRepeat;
       summaryPoolModeEl.textContent = noRepeat
-        ? "Без повторов"
-        : "Повторы включены";
+        ? t("randomizer.summary.noRepeat")
+        : t("randomizer.summary.repeat");
       summaryPoolModeEl.dataset.mode = noRepeat ? "no-repeat" : "repeat";
     }
   };

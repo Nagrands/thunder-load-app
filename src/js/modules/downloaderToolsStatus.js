@@ -3,6 +3,7 @@
 import { initTooltips } from "./tooltipInitializer.js";
 import { summarizeToolsState } from "./toolsInfo.js";
 import { openSettingsWithTab } from "./settingsModal.js";
+import { t } from "./i18n.js";
 
 let isInitialized = false;
 let isLoading = false;
@@ -42,13 +43,13 @@ const setState = (state, message, details = []) => {
     case "ok":
       el.line.classList.add("is-ok");
       el.icon.className = "fa-solid fa-check";
-      el.text.textContent = message || "Инструменты готовы";
+      el.text.textContent = message || t("tools.status.ready");
       setBadges(details);
       break;
     case "error":
       el.line.classList.add("is-error");
       el.icon.className = "fa-solid fa-triangle-exclamation";
-      el.text.textContent = message || "Инструменты недоступны";
+      el.text.textContent = message || t("tools.status.unavailable");
       el.reinstall.classList.remove("hidden");
       setBadges(details);
       break;
@@ -56,7 +57,7 @@ const setState = (state, message, details = []) => {
     default:
       el.line.classList.add("is-loading");
       el.icon.className = "fa-solid fa-circle-notch fa-spin";
-      el.text.textContent = message || "Проверяем инструменты…";
+      el.text.textContent = message || t("tools.status.checking");
       setBadges([]);
       break;
   }
@@ -64,7 +65,7 @@ const setState = (state, message, details = []) => {
 
 async function fetchStatus() {
   if (!window.electron?.tools?.getVersions) {
-    setState("error", "Инструменты: bridge недоступен");
+    setState("error", t("tools.status.bridgeMissing"));
     return;
   }
   if (isLoading) return;
@@ -73,7 +74,8 @@ async function fetchStatus() {
   try {
     const res = await window.electron.tools.getVersions();
     const summary = summarizeToolsState(res);
-    const msg = summary.state === "ok" ? "Инструменты готовы" : summary.text;
+    const msg =
+      summary.state === "ok" ? t("tools.status.ready") : summary.text;
     setState(summary.state, msg, summary.details);
     if (summary.state === "ok") {
       el.reinstall.classList.add("hidden");
@@ -82,7 +84,7 @@ async function fetchStatus() {
     }
   } catch (error) {
     console.error("[downloaderToolsStatus] getVersions failed:", error);
-    setState("error", "Ошибка проверки инструментов");
+    setState("error", t("tools.status.error"));
   } finally {
     isLoading = false;
   }
@@ -146,7 +148,8 @@ function bindDom() {
   window.addEventListener("tools:status", (ev) => {
     const summary = ev?.detail?.summary;
     if (summary) {
-      const msg = summary.state === "ok" ? "Инструменты готовы" : summary.text;
+      const msg =
+        summary.state === "ok" ? t("tools.status.ready") : summary.text;
       setState(summary.state, msg, summary.details);
       if (summary.state === "ok") {
         el.reinstall.classList.add("hidden");

@@ -7,6 +7,7 @@ import {
   clampRareThreshold,
   RARE_STREAK,
 } from "../helpers.js";
+import { getLanguage, t } from "../../i18n.js";
 
 export function createHistoryRenderer({
   getState,
@@ -89,19 +90,21 @@ export function createHistoryRenderer({
       const empty = document.createElement("div");
       empty.className = "stats-empty";
       empty.textContent = getRareOnly()
-        ? "Нет редких вариантов."
-        : "Статистика пока пуста.";
+        ? t("randomizer.stats.emptyRare")
+        : t("randomizer.stats.empty");
       statsTable.appendChild(empty);
       return;
     }
     const header = document.createElement("div");
     header.className = "stats-row stats-head";
     const textHead = document.createElement("div");
-    textHead.appendChild(buildSortButton("Вариант", "value"));
+    textHead.appendChild(buildSortButton(t("randomizer.stats.item"), "value"));
     const missHead = document.createElement("div");
-    missHead.appendChild(buildSortButton("Промахи", "misses"));
+    missHead.appendChild(
+      buildSortButton(t("randomizer.stats.misses"), "misses"),
+    );
     const hitHead = document.createElement("div");
-    hitHead.appendChild(buildSortButton("Выпадения", "hits"));
+    hitHead.appendChild(buildSortButton(t("randomizer.stats.hits"), "hits"));
     header.append(textHead, missHead, hitHead);
     statsTable.appendChild(header);
 
@@ -162,11 +165,12 @@ export function createHistoryRenderer({
         button.className = "history-entry";
         button.dataset.value = entry.value;
         const presetLabel = entry.preset ? escapeHtml(entry.preset) : "—";
+        const locale = getLanguage() === "en" ? "en-US" : "ru-RU";
         button.innerHTML = `
           <span class="text">${escapeHtml(entry.value)}</span>
           <span class="meta">
-            <span class="preset" title="Шаблон">${presetLabel}</span>
-            <span class="time">${new Intl.DateTimeFormat("ru-RU", {
+            <span class="preset" title="${t("randomizer.preset.label")}">${presetLabel}</span>
+            <span class="time">${new Intl.DateTimeFormat(locale, {
               hour: "2-digit",
               minute: "2-digit",
             }).format(entry.ts)}</span>

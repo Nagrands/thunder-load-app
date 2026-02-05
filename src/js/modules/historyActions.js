@@ -17,6 +17,7 @@ import { showConfirmationDialog } from "./modals.js";
 import { showToast } from "./toast.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 import { state, setHistoryData } from "./state.js";
+import { t } from "./i18n.js";
 
 let isClearingHistory = false;
 
@@ -29,11 +30,11 @@ async function handleClearHistory() {
 
   try {
     const confirmed = await showConfirmationDialog({
-      title: "Очистить историю?",
-      subtitle: "История загрузок",
-      message: "Вы уверены, что хотите удалить всю историю загрузок?",
-      confirmText: "Очистить",
-      cancelText: "Отмена",
+      title: t("history.clear.title"),
+      subtitle: t("history.clear.subtitle"),
+      message: t("history.clear.message"),
+      confirmText: t("history.clear.confirm"),
+      cancelText: t("history.clear.cancel"),
       tone: "danger",
     });
     if (!confirmed) return;
@@ -52,11 +53,11 @@ async function handleClearHistory() {
     await loadHistory(true);
     localStorage.setItem("historyVisible", "false");
 
-    showToast("История загрузок успешно очищена.", "success");
+    showToast(t("history.clear.success"), "success");
     console.log("История успешно очищена.");
   } catch (error) {
     console.error("Error clearing history:", error);
-    showToast("Ошибка очистки истории загрузок.", "error");
+    showToast(t("history.clear.error"), "error");
   } finally {
     isClearingHistory = false;
   }
@@ -87,10 +88,10 @@ function initHistoryActions() {
         const rawHistory = JSON.parse(localStorage.getItem("history")) || [];
         state.downloadHistory = rawHistory;
 
-        showToast("История загрузок обновлена.", "info");
+        showToast(t("history.refresh.success"), "info");
       } catch (error) {
         console.error("Error updating history:", error);
-        showToast("Ошибка обновления истории загрузок.", "error");
+        showToast(t("history.refresh.error"), "error");
       }
     });
   }

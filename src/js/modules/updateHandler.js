@@ -23,6 +23,8 @@
 
 // src/js/modules/updateHandler.js
 
+import { applyI18n, t } from "./i18n.js";
+
 // Используем методы, предоставленные через contextBridge
 const { electron } = window;
 
@@ -84,33 +86,43 @@ function ensureFlyover() {
   wrap.className = "upd-flyover";
   wrap.style.display = "none";
   wrap.innerHTML = `
-    <button id=\"upd-close\" class=\"upd-close\" aria-label=\"Закрыть\">&times;</button>
+    <button id=\"upd-close\" class=\"upd-close\" aria-label=\"${t("modal.close")}\" data-i18n-aria="modal.close">&times;</button>
     <div class="state state-available">
-      <h3 class="hdr">Доступно обновление!</h3>
-      <div class="ver">Текущая: <span class="cur" id="upd-cur">—</span> · Новая: <span class="next" id="upd-next">—</span></div>
+      <h3 class="hdr" data-i18n="update.flyover.available.title">Доступно обновление!</h3>
+      <div class="ver">
+        <span data-i18n="update.flyover.available.current">Текущая:</span>
+        <span class="cur" id="upd-cur">—</span>
+        <span class="dot"> · </span>
+        <span data-i18n="update.flyover.available.next">Новая:</span>
+        <span class="next" id="upd-next">—</span>
+      </div>
       <div class="row">
-        <button id="upd-start" class="btn btn-sm btn-primary">Обновить</button>
+        <button id="upd-start" class="btn btn-sm btn-primary" data-i18n="update.flyover.available.action">Обновить</button>
       </div>
     </div>
     <div class="state state-progress" style="display:none">
-      <h3 class="hdr">Загрузка обновления…</h3>
-      <div class="ver muted">Версия: <span id="upd-next-p">—</span></div>
+      <h3 class="hdr" data-i18n="update.flyover.progress.title">Загрузка обновления…</h3>
+      <div class="ver muted">
+        <span data-i18n="update.flyover.progress.version">Версия:</span>
+        <span id="upd-next-p">—</span>
+      </div>
       <progress id="upd-bar" value="0" max="100"></progress>
       <div class="muted" id="upd-label">0%</div>
     </div>
     <div class="state state-done" style="display:none">
-      <h3 class="hdr">Обновление загружено</h3>
-      <div class="muted">Перезапустите приложение для установки.</div>
+      <h3 class="hdr" data-i18n="update.flyover.done.title">Обновление загружено</h3>
+      <div class="muted" data-i18n="update.flyover.done.body">Перезапустите приложение для установки.</div>
       <div class="row" style="margin-top:8px">
-        <button id="upd-restart" class="btn btn-sm btn-primary">Перезапуск</button>
+        <button id="upd-restart" class="btn btn-sm btn-primary" data-i18n="update.flyover.done.action">Перезапуск</button>
       </div>
     </div>
     <div class="state state-error" style="display:none">
-      <h3 class="hdr">Ошибка обновления</h3>
-      <div class="muted" id="upd-err">Произошла ошибка</div>
+      <h3 class="hdr" data-i18n="update.flyover.error.title">Ошибка обновления</h3>
+      <div class="muted" id="upd-err" data-i18n="update.flyover.error.body">Произошла ошибка</div>
     </div>`;
   document.body.appendChild(wrap);
   _updFly = wrap;
+  applyI18n(_updFly);
 
   const hide = () => (_updFly.style.display = "none");
   _updFly.querySelector("#upd-close")?.addEventListener("click", hide);
@@ -127,6 +139,10 @@ function ensureFlyover() {
   });
   _updFly.querySelector("#upd-restart")?.addEventListener("click", () => {
     window.electron?.invoke && window.electron.invoke("restart-app");
+  });
+
+  window.addEventListener("i18n:changed", () => {
+    if (_updFly) applyI18n(_updFly);
   });
 
   window.addEventListener("resize", positionFlyover);
@@ -244,7 +260,7 @@ function showErrorPanel(error) {
   positionFlyover();
   switchState("error");
   const e = fly.querySelector("#upd-err");
-  if (e) e.textContent = String(error || "Ошибка обновления");
+  if (e) e.textContent = String(error || t("update.flyover.error.title"));
 }
 
 function hideUpdateProgressBar() {
@@ -391,9 +407,11 @@ function updateProgressBar(percent) {
 
     progressBar.value = percent;
     if (typeof percent === "number") {
-      progressText.textContent = `Загрузка обновления... ${percent.toFixed(2)}%`;
+      progressText.textContent = t("update.progress.percent", {
+        percent: percent.toFixed(2),
+      });
     } else {
-      progressText.textContent = "Загрузка обновления...";
+      progressText.textContent = t("update.progress.loading");
     }
   }
 }
@@ -408,7 +426,7 @@ function _showErrorNotification(error) {
 
   if (modal && errorMessage) {
     hideUpdateProgressBar();
-    errorMessage.textContent = `Ошибка обновления: ${error}`;
+    errorMessage.textContent = t("update.error.withDetail", { error });
     modal.style.display = "flex";
     modal.style.flexDirection = "row";
     modal.style.justifyContent = "center";

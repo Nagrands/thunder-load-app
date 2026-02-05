@@ -1,5 +1,7 @@
 // src/js/modules/randomizer/ui/listActions.js
 
+import { t } from "../../i18n.js";
+
 export function wireListActions({
   listActions: _listActions,
   exportButton,
@@ -16,16 +18,16 @@ export function wireListActions({
     exportButton.addEventListener("click", async () => {
       const items = getItems();
       if (!items.length) {
-        showToast("Список пуст", "info");
+        showToast(t("randomizer.list.empty"), "info");
         return;
       }
       try {
         await navigator.clipboard.writeText(
           items.map((item) => item.value).join("\n"),
         );
-        showToast("Список скопирован", "success");
+        showToast(t("randomizer.list.copied"), "success");
       } catch {
-        showToast("Не удалось скопировать список", "error");
+        showToast(t("randomizer.list.copyError"), "error");
       }
     });
   }
@@ -34,7 +36,7 @@ export function wireListActions({
     clearButton.addEventListener("click", () => {
       const items = getItems();
       if (!items.length) return;
-      if (confirm("Очистить все варианты? Действие нельзя отменить.")) {
+      if (confirm(t("randomizer.list.clearConfirm"))) {
         onClear();
       }
     });
@@ -44,10 +46,11 @@ export function wireListActions({
     bulkDeleteButton.addEventListener("click", () => {
       const selected = getSelected();
       if (!selected.size) {
-        showToast("Не выбрано ни одного варианта", "info");
+        showToast(t("randomizer.list.noneSelected"), "info");
         return;
       }
-      if (!confirm(`Удалить ${selected.size} вариантов?`)) return;
+      if (!confirm(t("randomizer.list.deleteConfirm", { count: selected.size })))
+        return;
       onBulkDelete(selected);
     });
   }
@@ -61,8 +64,10 @@ export function wireListActions({
       if (label) {
         label.textContent =
           selectedCount > 0
-            ? `Удалить (${selectedCount})`
-            : "Удалить выбранные";
+            ? t("randomizer.list.deleteSelectedCount", {
+                count: selectedCount,
+              })
+            : t("randomizer.list.deleteSelected");
       }
     },
   };

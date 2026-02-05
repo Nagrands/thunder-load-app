@@ -7,6 +7,7 @@ import {
   RARE_STREAK,
   clampRareThreshold,
 } from "../helpers.js";
+import { t } from "../../i18n.js";
 
 export function createItemsRenderer({
   getState,
@@ -105,9 +106,10 @@ export function createItemsRenderer({
           : 0;
       const label = chip.querySelector(".chip-prob-label");
       if (label) {
-        label.textContent = `Вероятность: ${
-          probability >= 10 ? probability.toFixed(0) : probability.toFixed(1)
-        }%`;
+        label.textContent = t("randomizer.items.probability", {
+          percent:
+            probability >= 10 ? probability.toFixed(0) : probability.toFixed(1),
+        });
       }
       const bar = chip.querySelector(".chip-prob-bar");
       if (bar) {
@@ -149,10 +151,10 @@ export function createItemsRenderer({
       empty.className = "placeholder";
       const message = document.createElement("p");
       message.textContent = isSearching
-        ? "По запросу ничего не найдено. Очистите поиск или добавьте варианты."
+        ? t("randomizer.items.empty.search")
         : onlyFav
-          ? "Нет избранных элементов. Отметьте ★ нужные варианты."
-          : "Пока нет вариантов. Добавьте несколько элементов.";
+          ? t("randomizer.items.empty.favorites")
+          : t("randomizer.items.empty.default");
       empty.appendChild(message);
 
       const actions = document.createElement("div");
@@ -161,13 +163,13 @@ export function createItemsRenderer({
       sampleBtn.type = "button";
       sampleBtn.className = "btn btn-sm btn-primary";
       sampleBtn.innerHTML =
-        '<i class="fa-solid fa-list-check"></i><span>Заполнить примером</span>';
+        `<i class="fa-solid fa-list-check"></i><span>${t("randomizer.items.sample")}</span>`;
       sampleBtn.addEventListener("click", () => onRequestSample?.());
       const pasteBtn = document.createElement("button");
       pasteBtn.type = "button";
       pasteBtn.className = "btn btn-sm btn-ghost";
       pasteBtn.innerHTML =
-        '<i class="fa-solid fa-paste"></i><span>Импорт из буфера</span>';
+        `<i class="fa-solid fa-paste"></i><span>${t("randomizer.items.paste")}</span>`;
       pasteBtn.addEventListener("click", () => onRequestPaste?.());
       actions.append(sampleBtn, pasteBtn);
       empty.appendChild(actions);
@@ -193,7 +195,7 @@ export function createItemsRenderer({
       const dragHandle = document.createElement("button");
       dragHandle.type = "button";
       dragHandle.className = "chip-drag-handle";
-      dragHandle.setAttribute("aria-label", "Перетащить вариант");
+      dragHandle.setAttribute("aria-label", t("randomizer.items.drag"));
       dragHandle.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
       const dragEnabled = !!canDrag();
       dragHandle.draggable = dragEnabled;
@@ -238,18 +240,20 @@ export function createItemsRenderer({
       statWrap.className = "chip-stats";
       const hitsEl = document.createElement("span");
       hitsEl.className = "chip-stat";
-      hitsEl.textContent = `Выпадений: ${getItemHits(item)}`;
+      hitsEl.textContent = t("randomizer.items.hits", {
+        count: getItemHits(item),
+      });
       const inPoolCount = poolCounts[item.value] || 0;
       const isDepleted = settings?.noRepeat && inPoolCount === 0;
       const misses = getItemMisses(item);
       const poolEl = document.createElement("span");
       poolEl.className = "chip-stat";
       poolEl.textContent = settings.noRepeat
-        ? `В пуле: ${inPoolCount}`
-        : "В пуле: ∞";
+        ? t("randomizer.items.pool", { count: inPoolCount })
+        : t("randomizer.items.pool.infinity");
       const missesEl = document.createElement("span");
       missesEl.className = "chip-stat";
-      missesEl.textContent = `Не выпадал: ${misses}`;
+      missesEl.textContent = t("randomizer.items.misses", { count: misses });
       const rareThreshold = getRareStreak();
       if (!isDepleted && misses >= rareThreshold) {
         missesEl.classList.add("rare");
@@ -262,9 +266,10 @@ export function createItemsRenderer({
           : 0;
       const probLabel = document.createElement("span");
       probLabel.className = "chip-stat chip-prob-label";
-      probLabel.textContent = `Вероятность: ${
-        probability >= 10 ? probability.toFixed(0) : probability.toFixed(1)
-      }%`;
+      probLabel.textContent = t("randomizer.items.probability", {
+        percent:
+          probability >= 10 ? probability.toFixed(0) : probability.toFixed(1),
+      });
 
       const probTrack = document.createElement("div");
       probTrack.className = "chip-prob-track";
@@ -287,7 +292,7 @@ export function createItemsRenderer({
       toggleDetails.type = "button";
       toggleDetails.className = "chip-toggle-details";
       toggleDetails.innerHTML =
-        '<span>Подробнее</span><i class="fa-solid fa-chevron-down"></i>';
+        `<span>${t("randomizer.items.details")}</span><i class="fa-solid fa-chevron-down"></i>`;
       toggleDetails.addEventListener("click", (event) => {
         event.stopPropagation();
         const expanded = chip.classList.toggle("is-expanded");
@@ -320,7 +325,10 @@ export function createItemsRenderer({
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "chip-remove";
-      remove.setAttribute("aria-label", `Удалить ${item.value}`);
+      remove.setAttribute(
+        "aria-label",
+        t("randomizer.items.remove", { name: item.value }),
+      );
       remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
       remove.addEventListener("click", () => {
         onRemoveSelected(new Set([item.value]), { silent: true });
@@ -331,7 +339,7 @@ export function createItemsRenderer({
       const favBtn = document.createElement("button");
       favBtn.type = "button";
       favBtn.className = "chip-quick-btn";
-      favBtn.setAttribute("aria-label", "Избранное");
+      favBtn.setAttribute("aria-label", t("randomizer.items.favorite"));
       const favIcon = document.createElement("i");
       favIcon.className = item.favorite
         ? "fa-solid fa-star"
@@ -351,7 +359,7 @@ export function createItemsRenderer({
       const excludeBtn = document.createElement("button");
       excludeBtn.type = "button";
       excludeBtn.className = "chip-quick-btn";
-      excludeBtn.setAttribute("aria-label", "Исключить из пула");
+      excludeBtn.setAttribute("aria-label", t("randomizer.items.exclude"));
       const excludeIcon = document.createElement("i");
       excludeIcon.className = item.excluded
         ? "fa-solid fa-eye-slash"

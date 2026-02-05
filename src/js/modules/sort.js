@@ -5,6 +5,7 @@ import { state } from "./state.js";
 import { sortButton } from "./domElements.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js"; // или ./filterAndSortHistory.js
 import { updateDeleteSelectedButton } from "./history.js";
+import { t } from "./i18n.js";
 
 /**
  * Обработчик клика на кнопку сортировки
@@ -41,7 +42,9 @@ function updateSortIcon() {
 
   sortIcon.classList.add(iconClass);
 
-  const tooltipText = isAscending ? "Старые сверху" : "Новые сверху";
+  const tooltipText = isAscending
+    ? t("history.sort.asc")
+    : t("history.sort.desc");
 
   const tooltipInstance = bootstrap.Tooltip.getInstance(sortButton);
   if (tooltipInstance) {
