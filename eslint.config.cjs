@@ -2,7 +2,7 @@ const globals = require("globals");
 
 module.exports = [
   {
-    ignores: ["dist/**", "node_modules/**", ".obsidian/**"],
+    ignores: ["dist/**", "node_modules/**", ".obsidian/**", "assets/vendor/**"],
   },
   {
     files: ["**/*.{js,cjs,mjs}"],
@@ -13,11 +13,20 @@ module.exports = [
         ...globals.browser,
         ...globals.node,
         ...globals.jest,
+        bootstrap: "readonly",
       },
     },
     rules: {
-      "no-unused-vars": "warn",
-      "no-undef": "warn",
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+      "no-undef": "error",
     },
   },
   {

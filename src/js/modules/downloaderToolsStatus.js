@@ -1,6 +1,5 @@
 // src/js/modules/downloaderToolsStatus.js
 
-import { showToast } from "./toast.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { summarizeToolsState } from "./toolsInfo.js";
 import { openSettingsWithTab } from "./settingsModal.js";

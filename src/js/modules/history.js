@@ -6,11 +6,7 @@ import {
   historyCards,
   historyCardsEmpty,
   totalDownloads,
-  iconFilterSearch,
-  refreshButton,
   filterInput,
-  clearHistoryButton,
-  sortButton,
   openHistoryButton,
   urlInput,
   downloadButton,
@@ -590,7 +586,7 @@ async function openHistorySourceLink(url) {
   }
 }
 
-function showFilterInput() {
+function _showFilterInput() {
   filterInput.classList.remove("hidden");
   filterInput.style.display = "block";
 }
@@ -1129,9 +1125,7 @@ function createLogEntry(entry, index) {
   if (!entry.dateText) console.warn("⚠️ Нет dateText у записи:", entry);
   if (entry.isMissing) el.classList.add("missing");
 
-  const format = entry.format || "";
   const formattedSize = entry.formattedSize ? ` ${entry.formattedSize}` : "";
-  const formatInfo = `${format}${formattedSize}`;
   // Host badge + audio-only flag
   let host = "";
   let hostClass = "";
@@ -1516,7 +1510,7 @@ document
     updateRestoreButton();
   });
 
-function attachOpenFolderListeners() {
+function _attachOpenFolderListeners() {
   const folderButtons = document.querySelectorAll(".open-folder-btn");
   folderButtons.forEach((btn) => {
     const logEntry = btn.closest(".log-entry");

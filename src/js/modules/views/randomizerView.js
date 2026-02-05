@@ -138,7 +138,6 @@ export default function renderRandomizerView() {
   const state = createRandomizerState(storage);
   let items;
   let presets;
-  let history;
   let settings;
   let pool;
   let currentPresetName;
@@ -179,7 +178,6 @@ export default function renderRandomizerView() {
     ({
       items,
       presets,
-      history,
       settings,
       pool,
       currentPresetName,
@@ -1137,11 +1135,6 @@ export default function renderRandomizerView() {
     state.persistItems(options);
     syncState();
     updateVisuals();
-  };
-
-  const persistHistory = () => {
-    state.persistHistory();
-    syncState();
   };
 
   const persistSettings = () => {

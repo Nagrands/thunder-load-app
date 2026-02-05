@@ -2,11 +2,7 @@
 
 const { spawn } = require("node:child_process");
 const fs = require("fs");
-const {
-  getEffectiveToolsDir,
-  resolveToolPath,
-  getExecName,
-} = require("./toolsPaths");
+const { getEffectiveToolsDir, resolveToolPath } = require("./toolsPaths");
 
 /**
  * Run a binary with args and return its first line of stdout (or null).

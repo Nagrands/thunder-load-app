@@ -142,7 +142,7 @@ function switchState(name) {
   if (el) el.style.display = "block";
 }
 
-function showAvailable(message) {
+function showAvailable(_message) {
   const fly = ensureFlyover();
   fly.style.display = "block";
   requestAnimationFrame(() => fly.classList.add("is-visible"));
@@ -285,7 +285,7 @@ function initUpdateHandler() {
 
   // Подстраховка: закрытие старых модалок при любых кликах на их крестики
   document.querySelectorAll(".close-modal").forEach((button) => {
-    button.addEventListener("click", (event) => {
+  button.addEventListener("click", (_event) => {
       const modal = button.closest(".modal-overlay");
       if (modal) {
         hideUpdateProgressBar();
@@ -310,7 +310,7 @@ function initUpdateHandler() {
  * Функция для отображения модального окна с предложением загрузить обновление.
  * @param {string} message - Сообщение для пользователя.
  */
-function showUpdateAvailableModal(message) {
+function _showUpdateAvailableModal(message) {
   const modal = document.getElementById("update-available-modal");
   if (modal) {
     const modalBody = modal.querySelector(".modal-body p");
@@ -344,7 +344,7 @@ function showUpdateAvailableModal(message) {
 /**
  * Функция для отображения модального окна после загрузки обновления.
  */
-function showUpdateDownloadedModal() {
+function _showUpdateDownloadedModal() {
   const modal = document.getElementById("update-downloaded-modal");
   if (modal) {
     hideUpdateProgressBar();
@@ -402,7 +402,7 @@ function updateProgressBar(percent) {
  * Функция для отображения уведомления об ошибке.
  * @param {string} error - Сообщение об ошибке.
  */
-function showErrorNotification(error) {
+function _showErrorNotification(error) {
   const modal = document.getElementById("update-error-modal");
   const errorMessage = document.getElementById("update-error-message");
 

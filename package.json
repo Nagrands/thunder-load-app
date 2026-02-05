@@ -21,7 +21,7 @@
     "templates:build": "node scripts/build-templates.mjs",
     "templates:watch": "nodemon --watch templates --ext njk --exec \"npm run templates:build\"",
     "format": "prettier --write .",
-    "lint": "eslint . --ext .js,.cjs,.mjs",
+    "lint": "eslint . --ext .js,.cjs,.mjs --max-warnings 0",
     "check": "npm run lint && npm test",
     "dist": "electron-builder --publish always",
     "release:patch": "npm version patch -m \"chore(release): %s\" && git push && git push --tags",

@@ -31,7 +31,7 @@ function updateDownloaderTabLabel() {
     if (!label) return;
     const count = (state.isDownloading ? 1 : 0) + state.downloadQueue.length;
     label.textContent = count > 0 ? `Downloader (${count})` : "Downloader";
-  } catch (e) {
+  } catch (_e) {
     // no-op
   }
 }
@@ -120,7 +120,7 @@ function summarizeEnqueueResult(res) {
   return parts.join(", ");
 }
 
-function enqueueMany(urls, quality, options = {}) {
+function enqueueMany(urls, quality, _options = {}) {
   const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
   const existing = new Set(
     state.downloadQueue.map((it) => normalizeUrl(it.url)),

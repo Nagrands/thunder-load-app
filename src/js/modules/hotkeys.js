@@ -20,15 +20,6 @@ const MODIFIERS = {
   META: "Meta",
 };
 
-const MAC_DISPLAY = {
-  Ctrl: "⌃",
-  Shift: "⇧",
-  Alt: "⌥",
-  Meta: "⌘",
-};
-
-const isMac = navigator.platform.toUpperCase().includes("MAC");
-
 import {
   downloadButton,
   openFolderButton,

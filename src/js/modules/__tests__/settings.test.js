@@ -22,7 +22,6 @@ const { TextEncoder, TextDecoder } = require("util");
 global.TextEncoder = global.TextEncoder || TextEncoder;
 global.TextDecoder = global.TextDecoder || TextDecoder;
 
-const { JSDOM } = require("jsdom");
 let settingsModule;
 
 describe("updateModuleBadge", () => {

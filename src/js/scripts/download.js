@@ -43,7 +43,6 @@ const {
   ensureToolsDir,
   resolveToolPath,
 } = require("../app/toolsPaths");
-const ElectronStore = require("electron-store").default;
 
 // Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
 
@@ -1015,12 +1014,14 @@ async function installFfmpeg(token = null) {
       // На всякий случай, выставим права на бинарники ещё раз (даже если копировали вручную или ffmpeg уже был)
       if (process.platform !== "win32") {
         try {
+          const ffmpegPath = getFfmpegPath();
+          const ffprobePath = getFfprobePath();
           await fs.promises.chmod(ffmpegPath, 0o755);
           if (fs.existsSync(ffprobePath)) {
             await fs.promises.chmod(ffprobePath, 0o755);
           }
-        } catch (err) {
-          log.error("chmod failed:", err);
+        } catch (_err) {
+          log.error("chmod failed:", _err);
         }
       }
     } else if (process.platform === "darwin") {
@@ -1124,7 +1125,7 @@ async function installFfmpeg(token = null) {
         log.info(
           "ffmpeg binary downloaded and chmod applied (macOS fallback).",
         );
-      } catch (err) {
+      } catch (_err) {
         log.warn("Failed to download ffmpeg. Trying fallback from Homebrew...");
         const brewPath = "/opt/homebrew/bin/ffmpeg";
         if (fs.existsSync(brewPath)) {

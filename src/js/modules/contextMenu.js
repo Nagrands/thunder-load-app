@@ -176,7 +176,7 @@ async function handleContextMenuClick(event) {
   if (!menuItem || !currentLogEntry) return;
 
   const action = menuItem.id;
-  const { filePath, sourceUrl, fileName } = getEntryData(currentLogEntry);
+  const { filePath } = getEntryData(currentLogEntry);
 
   try {
     switch (action) {

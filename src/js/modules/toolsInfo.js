@@ -417,8 +417,6 @@ export async function renderToolsInfo() {
   /** @type {HTMLElement|null} */
   const hintEl = document.getElementById("tools-hint");
   /** @type {HTMLElement|null} */
-  const statusEl = document.getElementById("tools-status");
-  /** @type {HTMLElement|null} */
   const statusCardsEl = document.getElementById("tools-status-cards");
   /** @type {HTMLElement|null} */
   const summaryDotEl = document.getElementById("tools-summary-dot");
@@ -426,8 +424,6 @@ export async function renderToolsInfo() {
   const summaryStatusEl = document.getElementById("tools-summary-status");
   /** @type {HTMLElement|null} */
   const summaryBadgeEl = document.getElementById("tools-summary-badge");
-  /** @type {HTMLElement|null} */
-  const panelEl = document.getElementById("tools-panel");
 
   const setSummaryState = (state = "neutral", text = "") => {
     const dotClass = ["tools-panel__dot", `tools-panel__dot--${state}`]
@@ -788,9 +784,9 @@ export async function renderToolsInfo() {
           applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
           primaryBtn.setAttribute("aria-busy", "true");
           // визуальный индикатор загрузки
+          let dots; // анимация «…»
           try {
             primaryBtn.disabled = true;
-            let dots; // анимация «…»
             dots = startDotsAnimator(primaryLabel, "Скачиваю");
             await window.electron?.tools?.installAll?.();
             await renderToolsInfo();
@@ -828,6 +824,7 @@ export async function renderToolsInfo() {
                 return;
               }
               const prevText = primaryLabel.textContent;
+              let dots;
               try {
                 isInstalling = true;
                 applyNetworkState(
@@ -839,7 +836,6 @@ export async function renderToolsInfo() {
                 primaryBtn.setAttribute("aria-busy", "true");
                 primaryBtn.disabled = true;
                 if (forceBtn) forceBtn.disabled = true;
-                let dots;
                 dots = startDotsAnimator(primaryLabel, "Скачиваю");
                 await window.electron?.tools?.installAll?.();
                 await renderToolsInfo();
@@ -1046,9 +1042,9 @@ export async function renderToolsInfo() {
                   return;
                 }
                 const prevText2 = primaryLabel.textContent;
+                let dots2;
                 try {
                   primaryBtn.disabled = true;
-                  let dots2;
                   dots2 = startDotsAnimator(primaryLabel, "Скачиваю");
                   if (updateBoth) {
                     await window.electron?.tools?.updateYtDlp?.();

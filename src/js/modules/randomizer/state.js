@@ -7,9 +7,7 @@ import {
   normalizeItems,
   normalizePresets,
   clampWeight,
-  clampMisses,
   clampRareThreshold,
-  RARE_STREAK,
 } from "./helpers.js";
 
 const STORAGE_KEYS = {
@@ -23,7 +21,7 @@ const STORAGE_KEYS = {
 };
 
 export function createRandomizerState(storage) {
-  const { readJson, saveJson, readText, writeText, hasKey, setItem } = storage;
+  const { readJson, saveJson, readText, hasKey, setItem } = storage;
 
   const clampSpinSeconds = (value) =>
     Math.min(60, Math.max(0, Number(value ?? 0.4)));

@@ -3,7 +3,6 @@
 import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
-import { showToast } from "./toast.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -94,7 +93,6 @@ function initUrlInputHandler() {
         // дождёмся отрисовки и измерим высоту карточки
         requestAnimationFrame(() => {
           const vH = window.innerHeight;
-          const cRect = container.getBoundingClientRect();
           const wRect = wrap.getBoundingClientRect();
           const cardH = card.offsetHeight || 110;
           const margin = 24;

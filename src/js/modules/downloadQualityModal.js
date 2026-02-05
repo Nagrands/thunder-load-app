@@ -70,10 +70,6 @@ const extractHeight = (fmt) => {
 
 const sortScore = (fmt) => {
   let score = 0;
-  const hosts = {
-    premiumyoutubekidsclient: -2,
-    ytmusic: -1,
-  };
   if (fmt?.downloader_options?.http_chunk_size) score -= 0.5;
   if (Array.isArray(fmt?.downloader_options?.http_headers)) {
     const host = fmt.downloader_options.http_headers
@@ -208,7 +204,7 @@ function describeFormat(format) {
   return parts.join(" • ").trim();
 }
 
-function collectFormats(info, videoUrl) {
+function collectFormats(info) {
   const formats = Array.isArray(info?.formats) ? info.formats : [];
   const muxed = [];
   const videoOnly = [];

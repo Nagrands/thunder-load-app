@@ -27,6 +27,22 @@ import { getLowEffects, setLowEffects } from "./effectsMode.js";
 let toolsInfoRendered = false;
 let toolsRenderPromise = null;
 
+async function ensureToolsInfo(force = false) {
+  if (toolsRenderPromise) return toolsRenderPromise;
+  if (toolsInfoRendered && !force) return null;
+  toolsRenderPromise = renderToolsInfo()
+    .then(() => {
+      toolsInfoRendered = true;
+    })
+    .catch((e) => {
+      console.error("[settings] renderToolsInfo failed:", e);
+    })
+    .finally(() => {
+      toolsRenderPromise = null;
+    });
+  return toolsRenderPromise;
+}
+
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 const QUALITY_PROFILE_DEFAULT = "remember"; // remember | best | audio
 
@@ -789,7 +805,7 @@ async function initSettings() {
     // Bootstrap событие переключения вкладок
     document.addEventListener(
       "shown.bs.tab",
-      (e) => {
+      (_e) => {
         // если переключились в/из WG — обновим видимость
         syncRowVisibility();
       },
@@ -1182,22 +1198,6 @@ async function initSettings() {
     });
   }
   // === /WG Unlock: авто‑закрытие ===
-
-  async function ensureToolsInfo(force = false) {
-    if (toolsRenderPromise) return toolsRenderPromise;
-    if (toolsInfoRendered && !force) return null;
-    toolsRenderPromise = renderToolsInfo()
-      .then(() => {
-        toolsInfoRendered = true;
-      })
-      .catch((e) => {
-        console.error("[settings] renderToolsInfo failed:", e);
-      })
-      .finally(() => {
-        toolsRenderPromise = null;
-      });
-    return toolsRenderPromise;
-  }
 
   // Обновлять блок версий только при открытии настроек
   window.electron.on("open-settings", async () => {

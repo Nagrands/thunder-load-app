@@ -8,7 +8,6 @@ const {
   Tray,
   Menu,
   shell,
-  Notification,
   ipcMain,
   nativeImage,
 } = require("electron");
@@ -16,7 +15,6 @@ const windowStateKeeper = require("electron-window-state");
 const { showTrayNotification } = require("./notifications.js");
 
 let windowTray = null;
-let isQuitting = false;
 const isMac = process.platform === "darwin";
 
 // Helper to load a NativeImage from a list of candidate paths
@@ -37,11 +35,11 @@ function createWindow(
   app,
   store,
   downloadPath,
-  getAppVersion,
-  ytDlpPath,
-  ffmpegPath,
-  ffprobePath,
-  fileExists,
+  _getAppVersion,
+  _ytDlpPath,
+  _ffmpegPath,
+  _ffprobePath,
+  _fileExists,
 ) {
   const mainWindowState = windowStateKeeper({
     defaultWidth: 1280,
@@ -146,7 +144,6 @@ function createWindow(
         store.set("isCloseNotificationShown", true);
       }
     } else {
-      isQuitting = true;
       app.quit();
     }
   });
@@ -160,7 +157,7 @@ function createWindow(
   });
 
   ipcMain.on("window-close", () => {
-    isQuitting = true;
+    app.isQuitting = true;
     mainWindow.close();
   });
 

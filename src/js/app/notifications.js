@@ -1,6 +1,6 @@
 // notifications.js (src/js/app/notifications.js)
 
-const { Notification } = require("electron");
+const { Notification, shell } = require("electron");
 const path = require("path");
 
 function showTrayNotification(message) {

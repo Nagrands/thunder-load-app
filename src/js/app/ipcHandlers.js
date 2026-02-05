@@ -13,8 +13,6 @@ const { CHANNELS } = require("../ipc/channels");
 
 const { getToolsVersions } = require("./toolsVersions");
 const fs = require("fs");
-const ElectronStore = require("electron-store").default;
-const store = new ElectronStore();
 const fsPromises = fs.promises;
 const path = require("path");
 const log = require("electron-log");
@@ -85,22 +83,6 @@ function isValidFilePath(filePath) {
   return isValid;
 }
 
-/**
- * Создаёт резервную копию файла перед удалением
- * @param {string} filePath - Путь к файлу
- * @param {string} baseDir - Базовая директория для хранения резервных копий
- * @returns {Promise<void>}
- */
-async function backupFile(filePath, baseDir) {
-  const backupDir = path.join(baseDir, "backup");
-  await fsPromises.mkdir(backupDir, { recursive: true });
-  const fileName = path.basename(filePath);
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupPath = path.join(backupDir, `${timestamp}-${fileName}`);
-  await fsPromises.copyFile(filePath, backupPath);
-  log.info(`Резервная копия создана: ${backupPath}`);
-}
-
 function setupIpcHandlers(dependencies) {
   console.log("setupIpcHandlers called"); // ← должен появиться в devtools (main)
   const {
@@ -111,7 +93,6 @@ function setupIpcHandlers(dependencies) {
     setDownloadPath,
     historyFilePath,
     previewCacheDir,
-    fsCache,
     iconCache,
     clipboardMonitor,
     setupGlobalShortcuts,
@@ -308,7 +289,7 @@ function setupIpcHandlers(dependencies) {
     store.set("defaultTab", tabId),
   );
 
-  ipcMain.handle(CHANNELS.GET_WHATS_NEW, async (event) => {
+  ipcMain.handle(CHANNELS.GET_WHATS_NEW, async (_event) => {
     try {
       const whatsNewPath = path.join(
         app.getAppPath(),
@@ -823,7 +804,6 @@ function setupIpcHandlers(dependencies) {
         opts && (opts.noCache || opts.forceFetch) ? `?t=${Date.now()}` : "";
       // --- yt-dlp latest (with fallbacks) ---
       let ytLatest = null;
-      let ytUnknownLatest = false;
       try {
         const ytrel = await fetchJson(
           `https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest${ts}`,
@@ -847,9 +827,7 @@ function setupIpcHandlers(dependencies) {
             ytLatest = normalizeYtDlpVersion(tags[0]?.name);
           }
         }
-        if (!ytLatest) ytUnknownLatest = true;
       } catch (e) {
-        ytUnknownLatest = true;
         log.warn("yt-dlp latest fetch failed:", e.message || e);
       }
 
@@ -1630,7 +1608,7 @@ function setupIpcHandlers(dependencies) {
     try {
       await fsPromises.access(filePath);
       return true;
-    } catch (error) {
+    } catch (_error) {
       // log.warn(`The file does not exist: ${filePath}`);
       return false;
     }

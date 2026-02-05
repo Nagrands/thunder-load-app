@@ -19,7 +19,7 @@ export function createItemsRenderer({
   onUpdateVisuals,
   onSelectToggle,
   onRemoveSelected,
-  onReplaceItem,
+  onReplaceItem: _onReplaceItem,
   onMoveItem,
   onSyncWeight,
   onStartInlineEdit,

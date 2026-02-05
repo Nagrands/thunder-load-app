@@ -96,7 +96,6 @@ function setupGlobalShortcuts(mainWindow) {
     return;
   }
 
-  const isWindows = process.platform === "win32";
   const isMac = isMacPlatform;
 
   // Получаем пользовательские горячие клавиши и URL-адреса из настроек

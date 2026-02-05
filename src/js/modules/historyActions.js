@@ -2,16 +2,12 @@
 
 import {
   clearHistoryButton,
-  history,
-  iconFilterSearch,
   refreshButton,
   filterInput,
   clearFilterInputButton,
-  sortButton,
 } from "./domElements.js";
 import {
   loadHistory,
-  getHistoryData,
   renderHistory,
   updateDownloadCount,
   updateDeleteSelectedButton,

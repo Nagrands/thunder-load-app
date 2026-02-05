@@ -1,7 +1,5 @@
 // src/js/modules/fontSizeManager.js
 
-const FONT_SIZE_KEY = "fontSize";
-
 async function setFontSize(size) {
   // Гарантируем обновление localStorage до любых других действий
   localStorage.setItem("fontSize", size);

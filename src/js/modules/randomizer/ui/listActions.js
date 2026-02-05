@@ -1,13 +1,13 @@
 // src/js/modules/randomizer/ui/listActions.js
 
 export function wireListActions({
-  listActions,
+  listActions: _listActions,
   exportButton,
   bulkDeleteButton,
   clearButton,
   getItems,
   getSelected,
-  onExport,
+  onExport: _onExport,
   onBulkDelete,
   onClear,
   showToast,

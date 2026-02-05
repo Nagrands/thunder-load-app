@@ -3,7 +3,7 @@
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 const path = require("path");
-const { ipcMain, Notification, app } = require("electron");
+const { Notification, app } = require("electron");
 
 const isMac = process.platform === "darwin";
 const iconPath = path.resolve(
@@ -47,7 +47,7 @@ function setupAutoUpdater(mainWindow) {
   });
 
   // Обработчик события, когда обновление не доступно
-  autoUpdater.on("update-not-available", (info) => {
+  autoUpdater.on("update-not-available", (_info) => {
     mainWindow.webContents.send("update-message", "Обновлений не найдено.");
   });
 

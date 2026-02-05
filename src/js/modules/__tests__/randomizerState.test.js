@@ -2,7 +2,6 @@ import { createRandomizerState } from "../randomizer/state.js";
 import {
   DEFAULT_ITEMS,
   DEFAULT_PRESET_NAME,
-  normalizeItems,
 } from "../randomizer/helpers.js";
 
 const createMockStorage = () => {

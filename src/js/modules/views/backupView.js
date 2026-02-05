@@ -2,7 +2,6 @@
 
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
-import { initTooltips } from "../tooltipInitializer.js";
 
 /**
  * @typedef {Object} BackupProgram
@@ -622,7 +621,7 @@ export default function renderBackup() {
   };
 
   const archiveSelectUI = enhanceSelect(archiveFilterSelect);
-  const pageSizeSelectUI = enhanceSelect(pageSizeSelect);
+  const _pageSizeSelectUI = enhanceSelect(pageSizeSelect);
 
   if (filterInput) {
     filterInput.addEventListener(
@@ -1560,7 +1559,7 @@ export default function renderBackup() {
   }
 
   // Функция запуска профиля по индексу (используется в компактном режиме)
-  function runProfile(idx) {
+  function _runProfile(idx) {
     runForIndices([idx]);
   }
 
@@ -2847,7 +2846,7 @@ export default function renderBackup() {
         a.remove();
       }, 0);
       toast("Файл лога сохранён");
-    } catch (e) {
+    } catch (_e) {
       toast("Не удалось сохранить файл", "error");
     }
   });
