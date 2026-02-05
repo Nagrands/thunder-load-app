@@ -7,77 +7,127 @@
         aria-labelledby="shortcuts-title"
       >
         <div class="shortcuts-modal-content">
-          <button class="close" aria-label="Закрыть">&times;</button>
+          <button class="close" aria-label="Закрыть" data-i18n-aria="modal.close">
+            &times;
+          </button>
           <h2 id="shortcuts-title">
-            <i class="far fa-keyboard"></i> Горячие клавиши
+            <i class="far fa-keyboard"></i>
+            <span data-i18n="modal.shortcuts">Горячие клавиши</span>
           </h2>
           <details class="spoiler" open>
-            <summary><i class="fas fa-chevron-right"></i> Основные</summary>
+            <summary>
+              <i class="fas fa-chevron-right"></i>
+              <span data-i18n="shortcuts.main">Основные</span>
+            </summary>
             <ul class="main-hotkeys">
               <hr />
               <li>
                 <strong>Ctrl + P</strong>
-                <p><i class="far fa-keyboard"></i> Горячие клавиши</p>
+                <p>
+                  <i class="far fa-keyboard"></i>
+                  <span data-i18n="shortcuts.openShortcuts"
+                    >Горячие клавиши</span
+                  >
+                </p>
               </li>
               <li>
                 <strong>Ctrl + ,</strong>
-                <p><i class="fa-solid fa-gear"></i> Настройки</p>
+                <p>
+                  <i class="fa-solid fa-gear"></i>
+                  <span data-i18n="shortcuts.openSettings">Настройки</span>
+                </p>
               </li>
               <li>
                 <strong>Ctrl + T</strong>
-                <p><i class="fa-solid fa-toggle-on"></i> Переключить тему</p>
+                <p>
+                  <i class="fa-solid fa-toggle-on"></i>
+                  <span data-i18n="shortcuts.toggleTheme"
+                    >Переключить тему</span
+                  >
+                </p>
               </li>
               <hr />
               <li>
                 <strong>Ctrl + 1</strong>
-                <p><i class="fa-solid fa-download"></i> Вкладка «Downloader»</p>
+                <p>
+                  <i class="fa-solid fa-download"></i>
+                  <span data-i18n="shortcuts.tab.downloader"
+                    >Вкладка «Downloader»</span
+                  >
+                </p>
               </li>
               <li>
                 <strong>Ctrl + 2</strong>
                 <p>
-                  <i class="fa-solid fa-unlock-keyhole"></i> Вкладка «WG Unlock»
+                  <i class="fa-solid fa-unlock-keyhole"></i>
+                  <span data-i18n="shortcuts.tab.wg">Вкладка «WG Unlock»</span>
                 </p>
               </li>
               <li>
                 <strong>Ctrl + 3</strong>
-                <p><i class="fa-solid fa-box-archive"></i> Вкладка «Backup»</p>
+                <p>
+                  <i class="fa-solid fa-box-archive"></i>
+                  <span data-i18n="shortcuts.tab.backup"
+                    >Вкладка «Backup»</span
+                  >
+                </p>
               </li>
             <li>
               <strong>Ctrl + 4</strong>
-              <p><i class="fa-solid fa-shuffle"></i> Вкладка «Randomizer»</p>
+              <p>
+                <i class="fa-solid fa-shuffle"></i>
+                <span data-i18n="shortcuts.tab.randomizer"
+                  >Вкладка «Randomizer»</span
+                >
+              </p>
             </li>
             <hr />
             <li>
               <strong>Ctrl + H</strong>
               <p>
-                <i class="fa-solid fa-clock-rotate-left"></i> История загрузок
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span data-i18n="shortcuts.history">История загрузок</span>
               </p>
               </li>
               <li>
                 <strong>Ctrl + K</strong>
                 <p>
-                  <i class="fa-regular fa-folder-open"></i> Папка с загрузками
+                  <i class="fa-regular fa-folder-open"></i>
+                  <span data-i18n="shortcuts.downloadsFolder"
+                    >Папка с загрузками</span
+                  >
                 </p>
               </li>
               <li
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
                 title="При наличии ссылки в поле ввода URL"
+                data-i18n-title="shortcuts.downloadHint"
               >
                 <strong>Ctrl + D</strong>
-                <p><i class="fas fa-download"></i> Начать скачивание</p>
+                <p>
+                  <i class="fas fa-download"></i>
+                  <span data-i18n="shortcuts.startDownload"
+                    >Начать скачивание</span
+                  >
+                </p>
               </li>
               <li>
                 <strong>Ctrl + L</strong>
                 <p>
-                  <i class="fa-solid fa-circle-play"></i> Последнее загруженное
-                  видео
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span data-i18n="shortcuts.lastVideo"
+                    >Последнее загруженное видео</span
+                  >
                 </p>
               </li>
               <li>
                 <strong>Ctrl + M</strong>
                 <p>
-                  <i class="fas fa-trash-alt"></i> Очистить историю загрузок
+                  <i class="fas fa-trash-alt"></i>
+                  <span data-i18n="shortcuts.clearHistory"
+                    >Очистить историю загрузок</span
+                  >
                 </p>
               </li>
             </ul>
@@ -85,10 +135,13 @@
 
           <details class="spoiler">
             <summary>
-              <i class="fas fa-chevron-right"></i> Специальные клавиши
+              <i class="fas fa-chevron-right"></i>
+              <span data-i18n="shortcuts.special">Специальные клавиши</span>
             </summary>
             <ul class="additional-hotkeys">
-              <span class="short-info">Открытие сайтов</span>
+              <span class="short-info" data-i18n="shortcuts.openSites"
+                >Открытие сайтов</span
+              >
               <hr />
               <li>
                 <strong>Ctrl + Shift + 1</strong>

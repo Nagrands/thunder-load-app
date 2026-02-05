@@ -36,11 +36,18 @@ This document describes a consistent, safe, and repeatable flow for project impr
 - Split into meaningful commits (lint/refactor separate from features).
 - Commit messages: short `type: summary`.
 
-## 8. Final Verification
+## 8. Review Order
+1. Automated checks: `npm run lint`, `npm test`.
+2. Diff review: security, regressions, UX impact.
+3. Manual UI check (key flows + accessibility).
+4. Docs and `whatsNew.md` if user-facing changes were made.
+5. Only then approve/merge.
+
+## 9. Final Verification
 - Review the diff for regressions.
 - Ensure `npm run lint` and `npm test` pass.
 
-## 9. Next Steps (Optional)
+## 10. Next Steps (Optional)
 - Create a release note.
 - Plan the next improvement.
 

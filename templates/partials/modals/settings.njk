@@ -8,54 +8,69 @@
         style="display: none"
       >
         <div class="settings-modal-content">
-          <button class="close-settings" aria-label="Закрыть настройки">
+          <button
+            class="close-settings"
+            aria-label="Закрыть настройки"
+            data-i18n-aria="modal.close"
+          >
             &times;
           </button>
           <h1 id="settings-title">
-            <i class="fa-solid fa-gear"></i> Настройки
+            <i class="fa-solid fa-gear"></i>
+            <span data-i18n="modal.settings">Настройки</span>
           </h1>
 
           <div class="settings-layout">
             <!-- Tab Navigation -->
             <div class="settings-tabs">
               <!-- <div class="tab-navigation"> -->
-              <button class="tab-link active" data-tab="general-settings">
-                <i class="fa-solid fa-house"></i>Общие
+              <button
+                class="tab-link active"
+                data-tab="general-settings"
+              >
+                <i class="fa-solid fa-house"></i>
+                <span data-i18n="settings.tabs.general">Общие</span>
               </button>
               <button class="tab-link" data-tab="window-settings">
-                <i class="fa-solid fa-download"></i>Downloader
+                <i class="fa-solid fa-download"></i>
+                <span data-i18n="settings.tabs.downloader">Downloader</span>
               </button>
               <button class="tab-link" data-tab="wgunlock-settings">
-                <i class="fa-solid fa-unlock-keyhole"></i>WG Unlock
+                <i class="fa-solid fa-unlock-keyhole"></i>
+                <span data-i18n="settings.tabs.wg">WG Unlock</span>
                 <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
-                  Выкл
+                  <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
               <button class="tab-link" data-tab="backup-settings">
-                <i class="fa-solid fa-box-archive"></i>Backup
+                <i class="fa-solid fa-box-archive"></i>
+                <span data-i18n="settings.tabs.backup">Backup</span>
                 <span
                   class="tab-badge tab-badge-off"
                   id="tab-badge-backup"
                   hidden
                 >
-                  Выкл
+                  <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
               <button class="tab-link" data-tab="randomizer-settings">
-                <i class="fa-solid fa-shuffle"></i>Randomizer
+                <i class="fa-solid fa-shuffle"></i>
+                <span data-i18n="settings.tabs.randomizer">Randomizer</span>
                 <span
                   class="tab-badge tab-badge-off"
                   id="tab-badge-randomizer"
                   hidden
                 >
-                  Выкл
+                  <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
               <button class="tab-link" data-tab="appearance-settings">
-                <i class="fa-solid fa-palette"></i>Внешний вид
+                <i class="fa-solid fa-palette"></i>
+                <span data-i18n="settings.tabs.appearance">Внешний вид</span>
               </button>
               <button class="tab-link" data-tab="other-settings">
-                <i class="fa-solid fa-wrench"></i>Другое
+                <i class="fa-solid fa-wrench"></i>
+                <span data-i18n="settings.tabs.other">Другое</span>
               </button>
               <!-- </div> -->
               <div class="tabs-footer">
@@ -441,6 +456,22 @@
               <div id="appearance-settings" class="tab-pane">
                 <h2>Внешний вид приложения</h2>
                 <ul class="module">
+                  <li class="custom-theme-select">
+                    <label for="settings-language-select">
+                      <i class="fa-solid fa-language"></i>
+                      <span data-i18n="language.label">Язык интерфейса</span>
+                    </label>
+                    <select
+                      id="settings-language-select"
+                      class="settings-select"
+                    >
+                      <option value="ru" data-i18n="language.ru">Русский</option>
+                      <option value="en" data-i18n="language.en">
+                        English
+                      </option>
+                    </select>
+                  </li>
+
                   <li class="custom-theme-select">
                     <label for="theme-dropdown-btn">
                       <i class="fa-solid fa-brush"></i>

@@ -1,13 +1,22 @@
       <!-- Context Menu -->
-      <nav id="context-menu" class="context-menu" aria-label="Контекстное меню">
+      <nav
+        id="context-menu"
+        class="context-menu"
+        aria-label="Контекстное меню"
+        data-i18n-aria="context.menu"
+      >
         <ul>
           <li id="open-video">
             <div class="cm-icon">
               <i class="fa-solid fa-circle-play"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Открыть видео</span>
-              <span class="cm-desc">Воспроизвести файл</span>
+              <span class="cm-title" data-i18n="context.openVideo"
+                >Открыть видео</span
+              >
+              <span class="cm-desc" data-i18n="context.openVideoDesc"
+                >Воспроизвести файл</span
+              >
             </div>
           </li>
           <li id="open-folderc">
@@ -15,8 +24,12 @@
               <i class="fa-regular fa-folder-open"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Открыть папку</span>
-              <span class="cm-desc">Показать расположение файла</span>
+              <span class="cm-title" data-i18n="context.openFolder"
+                >Открыть папку</span
+              >
+              <span class="cm-desc" data-i18n="context.openFolderDesc"
+                >Показать расположение файла</span
+              >
             </div>
           </li>
           <li id="open-site">
@@ -24,8 +37,12 @@
               <i class="fa-solid fa-link"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Открыть сайт</span>
-              <span class="cm-desc">Перейти на источник загрузки</span>
+              <span class="cm-title" data-i18n="context.openSite"
+                >Открыть сайт</span
+              >
+              <span class="cm-desc" data-i18n="context.openSiteDesc"
+                >Перейти на источник загрузки</span
+              >
             </div>
           </li>
           <li id="delete-entry">
@@ -33,8 +50,12 @@
               <i class="fa-regular fa-calendar-xmark"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Удалить запись</span>
-              <span class="cm-desc">Убрать строку из истории</span>
+              <span class="cm-title" data-i18n="context.deleteEntry"
+                >Удалить запись</span
+              >
+              <span class="cm-desc" data-i18n="context.deleteEntryDesc"
+                >Убрать строку из истории</span
+              >
             </div>
           </li>
           <li id="delete-file">
@@ -42,8 +63,12 @@
               <i class="fa-solid fa-trash"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Удалить файл</span>
-              <span class="cm-desc">Удалить физически с диска</span>
+              <span class="cm-title" data-i18n="context.deleteFile"
+                >Удалить файл</span
+              >
+              <span class="cm-desc" data-i18n="context.deleteFileDesc"
+                >Удалить физически с диска</span
+              >
             </div>
           </li>
           <li id="retry-download">
@@ -51,8 +76,12 @@
               <i class="fa-solid fa-arrow-rotate-right"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Повторить загрузку</span>
-              <span class="cm-desc">Добавить ссылку снова</span>
+              <span class="cm-title" data-i18n="context.retry"
+                >Повторить загрузку</span
+              >
+              <span class="cm-desc" data-i18n="context.retryDesc"
+                >Добавить ссылку снова</span
+              >
             </div>
           </li>
         </ul>

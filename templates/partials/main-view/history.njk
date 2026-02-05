@@ -3,18 +3,29 @@
   <div class="history-cards-area" aria-live="polite">
     <div class="history-cards-header">
       <div>
-        <p class="history-cards-subtitle">Недавние загрузки</p>
-        <h3 class="history-cards-title">История</h3>
+        <p class="history-cards-subtitle" data-i18n="history.subtitle">
+          Недавние загрузки
+        </p>
+        <h3 class="history-cards-title" data-i18n="history.title">История</h3>
       </div>
       <div class="history-cards-search history-actions">
         <div class="history-search-wrapper history-input-wrapper">
           <i id="icon-filter-search" class="fas fa-search search-icon"></i>
-          <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+          <input
+            type="text"
+            id="filter-input"
+            placeholder="Поиск по истории"
+            aria-label="Поиск по истории"
+            data-i18n-placeholder="history.search.placeholder"
+            data-i18n-aria="history.search.aria"
+          />
           <button
             id="clear-filter-input"
             class="history-action-button"
             aria-label="Очистить поиск"
             data-hint="Сбросить поисковый запрос"
+            data-i18n-aria="history.search.clear"
+            data-i18n-hint="history.search.clearHint"
           >
             &times;
           </button>
@@ -27,8 +38,11 @@
                 id="history-source-filter"
                 class="history-filter-select"
                 aria-label="Фильтр по источнику"
+                data-i18n-aria="history.filter.source"
               >
-                <option value="">Все источники</option>
+                <option value="" data-i18n="history.filter.source.all">
+                  Все источники
+                </option>
               </select>
             </div>
             <div class="history-filter-pill">
@@ -37,8 +51,11 @@
                 id="history-quality-filter"
                 class="history-filter-select"
                 aria-label="Фильтр по качеству"
+                data-i18n-aria="history.filter.quality"
               >
-                <option value="">Любое качество</option>
+                <option value="" data-i18n="history.filter.quality.all">
+                  Любое качество
+                </option>
               </select>
             </div>
           </div>
@@ -47,6 +64,8 @@
             class="history-action-button"
             aria-label="Обновить список"
             data-hint="Обновить список"
+            data-i18n-aria="history.refresh"
+            data-i18n-hint="history.refresh"
           >
             <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
@@ -55,6 +74,8 @@
             class="history-action-button"
             aria-label="Сортировка"
             data-hint="Сменить порядок сортировки"
+            data-i18n-aria="history.sort"
+            data-i18n-hint="history.sortHint"
           >
             <i class="fa-solid"></i>
           </button>
@@ -63,6 +84,8 @@
             class="history-action-button"
             aria-label="Очистить историю"
             data-hint="Очистить всю историю"
+            data-i18n-aria="history.clear"
+            data-i18n-hint="history.clearHint"
           >
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -71,6 +94,8 @@
             class="history-action-button hidden"
             aria-label="Удалить выбранные записи"
             data-hint="Удалить выбранные"
+            data-i18n-aria="history.deleteSelected"
+            data-i18n-hint="history.deleteSelected"
           >
             <i class="fa-solid fa-trash-can"></i>
           </button>
@@ -79,6 +104,8 @@
             class="history-action-button"
             aria-label="Восстановить удалённые записи"
             data-hint="Восстановить удалённые"
+            data-i18n-aria="history.restore"
+            data-i18n-hint="history.restore"
           >
             <i class="fa-solid fa-rotate-left"></i>
           </button>
@@ -87,6 +114,8 @@
             class="history-action-button"
             aria-label="Экспорт в JSON"
             data-hint="Экспорт в JSON"
+            data-i18n-aria="history.exportJson"
+            data-i18n-hint="history.exportJson"
           >
             <i class="fa-solid fa-file-code"></i>
           </button>
@@ -95,6 +124,8 @@
             class="history-action-button"
             aria-label="Экспорт в CSV"
             data-hint="Экспорт в CSV"
+            data-i18n-aria="history.exportCsv"
+            data-i18n-hint="history.exportCsv"
           >
             <i class="fa-solid fa-file-csv"></i>
           </button>
@@ -103,6 +134,8 @@
             class="history-action-button"
             aria-label="Количество записей"
             data-hint="Количество записей"
+            data-i18n-aria="history.count"
+            data-i18n-hint="history.count"
           >
             <span id="total-downloads">0</span>
           </button>
@@ -111,7 +144,7 @@
     </div>
     <div id="history" role="list"></div>
     <div id="history-cards" class="history-card-grid" role="list"></div>
-    <div id="history-cards-empty" class="history-cards-empty">
+    <div id="history-cards-empty" class="history-cards-empty" data-i18n="history.empty">
       Список пуст
     </div>
   </div>

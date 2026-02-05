@@ -56,6 +56,7 @@ import { initWgAutoShutdownNotifier } from "./modules/wgAutoShutdownNotifier.js"
 import { initializeTheme } from "./modules/themeManager.js";
 import { initializeFontSize } from "./modules/fontSizeManager.js";
 import { initLowEffectsFromStore } from "./modules/effectsMode.js";
+import { initI18n, applyI18n, t } from "./modules/i18n.js";
 
 async function applyPlatformClass() {
   try {
@@ -78,6 +79,8 @@ async function startRenderer() {
     console.log("[Startup] Bootstrap loaded:", !!window.bootstrap);
     initLowEffectsFromStore();
     applyPlatformClass();
+    initI18n();
+    document.title = t("app.title");
     await initializeTheme();
     await initializeFontSize();
 
@@ -137,12 +140,13 @@ async function startRenderer() {
 
     tabs.addTab(
       "download",
-      "Downloader",
+      t("tabs.download"),
       "fa-solid fa-download",
       () => {
         // Build "glass" layout for downloader from existing elements once
         renderDownloaderView(downloaderWrapper);
         initDownloaderToolsStatus();
+        applyI18n(downloaderWrapper);
         return downloaderWrapper;
       },
       { onShow: () => showHistory(true), onHide: () => showHistory(false) },
@@ -150,12 +154,13 @@ async function startRenderer() {
 
     tabs.addTab(
       "wireguard",
-      "WG Unlock",
+      t("tabs.wireguard"),
       "fa-solid fa-unlock-keyhole",
       () => {
         if (!wireguardWrapper.hasChildNodes()) {
           wireguardWrapper.appendChild(renderWireGuard());
         }
+        applyI18n(wireguardWrapper);
         return wireguardWrapper;
       },
       { onShow: () => showHistory(false), onHide: () => showHistory(true) },
@@ -163,12 +168,13 @@ async function startRenderer() {
 
     tabs.addTab(
       "backup",
-      "Backup",
+      t("tabs.backup"),
       "fa-solid fa-box-archive",
       () => {
         if (!backupWrapper.hasChildNodes()) {
           backupWrapper.appendChild(renderBackup());
         }
+        applyI18n(backupWrapper);
         return backupWrapper;
       },
       { onShow: () => showHistory(false), onHide: () => showHistory(true) },
@@ -176,12 +182,13 @@ async function startRenderer() {
 
     tabs.addTab(
       "randomizer",
-      "Randomizer",
+      t("tabs.randomizer"),
       "fa-solid fa-shuffle",
       () => {
         if (!randomizerWrapper.hasChildNodes()) {
           randomizerWrapper.appendChild(renderRandomizerView());
         }
+        applyI18n(randomizerWrapper);
         return randomizerWrapper;
       },
       { onShow: () => showHistory(false), onHide: () => showHistory(true) },
@@ -193,6 +200,15 @@ async function startRenderer() {
 
     initWgAutoShutdownNotifier({ autosend: !!cfg.autosend });
     tabs.activateTab(tabToActivate);
+
+    window.addEventListener("i18n:changed", () => {
+      applyI18n(document);
+      document.title = t("app.title");
+      tabs.setTabLabel("download", t("tabs.download"));
+      tabs.setTabLabel("wireguard", t("tabs.wireguard"));
+      tabs.setTabLabel("backup", t("tabs.backup"));
+      tabs.setTabLabel("randomizer", t("tabs.randomizer"));
+    });
 
     // Инициализация остальных модулей
     initHotkeys(tabs);

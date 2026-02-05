@@ -36,7 +36,7 @@ module.exports = [
     },
   },
   {
-    files: ["src/js/modules/**/*.js", "src/js/renderer.js"],
+    files: ["src/js/modules/**/*.js", "src/js/i18n/**/*.js", "src/js/renderer.js"],
     languageOptions: {
       sourceType: "module",
     },

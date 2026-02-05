@@ -35,6 +35,7 @@
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
           title="Версия приложения"
+          data-i18n-title="topbar.appVersion"
         >
           <i class="fas fa-bolt fa-beat-fade"></i>
           <span class="version">v<span id="app-version">?</span></span>
@@ -44,7 +45,12 @@
   </div>
 
   <div class="top-bar__center">
-    <div class="center-menu" role="tablist" aria-label="Навигация по разделам">
+    <div
+      class="center-menu"
+      role="tablist"
+      aria-label="Навигация по разделам"
+      data-i18n-aria="topbar.nav"
+    >
       <div class="group-menu"></div>
     </div>
   </div>
@@ -57,6 +63,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="История загрузок"
+        data-i18n-title="topbar.history"
         data-hotkey="Ctrl+H"
       >
         <span class="menu-main">
@@ -70,6 +77,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Горячие клавиши"
+        data-i18n-title="topbar.shortcuts"
         data-hotkey="Ctrl+P"
       >
         <span class="menu-main">
@@ -83,6 +91,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Настройки"
+        data-i18n-title="topbar.settings"
         data-hotkey="Ctrl+,"
       >
         <span class="menu-main">
@@ -96,6 +105,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Открыть репозиторий на GitHub"
+        data-i18n-title="topbar.github"
       >
         <span class="menu-main">
           <i class="fa-brands fa-github"></i>
@@ -107,6 +117,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Обновить окно"
+        data-i18n-title="topbar.reload"
         data-hotkey="Ctrl+R"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
@@ -117,11 +128,17 @@
       <button
         class="btn-minimize"
         title="Свернуть"
+        data-i18n-title="topbar.minimize"
         onclick="window.electron.minimize()"
       >
         <i class="fas fa-window-minimize"></i>
       </button>
-      <button class="btn-close" title="Закрыть" onclick="window.electron.close()">
+      <button
+        class="btn-close"
+        title="Закрыть"
+        data-i18n-title="topbar.close"
+        onclick="window.electron.close()"
+      >
         <i class="fas fa-times"></i>
       </button>
     </div>
@@ -139,7 +156,7 @@
   <div id="app-preloader">
   <div class="preloader-icon">
     <i class="fas fa-bolt fa-beat-fade"></i>
-    <div class="preloader-text">Загрузка…</div>
+    <div class="preloader-text" data-i18n="preloader.loading">Загрузка…</div>
   </div>
 </div>
 
@@ -155,34 +172,40 @@
         id="url"
         placeholder="Введите URL видео или аудио"
         aria-label="Введите URL видео или аудио"
+        data-i18n-placeholder="input.url.placeholder"
+        data-i18n-aria="input.url.aria"
       />
       <div class="button-grid">
         <button
           id="paste-url"
-          class="paste-button hidden"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Вставить из буфера"
-        >
+        class="paste-button hidden"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Вставить из буфера"
+        data-i18n-title="input.paste"
+      >
           <i class="fas fa-paste"></i>
         </button>
         <button
           id="clear-url"
-          class="clear-button hidden"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Очистить"
-        >
+        class="clear-button hidden"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Очистить"
+        data-i18n-title="input.clear"
+      >
           &times;
         </button>
         <button
           id="select-folder"
-          class="folder-button"
-          aria-label="Выбор папки"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Выбор папки"
-        >
+        class="folder-button"
+        aria-label="Выбор папки"
+        data-i18n-aria="input.folder"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Выбор папки"
+        data-i18n-title="input.folder"
+      >
           <i class="fas fa-folder-open"></i>
         </button>
       </div>
@@ -216,16 +239,22 @@
 </header>
 
   <!-- Группа кнопок -->
-<nav class="button-group" aria-label="Основные действия">
+<nav
+  class="button-group"
+  aria-label="Основные действия"
+  data-i18n-aria="actions.primary"
+>
   <!-- Кнопка открытия последнего видео -->
   <button
     id="open-last-video"
     class="small-button btn btn-sm btn-secondary"
     aria-label="Открыть последнее скачанное видео"
+    data-i18n-aria="actions.openLast"
     disabled
     data-bs-toggle="tooltip"
     data-bs-placement="top"
     title="Последнее видео"
+    data-i18n-title="actions.lastVideo"
   >
     <i class="fa fa-play" aria-hidden="true"></i>
   </button>
@@ -235,19 +264,21 @@
     <!-- Кнопка скачивания -->
     <button id="download-button" class="large-button btn btn-lg btn-primary" disabled aria-disabled="true">
       <i class="fas fa-download"></i>
-      <span class="button-text">Скачать</span>
+      <span class="button-text" data-i18n="actions.download">Скачать</span>
     </button>
 
     <!-- Кнопка отмены скачивания -->
     <button
       id="download-cancel"
       class="small-button btn btn-sm btn-danger"
-      aria-label="Отменить скачивание"
-      disabled
-      data-bs-toggle="tooltip"
-      data-bs-placement="top"
-      title="Отменить скачивание"
-    >
+    aria-label="Отменить скачивание"
+    data-i18n-aria="actions.cancelDownload"
+    disabled
+    data-bs-toggle="tooltip"
+    data-bs-placement="top"
+    title="Отменить скачивание"
+    data-i18n-title="actions.cancelDownload"
+  >
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
@@ -257,9 +288,11 @@
     id="open-folder"
     class="small-button btn btn-sm btn-secondary"
     aria-label="Открыть папку с видео"
+    data-i18n-aria="actions.openFolder"
     data-bs-toggle="tooltip"
     data-bs-placement="top"
     title="Папка с видео"
+    data-i18n-title="actions.videoFolder"
   >
     <i class="fa-regular fa-folder-open"></i>
   </button>
@@ -277,13 +310,18 @@
   <div class="modal-content download-quality-content">
     <div class="quality-modal-header">
       <div>
-        <p class="quality-modal-subtitle">Загрузка</p>
-        <h3 id="download-quality-title">Выбор качества</h3>
+        <p class="quality-modal-subtitle" data-i18n="quality.subtitle">
+          Загрузка
+        </p>
+        <h3 id="download-quality-title" data-i18n="quality.title">
+          Выбор качества
+        </h3>
       </div>
       <button
         type="button"
         class="quality-modal-close"
         aria-label="Закрыть окно"
+        data-i18n-aria="quality.close"
         data-quality-close
       >
         &times;
@@ -304,8 +342,8 @@
             id="download-quality-open-source"
             class="btn-link"
           >
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть
-            источник
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span data-i18n="quality.openSource">Открыть источник</span>
           </button>
         </div>
       </div>
@@ -317,6 +355,7 @@
               type="button"
               class="quality-tab active"
               data-quality-tab="video"
+              data-i18n="quality.tab.video"
             >
               Видео + аудио
             </button>
@@ -324,11 +363,12 @@
               type="button"
               class="quality-tab"
               data-quality-tab="video-only"
+              data-i18n="quality.tab.videoOnly"
             >
               Только видео
             </button>
             <button type="button" class="quality-tab" data-quality-tab="audio">
-              Только аудио
+              <span data-i18n="quality.tab.audio">Только аудио</span>
             </button>
           </div>
           <button
@@ -337,12 +377,14 @@
             class="quality-best-link"
           >
             <i class="fa-solid fa-bullseye"></i>
-            Максимальное качество
+            <span data-i18n="quality.best">Максимальное качество</span>
           </button>
         </div>
         <div id="download-quality-loading" class="quality-loading">
           <i class="fa-solid fa-spinner fa-spin"></i>
-          Загрузка доступных форматов...
+          <span data-i18n="quality.loading"
+            >Загрузка доступных форматов...</span
+          >
         </div>
         <div
           id="download-quality-error"
@@ -351,7 +393,9 @@
           aria-live="assertive"
         >
           <div class="quality-error-text">
-            Не удалось получить информацию о видео.
+            <span data-i18n="quality.error"
+              >Не удалось получить информацию о видео.</span
+            >
           </div>
           <button
             type="button"
@@ -359,11 +403,13 @@
             class="quality-retry-btn"
           >
             <i class="fa-solid fa-rotate-right"></i>
-            Повторить
+            <span data-i18n="quality.retry">Повторить</span>
           </button>
         </div>
         <div id="download-quality-empty" class="quality-empty hidden">
-          Нет вариантов для выбранного режима.
+          <span data-i18n="quality.empty"
+            >Нет вариантов для выбранного режима.</span
+          >
         </div>
         <div
           id="download-quality-options"
@@ -377,13 +423,16 @@
     <div class="quality-modal-footer">
       <div class="quality-hint">
         <i class="fa-regular fa-circle-question"></i>
-        Двойной клик по варианту сразу начнёт загрузку.
+        <span data-i18n="quality.hint"
+          >Двойной клик по варианту сразу начнёт загрузку.</span
+        >
       </div>
       <div class="quality-actions">
         <button
           type="button"
           id="download-quality-cancel"
           class="btn-ghost"
+          data-i18n="quality.cancel"
         >
           Отмена
         </button>
@@ -392,6 +441,7 @@
           id="download-quality-confirm"
           class="btn-primary"
           disabled
+          data-i18n="quality.confirm"
         >
           Скачать выбранное
         </button>
@@ -413,18 +463,29 @@
   <div class="history-cards-area" aria-live="polite">
     <div class="history-cards-header">
       <div>
-        <p class="history-cards-subtitle">Недавние загрузки</p>
-        <h3 class="history-cards-title">История</h3>
+        <p class="history-cards-subtitle" data-i18n="history.subtitle">
+          Недавние загрузки
+        </p>
+        <h3 class="history-cards-title" data-i18n="history.title">История</h3>
       </div>
       <div class="history-cards-search history-actions">
         <div class="history-search-wrapper history-input-wrapper">
           <i id="icon-filter-search" class="fas fa-search search-icon"></i>
-          <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+          <input
+            type="text"
+            id="filter-input"
+            placeholder="Поиск по истории"
+            aria-label="Поиск по истории"
+            data-i18n-placeholder="history.search.placeholder"
+            data-i18n-aria="history.search.aria"
+          />
           <button
             id="clear-filter-input"
             class="history-action-button"
             aria-label="Очистить поиск"
             data-hint="Сбросить поисковый запрос"
+            data-i18n-aria="history.search.clear"
+            data-i18n-hint="history.search.clearHint"
           >
             &times;
           </button>
@@ -437,8 +498,11 @@
                 id="history-source-filter"
                 class="history-filter-select"
                 aria-label="Фильтр по источнику"
+                data-i18n-aria="history.filter.source"
               >
-                <option value="">Все источники</option>
+                <option value="" data-i18n="history.filter.source.all">
+                  Все источники
+                </option>
               </select>
             </div>
             <div class="history-filter-pill">
@@ -447,8 +511,11 @@
                 id="history-quality-filter"
                 class="history-filter-select"
                 aria-label="Фильтр по качеству"
+                data-i18n-aria="history.filter.quality"
               >
-                <option value="">Любое качество</option>
+                <option value="" data-i18n="history.filter.quality.all">
+                  Любое качество
+                </option>
               </select>
             </div>
           </div>
@@ -457,6 +524,8 @@
             class="history-action-button"
             aria-label="Обновить список"
             data-hint="Обновить список"
+            data-i18n-aria="history.refresh"
+            data-i18n-hint="history.refresh"
           >
             <i class="fa-solid fa-arrow-rotate-right"></i>
           </button>
@@ -465,6 +534,8 @@
             class="history-action-button"
             aria-label="Сортировка"
             data-hint="Сменить порядок сортировки"
+            data-i18n-aria="history.sort"
+            data-i18n-hint="history.sortHint"
           >
             <i class="fa-solid"></i>
           </button>
@@ -473,6 +544,8 @@
             class="history-action-button"
             aria-label="Очистить историю"
             data-hint="Очистить всю историю"
+            data-i18n-aria="history.clear"
+            data-i18n-hint="history.clearHint"
           >
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -481,6 +554,8 @@
             class="history-action-button hidden"
             aria-label="Удалить выбранные записи"
             data-hint="Удалить выбранные"
+            data-i18n-aria="history.deleteSelected"
+            data-i18n-hint="history.deleteSelected"
           >
             <i class="fa-solid fa-trash-can"></i>
           </button>
@@ -489,6 +564,8 @@
             class="history-action-button"
             aria-label="Восстановить удалённые записи"
             data-hint="Восстановить удалённые"
+            data-i18n-aria="history.restore"
+            data-i18n-hint="history.restore"
           >
             <i class="fa-solid fa-rotate-left"></i>
           </button>
@@ -497,6 +574,8 @@
             class="history-action-button"
             aria-label="Экспорт в JSON"
             data-hint="Экспорт в JSON"
+            data-i18n-aria="history.exportJson"
+            data-i18n-hint="history.exportJson"
           >
             <i class="fa-solid fa-file-code"></i>
           </button>
@@ -505,6 +584,8 @@
             class="history-action-button"
             aria-label="Экспорт в CSV"
             data-hint="Экспорт в CSV"
+            data-i18n-aria="history.exportCsv"
+            data-i18n-hint="history.exportCsv"
           >
             <i class="fa-solid fa-file-csv"></i>
           </button>
@@ -513,6 +594,8 @@
             class="history-action-button"
             aria-label="Количество записей"
             data-hint="Количество записей"
+            data-i18n-aria="history.count"
+            data-i18n-hint="history.count"
           >
             <span id="total-downloads">0</span>
           </button>
@@ -521,7 +604,7 @@
     </div>
     <div id="history" role="list"></div>
     <div id="history-cards" class="history-card-grid" role="list"></div>
-    <div id="history-cards-empty" class="history-cards-empty">
+    <div id="history-cards-empty" class="history-cards-empty" data-i18n="history.empty">
       Список пуст
     </div>
   </div>
@@ -546,12 +629,20 @@
               </div>
               <div>
                 <p id="confirmation-subtitle" class="confirmation-subtitle">
-                  Подтверждение
+                  <span data-i18n="modal.confirm.title">Подтверждение</span>
                 </p>
-                <h2 id="confirmation-title">Подтверждение действия</h2>
+                <h2 id="confirmation-title" data-i18n="modal.confirm.actionTitle">
+                  Подтверждение действия
+                </h2>
               </div>
             </div>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body confirmation-body">
             <div
@@ -567,6 +658,9 @@
               data-bs-placement="top"
               title="Отмена"
               aria-label="Отмена"
+              data-i18n-title="modal.confirm.cancel"
+              data-i18n-aria="modal.confirm.cancel"
+              data-i18n="modal.confirm.cancel"
             >
               Отмена
             </button>
@@ -576,6 +670,9 @@
               data-bs-placement="top"
               title="Подтвердить"
               aria-label="Подтвердить"
+              data-i18n-title="modal.confirm.ok"
+              data-i18n-aria="modal.confirm.ok"
+              data-i18n="modal.confirm.ok"
             >
               Подтвердить
             </button>
@@ -593,54 +690,69 @@
         style="display: none"
       >
         <div class="settings-modal-content">
-          <button class="close-settings" aria-label="Закрыть настройки">
+          <button
+            class="close-settings"
+            aria-label="Закрыть настройки"
+            data-i18n-aria="modal.close"
+          >
             &times;
           </button>
           <h1 id="settings-title">
-            <i class="fa-solid fa-gear"></i> Настройки
+            <i class="fa-solid fa-gear"></i>
+            <span data-i18n="modal.settings">Настройки</span>
           </h1>
 
           <div class="settings-layout">
             <!-- Tab Navigation -->
             <div class="settings-tabs">
               <!-- <div class="tab-navigation"> -->
-              <button class="tab-link active" data-tab="general-settings">
-                <i class="fa-solid fa-house"></i>Общие
+              <button
+                class="tab-link active"
+                data-tab="general-settings"
+              >
+                <i class="fa-solid fa-house"></i>
+                <span data-i18n="settings.tabs.general">Общие</span>
               </button>
               <button class="tab-link" data-tab="window-settings">
-                <i class="fa-solid fa-download"></i>Downloader
+                <i class="fa-solid fa-download"></i>
+                <span data-i18n="settings.tabs.downloader">Downloader</span>
               </button>
               <button class="tab-link" data-tab="wgunlock-settings">
-                <i class="fa-solid fa-unlock-keyhole"></i>WG Unlock
+                <i class="fa-solid fa-unlock-keyhole"></i>
+                <span data-i18n="settings.tabs.wg">WG Unlock</span>
                 <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
-                  Выкл
+                  <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
               <button class="tab-link" data-tab="backup-settings">
-                <i class="fa-solid fa-box-archive"></i>Backup
+                <i class="fa-solid fa-box-archive"></i>
+                <span data-i18n="settings.tabs.backup">Backup</span>
                 <span
                   class="tab-badge tab-badge-off"
                   id="tab-badge-backup"
                   hidden
                 >
-                  Выкл
+                  <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
               <button class="tab-link" data-tab="randomizer-settings">
-                <i class="fa-solid fa-shuffle"></i>Randomizer
+                <i class="fa-solid fa-shuffle"></i>
+                <span data-i18n="settings.tabs.randomizer">Randomizer</span>
                 <span
                   class="tab-badge tab-badge-off"
                   id="tab-badge-randomizer"
                   hidden
                 >
-                  Выкл
+                  <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
               <button class="tab-link" data-tab="appearance-settings">
-                <i class="fa-solid fa-palette"></i>Внешний вид
+                <i class="fa-solid fa-palette"></i>
+                <span data-i18n="settings.tabs.appearance">Внешний вид</span>
               </button>
               <button class="tab-link" data-tab="other-settings">
-                <i class="fa-solid fa-wrench"></i>Другое
+                <i class="fa-solid fa-wrench"></i>
+                <span data-i18n="settings.tabs.other">Другое</span>
               </button>
               <!-- </div> -->
               <div class="tabs-footer">
@@ -1027,6 +1139,22 @@
                 <h2>Внешний вид приложения</h2>
                 <ul class="module">
                   <li class="custom-theme-select">
+                    <label for="settings-language-select">
+                      <i class="fa-solid fa-language"></i>
+                      <span data-i18n="language.label">Язык интерфейса</span>
+                    </label>
+                    <select
+                      id="settings-language-select"
+                      class="settings-select"
+                    >
+                      <option value="ru" data-i18n="language.ru">Русский</option>
+                      <option value="en" data-i18n="language.en">
+                        English
+                      </option>
+                    </select>
+                  </li>
+
+                  <li class="custom-theme-select">
                     <label for="theme-dropdown-btn">
                       <i class="fa-solid fa-brush"></i>
                       <span>Цветовая тема</span>
@@ -1156,15 +1284,24 @@
       </div>
 
         <!-- Context Menu -->
-      <nav id="context-menu" class="context-menu" aria-label="Контекстное меню">
+      <nav
+        id="context-menu"
+        class="context-menu"
+        aria-label="Контекстное меню"
+        data-i18n-aria="context.menu"
+      >
         <ul>
           <li id="open-video">
             <div class="cm-icon">
               <i class="fa-solid fa-circle-play"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Открыть видео</span>
-              <span class="cm-desc">Воспроизвести файл</span>
+              <span class="cm-title" data-i18n="context.openVideo"
+                >Открыть видео</span
+              >
+              <span class="cm-desc" data-i18n="context.openVideoDesc"
+                >Воспроизвести файл</span
+              >
             </div>
           </li>
           <li id="open-folderc">
@@ -1172,8 +1309,12 @@
               <i class="fa-regular fa-folder-open"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Открыть папку</span>
-              <span class="cm-desc">Показать расположение файла</span>
+              <span class="cm-title" data-i18n="context.openFolder"
+                >Открыть папку</span
+              >
+              <span class="cm-desc" data-i18n="context.openFolderDesc"
+                >Показать расположение файла</span
+              >
             </div>
           </li>
           <li id="open-site">
@@ -1181,8 +1322,12 @@
               <i class="fa-solid fa-link"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Открыть сайт</span>
-              <span class="cm-desc">Перейти на источник загрузки</span>
+              <span class="cm-title" data-i18n="context.openSite"
+                >Открыть сайт</span
+              >
+              <span class="cm-desc" data-i18n="context.openSiteDesc"
+                >Перейти на источник загрузки</span
+              >
             </div>
           </li>
           <li id="delete-entry">
@@ -1190,8 +1335,12 @@
               <i class="fa-regular fa-calendar-xmark"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Удалить запись</span>
-              <span class="cm-desc">Убрать строку из истории</span>
+              <span class="cm-title" data-i18n="context.deleteEntry"
+                >Удалить запись</span
+              >
+              <span class="cm-desc" data-i18n="context.deleteEntryDesc"
+                >Убрать строку из истории</span
+              >
             </div>
           </li>
           <li id="delete-file">
@@ -1199,8 +1348,12 @@
               <i class="fa-solid fa-trash"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Удалить файл</span>
-              <span class="cm-desc">Удалить физически с диска</span>
+              <span class="cm-title" data-i18n="context.deleteFile"
+                >Удалить файл</span
+              >
+              <span class="cm-desc" data-i18n="context.deleteFileDesc"
+                >Удалить физически с диска</span
+              >
             </div>
           </li>
           <li id="retry-download">
@@ -1208,8 +1361,12 @@
               <i class="fa-solid fa-arrow-rotate-right"></i>
             </div>
             <div class="cm-text">
-              <span class="cm-title">Повторить загрузку</span>
-              <span class="cm-desc">Добавить ссылку снова</span>
+              <span class="cm-title" data-i18n="context.retry"
+                >Повторить загрузку</span
+              >
+              <span class="cm-desc" data-i18n="context.retryDesc"
+                >Добавить ссылку снова</span
+              >
             </div>
           </li>
         </ul>
@@ -1224,77 +1381,127 @@
         aria-labelledby="shortcuts-title"
       >
         <div class="shortcuts-modal-content">
-          <button class="close" aria-label="Закрыть">&times;</button>
+          <button class="close" aria-label="Закрыть" data-i18n-aria="modal.close">
+            &times;
+          </button>
           <h2 id="shortcuts-title">
-            <i class="far fa-keyboard"></i> Горячие клавиши
+            <i class="far fa-keyboard"></i>
+            <span data-i18n="modal.shortcuts">Горячие клавиши</span>
           </h2>
           <details class="spoiler" open>
-            <summary><i class="fas fa-chevron-right"></i> Основные</summary>
+            <summary>
+              <i class="fas fa-chevron-right"></i>
+              <span data-i18n="shortcuts.main">Основные</span>
+            </summary>
             <ul class="main-hotkeys">
               <hr />
               <li>
                 <strong>Ctrl + P</strong>
-                <p><i class="far fa-keyboard"></i> Горячие клавиши</p>
+                <p>
+                  <i class="far fa-keyboard"></i>
+                  <span data-i18n="shortcuts.openShortcuts"
+                    >Горячие клавиши</span
+                  >
+                </p>
               </li>
               <li>
                 <strong>Ctrl + ,</strong>
-                <p><i class="fa-solid fa-gear"></i> Настройки</p>
+                <p>
+                  <i class="fa-solid fa-gear"></i>
+                  <span data-i18n="shortcuts.openSettings">Настройки</span>
+                </p>
               </li>
               <li>
                 <strong>Ctrl + T</strong>
-                <p><i class="fa-solid fa-toggle-on"></i> Переключить тему</p>
+                <p>
+                  <i class="fa-solid fa-toggle-on"></i>
+                  <span data-i18n="shortcuts.toggleTheme"
+                    >Переключить тему</span
+                  >
+                </p>
               </li>
               <hr />
               <li>
                 <strong>Ctrl + 1</strong>
-                <p><i class="fa-solid fa-download"></i> Вкладка «Downloader»</p>
+                <p>
+                  <i class="fa-solid fa-download"></i>
+                  <span data-i18n="shortcuts.tab.downloader"
+                    >Вкладка «Downloader»</span
+                  >
+                </p>
               </li>
               <li>
                 <strong>Ctrl + 2</strong>
                 <p>
-                  <i class="fa-solid fa-unlock-keyhole"></i> Вкладка «WG Unlock»
+                  <i class="fa-solid fa-unlock-keyhole"></i>
+                  <span data-i18n="shortcuts.tab.wg">Вкладка «WG Unlock»</span>
                 </p>
               </li>
               <li>
                 <strong>Ctrl + 3</strong>
-                <p><i class="fa-solid fa-box-archive"></i> Вкладка «Backup»</p>
+                <p>
+                  <i class="fa-solid fa-box-archive"></i>
+                  <span data-i18n="shortcuts.tab.backup"
+                    >Вкладка «Backup»</span
+                  >
+                </p>
               </li>
             <li>
               <strong>Ctrl + 4</strong>
-              <p><i class="fa-solid fa-shuffle"></i> Вкладка «Randomizer»</p>
+              <p>
+                <i class="fa-solid fa-shuffle"></i>
+                <span data-i18n="shortcuts.tab.randomizer"
+                  >Вкладка «Randomizer»</span
+                >
+              </p>
             </li>
             <hr />
             <li>
               <strong>Ctrl + H</strong>
               <p>
-                <i class="fa-solid fa-clock-rotate-left"></i> История загрузок
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span data-i18n="shortcuts.history">История загрузок</span>
               </p>
               </li>
               <li>
                 <strong>Ctrl + K</strong>
                 <p>
-                  <i class="fa-regular fa-folder-open"></i> Папка с загрузками
+                  <i class="fa-regular fa-folder-open"></i>
+                  <span data-i18n="shortcuts.downloadsFolder"
+                    >Папка с загрузками</span
+                  >
                 </p>
               </li>
               <li
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
                 title="При наличии ссылки в поле ввода URL"
+                data-i18n-title="shortcuts.downloadHint"
               >
                 <strong>Ctrl + D</strong>
-                <p><i class="fas fa-download"></i> Начать скачивание</p>
+                <p>
+                  <i class="fas fa-download"></i>
+                  <span data-i18n="shortcuts.startDownload"
+                    >Начать скачивание</span
+                  >
+                </p>
               </li>
               <li>
                 <strong>Ctrl + L</strong>
                 <p>
-                  <i class="fa-solid fa-circle-play"></i> Последнее загруженное
-                  видео
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span data-i18n="shortcuts.lastVideo"
+                    >Последнее загруженное видео</span
+                  >
                 </p>
               </li>
               <li>
                 <strong>Ctrl + M</strong>
                 <p>
-                  <i class="fas fa-trash-alt"></i> Очистить историю загрузок
+                  <i class="fas fa-trash-alt"></i>
+                  <span data-i18n="shortcuts.clearHistory"
+                    >Очистить историю загрузок</span
+                  >
                 </p>
               </li>
             </ul>
@@ -1302,10 +1509,13 @@
 
           <details class="spoiler">
             <summary>
-              <i class="fas fa-chevron-right"></i> Специальные клавиши
+              <i class="fas fa-chevron-right"></i>
+              <span data-i18n="shortcuts.special">Специальные клавиши</span>
             </summary>
             <ul class="additional-hotkeys">
-              <span class="short-info">Открытие сайтов</span>
+              <span class="short-info" data-i18n="shortcuts.openSites"
+                >Открытие сайтов</span
+              >
               <hr />
               <li>
                 <strong>Ctrl + Shift + 1</strong>
@@ -1340,11 +1550,20 @@
           <div class="whats-modal-header">
             <div class="whats-title-block">
               <h2 id="whats-new-title">
-                <i class="fa fa-question-circle" aria-hidden="true"></i> Что нового?
+                <i class="fa fa-question-circle" aria-hidden="true"></i>
+                <span data-i18n="modal.whatsNew">Что нового?</span>
               </h2>
-              <div class="whats-subtitle">Новые возможности и исправления</div>
+              <div class="whats-subtitle" data-i18n="modal.whatsNew.subtitle">
+                Новые возможности и исправления
+              </div>
             </div>
-            <button class="close-whats-new" aria-label="Закрыть">&times;</button>
+            <button
+              class="close-whats-new"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="whats-divider" aria-hidden="true"></div>
           <div id="whats-new-content"></div>
@@ -1368,18 +1587,30 @@
       >
         <div class="modal-content">
           <div class="modal-header">
-            <h2 id="update-available-title">Новое обновление</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <h2 id="update-available-title" data-i18n="update.available.title">
+              Новое обновление
+            </h2>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body">
-            <p>Доступно новое обновление. Хотите загрузить сейчас?</p>
+            <p data-i18n="update.available.body">
+              Доступно новое обновление. Хотите загрузить сейчас?
+            </p>
           </div>
           <div class="modal-footer">
             <button class="confirm-button" id="download-update-btn">
-              <i class="fa-solid fa-download"></i> Загрузить
+              <i class="fa-solid fa-download"></i>
+              <span data-i18n="update.available.download">Загрузить</span>
             </button>
             <button class="cancel-button" id="later-update-btn">
-              <i class="fa-solid fa-times"></i> Позже
+              <i class="fa-solid fa-times"></i>
+              <span data-i18n="update.available.later">Позже</span>
             </button>
           </div>
         </div>
@@ -1396,21 +1627,34 @@
       >
         <div class="modal-content">
           <div class="modal-header">
-            <h2 id="update-downloaded-title">Загрузка обновления завершена</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <h2
+              id="update-downloaded-title"
+              data-i18n="update.downloaded.title"
+            >
+              Загрузка обновления завершена
+            </h2>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body">
-            <p>
+            <p data-i18n="update.downloaded.body">
               Обновление успешно загружено. Перезапустить приложение для
               установки?
             </p>
           </div>
           <div class="modal-footer">
             <button class="confirm-button" id="restart-app-btn">
-              <i class="fa-solid fa-redo"></i> Перезапустить
+              <i class="fa-solid fa-redo"></i>
+              <span data-i18n="update.downloaded.restart">Перезапустить</span>
             </button>
             <button class="cancel-button" id="later-restart-btn">
-              <i class="fa-solid fa-times"></i> Позже
+              <i class="fa-solid fa-times"></i>
+              <span data-i18n="update.downloaded.later">Позже</span>
             </button>
           </div>
         </div>
@@ -1427,8 +1671,16 @@
       >
         <div class="modal-content">
           <div class="modal-header">
-            <h2 id="update-error-title">Ошибка обновления</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <h2 id="update-error-title" data-i18n="update.error.title">
+              Ошибка обновления
+            </h2>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body">
             <p id="update-error-message">
@@ -1437,7 +1689,8 @@
           </div>
           <div class="modal-footer">
             <button class="confirm-button" id="close-error-notification">
-              <i class="fa-solid fa-check"></i> Закрыть
+              <i class="fa-solid fa-check"></i>
+              <span data-i18n="modal.close">Закрыть</span>
             </button>
           </div>
         </div>
@@ -1445,7 +1698,9 @@
 
       <!-- Прогресс-бар обновлений -->
       <div id="update-progress-container">
-        <span id="update-progress-text">Идет загрузка обновления...</span>
+        <span id="update-progress-text" data-i18n="update.progress">
+          Идет загрузка обновления...
+        </span>
         <progress id="update-progress-bar" value="0" max="100"></progress>
       </div>
 

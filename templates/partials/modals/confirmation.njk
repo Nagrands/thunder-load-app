@@ -15,12 +15,20 @@
               </div>
               <div>
                 <p id="confirmation-subtitle" class="confirmation-subtitle">
-                  Подтверждение
+                  <span data-i18n="modal.confirm.title">Подтверждение</span>
                 </p>
-                <h2 id="confirmation-title">Подтверждение действия</h2>
+                <h2 id="confirmation-title" data-i18n="modal.confirm.actionTitle">
+                  Подтверждение действия
+                </h2>
               </div>
             </div>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body confirmation-body">
             <div
@@ -36,6 +44,9 @@
               data-bs-placement="top"
               title="Отмена"
               aria-label="Отмена"
+              data-i18n-title="modal.confirm.cancel"
+              data-i18n-aria="modal.confirm.cancel"
+              data-i18n="modal.confirm.cancel"
             >
               Отмена
             </button>
@@ -45,6 +56,9 @@
               data-bs-placement="top"
               title="Подтвердить"
               aria-label="Подтвердить"
+              data-i18n-title="modal.confirm.ok"
+              data-i18n-aria="modal.confirm.ok"
+              data-i18n="modal.confirm.ok"
             >
               Подтвердить
             </button>

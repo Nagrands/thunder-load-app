@@ -22,6 +22,7 @@ import {
 import { renderToolsInfo } from "./toolsInfo.js";
 import { showConfirmationDialog } from "./modals.js";
 import { getLowEffects, setLowEffects } from "./effectsMode.js";
+import { getLanguage, setLanguage, t } from "./i18n.js";
 
 // Lazy-render guards
 let toolsInfoRendered = false;
@@ -66,7 +67,7 @@ function updateModuleBadge(moduleKey, disabled) {
   badge.classList.toggle("tab-badge-off", isDisabled);
   btn.classList.toggle("tab-disabled", isDisabled);
   btn.dataset.disabled = isDisabled ? "1" : "0";
-  badge.textContent = isDisabled ? "Выкл" : "Вкл";
+  badge.textContent = isDisabled ? t("settings.tab.disabled") : t("settings.tab.enabled");
   badge.setAttribute(
     "aria-label",
     isDisabled ? "Вкладка отключена" : "Вкладка включена",
@@ -136,6 +137,36 @@ async function initSettings() {
       window.electron.invoke("open-config-folder");
     });
   }
+
+  // UI language selector
+  (function initLanguageSelect() {
+    const select = document.getElementById("settings-language-select");
+    if (!select) return;
+    select.value = getLanguage();
+    select.addEventListener("change", () => {
+      setLanguage(select.value);
+    });
+    window.addEventListener("i18n:changed", (e) => {
+      const next = e?.detail?.lang;
+      if (next && select.value !== next) select.value = next;
+    });
+  })();
+
+  const readBool = (key, defaultValue) => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) return defaultValue;
+      return JSON.parse(raw) === true;
+    } catch {
+      return defaultValue;
+    }
+  };
+
+  window.addEventListener("i18n:changed", () => {
+    updateModuleBadge("wg", readBool("wgUnlockDisabled", true));
+    updateModuleBadge("backup", readBool("backupDisabled", false));
+    updateModuleBadge("randomizer", readBool("randomizerDisabled", false));
+  });
 
   // Downloader: профиль качества по умолчанию
   (function initDownloadQualityProfile() {

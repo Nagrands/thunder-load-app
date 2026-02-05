@@ -1,14 +1,20 @@
 <!-- Группа кнопок -->
-<nav class="button-group" aria-label="Основные действия">
+<nav
+  class="button-group"
+  aria-label="Основные действия"
+  data-i18n-aria="actions.primary"
+>
   <!-- Кнопка открытия последнего видео -->
   <button
     id="open-last-video"
     class="small-button btn btn-sm btn-secondary"
     aria-label="Открыть последнее скачанное видео"
+    data-i18n-aria="actions.openLast"
     disabled
     data-bs-toggle="tooltip"
     data-bs-placement="top"
     title="Последнее видео"
+    data-i18n-title="actions.lastVideo"
   >
     <i class="fa fa-play" aria-hidden="true"></i>
   </button>
@@ -18,19 +24,21 @@
     <!-- Кнопка скачивания -->
     <button id="download-button" class="large-button btn btn-lg btn-primary" disabled aria-disabled="true">
       <i class="fas fa-download"></i>
-      <span class="button-text">Скачать</span>
+      <span class="button-text" data-i18n="actions.download">Скачать</span>
     </button>
 
     <!-- Кнопка отмены скачивания -->
     <button
       id="download-cancel"
       class="small-button btn btn-sm btn-danger"
-      aria-label="Отменить скачивание"
-      disabled
-      data-bs-toggle="tooltip"
-      data-bs-placement="top"
-      title="Отменить скачивание"
-    >
+    aria-label="Отменить скачивание"
+    data-i18n-aria="actions.cancelDownload"
+    disabled
+    data-bs-toggle="tooltip"
+    data-bs-placement="top"
+    title="Отменить скачивание"
+    data-i18n-title="actions.cancelDownload"
+  >
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
@@ -40,9 +48,11 @@
     id="open-folder"
     class="small-button btn btn-sm btn-secondary"
     aria-label="Открыть папку с видео"
+    data-i18n-aria="actions.openFolder"
     data-bs-toggle="tooltip"
     data-bs-placement="top"
     title="Папка с видео"
+    data-i18n-title="actions.videoFolder"
   >
     <i class="fa-regular fa-folder-open"></i>
   </button>
@@ -60,13 +70,18 @@
   <div class="modal-content download-quality-content">
     <div class="quality-modal-header">
       <div>
-        <p class="quality-modal-subtitle">Загрузка</p>
-        <h3 id="download-quality-title">Выбор качества</h3>
+        <p class="quality-modal-subtitle" data-i18n="quality.subtitle">
+          Загрузка
+        </p>
+        <h3 id="download-quality-title" data-i18n="quality.title">
+          Выбор качества
+        </h3>
       </div>
       <button
         type="button"
         class="quality-modal-close"
         aria-label="Закрыть окно"
+        data-i18n-aria="quality.close"
         data-quality-close
       >
         &times;
@@ -87,8 +102,8 @@
             id="download-quality-open-source"
             class="btn-link"
           >
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть
-            источник
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span data-i18n="quality.openSource">Открыть источник</span>
           </button>
         </div>
       </div>
@@ -100,6 +115,7 @@
               type="button"
               class="quality-tab active"
               data-quality-tab="video"
+              data-i18n="quality.tab.video"
             >
               Видео + аудио
             </button>
@@ -107,11 +123,12 @@
               type="button"
               class="quality-tab"
               data-quality-tab="video-only"
+              data-i18n="quality.tab.videoOnly"
             >
               Только видео
             </button>
             <button type="button" class="quality-tab" data-quality-tab="audio">
-              Только аудио
+              <span data-i18n="quality.tab.audio">Только аудио</span>
             </button>
           </div>
           <button
@@ -120,12 +137,14 @@
             class="quality-best-link"
           >
             <i class="fa-solid fa-bullseye"></i>
-            Максимальное качество
+            <span data-i18n="quality.best">Максимальное качество</span>
           </button>
         </div>
         <div id="download-quality-loading" class="quality-loading">
           <i class="fa-solid fa-spinner fa-spin"></i>
-          Загрузка доступных форматов...
+          <span data-i18n="quality.loading"
+            >Загрузка доступных форматов...</span
+          >
         </div>
         <div
           id="download-quality-error"
@@ -134,7 +153,9 @@
           aria-live="assertive"
         >
           <div class="quality-error-text">
-            Не удалось получить информацию о видео.
+            <span data-i18n="quality.error"
+              >Не удалось получить информацию о видео.</span
+            >
           </div>
           <button
             type="button"
@@ -142,11 +163,13 @@
             class="quality-retry-btn"
           >
             <i class="fa-solid fa-rotate-right"></i>
-            Повторить
+            <span data-i18n="quality.retry">Повторить</span>
           </button>
         </div>
         <div id="download-quality-empty" class="quality-empty hidden">
-          Нет вариантов для выбранного режима.
+          <span data-i18n="quality.empty"
+            >Нет вариантов для выбранного режима.</span
+          >
         </div>
         <div
           id="download-quality-options"
@@ -160,13 +183,16 @@
     <div class="quality-modal-footer">
       <div class="quality-hint">
         <i class="fa-regular fa-circle-question"></i>
-        Двойной клик по варианту сразу начнёт загрузку.
+        <span data-i18n="quality.hint"
+          >Двойной клик по варианту сразу начнёт загрузку.</span
+        >
       </div>
       <div class="quality-actions">
         <button
           type="button"
           id="download-quality-cancel"
           class="btn-ghost"
+          data-i18n="quality.cancel"
         >
           Отмена
         </button>
@@ -175,6 +201,7 @@
           id="download-quality-confirm"
           class="btn-primary"
           disabled
+          data-i18n="quality.confirm"
         >
           Скачать выбранное
         </button>

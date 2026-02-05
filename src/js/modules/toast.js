@@ -1,6 +1,7 @@
 // src/js/modules/toast.js
 
 import { toastContainer } from "./domElements.js";
+import { t } from "./i18n.js";
 
 /**
  * Функция для отображения уведомлений (тостов) в стиле Liquid Glass
@@ -31,9 +32,9 @@ function showToast(
     <div class="toast-content">
       ${title ? `<div class="toast-title">${title}</div>` : ""}
       <div class="toast-message">${message}</div>
-      ${onClickUndo ? '<a href="#" class="toast-undo" id="undo-action">Отменить</a>' : ""}
+      ${onClickUndo ? `<a href="#" class="toast-undo" id="undo-action">${t("toast.undo")}</a>` : ""}
     </div>
-    <button class="toast-close" aria-label="Закрыть уведомление">
+    <button class="toast-close" aria-label="${t("toast.close")}">
       <i class="fas fa-times"></i>
     </button>
     <div class="toast-progress"></div>

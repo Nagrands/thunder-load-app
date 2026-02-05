@@ -14,6 +14,7 @@
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
           title="Версия приложения"
+          data-i18n-title="topbar.appVersion"
         >
           <i class="fas fa-bolt fa-beat-fade"></i>
           <span class="version">v<span id="app-version">?</span></span>
@@ -23,7 +24,12 @@
   </div>
 
   <div class="top-bar__center">
-    <div class="center-menu" role="tablist" aria-label="Навигация по разделам">
+    <div
+      class="center-menu"
+      role="tablist"
+      aria-label="Навигация по разделам"
+      data-i18n-aria="topbar.nav"
+    >
       <div class="group-menu"></div>
     </div>
   </div>
@@ -36,6 +42,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="История загрузок"
+        data-i18n-title="topbar.history"
         data-hotkey="Ctrl+H"
       >
         <span class="menu-main">
@@ -49,6 +56,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Горячие клавиши"
+        data-i18n-title="topbar.shortcuts"
         data-hotkey="Ctrl+P"
       >
         <span class="menu-main">
@@ -62,6 +70,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Настройки"
+        data-i18n-title="topbar.settings"
         data-hotkey="Ctrl+,"
       >
         <span class="menu-main">
@@ -75,6 +84,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Открыть репозиторий на GitHub"
+        data-i18n-title="topbar.github"
       >
         <span class="menu-main">
           <i class="fa-brands fa-github"></i>
@@ -86,6 +96,7 @@
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
         title="Обновить окно"
+        data-i18n-title="topbar.reload"
         data-hotkey="Ctrl+R"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
@@ -96,11 +107,17 @@
       <button
         class="btn-minimize"
         title="Свернуть"
+        data-i18n-title="topbar.minimize"
         onclick="window.electron.minimize()"
       >
         <i class="fas fa-window-minimize"></i>
       </button>
-      <button class="btn-close" title="Закрыть" onclick="window.electron.close()">
+      <button
+        class="btn-close"
+        title="Закрыть"
+        data-i18n-title="topbar.close"
+        onclick="window.electron.close()"
+      >
         <i class="fas fa-times"></i>
       </button>
     </div>

@@ -775,6 +775,17 @@
     .dropdown-reset {
       height: 40px;
     }
+
+    .settings-select {
+      height: 40px;
+      width: 200px;
+      padding: 0 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--color-text-main);
+      outline: none;
+    }
   }
 
   // === Выпадающее меню в стиле Liquid Glass ===

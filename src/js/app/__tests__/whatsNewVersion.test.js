@@ -32,4 +32,18 @@ describe("whats-new version", () => {
 
     expect(versionRoot).toBe(versionApp);
   });
+
+  test("english whatsNew stays in sync when present", () => {
+    const root = path.resolve(__dirname, "../../../..");
+    const mdEnPath = path.join(root, "src", "info", "whatsNew.en.md");
+    if (!fs.existsSync(mdEnPath)) return;
+    const mdEn = fs.readFileSync(mdEnPath, "utf-8");
+    const versionEn = readVersionFromMarkdown(mdEn);
+
+    const mdAppPath = path.join(root, "src", "info", "whatsNew.md");
+    const mdApp = fs.readFileSync(mdAppPath, "utf-8");
+    const versionApp = readVersionFromMarkdown(mdApp);
+
+    expect(versionEn).toBe(versionApp);
+  });
 });

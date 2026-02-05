@@ -10,6 +10,7 @@ import {
   settingsModal,
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
+import { getLanguage, t } from "./i18n.js";
 const WHATSNEW_ALLOWED_TAGS = [
   "h2",
   "h3",
@@ -58,7 +59,7 @@ export const __test_sanitizeWhatsNewHtml = sanitizeWhatsNewHtml;
  */
 async function showWhatsNew(version) {
   try {
-    const data = await window.electron.invoke("get-whats-new");
+    const data = await window.electron.invoke("get-whats-new", getLanguage());
     console.log("Полученные данные для 'Что нового?':", data); // Для отладки
 
     // Проверяем, соответствует ли версия в JSON текущей версии приложения
@@ -79,7 +80,10 @@ async function showWhatsNew(version) {
       icon.setAttribute("aria-hidden", "true");
       header.appendChild(icon);
       header.insertAdjacentText("afterbegin", " "); // Добавить пробел после иконки
-      header.insertAdjacentText("beforeend", `Версия ${data.version}`);
+      header.insertAdjacentText(
+        "beforeend",
+        t("whatsnew.version", { version: data.version }),
+      );
     }
 
     // Очищаем содержимое контейнера

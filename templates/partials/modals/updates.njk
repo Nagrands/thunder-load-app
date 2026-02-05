@@ -15,18 +15,30 @@
       >
         <div class="modal-content">
           <div class="modal-header">
-            <h2 id="update-available-title">Новое обновление</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <h2 id="update-available-title" data-i18n="update.available.title">
+              Новое обновление
+            </h2>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body">
-            <p>Доступно новое обновление. Хотите загрузить сейчас?</p>
+            <p data-i18n="update.available.body">
+              Доступно новое обновление. Хотите загрузить сейчас?
+            </p>
           </div>
           <div class="modal-footer">
             <button class="confirm-button" id="download-update-btn">
-              <i class="fa-solid fa-download"></i> Загрузить
+              <i class="fa-solid fa-download"></i>
+              <span data-i18n="update.available.download">Загрузить</span>
             </button>
             <button class="cancel-button" id="later-update-btn">
-              <i class="fa-solid fa-times"></i> Позже
+              <i class="fa-solid fa-times"></i>
+              <span data-i18n="update.available.later">Позже</span>
             </button>
           </div>
         </div>
@@ -43,21 +55,34 @@
       >
         <div class="modal-content">
           <div class="modal-header">
-            <h2 id="update-downloaded-title">Загрузка обновления завершена</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <h2
+              id="update-downloaded-title"
+              data-i18n="update.downloaded.title"
+            >
+              Загрузка обновления завершена
+            </h2>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body">
-            <p>
+            <p data-i18n="update.downloaded.body">
               Обновление успешно загружено. Перезапустить приложение для
               установки?
             </p>
           </div>
           <div class="modal-footer">
             <button class="confirm-button" id="restart-app-btn">
-              <i class="fa-solid fa-redo"></i> Перезапустить
+              <i class="fa-solid fa-redo"></i>
+              <span data-i18n="update.downloaded.restart">Перезапустить</span>
             </button>
             <button class="cancel-button" id="later-restart-btn">
-              <i class="fa-solid fa-times"></i> Позже
+              <i class="fa-solid fa-times"></i>
+              <span data-i18n="update.downloaded.later">Позже</span>
             </button>
           </div>
         </div>
@@ -74,8 +99,16 @@
       >
         <div class="modal-content">
           <div class="modal-header">
-            <h2 id="update-error-title">Ошибка обновления</h2>
-            <button class="close-modal" aria-label="Закрыть">&times;</button>
+            <h2 id="update-error-title" data-i18n="update.error.title">
+              Ошибка обновления
+            </h2>
+            <button
+              class="close-modal"
+              aria-label="Закрыть"
+              data-i18n-aria="modal.close"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body">
             <p id="update-error-message">
@@ -84,7 +117,8 @@
           </div>
           <div class="modal-footer">
             <button class="confirm-button" id="close-error-notification">
-              <i class="fa-solid fa-check"></i> Закрыть
+              <i class="fa-solid fa-check"></i>
+              <span data-i18n="modal.close">Закрыть</span>
             </button>
           </div>
         </div>
@@ -92,6 +126,8 @@
 
       <!-- Прогресс-бар обновлений -->
       <div id="update-progress-container">
-        <span id="update-progress-text">Идет загрузка обновления...</span>
+        <span id="update-progress-text" data-i18n="update.progress">
+          Идет загрузка обновления...
+        </span>
         <progress id="update-progress-bar" value="0" max="100"></progress>
       </div>

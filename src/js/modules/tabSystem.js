@@ -49,6 +49,7 @@ export default class TabSystem {
         <i class="${iconCls}"></i>
         <span class="menu-text">${label}</span>
       </span>`;
+    const labelEl = btn.querySelector(".menu-text");
     btn.addEventListener("click", () => this.activateTab(id));
 
     const anchor = Array.from(this.menu.children).find(
@@ -56,10 +57,16 @@ export default class TabSystem {
     );
     anchor ? this.menu.insertBefore(btn, anchor) : this.menu.appendChild(btn);
 
-    this.tabs.set(id, { button: btn, render: renderCb, ...hooks });
+    this.tabs.set(id, { button: btn, labelEl, render: renderCb, ...hooks });
     if (id === this._WG_ID) this._applyWgVisibility();
     if (id === this._BK_ID) this._applyBackupVisibility();
     if (id === this._RZ_ID) this._applyRandomizerVisibility();
+  }
+
+  setTabLabel(id, label) {
+    const rec = this.tabs.get(id);
+    if (!rec?.labelEl) return;
+    rec.labelEl.textContent = label;
   }
 
   activateTab(id) {

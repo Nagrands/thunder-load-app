@@ -289,16 +289,23 @@ function setupIpcHandlers(dependencies) {
     store.set("defaultTab", tabId),
   );
 
-  ipcMain.handle(CHANNELS.GET_WHATS_NEW, async (_event) => {
+  ipcMain.handle(CHANNELS.GET_WHATS_NEW, async (_event, lang) => {
     try {
+      const langSuffix = String(lang || "").toLowerCase() === "en" ? ".en" : "";
       const whatsNewPath = path.join(
         app.getAppPath(),
         "src",
         "info",
-        "whatsNew.md",
+        `whatsNew${langSuffix}.md`,
       );
-      log.info(`Reading the file: ${whatsNewPath}`);
-      const markdown = await fs.promises.readFile(whatsNewPath, "utf-8");
+      let finalPath = whatsNewPath;
+      try {
+        await fs.promises.access(finalPath, fs.constants.F_OK);
+      } catch {
+        finalPath = path.join(app.getAppPath(), "src", "info", "whatsNew.md");
+      }
+      log.info(`Reading the file: ${finalPath}`);
+      const markdown = await fs.promises.readFile(finalPath, "utf-8");
       const version =
         parseWhatsNewVersion(markdown) || (await getAppVersion());
       const html = marked.parse(markdown, {
