@@ -65,6 +65,11 @@ export function applyI18n(root = document) {
     if (key) setAttr(el, "aria-label", t(key));
   });
 
+  root.querySelectorAll("[data-i18n-alt]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-alt");
+    if (key) setAttr(el, "alt", t(key));
+  });
+
   root.querySelectorAll("[data-i18n-value]").forEach((el) => {
     const key = el.getAttribute("data-i18n-value");
     if (key && "value" in el) el.value = t(key);
