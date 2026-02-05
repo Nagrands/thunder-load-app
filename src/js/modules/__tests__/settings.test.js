@@ -23,11 +23,9 @@ global.TextEncoder = global.TextEncoder || TextEncoder;
 global.TextDecoder = global.TextDecoder || TextDecoder;
 
 let settingsModule;
-let logSpy;
 
 describe("updateModuleBadge", () => {
   beforeEach(() => {
-    logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     jest.resetModules();
     localStorage.clear();
     document.body.innerHTML = `
@@ -43,10 +41,6 @@ describe("updateModuleBadge", () => {
         </button>
       </div>`;
     settingsModule = require("../settings");
-  });
-
-  afterEach(() => {
-    logSpy?.mockRestore();
   });
 
   it("shows badge and marks button disabled when disabled = true", () => {

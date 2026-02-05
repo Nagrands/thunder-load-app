@@ -10,6 +10,44 @@ import {
   settingsModal,
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
+import DOMPurify from "dompurify";
+
+const WHATSNEW_ALLOWED_TAGS = [
+  "h2",
+  "h3",
+  "h4",
+  "p",
+  "ul",
+  "ol",
+  "li",
+  "strong",
+  "em",
+  "code",
+  "pre",
+  "blockquote",
+  "hr",
+  "br",
+  "small",
+  "a",
+];
+
+const WHATSNEW_ALLOWED_ATTR = {
+  "*": ["title"],
+  a: ["href", "title", "target", "rel"],
+};
+
+const WHATSNEW_ALLOWED_URI = /^(https?:|mailto:)/i;
+
+function sanitizeWhatsNewHtml(html) {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: WHATSNEW_ALLOWED_TAGS,
+    ALLOWED_ATTR: WHATSNEW_ALLOWED_ATTR,
+    ALLOWED_URI_REGEXP: WHATSNEW_ALLOWED_URI,
+  });
+}
+
+// Export for tests only
+export const __test_sanitizeWhatsNewHtml = sanitizeWhatsNewHtml;
 
 /**
  * Функция для отображения модального окна "Что нового".
@@ -53,7 +91,8 @@ async function showWhatsNew(version) {
     data.changes.forEach((change) => {
       if (change.trim() !== "") {
         // Пропускаем пустые строки
-        whatsNewContent.insertAdjacentHTML("beforeend", change);
+        const safeHtml = sanitizeWhatsNewHtml(change);
+        whatsNewContent.insertAdjacentHTML("beforeend", safeHtml);
       }
     });
 

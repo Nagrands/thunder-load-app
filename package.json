@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
+    "dompurify": "^3.2.5",
     "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.3.3",
@@ -120,7 +121,10 @@
     "testEnvironment": "jsdom",
     "transform": {
       "^.+\\.js$": "babel-jest"
-    }
+    },
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/js/__tests__/setupTests.js"
+    ]
   },
   "repository": {
     "type": "git",
