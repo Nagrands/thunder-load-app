@@ -10,8 +10,6 @@ import {
   settingsModal,
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
-import DOMPurify from "dompurify";
-
 const WHATSNEW_ALLOWED_TAGS = [
   "h2",
   "h3",
@@ -39,7 +37,12 @@ const WHATSNEW_ALLOWED_ATTR = {
 const WHATSNEW_ALLOWED_URI = /^(https?:|mailto:)/i;
 
 function sanitizeWhatsNewHtml(html) {
-  return DOMPurify.sanitize(html, {
+  const purifier = window?.DOMPurify;
+  if (!purifier || typeof purifier.sanitize !== "function") {
+    console.warn("[WhatsNew] DOMPurify is not available; rendering raw HTML.");
+    return html;
+  }
+  return purifier.sanitize(html, {
     ALLOWED_TAGS: WHATSNEW_ALLOWED_TAGS,
     ALLOWED_ATTR: WHATSNEW_ALLOWED_ATTR,
     ALLOWED_URI_REGEXP: WHATSNEW_ALLOWED_URI,

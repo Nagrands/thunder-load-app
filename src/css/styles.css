@@ -15096,31 +15096,62 @@ body:not(.low-effects) .history-card {
   justify-content: center;
 }
 .whats-modal .whats-modal-content {
-  width: min(520px, 92vw);
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 20px 24px 24px;
-  border-radius: 20px;
+  width: min(640px, 92vw);
+  max-height: 82vh;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 22px;
   gap: 0.75rem;
-  background: radial-gradient(circle at 20% -10%, rgba(255, 255, 255, 0.18), rgba(8, 10, 22, 0.8));
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 50px rgba(5, 8, 20, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  background: radial-gradient(circle at 15% -20%, rgba(255, 255, 255, 0.22), rgba(8, 10, 22, 0.85)), linear-gradient(180deg, rgba(11, 15, 28, 0.95) 0%, rgba(8, 10, 22, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px rgba(5, 8, 20, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
 }
 .whats-modal #whats-new-content {
-  max-height: 60vh;
+  max-height: 62vh;
   overflow-y: auto;
-  margin-top: 0.25rem;
+  margin: 0;
+  padding: 12px 22px 22px;
+}
+.whats-modal .whats-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(12, 16, 30, 0.98) 0%, rgba(12, 16, 30, 0.9) 60%, rgba(12, 16, 30, 0) 100%);
+  backdrop-filter: blur(10px);
+}
+.whats-modal .whats-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .whats-modal h2 {
-  font-size: 19px;
-  margin-bottom: 4px;
+  font-size: 20px;
+  margin: 0;
   color: var(--color-highlight);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  letter-spacing: 0.2px;
 }
 .whats-modal h2 i {
   color: var(--color-accent);
+}
+.whats-modal .whats-subtitle {
+  font-size: 13px;
+  color: var(--color-quality);
+  letter-spacing: 0.4px;
+}
+.whats-modal .whats-divider {
+  height: 1px;
+  margin: 0 22px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%);
 }
 .whats-modal ul {
   padding: 0;
@@ -18031,16 +18062,20 @@ body.ready #app-preloader {
 }
 
 #whats-new-content {
-  padding: 12px 4px 6px;
+  padding: 8px 2px 6px;
   color: var(--color-text-main);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 #whats-new-content details.spoiler {
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(12, 16, 30, 0.65);
-  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(9, 12, 22, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  margin: 0;
 }
 #whats-new-content details.spoiler summary {
   font-weight: 600;
@@ -18048,10 +18083,13 @@ body.ready #app-preloader {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  padding: 6px 8px;
+  margin: 0 0 14px;
   color: var(--color-accent);
   font-size: 0.95rem;
   text-transform: uppercase;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
 }
 #whats-new-content details.spoiler summary i {
   font-size: 13px;
@@ -18099,13 +18137,13 @@ body.ready #app-preloader {
   position: relative;
   padding: 10px 14px 10px 34px;
   background-color: transparent;
-  margin: 4px;
-  border-radius: var(--border-radius);
+  margin: 6px 4px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 #whats-new-content details.spoiler ul li:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.06);
   transition: all 0.6s ease;
 }
 #whats-new-content details.spoiler ul li::before {
@@ -18131,6 +18169,11 @@ body.ready #app-preloader {
 }
 #whats-new-content details.spoiler ul li strong {
   color: var(--color-accent);
+}
+#whats-new-content details.spoiler ul li a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 #whats-new-content details.spoiler ul li kbd {
   background-color: var(--color-bg-secondary);

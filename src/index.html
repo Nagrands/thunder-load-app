@@ -1337,11 +1337,16 @@
         aria-labelledby="whats-new-title"
       >
         <div class="whats-modal-content">
-          <button class="close-whats-new" aria-label="Закрыть">&times;</button>
-          <h2 id="whats-new-title">
-            <i class="fa fa-question-circle" aria-hidden="true"></i> Что нового?
-          </h2>
-          <hr />
+          <div class="whats-modal-header">
+            <div class="whats-title-block">
+              <h2 id="whats-new-title">
+                <i class="fa fa-question-circle" aria-hidden="true"></i> Что нового?
+              </h2>
+              <div class="whats-subtitle">Новые возможности и исправления</div>
+            </div>
+            <button class="close-whats-new" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="whats-divider" aria-hidden="true"></div>
           <div id="whats-new-content"></div>
         </div>
       </div>
@@ -1473,6 +1478,7 @@
         window._startRenderer = loadRenderer;
       })();
     </script>
+    <script src="../assets/vendor/dompurify/purify.min.js"></script>
     <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" onload="window._startRenderer()"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {

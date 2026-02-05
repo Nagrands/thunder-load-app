@@ -1,16 +1,20 @@
 // src/scss/components/_whatsnew.scss
 
 #whats-new-content {
-  padding: 12px 4px 6px;
+  padding: 8px 2px 6px;
   color: var(--color-text-main);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
   details.spoiler {
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(12, 16, 30, 0.65);
-    margin-bottom: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(9, 12, 22, 0.7);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    margin: 0;
 
     summary {
       font-weight: 600;
@@ -18,10 +22,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 20px;
+      padding: 6px 8px;
+      margin: 0 0 14px;
       color: var(--color-accent);
       font-size: 0.95rem;
       text-transform: uppercase;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
 
       i {
         font-size: 13px;
@@ -73,13 +80,13 @@
         position: relative;
         padding: 10px 14px 10px 34px;
         background-color: transparent;
-        margin: 4px;
-        border-radius: var(--border-radius);
+        margin: 6px 4px;
+        border-radius: 14px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         overflow: hidden;
 
         &:hover {
-          background-color: rgba(255, 255, 255, 0.04);
+          background-color: rgba(255, 255, 255, 0.06);
           transition: all 0.6s ease;
         }
 
@@ -109,6 +116,12 @@
 
         strong {
           color: var(--color-accent);
+        }
+
+        a {
+          color: var(--color-accent);
+          text-decoration: underline;
+          text-underline-offset: 3px;
         }
 
         kbd {
