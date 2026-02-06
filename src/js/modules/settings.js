@@ -170,7 +170,7 @@ async function initSettings() {
     updateModuleBadge("randomizer", readBool("randomizerDisabled", false));
   });
 
-  // Downloader: профиль качества по умолчанию
+  // Загрузчик: профиль качества по умолчанию
   (function initDownloadQualityProfile() {
     const radios = document.querySelectorAll(
       'input[name="downloadQualityProfile"]',
@@ -1252,7 +1252,7 @@ async function initSettings() {
     ensureToolsInfo(false);
   });
 
-  // Переключатель отображения статуса инструментов в шапке Downloader
+  // Переключатель отображения статуса инструментов в шапке Загрузчика
   (function initToolsStatusVisibilityToggle() {
     const checkbox = document.getElementById("settings-show-tools-status");
     if (!checkbox) return;

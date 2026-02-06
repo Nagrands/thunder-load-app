@@ -1,7 +1,7 @@
 // src/js/modules/views/downloaderView.js
 
 /**
- * Build a glassy layout for the Downloader tab using the existing
+ * Build a glassy layout for the Загрузчик tab using the existing
  * UI elements and IDs (so all current logic keeps working).
  *
  * It does not change IDs, only rearranges DOM into a structure
@@ -40,8 +40,10 @@ export default function renderDownloader(wrapper) {
       <div class="title">
         <i class="fa-solid fa-download"></i>
         <div class="text">
-          <h2>Downloader</h2>
-          <p class="subtitle">Загрузка видео и аудио из различных источников</p>
+          <h2 data-i18n="downloader.title">Downloader</h2>
+          <p class="subtitle" data-i18n="downloader.subtitle">
+            Download video and audio from various sources
+          </p>
         </div>
       </div>`;
 
@@ -51,26 +53,31 @@ export default function renderDownloader(wrapper) {
     toolsStatus.innerHTML = `
       <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
         <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
-        <span id="dl-tools-text">Проверяем инструменты…</span>
+        <span id="dl-tools-text" data-i18n="downloader.tools.checking">
+          Checking tools…
+        </span>
         <div class="tool-badges" id="dl-tools-badges"></div>
       </div>
       <button
         type="button"
         id="dl-tools-toggle"
-        title="Скрыть статус"
+        title="Hide status"
         data-bs-toggle="tooltip"
-        aria-label="Скрыть статус инструментов"
+        data-i18n-title="downloader.tools.hideTitle"
+        aria-label="Hide tools status"
+        data-i18n-aria="downloader.tools.hideAria"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
       <button
         type="button"
         id="dl-tools-reinstall"
-        title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
-      data-bs-toggle="tooltip"
+        title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)"
+        data-bs-toggle="tooltip"
+        data-i18n-title="downloader.tools.reinstallTitle"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span>Переустановить</span>
+        <span data-i18n="downloader.tools.reinstall">Reinstall</span>
       </button>
     `;
     hdr.appendChild(toolsStatus);
@@ -92,7 +99,7 @@ export default function renderDownloader(wrapper) {
 
     wrapper.__dl_built = true;
   } catch (e) {
-    console.warn("[DownloaderView] build failed:", e);
+    console.warn("[ЗагрузчикView] build failed:", e);
   }
 
   return wrapper;

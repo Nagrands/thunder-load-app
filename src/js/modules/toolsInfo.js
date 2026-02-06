@@ -1,6 +1,7 @@
 // src/js/modules/toolsInfo.js
 import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
+import { applyI18n, t } from "./i18n.js";
 
 /**
  * Модуль рендера секции «Инструменты» (yt-dlp, ffmpeg).
@@ -8,7 +9,7 @@ import { showConfirmationDialog } from "./modals.js";
  * Требует `window.electron.tools.*` (preload‑bridge) и Bootstrap tooltips (initTooltips).
  *
  * Особенности:
- *  - Единая основная кнопка: если какого‑то инструмента нет → «Скачать зависимости», иначе → «Проверить обновления».
+ *  - Пошаговый сценарий: мастер установки при отсутствии и отдельные действия «Проверить» → «Обновить».
  *  - Не допускается даунгрейд ffmpeg (7.1 == 7.1.x) и yt‑dlp (сравнение по дате YYYY.MM.DD).
  *  - Сетевые состояния: кнопки отключаются, если нет сети или идёт операция.
  *
@@ -121,7 +122,7 @@ function cmpFfSemver(latest, current) {
 
 /**
  * Унифицированная сводка состояния инструментов: наличие и строки версий.
- * Используется и в настройках, и в шапке Downloader.
+ * Используется и в настройках, и в шапке Загрузчика.
  * @param {object} res результат tools.getVersions()
  * @returns {{state:'ok'|'error', hasAll:boolean, missing:string[], text:string, versions:{yt?:string, ff?:string, deno?:string}, details:Array<{id:'yt'|'ff'|'deno', label:string, ok:boolean, version:string|null, skip?:boolean}>}}
  */
@@ -162,15 +163,14 @@ export function summarizeToolsState(res) {
   ];
 
   if (!missing.length) {
-    const ffNote = ff?.skipUpdates ? " (macOS)" : "";
-    const text = `Готово: yt-dlp ${ytVer || "—"}, ffmpeg ${ffVer || "—"}${ffNote}, Deno ${dnVer || "—"}`;
+    const text = t("tools.summary.ok");
     return { state: "ok", hasAll: true, missing, text, versions, details };
   }
   return {
     state: "error",
     hasAll: false,
     missing,
-    text: `Не найдено: ${missing.join(", ")}`,
+    text: t("tools.summary.missingList", { items: missing.join(", ") }),
     versions,
     details,
   };
@@ -189,7 +189,7 @@ function emitToolsStatus(res) {
 
 /**
  * Единый хелпер для переустановки всех инструментов (yt-dlp, ffmpeg, Deno).
- * Используется как в настройках, так и в шапке Downloader.
+ * Используется как в настройках, так и в шапке Загрузчика.
  * @param {object} options
  * @returns {Promise<any>}
  */
@@ -225,10 +225,12 @@ function startDotsAnimator(labelEl, base) {
  * @param {boolean} isInstalling
  * @param {boolean} isChecking
  */
-function applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking) {
+function applyNetworkState(buttons = [], isInstalling, isChecking) {
   const offline = !navigator.onLine;
-  if (primaryBtn) primaryBtn.disabled = offline || isInstalling || isChecking;
-  if (forceBtn) forceBtn.disabled = offline || isInstalling || isChecking;
+  buttons.forEach((btn) => {
+    if (!btn) return;
+    btn.disabled = offline || isInstalling || isChecking;
+  });
 }
 
 const backgroundUpdateState = {
@@ -239,7 +241,7 @@ const backgroundUpdateState = {
 const BACKGROUND_UPDATE_COOLDOWN_MS = 5 * 60 * 1000;
 
 /**
- * Фоновая проверка обновлений инструментов с уведомлением через toast.
+ * Фоновая проверка обновлений инструментов без всплывающих уведомлений.
  * Запускается только когда оба инструмента установлены и вкладка настроек открыта.
  * @param {object} currentVersions
  */
@@ -304,12 +306,7 @@ async function triggerBackgroundToolsUpdateCheck(currentVersions) {
     }
     backgroundUpdateState.lastSignature = signature || null;
 
-    const list = notices.map((entry) => `<strong>${entry}</strong>`).join(", ");
-    await window.electron?.invoke?.(
-      "toast",
-      `Доступны обновления инструментов: ${list}<br><small>Откройте раздел Downloader, чтобы установить.</small>`,
-      "info",
-    );
+    // Тихий режим: не показываем тосты для фоновой проверки
   } catch (error) {
     console.warn("[toolsInfo] background update check failed:", error);
   } finally {
@@ -340,58 +337,171 @@ export async function renderToolsInfo() {
         <div class="tools-panel__summary-left">
           <span class="tools-panel__dot tools-panel__dot--neutral" id="tools-summary-dot" aria-hidden="true"></span>
           <div class="tools-panel__titles">
-            <h2>Инструменты</h2>
-            <small id="tools-summary-status" class="muted">Проверяем…</small>
+            <h2 data-i18n="tools.title">${t("tools.title")}</h2>
+            <small id="tools-summary-status" class="muted" data-i18n="tools.summary.checking">
+              ${t("tools.summary.checking")}
+            </small>
           </div>
         </div>
         <div class="tools-panel__summary-right">
-          <span class="tools-panel__badge tools-panel__badge--neutral" id="tools-summary-badge">—</span>
+          <span class="tools-panel__badge tools-panel__badge--neutral" id="tools-summary-badge">
+            ${t("tools.summary.checking")}
+          </span>
           <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
         </div>
       </summary>
-  
+
       <div class="tools-panel__body">
-        <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
-  
-        <div class="tools-location module">
-          <label for="ti-tools-location-path">
-            <i class="fa-solid fa-folder"></i>
-            Папка инструментов
-          </label>
-          <div class="tools-location-row">
-            <input id="ti-tools-location-path" type="text" readonly />
-            <button id="ti-tools-location-choose" data-bs-toggle="tooltip" title="Выбрать папку">
-              <i class="fa-solid fa-folder-open"></i>
-            </button>
-            <button id="ti-tools-location-open" data-bs-toggle="tooltip" title="Открыть папку">
-              <i class="fa-regular fa-folder-open"></i>
-            </button>
-            <button id="ti-tools-location-reset" data-bs-toggle="tooltip" title="Сбросить по умолчанию">
-              <i class="fa-solid fa-rotate-left"></i>
-            </button>
-            <button id="ti-tools-location-migrate" data-bs-toggle="tooltip" title="Мигрировать из старого места">
-              <i class="fa-solid fa-database"></i>
-            </button>
+        <div
+          class="tools-wizard"
+          id="tools-wizard"
+          role="region"
+          aria-label="${t("tools.wizard.title")}"
+          data-i18n-aria="tools.wizard.title"
+        >
+          <div class="tools-wizard__header">
+            <h3 data-i18n="tools.wizard.title">${t("tools.wizard.title")}</h3>
+          </div>
+          <div class="tools-wizard__steps" id="tools-wizard-steps">
+            <div class="tools-wizard__step">
+              <div class="tools-wizard__step-index">1</div>
+              <div class="tools-wizard__step-body">
+                <h4 data-i18n="tools.wizard.step1.title">${t("tools.wizard.step1.title")}</h4>
+                <p class="muted" data-i18n="tools.wizard.step1.desc">
+                  ${t("tools.wizard.step1.desc")}
+                </p>
+                <div id="tools-wizard-location"></div>
+              </div>
+            </div>
+            <div class="tools-wizard__step">
+              <div class="tools-wizard__step-index">2</div>
+              <div class="tools-wizard__step-body">
+                <h4 data-i18n="tools.wizard.step2.title">${t("tools.wizard.step2.title")}</h4>
+                <p class="muted" data-i18n="tools.wizard.step2.desc">
+                  ${t("tools.wizard.step2.desc")}
+                </p>
+                <button id="tools-install-btn" type="button">
+                  <i class="fa-solid fa-download"></i>
+                  <span data-i18n="tools.button.install">${t("tools.button.install")}</span>
+                </button>
+              </div>
+            </div>
+            <div class="tools-wizard__step">
+              <div class="tools-wizard__step-index">3</div>
+              <div class="tools-wizard__step-body">
+                <h4 data-i18n="tools.wizard.step3.title">${t("tools.wizard.step3.title")}</h4>
+                <p class="muted" data-i18n="tools.wizard.step3.desc">
+                  ${t("tools.wizard.step3.desc")}
+                </p>
+                <small id="tools-wizard-status" class="muted"></small>
+              </div>
+            </div>
           </div>
         </div>
-  
+
+        <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
+
+        <div id="tools-location-host">
+          <div class="tools-location module">
+            <label for="ti-tools-location-path">
+              <i class="fa-solid fa-folder"></i>
+              <span data-i18n="tools.location.title">${t("tools.location.title")}</span>
+            </label>
+            <div class="tools-location-row">
+              <input id="ti-tools-location-path" type="text" readonly />
+              <button
+                id="ti-tools-location-choose"
+                data-bs-toggle="tooltip"
+                title="${t("tools.location.choose")}"
+                data-i18n-title="tools.location.choose"
+              >
+                <i class="fa-solid fa-folder-open"></i>
+              </button>
+              <button
+                id="ti-tools-location-open"
+                data-bs-toggle="tooltip"
+                title="${t("tools.location.open")}"
+                data-i18n-title="tools.location.open"
+              >
+                <i class="fa-regular fa-folder-open"></i>
+              </button>
+              <button
+                id="ti-tools-location-reset"
+                data-bs-toggle="tooltip"
+                title="${t("tools.location.reset")}"
+                data-i18n-title="tools.location.reset"
+              >
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+              <button
+                id="ti-tools-location-migrate"
+                data-bs-toggle="tooltip"
+                title="${t("tools.location.migrate")}"
+                data-i18n-title="tools.location.migrate"
+              >
+                <i class="fa-solid fa-database"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <small id="tools-hint" class="muted"></small>
         <small id="ti-tools-location-info" class="muted"></small>
-  
+
         <div class="tools-footer">
           <small id="tools-status" class="muted"></small>
-          <button id="tools-primary-btn" type="button" title="">
-            <i class="fa-solid fa-rotate" id="tools-primary-icon"></i>
-            <span id="tools-primary-label"></span>
-          </button>
+          <div class="tools-actions" id="tools-actions">
+            <button
+              id="tools-check-btn"
+              type="button"
+              title="${t("tools.button.check")}"
+              data-i18n-title="tools.button.check"
+            >
+              <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
+              <span id="tools-check-label" data-i18n="tools.button.check">
+                ${t("tools.button.check")}
+              </span>
+            </button>
+            <button
+              id="tools-update-btn"
+              type="button"
+              title="${t("tools.button.update")}"
+              data-i18n-title="tools.button.update"
+              style="display:none;"
+            >
+              <i class="fa-solid fa-download" id="tools-update-icon"></i>
+              <span id="tools-update-label" data-i18n="tools.button.update">
+                ${t("tools.button.update")}
+              </span>
+            </button>
+          </div>
           <div id="tools-more" class="tools-more" style="display:none;">
-            <button id="tools-more-btn" class="tools-more-btn" title="Дополнительно" aria-label="Дополнительно">
+            <button
+              id="tools-more-btn"
+              class="tools-more-btn"
+              title="${t("tools.more")}"
+              aria-label="${t("tools.more")}"
+              data-i18n-title="tools.more"
+              data-i18n-aria="tools.more"
+            >
               <i class="fa-solid fa-ellipsis"></i>
             </button>
-            <div id="tools-more-menu" class="tools-more-menu" role="menu" aria-label="Дополнительные действия">
-              <button id="tools-force-btn" type="button" title="Принудительно переустановить инструменты" data-bs-toggle="tooltip">
+            <div
+              id="tools-more-menu"
+              class="tools-more-menu"
+              role="menu"
+              aria-label="${t("tools.moreMenu")}"
+              data-i18n-aria="tools.moreMenu"
+            >
+              <button
+                id="tools-force-btn"
+                type="button"
+                title="${t("tools.button.force")}"
+                data-bs-toggle="tooltip"
+                data-i18n-title="tools.button.force"
+              >
                 <i class="fa-solid fa-arrow-rotate-right"></i>
-                <span>Переустановить</span>
+                <span data-i18n="tools.button.force">${t("tools.button.force")}</span>
               </button>
             </div>
           </div>
@@ -401,11 +511,19 @@ export async function renderToolsInfo() {
   `;
 
   /** @type {HTMLButtonElement|null} */
-  const primaryBtn = document.getElementById("tools-primary-btn");
+  const checkBtn = document.getElementById("tools-check-btn");
   /** @type {HTMLElement|null} */
-  const primaryIcon = document.getElementById("tools-primary-icon");
+  const checkIcon = document.getElementById("tools-check-icon");
   /** @type {HTMLElement|null} */
-  const primaryLabel = document.getElementById("tools-primary-label");
+  const checkLabel = document.getElementById("tools-check-label");
+  /** @type {HTMLButtonElement|null} */
+  const updateBtn = document.getElementById("tools-update-btn");
+  /** @type {HTMLElement|null} */
+  const updateIcon = document.getElementById("tools-update-icon");
+  /** @type {HTMLElement|null} */
+  const updateLabel = document.getElementById("tools-update-label");
+  /** @type {HTMLButtonElement|null} */
+  const installBtn = document.getElementById("tools-install-btn");
   /** @type {HTMLDivElement|null} */
   const moreWrap = document.getElementById("tools-more");
   /** @type {HTMLButtonElement|null} */
@@ -416,6 +534,16 @@ export async function renderToolsInfo() {
   const forceBtn = document.getElementById("tools-force-btn");
   /** @type {HTMLElement|null} */
   const hintEl = document.getElementById("tools-hint");
+  /** @type {HTMLElement|null} */
+  const statusEl = document.getElementById("tools-status");
+  /** @type {HTMLElement|null} */
+  const wizardEl = document.getElementById("tools-wizard");
+  /** @type {HTMLElement|null} */
+  const wizardStatusEl = document.getElementById("tools-wizard-status");
+  /** @type {HTMLElement|null} */
+  const wizardLocationSlot = document.getElementById("tools-wizard-location");
+  /** @type {HTMLElement|null} */
+  const locationHost = document.getElementById("tools-location-host");
   /** @type {HTMLElement|null} */
   const statusCardsEl = document.getElementById("tools-status-cards");
   /** @type {HTMLElement|null} */
@@ -433,20 +561,29 @@ export async function renderToolsInfo() {
     if (summaryStatusEl) summaryStatusEl.textContent = text || "—";
     if (summaryBadgeEl) {
       summaryBadgeEl.className = `tools-panel__badge tools-panel__badge--${state}`;
-      const badgeText =
+      const badgeKey =
         state === "ok"
-          ? "Готово"
+          ? "tools.summary.ok"
           : state === "update"
-            ? "Обновления"
+            ? "tools.summary.update"
             : state === "missing"
-              ? "Требуется установка"
+              ? "tools.summary.missing"
               : state === "checking"
-                ? "Проверка"
+                ? "tools.summary.checking"
                 : state === "error"
-                  ? "Ошибка"
-                  : "—";
-      summaryBadgeEl.textContent = badgeText;
+                  ? "tools.summary.error"
+                  : null;
+      summaryBadgeEl.textContent = badgeKey ? t(badgeKey) : "—";
     }
+  };
+
+  const setStatusText = (text = "") => {
+    if (statusEl) statusEl.textContent = text;
+    if (wizardStatusEl) wizardStatusEl.textContent = text;
+  };
+
+  const setHintText = (text = "") => {
+    if (hintEl) hintEl.textContent = text;
   };
 
   /**
@@ -459,7 +596,7 @@ export async function renderToolsInfo() {
     if (!summary) {
       setSummaryState(
         options.customState || "error",
-        options.customText || "Нет данных",
+        options.customText || t("tools.error.getVersions"),
       );
       if (statusCardsEl) statusCardsEl.innerHTML = "";
       return;
@@ -471,7 +608,8 @@ export async function renderToolsInfo() {
       return {
         ...detail,
         state,
-        version: detail.version || (detail.ok ? "—" : "Нет"),
+        version:
+          detail.version || (detail.ok ? "—" : t("tools.version.missing")),
       };
     });
 
@@ -486,10 +624,10 @@ export async function renderToolsInfo() {
       options.customText ||
       summary.text ||
       (overallState === "ok"
-        ? "Все инструменты готовы"
+        ? t("tools.summary.readyText")
         : overallState === "update"
-          ? "Доступны обновления"
-          : "Есть проблемы с инструментами");
+          ? t("tools.status.updatesFound")
+          : t("tools.summary.problemText"));
 
     setSummaryState(overallState, summaryText);
 
@@ -506,7 +644,8 @@ export async function renderToolsInfo() {
       ? `<span
            class="tool-external-link"
            data-tool="${id}"
-           title="Открыть официальный сайт"
+           title="${t("tools.link.openSite")}"
+           data-i18n-title="tools.link.openSite"
          ><i class="fa-solid fa-arrow-up-right-from-square"></i></span>`
       : ""
   }
@@ -518,7 +657,7 @@ export async function renderToolsInfo() {
     }
   };
 
-  setSummaryState("checking", "Проверяем…");
+  setSummaryState("checking", t("tools.summary.checking"));
 
   /** @type {HTMLInputElement|null} */
   const locInput = document.getElementById("ti-tools-location-path");
@@ -540,9 +679,10 @@ export async function renderToolsInfo() {
         locInput.value = info.path || "";
         if (locReset) {
           locReset.disabled = !!info.isDefault;
+          const pathSuffix = info.defaultPath ? `: ${info.defaultPath}` : "";
           const title = info.isDefault
-            ? `Сейчас используется путь по умолчанию${info.defaultPath ? `: ${info.defaultPath}` : ""}`
-            : `Сбросить на путь по умолчанию${info.defaultPath ? `: ${info.defaultPath}` : ""}`;
+            ? t("tools.location.defaultTitle", { path: pathSuffix })
+            : t("tools.location.resetTitle", { path: pathSuffix });
           locReset.setAttribute("title", title);
         }
         if (locInput) locInput.setAttribute("title", info.path || "");
@@ -569,26 +709,31 @@ export async function renderToolsInfo() {
     try {
       const r = await window.electron?.tools?.setLocation?.(dir);
       if (!r?.success) {
-        await toast("Не удалось установить папку инструментов", "error");
+        await toast(t("tools.location.setError"), "error");
+        setStatusText(t("tools.location.setError"));
         return;
       }
       await refreshLocationUI();
-      await toast("Папка инструментов обновлена", "success");
+      setStatusText(t("tools.location.updated"));
       await renderToolsInfo();
     } catch (e) {
       console.error("[toolsInfo] setLocation error:", e);
-      await toast("Ошибка при установке папки инструментов", "error");
+      await toast(t("tools.location.setError"), "error");
+      setStatusText(t("tools.location.setError"));
     }
   });
 
   locOpen?.addEventListener("click", async () => {
     try {
       const r = await window.electron?.tools?.openLocation?.();
-      if (!r?.success)
-        await toast("Не удалось открыть папку инструментов", "error");
+      if (!r?.success) {
+        await toast(t("tools.location.openError"), "error");
+        setStatusText(t("tools.location.openError"));
+      }
     } catch (e) {
       console.error("[toolsInfo] openLocation error:", e);
-      await toast("Ошибка при открытии папки инструментов", "error");
+      await toast(t("tools.location.openError"), "error");
+      setStatusText(t("tools.location.openError"));
     }
   });
 
@@ -596,18 +741,17 @@ export async function renderToolsInfo() {
     try {
       const r = await window.electron?.tools?.resetLocation?.();
       if (!r?.success) {
-        await toast("Не удалось сбросить путь инструментов", "error");
+        await toast(t("tools.location.resetError"), "error");
+        setStatusText(t("tools.location.resetError"));
         return;
       }
       await refreshLocationUI();
-      await toast(
-        "Путь инструментов сброшен на значение по умолчанию",
-        "success",
-      );
+      setStatusText(t("tools.location.resetSuccess"));
       await renderToolsInfo();
     } catch (e) {
       console.error("[toolsInfo] resetLocation error:", e);
-      await toast("Ошибка при сбросе пути инструментов", "error");
+      await toast(t("tools.location.resetError"), "error");
+      setStatusText(t("tools.location.resetError"));
     }
   });
 
@@ -615,23 +759,23 @@ export async function renderToolsInfo() {
     try {
       const detect = await window.electron?.tools?.detectLegacy?.();
       if (!detect?.success) {
-        await toast("Не удалось проверить старые установки", "error");
+        await toast(t("tools.migrate.detectError"), "error");
+        setStatusText(t("tools.migrate.detectError"));
         return;
       }
       if (!detect.found || !detect.found.length) {
-        await toast("Старые установки не найдены", "info");
+        setStatusText(t("tools.migrate.none"));
         return;
       }
       let overwrite = false;
       try {
         if (typeof showConfirmationDialog === "function") {
           const confirmed = await showConfirmationDialog({
-            title: "Перезаписать существующие файлы?",
-            subtitle: "Миграция инструментов",
-            message:
-              "Найдены старые установки. Перезаписать существующие версии инструментов в выбранной папке?",
-            confirmText: "Да, заменить",
-            cancelText: "Оставить текущие",
+            title: t("tools.migrate.confirm.title"),
+            subtitle: t("tools.migrate.confirm.subtitle"),
+            message: t("tools.migrate.confirm.message"),
+            confirmText: t("tools.migrate.confirm.confirm"),
+            cancelText: t("tools.migrate.confirm.cancel"),
             tone: "danger",
           });
           overwrite = !!confirmed;
@@ -643,19 +787,26 @@ export async function renderToolsInfo() {
       if (res?.success) {
         const copied = res.copied?.length || 0;
         const skipped = res.skipped?.length || 0;
-        await toast(
-          `Миграция завершена (${overwrite ? "с заменой" : "без замены"}): скопировано ${copied}, пропущено ${skipped}`,
-          "success",
+        setStatusText(
+          t("tools.migrate.success", {
+            mode: overwrite
+              ? t("tools.migrate.mode.overwrite")
+              : t("tools.migrate.mode.keep"),
+            copied,
+            skipped,
+          }),
         );
         await refreshLocationUI();
         // После успешной миграции перерисуем блок, чтобы обновились бейджи/статусы
         await renderToolsInfo();
       } else {
-        await toast("Не удалось выполнить миграцию", "error");
+        await toast(t("tools.migrate.error"), "error");
+        setStatusText(t("tools.migrate.error"));
       }
     } catch (e) {
       console.error("[toolsInfo] migrateOld error:", e);
-      await toast("Ошибка при миграции", "error");
+      await toast(t("tools.migrate.error"), "error");
+      setStatusText(t("tools.migrate.error"));
     }
   });
 
@@ -663,7 +814,7 @@ export async function renderToolsInfo() {
   locInput?.addEventListener("dblclick", async () => {
     try {
       await navigator.clipboard.writeText(locInput.value || "");
-      await toast("Путь скопирован в буфер обмена", "success");
+      setStatusText(t("tools.location.copied"));
     } catch {
       console.warn("[toolsInfo] clipboard write failed");
     }
@@ -710,6 +861,37 @@ export async function renderToolsInfo() {
 
   let isChecking = false;
   let isInstalling = false;
+  let pendingUpdate = { yt: false, ff: false };
+
+  const allButtons = [
+    checkBtn,
+    updateBtn,
+    installBtn,
+    forceBtn,
+    locChoose,
+    locOpen,
+    locReset,
+    locMigrate,
+  ];
+
+  const moveLocation = (toWizard) => {
+    const locationEl = section.querySelector(".tools-location");
+    if (!locationEl) return;
+    if (toWizard && wizardLocationSlot) {
+      wizardLocationSlot.appendChild(locationEl);
+    } else if (!toWizard && locationHost) {
+      locationHost.appendChild(locationEl);
+    }
+  };
+
+  const syncWizardVisibility = (missing) => {
+    if (wizardEl) wizardEl.style.display = missing ? "" : "none";
+    if (checkBtn) checkBtn.style.display = missing ? "none" : "";
+    if (updateBtn) updateBtn.style.display = "none";
+    if (installBtn) installBtn.style.display = missing ? "" : "none";
+    if (moreWrap) moreWrap.style.display = missing ? "none" : "";
+    moveLocation(missing);
+  };
 
   // init and subscribe to online/offline
   if (window.__toolsInfoNetHandlers) {
@@ -717,19 +899,32 @@ export async function renderToolsInfo() {
     window.removeEventListener("offline", window.__toolsInfoNetHandlers.off);
   }
   window.__toolsInfoNetHandlers = {
-    on: () => applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking),
-    off: () =>
-      applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking),
+    on: () => {
+      applyNetworkState(allButtons, isInstalling, isChecking);
+      if (statusEl?.textContent === t("tools.status.noNetwork")) {
+        setStatusText("");
+      }
+      if (hintEl?.textContent === t("tools.status.noNetwork")) {
+        setHintText("");
+      }
+    },
+    off: () => {
+      applyNetworkState(allButtons, isInstalling, isChecking);
+      setStatusText(t("tools.status.noNetwork"));
+      setHintText(t("tools.status.noNetwork"));
+    },
   };
   window.addEventListener("online", window.__toolsInfoNetHandlers.on);
   window.addEventListener("offline", window.__toolsInfoNetHandlers.off);
-  applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
+  applyNetworkState(allButtons, isInstalling, isChecking);
 
   try {
     const res = await window.electron?.tools?.getVersions?.();
 
     if (!res) {
       console.error("No response from tools.getVersions");
+      updateStatusUI(null);
+      setStatusText(t("tools.error.getVersions"));
       return;
     }
 
@@ -746,382 +941,269 @@ export async function renderToolsInfo() {
     const summary = summarizeToolsState(res);
     updateStatusUI(summary);
 
-    // Хинт
     const missing = !res?.ytDlp?.ok || !res?.ffmpeg?.ok || !res?.deno?.ok;
-    if (hintEl)
-      hintEl.textContent = missing
-        ? "Некоторые инструменты (Deno, yt-dlp, ffmpeg) не найдены. Установите их или нажмите ‘Скачать зависимости’."
-        : "";
+    syncWizardVisibility(missing);
 
-    if (moreWrap) moreWrap.style.display = missing ? "none" : "";
+    setHintText(missing ? t("tools.hint.missing") : "");
+    setStatusText(missing ? t("tools.summary.missing") : "");
 
-    // Настраиваем единую кнопку: скачать зависимости ИЛИ проверить обновления
-    if (primaryBtn && primaryLabel && primaryIcon) {
-      // reset
-      primaryBtn.disabled = !navigator.onLine; // нужна сеть для обеих операций
-      primaryBtn.classList.remove("disabled");
-      primaryIcon.classList.remove("fa-spin");
+    if (installBtn) {
+      installBtn.onclick = async () => {
+        if (!navigator.onLine) {
+          setStatusText(t("tools.status.noNetwork"));
+          return;
+        }
+        const labelEl = installBtn.querySelector("span");
+        let dots;
+        try {
+          isInstalling = true;
+          applyNetworkState(allButtons, isInstalling, isChecking);
+          installBtn.setAttribute("aria-busy", "true");
+          setStatusText(t("tools.status.installing"));
+          if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.installing"));
+          await window.electron?.tools?.installAll?.();
+          await window.electron?.invoke?.(
+            "toast",
+            t("tools.toast.installSuccess"),
+            "success",
+          );
+          await renderToolsInfo();
+        } catch (e) {
+          console.error("[toolsInfo] installAll failed:", e);
+          setStatusText(t("tools.error.install"));
+          await window.electron?.invoke?.(
+            "toast",
+            t("tools.toast.installError"),
+            "error",
+          );
+        } finally {
+          isInstalling = false;
+          installBtn.removeAttribute("aria-busy");
+          applyNetworkState(allButtons, isInstalling, isChecking);
+          try {
+            if (typeof dots?.stop === "function") dots.stop();
+          } catch {}
+        }
+      };
+    }
 
-      if (missing) {
-        primaryBtn.setAttribute("title", "Скачать зависимости");
-        primaryBtn.setAttribute("data-bs-toggle", "tooltip");
-        primaryLabel.textContent = "Скачать зависимости";
-        primaryIcon.className = "fa-solid fa-download";
-        if (forceBtn) forceBtn.style.display = "none";
-
-        // handler: install
-        primaryBtn.onclick = async () => {
+    const enableForceReinstall = () => {
+      if (!forceBtn) return;
+      if (moreWrap) moreWrap.style.display = "";
+      forceBtn.onclick = () => {
+        const run = async () => {
           if (!navigator.onLine) {
-            await window.electron?.invoke?.(
-              "toast",
-              "Нет сети: проверьте подключение",
-              "warning",
-            );
+            setStatusText(t("tools.status.noNetwork"));
             return;
           }
-          const prevText = primaryLabel.textContent;
-          isInstalling = true;
-          applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
-          primaryBtn.setAttribute("aria-busy", "true");
-          // визуальный индикатор загрузки
-          let dots; // анимация «…»
+          let dots;
+          const labelEl = checkLabel || checkBtn?.querySelector("span");
           try {
-            primaryBtn.disabled = true;
-            dots = startDotsAnimator(primaryLabel, "Скачиваю");
+            isInstalling = true;
+            applyNetworkState(allButtons, isInstalling, isChecking);
+            if (checkBtn) checkBtn.setAttribute("aria-busy", "true");
+            if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.installing"));
+            setStatusText(t("tools.status.installing"));
             await window.electron?.tools?.installAll?.();
+            await window.electron?.invoke?.(
+              "toast",
+              t("tools.toast.installSuccess"),
+              "success",
+            );
             await renderToolsInfo();
           } catch (e) {
-            console.error("[toolsInfo] installAll failed:", e);
-            primaryBtn.disabled = false;
-            primaryLabel.textContent = prevText || "Скачать зависимости";
+            console.error("[toolsInfo] force installAll failed:", e);
+            setStatusText(t("tools.error.install"));
+            await window.electron?.invoke?.(
+              "toast",
+              t("tools.toast.installError"),
+              "error",
+            );
           } finally {
             isInstalling = false;
-            primaryBtn.removeAttribute("aria-busy");
-            applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
-            // остановка анимации
+            if (checkBtn) checkBtn.removeAttribute("aria-busy");
+            applyNetworkState(allButtons, isInstalling, isChecking);
             try {
               if (typeof dots?.stop === "function") dots.stop();
             } catch {}
           }
         };
-      } else {
-        primaryBtn.setAttribute("title", "Проверить обновления");
-        primaryBtn.setAttribute("data-bs-toggle", "tooltip");
-        primaryLabel.textContent = "Проверить обновления";
-        primaryIcon.className = "fa-solid fa-rotate";
 
-        const enableForceReinstall = () => {
-          if (!forceBtn) return;
-          if (moreWrap) moreWrap.style.display = "";
-          forceBtn.onclick = () => {
-            const run = async () => {
+        if (typeof showConfirmationDialog === "function") {
+          showConfirmationDialog({
+            title: t("tools.confirm.force.title"),
+            subtitle: t("tools.confirm.force.subtitle"),
+            message: t("tools.confirm.force.message"),
+            confirmText: t("tools.confirm.force.confirm"),
+            cancelText: t("tools.confirm.force.cancel"),
+            tone: "danger",
+          }).then((confirmed) => {
+            if (confirmed) run();
+          });
+        } else {
+          run();
+        }
+      };
+    };
+
+    if (!missing) enableForceReinstall();
+
+    if (checkBtn) {
+      checkBtn.onclick = async () => {
+        if (isChecking) return;
+        if (!navigator.onLine) {
+          setStatusText(t("tools.status.noNetwork"));
+          return;
+        }
+        const cur = await window.electron?.tools?.getVersions?.();
+        if (!cur?.ytDlp?.ok || !cur?.ffmpeg?.ok) {
+          await renderToolsInfo();
+          return;
+        }
+        const summaryBase = summarizeToolsState(cur || {});
+        updateStatusUI(
+          summaryBase,
+          {},
+          { customState: "checking", customText: t("tools.status.checkingUpdates") },
+        );
+        setStatusText(t("tools.status.checkingUpdates"));
+
+        const prevIconClass = checkIcon?.className;
+        if (checkIcon) checkIcon.classList.add("fa-spin");
+        const labelEl = checkLabel || checkBtn.querySelector("span");
+        let dots;
+        try {
+          isChecking = true;
+          applyNetworkState(allButtons, isInstalling, isChecking);
+          checkBtn.setAttribute("aria-busy", "true");
+          if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.checkingUpdates"));
+
+          const upd = await window.electron?.tools?.checkUpdates?.({
+            noCache: true,
+            forceFetch: true,
+          });
+
+          const yCurUpd = normVer(upd?.ytDlp?.current || "");
+          const fCurUpd = normVer(upd?.ffmpeg?.current || "");
+          const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
+          const yLatN = normVer(upd?.ytDlp?.latest || "");
+          const fLatN = normVer(upd?.ffmpeg?.latest || "");
+
+          const yCurLocal = normVer(
+            firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""),
+          );
+          const fCurLocal = normVer(
+            firstLine(cur?.ffmpeg?.version || "")
+              .replace(/^ffmpeg version\s*/i, "")
+              .split(" ")[0],
+          );
+          const dCurLocal = formatDenoVersion(cur?.deno?.version || "");
+
+          const ytCur = yCurUpd || yCurLocal || "";
+          const ffCur = fCurUpd || fCurLocal || "";
+          const denoCur = dCurUpd || dCurLocal || "";
+          const ytLatest = yLatN;
+          const ffSkip = !!upd?.ffmpeg?.skipUpdates;
+          const ffLatest = ffSkip ? ffCur : fLatN;
+
+          let ytCmp = null,
+            ffCmp = null;
+          if (ytCur && ytLatest) ytCmp = cmpYtDlp(ytLatest, ytCur);
+          if (!ffSkip && ffCur && ffLatest) {
+            ffCmp = cmpFfSemver(ffLatest, ffCur);
+          }
+
+          pendingUpdate = {
+            yt: ytCmp === 1,
+            ff: !ffSkip && ffCmp === 1,
+          };
+          const anyUpdate = pendingUpdate.yt || pendingUpdate.ff;
+          const overrides = {
+            yt: pendingUpdate.yt ? "update" : undefined,
+            ff: pendingUpdate.ff ? "update" : undefined,
+          };
+          updateStatusUI(summaryBase, overrides, {
+            customState: anyUpdate ? "update" : undefined,
+            customText: anyUpdate
+              ? t("tools.status.updatesFound")
+              : t("tools.status.upToDate"),
+          });
+          setStatusText(
+            anyUpdate ? t("tools.status.updatesFound") : t("tools.status.upToDate"),
+          );
+
+          if (updateBtn) {
+            updateBtn.style.display = anyUpdate ? "" : "none";
+          }
+
+          if (anyUpdate && updateBtn) {
+            updateBtn.onclick = async () => {
               if (!navigator.onLine) {
-                await window.electron?.invoke?.(
-                  "toast",
-                  "Нет сети: проверьте подключение",
-                  "warning",
-                );
+                setStatusText(t("tools.status.noNetwork"));
                 return;
               }
-              const prevText = primaryLabel.textContent;
-              let dots;
+              let dots2;
+              const updateLabelEl = updateLabel || updateBtn.querySelector("span");
               try {
                 isInstalling = true;
-                applyNetworkState(
-                  primaryBtn,
-                  forceBtn,
-                  isInstalling,
-                  isChecking,
-                );
-                primaryBtn.setAttribute("aria-busy", "true");
-                primaryBtn.disabled = true;
-                if (forceBtn) forceBtn.disabled = true;
-                dots = startDotsAnimator(primaryLabel, "Скачиваю");
-                await window.electron?.tools?.installAll?.();
+                applyNetworkState(allButtons, isInstalling, isChecking);
+                updateBtn.setAttribute("aria-busy", "true");
+                setStatusText(t("tools.status.installing"));
+                if (updateLabelEl)
+                  dots2 = startDotsAnimator(updateLabelEl, t("tools.status.installing"));
+                if (pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
+                if (pendingUpdate.ff) await window.electron?.tools?.updateFfmpeg?.();
                 await renderToolsInfo();
-              } catch (e) {
-                console.error("[toolsInfo] force installAll failed:", e);
-                primaryBtn.disabled = false;
-                if (forceBtn) forceBtn.disabled = false;
-                primaryLabel.textContent = prevText || "Проверить обновления";
+              } catch (e2) {
+                console.error("[toolsInfo] selective update failed:", e2);
+                setStatusText(t("tools.error.update"));
+                await window.electron?.invoke?.(
+                  "toast",
+                  t("tools.error.update"),
+                  "error",
+                );
               } finally {
                 isInstalling = false;
-                primaryBtn.removeAttribute("aria-busy");
-                applyNetworkState(
-                  primaryBtn,
-                  forceBtn,
-                  isInstalling,
-                  isChecking,
-                );
+                updateBtn.removeAttribute("aria-busy");
+                applyNetworkState(allButtons, isInstalling, isChecking);
                 try {
-                  if (typeof dots?.stop === "function") dots.stop();
+                  if (typeof dots2?.stop === "function") dots2.stop();
                 } catch {}
               }
             };
-
-            if (typeof showConfirmationDialog === "function") {
-              showConfirmationDialog(
-                "Вы действительно хотите переустановить инструменты?<br><small>Существующие файлы Deno, yt-dlp и ffmpeg в выбранной папке будут заменены.</small>",
-                run,
-              );
-            } else {
-              run();
-            }
-          };
-        };
-
-        // Всегда доступно дополнительное действие «Переустановить», когда инструменты присутствуют
-        enableForceReinstall();
-
-        // handler: check updates
-        primaryBtn.onclick = async () => {
-          if (isChecking) return;
-          if (!navigator.onLine) {
-            await window.electron?.invoke?.(
-              "toast",
-              "Нет сети: проверьте подключение",
-              "warning",
-            );
-            return;
           }
-          let summaryBase = null;
-          const cur = await window.electron?.tools?.getVersions?.();
-          if (!cur?.ytDlp?.ok || !cur?.ffmpeg?.ok) {
-            await renderToolsInfo();
-            return;
+
+          if (denoCur) {
+            setHintText(`${t("tools.label.deno")}: ${denoCur}`);
+          } else if (cur?.deno?.ok === false) {
+            setHintText(t("tools.deno.missing"));
           }
-          summaryBase = summarizeToolsState(cur || {});
+        } catch (err) {
+          console.error("[toolsInfo] check updates failed:", err);
           updateStatusUI(
             summaryBase,
             {},
             {
-              customState: "checking",
-              customText: "Проверяю обновления…",
+              customState: "error",
+              customText: t("tools.error.update"),
             },
           );
-
-          let promotedToUpdateMode = false;
-          isChecking = true;
-          primaryBtn.disabled = true;
-          applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
-          primaryBtn.setAttribute("aria-busy", "true");
-          primaryIcon.classList.add("fa-spin");
-          const prevText = primaryLabel.textContent;
-          primaryLabel.textContent = "Проверяю…";
+          setStatusText(t("tools.error.update"));
+          await window.electron?.invoke?.(
+            "toast",
+            t("tools.error.update"),
+            "error",
+          );
+        } finally {
+          isChecking = false;
+          checkBtn.removeAttribute("aria-busy");
+          applyNetworkState(allButtons, isInstalling, isChecking);
+          if (checkIcon && prevIconClass) checkIcon.className = prevIconClass;
           try {
-            // Свежая проверка обновлений (без кеша)
-            const upd = await window.electron?.tools?.checkUpdates?.({
-              noCache: true,
-              forceFetch: true,
-            });
-
-            // Собираем версию «current» и «latest»
-            const yCurUpd = normVer(upd?.ytDlp?.current || "");
-            const fCurUpd = normVer(upd?.ffmpeg?.current || "");
-            const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
-            const yLatN = normVer(upd?.ytDlp?.latest || "");
-            const fLatN = normVer(upd?.ffmpeg?.latest || "");
-
-            const yCurLocal = normVer(
-              firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""),
-            );
-            const fCurLocal = normVer(
-              firstLine(cur?.ffmpeg?.version || "")
-                .replace(/^ffmpeg version\s*/i, "")
-                .split(" ")[0],
-            );
-            const dCurLocal = formatDenoVersion(cur?.deno?.version || "");
-
-            const ytCur = yCurUpd || yCurLocal || "";
-            const ffCur = fCurUpd || fCurLocal || "";
-            const denoCur = dCurUpd || dCurLocal || "";
-            const ytLatest = yLatN;
-            const ffSkip = !!upd?.ffmpeg?.skipUpdates;
-            const ffLatest = ffSkip ? ffCur : fLatN;
-
-            let ytCmp = null,
-              ffCmp = null;
-            if (ytCur && ytLatest) ytCmp = cmpYtDlp(ytLatest, ytCur);
-            if (!ffSkip && ffCur && ffLatest) {
-              ffCmp = cmpFfSemver(ffLatest, ffCur);
-            }
-
-            // Текст статуса
-            const msgs = [];
-            if (upd?.ytDlp) {
-              if (ytCur && ytLatest) {
-                if (ytCmp === 1)
-                  msgs.push(
-                    `yt-dlp: доступна ${upd.ytDlp.latest} (текущая ${upd.ytDlp.current || upd.ytDlp.local || yCurLocal || "—"})`,
-                  );
-                else
-                  msgs.push(
-                    `yt-dlp: актуальная (${upd.ytDlp.current || upd.ytDlp.local || yCurLocal || "—"})`,
-                  );
-              } else if (ytCur) {
-                msgs.push(`yt-dlp: текущая версия (${ytCur})`);
-              }
-            }
-            if (upd?.ffmpeg) {
-              if (ffSkip && ffCur) {
-                msgs.push(
-                  `ffmpeg: обновления отключены на macOS (текущая ${ffCur})`,
-                );
-              } else if (ffCur && ffLatest) {
-                if (ffCmp === 1)
-                  msgs.push(
-                    `ffmpeg: доступна ${upd.ffmpeg.latest} (текущая ${upd.ffmpeg.current || upd.ffmpeg.local || fCurLocal || "—"})`,
-                  );
-                else
-                  msgs.push(
-                    `ffmpeg: актуальная (${upd.ffmpeg.current || upd.ffmpeg.local || fCurLocal || "—"})`,
-                  );
-              } else if (ffCur) {
-                msgs.push(`ffmpeg: текущая версия (${ffCur})`);
-              }
-            }
-            if (denoCur) {
-              msgs.push(`Deno: ${denoCur}`);
-            } else if (cur?.deno?.ok === false) {
-              msgs.push("Deno: не найден");
-            }
-            const ytMsg = msgs.find((m) => m.startsWith("yt-dlp")) || "";
-            const ffMsg = msgs.find((m) => m.startsWith("ffmpeg")) || "";
-            const denoMsg = msgs.find((m) => m.startsWith("Deno")) || "";
-            const ytCan = ytCmp === 1;
-            const ffCan = !ffSkip && ffCmp === 1;
-            const anyUpdate = ytCan || ffCan;
-            const overrides = {
-              yt: ytCan ? "update" : undefined,
-              ff: ffCan ? "update" : undefined,
-            };
-            const overallState = anyUpdate ? "update" : undefined;
-            updateStatusUI(summaryBase, overrides, {
-              customState: overallState,
-              customText: anyUpdate ? "Доступны обновления" : summaryBase.text,
-            });
-
-            if (anyUpdate) {
-              const updateYt = ytCan && !ffCan;
-              const updateFf = ffCan && !ytCan;
-              const updateBoth = ytCan && ffCan;
-              const btnTitle = updateBoth
-                ? "Обновить инструменты"
-                : updateYt
-                  ? "Обновить yt-dlp"
-                  : "Обновить ffmpeg";
-
-              primaryBtn.setAttribute("title", btnTitle);
-              primaryBtn.setAttribute("data-bs-toggle", "tooltip");
-              primaryLabel.textContent = btnTitle;
-              primaryIcon.className = "fa-solid fa-download";
-
-              primaryBtn.onclick = async () => {
-                isInstalling = true;
-                applyNetworkState(
-                  primaryBtn,
-                  forceBtn,
-                  isInstalling,
-                  isChecking,
-                );
-                primaryBtn.setAttribute("aria-busy", "true");
-                if (!navigator.onLine) {
-                  await window.electron?.invoke?.(
-                    "toast",
-                    "Нет сети: проверьте подключение",
-                    "warning",
-                  );
-                  isInstalling = false;
-                  primaryBtn.removeAttribute("aria-busy");
-                  applyNetworkState(
-                    primaryBtn,
-                    forceBtn,
-                    isInstalling,
-                    isChecking,
-                  );
-                  return;
-                }
-                const prevText2 = primaryLabel.textContent;
-                let dots2;
-                try {
-                  primaryBtn.disabled = true;
-                  dots2 = startDotsAnimator(primaryLabel, "Скачиваю");
-                  if (updateBoth) {
-                    await window.electron?.tools?.updateYtDlp?.();
-                    await window.electron?.tools?.updateFfmpeg?.();
-                  } else if (updateYt) {
-                    await window.electron?.tools?.updateYtDlp?.();
-                  } else if (updateFf) {
-                    await window.electron?.tools?.updateFfmpeg?.();
-                  }
-                  await renderToolsInfo();
-                } catch (e2) {
-                  console.error("[toolsInfo] selective update failed:", e2);
-                  primaryBtn.disabled = false;
-                  primaryLabel.textContent = prevText2 || btnTitle;
-                } finally {
-                  isInstalling = false;
-                  primaryBtn.removeAttribute("aria-busy");
-                  applyNetworkState(
-                    primaryBtn,
-                    forceBtn,
-                    isInstalling,
-                    isChecking,
-                  );
-                  try {
-                    if (typeof dots2?.stop === "function") dots2.stop();
-                  } catch {}
-                }
-              };
-              promotedToUpdateMode = true;
-              await window.electron?.invoke?.(
-                "toast",
-                [ytMsg, ffMsg, denoMsg].filter(Boolean).join("; ") ||
-                  "Доступны обновления",
-                "success",
-              );
-            } else {
-              // Переустановка доступна всегда (на случай кривых бинарей)
-              enableForceReinstall();
-              await window.electron?.invoke?.(
-                "toast",
-                [ytMsg, ffMsg, denoMsg].filter(Boolean).join("; ") ||
-                  "Обновлений не найдено",
-                "success",
-              );
-            }
-          } catch (err) {
-            console.error("[toolsInfo] check updates failed:", err);
-            updateStatusUI(
-              summaryBase,
-              {},
-              {
-                customState: "error",
-                customText: "Ошибка при проверке обновлений",
-              },
-            );
-            await window.electron?.invoke?.(
-              "toast",
-              `Ошибка: ${err.message}`,
-              "error",
-            );
-          } finally {
-            isChecking = false;
-            primaryBtn.removeAttribute("aria-busy");
-            applyNetworkState(primaryBtn, forceBtn, isInstalling, isChecking);
-            primaryIcon.classList.remove("fa-spin");
-            if (!promotedToUpdateMode) {
-              primaryLabel.textContent = prevText || "Проверить обновления";
-            } else {
-              primaryLabel.textContent = "Обновить инструменты"; // удерживаем режим обновления
-              primaryBtn.setAttribute("title", "Обновить инструменты");
-              primaryBtn.setAttribute("data-bs-toggle", "tooltip");
-              primaryIcon.className = "fa-solid fa-download";
-            }
-            primaryBtn.disabled = false;
-          }
-        };
-      }
+            if (typeof dots?.stop === "function") dots.stop();
+          } catch {}
+        }
+      };
     }
 
     if (!missing) {
@@ -1129,11 +1211,11 @@ export async function renderToolsInfo() {
     }
     emitToolsStatus(res);
   } catch (e) {
-    if (hintEl) hintEl.textContent = "Не удалось получить версии инструментов.";
+    setHintText(t("tools.error.getVersions"));
     updateStatusUI(
       null,
       {},
-      { customState: "error", customText: "Ошибка загрузки статусов" },
+      { customState: "error", customText: t("tools.error.getVersions") },
     );
     console.error("[toolsInfo] getVersions failed:", e);
     emitToolsStatus(null);
@@ -1153,6 +1235,7 @@ export async function renderToolsInfo() {
         }
       });
     });
+    applyI18n(section);
     initTooltips();
   } catch (e) {
     console.warn("[toolsInfo] initTooltips skipped:", e);

@@ -232,6 +232,93 @@
   }
 }
 
+.tools-wizard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 12px;
+
+  &__header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  &__steps {
+    display: grid;
+    gap: 12px;
+  }
+
+  &__step {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+  }
+
+  &__step-index {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-highlight);
+  }
+
+  &__step-body h4 {
+    margin: 0 0 4px;
+    font-size: 14px;
+  }
+
+  #tools-install-btn {
+    height: 36px;
+    border-radius: 14px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text-main);
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease,
+      transform 0.08s ease;
+
+    i {
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    &:active {
+      transform: translateY(1px);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.tools-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
 // --- Блок выбора папки инструментов
 .tools-location {
   label {
@@ -351,7 +438,8 @@
   align-items: center;
   margin-top: 10px;
 
-  #tools-primary-btn,
+  #tools-check-btn,
+  #tools-update-btn,
   #tools-force-btn {
     height: 36px;
     border-radius: 14px;
@@ -391,9 +479,7 @@
   }
 
   // сгруппируем действия справа
-  #tools-primary-btn {
-    justify-self: end;
-  }
+  .tools-actions,
   .tools-more {
     justify-self: end;
   }
@@ -430,10 +516,10 @@
     #tools-status {
       order: 1;
     }
-    #tools-primary-btn {
+    .tools-actions {
       order: 2;
     }
-    #tools-force-btn {
+    .tools-more {
       order: 3;
     }
   }

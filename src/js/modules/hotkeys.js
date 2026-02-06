@@ -56,7 +56,7 @@ const localHotkeys = new Map([
     () => {
       if (tabSystemReference) {
         tabSystemReference.activateTab("download");
-        console.log("Переключено на вкладку Downloader (Ctrl+1)");
+        console.log("Переключено на вкладку Загрузчик (Ctrl+1)");
       }
     },
   ],
@@ -65,7 +65,7 @@ const localHotkeys = new Map([
     () => {
       if (tabSystemReference) {
         tabSystemReference.activateTab("download");
-        console.log("Переключено на вкладку Downloader (Meta+1)");
+        console.log("Переключено на вкладку Загрузчик (Meta+1)");
       }
     },
   ],

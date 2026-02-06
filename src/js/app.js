@@ -297,9 +297,9 @@ if (!app.requestSingleInstanceLock()) {
         mainWindow.webContents.send("download-path-changed", downloadPath);
       }
 
-      log.info(`Downloader → Download path restored: ${downloadPath}`);
+      log.info(`Загрузчик → Путь загрузки восстановлен: ${downloadPath}`);
     } catch (error) {
-      log.error("Downloader → Error restoring download path:", error);
+      log.error("Загрузчик → Ошибка восстановления пути загрузки:", error);
     }
   }
 

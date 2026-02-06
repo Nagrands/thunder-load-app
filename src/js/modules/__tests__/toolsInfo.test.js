@@ -67,22 +67,22 @@ describe("renderToolsInfo", () => {
     expect(badge?.textContent).toMatch(/Готово|OK/i);
   });
 
-  it("primary button downloads when tools are missing", async () => {
+  it("install button downloads when tools are missing", async () => {
     window.electron.tools.getVersions.mockResolvedValueOnce({
       ytDlp: { ok: false },
       ffmpeg: { ok: false },
       deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
     });
     await renderToolsInfo();
-    const primary = document.getElementById("tools-primary-btn");
-    const label = document.getElementById("tools-primary-label");
+    const primary = document.getElementById("tools-install-btn");
+    const label = primary?.querySelector("span");
     expect(label?.textContent).toMatch(/Скачать зависимости/i);
     primary?.click();
     await flush();
     expect(window.electron.tools.installAll).toHaveBeenCalledTimes(1);
   });
 
-  it("primary button switches to update flow when updates are available", async () => {
+  it("check button reveals update flow when updates are available", async () => {
     window.electron.tools.getVersions.mockResolvedValueOnce({
       ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2024.01.01" },
       ffmpeg: {
@@ -98,13 +98,14 @@ describe("renderToolsInfo", () => {
       deno: { current: "1.42.0", latest: "1.42.0" },
     });
     await renderToolsInfo();
-    const primary = document.getElementById("tools-primary-btn");
-    expect(primary).not.toBeNull();
-    primary?.click();
+    const checkBtn = document.getElementById("tools-check-btn");
+    const updateBtn = document.getElementById("tools-update-btn");
+    expect(checkBtn).not.toBeNull();
+    checkBtn?.click();
     await flush(); // check updates completes and rewires button
     expect(window.electron.tools.checkUpdates).toHaveBeenCalled();
-    // second click triggers selective update
-    primary?.click();
+    expect(updateBtn?.style.display).toBe("");
+    updateBtn?.click();
     await flush();
     expect(window.electron.tools.updateYtDlp).toHaveBeenCalled();
     expect(window.electron.tools.updateFfmpeg).toHaveBeenCalled();
@@ -117,9 +118,8 @@ describe("renderToolsInfo", () => {
     const forceBtn = document.getElementById("tools-force-btn");
     expect(moreBtn).not.toBeNull();
     expect(forceBtn).not.toBeNull();
-    // имитируем отсутствие модалки подтверждения (в тестах showConfirmationDialog замокан)
     const { showConfirmationDialog } = require("../modals.js");
-    showConfirmationDialog.mockImplementation((_, ok) => ok());
+    showConfirmationDialog.mockResolvedValue(true);
     moreBtn?.click();
     forceBtn?.click();
     await flush();
@@ -141,8 +141,8 @@ describe("renderToolsInfo", () => {
     const badgeBefore = document.getElementById("tools-summary-badge");
     expect(badgeBefore?.textContent).not.toMatch(/Готово/i);
 
-    const primary = document.getElementById("tools-primary-btn");
-    primary?.click();
+    const installBtn = document.getElementById("tools-install-btn");
+    installBtn?.click();
     await flush();
 
     const badgeAfter = document.getElementById("tools-summary-badge");

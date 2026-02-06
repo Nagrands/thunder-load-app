@@ -403,7 +403,7 @@ function setupIpcHandlers(dependencies) {
       }
 
       // Детальное логирование для диагностики
-      log.info("Downloader → Tools versions check result:", {
+      log.info("Загрузчик → Результат проверки версий инструментов:", {
         ytDlp: {
           ok: tools?.ytDlp?.ok,
           path: tools?.ytDlp?.path,
@@ -1265,10 +1265,10 @@ function setupIpcHandlers(dependencies) {
           mainWindow.webContents.send(
             "toast",
             !hasYt && !hasFf
-              ? "Не найдены yt-dlp и ffmpeg. Откройте Настройки → Downloader → Инструменты и нажмите ‘Скачать зависимости’."
+              ? "Не найдены yt-dlp и ffmpeg. Откройте Настройки → Загрузчик → Инструменты и нажмите ‘Скачать зависимости’."
               : !hasYt
-                ? "Не найден yt-dlp. Откройте Настройки → Downloader → Инструменты и нажмите ‘Скачать зависимости’."
-                : "Не найден ffmpeg. Откройте Настройки → Downloader → Инструменты и нажмите ‘Скачать зависимости’.",
+                ? "Не найден yt-dlp. Откройте Настройки → Загрузчик → Инструменты и нажмите ‘Скачать зависимости’."
+                : "Не найден ffmpeg. Откройте Настройки → Загрузчик → Инструменты и нажмите ‘Скачать зависимости’.",
             "warning",
           );
         }

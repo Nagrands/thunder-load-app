@@ -3,12 +3,12 @@
  * @description
  * Handles automatic detection of supported URLs from the clipboard when the
  * application window gains focus. If a valid and supported URL is found, it
- * pre-fills the Downloader tab with the link and updates the UI state.
+ * pre-fills the Загрузчик tab with the link and updates the UI state.
  *
  * Responsibilities:
  *  - Listens for clipboard content when window is focused
  *  - Validates and checks if the URL is supported
- *  - Switches to Downloader tab automatically
+ *  - Switches to Загрузчик tab automatically
  *  - Prefills input field with clipboard URL
  *  - Updates source icon and button state
  *  - Triggers preview generation (bypassing debounce)
@@ -36,7 +36,7 @@ function initClipboardHandler() {
       isSupportedUrl(clipboardContent) &&
       clipboardContent !== state.lastPastedUrl
     ) {
-      // Активируем вкладку Downloader, чтобы пользователь сразу видел карточку
+      // Активируем вкладку Загрузчик, чтобы пользователь сразу видел карточку
       try {
         const tabBtn = document.querySelector(
           '.group-menu [data-menu="download"]',

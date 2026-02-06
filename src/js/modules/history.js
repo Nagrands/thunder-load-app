@@ -30,7 +30,7 @@ import { filterAndSortHistory } from "./filterAndSortHistory.js";
 import { normalizeEntry } from "./normalizeEntry.js";
 import { handleDeleteEntry } from "./contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "./tooltipInitializer.js";
-import { t } from "./i18n.js";
+import { getLanguage, t } from "./i18n.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 
@@ -139,16 +139,37 @@ function ensurePaginationElements() {
   paginationRoot.id = "history-pagination";
   paginationRoot.className = "history-pagination";
   paginationRoot.innerHTML = `
-    <button type="button" class="history-action-button history-page-btn" id="history-page-prev" aria-label="Предыдущая страница">
+    <button
+      type="button"
+      class="history-action-button history-page-btn"
+      id="history-page-prev"
+      aria-label="${t("history.pagination.prevAria")}"
+    >
       <i class="fa-solid fa-chevron-left"></i>
     </button>
-    <span class="history-page-info" id="history-page-info">Стр. 1 / 1 · 0 записей</span>
-    <button type="button" class="history-action-button history-page-btn" id="history-page-next" aria-label="Следующая страница">
+    <span class="history-page-info" id="history-page-info">
+      ${t("history.pagination.info", {
+        page: 1,
+        total: 1,
+        count: 0,
+        label: t("history.entry.many"),
+      })}
+    </span>
+    <button
+      type="button"
+      class="history-action-button history-page-btn"
+      id="history-page-next"
+      aria-label="${t("history.pagination.nextAria")}"
+    >
       <i class="fa-solid fa-chevron-right"></i>
     </button>
     <label class="history-page-size">
-      <span>по</span>
-      <select id="history-page-size" class="input input-sm history-page-size-select bk-select-init" aria-label="Записей на странице">
+      <span>${t("history.pagination.perLabel")}</span>
+      <select
+        id="history-page-size"
+        class="input input-sm history-page-size-select bk-select-init"
+        aria-label="${t("history.pagination.perAria")}"
+      >
         ${HISTORY_PAGE_SIZES.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
       </select>
     </label>
@@ -186,12 +207,23 @@ function updatePaginationControls(meta) {
   };
 
   if (paginationInfo) {
-    const countLabel = pluralize(meta.totalEntries, [
-      "запись",
-      "записи",
-      "записей",
-    ]);
-    paginationInfo.textContent = `Стр. ${meta.page} / ${meta.totalPages} · ${meta.totalEntries} ${countLabel}`;
+    const lang = getLanguage();
+    const countLabel =
+      lang === "ru"
+        ? pluralize(meta.totalEntries, [
+            t("history.entry.one"),
+            t("history.entry.few"),
+            t("history.entry.many"),
+          ])
+        : meta.totalEntries === 1
+          ? t("history.entry.one")
+          : t("history.entry.many");
+    paginationInfo.textContent = t("history.pagination.info", {
+      page: meta.page,
+      total: meta.totalPages,
+      count: meta.totalEntries,
+      label: countLabel,
+    });
   }
   if (paginationPrev) {
     paginationPrev.disabled = meta.page <= 1;
@@ -235,19 +267,31 @@ function ensureHistoryCardsElements() {
     area.innerHTML = `
       <div class="history-cards-header">
         <div>
-          <p class="history-cards-subtitle">Недавние загрузки</p>
-          <h3 class="history-cards-title">История загрузок</h3>
+          <p class="history-cards-subtitle" data-i18n="history.cards.subtitle">
+            ${t("history.cards.subtitle")}
+          </p>
+          <h3 class="history-cards-title" data-i18n="history.cards.title">
+            ${t("history.cards.title")}
+          </h3>
         </div>
         <div class="history-cards-search history-actions">
           <div class="history-search-wrapper history-input-wrapper">
             <i id="icon-filter-search" class="fas fa-search search-icon"></i>
-            <input type="text" id="filter-input" placeholder="Поиск по истории" aria-label="Поиск по истории" />
+            <input
+              type="text"
+              id="filter-input"
+              placeholder="${t("history.search.placeholder")}"
+              data-i18n-placeholder="history.search.placeholder"
+              aria-label="${t("history.search.aria")}"
+              data-i18n-aria="history.search.aria"
+            />
             <button
               id="clear-filter-input"
               class="history-action-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Очистить поиск"
+              title="${t("history.search.clearHint")}"
+              data-i18n-title="history.search.clearHint"
             >
               &times;
             </button>
@@ -258,7 +302,8 @@ function ensureHistoryCardsElements() {
               class="history-action-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Обновить"
+              title="${t("history.refresh")}"
+              data-i18n-title="history.refresh"
             >
               <i class="fa-solid fa-arrow-rotate-right"></i>
             </button>
@@ -267,7 +312,8 @@ function ensureHistoryCardsElements() {
               class="history-action-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Сортировка"
+              title="${t("history.sort")}"
+              data-i18n-title="history.sort"
             >
               <i class="fa-solid"></i>
             </button>
@@ -276,7 +322,8 @@ function ensureHistoryCardsElements() {
               class="history-action-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Очистить"
+              title="${t("history.clear")}"
+              data-i18n-title="history.clear"
             >
               <i class="fa-solid fa-trash"></i>
             </button>
@@ -285,7 +332,8 @@ function ensureHistoryCardsElements() {
               class="history-action-button hidden"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Удалить выбранные"
+              title="${t("history.deleteSelected")}"
+              data-i18n-title="history.deleteSelected"
             >
               <i class="fa-solid fa-trash-can"></i>
             </button>
@@ -294,7 +342,8 @@ function ensureHistoryCardsElements() {
               class="history-action-button"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Записей истории"
+              title="${t("history.count")}"
+              data-i18n-title="history.count"
             >
               <span id="total-downloads">0</span>
             </button>
@@ -303,7 +352,9 @@ function ensureHistoryCardsElements() {
       </div>
       <div id="history-cards" class="history-card-grid" role="list"></div>
       <div id="history-cards-empty" class="history-cards-empty">
-        Недавних загрузок пока нет.
+        <span data-i18n="history.empty.noRecent">
+          ${t("history.empty.noRecent")}
+        </span>
       </div>
     `;
     const container =
@@ -480,14 +531,16 @@ function ensureHistoryCardPreviewOverlay() {
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
   overlay.setAttribute("aria-hidden", "true");
-  overlay.setAttribute("aria-label", "Просмотр превью загрузки");
+  overlay.setAttribute("aria-label", t("history.preview.overlayLabel"));
+  overlay.setAttribute("data-i18n-aria", "history.preview.overlayLabel");
   overlay.tabIndex = -1;
   overlay.innerHTML = `
     <div class="history-card-preview-dialog">
       <button
         type="button"
         class="history-card-preview-close"
-        aria-label="Закрыть превью"
+        aria-label="${t("history.preview.close")}"
+        data-i18n-aria="history.preview.close"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
@@ -583,8 +636,12 @@ function buildFilterOptions(entries = []) {
     ui?.updateLabel?.();
   };
 
-  applyOptions(historySourceFilterSelect, hosts, "Все источники");
-  applyOptions(historyQualityFilterSelect, qualities, "Любое качество");
+  applyOptions(historySourceFilterSelect, hosts, t("history.filter.source.all"));
+  applyOptions(
+    historyQualityFilterSelect,
+    qualities,
+    t("history.filter.quality.all"),
+  );
   syncHistorySelectValues();
 }
 
@@ -592,7 +649,7 @@ function openHistoryCardPreview(src, title = "") {
   if (!src) return;
   const overlay = ensureHistoryCardPreviewOverlay();
   historyCardPreviewImage.src = src;
-  historyCardPreviewImage.alt = title || "Preview";
+  historyCardPreviewImage.alt = title || t("preview.alt");
   historyCardPreviewCaption.textContent = title || "";
   overlay.classList.remove("hidden");
   overlay.setAttribute("aria-hidden", "false");
@@ -608,14 +665,14 @@ function closeHistoryCardPreview() {
 
 async function openHistorySourceLink(url) {
   if (!url) {
-    showToast("Ссылка на источник недоступна.", "warning");
+    showToast(t("history.toast.sourceUnavailable"), "warning");
     return;
   }
   try {
     await window.electron.invoke("open-external-link", url);
   } catch (error) {
     console.error("Ошибка открытия источника:", error);
-    showToast("Не удалось открыть источник загрузки.", "error");
+    showToast(t("history.toast.sourceOpenError"), "error");
   }
 }
 
@@ -802,7 +859,7 @@ async function downloadPreviewSource(src, baseName = "preview") {
       document.body.appendChild(a);
       a.click();
       setTimeout(() => document.body.removeChild(a), 0);
-      showToast("Превью сохранено.", "success");
+      showToast(t("history.toast.previewSaved"), "success");
       return;
     }
 
@@ -819,10 +876,10 @@ async function downloadPreviewSource(src, baseName = "preview") {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 0);
-    showToast("Превью сохранено.", "success");
+    showToast(t("history.toast.previewSaved"), "success");
   } catch (error) {
     console.warn("Не удалось скачать превью:", error);
-    showToast("Не удалось скачать превью.", "error");
+    showToast(t("history.toast.previewDownloadError"), "error");
   }
 }
 
@@ -1025,9 +1082,9 @@ const formatCardDate = (entry) => {
 };
 
 const formatSizeLabel = (entry) => {
-  if (entry?.isMissing) return "Файл удалён";
+  if (entry?.isMissing) return t("history.file.missing");
   if (entry?.formattedSize) return entry.formattedSize;
-  return "Размер не определён";
+  return t("history.file.sizeUnknown");
 };
 
 async function openHistoryCardFile(entry) {
@@ -1040,12 +1097,12 @@ async function openHistoryCardFile(entry) {
     if (!exists) {
       entry.isMissing = true;
       renderHistoryCards(getHistoryData());
-      return showToast("Файл не найден на диске.", "error");
+      return showToast(t("history.toast.fileMissing"), "error");
     }
     await window.electron.invoke("open-last-video", entry.filePath);
   } catch (error) {
     console.error("Ошибка при открытии файла истории:", error);
-    showToast("Не удалось открыть файл.", "error");
+    showToast(t("history.toast.fileOpenError"), "error");
   }
 }
 
@@ -1059,18 +1116,18 @@ async function openHistoryCardFolder(entry) {
     if (!exists) {
       entry.isMissing = true;
       renderHistoryCards(getHistoryData());
-      return showToast("Папка не найдена на диске.", "error");
+      return showToast(t("history.toast.folderMissing"), "error");
     }
     await window.electron.invoke("open-download-folder", entry.filePath);
   } catch (error) {
     console.error("Ошибка при открытии папки истории:", error);
-    showToast("Не удалось открыть папку.", "error");
+    showToast(t("history.toast.folderOpenError"), "error");
   }
 }
 
 function retryHistoryCardDownload(entry) {
   if (!entry?.sourceUrl || !urlInput || !downloadButton) {
-    showToast("Ссылка для повторной загрузки недоступна.", "warning");
+    showToast(t("history.toast.retryUnavailable"), "warning");
     return;
   }
   urlInput.value = entry.sourceUrl;
@@ -1081,7 +1138,9 @@ function retryHistoryCardDownload(entry) {
   updateButtonState();
   downloadButton.classList.add("active");
   showToast(
-    `Повторная загрузка: <strong>${entry.fileName || entry.sourceUrl}</strong>.`,
+    t("history.toast.retryStart", {
+      name: entry.fileName || entry.sourceUrl,
+    }),
     "info",
   );
 }
@@ -1125,13 +1184,14 @@ function renderHistoryCards(entries = []) {
       const img = document.createElement("img");
       attachPlaceholderOnError(img, HISTORY_IMAGE_PLACEHOLDER, thumb);
       img.src = thumbSrc;
-      img.alt = entry.fileName || "Preview";
+      img.alt = entry.fileName || t("preview.alt");
       img.loading = "lazy";
 
       const zoomBtn = document.createElement("button");
       zoomBtn.type = "button";
       zoomBtn.className = "history-card-thumb-button";
-      zoomBtn.title = "Увеличить превью";
+      zoomBtn.title = t("history.preview.zoom");
+      zoomBtn.setAttribute("data-i18n-title", "history.preview.zoom");
       zoomBtn.setAttribute("data-bs-toggle", "tooltip");
       zoomBtn.setAttribute("data-bs-placement", "top");
       zoomBtn.addEventListener("click", () =>
@@ -1165,7 +1225,7 @@ function renderHistoryCards(entries = []) {
     const name = document.createElement("h4");
     name.className = "history-card-name";
     name.title = entry.fileName || "";
-    name.textContent = entry.fileName || "Без названия";
+    name.textContent = entry.fileName || t("history.file.untitled");
     body.appendChild(name);
 
     const meta = document.createElement("div");
@@ -1182,7 +1242,8 @@ function renderHistoryCards(entries = []) {
       hostButton.type = "button";
       hostButton.className = "history-card-host-link";
       hostButton.textContent = host;
-      hostButton.title = "Открыть источник";
+      hostButton.title = t("history.action.openSource");
+      hostButton.setAttribute("data-i18n-title", "history.action.openSource");
       hostButton.setAttribute("data-bs-toggle", "tooltip");
       hostButton.setAttribute("data-bs-placement", "top");
       hostButton.addEventListener("click", () =>
@@ -1211,9 +1272,11 @@ function renderHistoryCards(entries = []) {
     openBtn.type = "button";
     openBtn.className = "history-card-btn";
     openBtn.dataset.action = "open";
-    openBtn.innerHTML =
-      '<i class="fa-solid fa-circle-play"></i><span>Открыть</span>';
-    openBtn.title = "Открыть файл";
+    openBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i><span>${t(
+      "history.action.open",
+    )}</span>`;
+    openBtn.title = t("history.action.openFile");
+    openBtn.setAttribute("data-i18n-title", "history.action.openFile");
     openBtn.setAttribute("data-bs-toggle", "tooltip");
     openBtn.setAttribute("data-bs-placement", "top");
     openBtn.disabled = entry.isMissing;
@@ -1223,9 +1286,11 @@ function renderHistoryCards(entries = []) {
     openFolderBtn.type = "button";
     openFolderBtn.className = "history-card-btn ghost";
     openFolderBtn.dataset.action = "open-folder";
-    openFolderBtn.innerHTML =
-      '<i class="fa-solid fa-folder-open"></i><span>Папка</span>';
-    openFolderBtn.title = "Открыть папку с файлом";
+    openFolderBtn.innerHTML = `<i class="fa-solid fa-folder-open"></i><span>${t(
+      "history.action.folder",
+    )}</span>`;
+    openFolderBtn.title = t("history.action.openFolder");
+    openFolderBtn.setAttribute("data-i18n-title", "history.action.openFolder");
     openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
     openFolderBtn.setAttribute("data-bs-placement", "top");
     openFolderBtn.disabled = entry.isMissing;
@@ -1235,9 +1300,11 @@ function renderHistoryCards(entries = []) {
     retryBtn.type = "button";
     retryBtn.className = "history-card-btn ghost";
     retryBtn.dataset.action = "retry";
-    retryBtn.innerHTML =
-      '<i class="fa-solid fa-arrow-rotate-right"></i><span>Скачать снова</span>';
-    retryBtn.title = "Повторно скачать файл";
+    retryBtn.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i><span>${t(
+      "history.action.retry",
+    )}</span>`;
+    retryBtn.title = t("history.action.retryFile");
+    retryBtn.setAttribute("data-i18n-title", "history.action.retryFile");
     retryBtn.setAttribute("data-bs-toggle", "tooltip");
     retryBtn.setAttribute("data-bs-placement", "top");
     retryBtn.disabled = !entry.sourceUrl;
@@ -1251,8 +1318,10 @@ function renderHistoryCards(entries = []) {
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "history-card-delete";
-    deleteBtn.setAttribute("aria-label", "Удалить запись");
-    deleteBtn.title = "Удалить запись";
+    deleteBtn.setAttribute("aria-label", t("history.action.delete"));
+    deleteBtn.setAttribute("data-i18n-aria", "history.action.delete");
+    deleteBtn.title = t("history.action.delete");
+    deleteBtn.setAttribute("data-i18n-title", "history.action.delete");
     deleteBtn.setAttribute("data-bs-toggle", "tooltip");
     deleteBtn.setAttribute("data-bs-placement", "top");
     deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
@@ -1316,7 +1385,7 @@ function createLogEntry(entry, index) {
   const name = document.createElement("span");
   name.className = "history-row__name";
   name.title = entry.fileName || "";
-  name.textContent = entry.fileName || "Без названия";
+  name.textContent = entry.fileName || t("history.file.untitled");
   name.setAttribute("data-bs-toggle", "tooltip");
   name.setAttribute("data-bs-placement", "top");
 
@@ -1371,7 +1440,7 @@ function createLogEntry(entry, index) {
   if (entry.isMissing) {
     const missing = document.createElement("span");
     missing.className = "history-row__missing";
-    missing.textContent = "Файл удалён";
+    missing.textContent = t("history.file.missing");
     meta.appendChild(missing);
   }
 
@@ -1385,7 +1454,8 @@ function createLogEntry(entry, index) {
   openBtn.className = "history-row__action";
   openBtn.setAttribute("data-bs-toggle", "tooltip");
   openBtn.setAttribute("data-bs-placement", "top");
-  openBtn.title = "Открыть файл";
+  openBtn.title = t("history.action.openFile");
+  openBtn.setAttribute("data-i18n-title", "history.action.openFile");
   openBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
   openBtn.disabled = entry.isMissing;
   openBtn.addEventListener("click", async (e) => {
@@ -1398,7 +1468,8 @@ function createLogEntry(entry, index) {
   openFolderBtn.className = "history-row__action";
   openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
   openFolderBtn.setAttribute("data-bs-placement", "top");
-  openFolderBtn.title = "Открыть папку";
+  openFolderBtn.title = t("history.action.openFolderShort");
+  openFolderBtn.setAttribute("data-i18n-title", "history.action.openFolderShort");
   openFolderBtn.innerHTML = '<i class="fa-solid fa-folder-open"></i>';
   openFolderBtn.disabled = entry.isMissing;
   openFolderBtn.addEventListener("click", async (e) => {
@@ -1411,7 +1482,8 @@ function createLogEntry(entry, index) {
   retryBtn.className = "history-row__action";
   retryBtn.setAttribute("data-bs-toggle", "tooltip");
   retryBtn.setAttribute("data-bs-placement", "top");
-  retryBtn.title = "Скачать снова";
+  retryBtn.title = t("history.action.retry");
+  retryBtn.setAttribute("data-i18n-title", "history.action.retry");
   retryBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i>';
   retryBtn.disabled = !entry.sourceUrl;
   if (entry.sourceUrl) {
@@ -1426,7 +1498,8 @@ function createLogEntry(entry, index) {
   deleteBtn.className = "history-row__action history-row__delete";
   deleteBtn.setAttribute("data-bs-toggle", "tooltip");
   deleteBtn.setAttribute("data-bs-placement", "top");
-  deleteBtn.title = "Удалить из истории";
+  deleteBtn.title = t("history.action.deleteFromHistory");
+  deleteBtn.setAttribute("data-i18n-title", "history.action.deleteFromHistory");
   deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
 
   actions.append(openBtn, openFolderBtn, retryBtn, deleteBtn);
@@ -1447,10 +1520,12 @@ function createLogEntry(entry, index) {
   const downloadPreviewBtn = document.createElement("button");
   downloadPreviewBtn.type = "button";
   downloadPreviewBtn.className = "history-row__preview-download";
-  downloadPreviewBtn.setAttribute("aria-label", "Скачать превью");
+  downloadPreviewBtn.setAttribute("aria-label", t("history.preview.download"));
+  downloadPreviewBtn.setAttribute("data-i18n-aria", "history.preview.download");
   downloadPreviewBtn.setAttribute("data-bs-toggle", "tooltip");
   downloadPreviewBtn.setAttribute("data-bs-placement", "top");
-  downloadPreviewBtn.title = "Скачать превью";
+  downloadPreviewBtn.title = t("history.preview.download");
+  downloadPreviewBtn.setAttribute("data-i18n-title", "history.preview.download");
   downloadPreviewBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
   downloadPreviewBtn.addEventListener("click", (event) => {
     event.preventDefault();
@@ -1461,7 +1536,7 @@ function createLogEntry(entry, index) {
   if (thumbSrc) {
     const img = document.createElement("img");
     img.src = thumbSrc;
-    img.alt = entry.fileName || "Preview";
+    img.alt = entry.fileName || t("preview.alt");
     img.loading = "lazy";
     attachPlaceholderOnError(img, HISTORY_IMAGE_PLACEHOLDER, preview);
     preview.appendChild(img);
@@ -1488,11 +1563,11 @@ function createLogEntry(entry, index) {
     detailsMeta.appendChild(row);
   };
 
-  addDetail("Источник", entry.sourceUrl || "");
-  addDetail("Файл", entry.filePath || "");
-  addDetail("Качество", entry.quality || "");
-  addDetail("Разрешение", entry.resolution || "");
-  addDetail("Дата", entry.dateText || "");
+  addDetail(t("history.detail.source"), entry.sourceUrl || "");
+  addDetail(t("history.detail.file"), entry.filePath || "");
+  addDetail(t("history.detail.quality"), entry.quality || "");
+  addDetail(t("history.detail.resolution"), entry.resolution || "");
+  addDetail(t("history.detail.date"), entry.dateText || "");
 
   details.append(preview, detailsMeta);
 
@@ -1619,7 +1694,7 @@ document
     }
 
     showToast(
-      `Удалено ${deletedEntries.length} записей.`,
+      t("history.toast.deletedEntries", { count: deletedEntries.length }),
       "info",
       5500,
       null,
@@ -1643,7 +1718,7 @@ document
           updateRestoreButton();
         }
         await updateDownloadCount();
-        showToast("Удаление отменено.", "success");
+        showToast(t("history.toast.deleteCancelled"), "success");
       },
     );
     rememberDeletedEntries(deletedEntries);
@@ -1671,7 +1746,7 @@ function _attachOpenFolderListeners() {
           await window.electron.invoke("open-download-folder", filePath);
         } catch (err) {
           console.error(err);
-          showToast("Папка не найдена.", "error");
+          showToast(t("history.toast.folderMissingShort"), "error");
         }
       }
     });
@@ -1707,7 +1782,10 @@ async function restoreDeletedEntries() {
   await window.electron.invoke("save-history", merged);
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
   await updateDownloadCount();
-  showToast(`Восстановлено ${buffer.length} записей.`, "success");
+  showToast(
+    t("history.toast.restoredEntries", { count: buffer.length }),
+    "success",
+  );
 }
 
 const toCsvValue = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
@@ -1754,7 +1832,7 @@ function downloadTextFile(filename, content, mime = "text/plain") {
     }, 0);
   } catch (error) {
     console.error("Ошибка экспорта истории:", error);
-    showToast("Не удалось сохранить файл экспорта.", "error");
+    showToast(t("history.toast.exportSaveError"), "error");
   }
 }
 
@@ -1763,7 +1841,7 @@ function exportHistory(format = "json") {
     ? lastRenderedFiltered
     : getHistoryData();
   if (!entries.length) {
-    showToast("История пуста, экспорт невозможен.", "warning");
+    showToast(t("history.toast.exportEmpty"), "warning");
     return;
   }
   const timestamp = new Date()
@@ -1774,12 +1852,12 @@ function exportHistory(format = "json") {
   if (format === "csv") {
     const csv = buildCsv(entries);
     downloadTextFile(`history_${timestamp}.csv`, csv, "text/csv");
-    showToast("Экспорт в CSV выполнен.", "success");
+    showToast(t("history.toast.exportCsv"), "success");
     return;
   }
   const json = JSON.stringify(entries, null, 2);
   downloadTextFile(`history_${timestamp}.json`, json, "application/json");
-  showToast("Экспорт в JSON выполнен.", "success");
+  showToast(t("history.toast.exportJson"), "success");
 }
 
 function renderHistory(entries, meta = {}) {
@@ -1859,8 +1937,8 @@ function renderHistory(entries, meta = {}) {
 
     if (historyEmptyRoot) {
       historyEmptyRoot.textContent = hasActiveFilters
-        ? "Нет записей по текущим фильтрам."
-        : "Недавних загрузок пока нет.";
+        ? t("history.empty.noFiltered")
+        : t("history.empty.noRecent");
       historyEmptyRoot.style.display = "";
     }
     updatePaginationControls({
@@ -1939,7 +2017,7 @@ async function initHistoryState() {
     updateIcon("");
   } catch (error) {
     console.error("Error during initial load:", error);
-    showToast("Ошибка загрузки истории.", "error");
+    showToast(t("history.toast.loadError"), "error");
   }
 }
 
@@ -2018,7 +2096,7 @@ const updateDownloadCount = async () => {
     totalDownloads.style.display = "none";
     if (error.code !== "ENOENT") {
       console.error("Error getting download count:", error);
-      showToast("Ошибка получения количества загрузок.", "error");
+      showToast(t("history.toast.countError"), "error");
     }
   }
 };
@@ -2067,7 +2145,7 @@ const loadHistory = async (forceRender = false) => {
     });
   } catch (error) {
     console.error("Ошибка загрузки истории:", error);
-    showToast("Ошибка загрузки истории.", "error");
+    showToast(t("history.toast.loadError"), "error");
   }
 };
 
@@ -2105,7 +2183,7 @@ const addNewEntryToHistory = async (newEntryRaw) => {
     await updateDownloadCount();
   } catch (error) {
     console.error("Ошибка при добавлении записи в историю:", error);
-    showToast("Ошибка при добавлении в историю", "error");
+    showToast(t("history.toast.addError"), "error");
   }
 };
 

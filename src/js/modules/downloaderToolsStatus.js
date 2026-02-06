@@ -91,7 +91,7 @@ async function fetchStatus() {
 }
 
 async function reinstallTools() {
-  // Вместо фоновой переустановки открываем настройки с вкладкой Downloader,
+  // Вместо фоновой переустановки открываем настройки с вкладкой Загрузчик,
   // где есть полный менеджер инструментов.
   openSettingsWithTab("window-settings");
 }

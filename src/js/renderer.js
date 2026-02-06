@@ -7,7 +7,7 @@
  * Responsibilities:
  *  - Apply platform-specific classes (macOS styling, etc.)
  *  - Initialize theme and font size managers
- *  - Create and manage tab system (Downloader, WG Unlock, Backup)
+ *  - Create and manage tab system (Загрузчик, WG Unlock, Backup)
  *  - Update global history counter and listen for history updates
  *  - Initialize application modules (history, downloads, settings, tooltips, etc.)
  *  - Bind event handlers for WireGuard autosend and manual send
