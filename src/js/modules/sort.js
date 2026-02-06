@@ -4,7 +4,7 @@ import { initTooltips } from "./tooltipInitializer.js";
 import { state } from "./state.js";
 import { sortButton } from "./domElements.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js"; // или ./filterAndSortHistory.js
-import { updateDeleteSelectedButton } from "./history.js";
+import { clearHistorySelection } from "./history.js";
 import { t } from "./i18n.js";
 
 /**
@@ -12,11 +12,7 @@ import { t } from "./i18n.js";
  */
 function handleSortButtonClick() {
   // ✅ Сброс выбранных записей при сортировке
-  state.selectedEntries = [];
-  updateDeleteSelectedButton();
-  document
-    .querySelectorAll(".log-entry.selected")
-    .forEach((el) => el.classList.remove("selected"));
+  clearHistorySelection();
 
   state.currentSortOrder = state.currentSortOrder === "asc" ? "desc" : "asc";
   localStorage.setItem("currentSortOrder", state.currentSortOrder);

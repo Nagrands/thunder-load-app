@@ -10,7 +10,7 @@ import {
   loadHistory,
   renderHistory,
   updateDownloadCount,
-  updateDeleteSelectedButton,
+  clearHistorySelection,
 } from "./history.js";
 import { setFilterInputValue } from "./historyFilter.js";
 import { showConfirmationDialog } from "./modals.js";
@@ -73,13 +73,7 @@ function initHistoryActions() {
     refreshButton.addEventListener("click", async () => {
       try {
         // ✅ сброс выбранных записей
-        state.selectedEntries = [];
-        updateDeleteSelectedButton();
-
-        // на всякий случай — убрать визуальное выделение
-        document
-          .querySelectorAll(".log-entry.selected")
-          .forEach((el) => el.classList.remove("selected"));
+        clearHistorySelection();
 
         state.currentSearchQuery = filterInput.value.trim();
         localStorage.setItem("lastSearch", state.currentSearchQuery);

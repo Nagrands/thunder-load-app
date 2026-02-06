@@ -8,7 +8,7 @@ This document describes a consistent, safe, and repeatable flow for project impr
 - Identify the affected area (UI, main process, IPC, tooling, build).
 
 ## 2. Quick Diagnosis
-- Locate the relevant logic (see `docs/WORKFLOW.ru.md`).
+- Locate the relevant logic (see `docs/WORKFLOW.en.md`).
 - Find affected modules in `src/js/**` and templates in `templates/**`.
 - If UI is affected, remember `templates/` → `src/index.html` and run `npm run templates:build`.
 
@@ -29,8 +29,8 @@ This document describes a consistent, safe, and repeatable flow for project impr
 - Avoid noisy `console.log` in tests (use a global mock).
 
 ## 6. Documentation
-- Update `docs/WORKFLOW.ru.md` if the process changes.
-- Update `src/info/whatsNew.md` (and root `whats-new.md`) for user-facing changes.
+- Update `docs/WORKFLOW.en.md` if the process changes.
+- Update root `whats-new.md` for user-facing changes (it is the source of truth).
 
 ## 7. Commits
 - Split into meaningful commits (lint/refactor separate from features).
@@ -65,5 +65,5 @@ This document describes a consistent, safe, and repeatable flow for project impr
 11. Stable download log schema with migrations.
 12. Configurable queue limits and parallel downloads.
 13. Mini diagnostics (CPU/RAM/disk) in Help/About.
-14. Auto‑build “What’s New” from `whats-new.md` for releases.
+14. Auto‑build “What’s New” from `whats-new.md` for releases (`npm run whats-new:build`).
 15. Optional UI localization (RU/EN) via dictionaries.

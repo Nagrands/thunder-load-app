@@ -5,11 +5,16 @@ import {
   historyContainer,
   historyCards,
   historyCardsEmpty,
+  historyEmpty,
+  historyBulkBar,
+  historySelectedCount,
+  historyClearSelection,
   totalDownloads,
   filterInput,
   openHistoryButton,
   urlInput,
   downloadButton,
+  toggleAllDetailsButton,
 } from "./domElements.js";
 import {
   state,
@@ -25,6 +30,7 @@ import { filterAndSortHistory } from "./filterAndSortHistory.js";
 import { normalizeEntry } from "./normalizeEntry.js";
 import { handleDeleteEntry } from "./contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "./tooltipInitializer.js";
+import { t } from "./i18n.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 
@@ -34,6 +40,7 @@ const attemptedPreviewRestores = new Set();
 
 let historyCardsRoot = historyCards;
 let historyCardsEmptyRoot = historyCardsEmpty;
+let historyEmptyRoot = historyEmpty;
 let historyCardPreviewOverlay = null;
 let historyCardPreviewImage = null;
 let historyCardPreviewCaption = null;
@@ -42,6 +49,9 @@ let historyQualityFilterSelect = null;
 let historyExportJsonButton = null;
 let historyExportCsvButton = null;
 let restoreHistoryButton = null;
+let historyBulkBarRoot = historyBulkBar;
+let historySelectedCountRoot = historySelectedCount;
+let historyClearSelectionButton = historyClearSelection;
 let paginationRoot = null;
 let paginationInfo = null;
 let paginationPrev = null;
@@ -59,6 +69,7 @@ let lastPaginationMeta = {
   pageSize: state.historyPageSize || HISTORY_PAGE_SIZES[0],
 };
 let lastRenderedFiltered = [];
+let historyTruncationBound = false;
 
 const pluralize = (value, [one, few, many]) => {
   const n = Math.abs(Number(value)) || 0;
@@ -309,6 +320,12 @@ function ensureHistoryCardsElements() {
   historyCardsEmptyRoot = area.querySelector("#history-cards-empty");
 }
 
+function ensureHistoryEmptyElement() {
+  if (!historyEmptyRoot || !historyEmptyRoot.isConnected) {
+    historyEmptyRoot = document.getElementById("history-empty");
+  }
+}
+
 // Универсальный кастомный селект (общий стиль с Backup)
 function enhanceSelect(selectEl) {
   if (!selectEl || selectEl.dataset.enhanced === "true") return null;
@@ -429,6 +446,22 @@ function ensureHistoryControlElements() {
   }
   if (!restoreHistoryButton || !restoreHistoryButton.isConnected) {
     restoreHistoryButton = document.getElementById("restore-history");
+  }
+  if (!historyBulkBarRoot || !historyBulkBarRoot.isConnected) {
+    historyBulkBarRoot = document.getElementById("history-bulk-bar");
+  }
+  if (!historySelectedCountRoot || !historySelectedCountRoot.isConnected) {
+    historySelectedCountRoot = document.getElementById(
+      "history-selected-count",
+    );
+  }
+  if (
+    !historyClearSelectionButton ||
+    !historyClearSelectionButton.isConnected
+  ) {
+    historyClearSelectionButton = document.getElementById(
+      "history-clear-selection",
+    );
   }
 
   if (!historySelectUIs.source) {
@@ -592,24 +625,110 @@ function _showFilterInput() {
 }
 
 function clearHistoryContainer(container) {
-  [...container.querySelectorAll(".log-entry, .divider")].forEach((el) =>
-    el.remove(),
-  );
+  [...container.querySelectorAll(".log-entry")].forEach((el) => el.remove());
 }
 
 function updateDeleteSelectedButton() {
   const clearBtn = document.getElementById("clear-history");
   const deleteBtn = document.getElementById("delete-selected");
+  ensureHistoryControlElements();
+  const selectedCount = state.selectedEntries.length;
 
   if (!clearBtn || !deleteBtn) return;
 
-  if (state.selectedEntries.length > 0) {
+  if (historyBulkBarRoot) {
+    historyBulkBarRoot.classList.toggle("hidden", selectedCount === 0);
+  }
+  if (historySelectedCountRoot) {
+    historySelectedCountRoot.textContent = String(selectedCount);
+  }
+
+  if (selectedCount > 0) {
     clearBtn.classList.add("hidden");
     deleteBtn.classList.remove("hidden");
   } else {
     clearBtn.classList.remove("hidden");
     deleteBtn.classList.add("hidden");
   }
+}
+
+function clearHistorySelection() {
+  state.selectedEntries = [];
+  state.lastSelectedId = null;
+  document
+    .querySelectorAll(".history-row__checkbox")
+    .forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+  document
+    .querySelectorAll(".log-entry.selected")
+    .forEach((el) => el.classList.remove("selected"));
+  updateDeleteSelectedButton();
+}
+
+function toggleAllHistoryDetails(forceState = null) {
+  const rows = Array.from(document.querySelectorAll(".log-entry.history-row"));
+  if (!rows.length) return;
+
+  const shouldOpen =
+    typeof forceState === "boolean"
+      ? forceState
+      : rows.some((row) => !row.classList.contains("is-open"));
+
+  rows.forEach((row) => {
+    const details = row.querySelector(".history-row__details");
+    const toggle = row.querySelector(".history-row__toggle");
+    if (!details || !toggle) return;
+    row.classList.toggle("is-open", shouldOpen);
+    details.classList.toggle("is-open", shouldOpen);
+    toggle.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+    const label = shouldOpen
+      ? t("history.details.collapse")
+      : t("history.details.expand");
+    toggle.setAttribute("aria-label", label);
+    toggle.title = label;
+  });
+
+  if (toggleAllDetailsButton) {
+    toggleAllDetailsButton.classList.toggle("is-open", shouldOpen);
+    const label = shouldOpen
+      ? t("history.details.collapseAll")
+      : t("history.details.expandAll");
+    toggleAllDetailsButton.setAttribute("aria-label", label);
+    toggleAllDetailsButton.setAttribute("data-hint", label);
+    toggleAllDetailsButton.title = label;
+  }
+}
+
+function updateTitleTruncation() {
+  const rows = document.querySelectorAll(".history-row");
+  rows.forEach((row) => {
+    const name = row.querySelector(".history-row__name");
+    if (!name) return;
+    const isTruncated = name.scrollWidth > name.clientWidth + 1;
+    row.classList.toggle("is-title-truncated", isTruncated);
+  });
+}
+
+function updateToggleAllButtonState() {
+  if (!toggleAllDetailsButton) return;
+  const rows = Array.from(document.querySelectorAll(".log-entry.history-row"));
+  if (!rows.length) {
+    toggleAllDetailsButton.classList.remove("is-open");
+    const label = t("history.details.expandAll");
+    toggleAllDetailsButton.setAttribute("aria-label", label);
+    toggleAllDetailsButton.setAttribute("data-hint", label);
+    toggleAllDetailsButton.title = label;
+    return;
+  }
+  const allOpen = rows.every((row) => row.classList.contains("is-open"));
+  toggleAllDetailsButton.classList.toggle("is-open", allOpen);
+  const label = allOpen
+    ? t("history.details.collapseAll")
+    : t("history.details.expandAll");
+  toggleAllDetailsButton.setAttribute("aria-label", label);
+  toggleAllDetailsButton.setAttribute("data-hint", label);
+  toggleAllDetailsButton.title = label;
 }
 
 const detectHost = (url = "") => {
@@ -665,6 +784,47 @@ const resolveLocalPreviewPath = (entry) => {
   }
   return "";
 };
+
+async function downloadPreviewSource(src, baseName = "preview") {
+  if (!src) return;
+  const safeName = (baseName || "preview")
+    .replace(/[\\/:*?"<>|]+/g, "_")
+    .slice(0, 120);
+
+  try {
+    const isFile = typeof src === "string" && src.startsWith("file://");
+    const isData = typeof src === "string" && src.startsWith("data:");
+
+    if (isFile || isData) {
+      const a = document.createElement("a");
+      a.href = src;
+      a.download = `${safeName}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => document.body.removeChild(a), 0);
+      showToast("Превью сохранено.", "success");
+      return;
+    }
+
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safeName}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+    showToast("Превью сохранено.", "success");
+  } catch (error) {
+    console.warn("Не удалось скачать превью:", error);
+    showToast("Не удалось скачать превью.", "error");
+  }
+}
 
 const deriveYoutubeThumbnail = (sourceUrl = "") => {
   if (!sourceUrl) return "";
@@ -1109,7 +1269,7 @@ function renderHistoryCards(entries = []) {
 
 function createLogEntry(entry, index) {
   const el = document.createElement("div");
-  el.className = "log-entry fade-in";
+  el.className = "log-entry history-row";
   el.setAttribute("role", "listitem");
   el.setAttribute("data-id", entry.id);
   el.setAttribute("data-url", entry.sourceUrl);
@@ -1125,292 +1285,272 @@ function createLogEntry(entry, index) {
   if (!entry.dateText) console.warn("⚠️ Нет dateText у записи:", entry);
   if (entry.isMissing) el.classList.add("missing");
 
-  const formattedSize = entry.formattedSize ? ` ${entry.formattedSize}` : "";
-  // Host badge + audio-only flag
-  let host = "";
-  let hostClass = "";
-  try {
-    if (entry.sourceUrl) {
-      host = new URL(entry.sourceUrl).hostname.replace(/^www\./, "");
-      const h = host.toLowerCase();
-      if (/youtube\.com|youtu\.be/.test(h)) hostClass = "host-youtube";
-      else if (/twitch\.tv/.test(h)) hostClass = "host-twitch";
-      else if (/vkvideo\.ru|vk\.com/.test(h)) hostClass = "host-vk";
-      else if (/coub\.com/.test(h)) hostClass = "host-coub";
-    }
-  } catch {}
-
-  // Pick preview thumbnail; fall back to placeholder image
+  const host = detectHost(entry.sourceUrl);
   const hasPreview = Boolean(entry?.thumbnail);
   const thumbSrc = hasPreview ? entry.thumbnail : HISTORY_IMAGE_PLACEHOLDER;
 
-  el.innerHTML = `
-    <div class="text" data-filepath="${entry.filePath}" data-url="${entry.sourceUrl}" data-filename="${entry.fileName}">
-      <div class="date-time-quality">
-        <div class="date-time">
-          <i class="fa-solid fa-clock"></i> ${entry.dateText || "неизвестно"}
-          ${host ? `<span class="hist-badge type-host ${hostClass}" title="Источник">${entry.iconUrl ? `<img class="host-icon" src="file://${entry.iconUrl}" alt="">` : ""}${host}</span>` : ""}
-        </div>
-        <span class="quality">
-          <div class="log-badges top">
-            ${entry.resolution ? `<span class="hist-badge type-resolution" title="Разрешение">${entry.resolution}</span>` : ""}
-            <span class="q-badge" title="Разрешение/Кадров">${(entry.quality || "").replace(/</g, "&lt;")}</span>
-            ${entry.fps ? `<span class="hist-badge type-fps" title="Кадров/с">${entry.fps}fps</span>` : ""}
-            ${
-              entry.isMissing
-                ? `<span class="file-missing" title="Файл отсутствует на диске">файл удалён</span>`
-                : `<span class="file-size" title="Размер файла">${formattedSize}</span>`
-            }
-          </div>
-        </span>
-      </div>
-      <div class="log-filename">
-        <span class="log-number">${index + 1}.</span>
-        <img class="log-thumb${thumbSrc ? "" : " hidden"}" src="${thumbSrc || ""}" alt="Preview" title="Развернуть превью" data-role="preview-toggle">
-        <span class="log-name" title="${(entry.fileName || "").replace(/"/g, "&quot;")}">${entry.fileName}</span>
-        
-        <div class="log-actions">
-          ${
-            !entry.isMissing
-              ? `
-            <button class="log-play-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Воспроизвести" data-path="${entry.filePath}">
-              <i class="fa-solid fa-circle-play"></i>
-            </button>`
-              : ""
-          }
-          ${
-            !entry.isMissing
-              ? `
-            <button class="open-folder-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку" data-path="${entry.filePath}">
-              <i class="fa-solid fa-folder-open"></i>
-            </button>`
-              : ""
-          }
-          <button class="delete-entry-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить из истории" data-id="${entry.id}">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-      </div>
-      <div class="history-preview-collapsible${thumbSrc ? "" : " hidden"}">
-        ${thumbSrc ? `<img class="history-preview-image" src="${thumbSrc}" alt="Preview">` : ""}
-      </div>
-    </div>
-  `;
+  const checkboxId = `history-select-${entry.id || index}`;
 
-  const id = entry.id;
+  const selectWrap = document.createElement("label");
+  selectWrap.className = "history-row__select";
+  selectWrap.setAttribute("for", checkboxId);
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.className = "history-row__checkbox";
+  checkbox.id = checkboxId;
+  checkbox.dataset.id = entry.id || "";
+  const checkboxUi = document.createElement("span");
+  checkboxUi.className = "history-row__checkbox-ui";
+  selectWrap.append(checkbox, checkboxUi);
 
-  if (el._clickHandler) {
-    el.removeEventListener("click", el._clickHandler);
+  const main = document.createElement("div");
+  main.className = "history-row__main";
+
+  const titleRow = document.createElement("div");
+  titleRow.className = "history-row__title";
+
+  const order = document.createElement("span");
+  order.className = "history-row__index";
+  order.textContent = `${index + 1}.`;
+
+  const name = document.createElement("span");
+  name.className = "history-row__name";
+  name.title = entry.fileName || "";
+  name.textContent = entry.fileName || "Без названия";
+  name.setAttribute("data-bs-toggle", "tooltip");
+  name.setAttribute("data-bs-placement", "top");
+
+  const badges = document.createElement("div");
+  badges.className = "history-row__badges";
+  if (host) {
+    const hostBadge = document.createElement("span");
+    hostBadge.className = "history-badge history-badge--host";
+    hostBadge.textContent = host;
+    badges.appendChild(hostBadge);
+  }
+  if (entry.quality) {
+    const qualityBadge = document.createElement("span");
+    qualityBadge.className = "history-badge history-badge--quality";
+    qualityBadge.textContent = entry.quality;
+    badges.appendChild(qualityBadge);
+  }
+  if (entry.resolution) {
+    const resBadge = document.createElement("span");
+    resBadge.className = "history-badge history-badge--resolution";
+    resBadge.textContent = entry.resolution;
+    badges.appendChild(resBadge);
+  }
+  if (entry.fps) {
+    const fpsBadge = document.createElement("span");
+    fpsBadge.className = "history-badge history-badge--fps";
+    fpsBadge.textContent = `${entry.fps}fps`;
+    badges.appendChild(fpsBadge);
   }
 
-  const playBtn = el.querySelector(".log-play-btn");
-  if (playBtn && !entry.isMissing) {
-    playBtn.addEventListener("click", async (e) => {
+  titleRow.append(order, name, badges);
+
+  const meta = document.createElement("div");
+  meta.className = "history-row__meta";
+
+  const dateLabel = formatCardDate(entry) || entry.dateText || "";
+  if (dateLabel) {
+    const date = document.createElement("span");
+    date.className = "history-row__date";
+    date.innerHTML = `<i class=\"fa-regular fa-clock\"></i><span>${dateLabel}</span>`;
+    meta.appendChild(date);
+  }
+
+  const sizeLabel = formatSizeLabel(entry);
+  if (sizeLabel) {
+    const size = document.createElement("span");
+    size.className = "history-row__size";
+    size.innerHTML = `<i class=\"fa-solid fa-database\"></i><span>${sizeLabel}</span>`;
+    meta.appendChild(size);
+  }
+
+  if (entry.isMissing) {
+    const missing = document.createElement("span");
+    missing.className = "history-row__missing";
+    missing.textContent = "Файл удалён";
+    meta.appendChild(missing);
+  }
+
+  main.append(titleRow, meta);
+
+  const actions = document.createElement("div");
+  actions.className = "history-row__actions";
+
+  const openBtn = document.createElement("button");
+  openBtn.type = "button";
+  openBtn.className = "history-row__action";
+  openBtn.setAttribute("data-bs-toggle", "tooltip");
+  openBtn.setAttribute("data-bs-placement", "top");
+  openBtn.title = "Открыть файл";
+  openBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
+  openBtn.disabled = entry.isMissing;
+  openBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await openHistoryCardFile(entry);
+  });
+
+  const openFolderBtn = document.createElement("button");
+  openFolderBtn.type = "button";
+  openFolderBtn.className = "history-row__action";
+  openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
+  openFolderBtn.setAttribute("data-bs-placement", "top");
+  openFolderBtn.title = "Открыть папку";
+  openFolderBtn.innerHTML = '<i class="fa-solid fa-folder-open"></i>';
+  openFolderBtn.disabled = entry.isMissing;
+  openFolderBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await openHistoryCardFolder(entry);
+  });
+
+  const retryBtn = document.createElement("button");
+  retryBtn.type = "button";
+  retryBtn.className = "history-row__action";
+  retryBtn.setAttribute("data-bs-toggle", "tooltip");
+  retryBtn.setAttribute("data-bs-placement", "top");
+  retryBtn.title = "Скачать снова";
+  retryBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i>';
+  retryBtn.disabled = !entry.sourceUrl;
+  if (entry.sourceUrl) {
+    retryBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      try {
-        const exists = await window.electron.invoke(
-          "check-file-exists",
-          entry.filePath,
-        );
-        if (!exists) return showToast("Файл не найден на диске", "error");
-        await window.electron.invoke("open-last-video", entry.filePath);
-      } catch (err) {
-        console.error(err);
-      }
+      retryHistoryCardDownload(entry);
     });
   }
 
-  el._clickHandler = async function (e) {
-    e.stopPropagation();
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "history-row__action history-row__delete";
+  deleteBtn.setAttribute("data-bs-toggle", "tooltip");
+  deleteBtn.setAttribute("data-bs-placement", "top");
+  deleteBtn.title = "Удалить из истории";
+  deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
 
-    if (e.shiftKey) {
-      e.preventDefault();
-      const allItems = Array.from(document.querySelectorAll(".log-entry"));
-      const currentIndex = allItems.findIndex((item) => item.dataset.id == id);
-      const lastIndex = allItems.findIndex(
-        (item) => item.dataset.id == state.lastSelectedId,
-      );
+  actions.append(openBtn, openFolderBtn, retryBtn, deleteBtn);
 
-      console.log(
-        "[Shift] currentIndex:",
-        currentIndex,
-        "lastIndex:",
-        lastIndex,
-      );
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "history-row__toggle";
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.setAttribute("aria-label", t("history.details.expand"));
+  toggle.title = t("history.details.expand");
+  toggle.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
 
-      if (currentIndex !== -1 && lastIndex !== -1) {
-        const [start, end] = [currentIndex, lastIndex].sort((a, b) => a - b);
-        const itemsToSelect = allItems.slice(start, end + 1);
+  const details = document.createElement("div");
+  details.className = "history-row__details";
 
-        itemsToSelect.forEach((item) => {
-          item.classList.add("selected");
-          const itemId = item.dataset.id;
-          if (!state.selectedEntries.includes(itemId)) {
-            state.selectedEntries.push(itemId);
-          }
-        });
+  const preview = document.createElement("div");
+  preview.className = `history-row__preview${hasPreview ? "" : " is-placeholder"}`;
+  const downloadPreviewBtn = document.createElement("button");
+  downloadPreviewBtn.type = "button";
+  downloadPreviewBtn.className = "history-row__preview-download";
+  downloadPreviewBtn.setAttribute("aria-label", "Скачать превью");
+  downloadPreviewBtn.setAttribute("data-bs-toggle", "tooltip");
+  downloadPreviewBtn.setAttribute("data-bs-placement", "top");
+  downloadPreviewBtn.title = "Скачать превью";
+  downloadPreviewBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+  downloadPreviewBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    downloadPreviewSource(thumbSrc, entry.fileName || entry.id || "preview");
+  });
+  preview.appendChild(downloadPreviewBtn);
+  if (thumbSrc) {
+    const img = document.createElement("img");
+    img.src = thumbSrc;
+    img.alt = entry.fileName || "Preview";
+    img.loading = "lazy";
+    attachPlaceholderOnError(img, HISTORY_IMAGE_PLACEHOLDER, preview);
+    preview.appendChild(img);
+  } else {
+    const icon = document.createElement("i");
+    icon.className = "fa-regular fa-image";
+    preview.appendChild(icon);
+  }
 
-        updateDeleteSelectedButton();
-        return;
-      }
-    }
+  const detailsMeta = document.createElement("div");
+  detailsMeta.className = "history-row__details-meta";
 
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      el.classList.toggle("selected");
-
-      if (el.classList.contains("selected")) {
-        if (!state.selectedEntries.includes(id)) {
-          state.selectedEntries.push(id);
-        }
-      } else {
-        state.selectedEntries = state.selectedEntries.filter(
-          (entryId) => entryId !== id,
-        );
-      }
-
-      updateDeleteSelectedButton();
-      state.lastSelectedId = id;
-      console.log("[Ctrl] lastSelectedId set to", id);
-      return;
-    }
-
-    if (el.classList.contains("missing")) return;
-
-    const exists = await window.electron.invoke(
-      "check-file-exists",
-      entry.filePath,
-    );
-    if (!exists) {
-      showToast("Файл не найден на диске", "error");
-      return;
-    }
-
-    await window.electron.invoke("open-last-video", entry.filePath);
-    state.lastSelectedId = id;
-    console.log("[Click] lastSelectedId set to", id);
+  const addDetail = (label, value) => {
+    if (!value) return;
+    const row = document.createElement("div");
+    row.className = "history-row__details-item";
+    const key = document.createElement("span");
+    key.className = "history-row__details-key";
+    key.textContent = label;
+    const val = document.createElement("span");
+    val.className = "history-row__details-value";
+    val.textContent = value;
+    row.append(key, val);
+    detailsMeta.appendChild(row);
   };
 
-  el.addEventListener("click", el._clickHandler);
+  addDetail("Источник", entry.sourceUrl || "");
+  addDetail("Файл", entry.filePath || "");
+  addDetail("Качество", entry.quality || "");
+  addDetail("Разрешение", entry.resolution || "");
+  addDetail("Дата", entry.dateText || "");
 
-  // Upgrade inline thumbnail: wrap with container and add indicator
-  try {
-    const thumbImg = el.querySelector('img[data-role="preview-toggle"]');
-    if (thumbImg) {
-      const wrap = document.createElement("div");
-      wrap.className =
-        "log-thumb-wrap" +
-        (thumbImg.classList.contains("hidden") ? " hidden" : "");
-      wrap.setAttribute("data-role", "preview-toggle");
-      wrap.title = "Развернуть превью";
-      thumbImg.classList.remove("hidden");
-      thumbImg.removeAttribute("data-role");
-      wrap.appendChild(thumbImg.cloneNode(true));
-      const ind = document.createElement("i");
-      ind.className = "thumb-indicator fa-solid fa-chevron-down";
-      wrap.appendChild(ind);
-      thumbImg.parentNode.insertBefore(wrap, thumbImg);
-      thumbImg.remove();
-    }
-  } catch (_) {}
+  details.append(preview, detailsMeta);
 
-  const fallbackSrc = HISTORY_IMAGE_PLACEHOLDER;
-  const inlineThumb =
-    el.querySelector(".log-thumb-wrap img") || el.querySelector(".log-thumb");
-  if (inlineThumb) {
-    inlineThumb.loading = "lazy";
-    attachPlaceholderOnError(
-      inlineThumb,
-      fallbackSrc,
-      inlineThumb.parentElement,
-    );
-  }
-  const previewImg = el.querySelector(".history-preview-image");
-  if (previewImg) {
-    attachPlaceholderOnError(previewImg, fallbackSrc, previewImg.parentElement);
-  }
-
-  // Preview expand/collapse toggle
-  try {
-    const toggleBtn =
-      el.querySelector(".log-thumb-wrap") ||
-      el.querySelector('[data-role="preview-toggle"]');
-    const collapsible = el.querySelector(".history-preview-collapsible");
-    if (toggleBtn && collapsible) {
-      // Fallback for YouTube maxres → hqdefault if 404
-      const attachYtFallback = (imgEl) => {
-        try {
-          if (!imgEl) return;
-          const src = imgEl.getAttribute("src") || "";
-          if (/img\.youtube\.com\/vi\/[^/]+\/maxresdefault\.jpg/i.test(src)) {
-            imgEl.onerror = () => {
-              imgEl.onerror = null;
-              imgEl.src = src.replace("maxresdefault.jpg", "hqdefault.jpg");
-            };
-          }
-        } catch (_) {}
-      };
-      attachYtFallback(collapsible.querySelector("img"));
-      attachYtFallback(el.querySelector(".log-thumb-wrap .log-thumb"));
-
-      const toggle = (ev) => {
-        ev.stopPropagation();
-        const isOpen = collapsible.classList.toggle("open");
-        toggleBtn.classList.toggle("open", isOpen);
-        if (isOpen) {
-          const img = collapsible.querySelector("img");
-          const targetH = Math.min(420, img?.naturalHeight || 180);
-          collapsible.style.maxHeight = targetH + "px";
-          collapsible.style.opacity = "1";
-        } else {
-          collapsible.style.maxHeight = "0px";
-          collapsible.style.opacity = "0";
-        }
-      };
-      toggleBtn.addEventListener("click", toggle);
-    }
-  } catch (_) {}
-
-  const folderBtn = el.querySelector(".open-folder-btn");
-  if (folderBtn && !entry.isMissing) {
-    folderBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      try {
-        const exists = await window.electron.invoke(
-          "check-file-exists",
-          entry.filePath,
-        );
-        if (!exists) {
-          showToast("Папка не найдена", "error");
-          return;
-        }
-        await window.electron.invoke("open-download-folder", entry.filePath);
-      } catch (err) {
-        console.error("Ошибка открытия папки:", err);
-        showToast("Ошибка при открытии папки", "error");
+  checkbox.addEventListener("change", (e) => {
+    const isChecked = e.target.checked;
+    const id = entry.id?.toString() || "";
+    if (isChecked) {
+      if (!state.selectedEntries.includes(id)) {
+        state.selectedEntries.push(id);
       }
-    });
-  }
+      el.classList.add("selected");
+    } else {
+      state.selectedEntries = state.selectedEntries.filter(
+        (entryId) => entryId !== id,
+      );
+      el.classList.remove("selected");
+    }
+    updateDeleteSelectedButton();
+  });
+
+  toggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = details.classList.toggle("is-open");
+    el.classList.toggle("is-open", isOpen);
+    toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    const label = isOpen
+      ? t("history.details.collapse")
+      : t("history.details.expand");
+    toggle.setAttribute("aria-label", label);
+    toggle.title = label;
+    updateToggleAllButtonState();
+  });
+
+  el.addEventListener("click", async (event) => {
+    event.stopPropagation();
+    if (event.target.closest("button, a, input, label, .history-row__details")) {
+      return;
+    }
+    if (el.classList.contains("missing")) return;
+    await openHistoryCardFile(entry);
+  });
 
   if (entry._highlight) {
-    const textElement = el.querySelector(".text");
-    if (textElement) {
-      textElement.classList.add("new-entry");
-      setTimeout(() => {
-        textElement.classList.remove("new-entry");
-      }, 5000);
-    }
+    el.classList.add("new-entry");
+    setTimeout(() => {
+      el.classList.remove("new-entry");
+    }, 5000);
     delete entry._highlight;
   }
 
-  const divider = document.createElement("hr");
-  divider.className = "divider fade-in";
+  el.append(selectWrap, main, actions, toggle);
+  el.appendChild(details);
 
-  return { el, divider };
+  return { el };
 }
 
 function attachDeleteListeners() {
-  const deleteButtons = document.querySelectorAll(".delete-entry-btn");
+  const deleteButtons = document.querySelectorAll(".history-row__delete");
   deleteButtons.forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -1679,6 +1819,7 @@ function renderHistory(entries, meta = {}) {
   lastRenderedFiltered = fullEntries;
   buildFilterOptions(fullEntries);
   updateRestoreButton();
+  ensureHistoryEmptyElement();
 
   // ВСТАВКА: лог в начале renderHistory
   console.log(
@@ -1692,6 +1833,7 @@ function renderHistory(entries, meta = {}) {
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
 
   clearHistoryContainer(container);
+  clearHistorySelection();
 
   if (isEmpty) {
     const hasActiveFilters =
@@ -1709,16 +1851,18 @@ function renderHistory(entries, meta = {}) {
     const iconSearch = document.getElementById("icon-filter-search");
     if (iconSearch) iconSearch.classList.toggle("hidden", shouldHideControls);
 
-    const actions = document.querySelector(".history-actions");
+    const actions = document.querySelector(".history-controls");
     if (actions) actions.classList.toggle("hidden", shouldHideControls);
 
-    if (historyCardsEmptyRoot) {
-      historyCardsEmptyRoot.textContent = hasActiveFilters
+    const filtersRow = document.querySelector(".history-filters-row");
+    if (filtersRow) filtersRow.classList.toggle("hidden", shouldHideControls);
+
+    if (historyEmptyRoot) {
+      historyEmptyRoot.textContent = hasActiveFilters
         ? "Нет записей по текущим фильтрам."
         : "Недавних загрузок пока нет.";
+      historyEmptyRoot.style.display = "";
     }
-
-    renderHistoryCards([]); // синхронизируем карточки с пустым состоянием
     updatePaginationControls({
       page,
       totalPages: 1,
@@ -1729,6 +1873,10 @@ function renderHistory(entries, meta = {}) {
     return;
   }
 
+  if (historyEmptyRoot) {
+    historyEmptyRoot.style.display = "none";
+  }
+
   // Показываем элементы поиска и действий
   const searchWrapper = document.querySelector(".history-search-wrapper");
   if (searchWrapper) searchWrapper.style.display = "block";
@@ -1736,8 +1884,11 @@ function renderHistory(entries, meta = {}) {
   const iconSearch = document.getElementById("icon-filter-search");
   if (iconSearch) iconSearch.classList.remove("hidden");
 
-  const actions = document.querySelector(".history-actions");
+  const actions = document.querySelector(".history-controls");
   if (actions) actions.classList.remove("hidden");
+
+  const filtersRow = document.querySelector(".history-filters-row");
+  if (filtersRow) filtersRow.classList.remove("hidden");
 
   pageEntries.forEach((entry, index) => {
     const absoluteIndex = start + index;
@@ -1746,11 +1897,13 @@ function renderHistory(entries, meta = {}) {
         ? absoluteIndex + 1
         : count - absoluteIndex;
 
-    const { el, divider } = createLogEntry(entry, order - 1);
+    const { el } = createLogEntry(entry, order - 1);
     container.appendChild(el);
-    container.appendChild(divider);
   });
-  setTimeout(() => initTooltips(), 0); // 🎯 инициализация тултипов после полной отрисовки
+  requestAnimationFrame(() => {
+    updateTitleTruncation();
+    initTooltips();
+  });
 
   const highlighted = container.querySelector(".new-entry");
   if (highlighted) {
@@ -1760,11 +1913,9 @@ function renderHistory(entries, meta = {}) {
   attachDeleteListeners();
 
   state.selectedEntries = Array.from(
-    document.querySelectorAll(".log-entry.selected"),
+    document.querySelectorAll(".history-row__checkbox:checked"),
   ).map((el) => el.dataset.id);
   updateDeleteSelectedButton();
-  // Карточки истории показываем только текущую страницу, чтобы соответствовать пагинации списка.
-  renderHistoryCards(pageEntries);
 
   updatePaginationControls({
     page,
@@ -1772,6 +1923,7 @@ function renderHistory(entries, meta = {}) {
     totalEntries: count,
     pageSize,
   });
+  updateToggleAllButtonState();
 }
 
 async function initHistoryState() {
@@ -1822,6 +1974,12 @@ function initHistory() {
   restoreHistoryButton?.addEventListener("click", () =>
     restoreDeletedEntries(),
   );
+  historyClearSelectionButton?.addEventListener("click", () =>
+    clearHistorySelection(),
+  );
+  toggleAllDetailsButton?.addEventListener("click", () =>
+    toggleAllHistoryDetails(),
+  );
 
   openHistoryButton.addEventListener("click", () => {
     const newVisibility = !state.historyVisible;
@@ -1835,6 +1993,13 @@ function initHistory() {
 
   historyContainer.style.display = state.historyVisible ? "block" : "none";
   filterInput.style.display = state.historyVisible ? "block" : "none";
+
+  if (!historyTruncationBound) {
+    historyTruncationBound = true;
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(updateTitleTruncation);
+    });
+  }
 
   if (state.historyVisible) loadHistory();
 }
@@ -1954,5 +2119,6 @@ export {
   loadHistory,
   addNewEntryToHistory,
   updateDeleteSelectedButton,
+  clearHistorySelection,
   rememberDeletedEntries,
 };

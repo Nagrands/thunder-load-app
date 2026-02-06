@@ -16,6 +16,12 @@
 - **Автообновления** приложения и зависимостей (yt-dlp, ffmpeg, Deno).
 - Подсказки и **горячие клавиши**.
 
+## Документация вкладок
+
+- [Downloader](tab/Downloader_Tab.md)
+- [Backup](tab/Backup_Tab.md)
+- [Randomizer](tab/Randomizer_Tab.md)
+
 ## Технологии и скрипты
 
 - Electron, Node.js, npm.

@@ -1,14 +1,29 @@
 <!-- History Section -->
 <section id="history-container">
-  <div class="history-cards-area" aria-live="polite">
-    <div class="history-cards-header">
-      <div>
+  <div class="history-area" aria-live="polite">
+    <div class="history-toolbar">
+      <div class="history-toolbar__title">
         <p class="history-cards-subtitle" data-i18n="history.subtitle">
           Недавние загрузки
         </p>
         <h3 class="history-cards-title" data-i18n="history.title">История</h3>
       </div>
-      <div class="history-cards-search history-actions">
+
+      <button
+        id="history-header"
+        class="history-action-button history-count-pill"
+        aria-label="Количество записей"
+        data-hint="Количество записей"
+        data-i18n-aria="history.count"
+        data-i18n-hint="history.count"
+      >
+        <i class="fa-solid fa-list-ol"></i>
+        <span id="total-downloads">0</span>
+      </button>
+    </div>
+
+    <div class="history-controls">
+      <div class="history-search-card">
         <div class="history-search-wrapper history-input-wrapper">
           <i id="icon-filter-search" class="fas fa-search search-icon"></i>
           <input
@@ -30,35 +45,10 @@
             &times;
           </button>
         </div>
-        <div class="history-search-actions history-toolbar">
-          <div class="history-filter-group">
-            <div class="history-filter-pill">
-              <i class="fa-solid fa-globe"></i>
-              <select
-                id="history-source-filter"
-                class="history-filter-select"
-                aria-label="Фильтр по источнику"
-                data-i18n-aria="history.filter.source"
-              >
-                <option value="" data-i18n="history.filter.source.all">
-                  Все источники
-                </option>
-              </select>
-            </div>
-            <div class="history-filter-pill">
-              <i class="fa-solid fa-sliders"></i>
-              <select
-                id="history-quality-filter"
-                class="history-filter-select"
-                aria-label="Фильтр по качеству"
-                data-i18n-aria="history.filter.quality"
-              >
-                <option value="" data-i18n="history.filter.quality.all">
-                  Любое качество
-                </option>
-              </select>
-            </div>
-          </div>
+      </div>
+
+      <div class="history-actions-card">
+        <div class="history-action-group">
           <button
             id="refresh-button"
             class="history-action-button"
@@ -78,6 +68,16 @@
             data-i18n-hint="history.sortHint"
           >
             <i class="fa-solid"></i>
+          </button>
+          <button
+            id="toggle-all-details"
+            class="history-action-button"
+            aria-label="Развернуть все"
+            data-hint="Развернуть все"
+            data-i18n-aria="history.details.toggleAll"
+            data-i18n-hint="history.details.toggleAll"
+          >
+            <i class="fa-solid fa-chevron-down"></i>
           </button>
           <button
             id="clear-history"
@@ -129,22 +129,69 @@
           >
             <i class="fa-solid fa-file-csv"></i>
           </button>
-          <button
-            id="history-header"
-            class="history-action-button"
-            aria-label="Количество записей"
-            data-hint="Количество записей"
-            data-i18n-aria="history.count"
-            data-i18n-hint="history.count"
-          >
-            <span id="total-downloads">0</span>
-          </button>
         </div>
       </div>
     </div>
-    <div id="history" role="list"></div>
-    <div id="history-cards" class="history-card-grid" role="list"></div>
-    <div id="history-cards-empty" class="history-cards-empty" data-i18n="history.empty">
+
+    <div class="history-filters-row">
+      <div class="history-filters-card">
+        <div class="history-filter-group">
+          <div class="history-filter-pill">
+            <i class="fa-solid fa-globe"></i>
+            <div class="history-filter-meta">
+              <span data-i18n="history.filter.source.label">Источник</span>
+              <select
+                id="history-source-filter"
+                class="history-filter-select"
+                aria-label="Фильтр по источнику"
+                data-i18n-aria="history.filter.source"
+              >
+                <option value="" data-i18n="history.filter.source.all">
+                  Все источники
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="history-filter-pill">
+            <i class="fa-solid fa-sliders"></i>
+            <div class="history-filter-meta">
+              <span data-i18n="history.filter.quality.label">Качество</span>
+              <select
+                id="history-quality-filter"
+                class="history-filter-select"
+                aria-label="Фильтр по качеству"
+                data-i18n-aria="history.filter.quality"
+              >
+                <option value="" data-i18n="history.filter.quality.all">
+                  Любое качество
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="history-bulk-bar" class="history-bulk-bar hidden">
+      <div class="history-bulk-info">
+        <i class="fa-solid fa-square-check"></i>
+        <span data-i18n="history.bulk.selected">Выбрано</span>
+        <span id="history-selected-count">0</span>
+      </div>
+      <button
+        id="history-clear-selection"
+        class="history-bulk-clear"
+        type="button"
+        aria-label="Снять выделение"
+        data-i18n-aria="history.bulk.clear"
+        data-i18n="history.bulk.clear"
+      >
+        Снять выделение
+      </button>
+    </div>
+
+    <div id="history" class="history-list" role="list"></div>
+    <div id="history-empty" class="history-empty" data-i18n="history.empty">
       Список пуст
     </div>
   </div>

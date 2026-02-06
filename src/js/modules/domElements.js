@@ -14,6 +14,10 @@ const elements = {
   historyContainer: document.getElementById("history-container"),
   historyCards: document.getElementById("history-cards"),
   historyCardsEmpty: document.getElementById("history-cards-empty"),
+  historyEmpty: document.getElementById("history-empty"),
+  historyBulkBar: document.getElementById("history-bulk-bar"),
+  historySelectedCount: document.getElementById("history-selected-count"),
+  historyClearSelection: document.getElementById("history-clear-selection"),
   clearHistoryButton: document.getElementById("clear-history"),
   restoreHistoryButton: document.getElementById("restore-history"),
   historyExportJsonButton: document.getElementById("history-export-json"),
@@ -45,6 +49,7 @@ const elements = {
     .getElementById("shortcuts-modal")
     ?.querySelector(".close"),
   sortButton: document.getElementById("sort-button"),
+  toggleAllDetailsButton: document.getElementById("toggle-all-details"),
   contextMenu: document.getElementById("context-menu"),
   versionContainer: document.querySelector(".version-container"),
   whatsNewModal: document.getElementById("whats-new-modal"),
@@ -82,7 +87,14 @@ const elements = {
   ),
 };
 
-const OPTIONAL_KEYS = new Set(["historyCards", "historyCardsEmpty"]);
+const OPTIONAL_KEYS = new Set([
+  "historyCards",
+  "historyCardsEmpty",
+  "historyEmpty",
+  "historyBulkBar",
+  "historySelectedCount",
+  "historyClearSelection",
+]);
 
 // Проверка наличия всех элементов и вывод ошибок
 for (const [key, element] of Object.entries(elements)) {
@@ -110,6 +122,10 @@ export const {
   historyContainer,
   historyCards,
   historyCardsEmpty,
+  historyEmpty,
+  historyBulkBar,
+  historySelectedCount,
+  historyClearSelection,
   clearHistoryButton,
   restoreHistoryButton,
   historyExportJsonButton,
@@ -135,6 +151,7 @@ export const {
   confirmationModal,
   closeSpan,
   sortButton,
+  toggleAllDetailsButton,
   contextMenu,
   versionContainer,
   whatsNewModal,

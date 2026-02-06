@@ -16,6 +16,12 @@
 - **Автооновлення** застосунку та залежностей (yt-dlp, ffmpeg, Deno).
 - Підказки та **гарячі клавіші**.
 
+## Документація вкладок
+
+- [Downloader](tab/Downloader_Tab.md)
+- [Backup](tab/Backup_Tab.md)
+- [Randomizer](tab/Randomizer_Tab.md)
+
 ## Технології та скрипти
 
 - Electron, Node.js, npm.
@@ -45,5 +51,7 @@
 
 ## Конфігурація
 
-- Налаштування, історія та кеш — у папці даних Electron: macOS `~/Library/Application Support/Thunder Load`, Windows `%APPDATA%/Thunder Load`, Linux `~/.config/Thunder Load`.
+- Налаштування, історія та кеш — у папці даних Electron:
+  > macOS `~/Library/Application Support/Thunder Load`
+  > Windows `%APPDATA%/Thunder Load`, Linux `~/.config/Thunder Load`.
 - Шлях завантажень і директорію для інструментів можна змінити в Settings.
