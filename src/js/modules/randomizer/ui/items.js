@@ -75,6 +75,8 @@ export function createItemsRenderer({
       typeof getRareThreshold === "function" ? getRareThreshold() : RARE_STREAK,
     );
 
+  let expandedItems = new Set();
+
   let renderItemsDebounced;
   const onMoveThrottled = throttle((from, to) => onMoveItem(from, to), 60);
   const setDragState = (active) => {
@@ -120,14 +122,19 @@ export function createItemsRenderer({
     });
   };
 
+  const getVisibleItems = () => {
+    const { items } = getState();
+    const onlyFav =
+      typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
+    const baseVisible = onlyFav ? items.filter((item) => item.favorite) : items;
+    return prepareItems ? prepareItems(baseVisible.slice()) : baseVisible;
+  };
+
   function renderItems() {
     const { items, pool, settings } = getState();
     const onlyFav =
       typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
-    const baseVisible = onlyFav ? items.filter((item) => item.favorite) : items;
-    const visibleItems = prepareItems
-      ? prepareItems(baseVisible.slice())
-      : baseVisible;
+    const visibleItems = getVisibleItems();
     const isSearching =
       typeof getSearchQuery === "function" &&
       (getSearchQuery() || "").trim().length > 0;
@@ -179,6 +186,12 @@ export function createItemsRenderer({
       onUpdateBulk();
       return;
     }
+
+    expandedItems = new Set(
+      visibleItems
+        .map((item) => item.value)
+        .filter((value) => expandedItems.has(value)),
+    );
 
     const fragment = document.createDocumentFragment();
     let dragSource = null;
@@ -297,6 +310,11 @@ export function createItemsRenderer({
         event.stopPropagation();
         const expanded = chip.classList.toggle("is-expanded");
         toggleDetails.classList.toggle("is-active", expanded);
+        if (expanded) {
+          expandedItems.add(item.value);
+        } else {
+          expandedItems.delete(item.value);
+        }
       });
 
       const syncWeight = (nextWeight) => {
@@ -440,6 +458,10 @@ export function createItemsRenderer({
         chip.classList.add("is-rare");
       }
       if (selected.has(item.value)) chip.classList.add("selected");
+      if (expandedItems.has(item.value)) {
+        chip.classList.add("is-expanded");
+        toggleDetails.classList.add("is-active");
+      }
       fragment.appendChild(chip);
     });
 
@@ -452,5 +474,13 @@ export function createItemsRenderer({
   }
 
   renderItemsDebounced = debounce(renderItems, 40);
+  renderItems.expandAll = () => {
+    expandedItems = new Set(getVisibleItems().map((item) => item.value));
+    renderItems();
+  };
+  renderItems.collapseAll = () => {
+    expandedItems = new Set();
+    renderItems();
+  };
   return renderItems;
 }

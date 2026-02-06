@@ -23,6 +23,7 @@ import { createResultUI } from "../randomizer/ui/result.js";
 import { createPresetsUI } from "../randomizer/ui/presets.js";
 import { wireRollControls } from "../randomizer/ui/controls.js";
 import { wireListActions } from "../randomizer/ui/listActions.js";
+import { applyI18n, getLanguage, t } from "../i18n.js";
 
 // NOTE: функция навешивает document-level listeners.
 // Используется один раз на view, при размонтировании потребуется cleanup.
@@ -403,6 +404,10 @@ export default function renderRandomizerView() {
             </div>
             <div class="list-actions-group">
               <span class="group-label">Действия</span>
+              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-expand-all" data-state="collapsed" data-bs-toggle="tooltip" data-bs-placement="left" title="Развернуть все варианты">
+                <i class="fa-solid fa-angles-down"></i>
+                <span>Развернуть все</span>
+              </button>
               <button type="button" class="btn btn-sm btn-ghost" id="randomizer-export" data-bs-toggle="tooltip" data-bs-placement="left" title="Скопировать все элементы в буфер">
                 <i class="fa-solid fa-copy"></i>
               </button>
@@ -561,6 +566,163 @@ export default function renderRandomizerView() {
     </div>
   `;
 
+  const localizeStatic = () => {
+    const setText = (selector, key) => {
+      const el = wrapper.querySelector(selector);
+      if (el) el.textContent = t(key);
+    };
+    const setTitle = (selector, key) => {
+      const el = wrapper.querySelector(selector);
+      if (el) el.title = t(key);
+    };
+    const setPlaceholder = (selector, key) => {
+      const el = wrapper.querySelector(selector);
+      if (el) el.setAttribute("placeholder", t(key));
+    };
+
+    setText(".randomizer-heading p", "randomizer.hero.subtitle");
+    setText("#randomizer-auto-chip .chip-label", "randomizer.auto.label");
+    setText("#randomizer-auto-status-mini", "randomizer.auto.status.off");
+    const autoNext = wrapper.querySelector(".randomizer-auto-chip .chip-sub");
+    if (autoNext && autoNext.childNodes.length) {
+      autoNext.childNodes[0].textContent = `${t("randomizer.auto.nextIn")} `;
+    }
+    setText("#randomizer-auto-toggle-hero span", "randomizer.auto.start");
+    const heroRoll = wrapper.querySelector(
+      "#randomizer-roll-hero span:last-child",
+    );
+    if (heroRoll) heroRoll.textContent = t("randomizer.action.start");
+    setTitle("#randomizer-reset-pool", "randomizer.action.resetPool.title");
+    setText("#randomizer-reset-pool span", "randomizer.action.resetPool");
+    setText("#randomizer-toggle-list span", "randomizer.action.toggleList.hide");
+    setText("#randomizer-summary-default-badge", "randomizer.preset.defaultBadge");
+    const summaryLabels = wrapper.querySelectorAll(
+      ".randomizer-summary-item .label",
+    );
+    const summaryLabelKeys = [
+      "randomizer.preset.label",
+      "randomizer.summary.items",
+      "randomizer.summary.timer",
+      "randomizer.summary.pool",
+      "randomizer.summary.rare",
+    ];
+    summaryLabels.forEach((el, idx) => {
+      const key = summaryLabelKeys[idx];
+      if (key) el.textContent = t(key);
+    });
+    const summarySpin = wrapper.querySelector(".summary-control");
+    if (summarySpin) summarySpin.title = t("randomizer.summary.spin.title");
+    setText(".summary-control span", "randomizer.summary.spin.label");
+    setText(".summary-control .unit", "randomizer.summary.spin.unit");
+    const spinCountdown = wrapper.querySelector("#randomizer-spin-countdown");
+    if (spinCountdown)
+      spinCountdown.setAttribute("aria-label", t("randomizer.summary.spin.aria"));
+    const sparkline = wrapper.querySelector("#randomizer-sparkline");
+    if (sparkline)
+      sparkline.setAttribute("aria-label", t("randomizer.summary.sparkline.aria"));
+    setText(".randomizer-list-intro .eyebrow", "randomizer.list.eyebrow");
+    setText(".randomizer-list-intro h3", "randomizer.list.title");
+    setTitle(".randomizer-toggle", "randomizer.list.noRepeat.title");
+    setText(".randomizer-toggle span", "randomizer.list.noRepeat.label");
+    setText(".randomizer-list-intro .hint", "randomizer.list.hint");
+    setText(".preset-label", "randomizer.preset.labelPlural");
+    setTitle("#randomizer-preset-save", "randomizer.preset.save.title");
+    setText("#randomizer-preset-save span", "randomizer.preset.save");
+    setTitle("#randomizer-preset-new", "randomizer.preset.new.title");
+    setText("#randomizer-preset-new span", "randomizer.preset.new");
+    setTitle("#randomizer-preset-default", "randomizer.preset.default.title");
+    setText("#randomizer-preset-default span", "randomizer.preset.default");
+    setTitle("#randomizer-preset-save-as", "randomizer.preset.saveAs.title");
+    setText("#randomizer-preset-save-as span", "randomizer.preset.saveAs");
+    setTitle("#randomizer-preset-delete", "randomizer.preset.delete.title");
+    setText("#randomizer-preset-delete span", "randomizer.preset.delete");
+    setPlaceholder("#randomizer-search", "randomizer.search.placeholder");
+    setText(".randomizer-sort span", "randomizer.sort.label");
+    const sortOptions = wrapper.querySelectorAll("#randomizer-sort option");
+    sortOptions.forEach((opt) => {
+      const key = `randomizer.sort.${opt.value}`;
+      if (opt.value) opt.textContent = t(key);
+    });
+    setPlaceholder("#randomizer-input", "randomizer.input.placeholder");
+    setTitle("#randomizer-paste", "randomizer.action.paste.title");
+    setTitle("#randomizer-sample", "randomizer.action.sample.title");
+    setTitle("#randomizer-clear", "randomizer.action.clear.title");
+    setText(".randomizer-list-heading .list-sub", "randomizer.list.sub");
+    const groupLabels = wrapper.querySelectorAll(
+      ".list-actions-group .group-label",
+    );
+    if (groupLabels[0]) groupLabels[0].textContent = t("randomizer.filters.label");
+    if (groupLabels[1]) groupLabels[1].textContent = t("randomizer.actions.label");
+    setTitle(".stat-threshold", "randomizer.filters.threshold.title");
+    setText(".stat-threshold span", "randomizer.filters.threshold.label");
+    setTitle("#randomizer-fav-filter", "randomizer.filters.favorites.title");
+    setText("#randomizer-fav-filter span", "randomizer.filters.favorites.all");
+    setTitle("#randomizer-expand-all", "randomizer.actions.expandAll.title");
+    setText("#randomizer-expand-all span", "randomizer.actions.expandAll");
+    setTitle("#randomizer-export", "randomizer.actions.export.title");
+    setTitle("#randomizer-clear-favorites", "randomizer.actions.clearFavorites.title");
+    setTitle("#randomizer-clear-excluded", "randomizer.actions.clearExcluded.title");
+    setTitle("#randomizer-delete-selected", "randomizer.actions.deleteSelected.title");
+    setText("#randomizer-pool-empty span", "randomizer.pool.empty");
+    setText("#randomizer-pool-refresh span", "randomizer.pool.refresh");
+    setText(".randomizer-result-header .eyebrow", "randomizer.result.eyebrow");
+    setTitle("#randomizer-copy", "randomizer.result.copy.title");
+    setText(".result-empty p", "randomizer.result.empty");
+    const resultRoll = wrapper.querySelector("#randomizer-roll span:last-child");
+    if (resultRoll) resultRoll.textContent = t("randomizer.action.start");
+    setText(".randomizer-auto-card .eyebrow", "randomizer.auto.eyebrow");
+    setText("#randomizer-auto-status", "randomizer.auto.status.off");
+    const autoLabels = wrapper.querySelectorAll(
+      ".randomizer-auto-grid .auto-field .label",
+    );
+    const autoLabelKeys = [
+      "randomizer.auto.stop.label",
+      "randomizer.auto.count.label",
+      "randomizer.auto.match.label",
+    ];
+    autoLabels.forEach((el, idx) => {
+      const key = autoLabelKeys[idx];
+      if (key) el.textContent = t(key);
+    });
+    const autoStopOptions = wrapper.querySelectorAll(
+      "#randomizer-auto-stop-mode option",
+    );
+    autoStopOptions.forEach((opt) => {
+      const key = `randomizer.auto.stop.${opt.value}`;
+      opt.textContent = t(key);
+    });
+    setPlaceholder("#randomizer-auto-stop-text", "randomizer.auto.match.placeholder");
+    const autoToggles = wrapper.querySelectorAll(
+      ".randomizer-auto-grid .auto-toggle span",
+    );
+    if (autoToggles[0])
+      autoToggles[0].textContent = t("randomizer.auto.stop.emptyPool");
+    if (autoToggles[1])
+      autoToggles[1].textContent = t("randomizer.auto.notify.sound");
+    if (autoToggles[2])
+      autoToggles[2].textContent = t("randomizer.auto.notify.flash");
+    setText("#randomizer-auto-toggle span", "randomizer.auto.startTimer");
+    setTitle("#randomizer-auto-run-once", "randomizer.auto.runOnce.title");
+    setText(".randomizer-history-header .eyebrow", "randomizer.history.eyebrow");
+    setText(".randomizer-history-header h3", "randomizer.history.title");
+    setTitle("#randomizer-tab-history", "randomizer.history.tab.history.title");
+    setText("#randomizer-tab-history span", "randomizer.history.tab.history");
+    setTitle("#randomizer-tab-stats", "randomizer.history.tab.stats.title");
+    setText("#randomizer-tab-stats span", "randomizer.history.tab.stats");
+    setText("#randomizer-history-empty span", "randomizer.history.empty");
+    const historyRun = wrapper.querySelector("#randomizer-history-run span");
+    if (historyRun) historyRun.textContent = t("randomizer.action.start");
+    setText("#randomizer-history-clear span", "randomizer.history.clear");
+    setTitle("#randomizer-history-rare-toggle", "randomizer.history.rare.title");
+    setText("#randomizer-history-rare-toggle span", "randomizer.history.rare.all");
+    setTitle("#randomizer-stats-export", "randomizer.stats.export.title");
+    setTitle("#randomizer-stats-reset", "randomizer.stats.reset.title");
+
+    applyI18n(wrapper);
+  };
+
+  localizeStatic();
+
   const listEl = wrapper.querySelector("#randomizer-list");
   const inputEl = wrapper.querySelector("#randomizer-input");
   const countEl = wrapper.querySelector("#randomizer-count");
@@ -581,6 +743,7 @@ export default function renderRandomizerView() {
   const resultCard = wrapper.querySelector(".randomizer-result-card");
   const resultContainer = wrapper.querySelector("#randomizer-result");
   const bulkDeleteButton = wrapper.querySelector("#randomizer-delete-selected");
+  const expandAllBtn = wrapper.querySelector("#randomizer-expand-all");
   const exportButton = wrapper.querySelector("#randomizer-export");
   const rollButtons = wrapper.querySelectorAll(".randomizer-roll");
   const presetSelect = wrapper.querySelector("#randomizer-preset-select");
@@ -685,12 +848,13 @@ export default function renderRandomizerView() {
     const base = getBaseVisibleItems();
     const visible = getDisplayItems();
     const isEmpty = visible.length === 0;
+    const isEn = getLanguage() === "en";
     const baseLabel = isEmpty
       ? favoritesOnly
-        ? "Избранных нет"
-        : "Список пуст"
-      : visible.length === 1
-        ? "1 вариант"
+        ? t("randomizer.count.emptyFavorites")
+        : t("randomizer.count.empty")
+      : isEn
+        ? t("randomizer.count.en", { count: visible.length })
         : `${visible.length} ${declOfNum(visible.length, [
             "вариант",
             "варианта",
@@ -699,7 +863,11 @@ export default function renderRandomizerView() {
     const extra =
       (favoritesOnly && visible.length !== items.length) ||
       (isSearchActive() && visible.length !== base.length)
-        ? ` из ${favoritesOnly ? items.length : base.length}`
+        ? isEn
+          ? t("randomizer.count.of", {
+              count: favoritesOnly ? items.length : base.length,
+            })
+          : ` из ${favoritesOnly ? items.length : base.length}`
         : "";
     countEl.textContent = `${baseLabel}${extra}`;
     exportButton.classList.toggle("hidden", isEmpty);
@@ -740,7 +908,10 @@ export default function renderRandomizerView() {
       const span = toggleListBtn.querySelector("span");
       const icon = toggleListBtn.querySelector("i");
       toggleListBtn.dataset.state = hidden ? "hidden" : "shown";
-      if (span) span.textContent = hidden ? "Показать список" : "Скрыть список";
+      if (span)
+        span.textContent = hidden
+          ? t("randomizer.action.toggleList.show")
+          : t("randomizer.action.toggleList.hide");
       if (icon)
         icon.className = hidden ? "fa-solid fa-list" : "fa-solid fa-list-check";
     }
@@ -749,7 +920,10 @@ export default function renderRandomizerView() {
     if (!favFilterBtn) return;
     favFilterBtn.dataset.state = favoritesOnly ? "favorites" : "all";
     const span = favFilterBtn.querySelector("span");
-    if (span) span.textContent = favoritesOnly ? "Избранные" : "Все";
+    if (span)
+      span.textContent = favoritesOnly
+        ? t("randomizer.filters.favorites.favorites")
+        : t("randomizer.filters.favorites.all");
     favFilterBtn.classList.toggle("is-active", favoritesOnly);
   };
   const getStatsSort = () => ({
@@ -785,7 +959,8 @@ export default function renderRandomizerView() {
       clearInterval(spinCountdownTimer);
       spinCountdownTimer = null;
     }
-    if (spinCountdownValueEl) spinCountdownValueEl.textContent = "—";
+    if (spinCountdownValueEl)
+      spinCountdownValueEl.textContent = t("randomizer.time.none");
   };
   const startSpinCountdown = (ms) => {
     if (!spinCountdownValueEl || !ms) return;
@@ -793,7 +968,9 @@ export default function renderRandomizerView() {
     const endAt = Date.now() + ms;
     const tick = () => {
       const left = Math.max(0, endAt - Date.now());
-      spinCountdownValueEl.textContent = `${(left / 1000).toFixed(1)}с`;
+      spinCountdownValueEl.textContent = t("randomizer.time.seconds", {
+        seconds: (left / 1000).toFixed(1),
+      });
       if (left <= 0) clearSpinCountdown();
     };
     tick();
@@ -851,15 +1028,24 @@ export default function renderRandomizerView() {
       1,
       ...sorted.map((item) => clampMisses(item.misses || 0)),
     );
+    const isEn = getLanguage() === "en";
     sorted.forEach((item) => {
       const miss = clampMisses(item.misses || 0);
       const hit = clampHits(item.hits || 0);
       const bar = document.createElement("div");
       bar.className = "spark-bar";
       bar.style.setProperty("--h", `${Math.max(6, (miss / maxMiss) * 100)}%`);
-      const missLabel = declOfNum(miss, ["промах", "промаха", "промахов"]);
-      const hitLabel = declOfNum(hit, ["попадание", "попадания", "попаданий"]);
-      const tooltip = `${item.value}: ${miss} ${missLabel}, ${hit} ${hitLabel}`;
+      const missLabel = isEn
+        ? t("randomizer.stats.missLabel", { count: miss })
+        : `${miss} ${declOfNum(miss, ["промах", "промаха", "промахов"])}`;
+      const hitLabel = isEn
+        ? t("randomizer.stats.hitLabel", { count: hit })
+        : `${hit} ${declOfNum(hit, ["попадание", "попадания", "попаданий"])}`;
+      const tooltip = t("randomizer.stats.tooltip", {
+        value: item.value,
+        misses: missLabel,
+        hits: hitLabel,
+      });
       bar.title = tooltip;
       bar.dataset.bsToggle = "tooltip";
       bar.dataset.bsPlacement = "top";
@@ -897,7 +1083,7 @@ export default function renderRandomizerView() {
     autoStatusTimer = setInterval(() => refreshAutoStatus(), 200);
   };
   const refreshAutoStatus = (overrideText) => {
-    const idleText = overrideText || "Авто-ролл выключен";
+    const idleText = overrideText || t("randomizer.auto.status.off");
     const setCountdown = (text) => {
       if (autoCountdownMiniEl) autoCountdownMiniEl.textContent = text;
     };
@@ -908,7 +1094,7 @@ export default function renderRandomizerView() {
       }
       if (autoStatusMiniEl) autoStatusMiniEl.textContent = idleText;
       if (autoChipEl) autoChipEl.dataset.state = "idle";
-      setCountdown("—");
+      setCountdown(t("randomizer.auto.status.countdownEmpty"));
       return;
     }
     const now = Date.now();
@@ -918,31 +1104,42 @@ export default function renderRandomizerView() {
         : "0.0";
     const limitLabel =
       settings.autoStopMode === "count"
-        ? `до стопа: ${Math.max(
-            0,
-            clampAutoStopCount(settings.autoStopCount) - autoRuns,
-          )}`
+        ? t("randomizer.auto.limit.count", {
+            count: Math.max(
+              0,
+              clampAutoStopCount(settings.autoStopCount) - autoRuns,
+            ),
+          })
         : settings.autoStopMode === "match" && settings.autoStopMatch
-          ? `ищем «${settings.autoStopMatch}»`
-          : "стоп вручную";
-    const lastLabel = lastResultValue ? ` · было: ${lastResultValue}` : "";
+          ? t("randomizer.auto.limit.match", { text: settings.autoStopMatch })
+          : t("randomizer.auto.limit.manual");
+    const lastLabel = lastResultValue
+      ? t("randomizer.auto.limit.last", { value: lastResultValue })
+      : "";
     const text =
       overrideText ||
-      `Авто · каждые ${settings.autoRollInterval}с · ${limitLabel} · следующий через ${secondsLeft}с${lastLabel}`;
+      t("randomizer.auto.status.running", {
+        interval: settings.autoRollInterval,
+        limit: limitLabel,
+        next: secondsLeft,
+        last: lastLabel,
+      });
     if (autoStatusEl) {
       autoStatusEl.textContent = text;
       autoStatusEl.dataset.state = "running";
     }
     if (autoStatusMiniEl) autoStatusMiniEl.textContent = text;
     if (autoChipEl) autoChipEl.dataset.state = "running";
-    setCountdown(`${secondsLeft}с`);
+    setCountdown(t("randomizer.auto.status.seconds", { seconds: secondsLeft }));
   };
   const updateAutoToggleUi = () => {
     const textEl = autoToggleBtn?.querySelector("span");
     const iconEl = autoToggleBtn?.querySelector("i");
     autoToggleBtn?.classList.toggle("is-active", autoEnabled);
     if (textEl)
-      textEl.textContent = autoEnabled ? "Остановить" : "Старт таймера";
+      textEl.textContent = autoEnabled
+        ? t("randomizer.auto.stopTimer")
+        : t("randomizer.auto.startTimer");
     if (iconEl)
       iconEl.className = autoEnabled
         ? "fa-solid fa-stop"
@@ -951,7 +1148,10 @@ export default function renderRandomizerView() {
     const miniText = autoToggleHeroBtn?.querySelector("span");
     const miniIcon = autoToggleHeroBtn?.querySelector("i");
     autoToggleHeroBtn?.classList.toggle("is-active", autoEnabled);
-    if (miniText) miniText.textContent = autoEnabled ? "Стоп" : "Старт";
+    if (miniText)
+      miniText.textContent = autoEnabled
+        ? t("randomizer.auto.stop")
+        : t("randomizer.auto.start");
     if (miniIcon)
       miniIcon.className = autoEnabled
         ? "fa-solid fa-stop"
@@ -967,8 +1167,11 @@ export default function renderRandomizerView() {
     stopAutoStatusTicker();
     updateRollAvailability();
     updateAutoToggleUi();
-    if (reason) showToast(`Авто-ролл остановлен: ${reason}`, "info");
-    refreshAutoStatus(reason ? `Остановлено: ${reason}` : undefined);
+    if (reason)
+      showToast(t("randomizer.toast.autoStopped", { reason }), "info");
+    refreshAutoStatus(
+      reason ? t("randomizer.auto.status.stopped", { reason }) : undefined,
+    );
   };
   const scheduleAutoRoll = ({ immediate = false } = {}) => {
     if (!autoEnabled) return;
@@ -989,19 +1192,23 @@ export default function renderRandomizerView() {
       .includes(needle.toLowerCase());
   };
   const getAutoStopReason = (result) => {
-    if (!result) return "нет доступных вариантов";
+    if (!result) return t("randomizer.auto.stopReason.noItems");
     if (
       settings.autoStopMode === "count" &&
       autoRuns >= clampAutoStopCount(settings.autoStopCount)
     ) {
-      return `лимит ${clampAutoStopCount(settings.autoStopCount)} запусков`;
+      return t("randomizer.auto.stopReason.count", {
+        count: clampAutoStopCount(settings.autoStopCount),
+      });
     }
     if (
       settings.autoStopMode === "match" &&
       settings.autoStopMatch &&
       matchesStopText(result.value)
     ) {
-      return `совпадение: «${settings.autoStopMatch}»`;
+      return t("randomizer.auto.stopReason.match", {
+        text: settings.autoStopMatch,
+      });
     }
     const poolSize = state.getState().pool?.length || 0;
     if (
@@ -1010,7 +1217,7 @@ export default function renderRandomizerView() {
       items.length > 0 &&
       poolSize === 0
     ) {
-      return "пул без повторов пуст";
+      return t("randomizer.auto.stopReason.poolEmpty");
     }
     return "";
   };
@@ -1027,10 +1234,10 @@ export default function renderRandomizerView() {
       return;
     }
     autoRuns += 1;
-    refreshAutoStatus(`Запуск #${autoRuns}…`);
+    refreshAutoStatus(t("randomizer.auto.status.run", { count: autoRuns }));
     const result = await roll({
       source: "auto",
-      metaLabel: `Авто #${autoRuns}`,
+      metaLabel: t("randomizer.auto.metaLabel", { count: autoRuns }),
     });
     if (!autoEnabled) return;
     const stopReason = getAutoStopReason(result);
@@ -1071,16 +1278,16 @@ export default function renderRandomizerView() {
   const startAutoRoll = ({ immediate = false } = {}) => {
     if (autoEnabled) return;
     if (isRolling) {
-      showToast("Дождитесь завершения текущего запуска", "info");
+      showToast(t("randomizer.toast.waitForRoll"), "info");
       return;
     }
     normalizePool();
     if (!items.length) {
-      showToast("Добавьте варианты перед автозапуском", "warning");
+      showToast(t("randomizer.toast.addBeforeAuto"), "warning");
       return;
     }
     if (settings.noRepeat && (!Array.isArray(pool) || pool.length === 0)) {
-      showToast("Пул пуст — обновите его или отключите «Без повторов»", "info");
+      showToast(t("randomizer.toast.poolEmpty"), "info");
       return;
     }
     autoRuns = 0;
@@ -1090,7 +1297,7 @@ export default function renderRandomizerView() {
     updateRollAvailability();
     refreshAutoStatus();
     scheduleAutoRoll({ immediate });
-    showToast("Авто-ролл запущен", "success");
+    showToast(t("randomizer.toast.autoStarted"), "success");
   };
 
   const applyPreset = (name) => {
@@ -1156,9 +1363,7 @@ export default function renderRandomizerView() {
       (p) => p.name.toLowerCase() === trimmed.toLowerCase(),
     );
     if (exists) {
-      const replace = confirm(
-        "Шаблон с таким именем уже есть. Перезаписать его текущим списком?",
-      );
+      const replace = confirm(t("randomizer.preset.replaceConfirm"));
       if (!replace) return;
     }
     state.createPreset(trimmed, sourceItems);
@@ -1173,11 +1378,11 @@ export default function renderRandomizerView() {
     overlay.className = "preset-prompt-overlay hidden";
     overlay.innerHTML = `
       <div class="preset-prompt">
-        <h4>Название шаблона</h4>
+        <h4>${t("randomizer.preset.prompt.title")}</h4>
         <input type="text" class="preset-prompt-input" maxlength="80" />
         <div class="preset-prompt-actions">
-          <button type="button" class="btn btn-ghost" data-action="cancel">Отмена</button>
-          <button type="button" class="btn btn-primary" data-action="ok">Сохранить</button>
+          <button type="button" class="btn btn-ghost" data-action="cancel">${t("randomizer.preset.prompt.cancel")}</button>
+          <button type="button" class="btn btn-primary" data-action="ok">${t("randomizer.preset.prompt.ok")}</button>
         </div>
       </div>
     `;
@@ -1206,7 +1411,7 @@ export default function renderRandomizerView() {
       const onOk = () => {
         const value = input.value.trim();
         if (!value) {
-          showToast("Введите название шаблона", "warning");
+          showToast(t("randomizer.toast.enterPresetName"), "warning");
           return;
         }
         cleanup(value);
@@ -1245,7 +1450,7 @@ export default function renderRandomizerView() {
       process.env?.NODE_ENV === "test" &&
       typeof prompt === "function"
     ) {
-      return prompt("Название шаблона", initialValue);
+      return prompt(t("randomizer.preset.prompt.title"), initialValue);
     }
     return undefined;
   };
@@ -1308,11 +1513,11 @@ export default function renderRandomizerView() {
   const replaceItemValue = (oldValue, newValue) => {
     const trimmed = newValue.trim();
     if (!trimmed) {
-      showToast("Текст не может быть пустым", "warning");
+      showToast(t("randomizer.toast.textEmpty"), "warning");
       return false;
     }
     if (trimmed.length > MAX_ITEM_LENGTH) {
-      showToast("Слишком длинный текст", "warning");
+      showToast(t("randomizer.toast.textTooLong"), "warning");
       return false;
     }
     const duplicate = items.some(
@@ -1321,7 +1526,7 @@ export default function renderRandomizerView() {
         entry.value.toLowerCase() !== oldValue.toLowerCase(),
     );
     if (duplicate) {
-      showToast("Такой вариант уже есть", "info");
+      showToast(t("randomizer.toast.textExists"), "info");
       return false;
     }
     const ok = state.updateItem(oldValue, trimmed, { resetPool: false });
@@ -1343,7 +1548,7 @@ export default function renderRandomizerView() {
     persistItems({ resetPool: false });
     renderItems();
     renderHistory();
-    showToast("Статистика сброшена", "success");
+    showToast(t("randomizer.toast.statsReset"), "success");
   };
 
   const startInlineEdit = (chipEl, value) => {
@@ -1429,7 +1634,7 @@ export default function renderRandomizerView() {
       toRemove.forEach((v) => selectedItems.delete(v));
       renderItems();
       clearResult();
-      if (!silent) showToast("Выбранные варианты удалены", "success");
+      if (!silent) showToast(t("randomizer.toast.deletedSelected"), "success");
     },
     onReplaceItem: replaceItemValue,
     onMoveItem: (from, to) => {
@@ -1457,12 +1662,12 @@ export default function renderRandomizerView() {
         const text = await navigator.clipboard.readText();
         const entries = parseEntries(text);
         if (!entries.length) {
-          showToast("Буфер обмена пуст", "info");
+          showToast(t("randomizer.toast.clipboardEmpty"), "info");
           return;
         }
         bulkAdd(entries);
       } catch {
-        showToast("Не удалось прочитать буфер обмена", "error");
+        showToast(t("randomizer.toast.clipboardReadError"), "error");
       }
     },
   });
@@ -1475,6 +1680,29 @@ export default function renderRandomizerView() {
     updateVisuals();
     renderHistory();
   };
+
+  if (expandAllBtn) {
+    expandAllBtn.addEventListener("click", () => {
+      const isCollapsed = expandAllBtn.dataset.state !== "expanded";
+      if (isCollapsed) {
+        renderItemsImpl.expandAll?.();
+        expandAllBtn.dataset.state = "expanded";
+        expandAllBtn.title = t("randomizer.actions.collapseAll.title");
+        const icon = expandAllBtn.querySelector("i");
+        if (icon) icon.className = "fa-solid fa-angles-up";
+        const label = expandAllBtn.querySelector("span");
+        if (label) label.textContent = t("randomizer.actions.collapseAll");
+      } else {
+        renderItemsImpl.collapseAll?.();
+        expandAllBtn.dataset.state = "collapsed";
+        expandAllBtn.title = t("randomizer.actions.expandAll.title");
+        const icon = expandAllBtn.querySelector("i");
+        if (icon) icon.className = "fa-solid fa-angles-down";
+        const label = expandAllBtn.querySelector("span");
+        if (label) label.textContent = t("randomizer.actions.expandAll");
+      }
+    });
+  }
 
   ensurePresetExists();
   const initialPresetName =
@@ -1600,7 +1828,10 @@ export default function renderRandomizerView() {
     let index = 0;
     resultContainer.classList.add("carousel");
     carouselTimer = setInterval(() => {
-      resultUI.setResult(queue[index % queue.length], "Перемешиваем…");
+      resultUI.setResult(
+        queue[index % queue.length],
+        t("randomizer.result.mixing"),
+      );
       index += 1;
     }, 160);
   };
@@ -1616,7 +1847,7 @@ export default function renderRandomizerView() {
     historyList,
     historyEmpty,
     onSelectEntry: (value) => {
-      resultUI.setResult(value, "Выбрано ранее");
+      resultUI.setResult(value, t("randomizer.result.previous"));
     },
     statsTable,
     getRareOnly: () => rareOnly,
@@ -1628,7 +1859,10 @@ export default function renderRandomizerView() {
       if (!rareToggleBtn) return;
       rareToggleBtn.dataset.state = rare ? "rare" : "all";
       const span = rareToggleBtn.querySelector("span");
-      if (span) span.textContent = rare ? "Редкие" : "Все";
+      if (span)
+        span.textContent = rare
+          ? t("randomizer.history.rare.rare")
+          : t("randomizer.history.rare.all");
       rareToggleBtn.classList.toggle("is-active", rare);
     },
     onExportStats: (getText) => {
@@ -1637,14 +1871,14 @@ export default function renderRandomizerView() {
       statsExportBtn.addEventListener("click", async () => {
         const data = getText(rareToggleBtn?.dataset.state === "rare");
         if (!data) {
-          showToast("Статистика пуста", "info");
+          showToast(t("randomizer.toast.statsEmpty"), "info");
           return;
         }
         try {
           await navigator.clipboard.writeText(data);
-          showToast("Статистика скопирована", "success");
+          showToast(t("randomizer.toast.statsCopied"), "success");
         } catch {
-          showToast("Не удалось скопировать", "error");
+          showToast(t("randomizer.toast.statsCopyError"), "error");
         }
       });
     },
@@ -1665,18 +1899,18 @@ export default function renderRandomizerView() {
   const addItem = (value, silent = false) => {
     const normalized = value.trim();
     if (!normalized) {
-      if (!silent) showToast("Введите текст варианта", "warning");
+      if (!silent) showToast(t("randomizer.toast.enterItemText"), "warning");
       return false;
     }
     if (normalized.length > MAX_ITEM_LENGTH) {
-      if (!silent) showToast("Слишком длинный вариант", "warning");
+      if (!silent) showToast(t("randomizer.toast.itemTooLong"), "warning");
       return false;
     }
     const exists = items.some(
       (item) => item.value.toLowerCase() === normalized.toLowerCase(),
     );
     if (exists) {
-      if (!silent) showToast("Такой вариант уже есть", "info");
+      if (!silent) showToast(t("randomizer.toast.itemExists"), "info");
       return false;
     }
     state.addItem(normalized);
@@ -1690,12 +1924,13 @@ export default function renderRandomizerView() {
     syncState();
     renderItems();
     if (added) {
-      showToast(
-        `Добавлено ${added} ${declOfNum(added, ["элемент", "элемента", "элементов"])}`,
-        "success",
-      );
+      const isEn = getLanguage() === "en";
+      const message = isEn
+        ? t("randomizer.toast.addedCount", { count: added })
+        : `Добавлено ${added} ${declOfNum(added, ["элемент", "элемента", "элементов"])}`;
+      showToast(message, "success");
     } else {
-      showToast("Новых элементов нет", "info");
+      showToast(t("randomizer.toast.noNewItems"), "info");
     }
   };
 
@@ -1703,14 +1938,14 @@ export default function renderRandomizerView() {
     if (isRolling) return Promise.resolve(null);
     clearSpinCountdown();
     if (!items.length) {
-      showToast("Сначала добавьте варианты", "warning");
+      showToast(t("randomizer.toast.addFirst"), "warning");
       return Promise.resolve(null);
     }
     const sourceItems = favoritesOnly
       ? items.filter((item) => item.favorite)
       : items;
     if (!sourceItems.length) {
-      showToast("Отметьте избранные варианты или отключите фильтр", "info");
+      showToast(t("randomizer.toast.markFavorites"), "info");
       return Promise.resolve(null);
     }
     normalizePool();
@@ -1718,7 +1953,7 @@ export default function renderRandomizerView() {
       ? sourceItems.filter((item) => pool.includes(item.value))
       : sourceItems;
     if (!candidates.length) {
-      showToast("Нет доступных вариантов", "info");
+      showToast(t("randomizer.toast.noAvailableItems"), "info");
       updatePoolHint();
       updateRollAvailability();
       stopCarousel();
@@ -1748,7 +1983,7 @@ export default function renderRandomizerView() {
         () => {
           const picked = pickWeightedItem(candidates);
           if (!picked) {
-            showToast("Нет доступных вариантов", "info");
+            showToast(t("randomizer.toast.noAvailableItems"), "info");
             finish(null);
             return;
           }
@@ -1770,7 +2005,8 @@ export default function renderRandomizerView() {
             updatePoolHint();
           }
 
-          const timeLabel = new Intl.DateTimeFormat("ru-RU", {
+          const locale = getLanguage() === "en" ? "en-US" : "ru-RU";
+          const timeLabel = new Intl.DateTimeFormat(locale, {
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
@@ -1833,14 +2069,14 @@ export default function renderRandomizerView() {
 
   autoToggleBtn?.addEventListener("click", () => {
     if (autoEnabled) {
-      stopAutoRoll("остановлено вручную");
+      stopAutoRoll(t("randomizer.auto.stopReason.manualStop"));
     } else {
       startAutoRoll();
     }
   });
   autoToggleHeroBtn?.addEventListener("click", () => {
     if (autoEnabled) {
-      stopAutoRoll("остановлено вручную");
+      stopAutoRoll(t("randomizer.auto.stopReason.manualStop"));
     } else {
       startAutoRoll();
     }
@@ -1881,7 +2117,9 @@ export default function renderRandomizerView() {
     renderItems();
     updateVisuals();
     showToast(
-      changed ? "Избранное очищено" : "Нечего сбрасывать",
+      changed
+        ? t("randomizer.toast.favoritesCleared")
+        : t("randomizer.toast.favoritesNothing"),
       changed ? "success" : "info",
     );
   });
@@ -1896,8 +2134,8 @@ export default function renderRandomizerView() {
     updateVisuals();
     showToast(
       restored
-        ? "Исключённые варианты возвращены в пул"
-        : "Исключённых нет в списке",
+        ? t("randomizer.toast.excludedReturned")
+        : t("randomizer.toast.excludedNone"),
       restored ? "success" : "info",
     );
   });
@@ -1907,13 +2145,13 @@ export default function renderRandomizerView() {
   wrapper.querySelector("#randomizer-add")?.addEventListener("click", () => {
     const entries = parseEntries(inputEl.value);
     if (!entries.length) {
-      showToast("Введите текст варианта", "warning");
+      showToast(t("randomizer.toast.enterItemText"), "warning");
       inputEl.focus();
       return;
     }
     if (entries.length === 1) {
       const ok = addItem(entries[0], true);
-      if (ok) showToast("Вариант добавлен", "success");
+      if (ok) showToast(t("randomizer.toast.itemAdded"), "success");
     } else {
       bulkAdd(entries);
     }
@@ -1938,19 +2176,22 @@ export default function renderRandomizerView() {
           .map((value) => value.trim())
           .filter(Boolean);
         if (!entries.length) {
-          showToast("Буфер обмена пуст", "info");
+          showToast(t("randomizer.toast.clipboardEmpty"), "info");
           return;
         }
         const preview = entries.slice(0, 5).join("\n");
         const confirmText =
           entries.length > 5
-            ? `${preview}\n...и ещё ${entries.length - 5} строк. Добавить?`
-            : `${preview}\nДобавить эти строки?`;
+            ? t("randomizer.confirm.addListMore", {
+                preview,
+                count: entries.length - 5,
+              })
+            : t("randomizer.confirm.addList", { preview });
         if (!confirm(confirmText)) return;
         bulkAdd(entries);
         inputEl.value = "";
       } catch {
-        showToast("Не удалось прочитать буфер обмена", "error");
+        showToast(t("randomizer.toast.clipboardReadError"), "error");
       }
     });
 
@@ -1962,14 +2203,14 @@ export default function renderRandomizerView() {
     .querySelector("#randomizer-copy")
     ?.addEventListener("click", async () => {
       if (!resultText.textContent) {
-        showToast("Пока нечего копировать", "info");
+        showToast(t("randomizer.toast.nothingToCopy"), "info");
         return;
       }
       try {
         await navigator.clipboard.writeText(resultText.textContent);
-        showToast("Результат скопирован", "success");
+        showToast(t("randomizer.toast.resultCopied"), "success");
       } catch {
-        showToast("Не удалось скопировать результат", "error");
+        showToast(t("randomizer.toast.resultCopyError"), "error");
       }
     });
 
@@ -1989,7 +2230,7 @@ export default function renderRandomizerView() {
   });
 
   statsResetBtn?.addEventListener("click", () => {
-    if (!confirm("Сбросить счётчики выпадений и промахов для всех вариантов?"))
+    if (!confirm(t("randomizer.confirm.resetStats")))
       return;
     resetStats();
   });
@@ -2005,16 +2246,16 @@ export default function renderRandomizerView() {
     .querySelector("#randomizer-export")
     ?.addEventListener("click", async () => {
       if (!items.length) {
-        showToast("Список пуст", "info");
+        showToast(t("randomizer.toast.listEmpty"), "info");
         return;
       }
       try {
         await navigator.clipboard.writeText(
           items.map((item) => item.value).join("\n"),
         );
-        showToast("Список скопирован", "success");
+        showToast(t("randomizer.toast.listCopied"), "success");
       } catch {
-        showToast("Не удалось скопировать список", "error");
+        showToast(t("randomizer.toast.listCopyError"), "error");
       }
     });
 
@@ -2023,13 +2264,13 @@ export default function renderRandomizerView() {
     ?.addEventListener("click", () => {
       resetPool();
       renderItems();
-      showToast("Пул без повторов обновлён", "success");
+      showToast(t("randomizer.toast.poolRefreshed"), "success");
     });
 
   poolRefreshBtn?.addEventListener("click", () => {
     resetPool();
     renderItems();
-    showToast("Пул без повторов обновлён", "success");
+    showToast(t("randomizer.toast.poolRefreshed"), "success");
   });
 
   historyRunBtn?.addEventListener("click", () => roll());
@@ -2050,7 +2291,7 @@ export default function renderRandomizerView() {
       selectedItems.clear();
       renderItems();
       clearResult();
-      showToast("Выбранные варианты удалены", "success");
+      showToast(t("randomizer.toast.deletedSelected"), "success");
     },
     onClear: () => {
       state.removeItems(
@@ -2060,7 +2301,7 @@ export default function renderRandomizerView() {
       selectedItems.clear();
       renderItems();
       clearResult();
-      showToast("Список очищен", "success");
+      showToast(t("randomizer.toast.listCleared"), "success");
     },
     showToast,
   });
@@ -2078,6 +2319,15 @@ export default function renderRandomizerView() {
   renderItems();
   renderHistory();
   setTimeout(() => initTooltips(), 0);
+  window.addEventListener("i18n:changed", () => {
+    localizeStatic();
+    setCountLabel();
+    updateFavFilterUi();
+    updateAutoToggleUi();
+    refreshAutoStatus();
+    renderHistory();
+    renderItems();
+  });
 
   return wrapper;
 }
