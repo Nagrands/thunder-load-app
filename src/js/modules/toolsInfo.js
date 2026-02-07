@@ -519,8 +519,6 @@ export async function renderToolsInfo() {
   /** @type {HTMLButtonElement|null} */
   const updateBtn = document.getElementById("tools-update-btn");
   /** @type {HTMLElement|null} */
-  const updateIcon = document.getElementById("tools-update-icon");
-  /** @type {HTMLElement|null} */
   const updateLabel = document.getElementById("tools-update-label");
   /** @type {HTMLButtonElement|null} */
   const installBtn = document.getElementById("tools-install-btn");

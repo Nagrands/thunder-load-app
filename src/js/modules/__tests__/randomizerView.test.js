@@ -69,6 +69,15 @@ describe("Randomizer view", () => {
     );
   });
 
+  test("summary omits items count block", () => {
+    const view = setup();
+    expect(view.querySelector("#randomizer-summary-count")).toBeNull();
+    const summaryLabels = view.querySelectorAll(
+      ".randomizer-summary .summary-item .label",
+    );
+    expect(summaryLabels.length).toBe(4);
+  });
+
   test("keeps list empty after clearing and reload", () => {
     const view = setup({
       items: [],

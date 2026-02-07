@@ -250,10 +250,6 @@ export default function renderRandomizerView() {
         </div>
       </div>
       <div class="summary-item">
-        <span class="label">Варианты</span>
-        <strong id="randomizer-summary-count">0</strong>
-      </div>
-      <div class="summary-item">
         <span class="label">Пул</span>
         <div class="summary-main">
           <strong id="randomizer-summary-pool">—</strong>
@@ -614,7 +610,6 @@ export default function renderRandomizerView() {
     );
     const summaryLabelKeys = [
       "randomizer.preset.label",
-      "randomizer.summary.items",
       "randomizer.summary.pool",
       "randomizer.summary.timer",
       "randomizer.summary.rare",
@@ -762,7 +757,6 @@ export default function renderRandomizerView() {
   const presetSelect = wrapper.querySelector("#randomizer-preset-select");
   const poolHintEl = wrapper.querySelector("#randomizer-pool-hint");
   const poolRefreshBtn = wrapper.querySelector("#randomizer-pool-refresh");
-  const summaryCountEl = wrapper.querySelector("#randomizer-summary-count");
   const summaryPresetEl = wrapper.querySelector("#randomizer-summary-preset");
   const summaryPoolEl = wrapper.querySelector("#randomizer-summary-pool");
   const summaryPoolModeEl = wrapper.querySelector(
@@ -890,7 +884,6 @@ export default function renderRandomizerView() {
   const { updateSummary, updatePoolHint, pulsePool } = createSummary({
     getState: () => state.getState(),
     elements: {
-      summaryCountEl,
       summaryPresetEl,
       summaryPoolEl,
       summaryPoolModeEl,

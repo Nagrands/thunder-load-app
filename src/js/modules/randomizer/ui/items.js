@@ -131,7 +131,7 @@ export function createItemsRenderer({
   };
 
   function renderItems() {
-    const { items, pool, settings } = getState();
+    const { pool, settings } = getState();
     const onlyFav =
       typeof favoritesOnly === "function" ? favoritesOnly() : favoritesOnly;
     const visibleItems = getVisibleItems();
