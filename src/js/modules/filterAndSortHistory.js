@@ -219,7 +219,11 @@ function filterAndSortHistory(
         );
         if (cmp !== 0) return cmp;
         // Secondary: file name
-        cmp = compareValues(aEntry.fileName || "", bEntry.fileName || "", "asc");
+        cmp = compareValues(
+          aEntry.fileName || "",
+          bEntry.fileName || "",
+          "asc",
+        );
         if (cmp !== 0) return cmp;
         // Tertiary: date (newer first)
         cmp = compareValues(

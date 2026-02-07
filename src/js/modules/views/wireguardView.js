@@ -287,12 +287,9 @@ export default function renderWireGuard() {
 
   const humanizeError = (msg) => {
     if (!msg) return t("wg.error.unknown");
-    if (msg.includes("EADDRINUSE"))
-      return t("wg.error.portInUse");
-    if (msg.includes("ENETUNREACH"))
-      return t("wg.error.networkUnreachable");
-    if (msg.includes("ECONNREFUSED"))
-      return t("wg.error.connectionRefused");
+    if (msg.includes("EADDRINUSE")) return t("wg.error.portInUse");
+    if (msg.includes("ENETUNREACH")) return t("wg.error.networkUnreachable");
+    if (msg.includes("ECONNREFUSED")) return t("wg.error.connectionRefused");
     if (msg.toLowerCase().includes("timeout")) return t("wg.error.timeout");
     return msg;
   };
@@ -364,9 +361,7 @@ export default function renderWireGuard() {
         if (deadline && Number.isFinite(Number(deadline))) {
           startCountdownWithDeadline(Number(deadline));
           const eta = new Date(Number(deadline)).toLocaleTimeString();
-          log(
-            t("wg.log.autoShutdown.loaded.enabledWithEta", { time: eta }),
-          );
+          log(t("wg.log.autoShutdown.loaded.enabledWithEta", { time: eta }));
         } else {
           startCountdownFromSeconds(seconds);
           log(
@@ -384,10 +379,7 @@ export default function renderWireGuard() {
       }
     } catch (e) {
       console.error("auto-shutdown init error:", e);
-      log(
-        t("wg.log.autoShutdown.initError", { message: e.message }),
-        true,
-      );
+      log(t("wg.log.autoShutdown.initError", { message: e.message }), true);
     }
   };
 
@@ -825,21 +817,13 @@ export default function renderWireGuard() {
     }
 
     if (!isValidPort(payload.rPort)) {
-      markFieldError(
-        "wg-port-remote",
-        true,
-        t("wg.validation.portRange"),
-      );
+      markFieldError("wg-port-remote", true, t("wg.validation.portRange"));
       hasError = true;
       log(t("wg.log.validation.remotePortInvalid"), true);
     }
 
     if (payload.lPort && !isValidPort(payload.lPort)) {
-      markFieldError(
-        "wg-port-local",
-        true,
-        t("wg.validation.portRange"),
-      );
+      markFieldError("wg-port-local", true, t("wg.validation.portRange"));
       hasError = true;
       log(t("wg.log.validation.localPortInvalid"), true);
     }
@@ -874,10 +858,12 @@ export default function renderWireGuard() {
     )
       .then(() => {
         log(t("wg.log.send.successResponse"));
-        toast(
-          t("wg.toast.sent", { target: `${payload.ip}:${payload.rPort}` }),
+        toast(t("wg.toast.sent", { target: `${payload.ip}:${payload.rPort}` }));
+        log(
+          t("wg.log.send.sentSuccess", {
+            target: `${payload.ip}:${payload.rPort}`,
+          }),
         );
-        log(t("wg.log.send.sentSuccess", { target: `${payload.ip}:${payload.rPort}` }));
 
         updateLastSendTime();
         updateConnectionStatus(t("wg.status.sent"));
@@ -917,44 +903,41 @@ export default function renderWireGuard() {
   };
 
   const handleReset = () => {
-    showConfirmationDialog(
-      t("wg.confirm.resetAll"),
-      () => {
-        window.electron.ipcRenderer
-          .invoke("wg-reset-config-defaults")
-          .then(() => {
-            toast(t("wg.toast.resetDone"));
-            return window.electron.ipcRenderer.invoke("wg-get-config");
-          })
-          .then((cfg) => {
-            log(t("wg.log.settings.loaded"));
-            fields.forEach((f) => {
-              getEl(f.id, view).value = cfg[f.key] ?? "";
-              markFieldError(f.id, false);
-            });
-            log(t("wg.log.settings.fieldsRestored", { count: fields.length }));
-
-            // При сбросе устанавливаем начальное сообщение в лог
-            const pre = getEl("wg-log", view);
-            const debugToggle = getEl("debug-toggle", view);
-            const debugEnabled = debugToggle
-              ? debugToggle.classList.contains("is-active")
-              : false;
-
-            if (pre && !debugEnabled) {
-              pre.textContent = t("wg.log.placeholder");
-            }
-
-            currentMsg = ")";
-            updateConnectionStatus(t("wg.status.reset"));
-          })
-          .catch((err) => {
-            toast(t("wg.toast.resetFailed"), false);
-            console.error(err);
-            log(t("wg.log.error.resetSettings", { message: err.message }), true);
+    showConfirmationDialog(t("wg.confirm.resetAll"), () => {
+      window.electron.ipcRenderer
+        .invoke("wg-reset-config-defaults")
+        .then(() => {
+          toast(t("wg.toast.resetDone"));
+          return window.electron.ipcRenderer.invoke("wg-get-config");
+        })
+        .then((cfg) => {
+          log(t("wg.log.settings.loaded"));
+          fields.forEach((f) => {
+            getEl(f.id, view).value = cfg[f.key] ?? "";
+            markFieldError(f.id, false);
           });
-      },
-    );
+          log(t("wg.log.settings.fieldsRestored", { count: fields.length }));
+
+          // При сбросе устанавливаем начальное сообщение в лог
+          const pre = getEl("wg-log", view);
+          const debugToggle = getEl("debug-toggle", view);
+          const debugEnabled = debugToggle
+            ? debugToggle.classList.contains("is-active")
+            : false;
+
+          if (pre && !debugEnabled) {
+            pre.textContent = t("wg.log.placeholder");
+          }
+
+          currentMsg = ")";
+          updateConnectionStatus(t("wg.status.reset"));
+        })
+        .catch((err) => {
+          toast(t("wg.toast.resetFailed"), false);
+          console.error(err);
+          log(t("wg.log.error.resetSettings", { message: err.message }), true);
+        });
+    });
   };
 
   const handleDebugToggle = () => {
@@ -995,8 +978,7 @@ export default function renderWireGuard() {
       // Сначала устанавливаем начальное сообщение в лог
       const pre = getEl("wg-log", view);
       if (pre && !pre.textContent.trim()) {
-        pre.textContent =
-          t("wg.log.placeholder");
+        pre.textContent = t("wg.log.placeholder");
       }
 
       await loadConfiguration();
@@ -1049,11 +1031,20 @@ export default function renderWireGuard() {
 
         // Меняем тултип в зависимости от платформы
         if (platform === "darwin") {
-          btn.setAttribute("data-i18n-title", "wg.action.openNetworkSettings.mac");
+          btn.setAttribute(
+            "data-i18n-title",
+            "wg.action.openNetworkSettings.mac",
+          );
         } else if (platform === "windows") {
-          btn.setAttribute("data-i18n-title", "wg.action.openNetworkSettings.windows");
+          btn.setAttribute(
+            "data-i18n-title",
+            "wg.action.openNetworkSettings.windows",
+          );
         } else {
-          btn.setAttribute("data-i18n-title", "wg.action.openNetworkSettings.title");
+          btn.setAttribute(
+            "data-i18n-title",
+            "wg.action.openNetworkSettings.title",
+          );
         }
         applyI18n(btn);
 

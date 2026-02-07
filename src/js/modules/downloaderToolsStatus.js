@@ -74,8 +74,7 @@ async function fetchStatus() {
   try {
     const res = await window.electron.tools.getVersions();
     const summary = summarizeToolsState(res);
-    const msg =
-      summary.state === "ok" ? t("tools.status.ready") : summary.text;
+    const msg = summary.state === "ok" ? t("tools.status.ready") : summary.text;
     setState(summary.state, msg, summary.details);
     if (summary.state === "ok") {
       el.reinstall.classList.add("hidden");

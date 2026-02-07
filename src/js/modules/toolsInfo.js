@@ -958,7 +958,8 @@ export async function renderToolsInfo() {
           applyNetworkState(allButtons, isInstalling, isChecking);
           installBtn.setAttribute("aria-busy", "true");
           setStatusText(t("tools.status.installing"));
-          if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.installing"));
+          if (labelEl)
+            dots = startDotsAnimator(labelEl, t("tools.status.installing"));
           await window.electron?.tools?.installAll?.();
           await window.electron?.invoke?.(
             "toast",
@@ -1000,7 +1001,8 @@ export async function renderToolsInfo() {
             isInstalling = true;
             applyNetworkState(allButtons, isInstalling, isChecking);
             if (checkBtn) checkBtn.setAttribute("aria-busy", "true");
-            if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.installing"));
+            if (labelEl)
+              dots = startDotsAnimator(labelEl, t("tools.status.installing"));
             setStatusText(t("tools.status.installing"));
             await window.electron?.tools?.installAll?.();
             await window.electron?.invoke?.(
@@ -1062,7 +1064,10 @@ export async function renderToolsInfo() {
         updateStatusUI(
           summaryBase,
           {},
-          { customState: "checking", customText: t("tools.status.checkingUpdates") },
+          {
+            customState: "checking",
+            customText: t("tools.status.checkingUpdates"),
+          },
         );
         setStatusText(t("tools.status.checkingUpdates"));
 
@@ -1074,7 +1079,11 @@ export async function renderToolsInfo() {
           isChecking = true;
           applyNetworkState(allButtons, isInstalling, isChecking);
           checkBtn.setAttribute("aria-busy", "true");
-          if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.checkingUpdates"));
+          if (labelEl)
+            dots = startDotsAnimator(
+              labelEl,
+              t("tools.status.checkingUpdates"),
+            );
 
           const upd = await window.electron?.tools?.checkUpdates?.({
             noCache: true,
@@ -1127,7 +1136,9 @@ export async function renderToolsInfo() {
               : t("tools.status.upToDate"),
           });
           setStatusText(
-            anyUpdate ? t("tools.status.updatesFound") : t("tools.status.upToDate"),
+            anyUpdate
+              ? t("tools.status.updatesFound")
+              : t("tools.status.upToDate"),
           );
 
           if (updateBtn) {
@@ -1141,16 +1152,22 @@ export async function renderToolsInfo() {
                 return;
               }
               let dots2;
-              const updateLabelEl = updateLabel || updateBtn.querySelector("span");
+              const updateLabelEl =
+                updateLabel || updateBtn.querySelector("span");
               try {
                 isInstalling = true;
                 applyNetworkState(allButtons, isInstalling, isChecking);
                 updateBtn.setAttribute("aria-busy", "true");
                 setStatusText(t("tools.status.installing"));
                 if (updateLabelEl)
-                  dots2 = startDotsAnimator(updateLabelEl, t("tools.status.installing"));
-                if (pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
-                if (pendingUpdate.ff) await window.electron?.tools?.updateFfmpeg?.();
+                  dots2 = startDotsAnimator(
+                    updateLabelEl,
+                    t("tools.status.installing"),
+                  );
+                if (pendingUpdate.yt)
+                  await window.electron?.tools?.updateYtDlp?.();
+                if (pendingUpdate.ff)
+                  await window.electron?.tools?.updateFfmpeg?.();
                 await renderToolsInfo();
               } catch (e2) {
                 console.error("[toolsInfo] selective update failed:", e2);

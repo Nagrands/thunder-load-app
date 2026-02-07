@@ -160,7 +160,11 @@ function manageToastLimit() {
 /**
  * Создает успешное уведомление
  */
-function showSuccess(message, title = t("toast.title.success"), duration = 4000) {
+function showSuccess(
+  message,
+  title = t("toast.title.success"),
+  duration = 4000,
+) {
   showToast(message, "success", duration, title);
 }
 
@@ -192,11 +196,7 @@ function showInfo(message, title = t("toast.title.info"), duration = 4500) {
 /**
  * Создает уведомление с действием отмены
  */
-function showUndoable(
-  message,
-  undoCallback,
-  title = t("toast.title.done"),
-) {
+function showUndoable(message, undoCallback, title = t("toast.title.done")) {
   showToast(message, "info", 8000, title, undoCallback, true);
 }
 

@@ -1800,7 +1800,9 @@
   color: var(--color-highlight);
   display: grid;
   place-items: center;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 
   &:hover:not(:disabled) {
     border-color: rgba(var(--color-accent-rgb), 0.6);

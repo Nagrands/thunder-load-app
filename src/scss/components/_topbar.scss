@@ -9,7 +9,10 @@
   width: 100%;
   min-height: var(--topbar-height);
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr) minmax(
+      220px,
+      1fr
+    );
   align-items: center;
   column-gap: 16px;
   background-color: var(--topbar-bg);
@@ -154,9 +157,7 @@
 
 .center-menu {
   --menu-item-transition:
-    color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
+    color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease,
     transform 0.2s ease;
   --menu-item-gap: 6px;
   --menu-item-height: var(--topbar-control-size);

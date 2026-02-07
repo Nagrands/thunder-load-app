@@ -69,13 +69,18 @@ export const translations = {
     "settings.tab.enabled": "Вкл",
     "settings.tab.disabled": "Выкл",
     "settings.startup.title": "Настройки запуска",
-    "settings.startup.hint": "Настройте параметры запуска для удобного использования.",
-    "settings.startup.autolaunch": "<strong>Автоматически запускать</strong> при старте системы",
-    "settings.startup.minimize": "<strong>Сворачивать</strong> приложение при запуске",
+    "settings.startup.hint":
+      "Настройте параметры запуска для удобного использования.",
+    "settings.startup.autolaunch":
+      "<strong>Автоматически запускать</strong> при старте системы",
+    "settings.startup.minimize":
+      "<strong>Сворачивать</strong> приложение при запуске",
     "settings.startup.openTab": "При запуске открывать",
-    "settings.startup.openTabHint": "Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.",
+    "settings.startup.openTabHint":
+      "Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.",
     "settings.close.title": "Закрытие приложения",
-    "settings.close.hint": "Выберите, как приложение должно вести себя при закрытии.",
+    "settings.close.hint":
+      "Выберите, как приложение должно вести себя при закрытии.",
     "settings.close.toTray": "<strong>Сворачивать</strong> в трей",
     "settings.close.notify": "<strong>Уведомление</strong> о сворачивании",
     "settings.close.exit": "<strong>Выйти</strong> из приложения",
@@ -85,24 +90,31 @@ export const translations = {
     "downloader.tools.checking": "Проверяем инструменты…",
     "downloader.tools.hideTitle": "Скрыть статус",
     "downloader.tools.hideAria": "Скрыть статус инструментов",
-    "downloader.tools.reinstallTitle": "Переустановить зависимости (yt-dlp, ffmpeg, Deno)",
+    "downloader.tools.reinstallTitle":
+      "Переустановить зависимости (yt-dlp, ffmpeg, Deno)",
     "downloader.tools.reinstall": "Переустановить",
     "settings.downloader.profile.open": "При открытии",
     "settings.downloader.profile.title": "Выбор качества загрузки",
     "settings.downloader.profile.default": "по умолчанию",
     "settings.downloader.profile.remember.title": "Последний выбор",
-    "settings.downloader.profile.remember.desc": "Откроет тот же тип потока, что и в прошлый раз.",
+    "settings.downloader.profile.remember.desc":
+      "Откроет тот же тип потока, что и в прошлый раз.",
     "settings.downloader.profile.audio.title": "Аудио",
-    "settings.downloader.profile.audio.desc": "Открывает только звуковые дорожки без видео.",
-    "settings.downloader.expandAfter": "Разворачивать окно <strong>по окончанию загрузки</strong>",
-    "settings.downloader.expandOnCopy": "Разворачивать окно <strong>при копировании URL</strong>",
-    "settings.downloader.disableComplete": "Отключить <strong>окно открытия файла</strong> после завершения загрузки",
+    "settings.downloader.profile.audio.desc":
+      "Открывает только звуковые дорожки без видео.",
+    "settings.downloader.expandAfter":
+      "Разворачивать окно <strong>по окончанию загрузки</strong>",
+    "settings.downloader.expandOnCopy":
+      "Разворачивать окно <strong>при копировании URL</strong>",
+    "settings.downloader.disableComplete":
+      "Отключить <strong>окно открытия файла</strong> после завершения загрузки",
     "settings.downloader.toolsStatus": "Показывать статус инструментов",
     "settings.tools.title": "Инструменты",
     "settings.tools.loading": "Загружаем сведения о зависимостях…",
     "settings.disableTab": "Отключить вкладку",
     "settings.wg.title": "Вкладка «WireGuard Unlock»",
-    "settings.wg.disable.hint": "Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.",
+    "settings.wg.disable.hint":
+      "Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.",
     "settings.wg.autosend": "Авто‑отправка при запуске",
     "settings.wg.autoclose.hint": "Включить/выключить авто‑закрытие приложения",
     "settings.wg.autoclose": "Авто‑закрытие приложения",
@@ -121,7 +133,8 @@ export const translations = {
     "wg.action.openNetworkSettings.mac": "Открыть настройки сети (macOS)",
     "wg.action.openNetworkSettings.windows": "Открыть параметры сети (Windows)",
     "wg.info.title": "Информация",
-    "wg.info.body": "Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.",
+    "wg.info.body":
+      "Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.",
     "wg.lastSend.title": "Последняя отправка",
     "wg.lastSend.never": "Никогда",
     "wg.status.title": "Статус",
@@ -152,13 +165,16 @@ export const translations = {
     "wg.log.copy.title": "Скопировать лог в буфер обмена",
     "wg.log.export.title": "Экспортировать лог в файл",
     "wg.log.clear.title": "Очистить лог",
-    "wg.log.placeholder": "Лог активности. Включите режим отладки для подробного вывода.",
+    "wg.log.placeholder":
+      "Лог активности. Включите режим отладки для подробного вывода.",
     "wg.log.ui.copied": "Скопировано",
     "wg.log.ui.exporting": "Экспорт...",
     "wg.tips.title": "Советы",
-    "wg.tips.body": "• Используйте режим отладки для подробного лога<br>• Проверьте настройки брандмауэра<br>• Убедитесь, что удаленный хост доступен",
+    "wg.tips.body":
+      "• Используйте режим отладки для подробного лога<br>• Проверьте настройки брандмауэра<br>• Убедитесь, что удаленный хост доступен",
     "wg.confirm.send": "Отправить запрос на {target}?",
-    "wg.confirm.resetAll": "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
+    "wg.confirm.resetAll":
+      "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
     "wg.validation.ipInvalid": "Некорректный IP‑адрес",
     "wg.validation.portRange": "Порт должен быть от 1 до 65535",
     "wg.toast.loadConfigError": "Не удалось загрузить настройки",
@@ -174,22 +190,33 @@ export const translations = {
     "wg.error.electronUnavailable": "Electron API недоступен",
     "wg.error.timeoutWaiting": "Таймаут ожидания ответа",
     "wg.error.unknown": "Неизвестная ошибка",
-    "wg.error.portInUse": "Порт уже используется. Выберите другой локальный порт.",
-    "wg.error.networkUnreachable": "Сеть недоступна. Проверьте подключение к интернету.",
+    "wg.error.portInUse":
+      "Порт уже используется. Выберите другой локальный порт.",
+    "wg.error.networkUnreachable":
+      "Сеть недоступна. Проверьте подключение к интернету.",
     "wg.error.connectionRefused": "Соединение отклонено удалённой стороной.",
     "wg.error.timeout": "Время ожидания истекло.",
     "wg.log.autoShutdown.timerStopped": "[Авто-закрытие] Таймер остановлен",
-    "wg.log.autoShutdown.timerStartedUntil": "[Авто-закрытие] Таймер запущен до {time}",
+    "wg.log.autoShutdown.timerStartedUntil":
+      "[Авто-закрытие] Таймер запущен до {time}",
     "wg.log.autoShutdown.remaining": "[Авто-закрытие] Осталось: {seconds} с",
-    "wg.log.autoShutdown.loaded.enabledWithEta": "[Авто-закрытие] Загружено: включено, завершение в {time}",
-    "wg.log.autoShutdown.loaded.enabledWithSeconds": "[Авто-закрытие] Загружено: включено, {seconds} с",
-    "wg.log.autoShutdown.loaded.disabled": "[Авто-закрытие] Загружено: выключено, {seconds} с",
-    "wg.log.autoShutdown.initError": "[Авто-закрытие] Ошибка инициализации: {message}",
-    "wg.log.autoShutdown.enabledWithEta": "[Авто-закрытие] Включено; завершение в {time}",
-    "wg.log.autoShutdown.enabledWithSeconds": "[Авто-закрытие] Включено; {seconds} с",
-    "wg.log.autoShutdown.disabledStopped": "[Авто-закрытие] Выключено; обратный отсчёт остановлен",
+    "wg.log.autoShutdown.loaded.enabledWithEta":
+      "[Авто-закрытие] Загружено: включено, завершение в {time}",
+    "wg.log.autoShutdown.loaded.enabledWithSeconds":
+      "[Авто-закрытие] Загружено: включено, {seconds} с",
+    "wg.log.autoShutdown.loaded.disabled":
+      "[Авто-закрытие] Загружено: выключено, {seconds} с",
+    "wg.log.autoShutdown.initError":
+      "[Авто-закрытие] Ошибка инициализации: {message}",
+    "wg.log.autoShutdown.enabledWithEta":
+      "[Авто-закрытие] Включено; завершение в {time}",
+    "wg.log.autoShutdown.enabledWithSeconds":
+      "[Авто-закрытие] Включено; {seconds} с",
+    "wg.log.autoShutdown.disabledStopped":
+      "[Авто-закрытие] Выключено; обратный отсчёт остановлен",
     "wg.log.settings.loaded": "[Настройки] Конфигурация загружена",
-    "wg.log.settings.fieldsRestored": "[Настройки] Поля восстановлены ({count})",
+    "wg.log.settings.fieldsRestored":
+      "[Настройки] Поля восстановлены ({count})",
     "wg.log.send.scheduleAuto": "[Отправка] Планирую автоотправку через 50 мс",
     "wg.log.error.loadConfig": "[Ошибка] Загрузка конфигурации: {message}",
     "wg.log.log.clearedByUser": "[Лог] Очищен пользователем",
@@ -201,10 +228,14 @@ export const translations = {
     "wg.log.action.openConfigFile": "[Действие] Открыть файл конфигурации",
     "wg.log.send.payloadPrepared": "[Отправка] Подготовка payload: {payload}",
     "wg.log.validation.ipInvalid": "[Валидация] Некорректный IP-адрес",
-    "wg.log.validation.remotePortInvalid": "[Валидация] Некорректный удалённый порт",
-    "wg.log.validation.localPortInvalid": "[Валидация] Некорректный локальный порт",
-    "wg.log.send.abortedValidation": "[Отправка] Прервана из-за ошибок валидации",
-    "wg.log.send.ipcRequest": "[Отправка] Запрос IPC: wg-send-udp (таймаут 5000 мс)",
+    "wg.log.validation.remotePortInvalid":
+      "[Валидация] Некорректный удалённый порт",
+    "wg.log.validation.localPortInvalid":
+      "[Валидация] Некорректный локальный порт",
+    "wg.log.send.abortedValidation":
+      "[Отправка] Прервана из-за ошибок валидации",
+    "wg.log.send.ipcRequest":
+      "[Отправка] Запрос IPC: wg-send-udp (таймаут 5000 мс)",
     "wg.log.send.successResponse": "[Отправка] Успех: ответ получен от main",
     "wg.log.send.sentSuccess": "Запрос отправлен успешно на {target}",
     "wg.log.send.specialSent": "Запрос (kvn) отправлен успешно на {target}",
@@ -212,22 +243,31 @@ export const translations = {
     "wg.log.error.resetSettings": "[Ошибка] Сброс настроек: {message}",
     "wg.log.debug.enabled": "[Режим отладки] Включён - начата запись событий",
     "wg.log.debug.currentStatus": "[Текущий статус] {status}",
-    "wg.log.debug.disabled": "[Режим отладки] Выключен - запись событий приостановлена",
+    "wg.log.debug.disabled":
+      "[Режим отладки] Выключен - запись событий приостановлена",
     "wg.log.ui.tooltipsReady": "[UI] Тултипы инициализированы",
-    "wg.log.init.renderReady": "[Инициализация] Разметка и подготовка за {ms} мс",
+    "wg.log.init.renderReady":
+      "[Инициализация] Разметка и подготовка за {ms} мс",
     "wg.log.env.ua": "[Среда] UA: {ua}",
-    "wg.log.debug.active": "[Лог] Режим отладки активен - все события будут записываться",
+    "wg.log.debug.active":
+      "[Лог] Режим отладки активен - все события будут записываться",
     "wg.log.error.init": "[Ошибка] Инициализация: {message}",
-    "wg.log.error.autoShutdownUpdate": "[Ошибка] Обновление авто-закрытия: {message}",
-    "wg.log.system.debugInit": "[Система] WireGuard Unlock инициализирован с включенной отладкой",
+    "wg.log.error.autoShutdownUpdate":
+      "[Ошибка] Обновление авто-закрытия: {message}",
+    "wg.log.system.debugInit":
+      "[Система] WireGuard Unlock инициализирован с включенной отладкой",
     "settings.backup.title": "Вкладка «Backup»",
-    "settings.backup.disable.hint": "Скрывает вкладку и отключает её инициализацию.",
-    "settings.backup.compact.hint": "Переключает отображение профилей между подробным и компактным режимом.",
+    "settings.backup.disable.hint":
+      "Скрывает вкладку и отключает её инициализацию.",
+    "settings.backup.compact.hint":
+      "Переключает отображение профилей между подробным и компактным режимом.",
     "settings.backup.compact": "Компактный список профилей",
-    "settings.backup.log.hint": "Скрыть или показать блок с логом операций резервного копирования.",
+    "settings.backup.log.hint":
+      "Скрыть или показать блок с логом операций резервного копирования.",
     "settings.backup.log": "Показывать лог операций",
     "settings.randomizer.title": "Вкладка «Randomizer»",
-    "settings.randomizer.disable.hint": "Скрывает вкладку Randomizer и отключает все её элементы управления.",
+    "settings.randomizer.disable.hint":
+      "Скрывает вкладку Randomizer и отключает все её элементы управления.",
     "settings.appearance.title": "Внешний вид приложения",
     "settings.appearance.theme": "Цветовая тема",
     "settings.appearance.theme.system": "Системная",
@@ -238,11 +278,15 @@ export const translations = {
     "settings.appearance.theme.reset": "Сбросить тему по умолчанию",
     "settings.appearance.fontSize": "Размер текста",
     "settings.appearance.fontSize.reset": "Сбросить размер шрифта по умолчанию",
-    "settings.appearance.lowEffects.hint": "Отключает анимации и эффекты размытия",
-    "settings.appearance.lowEffects": "Режим <strong>экономии эффектов</strong>",
+    "settings.appearance.lowEffects.hint":
+      "Отключает анимации и эффекты размытия",
+    "settings.appearance.lowEffects":
+      "Режим <strong>экономии эффектов</strong>",
     "settings.other.title": "Другие настройки",
-    "settings.other.hint": "Дополнительные параметры для детальной настройки поведения приложения.",
-    "settings.other.disableHotkeys": "Отключить <strong>специальные</strong> (горячие) клавиши",
+    "settings.other.hint":
+      "Дополнительные параметры для детальной настройки поведения приложения.",
+    "settings.other.disableHotkeys":
+      "Отключить <strong>специальные</strong> (горячие) клавиши",
     "settings.other.appConfig": "Настройки приложения",
     "settings.other.export": "Сохранить",
     "settings.other.import": "Загрузить",
@@ -341,7 +385,8 @@ export const translations = {
     "history.toast.fileOpenError": "Не удалось открыть файл.",
     "history.toast.folderMissing": "Папка не найдена на диске.",
     "history.toast.folderOpenError": "Не удалось открыть папку.",
-    "history.toast.retryUnavailable": "Ссылка для повторной загрузки недоступна.",
+    "history.toast.retryUnavailable":
+      "Ссылка для повторной загрузки недоступна.",
     "history.toast.retryStart": "Повторная загрузка: <strong>{name}</strong>.",
     "history.toast.deletedEntries": "Удалено {count} записей.",
     "history.toast.deleteCancelled": "Удаление отменено.",
@@ -360,11 +405,13 @@ export const translations = {
     "preview.alt": "Превью",
     "preloader.loading": "Загрузка…",
     "update.available.title": "Новое обновление",
-    "update.available.body": "Доступно новое обновление. Хотите загрузить сейчас?",
+    "update.available.body":
+      "Доступно новое обновление. Хотите загрузить сейчас?",
     "update.available.download": "Загрузить",
     "update.available.later": "Позже",
     "update.downloaded.title": "Загрузка обновления завершена",
-    "update.downloaded.body": "Обновление успешно загружено. Перезапустить приложение для установки?",
+    "update.downloaded.body":
+      "Обновление успешно загружено. Перезапустить приложение для установки?",
     "update.downloaded.restart": "Перезапустить",
     "update.downloaded.later": "Позже",
     "update.error.title": "Ошибка обновления",
@@ -392,10 +439,12 @@ export const translations = {
     "confirm.default.subtitle": "Подтверждение",
     "confirm.default.confirm": "Да",
     "confirm.default.cancel": "Нет",
-    "confirm.error.missing": "Элементы модального окна подтверждения отсутствуют.",
+    "confirm.error.missing":
+      "Элементы модального окна подтверждения отсутствуют.",
     "history.clear.title": "Очистить историю?",
     "history.clear.subtitle": "История загрузок",
-    "history.clear.message": "Вы уверены, что хотите удалить всю историю загрузок?",
+    "history.clear.message":
+      "Вы уверены, что хотите удалить всю историю загрузок?",
     "history.clear.confirm": "Очистить",
     "history.clear.cancel": "Отмена",
     "history.clear.success": "История загрузок успешно очищена.",
@@ -456,27 +505,41 @@ export const translations = {
     "settings.tab.enabled.aria": "Вкладка включена",
     "settings.tab.disabled.aria": "Вкладка отключена",
     "settings.qualityProfile.saved": "Профиль качества сохранён.",
-    "settings.fontSize.set": "<strong>Размер шрифта</strong> установлен на <strong>{size}px</strong>",
-    "settings.fontSize.reset": "<strong>Размер шрифта</strong> сброшен на <strong>{size}px</strong>",
+    "settings.fontSize.set":
+      "<strong>Размер шрифта</strong> установлен на <strong>{size}px</strong>",
+    "settings.fontSize.reset":
+      "<strong>Размер шрифта</strong> сброшен на <strong>{size}px</strong>",
     "settings.theme.set": "Выбрана тема: <strong>{theme}</strong>",
-    "settings.theme.reset": "<strong>Тема</strong> сброшена на <strong>{theme}</strong>",
-    "settings.module.wg.disabled": "Вкладка <strong>WG Unlock</strong> отключена",
+    "settings.theme.reset":
+      "<strong>Тема</strong> сброшена на <strong>{theme}</strong>",
+    "settings.module.wg.disabled":
+      "Вкладка <strong>WG Unlock</strong> отключена",
     "settings.module.wg.enabled": "Вкладка <strong>WG Unlock</strong> включена",
-    "settings.module.backup.disabled": "Вкладка <strong>Backup</strong> отключена",
-    "settings.module.backup.enabled": "Вкладка <strong>Backup</strong> включена",
-    "settings.module.randomizer.disabled": "Вкладка <strong>Randomizer</strong> отключена",
-    "settings.module.randomizer.enabled": "Вкладка <strong>Randomizer</strong> включена",
-    "settings.wg.disable.note": "Применяется сразу. Можно включить обратно в любое время.",
-    "settings.downloadCompleteModal.disabled": "Модальное окно после загрузки <strong>отключено</strong>",
-    "settings.downloadCompleteModal.enabled": "Модальное окно после загрузки <strong>включено</strong>",
+    "settings.module.backup.disabled":
+      "Вкладка <strong>Backup</strong> отключена",
+    "settings.module.backup.enabled":
+      "Вкладка <strong>Backup</strong> включена",
+    "settings.module.randomizer.disabled":
+      "Вкладка <strong>Randomizer</strong> отключена",
+    "settings.module.randomizer.enabled":
+      "Вкладка <strong>Randomizer</strong> включена",
+    "settings.wg.disable.note":
+      "Применяется сразу. Можно включить обратно в любое время.",
+    "settings.downloadCompleteModal.disabled":
+      "Модальное окно после загрузки <strong>отключено</strong>",
+    "settings.downloadCompleteModal.enabled":
+      "Модальное окно после загрузки <strong>включено</strong>",
     "settings.config.export.success": "Файл конфигурации успешно сохранён",
-    "settings.config.export.hint": "Вы можете загрузить файл на другом устройстве",
+    "settings.config.export.hint":
+      "Вы можете загрузить файл на другом устройстве",
     "settings.config.import.more": "… и ещё {count} изменений",
-    "settings.config.import.confirm": "Будут применены {count} изменений. Создать резервную копию текущей конфигурации и продолжить?",
+    "settings.config.import.confirm":
+      "Будут применены {count} изменений. Создать резервную копию текущей конфигурации и продолжить?",
     "settings.config.import.success": "Конфигурация успешно импортирована",
     "settings.config.import.error": "Ошибка импорта: {error}",
     "settings.reset.confirm": "Вы уверены, что хотите сбросить все настройки?",
-    "settings.reset.error": "Не удалось сбросить настройки. Проверьте консоль для подробностей.",
+    "settings.reset.error":
+      "Не удалось сбросить настройки. Проверьте консоль для подробностей.",
     "settings.reset.success": "Настройки сброшены на значения по умолчанию",
     "toast.title.success": "Успешно",
     "toast.title.error": "Ошибка",
@@ -494,14 +557,17 @@ export const translations = {
     "tools.summary.missingList": "Не найдено: {items}",
     "tools.summary.readyText": "Все инструменты готовы",
     "tools.summary.problemText": "Есть проблемы с инструментами",
-    "tools.hint.missing": "Некоторые инструменты (Deno, yt-dlp, ffmpeg) не найдены. Установите их или нажмите «Скачать зависимости».",
+    "tools.hint.missing":
+      "Некоторые инструменты (Deno, yt-dlp, ffmpeg) не найдены. Установите их или нажмите «Скачать зависимости».",
     "tools.wizard.title": "Установка инструментов",
     "tools.wizard.step1.title": "Выберите папку",
-    "tools.wizard.step1.desc": "Укажите, где хранить инструменты. Можно оставить путь по умолчанию.",
+    "tools.wizard.step1.desc":
+      "Укажите, где хранить инструменты. Можно оставить путь по умолчанию.",
     "tools.wizard.step2.title": "Скачайте зависимости",
     "tools.wizard.step2.desc": "Скачаем и настроим yt-dlp, ffmpeg и Deno.",
     "tools.wizard.step3.title": "Проверка и готовность",
-    "tools.wizard.step3.desc": "После установки мы проверим версии и обновим статус.",
+    "tools.wizard.step3.desc":
+      "После установки мы проверим версии и обновим статус.",
     "tools.button.install": "Скачать зависимости",
     "tools.button.check": "Проверить обновления",
     "tools.button.update": "Обновить инструменты",
@@ -513,13 +579,15 @@ export const translations = {
     "tools.location.open": "Открыть папку",
     "tools.location.reset": "Сбросить по умолчанию",
     "tools.location.migrate": "Мигрировать из старого места",
-    "tools.location.defaultTitle": "Сейчас используется путь по умолчанию{path}",
+    "tools.location.defaultTitle":
+      "Сейчас используется путь по умолчанию{path}",
     "tools.location.resetTitle": "Сбросить на путь по умолчанию{path}",
     "tools.location.setError": "Не удалось установить папку инструментов",
     "tools.location.updated": "Папка инструментов обновлена",
     "tools.location.openError": "Не удалось открыть папку инструментов",
     "tools.location.resetError": "Не удалось сбросить путь инструментов",
-    "tools.location.resetSuccess": "Путь инструментов сброшен на значение по умолчанию",
+    "tools.location.resetSuccess":
+      "Путь инструментов сброшен на значение по умолчанию",
     "tools.location.copied": "Путь скопирован в буфер обмена",
     "tools.status.noNetwork": "Нет сети: проверьте подключение",
     "tools.status.checkingUpdates": "Проверяю обновления",
@@ -537,17 +605,20 @@ export const translations = {
     "tools.deno.missing": "Deno не найден",
     "tools.confirm.force.title": "Переустановить инструменты?",
     "tools.confirm.force.subtitle": "Переустановка",
-    "tools.confirm.force.message": "Существующие файлы Deno, yt-dlp и ffmpeg будут заменены.",
+    "tools.confirm.force.message":
+      "Существующие файлы Deno, yt-dlp и ffmpeg будут заменены.",
     "tools.confirm.force.confirm": "Да, переустановить",
     "tools.confirm.force.cancel": "Отмена",
     "tools.migrate.detectError": "Не удалось проверить старые установки",
     "tools.migrate.none": "Старые установки не найдены",
     "tools.migrate.confirm.title": "Перезаписать существующие файлы?",
     "tools.migrate.confirm.subtitle": "Миграция инструментов",
-    "tools.migrate.confirm.message": "Найдены старые установки. Перезаписать существующие версии инструментов в выбранной папке?",
+    "tools.migrate.confirm.message":
+      "Найдены старые установки. Перезаписать существующие версии инструментов в выбранной папке?",
     "tools.migrate.confirm.confirm": "Да, заменить",
     "tools.migrate.confirm.cancel": "Оставить текущие",
-    "tools.migrate.success": "Миграция завершена ({mode}): скопировано {copied}, пропущено {skipped}",
+    "tools.migrate.success":
+      "Миграция завершена ({mode}): скопировано {copied}, пропущено {skipped}",
     "tools.migrate.error": "Не удалось выполнить миграцию",
     "tools.migrate.mode.overwrite": "с заменой",
     "tools.migrate.mode.keep": "без замены",
@@ -578,13 +649,15 @@ export const translations = {
     "randomizer.preset.created": "Шаблон «{name}» создан",
     "randomizer.preset.copyName": "{name} (копия)",
     "randomizer.preset.savedAs": "Шаблон «{name}» сохранён",
-    "randomizer.preset.deleteConfirm": "Удалить шаблон «{name}»? Варианты будут удалены только из этого шаблона.",
+    "randomizer.preset.deleteConfirm":
+      "Удалить шаблон «{name}»? Варианты будут удалены только из этого шаблона.",
     "randomizer.preset.deleted": "Шаблон удалён",
     "randomizer.preset.setDefault": "Шаблон «{name}» выбран по умолчанию",
     "randomizer.list.empty": "Список пуст",
     "randomizer.list.copied": "Список скопирован",
     "randomizer.list.copyError": "Не удалось скопировать список",
-    "randomizer.list.clearConfirm": "Очистить все варианты? Действие нельзя отменить.",
+    "randomizer.list.clearConfirm":
+      "Очистить все варианты? Действие нельзя отменить.",
     "randomizer.list.noneSelected": "Не выбрано ни одного варианта",
     "randomizer.list.deleteConfirm": "Удалить {count} вариантов?",
     "randomizer.list.deleteSelectedCount": "Удалить ({count})",
@@ -594,9 +667,12 @@ export const translations = {
     "randomizer.stats.item": "Вариант",
     "randomizer.stats.misses": "Промахи",
     "randomizer.stats.hits": "Выпадения",
-    "randomizer.items.empty.search": "По запросу ничего не найдено. Очистите поиск или добавьте варианты.",
-    "randomizer.items.empty.favorites": "Нет избранных элементов. Отметьте ★ нужные варианты.",
-    "randomizer.items.empty.default": "Пока нет вариантов. Добавьте несколько элементов.",
+    "randomizer.items.empty.search":
+      "По запросу ничего не найдено. Очистите поиск или добавьте варианты.",
+    "randomizer.items.empty.favorites":
+      "Нет избранных элементов. Отметьте ★ нужные варианты.",
+    "randomizer.items.empty.default":
+      "Пока нет вариантов. Добавьте несколько элементов.",
     "randomizer.items.sample": "Заполнить примером",
     "randomizer.items.paste": "Импорт из буфера",
     "randomizer.items.drag": "Перетащить вариант",
@@ -611,7 +687,8 @@ export const translations = {
     "randomizer.items.exclude": "Исключить из пула",
     "randomizer.summary.noRepeat": "Без повторов",
     "randomizer.summary.repeat": "Повторы включены",
-    "randomizer.hero.subtitle": "Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.",
+    "randomizer.hero.subtitle":
+      "Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.",
     "randomizer.auto.label": "Авто",
     "randomizer.auto.status.off": "Авто-ролл выключен",
     "randomizer.auto.nextIn": "Следующий через",
@@ -637,7 +714,8 @@ export const translations = {
     "randomizer.auto.limit.match": "ищем «{text}»",
     "randomizer.auto.limit.manual": "стоп вручную",
     "randomizer.auto.limit.last": " · было: {value}",
-    "randomizer.auto.status.running": "Авто · каждые {interval}с · {limit} · следующий через {next}с{last}",
+    "randomizer.auto.status.running":
+      "Авто · каждые {interval}с · {limit} · следующий через {next}с{last}",
     "randomizer.auto.status.stopped": "Остановлено: {reason}",
     "randomizer.auto.status.run": "Запуск #{count}…",
     "randomizer.auto.metaLabel": "Авто #{count}",
@@ -656,7 +734,8 @@ export const translations = {
     "randomizer.action.clear.title": "Очистить",
     "randomizer.summary.items": "Варианты",
     "randomizer.summary.timer": "Таймер",
-    "randomizer.summary.spin.title": "Длительность анимации перед выбором и интервал автозапуска (до 60 секунд)",
+    "randomizer.summary.spin.title":
+      "Длительность анимации перед выбором и интервал автозапуска (до 60 секунд)",
     "randomizer.summary.spin.label": "Spin",
     "randomizer.summary.spin.unit": "сек",
     "randomizer.summary.spin.aria": "Обратный отсчёт",
@@ -666,16 +745,19 @@ export const translations = {
     "randomizer.summary.sparkline.aria": "Спарклайн промахов по вариантам",
     "randomizer.list.eyebrow": "Список вариантов",
     "randomizer.list.title": "Что будем перемешивать?",
-    "randomizer.list.noRepeat.title": "При включении каждый элемент выпадет один раз до полного обновления пула.",
+    "randomizer.list.noRepeat.title":
+      "При включении каждый элемент выпадет один раз до полного обновления пула.",
     "randomizer.list.noRepeat.label": "Без повторов",
-    "randomizer.list.hint": "Добавляйте идеи по одной или вставьте целый список через буфер обмена.",
+    "randomizer.list.hint":
+      "Добавляйте идеи по одной или вставьте целый список через буфер обмена.",
     "randomizer.list.sub": "Фильтры и действия ниже",
     "randomizer.list.count.en": "{count} вариантов",
     "randomizer.list.count.of": " из {count}",
     "randomizer.filters.label": "Фильтры",
     "randomizer.filters.threshold.title": "Порог редкости (промахи)",
     "randomizer.filters.threshold.label": "Порог:",
-    "randomizer.filters.favorites.title": "Показывать только избранные варианты",
+    "randomizer.filters.favorites.title":
+      "Показывать только избранные варианты",
     "randomizer.filters.favorites.all": "Все",
     "randomizer.filters.favorites.favorites": "Избранные",
     "randomizer.actions.label": "Действия",
@@ -684,8 +766,10 @@ export const translations = {
     "randomizer.actions.collapseAll.title": "Свернуть все варианты",
     "randomizer.actions.collapseAll": "Свернуть все",
     "randomizer.actions.export.title": "Скопировать все элементы в буфер",
-    "randomizer.actions.clearFavorites.title": "Снять отметку избранного со всех вариантов",
-    "randomizer.actions.clearExcluded.title": "Вернуть исключённые варианты в пул",
+    "randomizer.actions.clearFavorites.title":
+      "Снять отметку избранного со всех вариантов",
+    "randomizer.actions.clearExcluded.title":
+      "Вернуть исключённые варианты в пул",
     "randomizer.actions.deleteSelected.title": "Удалить выбранные варианты",
     "randomizer.preset.defaultBadge": "По умолчанию",
     "randomizer.preset.labelPlural": "Шаблоны:",
@@ -699,7 +783,8 @@ export const translations = {
     "randomizer.preset.saveAs": "Сохранить как",
     "randomizer.preset.delete.title": "Удалить выбранный шаблон",
     "randomizer.preset.delete": "Удалить",
-    "randomizer.preset.replaceConfirm": "Шаблон с таким именем уже есть. Перезаписать его текущим списком?",
+    "randomizer.preset.replaceConfirm":
+      "Шаблон с таким именем уже есть. Перезаписать его текущим списком?",
     "randomizer.preset.prompt.title": "Название шаблона",
     "randomizer.preset.prompt.cancel": "Отмена",
     "randomizer.preset.prompt.ok": "Сохранить",
@@ -709,8 +794,10 @@ export const translations = {
     "randomizer.sort.alpha": "А–Я",
     "randomizer.sort.weight": "По весу",
     "randomizer.sort.rare": "Редкие",
-    "randomizer.input.placeholder": "Добавляйте свои варианты. Каждый новый вариант — это отдельная строка. Можно использовать точку с запятой для разделения.",
-    "randomizer.pool.empty": "Пул без повторов пуст. Обновите его, чтобы продолжить.",
+    "randomizer.input.placeholder":
+      "Добавляйте свои варианты. Каждый новый вариант — это отдельная строка. Можно использовать точку с запятой для разделения.",
+    "randomizer.pool.empty":
+      "Пул без повторов пуст. Обновите его, чтобы продолжить.",
     "randomizer.pool.refresh": "Обновить пул",
     "randomizer.result.eyebrow": "Результат",
     "randomizer.result.copy.title": "Скопировать результат",
@@ -725,7 +812,8 @@ export const translations = {
     "randomizer.history.tab.stats": "Статистика",
     "randomizer.history.empty": "Ещё ничего не выбрано.",
     "randomizer.history.clear": "Очистить историю",
-    "randomizer.history.rare.title": "Показать только редкие (долго не выпадали)",
+    "randomizer.history.rare.title":
+      "Показать только редкие (долго не выпадали)",
     "randomizer.history.rare.all": "Все",
     "randomizer.history.rare.rare": "Редкие",
     "randomizer.stats.export.title": "Скопировать статистику в буфер",
@@ -739,12 +827,15 @@ export const translations = {
     "randomizer.stats.missLabel": "{count} промах(ов)",
     "randomizer.stats.hitLabel": "{count} попаданий",
     "randomizer.stats.tooltip": "{value}: {misses}, {hits}",
-    "randomizer.confirm.resetStats": "Сбросить счётчики выпадений и промахов для всех вариантов?",
+    "randomizer.confirm.resetStats":
+      "Сбросить счётчики выпадений и промахов для всех вариантов?",
     "randomizer.confirm.addList": "{preview}\nДобавить эти строки?",
-    "randomizer.confirm.addListMore": "{preview}\n...и ещё {count} строк. Добавить?",
+    "randomizer.confirm.addListMore":
+      "{preview}\n...и ещё {count} строк. Добавить?",
     "randomizer.toast.waitForRoll": "Дождитесь завершения текущего запуска",
     "randomizer.toast.addBeforeAuto": "Добавьте варианты перед автозапуском",
-    "randomizer.toast.poolEmpty": "Пул пуст — обновите его или отключите «Без повторов»",
+    "randomizer.toast.poolEmpty":
+      "Пул пуст — обновите его или отключите «Без повторов»",
     "randomizer.toast.autoStarted": "Авто-ролл запущен",
     "randomizer.toast.autoStopped": "Авто-ролл остановлен: {reason}",
     "randomizer.toast.enterPresetName": "Введите название шаблона",
@@ -764,11 +855,13 @@ export const translations = {
     "randomizer.toast.addedCount": "Добавлено {count} элементов",
     "randomizer.toast.noNewItems": "Новых элементов нет",
     "randomizer.toast.addFirst": "Сначала добавьте варианты",
-    "randomizer.toast.markFavorites": "Отметьте избранные варианты или отключите фильтр",
+    "randomizer.toast.markFavorites":
+      "Отметьте избранные варианты или отключите фильтр",
     "randomizer.toast.noAvailableItems": "Нет доступных вариантов",
     "randomizer.toast.favoritesCleared": "Избранное очищено",
     "randomizer.toast.favoritesNothing": "Нечего сбрасывать",
-    "randomizer.toast.excludedReturned": "Исключённые варианты возвращены в пул",
+    "randomizer.toast.excludedReturned":
+      "Исключённые варианты возвращены в пул",
     "randomizer.toast.excludedNone": "Исключённых нет в списке",
     "randomizer.toast.itemAdded": "Вариант добавлен",
     "randomizer.toast.nothingToCopy": "Пока нечего копировать",
@@ -778,7 +871,7 @@ export const translations = {
     "randomizer.toast.listCopied": "Список скопирован",
     "randomizer.toast.listCopyError": "Не удалось скопировать список",
     "randomizer.toast.poolRefreshed": "Пул без повторов обновлён",
-    "randomizer.toast.listCleared": "Список очищен"
+    "randomizer.toast.listCleared": "Список очищен",
   },
   en: {
     "app.title": "Thunder Load",
@@ -851,10 +944,12 @@ export const translations = {
     "settings.tab.disabled": "Off",
     "settings.startup.title": "Startup settings",
     "settings.startup.hint": "Configure startup behavior for convenience.",
-    "settings.startup.autolaunch": "<strong>Launch automatically</strong> at system startup",
+    "settings.startup.autolaunch":
+      "<strong>Launch automatically</strong> at system startup",
     "settings.startup.minimize": "<strong>Minimize</strong> the app on launch",
     "settings.startup.openTab": "Open on startup",
-    "settings.startup.openTabHint": "Select the tab that opens by default on app launch.",
+    "settings.startup.openTabHint":
+      "Select the tab that opens by default on app launch.",
     "settings.close.title": "App closing behavior",
     "settings.close.hint": "Choose how the app behaves when closing.",
     "settings.close.toTray": "<strong>Minimize</strong> to tray",
@@ -866,24 +961,31 @@ export const translations = {
     "downloader.tools.checking": "Checking tools…",
     "downloader.tools.hideTitle": "Hide status",
     "downloader.tools.hideAria": "Hide tools status",
-    "downloader.tools.reinstallTitle": "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
+    "downloader.tools.reinstallTitle":
+      "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
     "downloader.tools.reinstall": "Reinstall",
     "settings.downloader.profile.open": "On open",
     "settings.downloader.profile.title": "Download quality selection",
     "settings.downloader.profile.default": "default",
     "settings.downloader.profile.remember.title": "Last choice",
-    "settings.downloader.profile.remember.desc": "Opens the same stream type as last time.",
+    "settings.downloader.profile.remember.desc":
+      "Opens the same stream type as last time.",
     "settings.downloader.profile.audio.title": "Audio",
-    "settings.downloader.profile.audio.desc": "Opens audio‑only streams without video.",
-    "settings.downloader.expandAfter": "Expand the window <strong>after download</strong>",
-    "settings.downloader.expandOnCopy": "Expand the window <strong>on URL copy</strong>",
-    "settings.downloader.disableComplete": "Disable <strong>file open dialog</strong> after download",
+    "settings.downloader.profile.audio.desc":
+      "Opens audio‑only streams without video.",
+    "settings.downloader.expandAfter":
+      "Expand the window <strong>after download</strong>",
+    "settings.downloader.expandOnCopy":
+      "Expand the window <strong>on URL copy</strong>",
+    "settings.downloader.disableComplete":
+      "Disable <strong>file open dialog</strong> after download",
     "settings.downloader.toolsStatus": "Show tools status",
     "settings.tools.title": "Tools",
     "settings.tools.loading": "Loading dependency information…",
     "settings.disableTab": "Disable tab",
     "settings.wg.title": "Tab “WireGuard Unlock”",
-    "settings.wg.disable.hint": "Hides the tab and disables its initialization. Auto‑send on startup is blocked when disabled.",
+    "settings.wg.disable.hint":
+      "Hides the tab and disables its initialization. Auto‑send on startup is blocked when disabled.",
     "settings.wg.autosend": "Auto‑send on startup",
     "settings.wg.autoclose.hint": "Enable/disable auto‑closing the app",
     "settings.wg.autoclose": "Auto‑close the app",
@@ -902,7 +1004,8 @@ export const translations = {
     "wg.action.openNetworkSettings.mac": "Open network settings (macOS)",
     "wg.action.openNetworkSettings.windows": "Open network settings (Windows)",
     "wg.info.title": "Info",
-    "wg.info.body": "This function sends a UDP packet with the specified parameters to unlock WireGuard.",
+    "wg.info.body":
+      "This function sends a UDP packet with the specified parameters to unlock WireGuard.",
     "wg.lastSend.title": "Last sent",
     "wg.lastSend.never": "Never",
     "wg.status.title": "Status",
@@ -933,13 +1036,16 @@ export const translations = {
     "wg.log.copy.title": "Copy log to clipboard",
     "wg.log.export.title": "Export log to file",
     "wg.log.clear.title": "Clear log",
-    "wg.log.placeholder": "Activity log. Enable debug mode for detailed output.",
+    "wg.log.placeholder":
+      "Activity log. Enable debug mode for detailed output.",
     "wg.log.ui.copied": "Copied",
     "wg.log.ui.exporting": "Exporting...",
     "wg.tips.title": "Tips",
-    "wg.tips.body": "• Use debug mode for detailed logging<br>• Check firewall settings<br>• Make sure the remote host is reachable",
+    "wg.tips.body":
+      "• Use debug mode for detailed logging<br>• Check firewall settings<br>• Make sure the remote host is reachable",
     "wg.confirm.send": "Send request to {target}?",
-    "wg.confirm.resetAll": "Are you sure you want to reset all field settings to defaults?",
+    "wg.confirm.resetAll":
+      "Are you sure you want to reset all field settings to defaults?",
     "wg.validation.ipInvalid": "Invalid IP address",
     "wg.validation.portRange": "Port must be between 1 and 65535",
     "wg.toast.loadConfigError": "Failed to load settings",
@@ -955,20 +1061,29 @@ export const translations = {
     "wg.error.electronUnavailable": "Electron API is unavailable",
     "wg.error.timeoutWaiting": "Response timeout",
     "wg.error.unknown": "Unknown error",
-    "wg.error.portInUse": "Port is already in use. Choose a different local port.",
-    "wg.error.networkUnreachable": "Network unreachable. Check your internet connection.",
+    "wg.error.portInUse":
+      "Port is already in use. Choose a different local port.",
+    "wg.error.networkUnreachable":
+      "Network unreachable. Check your internet connection.",
     "wg.error.connectionRefused": "Connection refused by remote host.",
     "wg.error.timeout": "Request timed out.",
     "wg.log.autoShutdown.timerStopped": "[Auto-close] Timer stopped",
-    "wg.log.autoShutdown.timerStartedUntil": "[Auto-close] Timer started until {time}",
+    "wg.log.autoShutdown.timerStartedUntil":
+      "[Auto-close] Timer started until {time}",
     "wg.log.autoShutdown.remaining": "[Auto-close] Remaining: {seconds} s",
-    "wg.log.autoShutdown.loaded.enabledWithEta": "[Auto-close] Loaded: enabled, ends at {time}",
-    "wg.log.autoShutdown.loaded.enabledWithSeconds": "[Auto-close] Loaded: enabled, {seconds} s",
-    "wg.log.autoShutdown.loaded.disabled": "[Auto-close] Loaded: disabled, {seconds} s",
+    "wg.log.autoShutdown.loaded.enabledWithEta":
+      "[Auto-close] Loaded: enabled, ends at {time}",
+    "wg.log.autoShutdown.loaded.enabledWithSeconds":
+      "[Auto-close] Loaded: enabled, {seconds} s",
+    "wg.log.autoShutdown.loaded.disabled":
+      "[Auto-close] Loaded: disabled, {seconds} s",
     "wg.log.autoShutdown.initError": "[Auto-close] Init error: {message}",
-    "wg.log.autoShutdown.enabledWithEta": "[Auto-close] Enabled; ends at {time}",
-    "wg.log.autoShutdown.enabledWithSeconds": "[Auto-close] Enabled; {seconds} s",
-    "wg.log.autoShutdown.disabledStopped": "[Auto-close] Disabled; countdown stopped",
+    "wg.log.autoShutdown.enabledWithEta":
+      "[Auto-close] Enabled; ends at {time}",
+    "wg.log.autoShutdown.enabledWithSeconds":
+      "[Auto-close] Enabled; {seconds} s",
+    "wg.log.autoShutdown.disabledStopped":
+      "[Auto-close] Disabled; countdown stopped",
     "wg.log.settings.loaded": "[Settings] Config loaded",
     "wg.log.settings.fieldsRestored": "[Settings] Fields restored ({count})",
     "wg.log.send.scheduleAuto": "[Send] Scheduling auto-send in 50 ms",
@@ -985,8 +1100,10 @@ export const translations = {
     "wg.log.validation.remotePortInvalid": "[Validation] Invalid remote port",
     "wg.log.validation.localPortInvalid": "[Validation] Invalid local port",
     "wg.log.send.abortedValidation": "[Send] Aborted due to validation errors",
-    "wg.log.send.ipcRequest": "[Send] IPC request: wg-send-udp (timeout 5000 ms)",
-    "wg.log.send.successResponse": "[Send] Success: response received from main",
+    "wg.log.send.ipcRequest":
+      "[Send] IPC request: wg-send-udp (timeout 5000 ms)",
+    "wg.log.send.successResponse":
+      "[Send] Success: response received from main",
     "wg.log.send.sentSuccess": "Request sent successfully to {target}",
     "wg.log.send.specialSent": "Special request sent successfully to {target}",
     "wg.log.send.ipcError": "[Send] IPC error: {message}",
@@ -997,18 +1114,23 @@ export const translations = {
     "wg.log.ui.tooltipsReady": "[UI] Tooltips initialized",
     "wg.log.init.renderReady": "[Init] Markup prepared in {ms} ms",
     "wg.log.env.ua": "[Env] UA: {ua}",
-    "wg.log.debug.active": "[Log] Debug mode active - all events will be recorded",
+    "wg.log.debug.active":
+      "[Log] Debug mode active - all events will be recorded",
     "wg.log.error.init": "[Error] Initialization: {message}",
     "wg.log.error.autoShutdownUpdate": "[Error] Auto-close update: {message}",
-    "wg.log.system.debugInit": "[System] WireGuard Unlock initialized with debug enabled",
+    "wg.log.system.debugInit":
+      "[System] WireGuard Unlock initialized with debug enabled",
     "settings.backup.title": "Tab “Backup”",
-    "settings.backup.disable.hint": "Hides the tab and disables its initialization.",
-    "settings.backup.compact.hint": "Switches profile display between detailed and compact mode.",
+    "settings.backup.disable.hint":
+      "Hides the tab and disables its initialization.",
+    "settings.backup.compact.hint":
+      "Switches profile display between detailed and compact mode.",
     "settings.backup.compact": "Compact profile list",
     "settings.backup.log.hint": "Hide or show the backup operations log block.",
     "settings.backup.log": "Show operations log",
     "settings.randomizer.title": "Tab “Randomizer”",
-    "settings.randomizer.disable.hint": "Hides the Randomizer tab and disables all its controls.",
+    "settings.randomizer.disable.hint":
+      "Hides the Randomizer tab and disables all its controls.",
     "settings.appearance.title": "App appearance",
     "settings.appearance.theme": "Color theme",
     "settings.appearance.theme.system": "System",
@@ -1019,11 +1141,14 @@ export const translations = {
     "settings.appearance.theme.reset": "Reset theme to default",
     "settings.appearance.fontSize": "Text size",
     "settings.appearance.fontSize.reset": "Reset font size to default",
-    "settings.appearance.lowEffects.hint": "Disables animations and blur effects",
+    "settings.appearance.lowEffects.hint":
+      "Disables animations and blur effects",
     "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
     "settings.other.title": "Other settings",
-    "settings.other.hint": "Additional parameters for fine‑tuning app behavior.",
-    "settings.other.disableHotkeys": "Disable <strong>special</strong> (hot) keys",
+    "settings.other.hint":
+      "Additional parameters for fine‑tuning app behavior.",
+    "settings.other.disableHotkeys":
+      "Disable <strong>special</strong> (hot) keys",
     "settings.other.appConfig": "App settings",
     "settings.other.export": "Save",
     "settings.other.import": "Load",
@@ -1145,7 +1270,8 @@ export const translations = {
     "update.available.download": "Download",
     "update.available.later": "Later",
     "update.downloaded.title": "Update downloaded",
-    "update.downloaded.body": "The update has been downloaded. Restart to install?",
+    "update.downloaded.body":
+      "The update has been downloaded. Restart to install?",
     "update.downloaded.restart": "Restart",
     "update.downloaded.later": "Later",
     "update.error.title": "Update error",
@@ -1176,7 +1302,8 @@ export const translations = {
     "confirm.error.missing": "Confirmation modal elements are missing.",
     "history.clear.title": "Clear history?",
     "history.clear.subtitle": "Download history",
-    "history.clear.message": "Are you sure you want to delete the entire download history?",
+    "history.clear.message":
+      "Are you sure you want to delete the entire download history?",
     "history.clear.confirm": "Clear",
     "history.clear.cancel": "Cancel",
     "history.clear.success": "Download history cleared.",
@@ -1237,27 +1364,37 @@ export const translations = {
     "settings.tab.enabled.aria": "Tab enabled",
     "settings.tab.disabled.aria": "Tab disabled",
     "settings.qualityProfile.saved": "Quality profile saved.",
-    "settings.fontSize.set": "<strong>Font size</strong> set to <strong>{size}px</strong>",
-    "settings.fontSize.reset": "<strong>Font size</strong> reset to <strong>{size}px</strong>",
+    "settings.fontSize.set":
+      "<strong>Font size</strong> set to <strong>{size}px</strong>",
+    "settings.fontSize.reset":
+      "<strong>Font size</strong> reset to <strong>{size}px</strong>",
     "settings.theme.set": "Theme selected: <strong>{theme}</strong>",
-    "settings.theme.reset": "<strong>Theme</strong> reset to <strong>{theme}</strong>",
+    "settings.theme.reset":
+      "<strong>Theme</strong> reset to <strong>{theme}</strong>",
     "settings.module.wg.disabled": "Tab <strong>WG Unlock</strong> disabled",
     "settings.module.wg.enabled": "Tab <strong>WG Unlock</strong> enabled",
     "settings.module.backup.disabled": "Tab <strong>Backup</strong> disabled",
     "settings.module.backup.enabled": "Tab <strong>Backup</strong> enabled",
-    "settings.module.randomizer.disabled": "Tab <strong>Randomizer</strong> disabled",
-    "settings.module.randomizer.enabled": "Tab <strong>Randomizer</strong> enabled",
-    "settings.wg.disable.note": "Applies immediately. You can re‑enable it anytime.",
-    "settings.downloadCompleteModal.disabled": "Post‑download modal is <strong>disabled</strong>",
-    "settings.downloadCompleteModal.enabled": "Post‑download modal is <strong>enabled</strong>",
+    "settings.module.randomizer.disabled":
+      "Tab <strong>Randomizer</strong> disabled",
+    "settings.module.randomizer.enabled":
+      "Tab <strong>Randomizer</strong> enabled",
+    "settings.wg.disable.note":
+      "Applies immediately. You can re‑enable it anytime.",
+    "settings.downloadCompleteModal.disabled":
+      "Post‑download modal is <strong>disabled</strong>",
+    "settings.downloadCompleteModal.enabled":
+      "Post‑download modal is <strong>enabled</strong>",
     "settings.config.export.success": "Configuration file saved successfully",
     "settings.config.export.hint": "You can import the file on another device",
     "settings.config.import.more": "… and {count} more changes",
-    "settings.config.import.confirm": "{count} changes will be applied. Create a backup of the current configuration and continue?",
+    "settings.config.import.confirm":
+      "{count} changes will be applied. Create a backup of the current configuration and continue?",
     "settings.config.import.success": "Configuration imported successfully",
     "settings.config.import.error": "Import error: {error}",
     "settings.reset.confirm": "Are you sure you want to reset all settings?",
-    "settings.reset.error": "Failed to reset settings. Check the console for details.",
+    "settings.reset.error":
+      "Failed to reset settings. Check the console for details.",
     "settings.reset.success": "Settings reset to defaults",
     "toast.title.success": "Success",
     "toast.title.error": "Error",
@@ -1275,14 +1412,18 @@ export const translations = {
     "tools.summary.missingList": "Missing: {items}",
     "tools.summary.readyText": "All tools are ready",
     "tools.summary.problemText": "Tools need attention",
-    "tools.hint.missing": "Some tools (Deno, yt-dlp, ffmpeg) are missing. Install them or click “Download dependencies”.",
+    "tools.hint.missing":
+      "Some tools (Deno, yt-dlp, ffmpeg) are missing. Install them or click “Download dependencies”.",
     "tools.wizard.title": "Install tools",
     "tools.wizard.step1.title": "Choose a folder",
-    "tools.wizard.step1.desc": "Pick where tools should be stored. You can keep the default path.",
+    "tools.wizard.step1.desc":
+      "Pick where tools should be stored. You can keep the default path.",
     "tools.wizard.step2.title": "Download dependencies",
-    "tools.wizard.step2.desc": "We will download and set up yt-dlp, ffmpeg, and Deno.",
+    "tools.wizard.step2.desc":
+      "We will download and set up yt-dlp, ffmpeg, and Deno.",
     "tools.wizard.step3.title": "Verification",
-    "tools.wizard.step3.desc": "After installation we will check versions and update the status.",
+    "tools.wizard.step3.desc":
+      "After installation we will check versions and update the status.",
     "tools.button.install": "Download dependencies",
     "tools.button.check": "Check for updates",
     "tools.button.update": "Update tools",
@@ -1318,17 +1459,20 @@ export const translations = {
     "tools.deno.missing": "Deno not found",
     "tools.confirm.force.title": "Reinstall tools?",
     "tools.confirm.force.subtitle": "Reinstall",
-    "tools.confirm.force.message": "Existing Deno, yt-dlp, and ffmpeg files will be replaced.",
+    "tools.confirm.force.message":
+      "Existing Deno, yt-dlp, and ffmpeg files will be replaced.",
     "tools.confirm.force.confirm": "Yes, reinstall",
     "tools.confirm.force.cancel": "Cancel",
     "tools.migrate.detectError": "Failed to check old installs",
     "tools.migrate.none": "No legacy installs found",
     "tools.migrate.confirm.title": "Overwrite existing files?",
     "tools.migrate.confirm.subtitle": "Tools migration",
-    "tools.migrate.confirm.message": "Legacy installs found. Overwrite existing tool versions in the chosen folder?",
+    "tools.migrate.confirm.message":
+      "Legacy installs found. Overwrite existing tool versions in the chosen folder?",
     "tools.migrate.confirm.confirm": "Yes, overwrite",
     "tools.migrate.confirm.cancel": "Keep current",
-    "tools.migrate.success": "Migration complete ({mode}): copied {copied}, skipped {skipped}",
+    "tools.migrate.success":
+      "Migration complete ({mode}): copied {copied}, skipped {skipped}",
     "tools.migrate.error": "Migration failed",
     "tools.migrate.mode.overwrite": "overwrite",
     "tools.migrate.mode.keep": "keep",
@@ -1359,13 +1503,15 @@ export const translations = {
     "randomizer.preset.created": "Preset “{name}” created",
     "randomizer.preset.copyName": "{name} (copy)",
     "randomizer.preset.savedAs": "Preset “{name}” saved",
-    "randomizer.preset.deleteConfirm": "Delete preset “{name}”? Items will be removed only from this preset.",
+    "randomizer.preset.deleteConfirm":
+      "Delete preset “{name}”? Items will be removed only from this preset.",
     "randomizer.preset.deleted": "Preset deleted",
     "randomizer.preset.setDefault": "Preset “{name}” set as default",
     "randomizer.list.empty": "List is empty",
     "randomizer.list.copied": "List copied",
     "randomizer.list.copyError": "Failed to copy list",
-    "randomizer.list.clearConfirm": "Clear all items? This action cannot be undone.",
+    "randomizer.list.clearConfirm":
+      "Clear all items? This action cannot be undone.",
     "randomizer.list.noneSelected": "No items selected",
     "randomizer.list.deleteConfirm": "Delete {count} items?",
     "randomizer.list.deleteSelectedCount": "Delete ({count})",
@@ -1375,8 +1521,10 @@ export const translations = {
     "randomizer.stats.item": "Item",
     "randomizer.stats.misses": "Misses",
     "randomizer.stats.hits": "Hits",
-    "randomizer.items.empty.search": "No results found. Clear search or add items.",
-    "randomizer.items.empty.favorites": "No favorites yet. Mark ★ items you like.",
+    "randomizer.items.empty.search":
+      "No results found. Clear search or add items.",
+    "randomizer.items.empty.favorites":
+      "No favorites yet. Mark ★ items you like.",
     "randomizer.items.empty.default": "No items yet. Add a few.",
     "randomizer.items.sample": "Fill with sample",
     "randomizer.items.paste": "Paste from clipboard",
@@ -1392,7 +1540,8 @@ export const translations = {
     "randomizer.items.exclude": "Exclude from pool",
     "randomizer.summary.noRepeat": "No repeats",
     "randomizer.summary.repeat": "Repeats enabled",
-    "randomizer.hero.subtitle": "Shuffle ideas, links, and tasks — the app will pick a random option.",
+    "randomizer.hero.subtitle":
+      "Shuffle ideas, links, and tasks — the app will pick a random option.",
     "randomizer.auto.label": "Auto",
     "randomizer.auto.status.off": "Auto-roll is off",
     "randomizer.auto.nextIn": "Next in",
@@ -1418,7 +1567,8 @@ export const translations = {
     "randomizer.auto.limit.match": "searching “{text}”",
     "randomizer.auto.limit.manual": "manual stop",
     "randomizer.auto.limit.last": " · last: {value}",
-    "randomizer.auto.status.running": "Auto · every {interval}s · {limit} · next in {next}s{last}",
+    "randomizer.auto.status.running":
+      "Auto · every {interval}s · {limit} · next in {next}s{last}",
     "randomizer.auto.status.stopped": "Stopped: {reason}",
     "randomizer.auto.status.run": "Run #{count}…",
     "randomizer.auto.metaLabel": "Auto #{count}",
@@ -1437,7 +1587,8 @@ export const translations = {
     "randomizer.action.clear.title": "Clear",
     "randomizer.summary.items": "Items",
     "randomizer.summary.timer": "Timer",
-    "randomizer.summary.spin.title": "Spin duration before pick and auto-run interval (up to 60 seconds)",
+    "randomizer.summary.spin.title":
+      "Spin duration before pick and auto-run interval (up to 60 seconds)",
     "randomizer.summary.spin.label": "Spin",
     "randomizer.summary.spin.unit": "sec",
     "randomizer.summary.spin.aria": "Countdown",
@@ -1447,9 +1598,11 @@ export const translations = {
     "randomizer.summary.sparkline.aria": "Sparkline of misses per item",
     "randomizer.list.eyebrow": "Item list",
     "randomizer.list.title": "What should we shuffle?",
-    "randomizer.list.noRepeat.title": "When enabled, each item is picked once before the pool resets.",
+    "randomizer.list.noRepeat.title":
+      "When enabled, each item is picked once before the pool resets.",
     "randomizer.list.noRepeat.label": "No repeats",
-    "randomizer.list.hint": "Add ideas one by one or paste a whole list from the clipboard.",
+    "randomizer.list.hint":
+      "Add ideas one by one or paste a whole list from the clipboard.",
     "randomizer.list.sub": "Filters and actions below",
     "randomizer.list.count.en": "{count} items",
     "randomizer.list.count.of": " of {count}",
@@ -1465,8 +1618,10 @@ export const translations = {
     "randomizer.actions.collapseAll.title": "Collapse all items",
     "randomizer.actions.collapseAll": "Collapse all",
     "randomizer.actions.export.title": "Copy all items to clipboard",
-    "randomizer.actions.clearFavorites.title": "Clear favorite marks from all items",
-    "randomizer.actions.clearExcluded.title": "Return excluded items to the pool",
+    "randomizer.actions.clearFavorites.title":
+      "Clear favorite marks from all items",
+    "randomizer.actions.clearExcluded.title":
+      "Return excluded items to the pool",
     "randomizer.actions.deleteSelected.title": "Delete selected items",
     "randomizer.preset.defaultBadge": "Default",
     "randomizer.preset.labelPlural": "Presets:",
@@ -1480,7 +1635,8 @@ export const translations = {
     "randomizer.preset.saveAs": "Save as",
     "randomizer.preset.delete.title": "Delete selected preset",
     "randomizer.preset.delete": "Delete",
-    "randomizer.preset.replaceConfirm": "A preset with this name already exists. Replace it with the current list?",
+    "randomizer.preset.replaceConfirm":
+      "A preset with this name already exists. Replace it with the current list?",
     "randomizer.preset.prompt.title": "Preset name",
     "randomizer.preset.prompt.cancel": "Cancel",
     "randomizer.preset.prompt.ok": "Save",
@@ -1490,7 +1646,8 @@ export const translations = {
     "randomizer.sort.alpha": "A–Z",
     "randomizer.sort.weight": "Weight",
     "randomizer.sort.rare": "Rare",
-    "randomizer.input.placeholder": "Add your items. Each new item is a separate line. You can use semicolons to split.",
+    "randomizer.input.placeholder":
+      "Add your items. Each new item is a separate line. You can use semicolons to split.",
     "randomizer.pool.empty": "No-repeat pool is empty. Refresh it to continue.",
     "randomizer.pool.refresh": "Refresh pool",
     "randomizer.result.eyebrow": "Result",
@@ -1522,10 +1679,12 @@ export const translations = {
     "randomizer.stats.tooltip": "{value}: {misses}, {hits}",
     "randomizer.confirm.resetStats": "Reset hit/miss counters for all items?",
     "randomizer.confirm.addList": "{preview}\nAdd these lines?",
-    "randomizer.confirm.addListMore": "{preview}\n...and {count} more lines. Add?",
+    "randomizer.confirm.addListMore":
+      "{preview}\n...and {count} more lines. Add?",
     "randomizer.toast.waitForRoll": "Wait for the current run to finish",
     "randomizer.toast.addBeforeAuto": "Add items before auto-run",
-    "randomizer.toast.poolEmpty": "Pool is empty — refresh it or disable “No repeats”",
+    "randomizer.toast.poolEmpty":
+      "Pool is empty — refresh it or disable “No repeats”",
     "randomizer.toast.autoStarted": "Auto-roll started",
     "randomizer.toast.autoStopped": "Auto-roll stopped: {reason}",
     "randomizer.toast.enterPresetName": "Enter a preset name",
@@ -1559,6 +1718,6 @@ export const translations = {
     "randomizer.toast.listCopied": "List copied",
     "randomizer.toast.listCopyError": "Failed to copy list",
     "randomizer.toast.poolRefreshed": "No-repeat pool refreshed",
-    "randomizer.toast.listCleared": "List cleared"
+    "randomizer.toast.listCleared": "List cleared",
   },
 };

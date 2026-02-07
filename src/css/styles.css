@@ -11672,9 +11672,7 @@ footer {
 
 .center-menu {
   --menu-item-transition:
-    color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
+    color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease,
     transform 0.2s ease;
   --menu-item-gap: 6px;
   --menu-item-height: var(--topbar-control-size);
@@ -13540,9 +13538,7 @@ hr {
 .history-filters-card {
   display: flex;
   align-items: center;
-  padding: 0 12px;
   border-radius: var(--border-radius);
-  background: rgba(255, 255, 255, 0.035);
 }
 
 .history-search-wrapper {
@@ -13689,7 +13685,7 @@ hr {
 
 .history-filter-group {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   width: 100%;
   flex-wrap: wrap;
@@ -13702,7 +13698,6 @@ hr {
   align-items: center;
   gap: 10px;
   border-radius: 16px;
-  flex: 0 0 220px;
   height: 36px;
 }
 .history-filter-pill i {
@@ -13719,6 +13714,11 @@ hr {
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.55);
   white-space: nowrap;
+}
+.history-filter-pill .history-filter-meta .history-filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .history-filter-pill .history-filter-meta span {
   flex: 0 0 auto;

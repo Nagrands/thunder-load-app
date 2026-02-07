@@ -301,7 +301,7 @@ function initUpdateHandler() {
 
   // Подстраховка: закрытие старых модалок при любых кликах на их крестики
   document.querySelectorAll(".close-modal").forEach((button) => {
-  button.addEventListener("click", (_event) => {
+    button.addEventListener("click", (_event) => {
       const modal = button.closest(".modal-overlay");
       if (modal) {
         hideUpdateProgressBar();

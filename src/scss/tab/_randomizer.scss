@@ -329,12 +329,11 @@
         inset: 0;
         border-radius: inherit;
         pointer-events: none;
-        background:
-          linear-gradient(
-            120deg,
-            rgba(var(--color-accent-rgb), 0.28),
-            transparent 40%
-          );
+        background: linear-gradient(
+          120deg,
+          rgba(var(--color-accent-rgb), 0.28),
+          transparent 40%
+        );
         opacity: 0;
         transition: opacity 0.25s ease;
       }

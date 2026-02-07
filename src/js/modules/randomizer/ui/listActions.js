@@ -49,7 +49,9 @@ export function wireListActions({
         showToast(t("randomizer.list.noneSelected"), "info");
         return;
       }
-      if (!confirm(t("randomizer.list.deleteConfirm", { count: selected.size })))
+      if (
+        !confirm(t("randomizer.list.deleteConfirm", { count: selected.size }))
+      )
         return;
       onBulkDelete(selected);
     });

@@ -83,9 +83,12 @@ describe("Randomizer view", () => {
     const historyTab = view.querySelector("#randomizer-tab-history span");
     expect(historyTab?.textContent).toBe("Последние результаты");
     expect(view.querySelector(".randomizer-history-card header h3")).toBeNull();
-    expect(view.querySelector(".randomizer-history-card .history-tabs-wrap")).toBeTruthy();
     expect(
-      view.querySelector(".randomizer-history-card .history-tabs-label")?.textContent,
+      view.querySelector(".randomizer-history-card .history-tabs-wrap"),
+    ).toBeTruthy();
+    expect(
+      view.querySelector(".randomizer-history-card .history-tabs-label")
+        ?.textContent,
     ).toBe("Последние результаты");
   });
 

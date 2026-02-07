@@ -49,10 +49,7 @@ function updateDownloaderTabLabel() {
       topBar.classList.toggle("has-download-activity", count > 0);
     }
     try {
-      tab.setAttribute(
-        "aria-label",
-        count > 0 ? `${base} (${count})` : base,
-      );
+      tab.setAttribute("aria-label", count > 0 ? `${base} (${count})` : base);
     } catch {}
   } catch (_e) {
     // no-op
@@ -135,16 +132,14 @@ function extractUrls(raw) {
 
 function summarizeEnqueueResult(res) {
   const parts = [];
-  if (res.added)
-    parts.push(t("queue.summary.added", { count: res.added }));
+  if (res.added) parts.push(t("queue.summary.added", { count: res.added }));
   if (res.duplicates)
     parts.push(t("queue.summary.duplicates", { count: res.duplicates }));
   if (res.activeDup)
     parts.push(t("queue.summary.activeDup", { count: res.activeDup }));
   if (res.invalid)
     parts.push(t("queue.summary.invalid", { count: res.invalid }));
-  if (res.capped)
-    parts.push(t("queue.summary.capped", { count: res.capped }));
+  if (res.capped) parts.push(t("queue.summary.capped", { count: res.capped }));
   const summary = parts.join(", ");
   return summary || t("queue.summary.fallback");
 }
@@ -196,7 +191,8 @@ function updateQueueDisplay() {
         const lang = getLanguage();
         if (lang === "ru") {
           let text = t("queue.links.many");
-          if (count % 10 === 1 && count % 100 !== 11) text = t("queue.links.one");
+          if (count % 10 === 1 && count % 100 !== 11)
+            text = t("queue.links.one");
           else if (
             [2, 3, 4].includes(count % 10) &&
             ![12, 13, 14].includes(count % 100)
@@ -493,12 +489,18 @@ const handleDownloadButtonClick = async (options = {}) => {
 
     if (state.isDownloading || options.enqueueOnly) {
       const res = enqueueMany(validUrls, selection, options);
-      showToast(t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }), "info");
+      showToast(
+        t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
+        "info",
+      );
     } else {
       await initiateDownload(first, selection);
       const res = enqueueMany(rest, selection, options);
       if (res.added || res.duplicates || res.invalid) {
-        showToast(t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }), "info");
+        showToast(
+          t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
+          "info",
+        );
       }
     }
     urlInput.value = "";

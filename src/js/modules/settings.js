@@ -72,7 +72,9 @@ function updateModuleBadge(moduleKey, disabled) {
     : t("settings.tab.enabled");
   badge.setAttribute(
     "aria-label",
-    isDisabled ? t("settings.tab.disabled.aria") : t("settings.tab.enabled.aria"),
+    isDisabled
+      ? t("settings.tab.disabled.aria")
+      : t("settings.tab.enabled.aria"),
   );
   badge.setAttribute("aria-hidden", isDisabled ? "false" : "true");
   if (!isDisabled) {
@@ -1563,11 +1565,7 @@ export async function exportConfig() {
     "success",
   );
   setTimeout(() => {
-    window.electron.invoke(
-      "toast",
-      t("settings.config.export.hint"),
-      "info",
-    );
+    window.electron.invoke("toast", t("settings.config.export.hint"), "info");
   }, 3000);
   URL.revokeObjectURL(url);
 }
@@ -1650,11 +1648,7 @@ export async function resetConfigToDefaults() {
     forceToolsReset: true,
     refreshToolsInfo: true,
   });
-  await window.electron.invoke(
-    "toast",
-    t("settings.reset.success"),
-    "success",
-  );
+  await window.electron.invoke("toast", t("settings.reset.success"), "success");
   location.reload();
 }
 

@@ -15,9 +15,6 @@ import {
   urlInput,
   downloadButton,
   toggleAllDetailsButton,
-  historyDensityCompact,
-  historyDensityComfort,
-  historySortMode,
 } from "./domElements.js";
 import {
   state,
@@ -112,10 +109,7 @@ const applyHistoryDensity = () => {
   const container = document.getElementById("history");
   if (!container) return;
   const density = normalizeDensity(state.historyDensity);
-  container.classList.remove(
-    "density-compact",
-    "density-comfort",
-  );
+  container.classList.remove("density-compact", "density-comfort");
   container.classList.add(`density-${density}`);
   if (historyDensityButtons.compact) {
     historyDensityButtons.compact.classList.toggle(
@@ -617,12 +611,18 @@ function ensureHistoryControlElements() {
   if (!historySortModeSelect || !historySortModeSelect.isConnected) {
     historySortModeSelect = document.getElementById("history-sort-mode");
   }
-  if (!historyDensityButtons.compact || !historyDensityButtons.compact.isConnected) {
+  if (
+    !historyDensityButtons.compact ||
+    !historyDensityButtons.compact.isConnected
+  ) {
     historyDensityButtons.compact = document.getElementById(
       "history-density-compact",
     );
   }
-  if (!historyDensityButtons.comfort || !historyDensityButtons.comfort.isConnected) {
+  if (
+    !historyDensityButtons.comfort ||
+    !historyDensityButtons.comfort.isConnected
+  ) {
     historyDensityButtons.comfort = document.getElementById(
       "history-density-comfort",
     );
@@ -787,7 +787,11 @@ function buildFilterOptions(entries = []) {
     ui?.updateLabel?.();
   };
 
-  applyOptions(historySourceFilterSelect, hosts, t("history.filter.source.all"));
+  applyOptions(
+    historySourceFilterSelect,
+    hosts,
+    t("history.filter.source.all"),
+  );
   syncHistorySelectValues();
 }
 
@@ -910,11 +914,9 @@ function updateDeleteSelectedButton() {
 function clearHistorySelection() {
   state.selectedEntries = [];
   state.lastSelectedId = null;
-  document
-    .querySelectorAll(".history-row__checkbox")
-    .forEach((checkbox) => {
-      checkbox.checked = false;
-    });
+  document.querySelectorAll(".history-row__checkbox").forEach((checkbox) => {
+    checkbox.checked = false;
+  });
   document
     .querySelectorAll(".log-entry.selected")
     .forEach((el) => el.classList.remove("selected"));
@@ -1042,12 +1044,20 @@ const formatSourceLabel = (url = "") => {
 const getSourceIconClass = (url = "") => {
   const host = detectHost(url);
   if (!host) return "";
-  if (host === "youtube.com" || host === "youtu.be" || host === "music.youtube.com") {
+  if (
+    host === "youtube.com" ||
+    host === "youtu.be" ||
+    host === "music.youtube.com"
+  ) {
     return "fa-brands fa-youtube";
   }
   if (host === "twitch.tv") return "fa-brands fa-twitch";
   if (host === "vkvideo.ru" || host === "vk.com") return "fa-brands fa-vk";
-  if (host === "reddit.com" || host === "old.reddit.com" || host === "redd.it") {
+  if (
+    host === "reddit.com" ||
+    host === "old.reddit.com" ||
+    host === "redd.it"
+  ) {
     return "fa-brands fa-reddit";
   }
   return "";
@@ -1358,7 +1368,7 @@ const highlightText = (value, query) => {
   try {
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(`(${escaped})`, "gi");
-    return safeText.replace(re, "<mark class=\"history-highlight\">$1</mark>");
+    return safeText.replace(re, '<mark class="history-highlight">$1</mark>');
   } catch {
     return safeText;
   }
@@ -1690,7 +1700,7 @@ function createLogEntry(entry) {
   const thumbSrc = hasPreview ? entry.thumbnail : HISTORY_IMAGE_PLACEHOLDER;
   const isAudio = isAudioEntry(entry);
 
-  const checkboxId = `history-select-${entry.id || index}`;
+  const checkboxId = `history-select-${entry.id || ""}`;
 
   const selectWrap = document.createElement("label");
   selectWrap.className = "history-row__select";
@@ -1756,9 +1766,7 @@ function createLogEntry(entry) {
   if (!dateChipLabel) dateChip.classList.add("hidden");
 
   const sourceChipLabel =
-    state.currentSortKey === "source"
-      ? formatSourceLabel(entry.sourceUrl)
-      : "";
+    state.currentSortKey === "source" ? formatSourceLabel(entry.sourceUrl) : "";
   const sourceChip = document.createElement("span");
   sourceChip.className = "history-row__source-chip";
   sourceChip.textContent = sourceChipLabel || "";
@@ -1842,7 +1850,10 @@ function createLogEntry(entry) {
   openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
   openFolderBtn.setAttribute("data-bs-placement", "top");
   openFolderBtn.title = t("history.action.openFolderShort");
-  openFolderBtn.setAttribute("data-i18n-title", "history.action.openFolderShort");
+  openFolderBtn.setAttribute(
+    "data-i18n-title",
+    "history.action.openFolderShort",
+  );
   openFolderBtn.innerHTML = '<i class="fa-solid fa-folder-open"></i>';
   openFolderBtn.disabled = entry.isMissing;
   if (entry.isMissing) openFolderBtn.classList.add("hidden");
@@ -1876,7 +1887,8 @@ function createLogEntry(entry) {
     retryMissingBtn.setAttribute("data-bs-placement", "top");
     retryMissingBtn.title = t("history.action.retry");
     retryMissingBtn.setAttribute("data-i18n-title", "history.action.retry");
-    retryMissingBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i>';
+    retryMissingBtn.innerHTML =
+      '<i class="fa-solid fa-arrow-rotate-right"></i>';
     retryMissingBtn.disabled = !entry.sourceUrl;
     if (entry.sourceUrl) {
       retryMissingBtn.addEventListener("click", (e) => {
@@ -1887,8 +1899,7 @@ function createLogEntry(entry) {
 
     const deleteMissingBtn = document.createElement("button");
     deleteMissingBtn.type = "button";
-    deleteMissingBtn.className =
-      "history-row__action history-row__delete";
+    deleteMissingBtn.className = "history-row__action history-row__delete";
     deleteMissingBtn.setAttribute("data-bs-toggle", "tooltip");
     deleteMissingBtn.setAttribute("data-bs-placement", "top");
     deleteMissingBtn.title = t("history.action.deleteFromHistory");
@@ -1981,7 +1992,10 @@ function createLogEntry(entry) {
   downloadPreviewBtn.setAttribute("data-bs-toggle", "tooltip");
   downloadPreviewBtn.setAttribute("data-bs-placement", "top");
   downloadPreviewBtn.title = t("history.preview.download");
-  downloadPreviewBtn.setAttribute("data-i18n-title", "history.preview.download");
+  downloadPreviewBtn.setAttribute(
+    "data-i18n-title",
+    "history.preview.download",
+  );
   downloadPreviewBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
   downloadPreviewBtn.addEventListener("click", (event) => {
     event.preventDefault();
@@ -2078,7 +2092,9 @@ function createLogEntry(entry) {
 
   el.addEventListener("click", async (event) => {
     event.stopPropagation();
-    if (event.target.closest("button, a, input, label, .history-row__details")) {
+    if (
+      event.target.closest("button, a, input, label, .history-row__details")
+    ) {
       return;
     }
     if (el.classList.contains("missing")) return;
@@ -2392,7 +2408,7 @@ function renderHistory(entries, meta = {}) {
   clearHistorySelection();
 
   if (isEmpty) {
-  const hasActiveFilters =
+    const hasActiveFilters =
       Boolean(state.currentSearchQuery?.trim()) ||
       Boolean(state.historySourceFilter);
     const hasUnderlyingHistory = getHistoryData().length > 0;

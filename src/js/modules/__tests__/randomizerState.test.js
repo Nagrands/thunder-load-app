@@ -1,8 +1,5 @@
 import { createRandomizerState } from "../randomizer/state.js";
-import {
-  DEFAULT_ITEMS,
-  DEFAULT_PRESET_NAME,
-} from "../randomizer/helpers.js";
+import { DEFAULT_ITEMS, DEFAULT_PRESET_NAME } from "../randomizer/helpers.js";
 
 const createMockStorage = () => {
   const store = new Map();

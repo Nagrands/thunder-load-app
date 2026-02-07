@@ -65,7 +65,9 @@ const createEntry = (overrides = {}) => ({
   resolution: overrides.resolution ?? "1920x1080",
   formattedSize: overrides.formattedSize ?? "10 MB",
   filePath: overrides.filePath ?? "/tmp/video.mp4",
-  thumbnail: overrides.thumbnail ?? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=",
+  thumbnail:
+    overrides.thumbnail ??
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=",
 });
 
 describe("Downloader history list", () => {

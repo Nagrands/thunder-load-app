@@ -137,9 +137,7 @@
 .history-filters-card {
   display: flex;
   align-items: center;
-  padding: 0 12px;
   border-radius: var(--border-radius);
-  background: rgba(255, 255, 255, 0.035);
 }
 
 .history-search-wrapper {
@@ -212,7 +210,9 @@
   color: rgba(255, 255, 255, 0.75);
   display: grid;
   place-items: center;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 
   &:hover {
     color: var(--color-highlight);
@@ -231,7 +231,9 @@
   align-items: center;
   justify-content: center;
   color: var(--color-highlight);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   background: rgba(255, 255, 255, 0.05);
 
   &:hover {
@@ -261,7 +263,9 @@
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.12s ease, transform 0.12s ease;
+    transition:
+      opacity 0.12s ease,
+      transform 0.12s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 5;
   }
@@ -296,22 +300,22 @@
 }
 
 .history-filter-group {
-      display: flex;
-    gap: 12px;
-    align-items: center;
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    flex-direction: row;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  flex-direction: row;
 }
 
 .history-filter-pill {
-      display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    border-radius: 16px;
-    flex: 0 0 220px;
-    height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 16px;
+  // flex: 0 0 220px;
+  height: 36px;
 
   i {
     font-size: 13px;
@@ -328,6 +332,12 @@
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.55);
     white-space: nowrap;
+
+    .history-filter-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
 
     span {
       flex: 0 0 auto;
@@ -347,8 +357,12 @@
       background-image:
         linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.8) 50%),
         linear-gradient(135deg, rgba(255, 255, 255, 0.8) 50%, transparent 50%);
-      background-position: calc(100% - 12px) 50%, calc(100% - 6px) 50%;
-      background-size: 6px 6px, 6px 6px;
+      background-position:
+        calc(100% - 12px) 50%,
+        calc(100% - 6px) 50%;
+      background-size:
+        6px 6px,
+        6px 6px;
       background-repeat: no-repeat;
     }
   }
@@ -399,7 +413,9 @@
   background: rgba(255, 255, 255, 0.05);
   color: var(--color-highlight);
   font-size: 0.85rem;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 
   &:hover {
     border-color: rgba(255, 255, 255, 0.32);
@@ -467,7 +483,9 @@
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--color-hover);
-  transition: box-shadow 0.35s ease, border-color 0.35s ease,
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
     transform 0.35s ease;
   position: relative;
   z-index: 2;
@@ -513,7 +531,9 @@
   position: relative;
   padding: 0;
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
 
   img {
     width: 100%;
@@ -546,7 +566,9 @@
   background: rgba(255, 255, 255, 0.05);
   display: grid;
   place-items: center;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .history-row__checkbox:checked + .history-row__checkbox-ui {
@@ -619,7 +641,6 @@
   white-space: nowrap;
   flex: 0 0 auto;
 }
-
 
 .history-badge {
   padding: 1px 6px;
@@ -740,7 +761,9 @@
   color: var(--color-highlight);
   display: grid;
   place-items: center;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 
   &:hover:not(:disabled) {
     border-color: rgba(var(--color-accent-rgb), 0.6);
@@ -769,7 +792,9 @@
   color: rgba(255, 255, 255, 0.7);
   display: grid;
   place-items: center;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
 
   i {
     transition: transform 0.2s ease;
@@ -838,7 +863,10 @@
   opacity: 0;
   transform: scale(0.92);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
-  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease,
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease,
     box-shadow 0.2s ease;
   z-index: 2;
 }
@@ -974,8 +1002,12 @@
     background-image:
       linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.8) 50%),
       linear-gradient(135deg, rgba(255, 255, 255, 0.8) 50%, transparent 50%);
-    background-position: calc(100% - 14px) 12px, calc(100% - 8px) 12px;
-    background-size: 7px 7px, 7px 7px;
+    background-position:
+      calc(100% - 14px) 12px,
+      calc(100% - 8px) 12px;
+    background-size:
+      7px 7px,
+      7px 7px;
     background-repeat: no-repeat;
   }
 }

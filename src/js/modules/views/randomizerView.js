@@ -176,14 +176,8 @@ export default function renderRandomizerView() {
   const isSearchActive = () => (searchQuery || "").trim().length > 0;
 
   const syncState = () => {
-    ({
-      items,
-      presets,
-      settings,
-      pool,
-      currentPresetName,
-      defaultPresetName,
-    } = state.getState());
+    ({ items, presets, settings, pool, currentPresetName, defaultPresetName } =
+      state.getState());
   };
 
   syncState();
@@ -604,8 +598,14 @@ export default function renderRandomizerView() {
     if (heroRoll) heroRoll.textContent = t("randomizer.action.start");
     setTitle("#randomizer-reset-pool", "randomizer.action.resetPool.title");
     setText("#randomizer-reset-pool span", "randomizer.action.resetPool");
-    setText("#randomizer-toggle-list span", "randomizer.action.toggleList.hide");
-    setText("#randomizer-summary-default-badge", "randomizer.preset.defaultBadge");
+    setText(
+      "#randomizer-toggle-list span",
+      "randomizer.action.toggleList.hide",
+    );
+    setText(
+      "#randomizer-summary-default-badge",
+      "randomizer.preset.defaultBadge",
+    );
     const summaryLabels = wrapper.querySelectorAll(
       ".randomizer-summary .summary-item .label",
     );
@@ -621,14 +621,26 @@ export default function renderRandomizerView() {
     });
     const summarySpin = wrapper.querySelector(".summary-control.spin-control");
     if (summarySpin) summarySpin.title = t("randomizer.summary.spin.title");
-    setText(".summary-control.spin-control .spin-label", "randomizer.summary.spin.label");
-    setText(".summary-control.spin-control .unit", "randomizer.summary.spin.unit");
+    setText(
+      ".summary-control.spin-control .spin-label",
+      "randomizer.summary.spin.label",
+    );
+    setText(
+      ".summary-control.spin-control .unit",
+      "randomizer.summary.spin.unit",
+    );
     const spinCountdown = wrapper.querySelector("#randomizer-spin-countdown");
     if (spinCountdown)
-      spinCountdown.setAttribute("aria-label", t("randomizer.summary.spin.aria"));
+      spinCountdown.setAttribute(
+        "aria-label",
+        t("randomizer.summary.spin.aria"),
+      );
     const sparkline = wrapper.querySelector("#randomizer-sparkline");
     if (sparkline)
-      sparkline.setAttribute("aria-label", t("randomizer.summary.sparkline.aria"));
+      sparkline.setAttribute(
+        "aria-label",
+        t("randomizer.summary.sparkline.aria"),
+      );
     setText(".randomizer-editor header .eyebrow", "randomizer.list.eyebrow");
     setText(".randomizer-editor header h3", "randomizer.list.title");
     setTitle(".randomizer-toggle", "randomizer.list.noRepeat.title");
@@ -660,8 +672,10 @@ export default function renderRandomizerView() {
     const groupLabels = wrapper.querySelectorAll(
       ".list-actions-group .group-label",
     );
-    if (groupLabels[0]) groupLabels[0].textContent = t("randomizer.filters.label");
-    if (groupLabels[1]) groupLabels[1].textContent = t("randomizer.actions.label");
+    if (groupLabels[0])
+      groupLabels[0].textContent = t("randomizer.filters.label");
+    if (groupLabels[1])
+      groupLabels[1].textContent = t("randomizer.actions.label");
     setTitle(".stat-threshold", "randomizer.filters.threshold.title");
     setText(".stat-threshold span", "randomizer.filters.threshold.label");
     setTitle("#randomizer-fav-filter", "randomizer.filters.favorites.title");
@@ -669,15 +683,26 @@ export default function renderRandomizerView() {
     setTitle("#randomizer-expand-all", "randomizer.actions.expandAll.title");
     setText("#randomizer-expand-all span", "randomizer.actions.expandAll");
     setTitle("#randomizer-export", "randomizer.actions.export.title");
-    setTitle("#randomizer-clear-favorites", "randomizer.actions.clearFavorites.title");
-    setTitle("#randomizer-clear-excluded", "randomizer.actions.clearExcluded.title");
-    setTitle("#randomizer-delete-selected", "randomizer.actions.deleteSelected.title");
+    setTitle(
+      "#randomizer-clear-favorites",
+      "randomizer.actions.clearFavorites.title",
+    );
+    setTitle(
+      "#randomizer-clear-excluded",
+      "randomizer.actions.clearExcluded.title",
+    );
+    setTitle(
+      "#randomizer-delete-selected",
+      "randomizer.actions.deleteSelected.title",
+    );
     setText("#randomizer-pool-empty span", "randomizer.pool.empty");
     setText("#randomizer-pool-refresh span", "randomizer.pool.refresh");
     setText(".result-hero .eyebrow", "randomizer.result.eyebrow");
     setTitle("#randomizer-copy", "randomizer.result.copy.title");
     setText(".randomizer-result .placeholder p", "randomizer.result.empty");
-    const resultRoll = wrapper.querySelector("#randomizer-roll span:last-child");
+    const resultRoll = wrapper.querySelector(
+      "#randomizer-roll span:last-child",
+    );
     if (resultRoll) resultRoll.textContent = t("randomizer.action.start");
     setText(".randomizer-auto-card .eyebrow", "randomizer.auto.eyebrow");
     setText("#randomizer-auto-status", "randomizer.auto.status.off");
@@ -700,7 +725,10 @@ export default function renderRandomizerView() {
       const key = `randomizer.auto.stop.${opt.value}`;
       opt.textContent = t(key);
     });
-    setPlaceholder("#randomizer-auto-stop-text", "randomizer.auto.match.placeholder");
+    setPlaceholder(
+      "#randomizer-auto-stop-text",
+      "randomizer.auto.match.placeholder",
+    );
     const autoToggles = wrapper.querySelectorAll(
       ".randomizer-auto-grid .auto-toggle span",
     );
@@ -720,7 +748,10 @@ export default function renderRandomizerView() {
       ".randomizer-history-card .history-tabs",
     );
     if (historyTabsLabel)
-      historyTabsLabel.setAttribute("aria-label", t("randomizer.history.title"));
+      historyTabsLabel.setAttribute(
+        "aria-label",
+        t("randomizer.history.title"),
+      );
     const historyTabsTitle = wrapper.querySelector(
       ".randomizer-history-card .history-tabs-label",
     );
@@ -730,8 +761,14 @@ export default function renderRandomizerView() {
     const historyRun = wrapper.querySelector("#randomizer-history-run span");
     if (historyRun) historyRun.textContent = t("randomizer.action.start");
     setText("#randomizer-history-clear span", "randomizer.history.clear");
-    setTitle("#randomizer-history-rare-toggle", "randomizer.history.rare.title");
-    setText("#randomizer-history-rare-toggle span", "randomizer.history.rare.all");
+    setTitle(
+      "#randomizer-history-rare-toggle",
+      "randomizer.history.rare.title",
+    );
+    setText(
+      "#randomizer-history-rare-toggle span",
+      "randomizer.history.rare.all",
+    );
     setTitle("#randomizer-stats-export", "randomizer.stats.export.title");
     setTitle("#randomizer-stats-reset", "randomizer.stats.reset.title");
 
@@ -2250,8 +2287,7 @@ export default function renderRandomizerView() {
   });
 
   statsResetBtn?.addEventListener("click", () => {
-    if (!confirm(t("randomizer.confirm.resetStats")))
-      return;
+    if (!confirm(t("randomizer.confirm.resetStats"))) return;
     resetStats();
   });
 

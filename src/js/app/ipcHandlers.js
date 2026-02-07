@@ -304,8 +304,7 @@ function setupIpcHandlers(dependencies) {
       }
       log.info(`Reading the file: ${finalPath}`);
       const markdown = await fs.promises.readFile(finalPath, "utf-8");
-      const version =
-        parseWhatsNewVersion(markdown) || (await getAppVersion());
+      const version = parseWhatsNewVersion(markdown) || (await getAppVersion());
       const html = marked.parse(markdown, {
         mangle: false,
         headerIds: false,
