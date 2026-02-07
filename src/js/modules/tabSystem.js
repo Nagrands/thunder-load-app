@@ -48,6 +48,7 @@ export default class TabSystem {
       <span class="menu-main">
         <i class="${iconCls}"></i>
         <span class="menu-text">${label}</span>
+        <span class="menu-badge" aria-hidden="true"></span>
       </span>`;
     const labelEl = btn.querySelector(".menu-text");
     btn.addEventListener("click", () => this.activateTab(id));

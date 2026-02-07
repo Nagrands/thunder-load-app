@@ -26,13 +26,34 @@ const queueIndicator = document.getElementById("queue-start-indicator");
 
 function updateDownloaderTabLabel() {
   try {
-    const label = document.querySelector(
-      '.group-menu [data-menu="download"] .menu-text',
-    );
+    const tab = document.querySelector('.group-menu [data-menu="download"]');
+    if (!tab) return;
+    const label = tab.querySelector(".menu-text");
+    const badge = tab.querySelector(".menu-badge");
     if (!label) return;
     const count = (state.isDownloading ? 1 : 0) + state.downloadQueue.length;
     const base = t("tabs.download");
-    label.textContent = count > 0 ? `${base} (${count})` : base;
+    label.textContent = base;
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = String(count);
+        badge.classList.add("is-visible");
+      } else {
+        badge.textContent = "";
+        badge.classList.remove("is-visible");
+      }
+    }
+    tab.classList.toggle("is-busy", count > 0);
+    const topBar = document.querySelector(".top-bar");
+    if (topBar) {
+      topBar.classList.toggle("has-download-activity", count > 0);
+    }
+    try {
+      tab.setAttribute(
+        "aria-label",
+        count > 0 ? `${base} (${count})` : base,
+      );
+    } catch {}
   } catch (_e) {
     // no-op
   }

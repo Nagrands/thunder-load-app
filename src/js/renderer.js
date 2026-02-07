@@ -51,6 +51,7 @@ import { initSettingsModal } from "./modules/settingsModal.js";
 import { initUpdateHandler } from "./modules/updateHandler.js";
 import { initDownloaderToolsStatus } from "./modules/downloaderToolsStatus.js";
 import { initWgAutoShutdownNotifier } from "./modules/wgAutoShutdownNotifier.js";
+import { initTopBarThemeToggle } from "./modules/topBarThemeToggle.js";
 // import { updateProgressBar }              from "./modules/updateHandler.js";
 
 import { initializeTheme } from "./modules/themeManager.js";
@@ -233,6 +234,7 @@ async function startRenderer() {
     initClipboardHandler();
     initInterfaceHandlers();
     initSettingsModal();
+    initTopBarThemeToggle();
 
     // ——— WireGuard autosend checkbox sync ———
     const wgAutosendCheckbox = document.getElementById("wg-autosend");
