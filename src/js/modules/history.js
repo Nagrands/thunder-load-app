@@ -15,6 +15,9 @@ import {
   urlInput,
   downloadButton,
   toggleAllDetailsButton,
+  historyDensityCompact,
+  historyDensityRegular,
+  historyDensityComfort,
 } from "./domElements.js";
 import {
   state,
@@ -57,6 +60,11 @@ let paginationInfo = null;
 let paginationPrev = null;
 let paginationNext = null;
 let paginationSize = null;
+let historyDensityButtons = {
+  compact: null,
+  regular: null,
+  comfort: null,
+};
 let historySelectUIs = {
   source: null,
   quality: null,
@@ -70,6 +78,7 @@ let lastPaginationMeta = {
 };
 let lastRenderedFiltered = [];
 let historyTruncationBound = false;
+let historyMenuBound = false;
 
 const pluralize = (value, [one, few, many]) => {
   const n = Math.abs(Number(value)) || 0;
@@ -84,6 +93,52 @@ const normalizePageSize = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return HISTORY_PAGE_SIZES[0];
   return Math.max(4, Math.min(200, Math.floor(n)));
+};
+
+const normalizeDensity = (value) => {
+  const v = String(value || "").toLowerCase();
+  if (["compact", "regular", "comfort"].includes(v)) return v;
+  return "regular";
+};
+
+const applyHistoryDensity = () => {
+  const container = document.getElementById("history");
+  if (!container) return;
+  const density = normalizeDensity(state.historyDensity);
+  container.classList.remove(
+    "density-compact",
+    "density-regular",
+    "density-comfort",
+  );
+  container.classList.add(`density-${density}`);
+  if (historyDensityButtons.compact) {
+    historyDensityButtons.compact.classList.toggle(
+      "is-active",
+      density === "compact",
+    );
+  }
+  if (historyDensityButtons.regular) {
+    historyDensityButtons.regular.classList.toggle(
+      "is-active",
+      density === "regular",
+    );
+  }
+  if (historyDensityButtons.comfort) {
+    historyDensityButtons.comfort.classList.toggle(
+      "is-active",
+      density === "comfort",
+    );
+  }
+};
+
+const setHistoryDensity = (value) => {
+  const next = normalizeDensity(value);
+  if (state.historyDensity === next) return;
+  state.historyDensity = next;
+  try {
+    localStorage.setItem("historyDensity", next);
+  } catch {}
+  applyHistoryDensity();
 };
 
 const syncHistorySelectValues = () => {
@@ -317,6 +372,49 @@ function ensureHistoryCardsElements() {
             >
               <i class="fa-solid"></i>
             </button>
+            <div
+              class="history-density-group"
+              role="group"
+              aria-label="${t("history.density.label")}"
+              data-i18n-aria="history.density.label"
+            >
+              <button
+                id="history-density-compact"
+                type="button"
+                class="history-density-btn"
+                data-density="compact"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="${t("history.density.compact")}"
+                data-i18n-title="history.density.compact"
+              >
+                <i class="fa-solid fa-compress"></i>
+              </button>
+              <button
+                id="history-density-regular"
+                type="button"
+                class="history-density-btn"
+                data-density="regular"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="${t("history.density.regular")}"
+                data-i18n-title="history.density.regular"
+              >
+                <i class="fa-solid fa-grip-lines"></i>
+              </button>
+              <button
+                id="history-density-comfort"
+                type="button"
+                class="history-density-btn"
+                data-density="comfort"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="${t("history.density.comfort")}"
+                data-i18n-title="history.density.comfort"
+              >
+                <i class="fa-solid fa-expand"></i>
+              </button>
+            </div>
             <button
               id="clear-history"
               class="history-action-button"
@@ -514,6 +612,21 @@ function ensureHistoryControlElements() {
       "history-clear-selection",
     );
   }
+  if (!historyDensityButtons.compact || !historyDensityButtons.compact.isConnected) {
+    historyDensityButtons.compact = document.getElementById(
+      "history-density-compact",
+    );
+  }
+  if (!historyDensityButtons.regular || !historyDensityButtons.regular.isConnected) {
+    historyDensityButtons.regular = document.getElementById(
+      "history-density-regular",
+    );
+  }
+  if (!historyDensityButtons.comfort || !historyDensityButtons.comfort.isConnected) {
+    historyDensityButtons.comfort = document.getElementById(
+      "history-density-comfort",
+    );
+  }
 
   if (!historySelectUIs.source) {
     historySelectUIs.source = enhanceSelect(historySourceFilterSelect);
@@ -682,7 +795,9 @@ function _showFilterInput() {
 }
 
 function clearHistoryContainer(container) {
-  [...container.querySelectorAll(".log-entry")].forEach((el) => el.remove());
+  [...container.querySelectorAll(".log-entry, .history-group")].forEach((el) =>
+    el.remove(),
+  );
 }
 
 function updateDeleteSelectedButton() {
@@ -786,6 +901,29 @@ function updateToggleAllButtonState() {
   toggleAllDetailsButton.setAttribute("aria-label", label);
   toggleAllDetailsButton.setAttribute("data-hint", label);
   toggleAllDetailsButton.title = label;
+}
+
+function closeAllHistoryMenus(except = null) {
+  document.querySelectorAll(".history-row__menu.is-open").forEach((menu) => {
+    if (except && menu === except) return;
+    menu.classList.remove("is-open");
+    const trigger = menu.querySelector(".history-row__menu-button");
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+    const row = menu.closest(".history-row");
+    if (row) row.classList.remove("is-menu-open");
+  });
+}
+
+function bindHistoryMenuClose() {
+  if (historyMenuBound) return;
+  historyMenuBound = true;
+  document.addEventListener("click", (event) => {
+    if (event.target.closest(".history-row__menu")) return;
+    closeAllHistoryMenus();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeAllHistoryMenus();
+  });
 }
 
 const detectHost = (url = "") => {
@@ -1087,6 +1225,66 @@ const formatSizeLabel = (entry) => {
   return t("history.file.sizeUnknown");
 };
 
+const escapeHtml = (value = "") =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const highlightText = (value, query) => {
+  const text = String(value || "");
+  const q = String(query || "").trim();
+  if (!text || !q) return escapeHtml(text);
+  if (q.length < 2) return escapeHtml(text);
+  const safeText = escapeHtml(text);
+  try {
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`(${escaped})`, "gi");
+    return safeText.replace(re, "<mark class=\"history-highlight\">$1</mark>");
+  } catch {
+    return safeText;
+  }
+};
+
+const normalizeEntryDate = (entry) => {
+  if (!entry) return null;
+  if (entry.timestamp) {
+    const d = new Date(entry.timestamp);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  if (entry.dateText) {
+    const d = new Date(entry.dateText);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  return null;
+};
+
+const getDayKey = (date) => {
+  if (!date) return "unknown";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+};
+
+const getDayLabel = (date) => {
+  if (!date) return t("history.group.unknown");
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((today - day) / 86400000);
+  if (diffDays === 0) return t("history.group.today");
+  if (diffDays === 1) return t("history.group.yesterday");
+  const lang = getLanguage();
+  const sameYear = now.getFullYear() === date.getFullYear();
+  return date.toLocaleDateString(lang, {
+    day: "numeric",
+    month: "short",
+    year: sameYear ? undefined : "numeric",
+  });
+};
+
 async function openHistoryCardFile(entry) {
   if (!entry?.filePath) return;
   try {
@@ -1357,6 +1555,7 @@ function createLogEntry(entry, index) {
   const host = detectHost(entry.sourceUrl);
   const hasPreview = Boolean(entry?.thumbnail);
   const thumbSrc = hasPreview ? entry.thumbnail : HISTORY_IMAGE_PLACEHOLDER;
+  const isAudio = isAudioEntry(entry);
 
   const checkboxId = `history-select-${entry.id || index}`;
 
@@ -1375,6 +1574,34 @@ function createLogEntry(entry, index) {
   const main = document.createElement("div");
   main.className = "history-row__main";
 
+  const thumb = document.createElement("button");
+  thumb.type = "button";
+  thumb.className = `history-row__thumb${hasPreview ? "" : " is-placeholder"}`;
+  thumb.setAttribute("aria-label", t("history.preview.zoom"));
+  thumb.setAttribute("data-i18n-aria", "history.preview.zoom");
+  thumb.setAttribute("data-bs-toggle", "tooltip");
+  thumb.setAttribute("data-bs-placement", "top");
+  thumb.title = t("history.preview.zoom");
+  if (thumbSrc) {
+    const img = document.createElement("img");
+    img.src = thumbSrc;
+    img.alt = entry.fileName || t("preview.alt");
+    img.loading = "lazy";
+    attachPlaceholderOnError(img, HISTORY_IMAGE_PLACEHOLDER, thumb);
+    thumb.appendChild(img);
+  } else {
+    const icon = document.createElement("i");
+    icon.className = "fa-regular fa-image";
+    thumb.appendChild(icon);
+  }
+  thumb.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openHistoryCardPreview(
+      thumbSrc,
+      entry.fileName || entry.sourceUrl || t("preview.alt"),
+    );
+  });
+
   const titleRow = document.createElement("div");
   titleRow.className = "history-row__title";
 
@@ -1385,7 +1612,10 @@ function createLogEntry(entry, index) {
   const name = document.createElement("span");
   name.className = "history-row__name";
   name.title = entry.fileName || "";
-  name.textContent = entry.fileName || t("history.file.untitled");
+  name.innerHTML = highlightText(
+    entry.fileName || t("history.file.untitled"),
+    state.currentSearchQuery,
+  );
   name.setAttribute("data-bs-toggle", "tooltip");
   name.setAttribute("data-bs-placement", "top");
 
@@ -1415,8 +1645,20 @@ function createLogEntry(entry, index) {
     fpsBadge.textContent = `${entry.fps}fps`;
     badges.appendChild(fpsBadge);
   }
+  if (isAudio) {
+    const audioBadge = document.createElement("span");
+    audioBadge.className = "history-badge history-badge--audio";
+    audioBadge.textContent = t("history.badge.audio");
+    badges.appendChild(audioBadge);
+  }
+  if (entry.isMissing) {
+    const missingBadge = document.createElement("span");
+    missingBadge.className = "history-badge history-badge--missing";
+    missingBadge.textContent = t("history.file.missing");
+    badges.appendChild(missingBadge);
+  }
 
-  titleRow.append(order, name, badges);
+  titleRow.append(order, name);
 
   const meta = document.createElement("div");
   meta.className = "history-row__meta";
@@ -1437,14 +1679,7 @@ function createLogEntry(entry, index) {
     meta.appendChild(size);
   }
 
-  if (entry.isMissing) {
-    const missing = document.createElement("span");
-    missing.className = "history-row__missing";
-    missing.textContent = t("history.file.missing");
-    meta.appendChild(missing);
-  }
-
-  main.append(titleRow, meta);
+  main.append(titleRow, badges, meta);
 
   const actions = document.createElement("div");
   actions.className = "history-row__actions";
@@ -1458,6 +1693,7 @@ function createLogEntry(entry, index) {
   openBtn.setAttribute("data-i18n-title", "history.action.openFile");
   openBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
   openBtn.disabled = entry.isMissing;
+  if (entry.isMissing) openBtn.classList.add("hidden");
   openBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFile(entry);
@@ -1472,37 +1708,120 @@ function createLogEntry(entry, index) {
   openFolderBtn.setAttribute("data-i18n-title", "history.action.openFolderShort");
   openFolderBtn.innerHTML = '<i class="fa-solid fa-folder-open"></i>';
   openFolderBtn.disabled = entry.isMissing;
+  if (entry.isMissing) openFolderBtn.classList.add("hidden");
   openFolderBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFolder(entry);
   });
 
-  const retryBtn = document.createElement("button");
-  retryBtn.type = "button";
-  retryBtn.className = "history-row__action";
-  retryBtn.setAttribute("data-bs-toggle", "tooltip");
-  retryBtn.setAttribute("data-bs-placement", "top");
-  retryBtn.title = t("history.action.retry");
-  retryBtn.setAttribute("data-i18n-title", "history.action.retry");
-  retryBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i>';
-  retryBtn.disabled = !entry.sourceUrl;
-  if (entry.sourceUrl) {
-    retryBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      retryHistoryCardDownload(entry);
+  const menuItem = (label, icon, options = {}) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = `history-row__menu-item${options.className || ""}`;
+    item.setAttribute("role", "menuitem");
+    if (options.disabled) item.disabled = true;
+    item.innerHTML = `<i class="${icon}"></i><span>${label}</span>`;
+    if (options.onClick) {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeAllHistoryMenus();
+        options.onClick();
+      });
+    }
+    return item;
+  };
+
+  if (entry.isMissing) {
+    const retryMissingBtn = document.createElement("button");
+    retryMissingBtn.type = "button";
+    retryMissingBtn.className = "history-row__action history-row__retry";
+    retryMissingBtn.setAttribute("data-bs-toggle", "tooltip");
+    retryMissingBtn.setAttribute("data-bs-placement", "top");
+    retryMissingBtn.title = t("history.action.retry");
+    retryMissingBtn.setAttribute("data-i18n-title", "history.action.retry");
+    retryMissingBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i>';
+    retryMissingBtn.disabled = !entry.sourceUrl;
+    if (entry.sourceUrl) {
+      retryMissingBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        retryHistoryCardDownload(entry);
+      });
+    }
+
+    const deleteMissingBtn = document.createElement("button");
+    deleteMissingBtn.type = "button";
+    deleteMissingBtn.className =
+      "history-row__action history-row__delete";
+    deleteMissingBtn.setAttribute("data-bs-toggle", "tooltip");
+    deleteMissingBtn.setAttribute("data-bs-placement", "top");
+    deleteMissingBtn.title = t("history.action.deleteFromHistory");
+    deleteMissingBtn.setAttribute(
+      "data-i18n-title",
+      "history.action.deleteFromHistory",
+    );
+    deleteMissingBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+
+    actions.append(openBtn, openFolderBtn, retryMissingBtn, deleteMissingBtn);
+  } else {
+    const menu = document.createElement("div");
+    menu.className = "history-row__menu";
+
+    const menuButton = document.createElement("button");
+    menuButton.type = "button";
+    menuButton.className = "history-row__action history-row__menu-button";
+    menuButton.setAttribute("aria-expanded", "false");
+    menuButton.setAttribute("aria-label", t("history.action.more"));
+    menuButton.setAttribute("data-i18n-aria", "history.action.more");
+    menuButton.setAttribute("data-bs-toggle", "tooltip");
+    menuButton.setAttribute("data-bs-placement", "top");
+    menuButton.title = t("history.action.more");
+    menuButton.setAttribute("data-i18n-title", "history.action.more");
+    menuButton.innerHTML = '<i class="fa-solid fa-ellipsis-vertical"></i>';
+
+    const menuList = document.createElement("div");
+    menuList.className = "history-row__menu-list";
+    menuList.setAttribute("role", "menu");
+
+    const openSourceItem = menuItem(
+      t("history.action.openSource"),
+      "fa-solid fa-up-right-from-square",
+      {
+        disabled: !entry.sourceUrl,
+        onClick: () => openHistorySourceLink(entry.sourceUrl),
+      },
+    );
+
+    const retryItem = menuItem(
+      t("history.action.retry"),
+      "fa-solid fa-arrow-rotate-right",
+      {
+        disabled: !entry.sourceUrl,
+        onClick: () => retryHistoryCardDownload(entry),
+      },
+    );
+
+    const deleteItem = menuItem(
+      t("history.action.deleteFromHistory"),
+      "fa-solid fa-trash",
+      {
+        className: " history-row__delete",
+      },
+    );
+
+    menuList.append(openSourceItem, retryItem, deleteItem);
+    menu.append(menuButton, menuList);
+
+    menuButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const willOpen = !menu.classList.contains("is-open");
+      closeAllHistoryMenus(willOpen ? menu : null);
+      menu.classList.toggle("is-open", willOpen);
+      el.classList.toggle("is-menu-open", willOpen);
+      menuButton.setAttribute("aria-expanded", willOpen ? "true" : "false");
     });
+
+    actions.append(openBtn, openFolderBtn, menu);
   }
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.type = "button";
-  deleteBtn.className = "history-row__action history-row__delete";
-  deleteBtn.setAttribute("data-bs-toggle", "tooltip");
-  deleteBtn.setAttribute("data-bs-placement", "top");
-  deleteBtn.title = t("history.action.deleteFromHistory");
-  deleteBtn.setAttribute("data-i18n-title", "history.action.deleteFromHistory");
-  deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-
-  actions.append(openBtn, openFolderBtn, retryBtn, deleteBtn);
 
   const toggle = document.createElement("button");
   toggle.type = "button";
@@ -1549,7 +1868,7 @@ function createLogEntry(entry, index) {
   const detailsMeta = document.createElement("div");
   detailsMeta.className = "history-row__details-meta";
 
-  const addDetail = (label, value) => {
+  const addDetail = (label, value, options = {}) => {
     if (!value) return;
     const row = document.createElement("div");
     row.className = "history-row__details-item";
@@ -1558,12 +1877,20 @@ function createLogEntry(entry, index) {
     key.textContent = label;
     const val = document.createElement("span");
     val.className = "history-row__details-value";
-    val.textContent = value;
+    if (options.html) {
+      val.innerHTML = value;
+    } else {
+      val.textContent = value;
+    }
     row.append(key, val);
     detailsMeta.appendChild(row);
   };
 
-  addDetail(t("history.detail.source"), entry.sourceUrl || "");
+  addDetail(
+    t("history.detail.source"),
+    highlightText(entry.sourceUrl || "", state.currentSearchQuery),
+    { html: true },
+  );
   addDetail(t("history.detail.file"), entry.filePath || "");
   addDetail(t("history.detail.quality"), entry.quality || "");
   addDetail(t("history.detail.resolution"), entry.resolution || "");
@@ -1618,7 +1945,7 @@ function createLogEntry(entry, index) {
     delete entry._highlight;
   }
 
-  el.append(selectWrap, main, actions, toggle);
+  el.append(selectWrap, thumb, main, actions, toggle);
   el.appendChild(details);
 
   return { el };
@@ -1630,6 +1957,7 @@ function attachDeleteListeners() {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      closeAllHistoryMenus();
       const logEntry = btn.closest(".log-entry");
       if (logEntry) await handleDeleteEntry(logEntry);
     });
@@ -1907,6 +2235,8 @@ function renderHistory(entries, meta = {}) {
   console.log("renderHistory called at", new Date().toISOString());
 
   const container = document.getElementById("history");
+  applyHistoryDensity();
+  bindHistoryMenuClose();
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
 
@@ -1968,12 +2298,25 @@ function renderHistory(entries, meta = {}) {
   const filtersRow = document.querySelector(".history-filters-row");
   if (filtersRow) filtersRow.classList.remove("hidden");
 
+  let lastGroupKey = null;
   pageEntries.forEach((entry, index) => {
     const absoluteIndex = start + index;
     const order =
       state.currentSortOrder === "asc"
         ? absoluteIndex + 1
         : count - absoluteIndex;
+
+    const entryDate = normalizeEntryDate(entry);
+    const groupKey = getDayKey(entryDate);
+    if (groupKey !== lastGroupKey) {
+      lastGroupKey = groupKey;
+      const group = document.createElement("div");
+      group.className = "history-group";
+      group.innerHTML = `<span class="history-group__title">${escapeHtml(
+        getDayLabel(entryDate),
+      )}</span>`;
+      container.appendChild(group);
+    }
 
     const { el } = createLogEntry(entry, order - 1);
     container.appendChild(el);
@@ -2023,6 +2366,7 @@ async function initHistoryState() {
 
 function initHistory() {
   ensureHistoryControlElements();
+  applyHistoryDensity();
   historySourceFilterSelect?.addEventListener("change", (e) => {
     state.historySourceFilter = e.target.value || "";
     localStorage.setItem("historySourceFilter", state.historySourceFilter);
@@ -2057,6 +2401,15 @@ function initHistory() {
   );
   toggleAllDetailsButton?.addEventListener("click", () =>
     toggleAllHistoryDetails(),
+  );
+  historyDensityButtons.compact?.addEventListener("click", () =>
+    setHistoryDensity("compact"),
+  );
+  historyDensityButtons.regular?.addEventListener("click", () =>
+    setHistoryDensity("regular"),
+  );
+  historyDensityButtons.comfort?.addEventListener("click", () =>
+    setHistoryDensity("comfort"),
   );
 
   openHistoryButton.addEventListener("click", () => {

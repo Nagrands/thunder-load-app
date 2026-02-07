@@ -46,6 +46,13 @@ const state = {
       return 20;
     }
   })(),
+  historyDensity: (() => {
+    try {
+      return window.localStorage.getItem("historyDensity") || "regular";
+    } catch {
+      return "regular";
+    }
+  })(),
 };
 
 // Временное хранилище истории (без привязки к DOM)

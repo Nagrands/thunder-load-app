@@ -50,6 +50,9 @@ const elements = {
     ?.querySelector(".close"),
   sortButton: document.getElementById("sort-button"),
   toggleAllDetailsButton: document.getElementById("toggle-all-details"),
+  historyDensityCompact: document.getElementById("history-density-compact"),
+  historyDensityRegular: document.getElementById("history-density-regular"),
+  historyDensityComfort: document.getElementById("history-density-comfort"),
   contextMenu: document.getElementById("context-menu"),
   versionContainer: document.querySelector(".version-container"),
   whatsNewModal: document.getElementById("whats-new-modal"),
@@ -94,6 +97,9 @@ const OPTIONAL_KEYS = new Set([
   "historyBulkBar",
   "historySelectedCount",
   "historyClearSelection",
+  "historyDensityCompact",
+  "historyDensityRegular",
+  "historyDensityComfort",
 ]);
 
 // Проверка наличия всех элементов и вывод ошибок
@@ -152,6 +158,9 @@ export const {
   closeSpan,
   sortButton,
   toggleAllDetailsButton,
+  historyDensityCompact,
+  historyDensityRegular,
+  historyDensityComfort,
   contextMenu,
   versionContainer,
   whatsNewModal,
