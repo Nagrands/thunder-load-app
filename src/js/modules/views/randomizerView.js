@@ -323,33 +323,31 @@ export default function renderRandomizerView() {
         </header>
         <p class="hint">Добавляйте идеи по одной или вставьте целый список через буфер обмена.</p>
         <div class="randomizer-presets">
-        <label for="randomizer-preset-select" class="preset-label">Шаблоны:</label>
-        <select id="randomizer-preset-select" class="preset-select"></select>
-        <div class="preset-actions">
-          <div class="preset-primary">
-            <button type="button" class="btn btn-sm btn-primary" id="randomizer-preset-save" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить текущий шаблон">
-              <i class="fa-solid fa-floppy-disk"></i>
-              <span>Сохранить</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-new" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пустой шаблон">
-              <i class="fa-solid fa-file-circle-plus"></i>
-              <span>Новый</span>
-            </button>
-          </div>
-          <div class="preset-secondary">
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-default" data-bs-toggle="tooltip" data-bs-placement="top" title="Сделать шаблон стартовым">
-              <i class="fa-solid fa-star"></i>
-              <span>По умолчанию</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить как новый шаблон">
-              <i class="fa-solid fa-copy"></i>
-              <span>Сохранить как</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный шаблон">
-              <i class="fa-solid fa-trash"></i>
-              <span>Удалить</span>
-            </button>
-          </div>
+        <div class="preset-main">
+          <label for="randomizer-preset-select" class="preset-label">Шаблоны:</label>
+          <select id="randomizer-preset-select" class="preset-select"></select>
+        </div>
+        <div class="preset-actions-compact">
+          <button type="button" class="btn btn-sm btn-primary" id="randomizer-preset-save" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить текущий шаблон">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Сохранить</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-new" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать новый пустой шаблон">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            <span>Новый</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-default" data-bs-toggle="tooltip" data-bs-placement="top" title="Сделать шаблон стартовым">
+            <i class="fa-solid fa-star"></i>
+            <span>По умолчанию</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" id="randomizer-preset-save-as" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить как новый шаблон">
+            <i class="fa-solid fa-copy"></i>
+            <span>Сохранить как</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-preset-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранный шаблон">
+            <i class="fa-solid fa-trash"></i>
+            <span>Удалить</span>
+          </button>
         </div>
         </div>
         <div class="randomizer-toolbar">
@@ -373,15 +371,17 @@ export default function renderRandomizerView() {
           </label>
         </div>
         <div class="randomizer-add-row">
-          <textarea
-            id="randomizer-input"
-            placeholder="Добавляйте свои варианты. Каждый новый вариант — это отдельная строка. Можно использовать точку с запятой для разделения.
+          <div class="randomizer-input-row">
+            <textarea
+              id="randomizer-input"
+              placeholder="Добавляйте свои варианты. Каждый новый вариант — это отдельная строка. Можно использовать точку с запятой для разделения.
 "
-            rows="3"
-          ></textarea>
-          <button type="button" class="btn btn-primary" id="randomizer-add">
-            <i class="fa-solid fa-plus"></i>
-          </button>
+              rows="2"
+            ></textarea>
+            <button type="button" class="btn btn-primary" id="randomizer-add">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
           <div class="randomizer-editor-actions">
             <button type="button" class="btn btn-ghost" id="randomizer-paste" data-bs-toggle="tooltip" data-bs-placement="top" title="Вставить список">
               <i class="fa-solid fa-paste"></i>
@@ -396,11 +396,11 @@ export default function renderRandomizerView() {
         </div>
         <div class="randomizer-divider"></div>
         <div class="randomizer-list-header">
-          <div class="randomizer-list-heading">
-            <span id="randomizer-count">0 вариантов</span>
-            <span class="list-sub">Фильтры и действия ниже</span>
-          </div>
-          <div class="randomizer-list-actions">
+          <div class="randomizer-list-row">
+            <div class="randomizer-list-heading">
+              <span id="randomizer-count">0 вариантов</span>
+              <span class="list-sub">Фильтры и действия ниже</span>
+            </div>
             <div class="list-actions-group">
               <span class="group-label">Фильтры</span>
               <button type="button" class="btn btn-sm btn-ghost" id="randomizer-fav-filter" data-state="all" data-bs-toggle="tooltip" data-bs-placement="left" title="Показывать только избранные варианты">
@@ -408,6 +408,8 @@ export default function renderRandomizerView() {
                 <span>Все</span>
               </button>
             </div>
+          </div>
+          <div class="randomizer-list-actions list-actions-compact">
             <div class="list-actions-group">
               <span class="group-label">Действия</span>
               <button type="button" class="btn btn-sm btn-ghost" id="randomizer-expand-all" data-state="collapsed" data-bs-toggle="tooltip" data-bs-placement="left" title="Развернуть все варианты">
@@ -521,19 +523,18 @@ export default function renderRandomizerView() {
 
           <section class="result-panel randomizer-history-card">
             <header>
-              <div>
-                <p class="eyebrow">История</p>
-                <h3>Последние результаты</h3>
-              </div>
-              <div class="history-tabs">
-                <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history" data-bs-toggle="tooltip" data-bs-placement="top" title="История">
-                  <i class="fa-solid fa-clock-rotate-left"></i>
-                  <span>История</span>
-                </button>
-                <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats" data-bs-toggle="tooltip" data-bs-placement="top" title="Статистика">
-                  <i class="fa-solid fa-chart-line"></i>
-                  <span>Статистика</span>
-                </button>
+              <div class="history-tabs-wrap">
+                <span class="history-tabs-label">Последние результаты</span>
+                <div class="history-tabs" role="tablist" aria-label="Последние результаты">
+                  <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history" data-bs-toggle="tooltip" data-bs-placement="top" title="История" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>История</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats" data-bs-toggle="tooltip" data-bs-placement="top" title="Статистика" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Статистика</span>
+                  </button>
+                </div>
               </div>
             </header>
             <div class="history-panel hidden" id="randomizer-history-panel" data-tab="history">
@@ -711,12 +712,20 @@ export default function renderRandomizerView() {
       autoToggles[2].textContent = t("randomizer.auto.notify.flash");
     setText("#randomizer-auto-toggle span", "randomizer.auto.startTimer");
     setTitle("#randomizer-auto-run-once", "randomizer.auto.runOnce.title");
-    setText(".randomizer-history-card header .eyebrow", "randomizer.history.eyebrow");
-    setText(".randomizer-history-card header h3", "randomizer.history.title");
     setTitle("#randomizer-tab-history", "randomizer.history.tab.history.title");
     setText("#randomizer-tab-history span", "randomizer.history.tab.history");
     setTitle("#randomizer-tab-stats", "randomizer.history.tab.stats.title");
     setText("#randomizer-tab-stats span", "randomizer.history.tab.stats");
+    const historyTabsLabel = wrapper.querySelector(
+      ".randomizer-history-card .history-tabs",
+    );
+    if (historyTabsLabel)
+      historyTabsLabel.setAttribute("aria-label", t("randomizer.history.title"));
+    const historyTabsTitle = wrapper.querySelector(
+      ".randomizer-history-card .history-tabs-label",
+    );
+    if (historyTabsTitle)
+      historyTabsTitle.textContent = t("randomizer.history.title");
     setText("#randomizer-history-empty span", "randomizer.history.empty");
     const historyRun = wrapper.querySelector("#randomizer-history-run span");
     if (historyRun) historyRun.textContent = t("randomizer.action.start");
@@ -953,6 +962,11 @@ export default function renderRandomizerView() {
     const keys = Object.keys(historyPanels);
     keys.forEach((key) => {
       historyTabs[key]?.classList.toggle("is-active", key === target);
+      if (historyTabs[key])
+        historyTabs[key].setAttribute(
+          "aria-selected",
+          key === target ? "true" : "false",
+        );
       historyPanels[key]?.classList.toggle("hidden", key !== target);
     });
     if (persist) {

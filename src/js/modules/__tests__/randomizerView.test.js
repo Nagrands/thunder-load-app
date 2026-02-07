@@ -78,6 +78,17 @@ describe("Randomizer view", () => {
     expect(summaryLabels.length).toBe(4);
   });
 
+  test("history tab label uses 'Последние результаты'", () => {
+    const view = setup();
+    const historyTab = view.querySelector("#randomizer-tab-history span");
+    expect(historyTab?.textContent).toBe("Последние результаты");
+    expect(view.querySelector(".randomizer-history-card header h3")).toBeNull();
+    expect(view.querySelector(".randomizer-history-card .history-tabs-wrap")).toBeTruthy();
+    expect(
+      view.querySelector(".randomizer-history-card .history-tabs-label")?.textContent,
+    ).toBe("Последние результаты");
+  });
+
   test("keeps list empty after clearing and reload", () => {
     const view = setup({
       items: [],
