@@ -71,6 +71,10 @@ function initHistoryActions() {
 
   if (refreshButton) {
     refreshButton.addEventListener("click", async () => {
+      const historyArea = document.querySelector(".history-area");
+      if (historyArea) {
+        historyArea.classList.add("is-refreshing");
+      }
       try {
         // ✅ сброс выбранных записей
         clearHistorySelection();
@@ -86,6 +90,10 @@ function initHistoryActions() {
       } catch (error) {
         console.error("Error updating history:", error);
         showToast(t("history.refresh.error"), "error");
+      } finally {
+        if (historyArea) {
+          setTimeout(() => historyArea.classList.remove("is-refreshing"), 600);
+        }
       }
     });
   }

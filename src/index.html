@@ -576,6 +576,10 @@
               id="history-density-compact"
               class="history-density-btn"
               aria-label="Компактно"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Компактно"
+              data-i18n-title="history.density.compact"
               data-hint="Компактно"
               data-i18n-aria="history.density.compact"
               data-i18n-hint="history.density.compact"
@@ -584,20 +588,13 @@
               <i class="fa-solid fa-compress"></i>
             </button>
             <button
-              id="history-density-regular"
-              class="history-density-btn"
-              aria-label="Обычный"
-              data-hint="Обычный"
-              data-i18n-aria="history.density.regular"
-              data-i18n-hint="history.density.regular"
-              type="button"
-            >
-              <i class="fa-solid fa-grip-lines"></i>
-            </button>
-            <button
               id="history-density-comfort"
               class="history-density-btn"
               aria-label="Подробный"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Подробный"
+              data-i18n-title="history.density.comfort"
               data-hint="Подробный"
               data-i18n-aria="history.density.comfort"
               data-i18n-hint="history.density.comfort"
@@ -690,17 +687,48 @@
             </div>
           </div>
           <div class="history-filter-pill">
-            <i class="fa-solid fa-sliders"></i>
+            <i class="fa-solid fa-arrow-up-wide-short"></i>
             <div class="history-filter-meta">
-              <span data-i18n="history.filter.quality.label">Качество</span>
+              <span data-i18n="history.sort.by.label">Сортировка</span>
               <select
-                id="history-quality-filter"
+                id="history-sort-key"
                 class="history-filter-select"
-                aria-label="Фильтр по качеству"
-                data-i18n-aria="history.filter.quality"
+                aria-label="Сортировка"
+                data-i18n-aria="history.sort.by.label"
               >
-                <option value="" data-i18n="history.filter.quality.all">
-                  Любое качество
+                <option value="date" data-i18n="history.sort.by.date">
+                  По дате
+                </option>
+                <option value="size" data-i18n="history.sort.by.size">
+                  По размеру
+                </option>
+                <option value="quality" data-i18n="history.sort.by.quality">
+                  По качеству
+                </option>
+                <option value="source" data-i18n="history.sort.by.source">
+                  По источнику
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="history-filter-pill">
+            <i class="fa-solid fa-photo-film"></i>
+            <div class="history-filter-meta">
+              <span data-i18n="history.sort.mode.label">Тип</span>
+              <select
+                id="history-sort-mode"
+                class="history-filter-select"
+                aria-label="Тип медиа"
+                data-i18n-aria="history.sort.mode.label"
+              >
+                <option value="video" data-i18n="history.sort.mode.video">
+                  Видео
+                </option>
+                <option value="audio" data-i18n="history.sort.mode.audio">
+                  Аудио
+                </option>
+                <option value="mixed" data-i18n="history.sort.mode.mixed">
+                  Смешано
                 </option>
               </select>
             </div>

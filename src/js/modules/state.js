@@ -16,6 +16,8 @@ const state = {
   historyVisible: window.localStorage.getItem("historyVisible") === "true",
   theme: window.localStorage.getItem("theme") || "dark",
   currentSortOrder: window.localStorage.getItem("currentSortOrder") || "desc",
+  currentSortKey: window.localStorage.getItem("currentSortKey") || "date",
+  currentSortMode: window.localStorage.getItem("currentSortMode") || "video",
   currentSearchQuery: window.localStorage.getItem("lastSearch") || "",
   lastPastedUrl: "",
   downloadQueue: [],
@@ -24,13 +26,6 @@ const state = {
   historySourceFilter: (() => {
     try {
       return window.localStorage.getItem("historySourceFilter") || "";
-    } catch {
-      return "";
-    }
-  })(),
-  historyQualityFilter: (() => {
-    try {
-      return window.localStorage.getItem("historyQualityFilter") || "";
     } catch {
       return "";
     }
@@ -48,9 +43,10 @@ const state = {
   })(),
   historyDensity: (() => {
     try {
-      return window.localStorage.getItem("historyDensity") || "regular";
+      const value = window.localStorage.getItem("historyDensity");
+      return value === "compact" ? "compact" : "comfort";
     } catch {
-      return "regular";
+      return "comfort";
     }
   })(),
 };

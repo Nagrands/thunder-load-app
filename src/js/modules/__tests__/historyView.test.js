@@ -45,7 +45,6 @@ const setupDom = () => {
     </div>
     <input id="filter-input" />
     <button id="history-density-compact"></button>
-    <button id="history-density-regular"></button>
     <button id="history-density-comfort"></button>
   `;
 

@@ -25,6 +25,88 @@ const normalizePageSize = (value) => {
   return Math.max(MIN_PAGE_SIZE, Math.min(MAX_PAGE_SIZE, Math.floor(n)));
 };
 
+const isAudioEntry = (entry) => {
+  const quality = entry?.quality || entry?.resolution || entry?.format || "";
+  return /audio/i.test(String(quality)) || /audio only/i.test(String(quality));
+};
+
+const parseSizeBytes = (entry) => {
+  if (!entry) return NaN;
+  if (Number.isFinite(entry.size)) return Number(entry.size);
+  const raw = entry.formattedSize || entry.size || "";
+  const str = String(raw).trim().replace(/,/g, ".");
+  const match = str.match(/([0-9.]+)\s*(b|kb|mb|gb|tb)/i);
+  if (!match) return NaN;
+  const value = Number(match[1]);
+  if (!Number.isFinite(value)) return NaN;
+  const unit = match[2].toLowerCase();
+  const multipliers = {
+    b: 1,
+    kb: 1024,
+    mb: 1024 ** 2,
+    gb: 1024 ** 3,
+    tb: 1024 ** 4,
+  };
+  return value * (multipliers[unit] || 1);
+};
+
+const parseQualityValue = (entry) => {
+  if (!entry) return NaN;
+  const q = String(entry.quality || entry.resolution || "").toLowerCase();
+  if (!q) return NaN;
+
+  // Audio: try bitrate first
+  if (q.includes("audio")) {
+    const kbpsMatch = q.match(/(\d{2,4})\s*kbps/);
+    if (kbpsMatch) return Number(kbpsMatch[1]);
+    const audioOnly = q.match(/(\d{2,4})\s*k/);
+    if (audioOnly) return Number(audioOnly[1]);
+    return 0;
+  }
+
+  const resMatch = q.match(/(\d{3,4})x(\d{3,4})/);
+  if (resMatch) return Number(resMatch[2]);
+  const pMatch = q.match(/(\d{3,4})\s*p/);
+  if (pMatch) return Number(pMatch[1]);
+
+  if (q.includes("8k")) return 4320;
+  if (q.includes("5k")) return 2880;
+  if (q.includes("4k") || q.includes("uhd")) return 2160;
+  if (q.includes("qhd") || q.includes("1440")) return 1440;
+  if (q.includes("fhd") || q.includes("1080")) return 1080;
+  if (q.includes("hd") || q.includes("720")) return 720;
+  if (q.includes("sd") || q.includes("480")) return 480;
+  if (q.includes("360")) return 360;
+  if (q.includes("240")) return 240;
+
+  const numMatch = q.match(/(\d{3,4})/);
+  return numMatch ? Number(numMatch[1]) : NaN;
+};
+
+const parseTimestampValue = (entry) => {
+  if (!entry) return NaN;
+  const t = new Date(entry.timestamp).getTime();
+  return Number.isNaN(t) ? NaN : t;
+};
+
+const compareValues = (a, b, order = "desc") => {
+  const aMissing = a === null || a === undefined || a === "" || Number.isNaN(a);
+  const bMissing = b === null || b === undefined || b === "" || Number.isNaN(b);
+  if (aMissing && bMissing) return 0;
+  if (aMissing) return 1;
+  if (bMissing) return -1;
+  let cmp = 0;
+  if (typeof a === "string" || typeof b === "string") {
+    cmp = String(a).localeCompare(String(b), undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  } else {
+    cmp = Number(a) - Number(b);
+  }
+  return order === "asc" ? cmp : -cmp;
+};
+
 function filterAndSortHistory(
   query,
   sortOrder = "desc",
@@ -34,7 +116,8 @@ function filterAndSortHistory(
   const allEntries = getHistoryData();
   const q = query.trim().toLowerCase();
   const sourceFilter = (state.historySourceFilter || "").toLowerCase();
-  const qualityFilter = (state.historyQualityFilter || "").toLowerCase();
+  const sortKey = state.currentSortKey || "date";
+  const sortMode = state.currentSortMode || "video";
 
   if (q !== lastQuery) {
     lastQuery = q;
@@ -43,12 +126,9 @@ function filterAndSortHistory(
 
   // Сброс "зависших" фильтров, когда таких значений больше нет в данных.
   const availableHosts = new Set();
-  const availableQualities = new Set();
   allEntries.forEach((entry) => {
     const host = getHost(entry.sourceUrl).toLowerCase();
     if (host) availableHosts.add(host);
-    const quality = (entry.quality || entry.resolution || "").toLowerCase();
-    if (quality) availableQualities.add(quality);
   });
 
   let filtersNormalized = false;
@@ -59,14 +139,6 @@ function filterAndSortHistory(
     } catch {}
     filtersNormalized = true;
   }
-  if (qualityFilter && !availableQualities.has(qualityFilter)) {
-    state.historyQualityFilter = "";
-    try {
-      localStorage.removeItem("historyQualityFilter");
-    } catch {}
-    filtersNormalized = true;
-  }
-
   if (filtersNormalized && !_isRetry) {
     // Повторяем фильтрацию с очищенными фильтрами, чтобы вернуть результаты.
     return filterAndSortHistory(query, sortOrder, true, true);
@@ -91,20 +163,81 @@ function filterAndSortHistory(
 
   const filteredByFacet = filtered.filter((entry) => {
     const host = getHost(entry.sourceUrl).toLowerCase();
-    const quality = (entry.quality || entry.resolution || "").toLowerCase();
     const matchesSource = !sourceFilter || host === sourceFilter;
-    const matchesQuality =
-      !qualityFilter ||
-      quality === qualityFilter ||
-      quality.includes(qualityFilter);
-    return matchesSource && matchesQuality;
+    return matchesSource;
   });
 
-  const sorted = filteredByFacet.sort((a, b) => {
-    const aTime = new Date(a.timestamp);
-    const bTime = new Date(b.timestamp);
-    return sortOrder === "asc" ? aTime - bTime : bTime - aTime;
-  });
+  const sorted = filteredByFacet
+    .map((entry, index) => ({ entry, index }))
+    .sort((a, b) => {
+      const aEntry = a.entry;
+      const bEntry = b.entry;
+      let cmp = 0;
+      if (sortKey === "size" || sortKey === "quality") {
+        const typeA = isAudioEntry(aEntry) ? 1 : 0;
+        const typeB = isAudioEntry(bEntry) ? 1 : 0;
+        if (sortMode === "audio") {
+          cmp = compareValues(typeA, typeB, "desc");
+        } else if (sortMode === "mixed") {
+          cmp = 0;
+        } else {
+          cmp = compareValues(typeA, typeB, "asc");
+        }
+        if (cmp !== 0) return cmp;
+      }
+      if (sortKey === "size") {
+        cmp = compareValues(
+          parseSizeBytes(aEntry),
+          parseSizeBytes(bEntry),
+          sortOrder,
+        );
+        if (cmp !== 0) return cmp;
+        // Secondary: date
+        cmp = compareValues(
+          parseTimestampValue(aEntry),
+          parseTimestampValue(bEntry),
+          sortOrder,
+        );
+      } else if (sortKey === "quality") {
+        cmp = compareValues(
+          parseQualityValue(aEntry),
+          parseQualityValue(bEntry),
+          sortOrder,
+        );
+        if (cmp !== 0) return cmp;
+        // Secondary: date
+        cmp = compareValues(
+          parseTimestampValue(aEntry),
+          parseTimestampValue(bEntry),
+          sortOrder,
+        );
+      } else if (sortKey === "source") {
+        cmp = compareValues(
+          getHost(aEntry.sourceUrl).toLowerCase(),
+          getHost(bEntry.sourceUrl).toLowerCase(),
+          sortOrder,
+        );
+        if (cmp !== 0) return cmp;
+        // Secondary: file name
+        cmp = compareValues(aEntry.fileName || "", bEntry.fileName || "", "asc");
+        if (cmp !== 0) return cmp;
+        // Tertiary: date (newer first)
+        cmp = compareValues(
+          parseTimestampValue(aEntry),
+          parseTimestampValue(bEntry),
+          "desc",
+        );
+      } else {
+        cmp = compareValues(
+          parseTimestampValue(aEntry),
+          parseTimestampValue(bEntry),
+          sortOrder,
+        );
+      }
+      if (cmp !== 0) return cmp;
+      return a.index - b.index;
+    })
+    .map((item) => item.entry);
 
   const totalEntries = sorted.length;
   const totalPages = Math.max(
@@ -120,7 +253,7 @@ function filterAndSortHistory(
     .map((e) => `${e.id}|${e.timestamp}`)
     .join(
       ",",
-    )}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|q${qualityFilter}`;
+    )}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|k${sortKey}|o${sortOrder}`;
 
   if (!forceRender && renderKey === lastRenderedKey) {
     return;

@@ -16,8 +16,8 @@ import {
   downloadButton,
   toggleAllDetailsButton,
   historyDensityCompact,
-  historyDensityRegular,
   historyDensityComfort,
+  historySortMode,
 } from "./domElements.js";
 import {
   state,
@@ -47,8 +47,12 @@ let historyEmptyRoot = historyEmpty;
 let historyCardPreviewOverlay = null;
 let historyCardPreviewImage = null;
 let historyCardPreviewCaption = null;
+let historyCardPreviewPrev = null;
+let historyCardPreviewNext = null;
+let historyCardPreviewCounter = null;
+let historyPreviewEntries = [];
+let historyPreviewIndex = -1;
 let historySourceFilterSelect = null;
-let historyQualityFilterSelect = null;
 let historyExportJsonButton = null;
 let historyExportCsvButton = null;
 let restoreHistoryButton = null;
@@ -60,15 +64,17 @@ let paginationInfo = null;
 let paginationPrev = null;
 let paginationNext = null;
 let paginationSize = null;
+let historySortKeySelect = null;
+let historySortModeSelect = null;
 let historyDensityButtons = {
   compact: null,
-  regular: null,
   comfort: null,
 };
 let historySelectUIs = {
   source: null,
-  quality: null,
   pageSize: null,
+  sortKey: null,
+  sortMode: null,
 };
 let lastPaginationMeta = {
   page: state.historyPage || 1,
@@ -97,8 +103,9 @@ const normalizePageSize = (value) => {
 
 const normalizeDensity = (value) => {
   const v = String(value || "").toLowerCase();
-  if (["compact", "regular", "comfort"].includes(v)) return v;
-  return "regular";
+  if (v === "compact") return "compact";
+  if (v === "comfort") return "comfort";
+  return "comfort";
 };
 
 const applyHistoryDensity = () => {
@@ -107,7 +114,6 @@ const applyHistoryDensity = () => {
   const density = normalizeDensity(state.historyDensity);
   container.classList.remove(
     "density-compact",
-    "density-regular",
     "density-comfort",
   );
   container.classList.add(`density-${density}`);
@@ -115,12 +121,6 @@ const applyHistoryDensity = () => {
     historyDensityButtons.compact.classList.toggle(
       "is-active",
       density === "compact",
-    );
-  }
-  if (historyDensityButtons.regular) {
-    historyDensityButtons.regular.classList.toggle(
-      "is-active",
-      density === "regular",
     );
   }
   if (historyDensityButtons.comfort) {
@@ -146,15 +146,19 @@ const syncHistorySelectValues = () => {
     historySourceFilterSelect.value = state.historySourceFilter || "";
     historySelectUIs.source?.updateLabel?.();
   }
-  if (historyQualityFilterSelect) {
-    historyQualityFilterSelect.value = state.historyQualityFilter || "";
-    historySelectUIs.quality?.updateLabel?.();
-  }
   if (paginationSize) {
     paginationSize.value = String(
       state.historyPageSize || HISTORY_PAGE_SIZES[0],
     );
     historySelectUIs.pageSize?.updateLabel?.();
+  }
+  if (historySortKeySelect) {
+    historySortKeySelect.value = state.currentSortKey || "date";
+    historySelectUIs.sortKey?.updateLabel?.();
+  }
+  if (historySortModeSelect) {
+    historySortModeSelect.value = state.currentSortMode || "video";
+    historySelectUIs.sortMode?.updateLabel?.();
   }
 };
 
@@ -582,11 +586,6 @@ function ensureHistoryControlElements() {
       "history-source-filter",
     );
   }
-  if (!historyQualityFilterSelect || !historyQualityFilterSelect.isConnected) {
-    historyQualityFilterSelect = document.getElementById(
-      "history-quality-filter",
-    );
-  }
   if (!historyExportJsonButton || !historyExportJsonButton.isConnected) {
     historyExportJsonButton = document.getElementById("history-export-json");
   }
@@ -612,14 +611,15 @@ function ensureHistoryControlElements() {
       "history-clear-selection",
     );
   }
+  if (!historySortKeySelect || !historySortKeySelect.isConnected) {
+    historySortKeySelect = document.getElementById("history-sort-key");
+  }
+  if (!historySortModeSelect || !historySortModeSelect.isConnected) {
+    historySortModeSelect = document.getElementById("history-sort-mode");
+  }
   if (!historyDensityButtons.compact || !historyDensityButtons.compact.isConnected) {
     historyDensityButtons.compact = document.getElementById(
       "history-density-compact",
-    );
-  }
-  if (!historyDensityButtons.regular || !historyDensityButtons.regular.isConnected) {
-    historyDensityButtons.regular = document.getElementById(
-      "history-density-regular",
     );
   }
   if (!historyDensityButtons.comfort || !historyDensityButtons.comfort.isConnected) {
@@ -631,8 +631,11 @@ function ensureHistoryControlElements() {
   if (!historySelectUIs.source) {
     historySelectUIs.source = enhanceSelect(historySourceFilterSelect);
   }
-  if (!historySelectUIs.quality) {
-    historySelectUIs.quality = enhanceSelect(historyQualityFilterSelect);
+  if (!historySelectUIs.sortKey) {
+    historySelectUIs.sortKey = enhanceSelect(historySortKeySelect);
+  }
+  if (!historySelectUIs.sortMode) {
+    historySelectUIs.sortMode = enhanceSelect(historySortModeSelect);
   }
 }
 
@@ -648,7 +651,7 @@ function ensureHistoryCardPreviewOverlay() {
   overlay.setAttribute("data-i18n-aria", "history.preview.overlayLabel");
   overlay.tabIndex = -1;
   overlay.innerHTML = `
-    <div class="history-card-preview-dialog">
+    <div class="history-card-preview-dialog" role="document">
       <button
         type="button"
         class="history-card-preview-close"
@@ -657,13 +660,34 @@ function ensureHistoryCardPreviewOverlay() {
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
+      <button
+        type="button"
+        class="history-card-preview-nav history-card-preview-prev"
+        aria-label="${t("history.preview.prev")}"
+        data-i18n-aria="history.preview.prev"
+      >
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button
+        type="button"
+        class="history-card-preview-nav history-card-preview-next"
+        aria-label="${t("history.preview.next")}"
+        data-i18n-aria="history.preview.next"
+      >
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
       <img class="history-card-preview-image" alt="" />
+      <div class="history-card-preview-counter"></div>
       <p class="history-card-preview-caption"></p>
     </div>
   `;
 
   const closeBtn = overlay.querySelector(".history-card-preview-close");
+  const prevBtn = overlay.querySelector(".history-card-preview-prev");
+  const nextBtn = overlay.querySelector(".history-card-preview-next");
   closeBtn.addEventListener("click", closeHistoryCardPreview);
+  prevBtn.addEventListener("click", () => openHistoryPreviewRelative(-1));
+  nextBtn.addEventListener("click", () => openHistoryPreviewRelative(1));
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) {
       closeHistoryCardPreview();
@@ -678,6 +702,20 @@ function ensureHistoryCardPreviewOverlay() {
     ) {
       closeHistoryCardPreview();
     }
+    if (
+      event.key === "ArrowLeft" &&
+      historyCardPreviewOverlay &&
+      !historyCardPreviewOverlay.classList.contains("hidden")
+    ) {
+      openHistoryPreviewRelative(-1);
+    }
+    if (
+      event.key === "ArrowRight" &&
+      historyCardPreviewOverlay &&
+      !historyCardPreviewOverlay.classList.contains("hidden")
+    ) {
+      openHistoryPreviewRelative(1);
+    }
   });
 
   historyCardPreviewOverlay = overlay;
@@ -687,6 +725,11 @@ function ensureHistoryCardPreviewOverlay() {
   historyCardPreviewCaption = overlay.querySelector(
     ".history-card-preview-caption",
   );
+  historyCardPreviewCounter = overlay.querySelector(
+    ".history-card-preview-counter",
+  );
+  historyCardPreviewPrev = overlay.querySelector(".history-card-preview-prev");
+  historyCardPreviewNext = overlay.querySelector(".history-card-preview-next");
 
   document.body.appendChild(overlay);
   return overlay;
@@ -705,12 +748,9 @@ function updateRestoreButton() {
 function buildFilterOptions(entries = []) {
   ensureHistoryControlElements();
   const hosts = new Set();
-  const qualities = new Set();
   entries.forEach((entry) => {
     const host = detectHost(entry.sourceUrl);
     if (host) hosts.add(host);
-    const q = entry.quality || entry.resolution;
-    if (q) qualities.add(q);
   });
 
   const applyOptions = (select, values, placeholder) => {
@@ -740,25 +780,51 @@ function buildFilterOptions(entries = []) {
     const ui =
       select === historySourceFilterSelect
         ? historySelectUIs.source
-        : select === historyQualityFilterSelect
-          ? historySelectUIs.quality
-          : select === paginationSize
-            ? historySelectUIs.pageSize
-            : null;
+        : select === paginationSize
+          ? historySelectUIs.pageSize
+          : null;
     ui?.rebuild?.();
     ui?.updateLabel?.();
   };
 
   applyOptions(historySourceFilterSelect, hosts, t("history.filter.source.all"));
-  applyOptions(
-    historyQualityFilterSelect,
-    qualities,
-    t("history.filter.quality.all"),
-  );
   syncHistorySelectValues();
 }
 
-function openHistoryCardPreview(src, title = "") {
+function updatePreviewNavState() {
+  if (!historyCardPreviewPrev || !historyCardPreviewNext) return;
+  const hasList = Array.isArray(historyPreviewEntries);
+  const total = hasList ? historyPreviewEntries.length : 0;
+  const hasPrev = total > 1 && historyPreviewIndex > 0;
+  const hasNext = total > 1 && historyPreviewIndex < total - 1;
+  historyCardPreviewPrev.disabled = !hasPrev;
+  historyCardPreviewNext.disabled = !hasNext;
+  if (historyCardPreviewCounter) {
+    if (total > 1 && historyPreviewIndex >= 0) {
+      historyCardPreviewCounter.textContent = `${historyPreviewIndex + 1} / ${total}`;
+    } else {
+      historyCardPreviewCounter.textContent = "";
+    }
+  }
+}
+
+function openHistoryPreviewRelative(delta) {
+  if (!Array.isArray(historyPreviewEntries) || !historyPreviewEntries.length)
+    return;
+  const nextIndex = historyPreviewIndex + delta;
+  if (nextIndex < 0 || nextIndex >= historyPreviewEntries.length) return;
+  const entry = historyPreviewEntries[nextIndex];
+  historyPreviewIndex = nextIndex;
+  const src = entry?.thumbnail || "";
+  if (!src) return;
+  const title = entry?.fileName || entry?.sourceUrl || t("preview.alt");
+  historyCardPreviewImage.src = src;
+  historyCardPreviewImage.alt = title;
+  historyCardPreviewCaption.textContent = title;
+  updatePreviewNavState();
+}
+
+function openHistoryCardPreview(src, title = "", entry = null) {
   if (!src) return;
   const overlay = ensureHistoryCardPreviewOverlay();
   historyCardPreviewImage.src = src;
@@ -766,14 +832,31 @@ function openHistoryCardPreview(src, title = "") {
   historyCardPreviewCaption.textContent = title || "";
   overlay.classList.remove("hidden");
   overlay.setAttribute("aria-hidden", "false");
+  overlay.classList.add("is-open");
   overlay.focus();
+
+  if (entry) {
+    historyPreviewEntries = Array.isArray(lastRenderedFiltered)
+      ? lastRenderedFiltered
+      : [];
+    historyPreviewIndex = historyPreviewEntries.findIndex(
+      (item) => item?.id === entry?.id,
+    );
+  } else {
+    historyPreviewEntries = [];
+    historyPreviewIndex = -1;
+  }
+  updatePreviewNavState();
 }
 
 function closeHistoryCardPreview() {
   if (!historyCardPreviewOverlay) return;
   historyCardPreviewOverlay.classList.add("hidden");
+  historyCardPreviewOverlay.classList.remove("is-open");
   historyCardPreviewOverlay.setAttribute("aria-hidden", "true");
   if (historyCardPreviewImage) historyCardPreviewImage.src = "";
+  historyPreviewEntries = [];
+  historyPreviewIndex = -1;
 }
 
 async function openHistorySourceLink(url) {
@@ -935,6 +1018,41 @@ const detectHost = (url = "") => {
   }
 };
 
+const formatSourceLabel = (url = "") => {
+  const host = detectHost(url);
+  if (!host) return "";
+  const map = new Map([
+    ["youtube.com", "YouTube"],
+    ["youtu.be", "YouTube"],
+    ["music.youtube.com", "YouTube Music"],
+    ["twitch.tv", "Twitch"],
+    ["vkvideo.ru", "VK Video"],
+    ["vk.com", "VK"],
+    ["vimeo.com", "Vimeo"],
+    ["rutube.ru", "RuTube"],
+    ["reddit.com", "Reddit"],
+    ["old.reddit.com", "Reddit"],
+    ["redd.it", "Reddit"],
+  ]);
+  if (map.has(host)) return map.get(host);
+  const main = host.split(".")[0] || host;
+  return main.charAt(0).toUpperCase() + main.slice(1);
+};
+
+const getSourceIconClass = (url = "") => {
+  const host = detectHost(url);
+  if (!host) return "";
+  if (host === "youtube.com" || host === "youtu.be" || host === "music.youtube.com") {
+    return "fa-brands fa-youtube";
+  }
+  if (host === "twitch.tv") return "fa-brands fa-twitch";
+  if (host === "vkvideo.ru" || host === "vk.com") return "fa-brands fa-vk";
+  if (host === "reddit.com" || host === "old.reddit.com" || host === "redd.it") {
+    return "fa-brands fa-reddit";
+  }
+  return "";
+};
+
 const isAudioEntry = (entry) => {
   const quality = entry?.quality || entry?.resolution || entry?.format || "";
   return /audio/i.test(quality) || /audio only/i.test(quality);
@@ -997,7 +1115,6 @@ async function downloadPreviewSource(src, baseName = "preview") {
       document.body.appendChild(a);
       a.click();
       setTimeout(() => document.body.removeChild(a), 0);
-      showToast(t("history.toast.previewSaved"), "success");
       return;
     }
 
@@ -1014,7 +1131,6 @@ async function downloadPreviewSource(src, baseName = "preview") {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 0);
-    showToast(t("history.toast.previewSaved"), "success");
   } catch (error) {
     console.warn("Не удалось скачать превью:", error);
     showToast(t("history.toast.previewDownloadError"), "error");
@@ -1294,7 +1410,7 @@ async function openHistoryCardFile(entry) {
     );
     if (!exists) {
       entry.isMissing = true;
-      renderHistoryCards(getHistoryData());
+      markEntryMissing(entry);
       return showToast(t("history.toast.fileMissing"), "error");
     }
     await window.electron.invoke("open-last-video", entry.filePath);
@@ -1313,7 +1429,7 @@ async function openHistoryCardFolder(entry) {
     );
     if (!exists) {
       entry.isMissing = true;
-      renderHistoryCards(getHistoryData());
+      markEntryMissing(entry);
       return showToast(t("history.toast.folderMissing"), "error");
     }
     await window.electron.invoke("open-download-folder", entry.filePath);
@@ -1396,6 +1512,7 @@ function renderHistoryCards(entries = []) {
         openHistoryCardPreview(
           img.src || thumbSrc,
           entry.fileName || entry.sourceUrl,
+          entry,
         ),
       );
       const zoomBadge = document.createElement("span");
@@ -1534,7 +1651,23 @@ function renderHistoryCards(entries = []) {
   });
 }
 
-function createLogEntry(entry, index) {
+function markEntryMissing(entry) {
+  if (!entry) return;
+  const id = entry.id?.toString?.() || "";
+  const current = getHistoryData();
+  if (!Array.isArray(current) || !current.length) return;
+  const updated = current.map((item) => {
+    if (!item) return item;
+    const itemId = item.id?.toString?.() || "";
+    if (id && itemId !== id) return item;
+    return { ...item, isMissing: true };
+  });
+  setHistoryData(updated);
+  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
+  renderHistoryCards(updated);
+}
+
+function createLogEntry(entry) {
   const el = document.createElement("div");
   el.className = "log-entry history-row";
   el.setAttribute("role", "listitem");
@@ -1599,15 +1732,12 @@ function createLogEntry(entry, index) {
     openHistoryCardPreview(
       thumbSrc,
       entry.fileName || entry.sourceUrl || t("preview.alt"),
+      entry,
     );
   });
 
   const titleRow = document.createElement("div");
   titleRow.className = "history-row__title";
-
-  const order = document.createElement("span");
-  order.className = "history-row__index";
-  order.textContent = `${index + 1}.`;
 
   const name = document.createElement("span");
   name.className = "history-row__name";
@@ -1618,6 +1748,21 @@ function createLogEntry(entry, index) {
   );
   name.setAttribute("data-bs-toggle", "tooltip");
   name.setAttribute("data-bs-placement", "top");
+
+  const dateChipLabel = formatCardDate(entry);
+  const dateChip = document.createElement("span");
+  dateChip.className = "history-row__date-chip";
+  dateChip.textContent = dateChipLabel || "";
+  if (!dateChipLabel) dateChip.classList.add("hidden");
+
+  const sourceChipLabel =
+    state.currentSortKey === "source"
+      ? formatSourceLabel(entry.sourceUrl)
+      : "";
+  const sourceChip = document.createElement("span");
+  sourceChip.className = "history-row__source-chip";
+  sourceChip.textContent = sourceChipLabel || "";
+  if (!sourceChipLabel) sourceChip.classList.add("hidden");
 
   const badges = document.createElement("div");
   badges.className = "history-row__badges";
@@ -1658,18 +1803,10 @@ function createLogEntry(entry, index) {
     badges.appendChild(missingBadge);
   }
 
-  titleRow.append(order, name);
+  titleRow.append(name, dateChip, sourceChip);
 
   const meta = document.createElement("div");
   meta.className = "history-row__meta";
-
-  const dateLabel = formatCardDate(entry) || entry.dateText || "";
-  if (dateLabel) {
-    const date = document.createElement("span");
-    date.className = "history-row__date";
-    date.innerHTML = `<i class=\"fa-regular fa-clock\"></i><span>${dateLabel}</span>`;
-    meta.appendChild(date);
-  }
 
   const sizeLabel = formatSizeLabel(entry);
   if (sizeLabel) {
@@ -1849,6 +1986,7 @@ function createLogEntry(entry, index) {
   downloadPreviewBtn.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
+    if (!thumbSrc) return;
     downloadPreviewSource(thumbSrc, entry.fileName || entry.id || "preview");
   });
   preview.appendChild(downloadPreviewBtn);
@@ -1863,6 +2001,16 @@ function createLogEntry(entry, index) {
     const icon = document.createElement("i");
     icon.className = "fa-regular fa-image";
     preview.appendChild(icon);
+  }
+  if (thumbSrc) {
+    preview.addEventListener("click", (event) => {
+      if (event.target.closest(".history-row__preview-download")) return;
+      openHistoryCardPreview(
+        thumbSrc,
+        entry.fileName || entry.sourceUrl || t("preview.alt"),
+        entry,
+      );
+    });
   }
 
   const detailsMeta = document.createElement("div");
@@ -2244,10 +2392,9 @@ function renderHistory(entries, meta = {}) {
   clearHistorySelection();
 
   if (isEmpty) {
-    const hasActiveFilters =
+  const hasActiveFilters =
       Boolean(state.currentSearchQuery?.trim()) ||
-      Boolean(state.historySourceFilter) ||
-      Boolean(state.historyQualityFilter);
+      Boolean(state.historySourceFilter);
     const hasUnderlyingHistory = getHistoryData().length > 0;
     const shouldHideControls = !hasActiveFilters && !hasUnderlyingHistory;
 
@@ -2299,26 +2446,29 @@ function renderHistory(entries, meta = {}) {
   if (filtersRow) filtersRow.classList.remove("hidden");
 
   let lastGroupKey = null;
-  pageEntries.forEach((entry, index) => {
-    const absoluteIndex = start + index;
-    const order =
-      state.currentSortOrder === "asc"
-        ? absoluteIndex + 1
-        : count - absoluteIndex;
-
+  pageEntries.forEach((entry) => {
     const entryDate = normalizeEntryDate(entry);
     const groupKey = getDayKey(entryDate);
     if (groupKey !== lastGroupKey) {
       lastGroupKey = groupKey;
       const group = document.createElement("div");
       group.className = "history-group";
-      group.innerHTML = `<span class="history-group__title">${escapeHtml(
+      const left = `<span class="history-group__title">${escapeHtml(
         getDayLabel(entryDate),
       )}</span>`;
+      const sourceLabel = formatSourceLabel(entry.sourceUrl);
+      const sourceIcon = getSourceIconClass(entry.sourceUrl);
+      const right =
+        state.currentSortKey === "source"
+          ? `<span class="history-group__source">${
+              sourceIcon ? `<i class="${sourceIcon}"></i>` : ""
+            }${escapeHtml(sourceLabel)}</span>`
+          : "";
+      group.innerHTML = `${left}${right}`;
       container.appendChild(group);
     }
 
-    const { el } = createLogEntry(entry, order - 1);
+    const { el } = createLogEntry(entry);
     container.appendChild(el);
   });
   requestAnimationFrame(() => {
@@ -2378,11 +2528,20 @@ function initHistory() {
       true,
     );
   });
-  historyQualityFilterSelect?.addEventListener("change", (e) => {
-    state.historyQualityFilter = e.target.value || "";
-    localStorage.setItem("historyQualityFilter", state.historyQualityFilter);
-    state.historyPage = 1;
-    historySelectUIs.quality?.updateLabel?.();
+  historySortKeySelect?.addEventListener("change", (e) => {
+    state.currentSortKey = e.target.value || "date";
+    localStorage.setItem("currentSortKey", state.currentSortKey);
+    historySelectUIs.sortKey?.updateLabel?.();
+    filterAndSortHistory(
+      state.currentSearchQuery,
+      state.currentSortOrder,
+      true,
+    );
+  });
+  historySortModeSelect?.addEventListener("change", (e) => {
+    state.currentSortMode = e.target.value || "video";
+    localStorage.setItem("currentSortMode", state.currentSortMode);
+    historySelectUIs.sortMode?.updateLabel?.();
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
@@ -2404,9 +2563,6 @@ function initHistory() {
   );
   historyDensityButtons.compact?.addEventListener("click", () =>
     setHistoryDensity("compact"),
-  );
-  historyDensityButtons.regular?.addEventListener("click", () =>
-    setHistoryDensity("regular"),
   );
   historyDensityButtons.comfort?.addEventListener("click", () =>
     setHistoryDensity("comfort"),

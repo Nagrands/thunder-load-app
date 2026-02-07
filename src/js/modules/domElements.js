@@ -23,7 +23,6 @@ const elements = {
   historyExportJsonButton: document.getElementById("history-export-json"),
   historyExportCsvButton: document.getElementById("history-export-csv"),
   historySourceFilter: document.getElementById("history-source-filter"),
-  historyQualityFilter: document.getElementById("history-quality-filter"),
   openFolderButton: document.getElementById("open-folder"),
   iconPlaceholder:
     document.getElementById("icon-url-globe") ||
@@ -49,9 +48,10 @@ const elements = {
     .getElementById("shortcuts-modal")
     ?.querySelector(".close"),
   sortButton: document.getElementById("sort-button"),
+  historySortKey: document.getElementById("history-sort-key"),
+  historySortMode: document.getElementById("history-sort-mode"),
   toggleAllDetailsButton: document.getElementById("toggle-all-details"),
   historyDensityCompact: document.getElementById("history-density-compact"),
-  historyDensityRegular: document.getElementById("history-density-regular"),
   historyDensityComfort: document.getElementById("history-density-comfort"),
   contextMenu: document.getElementById("context-menu"),
   versionContainer: document.querySelector(".version-container"),
@@ -98,8 +98,9 @@ const OPTIONAL_KEYS = new Set([
   "historySelectedCount",
   "historyClearSelection",
   "historyDensityCompact",
-  "historyDensityRegular",
   "historyDensityComfort",
+  "historySortKey",
+  "historySortMode",
 ]);
 
 // Проверка наличия всех элементов и вывод ошибок
@@ -137,7 +138,6 @@ export const {
   historyExportJsonButton,
   historyExportCsvButton,
   historySourceFilter,
-  historyQualityFilter,
   openFolderButton,
   iconPlaceholder,
   iconFilterSearch,
@@ -157,9 +157,10 @@ export const {
   confirmationModal,
   closeSpan,
   sortButton,
+  historySortKey,
+  historySortMode,
   toggleAllDetailsButton,
   historyDensityCompact,
-  historyDensityRegular,
   historyDensityComfort,
   contextMenu,
   versionContainer,
