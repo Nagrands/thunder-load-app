@@ -2,6 +2,7 @@
 
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
+import { applyI18n, t } from "../i18n.js";
 
 /**
  * @typedef {Object} BackupProgram
@@ -55,6 +56,7 @@ export default function renderBackup() {
   }
 
   const ipc = window.electron?.ipcRenderer || window.electron;
+  const tb = (key, vars) => t(`backup.${key}`, vars);
 
   /**
    * Wrapper over Electron's ipcRenderer.invoke with a guarded fallback.
@@ -106,19 +108,19 @@ export default function renderBackup() {
         <div class="title">
           <i class="fa-solid fa-database"></i>
           <div class="text">
-            <h2>BackUp Manager</h2>
-            <p class="subtitle">Резервное копирование файлов и папок</p>
+            <h2 data-i18n="backup.title">Backup Manager</h2>
+            <p class="subtitle" data-i18n="backup.subtitle">Резервное копирование файлов и папок</p>
           </div>
         </div>
       </div>
       <div class="wg-glass">
 
-      <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями">
+      <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями" data-i18n-aria="backup.toolbar.aria">
         <div id="bk-progress-container" class="bk-progress-container">
           <div class="bk-progress">
             <div class="bk-progress-bar" style="width: 0%"></div>
             <div class="bk-progress-content">
-              <span class="bk-progress-text primary">Выполнение резервного копирования...</span>
+              <span class="bk-progress-text primary" data-i18n="backup.progress.running">Выполнение резервного копирования...</span>
               <div class="bk-progress-stats">
                 <span class="stat">
                   <i class="fa-solid fa-play-circle"></i>
@@ -146,7 +148,7 @@ export default function renderBackup() {
 
         <h1 class="section-heading">
           <div class="bk-heading-control">
-            <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями">
+            <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями" data-i18n-title="backup.manage.title">
               <i class="fa-solid fa-list-check"></i>
             </button>
           </div>
@@ -154,8 +156,8 @@ export default function renderBackup() {
           <div class="bk-heading-search">
             <div class="bk-search-container">
               <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
-              <input type="text" id="bk-filter" placeholder="Поиск профиля, тега, пути..." class="input" />
-              <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск">
+              <input type="text" id="bk-filter" placeholder="Поиск профиля, тега, пути..." class="input" data-i18n-placeholder="backup.search.placeholder" />
+              <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск" data-i18n-title="backup.search.clear">
                 <i class="fa-solid fa-times"></i>
               </button>
             </div>
@@ -163,37 +165,37 @@ export default function renderBackup() {
           </div>
 
           <div class="bk-actions">
-            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль">
+            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль" data-i18n-title="backup.action.create">
               <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" disabled style="display:none;">
+            <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" data-i18n-title="backup.action.runSelected" disabled style="display:none;">
               <i class="fa-solid fa-play"></i>
               <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
             </button>
-            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" disabled>
+            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" data-i18n-title="backup.action.deleteSelected" disabled>
               <i class="fa-solid fa-trash"></i>
               <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
           </div>
 
-          <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="Отфильтровано / всего">0/0</span>
+          <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="Отфильтровано / всего" data-i18n-title="backup.count.title">0/0</span>
         </h1>
 
         <div class="bk-filters-advanced">
           <label class="bk-filter-control">
-            <span class="label">Тип архива</span>
+            <span class="label" data-i18n="backup.filter.archive.label">Тип архива</span>
             <select id="bk-filter-archive" class="input input-sm">
-              <option value="all">Все</option>
+              <option value="all" data-i18n="backup.filter.archive.all">Все</option>
               <option value="zip">ZIP</option>
               <option value="tar.gz">TAR.GZ</option>
             </select>
           </label>
           <div class="bk-pagination">
-            <button id="bk-page-prev" class="history-action-button" title="Предыдущая страница">
+            <button id="bk-page-prev" class="history-action-button" title="Предыдущая страница" data-i18n-title="backup.pagination.prev">
               <i class="fa-solid fa-chevron-left"></i>
             </button>
             <span id="bk-page-info" class="text-xs muted">1 / 1</span>
-            <button id="bk-page-next" class="history-action-button" title="Следующая страница">
+            <button id="bk-page-next" class="history-action-button" title="Следующая страница" data-i18n-title="backup.pagination.next">
               <i class="fa-solid fa-chevron-right"></i>
             </button>
             <select id="bk-page-size" class="input input-sm bk-page-size">
@@ -210,16 +212,16 @@ export default function renderBackup() {
         <details class="wg-log-block">
           <summary>
             <i class="fa-solid fa-terminal"></i>
-            Лог активности
+            <span data-i18n="backup.log.title">Лог активности</span>
           </summary>
-          <div class="log-actions" aria-label="Действия с логом">
-            <button id="bk-log-copy" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог">
+          <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="backup.log.actions.aria">
+            <button id="bk-log-copy" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог" data-i18n-title="backup.log.copy">
               <i class="fa-solid fa-copy"></i>
             </button>
-            <button id="bk-log-export" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
+            <button id="bk-log-export" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="backup.log.export">
               <i class="fa-solid fa-download"></i>
             </button>
-            <button id="bk-log-clear" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+            <button id="bk-log-clear" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="backup.log.clear">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -230,7 +232,9 @@ export default function renderBackup() {
   `;
 
   container.innerHTML = html;
+  applyI18n(container);
   wrapper.appendChild(container);
+  window.addEventListener("i18n:changed", () => applyI18n(wrapper));
 
   const VIEW_MODE_KEY = "bk_view_mode";
   const LOG_VISIBLE_KEY = "bk_log_visible";
@@ -323,16 +327,16 @@ export default function renderBackup() {
     <div class="modal-content bk-modal bk-manage-modal">
       <div class="modal-header">
         <div>
-          <h2><i class="fa-solid fa-list-check"></i> Управление профилями</h2>
-          <p class="modal-subtitle">Переключайте профили, чтобы удалить или запустить несколько за раз.</p>
+          <h2><i class="fa-solid fa-list-check"></i> <span data-i18n="backup.manage.title">Управление профилями</span></h2>
+          <p class="modal-subtitle" data-i18n="backup.manage.subtitle">Переключайте профили, чтобы удалить или запустить несколько за раз.</p>
         </div>
-        <button class="close-modal bk-close" aria-label="Закрыть">&times;</button>
+        <button class="close-modal bk-close" aria-label="Закрыть" data-i18n-aria="backup.common.close">&times;</button>
       </div>
       <div class="modal-body">
         <div class="bk-manage-toolbar">
           <label class="checkbox-label" style="gap:.5rem">
             <input type="checkbox" id="bk-del-select-all">
-            <span>Выбрать все</span>
+            <span data-i18n="backup.manage.selectAll">Выбрать все</span>
           </label>
           <span id="bk-manage-counter" class="muted">0 выбрано</span>
         </div>
@@ -341,10 +345,10 @@ export default function renderBackup() {
       <div class="modal-footer">
         <div class="modal-footer-actions">
           <button type="button" id="bk-confirm-run" class="btn btn-primary" disabled>
-            <i class="fa-solid fa-play"></i> Запустить выбранные
+            <i class="fa-solid fa-play"></i> <span data-i18n="backup.manage.runSelected">Запустить выбранные</span>
           </button>
           <button type="button" id="bk-confirm-delete" class="btn btn-danger" disabled>
-            <i class="fa-solid fa-trash"></i> Удалить выбранные
+            <i class="fa-solid fa-trash"></i> <span data-i18n="backup.manage.deleteSelected">Удалить выбранные</span>
           </button>
         </div>
       </div>
@@ -357,6 +361,7 @@ export default function renderBackup() {
     _docEl.style.overflow = "hidden";
     overlay.style.display = "flex";
     wrapper.appendChild(overlay);
+    applyI18n(overlay);
 
     const q = (s) => overlay.querySelector(s);
     const listEl = q("#bk-delete-list");
@@ -367,19 +372,20 @@ export default function renderBackup() {
 
     // Вычисляем уже выделенные профили по текущему состоянию выбора
     const selectedIndices = getSelectedIndices();
+    applyI18n(overlay);
 
     // Генерация списка профилей из состояния
     listEl.innerHTML = state.programs
       .map((p, idx) => {
         const checked = selectedIndices.includes(idx) ? "checked" : "";
-        const name = p.name || `Профиль ${idx + 1}`;
+        const name = p.name || tb("profile.fallbackName", { index: idx + 1 });
         const key = profileKey(p);
         const locked = lockedProfiles.has(key);
         const checkedAttr = locked ? "" : checked;
         return `
       <div class="form-check">
         <input class="form-check-input bk-del-chk" type="checkbox" data-index="${idx}" ${checkedAttr} ${locked ? "disabled" : ""}>
-        <label class="form-check-label">${name}${locked ? ' <span class="locked-badge">В процессе</span>' : ""}</label>
+        <label class="form-check-label">${name}${locked ? ` <span class="locked-badge">${tb("profile.locked")}</span>` : ""}</label>
       </div>`;
       })
       .join("");
@@ -400,7 +406,10 @@ export default function renderBackup() {
       const any = checked.length > 0;
       if (deleteBtn) deleteBtn.disabled = !any;
       if (runBtn) runBtn.disabled = !any;
-      if (counterEl) counterEl.textContent = `${checked.length} выбрано`;
+      if (counterEl)
+        counterEl.textContent = tb("manage.selectedCount", {
+          count: checked.length,
+        });
     };
 
     const onItemChange = (chk) => {
@@ -475,7 +484,8 @@ export default function renderBackup() {
     toggleViewBtn.id = "bk-toggle-view";
     toggleViewBtn.className = "btn btn-sm";
     toggleViewBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
-    toggleViewBtn.title = "Переключить вид";
+    toggleViewBtn.title = tb("action.toggleView");
+    toggleViewBtn.setAttribute("data-i18n-title", "backup.action.toggleView");
     toggleViewBtn.setAttribute("data-bs-toggle", "tooltip");
     toggleViewBtn.setAttribute("data-bs-placement", "top");
 
@@ -528,6 +538,7 @@ export default function renderBackup() {
 
     const wrapper = document.createElement("div");
     wrapper.className = "bk-select-wrapper";
+    if (selectEl?.id) wrapper.dataset.kind = selectEl.id;
     const trigger = document.createElement("button");
     trigger.type = "button";
     trigger.className = "bk-select-trigger";
@@ -682,17 +693,18 @@ export default function renderBackup() {
   const hintsBlock = document.createElement("div");
   hintsBlock.className = "info-card bk-hints";
   hintsBlock.innerHTML = `
-    <h3><i class="fa-solid fa-lightbulb"></i> Советы</h3>
+    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="backup.hints.title">Советы</span></h3>
     <p class="bk-hint-text"></p>
   `;
   subtitle?.appendChild(hintsBlock);
+  applyI18n(hintsBlock);
 
   const hints = [
-    "💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.",
-    "👆 Выделяйте профили одним кликом по карточке — чекбоксы больше не нужны.",
-    "⚙️ Используйте кнопку «Запустить для выбранных», чтобы копировать несколько профилей сразу.",
-    "📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.",
-    "🕒 Последнее время успешного копирования видно под именем каждого профиля.",
+    tb("hints.1"),
+    tb("hints.2"),
+    tb("hints.3"),
+    tb("hints.4"),
+    tb("hints.5"),
   ];
 
   let hintIndex = 0;
@@ -836,7 +848,7 @@ export default function renderBackup() {
       navigator.clipboard.writeText(line.textContent.trim()).then(() => {
         line.classList.add("copied");
         setTimeout(() => line.classList.remove("copied"), 500);
-        showToast("Строка скопирована в буфер", "success");
+        showToast(tb("log.lineCopied"), "success");
       });
     });
 
@@ -868,7 +880,7 @@ export default function renderBackup() {
     const oks = [];
 
     results.forEach((r) => {
-      const name = r?.name || "Без имени";
+      const name = r?.name || tb("profile.unnamed");
       if (Array.isArray(r?.errors) && r.errors.length) {
         r.errors.forEach((e) => errors.push({ ...e, name, severity: "error" }));
       }
@@ -899,10 +911,13 @@ export default function renderBackup() {
         ? "fa-circle-exclamation"
         : "fa-circle-check";
     const summaryText = hasErrors
-      ? `Префлайт: ${errors.length} ошибок, ${warnings.length} предупреждений`
+      ? tb("preflight.summary.errors", {
+          errors: errors.length,
+          warnings: warnings.length,
+        })
       : hasWarnings
-        ? `Префлайт: предупреждения (${warnings.length})`
-        : `Префлайт: готово (${results.length})`;
+        ? tb("preflight.summary.warnings", { warnings: warnings.length })
+        : tb("preflight.summary.ok", { count: results.length });
 
     const items = [];
     errors.forEach((issue) => {
@@ -924,7 +939,7 @@ export default function renderBackup() {
     if (!items.length) {
       items.push(
         `<li class="pf-issue pf-ok">
-          <div class="pf-title"><i class="fa-solid fa-circle-check"></i> Проверка пройдена для ${oks.length || results.length} профиля(ей)</div>
+          <div class="pf-title"><i class="fa-solid fa-circle-check"></i> ${tb("preflight.checkPassed", { count: oks.length || results.length })}</div>
         </li>`,
       );
     }
@@ -936,13 +951,14 @@ export default function renderBackup() {
           <span>${summaryText}</span>
         </div>
         <div class="pf-actions">
-          <button type="button" class="history-action-button pf-hide" title="Скрыть">
+          <button type="button" class="history-action-button pf-hide" title="Скрыть" data-i18n-title="backup.common.hide">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
       <ul class="pf-list">${items.join("")}</ul>
     `;
+    applyI18n(preflightBox);
     preflightBox.style.display = "";
     preflightBox.dataset.state = statusClass;
     preflightBox.classList.remove("is-error", "is-warn", "is-ok");
@@ -1141,8 +1157,9 @@ export default function renderBackup() {
 
     if (del) del.disabled = count === 0;
     if (runSel) runSel.disabled = count === 0;
-    if (runSel) runSel.title = `Запустить для выбранных (${count})`;
-    if (del) del.title = `Удалить выбранные (${count})`;
+    if (runSel)
+      runSel.title = tb("action.runSelectedCount", { count: count });
+    if (del) del.title = tb("action.deleteSelectedCount", { count: count });
 
     // Update Bootstrap tooltips
     const updateTooltip = (el, text) => {
@@ -1212,16 +1229,16 @@ export default function renderBackup() {
    * @returns {string}
    */
   function formatLast(ts) {
-    if (!ts) return "—";
+    if (!ts) return tb("time.never");
     const diff = Math.max(0, Date.now() - Number(ts));
     const s = Math.floor(diff / 1000);
-    if (s < 60) return `${s}s назад`;
+    if (s < 60) return tb("time.secondsAgo", { count: s });
     const m = Math.floor(s / 60);
-    if (m < 60) return `${m} мин. назад`;
+    if (m < 60) return tb("time.minutesAgo", { count: m });
     const h = Math.floor(m / 60);
-    if (h < 24) return `${h} ч. назад`;
+    if (h < 24) return tb("time.hoursAgo", { count: h });
     const d = Math.floor(h / 24);
-    return `${d} дн. назад`;
+    return tb("time.daysAgo", { count: d });
   }
 
   /**
@@ -1230,11 +1247,13 @@ export default function renderBackup() {
    * @returns {{text:string, cls:string}}
    */
   function lastLabel(ts) {
-    if (!ts) return { text: "не выполнялась", cls: "is-none" };
+    if (!ts) return { text: tb("time.neverRan"), cls: "is-none" };
     const diff = Math.max(0, Date.now() - Number(ts));
     const s = Math.floor(diff / 1000);
-    if (s < 60 * 60 * 24) return { text: "сегодня", cls: "is-fresh" };
-    if (s < 60 * 60 * 24 * 7) return { text: formatLast(ts), cls: "is-recent" };
+    if (s < 60 * 60 * 24)
+      return { text: tb("time.today"), cls: "is-fresh" };
+    if (s < 60 * 60 * 24 * 7)
+      return { text: formatLast(ts), cls: "is-recent" };
     return { text: formatLast(ts), cls: "is-stale" };
   }
 
@@ -1258,7 +1277,7 @@ export default function renderBackup() {
       renderList();
     } catch (error) {
       console.error("Failed to load backup programs:", error);
-      toast("Не удалось загрузить профили: " + error.message, "error");
+      toast(tb("load.errorWithReason", { reason: error.message }), "error");
       renderList();
     }
   };
@@ -1353,7 +1372,9 @@ export default function renderBackup() {
     const sinfo = getEl("#bk-search-info");
     if (sinfo) {
       const anyFilter = state.filter || state.archiveFilter !== "all";
-      sinfo.textContent = anyFilter ? `найдено: ${filtered.length}` : "";
+      sinfo.textContent = anyFilter
+        ? tb("search.found", { count: filtered.length })
+        : "";
     }
 
     const resetFilters = () => {
@@ -1376,18 +1397,18 @@ export default function renderBackup() {
           <div class="wg-alert-content">
             ${
               hasPrograms
-                ? "Нет профилей по текущим фильтрам."
-                : "Нет профиля — добавьте первый."
+                ? tb("empty.filtered")
+                : tb("empty.none")
             }
           </div>
           <div class="wg-alert-actions">
             ${
               hasPrograms
                 ? `<button id="bk-reset-filters" class="btn btn-sm">
-                    <i class="fa-solid fa-rotate-left" style="margin-right:6px"></i>Сбросить фильтры
+                    <i class="fa-solid fa-rotate-left" style="margin-right:6px"></i>${tb("action.resetFilters")}
                   </button>`
                 : `<button id="bk-create-first" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-plus" style="margin-right:6px"></i>Создать
+                    <i class="fa-solid fa-plus" style="margin-right:6px"></i>${tb("action.createFirst")}
                   </button>`
             }
           </div>
@@ -1446,7 +1467,7 @@ export default function renderBackup() {
       <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
       ${
         tags.length
-          ? `<div class="bk-tags" aria-label="Теги">${tags
+          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
               .map((t) => `<span class="bk-tag">${t}</span>`)
               .join("")}</div>`
           : ""
@@ -1488,27 +1509,27 @@ export default function renderBackup() {
       const patterns =
         Array.isArray(p.config_patterns) && p.config_patterns.length
           ? p.config_patterns.join(", ")
-          : "все файлы";
+          : tb("filter.allFiles");
 
       row.innerHTML = `
     <div class="bk-row-content min-w-0">
       <div class="font-semibold truncate">${p.name}</div>
       <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
-      <div class="back-filter">Фильтры: ${patterns}</div>
+      <div class="back-filter">${tb("filter.label")} ${patterns}</div>
       ${
         tags.length
-          ? `<div class="bk-tags" aria-label="Теги">${tags
+          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
               .map((t) => `<span class="bk-tag">${t}</span>`)
               .join("")}</div>`
           : ""
       }
-      <div class="text-xs text-muted">Последняя копия: <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
+      <div class="text-xs text-muted">${tb("lastCopy.label")} <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
     </div>
     <div class="bk-row-actions">
-      <button class="btn btn-sm bk-edit" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa-solid fa-pen"></i></button>
-      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть исходник"><i class="fa-regular fa-folder-open"></i></button>
-      <button class="btn btn-sm bk-open" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть папку назначения"><i class="fa-solid fa-folder-open"></i></button>
-      <button class="btn btn-sm bk-run" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить"><i class="fa-solid fa-play"></i></button>
+      <button class="btn btn-sm bk-edit" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.edit")}"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.openSource")}"><i class="fa-regular fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-open" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.openDestination")}"><i class="fa-solid fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-run" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.run")}"><i class="fa-solid fa-play"></i></button>
     </div>
   `;
 
@@ -1623,8 +1644,8 @@ export default function renderBackup() {
         <div class="filter-clear-container input-container">
           <input id="${id}" class="input" type="text" placeholder="${hint}" value="${value}" ${required ? "required" : ""} aria-describedby="${id}-hint ${id}-err"/>
           <div class="input-actions">
-            ${hasPick ? `<button type="button" class="pick-folder-btn history-action-button" data-pick="#${id}" title="Выбрать папку" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>` : ""}
-            <button type="button" class="clear-field-btn history-action-button" data-target="#${id}" title="Очистить" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-solid fa-times-circle"></i></button>
+            ${hasPick ? `<button type="button" class="pick-folder-btn history-action-button" data-pick="#${id}" title="${tb("action.pickFolder")}" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-regular fa-folder-open"></i></button>` : ""}
+            <button type="button" class="clear-field-btn history-action-button" data-target="#${id}" title="${tb("action.clear")}" data-bs-toggle="tooltip" data-bs-placement="top"><i class="fa-solid fa-times-circle"></i></button>
           </div>
         </div>
       </label>`;
@@ -1655,16 +1676,16 @@ export default function renderBackup() {
     if (!isNew) {
       const key = profileKey(init);
       if (lockedProfiles.has(key)) {
-        toast("Профиль занят выполняющимся резервным копированием.", "warning");
+        toast(tb("profile.busy"), "warning");
         return;
       }
     }
 
     const nameFieldHTML = renderField(
-      "Название *",
+      tb("field.name.label"),
       "f-name",
       init.name || "",
-      "Имя профиля и создаваемого архива",
+      tb("field.name.hint"),
       true,
     );
 
@@ -1673,27 +1694,27 @@ export default function renderBackup() {
     overlay.innerHTML = `
       <div class="modal-content bk-modal">
         <div class="modal-header">
-          <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? "Создание профиля" : `Редактирование профиля - ${init.name}`}</h2>
-          <button class="close-modal bk-close" aria-label="Закрыть" title="Закрыть">&times;</button>
+          <h2><i class="fa-solid fa-box-archive"></i> ${isNew ? tb("modal.create.title") : `${tb("modal.edit.titlePrefix")} ${init.name}`}</h2>
+          <button class="close-modal bk-close" aria-label="${tb("common.close")}" title="${tb("common.close")}">&times;</button>
         </div>
         <div class="modal-body bk-form-grid bk-form-split" data-preview-visible="true">
           <div class="bk-form-main">
             ${nameFieldHTML}
-            ${renderField("Исходная папка *", "f-src", init.source_path || "", "Укажите путь к папке резервного копирования", true, true)}
-            ${renderField("Папка бэкапа *", "f-dst", init.backup_path || "", "Путь, где будет храниться резервная копия", true, true)}
+            ${renderField(tb("field.source.label"), "f-src", init.source_path || "", tb("field.source.hint"), true, true)}
+            ${renderField(tb("field.destination.label"), "f-dst", init.backup_path || "", tb("field.destination.hint"), true, true)}
             <label class="wg-field flex flex-col gap-1">
-                <span class="text-sm">Тип архива</span>
+                <span class="text-sm">${tb("field.archiveType.label")}</span>
                 <select id="f-archive-type" class="input">
                   <option value="zip" ${(init.archive_type || "zip") === "zip" ? "selected" : ""}>ZIP</option>
                   <option value="tar.gz" ${(init.archive_type || "zip") === "tar.gz" ? "selected" : ""}>TAR.GZ</option>
                 </select>
             </label>
-            ${renderField("Фильтры файлов", "f-pats", (init.config_patterns || []).join(","), "Поддерживаются * и ? (по имени файла)", false)}
-            ${renderField("Теги", "f-tags", (init.tags || []).join(","), "Через запятую: games,configs", false)}
-            ${renderField("Папка настроек", "f-prof", init.profile_path || "", "Будет создан подкаталог «Profiles»", false, true)}
+            ${renderField(tb("field.filters.label"), "f-pats", (init.config_patterns || []).join(","), tb("field.filters.hint"), false)}
+            ${renderField(tb("field.tags.label"), "f-tags", (init.tags || []).join(","), tb("field.tags.hint"), false)}
+            ${renderField(tb("field.profile.label"), "f-prof", init.profile_path || "", tb("field.profile.hint"), false, true)}
           </div>
           <div class="bk-preview-card">
-            <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>Предпросмотр</strong></div>
+            <div class="text-xs text-muted" style="padding: 4px 0;font-weight:600;"><strong>${tb("preview.title")}</strong></div>
             <div id="bk-preview" class="text-sm bk-preview"></div>
           </div>
         </div>
@@ -1702,14 +1723,14 @@ export default function renderBackup() {
             <label class="checkbox-label bk-run-checkbox">
               <input type="checkbox" id="bk-save-run" />
               <i class="fa-solid fa-play"></i>
-              <span class="text-xs text-muted">Запустить</span>
+              <span class="text-xs text-muted">${tb("action.run")}</span>
             </label>
             </div>
-          <button class="bk-preview-toggle" id="bk-preview-toggle" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Скрыть предпросмотр" title="Скрыть предпросмотр" data-hint="Показать/скрыть предпросмотр">
+          <button class="bk-preview-toggle" id="bk-preview-toggle" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="${tb("preview.hide")}" title="${tb("preview.hide")}" data-hint="${tb("preview.toggleHint")}">
               <i class="fa-regular fa-eye-slash"></i>
           </button>
-          <button class="btn btn-sm btn-secondary bk-close">Отмена</button>
-          <button id="bk-save" class="btn btn-sm btn-primary">Сохранить</button>
+          <button class="btn btn-sm btn-secondary bk-close">${tb("common.cancel")}</button>
+          <button id="bk-save" class="btn btn-sm btn-primary">${tb("common.save")}</button>
         </div>
       </div>
       `;
@@ -1754,11 +1775,9 @@ export default function renderBackup() {
         if (icon) icon.className = hidden ? ICON_SHOW : ICON_HIDE;
         toggleBtn.setAttribute(
           "aria-label",
-          hidden ? "Показать предпросмотр" : "Скрыть предпросмотр",
+          hidden ? tb("preview.show") : tb("preview.hide"),
         );
-        toggleBtn.title = hidden
-          ? "Показать предпросмотр"
-          : "Скрыть предпросмотр";
+        toggleBtn.title = hidden ? tb("preview.show") : tb("preview.hide");
       };
       const hidden = readHidden();
       apply(hidden);
@@ -1788,7 +1807,7 @@ export default function renderBackup() {
         const btnList = document.createElement("button");
         btnList.type = "button";
         btnList.className = "history-action-button name-list-btn";
-        btnList.title = "Использовать профиль";
+        btnList.title = tb("action.useProfile");
         btnList.setAttribute("data-bs-toggle", "tooltip");
         btnList.setAttribute("data-bs-placement", "top");
         btnList.innerHTML = '<i class="fa-solid fa-list"></i>';
@@ -1886,7 +1905,7 @@ export default function renderBackup() {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "history-action-button file-filter-btn";
-        btn.title = "Выбрать тип файла";
+        btn.title = tb("action.chooseFileType");
         btn.setAttribute("data-bs-toggle", "tooltip");
         btn.setAttribute("data-bs-placement", "top");
         btn.innerHTML = '<i class="fa-solid fa-filter"></i>';
@@ -1912,59 +1931,77 @@ export default function renderBackup() {
             listBox.style.color = "#fff";
             inputContainer.appendChild(listBox);
 
-            const categories = {
-              Конфигурации: [
-                "*.ini",
-                "*.cfg",
-                "*.conf",
-                "*.json",
-                "*.yaml",
-                "*.yml",
-                "*.xml",
-              ],
-              "Сценарии и программы": [
-                "*.bat",
-                "*.cmd",
-                "*.ps1",
-                "*.sh",
-                "*.exe",
-                "*.msi",
-                "*.jar",
-                "*.py",
-              ],
-              Документы: [
-                "*.txt",
-                "*.pdf",
-                "*.rtf",
-                "*.doc",
-                "*.docx",
-                "*.xls",
-                "*.xlsx",
-                "*.csv",
-                "*.odt",
-              ],
-              Изображения: [
-                "*.png",
-                "*.jpg",
-                "*.jpeg",
-                "*.gif",
-                "*.bmp",
-                "*.webp",
-                "*.svg",
-              ],
-              "Аудио и видео": [
-                "*.mp3",
-                "*.wav",
-                "*.flac",
-                "*.ogg",
-                "*.mp4",
-                "*.mkv",
-                "*.avi",
-                "*.mov",
-                "*.webm",
-              ],
-              Прочее: ["*.dat", "*.log", "*.bak", "*.tmp", "*.sii"],
-            };
+            const categories = [
+              {
+                label: tb("filters.category.configs"),
+                exts: [
+                  "*.ini",
+                  "*.cfg",
+                  "*.conf",
+                  "*.json",
+                  "*.yaml",
+                  "*.yml",
+                  "*.xml",
+                ],
+              },
+              {
+                label: tb("filters.category.scripts"),
+                exts: [
+                  "*.bat",
+                  "*.cmd",
+                  "*.ps1",
+                  "*.sh",
+                  "*.exe",
+                  "*.msi",
+                  "*.jar",
+                  "*.py",
+                ],
+              },
+              {
+                label: tb("filters.category.docs"),
+                exts: [
+                  "*.txt",
+                  "*.pdf",
+                  "*.rtf",
+                  "*.doc",
+                  "*.docx",
+                  "*.xls",
+                  "*.xlsx",
+                  "*.csv",
+                  "*.odt",
+                ],
+              },
+              {
+                label: tb("filters.category.images"),
+                exts: [
+                  "*.png",
+                  "*.jpg",
+                  "*.jpeg",
+                  "*.gif",
+                  "*.bmp",
+                  "*.webp",
+                  "*.svg",
+                ],
+              },
+              {
+                label: tb("filters.category.media"),
+                exts: [
+                  "*.mp3",
+                  "*.wav",
+                  "*.flac",
+                  "*.ogg",
+                  "*.mp4",
+                  "*.mkv",
+                  "*.avi",
+                  "*.mov",
+                  "*.webm",
+                ],
+              },
+              {
+                label: tb("filters.category.other"),
+                exts: ["*.dat", "*.log", "*.bak", "*.tmp", "*.sii"],
+              },
+            ];
 
             const selected = new Set(
               patsField.value
@@ -1973,7 +2010,7 @@ export default function renderBackup() {
                 .filter(Boolean),
             );
 
-            for (const [cat, exts] of Object.entries(categories)) {
+            for (const { label: cat, exts } of categories) {
               const catBox = document.createElement("fieldset");
               catBox.className = "filter-category";
               catBox.style.border = "none";
@@ -2056,7 +2093,7 @@ export default function renderBackup() {
 
       if (btn) {
         btn.disabled = !ok;
-        btn.title = ok ? "Сохранить" : "Заполните обязательные поля";
+        btn.title = ok ? tb("common.save") : tb("validation.fillRequired");
       }
     }
 
@@ -2200,14 +2237,14 @@ export default function renderBackup() {
       const val = q(`#${id}`)?.value?.trim();
       if (!val) {
         setValid(id, false);
-        if (required) markFieldError(id, true, "Поле обязательно");
+        if (required) markFieldError(id, true, tb("validation.required"));
         return;
       }
 
       try {
         const exists = await invoke("check-file-exists", val);
         setValid(id, exists);
-        if (required && !exists) markFieldError(id, true, "Путь не найден");
+        if (required && !exists) markFieldError(id, true, tb("validation.pathNotFound"));
         else markFieldError(id, false, "");
       } catch {
         // Ignore validation errors
@@ -2222,7 +2259,8 @@ export default function renderBackup() {
         if (bn) {
           nameEl.value = bn;
           const hintEl = q("#f-name-hint");
-          if (hintEl) hintEl.textContent = `Автопредложение имени: ${bn}`;
+          if (hintEl)
+            hintEl.textContent = tb("field.name.suggested", { name: bn });
         }
       }
       await validatePath("f-src", true);
@@ -2273,7 +2311,7 @@ export default function renderBackup() {
       if (name || src || dst) {
         lines.push(`
           <div>
-            ${name ? `<strong>Имя профиля</strong>: ${name}<hr />` : ""}
+            ${name ? `<strong>${tb("preview.profileName")}</strong>: ${name}<hr />` : ""}
             ${src ? `<span class="path-line ${checkPathClass(src, true)}">${src}</span>` : ""}
             ${src && dst ? "<br> → " : ""}
             ${dst ? `<span class="path-line ${checkPathClass(dst, true)}">${dst}</span>` : ""}
@@ -2283,21 +2321,21 @@ export default function renderBackup() {
 
       if (prof) {
         lines.push(
-          `<div><strong>Папка настроек</strong>: <span class="path-line ${checkPathClass(prof, false)}">${prof}</span></div>`,
+          `<div><strong>${tb("field.profile.label")}</strong>: <span class="path-line ${checkPathClass(prof, false)}">${prof}</span></div>`,
         );
       }
 
       if (pats) {
-        lines.push(`<div><strong>Фильтры</strong>: ${pats}</div>`);
+        lines.push(`<div><strong>${tb("field.filters.label")}</strong>: ${pats}</div>`);
       }
 
       if (tags && tags.length) {
-        lines.push(`<div><strong>Теги</strong>: ${tags.join(", ")}</div>`);
+        lines.push(`<div><strong>${tb("field.tags.label")}</strong>: ${tags.join(", ")}</div>`);
       }
 
       if (archiveType) {
         lines.push(
-          `<div><strong>Тип архива</strong>: ${archiveType.toUpperCase()}</div>`,
+          `<div><strong>${tb("field.archiveType.label")}</strong>: ${archiveType.toUpperCase()}</div>`,
         );
       }
 
@@ -2361,20 +2399,20 @@ export default function renderBackup() {
       // Validation
       let err = false;
       if (!name) {
-        markFieldError("f-name", true, "Укажите имя");
+        markFieldError("f-name", true, tb("validation.nameRequired"));
         err = true;
       }
       if (!source_path) {
-        markFieldError("f-src", true, "Укажите исходный путь");
+        markFieldError("f-src", true, tb("validation.sourceRequired"));
         err = true;
       }
       if (!backup_path) {
-        markFieldError("f-dst", true, "Укажите папку бэкапа");
+        markFieldError("f-dst", true, tb("validation.destinationRequired"));
         err = true;
       }
 
       if (err) {
-        toast("Заполните обязательные поля", "error");
+        toast(tb("validation.fillRequired"), "error");
         const firstInvalid = overlay.querySelector(
           '.input.input-error, .input:not(.input-valid)[id="f-src"], .input:not(.input-valid)[id="f-dst"]',
         );
@@ -2392,8 +2430,8 @@ export default function renderBackup() {
       );
 
       if (existingIndex >= 0) {
-        markFieldError("f-name", true, "Профиль с таким именем уже существует");
-        toast("Нельзя создать профиль с одинаковым именем", "error");
+        markFieldError("f-name", true, tb("validation.nameExists"));
+        toast(tb("validation.nameExistsToast"), "error");
         if (saveBtn) {
           saveBtn.classList.remove("is-loading");
           saveBtn.removeAttribute("disabled");
@@ -2413,16 +2451,16 @@ export default function renderBackup() {
 
       if (isNew) {
         state.programs.unshift(payload);
-        log(`Создан новый профиль: ${name}`);
+        log(tb("log.profileCreated", { name }));
       } else {
         state.programs[idx] = payload;
-        log(`Профиль обновлён: ${name}`);
+        log(tb("log.profileUpdated", { name }));
       }
 
       try {
         await save();
         await load();
-        toast("Сохранено");
+        toast(tb("common.saved"));
 
         const runAfter = !!q("#bk-save-run")?.checked;
         closeOverlay();
@@ -2436,7 +2474,7 @@ export default function renderBackup() {
           if (i >= 0) await runForIndices([i]);
         }
       } catch (e) {
-        toast(e.message || "Ошибка", "error");
+        toast(e.message || tb("common.error"), "error");
       } finally {
         if (saveBtn && saveBtn.removeAttribute) {
           saveBtn.classList.remove("is-loading");
@@ -2466,16 +2504,20 @@ export default function renderBackup() {
   const formatDuration = (ms) => {
     const value = Number(ms);
     if (!Number.isFinite(value) || value < 0) return "—";
-    if (value < 1000) return `${Math.round(value)} мс`;
+    if (value < 1000)
+      return tb("time.msShort", { count: Math.round(value) });
     const totalSec = value / 1000;
     if (totalSec < 60) {
       const rounded =
         totalSec >= 10 ? totalSec.toFixed(0) : totalSec.toFixed(1);
-      return `${rounded} с`;
+      return tb("time.secShort", { count: rounded });
     }
     const minutes = Math.floor(totalSec / 60);
     const seconds = Math.round(totalSec % 60);
-    return `${minutes} мин ${String(seconds).padStart(2, "0")} с`;
+    return tb("time.minSec", {
+      minutes,
+      seconds: String(seconds).padStart(2, "0"),
+    });
   };
 
   const formatSpeed = (bytes, ms) => {
@@ -2495,15 +2537,15 @@ export default function renderBackup() {
    */
   async function runForIndices(indices) {
     if (!indices.length) {
-      toast("Не выбрано ни одного профиля", "warning");
+      toast(tb("toast.noneSelected"), "warning");
       return;
     }
 
     const list = indices.map((i) => state.programs[i]).filter(Boolean);
 
     if (!list.length) {
-      toast("Нет доступных профилей для запуска", "warning");
-      log("⚠ Нет доступных профилей для запуска");
+      toast(tb("toast.noProfilesToRun"), "warning");
+      log(tb("log.noProfilesToRun"));
       return;
     }
 
@@ -2512,15 +2554,15 @@ export default function renderBackup() {
     try {
       preflight = await invoke("backup:preflight", list);
     } catch (error) {
-      toast("Не удалось выполнить префлайт-проверку", "error");
-      log(`✖ Префлайт не выполнен: ${error?.message || error}`);
+      toast(tb("preflight.runError"), "error");
+      log(tb("log.preflightFailed", { reason: error?.message || error }));
       expandAndScrollLog();
       return;
     }
 
     if (!preflight?.success) {
-      toast(preflight?.error || "Ошибка префлайта", "error");
-      log(`✖ Префлайт не выполнен: ${preflight?.error || "unknown"}`);
+      toast(preflight?.error || tb("preflight.error"), "error");
+      log(tb("log.preflightFailed", { reason: preflight?.error || "unknown" }));
       expandAndScrollLog();
       return;
     }
@@ -2535,21 +2577,19 @@ export default function renderBackup() {
     );
 
     if (hasPreflightErrors) {
-      toast("Префлайт не пройдён — исправьте ошибки и повторите", "error");
-      log(
-        "✖ Префлайт не пройдён: проверьте пути, права и инструменты zip/tar.",
-      );
+      toast(tb("preflight.failed"), "error");
+      log(tb("log.preflightFixHints"));
       expandAndScrollLog();
       return;
     }
 
     if (hasPreflightWarnings) {
-      toast("Есть предупреждения префлайта — проверьте блок выше", "warning");
+      toast(tb("preflight.warnings"), "warning");
     } else {
-      toast(`Префлайт пройден для ${list.length} профилей`, "success");
+      toast(tb("preflight.passed", { count: list.length }), "success");
     }
 
-    toast(`Запуск Backup для ${list.length} профилей...`, "info");
+    toast(tb("run.start", { count: list.length }), "info");
 
     // Получаем элементы прогресс-бара
     const progressContainer = getEl("#bk-progress-container");
@@ -2610,9 +2650,7 @@ export default function renderBackup() {
 
     rows.forEach((r) => r.classList.add("is-running"));
 
-    log(
-      `Запуск резервного копирования для ${list.length} выбранного(ых) профиля(ей)…`,
-    );
+    log(tb("log.runStart", { count: list.length }));
 
     const lockedKeys = list.map((program) => profileKey(program));
     lockedKeys.forEach((key) => setProfileLocked(key, true));
@@ -2628,14 +2666,18 @@ export default function renderBackup() {
         if (progressContainer) {
           progressContainer.classList.remove("active");
         }
-        toast(invokeError?.message || "Ошибка запуска backup", "error");
-        log(`Ошибка: ${invokeError?.message || invokeError || "unknown"}`);
+        toast(invokeError?.message || tb("run.startError"), "error");
+        log(
+          tb("log.error", {
+            reason: invokeError?.message || invokeError || "unknown",
+          }),
+        );
         expandAndScrollLog();
         return;
       }
       if (!res?.success) {
-        toast(res?.error || "Ошибка запуска", "error");
-        log(`Ошибка: ${res?.error || "unknown"}`);
+        toast(res?.error || tb("run.startErrorGeneric"), "error");
+        log(tb("log.error", { reason: res?.error || "unknown" }));
         rows.forEach((r) => r.classList.remove("is-running"));
         lockedKeys.forEach((key) => setProfileLocked(key, false));
 
@@ -2644,7 +2686,7 @@ export default function renderBackup() {
           progressContainer.classList.remove("active");
         }
 
-        toast("Ошибка при выполнении backup", "error");
+        toast(tb("run.executeError"), "error");
         expandAndScrollLog();
         return;
       }
@@ -2655,16 +2697,22 @@ export default function renderBackup() {
         ? res.results.filter(Boolean)
         : [];
       results.forEach((r) => {
-        const name = r.name || "Без имени";
+        const name = r.name || tb("profile.unnamed");
         if (r.success) {
           const sizeLabel = formatBytes(r.sizeBytes);
           const durationLabel = formatDuration(r.durationMs);
           const speedLabel = formatSpeed(r.sizeBytes, r.durationMs);
           log(
-            `✔ ${name}: ${sizeLabel} за ${durationLabel} (${speedLabel}) → ${r.zipPath || "архив сохранён"}`,
+            tb("log.runSuccess", {
+              name,
+              size: sizeLabel,
+              duration: durationLabel,
+              speed: speedLabel,
+              path: r.zipPath || tb("log.archiveSaved"),
+            }),
           );
         } else {
-          log(`✖ ${name}: ${r.error || "неизвестная ошибка"}`);
+          log(tb("log.runFailed", { name, error: r.error || tb("common.unknownError") }));
         }
         done += 1;
         const percent = Math.round((done / list.length) * 100);
@@ -2682,7 +2730,11 @@ export default function renderBackup() {
         const totalDurationLabel = formatDuration(durationDone);
         const avgSpeedLabel = formatSpeed(bytesDone, durationDone);
         log(
-          `Итог: ${formatBytes(bytesDone)} за ${totalDurationLabel} (средняя скорость ${avgSpeedLabel})`,
+          tb("log.summary", {
+            size: formatBytes(bytesDone),
+            duration: totalDurationLabel,
+            speed: avgSpeedLabel,
+          }),
         );
       }
 
@@ -2691,13 +2743,13 @@ export default function renderBackup() {
       const successCount = results.filter((r) => r?.success).length;
       const failedCount = Math.max(0, list.length - successCount);
       if (successCount === list.length) {
-        toast(
-          `Backup успешно завершен для всех ${successCount} профилей`,
-          "success",
-        );
+        toast(tb("run.completedAll", { count: successCount }), "success");
       } else {
         toast(
-          `Backup завершен: ${successCount} успешно, ${failedCount} с ошибками`,
+          tb("run.completedWithErrors", {
+            success: successCount,
+            failed: failedCount,
+          }),
           "error",
         );
       }
@@ -2740,7 +2792,7 @@ export default function renderBackup() {
     const indices = getSelectedIndices();
 
     if (!indices.length) {
-      toast("Не выбрано ни одного профиля", "warning");
+      toast(tb("toast.noneSelected"), "warning");
       return;
     }
 
@@ -2750,17 +2802,17 @@ export default function renderBackup() {
       .join(", ");
 
     showConfirmationDialog(
-      `Вы уверены, что хотите удалить профиль: <b>${names}</b>?`,
+      tb("confirm.deleteProfile", { names }),
       async () => {
         state.programs = state.programs.filter((_, i) => !indices.includes(i));
         try {
           await save();
           await load();
-          toast("Удалено");
+          toast(tb("toast.deleted"));
         } catch (e) {
-          toast(e.message || "Ошибка", "error");
+          toast(e.message || tb("common.error"), "error");
         }
-        log(`Профили удалены: ${names}`);
+        log(tb("log.profilesDeleted", { names }));
       },
     );
   });
@@ -2809,14 +2861,14 @@ export default function renderBackup() {
   logCopyBtn?.addEventListener("click", async () => {
     const text = getLogPlainText();
     if (!text) {
-      toast("Лог пуст", "warning");
+      toast(tb("log.empty"), "warning");
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
-      toast("Лог скопирован");
+      toast(tb("log.copied"));
     } catch {
-      toast("Не удалось скопировать", "error");
+      toast(tb("log.copyError"), "error");
     }
   });
 
@@ -2825,7 +2877,7 @@ export default function renderBackup() {
   logExportBtn?.addEventListener("click", () => {
     const text = getLogPlainText();
     if (!text) {
-      toast("Лог пуст", "warning");
+      toast(tb("log.empty"), "warning");
       return;
     }
     const stamp = new Date();
@@ -2845,9 +2897,9 @@ export default function renderBackup() {
         URL.revokeObjectURL(url);
         a.remove();
       }, 0);
-      toast("Файл лога сохранён");
+      toast(tb("log.fileSaved"));
     } catch (_e) {
-      toast("Не удалось сохранить файл", "error");
+      toast(tb("log.fileSaveError"), "error");
     }
   });
 
@@ -3009,7 +3061,7 @@ export default function renderBackup() {
   // Initial load
   load().catch((e) => {
     console.error(e);
-    showError("Не удалось загрузить профили", e.message);
+    showError(tb("load.error"), e.message);
   });
 
   // Initialize tooltips

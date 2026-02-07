@@ -142,17 +142,62 @@ async function initSettings() {
     });
   }
 
-  // UI language selector
-  (function initLanguageSelect() {
-    const select = document.getElementById("settings-language-select");
-    if (!select) return;
-    select.value = getLanguage();
-    select.addEventListener("change", () => {
-      setLanguage(select.value);
+  // UI language dropdown (custom)
+  (function initLanguageDropdown() {
+    const languageDropdownBtn = document.getElementById("language-dropdown-btn");
+    const languageDropdownMenu = document.getElementById(
+      "language-dropdown-menu",
+    );
+    const languageLabel = document.getElementById("language-selected-label");
+    const formatLanguageLabel = (lang) => {
+      const map = {
+        ru: t("language.ru"),
+        en: t("language.en"),
+      };
+      return map[lang] || lang;
+    };
+
+    if (!languageDropdownBtn || !languageDropdownMenu || !languageLabel) return;
+
+    const currentLang = getLanguage();
+    languageLabel.textContent = formatLanguageLabel(currentLang);
+    languageDropdownMenu.querySelectorAll("li").forEach((item) => {
+      item.classList.remove("active");
+      if (item.getAttribute("data-value") === currentLang) {
+        item.classList.add("active");
+      }
     });
+
+    languageDropdownBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isOpen = languageDropdownMenu.classList.contains("show");
+      document
+        .querySelectorAll(".dropdown-menu")
+        .forEach((menu) => menu.classList.remove("show"));
+      if (!isOpen) languageDropdownMenu.classList.add("show");
+    });
+
+    languageDropdownMenu.querySelectorAll("li").forEach((item) => {
+      item.addEventListener("click", () => {
+        const nextLang = item.getAttribute("data-value");
+        setLanguage(nextLang);
+        languageLabel.textContent = formatLanguageLabel(nextLang);
+        languageDropdownMenu
+          .querySelectorAll("li")
+          .forEach((li) => li.classList.remove("active"));
+        item.classList.add("active");
+        languageDropdownMenu.classList.remove("show");
+      });
+    });
+
     window.addEventListener("i18n:changed", (e) => {
       const next = e?.detail?.lang;
-      if (next && select.value !== next) select.value = next;
+      if (!next) return;
+      languageLabel.textContent = formatLanguageLabel(next);
+      languageDropdownMenu.querySelectorAll("li").forEach((item) => {
+        item.classList.toggle("active", item.getAttribute("data-value") === next);
+      });
     });
   })();
 

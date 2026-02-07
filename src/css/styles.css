@@ -11001,6 +11001,16 @@
     opacity: 1;
   }
 }
+@keyframes dropdownItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 /* ==== Visual Effects ==== */
 @keyframes flash {
   0% {
@@ -14371,13 +14381,15 @@ hr {
   }
 }
 .dropdown-content {
-  background: var(--color-bg-secondary, #fff);
-  border-radius: 12px;
-  width: 200px;
-  padding: 10px 0;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  background: rgba(20, 22, 28, 0.92);
+  border-radius: 14px;
+  width: 220px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
   transform-origin: top right;
-  animation: menuSlide 0.3s ease forwards;
+  animation: menuSlide 0.22s ease forwards;
 }
 .dropdown-content .dropdown-item {
   display: flex;
@@ -14387,7 +14399,8 @@ hr {
   color: var(--color-text-main);
   position: relative;
   overflow: hidden;
-  transition: all 0.2s ease;
+  border-radius: 10px;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 .dropdown-content .dropdown-item:before {
   content: "";
@@ -14401,7 +14414,7 @@ hr {
 }
 .dropdown-content .dropdown-item:hover {
   background: var(--color-hover);
-  padding-left: 25px;
+  transform: translateX(2px);
 }
 .dropdown-content .dropdown-item:hover:before {
   left: 100%;
@@ -14413,6 +14426,38 @@ hr {
 }
 .dropdown-content .dropdown-item:hover i {
   color: var(--color-toast-text, #fff);
+}
+.dropdown-content .dropdown-item:nth-child(1) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.02s;
+}
+.dropdown-content .dropdown-item:nth-child(2) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.04s;
+}
+.dropdown-content .dropdown-item:nth-child(3) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.06s;
+}
+.dropdown-content .dropdown-item:nth-child(4) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.08s;
+}
+.dropdown-content .dropdown-item:nth-child(5) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.1s;
+}
+.dropdown-content .dropdown-item:nth-child(6) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.12s;
+}
+.dropdown-content .dropdown-item:nth-child(7) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.14s;
+}
+.dropdown-content .dropdown-item:nth-child(8) {
+  animation: dropdownItemIn 0.18s ease both;
+  animation-delay: 0.16s;
 }
 
 .context-menu {
@@ -15188,11 +15233,11 @@ hr {
   width: 100%;
 }
 .settings-modal .dropdown-toggle, .settings-modal .dropdown-reset {
-  height: 40px;
+  height: 42px;
 }
 .settings-modal .dropdown-toggle {
   width: 200px;
-  padding: 0 1rem;
+  padding: 0 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -15202,7 +15247,9 @@ hr {
   border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
   line-height: 1;
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
 .settings-modal .dropdown-toggle::before {
@@ -15240,28 +15287,43 @@ hr {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%);
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.settings-modal .dropdown-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 .settings-modal .dropdown-menu {
-  display: none;
+  display: block;
   position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 50%;
-  padding: 1px;
+  top: calc(100% + 8px);
+  left: auto;
+  right: 0;
+  width: 220px;
+  padding: 6px;
   z-index: 100;
-  background-color: var(--color-bg-main);
-  border: 1px solid var(--color-hover);
-  border-radius: 6px;
+  background: rgba(20, 22, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .settings-modal .dropdown-menu.show {
-  display: block;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 .settings-modal .dropdown-menu li {
-  padding: 8px 12px;
+  padding: 10px 12px;
   margin: 2px;
+  border-radius: 8px;
   color: var(--color-text-main);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   background: transparent;
   border: 1px solid transparent;
 }
@@ -15272,11 +15334,30 @@ hr {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.2);
   color: var(--color-accent);
+  transform: translateX(2px);
 }
 .settings-modal .dropdown-menu li.active {
   background: rgba(var(--color-accent-rgb), 0.2);
   border-color: rgba(var(--color-accent-rgb), 0.3);
   color: #fff;
+}
+.settings-modal .dropdown-menu.show li {
+  animation: dropdownItemIn 0.18s ease both;
+}
+.settings-modal .dropdown-menu.show li:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.settings-modal .dropdown-menu.show li:nth-child(2) {
+  animation-delay: 0.04s;
+}
+.settings-modal .dropdown-menu.show li:nth-child(3) {
+  animation-delay: 0.06s;
+}
+.settings-modal .dropdown-menu.show li:nth-child(4) {
+  animation-delay: 0.08s;
+}
+.settings-modal .dropdown-menu.show li:nth-child(5) {
+  animation-delay: 0.1s;
 }
 .settings-modal .dropdown-reset {
   position: relative;
@@ -15358,7 +15439,7 @@ hr {
 .settings-modal #appearance-settings .custom-theme-select .dropdown-toggle,
 .settings-modal #other-settings .custom-theme-select .dropdown-toggle {
   width: 220px;
-  height: 38px;
+  height: 40px;
 }
 .settings-modal #general-settings .custom-theme-select .dropdown-reset,
 .settings-modal #window-settings .custom-theme-select .dropdown-reset,
@@ -15367,7 +15448,7 @@ hr {
 .settings-modal #randomizer-settings .custom-theme-select .dropdown-reset,
 .settings-modal #appearance-settings .custom-theme-select .dropdown-reset,
 .settings-modal #other-settings .custom-theme-select .dropdown-reset {
-  height: 38px;
+  height: 40px;
 }
 .settings-modal #general-settings ul.module.default-tab-group,
 .settings-modal #window-settings ul.module.default-tab-group,
@@ -15630,6 +15711,102 @@ hr {
   font-size: 13px;
   font-weight: 700;
 }
+.settings-modal #general-settings #language-dropdown-menu,
+.settings-modal #window-settings #language-dropdown-menu,
+.settings-modal #wgunlock-settings #language-dropdown-menu,
+.settings-modal #backup-settings #language-dropdown-menu,
+.settings-modal #randomizer-settings #language-dropdown-menu,
+.settings-modal #appearance-settings #language-dropdown-menu,
+.settings-modal #other-settings #language-dropdown-menu {
+  --dropdown-accent: 90, 200, 255;
+}
+.settings-modal #general-settings #font-size-dropdown-menu,
+.settings-modal #window-settings #font-size-dropdown-menu,
+.settings-modal #wgunlock-settings #font-size-dropdown-menu,
+.settings-modal #backup-settings #font-size-dropdown-menu,
+.settings-modal #randomizer-settings #font-size-dropdown-menu,
+.settings-modal #appearance-settings #font-size-dropdown-menu,
+.settings-modal #other-settings #font-size-dropdown-menu {
+  --dropdown-accent: 245, 200, 90;
+}
+.settings-modal #general-settings #theme-dropdown-menu,
+.settings-modal #window-settings #theme-dropdown-menu,
+.settings-modal #wgunlock-settings #theme-dropdown-menu,
+.settings-modal #backup-settings #theme-dropdown-menu,
+.settings-modal #randomizer-settings #theme-dropdown-menu,
+.settings-modal #appearance-settings #theme-dropdown-menu,
+.settings-modal #other-settings #theme-dropdown-menu {
+  --dropdown-accent: var(--color-accent-rgb);
+}
+.settings-modal #general-settings .dropdown-menu,
+.settings-modal #window-settings .dropdown-menu,
+.settings-modal #wgunlock-settings .dropdown-menu,
+.settings-modal #backup-settings .dropdown-menu,
+.settings-modal #randomizer-settings .dropdown-menu,
+.settings-modal #appearance-settings .dropdown-menu,
+.settings-modal #other-settings .dropdown-menu {
+  --dropdown-accent: var(--color-accent-rgb);
+}
+.settings-modal #general-settings .dropdown-menu li:hover,
+.settings-modal #window-settings .dropdown-menu li:hover,
+.settings-modal #wgunlock-settings .dropdown-menu li:hover,
+.settings-modal #backup-settings .dropdown-menu li:hover,
+.settings-modal #randomizer-settings .dropdown-menu li:hover,
+.settings-modal #appearance-settings .dropdown-menu li:hover,
+.settings-modal #other-settings .dropdown-menu li:hover {
+  color: rgb(var(--dropdown-accent));
+}
+.settings-modal #general-settings .dropdown-menu li.active,
+.settings-modal #window-settings .dropdown-menu li.active,
+.settings-modal #wgunlock-settings .dropdown-menu li.active,
+.settings-modal #backup-settings .dropdown-menu li.active,
+.settings-modal #randomizer-settings .dropdown-menu li.active,
+.settings-modal #appearance-settings .dropdown-menu li.active,
+.settings-modal #other-settings .dropdown-menu li.active {
+  background: rgba(var(--dropdown-accent), 0.2);
+  border-color: rgba(var(--dropdown-accent), 0.35);
+}
+.settings-modal #general-settings #language-dropdown-menu li::before,
+.settings-modal #general-settings #font-size-dropdown-menu li::before,
+.settings-modal #window-settings #language-dropdown-menu li::before,
+.settings-modal #window-settings #font-size-dropdown-menu li::before,
+.settings-modal #wgunlock-settings #language-dropdown-menu li::before,
+.settings-modal #wgunlock-settings #font-size-dropdown-menu li::before,
+.settings-modal #backup-settings #language-dropdown-menu li::before,
+.settings-modal #backup-settings #font-size-dropdown-menu li::before,
+.settings-modal #randomizer-settings #language-dropdown-menu li::before,
+.settings-modal #randomizer-settings #font-size-dropdown-menu li::before,
+.settings-modal #appearance-settings #language-dropdown-menu li::before,
+.settings-modal #appearance-settings #font-size-dropdown-menu li::before,
+.settings-modal #other-settings #language-dropdown-menu li::before,
+.settings-modal #other-settings #font-size-dropdown-menu li::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+  background: radial-gradient(circle at 30% 30%, rgba(var(--dropdown-accent), 0.9), rgba(var(--dropdown-accent), 0.35) 70%);
+}
+.settings-modal #general-settings #language-dropdown-menu li,
+.settings-modal #general-settings #font-size-dropdown-menu li,
+.settings-modal #window-settings #language-dropdown-menu li,
+.settings-modal #window-settings #font-size-dropdown-menu li,
+.settings-modal #wgunlock-settings #language-dropdown-menu li,
+.settings-modal #wgunlock-settings #font-size-dropdown-menu li,
+.settings-modal #backup-settings #language-dropdown-menu li,
+.settings-modal #backup-settings #font-size-dropdown-menu li,
+.settings-modal #randomizer-settings #language-dropdown-menu li,
+.settings-modal #randomizer-settings #font-size-dropdown-menu li,
+.settings-modal #appearance-settings #language-dropdown-menu li,
+.settings-modal #appearance-settings #font-size-dropdown-menu li,
+.settings-modal #other-settings #language-dropdown-menu li,
+.settings-modal #other-settings #font-size-dropdown-menu li {
+  padding-left: 28px;
+}
 .settings-modal #general-settings .dropdown-toggle:focus-visible,
 .settings-modal #general-settings .dropdown-reset:focus-visible,
 .settings-modal #window-settings .dropdown-toggle:focus-visible,
@@ -15646,6 +15823,26 @@ hr {
 .settings-modal #other-settings .dropdown-reset:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+@media (max-width: 720px) {
+  .settings-modal .custom-theme-select {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .settings-modal .custom-theme-select label {
+    width: 100%;
+  }
+  .settings-modal .custom-theme-select .dropdown {
+    width: 100%;
+  }
+  .settings-modal .custom-theme-select .dropdown-toggle {
+    width: 100%;
+  }
+  .settings-modal .dropdown-menu {
+    width: 100%;
+    right: 0;
+    left: 0;
+  }
 }
 .settings-modal #window-settings .quality-profile-card {
   position: relative;
@@ -20512,6 +20709,43 @@ video {
 .bk-select-wrapper {
   position: relative;
   min-width: 120px;
+}
+
+.bk-select-wrapper[data-kind=bk-filter-archive] {
+  min-width: 170px;
+}
+.bk-select-wrapper[data-kind=bk-filter-archive] .bk-select-trigger {
+  background: linear-gradient(140deg, rgba(80, 130, 255, 0.18), rgba(40, 70, 140, 0.12));
+  border-color: rgba(120, 180, 255, 0.28);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.bk-select-wrapper[data-kind=bk-filter-archive] .bk-select-menu {
+  background: rgba(18, 22, 34, 0.96);
+  border-color: rgba(120, 180, 255, 0.2);
+}
+.bk-select-wrapper[data-kind=bk-filter-archive] .bk-select-option {
+  position: relative;
+  padding-left: 34px;
+}
+.bk-select-wrapper[data-kind=bk-filter-archive] .bk-select-option::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: rgba(120, 180, 255, 0.25);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+.bk-select-wrapper[data-kind=bk-filter-archive] .bk-select-option[data-value=zip]::before {
+  background: radial-gradient(circle at 30% 30%, rgba(120, 220, 160, 0.95), rgba(120, 220, 160, 0.35) 70%);
+  box-shadow: inset 0 0 0 2px rgba(120, 220, 160, 0.45);
+}
+.bk-select-wrapper[data-kind=bk-filter-archive] .bk-select-option[data-value="tar.gz"]::before {
+  background: radial-gradient(circle at 30% 30%, rgba(190, 130, 255, 0.95), rgba(190, 130, 255, 0.35) 70%);
+  box-shadow: inset 0 0 0 2px rgba(190, 130, 255, 0.45);
 }
 
 .bk-select-trigger {

@@ -12,3 +12,12 @@
 - **Updated** the Randomizer tab UI so results are cleaner and easier to read.
 - **Reworked** the Randomizer results area to remove extra clutter.
 - **Improved** translations for the WG Unlock tab.
+
+### Downloader / History
+
+- **Redesigned** history list: more compact rows with date/status chips.
+- **Added** date grouping with sticky headers.
+- **Added** list density modes: compact and comfort.
+- **Expanded** sorting: size, quality, source; plus type mode (video/audio/mixed).
+- **Updated** preview: fullscreen modal with navigation and counter.
+- **Removed** quality filters in history; kept only Source and Sorting.

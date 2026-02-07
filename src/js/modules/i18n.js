@@ -90,6 +90,17 @@ export function setLanguage(lang) {
   window.dispatchEvent(
     new CustomEvent("i18n:changed", { detail: { lang: currentLang } }),
   );
+  // Force full UI refresh for components that render strings at build-time.
+  if (typeof window !== "undefined") {
+    if (!window.__i18nReloading) {
+      window.__i18nReloading = true;
+      setTimeout(() => {
+        try {
+          window.location.reload();
+        } catch {}
+      }, 0);
+    }
+  }
 }
 
 export function initI18n() {
