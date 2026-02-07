@@ -13,37 +13,24 @@ describe("whats-new version", () => {
       fs.readFileSync(path.join(root, "package.json"), "utf-8"),
     );
 
-    const mdAppPath = path.join(root, "src", "info", "whatsNew.md");
-    const mdApp = fs.readFileSync(mdAppPath, "utf-8");
-    const versionApp = readVersionFromMarkdown(mdApp);
-
-    expect(versionApp).toBe(pkg.version);
-  });
-
-  test("root whats-new.md stays in sync", () => {
-    const root = path.resolve(__dirname, "../../../..");
     const mdRootPath = path.join(root, "whats-new.md");
     const mdRoot = fs.readFileSync(mdRootPath, "utf-8");
     const versionRoot = readVersionFromMarkdown(mdRoot);
 
-    const mdAppPath = path.join(root, "src", "info", "whatsNew.md");
-    const mdApp = fs.readFileSync(mdAppPath, "utf-8");
-    const versionApp = readVersionFromMarkdown(mdApp);
-
-    expect(versionRoot).toBe(versionApp);
+    expect(versionRoot).toBe(pkg.version);
   });
 
   test("english whatsNew stays in sync when present", () => {
     const root = path.resolve(__dirname, "../../../..");
-    const mdEnPath = path.join(root, "src", "info", "whatsNew.en.md");
+    const mdEnPath = path.join(root, "whats-new.en.md");
     if (!fs.existsSync(mdEnPath)) return;
     const mdEn = fs.readFileSync(mdEnPath, "utf-8");
     const versionEn = readVersionFromMarkdown(mdEn);
 
-    const mdAppPath = path.join(root, "src", "info", "whatsNew.md");
-    const mdApp = fs.readFileSync(mdAppPath, "utf-8");
-    const versionApp = readVersionFromMarkdown(mdApp);
+    const mdRootPath = path.join(root, "whats-new.md");
+    const mdRoot = fs.readFileSync(mdRootPath, "utf-8");
+    const versionRoot = readVersionFromMarkdown(mdRoot);
 
-    expect(versionEn).toBe(versionApp);
+    expect(versionEn).toBe(versionRoot);
   });
 });

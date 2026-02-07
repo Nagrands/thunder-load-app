@@ -42,7 +42,8 @@ Thunder Load is an Electron app for downloading video/audio and managing related
 
 ## What’s New (WhatsNew)
 - Source of truth is root `whats-new.md`.
-- Before build it is automatically synced to `src/info/whatsNew.md`.
+- The app reads `whats-new.md` (and `whats-new.en.md`) directly from the project root.
+- `npm run whats-new:build` now generates only release notes in `build/`.
 - Version in Markdown must match `package.json`.
 - The “What’s New” modal is shown automatically after a version update.
 - You can open it manually by clicking the version in the UI.

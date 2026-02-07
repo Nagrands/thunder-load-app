@@ -47,6 +47,8 @@ build/
 *.local.config
 *.dev.config
 
+.codex/
+
 # ─── Obsidian ──────────────────────────────────────────────
 .obsidian/
 

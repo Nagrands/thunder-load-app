@@ -294,15 +294,13 @@ function setupIpcHandlers(dependencies) {
       const langSuffix = String(lang || "").toLowerCase() === "en" ? ".en" : "";
       const whatsNewPath = path.join(
         app.getAppPath(),
-        "src",
-        "info",
-        `whatsNew${langSuffix}.md`,
+        `whats-new${langSuffix}.md`,
       );
       let finalPath = whatsNewPath;
       try {
         await fs.promises.access(finalPath, fs.constants.F_OK);
       } catch {
-        finalPath = path.join(app.getAppPath(), "src", "info", "whatsNew.md");
+        finalPath = path.join(app.getAppPath(), "whats-new.md");
       }
       log.info(`Reading the file: ${finalPath}`);
       const markdown = await fs.promises.readFile(finalPath, "utf-8");

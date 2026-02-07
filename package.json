@@ -6,14 +6,16 @@
   "main": "src/js/app.js",
   "private": true,
   "scripts": {
-    "predev": "npm run templates:build",
+    "predev": "npm run whats-new:build && npm run templates:build",
     "dev": "electron . --dev",
-    "prestart": "npm run templates:build",
+    "dev:watch": "node scripts/dev-with-whatsnew.mjs",
+    "prestart": "npm run whats-new:build && npm run templates:build",
     "start": "electron .",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "build": "electron-builder",
     "build-linux": "electron-builder --linux AppImage",
     "build-mac": "electron-builder --mac",
+    "whats-new:watch": "nodemon --watch whats-new.md --watch whats-new.en.md --ext md --exec \"npm run whats-new:build\"",
     "sass": "sass --watch src/scss:src/css",
     "fa:copy": "copyfiles -f node_modules/@fortawesome/fontawesome-free/webfonts/* src/assets/webfonts",
     "dompurify:copy": "copyfiles -f node_modules/dompurify/dist/purify.min.js assets/vendor/dompurify",
@@ -75,6 +77,7 @@
       "bin/**/*",
       "assets/**/*",
       "src/**/*",
+      "whats-new*.md",
       "package.json"
     ],
     "publish": [

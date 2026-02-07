@@ -100,42 +100,55 @@
           </span>
         </button>
 
-      <button
-        class="menu-item"
-        id="open-github"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Открыть репозиторий на GitHub"
-        data-i18n-title="topbar.github"
-      >
-        <span class="menu-main">
-          <i class="fa-brands fa-github"></i>
-        </span>
-      </button>
+        <button
+          class="menu-item"
+          id="open-github"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Открыть репозиторий на GitHub"
+          data-i18n-title="topbar.github"
+        >
+          <span class="menu-main">
+            <i class="fa-brands fa-github"></i>
+          </span>
+        </button>
 
-      <button
-        class="menu-item"
-        id="theme-toggle"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Сменить тему"
-        data-i18n-title="topbar.theme"
-      >
-        <span class="menu-main">
-          <i class="fa-solid fa-palette"></i>
-        </span>
-      </button>
+        <button
+          class="menu-item"
+          id="theme-toggle"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Сменить тему"
+          data-i18n-title="topbar.theme"
+        >
+          <span class="menu-main">
+            <i class="fa-solid fa-palette"></i>
+          </span>
+        </button>
 
-      <button
-        id="reload-app"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Обновить окно"
+        <button
+          id="reload-app"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Обновить окно"
           data-i18n-title="topbar.reload"
           data-hotkey="Ctrl+R"
         >
           <i class="fa-solid fa-arrow-rotate-right"></i>
         </button>
+      </div>
+
+      <div
+        class="network-status"
+        id="network-status"
+        role="status"
+        aria-live="polite"
+        data-i18n-aria="topbar.network.aria"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+      >
+        <span class="network-status__dot" aria-hidden="true"></span>
+        <span class="network-status__text" id="network-status-text">—</span>
       </div>
 
       <span class="top-bar__divider" aria-hidden="true"></span>

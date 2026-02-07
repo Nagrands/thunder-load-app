@@ -35,91 +35,121 @@
   </div>
 
   <div class="top-bar__right">
-    <div class="quick-actions">
-      <button
-        class="menu-item"
-        id="open-history"
+    <div class="top-bar__right-group">
+      <div class="quick-actions">
+        <button
+          class="menu-item"
+          id="open-history"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="История загрузок"
+          data-i18n-title="topbar.history"
+          data-hotkey="Ctrl+H"
+        >
+          <span class="menu-main">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </span>
+        </button>
+
+        <button
+          class="menu-item"
+          id="shortcuts-button"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Горячие клавиши"
+          data-i18n-title="topbar.shortcuts"
+          data-hotkey="Ctrl+P"
+        >
+          <span class="menu-main">
+            <i class="fas fa-keyboard"></i>
+          </span>
+        </button>
+
+        <button
+          class="menu-item"
+          id="settings-button"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Настройки"
+          data-i18n-title="topbar.settings"
+          data-hotkey="Ctrl+,"
+        >
+          <span class="menu-main">
+            <i class="fa-solid fa-gear"></i>
+          </span>
+        </button>
+
+        <button
+          class="menu-item"
+          id="open-github"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Открыть репозиторий на GitHub"
+          data-i18n-title="topbar.github"
+        >
+          <span class="menu-main">
+            <i class="fa-brands fa-github"></i>
+          </span>
+        </button>
+
+        <button
+          class="menu-item"
+          id="theme-toggle"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Сменить тему"
+          data-i18n-title="topbar.theme"
+        >
+          <span class="menu-main">
+            <i class="fa-solid fa-palette"></i>
+          </span>
+        </button>
+
+        <button
+          id="reload-app"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Обновить окно"
+          data-i18n-title="topbar.reload"
+          data-hotkey="Ctrl+R"
+        >
+          <i class="fa-solid fa-arrow-rotate-right"></i>
+        </button>
+      </div>
+
+      <div
+        class="network-status"
+        id="network-status"
+        role="status"
+        aria-live="polite"
+        data-i18n-aria="topbar.network.aria"
         data-bs-toggle="tooltip"
         data-bs-placement="bottom"
-        title="История загрузок"
-        data-i18n-title="topbar.history"
-        data-hotkey="Ctrl+H"
       >
-        <span class="menu-main">
-          <i class="fa-solid fa-clock-rotate-left"></i>
-        </span>
-      </button>
+        <span class="network-status__dot" aria-hidden="true"></span>
+        <span class="network-status__text" id="network-status-text">—</span>
+      </div>
 
-      <button
-        class="menu-item"
-        id="shortcuts-button"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Горячие клавиши"
-        data-i18n-title="topbar.shortcuts"
-        data-hotkey="Ctrl+P"
-      >
-        <span class="menu-main">
-          <i class="fas fa-keyboard"></i>
-        </span>
-      </button>
+      <span class="top-bar__divider" aria-hidden="true"></span>
 
-      <button
-        class="menu-item"
-        id="settings-button"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Настройки"
-        data-i18n-title="topbar.settings"
-        data-hotkey="Ctrl+,"
-      >
-        <span class="menu-main">
-          <i class="fa-solid fa-gear"></i>
-        </span>
-      </button>
-
-      <button
-        class="menu-item"
-        id="open-github"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Открыть репозиторий на GitHub"
-        data-i18n-title="topbar.github"
-      >
-        <span class="menu-main">
-          <i class="fa-brands fa-github"></i>
-        </span>
-      </button>
-
-      <button
-        id="reload-app"
-        data-bs-toggle="tooltip"
-        data-bs-placement="bottom"
-        title="Обновить окно"
-        data-i18n-title="topbar.reload"
-        data-hotkey="Ctrl+R"
-      >
-        <i class="fa-solid fa-arrow-rotate-right"></i>
-      </button>
-    </div>
-
-    <div class="window-controls">
-      <button
-        class="btn-minimize"
-        title="Свернуть"
-        data-i18n-title="topbar.minimize"
-        onclick="window.electron.minimize()"
-      >
-        <i class="fas fa-window-minimize"></i>
-      </button>
-      <button
-        class="btn-close"
-        title="Закрыть"
-        data-i18n-title="topbar.close"
-        onclick="window.electron.close()"
-      >
-        <i class="fas fa-times"></i>
-      </button>
+      <div class="window-controls">
+        <button
+          class="btn-minimize"
+          title="Свернуть"
+          data-i18n-title="topbar.minimize"
+          onclick="window.electron.minimize()"
+        >
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button
+          class="btn-close"
+          title="Закрыть"
+          data-i18n-title="topbar.close"
+          onclick="window.electron.close()"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
   </div>
 

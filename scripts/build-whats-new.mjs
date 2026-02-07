@@ -2,11 +2,8 @@ import fs from "fs";
 import path from "path";
 
 const root = path.resolve(process.cwd());
-const srcInfoDir = path.join(root, "src", "info");
 const rootWhatsNewPath = path.join(root, "whats-new.md");
 const rootWhatsNewEnPath = path.join(root, "whats-new.en.md");
-const appWhatsNewPath = path.join(srcInfoDir, "whatsNew.md");
-const appWhatsNewEnPath = path.join(srcInfoDir, "whatsNew.en.md");
 const buildDir = path.join(root, "build");
 const releaseNotesPath = path.join(buildDir, "release-notes.md");
 const releaseNotesEnPath = path.join(buildDir, "release-notes.en.md");
@@ -34,17 +31,11 @@ function stripVersionHtmlComment(markdown = "") {
   return String(markdown).replace(/^\s*<!--\s*version:.*?-->\s*\n?/i, "");
 }
 
-function ensureDir(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fail(`Directory not found: ${dirPath}`);
-  }
-}
-
 function writeFileAtomic(filePath, content) {
   fs.writeFileSync(filePath, content, "utf-8");
 }
 
-function syncWhatsNew({ sourcePath, targetPath, releaseNotesTarget }) {
+function syncWhatsNew({ sourcePath, releaseNotesTarget }) {
   const markdown = readFileSafe(sourcePath);
   if (!markdown) {
     return false;
@@ -55,8 +46,6 @@ function syncWhatsNew({ sourcePath, targetPath, releaseNotesTarget }) {
     fail(`Unable to find version in ${sourcePath}`);
   }
 
-  writeFileAtomic(targetPath, markdown);
-
   const releaseNotes = stripVersionHtmlComment(markdown);
   writeFileAtomic(releaseNotesTarget, releaseNotes);
 
@@ -64,8 +53,6 @@ function syncWhatsNew({ sourcePath, targetPath, releaseNotesTarget }) {
 }
 
 function main() {
-  ensureDir(srcInfoDir);
-
   const rootMarkdown = readFileSafe(rootWhatsNewPath);
   if (!rootMarkdown) {
     fail(`Missing file: ${rootWhatsNewPath}`);
@@ -93,7 +80,6 @@ function main() {
 
   const synced = syncWhatsNew({
     sourcePath: rootWhatsNewPath,
-    targetPath: appWhatsNewPath,
     releaseNotesTarget: releaseNotesPath,
   });
 
@@ -104,13 +90,12 @@ function main() {
   if (fs.existsSync(rootWhatsNewEnPath)) {
     syncWhatsNew({
       sourcePath: rootWhatsNewEnPath,
-      targetPath: appWhatsNewEnPath,
       releaseNotesTarget: releaseNotesEnPath,
     });
   }
 
   console.log(
-    `[whats-new:build] Synced whatsNew.md and generated release notes for version ${rootVersion}`,
+    `[whats-new:build] Generated release notes for version ${rootVersion}`,
   );
 }
 
