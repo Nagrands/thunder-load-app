@@ -3,6 +3,7 @@
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
+import { applyI18n, t } from "../i18n.js";
 
 export default function renderWireGuard() {
   // Guard: если вкладка WG Unlock отключена — не инициализируем UI
@@ -42,36 +43,36 @@ export default function renderWireGuard() {
   if (!window.electron?.ipcRenderer) {
     const container = document.createElement("div");
     container.className = "wg-center";
-    container.innerHTML = `<div class="wg-card"><p class="error">Electron API недоступен</p></div>`;
+    container.innerHTML = `<div class="wg-card"><p class="error">${t("wg.error.electronUnavailable")}</p></div>`;
     return container;
   }
 
   const fields = [
     {
       id: "wg-ip",
-      label: "IP‑адрес",
+      labelKey: "wg.field.ip.label",
       key: "ip",
       type: "text",
-      placeholder: "например: 192.168.0.10",
-      hint: "IPv4 адрес получателя",
+      placeholderKey: "wg.field.ip.placeholder",
+      hintKey: "wg.field.ip.hint",
       icon: "fa-network-wired",
     },
     {
       id: "wg-port-remote",
-      label: "Удалённый порт",
+      labelKey: "wg.field.remotePort.label",
       key: "rPort",
       type: "number",
-      placeholder: "51820",
-      hint: "Порт на удалённом хосте",
+      placeholderKey: "wg.field.remotePort.placeholder",
+      hintKey: "wg.field.remotePort.hint",
       icon: "fa-signal",
     },
     {
       id: "wg-port-local",
-      label: "Локальный порт",
+      labelKey: "wg.field.localPort.label",
       key: "lPort",
       type: "number",
-      placeholder: "56132",
-      hint: "Порт исходящего сокета",
+      placeholderKey: "wg.field.localPort.placeholder",
+      hintKey: "wg.field.localPort.hint",
       icon: "fa-plug",
     },
   ];
@@ -122,7 +123,8 @@ export default function renderWireGuard() {
       const dt = new Date(saved);
       if (!isNaN(dt)) {
         const pad = (n) => String(n).padStart(2, "0");
-        el.textContent = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} в ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+        const atLabel = t("wg.time.at");
+        el.textContent = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${atLabel} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
       }
     }
   };
@@ -145,19 +147,24 @@ export default function renderWireGuard() {
     window.electron.ipcRenderer.send("wg-set-config", { key, val: value });
 
   function createInputField(f) {
+    const labelText = t(f.labelKey);
+    const placeholderText = f.placeholderKey ? t(f.placeholderKey) : "";
+    const hintText = f.hintKey ? t(f.hintKey) : "";
     return `
     <div class="wg-field">
       <label class="label">
         <i class="fa-solid ${f.icon}"></i>
-        ${f.label}
+        <span class="label-text" data-i18n="${f.labelKey}">${labelText}</span>
       </label>
       <div class="input-with-clear">
         <input 
           id="${f.id}" 
           class="input" 
           type="${f.type}" 
-          placeholder="${f.placeholder || ""}" 
-          aria-label="${f.label}"
+          placeholder="${placeholderText}" 
+          data-i18n-placeholder="${f.placeholderKey || ""}"
+          aria-label="${labelText}"
+          data-i18n-aria="${f.labelKey}"
         />
         <button
           type="button"
@@ -165,12 +172,13 @@ export default function renderWireGuard() {
           data-target="#${f.id}"
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          title="Очистить"
+          title="${t("wg.field.clear.title")}"
+          data-i18n-title="wg.field.clear.title"
         >
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
-      <div class="field-hint">${f.hint || ""}</div>
+      <div class="field-hint" data-i18n="${f.hintKey || ""}">${hintText}</div>
       <div class="field-error" data-error-for="${f.id}"></div>
     </div>
   `;
@@ -270,7 +278,7 @@ export default function renderWireGuard() {
       promise,
       new Promise((_, reject) => {
         timer = setTimeout(
-          () => reject(new Error("Таймаут ожидания ответа")),
+          () => reject(new Error(t("wg.error.timeoutWaiting"))),
           ms,
         );
       }),
@@ -278,14 +286,14 @@ export default function renderWireGuard() {
   };
 
   const humanizeError = (msg) => {
-    if (!msg) return "Неизвестная ошибка";
+    if (!msg) return t("wg.error.unknown");
     if (msg.includes("EADDRINUSE"))
-      return "Порт уже используется. Выберите другой локальный порт.";
+      return t("wg.error.portInUse");
     if (msg.includes("ENETUNREACH"))
-      return "Сеть недоступна. Проверьте подключение к интернету.";
+      return t("wg.error.networkUnreachable");
     if (msg.includes("ECONNREFUSED"))
-      return "Соединение отклонено удалённой стороной.";
-    if (msg.toLowerCase().includes("timeout")) return "Время ожидания истекло.";
+      return t("wg.error.connectionRefused");
+    if (msg.toLowerCase().includes("timeout")) return t("wg.error.timeout");
     return msg;
   };
 
@@ -294,7 +302,7 @@ export default function renderWireGuard() {
   // =============================================
 
   const stopCountdown = () => {
-    log("[Авто-закрытие] Таймер остановлен");
+    log(t("wg.log.autoShutdown.timerStopped"));
     if (shutdownTicker) {
       clearInterval(shutdownTicker);
       shutdownTicker = null;
@@ -307,7 +315,9 @@ export default function renderWireGuard() {
     stopCountdown();
     shutdownDeadlineTs = Number(deadlineMs);
     log(
-      `[Авто-закрытие] Таймер запущен до ${new Date(shutdownDeadlineTs).toLocaleTimeString()}`,
+      t("wg.log.autoShutdown.timerStartedUntil", {
+        time: new Date(shutdownDeadlineTs).toLocaleTimeString(),
+      }),
     );
 
     if (!Number.isFinite(shutdownDeadlineTs)) return;
@@ -317,7 +327,7 @@ export default function renderWireGuard() {
       let remaining = Math.ceil((shutdownDeadlineTs - now) / 1000);
       if (remaining < 0) remaining = 0;
       if (lastLoggedRemaining !== remaining) {
-        log(`[Авто-закрытие] Осталось: ${remaining} с`);
+        log(t("wg.log.autoShutdown.remaining", { seconds: remaining }));
         lastLoggedRemaining = remaining;
       }
       if (remaining <= 0) {
@@ -354,19 +364,30 @@ export default function renderWireGuard() {
         if (deadline && Number.isFinite(Number(deadline))) {
           startCountdownWithDeadline(Number(deadline));
           const eta = new Date(Number(deadline)).toLocaleTimeString();
-          log(`[Авто-закрытие] Загружено: включено, завершение в ${eta}`);
+          log(
+            t("wg.log.autoShutdown.loaded.enabledWithEta", { time: eta }),
+          );
         } else {
           startCountdownFromSeconds(seconds);
           log(
-            `[Авто-закрытие] Загружено: включено, ${Number(seconds) || 30} с`,
+            t("wg.log.autoShutdown.loaded.enabledWithSeconds", {
+              seconds: Number(seconds) || 30,
+            }),
           );
         }
       } else {
-        log(`[Авто-закрытие] Загружено: выключено, ${Number(seconds) || 30} с`);
+        log(
+          t("wg.log.autoShutdown.loaded.disabled", {
+            seconds: Number(seconds) || 30,
+          }),
+        );
       }
     } catch (e) {
       console.error("auto-shutdown init error:", e);
-      log(`[Авто-закрытие] Ошибка инициализации: ${e.message}`, true);
+      log(
+        t("wg.log.autoShutdown.initError", { message: e.message }),
+        true,
+      );
     }
   };
 
@@ -384,39 +405,39 @@ export default function renderWireGuard() {
             <div class="title">
               <i class="fa-solid fa-lock-open"></i>
               <div class="title-content">
-                <h1 class="wg-text-gradient">WG Unlock</h1>
-                <p class="subtitle">UDP‑разблокировка WireGuard.</p>
+                <h1 class="wg-text-gradient" data-i18n="wg.title">WG Unlock</h1>
+                <p class="subtitle" data-i18n="wg.subtitle">UDP‑разблокировка WireGuard.</p>
               </div>
             </div>
             
             <!-- Исправленный переключатель отладки -->
             <div class="debug-toggle" id="debug-toggle">
               <div class="toggle-track"></div>
-              <span class="toggle-label">Лог активности</span>
+              <span class="toggle-label" data-i18n="wg.debug.label">Лог активности</span>
             </div>
           </div>
 
           <div class="wg-section">
-            <h2 class="section-heading">Сетевые параметры</h2>
+            <h2 class="section-heading" data-i18n="wg.section.network">Сетевые параметры</h2>
             <div class="wg-grid">
               ${fieldsHtml}
             </div>
           </div>
 
           <div class="wg-section">
-            <h2 class="section-heading">Управление</h2>
+            <h2 class="section-heading" data-i18n="wg.section.control">Управление</h2>
             <div class="buttons">
               <button id="wg-send" class="large-button">
                 <i class="fa-solid fa-paper-plane"></i>
-                <span>Отправить</span>
+                <span data-i18n="wg.action.send">Отправить</span>
               </button>
-              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс">
+              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
-              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию">
+              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
                 <i class="fa-solid fa-file-edit"></i>
               </button>
-              <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top">
+              <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
                 <i class="fa-solid fa-network-wired"></i>
               </button>
             </div>
@@ -427,37 +448,37 @@ export default function renderWireGuard() {
 
       <div class="wg-side-panel">
         <div class="info-card">
-          <h3><i class="fa-solid fa-circle-info"></i> Информация</h3>
-          <p>Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
+          <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">Информация</span></h3>
+          <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
         </div>
         
         <div class="info-card">
-          <h3><i class="fa-solid fa-clock"></i> Последняя отправка</h3>
-          <p id="wg-last-send-time">Никогда</p>
+          <h3><i class="fa-solid fa-clock"></i> <span data-i18n="wg.lastSend.title">Последняя отправка</span></h3>
+          <p id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</p>
         </div>
         
         <div class="info-card">
-          <h3><i class="fa-solid fa-gauge"></i> Статус</h3>
-          <p id="wg-connection-status">Неактивно</p>
+          <h3><i class="fa-solid fa-gauge"></i> <span data-i18n="wg.status.title">Статус</span></h3>
+          <p id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</p>
         </div>
 
         <div class="wg-section">
             <details class="wg-log-block">
               <summary>
                 <i class="fa-solid fa-terminal"></i>
-                Лог активности
+                <span data-i18n="wg.log.title">Лог активности</span>
               </summary>
-              <div class="log-actions" aria-label="Действия с логом">
+              <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="wg.log.actions.aria">
                 <button id="wg-log-copy" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена">
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена" data-i18n-title="wg.log.copy.title">
                   <i class="fa-solid fa-copy"></i>
                 </button>
                 <button id="wg-log-export" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл">
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="wg.log.export.title">
                   <i class="fa-solid fa-download"></i>
                 </button>
                 <button id="wg-log-clear" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог">
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               </div>
@@ -466,8 +487,8 @@ export default function renderWireGuard() {
         </div>
         
         <div class="info-card">
-          <h3><i class="fa-solid fa-lightbulb"></i> Советы</h3>
-          <p>• Используйте режим отладки для подробного лога<br>
+          <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
+          <p data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
              • Проверьте настройки брандмауэра<br>
              • Убедитесь, что удаленный хост доступен</p>
         </div>
@@ -476,6 +497,7 @@ export default function renderWireGuard() {
   `;
 
   container.appendChild(view);
+  applyI18n(view);
 
   // =============================================
   // ИНИЦИАЛИЗАЦИЯ ПОЛЕЙ И КОНФИГУРАЦИИ
@@ -484,7 +506,7 @@ export default function renderWireGuard() {
   const loadConfiguration = async () => {
     try {
       const cfg = await window.electron.ipcRenderer.invoke("wg-get-config");
-      log("[Настройки] Конфигурация загружена");
+      log(t("wg.log.settings.loaded"));
 
       currentMsg = cfg.msg ?? ")";
       fields.forEach((f) => {
@@ -492,7 +514,7 @@ export default function renderWireGuard() {
         if (el) el.value = cfg[f.key] ?? "";
       });
 
-      log(`[Настройки] Поля восстановлены (${fields.length})`);
+      log(t("wg.log.settings.fieldsRestored", { count: fields.length }));
 
       // Инициализация кнопок очистки после загрузки данных
       setTimeout(() => {
@@ -520,20 +542,18 @@ export default function renderWireGuard() {
         debugToggle.classList.add("is-active");
         // Принудительно добавить сообщение при загрузке с включенной отладкой
         setTimeout(() => {
-          log(
-            "[Система] WireGuard Unlock инициализирован с включенной отладкой",
-          );
+          log(t("wg.log.system.debugInit"));
         }, 100);
       }
 
       if (cfg.autosend) {
-        log("[Отправка] Планирую автоотправку через 50 мс");
+        log(t("wg.log.send.scheduleAuto"));
         setTimeout(() => getEl("wg-send", view)?.click(), 50);
       }
     } catch (err) {
-      toast("Не удалось загрузить настройки", false);
+      toast(t("wg.toast.loadConfigError"), false);
       console.error(err);
-      log(`[Ошибка] Загрузка конфигурации: ${err.message}`, true);
+      log(t("wg.log.error.loadConfig", { message: err.message }), true);
     }
   };
 
@@ -608,14 +628,14 @@ export default function renderWireGuard() {
         const rPort = getEl("wg-port-remote", view)?.value || "51820";
 
         showConfirmationDialog(
-          `Отправить запрос на <b>${ipInput.value}:${rPort}</b>?`,
+          t("wg.confirm.send", { target: `<b>${ipInput.value}:${rPort}</b>` }),
           () => {
             const payload = getPayload();
             const status = getEl("wg-status-indicator", view);
 
             if (status) {
               status.classList.remove("hidden");
-              status.textContent = "⏳ Отправка специального запроса...";
+              status.textContent = t("wg.statusIndicator.sendingSpecial");
               status.className = "loading";
 
               const hideLater = () =>
@@ -625,13 +645,17 @@ export default function renderWireGuard() {
                 .invoke("wg-send-udp", payload)
                 .then(() => {
                   toast(
-                    `Специальный запрос отправлен на ${payload.ip}:${payload.rPort}`,
+                    t("wg.toast.specialSent", {
+                      target: `${payload.ip}:${payload.rPort}`,
+                    }),
                   );
                   log(
-                    `Запрос (kvn) отправлен успешно на ${payload.ip}:${payload.rPort}`,
+                    t("wg.log.send.specialSent", {
+                      target: `${payload.ip}:${payload.rPort}`,
+                    }),
                   );
                   updateLastSendTime();
-                  updateConnectionStatus("Успешно");
+                  updateConnectionStatus(t("wg.status.success"));
                   hideLater();
                 })
                 .catch((err) => {
@@ -640,7 +664,7 @@ export default function renderWireGuard() {
                     toast(msg, false);
                   }
                   log(msg, true);
-                  updateConnectionStatus("Ошибка", true);
+                  updateConnectionStatus(t("wg.status.error"), true);
                   hideLater();
                 });
             }
@@ -680,12 +704,12 @@ export default function renderWireGuard() {
           : false;
 
         pre.textContent = debugEnabled
-          ? "[Лог] Очищен пользователем"
-          : "Лог активности. Включите режим отладки для подробного вывода.";
+          ? t("wg.log.log.clearedByUser")
+          : t("wg.log.placeholder");
 
         saveLog(); // Сохраняем обновлённый (очищенный) лог
 
-        log("[Лог] Очищен пользователем");
+        log(t("wg.log.log.clearedByUser"));
       }
     });
 
@@ -703,12 +727,13 @@ export default function renderWireGuard() {
       if (pre && pre.textContent) {
         try {
           await navigator.clipboard.writeText(pre.textContent);
-          toast("Лог скопирован в буфер обмена");
-          log("[Лог] Содержимое лога скопировано в буфер обмена");
+          toast(t("wg.toast.logCopied"));
+          log(t("wg.log.log.copied"));
 
           // Визуальная обратная связь
-          copyLogBtn.innerHTML =
-            '<i class="fa-solid fa-check"></i><span>Скопировано</span>';
+          copyLogBtn.innerHTML = `<i class="fa-solid fa-check"></i><span>${t(
+            "wg.log.ui.copied",
+          )}</span>`;
           copyLogBtn.style.background = "rgba(var(--color-success-rgb), 0.1)";
           copyLogBtn.style.borderColor = "var(--color-success)";
           copyLogBtn.style.color = "var(--color-success)";
@@ -720,12 +745,12 @@ export default function renderWireGuard() {
             copyLogBtn.style.color = "";
           }, 2000);
         } catch (err) {
-          console.error("Ошибка копирования:", err);
-          toast("Не удалось скопировать лог", false);
-          log(`[Ошибка] Копирование лога: ${err.message}`, true);
+          console.error("Copy error:", err);
+          toast(t("wg.toast.logCopyFailed"), false);
+          log(t("wg.log.error.copyLog", { message: err.message }), true);
         }
       } else {
-        toast("Лог пуст", false);
+        toast(t("wg.toast.logEmpty"), false);
       }
     });
 
@@ -734,12 +759,13 @@ export default function renderWireGuard() {
     exportLogBtn?.addEventListener("click", () => {
       const pre = getEl("wg-log", view);
       if (pre && pre.textContent) {
-        log("[Лог] Экспорт лога в файл");
+        log(t("wg.log.log.exportStarted"));
         window.electron.ipcRenderer.send("wg-export-log", pre.textContent);
 
         // Визуальная обратная связь
-        exportLogBtn.innerHTML =
-          '<i class="fa-solid fa-spinner fa-spin"></i><span>Экспорт...</span>';
+        exportLogBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t(
+          "wg.log.ui.exporting",
+        )}</span>`;
         exportLogBtn.disabled = true;
 
         setTimeout(() => {
@@ -747,7 +773,7 @@ export default function renderWireGuard() {
           exportLogBtn.disabled = false;
         }, 3000);
       } else {
-        toast("Лог пуст", false);
+        toast(t("wg.toast.logEmpty"), false);
       }
     });
 
@@ -755,20 +781,20 @@ export default function renderWireGuard() {
     window.electron.ipcRenderer.on(
       "wg-log-export-success",
       (event, filePath) => {
-        toast(`Лог экспортирован`);
-        log(`[Лог] Успешно экспортирован в файл: ${filePath}`);
+        toast(t("wg.toast.logExported"));
+        log(t("wg.log.log.exportSuccess", { path: filePath }));
       },
     );
 
     window.electron.ipcRenderer.on("wg-log-export-error", (event, error) => {
-      toast("Ошибка при экспорте лога", false);
-      log(`[Ошибка] Экспорт лога: ${error}`, true);
+      toast(t("wg.toast.logExportFailed"), false);
+      log(t("wg.log.error.exportLog", { message: error }), true);
     });
 
     // Открыть файл конфигурации
     const openConfigBtn = getEl("wg-open-config-file", view);
     openConfigBtn?.addEventListener("click", () => {
-      log("[Действие] Открыть файл конфигурации");
+      log(t("wg.log.action.openConfigFile"));
       window.electron.ipcRenderer.send("wg-open-config-folder");
     });
 
@@ -788,38 +814,46 @@ export default function renderWireGuard() {
     }
 
     const payload = getPayload();
-    log(`[Отправка] Подготовка payload: ${JSON.stringify(payload)}`);
+    log(t("wg.log.send.payloadPrepared", { payload: JSON.stringify(payload) }));
 
     let hasError = false;
 
     if (!isValidIp(payload.ip)) {
-      markFieldError("wg-ip", true, "Некорректный IP‑адрес");
+      markFieldError("wg-ip", true, t("wg.validation.ipInvalid"));
       hasError = true;
-      log("[Валидация] Некорректный IP-адрес", true);
+      log(t("wg.log.validation.ipInvalid"), true);
     }
 
     if (!isValidPort(payload.rPort)) {
-      markFieldError("wg-port-remote", true, "Порт должен быть от 1 до 65535");
+      markFieldError(
+        "wg-port-remote",
+        true,
+        t("wg.validation.portRange"),
+      );
       hasError = true;
-      log("[Валидация] Некорректный удалённый порт", true);
+      log(t("wg.log.validation.remotePortInvalid"), true);
     }
 
     if (payload.lPort && !isValidPort(payload.lPort)) {
-      markFieldError("wg-port-local", true, "Порт должен быть от 1 до 65535");
+      markFieldError(
+        "wg-port-local",
+        true,
+        t("wg.validation.portRange"),
+      );
       hasError = true;
-      log("[Валидация] Некорректный локальный порт", true);
+      log(t("wg.log.validation.localPortInvalid"), true);
     }
 
     const status = getEl("wg-status-indicator", view);
     if (!status) return;
 
     status.classList.remove("hidden");
-    status.textContent = "⏳ Отправка запроса...";
+    status.textContent = t("wg.statusIndicator.sending");
     status.className = "loading";
 
     if (hasError) {
-      log("[Отправка] Прервана из-за ошибок валидации", true);
-      status.textContent = "❌ Ошибки валидации";
+      log(t("wg.log.send.abortedValidation"), true);
+      status.textContent = t("wg.statusIndicator.validationErrors");
       status.className = "error";
       setTimeout(() => status.classList.add("hidden"), 3000);
       return;
@@ -832,20 +866,22 @@ export default function renderWireGuard() {
     sendBtn.disabled = true;
     sendBtn.classList.add("is-loading");
 
-    log("[Отправка] Запрос IPC: wg-send-udp (таймаут 5000 мс)");
+    log(t("wg.log.send.ipcRequest"));
 
     withTimeout(
       window.electron.ipcRenderer.invoke("wg-send-udp", payload),
       5000,
     )
       .then(() => {
-        log("[Отправка] Успех: ответ получен от main");
-        toast(`Отправлено на ${payload.ip}:${payload.rPort}`);
-        log(`Запрос отправлен успешно на ${payload.ip}:${payload.rPort}`);
+        log(t("wg.log.send.successResponse"));
+        toast(
+          t("wg.toast.sent", { target: `${payload.ip}:${payload.rPort}` }),
+        );
+        log(t("wg.log.send.sentSuccess", { target: `${payload.ip}:${payload.rPort}` }));
 
         updateLastSendTime();
-        updateConnectionStatus("Успешно отправлено");
-        status.textContent = "✅ Успешно отправлено";
+        updateConnectionStatus(t("wg.status.sent"));
+        status.textContent = t("wg.statusIndicator.sent");
         status.className = "success";
 
         view.classList.add("wg-success-pulse");
@@ -857,7 +893,9 @@ export default function renderWireGuard() {
       })
       .catch((err) => {
         log(
-          `[Отправка] Ошибка IPC: ${err && (err.message || String(err))}`,
+          t("wg.log.send.ipcError", {
+            message: err && (err.message || String(err)),
+          }),
           true,
         );
         const raw = err && (err.message || String(err));
@@ -868,8 +906,8 @@ export default function renderWireGuard() {
         }
 
         log(msg, true);
-        updateConnectionStatus("Ошибка отправки", true);
-        status.textContent = "❌ Ошибка отправки";
+        updateConnectionStatus(t("wg.status.sendError"), true);
+        status.textContent = t("wg.statusIndicator.sendError");
         status.className = "error";
 
         sendBtn.disabled = false;
@@ -880,21 +918,21 @@ export default function renderWireGuard() {
 
   const handleReset = () => {
     showConfirmationDialog(
-      "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
+      t("wg.confirm.resetAll"),
       () => {
         window.electron.ipcRenderer
           .invoke("wg-reset-config-defaults")
           .then(() => {
-            toast("Поля сброшены по умолчанию");
+            toast(t("wg.toast.resetDone"));
             return window.electron.ipcRenderer.invoke("wg-get-config");
           })
           .then((cfg) => {
-            log("[Настройки] Конфигурация загружена");
+            log(t("wg.log.settings.loaded"));
             fields.forEach((f) => {
               getEl(f.id, view).value = cfg[f.key] ?? "";
               markFieldError(f.id, false);
             });
-            log(`[Настройки] Поля восстановлены (${fields.length})`);
+            log(t("wg.log.settings.fieldsRestored", { count: fields.length }));
 
             // При сбросе устанавливаем начальное сообщение в лог
             const pre = getEl("wg-log", view);
@@ -904,17 +942,16 @@ export default function renderWireGuard() {
               : false;
 
             if (pre && !debugEnabled) {
-              pre.textContent =
-                "Лог активности. Включите режим отладки для подробного вывода.";
+              pre.textContent = t("wg.log.placeholder");
             }
 
             currentMsg = ")";
-            updateConnectionStatus("Сброшено");
+            updateConnectionStatus(t("wg.status.reset"));
           })
           .catch((err) => {
-            toast("Не удалось сбросить/обновить настройки", false);
+            toast(t("wg.toast.resetFailed"), false);
             console.error(err);
-            log(`[Ошибка] Сброс настроек: ${err.message}`, true);
+            log(t("wg.log.error.resetSettings", { message: err.message }), true);
           });
       },
     );
@@ -929,15 +966,16 @@ export default function renderWireGuard() {
       setTimeout(() => debugToggle.classList.remove("pulse"), 600);
 
       // При включении отладки добавляем информационное сообщение
-      log("[Режим отладки] Включён - начата запись событий");
+      log(t("wg.log.debug.enabled"));
 
       // Показываем текущее состояние
       const status =
-        getEl("wg-connection-status", view)?.textContent || "Неактивно";
-      log(`[Текущий статус] ${status}`);
+        getEl("wg-connection-status", view)?.textContent ||
+        t("wg.status.inactive");
+      log(t("wg.log.debug.currentStatus", { status }));
     } else {
       debugToggle.classList.remove("is-active");
-      log("[Режим отладки] Выключен - запись событий приостановлена");
+      log(t("wg.log.debug.disabled"));
     }
 
     window.electron.ipcRenderer.send("wg-set-config", {
@@ -958,7 +996,7 @@ export default function renderWireGuard() {
       const pre = getEl("wg-log", view);
       if (pre && !pre.textContent.trim()) {
         pre.textContent =
-          "Лог активности. Включите режим отладки для подробного вывода.";
+          t("wg.log.placeholder");
       }
 
       await loadConfiguration();
@@ -1011,12 +1049,13 @@ export default function renderWireGuard() {
 
         // Меняем тултип в зависимости от платформы
         if (platform === "darwin") {
-          btn.setAttribute("title", "Открыть настройки сети (macOS)");
+          btn.setAttribute("data-i18n-title", "wg.action.openNetworkSettings.mac");
         } else if (platform === "windows") {
-          btn.setAttribute("title", "Открыть параметры сети (Windows)");
+          btn.setAttribute("data-i18n-title", "wg.action.openNetworkSettings.windows");
         } else {
-          btn.setAttribute("title", "Открыть сетевые настройки системы");
+          btn.setAttribute("data-i18n-title", "wg.action.openNetworkSettings.title");
         }
+        applyI18n(btn);
 
         // Показываем кнопку на macOS и Windows
         btn.style.display = "inline-flex";
@@ -1030,7 +1069,7 @@ export default function renderWireGuard() {
       // Инициализация тултипов
       queueMicrotask(() => {
         initTooltips();
-        log("[UI] Тултипы инициализированы");
+        log(t("wg.log.ui.tooltipsReady"));
       });
 
       const dt = Math.round(performance.now() - T0);
@@ -1042,14 +1081,14 @@ export default function renderWireGuard() {
         : false;
 
       if (debugEnabled) {
-        log(`[Инициализация] Разметка и подготовка за ${dt} мс`);
+        log(t("wg.log.init.renderReady", { ms: dt }));
         const ua = navigator.userAgent || "";
-        log(`[Среда] UA: ${ua.split(")")[0]})`);
-        log("[Лог] Режим отладки активен - все события будут записываться");
+        log(t("wg.log.env.ua", { ua: ua.split(")")[0] + ")" }));
+        log(t("wg.log.debug.active"));
       }
     } catch (error) {
       console.error("Ошибка инициализации WireGuard:", error);
-      log(`[Ошибка] Инициализация: ${error.message}`, true);
+      log(t("wg.log.error.init", { message: error.message }), true);
     }
   };
 
@@ -1061,18 +1100,22 @@ export default function renderWireGuard() {
         if (deadline && Number.isFinite(Number(deadline))) {
           startCountdownWithDeadline(Number(deadline));
           const eta = new Date(Number(deadline)).toLocaleTimeString();
-          log(`[Авто-закрытие] Включено; завершение в ${eta}`);
+          log(t("wg.log.autoShutdown.enabledWithEta", { time: eta }));
         } else {
           startCountdownFromSeconds(seconds);
-          log(`[Авто-закрытие] Включено; ${Number(seconds) || 30} с`);
+          log(
+            t("wg.log.autoShutdown.enabledWithSeconds", {
+              seconds: Number(seconds) || 30,
+            }),
+          );
         }
       } else {
         stopCountdown();
-        log(`[Авто-закрытие] Выключено; обратный отсчёт остановлен`);
+        log(t("wg.log.autoShutdown.disabledStopped"));
       }
     } catch (err) {
       console.error("wg-auto-shutdown-updated handler error:", err);
-      log(`[Ошибка] Обновление авто-закрытия: ${err.message}`, true);
+      log(t("wg.log.error.autoShutdownUpdate", { message: err.message }), true);
     }
   });
 

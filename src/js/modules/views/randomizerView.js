@@ -254,9 +254,16 @@ export default function renderRandomizerView() {
         <strong id="randomizer-summary-count">0</strong>
       </div>
       <div class="summary-item">
+        <span class="label">Пул</span>
+        <div class="summary-main">
+          <strong id="randomizer-summary-pool">—</strong>
+          <span class="summary-pill" id="randomizer-summary-pool-mode">Без повторов</span>
+        </div>
+      </div>
+      <div class="summary-item summary-field">
         <span class="label">Таймер / Авто</span>
         <label
-          class="spin-control"
+          class="spin-control summary-control"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
           title="Длительность анимации перед выбором и интервал автозапуска (до 60 секунд)"
@@ -274,6 +281,13 @@ export default function renderRandomizerView() {
             <i class="fa-solid fa-clock"></i>
             <span class="value">—</span>
           </span>
+        </label>
+      </div>
+      <div class="summary-item summary-field">
+        <span class="label">Порог</span>
+        <label class="summary-control stat-threshold" title="Порог редкости (промахи)">
+          <span>Порог:</span>
+          <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
         </label>
       </div>
     </div>
@@ -393,10 +407,6 @@ export default function renderRandomizerView() {
           <div class="randomizer-list-actions">
             <div class="list-actions-group">
               <span class="group-label">Фильтры</span>
-              <label class="stat-threshold" title="Порог редкости (промахи)">
-                <span>Порог:</span>
-                <input type="number" id="randomizer-rare-threshold" min="1" max="9999" />
-              </label>
               <button type="button" class="btn btn-sm btn-ghost" id="randomizer-fav-filter" data-state="all" data-bs-toggle="tooltip" data-bs-placement="left" title="Показывать только избранные варианты">
                 <i class="fa-solid fa-star"></i>
                 <span>Все</span>
@@ -438,19 +448,21 @@ export default function renderRandomizerView() {
       </section>
 
       <section class="randomizer-card randomizer-result-card randomizer-outcome-card">
-        <div class="outcome-section">
-          <header>
-            <p class="eyebrow">Результат</p>
-          </header>
-          <div class="randomizer-result-actions">
-            <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll">
-              <i class="fa-solid fa-dice"></i>
-              <span class="btn-spinner" aria-hidden="true"></span>
-              <span>Запустить</span>
-            </button>
-            <button type="button" class="btn btn-ghost" id="randomizer-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать результат">
-              <i class="fa-solid fa-copy"></i>
-            </button>
+        <div class="result-hero">
+          <div class="result-hero-header">
+            <div>
+              <p class="eyebrow">Результат</p>
+            </div>
+            <div class="randomizer-result-actions">
+              <button type="button" class="btn btn-primary randomizer-roll" id="randomizer-roll">
+                <i class="fa-solid fa-dice"></i>
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span>Запустить</span>
+              </button>
+              <button type="button" class="btn btn-ghost" id="randomizer-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать результат">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </div>
           </div>
           <div class="randomizer-result" id="randomizer-result">
             <div class="placeholder">
@@ -462,105 +474,106 @@ export default function renderRandomizerView() {
           </div>
         </div>
 
-        <div class="randomizer-auto-card" id="randomizer-auto-card">
-          <header>
-            <div>
-              <p class="eyebrow">Авто-запуск</p>
+        <div class="result-panels">
+          <section class="result-panel randomizer-auto-card" id="randomizer-auto-card">
+            <header>
+              <div>
+                <p class="eyebrow">Авто-запуск</p>
+              </div>
+              <div class="auto-status" id="randomizer-auto-status">Авто-ролл выключен</div>
+            </header>
+            <div class="randomizer-auto-grid">
+              <label class="auto-field">
+                <span class="label">Стоп-условие</span>
+                <select id="randomizer-auto-stop-mode">
+                  <option value="none">Только вручную</option>
+                  <option value="count">После N запусков</option>
+                  <option value="match">При совпадении текста</option>
+                </select>
+              </label>
+              <label class="auto-field stop-extra" data-stop-extra="count">
+                <span class="label">Количество</span>
+                <input type="number" id="randomizer-auto-stop-count" min="1" max="9999" step="1" />
+              </label>
+              <label class="auto-field stop-extra" data-stop-extra="match">
+                <span class="label">Искомый фрагмент</span>
+                <input type="text" id="randomizer-auto-stop-text" maxlength="120" placeholder="Например, стрим" />
+              </label>
+              <label class="auto-toggle">
+                <input type="checkbox" id="randomizer-auto-stop-pool" />
+                <span>Стоп при пустом пуле</span>
+              </label>
+              <label class="auto-toggle">
+                <input type="checkbox" id="randomizer-auto-notify-sound" />
+                <span>Звук результата</span>
+              </label>
+              <label class="auto-toggle">
+                <input type="checkbox" id="randomizer-auto-notify-flash" />
+                <span>Визуальная вспышка</span>
+              </label>
             </div>
-            <div class="auto-status" id="randomizer-auto-status">Авто-ролл выключен</div>
-          </header>
-          <div class="randomizer-auto-grid">
-            <label class="auto-field">
-              <span class="label">Стоп-условие</span>
-              <select id="randomizer-auto-stop-mode">
-                <option value="none">Только вручную</option>
-                <option value="count">После N запусков</option>
-                <option value="match">При совпадении текста</option>
-              </select>
-            </label>
-            <label class="auto-field stop-extra" data-stop-extra="count">
-              <span class="label">Количество</span>
-              <input type="number" id="randomizer-auto-stop-count" min="1" max="9999" step="1" />
-            </label>
-            <label class="auto-field stop-extra" data-stop-extra="match">
-              <span class="label">Искомый фрагмент</span>
-              <input type="text" id="randomizer-auto-stop-text" maxlength="120" placeholder="Например, стрим" />
-            </label>
-            <label class="auto-toggle">
-              <input type="checkbox" id="randomizer-auto-stop-pool" />
-              <span>Стоп при пустом пуле</span>
-            </label>
-            <label class="auto-toggle">
-              <input type="checkbox" id="randomizer-auto-notify-sound" />
-              <span>Звук результата</span>
-            </label>
-            <label class="auto-toggle">
-              <input type="checkbox" id="randomizer-auto-notify-flash" />
-              <span>Визуальная вспышка</span>
-            </label>
-          </div>
-          <div class="randomizer-auto-actions">
-            <button type="button" class="btn btn-primary" id="randomizer-auto-toggle">
-              <i class="fa-solid fa-clock-rotate-left"></i>
-              <span>Старт таймера</span>
-            </button>
-            <button type="button" class="btn btn-ghost" id="randomizer-auto-run-once" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить сейчас">
-              <i class="fa-solid fa-bolt"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="outcome-divider"></div>
-
-        <div class="randomizer-history-card">
-          <header>
-            <div>
-              <p class="eyebrow">История</p>
-              <h3>Последние результаты</h3>
-            </div>
-            <div class="history-tabs">
-              <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history" data-bs-toggle="tooltip" data-bs-placement="top" title="История">
+            <div class="randomizer-auto-actions">
+              <button type="button" class="btn btn-primary" id="randomizer-auto-toggle">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                <span>История</span>
+                <span>Старт таймера</span>
               </button>
-              <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats" data-bs-toggle="tooltip" data-bs-placement="top" title="Статистика">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>Статистика</span>
+              <button type="button" class="btn btn-ghost" id="randomizer-auto-run-once" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить сейчас">
+                <i class="fa-solid fa-bolt"></i>
               </button>
             </div>
-          </header>
-          <div class="history-panel hidden" id="randomizer-history-panel" data-tab="history">
-            <div id="randomizer-history" class="randomizer-history">
-              <div id="randomizer-history-empty" class="placeholder">
-                <span>Ещё ничего не выбрано.</span>
-                <button type="button" class="btn btn-sm btn-primary" id="randomizer-history-run">
-                  <i class="fa-solid fa-dice"></i>
-                  <span>Запустить</span>
+          </section>
+
+          <section class="result-panel randomizer-history-card">
+            <header>
+              <div>
+                <p class="eyebrow">История</p>
+                <h3>Последние результаты</h3>
+              </div>
+              <div class="history-tabs">
+                <button type="button" class="btn btn-sm btn-ghost is-active" id="randomizer-tab-history" data-target="history" data-bs-toggle="tooltip" data-bs-placement="top" title="История">
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                  <span>История</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-ghost" id="randomizer-tab-stats" data-target="stats" data-bs-toggle="tooltip" data-bs-placement="top" title="Статистика">
+                  <i class="fa-solid fa-chart-line"></i>
+                  <span>Статистика</span>
                 </button>
               </div>
-              <ul id="randomizer-history-list"></ul>
+            </header>
+            <div class="history-panel hidden" id="randomizer-history-panel" data-tab="history">
+              <div id="randomizer-history" class="randomizer-history">
+                <div id="randomizer-history-empty" class="placeholder">
+                  <span>Ещё ничего не выбрано.</span>
+                  <button type="button" class="btn btn-sm btn-primary" id="randomizer-history-run">
+                    <i class="fa-solid fa-dice"></i>
+                    <span>Запустить</span>
+                  </button>
+                </div>
+                <ul id="randomizer-history-list"></ul>
+              </div>
+              <div class="randomizer-history-actions">
+                <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
+                  <i class="fa-solid fa-trash"></i>
+                  <span>Очистить историю</span>
+                </button>
+              </div>
             </div>
-          <div class="randomizer-history-actions">
-            <button type="button" class="btn btn-ghost" id="randomizer-history-clear">
-              <i class="fa-solid fa-trash"></i>
-              <span>Очистить историю</span>
-            </button>
-          </div>
-        </div>
-        <div class="history-panel" id="randomizer-stats-panel" data-tab="stats">
-          <div class="history-controls">
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-history-rare-toggle" data-state="all" data-bs-toggle="tooltip" data-bs-placement="top" title="Показать только редкие (долго не выпадали)">
-              <i class="fa-solid fa-star-half-stroke"></i>
-              <span>Все</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" id="randomizer-stats-export" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать статистику в буфер">
-              <i class="fa-solid fa-file-export"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-stats-reset" data-bs-toggle="tooltip" data-bs-placement="top" title="Сбросить счётчики выпадений и промахов">
-              <i class="fa-solid fa-eraser"></i>
-            </button>
-          </div>
-          <div class="randomizer-stats" id="randomizer-stats"></div>
+            <div class="history-panel" id="randomizer-stats-panel" data-tab="stats">
+              <div class="history-controls">
+                <button type="button" class="btn btn-sm btn-ghost" id="randomizer-history-rare-toggle" data-state="all" data-bs-toggle="tooltip" data-bs-placement="top" title="Показать только редкие (долго не выпадали)">
+                  <i class="fa-solid fa-star-half-stroke"></i>
+                  <span>Все</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-ghost" id="randomizer-stats-export" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать статистику в буфер">
+                  <i class="fa-solid fa-file-export"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-ghost danger" id="randomizer-stats-reset" data-bs-toggle="tooltip" data-bs-placement="top" title="Сбросить счётчики выпадений и промахов">
+                  <i class="fa-solid fa-eraser"></i>
+                </button>
+              </div>
+              <div class="randomizer-stats" id="randomizer-stats"></div>
+            </div>
+          </section>
         </div>
       </section>
     </div>
@@ -597,34 +610,34 @@ export default function renderRandomizerView() {
     setText("#randomizer-toggle-list span", "randomizer.action.toggleList.hide");
     setText("#randomizer-summary-default-badge", "randomizer.preset.defaultBadge");
     const summaryLabels = wrapper.querySelectorAll(
-      ".randomizer-summary-item .label",
+      ".randomizer-summary .summary-item .label",
     );
     const summaryLabelKeys = [
       "randomizer.preset.label",
       "randomizer.summary.items",
-      "randomizer.summary.timer",
       "randomizer.summary.pool",
+      "randomizer.summary.timer",
       "randomizer.summary.rare",
     ];
     summaryLabels.forEach((el, idx) => {
       const key = summaryLabelKeys[idx];
       if (key) el.textContent = t(key);
     });
-    const summarySpin = wrapper.querySelector(".summary-control");
+    const summarySpin = wrapper.querySelector(".summary-control.spin-control");
     if (summarySpin) summarySpin.title = t("randomizer.summary.spin.title");
-    setText(".summary-control span", "randomizer.summary.spin.label");
-    setText(".summary-control .unit", "randomizer.summary.spin.unit");
+    setText(".summary-control.spin-control .spin-label", "randomizer.summary.spin.label");
+    setText(".summary-control.spin-control .unit", "randomizer.summary.spin.unit");
     const spinCountdown = wrapper.querySelector("#randomizer-spin-countdown");
     if (spinCountdown)
       spinCountdown.setAttribute("aria-label", t("randomizer.summary.spin.aria"));
     const sparkline = wrapper.querySelector("#randomizer-sparkline");
     if (sparkline)
       sparkline.setAttribute("aria-label", t("randomizer.summary.sparkline.aria"));
-    setText(".randomizer-list-intro .eyebrow", "randomizer.list.eyebrow");
-    setText(".randomizer-list-intro h3", "randomizer.list.title");
+    setText(".randomizer-editor header .eyebrow", "randomizer.list.eyebrow");
+    setText(".randomizer-editor header h3", "randomizer.list.title");
     setTitle(".randomizer-toggle", "randomizer.list.noRepeat.title");
     setText(".randomizer-toggle span", "randomizer.list.noRepeat.label");
-    setText(".randomizer-list-intro .hint", "randomizer.list.hint");
+    setText(".randomizer-editor .hint", "randomizer.list.hint");
     setText(".preset-label", "randomizer.preset.labelPlural");
     setTitle("#randomizer-preset-save", "randomizer.preset.save.title");
     setText("#randomizer-preset-save span", "randomizer.preset.save");
@@ -665,9 +678,9 @@ export default function renderRandomizerView() {
     setTitle("#randomizer-delete-selected", "randomizer.actions.deleteSelected.title");
     setText("#randomizer-pool-empty span", "randomizer.pool.empty");
     setText("#randomizer-pool-refresh span", "randomizer.pool.refresh");
-    setText(".randomizer-result-header .eyebrow", "randomizer.result.eyebrow");
+    setText(".result-hero .eyebrow", "randomizer.result.eyebrow");
     setTitle("#randomizer-copy", "randomizer.result.copy.title");
-    setText(".result-empty p", "randomizer.result.empty");
+    setText(".randomizer-result .placeholder p", "randomizer.result.empty");
     const resultRoll = wrapper.querySelector("#randomizer-roll span:last-child");
     if (resultRoll) resultRoll.textContent = t("randomizer.action.start");
     setText(".randomizer-auto-card .eyebrow", "randomizer.auto.eyebrow");
@@ -703,8 +716,8 @@ export default function renderRandomizerView() {
       autoToggles[2].textContent = t("randomizer.auto.notify.flash");
     setText("#randomizer-auto-toggle span", "randomizer.auto.startTimer");
     setTitle("#randomizer-auto-run-once", "randomizer.auto.runOnce.title");
-    setText(".randomizer-history-header .eyebrow", "randomizer.history.eyebrow");
-    setText(".randomizer-history-header h3", "randomizer.history.title");
+    setText(".randomizer-history-card header .eyebrow", "randomizer.history.eyebrow");
+    setText(".randomizer-history-card header h3", "randomizer.history.title");
     setTitle("#randomizer-tab-history", "randomizer.history.tab.history.title");
     setText("#randomizer-tab-history span", "randomizer.history.tab.history");
     setTitle("#randomizer-tab-stats", "randomizer.history.tab.stats.title");
