@@ -126,3 +126,48 @@ describe("wg disable toggle initializes badge state", () => {
     expect(btn?.classList.contains("tab-disabled")).toBe(true);
   });
 });
+
+describe("language select initializes and updates language", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue(false),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("syncs select value and calls setLanguage on change", async () => {
+    document.body.innerHTML = `
+      <div id="appearance-settings">
+        <select id="settings-language-select">
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+      </div>`;
+
+    const setLanguage = jest.fn();
+
+    let initPromise;
+    jest.isolateModules(() => {
+      jest.doMock("../i18n", () => ({
+        applyI18n: jest.fn(),
+        getLanguage: () => "ru",
+        setLanguage,
+        t: (key) => key,
+      }));
+      const mod = require("../settings");
+      initPromise = mod.initSettings?.();
+    });
+    if (initPromise) await initPromise;
+
+    const select = document.getElementById("settings-language-select");
+    expect(select?.value).toBe("ru");
+
+    select.value = "en";
+    select.dispatchEvent(new Event("change"));
+    expect(setLanguage).toHaveBeenCalledWith("en");
+  });
+});
