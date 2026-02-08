@@ -102,19 +102,6 @@
 
         <button
           class="menu-item"
-          id="open-github"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="Открыть репозиторий на GitHub"
-          data-i18n-title="topbar.github"
-        >
-          <span class="menu-main">
-            <i class="fa-brands fa-github"></i>
-          </span>
-        </button>
-
-        <button
-          class="menu-item"
           id="theme-toggle"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -123,6 +110,19 @@
         >
           <span class="menu-main">
             <i class="fa-solid fa-palette"></i>
+          </span>
+        </button>
+
+        <button
+          class="menu-item"
+          id="open-github"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="Открыть репозиторий на GitHub"
+          data-i18n-title="topbar.github"
+        >
+          <span class="menu-main">
+            <i class="fa-brands fa-github"></i>
           </span>
         </button>
 
@@ -461,6 +461,15 @@
       <div class="quality-actions">
         <button
           type="button"
+          id="download-quality-enqueue"
+          class="btn-ghost"
+          disabled
+          data-i18n="quality.enqueue"
+        >
+          В очередь
+        </button>
+        <button
+          type="button"
           id="download-quality-cancel"
           class="btn-ghost"
           data-i18n="quality.cancel"
@@ -481,11 +490,40 @@
   </div>
 </div>
 
-  <div id="download-queue-info" class="download-queue-info hidden">
-  <span data-i18n="queue.label">В очереди:</span>
-  <span id="queue-count">0</span>
-  <span data-i18n="queue.links">ссылок</span>
-</div>
+    <div id="download-queue-info" class="download-queue-info hidden">
+    <div class="queue-summary">
+      <span data-i18n="queue.label">В очереди:</span>
+      <span id="queue-count" class="queue-count-pill">0</span>
+      <span data-i18n="queue.links">ссылок</span>
+    </div>
+    <div class="queue-actions">
+      <button
+        id="queue-start-button"
+        class="small-button btn btn-sm btn-primary"
+        aria-label="Запустить очередь"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Запустить очередь"
+        data-i18n-title="queue.start.title"
+        data-i18n-aria="queue.start.title"
+      >
+        <i class="fa-solid fa-play"></i>
+      </button>
+      <button
+        id="queue-clear-button"
+        class="small-button btn btn-sm btn-secondary"
+        aria-label="Очистить очередь"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Очистить очередь"
+        data-i18n-title="queue.clear.title"
+        data-i18n-aria="queue.clear.title"
+      >
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+    <div id="queue-list" class="queue-list" aria-live="polite"></div>
+  </div>
 
 <div
   id="queue-start-indicator"

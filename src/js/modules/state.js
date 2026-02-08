@@ -2,6 +2,7 @@
 
 import {
   downloadButton,
+  enqueueButton,
   downloadCancelButton,
   urlInput,
 } from "./domElements.js";
@@ -85,6 +86,10 @@ const updateButtonState = () => {
   // Кнопка "Скачать" активна, если URL валидный
   downloadButton.disabled = !isValid;
   downloadButton.setAttribute("aria-disabled", !isValid);
+  if (enqueueButton) {
+    enqueueButton.disabled = !isValid;
+    enqueueButton.setAttribute("aria-disabled", !isValid);
+  }
 
   // Кнопка "Отмена загрузки" активна только когда что-то скачивается
   downloadCancelButton.disabled = !state.isDownloading;

@@ -17380,24 +17380,120 @@ hr {
 
 .download-queue-info,
 .queue-start-indicator {
-  font-style: italic;
   color: var(--color-highlight);
   transition: opacity 0.3s ease;
 }
 
 .download-queue-info {
-  background-color: var(--color-hover);
-  border-radius: var(--border-radius);
-  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: calc(var(--border-radius) + 2px);
+  padding: 10px 14px;
   margin: 10px 0;
+  font-style: normal;
 }
 .download-queue-info.hidden {
   display: none;
 }
+.download-queue-info .queue-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.download-queue-info .queue-count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.download-queue-info .queue-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.download-queue-info .queue-list {
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  color: var(--color-text);
+  max-height: 160px;
+  overflow: auto;
+}
+.download-queue-info .queue-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.download-queue-info .queue-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.download-queue-info .queue-item-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.download-queue-info .queue-item-title {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.download-queue-info .queue-item-url {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.download-queue-info .queue-item-remove {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.download-queue-info .queue-item-remove:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
 
 .queue-start-indicator {
-  margin-top: 4px;
+  margin-top: 6px;
   opacity: 0;
+  font-size: 0.9rem;
 }
 .queue-start-indicator.show {
   opacity: 1;

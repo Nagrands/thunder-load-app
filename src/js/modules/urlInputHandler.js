@@ -3,6 +3,7 @@
 import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
+import { setCachedVideoInfo } from "./videoInfoCache.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -70,6 +71,12 @@ function initUrlInputHandler() {
       if (addAllBtn) addAllBtn.style.display = "none";
       return;
     }
+    try {
+      setCachedVideoInfo(
+        lastPreviewUrl || data.webpage_url || data.original_url,
+        data,
+      );
+    } catch (_) {}
     t.textContent = data.title || "";
     d.textContent = data.duration
       ? `Длительность: ${durationToStr(data.duration)}`

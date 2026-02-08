@@ -6,6 +6,7 @@
 const elements = {
   urlInput: document.getElementById("url"),
   downloadButton: document.getElementById("download-button"),
+  enqueueButton: document.getElementById("enqueue-button"),
   downloadCancelButton: document.getElementById("download-cancel"),
   buttonText: document
     .getElementById("download-button")
@@ -37,6 +38,8 @@ const elements = {
   selectFolderButton: document.getElementById("select-folder"),
   totalDownloads: document.getElementById("total-downloads"),
   openLastVideoButton: document.getElementById("open-last-video"),
+  queueStartButton: document.getElementById("queue-start-button"),
+  queueClearButton: document.getElementById("queue-clear-button"),
   openHistoryButton: document.getElementById("open-history"),
   progressBarContainer: document.getElementById("progress-bar-container"),
   progressBar: document.getElementById("progress-bar"),
@@ -101,6 +104,9 @@ const OPTIONAL_KEYS = new Set([
   "historyDensityComfort",
   "historySortKey",
   "historySortMode",
+  "enqueueButton",
+  "queueStartButton",
+  "queueClearButton",
 ]);
 
 // Проверка наличия всех элементов и вывод ошибок
@@ -123,6 +129,7 @@ export default elements;
 export const {
   urlInput,
   downloadButton,
+  enqueueButton,
   downloadCancelButton,
   buttonText,
   history,
@@ -148,6 +155,8 @@ export const {
   selectFolderButton,
   totalDownloads,
   openLastVideoButton,
+  queueStartButton,
+  queueClearButton,
   openHistoryButton,
   progressBarContainer,
   progressBar,

@@ -1,8 +1,37 @@
-<div id="download-queue-info" class="download-queue-info hidden">
-  <span data-i18n="queue.label">В очереди:</span>
-  <span id="queue-count">0</span>
-  <span data-i18n="queue.links">ссылок</span>
-</div>
+  <div id="download-queue-info" class="download-queue-info hidden">
+    <div class="queue-summary">
+      <span data-i18n="queue.label">В очереди:</span>
+      <span id="queue-count" class="queue-count-pill">0</span>
+      <span data-i18n="queue.links">ссылок</span>
+    </div>
+    <div class="queue-actions">
+      <button
+        id="queue-start-button"
+        class="small-button btn btn-sm btn-primary"
+        aria-label="Запустить очередь"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Запустить очередь"
+        data-i18n-title="queue.start.title"
+        data-i18n-aria="queue.start.title"
+      >
+        <i class="fa-solid fa-play"></i>
+      </button>
+      <button
+        id="queue-clear-button"
+        class="small-button btn btn-sm btn-secondary"
+        aria-label="Очистить очередь"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Очистить очередь"
+        data-i18n-title="queue.clear.title"
+        data-i18n-aria="queue.clear.title"
+      >
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+    <div id="queue-list" class="queue-list" aria-live="polite"></div>
+  </div>
 
 <div
   id="queue-start-indicator"

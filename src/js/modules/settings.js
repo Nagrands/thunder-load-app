@@ -144,7 +144,9 @@ async function initSettings() {
 
   // UI language dropdown (custom)
   (function initLanguageDropdown() {
-    const languageDropdownBtn = document.getElementById("language-dropdown-btn");
+    const languageDropdownBtn = document.getElementById(
+      "language-dropdown-btn",
+    );
     const languageDropdownMenu = document.getElementById(
       "language-dropdown-menu",
     );
@@ -196,7 +198,10 @@ async function initSettings() {
       if (!next) return;
       languageLabel.textContent = formatLanguageLabel(next);
       languageDropdownMenu.querySelectorAll("li").forEach((item) => {
-        item.classList.toggle("active", item.getAttribute("data-value") === next);
+        item.classList.toggle(
+          "active",
+          item.getAttribute("data-value") === next,
+        );
       });
     });
   })();

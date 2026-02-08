@@ -1,6 +1,7 @@
 // src/js/modules/downloadQualityModal.js
 
 import { showToast } from "./toast.js";
+import { setCachedVideoInfo } from "./videoInfoCache.js";
 
 const INFO_REQUEST_TIMEOUT = 15000;
 
@@ -12,6 +13,7 @@ const errorEl = document.getElementById("download-quality-error");
 const errorTextEl = errorEl?.querySelector(".quality-error-text");
 const retryBtn = document.getElementById("download-quality-retry");
 const confirmBtn = document.getElementById("download-quality-confirm");
+const enqueueBtn = document.getElementById("download-quality-enqueue");
 const cancelBtn = document.getElementById("download-quality-cancel");
 const closeBtn = modal?.querySelector("[data-quality-close]");
 const tabButtons = Array.from(
@@ -104,6 +106,7 @@ function resetModalState() {
   state.optionMap.clear();
   optionsContainer.innerHTML = "";
   confirmBtn.disabled = true;
+  if (enqueueBtn) enqueueBtn.disabled = true;
   confirmBtn.textContent = "Скачать выбранное";
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
@@ -166,6 +169,9 @@ function withTimeout(promise, ms) {
 
 function renderPreview(info, url) {
   if (!info) return;
+  try {
+    setCachedVideoInfo(info.webpage_url || info.original_url || url, info);
+  } catch (_) {}
   titleEl.textContent = info.title || "Без названия";
   uploaderEl.textContent = info.uploader || info.channel || "";
   durationEl.textContent = info.duration
@@ -438,6 +444,7 @@ function renderOptions(tab) {
 function selectOption(option) {
   state.selectedOption = option;
   confirmBtn.disabled = !option;
+  if (enqueueBtn) enqueueBtn.disabled = !option;
   if (option) {
     confirmBtn.textContent = `Скачать (${option.payload.label})`;
   } else {
@@ -612,7 +619,18 @@ function closeModal(result = null) {
 
 function confirmSelection() {
   if (!state.selectedOption) return;
+  console.log("[quality]", "confirm-download", {
+    label: state.selectedOption?.payload?.label || "",
+  });
   closeModal(state.selectedOption.payload);
+}
+
+function confirmEnqueue() {
+  if (!state.selectedOption) return;
+  console.log("[quality]", "confirm-enqueue", {
+    label: state.selectedOption?.payload?.label || "",
+  });
+  closeModal({ payload: state.selectedOption.payload, enqueue: true });
 }
 
 function bindEvents() {
@@ -637,6 +655,7 @@ function bindEvents() {
       }
     });
     confirmBtn?.addEventListener("click", confirmSelection);
+    enqueueBtn?.addEventListener("click", confirmEnqueue);
     bestBtn?.addEventListener("click", () => {
       if (bestBtn.disabled) return;
       selectBestVideoOption(true);

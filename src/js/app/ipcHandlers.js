@@ -1690,6 +1690,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   ipcMain.handle(CHANNELS.DOWNLOAD_VIDEO, async (event, url, quality) => {
+    log.info("[queue] download-video invoked", { url, quality });
     if (downloadState.downloadInProgress) {
       throw new Error("Загрузка уже выполняется");
     }

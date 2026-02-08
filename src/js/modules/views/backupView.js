@@ -1157,8 +1157,7 @@ export default function renderBackup() {
 
     if (del) del.disabled = count === 0;
     if (runSel) runSel.disabled = count === 0;
-    if (runSel)
-      runSel.title = tb("action.runSelectedCount", { count: count });
+    if (runSel) runSel.title = tb("action.runSelectedCount", { count: count });
     if (del) del.title = tb("action.deleteSelectedCount", { count: count });
 
     // Update Bootstrap tooltips
@@ -1250,10 +1249,8 @@ export default function renderBackup() {
     if (!ts) return { text: tb("time.neverRan"), cls: "is-none" };
     const diff = Math.max(0, Date.now() - Number(ts));
     const s = Math.floor(diff / 1000);
-    if (s < 60 * 60 * 24)
-      return { text: tb("time.today"), cls: "is-fresh" };
-    if (s < 60 * 60 * 24 * 7)
-      return { text: formatLast(ts), cls: "is-recent" };
+    if (s < 60 * 60 * 24) return { text: tb("time.today"), cls: "is-fresh" };
+    if (s < 60 * 60 * 24 * 7) return { text: formatLast(ts), cls: "is-recent" };
     return { text: formatLast(ts), cls: "is-stale" };
   }
 
@@ -1395,11 +1392,7 @@ export default function renderBackup() {
         <div class="wg-alert is-muted">
           <div class="wg-alert-icon"><i class="fa-solid fa-circle-info"></i></div>
           <div class="wg-alert-content">
-            ${
-              hasPrograms
-                ? tb("empty.filtered")
-                : tb("empty.none")
-            }
+            ${hasPrograms ? tb("empty.filtered") : tb("empty.none")}
           </div>
           <div class="wg-alert-actions">
             ${
@@ -2244,7 +2237,8 @@ export default function renderBackup() {
       try {
         const exists = await invoke("check-file-exists", val);
         setValid(id, exists);
-        if (required && !exists) markFieldError(id, true, tb("validation.pathNotFound"));
+        if (required && !exists)
+          markFieldError(id, true, tb("validation.pathNotFound"));
         else markFieldError(id, false, "");
       } catch {
         // Ignore validation errors
@@ -2326,11 +2320,15 @@ export default function renderBackup() {
       }
 
       if (pats) {
-        lines.push(`<div><strong>${tb("field.filters.label")}</strong>: ${pats}</div>`);
+        lines.push(
+          `<div><strong>${tb("field.filters.label")}</strong>: ${pats}</div>`,
+        );
       }
 
       if (tags && tags.length) {
-        lines.push(`<div><strong>${tb("field.tags.label")}</strong>: ${tags.join(", ")}</div>`);
+        lines.push(
+          `<div><strong>${tb("field.tags.label")}</strong>: ${tags.join(", ")}</div>`,
+        );
       }
 
       if (archiveType) {
@@ -2504,8 +2502,7 @@ export default function renderBackup() {
   const formatDuration = (ms) => {
     const value = Number(ms);
     if (!Number.isFinite(value) || value < 0) return "—";
-    if (value < 1000)
-      return tb("time.msShort", { count: Math.round(value) });
+    if (value < 1000) return tb("time.msShort", { count: Math.round(value) });
     const totalSec = value / 1000;
     if (totalSec < 60) {
       const rounded =
@@ -2712,7 +2709,12 @@ export default function renderBackup() {
             }),
           );
         } else {
-          log(tb("log.runFailed", { name, error: r.error || tb("common.unknownError") }));
+          log(
+            tb("log.runFailed", {
+              name,
+              error: r.error || tb("common.unknownError"),
+            }),
+          );
         }
         done += 1;
         const percent = Math.round((done / list.length) * 100);
@@ -2801,20 +2803,17 @@ export default function renderBackup() {
       .filter(Boolean)
       .join(", ");
 
-    showConfirmationDialog(
-      tb("confirm.deleteProfile", { names }),
-      async () => {
-        state.programs = state.programs.filter((_, i) => !indices.includes(i));
-        try {
-          await save();
-          await load();
-          toast(tb("toast.deleted"));
-        } catch (e) {
-          toast(e.message || tb("common.error"), "error");
-        }
-        log(tb("log.profilesDeleted", { names }));
-      },
-    );
+    showConfirmationDialog(tb("confirm.deleteProfile", { names }), async () => {
+      state.programs = state.programs.filter((_, i) => !indices.includes(i));
+      try {
+        await save();
+        await load();
+        toast(tb("toast.deleted"));
+      } catch (e) {
+        toast(e.message || tb("common.error"), "error");
+      }
+      log(tb("log.profilesDeleted", { names }));
+    });
   });
 
   getEl("#bk-run-selected")?.addEventListener("click", async () => {

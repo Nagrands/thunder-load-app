@@ -9,20 +9,26 @@ import { isValidUrl, isSupportedUrl } from "./validation.js";
 import {
   urlInput,
   downloadButton,
+  enqueueButton,
   downloadCancelButton,
   buttonText,
   progressBarContainer,
   progressBar,
   openLastVideoButton,
+  queueStartButton,
+  queueClearButton,
 } from "./domElements.js";
 import { openDownloadQualityModal } from "./downloadQualityModal.js";
 import { hideUrlActionButtons } from "./urlInputHandler.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { getLanguage, t } from "./i18n.js";
+import { getCachedVideoInfo, setCachedVideoInfo } from "./videoInfoCache.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
 const queueIndicator = document.getElementById("queue-start-indicator");
+const queueList = document.getElementById("queue-list");
+const QUEUE_LOG_TAG = "[queue]";
 
 function updateDownloaderTabLabel() {
   try {
@@ -58,6 +64,54 @@ function updateDownloaderTabLabel() {
 
 // === Queue helpers ===
 const QUEUE_MAX = 200;
+const QUEUE_STORAGE_KEY = "downloadQueue";
+
+function persistQueue() {
+  try {
+    window.localStorage.setItem(
+      QUEUE_STORAGE_KEY,
+      JSON.stringify(state.downloadQueue),
+    );
+    console.log(QUEUE_LOG_TAG, "persist", {
+      count: state.downloadQueue.length,
+    });
+  } catch {}
+}
+
+function loadQueueFromStorage() {
+  let raw = null;
+  try {
+    raw = window.localStorage.getItem(QUEUE_STORAGE_KEY);
+  } catch {
+    raw = null;
+  }
+  if (!raw) return [];
+  let parsed = [];
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  const unique = new Set();
+  const restored = [];
+  const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
+  for (const item of parsed) {
+    const url = item?.url;
+    const quality = item?.quality;
+    if (!isValidUrl(url) || !isSupportedUrl(url)) continue;
+    const n = normalizeUrl(url);
+    if (!n || n === currentN || unique.has(n)) continue;
+    if (restored.length >= QUEUE_MAX) break;
+    unique.add(n);
+    restored.push({ url, quality });
+  }
+  console.log(QUEUE_LOG_TAG, "restore", {
+    stored: parsed.length,
+    restored: restored.length,
+  });
+  return restored;
+}
 
 function normalizeUrl(u) {
   try {
@@ -176,6 +230,14 @@ function enqueueMany(urls, quality, _options = {}) {
     existing.add(n);
     added++;
   }
+  persistQueue();
+  console.log(QUEUE_LOG_TAG, "enqueueMany", {
+    added,
+    duplicates,
+    activeDup,
+    invalid,
+    capped,
+  });
   updateQueueDisplay();
   return { added, duplicates, activeDup, invalid, capped };
 }
@@ -186,6 +248,14 @@ function updateQueueDisplay() {
     if (count > 0) {
       queueInfo.classList.remove("hidden");
       queueCount.textContent = String(count);
+      if (queueStartButton) {
+        queueStartButton.classList.remove("hidden");
+        queueStartButton.disabled = state.isDownloading;
+      }
+      if (queueClearButton) {
+        queueClearButton.classList.remove("hidden");
+        queueClearButton.disabled = false;
+      }
       const linksLabel = queueInfo.querySelector('[data-i18n="queue.links"]');
       if (linksLabel) {
         const lang = getLanguage();
@@ -206,6 +276,84 @@ function updateQueueDisplay() {
       }
     } else {
       queueInfo.classList.add("hidden");
+      if (queueStartButton) {
+        queueStartButton.classList.add("hidden");
+        queueStartButton.disabled = true;
+      }
+      if (queueClearButton) {
+        queueClearButton.classList.add("hidden");
+        queueClearButton.disabled = true;
+      }
+    }
+  }
+  if (queueList) {
+    if (count === 0) {
+      queueList.innerHTML = "";
+    } else {
+      const maxLabelLen = 64;
+      const escapeHtml = (value) =>
+        String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      const makeLabel = (url) => {
+        try {
+          const parsed = new URL(url);
+          const base = `${parsed.hostname}${parsed.pathname}`;
+          return base.length > maxLabelLen
+            ? `${base.slice(0, maxLabelLen - 1)}…`
+            : base;
+        } catch {
+          const raw = String(url || "");
+          return raw.length > maxLabelLen
+            ? `${raw.slice(0, maxLabelLen - 1)}…`
+            : raw;
+        }
+      };
+      const makeTitle = (url) => {
+        const cached = getCachedVideoInfo(url);
+        const title = cached?.title ? String(cached.title) : "";
+        return title.length > maxLabelLen
+          ? `${title.slice(0, maxLabelLen - 1)}…`
+          : title;
+      };
+      queueList.innerHTML = `
+        <ul>
+          ${state.downloadQueue
+            .map((item, idx) => {
+              const urlLabel = makeLabel(item.url);
+              const titleLabel = makeTitle(item.url);
+              const titleHtml = titleLabel
+                ? `<div class="queue-item-title">${escapeHtml(titleLabel)}</div>`
+                : "";
+              const urlHtml = `<div class="queue-item-url">${escapeHtml(
+                urlLabel,
+              )}</div>`;
+              return `
+                <li>
+                  <div class="queue-item-meta" title="${escapeHtml(
+                    String(item.url || ""),
+                  )}">
+                    ${titleHtml}
+                    ${urlHtml}
+                  </div>
+                  <button
+                    type="button"
+                    class="queue-item-remove"
+                    data-queue-remove="1"
+                    data-index="${idx}"
+                    title="${t("queue.item.remove.title")}"
+                    data-i18n-title="queue.item.remove.title"
+                  >
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </li>
+              `;
+            })
+            .join("")}
+        </ul>
+      `;
     }
   }
   updateDownloaderTabLabel();
@@ -258,6 +406,13 @@ const resolvePresetQuality = () => {
   return remembered || t("quality.source");
 };
 
+function normalizeSelection(selection) {
+  if (selection && typeof selection === "object" && selection.enqueue) {
+    return { payload: selection.payload, enqueue: true };
+  }
+  return { payload: selection, enqueue: false };
+}
+
 const downloadVideo = async (url, quality) => {
   console.log("Инициирование загрузки по URL:", url, "с качеством:", quality);
   state.isDownloading = true;
@@ -265,6 +420,7 @@ const downloadVideo = async (url, quality) => {
   urlInput.disabled = true;
   downloadCancelButton.disabled = true;
   updateButtonState();
+  updateQueueDisplay();
   try {
     window.dispatchEvent(
       new CustomEvent("download:state", { detail: { isDownloading: true } }),
@@ -280,6 +436,9 @@ const downloadVideo = async (url, quality) => {
         "get-video-info",
         url,
       );
+      if (meta?.success) {
+        setCachedVideoInfo(meta.webpage_url || meta.original_url || url, meta);
+      }
       const title = meta?.title?.trim();
       if (title && title.length >= 2) {
         urlInput.value = title;
@@ -415,6 +574,7 @@ const downloadVideo = async (url, quality) => {
     state.isDownloading = false;
     urlInput.disabled = false;
     updateButtonState();
+    updateQueueDisplay();
     try {
       window.dispatchEvent(
         new CustomEvent("download:state", { detail: { isDownloading: false } }),
@@ -434,6 +594,7 @@ const downloadVideo = async (url, quality) => {
 
     if (state.downloadQueue.length > 0) {
       const next = state.downloadQueue.shift();
+      persistQueue();
       updateQueueDisplay();
       if (queueIndicator) {
         queueIndicator.classList.add("show");
@@ -443,7 +604,7 @@ const downloadVideo = async (url, quality) => {
           queueIndicator.classList.add("hidden");
         }, 3000);
       }
-      console.log("\u25B6 Старт следующей загрузки из очереди:", next.url);
+      console.log(QUEUE_LOG_TAG, "auto-start-next", { url: next.url });
       setTimeout(() => {
         initiateDownload(next.url, next.quality);
       }, 300);
@@ -476,26 +637,29 @@ const handleDownloadButtonClick = async (options = {}) => {
   if (validUrls.length > 1) {
     const first = validUrls[0];
     const rest = validUrls.slice(1);
-    const selection = await openDownloadQualityModal(first, {
+    const selectionRaw = await openDownloadQualityModal(first, {
       presetQuality: resolvePresetQuality(),
       preferredLabel: lastChosenQualityLabel || readLastQuality(),
       forceAudioOnly: options.forceAudioOnly,
     });
-    if (!selection) return;
-    lastChosenQuality = selection;
+    if (!selectionRaw) return;
+    const selection = normalizeSelection(selectionRaw);
+    const payload = selection.payload;
+    const enqueueFromModal = selection.enqueue;
+    lastChosenQuality = payload;
     lastChosenQualityLabel =
-      typeof selection === "string" ? selection : selection.label || null;
+      typeof payload === "string" ? payload : payload.label || null;
     persistLastQuality(lastChosenQualityLabel);
 
-    if (state.isDownloading || options.enqueueOnly) {
-      const res = enqueueMany(validUrls, selection, options);
+    if (state.isDownloading || options.enqueueOnly || enqueueFromModal) {
+      const res = enqueueMany(validUrls, payload, options);
       showToast(
         t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
         "info",
       );
     } else {
-      await initiateDownload(first, selection);
-      const res = enqueueMany(rest, selection, options);
+      await initiateDownload(first, payload);
+      const res = enqueueMany(rest, payload, options);
       if (res.added || res.duplicates || res.invalid) {
         showToast(
           t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
@@ -512,17 +676,20 @@ const handleDownloadButtonClick = async (options = {}) => {
 
   // Один URL
   const url = validUrls[0];
-  const selection = await openDownloadQualityModal(url, {
+  const selectionRaw = await openDownloadQualityModal(url, {
     presetQuality: resolvePresetQuality(),
     preferredLabel: lastChosenQualityLabel || readLastQuality(),
     forceAudioOnly: options.forceAudioOnly,
   });
-  if (!selection) return;
-  lastChosenQuality = selection;
+  if (!selectionRaw) return;
+  const selection = normalizeSelection(selectionRaw);
+  const payload = selection.payload;
+  const enqueueFromModal = selection.enqueue;
+  lastChosenQuality = payload;
   lastChosenQualityLabel =
-    typeof selection === "string" ? selection : selection.label || null;
+    typeof payload === "string" ? payload : payload.label || null;
   persistLastQuality(lastChosenQualityLabel);
-  if (state.isDownloading || options.enqueueOnly) {
+  if (state.isDownloading || options.enqueueOnly || enqueueFromModal) {
     const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
     if (nCurr === normalizeUrl(url)) {
       showToast(t("download.url.active"), "warning");
@@ -536,7 +703,9 @@ const handleDownloadButtonClick = async (options = {}) => {
       showToast(t("download.url.queued"), "info");
       return;
     }
-    state.downloadQueue.push({ url, quality: selection });
+    state.downloadQueue.push({ url, quality: payload });
+    persistQueue();
+    console.log(QUEUE_LOG_TAG, "enqueueOne", { url, from: "modal/button" });
     showToast(t("queue.added"), "info");
     urlInput.value = "";
     try {
@@ -544,7 +713,7 @@ const handleDownloadButtonClick = async (options = {}) => {
     } catch {}
     updateQueueDisplay();
   } else {
-    await initiateDownload(url, selection);
+    await initiateDownload(url, payload);
   }
 };
 
@@ -560,11 +729,79 @@ function initDownloadButton() {
     await handleDownloadButtonClick(opts);
   });
 
+  if (enqueueButton) {
+    enqueueButton.addEventListener("click", async () => {
+      hideUrlActionButtons();
+      console.log(QUEUE_LOG_TAG, "enqueue-button-click");
+      await handleDownloadButtonClick({ enqueueOnly: true });
+    });
+  }
+
+  if (queueClearButton) {
+    queueClearButton.addEventListener("click", () => {
+      if (!state.downloadQueue.length) return;
+      state.downloadQueue = [];
+      persistQueue();
+      updateQueueDisplay();
+      console.log(QUEUE_LOG_TAG, "clear");
+      showToast(t("queue.cleared"), "info");
+    });
+  }
+
+  if (queueList && !queueList.dataset.bound) {
+    queueList.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-queue-remove]");
+      if (!btn) return;
+      const idx = Number(btn.dataset.index);
+      if (!Number.isFinite(idx)) return;
+      const removed = state.downloadQueue[idx];
+      state.downloadQueue.splice(idx, 1);
+      persistQueue();
+      updateQueueDisplay();
+      console.log(QUEUE_LOG_TAG, "remove-item", {
+        index: idx,
+        url: removed?.url || "",
+      });
+      showToast(t("queue.item.removed"), "info");
+    });
+    queueList.dataset.bound = "1";
+  }
+
+  if (queueStartButton) {
+    queueStartButton.addEventListener("click", () => {
+      if (state.isDownloading || state.downloadQueue.length === 0) return;
+      const next = state.downloadQueue.shift();
+      persistQueue();
+      updateQueueDisplay();
+      if (queueIndicator) {
+        queueIndicator.classList.add("show");
+        queueIndicator.classList.remove("hidden");
+        setTimeout(() => {
+          queueIndicator.classList.remove("show");
+          queueIndicator.classList.add("hidden");
+        }, 3000);
+      }
+      console.log(QUEUE_LOG_TAG, "manual-start", { url: next?.url || "" });
+      if (next) initiateDownload(next.url, next.quality);
+    });
+  }
+
+  if (state.downloadQueue.length === 0) {
+    state.downloadQueue = loadQueueFromStorage();
+    updateQueueDisplay();
+    if (!state.isDownloading && state.downloadQueue.length > 0) {
+      console.log(QUEUE_LOG_TAG, "restore-wait", {
+        count: state.downloadQueue.length,
+      });
+    }
+  }
+
   // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
   window.addEventListener("queue:addMany", (e) => {
     const urls = Array.isArray(e.detail?.urls) ? e.detail.urls : [];
     const q = e.detail?.quality || lastChosenQuality || t("quality.source");
     const res = enqueueMany(urls, q, {});
+    console.log(QUEUE_LOG_TAG, "enqueueMany-event", { count: urls.length });
     if (res.added || res.duplicates || res.invalid) {
       showToast(
         t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
@@ -585,4 +822,6 @@ export {
   initDownloadButton,
   updateQueueDisplay,
   resolvePresetQuality,
+  loadQueueFromStorage,
+  persistQueue,
 };

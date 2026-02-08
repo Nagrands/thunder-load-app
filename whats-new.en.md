@@ -15,6 +15,11 @@
 
 ### Downloader / History
 
+- **Added** a download queue with manual start via the “Start queue” button.
+- **Added** an “Add to queue” action in the quality selection modal.
+- **Added** a visual queue list with titles when cached metadata is available.
+- **Added** per-item removal in the queue list.
+- **Queue** now persists between restarts and restores without auto-start.
 - **Redesigned** history list: more compact rows with date/status chips.
 - **Added** date grouping with sticky headers.
 - **Added** list density modes: compact and comfort.
