@@ -518,15 +518,18 @@
                       <i class="fa-solid fa-language"></i>
                       <span data-i18n="language.label">Язык интерфейса</span>
                     </label>
-                    <select
-                      id="settings-language-select"
-                      class="settings-select"
-                    >
-                      <option value="ru" data-i18n="language.ru">Русский</option>
-                      <option value="en" data-i18n="language.en">
-                        English
-                      </option>
-                    </select>
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" id="language-dropdown-btn">
+                        <span id="language-selected-label" data-i18n="language.ru">
+                          Русский
+                        </span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </button>
+                      <ul class="dropdown-menu" id="language-dropdown-menu">
+                        <li data-value="ru" data-i18n="language.ru">Русский</li>
+                        <li data-value="en" data-i18n="language.en">English</li>
+                      </ul>
+                    </div>
                   </li>
 
                   <li class="custom-theme-select">

@@ -142,23 +142,62 @@ async function initSettings() {
     });
   }
 
-  // UI language select
-  (function initLanguageSelect() {
-    const languageSelect = document.getElementById(
-      "settings-language-select",
+  // UI language dropdown (custom)
+  (function initLanguageDropdown() {
+    const languageDropdownBtn = document.getElementById("language-dropdown-btn");
+    const languageDropdownMenu = document.getElementById(
+      "language-dropdown-menu",
     );
-    if (!languageSelect) return;
+    const languageLabel = document.getElementById("language-selected-label");
+    const formatLanguageLabel = (lang) => {
+      const map = {
+        ru: t("language.ru"),
+        en: t("language.en"),
+      };
+      return map[lang] || lang;
+    };
 
-    languageSelect.value = getLanguage();
+    if (!languageDropdownBtn || !languageDropdownMenu || !languageLabel) return;
 
-    languageSelect.addEventListener("change", () => {
-      setLanguage(languageSelect.value);
+    const currentLang = getLanguage();
+    languageLabel.textContent = formatLanguageLabel(currentLang);
+    languageDropdownMenu.querySelectorAll("li").forEach((item) => {
+      item.classList.remove("active");
+      if (item.getAttribute("data-value") === currentLang) {
+        item.classList.add("active");
+      }
+    });
+
+    languageDropdownBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isOpen = languageDropdownMenu.classList.contains("show");
+      document
+        .querySelectorAll(".dropdown-menu")
+        .forEach((menu) => menu.classList.remove("show"));
+      if (!isOpen) languageDropdownMenu.classList.add("show");
+    });
+
+    languageDropdownMenu.querySelectorAll("li").forEach((item) => {
+      item.addEventListener("click", () => {
+        const nextLang = item.getAttribute("data-value");
+        setLanguage(nextLang);
+        languageLabel.textContent = formatLanguageLabel(nextLang);
+        languageDropdownMenu
+          .querySelectorAll("li")
+          .forEach((li) => li.classList.remove("active"));
+        item.classList.add("active");
+        languageDropdownMenu.classList.remove("show");
+      });
     });
 
     window.addEventListener("i18n:changed", (e) => {
       const next = e?.detail?.lang;
       if (!next) return;
-      languageSelect.value = next;
+      languageLabel.textContent = formatLanguageLabel(next);
+      languageDropdownMenu.querySelectorAll("li").forEach((item) => {
+        item.classList.toggle("active", item.getAttribute("data-value") === next);
+      });
     });
   })();
 

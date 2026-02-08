@@ -127,7 +127,7 @@ describe("wg disable toggle initializes badge state", () => {
   });
 });
 
-describe("language select initializes and updates language", () => {
+describe("language dropdown initializes and updates language", () => {
   beforeEach(() => {
     jest.resetModules();
     localStorage.clear();
@@ -139,13 +139,15 @@ describe("language select initializes and updates language", () => {
     };
   });
 
-  it("syncs select value and calls setLanguage on change", async () => {
+  it("syncs label and calls setLanguage on click", async () => {
     document.body.innerHTML = `
       <div id="appearance-settings">
-        <select id="settings-language-select">
-          <option value="ru">Русский</option>
-          <option value="en">English</option>
-        </select>
+        <button id="language-dropdown-btn"></button>
+        <span id="language-selected-label"></span>
+        <ul id="language-dropdown-menu">
+          <li data-value="ru">Русский</li>
+          <li data-value="en">English</li>
+        </ul>
       </div>`;
 
     const setLanguage = jest.fn();
@@ -163,11 +165,13 @@ describe("language select initializes and updates language", () => {
     });
     if (initPromise) await initPromise;
 
-    const select = document.getElementById("settings-language-select");
-    expect(select?.value).toBe("ru");
+    const label = document.getElementById("language-selected-label");
+    const menu = document.getElementById("language-dropdown-menu");
+    const items = menu?.querySelectorAll("li");
+    expect(label?.textContent).toBe("language.ru");
+    expect(items?.[0]?.classList.contains("active")).toBe(true);
 
-    select.value = "en";
-    select.dispatchEvent(new Event("change"));
+    items?.[1]?.dispatchEvent(new Event("click"));
     expect(setLanguage).toHaveBeenCalledWith("en");
   });
 });
