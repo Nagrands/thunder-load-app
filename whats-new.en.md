@@ -10,3 +10,4 @@
 ### Downloader / History
 
 - **Hide** preview download button when no preview image is available.
+- **Compact** details toggle and move it into the history actions row.

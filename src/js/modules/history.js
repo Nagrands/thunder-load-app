@@ -1346,7 +1346,7 @@ const formatCardDate = (entry) => {
 };
 
 const formatSizeLabel = (entry) => {
-  if (entry?.isMissing) return t("history.file.missing");
+  if (entry?.isMissing) return "";
   if (entry?.formattedSize) return entry.formattedSize;
   return t("history.file.sizeUnknown");
 };
@@ -1759,12 +1759,6 @@ function createLogEntry(entry) {
   name.setAttribute("data-bs-toggle", "tooltip");
   name.setAttribute("data-bs-placement", "top");
 
-  const dateChipLabel = formatCardDate(entry);
-  const dateChip = document.createElement("span");
-  dateChip.className = "history-row__date-chip";
-  dateChip.textContent = dateChipLabel || "";
-  if (!dateChipLabel) dateChip.classList.add("hidden");
-
   const sourceChipLabel =
     state.currentSortKey === "source" ? formatSourceLabel(entry.sourceUrl) : "";
   const sourceChip = document.createElement("span");
@@ -1811,7 +1805,7 @@ function createLogEntry(entry) {
     badges.appendChild(missingBadge);
   }
 
-  titleRow.append(name, dateChip, sourceChip);
+  titleRow.append(name, sourceChip);
 
   const meta = document.createElement("div");
   meta.className = "history-row__meta";
@@ -1978,6 +1972,7 @@ function createLogEntry(entry) {
   toggle.setAttribute("aria-label", t("history.details.expand"));
   toggle.title = t("history.details.expand");
   toggle.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+  actions.append(toggle);
 
   const details = document.createElement("div");
   details.className = "history-row__details";
@@ -2112,7 +2107,7 @@ function createLogEntry(entry) {
     delete entry._highlight;
   }
 
-  el.append(selectWrap, thumb, main, actions, toggle);
+  el.append(selectWrap, thumb, main, actions);
   el.appendChild(details);
 
   return { el };

@@ -477,7 +477,7 @@
 
 .history-row {
   display: grid;
-  grid-template-columns: 36px 60px 1fr auto 36px;
+  grid-template-columns: 36px 60px 1fr auto;
   gap: 12px;
   padding: 12px 14px;
   border-radius: 16px;
@@ -784,9 +784,9 @@
 }
 
 .history-row__toggle {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.7);
@@ -795,6 +795,7 @@
   transition:
     transform 0.2s ease,
     color 0.2s ease;
+  font-size: 0.8rem;
 
   i {
     transition: transform 0.2s ease;
@@ -1039,10 +1040,10 @@
 
 @media (max-width: 820px) {
   .history-row {
-    grid-template-columns: 28px 1fr auto 36px;
+    grid-template-columns: 28px 1fr auto;
     grid-template-areas:
-      "select main toggle"
-      "select actions toggle"
+      "select main"
+      "select actions"
       "details details details";
   }
 
@@ -1059,6 +1060,6 @@
   }
 
   .history-row__toggle {
-    align-self: flex-start;
+    align-self: center;
   }
 }
