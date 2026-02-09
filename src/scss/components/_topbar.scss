@@ -9,8 +9,8 @@
   width: 100%;
   min-height: var(--topbar-height);
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr) minmax(
-      220px,
+  grid-template-columns: minmax(180px, 1fr) minmax(240px, 2fr) minmax(
+      180px,
       1fr
     );
   align-items: center;
@@ -37,7 +37,7 @@
 
 .top-bar__left {
   justify-content: flex-start;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .brand-chip {
@@ -136,6 +136,8 @@
 .top-bar__center {
   justify-content: center;
   align-items: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .center-menu {
@@ -146,7 +148,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex-direction: row;
   justify-content: center;
 }
@@ -361,14 +363,14 @@
 .top-bar__right {
   justify-content: flex-end;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .top-bar__right-group {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .top-bar__divider {
@@ -427,8 +429,8 @@
   -webkit-app-region: no-drag;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px;
+  gap: 4px;
+  padding: 3px;
   border-radius: 14px;
   background: var(--topbar-chip-bg);
   border: 1px solid var(--topbar-chip-border);

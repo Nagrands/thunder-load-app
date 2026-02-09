@@ -60,6 +60,8 @@ let paginationRoot = null;
 let paginationInfo = null;
 let paginationPrev = null;
 let paginationNext = null;
+let paginationPrevFast = null;
+let paginationNextFast = null;
 let paginationSize = null;
 let historySortKeySelect = null;
 let historySortModeSelect = null;
@@ -192,44 +194,68 @@ function ensurePaginationElements() {
   paginationRoot.id = "history-pagination";
   paginationRoot.className = "history-pagination";
   paginationRoot.innerHTML = `
-    <button
-      type="button"
-      class="history-action-button history-page-btn"
-      id="history-page-prev"
-      aria-label="${t("history.pagination.prevAria")}"
-    >
-      <i class="fa-solid fa-chevron-left"></i>
-    </button>
-    <span class="history-page-info" id="history-page-info">
-      ${t("history.pagination.info", {
-        page: 1,
-        total: 1,
-        count: 0,
-        label: t("history.entry.many"),
-      })}
-    </span>
-    <button
-      type="button"
-      class="history-action-button history-page-btn"
-      id="history-page-next"
-      aria-label="${t("history.pagination.nextAria")}"
-    >
-      <i class="fa-solid fa-chevron-right"></i>
-    </button>
-    <label class="history-page-size">
-      <span>${t("history.pagination.perLabel")}</span>
-      <select
-        id="history-page-size"
-        class="input input-sm history-page-size-select bk-select-init"
-        aria-label="${t("history.pagination.perAria")}"
+    <div class="history-page-side history-page-side--left">
+      <button
+        type="button"
+        class="history-action-button history-page-btn"
+        id="history-page-prev-fast"
+        aria-label="${t("history.pagination.prevFastAria")}"
       >
-        ${HISTORY_PAGE_SIZES.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
-      </select>
-    </label>
+        <i class="fa-solid fa-angles-left"></i>
+      </button>
+      <button
+        type="button"
+        class="history-action-button history-page-btn"
+        id="history-page-prev"
+        aria-label="${t("history.pagination.prevAria")}"
+      >
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+    </div>
+    <div class="history-page-center">
+      <span class="history-page-info" id="history-page-info">
+        ${t("history.pagination.info", {
+          page: 1,
+          total: 1,
+          count: 0,
+          label: t("history.entry.many"),
+        })}
+      </span>
+      <label class="history-page-size">
+        <span>${t("history.pagination.perLabel")}</span>
+        <select
+          id="history-page-size"
+          class="input input-sm history-page-size-select bk-select-init"
+          aria-label="${t("history.pagination.perAria")}"
+        >
+          ${HISTORY_PAGE_SIZES.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
+        </select>
+      </label>
+    </div>
+    <div class="history-page-side history-page-side--right">
+      <button
+        type="button"
+        class="history-action-button history-page-btn"
+        id="history-page-next"
+        aria-label="${t("history.pagination.nextAria")}"
+      >
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <button
+        type="button"
+        class="history-action-button history-page-btn"
+        id="history-page-next-fast"
+        aria-label="${t("history.pagination.nextFastAria")}"
+      >
+        <i class="fa-solid fa-angles-right"></i>
+      </button>
+    </div>
   `;
 
   paginationPrev = paginationRoot.querySelector("#history-page-prev");
   paginationNext = paginationRoot.querySelector("#history-page-next");
+  paginationPrevFast = paginationRoot.querySelector("#history-page-prev-fast");
+  paginationNextFast = paginationRoot.querySelector("#history-page-next-fast");
   paginationInfo = paginationRoot.querySelector("#history-page-info");
   paginationSize = paginationRoot.querySelector("#history-page-size");
   if (!historySelectUIs.pageSize) {
@@ -241,6 +267,12 @@ function ensurePaginationElements() {
   );
   paginationNext?.addEventListener("click", () =>
     goToPage(state.historyPage + 1),
+  );
+  paginationPrevFast?.addEventListener("click", () =>
+    goToPage(state.historyPage - 5),
+  );
+  paginationNextFast?.addEventListener("click", () =>
+    goToPage(state.historyPage + 5),
   );
   paginationSize?.addEventListener("change", (e) =>
     changePageSize(e.target.value),
@@ -285,6 +317,20 @@ function updatePaginationControls(meta) {
   if (paginationNext) {
     paginationNext.disabled = meta.page >= meta.totalPages;
     paginationNext.setAttribute("aria-disabled", paginationNext.disabled);
+  }
+  if (paginationPrevFast) {
+    paginationPrevFast.disabled = meta.page <= 1;
+    paginationPrevFast.setAttribute(
+      "aria-disabled",
+      paginationPrevFast.disabled,
+    );
+  }
+  if (paginationNextFast) {
+    paginationNextFast.disabled = meta.page >= meta.totalPages;
+    paginationNextFast.setAttribute(
+      "aria-disabled",
+      paginationNextFast.disabled,
+    );
   }
   if (paginationSize) {
     if (!HISTORY_PAGE_SIZES.includes(meta.pageSize)) {
@@ -992,8 +1038,13 @@ function closeAllHistoryMenus(except = null) {
   document.querySelectorAll(".history-row__menu.is-open").forEach((menu) => {
     if (except && menu === except) return;
     menu.classList.remove("is-open");
+    menu.classList.remove("is-open-up");
     const trigger = menu.querySelector(".history-row__menu-button");
     if (trigger) trigger.setAttribute("aria-expanded", "false");
+    const menuList = menu.querySelector(".history-row__menu-list");
+    if (menuList) {
+      menuList.style.visibility = "";
+    }
     const row = menu.closest(".history-row");
     if (row) row.classList.remove("is-menu-open");
   });
@@ -1960,6 +2011,30 @@ function createLogEntry(entry) {
       menu.classList.toggle("is-open", willOpen);
       el.classList.toggle("is-menu-open", willOpen);
       menuButton.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      if (willOpen) {
+        if (!menuButton.dataset.tooltipTitle) {
+          menuButton.dataset.tooltipTitle = menuButton.getAttribute("title") || "";
+        }
+        menuButton.removeAttribute("title");
+        menuButton.setAttribute("data-bs-original-title", "");
+        menuList.style.visibility = "hidden";
+        const menuRect = menuList.getBoundingClientRect();
+        const pagination = document.getElementById("history-pagination");
+        const paginationRect = pagination?.getBoundingClientRect();
+        const gap = 8;
+        const viewportHeight =
+          window.innerHeight || document.documentElement.clientHeight;
+        const lowerBound = paginationRect
+          ? paginationRect.top - gap
+          : viewportHeight - gap;
+        const openUp = menuRect.bottom + gap > lowerBound;
+        menu.classList.toggle("is-open-up", openUp);
+        menuList.style.visibility = "";
+      } else {
+        const title = menuButton.dataset.tooltipTitle || t("history.action.more");
+        menuButton.setAttribute("title", title);
+        menuButton.setAttribute("data-bs-original-title", title);
+      }
     });
 
     actions.append(openBtn, openFolderBtn, menu);

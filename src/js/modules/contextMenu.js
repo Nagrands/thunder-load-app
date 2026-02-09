@@ -455,8 +455,6 @@ async function handleDeleteFile(logEntry) {
       const textEl = logEntry.querySelector(".text");
       if (textEl) {
         textEl.removeAttribute("data-filepath");
-        textEl.innerHTML +=
-          ' <span class="file-deleted-label">(файл удалён)</span>';
       } else {
         logEntry.querySelectorAll(".history-card-btn").forEach((btn) => {
           if (btn.dataset.action !== "retry") btn.disabled = true;
