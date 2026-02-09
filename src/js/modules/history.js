@@ -1984,27 +1984,30 @@ function createLogEntry(entry) {
 
   const preview = document.createElement("div");
   preview.className = `history-row__preview${hasPreview ? "" : " is-placeholder"}`;
-  const downloadPreviewBtn = document.createElement("button");
-  downloadPreviewBtn.type = "button";
-  downloadPreviewBtn.className = "history-row__preview-download";
-  downloadPreviewBtn.setAttribute("aria-label", t("history.preview.download"));
-  downloadPreviewBtn.setAttribute("data-i18n-aria", "history.preview.download");
-  downloadPreviewBtn.setAttribute("data-bs-toggle", "tooltip");
-  downloadPreviewBtn.setAttribute("data-bs-placement", "top");
-  downloadPreviewBtn.title = t("history.preview.download");
-  downloadPreviewBtn.setAttribute(
-    "data-i18n-title",
-    "history.preview.download",
-  );
-  downloadPreviewBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
-  downloadPreviewBtn.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!thumbSrc) return;
-    downloadPreviewSource(thumbSrc, entry.fileName || entry.id || "preview");
-  });
-  preview.appendChild(downloadPreviewBtn);
   if (thumbSrc) {
+    const downloadPreviewBtn = document.createElement("button");
+    downloadPreviewBtn.type = "button";
+    downloadPreviewBtn.className = "history-row__preview-download";
+    downloadPreviewBtn.setAttribute("aria-label", t("history.preview.download"));
+    downloadPreviewBtn.setAttribute(
+      "data-i18n-aria",
+      "history.preview.download",
+    );
+    downloadPreviewBtn.setAttribute("data-bs-toggle", "tooltip");
+    downloadPreviewBtn.setAttribute("data-bs-placement", "top");
+    downloadPreviewBtn.title = t("history.preview.download");
+    downloadPreviewBtn.setAttribute(
+      "data-i18n-title",
+      "history.preview.download",
+    );
+    downloadPreviewBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+    downloadPreviewBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      downloadPreviewSource(thumbSrc, entry.fileName || entry.id || "preview");
+    });
+    preview.appendChild(downloadPreviewBtn);
+
     const img = document.createElement("img");
     img.src = thumbSrc;
     img.alt = entry.fileName || t("preview.alt");
