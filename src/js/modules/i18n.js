@@ -103,6 +103,22 @@ export function setLanguage(lang) {
   }
 }
 
+export function setLanguagePreview(lang) {
+  const next = resolveLang(lang);
+  if (next === currentLang) return;
+  currentLang = next;
+  try {
+    localStorage.setItem(STORAGE_KEY, currentLang);
+  } catch {}
+  if (document?.documentElement) {
+    document.documentElement.lang = currentLang;
+  }
+  applyI18n(document);
+  window.dispatchEvent(
+    new CustomEvent("i18n:changed", { detail: { lang: currentLang } }),
+  );
+}
+
 export function initI18n() {
   if (document?.documentElement) {
     document.documentElement.lang = currentLang;

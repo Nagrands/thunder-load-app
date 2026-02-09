@@ -36,6 +36,7 @@ import {
   openSettings,
   closeSettings,
 } from "./settingsModal.js";
+import { setTheme } from "./settingsStore.js";
 import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
 import { closeAllModals } from "./modalManager.js"; // Импортируем функцию закрытия всех модалов
@@ -48,6 +49,31 @@ const modals = [
   settingsModal,
   // Добавьте другие модальные окна здесь
 ];
+
+const THEME_ORDER = ["dark", "midnight", "sunset", "violet", "light"];
+
+const normalizeTheme = (value) =>
+  value === "system" || !value ? "dark" : value;
+
+const getThemeLabel = (theme) => {
+  const map = {
+    dark: t("settings.appearance.theme.dark"),
+    midnight: t("settings.appearance.theme.midnight"),
+    sunset: t("settings.appearance.theme.sunset"),
+    violet: t("settings.appearance.theme.violet"),
+    light: t("settings.appearance.theme.light"),
+  };
+  return map[normalizeTheme(theme)] || theme;
+};
+
+const updateThemeToggleTooltip = (theme) => {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  const label = getThemeLabel(theme);
+  const title = `${t("topbar.theme")}: ${label}`;
+  btn.setAttribute("title", title);
+  btn.setAttribute("data-bs-original-title", title);
+};
 
 // Определяем список локальных горячих клавиш
 const localHotkeys = new Map([
@@ -157,21 +183,14 @@ const localHotkeys = new Map([
     "Ctrl+T",
     async () => {
       closeAllModals(modals);
-      const order = ["system", "dark", "midnight", "sunset", "violet"]; // цикл тем с системной
       const curAttr = document.documentElement.getAttribute("data-theme");
-      const cur = curAttr || localStorage.getItem("theme") || "system";
-      const idx = Math.max(0, order.indexOf(cur));
-      const next = order[(idx + 1) % order.length];
+      const cur = normalizeTheme(curAttr || localStorage.getItem("theme"));
+      const idx = Math.max(0, THEME_ORDER.indexOf(cur));
+      const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
       document.documentElement.classList.add("theme-transition");
-      if (next === "system") {
-        document.documentElement.removeAttribute("data-theme");
-        localStorage.removeItem("theme");
-      } else {
-        document.documentElement.setAttribute("data-theme", next);
-        localStorage.setItem("theme", next);
-      }
+      await setTheme(next);
       updateThemeDropdownUI(next);
-      await window.electron.invoke("set-theme", next);
+      updateThemeToggleTooltip(next);
       setTimeout(
         () => document.documentElement.classList.remove("theme-transition"),
         260,
@@ -182,21 +201,14 @@ const localHotkeys = new Map([
     "Meta+T",
     async () => {
       closeAllModals(modals);
-      const order = ["system", "dark", "midnight", "sunset", "violet"]; // цикл тем с системной
       const curAttr = document.documentElement.getAttribute("data-theme");
-      const cur = curAttr || localStorage.getItem("theme") || "system";
-      const idx = Math.max(0, order.indexOf(cur));
-      const next = order[(idx + 1) % order.length];
+      const cur = normalizeTheme(curAttr || localStorage.getItem("theme"));
+      const idx = Math.max(0, THEME_ORDER.indexOf(cur));
+      const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
       document.documentElement.classList.add("theme-transition");
-      if (next === "system") {
-        document.documentElement.removeAttribute("data-theme");
-        localStorage.removeItem("theme");
-      } else {
-        document.documentElement.setAttribute("data-theme", next);
-        localStorage.setItem("theme", next);
-      }
+      await setTheme(next);
       updateThemeDropdownUI(next);
-      await window.electron.invoke("set-theme", next);
+      updateThemeToggleTooltip(next);
       setTimeout(
         () => document.documentElement.classList.remove("theme-transition"),
         260,

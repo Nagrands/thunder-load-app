@@ -20,6 +20,7 @@ function showToast(
   onClickUndo = null,
   accent = false,
 ) {
+  if (!toastContainer) return;
   const toast = document.createElement("div");
   const toastClass = accent
     ? `toast toast-${type} toast-accent-${type}`

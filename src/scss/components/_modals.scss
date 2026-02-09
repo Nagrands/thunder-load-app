@@ -96,6 +96,13 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
     cursor: pointer;
+    flex-wrap: nowrap;
+  }
+
+  .first-run-hint {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-left: auto;
   }
 
   .first-run-option input {

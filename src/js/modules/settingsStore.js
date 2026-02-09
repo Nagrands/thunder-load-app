@@ -25,13 +25,8 @@ function emit(type, detail) {
 // THEME
 export async function setTheme(theme) {
   try {
-    if (theme === "system") {
-      localStorage.removeItem("theme");
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      localStorage.setItem("theme", theme);
-      document.documentElement.setAttribute("data-theme", theme);
-    }
+    localStorage.setItem("theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
     try {
       await window.electron?.invoke?.("set-theme", theme);
     } catch {}

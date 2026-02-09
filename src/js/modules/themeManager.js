@@ -1,17 +1,12 @@
 // src/js/modules/themeManager.js
 
 const THEME_KEY = "theme";
-const THEME_CYCLE = ["dark", "midnight", "sunset", "violet"];
+const THEME_CYCLE = ["dark", "midnight", "sunset", "violet", "light"];
 
 /**
  * Устанавливает тему вручную или переключает, если параметр не передан
  */
 function toggleTheme(theme) {
-  if (theme === "system") {
-    localStorage.removeItem(THEME_KEY);
-    document.documentElement.removeAttribute("data-theme");
-    return "system";
-  }
 
   const newTheme =
     theme ||
@@ -30,7 +25,7 @@ function toggleTheme(theme) {
  * Получает сохранённую тему
  */
 function getTheme() {
-  return localStorage.getItem(THEME_KEY) || "system";
+  return localStorage.getItem(THEME_KEY) || "dark";
 }
 
 /**
@@ -38,11 +33,7 @@ function getTheme() {
  */
 function initializeTheme() {
   const savedTheme = getTheme();
-  if (savedTheme === "system") {
-    document.documentElement.removeAttribute("data-theme");
-  } else {
-    document.documentElement.setAttribute("data-theme", savedTheme);
-  }
+  document.documentElement.setAttribute("data-theme", savedTheme);
 }
 
 export { toggleTheme, getTheme, initializeTheme };

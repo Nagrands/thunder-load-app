@@ -540,15 +540,12 @@
 
                     <div class="dropdown">
                       <button class="dropdown-toggle" id="theme-dropdown-btn">
-                        <span id="theme-selected-label" data-i18n="settings.appearance.theme.system">
-                          Системная
+                        <span id="theme-selected-label" data-i18n="settings.appearance.theme.dark">
+                          Dark
                         </span>
                         <i class="fa-solid fa-chevron-down"></i>
                       </button>
                       <ul class="dropdown-menu" id="theme-dropdown-menu">
-                        <li data-value="system" data-i18n="settings.appearance.theme.system">
-                          System
-                        </li>
                         <li data-value="dark" data-i18n="settings.appearance.theme.dark">
                           Dark
                         </li>
@@ -560,6 +557,9 @@
                         </li>
                         <li data-value="violet" data-i18n="settings.appearance.theme.violet">
                           Violet
+                        </li>
+                        <li data-value="light" data-i18n="settings.appearance.theme.light">
+                          Light
                         </li>
                       </ul>
                     </div>
@@ -676,6 +676,10 @@
                   <button id="reset-config-button">
                     <i class="fa-solid fa-rotate-left"></i>
                     <span data-i18n="settings.other.reset">Настройки по умолчанию</span>
+                  </button>
+                  <button id="first-run-reset-button">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span data-i18n="settings.other.firstRun">Первичная настройка</span>
                   </button>
                 </div>
               </div>

@@ -355,11 +355,11 @@ async function initSettings() {
   const themeLabel = document.getElementById("theme-selected-label");
   const formatThemeLabel = (theme) => {
     const map = {
-      system: t("settings.appearance.theme.system"),
       dark: t("settings.appearance.theme.dark"),
       midnight: t("settings.appearance.theme.midnight"),
       sunset: t("settings.appearance.theme.sunset"),
       violet: t("settings.appearance.theme.violet"),
+      light: t("settings.appearance.theme.light"),
     };
     return map[theme] || theme;
   };
@@ -367,11 +367,7 @@ async function initSettings() {
   console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
     const savedTheme = await getTheme();
-    if (savedTheme === "system") {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      document.documentElement.setAttribute("data-theme", savedTheme);
-    }
+    document.documentElement.setAttribute("data-theme", savedTheme);
     themeLabel.textContent = formatThemeLabel(savedTheme);
     // Highlight selected theme in dropdown on init
     themeDropdownMenu.querySelectorAll("li").forEach((item) => {

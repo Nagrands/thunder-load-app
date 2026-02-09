@@ -97,16 +97,17 @@ export function closeSettings() {
 }
 
 export function updateThemeDropdownUI(theme) {
+  const next = theme === "system" ? "dark" : theme;
   const label = document.getElementById("theme-selected-label");
   const menu = document.getElementById("theme-dropdown-menu");
   const btn = document.getElementById("theme-dropdown-btn");
-  const item = menu?.querySelector(`[data-value="${theme}"]`);
+  const item = menu?.querySelector(`[data-value="${next}"]`);
 
   if (label && item) {
     label.textContent = item.textContent;
     menu.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
     item.classList.add("active");
-    if (btn) btn.setAttribute("data-current-theme", theme);
+    if (btn) btn.setAttribute("data-current-theme", next);
   }
 }
 
@@ -117,6 +118,7 @@ export function initSettingsModal() {
   const importInput = document.getElementById("import-config-input");
   const fontSizeToggle = document.getElementById("settings-font-size-toggle");
   const resetBtn = document.getElementById("reset-config-button");
+  const firstRunResetBtn = document.getElementById("first-run-reset-button");
 
   const initDefaultTabSetting = async () => {
     const radios = document.querySelectorAll('input[name="defaultTab"]');
@@ -191,6 +193,15 @@ export function initSettingsModal() {
         console.error("Ошибка при сбросе настроек:", error);
         alert(t("settings.reset.error"));
       }
+    });
+  }
+
+  if (firstRunResetBtn) {
+    firstRunResetBtn.addEventListener("click", () => {
+      try {
+        localStorage.setItem("firstRunCompleted", "0");
+      } catch {}
+      location.reload();
     });
   }
 

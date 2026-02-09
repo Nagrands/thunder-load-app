@@ -85,6 +85,84 @@ $themes: (
     badge-size-border: rgba(255, 255, 255, 0.14),
     color-delete: rgba(255, 80, 80, 0.06),
   ),
+  light: (
+    // Warm neon theme inspired by late-evening gradients
+    color-accent: #629ead,
+    // Vivid orange accent
+    color-bg-log: #aeaeae,
+    // Muted plum backdrop for logs
+    color-bg-main: #6e727b5c,
+    // Deep violet canvas
+    color-bg-secondary: #dfdfdf,
+    // Slightly lighter panels
+    color-border: #c5c5c5,
+    // Low-contrast borders
+    menu-item-active: linear-gradient(180deg, #f97316, #be185d),
+    // Sunset-inspired active state
+    menu-item-hover: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.28),
+        rgba(255, 255, 255, 0.08)
+      ),
+    color-disabled: #5a5a5a,
+    // Muted mauve for disabled UI
+    color-highlight: #e0f4f8,
+    // Warm highlight text
+    color-history-scroll: rgba(168, 168, 168, 0.18),
+    // Soft amber scrollbars
+    color-hover: rgba(167, 164, 162, 0.742),
+    // Orange-tinted hover
+    color-icon-links: #f472b6,
+    // Magenta links/icons
+    color-progress-bar: #858483,
+    // Gradient-friendly orange
+    color-progress-bg: rgba(15, 10, 18, 0.7),
+    // Dimmed track
+    color-quality: #dddddde1,
+    // Toasted peach indicators
+    color-toast-bg: #727071,
+    // Dark plum toast panel
+    color-toast-error: #ff5d5d,
+    color-toast-success: #34d399,
+    color-toast-text: #ffe9df,
+    color-toast-warning: #fbbf24,
+    color-url-bg: #82828230,
+    color-url-border: #79797a,
+    color-url-link: #252525,
+    color-url-text: #ffe7da,
+    topbar-bg: #3a3a3a7a,
+    topbar-border: rgba(0, 0, 0, 0.08),
+    topbar-shadow: 0 10px 24px rgba(10, 6, 14, 0.45),
+    topbar-height: 54px,
+    topbar-padding-x: 18px,
+    topbar-padding-y: 10px,
+    topbar-chip-bg: rgba(255, 255, 255, 0.04),
+    topbar-chip-border: rgba(255, 255, 255, 0.1),
+    topbar-tab-bg: rgba(255, 255, 255, 0.04),
+    topbar-tab-border: rgba(255, 255, 255, 0.12),
+    topbar-tab-active: rgba(215, 215, 215, 0.2),
+    button-cancel: linear-gradient(180deg, #ff5d5d, #6d1f36),
+    button-color: #ffe9df,
+    button-default: linear-gradient(180deg, rgba(249, 115, 22, 0.5), #231125),
+    button-disabled-bg: rgba(124, 104, 117, 0.4),
+    button-disabled: #f5c6b3,
+    button-download: linear-gradient(180deg, #f97316, #be185d),
+    button-enabled: #ffe9df,
+    button-open-folder: linear-gradient(180deg, #fb923c, #7c2d12),
+    button-open-history: linear-gradient(180deg, #f472b6, #6d1f36),
+    button-openlast-video: linear-gradient(180deg, #facc15, #9d174d),
+    sidebar-background: #1a0d18cc,
+    sidebar-color: #ffe9df,
+    sidebar-list-color: rgba(255, 255, 255, 0.12),
+    color-text-main: #dbd8d6,
+    color-youtube: #ff6b6b,
+    color-twitch: #c084fc,
+    color-vkvideo: #fb923c,
+    color-coub: #f472b6,
+    badge-size-bg: rgba(255, 233, 223, 0.08),
+    badge-size-border: rgba(255, 233, 223, 0.24),
+    color-delete: rgba(255, 93, 93, 0.16),
+  ),
   sunset: (
     // Warm neon theme inspired by late-evening gradients
     color-accent: #f97316,
@@ -321,6 +399,18 @@ $themes: (
     #{color.channel(theme-value(midnight, color-accent), "red", $space: rgb)},
     #{color.channel(theme-value(midnight, color-accent), "green", $space: rgb)},
     #{color.channel(theme-value(midnight, color-accent), "blue", $space: rgb)};
+}
+
+// CSS переменные для темы Light
+[data-theme="light"] {
+  @include export-css-variables(map.get($themes, light));
+  --color-accent-rgb:
+    #{color.channel(theme-value(light, color-accent), "red", $space: rgb)},
+    #{color.channel(theme-value(light, color-accent), "green", $space: rgb)},
+    #{color.channel(theme-value(light, color-accent), "blue", $space: rgb)};
+  --tooltip-bg-color: rgba(255, 255, 255, 0.96);
+  --tooltip-text-color: #0f172a;
+  --tooltip-border-color: rgba(15, 23, 42, 0.16);
 }
 
 // CSS переменные для темы Sunset

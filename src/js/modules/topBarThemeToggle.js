@@ -5,11 +5,14 @@ import { updateThemeDropdownUI } from "./settingsModal.js";
 import { t } from "./i18n.js";
 import { initTooltips } from "./tooltipInitializer.js";
 
-const THEME_ORDER = ["system", "dark", "midnight", "sunset", "violet"];
+const THEME_ORDER = ["dark", "midnight", "sunset", "violet", "light"];
+
+const normalizeTheme = (value) =>
+  value === "system" || !value ? "dark" : value;
 
 function readCurrentTheme() {
   const attr = document.documentElement.getAttribute("data-theme");
-  return attr || localStorage.getItem("theme") || "system";
+  return normalizeTheme(attr || localStorage.getItem("theme"));
 }
 
 function getNextTheme(cur) {
@@ -20,13 +23,13 @@ function getNextTheme(cur) {
 
 function getThemeLabel(theme) {
   const map = {
-    system: t("settings.appearance.theme.system"),
     dark: t("settings.appearance.theme.dark"),
     midnight: t("settings.appearance.theme.midnight"),
     sunset: t("settings.appearance.theme.sunset"),
     violet: t("settings.appearance.theme.violet"),
+    light: t("settings.appearance.theme.light"),
   };
-  return map[theme] || theme;
+  return map[normalizeTheme(theme)] || theme;
 }
 
 function updateThemeToggleTooltip(theme) {

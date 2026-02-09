@@ -1,4 +1,4 @@
-import { setLanguage, getLanguage, t } from "./i18n.js";
+import { setLanguage, setLanguagePreview, getLanguage, t } from "./i18n.js";
 import { setTheme, getTheme } from "./settingsStore.js";
 import { updateModuleBadge } from "./settings.js";
 
@@ -80,8 +80,32 @@ export function initFirstRunModal() {
   const currentLang = getLanguage();
   setRadioValue("first-run-language", currentLang);
 
+  const langOptions = Array.from(
+    document.querySelectorAll('input[name="first-run-language"]'),
+  );
+  langOptions.forEach((option) => {
+    option.addEventListener("change", () => {
+      const selected = getSelectedRadio("first-run-language");
+      if (selected) {
+        setLanguagePreview(selected);
+      }
+    });
+  });
+
   const currentTheme = getTheme();
-  setRadioValue("first-run-theme", currentTheme || "system");
+  setRadioValue("first-run-theme", currentTheme || "dark");
+
+  const themeOptions = Array.from(
+    document.querySelectorAll('input[name="first-run-theme"]'),
+  );
+  themeOptions.forEach((option) => {
+    option.addEventListener("change", async () => {
+      const selected = getSelectedRadio("first-run-theme");
+      if (selected) {
+        await setTheme(selected);
+      }
+    });
+  });
 
   setCheckboxValue(
     "first-run-tab",
