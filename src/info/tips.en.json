@@ -1,0 +1,12 @@
+{
+  "tips": [
+    "• Auto‑send can be enabled in settings",
+    "• If you see 'EADDRINUSE' — change the local port",
+    "• Double‑check IP and port before sending",
+    "• If the connection fails — restart the WireGuard service",
+    "• You can test with the local address 127.0.0.1",
+    "• Enable 'Activity log' to see more connection details",
+    "• Make sure UDP is not blocked by your ISP",
+    "• If everything works — save the current settings as a preset"
+  ]
+}

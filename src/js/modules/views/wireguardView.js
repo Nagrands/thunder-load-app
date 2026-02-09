@@ -3,7 +3,7 @@
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
-import { applyI18n, t } from "../i18n.js";
+import { applyI18n, getLanguage, t } from "../i18n.js";
 
 export default function renderWireGuard() {
   // Guard: если вкладка WG Unlock отключена — не инициализируем UI
@@ -990,7 +990,8 @@ export default function renderWireGuard() {
       await initAutoShutdown();
 
       // Анимация и автосмена советов
-      const initTipsRotation = async () => {
+      let tipsIntervalId = null;
+      const initTipsRotation = async (lang = "ru") => {
         const tipsCard = view
           .querySelector(".info-card h3 i.fa-lightbulb")
           ?.closest(".info-card");
@@ -1000,15 +1001,20 @@ export default function renderWireGuard() {
         if (!p) return;
 
         try {
-          const response = await fetch("info/tips.json");
+          const tipsPath = lang === "en" ? "info/tips.en.json" : "info/tips.json";
+          const response = await fetch(tipsPath);
           const data = await response.json();
           const tips = data.tips || [];
           if (!tips.length) return;
 
           let index = 0;
           p.textContent = tips[index];
+          if (tipsIntervalId) {
+            clearInterval(tipsIntervalId);
+            tipsIntervalId = null;
+          }
 
-          setInterval(() => {
+          tipsIntervalId = setInterval(() => {
             index = (index + 1) % tips.length;
             p.classList.add("fade-out");
             setTimeout(() => {
@@ -1022,7 +1028,11 @@ export default function renderWireGuard() {
           console.error("Не удалось загрузить советы:", err);
         }
       };
-      await initTipsRotation();
+      await initTipsRotation(getLanguage());
+      window.addEventListener("i18n:changed", (e) => {
+        const next = e?.detail?.lang || getLanguage();
+        initTipsRotation(next);
+      });
 
       const initNetworkSettingsButton = () => {
         const platform = window.electron?.getPlatformInfo?.()?.os || "";
