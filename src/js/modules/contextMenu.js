@@ -33,6 +33,7 @@ import { showToast } from "./toast.js";
 import { showConfirmationDialog as showConfirmationModal } from "./modals.js";
 import { updateDownloadCount, sortHistory } from "./history.js";
 import { state, updateButtonState } from "./state.js";
+import { t } from "./i18n.js";
 
 /**
  * Текущий выбранный элемент истории
@@ -307,11 +308,11 @@ async function handleDeleteEntry(logEntry) {
     `;
 
   const confirmed = await showConfirmationDialog({
-    title: "Удалить запись?",
-    subtitle: "История загрузок",
+    title: t("history.delete.title"),
+    subtitle: t("history.delete.subtitle"),
     message: confirmationMessage,
-    confirmText: "Удалить",
-    cancelText: "Отмена",
+    confirmText: t("history.delete.confirm"),
+    cancelText: t("history.delete.cancel"),
     tone: "danger",
   });
   if (!confirmed) return;
@@ -433,11 +434,11 @@ async function handleDeleteFile(logEntry) {
     `;
 
   const confirmed = await showConfirmationDialog({
-    title: "Удалить файл?",
-    subtitle: "Файл на диске",
+    title: t("history.deleteFile.title"),
+    subtitle: t("history.deleteFile.subtitle"),
     message: confirmationMessage,
-    confirmText: "Удалить",
-    cancelText: "Отмена",
+    confirmText: t("history.deleteFile.confirm"),
+    cancelText: t("history.deleteFile.cancel"),
     tone: "danger",
   });
   if (!confirmed) return;
