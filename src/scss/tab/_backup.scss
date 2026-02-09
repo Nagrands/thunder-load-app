@@ -1571,11 +1571,19 @@
     background 0.2s ease;
 
   .bk-select-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 14px;
     font-weight: 600;
+  }
+
+  .bk-select-label-icon {
+    font-size: 0.9rem;
+    color: var(--color-accent);
   }
 
   i {
@@ -1606,7 +1614,8 @@
     0 6px 16px rgba(0, 0, 0, 0.2);
   background: rgba(255, 255, 255, 0.06);
 
-  i {
+  > i,
+  .fa-chevron-down {
     transform: rotate(180deg);
   }
 }
@@ -1651,6 +1660,15 @@
   justify-content: space-between;
   gap: 10px;
   transition: all 0.16s ease;
+
+  .bk-select-option-icon {
+    font-size: 0.95rem;
+    color: rgba(var(--color-accent-rgb), 0.85);
+  }
+
+  .bk-select-option-text {
+    flex: 1;
+  }
 
   &:hover,
   &:focus-visible {

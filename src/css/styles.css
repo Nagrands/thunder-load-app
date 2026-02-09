@@ -11673,6 +11673,7 @@ footer {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 2px;
   flex-wrap: nowrap;
   flex-direction: row;
   justify-content: center;
@@ -20925,11 +20926,18 @@ video {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .bk-select-trigger .bk-select-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
+}
+.bk-select-trigger .bk-select-label-icon {
+  font-size: 0.9rem;
+  color: var(--color-accent);
 }
 .bk-select-trigger i {
   font-size: 0.85rem;
@@ -20952,7 +20960,8 @@ video {
   box-shadow: 0 0 0 2px rgba(120, 180, 255, 0.18), 0 6px 16px rgba(0, 0, 0, 0.2);
   background: rgba(255, 255, 255, 0.06);
 }
-.bk-select-wrapper.is-open .bk-select-trigger i {
+.bk-select-wrapper.is-open .bk-select-trigger > i,
+.bk-select-wrapper.is-open .bk-select-trigger .fa-chevron-down {
   transform: rotate(180deg);
 }
 
@@ -20993,6 +21002,13 @@ video {
   justify-content: space-between;
   gap: 10px;
   transition: all 0.16s ease;
+}
+.bk-select-option .bk-select-option-icon {
+  font-size: 0.95rem;
+  color: rgba(var(--color-accent-rgb), 0.85);
+}
+.bk-select-option .bk-select-option-text {
+  flex: 1;
 }
 .bk-select-option:hover, .bk-select-option:focus-visible {
   background: rgba(255, 255, 255, 0.07);

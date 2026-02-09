@@ -14,3 +14,4 @@
 - **Center** the history pagination and add quick step buttons.
 - **Flip** the history menu upward when space is limited to avoid overlapping pagination.
 - **Fix** content type filter (video/audio/mixed) when sorting by date.
+- **Add** icons to the content type filter (video/audio/mixed).

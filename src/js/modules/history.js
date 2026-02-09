@@ -532,6 +532,11 @@ function enhanceSelect(selectEl) {
   trigger.className = "bk-select-trigger";
   const labelEl = document.createElement("span");
   labelEl.className = "bk-select-label";
+  const labelIcon = document.createElement("i");
+  labelIcon.className = "bk-select-label-icon";
+  const labelText = document.createElement("span");
+  labelText.className = "bk-select-label-text";
+  labelEl.append(labelIcon, labelText);
   const icon = document.createElement("i");
   icon.className = "fa-solid fa-chevron-down";
   trigger.append(labelEl, icon);
@@ -545,7 +550,15 @@ function enhanceSelect(selectEl) {
       selectEl.selectedOptions && selectEl.selectedOptions[0]
         ? selectEl.selectedOptions[0]
         : selectEl.options[selectEl.selectedIndex];
-    labelEl.textContent = opt ? opt.textContent : "";
+    const iconClass = opt?.dataset?.icon || "";
+    if (iconClass) {
+      labelIcon.className = `bk-select-label-icon ${iconClass}`;
+      labelIcon.style.display = "";
+    } else {
+      labelIcon.className = "bk-select-label-icon";
+      labelIcon.style.display = "none";
+    }
+    labelText.textContent = opt ? opt.textContent : "";
     menu
       .querySelectorAll(".bk-select-option")
       .forEach((item) =>
@@ -563,7 +576,17 @@ function enhanceSelect(selectEl) {
       item.type = "button";
       item.className = "bk-select-option";
       item.dataset.value = opt.value;
-      item.textContent = opt.textContent;
+      const itemIcon = document.createElement("i");
+      itemIcon.className = "bk-select-option-icon";
+      if (opt.dataset.icon) {
+        itemIcon.className = `bk-select-option-icon ${opt.dataset.icon}`;
+      } else {
+        itemIcon.style.display = "none";
+      }
+      const itemText = document.createElement("span");
+      itemText.className = "bk-select-option-text";
+      itemText.textContent = opt.textContent;
+      item.append(itemIcon, itemText);
       item.addEventListener("click", () => {
         if (selectEl.value !== opt.value) {
           selectEl.value = opt.value;
@@ -1001,6 +1024,10 @@ function toggleAllHistoryDetails(forceState = null) {
     toggleAllDetailsButton.setAttribute("data-hint", label);
     toggleAllDetailsButton.title = label;
   }
+  state.historyDetailsExpanded = shouldOpen;
+  try {
+    localStorage.setItem("historyDetailsExpanded", String(shouldOpen));
+  } catch {}
 }
 
 function updateTitleTruncation() {
@@ -1032,6 +1059,10 @@ function updateToggleAllButtonState() {
   toggleAllDetailsButton.setAttribute("aria-label", label);
   toggleAllDetailsButton.setAttribute("data-hint", label);
   toggleAllDetailsButton.title = label;
+  state.historyDetailsExpanded = allOpen;
+  try {
+    localStorage.setItem("historyDetailsExpanded", String(allOpen));
+  } catch {}
 }
 
 function closeAllHistoryMenus(except = null) {
@@ -2560,6 +2591,9 @@ function renderHistory(entries, meta = {}) {
     const { el } = createLogEntry(entry);
     container.appendChild(el);
   });
+  if (state.historyDetailsExpanded) {
+    toggleAllHistoryDetails(true);
+  }
   requestAnimationFrame(() => {
     updateTitleTruncation();
     initTooltips();

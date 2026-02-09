@@ -50,6 +50,13 @@ const state = {
       return "comfort";
     }
   })(),
+  historyDetailsExpanded: (() => {
+    try {
+      return window.localStorage.getItem("historyDetailsExpanded") === "true";
+    } catch {
+      return false;
+    }
+  })(),
 };
 
 // Временное хранилище истории (без привязки к DOM)
