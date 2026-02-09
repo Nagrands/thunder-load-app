@@ -167,7 +167,13 @@ function filterAndSortHistory(
     return matchesSource;
   });
 
-  const sorted = filteredByFacet
+  const filteredByType = filteredByFacet.filter((entry) => {
+    if (sortMode === "audio") return isAudioEntry(entry);
+    if (sortMode === "video") return !isAudioEntry(entry);
+    return true;
+  });
+
+  const sorted = filteredByType
     .map((entry, index) => ({ entry, index }))
     .sort((a, b) => {
       const aEntry = a.entry;
@@ -257,7 +263,7 @@ function filterAndSortHistory(
     .map((e) => `${e.id}|${e.timestamp}`)
     .join(
       ",",
-    )}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|k${sortKey}|o${sortOrder}`;
+    )}|p${state.historyPage}|s${state.historyPageSize}|src${sourceFilter}|k${sortKey}|o${sortOrder}|m${sortMode}`;
 
   if (!forceRender && renderKey === lastRenderedKey) {
     return;
