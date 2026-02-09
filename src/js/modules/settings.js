@@ -91,6 +91,7 @@ const DEFAULT_CONFIG = {
     minimizeInsteadOfClose: false,
     minimizeToTray: false,
     closeNotification: true,
+    firstRunCompleted: false,
   },
   window: {
     defaultTab: "download",
@@ -1401,6 +1402,13 @@ async function collectCurrentConfig() {
       return true;
     }
   })();
+  const firstRunCompleted = (() => {
+    try {
+      return localStorage.getItem("firstRunCompleted") === "1";
+    } catch {
+      return false;
+    }
+  })();
 
   const readJsonFlag = (key, defVal) => {
     try {
@@ -1447,6 +1455,7 @@ async function collectCurrentConfig() {
       minimizeInsteadOfClose,
       minimizeToTray,
       closeNotification,
+      firstRunCompleted,
     },
     window: {
       defaultTab,
@@ -1515,6 +1524,12 @@ async function applyConfig(config, options = {}) {
       localStorage.setItem(key, JSON.stringify(value));
     } catch {}
   };
+  try {
+    localStorage.setItem(
+      "firstRunCompleted",
+      cfg.general.firstRunCompleted ? "1" : "0",
+    );
+  } catch {}
 
   writeJson("wgUnlockDisabled", !!cfg.modules.wgUnlockDisabled);
   writeJson("backupDisabled", !!cfg.modules.backupDisabled);
@@ -1708,5 +1723,6 @@ export const setDefaultTab = (tabId) =>
 
 // Тестовая прокладка для unit-тестов
 export const __test_updateModuleBadge = updateModuleBadge;
+export { updateModuleBadge };
 
 export { initSettings };

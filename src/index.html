@@ -1570,6 +1570,114 @@
         </div>
       </div>
 
+  <div
+  id="first-run-modal"
+  class="modal-overlay first-run-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="first-run-title"
+  aria-describedby="first-run-desc"
+>
+  <div class="modal-content first-run-modal-content">
+    <div class="first-run-header">
+      <div class="first-run-title-block">
+        <h2 id="first-run-title" data-i18n="firstRun.title">
+          Добро пожаловать в Thunder Load
+        </h2>
+        <p id="first-run-desc" data-i18n="firstRun.subtitle">
+          Настройте язык, вкладки и тему перед началом работы.
+        </p>
+      </div>
+    </div>
+
+    <div class="first-run-body">
+      <section class="first-run-section">
+        <h3 data-i18n="firstRun.language">Язык интерфейса</h3>
+        <div class="first-run-options">
+          <label class="first-run-option">
+            <input
+              type="radio"
+              name="first-run-language"
+              value="ru"
+              checked
+            />
+            <span data-i18n="language.ru">Русский</span>
+          </label>
+          <label class="first-run-option">
+            <input type="radio" name="first-run-language" value="en" />
+            <span data-i18n="language.en">English</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="first-run-section">
+        <h3 data-i18n="firstRun.tabs">Вкладки для работы</h3>
+        <div class="first-run-options">
+          <label class="first-run-option">
+            <input
+              type="checkbox"
+              name="first-run-tab"
+              value="download"
+              checked
+              disabled
+            />
+            <span data-i18n="tabs.download">Downloader</span>
+          </label>
+          <label class="first-run-option">
+            <input type="checkbox" name="first-run-tab" value="wireguard" />
+            <span data-i18n="tabs.wireguard">WG Unlock</span>
+          </label>
+          <label class="first-run-option">
+            <input type="checkbox" name="first-run-tab" value="backup" />
+            <span data-i18n="tabs.backup">Backup</span>
+          </label>
+          <label class="first-run-option">
+            <input type="checkbox" name="first-run-tab" value="randomizer" />
+            <span data-i18n="tabs.randomizer">Randomizer</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="first-run-section">
+        <h3 data-i18n="firstRun.theme">Цветовая тема</h3>
+        <div class="first-run-options">
+          <label class="first-run-option">
+            <input type="radio" name="first-run-theme" value="system" />
+            <span data-i18n="settings.appearance.theme.system">Системная</span>
+          </label>
+          <label class="first-run-option">
+            <input type="radio" name="first-run-theme" value="dark" />
+            <span data-i18n="settings.appearance.theme.dark">Dark</span>
+          </label>
+          <label class="first-run-option">
+            <input type="radio" name="first-run-theme" value="midnight" />
+            <span data-i18n="settings.appearance.theme.midnight">Midnight</span>
+          </label>
+          <label class="first-run-option">
+            <input type="radio" name="first-run-theme" value="sunset" />
+            <span data-i18n="settings.appearance.theme.sunset">Sunset</span>
+          </label>
+          <label class="first-run-option">
+            <input type="radio" name="first-run-theme" value="violet" />
+            <span data-i18n="settings.appearance.theme.violet">Violet</span>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <div class="first-run-footer">
+      <button
+        id="first-run-apply"
+        class="btn btn-primary"
+        type="button"
+        data-i18n="firstRun.apply"
+      >
+        Применить
+      </button>
+    </div>
+  </div>
+</div>
+
         <!-- Context Menu -->
       <nav
         id="context-menu"

@@ -6,6 +6,7 @@
 - **Updated** tooltips for WG Unlock actions.
 - **Fixed** top‑bar button overlap with the tab menu on smaller window widths.
 - **Fixed** window controls positioning when resizing the window.
+- **Added** first-run setup to choose language, tabs, and theme.
 
 ### Downloader / History
 

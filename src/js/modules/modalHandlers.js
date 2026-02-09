@@ -11,12 +11,14 @@ import {
 import { closeAllModals } from "./modalManager.js";
 
 function initModalHandlers() {
+  const firstRunModal = document.getElementById("first-run-modal");
   // Список всех модальных окон
   const modals = [
     shortcutsModal,
     whatsNewModal,
     confirmationModal,
     settingsModal,
+    firstRunModal,
     // Добавьте другие модальные окна здесь
   ];
 

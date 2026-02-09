@@ -14625,7 +14625,8 @@ hr {
 .modal-overlay,
 .shortcuts-modal,
 .whats-modal,
-.settings-modal {
+.settings-modal,
+.first-run-modal {
   display: none;
   position: fixed;
   z-index: 1024;
@@ -14643,6 +14644,7 @@ hr {
 .shortcuts-modal-content,
 .whats-modal-content,
 .settings-modal-content,
+.first-run-modal-content,
 .bk-modal,
 #update-available-modal .modal-content,
 #update-downloaded-modal .modal-content,
@@ -14666,6 +14668,7 @@ hr {
 .shortcuts-modal-content h2,
 .whats-modal-content h2,
 .settings-modal-content h2,
+.first-run-modal-content h2,
 .bk-modal h2,
 #update-available-modal .modal-content h2,
 #update-downloaded-modal .modal-content h2,
@@ -14676,6 +14679,7 @@ hr {
 .shortcuts-modal-content h2 i,
 .whats-modal-content h2 i,
 .settings-modal-content h2 i,
+.first-run-modal-content h2 i,
 .bk-modal h2 i,
 #update-available-modal .modal-content h2 i,
 #update-downloaded-modal .modal-content h2 i,
@@ -14686,12 +14690,78 @@ hr {
 .shortcuts-modal-content,
 .whats-modal-content,
 .settings-modal-content,
+.first-run-modal-content,
 .bk-modal,
 #update-available-modal .modal-content,
 #update-downloaded-modal .modal-content,
 #update-error-modal .modal-content {
   background: var(--color-bg-main);
   border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.first-run-modal .first-run-modal-content {
+  max-width: 720px;
+  width: min(92vw, 720px);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.first-run-modal .first-run-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.first-run-modal .first-run-title-block h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--color-highlight);
+}
+.first-run-modal .first-run-title-block p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.65);
+}
+.first-run-modal .first-run-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.first-run-modal .first-run-section {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.first-run-modal .first-run-section h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--color-highlight);
+}
+.first-run-modal .first-run-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.first-run-modal .first-run-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+}
+.first-run-modal .first-run-option input {
+  accent-color: var(--color-accent);
+}
+.first-run-modal .first-run-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+.first-run-modal #first-run-apply {
+  min-width: 160px;
 }
 
 .shortcuts-modal .shortcuts-modal-content {
