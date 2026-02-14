@@ -24,11 +24,6 @@ export function registerWgControls() {
         val: wgAutosendCheckbox.checked,
       });
     });
-
-    window.electron.ipcRenderer.invoke("wg-get-config").then((cfg) => {
-      console.log("[WG Unlock] autosend from config:", cfg.autosend);
-      wgAutosendCheckbox.checked = !!cfg.autosend;
-    });
   }
 
   const wgSendBtn = document.getElementById("wg-send");
