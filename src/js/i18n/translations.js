@@ -178,6 +178,10 @@ export const translations = {
     "wg.log.copy.title": "Скопировать лог",
     "wg.log.export.title": "Экспортировать лог",
     "wg.log.clear.title": "Очистить лог",
+    "wg.log.autoscroll.on": "Автопрокрутка включена",
+    "wg.log.autoscroll.off": "Автопрокрутка выключена",
+    "wg.log.filter.errorsOn": "Показываются только ошибки",
+    "wg.log.filter.errorsOff": "Показывать только ошибки",
     "wg.log.placeholder":
       "Лог активности. Включите режим отладки для подробного вывода.",
     "wg.log.ui.copied": "Скопировано",
@@ -185,6 +189,11 @@ export const translations = {
     "wg.tips.title": "Советы",
     "wg.tips.body":
       "• Используйте режим отладки для подробного лога<br>• Проверьте настройки брандмауэра<br>• Убедитесь, что удаленный хост доступен",
+    "wg.tips.prev": "Предыдущий совет",
+    "wg.tips.next": "Следующий совет",
+    "wg.tips.pause": "Пауза",
+    "wg.tips.play": "Продолжить",
+    "wg.tips.counter": "{current}/{total}",
     "wg.confirm.send": "Отправить запрос на {target}?",
     "wg.confirm.resetAll":
       "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
@@ -1248,6 +1257,10 @@ export const translations = {
     "wg.log.copy.title": "Copy log",
     "wg.log.export.title": "Export log",
     "wg.log.clear.title": "Clear log",
+    "wg.log.autoscroll.on": "Auto-scroll on",
+    "wg.log.autoscroll.off": "Auto-scroll off",
+    "wg.log.filter.errorsOn": "Showing errors only",
+    "wg.log.filter.errorsOff": "Show errors only",
     "wg.log.placeholder":
       "Activity log. Enable debug mode for detailed output.",
     "wg.log.ui.copied": "Copied",
@@ -1255,6 +1268,11 @@ export const translations = {
     "wg.tips.title": "Tips",
     "wg.tips.body":
       "• Use debug mode for detailed logging<br>• Check firewall settings<br>• Make sure the remote host is reachable",
+    "wg.tips.prev": "Previous tip",
+    "wg.tips.next": "Next tip",
+    "wg.tips.pause": "Pause",
+    "wg.tips.play": "Resume",
+    "wg.tips.counter": "{current}/{total}",
     "wg.confirm.send": "Send request to {target}?",
     "wg.confirm.resetAll":
       "Are you sure you want to reset all field settings to defaults?",

@@ -41,6 +41,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     confirmText = t("confirm.default.confirm"),
     cancelText = t("confirm.default.cancel"),
     tone = "danger",
+    singleButton = false,
     onConfirm: confirmCb,
     onCancel: cancelCb,
   } = opts;
@@ -74,6 +75,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
   confirmButton.textContent = confirmText;
   cancelButton.textContent = cancelText;
   confirmationModal.dataset.tone = tone;
+  cancelButton.style.display = singleButton ? "none" : "";
 
   return new Promise((resolve) => {
     let resolved = false;
@@ -122,6 +124,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     const closeModal = (returnFocus = true) => {
       confirmationModal.style.display = "none";
       confirmationModal.removeAttribute("data-tone");
+      cancelButton.style.display = "";
       confirmButton.removeEventListener("click", onConfirmClick);
       cancelButton.removeEventListener("click", onCancelClick);
       closeModalIcon.removeEventListener("click", onCancelClick);

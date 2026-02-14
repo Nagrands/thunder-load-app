@@ -94,7 +94,15 @@ export default function renderWireGuard() {
   let shutdownTicker = null;
   let shutdownDeadlineTs = null;
   let lastLoggedRemaining = null;
+  let logEntries = [];
+  let logAutoScroll = true;
+  let logErrorOnly = false;
   let tipsIntervalId = null;
+  let tipsSwapTimer = null;
+  let tipsFadeTimer = null;
+  let tipsPaused = false;
+  let tipsItems = [];
+  let tipsIndex = 0;
   const cleanupFns = [];
 
   const addCleanup = (fn) => {
@@ -119,6 +127,14 @@ export default function renderWireGuard() {
       clearInterval(tipsIntervalId);
       tipsIntervalId = null;
     }
+    if (tipsSwapTimer) {
+      clearTimeout(tipsSwapTimer);
+      tipsSwapTimer = null;
+    }
+    if (tipsFadeTimer) {
+      clearTimeout(tipsFadeTimer);
+      tipsFadeTimer = null;
+    }
     const finalizers = cleanupFns.splice(0);
     finalizers.forEach((fn) => {
       try {
@@ -131,17 +147,112 @@ export default function renderWireGuard() {
   // ЛОКАЛЬНОЕ СОХРАНЕНИЕ ЛОГА И ВРЕМЕНИ ОТПРАВКИ
   // =============================================
 
+  const WG_LOG_V2_KEY = "wg-log-v2";
+  const WG_LOG_LEGACY_KEY = "wg-log";
+  const WG_LOG_MAX_ENTRIES = 300;
+
+  const formatLogEntry = (entry) => {
+    const dt = new Date(entry.ts || Date.now());
+    const pad = (n) => String(n).padStart(2, "0");
+    const time = `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+    const level = (entry.level || "info").toUpperCase().padEnd(5, " ");
+    return `${time} | ${level} | ${entry.text || ""}`;
+  };
+
+  const getVisibleLogEntries = () =>
+    logErrorOnly
+      ? logEntries.filter((entry) => entry.level === "error")
+      : logEntries;
+
   const saveLog = () => {
+    try {
+      window.localStorage.setItem(
+        WG_LOG_V2_KEY,
+        JSON.stringify({
+          autoScroll: !!logAutoScroll,
+          entries: logEntries.slice(-WG_LOG_MAX_ENTRIES),
+        }),
+      );
+    } catch {}
+  };
+
+  const renderLog = () => {
     const pre = getEl("wg-log", view);
-    if (pre) window.localStorage.setItem("wg-log", pre.textContent);
+    if (!pre) return;
+    const visible = getVisibleLogEntries();
+    pre.textContent = visible.length
+      ? visible.map(formatLogEntry).join("\n")
+      : t("wg.log.placeholder");
+    if (logErrorOnly) {
+      pre.classList.add("error-log");
+    } else {
+      pre.classList.remove("error-log");
+    }
+    if (logAutoScroll) {
+      pre.scrollTop = pre.scrollHeight;
+    }
+  };
+
+  const updateLogControls = () => {
+    const autoBtn = getEl("wg-log-autoscroll", view);
+    const filterBtn = getEl("wg-log-filter-errors", view);
+    if (autoBtn) {
+      autoBtn.classList.toggle("is-active", logAutoScroll);
+      autoBtn.title = logAutoScroll
+        ? t("wg.log.autoscroll.on")
+        : t("wg.log.autoscroll.off");
+    }
+    if (filterBtn) {
+      filterBtn.classList.toggle("is-active", logErrorOnly);
+      filterBtn.title = logErrorOnly
+        ? t("wg.log.filter.errorsOn")
+        : t("wg.log.filter.errorsOff");
+    }
+  };
+
+  const appendLogEntry = (text, level = "info") => {
+    logEntries.push({
+      level,
+      text: String(text || ""),
+      ts: Date.now(),
+    });
+    if (logEntries.length > WG_LOG_MAX_ENTRIES) {
+      logEntries = logEntries.slice(-WG_LOG_MAX_ENTRIES);
+    }
+    renderLog();
+    saveLog();
   };
 
   const loadLog = () => {
-    const pre = getEl("wg-log", view);
-    if (pre) {
-      const saved = window.localStorage.getItem("wg-log");
-      if (saved) pre.textContent = saved;
+    try {
+      const raw = window.localStorage.getItem(WG_LOG_V2_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        logEntries = Array.isArray(parsed?.entries) ? parsed.entries : [];
+        logAutoScroll = parsed?.autoScroll !== false;
+        renderLog();
+        return;
+      }
+    } catch {}
+
+    const legacy = window.localStorage.getItem(WG_LOG_LEGACY_KEY);
+    if (legacy) {
+      logEntries = String(legacy)
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => ({
+          level: /\berror|ошибка|err\b/i.test(line) ? "error" : "info",
+          text: line,
+          ts: Date.now(),
+        }))
+        .slice(-WG_LOG_MAX_ENTRIES);
+      renderLog();
+      saveLog();
+      return;
     }
+
+    renderLog();
   };
 
   const saveLastSendTime = (time = new Date()) => {
@@ -254,54 +365,18 @@ export default function renderWireGuard() {
 
     if (!debugEnabled && !error) return;
 
-    const pre = getEl("wg-log", view);
-    if (pre) {
-      // Форматируем дату/время как YYYY-MM-DD HH:MM:SS (24h)
-      const now = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
-      const divider = "----------------------------------------";
-      const currentContent = pre.textContent || "";
-      let newContent;
-      // Добавляем разделитель только если это новая сессия
-      if (isNewSession) {
-        newContent =
-          (currentContent ? currentContent + "\n" : "") +
-          divider +
-          "\n" +
-          `${timestamp} › ${text}`;
-        isNewSession = false;
-      } else {
-        newContent =
-          (currentContent ? currentContent + "\n" : "") +
-          `${timestamp} › ${text}`;
-      }
-      pre.textContent = newContent;
-
-      // Ограничиваем лог последними 50_000 символами
-      const maxLogChars = 50000;
-      if (pre.textContent.length > maxLogChars) {
-        pre.textContent = pre.textContent.slice(-maxLogChars);
-      }
-
-      if (error) {
-        pre.classList.add("error-log");
-      } else {
-        pre.classList.remove("error-log");
-      }
-
-      // Автопрокрутка к новому сообщению
-      pre.scrollTop = pre.scrollHeight;
-
-      // Автоматически раскрывать details при новых сообщениях
-      const details = pre.closest("details");
-      if (details && !details.open) {
-        details.open = true;
-      }
-
-      saveLog();
+    // Добавляем маркер новой сессии
+    if (isNewSession) {
+      appendLogEntry("────────────────────────", "info");
+      isNewSession = false;
     }
+
+    appendLogEntry(text, error ? "error" : "info");
+
+    // Автоматически раскрывать details при новых сообщениях
+    const pre = getEl("wg-log", view);
+    const details = pre?.closest("details");
+    if (details && !details.open) details.open = true;
   };
 
   const withTimeout = (promise, ms = 5000) => {
@@ -451,6 +526,9 @@ export default function renderWireGuard() {
           <div class="wg-section">
             <h2 class="section-heading" data-i18n="wg.section.control">Управление</h2>
             <div class="buttons">
+              <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка">
+                <i class="fa-solid fa-circle-question"></i>
+              </button>
               <button id="wg-send" class="large-button">
                 <i class="fa-solid fa-paper-plane"></i>
                 <span data-i18n="wg.action.send">Отправить</span>
@@ -476,14 +554,16 @@ export default function renderWireGuard() {
           <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
         </div>
         
-        <div class="info-card">
-          <h3><i class="fa-solid fa-clock"></i> <span data-i18n="wg.lastSend.title">Последняя отправка</span></h3>
-          <p id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</p>
-        </div>
-        
-        <div class="info-card">
-          <h3><i class="fa-solid fa-gauge"></i> <span data-i18n="wg.status.title">Статус</span></h3>
-          <p id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</p>
+        <div class="info-card wg-meta-card">
+          <div class="meta-row">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="wg.lastSend.title">Последняя отправка</span></h3>
+            <p id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</p>
+          </div>
+          <div class="meta-divider" aria-hidden="true"></div>
+          <div class="meta-row">
+            <h3><i class="fa-solid fa-gauge"></i> <span data-i18n="wg.status.title">Статус</span></h3>
+            <p id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</p>
+          </div>
         </div>
 
         <div class="wg-section">
@@ -505,6 +585,14 @@ export default function renderWireGuard() {
                   data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
                   <i class="fa-solid fa-trash"></i>
                 </button>
+                <button id="wg-log-filter-errors" type="button" class="log-action-btn"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Показывать только ошибки">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </button>
+                <button id="wg-log-autoscroll" type="button" class="log-action-btn is-active"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Автопрокрутка включена">
+                  <i class="fa-solid fa-arrow-down-wide-short"></i>
+                </button>
               </div>
               <pre id="wg-log" class="wg-status console"></pre>
             </details>
@@ -512,9 +600,21 @@ export default function renderWireGuard() {
         
         <div class="info-card">
           <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
-          <p data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
+          <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
              • Проверьте настройки брандмауэра<br>
              • Убедитесь, что удаленный хост доступен</p>
+          <div class="wg-tips-controls">
+            <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
+              <i class="fa-solid fa-pause"></i>
+            </button>
+            <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
+          </div>
         </div>
       </div>
     </div>
@@ -720,25 +820,53 @@ export default function renderWireGuard() {
     // Очистка лога
     const clearLogBtn = getEl("wg-log-clear", view);
     clearLogBtn?.addEventListener("click", () => {
-      const pre = getEl("wg-log", view);
-      if (pre) {
-        const debugToggle = getEl("debug-toggle", view);
-        const debugEnabled = debugToggle
-          ? debugToggle.classList.contains("is-active")
-          : false;
+      logEntries = [];
+      renderLog();
+      saveLog();
+      log(t("wg.log.log.clearedByUser"));
+    });
 
-        pre.textContent = debugEnabled
-          ? t("wg.log.log.clearedByUser")
-          : t("wg.log.placeholder");
+    const filterErrorsBtn = getEl("wg-log-filter-errors", view);
+    filterErrorsBtn?.addEventListener("click", () => {
+      logErrorOnly = !logErrorOnly;
+      updateLogControls();
+      renderLog();
+      initTooltips();
+    });
 
-        saveLog(); // Сохраняем обновлённый (очищенный) лог
-
-        log(t("wg.log.log.clearedByUser"));
-      }
+    const autoScrollBtn = getEl("wg-log-autoscroll", view);
+    autoScrollBtn?.addEventListener("click", () => {
+      logAutoScroll = !logAutoScroll;
+      updateLogControls();
+      renderLog();
+      saveLog();
+      initTooltips();
     });
 
     // Отправка UDP-пакета
     getEl("wg-send", view)?.addEventListener("click", handleSend);
+
+    // Подсказка о назначении вкладки WG Unlock
+    const helpBtn = getEl("wg-help", view);
+    helpBtn?.addEventListener("click", () => {
+      showConfirmationDialog({
+        title: "Зачем нужна WG Unlock",
+        subtitle: "Коротко о том, когда это полезно",
+        confirmText: "Понятно",
+        singleButton: true,
+        tone: "info",
+        message: `
+          <div class="toast-message">
+            <p>WG Unlock помогает восстановить работу WireGuard, когда соединение «засыпает» или сеть после смены Wi-Fi работает нестабильно.</p>
+            <ul>
+              <li>Отправляет UDP-сигнал на указанный адрес и порт.</li>
+              <li>Удобен после сна ноутбука, смены сети и при нестабильном VPN.</li>
+              <li>Не заменяет WireGuard-клиент: при проблемах сервера/ключей может не помочь.</li>
+            </ul>
+          </div>
+        `,
+      });
+    });
 
     //
     // Добавим новые обработчики после существующего обработчика очистки лога:
@@ -1017,6 +1145,7 @@ export default function renderWireGuard() {
       setupFieldEvents();
       setupEasterEgg();
       setupEventHandlers();
+      updateLogControls();
       await initAutoShutdown();
 
       // Анимация и автосмена советов
@@ -1026,33 +1155,112 @@ export default function renderWireGuard() {
           ?.closest(".info-card");
         if (!tipsCard) return;
 
-        const p = tipsCard.querySelector("p");
-        if (!p) return;
+        const p = tipsCard.querySelector("#wg-tips-text");
+        const prevBtn = tipsCard.querySelector("#wg-tip-prev");
+        const nextBtn = tipsCard.querySelector("#wg-tip-next");
+        const toggleBtn = tipsCard.querySelector("#wg-tip-toggle");
+        const counterEl = tipsCard.querySelector("#wg-tips-counter");
+        if (!p || !prevBtn || !nextBtn || !toggleBtn || !counterEl) return;
 
         try {
           const tipsPath = lang === "en" ? "info/tips.en.json" : "info/tips.json";
           const response = await fetch(tipsPath);
           const data = await response.json();
-          const tips = data.tips || [];
-          if (!tips.length) return;
+          tipsItems = Array.isArray(data.tips) ? data.tips : [];
+          if (!tipsItems.length) return;
 
-          let index = 0;
-          p.textContent = tips[index];
-          if (tipsIntervalId) {
-            clearInterval(tipsIntervalId);
-            tipsIntervalId = null;
-          }
+          const clearTipsTimers = () => {
+            if (tipsIntervalId) {
+              clearInterval(tipsIntervalId);
+              tipsIntervalId = null;
+            }
+          };
 
-          tipsIntervalId = setInterval(() => {
-            index = (index + 1) % tips.length;
+          const clearTipsAnimationTimers = () => {
+            if (tipsSwapTimer) {
+              clearTimeout(tipsSwapTimer);
+              tipsSwapTimer = null;
+            }
+            if (tipsFadeTimer) {
+              clearTimeout(tipsFadeTimer);
+              tipsFadeTimer = null;
+            }
+          };
+
+          const updateToggleUi = () => {
+            const icon = toggleBtn.querySelector("i");
+            prevBtn.setAttribute("title", t("wg.tips.prev"));
+            nextBtn.setAttribute("title", t("wg.tips.next"));
+            if (tipsPaused) {
+              if (icon) icon.className = "fa-solid fa-play";
+              toggleBtn.setAttribute("title", t("wg.tips.play"));
+              toggleBtn.setAttribute("data-i18n-title", "wg.tips.play");
+            } else {
+              if (icon) icon.className = "fa-solid fa-pause";
+              toggleBtn.setAttribute("title", t("wg.tips.pause"));
+              toggleBtn.setAttribute("data-i18n-title", "wg.tips.pause");
+            }
+          };
+
+          const updateCounter = () => {
+            counterEl.textContent = t("wg.tips.counter", {
+              current: Math.min(tipsItems.length, tipsIndex + 1),
+              total: tipsItems.length,
+            });
+          };
+
+          const renderTip = (nextIndex, { animate = true } = {}) => {
+            if (!tipsItems.length) return;
+            tipsIndex = ((nextIndex % tipsItems.length) + tipsItems.length) % tipsItems.length;
+            const text = tipsItems[tipsIndex];
+            if (!animate) {
+              p.textContent = text;
+              p.classList.remove("fade-out", "fade-in");
+              updateCounter();
+              return;
+            }
             p.classList.add("fade-out");
-            setTimeout(() => {
-              p.textContent = tips[index];
+            clearTipsAnimationTimers();
+            tipsSwapTimer = setTimeout(() => {
+              p.textContent = text;
               p.classList.remove("fade-out");
               p.classList.add("fade-in");
-              setTimeout(() => p.classList.remove("fade-in"), 800);
-            }, 400);
-          }, 8000);
+              tipsFadeTimer = setTimeout(() => p.classList.remove("fade-in"), 800);
+              updateCounter();
+            }, 180);
+          };
+
+          const scheduleRotation = () => {
+            clearTipsTimers();
+            if (tipsPaused || tipsItems.length <= 1) return;
+            tipsIntervalId = setInterval(() => {
+              renderTip(tipsIndex + 1);
+            }, 8000);
+          };
+
+          renderTip(tipsIndex, { animate: false });
+          updateToggleUi();
+          scheduleRotation();
+
+          if (!tipsCard.dataset.tipsWired) {
+            tipsCard.dataset.tipsWired = "1";
+
+            prevBtn.addEventListener("click", () => {
+              renderTip(tipsIndex - 1);
+              scheduleRotation();
+            });
+            nextBtn.addEventListener("click", () => {
+              renderTip(tipsIndex + 1);
+              scheduleRotation();
+            });
+            toggleBtn.addEventListener("click", () => {
+              tipsPaused = !tipsPaused;
+              updateToggleUi();
+              scheduleRotation();
+              initTooltips();
+            });
+          }
+          initTooltips();
         } catch (err) {
           console.error("Не удалось загрузить советы:", err);
         }
