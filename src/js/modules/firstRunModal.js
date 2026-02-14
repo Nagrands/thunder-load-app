@@ -1,4 +1,4 @@
-import { setLanguage, setLanguagePreview, getLanguage, t } from "./i18n.js";
+import { setLanguage, setLanguagePreview, getLanguage } from "./i18n.js";
 import { setTheme, getTheme } from "./settingsStore.js";
 import { updateModuleBadge } from "./settings.js";
 

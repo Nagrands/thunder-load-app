@@ -23,7 +23,12 @@ Thunder Load is an Electron app for downloading video/audio and managing related
 ## Where to Edit Logic
 
 - Main process: `src/js/app/`.
-- Renderer: `src/js/renderer.js` and modules in `src/js/modules/`.
+- Renderer:
+  - entrypoint: `src/js/renderer.js`;
+  - orchestration/bootstrap: `src/js/modules/app/`;
+  - feature modules: `src/js/modules/features/` (for example, `history`, `settings`);
+  - compatibility facades for old imports: `src/js/modules/history.js`, `src/js/modules/settings.js`;
+  - shared modules: `src/js/modules/shared/` and legacy modules under `src/js/modules/`.
 - IPC and preload: `src/js/preload.js`, `src/js/ipc/`.
 
 ## Quick Dev Start
