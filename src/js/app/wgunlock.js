@@ -72,7 +72,7 @@ function sendUdp({ ip, rPort, lPort, msg }) {
       socket.close();
       if (err.code === "EADDRINUSE") {
         await handlePortInUse(lPort);
-        // reject(new Error(`Порт ${lPort} уже используется.`));
+        reject(new Error(`EADDRINUSE: Порт ${lPort} уже используется.`));
       } else {
         reject(new Error("Ошибка сокета: " + err.message));
       }

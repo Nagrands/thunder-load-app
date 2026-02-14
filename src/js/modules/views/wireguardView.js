@@ -94,6 +94,38 @@ export default function renderWireGuard() {
   let shutdownTicker = null;
   let shutdownDeadlineTs = null;
   let lastLoggedRemaining = null;
+  let tipsIntervalId = null;
+  const cleanupFns = [];
+
+  const addCleanup = (fn) => {
+    if (typeof fn === "function") cleanupFns.push(fn);
+  };
+
+  const onWindowEvent = (type, handler, options) => {
+    window.addEventListener(type, handler, options);
+    addCleanup(() => window.removeEventListener(type, handler, options));
+  };
+
+  const onIpcEvent = (channel, handler) => {
+    window.electron.ipcRenderer.on(channel, handler);
+    addCleanup(() =>
+      window.electron.ipcRenderer.removeListener(channel, handler),
+    );
+  };
+
+  const disposeView = () => {
+    stopCountdown();
+    if (tipsIntervalId) {
+      clearInterval(tipsIntervalId);
+      tipsIntervalId = null;
+    }
+    const finalizers = cleanupFns.splice(0);
+    finalizers.forEach((fn) => {
+      try {
+        fn();
+      } catch {}
+    });
+  };
 
   // =============================================
   // ЛОКАЛЬНОЕ СОХРАНЕНИЕ ЛОГА И ВРЕМЕНИ ОТПРАВКИ
@@ -770,18 +802,16 @@ export default function renderWireGuard() {
     });
 
     // Добавим обработчик для события успешного экспорта
-    window.electron.ipcRenderer.on(
-      "wg-log-export-success",
-      (event, filePath) => {
-        toast(t("wg.toast.logExported"));
-        log(t("wg.log.log.exportSuccess", { path: filePath }));
-      },
-    );
-
-    window.electron.ipcRenderer.on("wg-log-export-error", (event, error) => {
+    const onLogExportSuccess = (_event, filePath) => {
+      toast(t("wg.toast.logExported"));
+      log(t("wg.log.log.exportSuccess", { path: filePath }));
+    };
+    const onLogExportError = (_event, error) => {
       toast(t("wg.toast.logExportFailed"), false);
       log(t("wg.log.error.exportLog", { message: error }), true);
-    });
+    };
+    onIpcEvent("wg-log-export-success", onLogExportSuccess);
+    onIpcEvent("wg-log-export-error", onLogExportError);
 
     // Открыть файл конфигурации
     const openConfigBtn = getEl("wg-open-config-file", view);
@@ -990,7 +1020,6 @@ export default function renderWireGuard() {
       await initAutoShutdown();
 
       // Анимация и автосмена советов
-      let tipsIntervalId = null;
       const initTipsRotation = async (lang = "ru") => {
         const tipsCard = view
           .querySelector(".info-card h3 i.fa-lightbulb")
@@ -1029,13 +1058,16 @@ export default function renderWireGuard() {
         }
       };
       await initTipsRotation(getLanguage());
-      window.addEventListener("i18n:changed", (e) => {
+      onWindowEvent("i18n:changed", (e) => {
         const next = e?.detail?.lang || getLanguage();
         initTipsRotation(next);
       });
 
-      const initNetworkSettingsButton = () => {
-        const platform = window.electron?.getPlatformInfo?.()?.os || "";
+      const initNetworkSettingsButton = async () => {
+        const platformInfo = await window.electron
+          .getPlatformInfo?.()
+          .catch(() => null);
+        const platform = platformInfo?.platform || "";
         const btn = view.querySelector("#wg-open-network-settings");
         if (!btn) return;
 
@@ -1045,7 +1077,7 @@ export default function renderWireGuard() {
             "data-i18n-title",
             "wg.action.openNetworkSettings.mac",
           );
-        } else if (platform === "windows") {
+        } else if (platform === "win32") {
           btn.setAttribute(
             "data-i18n-title",
             "wg.action.openNetworkSettings.windows",
@@ -1065,7 +1097,7 @@ export default function renderWireGuard() {
           window.electron.send("open-network-settings");
         });
       };
-      initNetworkSettingsButton();
+      await initNetworkSettingsButton();
 
       // Инициализация тултипов
       queueMicrotask(() => {
@@ -1094,7 +1126,7 @@ export default function renderWireGuard() {
   };
 
   // Обработчик обновления авто-закрытия
-  window.electron.ipcRenderer.on("wg-auto-shutdown-updated", (payload) => {
+  const onAutoShutdownUpdated = (payload) => {
     try {
       const { enabled, seconds, deadline } = payload || {};
       if (enabled) {
@@ -1118,7 +1150,19 @@ export default function renderWireGuard() {
       console.error("wg-auto-shutdown-updated handler error:", err);
       log(t("wg.log.error.autoShutdownUpdate", { message: err.message }), true);
     }
+  };
+  onIpcEvent("wg-auto-shutdown-updated", onAutoShutdownUpdated);
+
+  const disconnectObserver = new MutationObserver(() => {
+    if (!container.isConnected) {
+      disposeView();
+      disconnectObserver.disconnect();
+    }
   });
+  if (document.body) {
+    disconnectObserver.observe(document.body, { childList: true, subtree: true });
+    addCleanup(() => disconnectObserver.disconnect());
+  }
 
   // Запускаем инициализацию
   initialize();

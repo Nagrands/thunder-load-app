@@ -25,48 +25,6 @@ export function registerWgControls() {
       });
     });
   }
-
-  const wgSendBtn = document.getElementById("wg-send");
-  if (wgSendBtn) {
-    wgSendBtn.addEventListener("click", () => {
-      const status = document.getElementById("wg-send-status");
-      if (!status) return;
-
-      status.classList.remove("hidden");
-      const hideLater = () => setTimeout(() => status.classList.add("hidden"), 500);
-
-      window.electron.ipcRenderer
-        .invoke("wg-send-command")
-        .then(() => {
-          hideLater();
-        })
-        .catch(() => {
-          hideLater();
-        });
-    });
-  }
-
-  const kvnBtn = document.getElementById("kvn-button");
-  if (kvnBtn) {
-    kvnBtn.addEventListener("click", () => {
-      const status = document.getElementById("kvn-status");
-      if (!status) return;
-
-      status.classList.remove("hidden");
-      const hideLater = () => setTimeout(() => status.classList.add("hidden"), 500);
-
-      requestAnimationFrame(() => {
-        window.electron.ipcRenderer
-          .invoke("kvn-command")
-          .then(() => {
-            hideLater();
-          })
-          .catch(() => {
-            hideLater();
-          });
-      });
-    });
-  }
 }
 
 export function registerStatusMessageListener() {
