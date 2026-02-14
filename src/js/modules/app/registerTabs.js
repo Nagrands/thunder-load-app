@@ -1,7 +1,7 @@
 import TabSystem from "../tabSystem.js";
 import renderWireGuard from "../views/wireguardView.js";
 import renderBackup from "../views/backupView.js";
-import renderRandomizerView from "../views/randomizerView.js";
+import { createRandomizerView } from "../views/randomizerView.js";
 import renderDownloaderView from "../views/downloaderView.js";
 import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
 import { initWgAutoShutdownNotifier } from "../wgAutoShutdownNotifier.js";
@@ -67,6 +67,7 @@ export async function registerTabs(mainView) {
   };
 
   const tabs = new TabSystem(".group-menu", "#main-view");
+  let randomizerViewInstance = null;
 
   tabs.addTab(
     "download",
@@ -115,7 +116,11 @@ export async function registerTabs(mainView) {
     "fa-solid fa-shuffle",
     () => {
       if (!wrappers.randomizerWrapper.hasChildNodes()) {
-        wrappers.randomizerWrapper.appendChild(renderRandomizerView());
+        if (randomizerViewInstance?.dispose) {
+          randomizerViewInstance.dispose();
+        }
+        randomizerViewInstance = createRandomizerView();
+        wrappers.randomizerWrapper.appendChild(randomizerViewInstance.element);
       }
       applyI18n(wrappers.randomizerWrapper);
       return wrappers.randomizerWrapper;

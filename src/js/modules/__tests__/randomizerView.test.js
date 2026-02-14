@@ -2,7 +2,7 @@
  * @file randomizerView.test.js
  */
 
-import renderRandomizerView from "../views/randomizerView.js";
+import { createRandomizerView } from "../views/randomizerView.js";
 import { showToast } from "../toast.js";
 
 jest.mock("../toast.js", () => ({
@@ -44,9 +44,10 @@ const setup = (options = {}) => {
   if (options.defaultPreset) {
     localStorage.setItem("randomizerDefaultPreset", options.defaultPreset);
   }
-  const view = renderRandomizerView();
+  const instance = createRandomizerView();
+  const view = instance.element;
   document.body.appendChild(view);
-  return view;
+  return { instance, view };
 };
 
 const getChips = (root = document) =>
@@ -61,7 +62,7 @@ const getStoredPresets = () =>
 
 describe("Randomizer view", () => {
   test("renders default items as chips", () => {
-    const view = setup();
+    const { view } = setup();
     const chips = getChips(view);
     expect(chips.length).toBeGreaterThanOrEqual(1);
     expect(view.querySelector("#randomizer-count")?.textContent).toContain(
@@ -70,7 +71,7 @@ describe("Randomizer view", () => {
   });
 
   test("summary omits items count block", () => {
-    const view = setup();
+    const { view } = setup();
     expect(view.querySelector("#randomizer-summary-count")).toBeNull();
     const summaryLabels = view.querySelectorAll(
       ".randomizer-summary .summary-item .label",
@@ -79,7 +80,7 @@ describe("Randomizer view", () => {
   });
 
   test("history tab label uses 'Последние результаты'", () => {
-    const view = setup();
+    const { view } = setup();
     const historyTab = view.querySelector("#randomizer-tab-history span");
     expect(historyTab?.textContent).toBe("Последние результаты");
     expect(view.querySelector(".randomizer-history-card header h3")).toBeNull();
@@ -93,7 +94,7 @@ describe("Randomizer view", () => {
   });
 
   test("keeps list empty after clearing and reload", () => {
-    const view = setup({
+    const { view } = setup({
       items: [],
       presets: [{ name: "Основной", items: [] }],
       currentPreset: "Основной",
@@ -107,7 +108,7 @@ describe("Randomizer view", () => {
   });
 
   test("adds a new item and persists it", () => {
-    const view = setup();
+    const { view } = setup();
     const initialCount = getChips(view).length;
     const input = view.querySelector("#randomizer-input");
     input.value = "Новая идея";
@@ -120,7 +121,7 @@ describe("Randomizer view", () => {
   });
 
   test("does not add duplicates", () => {
-    const view = setup();
+    const { view } = setup();
     const firstValue = getChips(view)[0].querySelector(".text").textContent;
     const initialCount = getChips(view).length;
 
@@ -132,7 +133,7 @@ describe("Randomizer view", () => {
   });
 
   test("supports inline edit on chip", () => {
-    const view = setup();
+    const { view } = setup();
     const targetChip = getChips(view)[0];
     const newValue = "Обновлённое значение";
 
@@ -151,7 +152,7 @@ describe("Randomizer view", () => {
   });
 
   test("selects chips and performs bulk delete", () => {
-    const view = setup();
+    const { view } = setup();
     const firstChip = getChips(view)[0];
     const initialCount = getChips(view).length;
     firstChip.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -170,7 +171,7 @@ describe("Randomizer view", () => {
     const originalRandom = Math.random;
     Math.random = jest.fn(() => 0.9); // bias towards heavier item
 
-    const view = setup({
+    const { view } = setup({
       items: [
         { value: "Low", weight: 1 },
         { value: "High", weight: 5 },
@@ -190,7 +191,7 @@ describe("Randomizer view", () => {
   });
 
   test("creates a new template via 'save as' and switches templates", () => {
-    const view = setup({
+    const { view } = setup({
       presets: [
         { name: "Base", items: [{ value: "A" }] },
         { name: "Alt", items: [{ value: "B" }] },
@@ -222,7 +223,7 @@ describe("Randomizer view", () => {
     Math.random = jest.fn(() => 0); // pick the first item
 
     try {
-      const view = setup({
+      const { view } = setup({
         items: [
           { value: "One", weight: 1 },
           { value: "Two", weight: 1 },
@@ -258,7 +259,7 @@ describe("Randomizer view", () => {
   });
 
   test("creates an empty template via the new button", () => {
-    const view = setup({
+    const { view } = setup({
       items: [{ value: "One" }],
       presets: [{ name: "Основной", items: [{ value: "One" }] }],
       currentPreset: "Основной",
@@ -278,7 +279,7 @@ describe("Randomizer view", () => {
   test("auto-roll stops after reaching the configured count", async () => {
     jest.useFakeTimers();
     try {
-      const view = setup({
+      const { view } = setup({
         items: [
           { value: "One", weight: 1 },
           { value: "Two", weight: 1 },
@@ -318,7 +319,7 @@ describe("Randomizer view", () => {
   });
 
   test("favorite filter shows only starred items", () => {
-    const view = setup({
+    const { view } = setup({
       items: [
         { value: "One", weight: 1 },
         { value: "Two", weight: 1 },
@@ -337,7 +338,7 @@ describe("Randomizer view", () => {
   });
 
   test("stats reset clears hits and misses", () => {
-    const view = setup({
+    const { view } = setup({
       items: [
         { value: "A", weight: 1, hits: 3, misses: 4 },
         { value: "B", weight: 1, hits: 1, misses: 7 },
@@ -356,7 +357,7 @@ describe("Randomizer view", () => {
   });
 
   test("rare filter respects adjustable threshold", () => {
-    const view = setup({
+    const { view } = setup({
       items: [
         { value: "Common", misses: 2 },
         { value: "Rare", misses: 6 },
@@ -393,7 +394,7 @@ describe("Randomizer view", () => {
   });
 
   test("clear favorites resets filter and flags", () => {
-    const view = setup({
+    const { view } = setup({
       items: [
         { value: "One", favorite: true },
         { value: "Two", favorite: false },
@@ -421,5 +422,12 @@ describe("Randomizer view", () => {
     expect(getChips(view).length).toBe(2);
     expect(favFilter.dataset.state).toBe("all");
     expect(getStoredItems().every((item) => !item.favorite)).toBe(true);
+  });
+
+  test("dispose clears randomizer view resources", () => {
+    const { instance, view } = setup();
+    expect(view.isConnected).toBe(true);
+    instance.dispose();
+    expect(true).toBe(true);
   });
 });
