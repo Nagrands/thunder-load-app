@@ -84,8 +84,8 @@ export async function registerTabs(mainView) {
 
   tabs.addTab(
     "wireguard",
-    t("tabs.wireguard"),
-    "fa-solid fa-unlock-keyhole",
+    t("tabs.tools"),
+    "fa-solid fa-screwdriver-wrench",
     () => {
       if (!wrappers.wireguardWrapper.hasChildNodes()) {
         wrappers.wireguardWrapper.appendChild(renderWireGuard());

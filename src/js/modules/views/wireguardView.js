@@ -103,6 +103,9 @@ export default function renderWireGuard() {
   let tipsPaused = false;
   let tipsItems = [];
   let tipsIndex = 0;
+  let hashSelectedFile = "";
+  let isWindowsPlatform = false;
+  const WG_ADVANCED_STATE_KEY = "toolsWgAdvancedOpen";
   const cleanupFns = [];
 
   const addCleanup = (fn) => {
@@ -497,126 +500,252 @@ export default function renderWireGuard() {
   const fieldsHtml = fields.map(createInputField).join("");
 
   view.innerHTML = `
-    <div class="wg-main-container">
-      <div class="wg-content">
-        <div class="wg-glass">
-          <div class="wg-header">
-            <div class="title">
-              <i class="fa-solid fa-lock-open"></i>
-              <div class="title-content">
-                <h1 class="wg-text-gradient" data-i18n="wg.title">WG Unlock</h1>
-                <p class="subtitle" data-i18n="wg.subtitle">UDP‑разблокировка WireGuard.</p>
+    <div class="tools-shell">
+      <header class="tools-shell-header">
+        <div class="title">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+          <div class="title-content">
+            <h1 class="wg-text-gradient" data-i18n="wg.title">Tools</h1>
+            <p class="subtitle" data-i18n="wg.subtitle">Quick actions for file and network tasks.</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="tools-dashboard" aria-label="Tools Dashboard">
+        <article class="tools-card tools-card-wg-quick">
+          <div class="tools-card__header">
+            <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
+            <button
+              id="tools-wg-advanced-toggle"
+              type="button"
+              class="small-button"
+              data-i18n="tools.wg.advanced.toggle.open"
+            >
+              Advanced
+            </button>
+          </div>
+          <p class="tools-card__hint" data-i18n="tools.wg.quick.hint">Quick recovery actions for WireGuard.</p>
+          <div class="tools-card__meta">
+            <div>
+              <span data-i18n="wg.lastSend.title">Последняя отправка</span>
+              <strong id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</strong>
+            </div>
+            <div>
+              <span data-i18n="wg.status.title">Статус</span>
+              <strong id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</strong>
+            </div>
+          </div>
+          <div class="tools-card__actions buttons">
+            <button id="wg-send" class="large-button">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span data-i18n="wg.action.send">Отправить</span>
+            </button>
+            <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
+              <i class="fa-solid fa-file-edit"></i>
+            </button>
+            <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
+              <i class="fa-solid fa-network-wired"></i>
+            </button>
+            <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка">
+              <i class="fa-solid fa-circle-question"></i>
+            </button>
+          </div>
+          <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
+        </article>
+
+        <article class="tools-card">
+          <div class="tools-card__header">
+            <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
+          </div>
+          <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
+          <div class="hash-check-grid">
+            <div class="hash-row hash-row--top">
+              <div class="hash-actions-inline">
+                <button id="hash-pick-file" type="button" class="small-button">
+                  <i class="fa-regular fa-file"></i>
+                  <span data-i18n="hashCheck.pickFile">Выбрать файл</span>
+                </button>
+                <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">Файл не выбран</span>
+              </div>
+              <div class="hash-algorithm-wrap">
+                <label for="hash-algorithm" class="muted" data-i18n="hashCheck.algorithm">Алгоритм</label>
+                <select id="hash-algorithm" class="wg-input">
+                  <option value="MD5">MD5</option>
+                  <option value="SHA-1">SHA-1</option>
+                  <option value="SHA-256" selected>SHA-256</option>
+                  <option value="SHA-512">SHA-512</option>
+                </select>
               </div>
             </div>
-            
-            <!-- Исправленный переключатель отладки -->
-            <div class="debug-toggle" id="debug-toggle">
-              <div class="toggle-track"></div>
-              <span class="toggle-label" data-i18n="wg.debug.label">Лог активности</span>
-            </div>
-          </div>
 
-          <div class="wg-section">
-            <h2 class="section-heading" data-i18n="wg.section.network">Сетевые параметры</h2>
-            <div class="wg-grid">
-              ${fieldsHtml}
-            </div>
-          </div>
-
-          <div class="wg-section">
-            <h2 class="section-heading" data-i18n="wg.section.control">Управление</h2>
-            <div class="buttons">
-              <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка">
-                <i class="fa-solid fa-circle-question"></i>
-              </button>
-              <button id="wg-send" class="large-button">
-                <i class="fa-solid fa-paper-plane"></i>
-                <span data-i18n="wg.action.send">Отправить</span>
-              </button>
-              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
-                <i class="fa-solid fa-rotate-left"></i>
-              </button>
-              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
-                <i class="fa-solid fa-file-edit"></i>
-              </button>
-              <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
-                <i class="fa-solid fa-network-wired"></i>
-              </button>
-            </div>
-            <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="wg-side-panel">
-        <div class="info-card">
-          <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">Информация</span></h3>
-          <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
-        </div>
-        
-        <div class="info-card wg-meta-card">
-          <div class="meta-row">
-            <h3><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="wg.lastSend.title">Последняя отправка</span></h3>
-            <p id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</p>
-          </div>
-          <div class="meta-divider" aria-hidden="true"></div>
-          <div class="meta-row">
-            <h3><i class="fa-solid fa-gauge"></i> <span data-i18n="wg.status.title">Статус</span></h3>
-            <p id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</p>
-          </div>
-          <div class="meta-divider" aria-hidden="true"></div>
-          <div class="meta-row wg-meta-tips">
-            <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
-            <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
-               • Проверьте настройки брандмауэра<br>
-               • Убедитесь, что удаленный хост доступен</p>
-            <div class="wg-tips-controls">
-              <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
-                <i class="fa-solid fa-chevron-left"></i>
-              </button>
-              <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
-                <i class="fa-solid fa-pause"></i>
-              </button>
-              <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
-                <i class="fa-solid fa-chevron-right"></i>
-              </button>
-              <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="wg-section">
-            <details class="wg-log-block">
-              <summary>
-                <i class="fa-solid fa-terminal"></i>
-                <span data-i18n="wg.log.title">Лог активности</span>
-              </summary>
-              <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="wg.log.actions.aria">
-                <button id="wg-log-copy" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена" data-i18n-title="wg.log.copy.title">
-                  <i class="fa-solid fa-copy"></i>
-                </button>
-                <button id="wg-log-export" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="wg.log.export.title">
-                  <i class="fa-solid fa-download"></i>
-                </button>
-                <button id="wg-log-clear" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-                <button id="wg-log-filter-errors" type="button" class="log-action-btn"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Показывать только ошибки">
-                  <i class="fa-solid fa-triangle-exclamation"></i>
-                </button>
-                <button id="wg-log-autoscroll" type="button" class="log-action-btn is-active"
-                  data-bs-toggle="tooltip" data-bs-placement="top" title="Автопрокрутка включена">
-                  <i class="fa-solid fa-arrow-down-wide-short"></i>
-                </button>
+            <div class="hash-row hash-row--bottom">
+              <div class="hash-expected-wrap">
+                <label for="hash-expected" class="muted" data-i18n="hashCheck.expected">Ожидаемый хеш</label>
+                <input
+                  id="hash-expected"
+                  type="text"
+                  class="wg-input"
+                  data-i18n-placeholder="hashCheck.expectedPlaceholder"
+                  placeholder="Вставьте хеш для сравнения (опционально)"
+                />
               </div>
-              <pre id="wg-log" class="wg-status console"></pre>
-            </details>
+              <button id="hash-run" type="button" class="large-button">
+                <i class="fa-solid fa-play"></i>
+                <span data-i18n="hashCheck.run">Проверить</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="hash-result-panel" class="hash-result-panel is-idle">
+            <div class="hash-result-panel__top">
+              <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">Ожидание</span>
+              <button id="hash-copy-actual" type="button" class="small-button hash-copy-btn" disabled>
+                <i class="fa-regular fa-copy"></i>
+                <span data-i18n="hashCheck.copyActual">Копировать хеш</span>
+              </button>
+            </div>
+            <div class="hash-actual-box">
+              <span class="muted" data-i18n="hashCheck.actualLabel">Вычисленный хеш</span>
+              <code id="hash-actual-value">-</code>
+            </div>
+            <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">Результат появится после проверки.</div>
+          </div>
+        </article>
+
+        <article class="tools-card disabled">
+          <div class="tools-card__header">
+            <h2 data-i18n="quickActions.converter.title">Конвертер форматов</h2>
+            <span class="qa-soon-badge" data-i18n="quickActions.soon">Скоро</span>
+          </div>
+          <p class="tools-card__hint" data-i18n="quickActions.converter.subtitle">Преобразование аудио и видео после загрузки.</p>
+        </article>
+
+        <article id="tools-restart-card" class="tools-card">
+          <div class="tools-card__header">
+            <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+          </div>
+          <p id="restart-shortcut-note" class="tools-card__hint" data-i18n="quickActions.power.hint">
+            Создаёт ярлыки питания на рабочем столе Windows.
+          </p>
+          <div class="power-actions-grid">
+            <section class="power-action-item power-action-item--restart">
+              <h3 class="power-action-item__title">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span data-i18n="quickActions.restart.cardTitle">Перезагрузка</span>
+              </h3>
+              <p class="power-action-item__hint" data-i18n="quickActions.restart.cardHint">
+                Мгновенная перезагрузка системы.
+              </p>
+              <button id="create-restart-shortcut" type="button" class="large-button">
+                <i class="fa-solid fa-plug-circle-bolt"></i>
+                <span data-i18n="quickActions.restart.action">Создать ярлык перезагрузки</span>
+              </button>
+              <div
+                id="restart-shortcut-result"
+                class="quick-action-result power-action-item__result muted"
+              ></div>
+            </section>
+            <section class="power-action-item power-action-item--shutdown">
+              <h3 class="power-action-item__title">
+                <i class="fa-solid fa-power-off"></i>
+                <span data-i18n="quickActions.shutdown.cardTitle">Выключение</span>
+              </h3>
+              <p class="power-action-item__hint" data-i18n="quickActions.shutdown.cardHint">
+                Мгновенное выключение системы.
+              </p>
+              <button id="create-shutdown-shortcut" type="button" class="large-button">
+                <i class="fa-solid fa-power-off"></i>
+                <span data-i18n="quickActions.shutdown.action">Создать ярлык выключения</span>
+              </button>
+              <div
+                id="shutdown-shortcut-result"
+                class="quick-action-result power-action-item__result muted"
+              ></div>
+            </section>
+          </div>
+        </article>
+      </section>
+
+      <section id="tools-wg-advanced-panel" class="tools-wg-advanced-panel is-collapsed">
+        <div class="tools-wg-advanced-grid">
+          <div class="wg-glass">
+            <div class="wg-header wg-header-advanced">
+              <h2 class="section-heading" data-i18n="tools.wg.advanced.title">WG Advanced</h2>
+              <div class="debug-toggle" id="debug-toggle">
+                <div class="toggle-track"></div>
+                <span class="toggle-label" data-i18n="wg.debug.label">Лог активности</span>
+              </div>
+            </div>
+            <div class="wg-section">
+              <h3 class="section-heading" data-i18n="wg.section.network">Сетевые параметры</h3>
+              <div class="wg-grid">
+                ${fieldsHtml}
+              </div>
+            </div>
+          </div>
+
+          <div class="wg-side-panel">
+            <div class="info-card">
+              <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">Информация</span></h3>
+              <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
+            </div>
+            <div class="info-card wg-meta-card">
+              <div class="meta-row wg-meta-tips">
+                <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
+                <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
+                • Проверьте настройки брандмауэра<br>
+                • Убедитесь, что удаленный хост доступен</p>
+                <div class="wg-tips-controls">
+                  <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
+                    <i class="fa-solid fa-chevron-left"></i>
+                  </button>
+                  <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
+                    <i class="fa-solid fa-pause"></i>
+                  </button>
+                  <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
+                    <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                  <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
+                </div>
+              </div>
+            </div>
+            <div class="wg-section">
+              <details class="wg-log-block">
+                <summary>
+                  <i class="fa-solid fa-terminal"></i>
+                  <span data-i18n="wg.log.title">Лог активности</span>
+                </summary>
+                <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="wg.log.actions.aria">
+                  <button id="wg-log-copy" type="button" class="log-action-btn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена" data-i18n-title="wg.log.copy.title">
+                    <i class="fa-solid fa-copy"></i>
+                  </button>
+                  <button id="wg-log-export" type="button" class="log-action-btn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="wg.log.export.title">
+                    <i class="fa-solid fa-download"></i>
+                  </button>
+                  <button id="wg-log-clear" type="button" class="log-action-btn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                  <button id="wg-log-filter-errors" type="button" class="log-action-btn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Показывать только ошибки">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                  </button>
+                  <button id="wg-log-autoscroll" type="button" class="log-action-btn is-active"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Автопрокрутка включена">
+                    <i class="fa-solid fa-arrow-down-wide-short"></i>
+                  </button>
+                </div>
+                <pre id="wg-log" class="wg-status console"></pre>
+              </details>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   `;
 
@@ -954,6 +1083,304 @@ export default function renderWireGuard() {
     // Переключатель отладки
     const debugToggle = getEl("debug-toggle", view);
     debugToggle?.addEventListener("click", handleDebugToggle);
+
+    const advancedPanel = getEl("tools-wg-advanced-panel", view);
+    const advancedToggle = getEl("tools-wg-advanced-toggle", view);
+    const setAdvancedOpen = (open) => {
+      if (!advancedPanel || !advancedToggle) return;
+      const isOpen = !!open;
+      advancedPanel.classList.toggle("is-collapsed", !isOpen);
+      advancedPanel.classList.toggle("is-open", isOpen);
+      advancedToggle.textContent = isOpen
+        ? t("tools.wg.advanced.toggle.close")
+        : t("tools.wg.advanced.toggle.open");
+      try {
+        window.localStorage.setItem(WG_ADVANCED_STATE_KEY, isOpen ? "1" : "0");
+      } catch {}
+    };
+
+    const readAdvancedState = () => {
+      try {
+        return window.localStorage.getItem(WG_ADVANCED_STATE_KEY) === "1";
+      } catch {
+        return false;
+      }
+    };
+
+    setAdvancedOpen(readAdvancedState());
+    advancedToggle?.addEventListener("click", () => {
+      const currentlyOpen = advancedPanel?.classList.contains("is-open");
+      setAdvancedOpen(!currentlyOpen);
+      initTooltips();
+    });
+    onWindowEvent("i18n:changed", () => {
+      setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
+    });
+
+    const hashPickFileBtn = getEl("hash-pick-file", view);
+    const hashRunBtn = getEl("hash-run", view);
+    const hashFileNameEl = getEl("hash-file-name", view);
+    const hashAlgorithmEl = getEl("hash-algorithm", view);
+    const hashExpectedEl = getEl("hash-expected", view);
+    const hashResultEl = getEl("hash-result", view);
+    const hashResultPanelEl = getEl("hash-result-panel", view);
+    const hashStatusBadgeEl = getEl("hash-status-badge", view);
+    const hashActualValueEl = getEl("hash-actual-value", view);
+    const hashCopyActualBtn = getEl("hash-copy-actual", view);
+    let hashActualValue = "";
+    let hashCopyFeedbackTimer = null;
+
+    const setHashUiState = ({
+      tone = "muted",
+      statusKey = "hashCheck.status.idle",
+      message = "",
+      messageKey = "hashCheck.resultIdle",
+      actualHash = "",
+      canCopy = false,
+    } = {}) => {
+      hashActualValue = actualHash || "";
+      const statusTone = tone === "error" ? "error" : tone === "success" ? "success" : tone === "warning" ? "warning" : "muted";
+      if (hashStatusBadgeEl) {
+        hashStatusBadgeEl.textContent = t(statusKey);
+        hashStatusBadgeEl.className = `hash-status-badge ${statusTone}`;
+      }
+      if (hashResultPanelEl) {
+        hashResultPanelEl.classList.remove(
+          "is-idle",
+          "is-calculating",
+          "is-success",
+          "is-warning",
+          "is-error",
+        );
+        hashResultPanelEl.classList.add(
+          statusTone === "success"
+            ? "is-success"
+            : statusTone === "warning"
+              ? "is-warning"
+              : statusTone === "error"
+                ? "is-error"
+                : statusKey === "hashCheck.status.calculating"
+                  ? "is-calculating"
+                  : "is-idle",
+        );
+      }
+      if (hashResultEl) {
+        hashResultEl.textContent = message || t(messageKey);
+        hashResultEl.className = `quick-action-result ${statusTone}`;
+      }
+      if (hashActualValueEl) {
+        hashActualValueEl.textContent = hashActualValue || "-";
+      }
+      if (hashCopyActualBtn) {
+        hashCopyActualBtn.disabled = !canCopy;
+      }
+    };
+
+    const setCopyButtonDefaultText = () => {
+      const text = hashCopyActualBtn?.querySelector("span");
+      if (text) text.textContent = t("hashCheck.copyActual");
+    };
+
+    hashPickFileBtn?.addEventListener("click", async () => {
+      const res = await window.electron?.tools?.pickFileForHash?.();
+      if (!res?.success || !res.filePath) {
+        if (!res?.canceled) {
+          setHashUiState({
+            tone: "error",
+            statusKey: "hashCheck.status.error",
+            message: res?.error || t("hashCheck.pickError"),
+            canCopy: false,
+          });
+        }
+        return;
+      }
+      hashSelectedFile = res.filePath;
+      const fileName = String(hashSelectedFile).split(/[\\/]/).pop();
+      hashFileNameEl.textContent = fileName || hashSelectedFile;
+      hashFileNameEl.title = hashSelectedFile;
+      setHashUiState({
+        tone: "muted",
+        statusKey: "hashCheck.status.idle",
+        messageKey: "hashCheck.resultIdle",
+        canCopy: false,
+      });
+    });
+
+    hashRunBtn?.addEventListener("click", async () => {
+      if (!hashSelectedFile) {
+        setHashUiState({
+          tone: "error",
+          statusKey: "hashCheck.status.error",
+          messageKey: "hashCheck.needFile",
+          canCopy: false,
+        });
+        return;
+      }
+      setHashUiState({
+        tone: "muted",
+        statusKey: "hashCheck.status.calculating",
+        messageKey: "hashCheck.calculating",
+        canCopy: false,
+      });
+      const res = await window.electron?.tools?.calculateHash?.({
+        filePath: hashSelectedFile,
+        algorithm: hashAlgorithmEl?.value || "SHA-256",
+        expectedHash: hashExpectedEl?.value || "",
+      });
+      if (!res?.success) {
+        setHashUiState({
+          tone: "error",
+          statusKey: "hashCheck.status.error",
+          message: res?.error || t("hashCheck.error"),
+          canCopy: false,
+        });
+        return;
+      }
+      if (res.matches === true) {
+        setHashUiState({
+          tone: "success",
+          statusKey: "hashCheck.status.match",
+          messageKey: "hashCheck.match",
+          actualHash: res.actualHash || "",
+          canCopy: !!res.actualHash,
+        });
+        return;
+      }
+      if (res.matches === false) {
+        setHashUiState({
+          tone: "warning",
+          statusKey: "hashCheck.status.mismatch",
+          messageKey: "hashCheck.mismatch",
+          actualHash: res.actualHash || "",
+          canCopy: !!res.actualHash,
+        });
+        return;
+      }
+      setHashUiState({
+        tone: "success",
+        statusKey: "hashCheck.status.match",
+        message: `${t("hashCheck.actual")}: ${res.actualHash}`,
+        actualHash: res.actualHash || "",
+        canCopy: !!res.actualHash,
+      });
+    });
+
+    hashCopyActualBtn?.addEventListener("click", async () => {
+      if (!hashActualValue) return;
+      const textEl = hashCopyActualBtn.querySelector("span");
+      if (hashCopyFeedbackTimer) {
+        clearTimeout(hashCopyFeedbackTimer);
+        hashCopyFeedbackTimer = null;
+      }
+
+      try {
+        await navigator.clipboard?.writeText?.(hashActualValue);
+        if (textEl) textEl.textContent = t("hashCheck.copySuccess");
+      } catch {
+        if (textEl) textEl.textContent = t("hashCheck.copyError");
+        hashResultEl.textContent = t("hashCheck.copyError");
+        hashResultEl.className = "quick-action-result error";
+      } finally {
+        hashCopyFeedbackTimer = setTimeout(() => {
+          setCopyButtonDefaultText();
+        }, 1500);
+      }
+    });
+
+    setHashUiState({
+      tone: "muted",
+      statusKey: "hashCheck.status.idle",
+      messageKey: "hashCheck.resultIdle",
+      canCopy: false,
+    });
+    setCopyButtonDefaultText();
+
+    const restartCard = getEl("tools-restart-card", view);
+    const createRestartShortcutBtn = getEl("create-restart-shortcut", view);
+    const createShutdownShortcutBtn = getEl("create-shutdown-shortcut", view);
+    const restartShortcutNote = getEl("restart-shortcut-note", view);
+    const restartShortcutResult = getEl("restart-shortcut-result", view);
+    const shutdownShortcutResult = getEl("shutdown-shortcut-result", view);
+    const setPowerResult = (resultEl, text, tone = "muted") => {
+      if (!resultEl) return;
+      resultEl.textContent = text;
+      resultEl.className = `quick-action-result power-action-item__result ${tone}`;
+    };
+
+    createRestartShortcutBtn?.addEventListener("click", async () => {
+      const confirmed = await showConfirmationDialog({
+        title: t("quickActions.restart.title"),
+        subtitle: t("confirm.default.subtitle"),
+        message: t("quickActions.restart.confirm"),
+        tone: "warning",
+      });
+      if (!confirmed) return;
+
+      const res = await window.electron?.tools?.createWindowsRestartShortcut?.();
+      if (!res?.success) {
+        setPowerResult(
+          restartShortcutResult,
+          res?.error || t("quickActions.restart.error"),
+          "error",
+        );
+        return;
+      }
+      setPowerResult(
+        restartShortcutResult,
+        t("quickActions.restart.created"),
+        "success",
+      );
+    });
+
+    createShutdownShortcutBtn?.addEventListener("click", async () => {
+      const confirmed = await showConfirmationDialog({
+        title: t("quickActions.shutdown.title"),
+        subtitle: t("confirm.default.subtitle"),
+        message: t("quickActions.shutdown.confirm"),
+        tone: "danger",
+      });
+      if (!confirmed) return;
+
+      const res = await window.electron?.tools?.createWindowsShutdownShortcut?.();
+      if (!res?.success) {
+        setPowerResult(
+          shutdownShortcutResult,
+          res?.error || t("quickActions.shutdown.error"),
+          "error",
+        );
+        return;
+      }
+      setPowerResult(
+        shutdownShortcutResult,
+        t("quickActions.shutdown.created"),
+        "success",
+      );
+    });
+
+    window.electron
+      ?.getPlatformInfo?.()
+      .then((platform) => {
+        isWindowsPlatform = !!platform?.isWindows;
+        if (isWindowsPlatform) {
+          restartCard?.classList.remove("hidden");
+          createRestartShortcutBtn?.removeAttribute("disabled");
+          createRestartShortcutBtn?.classList.remove("is-disabled");
+          createShutdownShortcutBtn?.removeAttribute("disabled");
+          createShutdownShortcutBtn?.classList.remove("is-disabled");
+          restartShortcutNote.textContent = t(
+            "quickActions.power.windowsReady",
+          );
+        } else {
+          createRestartShortcutBtn?.setAttribute("disabled", "disabled");
+          createRestartShortcutBtn?.classList.add("is-disabled");
+          createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
+          createShutdownShortcutBtn?.classList.add("is-disabled");
+          restartShortcutNote.textContent = t(
+            "quickActions.power.windowsOnly",
+          );
+        }
+      })
+      .catch(() => {});
   };
 
   const handleSend = () => {

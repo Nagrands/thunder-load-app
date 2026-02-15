@@ -100,7 +100,7 @@ const localHotkeys = new Map([
     () => {
       if (tabSystemReference) {
         tabSystemReference.activateTab("wireguard");
-        console.log("Переключено на вкладку WG Unlock (Ctrl+2)");
+        console.log("Переключено на вкладку Tools (Ctrl+2)");
       }
     },
   ],
@@ -109,7 +109,7 @@ const localHotkeys = new Map([
     () => {
       if (tabSystemReference) {
         tabSystemReference.activateTab("wireguard");
-        console.log("Переключено на вкладку WG Unlock (Meta+2)");
+        console.log("Переключено на вкладку Tools (Meta+2)");
       }
     },
   ],

@@ -5,7 +5,7 @@ export function registerI18nListeners(tabs) {
     applyI18n(document);
     document.title = t("app.title");
     tabs.setTabLabel("download", t("tabs.download"));
-    tabs.setTabLabel("wireguard", t("tabs.wireguard"));
+    tabs.setTabLabel("wireguard", t("tabs.tools"));
     tabs.setTabLabel("backup", t("tabs.backup"));
     tabs.setTabLabel("randomizer", t("tabs.randomizer"));
   });

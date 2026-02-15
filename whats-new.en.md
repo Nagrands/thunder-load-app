@@ -2,17 +2,18 @@
 
 ### Interface and localization
 
-- **Updated** confirmation copy for deleting entries/files.
-- **Updated** tooltips for WG Unlock actions.
+- **Added** a new **Tools** tab with quick actions in one place (WG Unlock, hash check, system tools).
+- **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value matching.
+- **Added** a one-click action to create a Windows restart shortcut on the desktop.
+- **Added** a placeholder card for **Format Converter** for an upcoming release.
+- **Redesigned** the **Tools** tab into a compact dashboard with equal quick-action cards.
+- **Moved** advanced WireGuard controls behind an **Advanced** toggle to keep the first screen clean.
+- **Improved** buttons, input fields, and dropdowns in the **Tools** tab with clearer hover/focus states and cleaner visual consistency.
+- **Kept** the restart-shortcut card visible on macOS/Linux, with the action disabled outside Windows.
+- **Added** a separate Windows shutdown shortcut action in the **Tools** tab (next to restart shortcut).
+- **Improved** the power-shortcuts block: restart and shutdown are now split into two clear mini-cards with short descriptions and a confirmation step before creating each shortcut.
+- **Updated** the **Hash Check** card: a more compact layout, a dedicated status badge, and a one-click action to copy the calculated hash.
+- **Fixed** a visual shift in the **Hash Check** block: long values and action buttons now shrink correctly and stay inside the card bounds.
 - **Fixed** top‑bar button overlap with the tab menu on smaller window widths.
 - **Fixed** window controls positioning when resizing the window.
 - **Added** first-run setup to choose language, tabs, and theme.
-
-### Downloader / History
-
-- **Hide** preview download button when no preview image is available.
-- **Compact** details toggle and move it into the history actions row.
-- **Center** the history pagination and add quick step buttons.
-- **Flip** the history menu upward when space is limited to avoid overlapping pagination.
-- **Fix** content type filter (video/audio/mixed) when sorting by date.
-- **Add** icons to the content type filter (video/audio/mixed).

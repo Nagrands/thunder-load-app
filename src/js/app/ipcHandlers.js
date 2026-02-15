@@ -18,6 +18,7 @@ const path = require("path");
 const log = require("electron-log");
 const https = require("https");
 const http = require("http");
+const crypto = require("crypto");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const { pipeline } = require("stream");
@@ -487,6 +488,121 @@ function setupIpcHandlers(dependencies) {
     } catch (e) {
       log.error("tools:showInFolder error:", e);
       return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_HASH_PICK_FILE, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openFile"],
+      });
+      if (result.canceled || !result.filePaths?.length) {
+        return { success: false, canceled: true };
+      }
+      return { success: true, filePath: result.filePaths[0] };
+    } catch (error) {
+      log.error("tools:hashPickFile error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_HASH_CALCULATE, async (_evt, payload = {}) => {
+    try {
+      const filePath = String(payload.filePath || "").trim();
+      if (!filePath) {
+        return { success: false, error: "File path is required" };
+      }
+      const algoMap = {
+        MD5: "md5",
+        "SHA-1": "sha1",
+        "SHA-256": "sha256",
+        "SHA-512": "sha512",
+      };
+      const algorithm = String(payload.algorithm || "SHA-256").toUpperCase();
+      const normalizedAlgorithm = algoMap[algorithm];
+      if (!normalizedAlgorithm) {
+        return { success: false, error: "Unsupported algorithm" };
+      }
+
+      await fsPromises.access(filePath, fs.constants.R_OK);
+
+      const actualHash = await new Promise((resolve, reject) => {
+        const hash = crypto.createHash(normalizedAlgorithm);
+        const stream = fs.createReadStream(filePath);
+        stream.on("error", reject);
+        stream.on("data", (chunk) => hash.update(chunk));
+        stream.on("end", () => resolve(hash.digest("hex").toLowerCase()));
+      });
+
+      const expectedHash = String(payload.expectedHash || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+      const matches = expectedHash ? expectedHash === actualHash : null;
+
+      return {
+        success: true,
+        algorithm,
+        actualHash,
+        expectedHash,
+        matches,
+        filePath,
+      };
+    } catch (error) {
+      log.error("tools:hashCalculate error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT, async () => {
+    try {
+      if (process.platform !== "win32") {
+        return {
+          success: false,
+          unsupported: true,
+          error: "Available only on Windows",
+        };
+      }
+      const desktop = app.getPath("desktop");
+      const shortcutPath = path.join(desktop, "Restart Windows.lnk");
+      const ok = shell.writeShortcutLink(shortcutPath, "create", {
+        target: "C:\\Windows\\System32\\shutdown.exe",
+        args: "/r /t 0",
+        description: "Restart Windows",
+      });
+      if (!ok) {
+        return { success: false, error: "Failed to create shortcut" };
+      }
+      return { success: true, path: shortcutPath };
+    } catch (error) {
+      log.error("tools:createWindowsRestartShortcut error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT, async () => {
+    try {
+      if (process.platform !== "win32") {
+        return {
+          success: false,
+          unsupported: true,
+          error: "Available only on Windows",
+        };
+      }
+      const desktop = app.getPath("desktop");
+      const shortcutPath = path.join(desktop, "Shutdown Windows.lnk");
+      const ok = shell.writeShortcutLink(shortcutPath, "create", {
+        target: "C:\\Windows\\System32\\shutdown.exe",
+        args: "/s /t 0",
+        description: "Shutdown Windows",
+      });
+      if (!ok) {
+        return { success: false, error: "Failed to create shortcut" };
+      }
+      return { success: true, path: shortcutPath };
+    } catch (error) {
+      log.error("tools:createWindowsShutdownShortcut error:", error);
+      return { success: false, error: error.message || String(error) };
     }
   });
 

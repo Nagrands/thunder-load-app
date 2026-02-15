@@ -826,7 +826,7 @@ async function initSettings() {
       <label class="checkbox-label" data-bs-toggle="tooltip" data-bs-placement="top" title="${t("settings.wg.disable.hint")}" data-i18n-title="settings.wg.disable.hint">
         <input id="wg-disable-toggle" type="checkbox" />
         <i class="fa-solid fa-bolt"></i>
-        <span data-i18n="settings.disableTab">Отключить вкладку</span> WG Unlock
+        <span data-i18n="settings.disableTab">Отключить вкладку</span> Tools
       </label>
       <p class="field-hint" data-i18n="settings.wg.disable.note">Применяется сразу. Можно включить обратно в любое время.</p>
     `;

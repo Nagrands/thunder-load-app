@@ -238,6 +238,12 @@ try {
       migrateOld: (opts) => safeInvoke("tools:migrateOld", opts),
       detectLegacy: () => safeInvoke("tools:detectLegacy"),
       resetLocation: () => safeInvoke("tools:resetLocation"),
+      pickFileForHash: () => safeInvoke("tools:hashPickFile"),
+      calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
+      createWindowsRestartShortcut: () =>
+        safeInvoke("tools:createWindowsRestartShortcut"),
+      createWindowsShutdownShortcut: () =>
+        safeInvoke("tools:createWindowsShutdownShortcut"),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код
