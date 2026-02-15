@@ -1,38 +1,21 @@
 <!-- version: 1.3.6 -->
 
-### Interface and localization
+### Tools tab
 
-- **Updated app icons** with a new glossy style and a clearer download symbol across the app window, notifications, and tray.
-- **Refined the new icon style** with improved contrast and readability at small sizes, including tray icons.
-- **Updated the icon symbol** to a circle with a download arrow in a cool blue palette, making it easier to recognize in the app window, notifications, and tray.
-- **Fully redesigned the icon mark** by removing the circle and keeping only a lightning-shaped arrow for a cleaner look and better small-size readability.
-- **Redrew the lightning shape** with a fully filled, denser silhouette to remove the “unfilled” look.
-- **Replaced the icon symbol with a T monogram** across the app, notifications, and tray while keeping the current blue visual style.
-- **Aligned the remaining app icons to the same style**: menu and notification PNG icons plus SVG asset icons were refreshed for a consistent visual look.
-- **Removed unused icons from the project**: the assets folder now keeps only icon files that are actually used by the app.
-- **Fixed the URL input icon fallback**: when a source icon cannot be loaded, the UI now switches cleanly to a proper fallback instead of showing a broken image marker.
-- **Switched icons to a ready-made consistent set**: restored and reconnected standard assets for app, tray, and source icons for more stable and correct rendering.
-- **Adopted a Simple Icons + Tabler Icons combo**: source brand icons now use a ready-made set, while the generic source fallback icon is now a Tabler glyph.
-- **Added** a new **Tools** tab with quick actions in one place (WG Unlock, hash check, system tools).
-- **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value matching.
-- **Added** a one-click action to create a Windows restart shortcut on the desktop.
-- **Added** a placeholder card for **Format Converter** for an upcoming release.
-- **Redesigned** the **Tools** tab into a compact dashboard with equal quick-action cards.
-- **Moved** advanced WireGuard controls behind an **Advanced** toggle to keep the first screen clean.
-- **Improved** buttons, input fields, and dropdowns in the **Tools** tab with clearer hover/focus states and cleaner visual consistency.
-- **Kept** the restart-shortcut card visible on macOS/Linux, with the action disabled outside Windows.
-- **Added** a separate Windows shutdown shortcut action in the **Tools** tab (next to restart shortcut).
-- **Improved** the power-shortcuts block: restart and shutdown are now split into two clear mini-cards with short descriptions and a confirmation step before creating each shortcut.
-- **Updated** the **Hash Check** card: a more compact layout, a dedicated status badge, and a one-click action to copy the calculated hash.
-- **Fixed** a visual shift in the **Hash Check** block: long values and action buttons now shrink correctly and stay inside the card bounds.
-- **Fixed** top‑bar button overlap with the tab menu on smaller window widths.
-- **Fixed** window controls positioning when resizing the window.
-- **Added** first-run setup to choose language, tabs, and theme.
-- **Optimized** rendering in the **Tools** and **Randomizer** tabs: reduced constant GPU load, trimmed unnecessary animations, and made visual status updates lighter, so the app runs cooler during longer sessions.
-- **Improved Backup tab performance**: background hints now pause when the tab is not active, profile list rerenders are lighter during frequent filtering, and row animations are limited for large lists.
-- **Added profile-list virtualization in the Backup tab**: for larger pages, only visible items are rendered, making scrolling and filtering much smoother.
-- **Added History-list virtualization**: on larger pages, only visible entries are rendered, which makes scrolling and history interactions smoother with lower system load.
-- **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered sizes, keeping scrolling steadier across different density modes and expanded details.
-- **Reduced background UI load**: heavy blur and large shadows were removed from always-visible containers, helping the app run cooler and smoother during long sessions.
-- **Optimized tooltips across the app**: tooltips now initialize lazily and reuse existing instances instead of being recreated on every rerender, reducing unnecessary UI overhead.
-- **Improved popup/menu handling**: a shared overlay manager now closes menus and context panels centrally, avoiding duplicate global listeners.
+- **Redesigned the quality picker in the Downloader tab**: added per-tab format counters, a current-selection panel, and quick best-option selection for the active tab.
+- **Simplified the quality picker in Downloader**: removed the separate “Best quality” button to avoid duplicating quick selection in the active tab.
+- **Improved quality-selection controls**: added keyboard navigation with ↑/↓ and Enter to start download faster without using the mouse.
+
+- **Added** the **Tools** tab: quick actions in one place (WG Unlock, hash check, system tools).
+- **Added** file hash verification (MD5, SHA‑1, SHA‑256, SHA‑512) with expected-value comparison.
+- **Added** a button to create Windows restart and shutdown desktop shortcuts.
+- **Added** a “Format Converter” block as a placeholder for the next update.
+- **Improved** buttons, inputs, and dropdowns in the **Tools** tab: better readability, clearer hover/focus states, and cleaner visual style.
+
+- **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
+- **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.
+- **Added profile list virtualization in Backup**: on large pages, only visible items are rendered, making scrolling and filtering noticeably smoother.
+- **Added History list virtualization**: on large pages, only visible entries are rendered, making scrolling and history interactions smoother with lower system load.
+- **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered size, making scrolling more stable across different density modes and expanded details.
+- **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being recreated on rerenders, reducing unnecessary UI load.
+- **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.

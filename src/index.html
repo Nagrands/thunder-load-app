@@ -386,30 +386,45 @@
               type="button"
               class="quality-tab active"
               data-quality-tab="video"
-              data-i18n="quality.tab.video"
+              title="Видео + аудио"
+              data-i18n-title="quality.tab.video"
             >
-              Видео + аудио
+              <span data-i18n="quality.tab.video">Видео + аудио</span>
+              <span
+                class="quality-tab-count"
+                id="download-quality-count-video"
+                aria-hidden="true"
+              >
+                0
+              </span>
             </button>
             <button
               type="button"
               class="quality-tab"
               data-quality-tab="video-only"
-              data-i18n="quality.tab.videoOnly"
+              title="Только видео"
+              data-i18n-title="quality.tab.videoOnly"
             >
-              Только видео
+              <span data-i18n="quality.tab.videoOnly">Только видео</span>
+              <span
+                class="quality-tab-count"
+                id="download-quality-count-video-only"
+                aria-hidden="true"
+              >
+                0
+              </span>
             </button>
             <button type="button" class="quality-tab" data-quality-tab="audio">
               <span data-i18n="quality.tab.audio">Только аудио</span>
+              <span
+                class="quality-tab-count"
+                id="download-quality-count-audio"
+                aria-hidden="true"
+              >
+                0
+              </span>
             </button>
           </div>
-          <button
-            type="button"
-            id="download-quality-best"
-            class="quality-best-link"
-          >
-            <i class="fa-solid fa-bullseye"></i>
-            <span data-i18n="quality.best">Максимальное качество</span>
-          </button>
         </div>
         <div id="download-quality-loading" class="quality-loading">
           <i class="fa-solid fa-spinner fa-spin"></i>
@@ -448,6 +463,27 @@
           role="radiogroup"
           aria-live="polite"
         ></div>
+        <div
+          id="download-quality-selection-summary"
+          class="quality-selection-summary"
+          aria-live="polite"
+        >
+          <div class="quality-selection-text">
+            <span class="quality-selection-label" data-i18n="quality.selected">
+              Выбранный вариант
+            </span>
+            <strong id="download-quality-selection-title" data-i18n="quality.notSelected">
+              Вариант не выбран
+            </strong>
+            <small id="download-quality-selection-meta" data-i18n="quality.selectHint">
+              Выберите качество в списке выше.
+            </small>
+          </div>
+          <button type="button" id="download-quality-best-current" class="quality-best-current-btn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span data-i18n="quality.bestCurrent">Лучшее в этой вкладке</span>
+          </button>
+        </div>
       </div>
     </div>
 

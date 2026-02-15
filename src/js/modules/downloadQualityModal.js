@@ -2,6 +2,7 @@
 
 import { showToast } from "./toast.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
+import { t } from "./i18n.js";
 
 const INFO_REQUEST_TIMEOUT = 15000;
 
@@ -19,12 +20,19 @@ const closeBtn = modal?.querySelector("[data-quality-close]");
 const tabButtons = Array.from(
   document.querySelectorAll(".quality-tab[data-quality-tab]"),
 );
-const bestBtn = document.getElementById("download-quality-best");
+const tabCountEls = {
+  video: document.getElementById("download-quality-count-video"),
+  "video-only": document.getElementById("download-quality-count-video-only"),
+  audio: document.getElementById("download-quality-count-audio"),
+};
+const bestCurrentBtn = document.getElementById("download-quality-best-current");
 const thumbEl = document.getElementById("download-quality-thumb");
 const titleEl = document.getElementById("download-quality-name");
 const uploaderEl = document.getElementById("download-quality-uploader");
 const durationEl = document.getElementById("download-quality-duration");
 const openSourceBtn = document.getElementById("download-quality-open-source");
+const selectionTitleEl = document.getElementById("download-quality-selection-title");
+const selectionMetaEl = document.getElementById("download-quality-selection-meta");
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
@@ -57,6 +65,7 @@ const state = {
   defaultQuality: "Source",
   currentUrl: "",
   currentFetchToken: 0,
+  selectedByTab: new Map(),
 };
 
 const extractHeight = (fmt) => {
@@ -101,15 +110,67 @@ function setModalOpen(flag) {
   document.body.classList.toggle("modal-scroll-lock", flag);
 }
 
+function escapeHTML(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function getSortedOptions(tab) {
+  return (state.optionMap.get(tab) || [])
+    .slice()
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+}
+
+function updateTabCounts() {
+  Object.entries(tabCountEls).forEach(([tab, el]) => {
+    if (!el) return;
+    el.textContent = String((state.optionMap.get(tab) || []).length || 0);
+  });
+}
+
+function updateSelectionSummary(option) {
+  if (!selectionTitleEl || !selectionMetaEl) return;
+  if (!option) {
+    selectionTitleEl.textContent = t("quality.notSelected");
+    selectionMetaEl.textContent = t("quality.selectHint");
+    return;
+  }
+  selectionTitleEl.textContent =
+    option.payload?.label || option.title || t("quality.selected");
+  selectionMetaEl.textContent =
+    option.description || [option.extLabel, option.sizeLabel].filter(Boolean).join(" • ");
+}
+
+function restoreSelectionForTab(tab) {
+  const sorted = getSortedOptions(tab);
+  if (!sorted.length) {
+    selectOption(null, { remember: false });
+    return false;
+  }
+  const rememberedId = state.selectedByTab.get(tab);
+  const remembered = rememberedId
+    ? sorted.find((option) => option.id === rememberedId)
+    : null;
+  selectOption(remembered || sorted[0], { remember: true });
+  return true;
+}
+
 function resetModalState() {
   state.selectedOption = null;
   state.optionMap.clear();
+  state.selectedByTab.clear();
   optionsContainer.innerHTML = "";
   confirmBtn.disabled = true;
   if (enqueueBtn) enqueueBtn.disabled = true;
   confirmBtn.textContent = "Скачать выбранное";
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
+  updateTabCounts();
+  updateSelectionSummary(null);
 }
 
 function setLoading(flag) {
@@ -126,7 +187,9 @@ function beginFetchView() {
   emptyEl?.classList.add("hidden");
   optionsContainer.innerHTML = "";
   confirmBtn.disabled = true;
-  if (bestBtn) bestBtn.disabled = true;
+  if (bestCurrentBtn) bestCurrentBtn.disabled = true;
+  updateTabCounts();
+  updateSelectionSummary(null);
 }
 
 function showError(message) {
@@ -136,18 +199,20 @@ function showError(message) {
   errorEl.classList.remove("hidden");
   emptyEl?.classList.add("hidden");
   confirmBtn.disabled = true;
-  if (bestBtn) bestBtn.disabled = true;
+  if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   if (errorTextEl) {
     errorTextEl.textContent =
       message || "Не удалось получить информацию о видео.";
   }
+  updateSelectionSummary(null);
 }
 
 function showEmpty() {
   emptyEl?.classList.remove("hidden");
   optionsContainer.innerHTML = "";
   confirmBtn.disabled = true;
-  if (bestBtn) bestBtn.disabled = true;
+  if (bestCurrentBtn) bestCurrentBtn.disabled = true;
+  updateSelectionSummary(null);
 }
 
 function withTimeout(promise, ms) {
@@ -398,17 +463,17 @@ function buildOptions(info) {
 }
 
 function renderOptions(tab) {
-  const list = (state.optionMap.get(tab) || [])
-    .slice()
-    .sort((a, b) => (b.score || 0) - (a.score || 0));
+  const list = getSortedOptions(tab);
   optionsContainer.innerHTML = "";
   if (list.length === 0) {
     emptyEl?.classList.remove("hidden");
+    if (bestCurrentBtn) bestCurrentBtn.disabled = true;
     return;
   }
   emptyEl?.classList.add("hidden");
+  if (bestCurrentBtn) bestCurrentBtn.disabled = false;
   const frag = document.createDocumentFragment();
-  list.forEach((option) => {
+  list.forEach((option, index) => {
     const el = document.createElement("button");
     el.type = "button";
     el.className = "quality-option";
@@ -418,19 +483,20 @@ function renderOptions(tab) {
     el.innerHTML = `
       <div class="quality-option-main">
         <div>
-          <p class="quality-option-title">${option.title}</p>
-          <p class="quality-option-desc">${option.description || ""}</p>
+          <p class="quality-option-title">${escapeHTML(option.title)}</p>
+          <p class="quality-option-desc">${escapeHTML(option.description || "")}</p>
         </div>
         <div class="quality-option-tags">
-          <span class="tag">${option.extLabel || ""}</span>
+          ${index === 0 ? `<span class="tag tag-top">TOP</span>` : ""}
+          <span class="tag">${escapeHTML(option.extLabel || "")}</span>
           ${
             option.sizeLabel
-              ? `<span class="tag tag-soft">${option.sizeLabel}</span>`
+              ? `<span class="tag tag-soft">${escapeHTML(option.sizeLabel)}</span>`
               : ""
           }
           ${
             option.extra
-              ? `<span class="tag tag-accent">${option.extra}</span>`
+              ? `<span class="tag tag-accent">${escapeHTML(option.extra)}</span>`
               : ""
           }
         </div>
@@ -441,8 +507,12 @@ function renderOptions(tab) {
   optionsContainer.appendChild(frag);
 }
 
-function selectOption(option) {
+function selectOption(option, { remember = true } = {}) {
   state.selectedOption = option;
+  if (remember) {
+    if (option?.id) state.selectedByTab.set(state.currentTab, option.id);
+    else state.selectedByTab.delete(state.currentTab);
+  }
   confirmBtn.disabled = !option;
   if (enqueueBtn) enqueueBtn.disabled = !option;
   if (option) {
@@ -455,6 +525,7 @@ function selectOption(option) {
     el.classList.toggle("active", isActive);
     el.setAttribute("aria-checked", String(isActive));
   });
+  updateSelectionSummary(option);
 }
 
 function handleOptionClick(event) {
@@ -498,6 +569,7 @@ async function loadFormatsWithRetry(
     renderPreview(info, url);
     const groups = buildOptions(info);
     state.optionMap = new Map(Object.entries(groups));
+    updateTabCounts();
 
     const totalOptions = Array.from(state.optionMap.values()).reduce(
       (acc, list) => acc + ((list || []).length || 0),
@@ -511,9 +583,6 @@ async function loadFormatsWithRetry(
       return false;
     }
 
-    if (bestBtn) {
-      bestBtn.disabled = !((state.optionMap.get("video") || []).length > 0);
-    }
     const targetTab = state.forceAudio ? "audio" : "video";
     setActiveTab(targetTab);
     let picked = false;
@@ -557,20 +626,19 @@ async function loadFormatsWithRetry(
 
 function setActiveTab(tab) {
   state.currentTab = tab;
-  tabButtons.forEach((btn) =>
-    btn.classList.toggle("active", btn.dataset.qualityTab === tab),
-  );
+  tabButtons.forEach((btn) => {
+    const active = btn.dataset.qualityTab === tab;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-selected", String(active));
+  });
   renderOptions(tab);
-  selectOption(null);
+  restoreSelectionForTab(tab);
 }
 
 function selectBestFromTab(tab) {
-  const list = state.optionMap.get(tab) || [];
+  const list = getSortedOptions(tab);
   if (!list.length) return false;
-  const best = list.reduce(
-    (acc, cur) => ((cur.score || 0) > (acc.score || 0) ? cur : acc),
-    list[0],
-  );
+  const best = list[0];
   if (state.currentTab !== tab) setActiveTab(tab);
   selectOption(best);
   return true;
@@ -604,13 +672,29 @@ function selectByPreferredLabel(label) {
   return false;
 }
 
+function moveSelection(step) {
+  const options = getSortedOptions(state.currentTab);
+  if (!options.length) return;
+  const currentId = state.selectedOption?.id;
+  const currentIndex = Math.max(
+    0,
+    options.findIndex((option) => option.id === currentId),
+  );
+  const nextIndex =
+    currentId == null
+      ? 0
+      : (currentIndex + step + options.length) % options.length;
+  selectOption(options[nextIndex]);
+}
+
 function closeModal(result = null) {
   setModalOpen(false);
   resetModalState();
   tabButtons.forEach((btn) => btn.classList.remove("active"));
-  tabButtons
-    .find((btn) => btn.dataset.qualityTab === "video")
-    ?.classList.add("active");
+  tabButtons.forEach((btn) => btn.setAttribute("aria-selected", "false"));
+  const defaultTab = tabButtons.find((btn) => btn.dataset.qualityTab === "video");
+  defaultTab?.classList.add("active");
+  defaultTab?.setAttribute("aria-selected", "true");
   if (state.resolver) {
     state.resolver(result);
     state.resolver = null;
@@ -652,13 +736,28 @@ function bindEvents() {
       if (event.key === "Escape") {
         event.preventDefault();
         closeModal(null);
+        return;
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        moveSelection(1);
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveSelection(-1);
+        return;
+      }
+      if (event.key === "Enter" && state.selectedOption) {
+        event.preventDefault();
+        confirmSelection();
       }
     });
     confirmBtn?.addEventListener("click", confirmSelection);
     enqueueBtn?.addEventListener("click", confirmEnqueue);
-    bestBtn?.addEventListener("click", () => {
-      if (bestBtn.disabled) return;
-      selectBestVideoOption(true);
+    bestCurrentBtn?.addEventListener("click", () => {
+      if (bestCurrentBtn.disabled) return;
+      selectBestFromTab(state.currentTab);
     });
     retryBtn?.addEventListener("click", () => {
       if (!state.currentUrl) return;
@@ -679,7 +778,7 @@ async function openDownloadQualityModal(url, opts = {}) {
   state.currentUrl = url;
   setModalOpen(true);
   setLoading(true);
-  if (bestBtn) bestBtn.disabled = true;
+  if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   resetModalState();
   return new Promise(async (resolve) => {
     state.resolver = resolve;
