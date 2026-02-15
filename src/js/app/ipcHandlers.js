@@ -1562,7 +1562,8 @@ function setupIpcHandlers(dependencies) {
   function getIconNameFromUrl(url) {
     if (url.includes("youtube.com")) return "youtube";
     if (url.includes("twitch.tv")) return "twitch";
-    if (url.includes("coub.com")) return "coub";
+    // Simple Icons has no official Coub glyph in our bundle, use Tabler fallback.
+    if (url.includes("coub.com")) return "video";
     if (url.includes("vkvideo.ru")) return "vk";
     if (url.includes("youtu.be")) return "youtube";
     if (url.includes("dzen.ru")) return "video";

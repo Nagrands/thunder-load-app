@@ -12,6 +12,7 @@
 - **Removed unused icons from the project**: the assets folder now keeps only icon files that are actually used by the app.
 - **Fixed the URL input icon fallback**: when a source icon cannot be loaded, the UI now switches cleanly to a proper fallback instead of showing a broken image marker.
 - **Switched icons to a ready-made consistent set**: restored and reconnected standard assets for app, tray, and source icons for more stable and correct rendering.
+- **Adopted a Simple Icons + Tabler Icons combo**: source brand icons now use a ready-made set, while the generic source fallback icon is now a Tabler glyph.
 - **Added** a new **Tools** tab with quick actions in one place (WG Unlock, hash check, system tools).
 - **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value matching.
 - **Added** a one-click action to create a Windows restart shortcut on the desktop.
