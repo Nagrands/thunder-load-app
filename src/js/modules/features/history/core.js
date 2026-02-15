@@ -83,6 +83,7 @@ let lastPaginationMeta = {
 };
 let lastRenderedFiltered = [];
 let historyTruncationBound = false;
+let historyTruncationResizeTimer = null;
 let historyMenuBound = false;
 
 const pluralize = (value, [one, few, many]) => {
@@ -2707,7 +2708,11 @@ function initHistory() {
   if (!historyTruncationBound) {
     historyTruncationBound = true;
     window.addEventListener("resize", () => {
-      requestAnimationFrame(updateTitleTruncation);
+      if (historyTruncationResizeTimer) return;
+      historyTruncationResizeTimer = setTimeout(() => {
+        historyTruncationResizeTimer = null;
+        requestAnimationFrame(updateTitleTruncation);
+      }, 120);
     });
   }
 

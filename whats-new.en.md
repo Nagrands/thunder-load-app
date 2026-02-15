@@ -17,3 +17,5 @@
 - **Fixed** top‑bar button overlap with the tab menu on smaller window widths.
 - **Fixed** window controls positioning when resizing the window.
 - **Added** first-run setup to choose language, tabs, and theme.
+- **Optimized** rendering in the **Tools** and **Randomizer** tabs: reduced constant GPU load, trimmed unnecessary animations, and made visual status updates lighter, so the app runs cooler during longer sessions.
+- **Improved Backup tab performance**: background hints now pause when the tab is not active, profile list rerenders are lighter during frequent filtering, and row animations are limited for large lists.

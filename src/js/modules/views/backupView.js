@@ -286,6 +286,8 @@ export default function renderBackup() {
    * @returns {T|null}
    */
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
+  let hasRenderedListOnce = false;
+  let hintsTimer = null;
 
   // Кнопка с иконкой «минус» вместо счётчика открывает модальное окно
   const minusBtn = getEl("#bk-open-delete-modal");
@@ -297,25 +299,36 @@ export default function renderBackup() {
     });
   }
 
-  // Функция для инициализации тултипов в компоненте Backup
-  const initBackupTooltips = () => {
-    const tooltipTriggerList = wrapper.querySelectorAll(
-      '[data-bs-toggle="tooltip"]',
-    );
-    tooltipTriggerList.forEach((tooltipTriggerEl) => {
-      // Удаляем существующий экземпляр тултипа
-      const existingInstance = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
-      if (existingInstance) {
-        existingInstance.dispose();
-      }
+  const ensureTooltip = (el, text = "") => {
+    if (!el || !bootstrap?.Tooltip) return;
+    const title = String(text || el.getAttribute("title") || "").trim();
+    const prev = el.dataset.bkTooltipTitle || "";
+    const instance = bootstrap.Tooltip.getInstance(el);
 
-      // Создаем новый тултип только если есть title
-      const title = tooltipTriggerEl.getAttribute("title");
-      if (title && title.trim() !== "") {
-        new bootstrap.Tooltip(tooltipTriggerEl, {
-          boundary: wrapper,
-        });
-      }
+    if (!title) {
+      if (instance) instance.dispose();
+      delete el.dataset.bkTooltipTitle;
+      return;
+    }
+
+    if (prev === title && instance) return;
+
+    if (instance && prev !== title) {
+      instance.dispose();
+    }
+    el.setAttribute("title", title);
+    bootstrap.Tooltip.getOrCreateInstance(el, {
+      boundary: wrapper,
+    });
+    el.dataset.bkTooltipTitle = title;
+  };
+
+  // Ленивая инициализация тултипов: только создание отсутствующих экземпляров
+  const initBackupTooltips = (root = wrapper) => {
+    if (!root || !bootstrap?.Tooltip) return;
+    const tooltipTriggerList = root.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach((tooltipTriggerEl) => {
+      ensureTooltip(tooltipTriggerEl);
     });
   };
 
@@ -710,6 +723,7 @@ export default function renderBackup() {
   let hintIndex = 0;
   const hintEl = hintsBlock.querySelector(".bk-hint-text");
   const showHint = () => {
+    if (!hintEl) return;
     hintEl.style.opacity = 0;
     setTimeout(() => {
       hintEl.textContent = hints[hintIndex];
@@ -717,10 +731,41 @@ export default function renderBackup() {
       hintIndex = (hintIndex + 1) % hints.length;
     }, 400);
   };
+  const isBackupTabActive = () =>
+    document.querySelector(".group-menu .menu-item.active")?.dataset.menu ===
+    "backup";
+  const canRunHints = () =>
+    wrapper.isConnected && !document.hidden && isBackupTabActive();
+  const stopHintsRotation = () => {
+    if (hintsTimer) {
+      clearInterval(hintsTimer);
+      hintsTimer = null;
+    }
+  };
+  const startHintsRotation = () => {
+    if (hintsTimer || !canRunHints()) return;
+    hintsTimer = setInterval(showHint, 10000);
+  };
+  const syncHintsRotation = () => {
+    if (canRunHints()) {
+      startHintsRotation();
+      return;
+    }
+    stopHintsRotation();
+  };
+  const onTabsActivated = (event) => {
+    const activeTab = event?.detail?.id || "";
+    if (activeTab && activeTab !== "backup") {
+      stopHintsRotation();
+      return;
+    }
+    syncHintsRotation();
+  };
 
   showHint();
-  const hintTimer = setInterval(showHint, 10000);
-  wrapper.addEventListener("remove", () => clearInterval(hintTimer));
+  window.addEventListener("tabs:activated", onTabsActivated);
+  document.addEventListener("visibilitychange", syncHintsRotation);
+  syncHintsRotation();
 
   // Autofocus search when opening the tab
   queueMicrotask(() => {
@@ -1162,19 +1207,7 @@ export default function renderBackup() {
 
     // Update Bootstrap tooltips
     const updateTooltip = (el, text) => {
-      if (!el) return;
-      try {
-        const instance = bootstrap.Tooltip.getInstance(el);
-        if (instance) {
-          instance.dispose();
-        }
-        if (text && text.trim() !== "") {
-          el.setAttribute("title", text);
-          new bootstrap.Tooltip(el, {
-            boundary: wrapper,
-          });
-        }
-      } catch (_) {}
+      ensureTooltip(el, text);
     };
 
     updateTooltip(runSel, runSel ? runSel.title : "");
@@ -1344,6 +1377,8 @@ export default function renderBackup() {
     if (state.page < 1) state.page = 1;
     const start = (state.page - 1) * pageSize;
     const paged = filtered.slice(start, start + pageSize);
+    const disableRowsAnimation = hasRenderedListOnce || filtered.length > 20;
+    root.classList.toggle("bk-list-no-anim", disableRowsAnimation);
 
     const pageInfo = getEl("#bk-page-info");
     if (pageInfo) pageInfo.textContent = `${state.page} / ${totalPages}`;
@@ -1417,9 +1452,10 @@ export default function renderBackup() {
           ?.addEventListener("click", resetFilters);
       } else {
         root
-          .querySelector("#bk-create-first")
-          ?.addEventListener("click", () => showEditForm(-1));
+            .querySelector("#bk-create-first")
+            ?.addEventListener("click", () => showEditForm(-1));
       }
+      hasRenderedListOnce = true;
       return;
     }
 
@@ -1558,18 +1594,10 @@ export default function renderBackup() {
     // Сбросить прокрутку списка после фильтрации
     root.scrollTop = 0;
     queueMicrotask(() => {
-      // Новый блок инициализации тултипов (с фильтрацией по title)
-      const tooltipTriggerList = [
-        ...root.querySelectorAll('[data-bs-toggle="tooltip"]'),
-      ].filter((el) => el.getAttribute("title"));
-      tooltipTriggerList.forEach((el) => {
-        const instance = bootstrap.Tooltip.getInstance(el);
-        if (instance) instance.dispose();
-        bootstrap.Tooltip.getOrCreateInstance(el);
-      });
-
+      initBackupTooltips(root);
       updateActionsState();
     });
+    hasRenderedListOnce = true;
   }
 
   // Функция запуска профиля по индексу (используется в компактном режиме)
@@ -3065,6 +3093,24 @@ export default function renderBackup() {
 
   // Initialize tooltips
   queueMicrotask(() => initBackupTooltips());
+
+  const destroyViewResources = () => {
+    stopHintsRotation();
+    window.removeEventListener("tabs:activated", onTabsActivated);
+    document.removeEventListener("visibilitychange", syncHintsRotation);
+  };
+  const disconnectObserver = new MutationObserver(() => {
+    if (!wrapper.isConnected) {
+      destroyViewResources();
+      disconnectObserver.disconnect();
+    }
+  });
+  if (document.body) {
+    disconnectObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
 
   return wrapper;
 }

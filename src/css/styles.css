@@ -11888,7 +11888,7 @@ footer {
 }
 
 .top-bar.has-download-activity .center-menu .menu-item.active::after {
-  animation: tabDotPulse 1.6s ease-in-out infinite;
+  animation: tabDotPulse 2.4s ease-in-out infinite;
 }
 
 @keyframes menuItemAppear {
@@ -11903,10 +11903,10 @@ footer {
 }
 @keyframes tabDotPulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.35);
+    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.22);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(var(--color-accent-rgb), 0);
+    box-shadow: 0 0 0 4px rgba(var(--color-accent-rgb), 0);
   }
 }
 .center-menu .menu-item {
@@ -13113,10 +13113,6 @@ hr {
   position: relative;
   pointer-events: none;
 }
-.btn.is-loading::before,
-.large-button.is-loading::before {
-  animation: liquidShimmer 2s infinite;
-}
 
 .btn.is-loading::after,
 .large-button.is-loading::after {
@@ -13131,7 +13127,6 @@ hr {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  backdrop-filter: blur(4px);
 }
 
 /* Reduced motion: disable heavy transitions/animations */
@@ -13480,7 +13475,7 @@ hr {
   background: linear-gradient(to right, var(--color-progress-bg), var(--color-progress-bar));
   border-radius: 8px;
   position: relative;
-  animation: progressPulse 2s ease-in-out infinite;
+  animation: none;
   transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s ease;
 }
 #progress-bar::before {
@@ -13492,7 +13487,7 @@ hr {
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
   background-size: 24px 24px;
-  animation: progress-stripes 1.2s linear infinite;
+  animation: none;
   mask: linear-gradient(to right, rgb(0, 0, 0) 85%, rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0));
 }
 #progress-bar::after {
@@ -13508,6 +13503,13 @@ hr {
 #progress-bar:hover {
   transform: scaleY(1.05);
   transition: transform 0.2s ease;
+}
+
+#progress-bar-container.is-active #progress-bar {
+  animation: progressPulse 2s ease-in-out infinite;
+}
+#progress-bar-container.is-active #progress-bar::before {
+  animation: progress-stripes 1.2s linear infinite;
 }
 
 .progress-complete #progress-bar {
@@ -19078,10 +19080,9 @@ video {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at 20% 20%, rgba(var(--color-accent-rgb), 0.15) 0%, transparent 40%), radial-gradient(ellipse at 80% 80%, rgba(100, 100, 255, 0.1) 0%, transparent 40%);
+  background: radial-gradient(ellipse at 20% 20%, rgba(var(--color-accent-rgb), 0.1) 0%, transparent 40%), radial-gradient(ellipse at 80% 80%, rgba(100, 100, 255, 0.06) 0%, transparent 40%);
   z-index: -1;
   pointer-events: none;
-  animation: gradientShift 8s ease-in-out infinite;
 }
 .wireguard-view .wg-main-container {
   max-width: 1200px;
@@ -19714,6 +19715,17 @@ video {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+.wg-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
 }
 
 .hidden {
@@ -19904,6 +19916,8 @@ video {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
   border-radius: 14px;
   padding: 14px 16px;
 }
@@ -19929,6 +19943,8 @@ video {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
   border-radius: 14px;
   padding: 14px;
   display: grid;
@@ -19937,8 +19953,8 @@ video {
   transition: transform 0.2s ease;
 }
 .tools-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 .tools-card.disabled {
   opacity: 0.75;
@@ -20177,8 +20193,8 @@ video {
 .tools-shell .small-button,
 .tools-shell .large-button {
   border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: transform 0.16s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 .tools-shell .small-button {
@@ -20195,7 +20211,7 @@ video {
 .tools-shell .small-button:hover,
 .tools-shell .large-button:hover {
   border-color: rgba(var(--color-accent-rgb), 0.45);
-  box-shadow: 0 8px 20px rgba(var(--color-accent-rgb), 0.2);
+  box-shadow: 0 5px 14px rgba(var(--color-accent-rgb), 0.14);
   transform: translateY(-1px);
 }
 .tools-shell .small-button:active,
@@ -20299,6 +20315,8 @@ video {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
   border-radius: 14px;
   padding: 14px;
   overflow: hidden;
@@ -21996,6 +22014,9 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 .bk-list .bk-row {
   animation: slide-in-from-top 0.4s ease-out;
+}
+.bk-list.bk-list-no-anim .bk-row {
+  animation: none;
 }
 .bk-list .wg-alert {
   display: flex;

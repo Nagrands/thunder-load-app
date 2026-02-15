@@ -318,6 +318,49 @@ describe("Randomizer view", () => {
     }
   });
 
+  test("auto-roll continues when document is hidden", async () => {
+    jest.useFakeTimers();
+    const originalHidden = Object.getOwnPropertyDescriptor(document, "hidden");
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => true,
+    });
+
+    try {
+      const { view } = setup({
+        items: [
+          { value: "One", weight: 1 },
+          { value: "Two", weight: 1 },
+        ],
+        settings: {
+          noRepeat: false,
+          spinSeconds: 0,
+          autoRollInterval: 1,
+          autoStopMode: "count",
+          autoStopCount: 1,
+          autoNotifySound: false,
+          autoNotifyFlash: false,
+        },
+      });
+
+      view.querySelector("#randomizer-auto-toggle").click();
+      jest.advanceTimersByTime(1000);
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+
+      const historyItems = view.querySelectorAll("#randomizer-history-list li");
+      expect(historyItems.length).toBe(1);
+    } finally {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+      if (originalHidden) {
+        Object.defineProperty(document, "hidden", originalHidden);
+      } else {
+        delete document.hidden;
+      }
+    }
+  });
+
   test("favorite filter shows only starred items", () => {
     const { view } = setup({
       items: [

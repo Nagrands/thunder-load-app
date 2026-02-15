@@ -1918,6 +1918,10 @@ h1.section-heading {
     animation: slide-in-from-top 0.4s ease-out;
   }
 
+  &.bk-list-no-anim .bk-row {
+    animation: none;
+  }
+
   .wg-alert {
     display: flex;
     flex-direction: row;

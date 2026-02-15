@@ -201,10 +201,6 @@
 .large-button.is-loading {
   position: relative;
   pointer-events: none;
-
-  &::before {
-    animation: liquidShimmer 2s infinite;
-  }
 }
 
 .btn.is-loading::after,
@@ -220,7 +216,6 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  backdrop-filter: blur(4px);
 }
 
 /* Reduced motion: disable heavy transitions/animations */

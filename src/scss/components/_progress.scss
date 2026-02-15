@@ -62,7 +62,7 @@
   );
   border-radius: 8px;
   position: relative;
-  animation: progressPulse 2s ease-in-out infinite;
+  animation: none;
   transition:
     width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
     background-color 0.3s ease;
@@ -85,7 +85,7 @@
       transparent
     );
     background-size: 24px 24px;
-    animation: progress-stripes 1.2s linear infinite;
+    animation: none;
     mask: linear-gradient(
       to right,
       rgba(0, 0, 0, 1) 85%,
@@ -113,6 +113,14 @@
   &:hover {
     transform: scaleY(1.05);
     transition: transform 0.2s ease;
+  }
+}
+
+#progress-bar-container.is-active #progress-bar {
+  animation: progressPulse 2s ease-in-out infinite;
+
+  &::before {
+    animation: progress-stripes 1.2s linear infinite;
   }
 }
 

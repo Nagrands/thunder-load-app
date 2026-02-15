@@ -450,6 +450,7 @@ const downloadVideo = async (url, quality) => {
     } catch (_) {}
 
     progressBarContainer.style.opacity = 1;
+    progressBarContainer.classList.add("is-active");
     progressBar.style.width = "0%";
 
     const shortUrl = new URL(url).hostname.replace("www.", "");
@@ -590,6 +591,7 @@ const downloadVideo = async (url, quality) => {
     downloadButton.classList.remove("disabled");
     downloadCancelButton.disabled = true;
     progressBarContainer.style.opacity = 0;
+    progressBarContainer.classList.remove("is-active");
     progressBar.style.width = "0%";
 
     if (state.downloadQueue.length > 0) {
@@ -615,6 +617,7 @@ const downloadVideo = async (url, quality) => {
 const initiateDownload = async (url, quality) => {
   downloadButton.classList.add("loading");
   progressBarContainer.style.opacity = 1;
+  progressBarContainer.classList.add("is-active");
   state.isDownloading = true;
   updateButtonState();
   await downloadVideo(url, quality);

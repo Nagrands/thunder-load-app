@@ -45,6 +45,7 @@ function initDownloadCancel() {
       downloadButton.classList.remove("disabled");
       downloadCancelButton.disabled = true;
       progressBarContainer.style.opacity = 0;
+      progressBarContainer.classList.remove("is-active");
       progressBar.style.width = "0%";
       buttonText.textContent = t("actions.download");
     }

@@ -783,6 +783,12 @@ export function createRandomizerView() {
   let flashTimer = null;
   let audioContext = null;
   let isListHidden = false;
+  let lastSpinTickTs = 0;
+  let lastAutoStatusTickTs = 0;
+  let lastCarouselTickTs = 0;
+
+  const getUiTickMs = (baseMs, hiddenMultiplier = 2) =>
+    document.hidden ? baseMs * hiddenMultiplier : baseMs;
 
   const getBaseVisibleItems = () =>
     favoritesOnly ? items.filter((item) => item.favorite) : items;
@@ -887,6 +893,7 @@ export function createRandomizerView() {
       clearInterval(spinCountdownTimer);
       spinCountdownTimer = null;
     }
+    lastSpinTickTs = 0;
     if (spinCountdownValueEl)
       spinCountdownValueEl.textContent = t("randomizer.time.none");
   };
@@ -896,13 +903,16 @@ export function createRandomizerView() {
     const endAt = Date.now() + ms;
     const tick = () => {
       const left = Math.max(0, endAt - Date.now());
+      const now = Date.now();
+      if (left > 0 && now - lastSpinTickTs < getUiTickMs(200)) return;
+      lastSpinTickTs = now;
       spinCountdownValueEl.textContent = t("randomizer.time.seconds", {
         seconds: (left / 1000).toFixed(1),
       });
       if (left <= 0) clearSpinCountdown();
     };
     tick();
-    spinCountdownTimer = setInterval(tick, 80);
+    spinCountdownTimer = setInterval(tick, 200);
   };
   const updateRollAvailability = () => {
     const { items, pool, settings } = state.getState();
@@ -1005,12 +1015,22 @@ export function createRandomizerView() {
       clearInterval(autoStatusTimer);
       autoStatusTimer = null;
     }
+    lastAutoStatusTickTs = 0;
   };
   const startAutoStatusTicker = () => {
     if (autoStatusTimer) return;
-    autoStatusTimer = setInterval(() => refreshAutoStatus(), 200);
+    autoStatusTimer = setInterval(() => refreshAutoStatus(), 1000);
   };
   const refreshAutoStatus = (overrideText) => {
+    const now = Date.now();
+    if (
+      !overrideText &&
+      now - lastAutoStatusTickTs < getUiTickMs(1000)
+    ) {
+      return;
+    }
+    lastAutoStatusTickTs = now;
+
     const idleText = overrideText || t("randomizer.auto.status.off");
     const setCountdown = (text) => {
       if (autoCountdownMiniEl) autoCountdownMiniEl.textContent = text;
@@ -1025,7 +1045,6 @@ export function createRandomizerView() {
       setCountdown(t("randomizer.auto.status.countdownEmpty"));
       return;
     }
-    const now = Date.now();
     const secondsLeft =
       autoNextAt && autoNextAt > now
         ? Math.max(0, ((autoNextAt - now) / 1000).toFixed(1))
@@ -1715,6 +1734,7 @@ export function createRandomizerView() {
       clearInterval(carouselTimer);
       carouselTimer = null;
     }
+    lastCarouselTickTs = 0;
     resultContainer.classList.remove("carousel");
   };
 
@@ -1725,12 +1745,15 @@ export function createRandomizerView() {
     let index = 0;
     resultContainer.classList.add("carousel");
     carouselTimer = setInterval(() => {
+      const now = Date.now();
+      if (now - lastCarouselTickTs < getUiTickMs(300)) return;
+      lastCarouselTickTs = now;
       resultUI.setResult(
         queue[index % queue.length],
         t("randomizer.result.mixing"),
       );
       index += 1;
-    }, 160);
+    }, 300);
   };
 
   const { clear: clearResultBase } = resultUI;
@@ -2224,6 +2247,9 @@ export function createRandomizerView() {
     refreshAutoStatus();
     renderHistory();
     renderItems();
+  });
+  lifecycle.addEvent(document, "visibilitychange", () => {
+    if (autoEnabled) refreshAutoStatus();
   });
 
   const dispose = () => {
