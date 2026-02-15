@@ -35,6 +35,13 @@ function swapIcon(current, next) {
   current.replaceWith(next);
 }
 
+function showFallbackGlobe(mount) {
+  const i = document.createElement("i");
+  i.setAttribute("aria-hidden", "true");
+  i.classList.add("fa-solid", "fa-globe");
+  swapIcon(mount, i);
+}
+
 /**
  * Функция для обновления иконки на основе URL
  * @param {string} url - URL для получения иконки
@@ -52,18 +59,29 @@ const updateIcon = async (url) => {
       );
 
       if (iconUrl) {
-        // show favicon as <img>
+        // Render image icon only after successful load to avoid broken-image marker.
         const img = document.createElement("img");
         img.setAttribute("alt", t("icon.alt"));
         img.setAttribute("draggable", "false");
-        img.src = `file://${iconUrl}`;
-        swapIcon(mount, img);
+        img.addEventListener(
+          "load",
+          () => {
+            const liveMount = getIconMount() || mount;
+            if (liveMount?.isConnected) swapIcon(liveMount, img);
+          },
+          { once: true },
+        );
+        img.addEventListener(
+          "error",
+          () => {
+            const liveMount = getIconMount() || mount;
+            if (liveMount?.isConnected) showFallbackGlobe(liveMount);
+          },
+          { once: true },
+        );
+        img.src = `file://${encodeURI(iconUrl).replace(/#/g, "%23")}`;
       } else {
-        // fallback to globe font icon
-        const i = document.createElement("i");
-        i.setAttribute("aria-hidden", "true");
-        i.classList.add("fa-solid", "fa-globe");
-        swapIcon(mount, i);
+        showFallbackGlobe(mount);
       }
     } catch (error) {
       console.error("Error updating icon:", error);

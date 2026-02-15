@@ -1571,34 +1571,34 @@ function setupIpcHandlers(dependencies) {
 
   // Функция для получения пути к иконке приложения
   async function getAppIconPath(iconName) {
-    if (iconCache.has(iconName)) return iconCache.get(iconName);
+    const cached = iconCache.get(iconName);
+    if (cached) {
+      try {
+        await fs.promises.access(cached);
+        return cached;
+      } catch {
+        iconCache.delete(iconName);
+      }
+    }
 
-    const svgPath = path.join(
-      app.getAppPath(),
-      "assets",
-      "icons",
-      `${iconName}.svg`,
-    );
-    const pngPath = path.join(
-      app.getAppPath(),
-      "assets",
-      "icons",
-      `${iconName}.png`,
-    );
+    const candidateNames = [iconName, "video"];
+    for (const name of candidateNames) {
+      const svgPath = path.join(app.getAppPath(), "assets", "icons", `${name}.svg`);
+      const pngPath = path.join(app.getAppPath(), "assets", "icons", `${name}.png`);
 
-    try {
-      await fs.promises.access(svgPath);
-      iconCache.set(iconName, svgPath);
-      return svgPath;
-    } catch {
+      try {
+        await fs.promises.access(svgPath);
+        iconCache.set(iconName, svgPath);
+        return svgPath;
+      } catch {}
+
       try {
         await fs.promises.access(pngPath);
         iconCache.set(iconName, pngPath);
         return pngPath;
-      } catch {
-        return null;
-      }
+      } catch {}
     }
+    return null;
   }
 
   // Обработчики IPC:

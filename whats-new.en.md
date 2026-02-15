@@ -10,6 +10,8 @@
 - **Replaced the icon symbol with a T monogram** across the app, notifications, and tray while keeping the current blue visual style.
 - **Aligned the remaining app icons to the same style**: menu and notification PNG icons plus SVG asset icons were refreshed for a consistent visual look.
 - **Removed unused icons from the project**: the assets folder now keeps only icon files that are actually used by the app.
+- **Fixed the URL input icon fallback**: when a source icon cannot be loaded, the UI now switches cleanly to a proper fallback instead of showing a broken image marker.
+- **Switched icons to a ready-made consistent set**: restored and reconnected standard assets for app, tray, and source icons for more stable and correct rendering.
 - **Added** a new **Tools** tab with quick actions in one place (WG Unlock, hash check, system tools).
 - **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value matching.
 - **Added** a one-click action to create a Windows restart shortcut on the desktop.
