@@ -7,6 +7,7 @@ footer {
   bottom: 4px;
   background-color: var(--color-hover);
   border-radius: var(--border-radius);
-  backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
 }

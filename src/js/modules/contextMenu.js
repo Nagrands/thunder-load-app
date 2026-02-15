@@ -34,11 +34,13 @@ import { showConfirmationDialog as showConfirmationModal } from "./modals.js";
 import { updateDownloadCount, sortHistory } from "./history.js";
 import { state, updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
+import { registerDismissibleOverlay } from "./overlayManager.js";
 
 /**
  * Текущий выбранный элемент истории
  */
 let currentLogEntry = null;
+let contextMenuInitialized = false;
 
 function getEntryData(logEntry) {
   if (!logEntry) return {};
@@ -160,6 +162,7 @@ async function showContextMenu(event, logEntry) {
  * Функция для скрытия контекстного меню
  */
 function hideContextMenu() {
+  if (!contextMenu) return;
   contextMenu.style.display = "none";
   if (currentLogEntry) {
     currentLogEntry.classList.remove("selected");
@@ -510,6 +513,10 @@ function handleRetryDownload(logEntry) {
  * Инициализация обработчиков контекстного меню
  */
 function initContextMenu() {
+  if (contextMenuInitialized) return;
+  contextMenuInitialized = true;
+  if (!contextMenu) return;
+
   // Обработчик контекстного меню на истории и карточках
   const historyRoot = historyContainer || history || document.body;
   historyRoot.addEventListener(
@@ -550,8 +557,13 @@ function initContextMenu() {
     });
   }
 
-  // Скрытие контекстного меню при клике в любом месте
-  document.addEventListener("click", hideContextMenu);
+  registerDismissibleOverlay({
+    id: "history-context-menu",
+    panel: contextMenu,
+    isOpen: () => contextMenu.style.display === "block",
+    close: hideContextMenu,
+    isInsideEvent: (target) => contextMenu.contains(target),
+  });
 
   // Обработчик кликов по контекстному меню
   contextMenu.addEventListener("click", handleContextMenuClick);

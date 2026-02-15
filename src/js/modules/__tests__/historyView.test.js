@@ -150,4 +150,52 @@ describe("Downloader history list", () => {
     menuButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(menu.classList.contains("is-open")).toBe(true);
   });
+
+  test("enables virtualized rendering for large history pages", async () => {
+    localStorage.setItem("historyPageSize", "200");
+    const { renderHistory } = await import("../history.js");
+
+    const entries = Array.from({ length: 120 }, (_, idx) =>
+      createEntry({
+        id: String(idx + 1),
+        fileName: `Entry ${idx + 1}`,
+        sourceUrl: `https://example.com/watch?v=${idx + 1}`,
+      }),
+    );
+
+    renderHistory(entries, {
+      pageSize: 200,
+      totalEntries: entries.length,
+      fullEntries: entries,
+    });
+
+    const list = document.getElementById("history");
+    const renderedRows = list.querySelectorAll(".history-row");
+    expect(list.dataset.virtualized).toBe("true");
+    expect(list.querySelector(".history-virtual-window")).not.toBeNull();
+    expect(renderedRows.length).toBeGreaterThan(0);
+    expect(renderedRows.length).toBeLessThan(entries.length);
+  });
+
+  test("keeps full render for small history pages", async () => {
+    const { renderHistory } = await import("../history.js");
+    const entries = Array.from({ length: 12 }, (_, idx) =>
+      createEntry({
+        id: String(idx + 1),
+        fileName: `Small ${idx + 1}`,
+        sourceUrl: `https://example.com/watch?v=small-${idx + 1}`,
+      }),
+    );
+
+    renderHistory(entries, {
+      pageSize: 20,
+      totalEntries: entries.length,
+      fullEntries: entries,
+    });
+
+    const list = document.getElementById("history");
+    expect(list.dataset.virtualized).toBe("false");
+    expect(list.querySelector(".history-virtual-window")).toBeNull();
+    expect(list.querySelectorAll(".history-row")).toHaveLength(entries.length);
+  });
 });

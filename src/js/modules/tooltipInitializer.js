@@ -38,8 +38,14 @@ function removeDuplicateModifiers(text) {
 }
 
 const tooltipInstances = new Map();
+const popoverInstances = new Map();
 let tooltipSafetyPatched = false;
 let bodyClickListenerAttached = false;
+let delegatedTooltipListenersAttached = false;
+let delegatedPopoverListenersAttached = false;
+let activeTooltipElement = null;
+let activeTooltipTouch = false;
+let activeTriggerPatched = false;
 
 function ensureTooltipSafety() {
   if (tooltipSafetyPatched) return;
@@ -166,9 +172,12 @@ function replaceModifiers(text, isMac) {
 }
 
 function createTooltip(el) {
-  if (!el || tooltipInstances.has(el)) return tooltipInstances.get(el);
-  let placementOption = el.getAttribute("data-bs-placement") || "top";
-  const tooltip = new bootstrap.Tooltip(el, {
+  if (!el || !window.bootstrap?.Tooltip) return null;
+  let tooltip = tooltipInstances.get(el);
+  if (tooltip) return tooltip;
+
+  const placementOption = el.getAttribute("data-bs-placement") || "top";
+  const config = {
     trigger: "hover focus",
     customClass: "tooltip-inner",
     template:
@@ -176,35 +185,211 @@ function createTooltip(el) {
     placement: placementOption,
     offset: [0, 8],
     boundary: "window",
-  });
-  // hide on click of trigger
-  el.addEventListener(
-    "click",
-    () => {
-      try {
-        tooltip.hide();
-      } catch {}
-    },
-    { once: false },
-  );
+  };
+
+  try {
+    tooltip = window.bootstrap.Tooltip.getOrCreateInstance(el, config);
+  } catch {
+    tooltip = new window.bootstrap.Tooltip(el, config);
+  }
   tooltipInstances.set(el, tooltip);
   return tooltip;
 }
 
-function bindLazyTooltip(el) {
-  if (!el || el.dataset.tooltipBound === "1") return;
-  const handler = () => {
-    const t = createTooltip(el);
-    try {
-      t?.show();
-    } catch {}
-  };
-  el.addEventListener("pointerenter", handler, { once: true, passive: true });
-  el.addEventListener("focusin", handler, { once: true });
-  el.dataset.tooltipBound = "1";
+function findTooltipTarget(target) {
+  if (!target || !(target instanceof Element)) return null;
+  return target.closest('[data-bs-toggle="tooltip"]');
 }
 
-function initTooltips() {
+function hideTooltipForElement(el) {
+  const tooltip = tooltipInstances.get(el) || createTooltip(el);
+  if (!tooltip) return;
+  try {
+    tooltip.hide();
+  } catch {}
+}
+
+function maybeShowTooltipFromEvent(event) {
+  const el = findTooltipTarget(event.target);
+  if (!el || !el.isConnected || el.disabled) return;
+  const tooltip = createTooltip(el);
+  if (!tooltip) return;
+  if (event.type === "pointerenter") {
+    activeTooltipTouch = event.pointerType === "touch";
+    if (activeTooltipTouch) return;
+  }
+  activeTooltipElement = el;
+  try {
+    tooltip.show();
+  } catch {}
+}
+
+function maybeHideTooltipFromEvent(event) {
+  const el = findTooltipTarget(event.target);
+  if (!el || !el.isConnected) return;
+  if (event.type === "pointerleave" && activeTooltipTouch) return;
+  hideTooltipForElement(el);
+  if (activeTooltipElement === el) {
+    activeTooltipElement = null;
+  }
+}
+
+function attachDelegatedTooltipListeners() {
+  if (delegatedTooltipListenersAttached) return;
+  delegatedTooltipListenersAttached = true;
+
+  document.addEventListener("pointerenter", maybeShowTooltipFromEvent, true);
+  document.addEventListener("focusin", maybeShowTooltipFromEvent, true);
+  document.addEventListener("pointerleave", maybeHideTooltipFromEvent, true);
+  document.addEventListener("focusout", maybeHideTooltipFromEvent, true);
+  document.addEventListener(
+    "click",
+    (event) => {
+      const el = findTooltipTarget(event.target);
+      if (el) hideTooltipForElement(el);
+    },
+    true,
+  );
+}
+
+function findPopoverTarget(target) {
+  if (!target || !(target instanceof Element)) return null;
+  return target.closest('[data-bs-toggle="popover"]');
+}
+
+function createPopover(el) {
+  if (!el || !window.bootstrap?.Popover) return null;
+  let popover = popoverInstances.get(el);
+  if (popover) return popover;
+
+  const placementOption = el.getAttribute("data-bs-placement") || "auto";
+  const config = {
+    trigger: "manual",
+    placement: placementOption,
+    boundary: "window",
+    html: true,
+    sanitize: false,
+  };
+
+  try {
+    popover = window.bootstrap.Popover.getOrCreateInstance(el, config);
+  } catch {
+    popover = new window.bootstrap.Popover(el, config);
+  }
+  popoverInstances.set(el, popover);
+  return popover;
+}
+
+function hidePopoverForElement(el) {
+  const popover = popoverInstances.get(el) || createPopover(el);
+  if (!popover) return;
+  try {
+    popover.hide();
+  } catch {}
+}
+
+function hideAllPopovers(exceptEl = null) {
+  popoverInstances.forEach((popover, el) => {
+    if (exceptEl && el === exceptEl) return;
+    try {
+      popover.hide();
+    } catch {}
+  });
+}
+
+function isInsidePopoverContent(target) {
+  if (!(target instanceof Element)) return false;
+  return Boolean(target.closest(".popover"));
+}
+
+function togglePopoverFromEvent(event) {
+  const el = findPopoverTarget(event.target);
+  if (!el || !el.isConnected || el.disabled) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  const popover = createPopover(el);
+  if (!popover) return;
+
+  const tipElement =
+    (typeof popover.getTipElement === "function" && popover.getTipElement()) ||
+    popover.tip;
+  const isShown =
+    Boolean(tipElement?.classList?.contains?.("show")) &&
+    Boolean(tipElement?.isConnected);
+
+  if (isShown) {
+    hidePopoverForElement(el);
+    return;
+  }
+  hideAllPopovers(el);
+  try {
+    popover.show();
+  } catch {}
+}
+
+function attachDelegatedPopoverListeners() {
+  if (delegatedPopoverListenersAttached) return;
+  delegatedPopoverListenersAttached = true;
+
+  document.addEventListener("click", togglePopoverFromEvent, true);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      hideAllPopovers();
+    }
+  });
+}
+
+function initPopovers(root = document) {
+  if (!(window.bootstrap && window.bootstrap.Popover)) return;
+  attachDelegatedPopoverListeners();
+
+  const contextRoot =
+    root && typeof root.querySelectorAll === "function" ? root : document;
+  const popoverTriggerList = Array.from(
+    contextRoot.querySelectorAll('[data-bs-toggle="popover"]'),
+  );
+  popoverTriggerList.forEach((el) => {
+    if (el.dataset.popoverManaged === "1") return;
+    el.dataset.popoverManaged = "1";
+  });
+}
+
+function applyHotkeyTitles(tooltipTriggerList, isMac) {
+  tooltipTriggerList.forEach((el) => {
+    const previousHotkeySuffix = el.dataset.tooltipHotkeyApplied || "";
+    let baseTitle = el.getAttribute("title") ?? "";
+    if (
+      previousHotkeySuffix &&
+      baseTitle.endsWith(` (${previousHotkeySuffix})`)
+    ) {
+      baseTitle = baseTitle.slice(0, -(` (${previousHotkeySuffix})`.length));
+    }
+    const hotkey = el.dataset.hotkey;
+    if (!baseTitle) {
+      delete el.dataset.tooltipHotkeyApplied;
+      return;
+    }
+    if (hotkey) {
+      const cleaned = removeDuplicateModifiers(hotkey);
+      const updated = replaceModifiers(cleaned, isMac);
+      const nextTitle = `${baseTitle} (${updated})`;
+      if (el.getAttribute("title") !== nextTitle) {
+        el.setAttribute("title", nextTitle);
+      }
+      el.dataset.tooltipHotkeyApplied = updated;
+      return;
+    }
+    if (el.dataset.tooltipHotkeyApplied) {
+      delete el.dataset.tooltipHotkeyApplied;
+    }
+    if (el.getAttribute("title") !== baseTitle) {
+      el.setAttribute("title", baseTitle);
+    }
+  });
+}
+
+function initTooltips(root = document) {
   if (!(window.bootstrap && window.bootstrap.Tooltip)) {
     console.info(
       "[Tooltips] Bootstrap is not available. Skipping tooltip init.",
@@ -213,6 +398,7 @@ function initTooltips() {
   }
   ensureTooltipSafety();
   disposeAllTooltips();
+  attachDelegatedTooltipListeners();
 
   const isMac = navigator.platform.toUpperCase().includes("MAC");
 
@@ -226,12 +412,14 @@ function initTooltips() {
     });
   }
 
+  const contextRoot =
+    root && typeof root.querySelectorAll === "function" ? root : document;
   const tooltipTriggerList = Array.from(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]'),
+    contextRoot.querySelectorAll('[data-bs-toggle="tooltip"]'),
   );
 
   // Патч Bootstrap Tooltip для безопасного вызова _isWithActiveTrigger
-  if (bootstrap?.Tooltip?.prototype?._isWithActiveTrigger) {
+  if (!activeTriggerPatched && bootstrap?.Tooltip?.prototype?._isWithActiveTrigger) {
     const original = bootstrap.Tooltip.prototype._isWithActiveTrigger;
 
     bootstrap.Tooltip.prototype._isWithActiveTrigger = function (trigger) {
@@ -243,26 +431,16 @@ function initTooltips() {
         return false;
       }
     };
+    activeTriggerPatched = true;
   }
 
-  tooltipTriggerList.forEach((el) => {
-    const baseTitle = el.getAttribute("title");
-    const hotkey = el.dataset.hotkey;
-
-    if (baseTitle != null && hotkey && !baseTitle.includes("(")) {
-      const cleaned = removeDuplicateModifiers(hotkey);
-      const updated = replaceModifiers(cleaned, isMac);
-      el.setAttribute("title", `${baseTitle} (${updated})`);
-    }
-  });
+  applyHotkeyTitles(tooltipTriggerList, isMac);
 
   tooltipTriggerList.forEach((el) => {
-    try {
-      bindLazyTooltip(el);
-    } catch (e) {
-      console.warn("Ошибка при создании tooltip:", e);
-    }
+    if (el.dataset.tooltipManaged === "1") return;
+    el.dataset.tooltipManaged = "1";
   });
+  initPopovers(contextRoot);
 
   // Обработка текста горячих клавиш в модальном окне (кроме блока "открытие сайтов")
   document
@@ -292,7 +470,7 @@ function initTooltips() {
 
   // Глобальное скрытие тултипов при клике вне
   if (!bodyClickListenerAttached) {
-    document.body.addEventListener("click", () => {
+    document.body.addEventListener("click", (event) => {
       tooltipInstances.forEach((tooltip, el) => {
         if (!(tooltip && tooltip._element?.isConnected)) {
           tooltipInstances.delete(el);
@@ -315,13 +493,27 @@ function initTooltips() {
           console.warn("Ошибка при глобальном скрытии tooltip:", e);
         }
       });
+      popoverInstances.forEach((popover, el) => {
+        if (!(popover && popover._element?.isConnected)) {
+          popoverInstances.delete(el);
+          return;
+        }
+        const target = event.target;
+        const clickedTrigger = target instanceof Element && el.contains(target);
+        if (clickedTrigger || isInsidePopoverContent(target)) return;
+        try {
+          popover.hide();
+        } catch {}
+      });
     });
     bodyClickListenerAttached = true;
   }
 }
 
-function disposeAllTooltips() {
+function disposeAllTooltips(options = {}) {
+  const force = options?.force === true;
   tooltipInstances.forEach((tooltip, el) => {
+    if (!force && el?.isConnected) return;
     try {
       if (tooltip && typeof tooltip.dispose === "function") {
         tooltip.dispose();
@@ -330,10 +522,25 @@ function disposeAllTooltips() {
       console.warn("Ошибка при очистке tooltip:", e);
     }
     try {
-      el?.removeAttribute("data-tooltip-bound");
+      el?.removeAttribute("data-tooltip-managed");
+      el?.removeAttribute("data-tooltip-hotkey-applied");
     } catch {}
+    tooltipInstances.delete(el);
   });
-  tooltipInstances.clear();
+  popoverInstances.forEach((popover, el) => {
+    if (!force && el?.isConnected) return;
+    try {
+      if (popover && typeof popover.dispose === "function") {
+        popover.dispose();
+      }
+    } catch (e) {
+      console.warn("Ошибка при очистке popover:", e);
+    }
+    try {
+      el?.removeAttribute("data-popover-managed");
+    } catch {}
+    popoverInstances.delete(el);
+  });
 }
 
 // Проверка на наличие активного триггера для тултипа

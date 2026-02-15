@@ -2,6 +2,10 @@
 import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { applyI18n, t } from "./i18n.js";
+import {
+  closeDismissibleOverlays,
+  registerDismissibleOverlay,
+} from "./overlayManager.js";
 
 /**
  * Модуль рендера секции «Инструменты» (yt-dlp, ffmpeg).
@@ -823,6 +827,7 @@ export async function renderToolsInfo() {
 
   // --- Overflow menu: click to open/close ---
   if (moreWrap && moreBtn && moreMenu) {
+    window.__toolsInfoOverlayCleanup?.();
     // reset state
     moreWrap.classList.remove("is-open");
     moreBtn.setAttribute("aria-expanded", "false");
@@ -836,24 +841,18 @@ export async function renderToolsInfo() {
     const toggleMenu = (ev) => {
       ev.stopPropagation();
       const willOpen = !moreWrap.classList.contains("is-open");
-      // Close any other open menus of the same type
-      document.querySelectorAll(".tools-more.is-open").forEach((el) => {
-        if (el !== moreWrap) el.classList.remove("is-open");
-      });
+      closeDismissibleOverlays("tools-more-menu");
       moreWrap.classList.toggle("is-open", willOpen);
       moreBtn.setAttribute("aria-expanded", String(willOpen));
     };
 
     moreBtn.addEventListener("click", toggleMenu);
-
-    // Close on outside click
-    document.addEventListener("click", (e) => {
-      if (!moreWrap.classList.contains("is-open")) return;
-      if (!moreWrap.contains(e.target)) closeMenu();
-    });
-    // Close on Escape
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeMenu();
+    window.__toolsInfoOverlayCleanup = registerDismissibleOverlay({
+      id: "tools-more-menu",
+      panel: moreMenu,
+      isOpen: () => moreWrap.classList.contains("is-open"),
+      close: closeMenu,
+      isInsideEvent: (target) => moreWrap.contains(target),
     });
   }
 

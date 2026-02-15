@@ -170,6 +170,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 // Card Component
 .wg-card {
   @include glass-morphism;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   border-radius: 16px;
   padding: 24px;
   transition: all 0.3s ease;
@@ -590,7 +593,6 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 .wg-log-block {
-  @include glass-morphism;
   border-radius: 12px;
   overflow: hidden;
 
@@ -899,14 +901,16 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .wg-glass-effect {
   @include glass-morphism;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
 .wg-glass {
   @include glass-morphism;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
 .hidden {
@@ -1062,6 +1066,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .quick-action-card {
   @include glass-morphism;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   border-radius: 14px;
   padding: 14px;
   display: flex;
@@ -1127,8 +1134,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .tools-shell-header {
   @include glass-morphism;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   border-radius: 14px;
   padding: 14px 16px;
 
@@ -1145,8 +1153,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .tools-card {
   @include glass-morphism;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   border-radius: 14px;
   padding: 14px;
   display: grid;
@@ -1576,8 +1585,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .tools-wg-advanced-panel {
   @include glass-morphism;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   border-radius: 14px;
   padding: 14px;
   overflow: hidden;

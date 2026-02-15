@@ -54,7 +54,8 @@
   padding: 20px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   background: rgba(10, 12, 22, 0.35);
   position: relative;
   z-index: 0;
@@ -450,7 +451,8 @@
   color: rgba(255, 255, 255, 0.7);
   background: rgba(12, 14, 24, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .history-group__source {
@@ -975,7 +977,8 @@
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .history-page-side {

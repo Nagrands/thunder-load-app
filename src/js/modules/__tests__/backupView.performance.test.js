@@ -161,4 +161,25 @@ describe("backupView performance behaviors", () => {
     );
     expect(totalDisposeCalls).toBeLessThanOrEqual(3);
   });
+
+  test("virtualizes backup rows for large pages", async () => {
+    setupBootstrapTooltipMock();
+    setupWindowElectronMock(makePrograms(120));
+    const view = renderBackup();
+    document.body.appendChild(view);
+    window.dispatchEvent(
+      new CustomEvent("tabs:activated", { detail: { id: "backup" } }),
+    );
+    await flush();
+
+    const pageSize = view.querySelector("#bk-page-size");
+    pageSize.value = "25";
+    pageSize.dispatchEvent(new Event("change", { bubbles: true }));
+    await flush();
+
+    const list = view.querySelector("#bk-list");
+    const renderedRows = list.querySelectorAll(".bk-row").length;
+    expect(renderedRows).toBeGreaterThan(0);
+    expect(renderedRows).toBeLessThan(25);
+  });
 });

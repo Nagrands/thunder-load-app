@@ -288,6 +288,14 @@ export default function renderBackup() {
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
   let hasRenderedListOnce = false;
   let hintsTimer = null;
+  let clearVirtualization = null;
+  let currentVisibleKeys = new Set();
+  const VIRTUALIZATION_MIN_ITEMS = 20;
+  const VIRTUALIZATION_OVERSCAN = 6;
+  const VIRTUAL_ROW_HEIGHT = {
+    compact: 94,
+    full: 122,
+  };
 
   // Кнопка с иконкой «минус» вместо счётчика открывает модальное окно
   const minusBtn = getEl("#bk-open-delete-modal");
@@ -1137,12 +1145,7 @@ export default function renderBackup() {
   }
 
   function selectAllVisible() {
-    const visibleRows = Array.from(
-      wrapper.querySelectorAll(".bk-row:not(.bk-skeleton):not(.is-locked)"),
-    );
-    visibleRows.forEach((row) =>
-      setSelectionForKey(row.dataset.profileKey, true),
-    );
+    currentVisibleKeys.forEach((key) => setSelectionForKey(key, true));
     updateActionsState();
   }
 
@@ -1178,16 +1181,7 @@ export default function renderBackup() {
       }
     });
 
-    const visibleRows = Array.from(
-      bkList.querySelectorAll(".bk-row:not(.bk-skeleton)"),
-    ).filter(
-      (row) =>
-        row.offsetParent !== null && !row.classList.contains("is-locked"),
-    );
-
-    const visibleKeys = new Set(
-      visibleRows.map((row) => row.dataset.profileKey).filter(Boolean),
-    );
+    const visibleKeys = new Set(currentVisibleKeys);
 
     const selectedVisible = Array.from(selectedKeys).filter((key) =>
       visibleKeys.has(key),
@@ -1321,6 +1315,191 @@ export default function renderBackup() {
     if (!res?.success) throw new Error(res?.error || "save failed");
   };
 
+  const createProgramRow = (entry, pageIndex, root) => {
+    const p = entry.program;
+    const idx = entry.idx;
+    const key = profileKey(p);
+    const locked = lockedProfiles.has(key);
+    const isSelected = selectedKeys.has(key);
+    const tags = Array.isArray(p.tags) ? p.tags.filter(Boolean) : [];
+
+    if (viewMode === "compact") {
+      const row = document.createElement("div");
+      row.className = "bk-row bk-row-compact wg-card";
+      row.style.animationDelay = `${pageIndex * 0.04}s`;
+      row.dataset.profileKey = key;
+      row.dataset.index = String(idx);
+      row.dataset.i = String(idx);
+      row.tabIndex = 0;
+      row.setAttribute("role", "button");
+      row.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      if (isSelected) row.classList.add("is-selected");
+      row.innerHTML = `
+    <div class="bk-row-content">
+      <div class="bk-row-main">
+        <i class="fa-solid fa-database"></i>
+        <span class="bk-name">${p.name}</span>
+      </div>
+      <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
+      ${
+        tags.length
+          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
+              .map((t) => `<span class="bk-tag">${t}</span>`)
+              .join("")}</div>`
+          : ""
+      }
+    </div>
+    <div class="bk-row-actions">
+      <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
+      <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
+    </div>`;
+      row.addEventListener("dblclick", () => showEditForm(idx));
+      row.addEventListener("click", (event) => {
+        if (
+          event.target.closest(".bk-row-actions") ||
+          event.target.closest("button")
+        ) {
+          return;
+        }
+        toggleRowSelection(row);
+      });
+      row.addEventListener("keydown", (event) => {
+        if (event.key === " " || event.key === "Enter") {
+          event.preventDefault();
+          toggleRowSelection(row);
+        }
+      });
+      root.appendChild(row);
+      applyLockToRow(row, locked);
+      return row;
+    }
+
+    const row = document.createElement("div");
+    row.className = "bk-row";
+    row.style.animationDelay = `${pageIndex * 0.05}s`;
+    row.dataset.profileKey = key;
+    row.dataset.index = String(idx);
+    row.dataset.i = String(idx);
+
+    const lbl = lastLabel(state.lastTimes[p.name]);
+    const patterns =
+      Array.isArray(p.config_patterns) && p.config_patterns.length
+        ? p.config_patterns.join(", ")
+        : tb("filter.allFiles");
+
+    row.innerHTML = `
+    <div class="bk-row-content min-w-0">
+      <div class="font-semibold truncate">${p.name}</div>
+      <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
+      <div class="back-filter">${tb("filter.label")} ${patterns}</div>
+      ${
+        tags.length
+          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
+              .map((t) => `<span class="bk-tag">${t}</span>`)
+              .join("")}</div>`
+          : ""
+      }
+      <div class="text-xs text-muted">${tb("lastCopy.label")} <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
+    </div>
+    <div class="bk-row-actions">
+      <button class="btn btn-sm bk-edit" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.edit")}"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.openSource")}"><i class="fa-regular fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-open" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.openDestination")}"><i class="fa-solid fa-folder-open"></i></button>
+      <button class="btn btn-sm bk-run" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.run")}"><i class="fa-solid fa-play"></i></button>
+    </div>
+  `;
+
+    row.addEventListener("dblclick", () => showEditForm(idx));
+    row.addEventListener("click", (event) => {
+      if (
+        event.target.closest(".bk-row-actions") ||
+        event.target.closest("button")
+      ) {
+        return;
+      }
+      toggleRowSelection(row);
+    });
+    row.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        toggleRowSelection(row);
+      }
+    });
+    row.classList.toggle("is-selected", isSelected);
+    row.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    row.tabIndex = 0;
+    row.setAttribute("role", "button");
+    row.setAttribute("aria-label", `${p.name}: ${p.source_path} → ${p.backup_path}`);
+    root.appendChild(row);
+    applyLockToRow(row, locked);
+    return row;
+  };
+
+  const renderVirtualizedRows = (root, entries) => {
+    const rowHeight =
+      viewMode === "compact"
+        ? VIRTUAL_ROW_HEIGHT.compact
+        : VIRTUAL_ROW_HEIGHT.full;
+
+    let lastStart = -1;
+    let lastEnd = -1;
+    let rafId = null;
+
+    const renderWindow = () => {
+      const viewportHeight = Math.max(1, root.clientHeight);
+      const scrollTop = root.scrollTop;
+      const total = entries.length;
+
+      const start = Math.max(
+        0,
+        Math.floor(scrollTop / rowHeight) - VIRTUALIZATION_OVERSCAN,
+      );
+      const end = Math.min(
+        total - 1,
+        Math.ceil((scrollTop + viewportHeight) / rowHeight) +
+          VIRTUALIZATION_OVERSCAN,
+      );
+
+      if (start === lastStart && end === lastEnd) return;
+      lastStart = start;
+      lastEnd = end;
+
+      const topPad = document.createElement("div");
+      topPad.style.height = `${start * rowHeight}px`;
+      const bottomPad = document.createElement("div");
+      bottomPad.style.height = `${Math.max(0, total - end - 1) * rowHeight}px`;
+
+      const fragment = document.createDocumentFragment();
+      fragment.appendChild(topPad);
+      for (let i = start; i <= end; i += 1) {
+        createProgramRow(entries[i], i, fragment);
+      }
+      fragment.appendChild(bottomPad);
+
+      root.innerHTML = "";
+      root.appendChild(fragment);
+      queueMicrotask(() => initBackupTooltips(root));
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        renderWindow();
+      });
+    };
+
+    root.addEventListener("scroll", onScroll, { passive: true });
+    renderWindow();
+
+    return () => {
+      root.removeEventListener("scroll", onScroll);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  };
+
   /**
    * Render the visible list of presets with current filter applied.
    * @returns {void}
@@ -1329,6 +1508,10 @@ export default function renderBackup() {
   function renderList() {
     const root = getEl("#bk-list");
     if (!root || !state.programs) return;
+    if (clearVirtualization) {
+      clearVirtualization();
+      clearVirtualization = null;
+    }
     root.innerHTML = "";
 
     // Если выбран тип архива, которого больше нет, сбрасываем фильтр на "all"
@@ -1422,6 +1605,7 @@ export default function renderBackup() {
 
     // Handle empty state
     if (!filtered.length) {
+      currentVisibleKeys = new Set();
       const hasPrograms = state.programs.length > 0;
       root.innerHTML = `
         <div class="wg-alert is-muted">
@@ -1468,135 +1652,35 @@ export default function renderBackup() {
 
     const visibleKeys = new Set(paged.map((item) => profileKey(item)));
     pruneSelection(visibleKeys);
+    currentVisibleKeys = new Set(
+      paged
+        .map((item) => profileKey(item))
+        .filter((key) => key && !lockedProfiles.has(key)),
+    );
 
-    paged.forEach((p, index) => {
-      const idx = state.programs.indexOf(p);
-      const key = profileKey(p);
-      const locked = lockedProfiles.has(key);
-      const isSelected = selectedKeys.has(key);
-      const tags = Array.isArray(p.tags) ? p.tags.filter(Boolean) : [];
+    const indexedPaged = paged.map((program, pageIndex) => ({
+      program,
+      pageIndex,
+      idx: state.programs.indexOf(program),
+    }));
 
-      if (viewMode === "compact") {
-        const row = document.createElement("div");
-        row.className = "bk-row bk-row-compact wg-card";
-        row.style.animationDelay = `${index * 0.04}s`;
-        row.dataset.profileKey = key;
-        row.dataset.index = String(idx);
-        row.dataset.i = String(idx);
-        row.tabIndex = 0;
-        row.setAttribute("role", "button");
-        row.setAttribute("aria-pressed", isSelected ? "true" : "false");
-        if (isSelected) row.classList.add("is-selected");
-        row.innerHTML = `
-    <div class="bk-row-content">
-      <div class="bk-row-main">
-        <i class="fa-solid fa-database"></i>
-        <span class="bk-name">${p.name}</span>
-      </div>
-      <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
-      ${
-        tags.length
-          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
-              .map((t) => `<span class="bk-tag">${t}</span>`)
-              .join("")}</div>`
-          : ""
-      }
-    </div>
-    <div class="bk-row-actions">
-      <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
-      <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
-    </div>`;
-        row.addEventListener("dblclick", () => showEditForm(idx));
-        row.addEventListener("click", (event) => {
-          if (
-            event.target.closest(".bk-row-actions") ||
-            event.target.closest("button")
-          ) {
-            return;
-          }
-          toggleRowSelection(row);
-        });
-        row.addEventListener("keydown", (event) => {
-          if (event.key === " " || event.key === "Enter") {
-            event.preventDefault();
-            toggleRowSelection(row);
-          }
-        });
-        root.appendChild(row);
-        applyLockToRow(row, locked);
-        return;
-      }
+    if (clearVirtualization) {
+      clearVirtualization();
+      clearVirtualization = null;
+    }
 
-      const row = document.createElement("div");
-      row.className = "bk-row";
-      row.style.animationDelay = `${index * 0.05}s`;
-      row.dataset.profileKey = key;
-      row.dataset.index = String(idx);
-      row.dataset.i = String(idx);
-
-      const lbl = lastLabel(state.lastTimes[p.name]);
-      const patterns =
-        Array.isArray(p.config_patterns) && p.config_patterns.length
-          ? p.config_patterns.join(", ")
-          : tb("filter.allFiles");
-
-      row.innerHTML = `
-    <div class="bk-row-content min-w-0">
-      <div class="font-semibold truncate">${p.name}</div>
-      <div class="back-path" data-bs-toggle="tooltip" data-bs-placement="top" title="${p.source_path} → ${p.backup_path}">${p.source_path} → ${p.backup_path}</div>
-      <div class="back-filter">${tb("filter.label")} ${patterns}</div>
-      ${
-        tags.length
-          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
-              .map((t) => `<span class="bk-tag">${t}</span>`)
-              .join("")}</div>`
-          : ""
-      }
-      <div class="text-xs text-muted">${tb("lastCopy.label")} <span class="bk-chip ${lbl.cls}" data-bs-toggle="tooltip" data-bs-placement="top" title="${state.lastTimes[p.name] ? new Date(state.lastTimes[p.name]).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : ""}">${lbl.text}</span></div>
-    </div>
-    <div class="bk-row-actions">
-      <button class="btn btn-sm bk-edit" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.edit")}"><i class="fa-solid fa-pen"></i></button>
-      <button class="btn btn-sm bk-open-src" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.openSource")}"><i class="fa-regular fa-folder-open"></i></button>
-      <button class="btn btn-sm bk-open" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.openDestination")}"><i class="fa-solid fa-folder-open"></i></button>
-      <button class="btn btn-sm bk-run" data-i="${idx}" data-lockable="true" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.run")}"><i class="fa-solid fa-play"></i></button>
-    </div>
-  `;
-
-      row.addEventListener("dblclick", () => showEditForm(idx));
-      row.addEventListener("click", (event) => {
-        if (
-          event.target.closest(".bk-row-actions") ||
-          event.target.closest("button")
-        ) {
-          return;
-        }
-        toggleRowSelection(row);
-      });
-      row.addEventListener("keydown", (event) => {
-        if (event.key === " " || event.key === "Enter") {
-          event.preventDefault();
-          toggleRowSelection(row);
-        }
-      });
-      row.classList.toggle("is-selected", isSelected);
-      row.setAttribute("aria-pressed", isSelected ? "true" : "false");
-      row.tabIndex = 0;
-      row.setAttribute("role", "button");
-      root.appendChild(row);
-      row.setAttribute(
-        "aria-label",
-        `${p.name}: ${p.source_path} → ${p.backup_path}`,
-      );
-      applyLockToRow(row, locked);
-    });
+    if (indexedPaged.length >= VIRTUALIZATION_MIN_ITEMS) {
+      clearVirtualization = renderVirtualizedRows(root, indexedPaged);
+    } else {
+      indexedPaged.forEach((entry) => createProgramRow(entry, entry.pageIndex, root));
+      queueMicrotask(() => initBackupTooltips(root));
+    }
 
     updateActionsState();
-    // Сбросить прокрутку списка после фильтрации
-    root.scrollTop = 0;
-    queueMicrotask(() => {
-      initBackupTooltips(root);
-      updateActionsState();
-    });
+    if (!clearVirtualization) {
+      // Сбросить прокрутку списка после фильтрации только для обычного режима
+      root.scrollTop = 0;
+    }
     hasRenderedListOnce = true;
   }
 
@@ -2868,10 +2952,7 @@ export default function renderBackup() {
       if (selAll.checked) {
         selectAllVisible();
       } else {
-        const visibleKeys = Array.from(wrapper.querySelectorAll(".bk-row"))
-          .map((row) => row.dataset.profileKey)
-          .filter(Boolean);
-        visibleKeys.forEach((key) => clearSelectionForKey(key));
+        currentVisibleKeys.forEach((key) => clearSelectionForKey(key));
       }
       updateActionsState();
     });
@@ -3096,6 +3177,10 @@ export default function renderBackup() {
 
   const destroyViewResources = () => {
     stopHintsRotation();
+    if (clearVirtualization) {
+      clearVirtualization();
+      clearVirtualization = null;
+    }
     window.removeEventListener("tabs:activated", onTabsActivated);
     document.removeEventListener("visibilitychange", syncHintsRotation);
   };

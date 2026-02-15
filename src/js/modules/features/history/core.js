@@ -33,6 +33,8 @@ import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
 
 const RECENT_HISTORY_LIMIT = 8;
+const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
+const HISTORY_VIRTUAL_OVERSCAN_PX = 480;
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
@@ -85,6 +87,7 @@ let lastRenderedFiltered = [];
 let historyTruncationBound = false;
 let historyTruncationResizeTimer = null;
 let historyMenuBound = false;
+let historyVirtualList = null;
 
 const pluralize = (value, [one, few, many]) => {
   const n = Math.abs(Number(value)) || 0;
@@ -952,8 +955,231 @@ function _showFilterInput() {
 }
 
 function clearHistoryContainer(container) {
-  [...container.querySelectorAll(".log-entry, .history-group")].forEach((el) =>
-    el.remove(),
+  if (!container) return;
+  container.innerHTML = "";
+}
+
+function destroyHistoryVirtualList() {
+  if (!historyVirtualList) return;
+  try {
+    historyVirtualList.destroy?.();
+  } catch (error) {
+    console.warn("Не удалось остановить виртуализацию истории:", error);
+  }
+  historyVirtualList = null;
+}
+
+function createHistoryGroupElement(entry) {
+  const entryDate = normalizeEntryDate(entry);
+  const group = document.createElement("div");
+  group.className = "history-group";
+  const left = `<span class="history-group__title">${escapeHtml(
+    getDayLabel(entryDate),
+  )}</span>`;
+  const sourceLabel = formatSourceLabel(entry.sourceUrl);
+  const sourceIcon = getSourceIconClass(entry.sourceUrl);
+  const right =
+    state.currentSortKey === "source"
+      ? `<span class="history-group__source">${
+          sourceIcon ? `<i class="${sourceIcon}"></i>` : ""
+        }${escapeHtml(sourceLabel)}</span>`
+      : "";
+  group.innerHTML = `${left}${right}`;
+  return group;
+}
+
+function estimateVirtualItemHeight(type) {
+  if (type === "group") return 42;
+  if (state.historyDetailsExpanded) {
+    const density = normalizeDensity(state.historyDensity);
+    if (density === "compact") return 290;
+    if (density === "comfort") return 340;
+    return 320;
+  }
+  const density = normalizeDensity(state.historyDensity);
+  if (density === "compact") return 88;
+  if (density === "comfort") return 124;
+  return 104;
+}
+
+function buildVirtualHistoryItems(entries = []) {
+  const items = [];
+  let lastGroupKey = null;
+  entries.forEach((entry) => {
+    const entryDate = normalizeEntryDate(entry);
+    const groupKey = getDayKey(entryDate);
+    if (groupKey !== lastGroupKey) {
+      lastGroupKey = groupKey;
+      items.push({
+        type: "group",
+        key: `group:${groupKey}`,
+        entry,
+        height: estimateVirtualItemHeight("group"),
+      });
+    }
+    items.push({
+      type: "entry",
+      key: `entry:${entry?.id ?? entry?.filePath ?? Math.random()}`,
+      entry,
+      height: estimateVirtualItemHeight("entry"),
+    });
+  });
+  return items;
+}
+
+function binarySearchPrefix(prefix, value) {
+  let low = 0;
+  let high = prefix.length - 1;
+  while (low < high) {
+    const mid = Math.floor((low + high + 1) / 2);
+    if (prefix[mid] <= value) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+}
+
+function renderHistoryVirtualized(container, entries = []) {
+  const items = buildVirtualHistoryItems(entries);
+  const topSpacer = document.createElement("div");
+  topSpacer.className = "history-virtual-spacer history-virtual-spacer--top";
+  topSpacer.setAttribute("aria-hidden", "true");
+
+  const windowRoot = document.createElement("div");
+  windowRoot.className = "history-virtual-window";
+
+  const bottomSpacer = document.createElement("div");
+  bottomSpacer.className =
+    "history-virtual-spacer history-virtual-spacer--bottom";
+  bottomSpacer.setAttribute("aria-hidden", "true");
+
+  container.append(topSpacer, windowRoot, bottomSpacer);
+
+  let prefix = [];
+  let totalHeight = 0;
+  const rebuildPrefix = () => {
+    prefix = new Array(items.length + 1);
+    prefix[0] = 0;
+    for (let i = 0; i < items.length; i += 1) {
+      prefix[i + 1] = prefix[i] + (items[i].height || 0);
+    }
+    totalHeight = prefix[prefix.length - 1] || 0;
+  };
+  rebuildPrefix();
+
+  let currentStart = -1;
+  let currentEnd = -1;
+  let scrollFrame = null;
+
+  const renderRange = () => {
+    scrollFrame = null;
+    const rect = container.getBoundingClientRect();
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight || 900;
+    const offsetInContainer = Math.max(0, -rect.top);
+    const visibleStartPx = Math.max(
+      0,
+      offsetInContainer - HISTORY_VIRTUAL_OVERSCAN_PX,
+    );
+    const visibleEndPx = Math.max(
+      visibleStartPx,
+      Math.min(
+        totalHeight,
+        offsetInContainer + viewportHeight + HISTORY_VIRTUAL_OVERSCAN_PX,
+      ),
+    );
+
+    const start = Math.max(
+      0,
+      Math.min(items.length, binarySearchPrefix(prefix, visibleStartPx)),
+    );
+    const end = Math.max(
+      start,
+      Math.min(items.length, binarySearchPrefix(prefix, visibleEndPx) + 1),
+    );
+
+    if (start === currentStart && end === currentEnd) return;
+    currentStart = start;
+    currentEnd = end;
+
+    topSpacer.style.height = `${prefix[start]}px`;
+    bottomSpacer.style.height = `${Math.max(0, totalHeight - prefix[end])}px`;
+
+    const fragment = document.createDocumentFragment();
+    for (let i = start; i < end; i += 1) {
+      const item = items[i];
+      if (item.type === "group") {
+        const group = createHistoryGroupElement(item.entry);
+        group.dataset.virtualIndex = String(i);
+        fragment.appendChild(group);
+        continue;
+      }
+      const { el } = createLogEntry(item.entry);
+      el.dataset.virtualIndex = String(i);
+      fragment.appendChild(el);
+    }
+    windowRoot.innerHTML = "";
+    windowRoot.appendChild(fragment);
+
+    attachDeleteListeners();
+    requestAnimationFrame(() => {
+      updateTitleTruncation();
+      initTooltips();
+      updateToggleAllButtonState();
+    });
+
+    let measuredChanged = false;
+    windowRoot.childNodes.forEach((node) => {
+      if (!(node instanceof HTMLElement)) return;
+      const index = Number(node.dataset.virtualIndex);
+      if (!Number.isFinite(index) || index < 0 || index >= items.length) return;
+      const measured = Math.ceil(node.getBoundingClientRect().height || 0);
+      if (!measured) return;
+      if (Math.abs((items[index].height || 0) - measured) < 2) return;
+      items[index].height = measured;
+      measuredChanged = true;
+    });
+    if (measuredChanged) {
+      rebuildPrefix();
+      topSpacer.style.height = `${prefix[start]}px`;
+      bottomSpacer.style.height = `${Math.max(0, totalHeight - prefix[end])}px`;
+      scheduleRender();
+    }
+  };
+
+  const scheduleRender = () => {
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(renderRange);
+  };
+
+  window.addEventListener("scroll", scheduleRender, { passive: true });
+  window.addEventListener("resize", scheduleRender, { passive: true });
+  windowRoot.addEventListener("load", scheduleRender, true);
+  renderRange();
+
+  return {
+    enabled: true,
+    requestRender: scheduleRender,
+    destroy() {
+      if (scrollFrame) {
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = null;
+      }
+      window.removeEventListener("scroll", scheduleRender);
+      window.removeEventListener("resize", scheduleRender);
+      windowRoot.removeEventListener("load", scheduleRender, true);
+    },
+  };
+}
+
+function syncSelectedEntriesWith(entries = []) {
+  const availableIds = new Set(
+    entries.map((entry) => entry?.id?.toString?.() || "").filter(Boolean),
+  );
+  state.selectedEntries = (state.selectedEntries || []).filter((id) =>
+    availableIds.has(String(id)),
   );
 }
 
@@ -1029,6 +1255,7 @@ function toggleAllHistoryDetails(forceState = null) {
   try {
     localStorage.setItem("historyDetailsExpanded", String(shouldOpen));
   } catch {}
+  historyVirtualList?.requestRender?.();
 }
 
 function updateTitleTruncation() {
@@ -1793,6 +2020,8 @@ function createLogEntry(entry) {
   checkbox.className = "history-row__checkbox";
   checkbox.id = checkboxId;
   checkbox.dataset.id = entry.id || "";
+  const isSelected = state.selectedEntries.includes(entry.id?.toString() || "");
+  checkbox.checked = isSelected;
   const checkboxUi = document.createElement("span");
   checkboxUi.className = "history-row__checkbox-ui";
   selectWrap.append(checkbox, checkboxUi);
@@ -2075,14 +2304,22 @@ function createLogEntry(entry) {
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "history-row__toggle";
-  toggle.setAttribute("aria-expanded", "false");
-  toggle.setAttribute("aria-label", t("history.details.expand"));
-  toggle.title = t("history.details.expand");
+  const initialDetailsOpen = state.historyDetailsExpanded === true;
+  toggle.setAttribute("aria-expanded", initialDetailsOpen ? "true" : "false");
+  const initialToggleLabel = initialDetailsOpen
+    ? t("history.details.collapse")
+    : t("history.details.expand");
+  toggle.setAttribute("aria-label", initialToggleLabel);
+  toggle.title = initialToggleLabel;
   toggle.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
   actions.append(toggle);
 
   const details = document.createElement("div");
   details.className = "history-row__details";
+  if (initialDetailsOpen) {
+    details.classList.add("is-open");
+    el.classList.add("is-open");
+  }
 
   const preview = document.createElement("div");
   preview.className = `history-row__preview${hasPreview ? "" : " is-placeholder"}`;
@@ -2193,6 +2430,7 @@ function createLogEntry(entry) {
     toggle.setAttribute("aria-label", label);
     toggle.title = label;
     updateToggleAllButtonState();
+    historyVirtualList?.requestRender?.();
   });
 
   el.addEventListener("click", async (event) => {
@@ -2216,6 +2454,7 @@ function createLogEntry(entry) {
 
   el.append(selectWrap, thumb, main, actions);
   el.appendChild(details);
+  if (isSelected) el.classList.add("selected");
 
   return { el };
 }
@@ -2508,9 +2747,11 @@ function renderHistory(entries, meta = {}) {
   bindHistoryMenuClose();
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
+  destroyHistoryVirtualList();
 
   clearHistoryContainer(container);
   clearHistorySelection();
+  if (container) container.dataset.virtualized = "false";
 
   if (isEmpty) {
     const hasActiveFilters =
@@ -2566,50 +2807,36 @@ function renderHistory(entries, meta = {}) {
   const filtersRow = document.querySelector(".history-filters-row");
   if (filtersRow) filtersRow.classList.remove("hidden");
 
-  let lastGroupKey = null;
-  pageEntries.forEach((entry) => {
-    const entryDate = normalizeEntryDate(entry);
-    const groupKey = getDayKey(entryDate);
-    if (groupKey !== lastGroupKey) {
-      lastGroupKey = groupKey;
-      const group = document.createElement("div");
-      group.className = "history-group";
-      const left = `<span class="history-group__title">${escapeHtml(
-        getDayLabel(entryDate),
-      )}</span>`;
-      const sourceLabel = formatSourceLabel(entry.sourceUrl);
-      const sourceIcon = getSourceIconClass(entry.sourceUrl);
-      const right =
-        state.currentSortKey === "source"
-          ? `<span class="history-group__source">${
-              sourceIcon ? `<i class="${sourceIcon}"></i>` : ""
-            }${escapeHtml(sourceLabel)}</span>`
-          : "";
-      group.innerHTML = `${left}${right}`;
-      container.appendChild(group);
-    }
+  syncSelectedEntriesWith(pageEntries);
+  const shouldVirtualize = pageEntries.length >= HISTORY_VIRTUALIZATION_MIN_ITEMS;
+  container.dataset.virtualized = shouldVirtualize ? "true" : "false";
+  if (shouldVirtualize) {
+    historyVirtualList = renderHistoryVirtualized(container, pageEntries);
+  } else {
+    let lastGroupKey = null;
+    pageEntries.forEach((entry) => {
+      const entryDate = normalizeEntryDate(entry);
+      const groupKey = getDayKey(entryDate);
+      if (groupKey !== lastGroupKey) {
+        lastGroupKey = groupKey;
+        container.appendChild(createHistoryGroupElement(entry));
+      }
 
-    const { el } = createLogEntry(entry);
-    container.appendChild(el);
-  });
-  if (state.historyDetailsExpanded) {
-    toggleAllHistoryDetails(true);
+      const { el } = createLogEntry(entry);
+      container.appendChild(el);
+    });
+    requestAnimationFrame(() => {
+      updateTitleTruncation();
+      initTooltips();
+    });
+    attachDeleteListeners();
   }
-  requestAnimationFrame(() => {
-    updateTitleTruncation();
-    initTooltips();
-  });
 
   const highlighted = container.querySelector(".new-entry");
   if (highlighted) {
     highlighted.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  attachDeleteListeners();
-
-  state.selectedEntries = Array.from(
-    document.querySelectorAll(".history-row__checkbox:checked"),
-  ).map((el) => el.dataset.id);
   updateDeleteSelectedButton();
 
   updatePaginationControls({
