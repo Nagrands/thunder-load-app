@@ -564,6 +564,25 @@ export default function renderWireGuard() {
             <h3><i class="fa-solid fa-gauge"></i> <span data-i18n="wg.status.title">Статус</span></h3>
             <p id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</p>
           </div>
+          <div class="meta-divider" aria-hidden="true"></div>
+          <div class="meta-row wg-meta-tips">
+            <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
+            <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
+               • Проверьте настройки брандмауэра<br>
+               • Убедитесь, что удаленный хост доступен</p>
+            <div class="wg-tips-controls">
+              <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
+                <i class="fa-solid fa-pause"></i>
+              </button>
+              <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+              <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
+            </div>
+          </div>
         </div>
 
         <div class="wg-section">
@@ -596,25 +615,6 @@ export default function renderWireGuard() {
               </div>
               <pre id="wg-log" class="wg-status console"></pre>
             </details>
-        </div>
-        
-        <div class="info-card">
-          <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
-          <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
-             • Проверьте настройки брандмауэра<br>
-             • Убедитесь, что удаленный хост доступен</p>
-          <div class="wg-tips-controls">
-            <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
-              <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
-              <i class="fa-solid fa-pause"></i>
-            </button>
-            <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
-              <i class="fa-solid fa-chevron-right"></i>
-            </button>
-            <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
-          </div>
         </div>
       </div>
     </div>

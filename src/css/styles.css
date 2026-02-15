@@ -19630,6 +19630,15 @@ video {
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
+.wg-side-panel .info-card.wg-meta-card .meta-row.wg-meta-tips p {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-quality);
+  line-height: 1.5;
+}
+.wg-side-panel .info-card.wg-meta-card .meta-row.wg-meta-tips .wg-tips-controls {
+  margin-top: 10px;
+}
 .wg-side-panel .info-card.wg-meta-card .meta-divider {
   height: 1px;
   margin: 14px 0;

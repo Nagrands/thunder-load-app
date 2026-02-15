@@ -799,6 +799,19 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
       font-variant-numeric: tabular-nums;
     }
 
+    .meta-row.wg-meta-tips {
+      p {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--color-quality);
+        line-height: 1.5;
+      }
+
+      .wg-tips-controls {
+        margin-top: 10px;
+      }
+    }
+
     .meta-divider {
       height: 1px;
       margin: 14px 0;
