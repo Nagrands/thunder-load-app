@@ -160,28 +160,39 @@ describe("wireguardView quick actions", () => {
     document.body.appendChild(el);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
+    const btn = el.querySelector("#tools-wg-advanced-toggle");
     const panel = el.querySelector("#tools-wg-advanced-panel");
+    expect(btn?.getAttribute("aria-expanded")).toBe("false");
     expect(panel?.classList.contains("is-collapsed")).toBe(true);
     expect(panel?.classList.contains("is-open")).toBe(false);
+    expect(panel?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  test("toggles WG advanced panel and persists state", async () => {
+  test("toggles WG advanced panel, persists state, and manages focus", async () => {
     const el = renderWireGuard();
     document.body.appendChild(el);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const btn = el.querySelector("#tools-wg-advanced-toggle");
     const panel = el.querySelector("#tools-wg-advanced-panel");
+    const ip = el.querySelector("#wg-ip");
     expect(btn).not.toBeNull();
     expect(panel).not.toBeNull();
+    expect(btn.getAttribute("aria-controls")).toBe("tools-wg-advanced-panel");
 
     btn.click();
     expect(panel.classList.contains("is-open")).toBe(true);
+    expect(btn.getAttribute("aria-expanded")).toBe("true");
+    expect(panel.getAttribute("aria-hidden")).toBe("false");
     expect(localStorage.getItem("toolsWgAdvancedOpen")).toBe("1");
+    expect(document.activeElement).toBe(ip);
 
     btn.click();
     expect(panel.classList.contains("is-collapsed")).toBe(true);
+    expect(btn.getAttribute("aria-expanded")).toBe("false");
+    expect(panel.getAttribute("aria-hidden")).toBe("true");
     expect(localStorage.getItem("toolsWgAdvancedOpen")).toBe("0");
+    expect(document.activeElement).toBe(btn);
   });
 
   test("asks confirmation before restart shortcut IPC call", async () => {
@@ -208,6 +219,64 @@ describe("wireguardView quick actions", () => {
     ).toHaveBeenCalledTimes(1);
     expect(el.querySelector("#restart-shortcut-result")?.textContent).toBe(
       "quickActions.restart.created",
+    );
+  });
+
+  test("does not send WG request on Enter inside hash input", async () => {
+    const el = renderWireGuard();
+    document.body.appendChild(el);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const hashExpected = el.querySelector("#hash-expected");
+    hashExpected.focus();
+    hashExpected.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const sendCalls = window.electron.ipcRenderer.invoke.mock.calls.filter(
+      ([channel]) => channel === "wg-send-udp",
+    );
+    expect(sendCalls).toHaveLength(0);
+  });
+
+  test("sends WG request on Enter inside WG form", async () => {
+    const el = renderWireGuard();
+    document.body.appendChild(el);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const toggle = el.querySelector("#tools-wg-advanced-toggle");
+    const wgIp = el.querySelector("#wg-ip");
+    toggle.click();
+    wgIp.focus();
+    wgIp.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const sendCalls = window.electron.ipcRenderer.invoke.mock.calls.filter(
+      ([channel]) => channel === "wg-send-udp",
+    );
+    expect(sendCalls).toHaveLength(1);
+  });
+
+  test("opens WG help with localized keys", async () => {
+    const el = renderWireGuard();
+    document.body.appendChild(el);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const helpBtn = el.querySelector("#wg-help");
+    helpBtn.click();
+
+    expect(showConfirmationDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "wg.help.title",
+        subtitle: "wg.help.subtitle",
+        confirmText: "wg.help.confirm",
+        message: "wg.help.messageHtml",
+        singleButton: true,
+        tone: "info",
+      }),
     );
   });
 

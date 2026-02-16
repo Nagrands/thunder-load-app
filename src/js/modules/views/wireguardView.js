@@ -519,6 +519,8 @@ export default function renderWireGuard() {
               id="tools-wg-advanced-toggle"
               type="button"
               class="small-button"
+              aria-controls="tools-wg-advanced-panel"
+              aria-expanded="false"
               data-i18n="tools.wg.advanced.toggle.open"
             >
               Advanced
@@ -549,7 +551,7 @@ export default function renderWireGuard() {
             <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
               <i class="fa-solid fa-network-wired"></i>
             </button>
-            <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка">
+            <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка" data-i18n-title="wg.help.tooltip">
               <i class="fa-solid fa-circle-question"></i>
             </button>
           </div>
@@ -669,7 +671,7 @@ export default function renderWireGuard() {
         </article>
       </section>
 
-      <section id="tools-wg-advanced-panel" class="tools-wg-advanced-panel is-collapsed">
+      <section id="tools-wg-advanced-panel" class="tools-wg-advanced-panel is-collapsed" aria-hidden="true">
         <div class="tools-wg-advanced-grid">
           <div class="wg-glass">
             <div class="wg-header wg-header-advanced">
@@ -935,6 +937,9 @@ export default function renderWireGuard() {
     // Отправка по Enter и Ctrl/Cmd+Enter
     view.addEventListener("keydown", (e) => {
       if (e.key !== "Enter") return;
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (!target.closest("#tools-wg-advanced-panel")) return;
       if (e.metaKey || e.ctrlKey) {
         e.preventDefault();
         const send = getEl("wg-send", view);
@@ -979,21 +984,12 @@ export default function renderWireGuard() {
     const helpBtn = getEl("wg-help", view);
     helpBtn?.addEventListener("click", () => {
       showConfirmationDialog({
-        title: "Зачем нужна WG Unlock",
-        subtitle: "Коротко о том, когда это полезно",
-        confirmText: "Понятно",
+        title: t("wg.help.title"),
+        subtitle: t("wg.help.subtitle"),
+        confirmText: t("wg.help.confirm"),
         singleButton: true,
         tone: "info",
-        message: `
-          <div class="toast-message">
-            <p>WG Unlock помогает восстановить работу WireGuard, когда соединение «засыпает» или сеть после смены Wi-Fi работает нестабильно.</p>
-            <ul>
-              <li>Отправляет UDP-сигнал на указанный адрес и порт.</li>
-              <li>Удобен после сна ноутбука, смены сети и при нестабильном VPN.</li>
-              <li>Не заменяет WireGuard-клиент: при проблемах сервера/ключей может не помочь.</li>
-            </ul>
-          </div>
-        `,
+        message: t("wg.help.messageHtml"),
       });
     });
 
@@ -1086,14 +1082,27 @@ export default function renderWireGuard() {
 
     const advancedPanel = getEl("tools-wg-advanced-panel", view);
     const advancedToggle = getEl("tools-wg-advanced-toggle", view);
-    const setAdvancedOpen = (open) => {
+    const setAdvancedOpen = (open, { manageFocus = false } = {}) => {
       if (!advancedPanel || !advancedToggle) return;
       const isOpen = !!open;
       advancedPanel.classList.toggle("is-collapsed", !isOpen);
       advancedPanel.classList.toggle("is-open", isOpen);
+      advancedPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      advancedToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
       advancedToggle.textContent = isOpen
         ? t("tools.wg.advanced.toggle.close")
         : t("tools.wg.advanced.toggle.open");
+      if (manageFocus) {
+        if (isOpen) {
+          const firstInput =
+            getEl("wg-ip", view) ||
+            getEl("wg-port-remote", view) ||
+            getEl("wg-port-local", view);
+          firstInput?.focus();
+        } else {
+          advancedToggle.focus();
+        }
+      }
       try {
         window.localStorage.setItem(WG_ADVANCED_STATE_KEY, isOpen ? "1" : "0");
       } catch {}
@@ -1110,7 +1119,7 @@ export default function renderWireGuard() {
     setAdvancedOpen(readAdvancedState());
     advancedToggle?.addEventListener("click", () => {
       const currentlyOpen = advancedPanel?.classList.contains("is-open");
-      setAdvancedOpen(!currentlyOpen);
+      setAdvancedOpen(!currentlyOpen, { manageFocus: true });
       initTooltips();
     });
     onWindowEvent("i18n:changed", () => {
