@@ -383,10 +383,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     padding: 14px 24px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--color-accent) 0%, #4f46e5 100%);
     color: white;
-    font-weight: 600;
-    font-size: 14px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -727,8 +724,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 // Side Panel
 .wg-side-panel {
   .info-card {
-    @include glass-morphism;
-    border-radius: 12px;
+    // @include glass-morphism;
+    border-radius: var(--border-radius);
+    background-color: var(--color-hover);
     padding: 20px;
     margin-bottom: 16px;
 
@@ -907,7 +905,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 .wg-glass {
-  @include glass-morphism;
+  // @include glass-morphism;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
@@ -1166,14 +1164,14 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 .tools-launcher-inner {
   width: min(740px, 100%);
   display: grid;
-  gap: 16px;
+  gap: 25px;
 }
 
 .tools-launcher-subtitle {
   margin: 0;
   text-align: center;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.92rem;
+  color: var(--color-quality);
+  font-size: 1.4rem;
 }
 
 .tools-launcher-grid {
@@ -1184,16 +1182,14 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .tools-launcher-button {
   min-height: 132px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--border-radius);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: var(--color-bg-main);
   color: var(--color-highlight);
   display: grid;
   place-items: center;
   gap: 8px;
   padding: 16px 12px;
-  font-size: 0.92rem;
-  font-weight: 700;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease;
@@ -1225,19 +1221,19 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .tools-card {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-bg-main);
   border-radius: 14px;
-  padding: 16px;
+  padding: 12px;
   display: grid;
-  gap: 12px;
+  gap: 15px;
   min-height: auto;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease;
 
   &:hover {
-    border-color: rgba(var(--color-accent-rgb), 0.32);
-    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--color-accent);
+    background: var(--color-bg-main);
   }
 
   &.disabled {
@@ -1329,6 +1325,16 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   gap: 12px;
 }
 
+.hash-file-control {
+  display: grid;
+  gap: 6px;
+}
+
+.hash-file-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
 .hash-row--top {
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   align-items: end;
@@ -1341,7 +1347,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 
 .hash-actions-inline {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
@@ -1364,6 +1370,11 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 .hash-expected-wrap {
   display: grid;
   gap: 6px;
+}
+
+.hash-expected-hint {
+  font-size: 0.76rem;
+  line-height: 1.25;
 }
 
 .hash-result-panel {
@@ -1462,12 +1473,39 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   }
 }
 
+.hash-actual-box__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hash-copy-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hash-copy-feedback {
+  min-width: 82px;
+  font-size: 0.74rem;
+  text-align: right;
+}
+
 .hash-copy-btn {
+  width: 30px;
+  min-width: 30px;
   min-height: 30px;
-  padding: 6px 10px;
+  padding: 0;
   font-size: 0.78rem;
-  max-width: 100%;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+}
+
+.hash-clear-btn {
+  width: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
 }
 
 .hash-row--bottom #hash-run {
@@ -1477,6 +1515,43 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 .hash-result-panel .quick-action-result {
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.hash-compare-details {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.hash-compare-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hash-compare-state {
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  &.muted {
+    color: var(--color-quality);
+  }
+
+  &.success {
+    color: #d1fae5;
+  }
+
+  &.warning {
+    color: #fef3c7;
+  }
+
+  &.error {
+    color: #fee2e2;
+  }
 }
 
 .power-actions-grid {
@@ -1678,8 +1753,9 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 .tools-wg-advanced-panel {
-  @include glass-morphism;
-  backdrop-filter: none;
+  // @include glass-morphism;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: none;
   box-shadow: none;
   border-radius: 14px;
@@ -1727,6 +1803,12 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   }
 }
 
+.log-actions {
+  display: flex;  
+  justify-content: center;
+  padding: 8px;
+}
+
 @media (max-width: 1100px) {
   .tools-launcher-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1761,8 +1843,14 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     flex-direction: column;
   }
 
-  .hash-copy-btn {
+  .hash-copy-feedback {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .hash-copy-wrap {
     width: 100%;
+    justify-content: space-between;
   }
 
   .power-actions-grid {

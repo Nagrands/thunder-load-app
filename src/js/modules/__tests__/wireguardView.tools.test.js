@@ -288,9 +288,11 @@ describe("wireguardView quick actions", () => {
   test("keeps hash copy disabled in idle state", async () => {
     const el = await renderView();
     await openTool(el, "hash");
-    const copyBtn = el.querySelector("#hash-copy-actual");
+    const copyFirstBtn = el.querySelector("#hash-copy-actual-1");
+    const copySecondBtn = el.querySelector("#hash-copy-actual-2");
     const status = el.querySelector("#hash-status-badge");
-    expect(copyBtn?.hasAttribute("disabled")).toBe(true);
+    expect(copyFirstBtn?.hasAttribute("disabled")).toBe(true);
+    expect(copySecondBtn?.hasAttribute("disabled")).toBe(true);
     expect(status?.textContent).toBe("hashCheck.status.idle");
   });
 
@@ -299,16 +301,17 @@ describe("wireguardView quick actions", () => {
     await openTool(el, "hash");
     const pickBtn = el.querySelector("#hash-pick-file");
     const runBtn = el.querySelector("#hash-run");
-    const copyBtn = el.querySelector("#hash-copy-actual");
+    const copyBtn = el.querySelector("#hash-copy-actual-1");
     const status = el.querySelector("#hash-status-badge");
     const actual = el.querySelector("#hash-actual-value");
+    const copyFeedback = el.querySelector("#hash-copy-feedback-1");
 
     pickBtn.click();
     await nextTick();
     runBtn.click();
     await nextTick();
 
-    expect(status?.textContent).toBe("hashCheck.status.match");
+    expect(status?.textContent).toBe("hashCheck.status.calculated");
     expect(actual?.textContent).toBe("abcd");
     expect(copyBtn?.hasAttribute("disabled")).toBe(false);
 
@@ -316,9 +319,185 @@ describe("wireguardView quick actions", () => {
     await nextTick();
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("abcd");
-    expect(copyBtn.querySelector("span")?.textContent).toBe(
-      "hashCheck.copySuccess",
+    expect(copyBtn.querySelector("span")).toBeNull();
+    expect(copyBtn.querySelector("i")?.classList.contains("fa-check")).toBe(true);
+    expect(copyFeedback?.textContent).toBe("hashCheck.copySuccess");
+  });
+
+  test("compares two selected files by hash", async () => {
+    window.electron.tools.pickFileForHash
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/file-a.bin",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/file-b.bin",
+      });
+    window.electron.tools.calculateHash
+      .mockResolvedValueOnce({
+        success: true,
+        actualHash: "ffff",
+        matches: null,
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        actualHash: "ffff",
+        matches: null,
+      });
+
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const pickFirstBtn = el.querySelector("#hash-pick-file");
+    const pickSecondBtn = el.querySelector("#hash-pick-file-2");
+    const runBtn = el.querySelector("#hash-run");
+    const status = el.querySelector("#hash-status-badge");
+    const result = el.querySelector("#hash-result");
+    const actualFirst = el.querySelector("#hash-actual-value");
+    const actualSecond = el.querySelector("#hash-actual-value-2");
+    const secondBox = el.querySelector("#hash-actual-box-2");
+    const compareDetails = el.querySelector("#hash-compare-details");
+    const compareNameFirst = el.querySelector("#hash-compare-name-1");
+    const compareNameSecond = el.querySelector("#hash-compare-name-2");
+    const compareFirst = el.querySelector("#hash-compare-state-1");
+    const compareSecond = el.querySelector("#hash-compare-state-2");
+    const copyFirstBtn = el.querySelector("#hash-copy-actual-1");
+    const copySecondBtn = el.querySelector("#hash-copy-actual-2");
+
+    pickFirstBtn.click();
+    await nextTick();
+    pickSecondBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.calculateHash).toHaveBeenCalledTimes(2);
+    expect(status?.textContent).toBe("hashCheck.status.match");
+    expect(result?.textContent).toBe("hashCheck.filesCompared");
+    expect(actualFirst?.textContent).toBe("ffff");
+    expect(actualSecond?.textContent).toBe("ffff");
+    expect(secondBox?.classList.contains("hidden")).toBe(false);
+    expect(compareDetails?.classList.contains("hidden")).toBe(false);
+    expect(compareNameFirst?.textContent).toBe("file-a.bin");
+    expect(compareNameSecond?.textContent).toBe("file-b.bin");
+    expect(compareFirst?.textContent).toBe("hashCheck.compareState.match");
+    expect(compareSecond?.textContent).toBe("hashCheck.compareState.match");
+    expect(copyFirstBtn?.hasAttribute("disabled")).toBe(false);
+    expect(copySecondBtn?.hasAttribute("disabled")).toBe(false);
+
+    copySecondBtn.click();
+    await nextTick();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("ffff");
+  });
+
+  test("clears second file selection and falls back to single-file verify", async () => {
+    window.electron.tools.pickFileForHash
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/file-a.bin",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/file-b.bin",
+      });
+
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const pickFirstBtn = el.querySelector("#hash-pick-file");
+    const pickSecondBtn = el.querySelector("#hash-pick-file-2");
+    const clearSecondBtn = el.querySelector("#hash-clear-file-2");
+    const secondFilePill = el.querySelector("#hash-file-name-2");
+    const runBtn = el.querySelector("#hash-run");
+
+    pickFirstBtn.click();
+    await nextTick();
+    pickSecondBtn.click();
+    await nextTick();
+
+    expect(clearSecondBtn?.hasAttribute("disabled")).toBe(false);
+    expect(secondFilePill?.textContent).toBe("file-b.bin");
+
+    clearSecondBtn.click();
+    await nextTick();
+
+    expect(clearSecondBtn?.hasAttribute("disabled")).toBe(true);
+    expect(secondFilePill?.textContent).toBe("hashCheck.noFileSecond");
+
+    runBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.calculateHash).toHaveBeenCalledTimes(1);
+  });
+
+  test("normalizes expected hash before single-file verification", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const pickBtn = el.querySelector("#hash-pick-file");
+    const expected = el.querySelector("#hash-expected");
+    const runBtn = el.querySelector("#hash-run");
+
+    pickBtn.click();
+    await nextTick();
+    expected.value = "AA bb \n cc";
+    runBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.calculateHash).toHaveBeenCalledWith(
+      expect.objectContaining({
+        expectedHash: "aabbcc",
+      }),
     );
+  });
+
+  test("when expected hash is set, compares expected against both files", async () => {
+    window.electron.tools.pickFileForHash
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/file-a.bin",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/file-b.bin",
+      });
+    window.electron.tools.calculateHash
+      .mockResolvedValueOnce({
+        success: true,
+        actualHash: "aaaa",
+        matches: null,
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        actualHash: "bbbb",
+        matches: null,
+      });
+
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const pickFirstBtn = el.querySelector("#hash-pick-file");
+    const pickSecondBtn = el.querySelector("#hash-pick-file-2");
+    const expected = el.querySelector("#hash-expected");
+    const runBtn = el.querySelector("#hash-run");
+    const status = el.querySelector("#hash-status-badge");
+    const result = el.querySelector("#hash-result");
+    const compareFirst = el.querySelector("#hash-compare-state-1");
+    const compareSecond = el.querySelector("#hash-compare-state-2");
+
+    pickFirstBtn.click();
+    await nextTick();
+    pickSecondBtn.click();
+    await nextTick();
+    expected.value = "bbbb";
+    runBtn.click();
+    await nextTick();
+
+    expect(status?.textContent).toBe("hashCheck.status.match");
+    expect(result?.textContent).toBe("hashCheck.expectedCompared");
+    expect(compareFirst?.textContent).toBe("hashCheck.compareState.mismatch");
+    expect(compareSecond?.textContent).toBe("hashCheck.compareState.match");
   });
 
   test("locks hash controls while hash is calculating", async () => {
@@ -333,6 +512,7 @@ describe("wireguardView quick actions", () => {
     await openTool(el, "hash");
 
     const pickBtn = el.querySelector("#hash-pick-file");
+    const pickSecondBtn = el.querySelector("#hash-pick-file-2");
     const runBtn = el.querySelector("#hash-run");
     const algo = el.querySelector("#hash-algorithm");
     const expected = el.querySelector("#hash-expected");
@@ -345,6 +525,7 @@ describe("wireguardView quick actions", () => {
 
     expect(runBtn.disabled).toBe(true);
     expect(pickBtn.disabled).toBe(true);
+    expect(pickSecondBtn.disabled).toBe(true);
     expect(algo.disabled).toBe(true);
     expect(expected.disabled).toBe(true);
     expect(panel.getAttribute("aria-busy")).toBe("true");
@@ -354,6 +535,7 @@ describe("wireguardView quick actions", () => {
 
     expect(runBtn.disabled).toBe(false);
     expect(pickBtn.disabled).toBe(false);
+    expect(pickSecondBtn.disabled).toBe(false);
     expect(algo.disabled).toBe(false);
     expect(expected.disabled).toBe(false);
     expect(panel.getAttribute("aria-busy")).toBe("false");

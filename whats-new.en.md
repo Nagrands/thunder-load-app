@@ -25,6 +25,16 @@
 - **Redesigned Tools tab navigation**: it now opens with a centered launcher screen that shows large buttons for available tools.
 - **Added dedicated tool-view mode with a Back button**: use the top-left arrow to return to the launcher at any time.
 - **Added last-tool restore behavior**: reopening the Tools tab now returns you to the last tool you used when it is available on your platform.
+- **Fixed duplicate hash-check wording**: the result text no longer repeats the “Calculated hash” label.
+- **Simplified the hash copy action**: the hash-check panel now uses a compact icon-only copy button with a hover tooltip.
+- **Expanded hash verification**: you can now select a second file and compare two files directly by their hashes.
+- **Improved expected-hash comparison**: when two files are selected, the check now shows whether the expected hash matches file 1, file 2, or both.
+- **Updated hash-check layout**: the second file now uses the same “Pick file” button label, and copy buttons are placed next to each calculated hash.
+- **Made two-file verification clearer**: added explicit “File 1/File 2” roles, an expected-hash hint, and a compact per-file status block after verification.
+- **Refined hash-check status behavior**: the “Matched” badge now appears only for real matches (between files or against expected hash), while plain calculation without comparison uses a separate status.
+- **Improved two-file comparison details**: the result details now show selected file names instead of generic “File 1/File 2” labels.
+- **Improved two-file hash-check flow**: added a clear button for the second file, and expected-hash input now compares correctly even when it contains spaces or line breaks.
+- **Improved calculated-hash label**: hash results now show which algorithm was used for the calculation.
 
 - **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
 - **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.

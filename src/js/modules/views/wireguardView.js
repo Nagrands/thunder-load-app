@@ -104,6 +104,9 @@ export default function renderWireGuard() {
   let tipsItems = [];
   let tipsIndex = 0;
   let hashSelectedFile = "";
+  let hashSelectedFileSecond = "";
+  let hashCopyFeedbackTimerFirst = null;
+  let hashCopyFeedbackTimerSecond = null;
   let isWindowsPlatform = false;
   const WG_ADVANCED_STATE_KEY = "toolsWgAdvancedOpen";
   const LAST_TOOL_KEY = "toolsLastView";
@@ -140,6 +143,14 @@ export default function renderWireGuard() {
     if (tipsFadeTimer) {
       clearTimeout(tipsFadeTimer);
       tipsFadeTimer = null;
+    }
+    if (hashCopyFeedbackTimerFirst) {
+      clearTimeout(hashCopyFeedbackTimerFirst);
+      hashCopyFeedbackTimerFirst = null;
+    }
+    if (hashCopyFeedbackTimerSecond) {
+      clearTimeout(hashCopyFeedbackTimerSecond);
+      hashCopyFeedbackTimerSecond = null;
     }
     const finalizers = cleanupFns.splice(0);
     finalizers.forEach((fn) => {
@@ -599,7 +610,7 @@ export default function renderWireGuard() {
                 <i class="fa-solid fa-network-wired"></i>
               </button>
               <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка" data-i18n-title="wg.help.tooltip">
-                <i class="fa-solid fa-circle-question"></i>
+                <i class="fa-solid fa-circle-info"></i>
               </button>
               </div>
             </div>
@@ -693,12 +704,15 @@ export default function renderWireGuard() {
             <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
             <div class="hash-check-grid">
               <div class="hash-row hash-row--top">
-                <div class="hash-actions-inline">
-                  <button id="hash-pick-file" type="button" class="small-button">
-                    <i class="fa-regular fa-file"></i>
-                    <span data-i18n="hashCheck.pickFile">Выбрать файл</span>
-                  </button>
-                  <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">Файл не выбран</span>
+                <div class="hash-file-control">
+                  <span class="muted hash-file-label" data-i18n="hashCheck.file1">Файл 1</span>
+                  <div class="hash-actions-inline">
+                    <button id="hash-pick-file" type="button" class="small-button">
+                      <i class="fa-regular fa-file"></i>
+                      <span data-i18n="hashCheck.pickFile">Выбрать файл</span>
+                    </button>
+                    <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">Файл не выбран</span>
+                  </div>
                 </div>
                 <div class="hash-algorithm-wrap">
                   <label for="hash-algorithm" class="muted" data-i18n="hashCheck.algorithm">Алгоритм</label>
@@ -708,6 +722,32 @@ export default function renderWireGuard() {
                     <option value="SHA-256" selected>SHA-256</option>
                     <option value="SHA-512">SHA-512</option>
                   </select>
+                </div>
+              </div>
+              <div class="hash-row">
+                <div class="hash-file-control">
+                  <span class="muted hash-file-label" data-i18n="hashCheck.file2">Файл 2</span>
+                  <div class="hash-actions-inline">
+                    <button id="hash-pick-file-2" type="button" class="small-button">
+                      <i class="fa-regular fa-file"></i>
+                      <span data-i18n="hashCheck.pickFileSecond">Выбрать файл</span>
+                    </button>
+                    <span id="hash-file-name-2" class="hash-file-pill muted" data-i18n="hashCheck.noFileSecond">Второй файл не выбран</span>
+                    <button
+                      id="hash-clear-file-2"
+                      type="button"
+                      class="small-button hash-clear-btn"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      data-i18n-title="hashCheck.clearSecond"
+                      data-i18n-aria="hashCheck.clearSecond"
+                      title="Очистить файл 2"
+                      aria-label="Очистить файл 2"
+                      disabled
+                    >
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -727,19 +767,72 @@ export default function renderWireGuard() {
                   <span data-i18n="hashCheck.run">Проверить</span>
                 </button>
               </div>
+              <div class="hash-row">
+                <span class="muted hash-expected-hint" data-i18n="hashCheck.expectedHint">
+                  Если выбран второй файл, ожидаемый хеш сравнивается с каждым файлом отдельно.
+                </span>
+              </div>
             </div>
 
             <div id="hash-result-panel" class="hash-result-panel is-idle">
               <div class="hash-result-panel__top">
                 <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">Ожидание</span>
-                <button id="hash-copy-actual" type="button" class="small-button hash-copy-btn" disabled>
-                  <i class="fa-regular fa-copy"></i>
-                  <span data-i18n="hashCheck.copyActual">Копировать хеш</span>
-                </button>
               </div>
               <div class="hash-actual-box">
-                <span class="muted" data-i18n="hashCheck.actualLabel">Вычисленный хеш</span>
+                <div class="hash-actual-box__top">
+                  <span id="hash-actual-label" class="muted">Вычисленный хеш (SHA-256)</span>
+                  <div class="hash-copy-wrap">
+                    <span id="hash-copy-feedback-1" class="hash-copy-feedback muted" aria-live="polite"></span>
+                    <button
+                      id="hash-copy-actual-1"
+                      type="button"
+                      class="small-button hash-copy-btn"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      data-i18n-title="hashCheck.copyActual"
+                      data-i18n-aria="hashCheck.copyActual"
+                      title="Копировать хеш"
+                      aria-label="Копировать хеш"
+                      disabled
+                    >
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
                 <code id="hash-actual-value">-</code>
+              </div>
+              <div id="hash-actual-box-2" class="hash-actual-box hidden">
+                <div class="hash-actual-box__top">
+                  <span id="hash-actual-label-2" class="muted">Вычисленный хеш (файл 2, SHA-256)</span>
+                  <div class="hash-copy-wrap">
+                    <span id="hash-copy-feedback-2" class="hash-copy-feedback muted" aria-live="polite"></span>
+                    <button
+                      id="hash-copy-actual-2"
+                      type="button"
+                      class="small-button hash-copy-btn"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      data-i18n-title="hashCheck.copyActualSecond"
+                      data-i18n-aria="hashCheck.copyActualSecond"
+                      title="Копировать хеш файла 2"
+                      aria-label="Копировать хеш файла 2"
+                      disabled
+                    >
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+                <code id="hash-actual-value-2">-</code>
+              </div>
+              <div id="hash-compare-details" class="hash-compare-details hidden">
+                <div class="hash-compare-row">
+                  <span id="hash-compare-name-1" class="muted">Файл 1</span>
+                  <span id="hash-compare-state-1" class="hash-compare-state muted">-</span>
+                </div>
+                <div class="hash-compare-row">
+                  <span id="hash-compare-name-2" class="muted">Файл 2</span>
+                  <span id="hash-compare-state-2" class="hash-compare-state muted">-</span>
+                </div>
               </div>
               <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">Результат появится после проверки.</div>
             </div>
@@ -1252,28 +1345,50 @@ export default function renderWireGuard() {
     });
 
     const hashPickFileBtn = getEl("hash-pick-file", view);
+    const hashPickFileSecondBtn = getEl("hash-pick-file-2", view);
+    const hashClearFileSecondBtn = getEl("hash-clear-file-2", view);
     const hashRunBtn = getEl("hash-run", view);
     const hashFileNameEl = getEl("hash-file-name", view);
+    const hashFileNameSecondEl = getEl("hash-file-name-2", view);
     const hashAlgorithmEl = getEl("hash-algorithm", view);
     const hashExpectedEl = getEl("hash-expected", view);
     const hashResultEl = getEl("hash-result", view);
     const hashResultPanelEl = getEl("hash-result-panel", view);
     const hashStatusBadgeEl = getEl("hash-status-badge", view);
+    const hashActualLabelEl = getEl("hash-actual-label", view);
+    const hashActualLabelSecondEl = getEl("hash-actual-label-2", view);
     const hashActualValueEl = getEl("hash-actual-value", view);
-    const hashCopyActualBtn = getEl("hash-copy-actual", view);
-    let hashActualValue = "";
-    let hashCopyFeedbackTimer = null;
+    const hashActualBoxSecondEl = getEl("hash-actual-box-2", view);
+    const hashActualValueSecondEl = getEl("hash-actual-value-2", view);
+    const hashCompareDetailsEl = getEl("hash-compare-details", view);
+    const hashCompareNameFirstEl = getEl("hash-compare-name-1", view);
+    const hashCompareNameSecondEl = getEl("hash-compare-name-2", view);
+    const hashCompareStateFirstEl = getEl("hash-compare-state-1", view);
+    const hashCompareStateSecondEl = getEl("hash-compare-state-2", view);
+    const hashCopyActualFirstBtn = getEl("hash-copy-actual-1", view);
+    const hashCopyActualSecondBtn = getEl("hash-copy-actual-2", view);
+    const hashCopyFeedbackFirstEl = getEl("hash-copy-feedback-1", view);
+    const hashCopyFeedbackSecondEl = getEl("hash-copy-feedback-2", view);
+    let hashActualValueFirst = "";
+    let hashActualValueSecond = "";
     let hashBusy = false;
+
+    const syncSecondFileControls = () => {
+      if (!hashClearFileSecondBtn) return;
+      hashClearFileSecondBtn.disabled = hashBusy || !hashSelectedFileSecond;
+    };
 
     const setHashBusy = (busy) => {
       hashBusy = !!busy;
       if (hashPickFileBtn) hashPickFileBtn.disabled = hashBusy;
+      if (hashPickFileSecondBtn) hashPickFileSecondBtn.disabled = hashBusy;
       if (hashRunBtn) hashRunBtn.disabled = hashBusy;
       if (hashAlgorithmEl) hashAlgorithmEl.disabled = hashBusy;
       if (hashExpectedEl) hashExpectedEl.disabled = hashBusy;
       if (hashResultPanelEl) {
         hashResultPanelEl.setAttribute("aria-busy", hashBusy ? "true" : "false");
       }
+      syncSecondFileControls();
     };
 
     const setHashUiState = ({
@@ -1282,9 +1397,19 @@ export default function renderWireGuard() {
       message = "",
       messageKey = "hashCheck.resultIdle",
       actualHash = "",
-      canCopy = false,
+      actualHashSecond = "",
+      canCopyFirst = false,
+      canCopySecond = false,
+      showCompareDetails = false,
+      compareStateFirstKey = "",
+      compareStateSecondKey = "",
+      compareStateFirstTone = "muted",
+      compareStateSecondTone = "muted",
+      compareNameFirst = "",
+      compareNameSecond = "",
     } = {}) => {
-      hashActualValue = actualHash || "";
+      hashActualValueFirst = actualHash || "";
+      hashActualValueSecond = actualHashSecond || "";
       const statusTone = tone === "error" ? "error" : tone === "success" ? "success" : tone === "warning" ? "warning" : "muted";
       if (hashStatusBadgeEl) {
         hashStatusBadgeEl.textContent = t(statusKey);
@@ -1315,16 +1440,83 @@ export default function renderWireGuard() {
         hashResultEl.className = `quick-action-result ${statusTone}`;
       }
       if (hashActualValueEl) {
-        hashActualValueEl.textContent = hashActualValue || "-";
+        hashActualValueEl.textContent = hashActualValueFirst || "-";
       }
-      if (hashCopyActualBtn) {
-        hashCopyActualBtn.disabled = !canCopy;
+      if (hashActualValueSecondEl) {
+        hashActualValueSecondEl.textContent = hashActualValueSecond || "-";
+      }
+      if (hashActualBoxSecondEl) {
+        hashActualBoxSecondEl.classList.toggle("hidden", !hashActualValueSecond);
+      }
+      if (hashCopyActualFirstBtn) hashCopyActualFirstBtn.disabled = !canCopyFirst;
+      if (hashCopyActualSecondBtn) hashCopyActualSecondBtn.disabled = !canCopySecond;
+      if (hashCompareDetailsEl) {
+        hashCompareDetailsEl.classList.toggle("hidden", !showCompareDetails);
+      }
+      if (hashCompareStateFirstEl) {
+        const firstTone = ["success", "warning", "error", "muted"].includes(compareStateFirstTone)
+          ? compareStateFirstTone
+          : "muted";
+        hashCompareStateFirstEl.textContent = compareStateFirstKey
+          ? t(compareStateFirstKey)
+          : "-";
+        hashCompareStateFirstEl.className = `hash-compare-state ${firstTone}`;
+      }
+      if (hashCompareStateSecondEl) {
+        const secondTone = ["success", "warning", "error", "muted"].includes(compareStateSecondTone)
+          ? compareStateSecondTone
+          : "muted";
+        hashCompareStateSecondEl.textContent = compareStateSecondKey
+          ? t(compareStateSecondKey)
+          : "-";
+        hashCompareStateSecondEl.className = `hash-compare-state ${secondTone}`;
+      }
+      if (hashCompareNameFirstEl) {
+        hashCompareNameFirstEl.textContent = compareNameFirst || t("hashCheck.file1");
+      }
+      if (hashCompareNameSecondEl) {
+        hashCompareNameSecondEl.textContent = compareNameSecond || t("hashCheck.file2");
       }
     };
 
-    const setCopyButtonDefaultText = () => {
-      const text = hashCopyActualBtn?.querySelector("span");
-      if (text) text.textContent = t("hashCheck.copyActual");
+    const setCopyFeedback = (el, key = "") => {
+      if (!el) return;
+      el.textContent = key ? t(key) : "";
+    };
+
+    const setHashFilePill = (element, filePath, emptyKey) => {
+      if (!element) return;
+      if (!filePath) {
+        element.textContent = t(emptyKey);
+        element.title = "";
+        return;
+      }
+      const fileName = String(filePath).split(/[\\/]/).pop();
+      element.textContent = fileName || filePath;
+      element.title = filePath;
+    };
+
+    const getHashFileDisplayName = (filePath, fallbackKey) => {
+      if (!filePath) return t(fallbackKey);
+      const fileName = String(filePath).split(/[\\/]/).pop();
+      return fileName || String(filePath);
+    };
+
+    const normalizeHashValue = (value) =>
+      String(value || "").replace(/\s+/g, "").toLowerCase();
+
+    const setHashActualLabels = (algorithm = hashAlgorithmEl?.value || "SHA-256") => {
+      if (hashActualLabelEl) {
+        hashActualLabelEl.textContent = t("hashCheck.actualLabelWithAlgorithm", {
+          algorithm,
+        });
+      }
+      if (hashActualLabelSecondEl) {
+        hashActualLabelSecondEl.textContent = t(
+          "hashCheck.secondActualLabelWithAlgorithm",
+          { algorithm },
+        );
+      }
     };
 
     hashPickFileBtn?.addEventListener("click", async () => {
@@ -1336,20 +1528,70 @@ export default function renderWireGuard() {
             tone: "error",
             statusKey: "hashCheck.status.error",
             message: res?.error || t("hashCheck.pickError"),
-            canCopy: false,
+            canCopyFirst: false,
+            canCopySecond: false,
+            showCompareDetails: false,
           });
         }
         return;
       }
       hashSelectedFile = res.filePath;
-      const fileName = String(hashSelectedFile).split(/[\\/]/).pop();
-      hashFileNameEl.textContent = fileName || hashSelectedFile;
-      hashFileNameEl.title = hashSelectedFile;
+      setHashFilePill(hashFileNameEl, hashSelectedFile, "hashCheck.noFile");
       setHashUiState({
         tone: "muted",
         statusKey: "hashCheck.status.idle",
         messageKey: "hashCheck.resultIdle",
-        canCopy: false,
+        canCopyFirst: false,
+        canCopySecond: false,
+        showCompareDetails: false,
+      });
+    });
+
+    hashPickFileSecondBtn?.addEventListener("click", async () => {
+      if (hashBusy) return;
+      const res = await window.electron?.tools?.pickFileForHash?.();
+      if (!res?.success || !res.filePath) {
+        if (!res?.canceled) {
+          setHashUiState({
+            tone: "error",
+            statusKey: "hashCheck.status.error",
+            message: res?.error || t("hashCheck.pickError"),
+            canCopyFirst: false,
+            canCopySecond: false,
+            showCompareDetails: false,
+          });
+        }
+        return;
+      }
+      hashSelectedFileSecond = res.filePath;
+      setHashFilePill(
+        hashFileNameSecondEl,
+        hashSelectedFileSecond,
+        "hashCheck.noFileSecond",
+      );
+      syncSecondFileControls();
+      setHashUiState({
+        tone: "muted",
+        statusKey: "hashCheck.status.idle",
+        messageKey: "hashCheck.resultIdle",
+        canCopyFirst: false,
+        canCopySecond: false,
+        showCompareDetails: false,
+      });
+    });
+
+    hashClearFileSecondBtn?.addEventListener("click", () => {
+      if (hashBusy || !hashSelectedFileSecond) return;
+      hashSelectedFileSecond = "";
+      setHashFilePill(hashFileNameSecondEl, "", "hashCheck.noFileSecond");
+      syncSecondFileControls();
+      setHashUiState({
+        tone: "muted",
+        statusKey: "hashCheck.status.idle",
+        messageKey: "hashCheck.resultIdle",
+        canCopyFirst: false,
+        canCopySecond: false,
+        showCompareDetails: false,
       });
     });
 
@@ -1360,7 +1602,9 @@ export default function renderWireGuard() {
           tone: "error",
           statusKey: "hashCheck.status.error",
           messageKey: "hashCheck.needFile",
-          canCopy: false,
+          canCopyFirst: false,
+          canCopySecond: false,
+          showCompareDetails: false,
         });
         return;
       }
@@ -1368,93 +1612,238 @@ export default function renderWireGuard() {
         tone: "muted",
         statusKey: "hashCheck.status.calculating",
         messageKey: "hashCheck.calculating",
-        canCopy: false,
+        canCopyFirst: false,
+        canCopySecond: false,
+        showCompareDetails: false,
       });
       setHashBusy(true);
       try {
+        const algorithm = hashAlgorithmEl?.value || "SHA-256";
+        setHashActualLabels(algorithm);
+        const expectedHash = normalizeHashValue(hashExpectedEl?.value || "");
+        const hasExpectedHash = expectedHash.length > 0;
+        const hasSecondFile = !!hashSelectedFileSecond;
+
         const res = await window.electron?.tools?.calculateHash?.({
           filePath: hashSelectedFile,
-          algorithm: hashAlgorithmEl?.value || "SHA-256",
-          expectedHash: hashExpectedEl?.value || "",
+          algorithm,
+          expectedHash: hasSecondFile ? "" : expectedHash,
         });
         if (!res?.success) {
           setHashUiState({
             tone: "error",
             statusKey: "hashCheck.status.error",
             message: res?.error || t("hashCheck.error"),
-            canCopy: false,
+            canCopyFirst: false,
+            canCopySecond: false,
+            showCompareDetails: false,
           });
           return;
         }
-        if (res.matches === true) {
+        if (hasSecondFile) {
+          const resSecond = await window.electron?.tools?.calculateHash?.({
+            filePath: hashSelectedFileSecond,
+            algorithm,
+            expectedHash: "",
+          });
+          if (!resSecond?.success) {
+            setHashUiState({
+              tone: "error",
+              statusKey: "hashCheck.status.error",
+              message: resSecond?.error || t("hashCheck.error"),
+              actualHash: res.actualHash || "",
+              canCopyFirst: !!res.actualHash,
+              canCopySecond: false,
+              showCompareDetails: false,
+            });
+            return;
+          }
+          const firstHash = String(res.actualHash || "").trim();
+          const secondHash = String(resSecond.actualHash || "").trim();
+          const firstHashNormalized = normalizeHashValue(firstHash);
+          const secondHashNormalized = normalizeHashValue(secondHash);
+          const firstMatchesExpected = expectedHash
+            ? firstHashNormalized === expectedHash
+            : false;
+          const secondMatchesExpected = expectedHash
+            ? secondHashNormalized === expectedHash
+            : false;
+
+          if (expectedHash) {
+            const anyExpectedMatch = firstMatchesExpected || secondMatchesExpected;
+            setHashUiState({
+              tone: anyExpectedMatch ? "success" : "warning",
+              statusKey: anyExpectedMatch
+                ? "hashCheck.status.match"
+                : "hashCheck.status.mismatch",
+              messageKey: "hashCheck.expectedCompared",
+              actualHash: firstHash,
+              actualHashSecond: secondHash,
+              canCopyFirst: !!firstHash,
+              canCopySecond: !!secondHash,
+              showCompareDetails: true,
+              compareStateFirstKey: firstMatchesExpected
+                ? "hashCheck.compareState.match"
+                : "hashCheck.compareState.mismatch",
+              compareStateSecondKey: secondMatchesExpected
+                ? "hashCheck.compareState.match"
+                : "hashCheck.compareState.mismatch",
+              compareStateFirstTone: firstMatchesExpected ? "success" : "warning",
+              compareStateSecondTone: secondMatchesExpected ? "success" : "warning",
+              compareNameFirst: getHashFileDisplayName(
+                hashSelectedFile,
+                "hashCheck.file1",
+              ),
+              compareNameSecond: getHashFileDisplayName(
+                hashSelectedFileSecond,
+                "hashCheck.file2",
+              ),
+            });
+            return;
+          }
+
+          const matches = firstHashNormalized && secondHashNormalized
+            ? firstHashNormalized === secondHashNormalized
+            : false;
+          setHashUiState({
+            tone: matches ? "success" : "warning",
+            statusKey: matches
+              ? "hashCheck.status.match"
+              : "hashCheck.status.mismatch",
+            messageKey: "hashCheck.filesCompared",
+            actualHash: firstHash,
+            actualHashSecond: secondHash,
+            canCopyFirst: !!firstHash,
+            canCopySecond: !!secondHash,
+            showCompareDetails: true,
+            compareStateFirstKey: matches
+              ? "hashCheck.compareState.match"
+              : "hashCheck.compareState.mismatch",
+            compareStateSecondKey: matches
+              ? "hashCheck.compareState.match"
+              : "hashCheck.compareState.mismatch",
+            compareStateFirstTone: matches ? "success" : "warning",
+            compareStateSecondTone: matches ? "success" : "warning",
+            compareNameFirst: getHashFileDisplayName(
+              hashSelectedFile,
+              "hashCheck.file1",
+            ),
+            compareNameSecond: getHashFileDisplayName(
+              hashSelectedFileSecond,
+              "hashCheck.file2",
+            ),
+          });
+          return;
+        }
+        if (hasExpectedHash && res.matches === true) {
           setHashUiState({
             tone: "success",
             statusKey: "hashCheck.status.match",
             messageKey: "hashCheck.match",
             actualHash: res.actualHash || "",
-            canCopy: !!res.actualHash,
+            actualHashSecond: "",
+            canCopyFirst: !!res.actualHash,
+            canCopySecond: false,
+            showCompareDetails: false,
           });
           return;
         }
-        if (res.matches === false) {
+        if (hasExpectedHash && res.matches === false) {
           setHashUiState({
             tone: "warning",
             statusKey: "hashCheck.status.mismatch",
             messageKey: "hashCheck.mismatch",
             actualHash: res.actualHash || "",
-            canCopy: !!res.actualHash,
+            actualHashSecond: "",
+            canCopyFirst: !!res.actualHash,
+            canCopySecond: false,
+            showCompareDetails: false,
           });
           return;
         }
         setHashUiState({
-          tone: "success",
-          statusKey: "hashCheck.status.match",
-          message: `${t("hashCheck.actual")}: ${res.actualHash}`,
+          tone: "muted",
+          statusKey: "hashCheck.status.calculated",
+          messageKey: "hashCheck.calculated",
           actualHash: res.actualHash || "",
-          canCopy: !!res.actualHash,
+          actualHashSecond: "",
+          canCopyFirst: !!res.actualHash,
+          canCopySecond: false,
+          showCompareDetails: false,
         });
       } catch (error) {
         setHashUiState({
           tone: "error",
           statusKey: "hashCheck.status.error",
           message: error?.message || t("hashCheck.error"),
-          canCopy: false,
+          canCopyFirst: false,
+          canCopySecond: false,
+          showCompareDetails: false,
         });
       } finally {
         setHashBusy(false);
       }
     });
 
-    hashCopyActualBtn?.addEventListener("click", async () => {
-      if (!hashActualValue || hashBusy) return;
-      const textEl = hashCopyActualBtn.querySelector("span");
-      if (hashCopyFeedbackTimer) {
-        clearTimeout(hashCopyFeedbackTimer);
-        hashCopyFeedbackTimer = null;
-      }
+    const attachHashCopyHandler = (button, getValue, feedbackEl, timerKey) => {
+      button?.addEventListener("click", async () => {
+        const value = getValue();
+        if (!value || hashBusy) return;
+        if (timerKey === "first" && hashCopyFeedbackTimerFirst) {
+          clearTimeout(hashCopyFeedbackTimerFirst);
+          hashCopyFeedbackTimerFirst = null;
+        }
+        if (timerKey === "second" && hashCopyFeedbackTimerSecond) {
+          clearTimeout(hashCopyFeedbackTimerSecond);
+          hashCopyFeedbackTimerSecond = null;
+        }
 
-      try {
-        await navigator.clipboard?.writeText?.(hashActualValue);
-        if (textEl) textEl.textContent = t("hashCheck.copySuccess");
-      } catch {
-        if (textEl) textEl.textContent = t("hashCheck.copyError");
-        hashResultEl.textContent = t("hashCheck.copyError");
-        hashResultEl.className = "quick-action-result error";
-      } finally {
-        hashCopyFeedbackTimer = setTimeout(() => {
-          setCopyButtonDefaultText();
-        }, 1500);
-      }
-    });
+        try {
+          await navigator.clipboard?.writeText?.(value);
+          const icon = button.querySelector("i");
+          if (icon) icon.className = "fa-solid fa-check";
+          setCopyFeedback(feedbackEl, "hashCheck.copySuccess");
+        } catch {
+          hashResultEl.textContent = t("hashCheck.copyError");
+          hashResultEl.className = "quick-action-result error";
+          setCopyFeedback(feedbackEl, "hashCheck.copyError");
+        } finally {
+          const resetTimer = setTimeout(() => {
+            const icon = button.querySelector("i");
+            if (icon) icon.className = "fa-regular fa-copy";
+            setCopyFeedback(feedbackEl);
+          }, 1500);
+          if (timerKey === "first") hashCopyFeedbackTimerFirst = resetTimer;
+          if (timerKey === "second") hashCopyFeedbackTimerSecond = resetTimer;
+        }
+      });
+    };
+
+    attachHashCopyHandler(
+      hashCopyActualFirstBtn,
+      () => hashActualValueFirst,
+      hashCopyFeedbackFirstEl,
+      "first",
+    );
+    attachHashCopyHandler(
+      hashCopyActualSecondBtn,
+      () => hashActualValueSecond,
+      hashCopyFeedbackSecondEl,
+      "second",
+    );
 
     setHashUiState({
       tone: "muted",
       statusKey: "hashCheck.status.idle",
       messageKey: "hashCheck.resultIdle",
-      canCopy: false,
+      canCopyFirst: false,
+      canCopySecond: false,
+      showCompareDetails: false,
     });
+    setHashActualLabels();
     setHashBusy(false);
-    setCopyButtonDefaultText();
+    syncSecondFileControls();
+    hashAlgorithmEl?.addEventListener("change", () => setHashActualLabels());
 
     const restartCard = getEl("tools-restart-card", view);
     const createRestartShortcutBtn = getEl("create-restart-shortcut", view);
