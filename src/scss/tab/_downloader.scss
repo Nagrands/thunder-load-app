@@ -257,8 +257,14 @@
         color: rgba(255, 255, 255, 0.75);
       }
 
-      .btn-link {
+      .quality-link-row {
         margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .btn-link {
         background: none;
         border: none;
         color: var(--color-accent);
@@ -579,6 +585,19 @@
           cursor: not-allowed;
         }
       }
+
+      &.quality-enqueue-icon {
+        width: 44px;
+        min-width: 44px;
+        padding: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        i {
+          font-size: 1rem;
+        }
+      }
     }
   }
 }
@@ -661,6 +680,10 @@
     .quality-actions button {
       flex: 1 1 100%;
       justify-content: center;
+
+      &.quality-enqueue-icon {
+        flex: 0 0 44px;
+      }
     }
   }
 }

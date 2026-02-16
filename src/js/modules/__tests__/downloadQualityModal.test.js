@@ -24,6 +24,7 @@ const buildDom = () => {
       <p id="download-quality-uploader"></p>
       <p id="download-quality-duration"></p>
       <button id="download-quality-open-source" type="button"></button>
+      <button id="download-quality-download-preview" type="button"></button>
       <strong id="download-quality-selection-title"></strong>
       <small id="download-quality-selection-meta"></small>
     </div>
@@ -42,6 +43,7 @@ describe("downloadQualityModal close behavior", () => {
           title: "Video title",
           uploader: "Uploader",
           duration: 120,
+          thumbnail: "https://cdn.example.com/preview.jpg",
           formats: [
             {
               format_id: "18",
@@ -57,6 +59,10 @@ describe("downloadQualityModal close behavior", () => {
     };
   });
 
+  afterEach(() => {
+    delete global.fetch;
+  });
+
   it("closes modal when close button is clicked", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
@@ -65,6 +71,7 @@ describe("downloadQualityModal close behavior", () => {
       const close = modal.querySelector("[data-quality-close]");
 
       const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
       await Promise.resolve();
 
       expect(modal.classList.contains("is-open")).toBe(true);
@@ -75,6 +82,52 @@ describe("downloadQualityModal close behavior", () => {
       expect(result).toBeNull();
       expect(modal.classList.contains("is-open")).toBe(false);
       expect(modal.getAttribute("aria-hidden")).toBe("true");
+    });
+  });
+
+  it("downloads preview image from quality modal", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const showToast = jest.fn();
+      const anchorClick = jest.spyOn(HTMLAnchorElement.prototype, "click");
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(["test"], { type: "image/jpeg" }),
+      });
+      URL.createObjectURL = jest.fn(() => "blob:test-url");
+      URL.revokeObjectURL = jest.fn();
+
+      jest.doMock("../toast", () => ({ showToast }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+
+      const previewBtn = document.getElementById(
+        "download-quality-download-preview",
+      );
+      for (let i = 0; i < 5 && typeof previewBtn.onclick !== "function"; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      expect(typeof previewBtn.onclick).toBe("function");
+
+      previewBtn.onclick();
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(fetch).toHaveBeenCalledWith("https://cdn.example.com/preview.jpg", {
+        cache: "no-cache",
+      });
+      expect(showToast).toHaveBeenCalledWith(expect.any(String), "success");
+
+      const cancelBtn = document.getElementById("download-quality-cancel");
+      cancelBtn.click();
+      await resultPromise;
+
+      anchorClick.mockRestore();
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
     });
   });
 });

@@ -31,6 +31,9 @@ const titleEl = document.getElementById("download-quality-name");
 const uploaderEl = document.getElementById("download-quality-uploader");
 const durationEl = document.getElementById("download-quality-duration");
 const openSourceBtn = document.getElementById("download-quality-open-source");
+const downloadPreviewBtn = document.getElementById(
+  "download-quality-download-preview",
+);
 const selectionTitleEl = document.getElementById("download-quality-selection-title");
 const selectionMetaEl = document.getElementById("download-quality-selection-meta");
 
@@ -169,6 +172,10 @@ function resetModalState() {
   confirmBtn.textContent = "Скачать выбранное";
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
+  if (downloadPreviewBtn) {
+    downloadPreviewBtn.disabled = true;
+    downloadPreviewBtn.onclick = null;
+  }
   updateTabCounts();
   updateSelectionSummary(null);
 }
@@ -232,6 +239,52 @@ function withTimeout(promise, ms) {
   });
 }
 
+function sanitizeFilename(value) {
+  const base = String(value || "")
+    .replace(/[\\/:*?"<>|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return base.length ? base.slice(0, 80) : "preview";
+}
+
+function detectPreviewExt(source, blob) {
+  const typeExt = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  }[blob?.type || ""];
+  if (typeExt) return typeExt;
+  try {
+    const parsed = new URL(source);
+    const match = parsed.pathname.match(/\.([a-z0-9]{2,5})$/i);
+    if (match?.[1]) return match[1].toLowerCase();
+  } catch {}
+  return "jpg";
+}
+
+async function downloadPreviewImage(sourceUrl, title) {
+  if (!sourceUrl) return;
+  try {
+    const response = await fetch(sourceUrl, { cache: "no-cache" });
+    if (!response.ok) throw new Error(`status-${response.status}`);
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const ext = detectPreviewExt(sourceUrl, blob);
+    anchor.href = objectUrl;
+    anchor.download = `${sanitizeFilename(title)}.${ext}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+    showToast(t("history.toast.previewSaved"), "success");
+  } catch (error) {
+    console.error("Не удалось скачать превью:", error);
+    showToast(t("history.toast.previewDownloadError"), "error");
+  }
+}
+
 function renderPreview(info, url) {
   if (!info) return;
   try {
@@ -248,6 +301,14 @@ function renderPreview(info, url) {
   } else {
     thumbEl.removeAttribute("src");
     thumbEl.style.display = "none";
+  }
+  if (downloadPreviewBtn) {
+    const previewUrl = info.thumbnail || "";
+    downloadPreviewBtn.disabled = !previewUrl;
+    downloadPreviewBtn.onclick = () => {
+      if (!previewUrl) return;
+      downloadPreviewImage(previewUrl, info.title || "preview");
+    };
   }
   const targetUrl =
     info.webpage_url || info.original_url || info.url || url || "";

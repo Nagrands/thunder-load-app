@@ -97,14 +97,24 @@
           <h4 id="download-quality-name"></h4>
           <p id="download-quality-uploader"></p>
           <p id="download-quality-duration"></p>
-          <button
-            type="button"
-            id="download-quality-open-source"
-            class="btn-link"
-          >
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-            <span data-i18n="quality.openSource">Открыть источник</span>
-          </button>
+          <div class="quality-link-row">
+            <button
+              type="button"
+              id="download-quality-open-source"
+              class="btn-link"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span data-i18n="quality.openSource">Открыть источник</span>
+            </button>
+            <button
+              type="button"
+              id="download-quality-download-preview"
+              class="btn-link"
+            >
+              <i class="fa-regular fa-image"></i>
+              <span data-i18n="quality.downloadPreview">Скачать превью</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -227,11 +237,14 @@
         <button
           type="button"
           id="download-quality-enqueue"
-          class="btn-ghost"
+          class="btn-ghost quality-enqueue-icon"
           disabled
-          data-i18n="quality.enqueue"
+          aria-label="В очередь"
+          data-i18n-aria="quality.enqueue"
+          title="В очередь"
+          data-i18n-title="quality.enqueue"
         >
-          В очередь
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
         </button>
         <button
           type="button"
