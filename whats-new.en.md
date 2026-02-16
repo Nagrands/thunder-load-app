@@ -42,6 +42,9 @@
 - **Added hotkeys in the Tools tab**: Alt+1 opens WG Unlock, Alt+2 opens Hash Check, Alt+3 opens Power Shortcuts, and Esc returns to the launcher.
 - **Added shortcut labels in the Tools launcher**: tool cards now display visible key hints for faster navigation.
 - **Added macOS-specific hotkey labels**: on Mac, launcher hints now use Option key notation (⌥1/⌥2/⌥3).
+- **Refreshed the Windows Shortcuts block in Tools**: both actions are now grouped into one compact section with cleaner structure and a flatter visual style.
+- **Simplified non-Windows messaging**: macOS and other unsupported platforms now show one clear banner instead of repeated warnings.
+- **Fixed Windows shortcut icons**: restart and shutdown shortcuts are now created with a valid icon instead of a missing/blank one.
 
 - **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
 - **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.

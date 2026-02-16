@@ -862,19 +862,33 @@ export default function renderToolsView() {
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="Power Tool View">
           <article id="tools-restart-card" class="tools-card">
-            <div class="tools-card__header">
+            <div class="tools-card__header power-shortcuts-header">
               <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+              <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
+                Создаёт ярлыки питания на рабочем столе Windows.
+              </p>
             </div>
-            <p id="restart-shortcut-note" class="tools-card__hint" data-i18n="quickActions.power.hint">
-              Создаёт ярлыки питания на рабочем столе Windows.
-            </p>
-            <div class="power-actions-grid">
-              <section class="power-action-item power-action-item--restart">
-                <h3 class="power-action-item__title">
+            <div
+              id="power-platform-banner"
+              class="power-platform-banner hidden"
+              role="status"
+              aria-live="polite"
+            >
+              <i class="fa-solid fa-circle-info"></i>
+              <div class="power-platform-banner__content">
+                <strong data-i18n="quickActions.power.banner.title">Ограничение платформы</strong>
+                <span id="power-platform-banner-text" data-i18n="quickActions.power.banner.windowsOnly">
+                  Доступно только в Windows. На этой платформе действия отключены.
+                </span>
+              </div>
+            </div>
+            <div class="power-actions-grid power-shortcuts-actions">
+              <section class="power-action-row power-action-row--restart">
+                <h3 class="power-action-row__title">
                   <i class="fa-solid fa-rotate-right"></i>
                   <span data-i18n="quickActions.restart.cardTitle">Перезагрузка</span>
                 </h3>
-                <p class="power-action-item__hint" data-i18n="quickActions.restart.cardHint">
+                <p class="power-action-row__hint" data-i18n="quickActions.restart.cardHint">
                   Мгновенная перезагрузка системы.
                 </p>
                 <button id="create-restart-shortcut" type="button" class="large-button">
@@ -883,15 +897,15 @@ export default function renderToolsView() {
                 </button>
                 <div
                   id="restart-shortcut-result"
-                  class="quick-action-result power-action-item__result muted"
+                  class="quick-action-result power-action-row__result muted"
                 ></div>
               </section>
-              <section class="power-action-item power-action-item--shutdown">
-                <h3 class="power-action-item__title">
+              <section class="power-action-row power-action-row--shutdown">
+                <h3 class="power-action-row__title">
                   <i class="fa-solid fa-power-off"></i>
                   <span data-i18n="quickActions.shutdown.cardTitle">Выключение</span>
                 </h3>
-                <p class="power-action-item__hint" data-i18n="quickActions.shutdown.cardHint">
+                <p class="power-action-row__hint" data-i18n="quickActions.shutdown.cardHint">
                   Мгновенное выключение системы.
                 </p>
                 <button id="create-shutdown-shortcut" type="button" class="large-button">
@@ -900,7 +914,7 @@ export default function renderToolsView() {
                 </button>
                 <div
                   id="shutdown-shortcut-result"
-                  class="quick-action-result power-action-item__result muted"
+                  class="quick-action-result power-action-row__result muted"
                 ></div>
               </section>
             </div>
@@ -1411,6 +1425,10 @@ export default function renderToolsView() {
       setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
       setToolView(currentToolView, { persist: false });
       setLauncherHotkeyLabels();
+      setPowerAvailabilityUi({
+        isWindows: isWindowsPlatform,
+        showTool: isPowerToolVisible(toolsPlatformInfo),
+      });
     });
 
     const hashPickFileBtn = getEl("hash-pick-file", view);
@@ -1918,13 +1936,50 @@ export default function renderToolsView() {
     const createRestartShortcutBtn = getEl("create-restart-shortcut", view);
     const createShutdownShortcutBtn = getEl("create-shutdown-shortcut", view);
     const restartShortcutNote = getEl("restart-shortcut-note", view);
+    const powerPlatformBanner = getEl("power-platform-banner", view);
+    const powerPlatformBannerText = getEl("power-platform-banner-text", view);
     const restartShortcutResult = getEl("restart-shortcut-result", view);
     const shutdownShortcutResult = getEl("shutdown-shortcut-result", view);
     const setPowerResult = (resultEl, text, tone = "muted") => {
       if (!resultEl) return;
       resultEl.textContent = text;
-      resultEl.className = `quick-action-result power-action-item__result ${tone}`;
+      resultEl.className = `quick-action-result power-action-row__result ${tone}`;
     };
+    function setPowerAvailabilityUi({ isWindows, showTool }) {
+      const windowsOnlyText = t("quickActions.power.windowsOnly");
+      const windowsReadyText = t("quickActions.power.windowsReady");
+      const windowsOnlyBannerText = t("quickActions.power.banner.windowsOnly");
+      if (!showTool) {
+        restartCard?.classList.add("hidden");
+        openPowerBtn?.classList.add("hidden");
+        powerPlatformBanner?.classList.add("hidden");
+        if (powerPlatformBannerText) {
+          powerPlatformBannerText.textContent = windowsOnlyBannerText;
+        }
+        if (restartShortcutNote) {
+          restartShortcutNote.textContent = windowsOnlyText;
+        }
+      } else {
+        restartCard?.classList.remove("hidden");
+        openPowerBtn?.classList.remove("hidden");
+        if (restartShortcutNote) {
+          restartShortcutNote.textContent = isWindows
+            ? windowsReadyText
+            : windowsOnlyText;
+        }
+        if (powerPlatformBannerText) {
+          powerPlatformBannerText.textContent = windowsOnlyBannerText;
+        }
+        powerPlatformBanner?.classList.toggle("hidden", !!isWindows);
+      }
+
+      const shouldDisableActions = !showTool || !isWindows;
+      [createRestartShortcutBtn, createShutdownShortcutBtn].forEach((button) => {
+        if (!button) return;
+        button.toggleAttribute("disabled", shouldDisableActions);
+        button.classList.toggle("is-disabled", shouldDisableActions);
+      });
+    }
 
     createRestartShortcutBtn?.addEventListener("click", async () => {
       const confirmed = await showConfirmationDialog({
@@ -1978,38 +2033,10 @@ export default function renderToolsView() {
 
     isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
     const showPowerTool = isPowerToolVisible(toolsPlatformInfo);
-
-    if (isWindowsPlatform) {
-      restartCard?.classList.remove("hidden");
-      createRestartShortcutBtn?.removeAttribute("disabled");
-      createRestartShortcutBtn?.classList.remove("is-disabled");
-      createShutdownShortcutBtn?.removeAttribute("disabled");
-      createShutdownShortcutBtn?.classList.remove("is-disabled");
-      restartShortcutNote.textContent = t(
-        "quickActions.power.windowsReady",
-      );
-      openPowerBtn?.classList.remove("hidden");
-    } else if (showPowerTool) {
-      restartCard?.classList.remove("hidden");
-      createRestartShortcutBtn?.setAttribute("disabled", "disabled");
-      createRestartShortcutBtn?.classList.add("is-disabled");
-      createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
-      createShutdownShortcutBtn?.classList.add("is-disabled");
-      restartShortcutNote.textContent = t(
-        "quickActions.power.windowsOnly",
-      );
-      openPowerBtn?.classList.remove("hidden");
-    } else {
-      restartCard?.classList.add("hidden");
-      createRestartShortcutBtn?.setAttribute("disabled", "disabled");
-      createRestartShortcutBtn?.classList.add("is-disabled");
-      createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
-      createShutdownShortcutBtn?.classList.add("is-disabled");
-      restartShortcutNote.textContent = t(
-        "quickActions.power.windowsOnly",
-      );
-      openPowerBtn?.classList.add("hidden");
-    }
+    setPowerAvailabilityUi({
+      isWindows: isWindowsPlatform,
+      showTool: showPowerTool,
+    });
   };
 
   const handleSend = () => {

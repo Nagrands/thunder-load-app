@@ -604,9 +604,13 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "power");
     const restartCard = el.querySelector("#tools-restart-card");
+    const banner = el.querySelector("#power-platform-banner");
+    const actionsWrap = el.querySelector(".power-shortcuts-actions");
     const restartBtn = el.querySelector("#create-restart-shortcut");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
     expect(restartCard.classList.contains("hidden")).toBe(false);
+    expect(actionsWrap).not.toBeNull();
+    expect(banner?.classList.contains("hidden")).toBe(false);
     expect(restartBtn?.hasAttribute("disabled")).toBe(true);
     expect(shutdownBtn?.hasAttribute("disabled")).toBe(true);
   });
@@ -632,8 +636,11 @@ describe("toolsView quick actions", () => {
     });
     const el = await renderView();
     await openTool(el, "power");
+    const banner = el.querySelector("#power-platform-banner");
     const restartBtn = el.querySelector("#create-restart-shortcut");
 
+    expect(banner?.classList.contains("hidden")).toBe(true);
+    expect(restartBtn?.hasAttribute("disabled")).toBe(false);
     restartBtn.click();
     await nextTick();
 
@@ -654,8 +661,11 @@ describe("toolsView quick actions", () => {
     });
     const el = await renderView();
     await openTool(el, "power");
+    const banner = el.querySelector("#power-platform-banner");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
 
+    expect(banner?.classList.contains("hidden")).toBe(true);
+    expect(shutdownBtn?.hasAttribute("disabled")).toBe(false);
     shutdownBtn.click();
     await nextTick();
 

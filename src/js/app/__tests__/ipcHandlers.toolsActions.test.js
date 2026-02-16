@@ -95,9 +95,18 @@ jest.mock("electron-log", () => ({
 }));
 
 describe("ipcHandlers tools quick actions", () => {
+  const originalPlatform = process.platform;
+
   beforeEach(() => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(process, "platform", {
+      value: originalPlatform,
+      configurable: true,
+    });
   });
 
   function initHandlers() {
@@ -176,6 +185,30 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result.unsupported).toBe(true);
   });
 
+  test("createWindowsRestartShortcut sets icon fields on windows", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    shell.writeShortcutLink.mockReturnValue(true);
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
+
+    expect(result.success).toBe(true);
+    expect(shell.writeShortcutLink).toHaveBeenCalledWith(
+      expect.any(String),
+      "create",
+      expect.objectContaining({
+        args: "/r /t 0",
+        icon: expect.any(String),
+        iconIndex: 0,
+      }),
+    );
+  });
+
   test("createWindowsShutdownShortcut returns unsupported on non-windows", async () => {
     const { CHANNELS } = require("../../ipc/channels");
 
@@ -185,5 +218,30 @@ describe("ipcHandlers tools quick actions", () => {
 
     expect(result.success).toBe(false);
     expect(result.unsupported).toBe(true);
+  });
+
+  test("createWindowsShutdownShortcut sets icon fields on windows", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    shell.writeShortcutLink.mockReturnValue(true);
+
+    initHandlers();
+    const result =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT]();
+
+    expect(result.success).toBe(true);
+    expect(shell.writeShortcutLink).toHaveBeenCalledWith(
+      expect.any(String),
+      "create",
+      expect.objectContaining({
+        args: "/s /t 0",
+        icon: expect.any(String),
+        iconIndex: 0,
+      }),
+    );
   });
 });

@@ -565,10 +565,13 @@ function setupIpcHandlers(dependencies) {
       }
       const desktop = app.getPath("desktop");
       const shortcutPath = path.join(desktop, "Restart Windows.lnk");
+      const iconPath = resolveWindowsShortcutIcon();
       const ok = shell.writeShortcutLink(shortcutPath, "create", {
         target: "C:\\Windows\\System32\\shutdown.exe",
         args: "/r /t 0",
         description: "Restart Windows",
+        icon: iconPath,
+        iconIndex: 0,
       });
       if (!ok) {
         return { success: false, error: "Failed to create shortcut" };
@@ -591,10 +594,13 @@ function setupIpcHandlers(dependencies) {
       }
       const desktop = app.getPath("desktop");
       const shortcutPath = path.join(desktop, "Shutdown Windows.lnk");
+      const iconPath = resolveWindowsShortcutIcon();
       const ok = shell.writeShortcutLink(shortcutPath, "create", {
         target: "C:\\Windows\\System32\\shutdown.exe",
         args: "/s /t 0",
         description: "Shutdown Windows",
+        icon: iconPath,
+        iconIndex: 0,
       });
       if (!ok) {
         return { success: false, error: "Failed to create shortcut" };
@@ -1556,6 +1562,27 @@ function setupIpcHandlers(dependencies) {
     const startupFolderPath = getStartupFolderPath();
     const shortcutPath = path.join(startupFolderPath, `${app.getName()}.lnk`);
     return fs.existsSync(shortcutPath);
+  }
+
+  function resolveWindowsShortcutIcon() {
+    const exePath = app.getPath("exe");
+    const appPath = app.getAppPath();
+    const iconCandidates = [];
+
+    if (typeof process.resourcesPath === "string" && process.resourcesPath) {
+      iconCandidates.push(
+        path.join(process.resourcesPath, "assets", "icons", "icon.ico"),
+      );
+    }
+
+    if (typeof appPath === "string" && appPath) {
+      iconCandidates.push(path.join(appPath, "assets", "icons", "icon.ico"));
+    }
+
+    iconCandidates.push(path.join(__dirname, "../../../assets/icons/icon.ico"));
+
+    const iconPath = iconCandidates.find((candidate) => fs.existsSync(candidate));
+    return iconPath || exePath;
   }
 
   // Функция для получения имени иконки из URL

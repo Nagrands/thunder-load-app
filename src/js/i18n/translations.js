@@ -152,6 +152,9 @@ export const translations = {
       "Доступно только в Windows. На этой платформе действия отключены.",
     "quickActions.power.windowsReady":
       "Создаёт ярлыки перезагрузки и выключения на рабочем столе Windows.",
+    "quickActions.power.banner.title": "Ограничение платформы",
+    "quickActions.power.banner.windowsOnly":
+      "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
     "quickActions.restart.title": "Создание ярлыка перезагрузки",
     "quickActions.restart.cardTitle": "Перезагрузка",
     "quickActions.restart.cardHint": "Перезапускает Windows сразу после запуска ярлыка.",
@@ -1350,6 +1353,9 @@ export const translations = {
       "Available only on Windows. Actions are disabled on this platform.",
     "quickActions.power.windowsReady":
       "Creates restart and shutdown shortcuts on your Windows desktop.",
+    "quickActions.power.banner.title": "Platform limitation",
+    "quickActions.power.banner.windowsOnly":
+      "Shortcut creation is available only on Windows. Actions are disabled on this platform.",
     "quickActions.restart.title": "Create restart shortcut",
     "quickActions.restart.cardTitle": "Restart",
     "quickActions.restart.cardHint":

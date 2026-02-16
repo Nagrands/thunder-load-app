@@ -1151,8 +1151,7 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 .tools-view-title {
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-highlight);
+  color: var(--color-accent);
 }
 
 .tools-launcher {
@@ -1620,22 +1619,61 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
 }
 
 .power-actions-grid {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.power-action-item {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.power-shortcuts-header {
+  display: grid;
+  gap: 8px;
+}
+
+.power-shortcuts-header__hint {
+  margin: 0;
+}
+
+.power-platform-banner {
+  border: 1px solid rgba(251, 191, 36, 0.34);
   border-radius: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fef3c7;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+
+  i {
+    margin-top: 1px;
+    color: #fcd34d;
+  }
+}
+
+.power-platform-banner__content {
+  display: grid;
+  gap: 4px;
+}
+
+.power-shortcuts-actions {
+  margin-top: 2px;
+}
+
+.power-action-row {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.015);
+  padding: 10px;
   display: grid;
   gap: 8px;
   align-content: start;
 }
 
-.power-action-item__title {
+.power-action-row__title {
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -1644,18 +1682,18 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   color: var(--color-highlight);
 
   i {
-    color: var(--color-accent);
+    color: rgba(var(--color-accent-rgb), 0.95);
   }
 }
 
-.power-action-item__hint {
+.power-action-row__hint {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.32;
   color: var(--color-quality);
 }
 
-.power-action-item__result {
+.power-action-row__result {
   min-height: 1.2rem;
   margin-top: 2px;
   font-size: 0.78rem;
@@ -1768,35 +1806,26 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     color: #111;
   }
 
-  .power-action-item--restart .large-button {
-    background: rgba(var(--color-accent-rgb), 0.16);
-    border-color: rgba(var(--color-accent-rgb), 0.3);
+  .power-shortcuts-actions .large-button {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
     color: var(--color-highlight);
+    justify-content: center;
   }
 
-  .power-action-item--shutdown {
-    border-color: rgba(239, 68, 68, 0.34);
-    background: rgba(239, 68, 68, 0.08);
+  .power-action-row--shutdown .power-action-row__title i {
+    color: rgba(248, 113, 113, 0.95);
   }
 
-  .power-action-item--shutdown .power-action-item__title i {
-    color: #ff8a8a;
+  .power-action-row--shutdown .large-button i,
+  .power-action-row--shutdown .large-button span {
+    color: rgba(255, 173, 173, 0.95);
   }
 
-  .power-action-item--shutdown .large-button {
-    background: rgba(220, 38, 38, 0.32);
-    border-color: rgba(248, 113, 113, 0.36);
-  }
-
-  .power-action-item--shutdown .large-button:hover {
-    border-color: rgba(248, 113, 113, 0.52);
-    background: rgba(220, 38, 38, 0.4);
-  }
-
-  .power-action-item--shutdown .large-button:disabled {
-    background: rgba(150, 44, 44, 0.22);
-    border-color: rgba(248, 113, 113, 0.18);
-    color: rgba(255, 255, 255, 0.5);
+  .power-shortcuts-actions .large-button:disabled i,
+  .power-shortcuts-actions .large-button:disabled span {
+    color: inherit;
   }
 
   .quick-action-result.warning {
