@@ -383,6 +383,27 @@ function describeFormat(format) {
   return parts.join(" • ").trim();
 }
 
+function describeOption(option) {
+  if (!option) return "";
+  const bitrate = option.audioBitrateLabel || "";
+  switch (option.payload?.type) {
+    case "muxed":
+      return t("quality.desc.muxed");
+    case "pair":
+      return bitrate
+        ? `${t("quality.desc.pair")} • ${t("quality.metric.bitrate")}: ${bitrate}`
+        : t("quality.desc.pair");
+    case "video-only":
+      return t("quality.desc.videoOnly");
+    case "audio-only":
+      return bitrate
+        ? `${t("quality.desc.audioOnly")} • ${t("quality.metric.bitrate")}: ${bitrate}`
+        : t("quality.desc.audioOnly");
+    default:
+      return option.description || "";
+  }
+}
+
 function codecLabel(fmt) {
   const vcodec = fmt?.vcodec && fmt.vcodec !== "none" ? fmt.vcodec : "";
   const acodec = fmt?.acodec && fmt.acodec !== "none" ? fmt.acodec : "";
@@ -484,6 +505,7 @@ function buildOptions(info) {
       fpsLabel: fps ? `${fps}` : "—",
       codecLabel: codecLabel(fmt),
       containerLabel: (videoExt || fmt.ext || "").toUpperCase() || "—",
+      audioBitrateLabel: fmt?.abr ? `${fmt.abr} kbps` : "",
       score: sortScore(fmt) + 10, // бонус за готовое muxed-видео
       payload: buildOptionPayload({
         type: "muxed",
@@ -514,11 +536,12 @@ function buildOptions(info) {
         (fmt.filesize || fmt.filesize_approx || 0) +
           (bestAudio?.filesize || bestAudio?.filesize_approx || 0),
       ),
-      extra: hasAudioPair ? "+ лучший звук" : "без аудио",
+      extra: hasAudioPair ? t("quality.extra.bestAudio") : t("quality.extra.noAudio"),
       resolutionLabel: resolution || "—",
       fpsLabel: fps ? `${fps}` : "—",
       codecLabel: codecLabel(fmt),
       containerLabel: (videoExt || "mp4").toUpperCase(),
+      audioBitrateLabel: bestAudio?.abr ? `${bestAudio.abr} kbps` : "",
       score: sortScore(fmt) + (hasAudioPair ? 5 : 0),
       payload: buildOptionPayload({
         type: "pair",
@@ -541,11 +564,12 @@ function buildOptions(info) {
       description: describeFormat(fmt),
       extLabel: (videoExt || "mp4").toUpperCase(),
       sizeLabel: bytesToSize(fmt.filesize || fmt.filesize_approx),
-      extra: "без аудио",
+      extra: t("quality.extra.noAudio"),
       resolutionLabel: resolution || "—",
       fpsLabel: fps ? `${fps}` : "—",
       codecLabel: codecLabel(fmt),
       containerLabel: (videoExt || "mp4").toUpperCase(),
+      audioBitrateLabel: "",
       score: sortScore(fmt),
       payload: buildOptionPayload({
         type: "video-only",
@@ -576,6 +600,7 @@ function buildOptions(info) {
       fpsLabel: "—",
       codecLabel: codecLabel(fmt),
       containerLabel: (fmt.ext || "m4a").toUpperCase(),
+      audioBitrateLabel: `${fmt.abr || fmt.tbr || "?"} kbps`,
       score: (fmt.abr || fmt.tbr || 0) / 10,
       payload: buildOptionPayload({
         type: "audio-only",
@@ -605,6 +630,46 @@ function renderOptions(tab) {
   if (bestCurrentBtn) bestCurrentBtn.disabled = false;
   const frag = document.createDocumentFragment();
   list.forEach((option, index) => {
+    const metrics = [];
+    if (option.resolutionLabel && option.resolutionLabel !== "Audio") {
+      metrics.push([
+        t("quality.metric.resolution"),
+        escapeHTML(option.resolutionLabel),
+      ]);
+    }
+    if (option.fpsLabel && option.fpsLabel !== "—") {
+      metrics.push([t("quality.metric.fps"), escapeHTML(option.fpsLabel)]);
+    }
+    if (option.codecLabel && option.codecLabel !== "—") {
+      metrics.push([t("quality.metric.codec"), escapeHTML(option.codecLabel)]);
+    }
+    if (option.audioBitrateLabel) {
+      metrics.push([
+        t("quality.metric.bitrate"),
+        escapeHTML(option.audioBitrateLabel),
+      ]);
+    }
+    if (option.sizeLabel) {
+      metrics.push([t("quality.metric.size"), escapeHTML(option.sizeLabel)]);
+    }
+    if (option.containerLabel && option.containerLabel !== "—") {
+      metrics.push([
+        t("quality.metric.container"),
+        escapeHTML(option.containerLabel),
+      ]);
+    }
+
+    const tags = [];
+    if (index === 0) tags.push('<span class="tag tag-top">TOP</span>');
+    if (option.extra) {
+      tags.push(
+        `<span class="tag tag-accent">${escapeHTML(option.extra)}</span>`,
+      );
+    }
+    const tagsMarkup = tags.length
+      ? `<div class="quality-option-tags">${tags.join("")}</div>`
+      : "";
+
     const el = document.createElement("button");
     el.type = "button";
     el.className = "quality-option";
@@ -622,40 +687,18 @@ function renderOptions(tab) {
         <div>
           <p class="quality-option-title">${escapeHTML(option.title)}</p>
           <p class="quality-option-desc" id="quality-option-desc-${option.id}">${escapeHTML(
-            option.description || "",
+            describeOption(option),
           )}</p>
           <div class="quality-option-metrics" aria-hidden="true">
-            <span class="metric"><strong>${t("quality.metric.resolution")}:</strong> ${escapeHTML(
-              option.resolutionLabel || "—",
-            )}</span>
-            <span class="metric"><strong>${t("quality.metric.fps")}:</strong> ${escapeHTML(
-              option.fpsLabel || "—",
-            )}</span>
-            <span class="metric"><strong>${t("quality.metric.codec")}:</strong> ${escapeHTML(
-              option.codecLabel || "—",
-            )}</span>
-            <span class="metric"><strong>${t("quality.metric.size")}:</strong> ${escapeHTML(
-              option.sizeLabel || "—",
-            )}</span>
-            <span class="metric"><strong>${t("quality.metric.container")}:</strong> ${escapeHTML(
-              option.containerLabel || option.extLabel || "—",
-            )}</span>
+            ${metrics
+              .map(
+                ([label, value]) =>
+                  `<span class="metric"><strong>${label}:</strong> ${value}</span>`,
+              )
+              .join("")}
           </div>
         </div>
-        <div class="quality-option-tags">
-          ${index === 0 ? `<span class="tag tag-top">TOP</span>` : ""}
-          <span class="tag">${escapeHTML(option.extLabel || "")}</span>
-          ${
-            option.sizeLabel
-              ? `<span class="tag tag-soft">${escapeHTML(option.sizeLabel)}</span>`
-              : ""
-          }
-          ${
-            option.extra
-              ? `<span class="tag tag-accent">${escapeHTML(option.extra)}</span>`
-              : ""
-          }
-        </div>
+        ${tagsMarkup}
       </div>
     `;
     frag.appendChild(el);

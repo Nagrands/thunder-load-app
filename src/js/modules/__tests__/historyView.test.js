@@ -198,4 +198,41 @@ describe("Downloader history list", () => {
     expect(list.querySelector(".history-virtual-window")).toBeNull();
     expect(list.querySelectorAll(".history-row")).toHaveLength(entries.length);
   });
+
+  test("toggles details when clicking history row body", async () => {
+    const { renderHistory } = await import("../history.js");
+
+    renderHistory([createEntry()]);
+
+    const row = document.querySelector(".history-row");
+    const details = row.querySelector(".history-row__details");
+
+    expect(details.classList.contains("is-open")).toBe(false);
+
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(details.classList.contains("is-open")).toBe(true);
+
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(details.classList.contains("is-open")).toBe(false);
+  });
+
+  test("renders copy controls for source and file detail rows", async () => {
+    const { renderHistory } = await import("../history.js");
+    const entry = createEntry({
+      sourceUrl:
+        "https://example.com/very/long/source/path/that/should/be/truncated",
+      filePath:
+        "/Users/nagrand/Movies/Download/Long/Long/Long/path/to/downloaded/file-name.webm",
+    });
+
+    renderHistory([entry]);
+
+    const copyButtons = document.querySelectorAll(".history-row__copy");
+    const truncatedValues = document.querySelectorAll(
+      ".history-row__details-value--truncate",
+    );
+
+    expect(copyButtons).toHaveLength(2);
+    expect(truncatedValues.length).toBeGreaterThanOrEqual(2);
+  });
 });

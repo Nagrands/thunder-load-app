@@ -69,3 +69,5 @@
 - **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being recreated on rerenders, reducing unnecessary UI load.
 - **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
 - **Fixed History context menu behavior**: when confirming record or file deletion, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
+- **Improved History entries**: details now expand by clicking the row, primary actions are kept in main buttons, and long “Source”/“File” values are cleaner with quick copy buttons.
+- **Cleaned up the Quality picker list**: duplicate values in option cards were removed, and format details are now grouped in a clearer, more compact layout.

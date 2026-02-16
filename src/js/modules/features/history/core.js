@@ -949,6 +949,31 @@ async function openHistorySourceLink(url) {
   }
 }
 
+async function copyHistoryValue(value) {
+  const text = String(value || "").trim();
+  if (!text) return;
+
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand?.("copy");
+      document.body.removeChild(textarea);
+    }
+    showToast(t("history.toast.copySuccess"), "success");
+  } catch (error) {
+    console.warn("Не удалось скопировать значение истории:", error);
+    showToast(t("history.toast.copyError"), "error");
+  }
+}
+
 function _showFilterInput() {
   filterInput.classList.remove("hidden");
   filterInput.style.display = "block";
@@ -2144,7 +2169,6 @@ function createLogEntry(entry) {
   openBtn.setAttribute("data-i18n-title", "history.action.openFile");
   openBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
   openBtn.disabled = entry.isMissing;
-  if (entry.isMissing) openBtn.classList.add("hidden");
   openBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFile(entry);
@@ -2162,7 +2186,6 @@ function createLogEntry(entry) {
   );
   openFolderBtn.innerHTML = '<i class="fa-solid fa-folder-open"></i>';
   openFolderBtn.disabled = entry.isMissing;
-  if (entry.isMissing) openFolderBtn.classList.add("hidden");
   openFolderBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFolder(entry);
@@ -2185,121 +2208,88 @@ function createLogEntry(entry) {
     return item;
   };
 
-  if (entry.isMissing) {
-    const retryMissingBtn = document.createElement("button");
-    retryMissingBtn.type = "button";
-    retryMissingBtn.className = "history-row__action history-row__retry";
-    retryMissingBtn.setAttribute("data-bs-toggle", "tooltip");
-    retryMissingBtn.setAttribute("data-bs-placement", "top");
-    retryMissingBtn.title = t("history.action.retry");
-    retryMissingBtn.setAttribute("data-i18n-title", "history.action.retry");
-    retryMissingBtn.innerHTML =
-      '<i class="fa-solid fa-arrow-rotate-right"></i>';
-    retryMissingBtn.disabled = !entry.sourceUrl;
-    if (entry.sourceUrl) {
-      retryMissingBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        retryHistoryCardDownload(entry);
-      });
-    }
+  const menu = document.createElement("div");
+  menu.className = "history-row__menu";
 
-    const deleteMissingBtn = document.createElement("button");
-    deleteMissingBtn.type = "button";
-    deleteMissingBtn.className = "history-row__action history-row__delete";
-    deleteMissingBtn.setAttribute("data-bs-toggle", "tooltip");
-    deleteMissingBtn.setAttribute("data-bs-placement", "top");
-    deleteMissingBtn.title = t("history.action.deleteFromHistory");
-    deleteMissingBtn.setAttribute(
-      "data-i18n-title",
-      "history.action.deleteFromHistory",
-    );
-    deleteMissingBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+  const menuButton = document.createElement("button");
+  menuButton.type = "button";
+  menuButton.className = "history-row__action history-row__menu-button";
+  menuButton.setAttribute("aria-expanded", "false");
+  menuButton.setAttribute("aria-label", t("history.action.more"));
+  menuButton.setAttribute("data-i18n-aria", "history.action.more");
+  menuButton.setAttribute("data-bs-toggle", "tooltip");
+  menuButton.setAttribute("data-bs-placement", "top");
+  menuButton.title = t("history.action.more");
+  menuButton.setAttribute("data-i18n-title", "history.action.more");
+  menuButton.innerHTML = '<i class="fa-solid fa-ellipsis-vertical"></i>';
 
-    actions.append(openBtn, openFolderBtn, retryMissingBtn, deleteMissingBtn);
-  } else {
-    const menu = document.createElement("div");
-    menu.className = "history-row__menu";
+  const menuList = document.createElement("div");
+  menuList.className = "history-row__menu-list";
+  menuList.setAttribute("role", "menu");
 
-    const menuButton = document.createElement("button");
-    menuButton.type = "button";
-    menuButton.className = "history-row__action history-row__menu-button";
-    menuButton.setAttribute("aria-expanded", "false");
-    menuButton.setAttribute("aria-label", t("history.action.more"));
-    menuButton.setAttribute("data-i18n-aria", "history.action.more");
-    menuButton.setAttribute("data-bs-toggle", "tooltip");
-    menuButton.setAttribute("data-bs-placement", "top");
-    menuButton.title = t("history.action.more");
-    menuButton.setAttribute("data-i18n-title", "history.action.more");
-    menuButton.innerHTML = '<i class="fa-solid fa-ellipsis-vertical"></i>';
+  const openSourceItem = menuItem(
+    t("history.action.openSource"),
+    "fa-solid fa-up-right-from-square",
+    {
+      disabled: !entry.sourceUrl,
+      onClick: () => openHistorySourceLink(entry.sourceUrl),
+    },
+  );
 
-    const menuList = document.createElement("div");
-    menuList.className = "history-row__menu-list";
-    menuList.setAttribute("role", "menu");
+  const retryItem = menuItem(
+    t("history.action.retry"),
+    "fa-solid fa-arrow-rotate-right",
+    {
+      disabled: !entry.sourceUrl,
+      onClick: () => retryHistoryCardDownload(entry),
+    },
+  );
 
-    const openSourceItem = menuItem(
-      t("history.action.openSource"),
-      "fa-solid fa-up-right-from-square",
-      {
-        disabled: !entry.sourceUrl,
-        onClick: () => openHistorySourceLink(entry.sourceUrl),
-      },
-    );
+  const deleteItem = menuItem(
+    t("history.action.deleteFromHistory"),
+    "fa-solid fa-trash",
+    {
+      className: " history-row__delete",
+    },
+  );
 
-    const retryItem = menuItem(
-      t("history.action.retry"),
-      "fa-solid fa-arrow-rotate-right",
-      {
-        disabled: !entry.sourceUrl,
-        onClick: () => retryHistoryCardDownload(entry),
-      },
-    );
+  menuList.append(openSourceItem, retryItem, deleteItem);
+  menu.append(menuButton, menuList);
 
-    const deleteItem = menuItem(
-      t("history.action.deleteFromHistory"),
-      "fa-solid fa-trash",
-      {
-        className: " history-row__delete",
-      },
-    );
-
-    menuList.append(openSourceItem, retryItem, deleteItem);
-    menu.append(menuButton, menuList);
-
-    menuButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const willOpen = !menu.classList.contains("is-open");
-      closeAllHistoryMenus(willOpen ? menu : null);
-      menu.classList.toggle("is-open", willOpen);
-      el.classList.toggle("is-menu-open", willOpen);
-      menuButton.setAttribute("aria-expanded", willOpen ? "true" : "false");
-      if (willOpen) {
-        if (!menuButton.dataset.tooltipTitle) {
-          menuButton.dataset.tooltipTitle = menuButton.getAttribute("title") || "";
-        }
-        menuButton.removeAttribute("title");
-        menuButton.setAttribute("data-bs-original-title", "");
-        menuList.style.visibility = "hidden";
-        const menuRect = menuList.getBoundingClientRect();
-        const pagination = document.getElementById("history-pagination");
-        const paginationRect = pagination?.getBoundingClientRect();
-        const gap = 8;
-        const viewportHeight =
-          window.innerHeight || document.documentElement.clientHeight;
-        const lowerBound = paginationRect
-          ? paginationRect.top - gap
-          : viewportHeight - gap;
-        const openUp = menuRect.bottom + gap > lowerBound;
-        menu.classList.toggle("is-open-up", openUp);
-        menuList.style.visibility = "";
-      } else {
-        const title = menuButton.dataset.tooltipTitle || t("history.action.more");
-        menuButton.setAttribute("title", title);
-        menuButton.setAttribute("data-bs-original-title", title);
+  menuButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const willOpen = !menu.classList.contains("is-open");
+    closeAllHistoryMenus(willOpen ? menu : null);
+    menu.classList.toggle("is-open", willOpen);
+    el.classList.toggle("is-menu-open", willOpen);
+    menuButton.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    if (willOpen) {
+      if (!menuButton.dataset.tooltipTitle) {
+        menuButton.dataset.tooltipTitle = menuButton.getAttribute("title") || "";
       }
-    });
+      menuButton.removeAttribute("title");
+      menuButton.setAttribute("data-bs-original-title", "");
+      menuList.style.visibility = "hidden";
+      const menuRect = menuList.getBoundingClientRect();
+      const pagination = document.getElementById("history-pagination");
+      const paginationRect = pagination?.getBoundingClientRect();
+      const gap = 8;
+      const viewportHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const lowerBound = paginationRect
+        ? paginationRect.top - gap
+        : viewportHeight - gap;
+      const openUp = menuRect.bottom + gap > lowerBound;
+      menu.classList.toggle("is-open-up", openUp);
+      menuList.style.visibility = "";
+    } else {
+      const title = menuButton.dataset.tooltipTitle || t("history.action.more");
+      menuButton.setAttribute("title", title);
+      menuButton.setAttribute("data-bs-original-title", title);
+    }
+  });
 
-    actions.append(openBtn, openFolderBtn, menu);
-  }
+  actions.append(openBtn, openFolderBtn, menu);
 
   const toggle = document.createElement("button");
   toggle.type = "button";
@@ -2379,6 +2369,8 @@ function createLogEntry(entry) {
     const key = document.createElement("span");
     key.className = "history-row__details-key";
     key.textContent = label;
+    const valueWrap = document.createElement("div");
+    valueWrap.className = "history-row__details-value-wrap";
     const val = document.createElement("span");
     val.className = "history-row__details-value";
     if (options.html) {
@@ -2386,16 +2378,48 @@ function createLogEntry(entry) {
     } else {
       val.textContent = value;
     }
-    row.append(key, val);
+    if (options.truncate) {
+      val.classList.add("history-row__details-value--truncate");
+      val.title = options.copyValue || val.textContent || "";
+    }
+    valueWrap.appendChild(val);
+    if (options.copyable && options.copyValue) {
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "history-row__copy";
+      copyBtn.setAttribute("aria-label", t("history.action.copy"));
+      copyBtn.setAttribute("data-i18n-aria", "history.action.copy");
+      copyBtn.setAttribute("data-bs-toggle", "tooltip");
+      copyBtn.setAttribute("data-bs-placement", "top");
+      copyBtn.title = t("history.action.copy");
+      copyBtn.setAttribute("data-i18n-title", "history.action.copy");
+      copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+      copyBtn.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await copyHistoryValue(options.copyValue);
+      });
+      valueWrap.appendChild(copyBtn);
+    }
+    row.append(key, valueWrap);
     detailsMeta.appendChild(row);
   };
 
   addDetail(
     t("history.detail.source"),
     highlightText(entry.sourceUrl || "", state.currentSearchQuery),
-    { html: true },
+    {
+      html: true,
+      truncate: true,
+      copyable: true,
+      copyValue: entry.sourceUrl || "",
+    },
   );
-  addDetail(t("history.detail.file"), entry.filePath || "");
+  addDetail(t("history.detail.file"), entry.filePath || "", {
+    truncate: true,
+    copyable: true,
+    copyValue: entry.filePath || "",
+  });
   addDetail(t("history.detail.quality"), entry.quality || "");
   addDetail(t("history.detail.resolution"), entry.resolution || "");
   addDetail(t("history.detail.date"), entry.dateText || "");
@@ -2419,9 +2443,10 @@ function createLogEntry(entry) {
     updateDeleteSelectedButton();
   });
 
-  toggle.addEventListener("click", (event) => {
-    event.stopPropagation();
-    const isOpen = details.classList.toggle("is-open");
+  const toggleDetails = (event = null) => {
+    event?.stopPropagation?.();
+    const isOpen = !details.classList.contains("is-open");
+    details.classList.toggle("is-open", isOpen);
     el.classList.toggle("is-open", isOpen);
     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     const label = isOpen
@@ -2431,17 +2456,18 @@ function createLogEntry(entry) {
     toggle.title = label;
     updateToggleAllButtonState();
     historyVirtualList?.requestRender?.();
-  });
+  };
 
-  el.addEventListener("click", async (event) => {
+  toggle.addEventListener("click", (event) => toggleDetails(event));
+
+  el.addEventListener("click", (event) => {
     event.stopPropagation();
     if (
       event.target.closest("button, a, input, label, .history-row__details")
     ) {
       return;
     }
-    if (el.classList.contains("missing")) return;
-    await openHistoryCardFile(entry);
+    toggleDetails();
   });
 
   if (entry._highlight) {
