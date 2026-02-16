@@ -556,27 +556,14 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT, async () => {
     try {
-      if (process.platform !== "win32") {
-        return {
-          success: false,
-          unsupported: true,
-          error: "Available only on Windows",
-        };
-      }
-      const desktop = app.getPath("desktop");
-      const shortcutPath = path.join(desktop, "Restart Windows.lnk");
-      const iconPath = resolveWindowsShortcutIcon();
-      const ok = shell.writeShortcutLink(shortcutPath, "create", {
+      return createWindowsDesktopShortcut({
+        fileName: "Restart Windows.lnk",
         target: "C:\\Windows\\System32\\shutdown.exe",
         args: "/r /t 0",
         description: "Restart Windows",
-        icon: iconPath,
-        iconIndex: 0,
+        iconPath: "C:\\Windows\\System32\\shell32.dll",
+        iconIndex: 238,
       });
-      if (!ok) {
-        return { success: false, error: "Failed to create shortcut" };
-      }
-      return { success: true, path: shortcutPath };
     } catch (error) {
       log.error("tools:createWindowsRestartShortcut error:", error);
       return { success: false, error: error.message || String(error) };
@@ -585,32 +572,124 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT, async () => {
     try {
-      if (process.platform !== "win32") {
-        return {
-          success: false,
-          unsupported: true,
-          error: "Available only on Windows",
-        };
-      }
-      const desktop = app.getPath("desktop");
-      const shortcutPath = path.join(desktop, "Shutdown Windows.lnk");
-      const iconPath = resolveWindowsShortcutIcon();
-      const ok = shell.writeShortcutLink(shortcutPath, "create", {
+      return createWindowsDesktopShortcut({
+        fileName: "Shutdown Windows.lnk",
         target: "C:\\Windows\\System32\\shutdown.exe",
         args: "/s /t 0",
         description: "Shutdown Windows",
-        icon: iconPath,
-        iconIndex: 0,
+        iconPath: "C:\\Windows\\System32\\shell32.dll",
+        iconIndex: 27,
       });
-      if (!ok) {
-        return { success: false, error: "Failed to create shortcut" };
-      }
-      return { success: true, path: shortcutPath };
     } catch (error) {
       log.error("tools:createWindowsShutdownShortcut error:", error);
       return { success: false, error: error.message || String(error) };
     }
   });
+
+  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT, async () => {
+    try {
+      return createWindowsDesktopShortcut({
+        fileName: "Restart to UEFI.lnk",
+        target: "C:\\Windows\\System32\\shutdown.exe",
+        args: "/r /fw /t 0",
+        description: "Restart to UEFI firmware settings",
+        iconPath: "C:\\Windows\\System32\\imageres.dll",
+        iconIndex: 106,
+      });
+    } catch (error) {
+      log.error("tools:createWindowsUefiRebootShortcut error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(
+    CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT,
+    async () => {
+      try {
+        return createWindowsDesktopShortcut({
+          fileName: "Advanced Startup.lnk",
+          target: "C:\\Windows\\System32\\shutdown.exe",
+          args: "/r /o /t 0",
+          description: "Restart to advanced startup options",
+          iconPath: "C:\\Windows\\System32\\imageres.dll",
+          iconIndex: 74,
+        });
+      } catch (error) {
+        log.error("tools:createWindowsAdvancedBootShortcut error:", error);
+        return { success: false, error: error.message || String(error) };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT,
+    async () => {
+      try {
+        return createWindowsDesktopShortcut({
+          fileName: "Device Manager.lnk",
+          target: "C:\\Windows\\System32\\mmc.exe",
+          args: "devmgmt.msc",
+          description: "Open Device Manager",
+          iconPath: "C:\\Windows\\System32\\devmgr.dll",
+          iconIndex: 0,
+        });
+      } catch (error) {
+        log.error("tools:createWindowsDeviceManagerShortcut error:", error);
+        return { success: false, error: error.message || String(error) };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT,
+    async () => {
+      try {
+        return createWindowsDesktopShortcut({
+          fileName: "Network Settings.lnk",
+          target: "C:\\Windows\\System32\\cmd.exe",
+          args: '/c start "" ms-settings:network',
+          description: "Open Network Settings",
+          iconPath: "C:\\Windows\\System32\\netshell.dll",
+          iconIndex: 0,
+        });
+      } catch (error) {
+        log.error("tools:createWindowsNetworkSettingsShortcut error:", error);
+        return { success: false, error: error.message || String(error) };
+      }
+    },
+  );
+
+  function createWindowsDesktopShortcut({
+    fileName,
+    target,
+    args = "",
+    description = "",
+    iconPath = "",
+    iconIndex = 0,
+  }) {
+    if (process.platform !== "win32") {
+      return {
+        success: false,
+        unsupported: true,
+        error: "Available only on Windows",
+      };
+    }
+
+    const desktop = app.getPath("desktop");
+    const shortcutPath = path.join(desktop, fileName);
+    const iconRef = resolveWindowsIconReference(iconPath, iconIndex);
+    const ok = shell.writeShortcutLink(shortcutPath, "create", {
+      target,
+      args,
+      description,
+      icon: iconRef.icon,
+      iconIndex: iconRef.iconIndex,
+    });
+    if (!ok) {
+      return { success: false, error: "Failed to create shortcut" };
+    }
+    return { success: true, path: shortcutPath };
+  }
 
   // ==== Tools location management ====
   ipcMain.handle(CHANNELS.TOOLS_GET_LOCATION, () => {
@@ -1583,6 +1662,23 @@ function setupIpcHandlers(dependencies) {
 
     const iconPath = iconCandidates.find((candidate) => fs.existsSync(candidate));
     return iconPath || exePath;
+  }
+
+  function resolveWindowsIconReference(preferredIconPath, preferredIconIndex = 0) {
+    if (
+      typeof preferredIconPath === "string" &&
+      preferredIconPath &&
+      fs.existsSync(preferredIconPath)
+    ) {
+      return {
+        icon: preferredIconPath,
+        iconIndex: Number.isInteger(preferredIconIndex) ? preferredIconIndex : 0,
+      };
+    }
+    return {
+      icon: resolveWindowsShortcutIcon(),
+      iconIndex: 0,
+    };
   }
 
   // Функция для получения имени иконки из URL

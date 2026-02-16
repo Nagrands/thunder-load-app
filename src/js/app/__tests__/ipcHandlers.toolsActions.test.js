@@ -244,4 +244,53 @@ describe("ipcHandlers tools quick actions", () => {
       }),
     );
   });
+
+  test("new windows shortcut handlers return unsupported on non-windows", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+
+    initHandlers();
+
+    const uefiResult =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
+    const advancedBootResult =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT]();
+    const deviceManagerResult =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT]();
+    const networkSettingsResult =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT]();
+
+    [uefiResult, advancedBootResult, deviceManagerResult, networkSettingsResult]
+      .forEach((result) => {
+        expect(result.success).toBe(false);
+        expect(result.unsupported).toBe(true);
+      });
+  });
+
+  test("new windows shortcut handlers set icon fields on windows", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    shell.writeShortcutLink.mockReturnValue(true);
+
+    initHandlers();
+
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT]();
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT]();
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT]();
+
+    expect(shell.writeShortcutLink).toHaveBeenCalledTimes(4);
+    const calls = shell.writeShortcutLink.mock.calls.map((call) => call[2]);
+    calls.forEach((options) => {
+      expect(options).toEqual(
+        expect.objectContaining({
+          icon: expect.any(String),
+          iconIndex: 0,
+        }),
+      );
+    });
+  });
 });

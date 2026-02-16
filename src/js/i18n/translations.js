@@ -162,6 +162,25 @@ export const translations = {
     "quickActions.restart.confirm": "Создать ярлык перезагрузки?",
     "quickActions.restart.error": "Не удалось создать ярлык перезагрузки",
     "quickActions.restart.created": "Ярлык перезагрузки создан: Рабочий стол",
+    "quickActions.uefi.title": "Создание ярлыка BIOS/UEFI",
+    "quickActions.uefi.cardTitle": "BIOS/UEFI",
+    "quickActions.uefi.cardHint":
+      "Перезапускает систему в настройки прошивки UEFI.",
+    "quickActions.uefi.action": "Создать ярлык BIOS/UEFI",
+    "quickActions.uefi.confirm": "Создать ярлык перезагрузки в BIOS/UEFI?",
+    "quickActions.uefi.error": "Не удалось создать ярлык BIOS/UEFI",
+    "quickActions.uefi.created": "Ярлык BIOS/UEFI создан: Рабочий стол",
+    "quickActions.advancedBoot.title": "Создание ярлыка расширенной загрузки",
+    "quickActions.advancedBoot.cardTitle": "Расширенная загрузка",
+    "quickActions.advancedBoot.cardHint":
+      "Открывает дополнительные параметры восстановления Windows.",
+    "quickActions.advancedBoot.action": "Создать ярлык расширенной загрузки",
+    "quickActions.advancedBoot.confirm":
+      "Создать ярлык расширенной загрузки?",
+    "quickActions.advancedBoot.error":
+      "Не удалось создать ярлык расширенной загрузки",
+    "quickActions.advancedBoot.created":
+      "Ярлык расширенной загрузки создан: Рабочий стол",
     "quickActions.shutdown.title": "Создание ярлыка выключения",
     "quickActions.shutdown.cardTitle": "Выключение",
     "quickActions.shutdown.cardHint":
@@ -171,6 +190,32 @@ export const translations = {
     "quickActions.shutdown.error": "Не удалось создать ярлык выключения",
     "quickActions.shutdown.created":
       "Ярлык выключения создан: Рабочий стол",
+    "quickActions.deviceManager.title":
+      "Создание ярлыка диспетчера устройств",
+    "quickActions.deviceManager.cardTitle": "Диспетчер устройств",
+    "quickActions.deviceManager.cardHint":
+      "Быстрый доступ к управлению устройствами и драйверами.",
+    "quickActions.deviceManager.action":
+      "Создать ярлык диспетчера устройств",
+    "quickActions.deviceManager.confirm":
+      "Создать ярлык диспетчера устройств?",
+    "quickActions.deviceManager.error":
+      "Не удалось создать ярлык диспетчера устройств",
+    "quickActions.deviceManager.created":
+      "Ярлык диспетчера устройств создан: Рабочий стол",
+    "quickActions.networkSettings.title":
+      "Создание ярлыка параметров сети",
+    "quickActions.networkSettings.cardTitle": "Параметры сети",
+    "quickActions.networkSettings.cardHint":
+      "Открывает современное окно сетевых параметров Windows.",
+    "quickActions.networkSettings.action":
+      "Создать ярлык параметров сети",
+    "quickActions.networkSettings.confirm":
+      "Создать ярлык параметров сети?",
+    "quickActions.networkSettings.error":
+      "Не удалось создать ярлык параметров сети",
+    "quickActions.networkSettings.created":
+      "Ярлык параметров сети создан: Рабочий стол",
     "tools.dashboard.title": "Панель инструментов",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Быстрые действия для восстановления WireGuard.",
@@ -1364,6 +1409,25 @@ export const translations = {
     "quickActions.restart.confirm": "Create a restart shortcut?",
     "quickActions.restart.error": "Failed to create restart shortcut",
     "quickActions.restart.created": "Restart shortcut created: Desktop",
+    "quickActions.uefi.title": "Create BIOS/UEFI shortcut",
+    "quickActions.uefi.cardTitle": "BIOS/UEFI",
+    "quickActions.uefi.cardHint":
+      "Restarts Windows directly into UEFI firmware settings.",
+    "quickActions.uefi.action": "Create BIOS/UEFI shortcut",
+    "quickActions.uefi.confirm": "Create a BIOS/UEFI reboot shortcut?",
+    "quickActions.uefi.error": "Failed to create BIOS/UEFI shortcut",
+    "quickActions.uefi.created": "BIOS/UEFI shortcut created: Desktop",
+    "quickActions.advancedBoot.title": "Create advanced startup shortcut",
+    "quickActions.advancedBoot.cardTitle": "Advanced startup",
+    "quickActions.advancedBoot.cardHint":
+      "Opens Windows advanced recovery options on reboot.",
+    "quickActions.advancedBoot.action": "Create advanced startup shortcut",
+    "quickActions.advancedBoot.confirm":
+      "Create an advanced startup shortcut?",
+    "quickActions.advancedBoot.error":
+      "Failed to create advanced startup shortcut",
+    "quickActions.advancedBoot.created":
+      "Advanced startup shortcut created: Desktop",
     "quickActions.shutdown.title": "Create shutdown shortcut",
     "quickActions.shutdown.cardTitle": "Shutdown",
     "quickActions.shutdown.cardHint":
@@ -1372,6 +1436,28 @@ export const translations = {
     "quickActions.shutdown.confirm": "Create a shutdown shortcut?",
     "quickActions.shutdown.error": "Failed to create shutdown shortcut",
     "quickActions.shutdown.created": "Shutdown shortcut created: Desktop",
+    "quickActions.deviceManager.title": "Create Device Manager shortcut",
+    "quickActions.deviceManager.cardTitle": "Device Manager",
+    "quickActions.deviceManager.cardHint":
+      "Quick access to hardware devices and driver management.",
+    "quickActions.deviceManager.action": "Create Device Manager shortcut",
+    "quickActions.deviceManager.confirm":
+      "Create a Device Manager shortcut?",
+    "quickActions.deviceManager.error":
+      "Failed to create Device Manager shortcut",
+    "quickActions.deviceManager.created":
+      "Device Manager shortcut created: Desktop",
+    "quickActions.networkSettings.title": "Create Network Settings shortcut",
+    "quickActions.networkSettings.cardTitle": "Network Settings",
+    "quickActions.networkSettings.cardHint":
+      "Opens the modern Windows network settings page.",
+    "quickActions.networkSettings.action": "Create Network Settings shortcut",
+    "quickActions.networkSettings.confirm":
+      "Create a Network Settings shortcut?",
+    "quickActions.networkSettings.error":
+      "Failed to create Network Settings shortcut",
+    "quickActions.networkSettings.created":
+      "Network Settings shortcut created: Desktop",
     "tools.dashboard.title": "Tools dashboard",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Fast recovery actions for WireGuard.",

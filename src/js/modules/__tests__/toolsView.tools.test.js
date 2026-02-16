@@ -62,7 +62,23 @@ describe("toolsView quick actions", () => {
           success: false,
           unsupported: true,
         }),
+        createWindowsUefiRebootShortcut: jest.fn().mockResolvedValue({
+          success: false,
+          unsupported: true,
+        }),
+        createWindowsAdvancedBootShortcut: jest.fn().mockResolvedValue({
+          success: false,
+          unsupported: true,
+        }),
         createWindowsShutdownShortcut: jest.fn().mockResolvedValue({
+          success: false,
+          unsupported: true,
+        }),
+        createWindowsDeviceManagerShortcut: jest.fn().mockResolvedValue({
+          success: false,
+          unsupported: true,
+        }),
+        createWindowsNetworkSettingsShortcut: jest.fn().mockResolvedValue({
           success: false,
           unsupported: true,
         }),
@@ -607,12 +623,22 @@ describe("toolsView quick actions", () => {
     const banner = el.querySelector("#power-platform-banner");
     const actionsWrap = el.querySelector(".power-shortcuts-actions");
     const restartBtn = el.querySelector("#create-restart-shortcut");
+    const uefiBtn = el.querySelector("#create-uefi-shortcut");
+    const advancedBootBtn = el.querySelector("#create-advanced-boot-shortcut");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
+    const deviceManagerBtn = el.querySelector("#create-device-manager-shortcut");
+    const networkSettingsBtn = el.querySelector(
+      "#create-network-settings-shortcut",
+    );
     expect(restartCard.classList.contains("hidden")).toBe(false);
     expect(actionsWrap).not.toBeNull();
     expect(banner?.classList.contains("hidden")).toBe(false);
     expect(restartBtn?.hasAttribute("disabled")).toBe(true);
+    expect(uefiBtn?.hasAttribute("disabled")).toBe(true);
+    expect(advancedBootBtn?.hasAttribute("disabled")).toBe(true);
     expect(shutdownBtn?.hasAttribute("disabled")).toBe(true);
+    expect(deviceManagerBtn?.hasAttribute("disabled")).toBe(true);
+    expect(networkSettingsBtn?.hasAttribute("disabled")).toBe(true);
   });
 
   test("hides power tool on linux", async () => {
@@ -673,6 +699,32 @@ describe("toolsView quick actions", () => {
     expect(
       window.electron.tools.createWindowsShutdownShortcut,
     ).not.toHaveBeenCalled();
+  });
+
+  test("creates UEFI shortcut on windows", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.createWindowsUefiRebootShortcut.mockResolvedValue({
+      success: true,
+      path: "C:\\Users\\Demo\\Desktop\\Restart to UEFI.lnk",
+    });
+    const el = await renderView();
+    await openTool(el, "power");
+    const uefiBtn = el.querySelector("#create-uefi-shortcut");
+
+    expect(uefiBtn?.hasAttribute("disabled")).toBe(false);
+    uefiBtn.click();
+    await nextTick();
+
+    expect(showConfirmationDialog).toHaveBeenCalled();
+    expect(window.electron.tools.createWindowsUefiRebootShortcut).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(el.querySelector("#uefi-shortcut-result")?.textContent).toBe(
+      "quickActions.uefi.created",
+    );
   });
 
   test("opens WG help with localized keys", async () => {

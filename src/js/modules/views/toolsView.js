@@ -900,6 +900,40 @@ export default function renderToolsView() {
                   class="quick-action-result power-action-row__result muted"
                 ></div>
               </section>
+              <section class="power-action-row power-action-row--uefi">
+                <h3 class="power-action-row__title">
+                  <i class="fa-solid fa-microchip"></i>
+                  <span data-i18n="quickActions.uefi.cardTitle">Перезагрузка в BIOS/UEFI</span>
+                </h3>
+                <p class="power-action-row__hint" data-i18n="quickActions.uefi.cardHint">
+                  Перезапускает систему в настройки прошивки.
+                </p>
+                <button id="create-uefi-shortcut" type="button" class="large-button">
+                  <i class="fa-solid fa-microchip"></i>
+                  <span data-i18n="quickActions.uefi.action">Создать ярлык BIOS/UEFI</span>
+                </button>
+                <div
+                  id="uefi-shortcut-result"
+                  class="quick-action-result power-action-row__result muted"
+                ></div>
+              </section>
+              <section class="power-action-row power-action-row--advanced-boot">
+                <h3 class="power-action-row__title">
+                  <i class="fa-solid fa-screwdriver-wrench"></i>
+                  <span data-i18n="quickActions.advancedBoot.cardTitle">Расширенная загрузка</span>
+                </h3>
+                <p class="power-action-row__hint" data-i18n="quickActions.advancedBoot.cardHint">
+                  Открывает дополнительные параметры восстановления при старте.
+                </p>
+                <button id="create-advanced-boot-shortcut" type="button" class="large-button">
+                  <i class="fa-solid fa-screwdriver-wrench"></i>
+                  <span data-i18n="quickActions.advancedBoot.action">Создать ярлык расширенной загрузки</span>
+                </button>
+                <div
+                  id="advanced-boot-shortcut-result"
+                  class="quick-action-result power-action-row__result muted"
+                ></div>
+              </section>
               <section class="power-action-row power-action-row--shutdown">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-power-off"></i>
@@ -914,6 +948,40 @@ export default function renderToolsView() {
                 </button>
                 <div
                   id="shutdown-shortcut-result"
+                  class="quick-action-result power-action-row__result muted"
+                ></div>
+              </section>
+              <section class="power-action-row power-action-row--device-manager">
+                <h3 class="power-action-row__title">
+                  <i class="fa-solid fa-microchip"></i>
+                  <span data-i18n="quickActions.deviceManager.cardTitle">Диспетчер устройств</span>
+                </h3>
+                <p class="power-action-row__hint" data-i18n="quickActions.deviceManager.cardHint">
+                  Быстрый доступ к управлению драйверами и устройствами.
+                </p>
+                <button id="create-device-manager-shortcut" type="button" class="large-button">
+                  <i class="fa-solid fa-microchip"></i>
+                  <span data-i18n="quickActions.deviceManager.action">Создать ярлык диспетчера устройств</span>
+                </button>
+                <div
+                  id="device-manager-shortcut-result"
+                  class="quick-action-result power-action-row__result muted"
+                ></div>
+              </section>
+              <section class="power-action-row power-action-row--network-settings">
+                <h3 class="power-action-row__title">
+                  <i class="fa-solid fa-network-wired"></i>
+                  <span data-i18n="quickActions.networkSettings.cardTitle">Параметры сети</span>
+                </h3>
+                <p class="power-action-row__hint" data-i18n="quickActions.networkSettings.cardHint">
+                  Открывает современное окно сетевых параметров Windows.
+                </p>
+                <button id="create-network-settings-shortcut" type="button" class="large-button">
+                  <i class="fa-solid fa-network-wired"></i>
+                  <span data-i18n="quickActions.networkSettings.action">Создать ярлык параметров сети</span>
+                </button>
+                <div
+                  id="network-settings-shortcut-result"
                   class="quick-action-result power-action-row__result muted"
                 ></div>
               </section>
@@ -1934,12 +2002,35 @@ export default function renderToolsView() {
 
     const restartCard = getEl("tools-restart-card", view);
     const createRestartShortcutBtn = getEl("create-restart-shortcut", view);
+    const createUefiShortcutBtn = getEl("create-uefi-shortcut", view);
+    const createAdvancedBootShortcutBtn = getEl(
+      "create-advanced-boot-shortcut",
+      view,
+    );
     const createShutdownShortcutBtn = getEl("create-shutdown-shortcut", view);
+    const createDeviceManagerShortcutBtn = getEl(
+      "create-device-manager-shortcut",
+      view,
+    );
+    const createNetworkSettingsShortcutBtn = getEl(
+      "create-network-settings-shortcut",
+      view,
+    );
     const restartShortcutNote = getEl("restart-shortcut-note", view);
     const powerPlatformBanner = getEl("power-platform-banner", view);
     const powerPlatformBannerText = getEl("power-platform-banner-text", view);
     const restartShortcutResult = getEl("restart-shortcut-result", view);
+    const uefiShortcutResult = getEl("uefi-shortcut-result", view);
+    const advancedBootShortcutResult = getEl("advanced-boot-shortcut-result", view);
     const shutdownShortcutResult = getEl("shutdown-shortcut-result", view);
+    const deviceManagerShortcutResult = getEl(
+      "device-manager-shortcut-result",
+      view,
+    );
+    const networkSettingsShortcutResult = getEl(
+      "network-settings-shortcut-result",
+      view,
+    );
     const setPowerResult = (resultEl, text, tone = "muted") => {
       if (!resultEl) return;
       resultEl.textContent = text;
@@ -1974,61 +2065,106 @@ export default function renderToolsView() {
       }
 
       const shouldDisableActions = !showTool || !isWindows;
-      [createRestartShortcutBtn, createShutdownShortcutBtn].forEach((button) => {
+      [
+        createRestartShortcutBtn,
+        createUefiShortcutBtn,
+        createAdvancedBootShortcutBtn,
+        createShutdownShortcutBtn,
+        createDeviceManagerShortcutBtn,
+        createNetworkSettingsShortcutBtn,
+      ].forEach((button) => {
         if (!button) return;
         button.toggleAttribute("disabled", shouldDisableActions);
         button.classList.toggle("is-disabled", shouldDisableActions);
       });
     }
 
-    createRestartShortcutBtn?.addEventListener("click", async () => {
-      const confirmed = await showConfirmationDialog({
-        title: t("quickActions.restart.title"),
-        subtitle: t("confirm.default.subtitle"),
-        message: t("quickActions.restart.confirm"),
+    const powerShortcutActions = [
+      {
+        button: createRestartShortcutBtn,
+        resultEl: restartShortcutResult,
+        invoke: () => window.electron?.tools?.createWindowsRestartShortcut?.(),
+        titleKey: "quickActions.restart.title",
+        confirmKey: "quickActions.restart.confirm",
+        errorKey: "quickActions.restart.error",
+        createdKey: "quickActions.restart.created",
         tone: "warning",
-      });
-      if (!confirmed) return;
-
-      const res = await window.electron?.tools?.createWindowsRestartShortcut?.();
-      if (!res?.success) {
-        setPowerResult(
-          restartShortcutResult,
-          res?.error || t("quickActions.restart.error"),
-          "error",
-        );
-        return;
-      }
-      setPowerResult(
-        restartShortcutResult,
-        t("quickActions.restart.created"),
-        "success",
-      );
-    });
-
-    createShutdownShortcutBtn?.addEventListener("click", async () => {
-      const confirmed = await showConfirmationDialog({
-        title: t("quickActions.shutdown.title"),
-        subtitle: t("confirm.default.subtitle"),
-        message: t("quickActions.shutdown.confirm"),
+      },
+      {
+        button: createUefiShortcutBtn,
+        resultEl: uefiShortcutResult,
+        invoke: () => window.electron?.tools?.createWindowsUefiRebootShortcut?.(),
+        titleKey: "quickActions.uefi.title",
+        confirmKey: "quickActions.uefi.confirm",
+        errorKey: "quickActions.uefi.error",
+        createdKey: "quickActions.uefi.created",
+        tone: "warning",
+      },
+      {
+        button: createAdvancedBootShortcutBtn,
+        resultEl: advancedBootShortcutResult,
+        invoke: () => window.electron?.tools?.createWindowsAdvancedBootShortcut?.(),
+        titleKey: "quickActions.advancedBoot.title",
+        confirmKey: "quickActions.advancedBoot.confirm",
+        errorKey: "quickActions.advancedBoot.error",
+        createdKey: "quickActions.advancedBoot.created",
+        tone: "warning",
+      },
+      {
+        button: createShutdownShortcutBtn,
+        resultEl: shutdownShortcutResult,
+        invoke: () => window.electron?.tools?.createWindowsShutdownShortcut?.(),
+        titleKey: "quickActions.shutdown.title",
+        confirmKey: "quickActions.shutdown.confirm",
+        errorKey: "quickActions.shutdown.error",
+        createdKey: "quickActions.shutdown.created",
         tone: "danger",
-      });
-      if (!confirmed) return;
+      },
+      {
+        button: createDeviceManagerShortcutBtn,
+        resultEl: deviceManagerShortcutResult,
+        invoke: () =>
+          window.electron?.tools?.createWindowsDeviceManagerShortcut?.(),
+        titleKey: "quickActions.deviceManager.title",
+        confirmKey: "quickActions.deviceManager.confirm",
+        errorKey: "quickActions.deviceManager.error",
+        createdKey: "quickActions.deviceManager.created",
+        tone: "info",
+      },
+      {
+        button: createNetworkSettingsShortcutBtn,
+        resultEl: networkSettingsShortcutResult,
+        invoke: () =>
+          window.electron?.tools?.createWindowsNetworkSettingsShortcut?.(),
+        titleKey: "quickActions.networkSettings.title",
+        confirmKey: "quickActions.networkSettings.confirm",
+        errorKey: "quickActions.networkSettings.error",
+        createdKey: "quickActions.networkSettings.created",
+        tone: "info",
+      },
+    ];
 
-      const res = await window.electron?.tools?.createWindowsShutdownShortcut?.();
-      if (!res?.success) {
-        setPowerResult(
-          shutdownShortcutResult,
-          res?.error || t("quickActions.shutdown.error"),
-          "error",
-        );
-        return;
-      }
-      setPowerResult(
-        shutdownShortcutResult,
-        t("quickActions.shutdown.created"),
-        "success",
-      );
+    powerShortcutActions.forEach((action) => {
+      action.button?.addEventListener("click", async () => {
+        const confirmed = await showConfirmationDialog({
+          title: t(action.titleKey),
+          subtitle: t("confirm.default.subtitle"),
+          message: t(action.confirmKey),
+          tone: action.tone,
+        });
+        if (!confirmed) return;
+
+        const res = await action.invoke();
+        if (!res?.success) {
+          setPowerResult(
+            action.resultEl,
+            res?.error || t(action.errorKey),
+            "error",
+          );
+          return;
+        }
+        setPowerResult(action.resultEl, t(action.createdKey), "success");
+      });
     });
 
     isWindowsPlatform = !!toolsPlatformInfo?.isWindows;

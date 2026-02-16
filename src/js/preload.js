@@ -244,6 +244,14 @@ try {
         safeInvoke("tools:createWindowsRestartShortcut"),
       createWindowsShutdownShortcut: () =>
         safeInvoke("tools:createWindowsShutdownShortcut"),
+      createWindowsUefiRebootShortcut: () =>
+        safeInvoke("tools:createWindowsUefiRebootShortcut"),
+      createWindowsAdvancedBootShortcut: () =>
+        safeInvoke("tools:createWindowsAdvancedBootShortcut"),
+      createWindowsDeviceManagerShortcut: () =>
+        safeInvoke("tools:createWindowsDeviceManagerShortcut"),
+      createWindowsNetworkSettingsShortcut: () =>
+        safeInvoke("tools:createWindowsNetworkSettingsShortcut"),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код
