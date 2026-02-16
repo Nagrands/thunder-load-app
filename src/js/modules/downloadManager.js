@@ -4,7 +4,11 @@ import { historyContainer } from "./domElements.js";
 import { state, updateButtonState } from "./state.js";
 import { showToast } from "./toast.js";
 import { updateIcon } from "./iconUpdater.js";
-import { addNewEntryToHistory, updateDownloadCount } from "./history.js";
+import {
+  addNewEntryToHistory,
+  updateDownloadCount,
+  getHistoryData,
+} from "./history.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
 import {
   urlInput,
@@ -28,6 +32,9 @@ const queueCount = document.getElementById("queue-count");
 const queueIndicator = document.getElementById("queue-start-indicator");
 const queueList = document.getElementById("queue-list");
 const QUEUE_LOG_TAG = "[queue]";
+
+const DOWNLOAD_HISTORY_CACHE_TTL_MS = 12000;
+let downloadedUrlCache = { ts: 0, map: new Map() };
 
 function updateDownloaderTabLabel() {
   try {
@@ -193,26 +200,121 @@ function summarizeEnqueueResult(res) {
   if (res.invalid)
     parts.push(t("queue.summary.invalid", { count: res.invalid }));
   if (res.capped) parts.push(t("queue.summary.capped", { count: res.capped }));
+  if (res.alreadyDownloaded) {
+    parts.push(
+      t("queue.summary.alreadyDownloaded", { count: res.alreadyDownloaded }),
+    );
+  }
   const summary = parts.join(", ");
   return summary || t("queue.summary.fallback");
 }
 
-function enqueueMany(urls, quality, _options = {}) {
+function resolveDownloadKind(payloadOrEntry) {
+  const explicitKind = payloadOrEntry?.downloadKind;
+  if (explicitKind === "audio" || explicitKind === "video") {
+    return explicitKind;
+  }
+  const payloadType =
+    payloadOrEntry?.type || payloadOrEntry?.payload?.type || "";
+  if (payloadType === "audio-only") return "audio";
+  const qualityLike =
+    payloadOrEntry?.quality || payloadOrEntry?.label || payloadOrEntry || "";
+  const value = String(qualityLike).toLowerCase();
+  if (/(audio|mp3|m4a|aac|opus|ogg|flac|wav)/i.test(value)) {
+    return "audio";
+  }
+  return "video";
+}
+
+function buildDownloadedUrlMap(entries = []) {
+  const map = new Map();
+  for (const entry of entries) {
+    const raw = entry?.sourceUrl || entry?.url || "";
+    if (!raw) continue;
+    const normalized = normalizeUrl(raw);
+    if (!normalized) continue;
+    if (!map.has(normalized)) map.set(normalized, new Set());
+    map.get(normalized).add(resolveDownloadKind(entry));
+  }
+  return map;
+}
+
+function getDownloadedUrlMapSync() {
+  try {
+    const entries = getHistoryData();
+    return buildDownloadedUrlMap(Array.isArray(entries) ? entries : []);
+  } catch {
+    return new Map();
+  }
+}
+
+async function getDownloadedUrlMap(forceRefresh = false) {
+  const now = Date.now();
+  if (
+    !forceRefresh &&
+    downloadedUrlCache.map.size > 0 &&
+    now - downloadedUrlCache.ts < DOWNLOAD_HISTORY_CACHE_TTL_MS
+  ) {
+    return downloadedUrlCache.map;
+  }
+
+  let entries = [];
+  try {
+    const local = getHistoryData();
+    if (Array.isArray(local) && local.length > 0) {
+      entries = local;
+    } else {
+      const loaded = await window.electron.invoke("load-history");
+      entries = Array.isArray(loaded) ? loaded : [];
+    }
+  } catch {
+    entries = [];
+  }
+  downloadedUrlCache = { ts: now, map: buildDownloadedUrlMap(entries) };
+  return downloadedUrlCache.map;
+}
+
+function isAlreadyDownloaded(url, downloadedMap, requestedPayload) {
+  const normalized = normalizeUrl(url);
+  if (!normalized) return false;
+  const kinds = downloadedMap.get(normalized);
+  if (!kinds || !kinds.size) return false;
+  return kinds.has(resolveDownloadKind(requestedPayload));
+}
+
+function markAsDownloaded(url, downloadKind) {
+  const normalized = normalizeUrl(url);
+  if (!normalized) return;
+  const kind = resolveDownloadKind({ downloadKind });
+  if (!downloadedUrlCache.map.has(normalized)) {
+    downloadedUrlCache.map.set(normalized, new Set());
+  }
+  downloadedUrlCache.map.get(normalized).add(kind);
+  downloadedUrlCache.ts = Date.now();
+}
+
+function enqueueMany(urls, quality, options = {}) {
   const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
   const existing = new Set(
     state.downloadQueue.map((it) => normalizeUrl(it.url)),
   );
+  const downloadedMap = options.downloadedMap || getDownloadedUrlMapSync();
   let added = 0,
     duplicates = 0,
     activeDup = 0,
     invalid = 0,
-    capped = 0;
+    capped = 0,
+    alreadyDownloaded = 0;
   for (const raw of urls) {
     if (!isValidUrl(raw) || !isSupportedUrl(raw)) {
       invalid++;
       continue;
     }
     const n = normalizeUrl(raw);
+    if (isAlreadyDownloaded(raw, downloadedMap, quality)) {
+      alreadyDownloaded++;
+      continue;
+    }
     if (n === currentN) {
       activeDup++;
       continue;
@@ -236,9 +338,10 @@ function enqueueMany(urls, quality, _options = {}) {
     activeDup,
     invalid,
     capped,
+    alreadyDownloaded,
   });
   updateQueueDisplay();
-  return { added, duplicates, activeDup, invalid, capped };
+  return { added, duplicates, activeDup, invalid, capped, alreadyDownloaded };
 }
 
 function updateQueueDisplay() {
@@ -429,6 +532,7 @@ function normalizeSelection(selection) {
 
 const downloadVideo = async (url, quality) => {
   console.log("Инициирование загрузки по URL:", url, "с качеством:", quality);
+  const requestedDownloadKind = resolveDownloadKind(quality);
   state.isDownloading = true;
   state.currentUrl = url;
   urlInput.disabled = true;
@@ -544,6 +648,7 @@ const downloadVideo = async (url, quality) => {
       fileName,
       filePath,
       quality: actualQuality,
+      downloadKind: requestedDownloadKind,
       dateTime: currentDateTime,
       iconUrl,
       thumbnail,
@@ -552,6 +657,7 @@ const downloadVideo = async (url, quality) => {
     };
 
     await addNewEntryToHistory(newLogEntry);
+    markAsDownloaded(sourceUrl || url, requestedDownloadKind);
     await updateDownloadCount();
 
     urlInput.value = "";
@@ -661,6 +767,7 @@ const handleDownloadButtonClick = async (options = {}) => {
     showToast(t("download.url.invalid"), "warning");
     return;
   }
+  const downloadedMap = await getDownloadedUrlMap();
 
   // Если несколько: стартуем первый/добавляем остальные в очередь
   if (validUrls.length > 1) {
@@ -681,15 +788,39 @@ const handleDownloadButtonClick = async (options = {}) => {
     persistLastQuality(lastChosenQualityLabel);
 
     if (state.isDownloading || options.enqueueOnly || enqueueFromModal) {
-      const res = enqueueMany(validUrls, payload, options);
+      const res = enqueueMany(validUrls, payload, {
+        ...options,
+        downloadedMap,
+      });
+      if (res.added === 0 && res.alreadyDownloaded > 0) {
+        showToast(t("download.url.downloaded"), "info");
+        return;
+      }
       showToast(
         t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
         "info",
       );
     } else {
-      await initiateDownload(first, payload);
-      const res = enqueueMany(rest, payload, options);
-      if (res.added || res.duplicates || res.invalid) {
+      const pendingByMode = validUrls.filter(
+        (u) => !isAlreadyDownloaded(u, downloadedMap, payload),
+      );
+      if (pendingByMode.length === 0) {
+        showToast(t("download.url.downloaded"), "info");
+        return;
+      }
+      const firstPending = pendingByMode[0];
+      const restPending = pendingByMode.slice(1);
+      await initiateDownload(firstPending, payload);
+      const res = enqueueMany(restPending, payload, {
+        ...options,
+        downloadedMap,
+      });
+      if (
+        res.added ||
+        res.duplicates ||
+        res.invalid ||
+        res.alreadyDownloaded
+      ) {
         showToast(
           t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
           "info",
@@ -718,6 +849,10 @@ const handleDownloadButtonClick = async (options = {}) => {
   lastChosenQualityLabel =
     typeof payload === "string" ? payload : payload.label || null;
   persistLastQuality(lastChosenQualityLabel);
+  if (isAlreadyDownloaded(url, downloadedMap, payload)) {
+    showToast(t("download.url.downloaded"), "info");
+    return;
+  }
   if (state.isDownloading || options.enqueueOnly || enqueueFromModal) {
     const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
     if (nCurr === normalizeUrl(url)) {

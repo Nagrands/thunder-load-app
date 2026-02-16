@@ -278,6 +278,8 @@ async function handleOpenSite(logEntry) {
  * @param {HTMLElement} logEntry - Элемент лога
  */
 async function handleDeleteEntry(logEntry) {
+  hideContextMenu();
+
   const entryId = logEntry.getAttribute("data-id");
   if (!entryId) {
     console.error("No ID found for the entry. Aborting deletion.");
@@ -395,6 +397,8 @@ async function deleteEntryFromHistory(entryId) {
  * @param {HTMLElement} logEntry - Элемент лога
  */
 async function handleDeleteFile(logEntry) {
+  hideContextMenu();
+
   const { filePath } = getEntryData(logEntry);
   if (!filePath) {
     showToast("Путь к файлу не найден.", "error");

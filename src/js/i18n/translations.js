@@ -685,6 +685,8 @@ export const translations = {
     "download.url.invalid": "Введите корректный URL.",
     "download.url.active": "URL уже загружается.",
     "download.url.queued": "URL уже есть в очереди.",
+    "download.url.downloaded":
+      "Этот URL уже есть в истории для выбранного режима.",
     "download.complete.title": "Загрузка завершена!",
     "download.complete.savedAt": "Файл сохранен по пути:",
     "download.complete.openPrompt": "Открыть файл?",
@@ -694,6 +696,7 @@ export const translations = {
     "queue.summary.activeDup": "совпадает с текущей: {count}",
     "queue.summary.invalid": "некорректных: {count}",
     "queue.summary.capped": "превышение лимита: +{count}",
+    "queue.summary.alreadyDownloaded": "уже скачано: {count}",
     "queue.summary.fallback": "добавлено в очередь",
     "queue.summary.toast": "Очередь: {summary}",
     "queue.added": "Добавлено в очередь.",
@@ -1924,6 +1927,8 @@ export const translations = {
     "download.url.invalid": "Enter a valid URL.",
     "download.url.active": "This URL is already downloading.",
     "download.url.queued": "This URL is already queued.",
+    "download.url.downloaded":
+      "This URL already exists in history for the selected mode.",
     "download.complete.title": "Download complete!",
     "download.complete.savedAt": "File saved at:",
     "download.complete.openPrompt": "Open file?",
@@ -1933,6 +1938,7 @@ export const translations = {
     "queue.summary.activeDup": "matches current: {count}",
     "queue.summary.invalid": "invalid: {count}",
     "queue.summary.capped": "limit exceeded: +{count}",
+    "queue.summary.alreadyDownloaded": "already downloaded: {count}",
     "queue.summary.fallback": "queued",
     "queue.summary.toast": "Queue: {summary}",
     "queue.added": "Added to queue.",

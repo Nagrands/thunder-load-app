@@ -51,6 +51,9 @@ describe("downloadManager queue persistence", () => {
         queueClearButton: document.getElementById("queue-clear-button"),
         historyContainer: null,
       }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
       const { state } = require("../state");
       state.currentUrl = "https://example.com/b";
       const { loadQueueFromStorage } = require("../downloadManager");
@@ -73,6 +76,9 @@ describe("downloadManager queue persistence", () => {
         openLastVideoButton: document.getElementById("open-last-video"),
         queueClearButton: document.getElementById("queue-clear-button"),
         historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
       }));
       const { state } = require("../state");
       const { persistQueue } = require("../downloadManager");
@@ -114,6 +120,9 @@ describe("downloadManager enqueueOnly behavior", () => {
         queueClearButton: document.getElementById("queue-clear-button"),
         historyContainer: null,
       }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
       jest.doMock("../downloadQualityModal", () => ({
         openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
       }));
@@ -124,6 +133,73 @@ describe("downloadManager enqueueOnly behavior", () => {
       await handleDownloadButtonClick({ enqueueOnly: true });
       expect(state.downloadQueue).toHaveLength(1);
       expect(state.isDownloading).toBe(false);
+    });
+  });
+
+  it("does not enqueue URL that already exists in history", async () => {
+    jest.isolateModules(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => [
+          { sourceUrl: "https://example.com/a", filePath: "/tmp/a.mp4" },
+        ]),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
+      }));
+      const { state } = require("../state");
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const urlInput = document.getElementById("url");
+      urlInput.value = "https://example.com/a";
+      await handleDownloadButtonClick({ enqueueOnly: true });
+      expect(state.downloadQueue).toHaveLength(0);
+      expect(state.isDownloading).toBe(false);
+    });
+  });
+
+  it("allows enqueue when URL exists in history but requested mode differs", async () => {
+    jest.isolateModules(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => [
+          { sourceUrl: "https://example.com/a", quality: "Source" },
+        ]),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue({
+          type: "audio-only",
+          label: "Audio",
+        }),
+      }));
+      const { state } = require("../state");
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const urlInput = document.getElementById("url");
+      urlInput.value = "https://example.com/a";
+      await handleDownloadButtonClick({ enqueueOnly: true });
+      expect(state.downloadQueue).toHaveLength(1);
+      expect(state.downloadQueue[0].quality.type).toBe("audio-only");
     });
   });
 });
@@ -178,6 +254,7 @@ describe("downloadManager progress activity class", () => {
       jest.doMock("../history", () => ({
         addNewEntryToHistory: jest.fn(async () => {}),
         updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
       }));
       jest.doMock("../validation", () => ({
         isValidUrl: jest.fn(() => true),
@@ -251,6 +328,7 @@ describe("downloadManager progress activity class", () => {
       jest.doMock("../history", () => ({
         addNewEntryToHistory: jest.fn(async () => {}),
         updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
       }));
       jest.doMock("../validation", () => ({
         isValidUrl: jest.fn(() => true),
