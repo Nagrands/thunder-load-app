@@ -6,8 +6,11 @@
 - **Reduced visual noise during downloads**: progress is easier to follow and less distracting while you work with links.
 - **Fixed the close button in the quality picker**: the modal now closes reliably when clicking the “×” button.
 - **Fixed progress bar jitter during downloads**: the URL-field indicator no longer jumps backward while downloading.
+- **Fixed URL progress overflow**: the line now always stays inside the input field and no longer extends past the right edge.
 - **Added preview download in the quality picker**: you can now save the video thumbnail directly from the modal.
 - **Made the queue action more compact**: the “Add to queue” button now uses a clear icon-only style.
+- **Improved the Quality picker layout**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block previews the final download output.
+- **Made format loading clearer**: added a timed loading status, visual skeleton placeholders, and stronger keyboard/screen-reader accessibility states.
 
 ### Tools tab
 

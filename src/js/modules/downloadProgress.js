@@ -41,6 +41,9 @@ function initDownloadProgress() {
   const resetProgressTracking = () => {
     startedAt = null;
     displayedProgress = 0;
+    if (progressBarContainer) {
+      progressBarContainer.style.setProperty("--progress-ratio", "0");
+    }
   };
 
   window.electron.onProgress((progressValue) => {
@@ -77,7 +80,12 @@ function initDownloadProgress() {
       progress: progressStr,
       eta: etaSuffix,
     });
-    progressBar.style.width = `${displayedProgress}%`;
+    if (progressBarContainer) {
+      progressBarContainer.style.setProperty(
+        "--progress-ratio",
+        (displayedProgress / 100).toString(),
+      );
+    }
     if (progressBarContainer) {
       progressBarContainer.setAttribute("aria-valuenow", progressStr);
       progressBarContainer.classList.toggle(

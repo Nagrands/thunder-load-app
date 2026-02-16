@@ -4,7 +4,6 @@ import {
   downloadCancelButton,
   downloadButton,
   progressBarContainer,
-  progressBar,
   buttonText,
   urlInput,
 } from "./domElements.js";
@@ -47,7 +46,7 @@ function initDownloadCancel() {
       progressBarContainer.style.opacity = 0;
       progressBarContainer.classList.remove("is-active", "is-complete");
       progressBarContainer.setAttribute("aria-valuenow", "0");
-      progressBar.style.width = "0%";
+      progressBarContainer.style.setProperty("--progress-ratio", "0");
       buttonText.textContent = t("actions.download");
     }
   });

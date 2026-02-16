@@ -337,6 +337,7 @@
   aria-modal="true"
   aria-hidden="true"
   aria-labelledby="download-quality-title"
+  aria-describedby="download-quality-hint-text"
 >
   <div class="modal-content download-quality-content">
     <div class="quality-modal-header">
@@ -437,10 +438,22 @@
           </div>
         </div>
         <div id="download-quality-loading" class="quality-loading">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <span data-i18n="quality.loading"
-            >Загрузка доступных форматов...</span
+          <div class="quality-loading-main">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span data-i18n="quality.loading">Загрузка доступных форматов...</span>
+          </div>
+          <small
+            id="download-quality-loading-detail"
+            class="quality-loading-detail"
+            data-i18n="quality.loading.detail"
           >
+            Обычно это занимает до 15 секунд.
+          </small>
+          <div class="quality-loading-skeleton" aria-hidden="true">
+            <span class="quality-skeleton-line"></span>
+            <span class="quality-skeleton-line"></span>
+            <span class="quality-skeleton-line"></span>
+          </div>
         </div>
         <div
           id="download-quality-error"
@@ -472,6 +485,7 @@
           class="quality-options"
           role="radiogroup"
           aria-live="polite"
+          aria-busy="false"
         ></div>
         <div
           id="download-quality-selection-summary"
@@ -488,6 +502,12 @@
             <small id="download-quality-selection-meta" data-i18n="quality.selectHint">
               Выберите качество в списке выше.
             </small>
+            <small
+              id="download-quality-selection-output"
+              data-i18n="quality.resultPlaceholder"
+            >
+              Итог загрузки появится после выбора варианта.
+            </small>
           </div>
           <button type="button" id="download-quality-best-current" class="quality-best-current-btn">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -500,7 +520,7 @@
     <div class="quality-modal-footer">
       <div class="quality-hint">
         <i class="fa-regular fa-circle-question"></i>
-        <span data-i18n="quality.hint"
+        <span id="download-quality-hint-text" data-i18n="quality.hint"
           >Двойной клик по варианту сразу начнёт загрузку.</span
         >
       </div>
@@ -512,8 +532,11 @@
           disabled
           aria-label="В очередь"
           data-i18n-aria="quality.enqueue"
+          data-i18n-hint="quality.enqueueHint"
           title="В очередь"
           data-i18n-title="quality.enqueue"
+          data-state-idle-icon="fa-list-check"
+          data-state-done-icon="fa-check"
         >
           <i class="fa-solid fa-list-check" aria-hidden="true"></i>
         </button>

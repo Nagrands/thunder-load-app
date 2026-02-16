@@ -9,6 +9,7 @@ const INFO_REQUEST_TIMEOUT = 15000;
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
 const loadingEl = document.getElementById("download-quality-loading");
+const loadingDetailEl = document.getElementById("download-quality-loading-detail");
 const emptyEl = document.getElementById("download-quality-empty");
 const errorEl = document.getElementById("download-quality-error");
 const errorTextEl = errorEl?.querySelector(".quality-error-text");
@@ -36,6 +37,9 @@ const downloadPreviewBtn = document.getElementById(
 );
 const selectionTitleEl = document.getElementById("download-quality-selection-title");
 const selectionMetaEl = document.getElementById("download-quality-selection-meta");
+const selectionOutputEl = document.getElementById(
+  "download-quality-selection-output",
+);
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
@@ -69,6 +73,8 @@ const state = {
   currentUrl: "",
   currentFetchToken: 0,
   selectedByTab: new Map(),
+  loadingStartedAt: 0,
+  loadingTickTimer: null,
 };
 
 const extractHeight = (fmt) => {
@@ -140,12 +146,22 @@ function updateSelectionSummary(option) {
   if (!option) {
     selectionTitleEl.textContent = t("quality.notSelected");
     selectionMetaEl.textContent = t("quality.selectHint");
+    if (selectionOutputEl) {
+      selectionOutputEl.textContent = t("quality.resultPlaceholder");
+    }
     return;
   }
   selectionTitleEl.textContent =
     option.payload?.label || option.title || t("quality.selected");
   selectionMetaEl.textContent =
     option.description || [option.extLabel, option.sizeLabel].filter(Boolean).join(" • ");
+  if (selectionOutputEl) {
+    selectionOutputEl.textContent = t("quality.resultSummary", {
+      container: option.containerLabel || "—",
+      quality: option.title || option.payload?.label || "—",
+      size: option.sizeLabel || "—",
+    });
+  }
 }
 
 function restoreSelectionForTab(tab) {
@@ -172,19 +188,50 @@ function resetModalState() {
   confirmBtn.textContent = "Скачать выбранное";
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
+  clearLoadingTimer();
+  optionsContainer?.setAttribute("aria-busy", "false");
   if (downloadPreviewBtn) {
     downloadPreviewBtn.disabled = true;
     downloadPreviewBtn.onclick = null;
   }
   updateTabCounts();
   updateSelectionSummary(null);
+  if (enqueueBtn) {
+    enqueueBtn.classList.remove("is-done");
+    enqueueBtn.title = t("quality.enqueue");
+    const icon = enqueueBtn.querySelector("i");
+    if (icon) icon.className = "fa-solid fa-list-check";
+  }
+}
+
+function clearLoadingTimer() {
+  if (state.loadingTickTimer) {
+    clearInterval(state.loadingTickTimer);
+    state.loadingTickTimer = null;
+  }
+}
+
+function updateLoadingDetail() {
+  if (!loadingDetailEl) return;
+  const elapsed = Math.max(
+    0,
+    Math.floor((Date.now() - (state.loadingStartedAt || Date.now())) / 1000),
+  );
+  loadingDetailEl.textContent = t("quality.loading.detailTimed", { seconds: elapsed });
 }
 
 function setLoading(flag) {
   if (flag) {
     loadingEl?.classList.remove("hidden");
+    state.loadingStartedAt = Date.now();
+    updateLoadingDetail();
+    clearLoadingTimer();
+    state.loadingTickTimer = setInterval(updateLoadingDetail, 1000);
+    optionsContainer?.setAttribute("aria-busy", "true");
   } else {
     loadingEl?.classList.add("hidden");
+    clearLoadingTimer();
+    optionsContainer?.setAttribute("aria-busy", "false");
   }
 }
 
@@ -336,6 +383,13 @@ function describeFormat(format) {
   return parts.join(" • ").trim();
 }
 
+function codecLabel(fmt) {
+  const vcodec = fmt?.vcodec && fmt.vcodec !== "none" ? fmt.vcodec : "";
+  const acodec = fmt?.acodec && fmt.acodec !== "none" ? fmt.acodec : "";
+  if (vcodec && acodec) return `${vcodec} + ${acodec}`;
+  return vcodec || acodec || "—";
+}
+
 function collectFormats(info) {
   const formats = Array.isArray(info?.formats) ? info.formats : [];
   const muxed = [];
@@ -426,6 +480,10 @@ function buildOptions(info) {
       extLabel: (videoExt || fmt.ext || "").toUpperCase(),
       sizeLabel: bytesToSize(fmt.filesize || fmt.filesize_approx),
       extra: fmt.dynamic_range ? fmt.dynamic_range.toUpperCase() : "",
+      resolutionLabel: resolution || "—",
+      fpsLabel: fps ? `${fps}` : "—",
+      codecLabel: codecLabel(fmt),
+      containerLabel: (videoExt || fmt.ext || "").toUpperCase() || "—",
       score: sortScore(fmt) + 10, // бонус за готовое muxed-видео
       payload: buildOptionPayload({
         type: "muxed",
@@ -457,6 +515,10 @@ function buildOptions(info) {
           (bestAudio?.filesize || bestAudio?.filesize_approx || 0),
       ),
       extra: hasAudioPair ? "+ лучший звук" : "без аудио",
+      resolutionLabel: resolution || "—",
+      fpsLabel: fps ? `${fps}` : "—",
+      codecLabel: codecLabel(fmt),
+      containerLabel: (videoExt || "mp4").toUpperCase(),
       score: sortScore(fmt) + (hasAudioPair ? 5 : 0),
       payload: buildOptionPayload({
         type: "pair",
@@ -480,6 +542,10 @@ function buildOptions(info) {
       extLabel: (videoExt || "mp4").toUpperCase(),
       sizeLabel: bytesToSize(fmt.filesize || fmt.filesize_approx),
       extra: "без аудио",
+      resolutionLabel: resolution || "—",
+      fpsLabel: fps ? `${fps}` : "—",
+      codecLabel: codecLabel(fmt),
+      containerLabel: (videoExt || "mp4").toUpperCase(),
       score: sortScore(fmt),
       payload: buildOptionPayload({
         type: "video-only",
@@ -506,6 +572,10 @@ function buildOptions(info) {
       extLabel: (fmt.ext || "m4a").toUpperCase(),
       sizeLabel: size,
       extra: "",
+      resolutionLabel: "Audio",
+      fpsLabel: "—",
+      codecLabel: codecLabel(fmt),
+      containerLabel: (fmt.ext || "m4a").toUpperCase(),
       score: (fmt.abr || fmt.tbr || 0) / 10,
       payload: buildOptionPayload({
         type: "audio-only",
@@ -539,13 +609,38 @@ function renderOptions(tab) {
     el.type = "button";
     el.className = "quality-option";
     el.dataset.optionId = option.id;
+    el.id = `quality-option-${option.id}`;
     el.setAttribute("role", "radio");
     el.setAttribute("aria-checked", "false");
+    el.setAttribute(
+      "aria-label",
+      `${option.title || ""}. ${option.codecLabel || ""}. ${option.sizeLabel || ""}`,
+    );
+    el.setAttribute("aria-describedby", `quality-option-desc-${option.id}`);
     el.innerHTML = `
       <div class="quality-option-main">
         <div>
           <p class="quality-option-title">${escapeHTML(option.title)}</p>
-          <p class="quality-option-desc">${escapeHTML(option.description || "")}</p>
+          <p class="quality-option-desc" id="quality-option-desc-${option.id}">${escapeHTML(
+            option.description || "",
+          )}</p>
+          <div class="quality-option-metrics" aria-hidden="true">
+            <span class="metric"><strong>${t("quality.metric.resolution")}:</strong> ${escapeHTML(
+              option.resolutionLabel || "—",
+            )}</span>
+            <span class="metric"><strong>${t("quality.metric.fps")}:</strong> ${escapeHTML(
+              option.fpsLabel || "—",
+            )}</span>
+            <span class="metric"><strong>${t("quality.metric.codec")}:</strong> ${escapeHTML(
+              option.codecLabel || "—",
+            )}</span>
+            <span class="metric"><strong>${t("quality.metric.size")}:</strong> ${escapeHTML(
+              option.sizeLabel || "—",
+            )}</span>
+            <span class="metric"><strong>${t("quality.metric.container")}:</strong> ${escapeHTML(
+              option.containerLabel || option.extLabel || "—",
+            )}</span>
+          </div>
         </div>
         <div class="quality-option-tags">
           ${index === 0 ? `<span class="tag tag-top">TOP</span>` : ""}
@@ -585,7 +680,13 @@ function selectOption(option, { remember = true } = {}) {
     const isActive = el.dataset.optionId === option?.id;
     el.classList.toggle("active", isActive);
     el.setAttribute("aria-checked", String(isActive));
+    el.tabIndex = isActive ? 0 : -1;
   });
+  if (option) {
+    optionsContainer.setAttribute("aria-activedescendant", `quality-option-${option.id}`);
+  } else {
+    optionsContainer.removeAttribute("aria-activedescendant");
+  }
   updateSelectionSummary(option);
 }
 
@@ -691,6 +792,7 @@ function setActiveTab(tab) {
     const active = btn.dataset.qualityTab === tab;
     btn.classList.toggle("active", active);
     btn.setAttribute("aria-selected", String(active));
+    btn.tabIndex = active ? 0 : -1;
   });
   renderOptions(tab);
   restoreSelectionForTab(tab);
@@ -772,10 +874,20 @@ function confirmSelection() {
 
 function confirmEnqueue() {
   if (!state.selectedOption) return;
+  if (enqueueBtn) {
+    enqueueBtn.classList.add("is-done");
+    enqueueBtn.title = t("queue.added");
+    const icon = enqueueBtn.querySelector("i");
+    if (icon) {
+      icon.className = "fa-solid fa-check";
+    }
+  }
   console.log("[quality]", "confirm-enqueue", {
     label: state.selectedOption?.payload?.label || "",
   });
-  closeModal({ payload: state.selectedOption.payload, enqueue: true });
+  setTimeout(() => {
+    closeModal({ payload: state.selectedOption.payload, enqueue: true });
+  }, 120);
 }
 
 function bindEvents() {

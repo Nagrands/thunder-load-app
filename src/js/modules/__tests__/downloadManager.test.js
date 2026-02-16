@@ -200,13 +200,14 @@ describe("downloadManager progress activity class", () => {
       const progressBarContainer = document.getElementById(
         "progress-bar-container",
       );
-      const progressBar = document.getElementById("progress-bar");
 
       const promise = initiateDownload("https://example.com/a", "Source");
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
       await promise;
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
-      expect(progressBar.style.width).toBe("0%");
+      expect(progressBarContainer.style.getPropertyValue("--progress-ratio")).toBe(
+        "0",
+      );
       expect(progressBarContainer.getAttribute("aria-valuenow")).toBe("0");
     });
   });
@@ -272,19 +273,20 @@ describe("downloadManager progress activity class", () => {
       const progressBarContainer = document.getElementById(
         "progress-bar-container",
       );
-      const progressBar = document.getElementById("progress-bar");
 
       const promise = initiateDownload("https://example.com/a", "Source");
       await jest.advanceTimersByTimeAsync(10);
       progressBarContainer.classList.add("is-complete");
-      progressBar.style.width = "100%";
+      progressBarContainer.style.setProperty("--progress-ratio", "1");
       await jest.advanceTimersByTimeAsync(60);
       await promise;
 
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
       await jest.advanceTimersByTimeAsync(901);
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
-      expect(progressBar.style.width).toBe("0%");
+      expect(progressBarContainer.style.getPropertyValue("--progress-ratio")).toBe(
+        "0",
+      );
       expect(progressBarContainer.getAttribute("aria-valuenow")).toBe("0");
     });
     jest.useRealTimers();

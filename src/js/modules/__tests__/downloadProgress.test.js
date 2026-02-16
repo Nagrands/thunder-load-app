@@ -52,7 +52,11 @@ describe("downloadProgress", () => {
     });
 
     progressHandler(150);
-    expect(document.getElementById("progress-bar").style.width).toBe("100%");
+    expect(
+      document
+        .getElementById("progress-bar-container")
+        .style.getPropertyValue("--progress-ratio"),
+    ).toBe("1");
     expect(
       document
         .getElementById("progress-bar-container")
@@ -60,7 +64,11 @@ describe("downloadProgress", () => {
     ).toBe("100.0");
 
     progressHandler(90);
-    expect(document.getElementById("progress-bar").style.width).toBe("100%");
+    expect(
+      document
+        .getElementById("progress-bar-container")
+        .style.getPropertyValue("--progress-ratio"),
+    ).toBe("1");
     expect(
       document
         .getElementById("progress-bar-container")
@@ -99,14 +107,22 @@ describe("downloadProgress", () => {
     });
 
     progressHandler(100);
-    expect(document.getElementById("progress-bar").style.width).toBe("100%");
+    expect(
+      document
+        .getElementById("progress-bar-container")
+        .style.getPropertyValue("--progress-ratio"),
+    ).toBe("1");
 
     window.dispatchEvent(
       new CustomEvent("download:state", { detail: { isDownloading: false } }),
     );
     progressHandler(20);
 
-    expect(document.getElementById("progress-bar").style.width).toBe("20%");
+    expect(
+      document
+        .getElementById("progress-bar-container")
+        .style.getPropertyValue("--progress-ratio"),
+    ).toBe("0.2");
     expect(
       document
         .getElementById("progress-bar-container")
@@ -145,10 +161,18 @@ describe("downloadProgress", () => {
     });
 
     progressHandler(100);
-    expect(document.getElementById("progress-bar").style.width).toBe("100%");
+    expect(
+      document
+        .getElementById("progress-bar-container")
+        .style.getPropertyValue("--progress-ratio"),
+    ).toBe("1");
 
     progressHandler(3);
-    expect(document.getElementById("progress-bar").style.width).toBe("3%");
+    expect(
+      document
+        .getElementById("progress-bar-container")
+        .style.getPropertyValue("--progress-ratio"),
+    ).toBe("0.03");
     expect(
       document
         .getElementById("progress-bar-container")

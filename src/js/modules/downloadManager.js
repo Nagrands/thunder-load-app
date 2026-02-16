@@ -13,7 +13,6 @@ import {
   downloadCancelButton,
   buttonText,
   progressBarContainer,
-  progressBar,
   openLastVideoButton,
   queueStartButton,
   queueClearButton,
@@ -375,7 +374,7 @@ const resetProgressIndicator = () => {
   progressBarContainer.style.opacity = 0;
   progressBarContainer.classList.remove("is-active", "is-complete");
   progressBarContainer.setAttribute("aria-valuenow", "0");
-  progressBar.style.width = "0%";
+  progressBarContainer.style.setProperty("--progress-ratio", "0");
 };
 
 const getQualityLabel = (quality) => {
@@ -467,7 +466,7 @@ const downloadVideo = async (url, quality) => {
     progressBarContainer.style.opacity = 1;
     progressBarContainer.classList.remove("is-complete");
     progressBarContainer.classList.add("is-active");
-    progressBar.style.width = "0%";
+    progressBarContainer.style.setProperty("--progress-ratio", "0");
 
     const shortUrl = new URL(url).hostname.replace("www.", "");
     buttonText.textContent = `\u23F3 ${shortUrl} (${getQualityLabel(quality)})...`;
@@ -644,7 +643,7 @@ const initiateDownload = async (url, quality) => {
   progressBarContainer.style.opacity = 1;
   progressBarContainer.classList.remove("is-complete");
   progressBarContainer.classList.add("is-active");
-  progressBar.style.width = "0%";
+  progressBarContainer.style.setProperty("--progress-ratio", "0");
   state.isDownloading = true;
   updateButtonState();
   await downloadVideo(url, quality);
