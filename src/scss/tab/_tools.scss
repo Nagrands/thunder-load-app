@@ -1,4 +1,4 @@
-// src/scss/tab/_wgsend.scss
+// src/scss/tab/_tools.scss
 
 @use "../abstracts/mixins" as *;
 
@@ -1159,19 +1159,55 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   min-height: clamp(320px, 50vh, 520px);
   display: grid;
   place-items: center;
+  position: relative;
+  isolation: isolate;
+}
+
+.tools-launcher::before {
+  content: "";
+  position: absolute;
+  inset: 18px 8% 24px;
+  border-radius: 18px;
+  background: radial-gradient(
+      circle at center,
+      rgba(3, 9, 24, 0.58),
+      rgba(3, 9, 24, 0.38) 48%,
+      rgba(3, 9, 24, 0.08) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(3, 9, 24, 0.56) 0%,
+      rgba(3, 9, 24, 0.22) 62%,
+      rgba(3, 9, 24, 0.08) 100%
+    );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .tools-launcher-inner {
   width: min(740px, 100%);
   display: grid;
   gap: 25px;
+  position: relative;
+  z-index: 1;
 }
 
 .tools-launcher-subtitle {
   margin: 0;
   text-align: center;
-  color: var(--color-quality);
-  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+
+.tools-launcher-hotkeys {
+  margin: -12px 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .tools-launcher-grid {
@@ -1197,6 +1233,35 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
   i {
     font-size: 1.3rem;
     color: rgba(var(--color-accent-rgb), 0.95);
+  }
+
+  > span {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .tools-launcher-button__desc {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.3;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 500;
+    max-width: 18ch;
+  }
+
+  .tools-launcher-button__keys {
+    margin: 2px 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 2px 8px;
+    line-height: 1.2;
   }
 
   &:hover {

@@ -1,5 +1,5 @@
 import TabSystem from "../tabSystem.js";
-import renderWireGuard from "../views/wireguardView.js";
+import renderToolsView from "../views/toolsView.js";
 import renderBackup from "../views/backupView.js";
 import { createRandomizerView } from "../views/randomizerView.js";
 import renderDownloaderView from "../views/downloaderView.js";
@@ -88,7 +88,7 @@ export async function registerTabs(mainView) {
     "fa-solid fa-screwdriver-wrench",
     () => {
       if (!wrappers.wireguardWrapper.hasChildNodes()) {
-        wrappers.wireguardWrapper.appendChild(renderWireGuard());
+        wrappers.wireguardWrapper.appendChild(renderToolsView());
       }
       applyI18n(wrappers.wireguardWrapper);
       return wrappers.wireguardWrapper;

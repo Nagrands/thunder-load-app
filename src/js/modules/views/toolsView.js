@@ -1,11 +1,11 @@
-// src/js/modules/views/wireguardView.js
+// src/js/modules/views/toolsView.js
 
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import { applyI18n, getLanguage, t } from "../i18n.js";
 
-export default function renderWireGuard() {
+export default function renderToolsView() {
   // Guard: если вкладка WG Unlock отключена — не инициализируем UI
   const _isWgDisabled = () => {
     try {
@@ -525,7 +525,7 @@ export default function renderWireGuard() {
         </div>
       </header>
 
-      <div class="tools-nav">
+      <div id="tools-nav" class="tools-nav">
         <button
           id="tools-back-btn"
           type="button"
@@ -547,18 +547,39 @@ export default function renderWireGuard() {
           <p class="tools-launcher-subtitle" data-i18n="tools.launcher.subtitle">
             Выберите инструмент для открытия
           </p>
+          <p id="tools-launcher-hotkeys" class="tools-launcher-hotkeys" data-i18n="tools.launcher.hotkeysHint">
+            Горячие клавиши: Alt+1, Alt+2, Alt+3, Esc
+          </p>
           <div class="tools-launcher-grid">
             <button id="tools-open-wg" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-satellite-dish"></i>
               <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">
+                Быстрое восстановление WireGuard.
+              </small>
+              <small id="tools-launcher-shortcut-wg" class="tools-launcher-button__keys" data-i18n="tools.launcher.shortcut.wg">
+                Alt+1
+              </small>
             </button>
             <button id="tools-open-hash" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-fingerprint"></i>
               <span data-i18n="tools.launcher.open.hash">Hash Check</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">
+                Сравнение контрольных сумм файлов.
+              </small>
+              <small id="tools-launcher-shortcut-hash" class="tools-launcher-button__keys" data-i18n="tools.launcher.shortcut.hash">
+                Alt+2
+              </small>
             </button>
             <button id="tools-open-power" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-power-off"></i>
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
+                Создание ярлыков в Windows.
+              </small>
+              <small id="tools-launcher-shortcut-power" class="tools-launcher-button__keys" data-i18n="tools.launcher.shortcut.power">
+                Alt+3
+              </small>
             </button>
           </div>
         </div>
@@ -892,8 +913,13 @@ export default function renderWireGuard() {
   container.appendChild(view);
   applyI18n(view);
 
+  const isPowerToolVisible = (info = toolsPlatformInfo) => {
+    const platform = String(info?.platform || "");
+    return !!info?.isWindows || platform === "darwin";
+  };
+
   const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
-    if (toolView === "power") return !!info?.isWindows;
+    if (toolView === "power") return isPowerToolVisible(info);
     return toolView === "launcher" || toolView === "wg" || toolView === "hash";
   };
 
@@ -911,8 +937,27 @@ export default function renderWireGuard() {
     return isToolAvailable(remembered) ? remembered : "launcher";
   };
 
+  const setLauncherHotkeyLabels = () => {
+    const platform = String(toolsPlatformInfo?.platform || "");
+    const isMacPlatform = platform === "darwin";
+    const suffix = isMacPlatform ? ".mac" : "";
+    const hintEl = getEl("tools-launcher-hotkeys", view);
+    const wgShortcutEl = getEl("tools-launcher-shortcut-wg", view);
+    const hashShortcutEl = getEl("tools-launcher-shortcut-hash", view);
+    const powerShortcutEl = getEl("tools-launcher-shortcut-power", view);
+
+    if (hintEl) hintEl.textContent = t(`tools.launcher.hotkeysHint${suffix}`);
+    if (wgShortcutEl)
+      wgShortcutEl.textContent = t(`tools.launcher.shortcut.wg${suffix}`);
+    if (hashShortcutEl)
+      hashShortcutEl.textContent = t(`tools.launcher.shortcut.hash${suffix}`);
+    if (powerShortcutEl)
+      powerShortcutEl.textContent = t(`tools.launcher.shortcut.power${suffix}`);
+  };
+
   const setToolView = (nextView, { persist = true, focusLauncher = false } = {}) => {
     const launcher = getEl("tools-launcher", view);
+    const toolsNav = getEl("tools-nav", view);
     const backBtn = getEl("tools-back-btn", view);
     const title = getEl("tools-view-title", view);
     const requested = String(nextView || "launcher");
@@ -921,6 +966,7 @@ export default function renderWireGuard() {
 
     const showLauncher = targetView === "launcher";
     launcher?.classList.toggle("hidden", !showLauncher);
+    toolsNav?.classList.toggle("hidden", showLauncher);
 
     view.querySelectorAll(".tools-view[data-tool-view]").forEach((section) => {
       const sectionView = section.getAttribute("data-tool-view");
@@ -1148,13 +1194,35 @@ export default function renderWireGuard() {
 
     // Отправка по Enter и Ctrl/Cmd+Enter
     view.addEventListener("keydown", (e) => {
+      const target = e.target;
+      const targetEl = target instanceof Element ? target : null;
+      const isEditableTarget = !!targetEl?.closest(
+        "input, textarea, select, [contenteditable=''], [contenteditable='true']",
+      );
+      const key = String(e.key || "").toLowerCase();
+
       if (e.key === "Escape" && currentToolView !== "launcher") {
         e.preventDefault();
         setToolView("launcher", { persist: false, focusLauncher: true });
         return;
       }
+
+      if (
+        e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.shiftKey &&
+        !isEditableTarget &&
+        (key === "1" || key === "2" || key === "3")
+      ) {
+        e.preventDefault();
+        if (key === "1") setToolView("wg");
+        if (key === "2") setToolView("hash");
+        if (key === "3" && isToolAvailable("power")) setToolView("power");
+        return;
+      }
+
       if (e.key !== "Enter") return;
-      const target = e.target;
       if (!(target instanceof Element)) return;
       if (!target.closest("#tools-wg-advanced-panel")) return;
       if (e.metaKey || e.ctrlKey) {
@@ -1342,6 +1410,7 @@ export default function renderWireGuard() {
     onWindowEvent("i18n:changed", () => {
       setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
       setToolView(currentToolView, { persist: false });
+      setLauncherHotkeyLabels();
     });
 
     const hashPickFileBtn = getEl("hash-pick-file", view);
@@ -1908,6 +1977,8 @@ export default function renderWireGuard() {
     });
 
     isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
+    const showPowerTool = isPowerToolVisible(toolsPlatformInfo);
+
     if (isWindowsPlatform) {
       restartCard?.classList.remove("hidden");
       createRestartShortcutBtn?.removeAttribute("disabled");
@@ -1916,6 +1987,16 @@ export default function renderWireGuard() {
       createShutdownShortcutBtn?.classList.remove("is-disabled");
       restartShortcutNote.textContent = t(
         "quickActions.power.windowsReady",
+      );
+      openPowerBtn?.classList.remove("hidden");
+    } else if (showPowerTool) {
+      restartCard?.classList.remove("hidden");
+      createRestartShortcutBtn?.setAttribute("disabled", "disabled");
+      createRestartShortcutBtn?.classList.add("is-disabled");
+      createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
+      createShutdownShortcutBtn?.classList.add("is-disabled");
+      restartShortcutNote.textContent = t(
+        "quickActions.power.windowsOnly",
       );
       openPowerBtn?.classList.remove("hidden");
     } else {
@@ -2120,6 +2201,7 @@ export default function renderWireGuard() {
           platform: "",
         };
       isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
+      setLauncherHotkeyLabels();
       setToolView(resolveInitialToolView(), { persist: false });
 
       await loadConfiguration();

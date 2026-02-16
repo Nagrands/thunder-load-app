@@ -35,6 +35,13 @@
 - **Improved two-file comparison details**: the result details now show selected file names instead of generic “File 1/File 2” labels.
 - **Improved two-file hash-check flow**: added a clear button for the second file, and expected-hash input now compares correctly even when it contains spaces or line breaks.
 - **Improved calculated-hash label**: hash results now show which algorithm was used for the calculation.
+- **Cleaned up the Tools launcher screen**: removed duplicate heading, improved text contrast, and added a clearer backdrop behind the centered launcher block.
+- **Added short descriptions for launcher tools**: each tool card now includes a brief purpose hint before opening it.
+- **Windows shortcuts tool is now visible on macOS**: you can open the section and review available actions, while shortcut creation itself remains Windows-only.
+- **Improved Tools tab structure**: internal module naming and organization were cleaned up to simplify future updates and maintenance.
+- **Added hotkeys in the Tools tab**: Alt+1 opens WG Unlock, Alt+2 opens Hash Check, Alt+3 opens Power Shortcuts, and Esc returns to the launcher.
+- **Added shortcut labels in the Tools launcher**: tool cards now display visible key hints for faster navigation.
+- **Added macOS-specific hotkey labels**: on Mac, launcher hints now use Option key notation (⌥1/⌥2/⌥3).
 
 - **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
 - **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.

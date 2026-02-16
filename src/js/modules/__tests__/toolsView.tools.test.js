@@ -16,13 +16,13 @@ jest.mock("../i18n", () => ({
   t: (key) => key,
 }));
 
-import renderWireGuard from "../views/wireguardView";
+import renderToolsView from "../views/toolsView";
 import { showConfirmationDialog } from "../modals";
 
 const nextTick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 async function renderView() {
-  const el = renderWireGuard();
+  const el = renderToolsView();
   document.body.appendChild(el);
   await nextTick();
   return el;
@@ -39,7 +39,7 @@ async function openTool(el, tool) {
   await nextTick();
 }
 
-describe("wireguardView quick actions", () => {
+describe("toolsView quick actions", () => {
   beforeEach(() => {
     showConfirmationDialog.mockReset();
     showConfirmationDialog.mockResolvedValue(true);
@@ -105,15 +105,31 @@ describe("wireguardView quick actions", () => {
     });
   });
 
-  test("opens launcher by default and shows two tools on non-windows", async () => {
+  test("opens launcher by default and shows power tool on macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
       false,
     );
     expect(el.querySelector("#tools-open-wg")).not.toBeNull();
     expect(el.querySelector("#tools-open-hash")).not.toBeNull();
-    expect(el.querySelector("#tools-open-power")?.classList.contains("hidden")).toBe(
-      true,
+    expect(
+      el.querySelector("#tools-open-power")?.classList.contains("hidden"),
+    ).toBe(false);
+  });
+
+  test("shows macOS-specific hotkey labels in launcher", async () => {
+    const el = await renderView();
+    expect(el.querySelector("#tools-launcher-hotkeys")?.textContent).toBe(
+      "tools.launcher.hotkeysHint.mac",
+    );
+    expect(el.querySelector("#tools-launcher-shortcut-wg")?.textContent).toBe(
+      "tools.launcher.shortcut.wg.mac",
+    );
+    expect(el.querySelector("#tools-launcher-shortcut-hash")?.textContent).toBe(
+      "tools.launcher.shortcut.hash.mac",
+    );
+    expect(el.querySelector("#tools-launcher-shortcut-power")?.textContent).toBe(
+      "tools.launcher.shortcut.power.mac",
     );
   });
 
@@ -125,6 +141,12 @@ describe("wireguardView quick actions", () => {
     const el = await renderView();
     expect(el.querySelector("#tools-open-power")?.classList.contains("hidden")).toBe(
       false,
+    );
+    expect(el.querySelector("#tools-launcher-hotkeys")?.textContent).toBe(
+      "tools.launcher.hotkeysHint",
+    );
+    expect(el.querySelector("#tools-launcher-shortcut-wg")?.textContent).toBe(
+      "tools.launcher.shortcut.wg",
     );
   });
 
@@ -196,6 +218,43 @@ describe("wireguardView quick actions", () => {
     expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
       false,
     );
+  });
+
+  test("opens hash tool with Alt+2 hotkey", async () => {
+    const el = await renderView();
+    const root = el.querySelector("#wireguard-view");
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "2",
+        altKey: true,
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+    expect(
+      el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
+    ).toBe(false);
+  });
+
+  test("does not switch tools with Alt+1 while typing in hash input", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+    const expectedInput = el.querySelector("#hash-expected");
+    expectedInput?.focus();
+    expectedInput?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "1",
+        altKey: true,
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+    expect(
+      el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el.querySelector('[data-tool-view="wg"]')?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("renders WG quick hierarchy with primary and secondary actions", async () => {
@@ -541,11 +600,25 @@ describe("wireguardView quick actions", () => {
     expect(panel.getAttribute("aria-busy")).toBe("false");
   });
 
-  test("hides windows restart card on non-windows", async () => {
+  test("shows power tool on macos but keeps windows actions disabled", async () => {
     const el = await renderView();
     await openTool(el, "power");
     const restartCard = el.querySelector("#tools-restart-card");
-    expect(restartCard.classList.contains("hidden")).toBe(true);
+    const restartBtn = el.querySelector("#create-restart-shortcut");
+    const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
+    expect(restartCard.classList.contains("hidden")).toBe(false);
+    expect(restartBtn?.hasAttribute("disabled")).toBe(true);
+    expect(shutdownBtn?.hasAttribute("disabled")).toBe(true);
+  });
+
+  test("hides power tool on linux", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: false,
+      platform: "linux",
+    });
+    const el = await renderView();
+    const openPowerBtn = el.querySelector("#tools-open-power");
+    expect(openPowerBtn?.classList.contains("hidden")).toBe(true);
   });
 
   test("asks confirmation before restart shortcut IPC call", async () => {
