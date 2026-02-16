@@ -14,6 +14,10 @@
 - **Made Enter behavior more predictable in the Tools tab**: WG send now triggers only inside the WG Advanced form and no longer interferes with hash-check inputs.
 - **Improved Advanced panel accessibility**: the toggle now reports expanded/collapsed state correctly, and keyboard focus moves into the form on open and back to the toggle on close.
 - **Localized the WG Unlock help dialog**: help content in the Tools tab now follows the selected app language.
+- **Hid the Windows power shortcuts card on non-Windows systems**: the Tools tab now shows only actions available on your platform.
+- **Improved hash verification flow**: controls are now locked while hash calculation is running to prevent accidental duplicate runs.
+- **Refined network settings button behavior**: the button now appears only on platforms where opening system network settings is supported.
+- **Improved action hierarchy in WG Quick**: the primary “Send” action is now separated from secondary actions under a dedicated “More actions” block.
 
 - **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
 - **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.

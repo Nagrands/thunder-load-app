@@ -141,7 +141,7 @@ describe("wireguardView quick actions", () => {
     );
   });
 
-  test("shows windows restart card but disables action on non-windows", async () => {
+  test("hides windows restart card on non-windows", async () => {
     const el = renderWireGuard();
     document.body.appendChild(el);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -150,9 +150,22 @@ describe("wireguardView quick actions", () => {
     const restartBtn = el.querySelector("#create-restart-shortcut");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
     expect(restartCard).not.toBeNull();
-    expect(restartCard.classList.contains("hidden")).toBe(false);
+    expect(restartCard.classList.contains("hidden")).toBe(true);
     expect(restartBtn?.hasAttribute("disabled")).toBe(true);
     expect(shutdownBtn?.hasAttribute("disabled")).toBe(true);
+  });
+
+  test("shows network settings button only on supported platforms", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: false,
+      platform: "linux",
+    });
+    const el = renderWireGuard();
+    document.body.appendChild(el);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const networkBtn = el.querySelector("#wg-open-network-settings");
+    expect(networkBtn?.classList.contains("hidden")).toBe(true);
   });
 
   test("keeps WG advanced collapsed by default", async () => {
@@ -238,6 +251,46 @@ describe("wireguardView quick actions", () => {
       ([channel]) => channel === "wg-send-udp",
     );
     expect(sendCalls).toHaveLength(0);
+  });
+
+  test("locks hash controls while hash is calculating", async () => {
+    let resolveHash;
+    window.electron.tools.calculateHash.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveHash = resolve;
+        }),
+    );
+
+    const el = renderWireGuard();
+    document.body.appendChild(el);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const pickBtn = el.querySelector("#hash-pick-file");
+    const runBtn = el.querySelector("#hash-run");
+    const algo = el.querySelector("#hash-algorithm");
+    const expected = el.querySelector("#hash-expected");
+    const panel = el.querySelector("#hash-result-panel");
+
+    pickBtn.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    runBtn.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(runBtn.disabled).toBe(true);
+    expect(pickBtn.disabled).toBe(true);
+    expect(algo.disabled).toBe(true);
+    expect(expected.disabled).toBe(true);
+    expect(panel.getAttribute("aria-busy")).toBe("true");
+
+    resolveHash({ success: true, actualHash: "abcd", matches: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(runBtn.disabled).toBe(false);
+    expect(pickBtn.disabled).toBe(false);
+    expect(algo.disabled).toBe(false);
+    expect(expected.disabled).toBe(false);
+    expect(panel.getAttribute("aria-busy")).toBe("false");
   });
 
   test("sends WG request on Enter inside WG form", async () => {

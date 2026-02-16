@@ -20093,6 +20093,24 @@ video {
   margin-top: auto;
 }
 
+.tools-card__secondary {
+  display: grid;
+  gap: 8px;
+}
+
+.tools-card__secondary-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-quality);
+}
+
+.tools-card__secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .hash-check-grid {
   display: grid;
   gap: 10px;
@@ -20396,10 +20414,11 @@ video {
 }
 
 .tools-card-wg-quick .buttons .large-button {
-  min-width: 120px;
-  flex: 1 1 180px;
+  width: 100%;
+  min-width: 140px;
 }
-.tools-card-wg-quick .buttons .small-button {
+
+.tools-card-wg-quick .tools-card__secondary-actions .small-button {
   flex: 0 0 auto;
 }
 

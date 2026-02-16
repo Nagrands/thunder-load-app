@@ -542,18 +542,23 @@ export default function renderWireGuard() {
               <i class="fa-solid fa-paper-plane"></i>
               <span data-i18n="wg.action.send">Отправить</span>
             </button>
+          </div>
+          <div class="tools-card__secondary">
+            <span class="tools-card__secondary-label" data-i18n="wg.actions.more">More actions</span>
+            <div class="tools-card__secondary-actions">
             <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
               <i class="fa-solid fa-rotate-left"></i>
             </button>
             <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
               <i class="fa-solid fa-file-edit"></i>
             </button>
-            <button id="wg-open-network-settings" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
+            <button id="wg-open-network-settings" class="small-button hidden" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
               <i class="fa-solid fa-network-wired"></i>
             </button>
             <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка" data-i18n-title="wg.help.tooltip">
               <i class="fa-solid fa-circle-question"></i>
             </button>
+            </div>
           </div>
           <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
         </article>
@@ -1138,6 +1143,18 @@ export default function renderWireGuard() {
     const hashCopyActualBtn = getEl("hash-copy-actual", view);
     let hashActualValue = "";
     let hashCopyFeedbackTimer = null;
+    let hashBusy = false;
+
+    const setHashBusy = (busy) => {
+      hashBusy = !!busy;
+      if (hashPickFileBtn) hashPickFileBtn.disabled = hashBusy;
+      if (hashRunBtn) hashRunBtn.disabled = hashBusy;
+      if (hashAlgorithmEl) hashAlgorithmEl.disabled = hashBusy;
+      if (hashExpectedEl) hashExpectedEl.disabled = hashBusy;
+      if (hashResultPanelEl) {
+        hashResultPanelEl.setAttribute("aria-busy", hashBusy ? "true" : "false");
+      }
+    };
 
     const setHashUiState = ({
       tone = "muted",
@@ -1191,6 +1208,7 @@ export default function renderWireGuard() {
     };
 
     hashPickFileBtn?.addEventListener("click", async () => {
+      if (hashBusy) return;
       const res = await window.electron?.tools?.pickFileForHash?.();
       if (!res?.success || !res.filePath) {
         if (!res?.canceled) {
@@ -1216,6 +1234,7 @@ export default function renderWireGuard() {
     });
 
     hashRunBtn?.addEventListener("click", async () => {
+      if (hashBusy) return;
       if (!hashSelectedFile) {
         setHashUiState({
           tone: "error",
@@ -1231,51 +1250,63 @@ export default function renderWireGuard() {
         messageKey: "hashCheck.calculating",
         canCopy: false,
       });
-      const res = await window.electron?.tools?.calculateHash?.({
-        filePath: hashSelectedFile,
-        algorithm: hashAlgorithmEl?.value || "SHA-256",
-        expectedHash: hashExpectedEl?.value || "",
-      });
-      if (!res?.success) {
-        setHashUiState({
-          tone: "error",
-          statusKey: "hashCheck.status.error",
-          message: res?.error || t("hashCheck.error"),
-          canCopy: false,
+      setHashBusy(true);
+      try {
+        const res = await window.electron?.tools?.calculateHash?.({
+          filePath: hashSelectedFile,
+          algorithm: hashAlgorithmEl?.value || "SHA-256",
+          expectedHash: hashExpectedEl?.value || "",
         });
-        return;
-      }
-      if (res.matches === true) {
+        if (!res?.success) {
+          setHashUiState({
+            tone: "error",
+            statusKey: "hashCheck.status.error",
+            message: res?.error || t("hashCheck.error"),
+            canCopy: false,
+          });
+          return;
+        }
+        if (res.matches === true) {
+          setHashUiState({
+            tone: "success",
+            statusKey: "hashCheck.status.match",
+            messageKey: "hashCheck.match",
+            actualHash: res.actualHash || "",
+            canCopy: !!res.actualHash,
+          });
+          return;
+        }
+        if (res.matches === false) {
+          setHashUiState({
+            tone: "warning",
+            statusKey: "hashCheck.status.mismatch",
+            messageKey: "hashCheck.mismatch",
+            actualHash: res.actualHash || "",
+            canCopy: !!res.actualHash,
+          });
+          return;
+        }
         setHashUiState({
           tone: "success",
           statusKey: "hashCheck.status.match",
-          messageKey: "hashCheck.match",
+          message: `${t("hashCheck.actual")}: ${res.actualHash}`,
           actualHash: res.actualHash || "",
           canCopy: !!res.actualHash,
         });
-        return;
-      }
-      if (res.matches === false) {
+      } catch (error) {
         setHashUiState({
-          tone: "warning",
-          statusKey: "hashCheck.status.mismatch",
-          messageKey: "hashCheck.mismatch",
-          actualHash: res.actualHash || "",
-          canCopy: !!res.actualHash,
+          tone: "error",
+          statusKey: "hashCheck.status.error",
+          message: error?.message || t("hashCheck.error"),
+          canCopy: false,
         });
-        return;
+      } finally {
+        setHashBusy(false);
       }
-      setHashUiState({
-        tone: "success",
-        statusKey: "hashCheck.status.match",
-        message: `${t("hashCheck.actual")}: ${res.actualHash}`,
-        actualHash: res.actualHash || "",
-        canCopy: !!res.actualHash,
-      });
     });
 
     hashCopyActualBtn?.addEventListener("click", async () => {
-      if (!hashActualValue) return;
+      if (!hashActualValue || hashBusy) return;
       const textEl = hashCopyActualBtn.querySelector("span");
       if (hashCopyFeedbackTimer) {
         clearTimeout(hashCopyFeedbackTimer);
@@ -1302,6 +1333,7 @@ export default function renderWireGuard() {
       messageKey: "hashCheck.resultIdle",
       canCopy: false,
     });
+    setHashBusy(false);
     setCopyButtonDefaultText();
 
     const restartCard = getEl("tools-restart-card", view);
@@ -1380,6 +1412,7 @@ export default function renderWireGuard() {
             "quickActions.power.windowsReady",
           );
         } else {
+          restartCard?.classList.add("hidden");
           createRestartShortcutBtn?.setAttribute("disabled", "disabled");
           createRestartShortcutBtn?.classList.add("is-disabled");
           createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
@@ -1708,12 +1741,13 @@ export default function renderWireGuard() {
       });
 
       const initNetworkSettingsButton = async () => {
-        const platformInfo = await window.electron
-          .getPlatformInfo?.()
-          .catch(() => null);
-        const platform = platformInfo?.platform || "";
-        const btn = view.querySelector("#wg-open-network-settings");
-        if (!btn) return;
+      const platformInfo = await window.electron
+        .getPlatformInfo?.()
+        .catch(() => null);
+      const platform = platformInfo?.platform || "";
+      const btn = view.querySelector("#wg-open-network-settings");
+      if (!btn) return;
+      const supportedPlatform = platform === "darwin" || platform === "win32";
 
         // Меняем тултип в зависимости от платформы
         if (platform === "darwin") {
@@ -1733,8 +1767,11 @@ export default function renderWireGuard() {
           );
         }
         applyI18n(btn);
-
-        // Показываем кнопку на macOS и Windows
+        if (!supportedPlatform) {
+          btn.classList.add("hidden");
+          return;
+        }
+        btn.classList.remove("hidden");
         btn.style.display = "inline-flex";
 
         btn.addEventListener("click", () => {
