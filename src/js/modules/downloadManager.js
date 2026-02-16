@@ -362,6 +362,21 @@ function updateQueueDisplay() {
 let lastInputBeforeDownload = null;
 let lastChosenQuality = null;
 let lastChosenQualityLabel = null;
+let progressResetTimer = null;
+
+const clearProgressResetTimer = () => {
+  if (progressResetTimer) {
+    clearTimeout(progressResetTimer);
+    progressResetTimer = null;
+  }
+};
+
+const resetProgressIndicator = () => {
+  progressBarContainer.style.opacity = 0;
+  progressBarContainer.classList.remove("is-active", "is-complete");
+  progressBarContainer.setAttribute("aria-valuenow", "0");
+  progressBar.style.width = "0%";
+};
 
 const getQualityLabel = (quality) => {
   if (!quality) return t("quality.source");
@@ -450,6 +465,7 @@ const downloadVideo = async (url, quality) => {
     } catch (_) {}
 
     progressBarContainer.style.opacity = 1;
+    progressBarContainer.classList.remove("is-complete");
     progressBarContainer.classList.add("is-active");
     progressBar.style.width = "0%";
 
@@ -590,9 +606,17 @@ const downloadVideo = async (url, quality) => {
 
     downloadButton.classList.remove("disabled");
     downloadCancelButton.disabled = true;
-    progressBarContainer.style.opacity = 0;
-    progressBarContainer.classList.remove("is-active");
-    progressBar.style.width = "0%";
+    clearProgressResetTimer();
+    const shouldDelayProgressReset =
+      progressBarContainer.classList.contains("is-complete");
+    if (shouldDelayProgressReset) {
+      progressResetTimer = setTimeout(() => {
+        resetProgressIndicator();
+        progressResetTimer = null;
+      }, 900);
+    } else {
+      resetProgressIndicator();
+    }
 
     if (state.downloadQueue.length > 0) {
       const next = state.downloadQueue.shift();
@@ -615,9 +639,12 @@ const downloadVideo = async (url, quality) => {
 };
 
 const initiateDownload = async (url, quality) => {
+  clearProgressResetTimer();
   downloadButton.classList.add("loading");
   progressBarContainer.style.opacity = 1;
+  progressBarContainer.classList.remove("is-complete");
   progressBarContainer.classList.add("is-active");
+  progressBar.style.width = "0%";
   state.isDownloading = true;
   updateButtonState();
   await downloadVideo(url, quality);

@@ -729,6 +729,11 @@ function bindEvents() {
       }),
     );
     modal.addEventListener("click", (event) => {
+      if (event.target?.closest?.("[data-quality-close]")) {
+        event.preventDefault();
+        closeModal(null);
+        return;
+      }
       if (event.target === modal) closeModal(null);
     });
     document.addEventListener("keydown", (event) => {

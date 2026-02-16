@@ -200,11 +200,93 @@ describe("downloadManager progress activity class", () => {
       const progressBarContainer = document.getElementById(
         "progress-bar-container",
       );
+      const progressBar = document.getElementById("progress-bar");
 
       const promise = initiateDownload("https://example.com/a", "Source");
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
       await promise;
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
+      expect(progressBar.style.width).toBe("0%");
+      expect(progressBarContainer.getAttribute("aria-valuenow")).toBe("0");
     });
+  });
+
+  it("keeps completed progress briefly before reset", async () => {
+    jest.useFakeTimers();
+    window.electron.invoke.mockImplementation(async (channel) => {
+      if (channel === "download-video") {
+        return await new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                fileName: "file.mp4",
+                filePath: "/tmp/file.mp4",
+                quality: "Source",
+                actualQuality: "Source",
+                sourceUrl: "https://example.com/a",
+                cancelled: false,
+              }),
+            50,
+          );
+        });
+      }
+      if (channel === "get-icon-path") return "";
+      if (channel === "cache-history-preview") return { success: false };
+      return {};
+    });
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+      }));
+      jest.doMock("../validation", () => ({
+        isValidUrl: jest.fn(() => true),
+        isSupportedUrl: jest.fn(() => true),
+      }));
+      jest.doMock("../tooltipInitializer", () => ({
+        initTooltips: jest.fn(),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "en"),
+        t: jest.fn((key) => key),
+      }));
+      jest.doMock("../urlInputHandler", () => ({
+        hideUrlActionButtons: jest.fn(),
+      }));
+
+      const { initiateDownload } = require("../downloadManager");
+      const progressBarContainer = document.getElementById(
+        "progress-bar-container",
+      );
+      const progressBar = document.getElementById("progress-bar");
+
+      const promise = initiateDownload("https://example.com/a", "Source");
+      await jest.advanceTimersByTimeAsync(10);
+      progressBarContainer.classList.add("is-complete");
+      progressBar.style.width = "100%";
+      await jest.advanceTimersByTimeAsync(60);
+      await promise;
+
+      expect(progressBarContainer.classList.contains("is-active")).toBe(true);
+      await jest.advanceTimersByTimeAsync(901);
+      expect(progressBarContainer.classList.contains("is-active")).toBe(false);
+      expect(progressBar.style.width).toBe("0%");
+      expect(progressBarContainer.getAttribute("aria-valuenow")).toBe("0");
+    });
+    jest.useRealTimers();
   });
 });

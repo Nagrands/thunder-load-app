@@ -1,5 +1,11 @@
 <!-- version: 1.3.6 -->
 
+### Downloader tab
+
+- **Updated the progress indicator in the URL field**: it is now shown as a cleaner thin line at the bottom of the input.
+- **Reduced visual noise during downloads**: progress is easier to follow and less distracting while you work with links.
+- **Fixed the close button in the quality picker**: the modal now closes reliably when clicking the “×” button.
+
 ### Tools tab
 
 - **Redesigned the quality picker in the Downloader tab**: added per-tab format counters, a current-selection panel, and quick best-option selection for the active tab.

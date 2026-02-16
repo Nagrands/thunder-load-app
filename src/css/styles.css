@@ -13426,59 +13426,43 @@ hr {
   animation: spin 1s linear infinite;
 }
 
-#progress-bar {
-  width: 0;
-  background-color: var(--color-progress-bar);
-  height: 100%;
-  transition: width 0.4s ease;
-}
-
-/* ========== Progress Bar Styles ========== */
 #progress-bar-container {
   position: absolute;
   width: 100%;
-  height: 56px;
+  height: 100%;
   background-color: transparent;
   border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: opacity 0.3s ease;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity 0.25s ease;
   pointer-events: none;
-  z-index: 0;
+  z-index: 3;
 }
 #progress-bar-container::after {
-  content: attr(data-progress);
+  content: "";
   position: absolute;
-  right: 14px;
-  top: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-main);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 4px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  opacity: 0.9;
-  letter-spacing: 0.5px;
-}
-#progress-bar-container::before {
-  content: attr(data-eta);
-  position: absolute;
-  right: 14px;
-  bottom: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-quality);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-  z-index: 2;
+  left: 10px;
+  right: 10px;
+  bottom: 4px;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-progress-bar) 16%, transparent);
+  opacity: 0.55;
+  z-index: 1;
 }
 
 #progress-bar {
-  height: 100%;
+  position: absolute;
+  left: 10px;
+  bottom: 4px;
   width: 0;
-  background: linear-gradient(to right, var(--color-progress-bg), var(--color-progress-bar));
-  border-radius: 8px;
-  position: relative;
-  animation: none;
-  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s ease;
+  height: 3px;
+  width: 0;
+  background: linear-gradient(to right, color-mix(in srgb, var(--color-progress-bg) 55%, var(--color-progress-bar)), var(--color-progress-bar) 80%);
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-progress-bar) 32%, transparent);
+  transition: width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, box-shadow 0.2s ease;
+  z-index: 2;
 }
 #progress-bar::before {
   content: "";
@@ -13487,38 +13471,20 @@ hr {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
-  background-size: 24px 24px;
-  animation: none;
-  mask: linear-gradient(to right, rgb(0, 0, 0) 85%, rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0));
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  opacity: 0.45;
 }
-#progress-bar::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0) 100%);
-  border-radius: 8px;
-}
-#progress-bar:hover {
-  transform: scaleY(1.05);
-  transition: transform 0.2s ease;
-}
-
 #progress-bar-container.is-active #progress-bar {
-  animation: progressPulse 2s ease-in-out infinite;
-}
-#progress-bar-container.is-active #progress-bar::before {
-  animation: progress-stripes 1.2s linear infinite;
+  opacity: 1;
 }
 
-.progress-complete #progress-bar {
-  animation: progress-pulse 1s ease-out;
+#progress-bar-container.is-complete #progress-bar {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-progress-bar) 45%, transparent), 0 0 10px color-mix(in srgb, var(--color-progress-bar) 38%, transparent);
 }
-.progress-complete #progress-bar::before {
-  animation: none;
+
+#progress-bar-container:not(.is-active) #progress-bar {
+  opacity: 0;
 }
 
 /* ========== History & Search ========== */

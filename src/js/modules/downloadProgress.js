@@ -39,8 +39,10 @@ function initDownloadProgress() {
   };
   window.electron.onProgress((progressValue) => {
     if (!state.isDownloading) return;
-    const progress = Number(progressValue);
-    const progressStr = progress.toFixed(1);
+    const parsedProgress = Number(progressValue);
+    const progress = Number.isFinite(parsedProgress) ? parsedProgress : 0;
+    const normalizedProgress = Math.max(0, Math.min(100, progress));
+    const progressStr = normalizedProgress.toFixed(1);
     if (startedAt === null || progress < lastProgress) {
       startedAt = Date.now();
     }
@@ -61,32 +63,23 @@ function initDownloadProgress() {
       progress: progressStr,
       eta: etaSuffix,
     });
-    progressBar.style.width = `${progress}%`;
+    progressBar.style.width = `${normalizedProgress}%`;
     if (progressBarContainer) {
       progressBarContainer.setAttribute("aria-valuenow", progressStr);
-      try {
-        // Отрисуем проценты и ETA прямо на оверлее прогресса
-        progressBarContainer.dataset.progress = `${progressStr}%`;
-        if (startedAt) {
-          const elapsed = (Date.now() - startedAt) / 1000;
-          const rate = progress / Math.max(0.5, elapsed); // %/s
-          const remaining = (100 - progress) / Math.max(0.1, rate);
-          const mm = Math.floor(remaining / 60);
-          const ss = Math.floor(remaining % 60);
-          progressBarContainer.dataset.eta = t("download.eta", {
-            time: `${mm}:${String(ss).padStart(2, "0")}`,
-          });
-        } else {
-          progressBarContainer.dataset.eta = "";
-        }
-      } catch {}
+      progressBarContainer.classList.toggle(
+        "is-complete",
+        normalizedProgress >= 99.5,
+      );
     }
-    showTopIndicator(progress);
+    showTopIndicator(normalizedProgress);
   });
 
   window.addEventListener("download:state", (event) => {
     if (event?.detail?.isDownloading === false) {
       hideTopIndicator();
+      if (progressBarContainer) {
+        progressBarContainer.classList.remove("is-complete");
+      }
     }
   });
 }
