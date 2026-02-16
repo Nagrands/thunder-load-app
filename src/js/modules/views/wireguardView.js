@@ -106,6 +106,9 @@ export default function renderWireGuard() {
   let hashSelectedFile = "";
   let isWindowsPlatform = false;
   const WG_ADVANCED_STATE_KEY = "toolsWgAdvancedOpen";
+  const LAST_TOOL_KEY = "toolsLastView";
+  let currentToolView = "launcher";
+  let toolsPlatformInfo = { isWindows: false, platform: "" };
   const cleanupFns = [];
 
   const addCleanup = (fn) => {
@@ -511,253 +514,350 @@ export default function renderWireGuard() {
         </div>
       </header>
 
-      <section class="tools-dashboard" aria-label="Tools Dashboard">
-        <article class="tools-card tools-card-wg-quick">
-          <div class="tools-card__header">
-            <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
-            <button
-              id="tools-wg-advanced-toggle"
-              type="button"
-              class="small-button"
-              aria-controls="tools-wg-advanced-panel"
-              aria-expanded="false"
-              data-i18n="tools.wg.advanced.toggle.open"
-            >
-              Advanced
-            </button>
-          </div>
-          <p class="tools-card__hint" data-i18n="tools.wg.quick.hint">Quick recovery actions for WireGuard.</p>
-          <div class="tools-card__meta">
-            <div>
-              <span data-i18n="wg.lastSend.title">Последняя отправка</span>
-              <strong id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</strong>
-            </div>
-            <div>
-              <span data-i18n="wg.status.title">Статус</span>
-              <strong id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</strong>
-            </div>
-          </div>
-          <div class="tools-card__actions buttons">
-            <button id="wg-send" class="large-button">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span data-i18n="wg.action.send">Отправить</span>
-            </button>
-          </div>
-          <div class="tools-card__secondary">
-            <span class="tools-card__secondary-label" data-i18n="wg.actions.more">More actions</span>
-            <div class="tools-card__secondary-actions">
-            <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
-              <i class="fa-solid fa-rotate-left"></i>
-            </button>
-            <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
-              <i class="fa-solid fa-file-edit"></i>
-            </button>
-            <button id="wg-open-network-settings" class="small-button hidden" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
-              <i class="fa-solid fa-network-wired"></i>
-            </button>
-            <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка" data-i18n-title="wg.help.tooltip">
-              <i class="fa-solid fa-circle-question"></i>
-            </button>
-            </div>
-          </div>
-          <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
-        </article>
+      <div class="tools-nav">
+        <button
+          id="tools-back-btn"
+          type="button"
+          class="small-button hidden"
+          data-i18n-title="tools.nav.back"
+          data-i18n-aria="tools.nav.back"
+          title="Назад"
+          aria-label="Назад"
+        >
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h2 id="tools-view-title" class="tools-view-title" data-i18n="tools.launcher.title">
+          Инструменты
+        </h2>
+      </div>
 
-        <article class="tools-card">
-          <div class="tools-card__header">
-            <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
-          </div>
-          <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
-          <div class="hash-check-grid">
-            <div class="hash-row hash-row--top">
-              <div class="hash-actions-inline">
-                <button id="hash-pick-file" type="button" class="small-button">
-                  <i class="fa-regular fa-file"></i>
-                  <span data-i18n="hashCheck.pickFile">Выбрать файл</span>
-                </button>
-                <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">Файл не выбран</span>
-              </div>
-              <div class="hash-algorithm-wrap">
-                <label for="hash-algorithm" class="muted" data-i18n="hashCheck.algorithm">Алгоритм</label>
-                <select id="hash-algorithm" class="wg-input">
-                  <option value="MD5">MD5</option>
-                  <option value="SHA-1">SHA-1</option>
-                  <option value="SHA-256" selected>SHA-256</option>
-                  <option value="SHA-512">SHA-512</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="hash-row hash-row--bottom">
-              <div class="hash-expected-wrap">
-                <label for="hash-expected" class="muted" data-i18n="hashCheck.expected">Ожидаемый хеш</label>
-                <input
-                  id="hash-expected"
-                  type="text"
-                  class="wg-input"
-                  data-i18n-placeholder="hashCheck.expectedPlaceholder"
-                  placeholder="Вставьте хеш для сравнения (опционально)"
-                />
-              </div>
-              <button id="hash-run" type="button" class="large-button">
-                <i class="fa-solid fa-play"></i>
-                <span data-i18n="hashCheck.run">Проверить</span>
-              </button>
-            </div>
-          </div>
-
-          <div id="hash-result-panel" class="hash-result-panel is-idle">
-            <div class="hash-result-panel__top">
-              <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">Ожидание</span>
-              <button id="hash-copy-actual" type="button" class="small-button hash-copy-btn" disabled>
-                <i class="fa-regular fa-copy"></i>
-                <span data-i18n="hashCheck.copyActual">Копировать хеш</span>
-              </button>
-            </div>
-            <div class="hash-actual-box">
-              <span class="muted" data-i18n="hashCheck.actualLabel">Вычисленный хеш</span>
-              <code id="hash-actual-value">-</code>
-            </div>
-            <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">Результат появится после проверки.</div>
-          </div>
-        </article>
-
-        <article class="tools-card disabled">
-          <div class="tools-card__header">
-            <h2 data-i18n="quickActions.converter.title">Конвертер форматов</h2>
-            <span class="qa-soon-badge" data-i18n="quickActions.soon">Скоро</span>
-          </div>
-          <p class="tools-card__hint" data-i18n="quickActions.converter.subtitle">Преобразование аудио и видео после загрузки.</p>
-        </article>
-
-        <article id="tools-restart-card" class="tools-card">
-          <div class="tools-card__header">
-            <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
-          </div>
-          <p id="restart-shortcut-note" class="tools-card__hint" data-i18n="quickActions.power.hint">
-            Создаёт ярлыки питания на рабочем столе Windows.
+      <section id="tools-launcher" class="tools-launcher" aria-label="Tools Launcher">
+        <div class="tools-launcher-inner">
+          <p class="tools-launcher-subtitle" data-i18n="tools.launcher.subtitle">
+            Выберите инструмент для открытия
           </p>
-          <div class="power-actions-grid">
-            <section class="power-action-item power-action-item--restart">
-              <h3 class="power-action-item__title">
-                <i class="fa-solid fa-rotate-right"></i>
-                <span data-i18n="quickActions.restart.cardTitle">Перезагрузка</span>
-              </h3>
-              <p class="power-action-item__hint" data-i18n="quickActions.restart.cardHint">
-                Мгновенная перезагрузка системы.
-              </p>
-              <button id="create-restart-shortcut" type="button" class="large-button">
-                <i class="fa-solid fa-plug-circle-bolt"></i>
-                <span data-i18n="quickActions.restart.action">Создать ярлык перезагрузки</span>
-              </button>
-              <div
-                id="restart-shortcut-result"
-                class="quick-action-result power-action-item__result muted"
-              ></div>
-            </section>
-            <section class="power-action-item power-action-item--shutdown">
-              <h3 class="power-action-item__title">
-                <i class="fa-solid fa-power-off"></i>
-                <span data-i18n="quickActions.shutdown.cardTitle">Выключение</span>
-              </h3>
-              <p class="power-action-item__hint" data-i18n="quickActions.shutdown.cardHint">
-                Мгновенное выключение системы.
-              </p>
-              <button id="create-shutdown-shortcut" type="button" class="large-button">
-                <i class="fa-solid fa-power-off"></i>
-                <span data-i18n="quickActions.shutdown.action">Создать ярлык выключения</span>
-              </button>
-              <div
-                id="shutdown-shortcut-result"
-                class="quick-action-result power-action-item__result muted"
-              ></div>
-            </section>
-          </div>
-        </article>
-      </section>
-
-      <section id="tools-wg-advanced-panel" class="tools-wg-advanced-panel is-collapsed" aria-hidden="true">
-        <div class="tools-wg-advanced-grid">
-          <div class="wg-glass">
-            <div class="wg-header wg-header-advanced">
-              <h2 class="section-heading" data-i18n="tools.wg.advanced.title">WG Advanced</h2>
-              <div class="debug-toggle" id="debug-toggle">
-                <div class="toggle-track"></div>
-                <span class="toggle-label" data-i18n="wg.debug.label">Лог активности</span>
-              </div>
-            </div>
-            <div class="wg-section">
-              <h3 class="section-heading" data-i18n="wg.section.network">Сетевые параметры</h3>
-              <div class="wg-grid">
-                ${fieldsHtml}
-              </div>
-            </div>
-          </div>
-
-          <div class="wg-side-panel">
-            <div class="info-card">
-              <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">Информация</span></h3>
-              <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
-            </div>
-            <div class="info-card wg-meta-card">
-              <div class="meta-row wg-meta-tips">
-                <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
-                <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
-                • Проверьте настройки брандмауэра<br>
-                • Убедитесь, что удаленный хост доступен</p>
-                <div class="wg-tips-controls">
-                  <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
-                    <i class="fa-solid fa-chevron-left"></i>
-                  </button>
-                  <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
-                    <i class="fa-solid fa-pause"></i>
-                  </button>
-                  <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
-                    <i class="fa-solid fa-chevron-right"></i>
-                  </button>
-                  <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
-                </div>
-              </div>
-            </div>
-            <div class="wg-section">
-              <details class="wg-log-block">
-                <summary>
-                  <i class="fa-solid fa-terminal"></i>
-                  <span data-i18n="wg.log.title">Лог активности</span>
-                </summary>
-                <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="wg.log.actions.aria">
-                  <button id="wg-log-copy" type="button" class="log-action-btn"
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена" data-i18n-title="wg.log.copy.title">
-                    <i class="fa-solid fa-copy"></i>
-                  </button>
-                  <button id="wg-log-export" type="button" class="log-action-btn"
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="wg.log.export.title">
-                    <i class="fa-solid fa-download"></i>
-                  </button>
-                  <button id="wg-log-clear" type="button" class="log-action-btn"
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                  <button id="wg-log-filter-errors" type="button" class="log-action-btn"
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Показывать только ошибки">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                  </button>
-                  <button id="wg-log-autoscroll" type="button" class="log-action-btn is-active"
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Автопрокрутка включена">
-                    <i class="fa-solid fa-arrow-down-wide-short"></i>
-                  </button>
-                </div>
-                <pre id="wg-log" class="wg-status console"></pre>
-              </details>
-            </div>
+          <div class="tools-launcher-grid">
+            <button id="tools-open-wg" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-satellite-dish"></i>
+              <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
+            </button>
+            <button id="tools-open-hash" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-fingerprint"></i>
+              <span data-i18n="tools.launcher.open.hash">Hash Check</span>
+            </button>
+            <button id="tools-open-power" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-power-off"></i>
+              <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
+            </button>
           </div>
         </div>
+      </section>
+
+      <section id="tools-views" class="tools-views">
+        <section class="tools-view hidden" data-tool-view="wg" aria-label="WG Tool View">
+          <article class="tools-card tools-card-wg-quick">
+            <div class="tools-card__header">
+              <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
+              <button
+                id="tools-wg-advanced-toggle"
+                type="button"
+                class="small-button"
+                aria-controls="tools-wg-advanced-panel"
+                aria-expanded="false"
+                data-i18n="tools.wg.advanced.toggle.open"
+              >
+                Advanced
+              </button>
+            </div>
+            <p class="tools-card__hint" data-i18n="tools.wg.quick.hint">Quick recovery actions for WireGuard.</p>
+            <div class="tools-card__meta">
+              <div>
+                <span data-i18n="wg.lastSend.title">Последняя отправка</span>
+                <strong id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</strong>
+              </div>
+              <div>
+                <span data-i18n="wg.status.title">Статус</span>
+                <strong id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</strong>
+              </div>
+            </div>
+            <div class="tools-card__actions buttons">
+              <button id="wg-send" class="large-button">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span data-i18n="wg.action.send">Отправить</span>
+              </button>
+            </div>
+            <div class="tools-card__secondary">
+              <span class="tools-card__secondary-label" data-i18n="wg.actions.more">More actions</span>
+              <div class="tools-card__secondary-actions">
+              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
+                <i class="fa-solid fa-file-edit"></i>
+              </button>
+              <button id="wg-open-network-settings" class="small-button hidden" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
+                <i class="fa-solid fa-network-wired"></i>
+              </button>
+              <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка" data-i18n-title="wg.help.tooltip">
+                <i class="fa-solid fa-circle-question"></i>
+              </button>
+              </div>
+            </div>
+            <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
+          </article>
+
+          <section id="tools-wg-advanced-panel" class="tools-wg-advanced-panel is-collapsed" aria-hidden="true">
+            <div class="tools-wg-advanced-grid">
+              <div class="wg-glass">
+                <div class="wg-header wg-header-advanced">
+                  <h2 class="section-heading" data-i18n="tools.wg.advanced.title">WG Advanced</h2>
+                  <div class="debug-toggle" id="debug-toggle">
+                    <div class="toggle-track"></div>
+                    <span class="toggle-label" data-i18n="wg.debug.label">Лог активности</span>
+                  </div>
+                </div>
+                <div class="wg-section">
+                  <h3 class="section-heading" data-i18n="wg.section.network">Сетевые параметры</h3>
+                  <div class="wg-grid">
+                    ${fieldsHtml}
+                  </div>
+                </div>
+              </div>
+
+              <div class="wg-side-panel">
+                <div class="info-card">
+                  <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">Информация</span></h3>
+                  <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
+                </div>
+                <div class="info-card wg-meta-card">
+                  <div class="meta-row wg-meta-tips">
+                    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
+                    <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
+                    • Проверьте настройки брандмауэра<br>
+                    • Убедитесь, что удаленный хост доступен</p>
+                    <div class="wg-tips-controls">
+                      <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
+                        <i class="fa-solid fa-chevron-left"></i>
+                      </button>
+                      <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
+                        <i class="fa-solid fa-pause"></i>
+                      </button>
+                      <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
+                        <i class="fa-solid fa-chevron-right"></i>
+                      </button>
+                      <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="wg-section">
+                  <details class="wg-log-block">
+                    <summary>
+                      <i class="fa-solid fa-terminal"></i>
+                      <span data-i18n="wg.log.title">Лог активности</span>
+                    </summary>
+                    <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="wg.log.actions.aria">
+                      <button id="wg-log-copy" type="button" class="log-action-btn"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена" data-i18n-title="wg.log.copy.title">
+                        <i class="fa-solid fa-copy"></i>
+                      </button>
+                      <button id="wg-log-export" type="button" class="log-action-btn"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="wg.log.export.title">
+                        <i class="fa-solid fa-download"></i>
+                      </button>
+                      <button id="wg-log-clear" type="button" class="log-action-btn"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                      <button id="wg-log-filter-errors" type="button" class="log-action-btn"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Показывать только ошибки">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                      </button>
+                      <button id="wg-log-autoscroll" type="button" class="log-action-btn is-active"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Автопрокрутка включена">
+                        <i class="fa-solid fa-arrow-down-wide-short"></i>
+                      </button>
+                    </div>
+                    <pre id="wg-log" class="wg-status console"></pre>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="tools-view hidden" data-tool-view="hash" aria-label="Hash Tool View">
+          <article class="tools-card">
+            <div class="tools-card__header">
+              <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
+            </div>
+            <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
+            <div class="hash-check-grid">
+              <div class="hash-row hash-row--top">
+                <div class="hash-actions-inline">
+                  <button id="hash-pick-file" type="button" class="small-button">
+                    <i class="fa-regular fa-file"></i>
+                    <span data-i18n="hashCheck.pickFile">Выбрать файл</span>
+                  </button>
+                  <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">Файл не выбран</span>
+                </div>
+                <div class="hash-algorithm-wrap">
+                  <label for="hash-algorithm" class="muted" data-i18n="hashCheck.algorithm">Алгоритм</label>
+                  <select id="hash-algorithm" class="wg-input">
+                    <option value="MD5">MD5</option>
+                    <option value="SHA-1">SHA-1</option>
+                    <option value="SHA-256" selected>SHA-256</option>
+                    <option value="SHA-512">SHA-512</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="hash-row hash-row--bottom">
+                <div class="hash-expected-wrap">
+                  <label for="hash-expected" class="muted" data-i18n="hashCheck.expected">Ожидаемый хеш</label>
+                  <input
+                    id="hash-expected"
+                    type="text"
+                    class="wg-input"
+                    data-i18n-placeholder="hashCheck.expectedPlaceholder"
+                    placeholder="Вставьте хеш для сравнения (опционально)"
+                  />
+                </div>
+                <button id="hash-run" type="button" class="large-button">
+                  <i class="fa-solid fa-play"></i>
+                  <span data-i18n="hashCheck.run">Проверить</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="hash-result-panel" class="hash-result-panel is-idle">
+              <div class="hash-result-panel__top">
+                <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">Ожидание</span>
+                <button id="hash-copy-actual" type="button" class="small-button hash-copy-btn" disabled>
+                  <i class="fa-regular fa-copy"></i>
+                  <span data-i18n="hashCheck.copyActual">Копировать хеш</span>
+                </button>
+              </div>
+              <div class="hash-actual-box">
+                <span class="muted" data-i18n="hashCheck.actualLabel">Вычисленный хеш</span>
+                <code id="hash-actual-value">-</code>
+              </div>
+              <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">Результат появится после проверки.</div>
+            </div>
+          </article>
+        </section>
+
+        <section class="tools-view hidden" data-tool-view="power" aria-label="Power Tool View">
+          <article id="tools-restart-card" class="tools-card">
+            <div class="tools-card__header">
+              <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+            </div>
+            <p id="restart-shortcut-note" class="tools-card__hint" data-i18n="quickActions.power.hint">
+              Создаёт ярлыки питания на рабочем столе Windows.
+            </p>
+            <div class="power-actions-grid">
+              <section class="power-action-item power-action-item--restart">
+                <h3 class="power-action-item__title">
+                  <i class="fa-solid fa-rotate-right"></i>
+                  <span data-i18n="quickActions.restart.cardTitle">Перезагрузка</span>
+                </h3>
+                <p class="power-action-item__hint" data-i18n="quickActions.restart.cardHint">
+                  Мгновенная перезагрузка системы.
+                </p>
+                <button id="create-restart-shortcut" type="button" class="large-button">
+                  <i class="fa-solid fa-plug-circle-bolt"></i>
+                  <span data-i18n="quickActions.restart.action">Создать ярлык перезагрузки</span>
+                </button>
+                <div
+                  id="restart-shortcut-result"
+                  class="quick-action-result power-action-item__result muted"
+                ></div>
+              </section>
+              <section class="power-action-item power-action-item--shutdown">
+                <h3 class="power-action-item__title">
+                  <i class="fa-solid fa-power-off"></i>
+                  <span data-i18n="quickActions.shutdown.cardTitle">Выключение</span>
+                </h3>
+                <p class="power-action-item__hint" data-i18n="quickActions.shutdown.cardHint">
+                  Мгновенное выключение системы.
+                </p>
+                <button id="create-shutdown-shortcut" type="button" class="large-button">
+                  <i class="fa-solid fa-power-off"></i>
+                  <span data-i18n="quickActions.shutdown.action">Создать ярлык выключения</span>
+                </button>
+                <div
+                  id="shutdown-shortcut-result"
+                  class="quick-action-result power-action-item__result muted"
+                ></div>
+              </section>
+            </div>
+          </article>
+        </section>
       </section>
     </div>
   `;
 
   container.appendChild(view);
   applyI18n(view);
+
+  const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
+    if (toolView === "power") return !!info?.isWindows;
+    return toolView === "launcher" || toolView === "wg" || toolView === "hash";
+  };
+
+  const readLastToolView = () => {
+    try {
+      const value = window.localStorage.getItem(LAST_TOOL_KEY);
+      return value || "launcher";
+    } catch {
+      return "launcher";
+    }
+  };
+
+  const resolveInitialToolView = () => {
+    const remembered = readLastToolView();
+    return isToolAvailable(remembered) ? remembered : "launcher";
+  };
+
+  const setToolView = (nextView, { persist = true, focusLauncher = false } = {}) => {
+    const launcher = getEl("tools-launcher", view);
+    const backBtn = getEl("tools-back-btn", view);
+    const title = getEl("tools-view-title", view);
+    const requested = String(nextView || "launcher");
+    const targetView = isToolAvailable(requested) ? requested : "launcher";
+    currentToolView = targetView;
+
+    const showLauncher = targetView === "launcher";
+    launcher?.classList.toggle("hidden", !showLauncher);
+
+    view.querySelectorAll(".tools-view[data-tool-view]").forEach((section) => {
+      const sectionView = section.getAttribute("data-tool-view");
+      const active = sectionView === targetView;
+      section.classList.toggle("hidden", !active);
+      section.classList.toggle("is-active", active);
+    });
+
+    backBtn?.classList.toggle("hidden", showLauncher);
+
+    const titleKey = showLauncher
+      ? "tools.launcher.title"
+      : targetView === "wg"
+        ? "tools.nav.current.wg"
+        : targetView === "hash"
+          ? "tools.nav.current.hash"
+          : "tools.nav.current.power";
+    if (title) title.textContent = t(titleKey);
+
+    if (persist && targetView !== "launcher") {
+      try {
+        window.localStorage.setItem(LAST_TOOL_KEY, targetView);
+      } catch {}
+    }
+
+    if (showLauncher && focusLauncher) {
+      const firstLauncherBtn = getEl("tools-open-wg", view);
+      firstLauncherBtn?.focus();
+    }
+  };
 
   // =============================================
   // ИНИЦИАЛИЗАЦИЯ ПОЛЕЙ И КОНФИГУРАЦИИ
@@ -794,7 +894,9 @@ export default function renderWireGuard() {
         });
       }, 100);
 
-      getEl(fields[0].id, view)?.focus();
+      if (currentToolView === "wg") {
+        getEl(fields[0].id, view)?.focus();
+      }
 
       // Загрузка состояния отладки
       const debugToggle = getEl("debug-toggle", view);
@@ -939,8 +1041,25 @@ export default function renderWireGuard() {
   // =============================================
 
   const setupEventHandlers = () => {
+    const openWgBtn = getEl("tools-open-wg", view);
+    const openHashBtn = getEl("tools-open-hash", view);
+    const openPowerBtn = getEl("tools-open-power", view);
+    const backBtn = getEl("tools-back-btn", view);
+
+    openWgBtn?.addEventListener("click", () => setToolView("wg"));
+    openHashBtn?.addEventListener("click", () => setToolView("hash"));
+    openPowerBtn?.addEventListener("click", () => setToolView("power"));
+    backBtn?.addEventListener("click", () =>
+      setToolView("launcher", { persist: false, focusLauncher: true }),
+    );
+
     // Отправка по Enter и Ctrl/Cmd+Enter
     view.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && currentToolView !== "launcher") {
+        e.preventDefault();
+        setToolView("launcher", { persist: false, focusLauncher: true });
+        return;
+      }
       if (e.key !== "Enter") return;
       const target = e.target;
       if (!(target instanceof Element)) return;
@@ -1129,6 +1248,7 @@ export default function renderWireGuard() {
     });
     onWindowEvent("i18n:changed", () => {
       setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
+      setToolView(currentToolView, { persist: false });
     });
 
     const hashPickFileBtn = getEl("hash-pick-file", view);
@@ -1398,31 +1518,28 @@ export default function renderWireGuard() {
       );
     });
 
-    window.electron
-      ?.getPlatformInfo?.()
-      .then((platform) => {
-        isWindowsPlatform = !!platform?.isWindows;
-        if (isWindowsPlatform) {
-          restartCard?.classList.remove("hidden");
-          createRestartShortcutBtn?.removeAttribute("disabled");
-          createRestartShortcutBtn?.classList.remove("is-disabled");
-          createShutdownShortcutBtn?.removeAttribute("disabled");
-          createShutdownShortcutBtn?.classList.remove("is-disabled");
-          restartShortcutNote.textContent = t(
-            "quickActions.power.windowsReady",
-          );
-        } else {
-          restartCard?.classList.add("hidden");
-          createRestartShortcutBtn?.setAttribute("disabled", "disabled");
-          createRestartShortcutBtn?.classList.add("is-disabled");
-          createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
-          createShutdownShortcutBtn?.classList.add("is-disabled");
-          restartShortcutNote.textContent = t(
-            "quickActions.power.windowsOnly",
-          );
-        }
-      })
-      .catch(() => {});
+    isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
+    if (isWindowsPlatform) {
+      restartCard?.classList.remove("hidden");
+      createRestartShortcutBtn?.removeAttribute("disabled");
+      createRestartShortcutBtn?.classList.remove("is-disabled");
+      createShutdownShortcutBtn?.removeAttribute("disabled");
+      createShutdownShortcutBtn?.classList.remove("is-disabled");
+      restartShortcutNote.textContent = t(
+        "quickActions.power.windowsReady",
+      );
+      openPowerBtn?.classList.remove("hidden");
+    } else {
+      restartCard?.classList.add("hidden");
+      createRestartShortcutBtn?.setAttribute("disabled", "disabled");
+      createRestartShortcutBtn?.classList.add("is-disabled");
+      createShutdownShortcutBtn?.setAttribute("disabled", "disabled");
+      createShutdownShortcutBtn?.classList.add("is-disabled");
+      restartShortcutNote.textContent = t(
+        "quickActions.power.windowsOnly",
+      );
+      openPowerBtn?.classList.add("hidden");
+    }
   };
 
   const handleSend = () => {
@@ -1608,6 +1725,14 @@ export default function renderWireGuard() {
         pre.textContent = t("wg.log.placeholder");
       }
 
+      toolsPlatformInfo =
+        (await window.electron.getPlatformInfo?.().catch(() => null)) || {
+          isWindows: false,
+          platform: "",
+        };
+      isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
+      setToolView(resolveInitialToolView(), { persist: false });
+
       await loadConfiguration();
       loadLog();
       loadLastSendTime();
@@ -1741,13 +1866,10 @@ export default function renderWireGuard() {
       });
 
       const initNetworkSettingsButton = async () => {
-      const platformInfo = await window.electron
-        .getPlatformInfo?.()
-        .catch(() => null);
-      const platform = platformInfo?.platform || "";
-      const btn = view.querySelector("#wg-open-network-settings");
-      if (!btn) return;
-      const supportedPlatform = platform === "darwin" || platform === "win32";
+        const platform = toolsPlatformInfo?.platform || "";
+        const btn = view.querySelector("#wg-open-network-settings");
+        if (!btn) return;
+        const supportedPlatform = platform === "darwin" || platform === "win32";
 
         // Меняем тултип в зависимости от платформы
         if (platform === "darwin") {

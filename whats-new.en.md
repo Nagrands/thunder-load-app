@@ -18,6 +18,13 @@
 - **Improved hash verification flow**: controls are now locked while hash calculation is running to prevent accidental duplicate runs.
 - **Refined network settings button behavior**: the button now appears only on platforms where opening system network settings is supported.
 - **Improved action hierarchy in WG Quick**: the primary “Send” action is now separated from secondary actions under a dedicated “More actions” block.
+- **Refreshed the Tools tab in a flatter, more minimal style**: cards and buttons now look cleaner with less visual noise and more consistent spacing.
+- **Removed the “Format Converter (Soon)” placeholder card**: the dashboard now focuses on currently available tools only.
+- **Improved Tools block composition**: WG Quick is now visually prioritized as the main workflow, while secondary actions are grouped more compactly.
+- **Simplified the hash-check presentation**: result states and busy feedback are now easier to read with cleaner visual emphasis.
+- **Redesigned Tools tab navigation**: it now opens with a centered launcher screen that shows large buttons for available tools.
+- **Added dedicated tool-view mode with a Back button**: use the top-left arrow to return to the launcher at any time.
+- **Added last-tool restore behavior**: reopening the Tools tab now returns you to the last tool you used when it is available on your platform.
 
 - **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
 - **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.
