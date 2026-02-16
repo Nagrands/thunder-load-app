@@ -22,6 +22,7 @@ import { initInterfaceHandlers } from "../interfaceHandlers.js";
 import { initSettingsModal } from "../settingsModal.js";
 import { initUpdateHandler } from "../updateHandler.js";
 import { initTopBarThemeToggle } from "../topBarThemeToggle.js";
+import { initTopBarResponsive } from "../topBarResponsive.js";
 import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
@@ -85,6 +86,7 @@ export async function startRenderer() {
     initInterfaceHandlers();
     initSettingsModal();
     initTopBarThemeToggle();
+    initTopBarResponsive();
     initFirstRunModal();
 
     registerWgControls();

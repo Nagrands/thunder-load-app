@@ -22,6 +22,7 @@ export const DEFAULT_CONFIG = {
     theme: "system",
     fontSize: "16",
     lowEffects: false,
+    showNetworkStatus: false,
   },
   shortcuts: {
     disableGlobalShortcuts: false,

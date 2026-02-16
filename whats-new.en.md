@@ -1,5 +1,18 @@
 <!-- version: 1.3.6 -->
 
+### Interface
+
+- **Completely redesigned the top app menu**: the bar now adapts much better to both large and small screens.
+- **Added a “More” menu for narrow screens**: secondary actions now move into an overflow dropdown so the top bar stays clean.
+- **Improved readability on wide monitors**: quick actions now show text labels next to icons.
+- **Fixed content overlap under the top bar**: the main view spacing now follows the real top bar height.
+- **Improved the “More” menu**: the dropdown now shows only hidden actions, and on small screens it stays properly constrained in width and height.
+- **Made the right side of the top bar more compact**: quick actions now use icon-only buttons without text labels.
+- **Fixed the “Reload” button style**: it now visually matches the other top-bar action buttons.
+- **Improved top bar tab buttons**: tabs now use a cleaner segmented style with balanced spacing and a calmer active state.
+- **Improved top-bar quick actions**: action buttons now share a consistent glass style, calmer hover/active states, and clearer keyboard focus.
+- **Added a top-bar “Network status” visibility setting**: you can now enable or disable the indicator in Appearance settings (disabled by default).
+
 ### Downloader tab
 
 - **Updated the progress indicator in the URL field**: it is now shown as a cleaner thin line at the bottom of the input.

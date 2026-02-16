@@ -5,6 +5,26 @@ import { t } from "./i18n.js";
 
 const STATUS_ONLINE = "online";
 const STATUS_OFFLINE = "offline";
+const NETWORK_STATUS_VISIBILITY_KEY = "topbarNetworkStatusVisible";
+
+function isNetworkStatusVisible() {
+  try {
+    const raw = localStorage.getItem(NETWORK_STATUS_VISIBILITY_KEY);
+    if (raw === null) return false;
+    return JSON.parse(raw) === true;
+  } catch {
+    return false;
+  }
+}
+
+function applyNetworkStatusVisibility(forceVisible) {
+  const statusEl = document.getElementById("network-status");
+  if (!statusEl) return;
+  const visible =
+    typeof forceVisible === "boolean" ? forceVisible : isNetworkStatusVisible();
+  statusEl.hidden = !visible;
+  statusEl.setAttribute("aria-hidden", visible ? "false" : "true");
+}
 
 function updateNetworkIndicator(forceStatus) {
   const statusEl = document.getElementById("network-status");
@@ -42,6 +62,8 @@ function checkInternetConnection() {
  * Инициализация слушателей на изменение состояния сети
  */
 function initNetworkListeners() {
+  applyNetworkStatusVisibility();
+
   window.addEventListener("online", () => {
     showToast("Интернет-соединение восстановлено.", "success");
     updateNetworkIndicator(STATUS_ONLINE);
@@ -58,6 +80,9 @@ function initNetworkListeners() {
   // Проверка состояния сети при загрузке страницы
   checkInternetConnection();
   updateNetworkIndicator();
+  window.addEventListener("topbar:network-visibility", (event) => {
+    applyNetworkStatusVisibility(event?.detail?.visible);
+  });
 
   window.addEventListener("i18n:changed", () => updateNetworkIndicator());
 }

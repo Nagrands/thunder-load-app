@@ -54,6 +54,31 @@ const moduleBadgeMap = {
   backup: { tab: "backup-settings", badgeId: "tab-badge-backup" },
   randomizer: { tab: "randomizer-settings", badgeId: "tab-badge-randomizer" },
 };
+const NETWORK_STATUS_VISIBILITY_KEY = "topbarNetworkStatusVisible";
+
+function readNetworkStatusVisible() {
+  try {
+    const raw = localStorage.getItem(NETWORK_STATUS_VISIBILITY_KEY);
+    if (raw === null) return false;
+    return JSON.parse(raw) === true;
+  } catch {
+    return false;
+  }
+}
+
+function applyTopBarNetworkStatusVisibility(visible) {
+  const shouldShow = !!visible;
+  const statusEl = document.getElementById("network-status");
+  if (statusEl) {
+    statusEl.hidden = !shouldShow;
+    statusEl.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+  }
+  window.dispatchEvent(
+    new CustomEvent("topbar:network-visibility", {
+      detail: { visible: shouldShow },
+    }),
+  );
+}
 
 function updateModuleBadge(moduleKey, disabled) {
   const map = moduleBadgeMap[moduleKey];
@@ -306,6 +331,39 @@ async function initSettings() {
       setLowEffects(enabled);
     });
   }
+
+  // Top bar network status visibility toggle
+  (function initNetworkStatusVisibilityToggle() {
+    const checkbox = document.getElementById("settings-show-network-status");
+    if (!checkbox) return;
+    const syncFromStore = () => {
+      checkbox.checked = readNetworkStatusVisible();
+    };
+    syncFromStore();
+    applyTopBarNetworkStatusVisibility(checkbox.checked);
+    checkbox.addEventListener("change", () => {
+      const visible = checkbox.checked;
+      try {
+        localStorage.setItem(
+          NETWORK_STATUS_VISIBILITY_KEY,
+          JSON.stringify(visible),
+        );
+      } catch {}
+      applyTopBarNetworkStatusVisibility(visible);
+      window.electron
+        ?.invoke?.(
+          "toast",
+          visible
+            ? t("settings.appearance.networkStatus.enabled")
+            : t("settings.appearance.networkStatus.disabled"),
+          "success",
+        )
+        .catch(() => {});
+    });
+    window.electron?.on?.("open-settings", () => {
+      syncFromStore();
+    });
+  })();
 
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
@@ -1355,6 +1413,7 @@ async function collectCurrentConfig() {
       return true;
     }
   })();
+  const showNetworkStatus = readNetworkStatusVisible();
   const firstRunCompleted = (() => {
     try {
       return localStorage.getItem("firstRunCompleted") === "1";
@@ -1422,6 +1481,7 @@ async function collectCurrentConfig() {
       theme,
       fontSize,
       lowEffects: getLowEffects(),
+      showNetworkStatus,
     },
     shortcuts: {
       disableGlobalShortcuts,
@@ -1471,6 +1531,14 @@ async function applyConfig(config, options = {}) {
       localStorage.setItem("downloaderToolsStatusHidden", "1");
     }
   } catch {}
+
+  try {
+    localStorage.setItem(
+      NETWORK_STATUS_VISIBILITY_KEY,
+      JSON.stringify(!!cfg.appearance.showNetworkStatus),
+    );
+  } catch {}
+  applyTopBarNetworkStatusVisibility(!!cfg.appearance.showNetworkStatus);
 
   const writeJson = (key, value) => {
     try {

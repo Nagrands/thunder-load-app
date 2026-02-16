@@ -8,6 +8,15 @@ export const translations = {
     "topbar.settings": "Настройки",
     "topbar.github": "Открыть репозиторий на GitHub",
     "topbar.theme": "Сменить тему",
+    "topbar.more": "Ещё",
+    "topbar.quickActions": "Быстрые действия",
+    "topbar.overflow.aria": "Переполненное меню действий",
+    "topbar.action.history": "История",
+    "topbar.action.shortcuts": "Клавиши",
+    "topbar.action.settings": "Настройки",
+    "topbar.action.theme": "Тема",
+    "topbar.action.github": "GitHub",
+    "topbar.action.reload": "Обновить",
     "topbar.network.online": "Сеть: онлайн",
     "topbar.network.offline": "Сеть: офлайн",
     "topbar.network.aria": "Состояние сети",
@@ -491,6 +500,14 @@ export const translations = {
       "Отключает анимации и эффекты размытия",
     "settings.appearance.lowEffects":
       "Режим <strong>экономии эффектов</strong>",
+    "settings.appearance.networkStatus":
+      "Показывать состояние сети в верхнем меню",
+    "settings.appearance.networkStatus.hint":
+      "Показывать индикатор состояния сети в верхнем меню",
+    "settings.appearance.networkStatus.enabled":
+      "Индикатор состояния сети включен",
+    "settings.appearance.networkStatus.disabled":
+      "Индикатор состояния сети отключен",
     "settings.other.title": "Другие настройки",
     "settings.other.hint":
       "Дополнительные параметры для детальной настройки поведения приложения.",
@@ -1282,6 +1299,15 @@ export const translations = {
     "topbar.settings": "Settings",
     "topbar.github": "Open GitHub repository",
     "topbar.theme": "Switch theme",
+    "topbar.more": "More",
+    "topbar.quickActions": "Quick actions",
+    "topbar.overflow.aria": "Overflow actions menu",
+    "topbar.action.history": "History",
+    "topbar.action.shortcuts": "Shortcuts",
+    "topbar.action.settings": "Settings",
+    "topbar.action.theme": "Theme",
+    "topbar.action.github": "GitHub",
+    "topbar.action.reload": "Reload",
     "topbar.network.online": "Network: online",
     "topbar.network.offline": "Network: offline",
     "topbar.network.aria": "Network status",
@@ -1746,6 +1772,14 @@ export const translations = {
     "settings.appearance.lowEffects.hint":
       "Disables animations and blur effects",
     "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
+    "settings.appearance.networkStatus":
+      "Show network status in the top bar",
+    "settings.appearance.networkStatus.hint":
+      "Show network status indicator in the top bar",
+    "settings.appearance.networkStatus.enabled":
+      "Network status indicator enabled",
+    "settings.appearance.networkStatus.disabled":
+      "Network status indicator disabled",
     "settings.other.title": "Other settings",
     "settings.other.hint":
       "Additional parameters for fine‑tuning app behavior.",
