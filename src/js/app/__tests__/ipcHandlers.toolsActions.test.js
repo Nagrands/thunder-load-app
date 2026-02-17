@@ -293,4 +293,26 @@ describe("ipcHandlers tools quick actions", () => {
       );
     });
   });
+
+  test("uefi shortcut uses firmware reboot command with fallback", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    shell.writeShortcutLink.mockReturnValue(true);
+
+    initHandlers();
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
+
+    expect(shell.writeShortcutLink).toHaveBeenCalledWith(
+      expect.any(String),
+      "create",
+      expect.objectContaining({
+        target: "C:\\Windows\\System32\\cmd.exe",
+        args: '/c "shutdown /r /fw /f /t 0 || shutdown /r /o /f /t 0"',
+      }),
+    );
+  });
 });

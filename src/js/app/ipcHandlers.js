@@ -590,9 +590,9 @@ function setupIpcHandlers(dependencies) {
     try {
       return createWindowsDesktopShortcut({
         fileName: "Restart to UEFI.lnk",
-        target: "C:\\Windows\\System32\\shutdown.exe",
-        args: "/r /fw /t 0",
-        description: "Restart to UEFI firmware settings",
+        target: "C:\\Windows\\System32\\cmd.exe",
+        args: '/c "shutdown /r /fw /f /t 0 || shutdown /r /o /f /t 0"',
+        description: "Restart to UEFI firmware settings (fallback to advanced startup)",
         iconPath: "C:\\Windows\\System32\\imageres.dll",
         iconIndex: 106,
       });
