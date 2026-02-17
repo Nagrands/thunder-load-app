@@ -9,6 +9,60 @@
   display: none;
   opacity: 0;
   transition: opacity 250ms ease;
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+      340px 340px at 50% 88%,
+      rgba(255, 255, 255, 0.08),
+      transparent 64%
+    );
+    opacity: 0.16;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  &::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(
+        120% 90% at 18% 18%,
+        rgba(110, 180, 255, 0.2),
+        transparent 55%
+      ),
+      radial-gradient(
+        110% 80% at 80% 12%,
+        rgba(140, 240, 255, 0.16),
+        transparent 58%
+      ),
+      radial-gradient(
+        120% 100% at 72% 82%,
+        rgba(255, 170, 120, 0.12),
+        transparent 60%
+      ),
+      repeating-linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.045) 0,
+        rgba(255, 255, 255, 0.045) 1px,
+        transparent 1px,
+        transparent 22px
+      ),
+      linear-gradient(
+        185deg,
+        rgba(6, 8, 18, 0.92) 0%,
+        rgba(8, 10, 20, 0.9) 40%,
+        rgba(10, 12, 22, 0.94) 100%
+      );
+    opacity: 0.58;
+    z-index: -2;
+    pointer-events: none;
+  }
 
   &.tab-show {
     display: flex;
@@ -24,6 +78,16 @@
 
   &.tab-hide {
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-view::after {
+    background: linear-gradient(
+      180deg,
+      rgba(6, 8, 16, 0.94) 0%,
+      rgba(10, 14, 24, 0.94) 100%
+    ) !important;
   }
 }
 

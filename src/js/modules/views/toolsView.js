@@ -27,13 +27,6 @@ export default function renderToolsView() {
 
   const T0 = performance.now();
 
-  // Ensure WG background is preloaded to prevent layout jump on first render
-  if (!document.querySelector(".wg-bg-preload")) {
-    const bgPreload = document.createElement("div");
-    bgPreload.className = "wg-bg-preload";
-    document.body.appendChild(bgPreload);
-  }
-
   const getEl = (id, root = document) => root.querySelector(`#${id}`);
   const isValidIp = (ip) => {
     return /^((25[0-5]|2[0-4]\d|1?\d{1,2})(\.|$)){4}$/.test(ip.trim());

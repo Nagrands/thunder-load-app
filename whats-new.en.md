@@ -13,6 +13,7 @@
 - **Improved top-bar quick actions**: action buttons now share a consistent glass style, calmer hover/active states, and clearer keyboard focus.
 - **Added a top-bar “Network status” visibility setting**: you can now enable or disable the indicator in Appearance settings (disabled by default).
 - **Improved tray and Dock menus on macOS**: actions are clearer, and unavailable items are now correctly disabled so only actionable options are shown.
+- **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
 
 ### Downloader tab
 
@@ -76,6 +77,7 @@
 - **Improved Esc handling on macOS in the Tools tab**: returning to the launcher now works more reliably.
 - **Added a separate setting to remember the last tool in the Tools tab**: by default, the tab now opens on the launcher screen.
 - **Refined descriptions in Tools tab settings**: labels and hints are now clearer and better explain what each option does.
+- **Aligned the Tools tab background with the rest of the app**: it now matches the visual style used by other tabs.
 - **Refreshed the Windows Shortcuts block in Tools**: both actions are now grouped into one compact section with cleaner structure and a flatter visual style.
 - **Simplified non-Windows messaging**: macOS and other unsupported platforms now show one clear banner instead of repeated warnings.
 - **Fixed Windows shortcut icons**: restart and shutdown shortcuts are now created with a valid icon instead of a missing/blank one.
