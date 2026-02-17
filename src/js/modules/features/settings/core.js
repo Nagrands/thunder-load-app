@@ -55,6 +55,7 @@ const moduleBadgeMap = {
   randomizer: { tab: "randomizer-settings", badgeId: "tab-badge-randomizer" },
 };
 const NETWORK_STATUS_VISIBILITY_KEY = "topbarNetworkStatusVisible";
+const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 
 function readNetworkStatusVisible() {
   try {
@@ -722,8 +723,8 @@ async function initSettings() {
       }
     };
 
-    function toggleAutoSendDisabled(disabled) {
-      // Ищем контрол «Авто‑отправка при запуске» (внутри WG‑секции настроек)
+    function toggleWgSettingsDisabled(disabled) {
+      // Ищем контролы WG-секции, которые должны отключаться вместе с вкладкой
       const modal =
         document.getElementById("settings-modal") ||
         document.querySelector("#settings");
@@ -731,18 +732,20 @@ async function initSettings() {
       const autosend = root.querySelector(
         '#wg-autosend, #wg-autosend-toggle, [name="wg-autosend"], [data-setting="wg-autosend"]',
       );
-      if (!autosend) return;
-      autosend.disabled = !!disabled;
-      const label =
-        autosend.closest("label, .form-check, .settings-row") ||
-        autosend.parentElement;
-      if (label) label.classList.toggle("is-disabled", !!disabled);
-      // Подсказка через Bootstrap tooltip, если инициализатор активен
-      if (label && label.hasAttribute("data-bs-toggle")) {
-        try {
-          window.bootstrap?.Tooltip?.getOrCreateInstance(label);
-        } catch {}
-      }
+      const rememberLastTool = root.querySelector("#wg-remember-last-tool");
+      [autosend, rememberLastTool].forEach((control) => {
+        if (!control) return;
+        control.disabled = !!disabled;
+        const label =
+          control.closest("label, .form-check, .settings-row") ||
+          control.parentElement;
+        if (label) label.classList.toggle("is-disabled", !!disabled);
+        if (label && label.hasAttribute("data-bs-toggle")) {
+          try {
+            window.bootstrap?.Tooltip?.getOrCreateInstance(label);
+          } catch {}
+        }
+      });
     }
 
     function findWgSectionContainer(modal) {
@@ -819,8 +822,8 @@ async function initSettings() {
       window.dispatchEvent(
         new CustomEvent("wg:toggleDisabled", { detail: { disabled: val } }),
       );
-      // Блокируем/разблокируем автосенд
-      toggleAutoSendDisabled(val);
+      // Блокируем/разблокируем связанные настройки WG
+      toggleWgSettingsDisabled(val);
       // тост
       window.electron?.invoke?.(
         "toast",
@@ -853,10 +856,10 @@ async function initSettings() {
       window.electron?.on?.("open-settings", () => {
         const val = read();
         staticToggle.checked = val;
-        toggleAutoSendDisabled(val);
+        toggleWgSettingsDisabled(val);
         updateModuleBadge("wg", val);
       });
-      toggleAutoSendDisabled(read());
+      toggleWgSettingsDisabled(read());
       return;
     }
 
@@ -868,11 +871,11 @@ async function initSettings() {
       existing.addEventListener("change", () => write(existing.checked), {
         once: true,
       });
-      toggleAutoSendDisabled(read());
+      toggleWgSettingsDisabled(read());
       window.electron?.on?.("open-settings", () => {
         const val = read();
         existing.checked = val;
-        toggleAutoSendDisabled(val);
+        toggleWgSettingsDisabled(val);
       });
       return;
     }
@@ -957,16 +960,46 @@ async function initSettings() {
     window.electron?.on?.("open-settings", () => {
       const val = read();
       input.checked = val;
-      toggleAutoSendDisabled(val);
+      toggleWgSettingsDisabled(val);
       updateModuleBadge("wg", val);
     });
 
-    // Применим блокировку автосенд на старте
+    // Применим блокировку зависимых настроек WG на старте
     const initVal = read();
-    toggleAutoSendDisabled(initVal);
+    toggleWgSettingsDisabled(initVal);
     updateModuleBadge("wg", initVal);
   })();
   // === /WG Unlock: отключение вкладки ===
+
+  // === WG Unlock: запоминать последний инструмент ===
+  (function initRememberLastToolToggle() {
+    const input = document.getElementById("wg-remember-last-tool");
+    if (!input) return;
+    const read = () => {
+      try {
+        const raw = localStorage.getItem(WG_REMEMBER_LAST_TOOL_KEY);
+        if (raw === null) return false;
+        return JSON.parse(raw) === true;
+      } catch {
+        return false;
+      }
+    };
+    const write = (enabled) => {
+      try {
+        localStorage.setItem(
+          WG_REMEMBER_LAST_TOOL_KEY,
+          JSON.stringify(!!enabled),
+        );
+      } catch {}
+    };
+    const syncFromStore = () => {
+      input.checked = read();
+    };
+    syncFromStore();
+    input.addEventListener("change", () => write(input.checked));
+    window.electron?.on?.("open-settings", syncFromStore);
+  })();
+  // === /WG Unlock: запоминать последний инструмент ===
 
   // === Backup: отключение вкладки (settings toggle) ===
   (function initBackupDisableToggle() {
@@ -1499,6 +1532,7 @@ async function collectCurrentConfig() {
       autoShutdownEnabled,
       autoShutdownSeconds,
       autosend: wgAutosend,
+      rememberLastTool: readJsonFlag(WG_REMEMBER_LAST_TOOL_KEY, false),
     },
     tools: {
       resetLocation: false,
@@ -1560,6 +1594,7 @@ async function applyConfig(config, options = {}) {
     cfg.backup.viewMode === "compact" ? "compact" : "full",
   );
   writeJson("bk_log_visible", !!cfg.backup.logVisible);
+  writeJson(WG_REMEMBER_LAST_TOOL_KEY, !!cfg.wg.rememberLastTool);
 
   try {
     window.electron?.ipcRenderer?.send?.("wg-set-config", {

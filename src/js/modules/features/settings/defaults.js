@@ -40,6 +40,7 @@ export const DEFAULT_CONFIG = {
     autoShutdownEnabled: false,
     autoShutdownSeconds: 30,
     autosend: false,
+    rememberLastTool: false,
   },
   tools: {
     resetLocation: false,

@@ -110,6 +110,7 @@ export default function renderToolsView() {
   let isWindowsPlatform = false;
   const WG_ADVANCED_STATE_KEY = "toolsWgAdvancedOpen";
   const LAST_TOOL_KEY = "toolsLastView";
+  const REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
   let currentToolView = "launcher";
   let toolsPlatformInfo = { isWindows: false, platform: "" };
   const cleanupFns = [];
@@ -1002,7 +1003,18 @@ export default function renderToolsView() {
     }
   };
 
+  const shouldRememberLastToolView = () => {
+    try {
+      const raw = window.localStorage.getItem(REMEMBER_LAST_TOOL_KEY);
+      if (raw === null) return false;
+      return JSON.parse(raw) === true;
+    } catch {
+      return false;
+    }
+  };
+
   const resolveInitialToolView = () => {
+    if (!shouldRememberLastToolView()) return "launcher";
     const remembered = readLastToolView();
     return isToolAvailable(remembered) ? remembered : "launcher";
   };
@@ -1038,7 +1050,11 @@ export default function renderToolsView() {
           : "tools.nav.current.power";
     if (title) title.textContent = t(titleKey);
 
-    if (persist && targetView !== "launcher") {
+    if (
+      persist &&
+      targetView !== "launcher" &&
+      shouldRememberLastToolView()
+    ) {
       try {
         window.localStorage.setItem(LAST_TOOL_KEY, targetView);
       } catch {}

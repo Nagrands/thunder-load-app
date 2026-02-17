@@ -74,6 +74,8 @@
 - **Added arrow-key navigation in the Tools tab**: on the launcher screen, you can move between tools with ←/→/↑/↓, and the selected card is now clearly highlighted.
 - **Restored Esc navigation in the Tools tab**: Esc now returns from a tool back to the launcher.
 - **Improved Esc handling on macOS in the Tools tab**: returning to the launcher now works more reliably.
+- **Added a separate setting to remember the last tool in the Tools tab**: by default, the tab now opens on the launcher screen.
+- **Refined descriptions in Tools tab settings**: labels and hints are now clearer and better explain what each option does.
 - **Refreshed the Windows Shortcuts block in Tools**: both actions are now grouped into one compact section with cleaner structure and a flatter visual style.
 - **Simplified non-Windows messaging**: macOS and other unsupported platforms now show one clear banner instead of repeated warnings.
 - **Fixed Windows shortcut icons**: restart and shutdown shortcuts are now created with a valid icon instead of a missing/blank one.

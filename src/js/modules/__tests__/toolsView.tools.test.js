@@ -153,7 +153,19 @@ describe("toolsView quick actions", () => {
     expect(el.querySelectorAll(".tools-launcher-button").length).toBe(3);
   });
 
-  test("restores last hash view from localStorage", async () => {
+  test("opens launcher by default even if last tool is stored", async () => {
+    localStorage.setItem("toolsLastView", "hash");
+    const el = await renderView();
+    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
+      false,
+    );
+    expect(
+      el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
+    ).toBe(true);
+  });
+
+  test("restores last hash view when remember setting is enabled", async () => {
+    localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "hash");
     const el = await renderView();
     expect(el.querySelector('#tools-launcher')?.classList.contains("hidden")).toBe(
@@ -168,6 +180,7 @@ describe("toolsView quick actions", () => {
   });
 
   test("falls back to launcher when last view power is unavailable", async () => {
+    localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "power");
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: false,

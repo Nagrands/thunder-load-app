@@ -127,6 +127,39 @@ describe("wg disable toggle initializes badge state", () => {
   });
 });
 
+describe("tools remember last tool setting", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue(false),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("is disabled by default and persists checkbox changes", async () => {
+    document.body.innerHTML = `
+      <div id="settings-modal">
+        <div id="wgunlock-settings">
+          <input id="wg-disable-toggle" type="checkbox" />
+          <input id="wg-remember-last-tool" type="checkbox" />
+        </div>
+      </div>`;
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const rememberInput = document.getElementById("wg-remember-last-tool");
+    expect(rememberInput?.checked).toBe(false);
+    expect(localStorage.getItem("toolsRememberLastView")).toBeNull();
+
+    rememberInput.checked = true;
+    rememberInput.dispatchEvent(new Event("change"));
+    expect(localStorage.getItem("toolsRememberLastView")).toBe("true");
+  });
+});
+
 describe("language dropdown initializes and updates language", () => {
   beforeEach(() => {
     jest.resetModules();

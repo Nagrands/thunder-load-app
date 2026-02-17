@@ -160,9 +160,14 @@ export const translations = {
     "settings.disableTab": "Отключить вкладку",
     "settings.wg.title": "Вкладка «Tools»",
     "settings.wg.disable.hint":
-      "Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’.",
-    "settings.wg.autosend": "Авто‑отправка при запуске",
-    "settings.wg.autoclose.hint": "Включить/выключить авто‑закрытие приложения",
+      "Скрывает вкладку Tools и отключает её запуск. При отключении связанные параметры становятся недоступны.",
+    "settings.wg.autosend": "Авто‑отправка при запуске приложения",
+    "settings.wg.rememberLastTool":
+      "Запоминать последний открытый инструмент",
+    "settings.wg.rememberLastTool.hint":
+      "При следующем открытии вкладки Tools сразу показывает инструмент, который был открыт последним.",
+    "settings.wg.autoclose.hint":
+      "Автоматически закрывает приложение через выбранное время.",
     "settings.wg.autoclose": "Авто‑закрытие приложения",
     "settings.wg.autoclose.after": "Закрытие приложения через:",
     "settings.wg.autoclose.seconds": "сек.",
@@ -1448,9 +1453,13 @@ export const translations = {
     "settings.disableTab": "Disable tab",
     "settings.wg.title": "Tab “Tools”",
     "settings.wg.disable.hint":
-      "Hides the tab and disables its initialization. Auto‑send on startup is blocked when disabled.",
-    "settings.wg.autosend": "Auto‑send on startup",
-    "settings.wg.autoclose.hint": "Enable/disable auto‑closing the app",
+      "Hides the Tools tab and disables its startup flow. Related options become unavailable while it is disabled.",
+    "settings.wg.autosend": "Auto-send on app startup",
+    "settings.wg.rememberLastTool": "Remember last opened tool",
+    "settings.wg.rememberLastTool.hint":
+      "When enabled, the Tools tab reopens with the tool you used last time.",
+    "settings.wg.autoclose.hint":
+      "Automatically closes the app after the selected delay.",
     "settings.wg.autoclose": "Auto‑close the app",
     "settings.wg.autoclose.after": "Close the app after:",
     "settings.wg.autoclose.seconds": "sec.",
