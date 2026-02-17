@@ -547,18 +547,12 @@ export default function renderToolsView() {
           <p class="tools-launcher-subtitle" data-i18n="tools.launcher.subtitle">
             Выберите инструмент для открытия
           </p>
-          <p id="tools-launcher-hotkeys" class="tools-launcher-hotkeys" data-i18n="tools.launcher.hotkeysHint">
-            Горячие клавиши: Alt+1, Alt+2, Alt+3, Esc
-          </p>
           <div class="tools-launcher-grid">
             <button id="tools-open-wg" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-satellite-dish"></i>
               <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">
                 Быстрое восстановление WireGuard.
-              </small>
-              <small id="tools-launcher-shortcut-wg" class="tools-launcher-button__keys" data-i18n="tools.launcher.shortcut.wg">
-                Alt+1
               </small>
             </button>
             <button id="tools-open-hash" type="button" class="tools-launcher-button">
@@ -567,18 +561,12 @@ export default function renderToolsView() {
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">
                 Сравнение контрольных сумм файлов.
               </small>
-              <small id="tools-launcher-shortcut-hash" class="tools-launcher-button__keys" data-i18n="tools.launcher.shortcut.hash">
-                Alt+2
-              </small>
             </button>
             <button id="tools-open-power" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-power-off"></i>
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
                 Создание ярлыков в Windows.
-              </small>
-              <small id="tools-launcher-shortcut-power" class="tools-launcher-button__keys" data-i18n="tools.launcher.shortcut.power">
-                Alt+3
               </small>
             </button>
           </div>
@@ -1019,24 +1007,6 @@ export default function renderToolsView() {
     return isToolAvailable(remembered) ? remembered : "launcher";
   };
 
-  const setLauncherHotkeyLabels = () => {
-    const platform = String(toolsPlatformInfo?.platform || "");
-    const isMacPlatform = platform === "darwin";
-    const suffix = isMacPlatform ? ".mac" : "";
-    const hintEl = getEl("tools-launcher-hotkeys", view);
-    const wgShortcutEl = getEl("tools-launcher-shortcut-wg", view);
-    const hashShortcutEl = getEl("tools-launcher-shortcut-hash", view);
-    const powerShortcutEl = getEl("tools-launcher-shortcut-power", view);
-
-    if (hintEl) hintEl.textContent = t(`tools.launcher.hotkeysHint${suffix}`);
-    if (wgShortcutEl)
-      wgShortcutEl.textContent = t(`tools.launcher.shortcut.wg${suffix}`);
-    if (hashShortcutEl)
-      hashShortcutEl.textContent = t(`tools.launcher.shortcut.hash${suffix}`);
-    if (powerShortcutEl)
-      powerShortcutEl.textContent = t(`tools.launcher.shortcut.power${suffix}`);
-  };
-
   const setToolView = (nextView, { persist = true, focusLauncher = false } = {}) => {
     const launcher = getEl("tools-launcher", view);
     const toolsNav = getEl("tools-nav", view);
@@ -1281,27 +1251,55 @@ export default function renderToolsView() {
       const isEditableTarget = !!targetEl?.closest(
         "input, textarea, select, [contenteditable=''], [contenteditable='true']",
       );
-      const key = String(e.key || "").toLowerCase();
+      const key = String(e.key || "");
+      const code = String(e.code || "");
+      const isEscapePressed = key === "Escape" || key === "Esc" || code === "Escape";
 
-      if (e.key === "Escape" && currentToolView !== "launcher") {
+      if (isEscapePressed && currentToolView !== "launcher") {
         e.preventDefault();
         setToolView("launcher", { persist: false, focusLauncher: true });
         return;
       }
 
-      if (
-        e.altKey &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.shiftKey &&
-        !isEditableTarget &&
-        (key === "1" || key === "2" || key === "3")
-      ) {
-        e.preventDefault();
-        if (key === "1") setToolView("wg");
-        if (key === "2") setToolView("hash");
-        if (key === "3" && isToolAvailable("power")) setToolView("power");
-        return;
+      if (!isEditableTarget && currentToolView === "launcher") {
+        const isArrowKey =
+          e.key === "ArrowLeft" ||
+          e.key === "ArrowRight" ||
+          e.key === "ArrowUp" ||
+          e.key === "ArrowDown";
+        if (isArrowKey) {
+          const launcherButtons = [
+            openWgBtn,
+            openHashBtn,
+            openPowerBtn,
+          ].filter(
+            (btn) =>
+              btn &&
+              !btn.disabled &&
+              !btn.classList.contains("hidden") &&
+              btn.closest(".tools-launcher"),
+          );
+
+          if (launcherButtons.length) {
+            const focusedLauncherBtn = targetEl?.closest(".tools-launcher-button");
+            const activeButton =
+              launcherButtons.find((btn) => btn === document.activeElement) ||
+              focusedLauncherBtn;
+            const currentIndex = launcherButtons.findIndex(
+              (btn) => btn === activeButton,
+            );
+            const fallbackIndex = 0;
+            const safeIndex = currentIndex >= 0 ? currentIndex : fallbackIndex;
+            const moveBackward = e.key === "ArrowLeft" || e.key === "ArrowUp";
+            const step = moveBackward ? -1 : 1;
+            const nextIndex =
+              (safeIndex + step + launcherButtons.length) %
+              launcherButtons.length;
+            launcherButtons[nextIndex]?.focus();
+            e.preventDefault();
+            return;
+          }
+        }
       }
 
       if (e.key !== "Enter") return;
@@ -1492,7 +1490,6 @@ export default function renderToolsView() {
     onWindowEvent("i18n:changed", () => {
       setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
       setToolView(currentToolView, { persist: false });
-      setLauncherHotkeyLabels();
       setPowerAvailabilityUi({
         isWindows: isWindowsPlatform,
         showTool: isPowerToolVisible(toolsPlatformInfo),
@@ -2364,7 +2361,6 @@ export default function renderToolsView() {
           platform: "",
         };
       isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
-      setLauncherHotkeyLabels();
       setToolView(resolveInitialToolView(), { persist: false });
 
       await loadConfiguration();

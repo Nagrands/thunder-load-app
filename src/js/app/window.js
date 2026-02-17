@@ -30,6 +30,185 @@ function loadNativeImageFrom(paths) {
   return null;
 }
 
+function trimMenuText(text, maxLength = 44) {
+  const value = String(text || "").trim();
+  if (!value) return "";
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, Math.max(1, maxLength - 1)).trimEnd()}…`;
+}
+
+function buildLastVideoState(store) {
+  const lastPath = String(store?.get?.("lastDownloadedFile") || "").trim();
+  if (!lastPath || !fs.existsSync(lastPath)) {
+    return {
+      exists: false,
+      path: "",
+      fileName: "",
+      label: "Последнее видео",
+    };
+  }
+  const fileName = path.basename(lastPath);
+  return {
+    exists: true,
+    path: lastPath,
+    fileName,
+    label: `Последнее видео: ${trimMenuText(fileName)}`,
+  };
+}
+
+function buildDownloadFolderState(store, fallbackDownloadPath) {
+  const resolvedPath = String(
+    store?.get?.("downloadPath", fallbackDownloadPath) || "",
+  ).trim();
+  return {
+    exists: !!resolvedPath && fs.existsSync(resolvedPath),
+    path: resolvedPath,
+    label: "Папка загрузок",
+  };
+}
+
+function createMenuHandlers({ app, mainWindow, notifications = {} }) {
+  const notify = notifications.showTrayNotification || (() => {});
+
+  const showMainWindow = () => {
+    try {
+      if (mainWindow?.isMinimized?.()) {
+        mainWindow.restore?.();
+      }
+      mainWindow?.show?.();
+      mainWindow?.focus?.();
+    } catch {}
+  };
+
+  return {
+    open: () => {
+      showMainWindow();
+    },
+    openSettings: () => {
+      showMainWindow();
+      mainWindow?.webContents?.send?.("open-settings");
+    },
+    openLastVideo: async (lastPath) => {
+      if (!lastPath || !fs.existsSync(lastPath)) return;
+      const result = await shell.openPath(lastPath);
+      if (result) {
+        notify("Не удалось открыть последнее видео.");
+      }
+    },
+    openDownloadsFolder: async (downloadsPath) => {
+      if (!downloadsPath || !fs.existsSync(downloadsPath)) return;
+      const result = await shell.openPath(downloadsPath);
+      if (result) {
+        notify("Не удалось открыть папку загрузок.");
+      }
+    },
+    quit: () => {
+      app.isQuitting = true;
+      app.quit();
+    },
+  };
+}
+
+function buildDockMenuTemplate({
+  app,
+  store,
+  downloadPath,
+  mainWindow,
+  handlers,
+}) {
+  const menuHandlers =
+    handlers || createMenuHandlers({ app, mainWindow, notifications: {} });
+  const lastVideo = buildLastVideoState(store);
+  const downloads = buildDownloadFolderState(store, downloadPath);
+
+  return [
+    {
+      label: "Открыть",
+      click: () => menuHandlers.open(),
+    },
+    {
+      label: lastVideo.label,
+      enabled: lastVideo.exists,
+      click: () => menuHandlers.openLastVideo(lastVideo.path),
+    },
+    {
+      label: downloads.label,
+      enabled: downloads.exists,
+      click: () => menuHandlers.openDownloadsFolder(downloads.path),
+    },
+    {
+      label: "Настройки",
+      click: () => menuHandlers.openSettings(),
+    },
+    { type: "separator" },
+    {
+      label: "Выйти",
+      click: () => menuHandlers.quit(),
+    },
+  ];
+}
+
+function buildTrayMenuTemplate({
+  app,
+  store,
+  downloadPath,
+  mainWindow,
+  handlers,
+  paths = {},
+}) {
+  const menuHandlers =
+    handlers ||
+    createMenuHandlers({
+      app,
+      mainWindow,
+      notifications: { showTrayNotification },
+    });
+  const isMacPlatform = process.platform === "darwin";
+  const lastVideo = buildLastVideoState(store);
+  const downloads = buildDownloadFolderState(store, downloadPath);
+
+  const maybeIcon = (iconPath) =>
+    !isMacPlatform && iconPath ? { icon: iconPath } : {};
+
+  return [
+    {
+      label: `${app.getName()} ${app.getVersion()}`,
+      enabled: false,
+      ...(paths.trayIconPath ? { icon: paths.trayIconPath } : {}),
+    },
+    { type: "separator" },
+    {
+      label: "Открыть",
+      click: () => menuHandlers.open(),
+    },
+    { type: "separator" },
+    {
+      label: lastVideo.label,
+      enabled: lastVideo.exists,
+      ...maybeIcon(paths.videoIconPath),
+      click: () => menuHandlers.openLastVideo(lastVideo.path),
+    },
+    {
+      label: downloads.label,
+      enabled: downloads.exists,
+      ...maybeIcon(paths.folderIconPath),
+      click: () => menuHandlers.openDownloadsFolder(downloads.path),
+    },
+    { type: "separator" },
+    {
+      label: "Настройки",
+      ...maybeIcon(paths.settingsIconPath),
+      click: () => menuHandlers.openSettings(),
+    },
+    { type: "separator" },
+    {
+      label: "Выйти",
+      ...maybeIcon(paths.logoutIconPath),
+      click: () => menuHandlers.quit(),
+    },
+  ];
+}
+
 function createWindow(
   isDev,
   app,
@@ -183,48 +362,26 @@ function createWindow(
       app.dock.setIcon(dockImg);
     }
 
-    const dockMenu = Menu.buildFromTemplate([
-      {
-        label: "Открыть",
-        click: () => mainWindow.show(),
-      },
-      {
-        label: "Последнее видео",
-        click: async () => {
-          const lastPath = store.get("lastDownloadedFile");
-          if (lastPath) {
-            try {
-              await fs.promises.access(lastPath, fs.constants.F_OK);
-              await shell.openPath(lastPath);
-            } catch {
-              showTrayNotification("Видео не найдено или было удалено.");
-            }
-          } else {
-            showTrayNotification("Нет информации о последнем видео.");
-          }
-        },
-      },
-      {
-        label: "Папка загрузок",
-        click: async () => {
-          const pathToOpen = store.get("downloadPath", downloadPath);
-          if (pathToOpen) {
-            await shell.openPath(pathToOpen);
-          } else {
-            showTrayNotification("Папка загрузок не найдена.");
-          }
-        },
-      },
-      {
-        label: "Настройки",
-        click: () => {
-          mainWindow.show();
-          mainWindow.webContents.send("open-settings");
-        },
-      },
-    ]);
+    const menuHandlers = createMenuHandlers({
+      app,
+      mainWindow,
+      notifications: { showTrayNotification },
+    });
+    const refreshDockMenu = () => {
+      const dockMenu = Menu.buildFromTemplate(
+        buildDockMenuTemplate({
+          app,
+          store,
+          downloadPath,
+          mainWindow,
+          handlers: menuHandlers,
+        }),
+      );
+      app.dock.setMenu(dockMenu);
+    };
 
-    app.dock.setMenu(dockMenu);
+    refreshDockMenu();
+    ipcMain.on("download-finished", refreshDockMenu);
   }
   return mainWindow;
 }
@@ -243,6 +400,13 @@ function createTray(mainWindow, app, store, downloadPath) {
     __dirname,
     "../../../assets/icons/tray-loading.png",
   );
+  const trayMenuPaths = {
+    trayIconPath,
+    videoIconPath: path.join(__dirname, "../../../assets/icons/video.png"),
+    folderIconPath: path.join(__dirname, "../../../assets/icons/open-folder.png"),
+    settingsIconPath: path.join(__dirname, "../../../assets/icons/settings.png"),
+    logoutIconPath: path.join(__dirname, "../../../assets/icons/logout.png"),
+  };
 
   if (!fs.existsSync(trayIconPath)) {
     console.warn("Tray icon not found:", trayIconPath);
@@ -250,78 +414,34 @@ function createTray(mainWindow, app, store, downloadPath) {
   }
   windowTray = new Tray(trayIconPath);
 
-  const name = app.getName();
-  const appVer = app.getVersion();
-
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: `${name} ${appVer}`,
-      enabled: false,
-      icon: trayIconPath,
-    },
-    { type: "separator" },
-    {
-      label: "Открыть",
-      click: () => mainWindow.show(),
-    },
-    { type: "separator" },
-    {
-      label: "Последнее видео",
-      icon: path.join(__dirname, "../../../assets/icons/video.png"),
-      click: async () => {
-        const lastPath = store.get("lastDownloadedFile");
-        if (lastPath) {
-          try {
-            await fs.promises.access(lastPath, fs.constants.F_OK);
-            await shell.openPath(lastPath);
-          } catch {
-            showTrayNotification("Видео не найдено или было удалено.");
-          }
-        } else {
-          showTrayNotification("Нет информации о последнем видео.");
-        }
-      },
-    },
-    {
-      label: "Папка загрузок",
-      icon: path.join(__dirname, "../../../assets/icons/open-folder.png"),
-      click: async () => {
-        const pathToOpen = store.get("downloadPath", downloadPath);
-        if (pathToOpen) {
-          await shell.openPath(pathToOpen);
-        } else {
-          showTrayNotification("Папка загрузок не найдена.");
-        }
-      },
-    },
-    { type: "separator" },
-    {
-      label: "Настройки",
-      icon: path.join(__dirname, "../../../assets/icons/settings.png"),
-      click: () => {
-        mainWindow.show();
-        mainWindow.webContents.send("open-settings");
-      },
-    },
-    { type: "separator" },
-    {
-      label: "Выйти",
-      icon: path.join(__dirname, "../../../assets/icons/logout.png"),
-      click: () => {
-        app.isQuitting = true;
-        app.quit();
-      },
-    },
-  ]);
+  const menuHandlers = createMenuHandlers({
+    app,
+    mainWindow,
+    notifications: { showTrayNotification },
+  });
+  const refreshTrayMenu = () => {
+    const contextMenu = Menu.buildFromTemplate(
+      buildTrayMenuTemplate({
+        app,
+        store,
+        downloadPath,
+        mainWindow,
+        handlers: menuHandlers,
+        paths: trayMenuPaths,
+      }),
+    );
+    windowTray.setContextMenu(contextMenu);
+  };
 
   windowTray.setToolTip("Thunder Load");
-  windowTray.setContextMenu(contextMenu);
+  refreshTrayMenu();
 
   windowTray.on("click", () => {
     mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
   });
 
   windowTray.on("right-click", () => {
+    refreshTrayMenu();
     windowTray.popUpContextMenu();
   });
 
@@ -339,6 +459,7 @@ function createTray(mainWindow, app, store, downloadPath) {
     if (fs.existsSync(trayIconPath)) {
       windowTray.setImage(trayIconPath);
     }
+    refreshTrayMenu();
   });
 }
 
@@ -418,4 +539,8 @@ function createAppMenu(isDev, app) {
   Menu.setApplicationMenu(menu);
 }
 
-module.exports = { createWindow };
+module.exports = {
+  createWindow,
+  buildTrayMenuTemplate,
+  buildDockMenuTemplate,
+};

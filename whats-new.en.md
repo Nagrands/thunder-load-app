@@ -12,6 +12,7 @@
 - **Improved top bar tab buttons**: tabs now use a cleaner segmented style with balanced spacing and a calmer active state.
 - **Improved top-bar quick actions**: action buttons now share a consistent glass style, calmer hover/active states, and clearer keyboard focus.
 - **Added a top-bar “Network status” visibility setting**: you can now enable or disable the indicator in Appearance settings (disabled by default).
+- **Improved tray and Dock menus on macOS**: actions are clearer, and unavailable items are now correctly disabled so only actionable options are shown.
 
 ### Downloader tab
 
@@ -68,6 +69,11 @@
 - **Added hotkeys in the Tools tab**: Alt+1 opens WG Unlock, Alt+2 opens Hash Check, Alt+3 opens Power Shortcuts, and Esc returns to the launcher.
 - **Added shortcut labels in the Tools launcher**: tool cards now display visible key hints for faster navigation.
 - **Added macOS-specific hotkey labels**: on Mac, launcher hints now use Option key notation (⌥1/⌥2/⌥3).
+- **Fixed Tools hotkeys on macOS**: switching with ⌥1/⌥2/⌥3 now works correctly across different keyboard layouts.
+- **Temporarily removed numeric Tools tab hotkeys**: Alt/Option+number switching is now disabled.
+- **Added arrow-key navigation in the Tools tab**: on the launcher screen, you can move between tools with ←/→/↑/↓, and the selected card is now clearly highlighted.
+- **Restored Esc navigation in the Tools tab**: Esc now returns from a tool back to the launcher.
+- **Improved Esc handling on macOS in the Tools tab**: returning to the launcher now works more reliably.
 - **Refreshed the Windows Shortcuts block in Tools**: both actions are now grouped into one compact section with cleaner structure and a flatter visual style.
 - **Simplified non-Windows messaging**: macOS and other unsupported platforms now show one clear banner instead of repeated warnings.
 - **Fixed Windows shortcut icons**: restart and shutdown shortcuts are now created with a valid icon instead of a missing/blank one.

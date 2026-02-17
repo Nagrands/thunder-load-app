@@ -1267,6 +1267,14 @@ $wg-bg-img: "../../assets/img/bg-wgunlock.png";
     border-color: rgba(var(--color-accent-rgb), 0.38);
     background: rgba(var(--color-accent-rgb), 0.08);
   }
+
+  &:focus-visible {
+    border-color: rgba(var(--color-accent-rgb), 0.75);
+    background: rgba(var(--color-accent-rgb), 0.14);
+    box-shadow:
+      0 0 0 2px rgba(var(--color-accent-rgb), 0.45),
+      0 10px 26px rgba(var(--color-accent-rgb), 0.18);
+  }
 }
 
 .tools-views {

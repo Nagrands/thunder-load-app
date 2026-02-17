@@ -133,20 +133,12 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
   });
 
-  test("shows macOS-specific hotkey labels in launcher", async () => {
+  test("does not render launcher hotkey labels", async () => {
     const el = await renderView();
-    expect(el.querySelector("#tools-launcher-hotkeys")?.textContent).toBe(
-      "tools.launcher.hotkeysHint.mac",
-    );
-    expect(el.querySelector("#tools-launcher-shortcut-wg")?.textContent).toBe(
-      "tools.launcher.shortcut.wg.mac",
-    );
-    expect(el.querySelector("#tools-launcher-shortcut-hash")?.textContent).toBe(
-      "tools.launcher.shortcut.hash.mac",
-    );
-    expect(el.querySelector("#tools-launcher-shortcut-power")?.textContent).toBe(
-      "tools.launcher.shortcut.power.mac",
-    );
+    expect(el.querySelector("#tools-launcher-hotkeys")).toBeNull();
+    expect(el.querySelector("#tools-launcher-shortcut-wg")).toBeNull();
+    expect(el.querySelector("#tools-launcher-shortcut-hash")).toBeNull();
+    expect(el.querySelector("#tools-launcher-shortcut-power")).toBeNull();
   });
 
   test("renders three launcher buttons on windows", async () => {
@@ -158,12 +150,7 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#tools-open-power")?.classList.contains("hidden")).toBe(
       false,
     );
-    expect(el.querySelector("#tools-launcher-hotkeys")?.textContent).toBe(
-      "tools.launcher.hotkeysHint",
-    );
-    expect(el.querySelector("#tools-launcher-shortcut-wg")?.textContent).toBe(
-      "tools.launcher.shortcut.wg",
-    );
+    expect(el.querySelectorAll(".tools-launcher-button").length).toBe(3);
   });
 
   test("restores last hash view from localStorage", async () => {
@@ -236,12 +223,58 @@ describe("toolsView quick actions", () => {
     );
   });
 
-  test("opens hash tool with Alt+2 hotkey", async () => {
+  test("Esc key variant in tool view returns to launcher", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+    const root = el.querySelector("#wireguard-view");
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Esc", code: "Escape", bubbles: true }),
+    );
+    await nextTick();
+    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
+      false,
+    );
+  });
+
+  test("launcher arrow navigation moves focus to next tool", async () => {
+    const el = await renderView();
+    const root = el.querySelector("#wireguard-view");
+    const wgBtn = el.querySelector("#tools-open-wg");
+    const hashBtn = el.querySelector("#tools-open-hash");
+    wgBtn?.focus();
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowRight",
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+    expect(document.activeElement).toBe(hashBtn);
+  });
+
+  test("launcher arrow navigation supports reverse wrap", async () => {
+    const el = await renderView();
+    const root = el.querySelector("#wireguard-view");
+    const wgBtn = el.querySelector("#tools-open-wg");
+    const powerBtn = el.querySelector("#tools-open-power");
+    wgBtn?.focus();
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowLeft",
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+    expect(document.activeElement).toBe(powerBtn);
+  });
+
+  test("does not switch tools with Alt+2", async () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: "2",
+        code: "Digit2",
         altKey: true,
         bubbles: true,
       }),
@@ -249,7 +282,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
     expect(
       el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   test("does not switch tools with Alt+1 while typing in hash input", async () => {
@@ -257,9 +290,11 @@ describe("toolsView quick actions", () => {
     await openTool(el, "hash");
     const expectedInput = el.querySelector("#hash-expected");
     expectedInput?.focus();
-    expectedInput?.dispatchEvent(
+    const root = el.querySelector("#wireguard-view");
+    root?.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: "1",
+        code: "Digit1",
         altKey: true,
         bubbles: true,
       }),
