@@ -509,13 +509,44 @@ export default function renderToolsView() {
 
   view.innerHTML = `
     <div class="tools-shell">
-      <header class="tools-shell-header">
+      <header id="tools-launcher-header" class="tools-shell-header">
         <div class="title">
           <i class="fa-solid fa-screwdriver-wrench"></i>
           <div class="title-content">
             <h1 class="wg-text-gradient" data-i18n="wg.title">Tools</h1>
             <p class="subtitle" data-i18n="wg.subtitle">Quick actions for file and network tasks.</p>
           </div>
+        </div>
+        <div class="tools-breadcrumbs" aria-label="Навигация" data-i18n-aria="tools.launcher.breadcrumbs.aria">
+          <button
+            id="tools-breadcrumb-home"
+            type="button"
+            class="tools-breadcrumbs__item tools-breadcrumbs__link"
+            data-i18n-aria="tools.launcher.breadcrumbs.home"
+            aria-label="Tools"
+          >
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <span data-i18n="tools.launcher.breadcrumbs.home">Tools</span>
+          </button>
+          <i class="fa-solid fa-chevron-right tools-breadcrumbs__sep" aria-hidden="true"></i>
+          <button
+            id="tools-breadcrumb-tools"
+            type="button"
+            class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
+            data-i18n-aria="tools.launcher.breadcrumbs.tools"
+            aria-label="Tools"
+          >
+            <span data-i18n="tools.launcher.breadcrumbs.tools">Tools</span>
+          </button>
+          <i
+            id="tools-breadcrumb-current-sep"
+            class="fa-solid fa-chevron-right tools-breadcrumbs__sep hidden"
+            aria-hidden="true"
+          ></i>
+          <span
+            id="tools-breadcrumb-current"
+            class="tools-breadcrumbs__item tools-breadcrumbs__item--current hidden"
+          ></span>
         </div>
       </header>
 
@@ -536,11 +567,13 @@ export default function renderToolsView() {
         </h2>
       </div>
 
+      <div id="tools-launcher-section-header" class="tools-launcher-section-header">
+        <h2 class="tools-launcher-section-title" data-i18n="tools.launcher.availableTitle">Доступные инструменты</h2>
+        <span id="tools-launcher-tools-count" class="tools-launcher-tools-count" data-i18n="tools.launcher.totalLabel">Всего</span>
+      </div>
+
       <section id="tools-launcher" class="tools-launcher" aria-label="Tools Launcher">
         <div class="tools-launcher-inner">
-          <p class="tools-launcher-subtitle" data-i18n="tools.launcher.subtitle">
-            Выберите инструмент для открытия
-          </p>
           <div class="tools-launcher-grid">
             <button id="tools-open-wg" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-satellite-dish"></i>
@@ -569,7 +602,7 @@ export default function renderToolsView() {
 
       <section id="tools-views" class="tools-views">
         <section class="tools-view hidden" data-tool-view="wg" aria-label="WG Tool View">
-          <article class="tools-card tools-card-wg-quick">
+          <article class="tools-card tools-card-wg-quick tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
               <button
@@ -700,7 +733,7 @@ export default function renderToolsView() {
         </section>
 
         <section class="tools-view hidden" data-tool-view="hash" aria-label="Hash Tool View">
-          <article class="tools-card">
+          <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
             </div>
@@ -843,7 +876,7 @@ export default function renderToolsView() {
         </section>
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="Power Tool View">
-          <article id="tools-restart-card" class="tools-card">
+          <article id="tools-restart-card" class="tools-card tools-detail-card">
             <div class="tools-card__header power-shortcuts-header">
               <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
               <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
@@ -1012,8 +1045,22 @@ export default function renderToolsView() {
     return isToolAvailable(remembered) ? remembered : "launcher";
   };
 
+  const updateLauncherToolsCount = () => {
+    const countEl = getEl("tools-launcher-tools-count", view);
+    if (!countEl) return;
+    const availableCount = ["wg", "hash", "power"].filter((toolView) =>
+      isToolAvailable(toolView),
+    ).length;
+    const label = t("tools.launcher.totalLabel");
+    countEl.textContent = `${label}: ${availableCount}`;
+  };
+
   const setToolView = (nextView, { persist = true, focusLauncher = false } = {}) => {
+    const shell = view.querySelector(".tools-shell");
     const launcher = getEl("tools-launcher", view);
+    const launcherSectionHeader = getEl("tools-launcher-section-header", view);
+    const breadcrumbCurrentSep = getEl("tools-breadcrumb-current-sep", view);
+    const breadcrumbCurrent = getEl("tools-breadcrumb-current", view);
     const toolsNav = getEl("tools-nav", view);
     const backBtn = getEl("tools-back-btn", view);
     const title = getEl("tools-view-title", view);
@@ -1022,8 +1069,11 @@ export default function renderToolsView() {
     currentToolView = targetView;
 
     const showLauncher = targetView === "launcher";
+    shell?.classList.toggle("is-launcher", showLauncher);
     launcher?.classList.toggle("hidden", !showLauncher);
+    launcherSectionHeader?.classList.toggle("hidden", !showLauncher);
     toolsNav?.classList.toggle("hidden", showLauncher);
+    updateLauncherToolsCount();
 
     view.querySelectorAll(".tools-view[data-tool-view]").forEach((section) => {
       const sectionView = section.getAttribute("data-tool-view");
@@ -1042,6 +1092,9 @@ export default function renderToolsView() {
           ? "tools.nav.current.hash"
           : "tools.nav.current.power";
     if (title) title.textContent = t(titleKey);
+    if (breadcrumbCurrent) breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
+    breadcrumbCurrent?.classList.toggle("hidden", showLauncher);
+    breadcrumbCurrentSep?.classList.toggle("hidden", showLauncher);
 
     if (
       persist &&
@@ -1245,11 +1298,19 @@ export default function renderToolsView() {
     const openHashBtn = getEl("tools-open-hash", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const backBtn = getEl("tools-back-btn", view);
+    const breadcrumbHomeBtn = getEl("tools-breadcrumb-home", view);
+    const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
 
     openWgBtn?.addEventListener("click", () => setToolView("wg"));
     openHashBtn?.addEventListener("click", () => setToolView("hash"));
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
     backBtn?.addEventListener("click", () =>
+      setToolView("launcher", { persist: false, focusLauncher: true }),
+    );
+    breadcrumbHomeBtn?.addEventListener("click", () =>
+      setToolView("launcher", { persist: false, focusLauncher: true }),
+    );
+    breadcrumbToolsBtn?.addEventListener("click", () =>
       setToolView("launcher", { persist: false, focusLauncher: true }),
     );
 

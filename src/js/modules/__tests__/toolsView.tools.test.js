@@ -133,6 +133,28 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
   });
 
+  test("renders combined header with breadcrumbs and tools section header", async () => {
+    const el = await renderView();
+    expect(el.querySelector("#tools-launcher-header")).not.toBeNull();
+    expect(el.querySelector(".tools-breadcrumbs")).not.toBeNull();
+    expect(el.querySelector("#tools-launcher-header .title")).not.toBeNull();
+    expect(el.querySelector("#tools-launcher-section-header")).not.toBeNull();
+    expect(
+      el
+        .querySelector(".tools-launcher-section-title")
+        ?.getAttribute("data-i18n"),
+    ).toBe(
+      "tools.launcher.availableTitle",
+    );
+  });
+
+  test("shows total tools counter for macos", async () => {
+    const el = await renderView();
+    expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
+      "tools.launcher.totalLabel: 3",
+    );
+  });
+
   test("does not render launcher hotkey labels", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-hotkeys")).toBeNull();
@@ -193,6 +215,9 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector('[data-tool-view="power"]')?.classList.contains("hidden"),
     ).toBe(true);
+    expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
+      "tools.launcher.totalLabel: 2",
+    );
   });
 
   test("does not render converter placeholder card", async () => {
@@ -219,6 +244,22 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "hash");
     el.querySelector("#tools-back-btn")?.click();
+    await nextTick();
+    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
+      false,
+    );
+  });
+
+  test("breadcrumbs stay visible and return to launcher", async () => {
+    const el = await renderView();
+    await openTool(el, "wg");
+    expect(el.querySelector("#tools-launcher-header")?.classList.contains("hidden")).toBe(
+      false,
+    );
+    expect(el.querySelector("#tools-breadcrumb-current")?.classList.contains("hidden")).toBe(
+      false,
+    );
+    el.querySelector("#tools-breadcrumb-tools")?.click();
     await nextTick();
     expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
       false,

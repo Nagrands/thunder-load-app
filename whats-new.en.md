@@ -30,6 +30,12 @@
 
 ### Tools tab
 
+- **Updated the top Tools header layout**: the title/description and breadcrumb navigation are now combined into one block, with navigation placed right below the description.
+- **Made Tools breadcrumb naming clearer**: the first breadcrumb item is now labeled “Tools” and uses the tools icon.
+- **Fully redesigned the Tools tab look and feel**: the launcher now includes a dedicated intro block, breadcrumb navigation, and stronger visual tool cards in a unified style.
+- **Added a dedicated “Available tools” section with a counter**: you can now instantly see how many tools are available on your current platform.
+- **Refreshed WG Unlock, Hash Check, and Power Shortcuts detail screens**: cards, spacing, and visual emphasis are now cleaner and easier to read on both desktop and mobile layouts.
+
 - **Redesigned the quality picker in the Downloader tab**: added per-tab format counters, a current-selection panel, and quick best-option selection for the active tab.
 - **Simplified the quality picker in Downloader**: removed the separate “Best quality” button to avoid duplicating quick selection in the active tab.
 - **Improved quality-selection controls**: added keyboard navigation with ↑/↓ and Enter to start download faster without using the mouse.
