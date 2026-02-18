@@ -104,15 +104,16 @@ export default function renderBackup() {
   container.className = "backup-center";
 
   const html = `
-      <div class="wg-header">
+      <header class="backup-shell-header">
         <div class="title">
           <i class="fa-solid fa-database"></i>
-          <div class="text">
-            <h2 data-i18n="backup.title">Backup Manager</h2>
+          <div class="title-content">
+            <h1 class="wg-text-gradient" data-i18n="backup.title">Backup Manager</h1>
             <p class="subtitle" data-i18n="backup.subtitle">Резервное копирование файлов и папок</p>
           </div>
         </div>
-      </div>
+      </header>
+      <div class="backup-header-extra" id="backup-header-extra"></div>
       <div class="wg-glass">
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями" data-i18n-aria="backup.toolbar.aria">
@@ -710,7 +711,7 @@ export default function renderBackup() {
   }
 
   // Backup Hints Block
-  const subtitle = container.querySelector(".wg-header");
+  const subtitle = container.querySelector("#backup-header-extra");
   const hintsBlock = document.createElement("div");
   hintsBlock.className = "info-card bk-hints";
   hintsBlock.innerHTML = `

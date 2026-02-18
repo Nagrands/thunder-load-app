@@ -61,6 +61,16 @@ const getStoredPresets = () =>
   JSON.parse(localStorage.getItem("randomizerPresets") || "[]");
 
 describe("Randomizer view", () => {
+  test("renders downloader-like hero shell and preserves action controls", () => {
+    const { view } = setup();
+    expect(view.querySelector(".randomizer-shell-header")).toBeTruthy();
+    expect(view.querySelector(".randomizer-shell-header .title-content")).toBeTruthy();
+    expect(view.querySelector("#randomizer-auto-toggle-hero")).toBeTruthy();
+    expect(view.querySelector("#randomizer-roll-hero")).toBeTruthy();
+    expect(view.querySelector("#randomizer-reset-pool")).toBeTruthy();
+    expect(view.querySelector("#randomizer-toggle-list")).toBeTruthy();
+  });
+
   test("renders default items as chips", () => {
     const { view } = setup();
     const chips = getChips(view);

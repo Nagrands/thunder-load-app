@@ -21,16 +21,11 @@
     margin-bottom: 16px;
 
     i {
-      font-size: 1.4rem;
-      width: 72px;
-      height: 60px;
+      font-size: 2.3rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--border-radius);
-      color: rgba(var(--color-accent-rgb), 1);
-      background: var(--color-hover);
-      border: 1px solid var(--color-hover);
+      color: var(--color-accent);
       transition: all 0.25s ease;
     }
 
@@ -41,8 +36,8 @@
 
   .title-content h1 {
     margin: 0 0 8px;
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 600;
   }
 
   .title-content .subtitle {

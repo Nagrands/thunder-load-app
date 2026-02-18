@@ -1082,32 +1082,33 @@ $wg-max-width: 1200px;
 }
 
 .tools-shell-header {
-  padding: 0px;
+  position: relative;
 
   .title {
     @include header-style;
     gap: 20px;
     align-items: center;
     justify-content: flex-start;
+    margin-bottom: 0;
   }
 
   .title i {
-    font-size: 1.4rem;
-    width: 72px;
-    height: 60px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--border-radius);
-    color: rgba(var(--color-accent-rgb), 1);
-    background: var(--color-hover);
-    border: 1px solid var(--color-hover);
+    font-size: 2.3rem;
+    color: var(--color-accent);
+    transition: all 0.25s ease;
+  }
+
+  .title:hover i {
+    transform: scale(1.03);
   }
 
   .title-content h1 {
     margin: 0 0 8px;
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 600;
   }
 
   .title-content .subtitle {
@@ -1125,9 +1126,7 @@ $wg-max-width: 1200px;
   gap: 15px;
   font-size: 0.85rem;
   font-weight: 600;
-  margin-top: 25px;
-  border-bottom: 1px solid var(--color-hover);
-  padding-bottom: 20px;
+  margin-top: 16px;
 }
 
 .tools-breadcrumbs__item {
@@ -1187,6 +1186,8 @@ $wg-max-width: 1200px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  border-top: 1px solid var(--color-hover);
+  padding-top: 20px;
 }
 
 .tools-launcher-section-title {
@@ -1889,13 +1890,24 @@ $wg-max-width: 1200px;
 }
 
 @media (max-width: 768px) {
-  .tools-shell-header {
-    padding: 20px;
+  .tools-shell-header .title {
+    gap: 12px;
+
+    i {
+      width: 52px;
+      height: 46px;
+      font-size: 1.15rem;
+    }
   }
 
-  .tools-shell-header .title {
-    flex-direction: column;
-    align-items: flex-start;
+  .tools-shell-header .title-content h1 {
+    font-size: 1.55rem;
+    margin-bottom: 4px;
+  }
+
+  .tools-breadcrumbs {
+    margin-top: 12px;
+    flex-wrap: wrap;
   }
 
   .tools-launcher-section-title {

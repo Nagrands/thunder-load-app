@@ -87,16 +87,18 @@ export function createRandomizerView() {
 
   const { element: wrapper } = createRandomizerShell();
   wrapper.innerHTML = `
-      <div class="randomizer-hero">
+      <header class="randomizer-shell-header">
         <div class="randomizer-heading">
           <div class="icon">
             <i class="fa-solid fa-shuffle"></i>
           </div>
-          <div class="text">
-            <h2>Randomizer</h2>
-            <p>Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.</p>
+          <div class="title-content">
+            <h1 class="wg-text-gradient">Randomizer</h1>
+            <p class="subtitle">Перемешайте идеи, ссылки и задачи — приложение выберет случайный вариант.</p>
           </div>
         </div>
+      </header>
+      <div class="randomizer-hero-controls">
         <div class="randomizer-hero-meta">
           <div class="randomizer-auto-chip" id="randomizer-auto-chip">
             <div class="chip-label">Авто</div>
@@ -476,7 +478,7 @@ export function createRandomizerView() {
       if (el) el.setAttribute("placeholder", t(key));
     };
 
-    setText(".randomizer-heading p", "randomizer.hero.subtitle");
+    setText(".randomizer-shell-header .subtitle", "randomizer.hero.subtitle");
     setText("#randomizer-auto-chip .chip-label", "randomizer.auto.label");
     setText("#randomizer-auto-status-mini", "randomizer.auto.status.off");
     const autoNext = wrapper.querySelector(".randomizer-auto-chip .chip-sub");

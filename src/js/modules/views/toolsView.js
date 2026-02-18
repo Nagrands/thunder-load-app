@@ -517,38 +517,39 @@ export default function renderToolsView() {
             <p class="subtitle" data-i18n="wg.subtitle">Quick actions for file and network tasks.</p>
           </div>
         </div>
-        <div class="tools-breadcrumbs" aria-label="Навигация" data-i18n-aria="tools.launcher.breadcrumbs.aria">
-          <button
-            id="tools-breadcrumb-home"
-            type="button"
-            class="tools-breadcrumbs__item tools-breadcrumbs__link"
-            data-i18n-aria="tools.launcher.breadcrumbs.home"
-            aria-label="Tools"
-          >
-            <i class="fa-solid fa-screwdriver-wrench"></i>
-            <span data-i18n="tools.launcher.breadcrumbs.home">Tools</span>
-          </button>
-          <i class="fa-solid fa-chevron-right tools-breadcrumbs__sep" aria-hidden="true"></i>
-          <button
-            id="tools-breadcrumb-tools"
-            type="button"
-            class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
-            data-i18n-aria="tools.launcher.breadcrumbs.tools"
-            aria-label="Tools"
-          >
-            <span data-i18n="tools.launcher.breadcrumbs.tools">Tools</span>
-          </button>
-          <i
-            id="tools-breadcrumb-current-sep"
-            class="fa-solid fa-chevron-right tools-breadcrumbs__sep hidden"
-            aria-hidden="true"
-          ></i>
-          <span
-            id="tools-breadcrumb-current"
-            class="tools-breadcrumbs__item tools-breadcrumbs__item--current hidden"
-          ></span>
-        </div>
       </header>
+
+      <div class="tools-breadcrumbs" aria-label="Навигация" data-i18n-aria="tools.launcher.breadcrumbs.aria">
+        <button
+          id="tools-breadcrumb-home"
+          type="button"
+          class="tools-breadcrumbs__item tools-breadcrumbs__link"
+          data-i18n-aria="tools.launcher.breadcrumbs.home"
+          aria-label="Tools"
+        >
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+          <span data-i18n="tools.launcher.breadcrumbs.home">Tools</span>
+        </button>
+        <i class="fa-solid fa-chevron-right tools-breadcrumbs__sep" aria-hidden="true"></i>
+        <button
+          id="tools-breadcrumb-tools"
+          type="button"
+          class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
+          data-i18n-aria="tools.launcher.breadcrumbs.tools"
+          aria-label="Tools"
+        >
+          <span data-i18n="tools.launcher.breadcrumbs.tools">Tools</span>
+        </button>
+        <i
+          id="tools-breadcrumb-current-sep"
+          class="fa-solid fa-chevron-right tools-breadcrumbs__sep hidden"
+          aria-hidden="true"
+        ></i>
+        <span
+          id="tools-breadcrumb-current"
+          class="tools-breadcrumbs__item tools-breadcrumbs__item--current hidden"
+        ></span>
+      </div>
 
       <div id="tools-nav" class="tools-nav">
         <button

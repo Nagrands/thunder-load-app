@@ -14,6 +14,7 @@
 - **Added a top-bar “Network status” visibility setting**: you can now enable or disable the indicator in Appearance settings (disabled by default).
 - **Improved tray and Dock menus on macOS**: actions are clearer, and unavailable items are now correctly disabled so only actionable options are shown.
 - **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
+- **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
 
 ### Downloader tab
 

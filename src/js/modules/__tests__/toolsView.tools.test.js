@@ -135,9 +135,12 @@ describe("toolsView quick actions", () => {
 
   test("renders combined header with breadcrumbs and tools section header", async () => {
     const el = await renderView();
-    expect(el.querySelector("#tools-launcher-header")).not.toBeNull();
-    expect(el.querySelector(".tools-breadcrumbs")).not.toBeNull();
-    expect(el.querySelector("#tools-launcher-header .title")).not.toBeNull();
+    const header = el.querySelector("#tools-launcher-header");
+    const breadcrumbs = el.querySelector(".tools-breadcrumbs");
+    expect(header).not.toBeNull();
+    expect(header?.querySelector(".title-content")).not.toBeNull();
+    expect(breadcrumbs).not.toBeNull();
+    expect(header?.contains(breadcrumbs)).toBe(false);
     expect(el.querySelector("#tools-launcher-section-header")).not.toBeNull();
     expect(
       el

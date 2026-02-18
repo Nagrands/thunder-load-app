@@ -116,75 +116,72 @@
     padding: 0;
   }
 
-  .wg-header {
-    display: flex;
-    margin-bottom: 1.25rem;
-    gap: 1rem;
-    flex-wrap: wrap;
-    flex-direction: row;
+  .backup-shell-header {
+    position: relative;
+    margin-bottom: 0;
 
     .title {
-      flex: 1 1 320px;
-
-      .subtitle {
-        font-size: 14px;
-      }
+      @include mixins.header-style;
+      gap: 20px;
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 0;
     }
+
+    .title i {
+      font-size: 2.3rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-accent);
+      transition: all 0.25s ease;
+    }
+
+    .title:hover i {
+      transform: scale(1.03);
+    }
+
+    .title-content h1 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .title-content .subtitle {
+      margin: 0;
+      max-width: 680px;
+      color: var(--color-quality);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+  }
+
+  .backup-header-extra {
+    margin-top: 16px;
 
     .bk-hints {
       margin-top: 0;
-      flex: 1 1 370px;
-      max-height: 120px;
-    }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-
-      .select-all {
-        font-size: 0.9rem;
-        color: var(--color-text-main);
-        cursor: pointer;
-        padding: 0.4rem 0.6rem;
-        border-radius: 6px;
-        transition: background 0.2s;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.08);
-        }
-      }
-
-      button {
-        @include backup-button-base();
-        background: var(--color-accent);
-
-        &.delete {
-          background: linear-gradient(180deg, #ff4e4e, #d63a3a);
-        }
-
-        &.run {
-          background: linear-gradient(180deg, #58b958, #469f46);
-        }
-      }
     }
   }
 
   @media (max-width: 680px) {
-    .wg-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.8rem;
+    .backup-shell-header .title {
+      gap: 12px;
 
-      .actions {
-        flex-wrap: wrap;
-        width: 100%;
-
-        button {
-          flex: 1;
-          min-width: 100px;
-        }
+      i {
+        width: 52px;
+        height: 46px;
+        font-size: 1.15rem;
       }
+    }
+
+    .backup-shell-header .title-content h1 {
+      font-size: 1.55rem;
+      margin-bottom: 4px;
+    }
+
+    .backup-header-extra {
+      margin-top: 12px;
     }
   }
 
