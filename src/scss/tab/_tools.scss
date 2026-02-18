@@ -1122,10 +1122,12 @@ $wg-max-width: 1200px;
 .tools-breadcrumbs {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 15px;
   font-size: 0.85rem;
   font-weight: 600;
   margin-top: 25px;
+  border-bottom: 1px solid var(--color-hover);
+  padding-bottom: 20px;
 }
 
 .tools-breadcrumbs__item {

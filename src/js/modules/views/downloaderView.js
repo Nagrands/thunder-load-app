@@ -14,40 +14,39 @@ export default function renderDownloader(wrapper) {
   if (!wrapper) return wrapper;
 
   try {
-    // Prevent double-build
     if (wrapper.__dl_built) return wrapper;
 
     const find = (sel) => wrapper.querySelector(sel);
 
-    // Grab existing blocks we want to group
     const headerEl = find("header");
     const buttonGroup = find("nav.button-group");
     const historySection = find("#history-container");
     const queueInfo = find("#download-queue-info");
     const queueStart = find("#queue-start-indicator");
 
-    // Create glass layout similar to other tabs
     const center = document.createElement("div");
     center.className = "downloader-center";
 
     const glass = document.createElement("div");
     glass.className = "wg-glass";
 
-    // Header block (title + subtitle)
-    const hdr = document.createElement("div");
-    hdr.className = "downloader-header";
+    const shell = document.createElement("div");
+    shell.className = "downloader-shell";
+
+    const hdr = document.createElement("header");
+    hdr.className = "downloader-shell-header";
     hdr.innerHTML = `
       <div class="title">
         <i class="fa-solid fa-download"></i>
-        <div class="text">
-          <h2 data-i18n="downloader.title">Downloader</h2>
+        <div class="title-content">
+          <h1 class="wg-text-gradient" data-i18n="downloader.title">Downloader</h1>
           <p class="subtitle" data-i18n="downloader.subtitle">
             Download video and audio from various sources
           </p>
         </div>
-      </div>`;
+      </div>
+    `;
 
-    // Tools readiness status (yt-dlp / ffmpeg)
     const toolsStatus = document.createElement("div");
     toolsStatus.className = "downloader-tools-status";
     toolsStatus.innerHTML = `
@@ -80,10 +79,11 @@ export default function renderDownloader(wrapper) {
         <span data-i18n="downloader.tools.reinstall">Reinstall</span>
       </button>
     `;
-    hdr.appendChild(toolsStatus);
 
-    // Compose sections in order
-    glass.appendChild(hdr);
+    shell.appendChild(hdr);
+    shell.appendChild(toolsStatus);
+    glass.appendChild(shell);
+
     if (headerEl) glass.appendChild(headerEl);
     if (buttonGroup) glass.appendChild(buttonGroup);
     if (queueInfo) glass.appendChild(queueInfo);
@@ -92,7 +92,6 @@ export default function renderDownloader(wrapper) {
 
     center.appendChild(glass);
 
-    // Move everything else (if any) below, but keep modals etc. separate
     wrapper.innerHTML = "";
     wrapper.classList.add("downloader-view", "tab-content");
     wrapper.appendChild(center);

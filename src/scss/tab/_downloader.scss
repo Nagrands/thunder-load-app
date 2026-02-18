@@ -6,33 +6,51 @@
   position: relative;
 }
 
-.downloader-header {
+.downloader-shell {
+  margin-bottom: 14px;
+}
+
+.downloader-shell-header {
   position: relative;
 
   .title {
     @include header-style;
-    margin-bottom: 20px;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 16px;
 
     i {
-      font-size: 18px;
-      width: auto;
-      color: var(--color-accent);
-      background: rgba(var(--color-accent-rgb), 0.1);
-      padding: 12px 20px;
-      border-radius: 10px;
-      transition: all 0.3s ease;
+      font-size: 1.4rem;
+      width: 72px;
+      height: 60px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--border-radius);
+      color: rgba(var(--color-accent-rgb), 1);
+      background: var(--color-hover);
+      border: 1px solid var(--color-hover);
+      transition: all 0.25s ease;
     }
 
     &:hover i {
-      transform: scale(1.1);
-      background: rgba(var(--color-accent-rgb), 0.2);
+      transform: scale(1.03);
     }
   }
 
-  .subtitle {
-    font-size: 14px;
+  .title-content h1 {
+    margin: 0 0 8px;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .title-content .subtitle {
+    margin: 0;
+    max-width: 680px;
     color: var(--color-quality);
-    opacity: 0.8;
+    font-size: 0.9rem;
+    font-style: italic;
   }
 }
 
@@ -41,7 +59,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  margin: 10px;
+  margin: 4px 10px 14px;
   gap: 25px;
 
   &.hidden {
@@ -93,6 +111,12 @@
     }
   }
 
+  .tool-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   #dl-tools-reinstall {
     margin-left: auto;
     white-space: nowrap;
@@ -104,6 +128,26 @@
 
     &.hidden {
       display: none;
+    }
+  }
+}
+
+.downloader-view {
+  @media (max-width: 768px) {
+    .downloader-shell-header .title {
+      gap: 12px;
+      margin-bottom: 12px;
+
+      i {
+        width: 52px;
+        height: 46px;
+        font-size: 1.15rem;
+      }
+    }
+
+    .downloader-shell-header .title-content h1 {
+      font-size: 1.55rem;
+      margin-bottom: 4px;
     }
   }
 }

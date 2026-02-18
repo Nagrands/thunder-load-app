@@ -17,6 +17,8 @@
 
 ### Downloader tab
 
+- **Updated the Downloader hero section to match Tools style**: the top area now uses the same larger icon/title layout and subtitle pattern as the Tools tab.
+- **Removed breadcrumbs from Downloader**: the top area is now cleaner and more compact without the extra navigation trail.
 - **Updated the progress indicator in the URL field**: it is now shown as a cleaner thin line at the bottom of the input.
 - **Reduced visual noise during downloads**: progress is easier to follow and less distracting while you work with links.
 - **Fixed the close button in the quality picker**: the modal now closes reliably when clicking the “×” button.
