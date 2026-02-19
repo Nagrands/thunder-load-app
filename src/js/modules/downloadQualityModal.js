@@ -31,10 +31,15 @@ const thumbEl = document.getElementById("download-quality-thumb");
 const titleEl = document.getElementById("download-quality-name");
 const uploaderEl = document.getElementById("download-quality-uploader");
 const durationEl = document.getElementById("download-quality-duration");
+const previewResolutionEl = document.getElementById(
+  "download-quality-preview-resolution",
+);
 const openSourceBtn = document.getElementById("download-quality-open-source");
+const copySourceUrlBtn = document.getElementById("download-quality-copy-source");
 const downloadPreviewBtn = document.getElementById(
   "download-quality-download-preview",
 );
+const thumbFallbackEl = document.getElementById("download-quality-thumb-fallback");
 const selectionTitleEl = document.getElementById("download-quality-selection-title");
 const selectionMetaEl = document.getElementById("download-quality-selection-meta");
 const selectionOutputEl = document.getElementById(
@@ -197,6 +202,22 @@ function resetModalState() {
     downloadPreviewBtn.disabled = true;
     downloadPreviewBtn.onclick = null;
   }
+  if (copySourceUrlBtn) {
+    copySourceUrlBtn.disabled = true;
+    copySourceUrlBtn.onclick = null;
+  }
+  if (openSourceBtn) {
+    openSourceBtn.disabled = true;
+    openSourceBtn.onclick = null;
+  }
+  if (previewResolutionEl) {
+    previewResolutionEl.textContent = t("quality.previewResolutionUnknown");
+  }
+  if (thumbEl) {
+    thumbEl.onload = null;
+    thumbEl.onerror = null;
+  }
+  thumbFallbackEl?.classList.add("hidden");
   updateTabCounts();
   updateSelectionSummary(null);
   if (enqueueBtn) {
@@ -226,6 +247,7 @@ function updateLoadingDetail() {
 function syncLoadingUi(isLoading) {
   selectionSummaryEl?.classList.toggle("hidden", isLoading);
   openSourceBtn?.classList.toggle("hidden", isLoading);
+  copySourceUrlBtn?.classList.toggle("hidden", isLoading);
   downloadPreviewBtn?.classList.toggle("hidden", isLoading);
   if (enqueueBtn) {
     enqueueBtn.disabled = isLoading || !state.selectedOption;
@@ -323,6 +345,60 @@ function detectPreviewExt(source, blob) {
   return "jpg";
 }
 
+function getPreviewData(info = {}) {
+  const directUrl = String(info?.thumbnail || "").trim();
+  const directWidth = Number(info?.thumbnail_width || 0);
+  const directHeight = Number(info?.thumbnail_height || 0);
+  const thumbs = (Array.isArray(info?.thumbnails) ? info.thumbnails : [])
+    .map((thumb) => ({
+      url: String(thumb?.url || "").trim(),
+      width: Number(thumb?.width || 0),
+      height: Number(thumb?.height || 0),
+    }))
+    .filter((thumb) => !!thumb.url)
+    .sort((a, b) => {
+      const areaA = (a.width || 0) * (a.height || 0);
+      const areaB = (b.width || 0) * (b.height || 0);
+      return areaB - areaA;
+    });
+
+  if (directUrl) {
+    const matched = thumbs.find((thumb) => thumb.url === directUrl);
+    return {
+      url: directUrl,
+      width: directWidth || matched?.width || 0,
+      height: directHeight || matched?.height || 0,
+    };
+  }
+
+  if (thumbs.length) return thumbs[0];
+
+  return {
+    url: "",
+    width: directWidth || 0,
+    height: directHeight || 0,
+  };
+}
+
+async function copyTextToClipboard(value) {
+  const text = String(value || "");
+  if (!text) throw new Error("empty");
+  if (navigator?.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  const success = document.execCommand("copy");
+  area.remove();
+  if (!success) throw new Error("copy_failed");
+}
+
 async function downloadPreviewImage(sourceUrl, title) {
   if (!sourceUrl) return;
   try {
@@ -355,15 +431,45 @@ function renderPreview(info, url) {
   durationEl.textContent = info.duration
     ? `Длительность: ${secondsToTime(info.duration)}`
     : "";
-  if (info.thumbnail) {
-    thumbEl.src = info.thumbnail;
+  const preview = getPreviewData(info);
+  const previewResolution =
+    preview.width > 0 && preview.height > 0
+      ? `${preview.width}x${preview.height}`
+      : "";
+  if (previewResolutionEl) {
+    previewResolutionEl.textContent = previewResolution
+      ? t("quality.previewResolution", { resolution: previewResolution })
+      : t("quality.previewResolutionUnknown");
+  }
+  if (preview.url) {
+    thumbEl.src = preview.url;
     thumbEl.style.display = "";
+    thumbFallbackEl?.classList.add("hidden");
+    thumbEl.onload = () => {
+      thumbEl.style.display = "";
+      thumbFallbackEl?.classList.add("hidden");
+      if (
+        previewResolutionEl &&
+        (!preview.width || !preview.height) &&
+        thumbEl.naturalWidth > 0 &&
+        thumbEl.naturalHeight > 0
+      ) {
+        previewResolutionEl.textContent = t("quality.previewResolution", {
+          resolution: `${thumbEl.naturalWidth}x${thumbEl.naturalHeight}`,
+        });
+      }
+    };
+    thumbEl.onerror = () => {
+      thumbEl.style.display = "none";
+      thumbFallbackEl?.classList.remove("hidden");
+    };
   } else {
     thumbEl.removeAttribute("src");
     thumbEl.style.display = "none";
+    thumbFallbackEl?.classList.remove("hidden");
   }
   if (downloadPreviewBtn) {
-    const previewUrl = info.thumbnail || "";
+    const previewUrl = preview.url || "";
     downloadPreviewBtn.disabled = !previewUrl;
     downloadPreviewBtn.onclick = () => {
       if (!previewUrl) return;
@@ -380,6 +486,19 @@ function renderPreview(info, url) {
         console.error("Не удалось открыть источник:", err);
         showToast("Не удалось открыть источник.", "error");
       });
+    };
+  }
+  if (copySourceUrlBtn) {
+    copySourceUrlBtn.disabled = !targetUrl;
+    copySourceUrlBtn.onclick = async () => {
+      if (!targetUrl) return;
+      try {
+        await copyTextToClipboard(targetUrl);
+        showToast(t("quality.copySourceUrlSuccess"), "success");
+      } catch (err) {
+        console.error("Не удалось скопировать URL источника:", err);
+        showToast(t("quality.copySourceUrlError"), "error");
+      }
     };
   }
 }
@@ -967,6 +1086,13 @@ function bindEvents() {
     });
     document.addEventListener("keydown", (event) => {
       if (!modal.classList.contains("is-open")) return;
+      const target = event.target;
+      const targetTag = String(target?.tagName || "").toLowerCase();
+      const isEditableTarget =
+        target?.isContentEditable ||
+        targetTag === "input" ||
+        targetTag === "textarea" ||
+        targetTag === "select";
       if (event.key === "Escape") {
         event.preventDefault();
         closeModal(null);
@@ -985,6 +1111,19 @@ function bindEvents() {
       if (event.key === "Enter" && state.selectedOption) {
         event.preventDefault();
         confirmSelection();
+        return;
+      }
+      if (
+        !isEditableTarget &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === "a" &&
+        state.selectedOption &&
+        !enqueueBtn?.disabled
+      ) {
+        event.preventDefault();
+        confirmEnqueue();
       }
     });
     confirmBtn?.addEventListener("click", confirmSelection);

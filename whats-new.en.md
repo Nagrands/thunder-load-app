@@ -31,6 +31,10 @@
 - **Improved the Quality picker layout**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block previews the final download output.
 - **Made format loading clearer**: added a timed loading status, visual skeleton placeholders, and stronger keyboard/screen-reader accessibility states.
 - **Refined Quality picker behavior while formats are loading**: the selected-option block and source/preview actions are temporarily hidden until loading completes, and the queue button stays disabled during that phase.
+- **Improved the Quality picker preview block**: added preview resolution, a source URL copy action, and a clear fallback state when the preview image is unavailable.
+- **Added visible hotkey hints in the Quality picker**: the modal footer now shows navigation/action shortcuts, including a quick `A` shortcut to enqueue the selected option.
+- **Refined Quality picker footer actions**: action buttons are now anchored on the right, the visible Queue button was removed, and enqueue is now done via the `A` hotkey.
+- **Fixed preview resolution detection in the Quality picker**: the resolution line now reads from available preview metadata more reliably, so it appears correctly more often.
 - **Added mode-aware duplicate protection**: links already in history for the same mode (for example, video) are skipped, while downloading audio separately for the same URL is still allowed.
 
 ### Tools tab

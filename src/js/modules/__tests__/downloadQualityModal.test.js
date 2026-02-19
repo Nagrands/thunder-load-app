@@ -10,7 +10,6 @@ const buildDom = () => {
       </div>
       <button id="download-quality-retry" type="button"></button>
       <button id="download-quality-confirm" type="button"></button>
-      <button id="download-quality-enqueue" type="button"></button>
       <button id="download-quality-cancel" type="button"></button>
       <div id="download-quality-options"></div>
       <button class="quality-tab" data-quality-tab="video"></button>
@@ -21,11 +20,14 @@ const buildDom = () => {
       <span id="download-quality-count-audio"></span>
       <button id="download-quality-best-current" type="button"></button>
       <img id="download-quality-thumb" />
+      <div id="download-quality-thumb-fallback" class="hidden"></div>
       <h4 id="download-quality-name"></h4>
       <p id="download-quality-uploader"></p>
       <p id="download-quality-duration"></p>
+      <p id="download-quality-preview-resolution"></p>
       <button id="download-quality-open-source" type="button"></button>
       <button id="download-quality-download-preview" type="button"></button>
+      <button id="download-quality-copy-source" type="button"></button>
       <div id="download-quality-selection-summary">
         <small id="download-quality-selection-output"></small>
       </div>
@@ -48,6 +50,8 @@ describe("downloadQualityModal close behavior", () => {
           uploader: "Uploader",
           duration: 120,
           thumbnail: "https://cdn.example.com/preview.jpg",
+          thumbnail_width: 1280,
+          thumbnail_height: 720,
           formats: [
             {
               format_id: "18",
@@ -65,6 +69,7 @@ describe("downloadQualityModal close behavior", () => {
 
   afterEach(() => {
     delete global.fetch;
+    delete window.navigator.clipboard;
   });
 
   it("closes modal when close button is clicked", async () => {
@@ -111,6 +116,7 @@ describe("downloadQualityModal close behavior", () => {
       const previewBtn = document.getElementById(
         "download-quality-download-preview",
       );
+      const resolution = document.getElementById("download-quality-preview-resolution");
       for (let i = 0; i < 5 && typeof previewBtn.onclick !== "function"; i++) {
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
@@ -123,6 +129,7 @@ describe("downloadQualityModal close behavior", () => {
       expect(fetch).toHaveBeenCalledWith("https://cdn.example.com/preview.jpg", {
         cache: "no-cache",
       });
+      expect(resolution.textContent).toContain("1280x720");
       expect(showToast).toHaveBeenCalledWith(expect.any(String), "success");
 
       const cancelBtn = document.getElementById("download-quality-cancel");
@@ -132,6 +139,132 @@ describe("downloadQualityModal close behavior", () => {
       anchorClick.mockRestore();
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
+    });
+  });
+
+  it("copies source url from quality modal", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const showToast = jest.fn();
+      const writeText = jest.fn().mockResolvedValue(undefined);
+      Object.defineProperty(window.navigator, "clipboard", {
+        configurable: true,
+        value: { writeText },
+      });
+
+      jest.doMock("../toast", () => ({ showToast }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const copyBtn = document.getElementById("download-quality-copy-source");
+      expect(copyBtn.disabled).toBe(false);
+
+      await copyBtn.onclick();
+      expect(writeText).toHaveBeenCalledWith("https://example.com/video");
+      expect(showToast).toHaveBeenCalledWith(expect.any(String), "success");
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("shows fallback when preview thumbnail is missing", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "",
+        formats: [
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const thumb = document.getElementById("download-quality-thumb");
+      const thumbFallback = document.getElementById("download-quality-thumb-fallback");
+      const previewBtn = document.getElementById("download-quality-download-preview");
+      const resolution = document.getElementById("download-quality-preview-resolution");
+
+      expect(thumb.style.display).toBe("none");
+      expect(thumbFallback.classList.contains("hidden")).toBe(false);
+      expect(previewBtn.disabled).toBe(true);
+      expect(resolution.textContent).toContain("—");
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("resolves preview resolution from thumbnails metadata", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview-alt.jpg",
+        thumbnails: [
+          { url: "https://cdn.example.com/preview-alt.jpg", width: 1920, height: 1080 },
+        ],
+        formats: [
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const resolution = document.getElementById("download-quality-preview-resolution");
+      const previewBtn = document.getElementById("download-quality-download-preview");
+      expect(resolution.textContent).toContain("1920x1080");
+      expect(previewBtn.disabled).toBe(false);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("enqueues selected option on A hotkey", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "a", bubbles: true }),
+      );
+      const result = await resultPromise;
+
+      expect(result).toBeTruthy();
+      expect(result?.enqueue).toBe(true);
+      expect(result?.payload).toBeTruthy();
     });
   });
 
@@ -158,12 +291,12 @@ describe("downloadQualityModal close behavior", () => {
       const previewBtn = document.getElementById(
         "download-quality-download-preview",
       );
-      const enqueueBtn = document.getElementById("download-quality-enqueue");
+      const copyBtn = document.getElementById("download-quality-copy-source");
 
       expect(selectionSummary.classList.contains("hidden")).toBe(true);
       expect(openSourceBtn.classList.contains("hidden")).toBe(true);
       expect(previewBtn.classList.contains("hidden")).toBe(true);
-      expect(enqueueBtn.disabled).toBe(true);
+      expect(copyBtn.classList.contains("hidden")).toBe(true);
 
       resolveInfo({
         success: true,
@@ -188,7 +321,7 @@ describe("downloadQualityModal close behavior", () => {
       expect(selectionSummary.classList.contains("hidden")).toBe(false);
       expect(openSourceBtn.classList.contains("hidden")).toBe(false);
       expect(previewBtn.classList.contains("hidden")).toBe(false);
-      expect(enqueueBtn.disabled).toBe(false);
+      expect(copyBtn.classList.contains("hidden")).toBe(false);
 
       const cancelBtn = document.getElementById("download-quality-cancel");
       cancelBtn.click();
