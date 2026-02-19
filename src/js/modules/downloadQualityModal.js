@@ -40,6 +40,9 @@ const selectionMetaEl = document.getElementById("download-quality-selection-meta
 const selectionOutputEl = document.getElementById(
   "download-quality-selection-output",
 );
+const selectionSummaryEl = document.getElementById(
+  "download-quality-selection-summary",
+);
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
@@ -220,6 +223,15 @@ function updateLoadingDetail() {
   loadingDetailEl.textContent = t("quality.loading.detailTimed", { seconds: elapsed });
 }
 
+function syncLoadingUi(isLoading) {
+  selectionSummaryEl?.classList.toggle("hidden", isLoading);
+  openSourceBtn?.classList.toggle("hidden", isLoading);
+  downloadPreviewBtn?.classList.toggle("hidden", isLoading);
+  if (enqueueBtn) {
+    enqueueBtn.disabled = isLoading || !state.selectedOption;
+  }
+}
+
 function setLoading(flag) {
   if (flag) {
     loadingEl?.classList.remove("hidden");
@@ -233,6 +245,7 @@ function setLoading(flag) {
     clearLoadingTimer();
     optionsContainer?.setAttribute("aria-busy", "false");
   }
+  syncLoadingUi(flag);
 }
 
 function beginFetchView() {

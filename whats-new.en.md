@@ -30,6 +30,7 @@
 - **Made the queue action more compact**: the “Add to queue” button now uses a clear icon-only style.
 - **Improved the Quality picker layout**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block previews the final download output.
 - **Made format loading clearer**: added a timed loading status, visual skeleton placeholders, and stronger keyboard/screen-reader accessibility states.
+- **Refined Quality picker behavior while formats are loading**: the selected-option block and source/preview actions are temporarily hidden until loading completes, and the queue button stays disabled during that phase.
 - **Added mode-aware duplicate protection**: links already in history for the same mode (for example, video) are skipped, while downloading audio separately for the same URL is still allowed.
 
 ### Tools tab

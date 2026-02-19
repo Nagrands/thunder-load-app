@@ -3,6 +3,7 @@ const buildDom = () => {
     <div id="download-quality-modal" class="modal-overlay download-quality-modal" aria-hidden="true">
       <button type="button" data-quality-close>&times;</button>
       <div id="download-quality-loading" class="hidden"></div>
+      <small id="download-quality-loading-detail"></small>
       <div id="download-quality-empty" class="hidden"></div>
       <div id="download-quality-error" class="hidden">
         <div class="quality-error-text"></div>
@@ -25,6 +26,9 @@ const buildDom = () => {
       <p id="download-quality-duration"></p>
       <button id="download-quality-open-source" type="button"></button>
       <button id="download-quality-download-preview" type="button"></button>
+      <div id="download-quality-selection-summary">
+        <small id="download-quality-selection-output"></small>
+      </div>
       <strong id="download-quality-selection-title"></strong>
       <small id="download-quality-selection-meta"></small>
     </div>
@@ -128,6 +132,67 @@ describe("downloadQualityModal close behavior", () => {
       anchorClick.mockRestore();
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
+    });
+  });
+
+  it("hides selection/actions and disables enqueue while formats are loading", async () => {
+    await jest.isolateModulesAsync(async () => {
+      let resolveInfo;
+      window.electron.ipcRenderer.invoke = jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveInfo = resolve;
+          }),
+      );
+
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const modalPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+
+      const selectionSummary = document.getElementById(
+        "download-quality-selection-summary",
+      );
+      const openSourceBtn = document.getElementById("download-quality-open-source");
+      const previewBtn = document.getElementById(
+        "download-quality-download-preview",
+      );
+      const enqueueBtn = document.getElementById("download-quality-enqueue");
+
+      expect(selectionSummary.classList.contains("hidden")).toBe(true);
+      expect(openSourceBtn.classList.contains("hidden")).toBe(true);
+      expect(previewBtn.classList.contains("hidden")).toBe(true);
+      expect(enqueueBtn.disabled).toBe(true);
+
+      resolveInfo({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(selectionSummary.classList.contains("hidden")).toBe(false);
+      expect(openSourceBtn.classList.contains("hidden")).toBe(false);
+      expect(previewBtn.classList.contains("hidden")).toBe(false);
+      expect(enqueueBtn.disabled).toBe(false);
+
+      const cancelBtn = document.getElementById("download-quality-cancel");
+      cancelBtn.click();
+      await modalPromise;
     });
   });
 });
