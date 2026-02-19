@@ -112,8 +112,8 @@ export default function renderBackup() {
             <p class="subtitle" data-i18n="backup.subtitle">Резервное копирование файлов и папок</p>
           </div>
         </div>
+        <div class="backup-header-right" id="backup-header-right"></div>
       </header>
-      <div class="backup-header-extra" id="backup-header-extra"></div>
       <div class="wg-glass">
 
       <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями" data-i18n-aria="backup.toolbar.aria">
@@ -711,14 +711,14 @@ export default function renderBackup() {
   }
 
   // Backup Hints Block
-  const subtitle = container.querySelector("#backup-header-extra");
+  const headerRight = container.querySelector("#backup-header-right");
   const hintsBlock = document.createElement("div");
   hintsBlock.className = "info-card bk-hints";
   hintsBlock.innerHTML = `
     <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="backup.hints.title">Советы</span></h3>
     <p class="bk-hint-text"></p>
   `;
-  subtitle?.appendChild(hintsBlock);
+  headerRight?.appendChild(hintsBlock);
   applyI18n(hintsBlock);
 
   const hints = [

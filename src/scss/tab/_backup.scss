@@ -119,6 +119,11 @@
   .backup-shell-header {
     position: relative;
     margin-bottom: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
+    align-items: stretch;
+    gap: 16px;
+    justify-items: stretch;
 
     .title {
       @include mixins.header-style;
@@ -154,17 +159,25 @@
       font-size: 0.9rem;
       font-style: italic;
     }
-  }
 
-  .backup-header-extra {
-    margin-top: 16px;
+    .backup-header-right {
+      display: flex;
+      justify-content: flex-end;
+      align-self: stretch;
 
-    .bk-hints {
-      margin-top: 0;
+      .bk-hints {
+        margin-top: 0;
+        width: min(100%, 360px);
+      }
     }
   }
 
   @media (max-width: 680px) {
+    .backup-shell-header {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
     .backup-shell-header .title {
       gap: 12px;
 
@@ -180,8 +193,8 @@
       margin-bottom: 4px;
     }
 
-    .backup-header-extra {
-      margin-top: 12px;
+    .backup-shell-header .backup-header-right .bk-hints {
+      display: none;
     }
   }
 
@@ -2727,7 +2740,7 @@ h1.section-heading {
 // ---------------------------------------------------------------------------
 .bk-hints {
   @include backup-glass-panel(1.25rem, rgba(255, 255, 255, 0.1), 18px);
-  margin-top: 1.5rem;
+  margin-top: 0;
   border-radius: 20px;
   text-align: left;
   color: var(--color-highlight);

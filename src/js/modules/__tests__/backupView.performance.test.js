@@ -119,7 +119,7 @@ describe("backupView performance behaviors", () => {
     expect(clearIntervalSpy).toHaveBeenCalled();
   });
 
-  test("renders downloader-like backup header and places hints below it", async () => {
+  test("renders downloader-like backup header and places hints in header right slot", async () => {
     setupBootstrapTooltipMock();
     setupWindowElectronMock();
     const view = renderBackup();
@@ -127,15 +127,15 @@ describe("backupView performance behaviors", () => {
     await flush();
 
     const header = view.querySelector(".backup-shell-header");
-    const headerExtra = view.querySelector("#backup-header-extra");
+    const headerRight = view.querySelector("#backup-header-right");
     const hints = view.querySelector(".bk-hints");
 
     expect(header).toBeTruthy();
     expect(header?.querySelector(".title-content")).toBeTruthy();
-    expect(headerExtra).toBeTruthy();
+    expect(headerRight).toBeTruthy();
     expect(hints).toBeTruthy();
-    expect(header?.contains(hints)).toBe(false);
-    expect(headerExtra?.contains(hints)).toBe(true);
+    expect(header?.contains(hints)).toBe(true);
+    expect(headerRight?.contains(hints)).toBe(true);
   });
 
   test("large backup list uses no-animation mode on rerenders", async () => {
