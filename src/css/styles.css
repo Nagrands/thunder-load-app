@@ -18975,6 +18975,9 @@ video {
   font-size: 1rem;
   font-weight: 600;
 }
+.download-quality-modal .quality-option .quality-option-content {
+  min-width: 0;
+}
 .download-quality-modal .quality-option .quality-option-desc {
   margin: 4px 0 0;
   font-size: 0.85rem;
@@ -18986,6 +18989,16 @@ video {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  max-height: 180px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease;
+}
+.download-quality-modal .quality-option .quality-option-metrics.is-collapsed {
+  margin-top: 0;
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 .download-quality-modal .quality-option .quality-option-metrics .metric {
   font-size: 0.75rem;
@@ -18995,6 +19008,20 @@ video {
   border-radius: 999px;
   padding: 4px 9px;
   line-height: 1.1;
+}
+.download-quality-modal .quality-option .quality-option-toggle {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.download-quality-modal .quality-option .quality-option-toggle:hover {
+  color: #9fd4ff;
 }
 .download-quality-modal .quality-option .quality-option-tags {
   margin-top: 10px;
@@ -19159,7 +19186,8 @@ video {
 .download-quality-modal .quality-tab:focus-visible,
 .download-quality-modal .quality-best-current-btn:focus-visible,
 .download-quality-modal .quality-actions button:focus-visible,
-.download-quality-modal .quality-info .btn-link:focus-visible {
+.download-quality-modal .quality-info .btn-link:focus-visible,
+.download-quality-modal .quality-option-toggle:focus-visible {
   outline: 2px solid rgba(var(--color-accent-rgb), 0.85);
   outline-offset: 2px;
 }

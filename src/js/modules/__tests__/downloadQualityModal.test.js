@@ -210,6 +210,166 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
+  it("renders quality metrics collapsed by default", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const metrics = document.querySelectorAll(".quality-option-metrics");
+      expect(metrics.length).toBeGreaterThan(0);
+      metrics.forEach((el) => {
+        expect(el.classList.contains("is-collapsed")).toBe(true);
+      });
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("expands metrics only for selected card toggle", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "37",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 1080,
+            fps: 30,
+            ext: "mp4",
+          },
+          {
+            format_id: "22",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 720,
+            fps: 30,
+            ext: "mp4",
+          },
+        ],
+      });
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const options = document.querySelectorAll(".quality-option");
+      expect(options.length).toBeGreaterThan(1);
+      const secondToggle = options[1].querySelector(".quality-option-toggle");
+
+      secondToggle.click();
+      const refreshedOptions = document.querySelectorAll(".quality-option");
+      const firstMetrics = refreshedOptions[0].querySelector(".quality-option-metrics");
+      const secondMetrics = refreshedOptions[1].querySelector(".quality-option-metrics");
+      const refreshedSecondToggle = refreshedOptions[1].querySelector(
+        ".quality-option-toggle",
+      );
+
+      expect(firstMetrics.classList.contains("is-collapsed")).toBe(true);
+      expect(secondMetrics.classList.contains("is-collapsed")).toBe(false);
+      expect(refreshedSecondToggle.textContent.toLowerCase()).toContain("свер");
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("collapses metrics again when toggle is clicked second time", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const option = document.querySelector(".quality-option");
+      const toggle = option.querySelector(".quality-option-toggle");
+      let metrics = option.querySelector(".quality-option-metrics");
+
+      toggle.click();
+      metrics = document.querySelector(".quality-option .quality-option-metrics");
+      expect(metrics.classList.contains("is-collapsed")).toBe(false);
+
+      const toggleAfterExpand = document.querySelector(
+        ".quality-option .quality-option-toggle",
+      );
+      toggleAfterExpand.click();
+      metrics = document.querySelector(".quality-option .quality-option-metrics");
+      expect(metrics.classList.contains("is-collapsed")).toBe(true);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("does not change selected option or trigger confirm on metrics toggle", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "37",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 1080,
+            fps: 30,
+            ext: "mp4",
+          },
+          {
+            format_id: "22",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 720,
+            fps: 30,
+            ext: "mp4",
+          },
+        ],
+      });
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const modal = document.getElementById("download-quality-modal");
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const optionsBefore = Array.from(document.querySelectorAll(".quality-option"));
+      const initiallySelectedId = optionsBefore.find(
+        (el) => el.getAttribute("aria-checked") === "true",
+      )?.dataset.optionId;
+      const secondToggle = optionsBefore[1].querySelector(".quality-option-toggle");
+      secondToggle.click();
+
+      const optionsAfter = Array.from(document.querySelectorAll(".quality-option"));
+      const selectedAfterToggle = optionsAfter.find(
+        (el) => el.getAttribute("aria-checked") === "true",
+      )?.dataset.optionId;
+
+      expect(selectedAfterToggle).toBe(initiallySelectedId);
+      expect(modal.classList.contains("is-open")).toBe(true);
+
+      document.getElementById("download-quality-cancel").click();
+      const result = await resultPromise;
+      expect(result).toBeNull();
+    });
+  });
+
   it("resolves preview resolution from thumbnails metadata", async () => {
     await jest.isolateModulesAsync(async () => {
       window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({

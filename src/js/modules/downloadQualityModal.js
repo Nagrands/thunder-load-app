@@ -81,6 +81,7 @@ const state = {
   currentUrl: "",
   currentFetchToken: 0,
   selectedByTab: new Map(),
+  expandedOptions: new Set(),
   loadingStartedAt: 0,
   loadingTickTimer: null,
 };
@@ -190,6 +191,7 @@ function resetModalState() {
   state.selectedOption = null;
   state.optionMap.clear();
   state.selectedByTab.clear();
+  state.expandedOptions.clear();
   optionsContainer.innerHTML = "";
   confirmBtn.disabled = true;
   if (enqueueBtn) enqueueBtn.disabled = true;
@@ -762,6 +764,7 @@ function renderOptions(tab) {
   if (bestCurrentBtn) bestCurrentBtn.disabled = false;
   const frag = document.createDocumentFragment();
   list.forEach((option, index) => {
+    const isExpanded = state.expandedOptions.has(option.id);
     const metrics = [];
     if (option.resolutionLabel && option.resolutionLabel !== "Audio") {
       metrics.push([
@@ -802,8 +805,7 @@ function renderOptions(tab) {
       ? `<div class="quality-option-tags">${tags.join("")}</div>`
       : "";
 
-    const el = document.createElement("button");
-    el.type = "button";
+    const el = document.createElement("div");
     el.className = "quality-option";
     el.dataset.optionId = option.id;
     el.id = `quality-option-${option.id}`;
@@ -816,12 +818,12 @@ function renderOptions(tab) {
     el.setAttribute("aria-describedby", `quality-option-desc-${option.id}`);
     el.innerHTML = `
       <div class="quality-option-main">
-        <div>
+        <div class="quality-option-content">
           <p class="quality-option-title">${escapeHTML(option.title)}</p>
           <p class="quality-option-desc" id="quality-option-desc-${option.id}">${escapeHTML(
             describeOption(option),
           )}</p>
-          <div class="quality-option-metrics" aria-hidden="true">
+          <div class="quality-option-metrics ${isExpanded ? "" : "is-collapsed"}" aria-hidden="${isExpanded ? "false" : "true"}">
             ${metrics
               .map(
                 ([label, value]) =>
@@ -829,6 +831,13 @@ function renderOptions(tab) {
               )
               .join("")}
           </div>
+          <button type="button" class="quality-option-toggle" data-quality-toggle="metrics" aria-label="${escapeHTML(
+            t("quality.metrics.aria"),
+          )}" aria-expanded="${isExpanded ? "true" : "false"}">
+            ${escapeHTML(
+              isExpanded ? t("quality.metrics.collapse") : t("quality.metrics.expand"),
+            )}
+          </button>
         </div>
         ${tagsMarkup}
       </div>
@@ -868,6 +877,19 @@ function selectOption(option, { remember = true } = {}) {
 function handleOptionClick(event) {
   const optionEl = event.target.closest(".quality-option");
   if (!optionEl) return;
+  const toggleBtn = event.target.closest("[data-quality-toggle='metrics']");
+  if (toggleBtn) {
+    const optionId = optionEl.dataset.optionId;
+    if (!optionId) return;
+    if (state.expandedOptions.has(optionId)) {
+      state.expandedOptions.delete(optionId);
+    } else {
+      state.expandedOptions.add(optionId);
+    }
+    renderOptions(state.currentTab);
+    selectOption(state.selectedOption, { remember: false });
+    return;
+  }
   const options = state.optionMap.get(state.currentTab) || [];
   const option = options.find((opt) => opt.id === optionEl.dataset.optionId);
   if (!option) return;

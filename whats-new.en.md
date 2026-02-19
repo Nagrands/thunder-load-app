@@ -35,6 +35,7 @@
 - **Added visible hotkey hints in the Quality picker**: the modal footer now shows navigation/action shortcuts, including a quick `A` shortcut to enqueue the selected option.
 - **Refined Quality picker footer actions**: action buttons are now anchored on the right, the visible Queue button was removed, and enqueue is now done via the `A` hotkey.
 - **Fixed preview resolution detection in the Quality picker**: the resolution line now reads from available preview metadata more reliably, so it appears correctly more often.
+- **Made the Quality picker list more compact**: detailed metric badges are now collapsed by default, and each option card includes an `Expand/Collapse` control to view full details on demand.
 - **Added mode-aware duplicate protection**: links already in history for the same mode (for example, video) are skipped, while downloading audio separately for the same URL is still allowed.
 
 ### Tools tab
