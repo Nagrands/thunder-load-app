@@ -25,6 +25,8 @@ export const translations = {
     "topbar.close": "Закрыть",
     "input.url.placeholder": "Введите URL видео или аудио",
     "input.url.aria": "Введите URL видео или аудио",
+    "input.url.error.invalidOrUnsupported":
+      "Проверьте ссылку: нужен корректный URL поддерживаемого источника.",
     "input.paste": "Вставить из буфера",
     "input.clear": "Очистить",
     "input.folder": "Выбор папки",
@@ -1340,6 +1342,8 @@ export const translations = {
     "topbar.close": "Close",
     "input.url.placeholder": "Enter video or audio URL",
     "input.url.aria": "Enter video or audio URL",
+    "input.url.error.invalidOrUnsupported":
+      "Check the link: enter a valid URL from a supported source.",
     "input.paste": "Paste from clipboard",
     "input.clear": "Clear",
     "input.folder": "Choose folder",

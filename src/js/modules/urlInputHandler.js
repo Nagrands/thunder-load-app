@@ -2,12 +2,19 @@
 
 import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
-import { isValidUrl, isSupportedUrl } from "./validation.js";
+import {
+  isValidUrl,
+  isSupportedUrl,
+  normalizeUrlInput,
+} from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
+import { updateButtonState } from "./state.js";
+import { t } from "./i18n.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
 const selectFolderButton = document.getElementById("select-folder");
+const urlErrorEl = document.getElementById("url-inline-error");
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
@@ -45,6 +52,49 @@ function initUrlInputHandler() {
 
   let previewTimer = null;
   let lastPreviewUrl = "";
+  let hasInteracted = false;
+
+  const getValidationState = (value = urlInput.value) => {
+    const normalized = normalizeUrlInput(value);
+    const hasValue = normalized.trim() !== "";
+    const isValid = hasValue && isValidUrl(normalized) && isSupportedUrl(normalized);
+    return { normalized, hasValue, isValid };
+  };
+
+  const showInlineError = () => {
+    wrapperEl?.classList.add("is-invalid");
+    if (!urlErrorEl) return;
+    urlErrorEl.textContent = t("input.url.error.invalidOrUnsupported");
+    urlErrorEl.classList.remove("hidden");
+  };
+
+  const hideInlineError = () => {
+    wrapperEl?.classList.remove("is-invalid");
+    if (!urlErrorEl) return;
+    urlErrorEl.textContent = "";
+    urlErrorEl.classList.add("hidden");
+  };
+
+  const normalizeInputValue = () => {
+    const before = urlInput.value;
+    const normalized = normalizeUrlInput(before);
+    if (before !== normalized) {
+      urlInput.value = normalized;
+      return true;
+    }
+    return false;
+  };
+
+  const syncUrlUiState = ({ showError = false } = {}) => {
+    const validation = getValidationState();
+    if (showError && validation.hasValue && !validation.isValid) {
+      showInlineError();
+    } else if (!validation.hasValue || validation.isValid || !hasInteracted) {
+      hideInlineError();
+    }
+    updateButtonState();
+    return validation;
+  };
 
   const durationToStr = (sec) => {
     const s = Math.max(0, Number(sec) || 0);
@@ -279,8 +329,10 @@ function initUrlInputHandler() {
   urlInput.addEventListener("input", () => {
     toggleButtons();
     const val = urlInput.value.trim();
+    syncUrlUiState({ showError: false });
     // Если поле пустое — моментально скрываем превью без ожидания debounce
     if (val === "") {
+      hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
       lastPreviewUrl = "";
       renderPreview(null);
@@ -297,11 +349,39 @@ function initUrlInputHandler() {
       if (urlInput.value && urlInput.value.length > 0) urlInput.select();
     } catch (_) {}
   });
-  urlInput.addEventListener("blur", toggleButtons);
+  urlInput.addEventListener("blur", () => {
+    normalizeInputValue();
+    hasInteracted = true;
+    syncUrlUiState({ showError: true });
+    toggleButtons();
+  });
 
   // Старт загрузки по Enter (без модификаторов)
   urlInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      hasInteracted = false;
+      urlInput.value = "";
+      lastPreviewUrl = "";
+      renderPreview(null);
+      hideInlineError();
+      toggleButtons();
+      updateButtonState();
+      requestAnimationFrame(syncIconPosition);
+      return;
+    }
+
     if (e.key !== "Enter") return;
+    normalizeInputValue();
+    hasInteracted = true;
+    const validation = syncUrlUiState({ showError: true });
+    if (!validation.isValid) {
+      e.preventDefault();
+      lastPreviewUrl = "";
+      renderPreview(null);
+      return;
+    }
+
     const btn = document.getElementById("download-button");
     if (!btn || btn.disabled) return;
     e.preventDefault();
@@ -323,17 +403,22 @@ function initUrlInputHandler() {
 
   clearButton.addEventListener("click", () => {
     urlInput.value = "";
+    hasInteracted = false;
     toggleButtons();
     // Немедленно скрываем превью
     lastPreviewUrl = "";
     renderPreview(null);
+    hideInlineError();
+    updateButtonState();
     urlInput.focus();
   });
 
   pasteButton.addEventListener("click", async () => {
     const text = (await navigator.clipboard.readText()) || "";
-    urlInput.value = text.trim();
+    hasInteracted = false;
+    urlInput.value = normalizeUrlInput(text.trim());
     toggleButtons();
+    hideInlineError();
     urlInput.dispatchEvent(new Event("input", { bubbles: true })); // запускаем реакцию
     // Также запрашиваем предпросмотр
     urlInput.dispatchEvent(new Event("force-preview"));
@@ -368,7 +453,9 @@ function initUrlInputHandler() {
           ""
         ).trim();
         if (text) {
-          urlInput.value = text;
+          hasInteracted = false;
+          urlInput.value = normalizeUrlInput(text);
+          hideInlineError();
           urlInput.dispatchEvent(new Event("input", { bubbles: true }));
           urlInput.focus();
           requestAnimationFrame(syncIconPosition);
@@ -379,6 +466,7 @@ function initUrlInputHandler() {
 
   // Изначально выставим позицию иконки/прогресса
   requestAnimationFrame(syncIconPosition);
+  syncUrlUiState({ showError: false });
 
   // Пересчёт при ресайзе окна
   window.addEventListener("resize", () =>
