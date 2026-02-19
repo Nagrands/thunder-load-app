@@ -37,6 +37,9 @@
 - **Fixed preview resolution detection in the Quality picker**: the resolution line now reads from available preview metadata more reliably, so it appears correctly more often.
 - **Made the Quality picker list more compact**: detailed metric badges are now collapsed by default, and each option card includes an `Expand/Collapse` control to view full details on demand.
 - **Added mode-aware duplicate protection**: links already in history for the same mode (for example, video) are skipped, while downloading audio separately for the same URL is still allowed.
+- **Queue throughput is now faster in Downloader**: you can download up to two files in parallel, and pending tasks start automatically as slots become available.
+- **Improved multi-download UI in Downloader**: active jobs are now clearer, slot usage is visible, and cancel behavior is more explicit for parallel downloads.
+- **Multi-download in Downloader is now more capable**: active items show per-link progress, failed jobs can be retried quickly, and the parallel limit is now configurable in Settings.
 
 ### Tools tab
 
@@ -114,3 +117,4 @@
 - **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer, more consistent hover and press states.
 - **URL input in Downloader is now easier to use**: added clear inline link validation, cleaner action-button states, and improved clear/paste behavior.
 - **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
+- **Refined download queue visuals**: the list is now more compact, statuses are easier to read, and item alignment is cleaner.
