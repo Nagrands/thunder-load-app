@@ -113,3 +113,4 @@
 - **Cleaned up the Quality picker list**: duplicate values in option cards were removed, and format details are now grouped in a clearer, more compact layout.
 - **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer, more consistent hover and press states.
 - **URL input in Downloader is now easier to use**: added clear inline link validation, cleaner action-button states, and improved clear/paste behavior.
+- **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.

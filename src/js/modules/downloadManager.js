@@ -31,6 +31,7 @@ const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
 const queueIndicator = document.getElementById("queue-start-indicator");
 const queueList = document.getElementById("queue-list");
+const queueCapState = document.getElementById("queue-cap-state");
 const QUEUE_LOG_TAG = "[queue]";
 
 const DOWNLOAD_HISTORY_CACHE_TTL_MS = 12000;
@@ -71,6 +72,7 @@ function updateDownloaderTabLabel() {
 // === Queue helpers ===
 const QUEUE_MAX = 200;
 const QUEUE_STORAGE_KEY = "downloadQueue";
+let currentDownloadSignature = null;
 
 function persistQueue() {
   try {
@@ -101,15 +103,15 @@ function loadQueueFromStorage() {
   if (!Array.isArray(parsed)) return [];
   const unique = new Set();
   const restored = [];
-  const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
+  const currentSig = getCurrentDownloadSignature();
   for (const item of parsed) {
     const url = item?.url;
     const quality = item?.quality;
     if (!isValidUrl(url) || !isSupportedUrl(url)) continue;
-    const n = normalizeUrl(url);
-    if (!n || n === currentN || unique.has(n)) continue;
+    const signature = getQueueSignature(url, quality);
+    if (!signature || signature === currentSig || unique.has(signature)) continue;
     if (restored.length >= QUEUE_MAX) break;
-    unique.add(n);
+    unique.add(signature);
     restored.push({ url, quality });
   }
   console.log(QUEUE_LOG_TAG, "restore", {
@@ -226,6 +228,37 @@ function resolveDownloadKind(payloadOrEntry) {
   return "video";
 }
 
+function getQueueQualityLabel(quality) {
+  if (!quality) return t("quality.custom");
+  if (typeof quality === "string") return quality;
+  if (typeof quality?.label === "string" && quality.label.trim()) {
+    return quality.label.trim();
+  }
+  if (typeof quality?.quality === "string" && quality.quality.trim()) {
+    return quality.quality.trim();
+  }
+  if (quality?.type === "audio-only") return t("quality.audioOnly");
+  return t("quality.custom");
+}
+
+function getQueueSignature(url, quality) {
+  const normalizedUrl = normalizeUrl(url);
+  const kind = resolveDownloadKind(quality);
+  const label = getQueueQualityLabel(quality).trim().toLowerCase();
+  return `${normalizedUrl}::${kind}::${label}`;
+}
+
+function isSameQueueTask(a, b) {
+  if (!a || !b) return false;
+  return (
+    getQueueSignature(a.url, a.quality) === getQueueSignature(b.url, b.quality)
+  );
+}
+
+function getCurrentDownloadSignature() {
+  return currentDownloadSignature;
+}
+
 function buildDownloadedUrlMap(entries = []) {
   const map = new Map();
   for (const entry of entries) {
@@ -294,9 +327,9 @@ function markAsDownloaded(url, downloadKind) {
 }
 
 function enqueueMany(urls, quality, options = {}) {
-  const currentN = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
+  const activeSignature = getCurrentDownloadSignature();
   const existing = new Set(
-    state.downloadQueue.map((it) => normalizeUrl(it.url)),
+    state.downloadQueue.map((it) => getQueueSignature(it.url, it.quality)),
   );
   const downloadedMap = options.downloadedMap || getDownloadedUrlMapSync();
   let added = 0,
@@ -310,16 +343,16 @@ function enqueueMany(urls, quality, options = {}) {
       invalid++;
       continue;
     }
-    const n = normalizeUrl(raw);
+    const signature = getQueueSignature(raw, quality);
     if (isAlreadyDownloaded(raw, downloadedMap, quality)) {
       alreadyDownloaded++;
       continue;
     }
-    if (n === currentN) {
+    if (activeSignature && signature === activeSignature) {
       activeDup++;
       continue;
     }
-    if (existing.has(n)) {
+    if (existing.has(signature)) {
       duplicates++;
       continue;
     }
@@ -328,7 +361,7 @@ function enqueueMany(urls, quality, options = {}) {
       continue;
     }
     state.downloadQueue.push({ url: raw, quality });
-    existing.add(n);
+    existing.add(signature);
     added++;
   }
   persistQueue();
@@ -347,9 +380,15 @@ function enqueueMany(urls, quality, options = {}) {
 function updateQueueDisplay() {
   const count = state.downloadQueue.length;
   if (queueInfo && queueCount) {
+    queueInfo.classList.remove("is-near-limit", "is-full");
     if (count > 0) {
       queueInfo.classList.remove("hidden");
       queueCount.textContent = String(count);
+      if (count >= QUEUE_MAX) {
+        queueInfo.classList.add("is-full");
+      } else if (count >= Math.floor(QUEUE_MAX * 0.9)) {
+        queueInfo.classList.add("is-near-limit");
+      }
       if (queueStartButton) {
         queueStartButton.classList.remove("hidden");
         queueStartButton.disabled = state.isDownloading;
@@ -376,8 +415,26 @@ function updateQueueDisplay() {
             count === 1 ? t("queue.links.one") : t("queue.links.many");
         }
       }
+      if (queueCapState) {
+        if (count >= QUEUE_MAX) {
+          queueCapState.textContent = t("queue.limit.full");
+          queueCapState.classList.remove("hidden");
+        } else if (count >= Math.floor(QUEUE_MAX * 0.9)) {
+          queueCapState.textContent = t("queue.limit.near", {
+            count: QUEUE_MAX - count,
+          });
+          queueCapState.classList.remove("hidden");
+        } else {
+          queueCapState.textContent = "";
+          queueCapState.classList.add("hidden");
+        }
+      }
     } else {
       queueInfo.classList.add("hidden");
+      if (queueCapState) {
+        queueCapState.textContent = "";
+        queueCapState.classList.add("hidden");
+      }
       if (queueStartButton) {
         queueStartButton.classList.add("hidden");
         queueStartButton.disabled = true;
@@ -426,12 +483,15 @@ function updateQueueDisplay() {
             .map((item, idx) => {
               const urlLabel = makeLabel(item.url);
               const titleLabel = makeTitle(item.url);
+              const qualityLabel = getQueueQualityLabel(item.quality);
               const titleHtml = titleLabel
                 ? `<div class="queue-item-title">${escapeHtml(titleLabel)}</div>`
                 : "";
               const urlHtml = `<div class="queue-item-url">${escapeHtml(
                 urlLabel,
               )}</div>`;
+              const isFirst = idx === 0;
+              const isLast = idx === state.downloadQueue.length - 1;
               return `
                 <li>
                   <div class="queue-item-meta" title="${escapeHtml(
@@ -440,16 +500,49 @@ function updateQueueDisplay() {
                     ${titleHtml}
                     ${urlHtml}
                   </div>
-                  <button
-                    type="button"
-                    class="queue-item-remove"
-                    data-queue-remove="1"
-                    data-index="${idx}"
-                    title="${t("queue.item.remove.title")}"
-                    data-i18n-title="queue.item.remove.title"
-                  >
-                    <i class="fa-solid fa-xmark"></i>
-                  </button>
+                  <div class="queue-item-controls">
+                    <span
+                      class="queue-quality-chip"
+                      title="${escapeHtml(t("queue.quality.label"))}: ${escapeHtml(qualityLabel)}"
+                    >${escapeHtml(qualityLabel)}</span>
+                    <div class="queue-item-actions">
+                      <button
+                        type="button"
+                        class="queue-item-move"
+                        data-queue-move="up"
+                        data-index="${idx}"
+                        title="${t("queue.item.moveUp.title")}"
+                        aria-label="${t("queue.item.moveUp.title")}"
+                        data-i18n-title="queue.item.moveUp.title"
+                        ${isFirst ? "disabled" : ""}
+                      >
+                        <i class="fa-solid fa-chevron-up"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="queue-item-move"
+                        data-queue-move="down"
+                        data-index="${idx}"
+                        title="${t("queue.item.moveDown.title")}"
+                        aria-label="${t("queue.item.moveDown.title")}"
+                        data-i18n-title="queue.item.moveDown.title"
+                        ${isLast ? "disabled" : ""}
+                      >
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="queue-item-remove"
+                        data-queue-remove="1"
+                        data-index="${idx}"
+                        title="${t("queue.item.remove.title")}"
+                        aria-label="${t("queue.item.remove.title")}"
+                        data-i18n-title="queue.item.remove.title"
+                      >
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  </div>
                 </li>
               `;
             })
@@ -533,6 +626,7 @@ function normalizeSelection(selection) {
 const downloadVideo = async (url, quality) => {
   console.log("Инициирование загрузки по URL:", url, "с качеством:", quality);
   const requestedDownloadKind = resolveDownloadKind(quality);
+  currentDownloadSignature = getQueueSignature(url, quality);
   state.isDownloading = true;
   state.currentUrl = url;
   urlInput.disabled = true;
@@ -692,6 +786,7 @@ const downloadVideo = async (url, quality) => {
       }
     } catch {}
   } finally {
+    currentDownloadSignature = null;
     state.currentUrl = "";
     state.isDownloading = false;
     urlInput.disabled = false;
@@ -854,17 +949,33 @@ const handleDownloadButtonClick = async (options = {}) => {
     return;
   }
   if (state.isDownloading || options.enqueueOnly || enqueueFromModal) {
-    const nCurr = state.currentUrl ? normalizeUrl(state.currentUrl) : null;
-    if (nCurr === normalizeUrl(url)) {
+    const candidateTask = { url, quality: payload };
+    const candidateSignature = getQueueSignature(url, payload);
+    const activeSignature = getCurrentDownloadSignature();
+    if (activeSignature && candidateSignature === activeSignature) {
       showToast(t("download.url.active"), "warning");
       return;
     }
     if (
-      state.downloadQueue.some(
-        (item) => normalizeUrl(item.url) === normalizeUrl(url),
-      )
+      state.downloadQueue.some((item) => isSameQueueTask(item, candidateTask))
     ) {
       showToast(t("download.url.queued"), "info");
+      return;
+    }
+    if (state.downloadQueue.length >= QUEUE_MAX) {
+      showToast(
+        t("queue.summary.toast", {
+          summary: summarizeEnqueueResult({
+            added: 0,
+            duplicates: 0,
+            activeDup: 0,
+            invalid: 0,
+            capped: 1,
+            alreadyDownloaded: 0,
+          }),
+        }),
+        "warning",
+      );
       return;
     }
     state.downloadQueue.push({ url, quality: payload });
@@ -914,6 +1025,33 @@ function initDownloadButton() {
 
   if (queueList && !queueList.dataset.bound) {
     queueList.addEventListener("click", (e) => {
+      const moveBtn = e.target.closest("[data-queue-move]");
+      if (moveBtn) {
+        const idx = Number(moveBtn.dataset.index);
+        const direction = moveBtn.dataset.queueMove;
+        if (!Number.isFinite(idx)) return;
+        if (direction === "up" && idx > 0) {
+          const [item] = state.downloadQueue.splice(idx, 1);
+          state.downloadQueue.splice(idx - 1, 0, item);
+          persistQueue();
+          updateQueueDisplay();
+          console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx - 1 });
+          showToast(t("queue.item.movedUp"), "info");
+        } else if (
+          direction === "down" &&
+          idx >= 0 &&
+          idx < state.downloadQueue.length - 1
+        ) {
+          const [item] = state.downloadQueue.splice(idx, 1);
+          state.downloadQueue.splice(idx + 1, 0, item);
+          persistQueue();
+          updateQueueDisplay();
+          console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx + 1 });
+          showToast(t("queue.item.movedDown"), "info");
+        }
+        return;
+      }
+
       const btn = e.target.closest("[data-queue-remove]");
       if (!btn) return;
       const idx = Number(btn.dataset.index);
