@@ -11,6 +11,13 @@ import { t } from "./i18n.js";
 function initDownloadProgress() {
   let startedAt = null;
   let displayedProgress = 0;
+  const progressByJob = new Map();
+  let activeCount = Array.isArray(state.activeDownloads)
+    ? state.activeDownloads.length
+    : state.isDownloading
+      ? 1
+      : 0;
+  let prevActiveCount = activeCount;
   const topProgress = document.getElementById("top-download-progress");
   const topProgressFill = document.getElementById("top-download-progress-fill");
   let topProgressHideTimer = null;
@@ -41,28 +48,61 @@ function initDownloadProgress() {
   const resetProgressTracking = () => {
     startedAt = null;
     displayedProgress = 0;
+    progressByJob.clear();
     if (progressBarContainer) {
       progressBarContainer.style.setProperty("--progress-ratio", "0");
     }
   };
 
   window.electron.onProgress((progressValue) => {
-    if (!state.isDownloading) return;
-    const parsedProgress = Number(progressValue);
-    const progress = Number.isFinite(parsedProgress) ? parsedProgress : 0;
-    const normalizedProgress = Math.max(0, Math.min(100, progress));
-    const shouldTreatAsNewSequence =
-      displayedProgress >= 99 &&
-      normalizedProgress <= 20 &&
-      normalizedProgress < displayedProgress;
-    if (shouldTreatAsNewSequence) {
-      displayedProgress = normalizedProgress;
-      startedAt = Date.now();
+    const isBusy =
+      (Array.isArray(state.activeDownloads) && state.activeDownloads.length > 0) ||
+      state.isDownloading;
+    if (!isBusy && activeCount <= 0) return;
+
+    let normalizedProgress = 0;
+    if (typeof progressValue === "number") {
+      const progress = Number.isFinite(progressValue) ? progressValue : 0;
+      normalizedProgress = Math.max(0, Math.min(100, progress));
+      const shouldTreatAsNewSequence =
+        displayedProgress >= 99 &&
+        normalizedProgress <= 20 &&
+        normalizedProgress < displayedProgress;
+      if (shouldTreatAsNewSequence) {
+        displayedProgress = normalizedProgress;
+        startedAt = Date.now();
+      }
+      displayedProgress = Math.max(displayedProgress, normalizedProgress);
+    } else if (progressValue && typeof progressValue === "object") {
+      const parsedProgress = Number(progressValue.progress);
+      normalizedProgress = Number.isFinite(parsedProgress)
+        ? Math.max(0, Math.min(100, parsedProgress))
+        : 0;
+      const jobId = progressValue.jobId || "__unknown";
+      progressByJob.set(jobId, normalizedProgress);
+      try {
+        window.dispatchEvent(
+          new CustomEvent("download:progress-item", {
+            detail: { jobId, progress: normalizedProgress },
+          }),
+        );
+      } catch {}
+      const activeIds = Array.isArray(state.activeDownloads)
+        ? state.activeDownloads.map((item) => item.jobId).filter(Boolean)
+        : [];
+      const sourceValues =
+        activeIds.length > 0
+          ? activeIds.map((id) => progressByJob.get(id) || 0)
+          : Array.from(progressByJob.values());
+      const total = sourceValues.reduce((acc, value) => acc + value, 0);
+      displayedProgress =
+        sourceValues.length > 0 ? total / sourceValues.length : normalizedProgress;
+    } else {
+      return;
     }
-    if (startedAt === null) {
-      startedAt = Date.now();
-    }
-    displayedProgress = Math.max(displayedProgress, normalizedProgress);
+
+    if (startedAt === null) startedAt = Date.now();
+
     const progressStr = displayedProgress.toFixed(1);
     // ETA на основе скорости изменения процента
     let etaLabel = "";
@@ -76,10 +116,17 @@ function initDownloadProgress() {
       etaLabel = t("download.eta", { time });
     }
     const etaSuffix = etaLabel ? ` ${etaLabel}` : "";
-    buttonText.textContent = t("download.progress", {
-      progress: progressStr,
-      eta: etaSuffix,
-    });
+    if (activeCount > 1) {
+      buttonText.textContent = t("download.progress.multi", {
+        progress: progressStr,
+        count: activeCount,
+      });
+    } else {
+      buttonText.textContent = t("download.progress", {
+        progress: progressStr,
+        eta: etaSuffix,
+      });
+    }
     if (progressBarContainer) {
       progressBarContainer.style.setProperty(
         "--progress-ratio",
@@ -97,17 +144,28 @@ function initDownloadProgress() {
   });
 
   window.addEventListener("download:state", (event) => {
-    if (event?.detail?.isDownloading === true) {
+    const detail = event?.detail || {};
+    if (typeof detail.activeCount === "number") {
+      activeCount = Math.max(0, detail.activeCount);
+    } else if (detail.isDownloading === true) {
+      activeCount = Math.max(activeCount, 1);
+    } else if (detail.isDownloading === false) {
+      activeCount = 0;
+    }
+
+    if (prevActiveCount === 0 && activeCount > 0) {
       resetProgressTracking();
+      prevActiveCount = activeCount;
       return;
     }
-    if (event?.detail?.isDownloading === false) {
+    if (activeCount === 0 && prevActiveCount > 0) {
       hideTopIndicator();
       resetProgressTracking();
       if (progressBarContainer) {
         progressBarContainer.classList.remove("is-complete");
       }
     }
+    prevActiveCount = activeCount;
   });
 }
 

@@ -40,6 +40,7 @@ const elements = {
   openLastVideoButton: document.getElementById("open-last-video"),
   queueStartButton: document.getElementById("queue-start-button"),
   queueClearButton: document.getElementById("queue-clear-button"),
+  queueRetryFailedButton: document.getElementById("queue-retry-failed-button"),
   openHistoryButton: document.getElementById("open-history"),
   progressBarContainer: document.getElementById("progress-bar-container"),
   progressBar: document.getElementById("progress-bar"),
@@ -107,6 +108,7 @@ const OPTIONAL_KEYS = new Set([
   "enqueueButton",
   "queueStartButton",
   "queueClearButton",
+  "queueRetryFailedButton",
 ]);
 
 // Проверка наличия всех элементов и вывод ошибок
@@ -157,6 +159,7 @@ export const {
   openLastVideoButton,
   queueStartButton,
   queueClearButton,
+  queueRetryFailedButton,
   openHistoryButton,
   progressBarContainer,
   progressBar,

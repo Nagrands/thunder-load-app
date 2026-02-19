@@ -21,7 +21,7 @@ describe("downloadProgress", () => {
     jest.useRealTimers();
   });
 
-  it("keeps progress monotonic during active download", () => {
+  it("supports legacy numeric progress payload", () => {
     let progressHandler = null;
     window.electron = {
       onProgress: jest.fn((cb) => {
@@ -31,7 +31,7 @@ describe("downloadProgress", () => {
 
     jest.isolateModules(() => {
       jest.doMock("../state", () => ({
-        state: { isDownloading: true },
+        state: { isDownloading: true, activeDownloads: [] },
       }));
       jest.doMock("../domElements", () => ({
         buttonText: document.querySelector(".button-text"),
@@ -43,6 +43,8 @@ describe("downloadProgress", () => {
           if (key === "download.eta") return `ETA ${vars.time}`;
           if (key === "download.progress")
             return `Downloading ${vars.progress}${vars.eta || ""}`;
+          if (key === "download.progress.multi")
+            return `Downloading ${vars.progress}% (${vars.count} active)`;
           return key;
         }),
       }));
@@ -51,180 +53,126 @@ describe("downloadProgress", () => {
       initDownloadProgress();
     });
 
-    progressHandler(150);
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .style.getPropertyValue("--progress-ratio"),
-    ).toBe("1");
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .getAttribute("aria-valuenow"),
-    ).toBe("100.0");
-
-    progressHandler(90);
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .style.getPropertyValue("--progress-ratio"),
-    ).toBe("1");
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .getAttribute("aria-valuenow"),
-    ).toBe("100.0");
-  });
-
-  it("resets progress tracking after download state stops", () => {
-    let progressHandler = null;
-    window.electron = {
-      onProgress: jest.fn((cb) => {
-        progressHandler = cb;
-      }),
-    };
-
-    jest.isolateModules(() => {
-      jest.doMock("../state", () => ({
-        state: { isDownloading: true },
-      }));
-      jest.doMock("../domElements", () => ({
-        buttonText: document.querySelector(".button-text"),
-        progressBar: document.getElementById("progress-bar"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-      }));
-      jest.doMock("../i18n", () => ({
-        t: jest.fn((key, vars = {}) => {
-          if (key === "download.eta") return `ETA ${vars.time}`;
-          if (key === "download.progress")
-            return `Downloading ${vars.progress}${vars.eta || ""}`;
-          return key;
-        }),
-      }));
-
-      const { initDownloadProgress } = require("../downloadProgress");
-      initDownloadProgress();
-    });
-
-    progressHandler(100);
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .style.getPropertyValue("--progress-ratio"),
-    ).toBe("1");
-
-    window.dispatchEvent(
-      new CustomEvent("download:state", { detail: { isDownloading: false } }),
-    );
-    progressHandler(20);
-
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .style.getPropertyValue("--progress-ratio"),
-    ).toBe("0.2");
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .getAttribute("aria-valuenow"),
-    ).toBe("20.0");
-  });
-
-  it("recovers from stale 100% event when low real progress arrives", () => {
-    let progressHandler = null;
-    window.electron = {
-      onProgress: jest.fn((cb) => {
-        progressHandler = cb;
-      }),
-    };
-
-    jest.isolateModules(() => {
-      jest.doMock("../state", () => ({
-        state: { isDownloading: true },
-      }));
-      jest.doMock("../domElements", () => ({
-        buttonText: document.querySelector(".button-text"),
-        progressBar: document.getElementById("progress-bar"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-      }));
-      jest.doMock("../i18n", () => ({
-        t: jest.fn((key, vars = {}) => {
-          if (key === "download.eta") return `ETA ${vars.time}`;
-          if (key === "download.progress")
-            return `Downloading ${vars.progress}${vars.eta || ""}`;
-          return key;
-        }),
-      }));
-
-      const { initDownloadProgress } = require("../downloadProgress");
-      initDownloadProgress();
-    });
-
-    progressHandler(100);
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .style.getPropertyValue("--progress-ratio"),
-    ).toBe("1");
-
-    progressHandler(3);
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .style.getPropertyValue("--progress-ratio"),
-    ).toBe("0.03");
-    expect(
-      document
-        .getElementById("progress-bar-container")
-        .getAttribute("aria-valuenow"),
-    ).toBe("3.0");
-  });
-
-  it("does not set dataset progress/eta and clears top indicator by timer", () => {
-    let progressHandler = null;
-    window.electron = {
-      onProgress: jest.fn((cb) => {
-        progressHandler = cb;
-      }),
-    };
-
-    jest.isolateModules(() => {
-      jest.doMock("../state", () => ({
-        state: { isDownloading: true },
-      }));
-      jest.doMock("../domElements", () => ({
-        buttonText: document.querySelector(".button-text"),
-        progressBar: document.getElementById("progress-bar"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-      }));
-      jest.doMock("../i18n", () => ({
-        t: jest.fn((key, vars = {}) => {
-          if (key === "download.eta") return `ETA ${vars.time}`;
-          if (key === "download.progress")
-            return `Downloading ${vars.progress}${vars.eta || ""}`;
-          return key;
-        }),
-      }));
-
-      const { initDownloadProgress } = require("../downloadProgress");
-      initDownloadProgress();
-    });
-
-    progressHandler(100);
+    progressHandler(12);
     const container = document.getElementById("progress-bar-container");
-    const top = document.getElementById("top-download-progress");
-    const topFill = document.getElementById("top-download-progress-fill");
+    expect(container.style.getPropertyValue("--progress-ratio")).toBe("0.12");
+    expect(container.getAttribute("aria-valuenow")).toBe("12.0");
+  });
 
-    expect(container.dataset.progress).toBeUndefined();
-    expect(container.dataset.eta).toBeUndefined();
-    expect(top.classList.contains("is-visible")).toBe(true);
+  it("aggregates object payload progress for two active jobs", () => {
+    let progressHandler = null;
+    window.electron = {
+      onProgress: jest.fn((cb) => {
+        progressHandler = cb;
+      }),
+    };
+
+    jest.isolateModules(() => {
+      jest.doMock("../state", () => ({
+        state: {
+          isDownloading: false,
+          activeDownloads: [],
+        },
+      }));
+      jest.doMock("../domElements", () => ({
+        buttonText: document.querySelector(".button-text"),
+        progressBar: document.getElementById("progress-bar"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+      }));
+      jest.doMock("../i18n", () => ({
+        t: jest.fn((key, vars = {}) => {
+          if (key === "download.eta") return `ETA ${vars.time}`;
+          if (key === "download.progress")
+            return `Downloading ${vars.progress}${vars.eta || ""}`;
+          if (key === "download.progress.multi")
+            return `Downloading ${vars.progress}% (${vars.count} active)`;
+          return key;
+        }),
+      }));
+
+      const { initDownloadProgress } = require("../downloadProgress");
+      initDownloadProgress();
+    });
 
     window.dispatchEvent(
-      new CustomEvent("download:state", { detail: { isDownloading: false } }),
+      new CustomEvent("download:state", {
+        detail: { isDownloading: true, activeCount: 2 },
+      }),
+    );
+
+    progressHandler({ jobId: "a", progress: 40 });
+    progressHandler({ jobId: "b", progress: 20 });
+
+    const container = document.getElementById("progress-bar-container");
+    const text = document.querySelector(".button-text").textContent;
+    expect(container.style.getPropertyValue("--progress-ratio")).toBe("0.3");
+    expect(container.getAttribute("aria-valuenow")).toBe("30.0");
+    expect(text).toContain("(2 active)");
+  });
+
+  it("resets tracking when download state transitions to idle", () => {
+    let progressHandler = null;
+    window.electron = {
+      onProgress: jest.fn((cb) => {
+        progressHandler = cb;
+      }),
+    };
+
+    jest.isolateModules(() => {
+      jest.doMock("../state", () => ({
+        state: {
+          isDownloading: false,
+          activeDownloads: [],
+        },
+      }));
+      jest.doMock("../domElements", () => ({
+        buttonText: document.querySelector(".button-text"),
+        progressBar: document.getElementById("progress-bar"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+      }));
+      jest.doMock("../i18n", () => ({
+        t: jest.fn((key, vars = {}) => {
+          if (key === "download.eta") return `ETA ${vars.time}`;
+          if (key === "download.progress")
+            return `Downloading ${vars.progress}${vars.eta || ""}`;
+          if (key === "download.progress.multi")
+            return `Downloading ${vars.progress}% (${vars.count} active)`;
+          return key;
+        }),
+      }));
+
+      const { initDownloadProgress } = require("../downloadProgress");
+      initDownloadProgress();
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("download:state", {
+        detail: { isDownloading: true, activeCount: 2 },
+      }),
+    );
+    progressHandler({ jobId: "a", progress: 100 });
+    progressHandler({ jobId: "b", progress: 100 });
+
+    window.dispatchEvent(
+      new CustomEvent("download:state", {
+        detail: { isDownloading: false, activeCount: 0 },
+      }),
     );
     jest.advanceTimersByTime(601);
 
+    const top = document.getElementById("top-download-progress");
+    const topFill = document.getElementById("top-download-progress-fill");
     expect(top.classList.contains("is-visible")).toBe(false);
     expect(topFill.style.width).toBe("0%");
+
+    // New sequence starts from fresh value after idle reset.
+    window.dispatchEvent(
+      new CustomEvent("download:state", {
+        detail: { isDownloading: true, activeCount: 1 },
+      }),
+    );
+    progressHandler({ jobId: "c", progress: 25 });
+    const container = document.getElementById("progress-bar-container");
+    expect(container.getAttribute("aria-valuenow")).toBe("25.0");
   });
 });

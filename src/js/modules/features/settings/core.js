@@ -251,6 +251,61 @@ async function initSettings() {
       apply(read());
     });
   })();
+
+  (function initDownloadParallelLimit() {
+    const radios = document.querySelectorAll(
+      'input[name="downloadParallelLimit"]',
+    );
+    if (!radios || !radios.length) return;
+
+    const read = () => {
+      try {
+        const raw = Number(localStorage.getItem("downloadParallelLimit"));
+        if (!Number.isFinite(raw)) return 2;
+        return Math.max(1, Math.min(3, Math.trunc(raw)));
+      } catch {
+        return 2;
+      }
+    };
+
+    const apply = (value) => {
+      const v = String(value || 2);
+      radios.forEach((radio) => {
+        radio.checked = radio.value === v;
+      });
+    };
+
+    const write = (value) => {
+      const limit = Math.max(1, Math.min(3, Number(value) || 2));
+      try {
+        localStorage.setItem("downloadParallelLimit", String(limit));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("download:parallel-limit-changed", {
+          detail: { limit },
+        }),
+      );
+      window.electron
+        ?.invoke?.(
+          "toast",
+          t("settings.downloader.parallel.saved", { count: limit }),
+          "success",
+        )
+        .catch(() => {});
+    };
+
+    apply(read());
+    radios.forEach((radio) => {
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        write(radio.value);
+      });
+    });
+
+    window.electron.on("open-settings", () => {
+      apply(read());
+    });
+  })();
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");
   const fontSizeDropdownMenu = document.getElementById(
     "font-size-dropdown-menu",

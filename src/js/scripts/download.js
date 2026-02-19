@@ -1354,7 +1354,26 @@ function safeMoveFile(src, dest) {
   fs.renameSync(src, dest);
 }
 
-function createOverallProgressTracker(segmentCount, event) {
+function emitDownloadProgress(event, progress, options = {}) {
+  const { jobId = null, phase = "download" } = options;
+  const normalized = Math.max(0, Math.min(100, Number(progress) || 0));
+  try {
+    if (jobId) {
+      event.sender.send("download-progress", {
+        jobId,
+        progress: normalized,
+        phase,
+      });
+    } else {
+      event.sender.send("download-progress", normalized);
+    }
+  } catch (err) {
+    log.warn("Failed to send progress update:", err.message);
+  }
+}
+
+function createOverallProgressTracker(segmentCount, event, options = {}) {
+  const { jobId = null } = options;
   const totalSegments = Math.max(1, segmentCount || 1);
   let segmentIndex = 0;
   let lastRaw = 0;
@@ -1372,11 +1391,7 @@ function createOverallProgressTracker(segmentCount, event) {
       log.info(`Overall progress: ${overall.toFixed(2)}%`);
       lastLogged = overall;
     }
-    try {
-      event.sender.send("download-progress", overall);
-    } catch (err) {
-      log.warn("Failed to send progress update:", err.message);
-    }
+    emitDownloadProgress(event, overall, { jobId, phase: "download" });
   };
 }
 
@@ -1396,6 +1411,7 @@ async function downloadMedia(
   audioExt,
   videoExt,
   token = null,
+  jobId = null,
 ) {
   try {
     token = token || createDownloadToken();
@@ -1444,7 +1460,7 @@ async function downloadMedia(
             log.info(`Audio progress: ${progress.toFixed(2)}%`);
             lastLogged = progress;
           }
-          event.sender.send("download-progress", progress);
+          emitDownloadProgress(event, progress, { jobId, phase: "download" });
         };
         log.info("[download] Spawning yt-dlp for Twitch audio", {
           output: audioOutput,
@@ -1493,7 +1509,7 @@ async function downloadMedia(
               return reject(new Error(`yt-dlp audio exited with code ${code}`));
             }
             log.info(`Audio downloaded: ${audioOutput}`);
-            event.sender.send("download-progress", 100);
+            emitDownloadProgress(event, 100, { jobId, phase: "download" });
             resolve();
           });
         });
@@ -1515,7 +1531,7 @@ async function downloadMedia(
             log.info(`Audio progress: ${progress.toFixed(2)}%`);
             lastLogged = progress;
           }
-          event.sender.send("download-progress", progress);
+          emitDownloadProgress(event, progress, { jobId, phase: "download" });
         };
         log.info("[download] Spawning yt-dlp for audio-only download", {
           output: tempAudioPath,
@@ -1540,7 +1556,7 @@ async function downloadMedia(
         }
         safeMoveFile(tempAudioPath, finalAudioPath);
         log.info(`Audio downloaded: ${finalAudioPath}`);
-        event.sender.send("download-progress", 100);
+        emitDownloadProgress(event, 100, { jobId, phase: "download" });
         return finalAudioPath;
       }
     }
@@ -1559,6 +1575,7 @@ async function downloadMedia(
     const progressTracker = createOverallProgressTracker(
       combinedAvailable ? 2 : 1,
       event,
+      { jobId },
     );
 
     if (combinedAvailable) {
@@ -1599,7 +1616,7 @@ async function downloadMedia(
         throw err;
       }
       safeMoveFile(tempMergedOutput, finalMergedOutput);
-      event.sender.send("download-progress", 100);
+      emitDownloadProgress(event, 100, { jobId, phase: "download" });
       log.info(`[download] Combined stream saved as ${finalMergedOutput}`);
       return finalMergedOutput;
     }
@@ -1644,7 +1661,7 @@ async function downloadMedia(
       throw err;
     }
     safeMoveFile(tempOutput, finalOutput);
-    event.sender.send("download-progress", 100);
+    emitDownloadProgress(event, 100, { jobId, phase: "download" });
     log.info(`[download] Direct stream saved as ${finalOutput}`);
     return finalOutput;
   } catch (error) {
@@ -1665,81 +1682,89 @@ async function downloadMedia(
 /**
  * Останавливает все активные процессы и выполняет очистку.
  */
-async function stopDownload(token = activeDownloadToken) {
-  if (!token) {
+async function stopDownload(tokenOrTokens = activeDownloadToken) {
+  const tokens = Array.isArray(tokenOrTokens)
+    ? tokenOrTokens.filter(Boolean)
+    : tokenOrTokens
+      ? [tokenOrTokens]
+      : [];
+  if (tokens.length === 0) {
     log.info("No active download token to cancel.");
-    return;
-  }
-  cancelToken(token);
-  const controllerStore = getAbortStore(token);
-  for (const controller of controllerStore.values()) {
-    controller.abort();
-  }
-  controllerStore.clear();
-
-  const processes = [
-    { proc: token.activeProcesses?.getVideoInfo, name: "getVideoInfo" },
-    { proc: token.activeProcesses?.videoDownload, name: "video download" },
-    { proc: token.activeProcesses?.audioDownload, name: "audio download" },
-    { proc: token.activeProcesses?.merge, name: "merge" },
-  ];
-  const killPromises = processes.map(({ proc, name }) => {
-    return new Promise((resolve) => {
-      if (proc && !proc.killed) {
-        log.info(`Stopping ${name} process...`);
-        treeKill(proc.pid, "SIGTERM", (err) => {
-          if (err) {
-            log.error(`Error stopping ${name} process:`, err);
-            treeKill(proc.pid, "SIGKILL", (err2) => {
-              if (err2) {
-                log.error(`Failed to forcibly stop ${name}:`, err2);
-              } else {
-                log.info(`${name} process forcibly stopped.`);
-              }
-              resolve();
-            });
-          } else {
-            log.info(`${name} process stopped.`);
-            resolve();
-          }
-        });
-      } else {
-        resolve();
-      }
-    });
-  });
-  await Promise.all(killPromises);
-  if (token.activeProcesses) {
-    token.activeProcesses.getVideoInfo = null;
-    token.activeProcesses.videoDownload = null;
-    token.activeProcesses.audioDownload = null;
-    token.activeProcesses.merge = null;
+    return 0;
   }
 
-  // Очистка временных файлов с расширениями .part и .ytdl
-  if (token.currentDownloadPath) {
-    try {
-      const files = await fs.promises.readdir(token.currentDownloadPath);
-      const tempFiles = files.filter(
-        (file) => file.endsWith(".part") || file.endsWith(".ytdl"),
-      );
-      for (const file of tempFiles) {
-        const fullPath = path.join(token.currentDownloadPath, file);
-        try {
-          await fs.promises.unlink(fullPath);
-          log.info(`Temporary file deleted: ${fullPath}`);
-        } catch (err) {
-          log.error(`Error deleting temporary file ${fullPath}:`, err);
-        }
-      }
-    } catch (err) {
-      log.error("Error scanning download directory for temporary files:", err);
+  for (const token of tokens) {
+    cancelToken(token);
+    const controllerStore = getAbortStore(token);
+    for (const controller of controllerStore.values()) {
+      controller.abort();
     }
-    token.currentDownloadPath = null;
+    controllerStore.clear();
+
+    const processes = [
+      { proc: token.activeProcesses?.getVideoInfo, name: "getVideoInfo" },
+      { proc: token.activeProcesses?.videoDownload, name: "video download" },
+      { proc: token.activeProcesses?.audioDownload, name: "audio download" },
+      { proc: token.activeProcesses?.merge, name: "merge" },
+    ];
+    const killPromises = processes.map(({ proc, name }) => {
+      return new Promise((resolve) => {
+        if (proc && !proc.killed) {
+          log.info(`Stopping ${name} process...`);
+          treeKill(proc.pid, "SIGTERM", (err) => {
+            if (err) {
+              log.error(`Error stopping ${name} process:`, err);
+              treeKill(proc.pid, "SIGKILL", (err2) => {
+                if (err2) {
+                  log.error(`Failed to forcibly stop ${name}:`, err2);
+                } else {
+                  log.info(`${name} process forcibly stopped.`);
+                }
+                resolve();
+              });
+            } else {
+              log.info(`${name} process stopped.`);
+              resolve();
+            }
+          });
+        } else {
+          resolve();
+        }
+      });
+    });
+    await Promise.all(killPromises);
+    if (token.activeProcesses) {
+      token.activeProcesses.getVideoInfo = null;
+      token.activeProcesses.videoDownload = null;
+      token.activeProcesses.audioDownload = null;
+      token.activeProcesses.merge = null;
+    }
+
+    if (token.currentDownloadPath) {
+      try {
+        const files = await fs.promises.readdir(token.currentDownloadPath);
+        const tempFiles = files.filter(
+          (file) => file.endsWith(".part") || file.endsWith(".ytdl"),
+        );
+        for (const file of tempFiles) {
+          const fullPath = path.join(token.currentDownloadPath, file);
+          try {
+            await fs.promises.unlink(fullPath);
+            log.info(`Temporary file deleted: ${fullPath}`);
+          } catch (err) {
+            log.error(`Error deleting temporary file ${fullPath}:`, err);
+          }
+        }
+      } catch (err) {
+        log.error("Error scanning download directory for temporary files:", err);
+      }
+      token.currentDownloadPath = null;
+    }
   }
 
   setActiveDownloadToken(null);
-  log.info("Download cancelled.");
+  log.info("Download cancelled.", { count: tokens.length });
+  return tokens.length;
 }
 
 log.info(

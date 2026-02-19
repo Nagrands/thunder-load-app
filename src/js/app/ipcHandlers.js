@@ -104,6 +104,7 @@ function setupIpcHandlers(dependencies) {
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;
+  const MAX_PARALLEL_DOWNLOADS = 2;
 
   try {
     setSharedStore(store);
@@ -1449,10 +1450,14 @@ function setupIpcHandlers(dependencies) {
   }
 
   // Функция для начала процесса загрузки
-  async function startDownloadProcess(event, url, quality) {
+  async function startDownloadProcess(event, url, quality, jobId = null) {
     try {
       const token = createDownloadToken();
       setActiveDownloadToken(token);
+      if (jobId && downloadState.activeDownloads?.has(jobId)) {
+        const prev = downloadState.activeDownloads.get(jobId);
+        downloadState.activeDownloads.set(jobId, { ...prev, token });
+      }
 
       // Проверяем наличие утилит, не устанавливаем автоматически
       const tools = await getToolsVersions();
@@ -1508,6 +1513,7 @@ function setupIpcHandlers(dependencies) {
           audioExt,
           videoExt,
           token,
+          jobId,
         );
       } catch (error) {
         if (mainWindow && mainWindow.webContents) {
@@ -1929,41 +1935,66 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.DOWNLOAD_VIDEO, async (event, url, quality) => {
-    log.info("[queue] download-video invoked", { url, quality });
-    if (downloadState.downloadInProgress) {
-      throw new Error("Загрузка уже выполняется");
-    }
-
-    const normalizedUrl = normalizeUrl(url);
-    if (!normalizedUrl) {
-      throw new Error("Недопустимый URL");
-    }
-
-    downloadState.downloadInProgress = true;
-    try {
-      const result = await startDownloadProcess(event, normalizedUrl, quality);
-      downloadState.downloadInProgress = false;
-      return { ...result, sourceUrl: normalizedUrl };
-    } catch (error) {
-      downloadState.downloadInProgress = false;
-      if (error.message === "Download cancelled") {
-        return { cancelled: true };
-      } else {
-        notifyDownloadError(error);
-        throw error;
+  ipcMain.handle(
+    CHANNELS.DOWNLOAD_VIDEO,
+    async (event, url, quality, requestedJobId = null) => {
+      const jobId =
+        requestedJobId ||
+        `job-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+      if (!downloadState.activeDownloads) {
+        downloadState.activeDownloads = new Map();
       }
-    } finally {
-      setActiveDownloadToken(null);
-    }
-  });
+      log.info("[queue] download-video invoked", { url, quality, jobId });
+      if (downloadState.activeDownloads.size >= MAX_PARALLEL_DOWNLOADS) {
+        throw new Error("Parallel download limit reached");
+      }
+
+      const normalizedUrl = normalizeUrl(url);
+      if (!normalizedUrl) {
+        throw new Error("Недопустимый URL");
+      }
+
+      downloadState.activeDownloads.set(jobId, {
+        token: null,
+        url: normalizedUrl,
+        quality,
+        startedAt: Date.now(),
+      });
+      downloadState.downloadInProgress = downloadState.activeDownloads.size > 0;
+      try {
+        const result = await startDownloadProcess(
+          event,
+          normalizedUrl,
+          quality,
+          jobId,
+        );
+        return { ...result, sourceUrl: normalizedUrl, jobId };
+      } catch (error) {
+        if (error.message === "Download cancelled") {
+          return { cancelled: true, jobId };
+        } else {
+          notifyDownloadError(error);
+          throw error;
+        }
+      } finally {
+        downloadState.activeDownloads.delete(jobId);
+        downloadState.downloadInProgress = downloadState.activeDownloads.size > 0;
+        setActiveDownloadToken(null);
+      }
+    },
+  );
 
   ipcMain.handle(CHANNELS.STOP_DOWNLOAD, async () => {
     console.log("A request to stop download was received.");
     try {
-      await stopDownload();
+      const tokens = Array.from(
+        (downloadState.activeDownloads || new Map()).values(),
+      )
+        .map((entry) => entry?.token)
+        .filter(Boolean);
+      const cancelled = await stopDownload(tokens);
       console.log("The stopDownload() function was called successfully.");
-      return { success: true };
+      return { success: true, cancelled };
     } catch (error) {
       console.error("Error stopping download:", error);
       return { success: false, error: error.message };

@@ -316,3 +316,181 @@ describe("ipcHandlers tools quick actions", () => {
     );
   });
 });
+
+describe("ipcHandlers download pool", () => {
+  beforeEach(() => {
+    Object.keys(handlers).forEach((k) => delete handlers[k]);
+    jest.clearAllMocks();
+  });
+
+  function initHandlers() {
+    const { setupIpcHandlers } = require("../ipcHandlers");
+    setupIpcHandlers({
+      mainWindow: {
+        webContents: {
+          send: jest.fn(),
+          isDestroyed: () => false,
+          on: jest.fn(),
+        },
+      },
+      store: {
+        get: jest.fn((key, def) => def),
+        set: jest.fn(),
+        delete: jest.fn(),
+      },
+      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
+      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
+      setDownloadPath: jest.fn(),
+      historyFilePath: path.join(os.tmpdir(), "history.json"),
+      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
+      iconCache: new Map(),
+      clipboardMonitor: {},
+      setupGlobalShortcuts: jest.fn(),
+      notifyDownloadError: jest.fn(),
+      sendDownloadCompletionNotification: jest.fn(),
+      showTrayNotification: jest.fn(),
+      setReloadMenuEnabled: jest.fn(),
+      dispatchPendingWhatsNew: jest.fn(),
+      clearPendingWhatsNewVersion: jest.fn(),
+    });
+  }
+
+  const deferred = () => {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+
+  test("allows two parallel DOWNLOAD_VIDEO and rejects third", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const { getToolsVersions } = require("../toolsVersions");
+    const mediaA = deferred();
+    const mediaB = deferred();
+    let mediaCalls = 0;
+
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
+    });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Test title",
+      formats: [{ format_id: "best" }],
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia.mockImplementation(() => {
+      mediaCalls += 1;
+      if (mediaCalls === 1) return mediaA.promise;
+      if (mediaCalls === 2) return mediaB.promise;
+      return Promise.resolve("/tmp/file-3.mp4");
+    });
+
+    initHandlers();
+    const event = { sender: { send: jest.fn() } };
+    const p1 = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/a",
+      "Source",
+      "job-a",
+    );
+    const p2 = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/b",
+      "Source",
+      "job-b",
+    );
+
+    await expect(
+      handlers[CHANNELS.DOWNLOAD_VIDEO](
+        event,
+        "https://example.com/c",
+        "Source",
+        "job-c",
+      ),
+    ).rejects.toThrow("Parallel download limit reached");
+
+    mediaA.resolve("/tmp/file-a.mp4");
+    mediaB.resolve("/tmp/file-b.mp4");
+    await expect(p1).resolves.toEqual(
+      expect.objectContaining({
+        sourceUrl: expect.stringContaining("https://example.com/a"),
+      }),
+    );
+    await expect(p2).resolves.toEqual(
+      expect.objectContaining({
+        sourceUrl: expect.stringContaining("https://example.com/b"),
+      }),
+    );
+  });
+
+  test("STOP_DOWNLOAD cancels all active tokens", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const { getToolsVersions } = require("../toolsVersions");
+    const mediaA = deferred();
+    const mediaB = deferred();
+    const tokenA = { cancelled: false, activeProcesses: {} };
+    const tokenB = { cancelled: false, activeProcesses: {} };
+    let tokenCall = 0;
+
+    download.createDownloadToken.mockImplementation(() => {
+      tokenCall += 1;
+      return tokenCall === 1 ? tokenA : tokenB;
+    });
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
+    });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Test title",
+      formats: [{ format_id: "best" }],
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia
+      .mockImplementationOnce(() => mediaA.promise)
+      .mockImplementationOnce(() => mediaB.promise);
+    download.stopDownload.mockResolvedValue(2);
+
+    initHandlers();
+    const event = { sender: { send: jest.fn() } };
+    const p1 = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/a",
+      "Source",
+      "job-a",
+    );
+    const p2 = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/b",
+      "Source",
+      "job-b",
+    );
+
+    const stopResult = await handlers[CHANNELS.STOP_DOWNLOAD]();
+    expect(stopResult).toEqual({ success: true, cancelled: 2 });
+    expect(download.stopDownload).toHaveBeenCalledWith([tokenA, tokenB]);
+
+    mediaA.resolve("/tmp/file-a.mp4");
+    mediaB.resolve("/tmp/file-b.mp4");
+    await p1;
+    await p2;
+  });
+});

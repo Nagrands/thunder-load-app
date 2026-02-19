@@ -8,11 +8,25 @@ import {
 } from "./domElements.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
 
+const readParallelLimit = () => {
+  try {
+    const raw = Number(window.localStorage.getItem("downloadParallelLimit"));
+    if (!Number.isFinite(raw)) return 2;
+    return Math.max(1, Math.min(3, Math.trunc(raw)));
+  } catch {
+    return 2;
+  }
+};
+
 /**
  * Объект состояния приложения.
  */
 const state = {
   isDownloading: false,
+  activeDownloads: [],
+  failedDownloads: [],
+  maxParallelDownloads: readParallelLimit(),
+  suppressAutoPump: false,
   currentUrl: "",
   historyVisible: window.localStorage.getItem("historyVisible") === "true",
   theme: window.localStorage.getItem("theme") || "dark",
@@ -98,9 +112,14 @@ const updateButtonState = () => {
     enqueueButton.setAttribute("aria-disabled", !isValid);
   }
 
-  // Кнопка "Отмена загрузки" активна только когда что-то скачивается
-  downloadCancelButton.disabled = !state.isDownloading;
-  downloadCancelButton.style.display = state.isDownloading
+  const isBusy =
+    (Array.isArray(state.activeDownloads) && state.activeDownloads.length > 0) ||
+    state.isDownloading;
+  state.isDownloading = isBusy;
+
+  // Кнопка "Отмена загрузки" активна только когда есть активные задачи
+  downloadCancelButton.disabled = !isBusy;
+  downloadCancelButton.style.display = isBusy
     ? "inline-block"
     : "none";
 };
