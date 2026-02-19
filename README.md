@@ -40,10 +40,9 @@
 
 <p align="center">
   <img src="assets/screenshots/app_main.png" alt="Download Tab" width="45%" />
-  <img src="assets/screenshots/app_randomizer.png" alt="Backup Tab" width="45%" />
+  <img src="assets/screenshots/app_settings.png" alt="Settings" width="45%" />
 </p>
 <p align="center">
-  <img src="assets/screenshots/app_settings.png" alt="Settings" width="45%" />
   <img src="assets/screenshots/app_history.png" alt="Download History" width="45%" />
 </p>
 

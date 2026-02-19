@@ -7,7 +7,6 @@ const FIRST_RUN_KEY = "firstRunCompleted";
 const DEFAULT_TAB_FLAGS = {
   wireguard: true,
   backup: true,
-  randomizer: true,
 };
 
 const getFlag = (key, fallback) => {
@@ -29,21 +28,15 @@ const setFlag = (key, value) => {
 const applyTabFlags = (flags) => {
   const wgDisabled = !flags.wireguard;
   const backupDisabled = !flags.backup;
-  const randomizerDisabled = !flags.randomizer;
   setFlag("wgUnlockDisabled", wgDisabled);
   setFlag("backupDisabled", backupDisabled);
-  setFlag("randomizerDisabled", randomizerDisabled);
   updateModuleBadge("wg", wgDisabled);
   updateModuleBadge("backup", backupDisabled);
-  updateModuleBadge("randomizer", randomizerDisabled);
   window.dispatchEvent(
     new CustomEvent("wg:toggleDisabled", { detail: { disabled: wgDisabled } }),
   );
   window.dispatchEvent(
     new CustomEvent("backup:toggleDisabled", { detail: { disabled: backupDisabled } }),
-  );
-  window.dispatchEvent(
-    new CustomEvent("randomizer:toggleDisabled", { detail: { disabled: randomizerDisabled } }),
   );
 };
 
@@ -117,11 +110,6 @@ export function initFirstRunModal() {
     "backup",
     !getFlag("backupDisabled", DEFAULT_TAB_FLAGS.backup) ? true : false,
   );
-  setCheckboxValue(
-    "first-run-tab",
-    "randomizer",
-    !getFlag("randomizerDisabled", DEFAULT_TAB_FLAGS.randomizer) ? true : false,
-  );
 
   modal.style.display = "flex";
   modal.style.justifyContent = "center";
@@ -136,7 +124,6 @@ export function initFirstRunModal() {
     const flags = {
       wireguard: selectedTabs.includes("wireguard"),
       backup: selectedTabs.includes("backup"),
-      randomizer: selectedTabs.includes("randomizer"),
     };
 
     await setTheme(theme);

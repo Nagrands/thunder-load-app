@@ -52,7 +52,6 @@ async function ensureToolsInfo(force = false) {
 const moduleBadgeMap = {
   wg: { tab: "wgunlock-settings", badgeId: "tab-badge-wg" },
   backup: { tab: "backup-settings", badgeId: "tab-badge-backup" },
-  randomizer: { tab: "randomizer-settings", badgeId: "tab-badge-randomizer" },
 };
 const NETWORK_STATUS_VISIBILITY_KEY = "topbarNetworkStatusVisible";
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
@@ -203,7 +202,6 @@ async function initSettings() {
   window.addEventListener("i18n:changed", () => {
     updateModuleBadge("wg", readBool("wgUnlockDisabled", true));
     updateModuleBadge("backup", readBool("backupDisabled", false));
-    updateModuleBadge("randomizer", readBool("randomizerDisabled", false));
   });
 
   // Загрузчик: профиль качества по умолчанию
@@ -1132,81 +1130,6 @@ async function initSettings() {
   })();
   // === /Backup: отключение вкладки ===
 
-  // === Randomizer: отключение вкладки (settings toggle) ===
-  (function initRandomizerDisableToggle() {
-    const KEY = "randomizerDisabled";
-    const read = () => {
-      try {
-        const raw = localStorage.getItem(KEY);
-        if (raw === null) return true;
-        return JSON.parse(raw) === true;
-      } catch {
-        return true;
-      }
-    };
-
-    function toggleRandomizerControlsDisabled(disabled) {
-      const view =
-        document.getElementById("randomizer-view") ||
-        document.getElementById("randomizer-view-wrapper");
-      if (!view) return;
-      const ctrls = view.querySelectorAll("input, button, select, textarea");
-      ctrls.forEach((el) => {
-        el.disabled = !!disabled;
-        const label = el.closest(
-          "label, .form-check, .settings-row, .control-row",
-        );
-        if (label) label.classList.toggle("is-disabled", !!disabled);
-      });
-    }
-
-    const write = (v) => {
-      const val = !!v;
-      try {
-        localStorage.setItem(KEY, JSON.stringify(val));
-      } catch {}
-      try {
-        window.electron?.send?.("settings:set", { key: KEY, value: val });
-      } catch {}
-      window.dispatchEvent(
-        new CustomEvent("randomizer:toggleDisabled", {
-          detail: { disabled: val },
-        }),
-      );
-      toggleRandomizerControlsDisabled(val);
-      updateModuleBadge("randomizer", val);
-      window.electron?.invoke?.(
-        "toast",
-        val
-          ? t("settings.module.randomizer.disabled")
-          : t("settings.module.randomizer.enabled"),
-        val ? "info" : "success",
-      );
-    };
-
-    const modal =
-      document.getElementById("settings-modal") ||
-      document.querySelector("#settings");
-    if (!modal) return;
-    const input = modal.querySelector(
-      "#randomizer-settings #randomizer-disable-toggle, #randomizer-disable-toggle",
-    );
-    if (!input) return;
-    input.checked = read();
-    input.addEventListener("change", () => write(input.checked));
-    window.electron?.on?.("open-settings", () => {
-      const val = read();
-      input.checked = val;
-      toggleRandomizerControlsDisabled(val);
-      updateModuleBadge("randomizer", val);
-    });
-
-    const initVal = read();
-    toggleRandomizerControlsDisabled(initVal);
-    updateModuleBadge("randomizer", initVal);
-  })();
-  // === /Randomizer: отключение вкладки ===
-
   // === Backup: компактный список профилей ===
   (function initBackupViewModeToggle() {
     const input = document.getElementById("backup-compact-toggle");
@@ -1577,7 +1500,6 @@ async function collectCurrentConfig() {
     modules: {
       wgUnlockDisabled: readJsonFlag("wgUnlockDisabled", true),
       backupDisabled: readJsonFlag("backupDisabled", false),
-      randomizerDisabled: readJsonFlag("randomizerDisabled", true),
     },
     backup: {
       viewMode: backupViewMode,
@@ -1643,7 +1565,6 @@ async function applyConfig(config, options = {}) {
 
   writeJson("wgUnlockDisabled", !!cfg.modules.wgUnlockDisabled);
   writeJson("backupDisabled", !!cfg.modules.backupDisabled);
-  writeJson("randomizerDisabled", !!cfg.modules.randomizerDisabled);
   writeJson(
     "bk_view_mode",
     cfg.backup.viewMode === "compact" ? "compact" : "full",

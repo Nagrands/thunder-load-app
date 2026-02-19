@@ -30,7 +30,6 @@ export const DEFAULT_CONFIG = {
   modules: {
     wgUnlockDisabled: true,
     backupDisabled: false,
-    randomizerDisabled: true,
   },
   backup: {
     viewMode: "full",

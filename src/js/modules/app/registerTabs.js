@@ -1,7 +1,6 @@
 import TabSystem from "../tabSystem.js";
 import renderToolsView from "../views/toolsView.js";
 import renderBackup from "../views/backupView.js";
-import { createRandomizerView } from "../views/randomizerView.js";
 import renderDownloaderView from "../views/downloaderView.js";
 import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
 import { initWgAutoShutdownNotifier } from "../wgAutoShutdownNotifier.js";
@@ -35,11 +34,6 @@ function createWrappers(mainView) {
   backupWrapper.className = "view-wrapper tab-view";
   backupWrapper.style.display = "none";
 
-  const randomizerWrapper = document.createElement("div");
-  randomizerWrapper.id = "randomizer-view-wrapper";
-  randomizerWrapper.className = "view-wrapper tab-view";
-  randomizerWrapper.style.display = "none";
-
   Array.from(mainView.children).forEach((child) => {
     if (!child.matches(GLOBAL_SELECTOR)) {
       downloaderWrapper.appendChild(child);
@@ -49,12 +43,10 @@ function createWrappers(mainView) {
   mainView.prepend(downloaderWrapper);
   mainView.appendChild(wireguardWrapper);
   mainView.appendChild(backupWrapper);
-  mainView.appendChild(randomizerWrapper);
 
   return {
     backupWrapper,
     downloaderWrapper,
-    randomizerWrapper,
     wireguardWrapper,
   };
 }
@@ -67,8 +59,6 @@ export async function registerTabs(mainView) {
   };
 
   const tabs = new TabSystem(".group-menu", "#main-view");
-  let randomizerViewInstance = null;
-
   tabs.addTab(
     "download",
     t("tabs.download"),
@@ -110,27 +100,14 @@ export async function registerTabs(mainView) {
     { onShow: () => showHistory(false), onHide: () => showHistory(true) },
   );
 
-  tabs.addTab(
-    "randomizer",
-    t("tabs.randomizer"),
-    "fa-solid fa-shuffle",
-    () => {
-      if (!wrappers.randomizerWrapper.hasChildNodes()) {
-        if (randomizerViewInstance?.dispose) {
-          randomizerViewInstance.dispose();
-        }
-        randomizerViewInstance = createRandomizerView();
-        wrappers.randomizerWrapper.appendChild(randomizerViewInstance.element);
-      }
-      applyI18n(wrappers.randomizerWrapper);
-      return wrappers.randomizerWrapper;
-    },
-    { onShow: () => showHistory(false), onHide: () => showHistory(true) },
-  );
-
   const defaultTab = await getDefaultTab();
   const wgConfig = await window.electron.ipcRenderer.invoke("wg-get-config");
-  const tabToActivate = wgConfig.autosend ? "wireguard" : defaultTab;
+  const resolvedDefaultTab = ["download", "wireguard", "backup"].includes(
+    defaultTab,
+  )
+    ? defaultTab
+    : "download";
+  const tabToActivate = wgConfig.autosend ? "wireguard" : resolvedDefaultTab;
 
   initWgAutoShutdownNotifier({ autosend: !!wgConfig.autosend });
   tabs.activateTab(tabToActivate);

@@ -35,6 +35,26 @@ import {
   registerWgControls,
 } from "./registerGlobalListeners.js";
 
+function cleanupLegacyRandomizerStorage() {
+  const MIGRATION_KEY = "migration.randomizerRemoved.v1";
+  try {
+    if (localStorage.getItem(MIGRATION_KEY) === "1") return;
+    [
+      "randomizerItems",
+      "randomizerHistory",
+      "randomizerSettings",
+      "randomizerPool",
+      "randomizerPresets",
+      "randomizerCurrentPreset",
+      "randomizerDefaultPreset",
+      "randomizerDisabled",
+    ].forEach((key) => localStorage.removeItem(key));
+    localStorage.setItem(MIGRATION_KEY, "1");
+  } catch {
+    // ignore storage errors
+  }
+}
+
 async function applyPlatformClass() {
   try {
     const { isMac } = await window.electron.getPlatformInfo();
@@ -51,6 +71,7 @@ export async function startRenderer() {
     console.log("[Startup] Bootstrap loaded:", !!window.bootstrap);
     initLowEffectsFromStore();
     applyPlatformClass();
+    cleanupLegacyRandomizerStorage();
     initI18n();
     document.title = t("app.title");
     await initializeTheme();

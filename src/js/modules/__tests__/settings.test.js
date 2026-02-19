@@ -36,9 +36,6 @@ describe("updateModuleBadge", () => {
         <button class="tab-link" data-tab="backup-settings" id="btn-backup">
           <span class="tab-badge" id="tab-badge-backup" hidden>Вкл</span>
         </button>
-        <button class="tab-link" data-tab="randomizer-settings" id="btn-randomizer">
-          <span class="tab-badge tab-badge-off" id="tab-badge-randomizer">Выкл</span>
-        </button>
       </div>`;
     settingsModule = require("../settings");
   });
@@ -70,7 +67,6 @@ describe("updateModuleBadge", () => {
   it.each([
     ["wg", "btn-wg", "tab-badge-wg"],
     ["backup", "btn-backup", "tab-badge-backup"],
-    ["randomizer", "btn-randomizer", "tab-badge-randomizer"],
   ])("sets accessibility attrs for %s badge", (moduleKey, btnId, badgeId) => {
     settingsModule.__test_updateModuleBadge(moduleKey, true);
     const btn = document.getElementById(btnId);

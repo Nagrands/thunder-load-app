@@ -132,24 +132,6 @@ const localHotkeys = new Map([
     },
   ],
   [
-    "Ctrl+4",
-    () => {
-      if (tabSystemReference) {
-        tabSystemReference.activateTab("randomizer");
-        console.log("Переключено на вкладку Randomizer (Ctrl+4)");
-      }
-    },
-  ],
-  [
-    "Meta+4",
-    () => {
-      if (tabSystemReference) {
-        tabSystemReference.activateTab("randomizer");
-        console.log("Переключено на вкладку Randomizer (Meta+4)");
-      }
-    },
-  ],
-  [
     "Ctrl+D",
     () => {
       closeAllModals(modals);

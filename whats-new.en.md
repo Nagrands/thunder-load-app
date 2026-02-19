@@ -118,3 +118,4 @@
 - **URL input in Downloader is now easier to use**: added clear inline link validation, cleaner action-button states, and improved clear/paste behavior.
 - **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
 - **Refined download queue visuals**: the list is now more compact, statuses are easier to read, and item alignment is cleaner.
+- **The Randomizer tab has been removed**: the interface and settings are streamlined, and navigation now includes only active workflow tabs.

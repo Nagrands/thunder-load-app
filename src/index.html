@@ -1114,17 +1114,6 @@
                   <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
-              <button class="tab-link" data-tab="randomizer-settings">
-                <i class="fa-solid fa-shuffle"></i>
-                <span data-i18n="settings.tabs.randomizer">Randomizer</span>
-                <span
-                  class="tab-badge tab-badge-off"
-                  id="tab-badge-randomizer"
-                  hidden
-                >
-                  <span data-i18n="settings.tab.disabled">Выкл</span>
-                </span>
-              </button>
               <button class="tab-link" data-tab="appearance-settings">
                 <i class="fa-solid fa-palette"></i>
                 <span data-i18n="settings.tabs.appearance">Внешний вид</span>
@@ -1241,18 +1230,6 @@
                     <label for="settings-tab-backup">
                       <i class="fa-solid fa-box-archive"></i>
                       <strong data-i18n="tabs.backup">Backup</strong>
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-randomizer"
-                      name="defaultTab"
-                      value="randomizer"
-                    />
-                    <label for="settings-tab-randomizer">
-                      <i class="fa-solid fa-shuffle"></i>
-                      <strong data-i18n="tabs.randomizer">Randomizer</strong>
                     </label>
                   </li>
                 </ul>
@@ -1604,25 +1581,6 @@
                 </ul>
               </div>
 
-              <div id="randomizer-settings" class="tab-pane">
-                <h2 data-i18n="settings.randomizer.title">Вкладка «Randomizer»</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="randomizer-disable-toggle" checked />
-                    <label
-                      for="randomizer-disable-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрывает вкладку Randomizer и отключает все её элементы управления."
-                      data-i18n-title="settings.randomizer.disable.hint"
-                    >
-                      <i class="fa-solid fa-shuffle"></i>
-                      <strong data-i18n="settings.disableTab">Отключить вкладку</strong>
-                    </label>
-                  </li>
-                </ul>
-              </div>
-
               <!-- Appearance Settings Tab -->
               <div id="appearance-settings" class="tab-pane">
                 <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
@@ -1902,17 +1860,6 @@
               data-i18n-title="firstRun.tabs.backupHint"
             ></i>
           </label>
-          <label class="first-run-option">
-            <input type="checkbox" name="first-run-tab" value="randomizer" />
-            <span data-i18n="tabs.randomizer">Randomizer</span>
-            <i
-              class="fa-solid fa-circle-info first-run-hint"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Списки и рандомайзер"
-              data-i18n-title="firstRun.tabs.randomizerHint"
-            ></i>
-          </label>
         </div>
       </section>
 
@@ -2119,15 +2066,6 @@
                   >
                 </p>
               </li>
-            <li>
-              <strong>Ctrl + 4</strong>
-              <p>
-                <i class="fa-solid fa-shuffle"></i>
-                <span data-i18n="shortcuts.tab.randomizer"
-                  >Вкладка «Randomizer»</span
-                >
-              </p>
-            </li>
             <hr />
             <li>
               <strong>Ctrl + H</strong>

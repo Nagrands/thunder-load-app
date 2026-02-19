@@ -25,7 +25,6 @@ describe("firstRunModal", () => {
         <input type="checkbox" name="first-run-tab" value="download" checked disabled />
         <input type="checkbox" name="first-run-tab" value="wireguard" />
         <input type="checkbox" name="first-run-tab" value="backup" />
-        <input type="checkbox" name="first-run-tab" value="randomizer" checked />
       </div>`;
     localStorage.clear();
     jest.resetModules();
@@ -50,7 +49,6 @@ describe("firstRunModal", () => {
     expect(localStorage.getItem("firstRunCompleted")).toBe("1");
     expect(localStorage.getItem("wgUnlockDisabled")).toBe("true");
     expect(localStorage.getItem("backupDisabled")).toBe("true");
-    expect(localStorage.getItem("randomizerDisabled")).toBe("true");
   });
 
   test("does not show modal when already completed", async () => {
