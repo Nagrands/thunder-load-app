@@ -77,6 +77,25 @@ $themes: (
     sidebar-color: #e0e0e0,
     sidebar-list-color: #ffffff20,
     color-text-main: #dedede,
+    app-bg-gradient: radial-gradient(
+        120% 140% at 12% 6%,
+        rgba(94, 126, 186, 0.22) 0%,
+        rgba(19, 19, 19, 0) 48%
+      ),
+    app-bg-pattern: repeating-linear-gradient(
+        -20deg,
+        rgba(138, 176, 255, 0.085) 0 1px,
+        rgba(0, 0, 0, 0) 1px 24px
+      ),
+    app-bg-vignette: radial-gradient(
+        140% 120% at 50% 100%,
+        rgba(4, 6, 14, 0.54) 0%,
+        rgba(4, 6, 14, 0.82) 72%,
+        rgba(4, 6, 14, 0.92) 100%
+      ),
+    app-bg-blend: normal,
+    app-bg-size: 26px 26px,
+    app-bg-opacity: 1,
     color-youtube: #ce1312,
     color-twitch: #9e60fc,
     color-vkvideo: #0077ff,
@@ -155,6 +174,25 @@ $themes: (
     sidebar-color: #ffe9df,
     sidebar-list-color: rgba(255, 255, 255, 0.12),
     color-text-main: #dbd8d6,
+    app-bg-gradient: radial-gradient(
+        115% 130% at 10% 8%,
+        rgba(178, 190, 214, 0.22) 0%,
+        rgba(110, 114, 123, 0) 52%
+      ),
+    app-bg-pattern: repeating-linear-gradient(
+        -20deg,
+        rgba(96, 113, 143, 0.07) 0 1px,
+        rgba(0, 0, 0, 0) 1px 26px
+      ),
+    app-bg-vignette: radial-gradient(
+        140% 120% at 50% 100%,
+        rgba(86, 94, 111, 0.18) 0%,
+        rgba(100, 107, 123, 0.32) 76%,
+        rgba(92, 99, 114, 0.38) 100%
+      ),
+    app-bg-blend: normal,
+    app-bg-size: 28px 28px,
+    app-bg-opacity: 1,
     color-youtube: #ff6b6b,
     color-twitch: #c084fc,
     color-vkvideo: #fb923c,
@@ -233,6 +271,25 @@ $themes: (
     sidebar-color: #ffe9df,
     sidebar-list-color: rgba(255, 255, 255, 0.12),
     color-text-main: #ffe9df,
+    app-bg-gradient: radial-gradient(
+        120% 145% at 14% 8%,
+        rgba(255, 154, 92, 0.2) 0%,
+        rgba(33, 18, 37, 0) 50%
+      ),
+    app-bg-pattern: repeating-linear-gradient(
+        -20deg,
+        rgba(255, 182, 138, 0.08) 0 1px,
+        rgba(0, 0, 0, 0) 1px 25px
+      ),
+    app-bg-vignette: radial-gradient(
+        140% 120% at 50% 100%,
+        rgba(19, 8, 18, 0.34) 0%,
+        rgba(19, 8, 18, 0.62) 74%,
+        rgba(19, 8, 18, 0.72) 100%
+      ),
+    app-bg-blend: normal,
+    app-bg-size: 26px 26px,
+    app-bg-opacity: 1,
     color-youtube: #ff6b6b,
     color-twitch: #c084fc,
     color-vkvideo: #fb923c,
@@ -295,6 +352,25 @@ $themes: (
     sidebar-color: #e6f0ff,
     sidebar-list-color: rgba(255, 255, 255, 0.12),
     color-text-main: #e6f0ff,
+    app-bg-gradient: radial-gradient(
+        118% 142% at 12% 8%,
+        rgba(92, 160, 255, 0.2) 0%,
+        rgba(14, 20, 34, 0) 52%
+      ),
+    app-bg-pattern: repeating-linear-gradient(
+        -20deg,
+        rgba(146, 198, 255, 0.085) 0 1px,
+        rgba(0, 0, 0, 0) 1px 24px
+      ),
+    app-bg-vignette: radial-gradient(
+        140% 120% at 50% 100%,
+        rgba(5, 10, 18, 0.5) 0%,
+        rgba(5, 10, 18, 0.74) 72%,
+        rgba(5, 10, 18, 0.84) 100%
+      ),
+    app-bg-blend: normal,
+    app-bg-size: 24px 24px,
+    app-bg-opacity: 1,
     color-youtube: #ff453a,
     color-twitch: #9e60fc,
     color-vkvideo: #0a84ff,
@@ -358,6 +434,25 @@ $themes: (
     sidebar-color: #f7edff,
     sidebar-list-color: rgba(250, 245, 255, 0.1),
     color-text-main: #f7edff,
+    app-bg-gradient: radial-gradient(
+        118% 142% at 12% 8%,
+        rgba(192, 132, 252, 0.2) 0%,
+        rgba(24, 15, 36, 0) 50%
+      ),
+    app-bg-pattern: repeating-linear-gradient(
+        -20deg,
+        rgba(218, 179, 255, 0.085) 0 1px,
+        rgba(0, 0, 0, 0) 1px 24px
+      ),
+    app-bg-vignette: radial-gradient(
+        140% 120% at 50% 100%,
+        rgba(8, 4, 16, 0.5) 0%,
+        rgba(8, 4, 16, 0.72) 74%,
+        rgba(8, 4, 16, 0.82) 100%
+      ),
+    app-bg-blend: normal,
+    app-bg-size: 24px 24px,
+    app-bg-opacity: 1,
     color-youtube: #ff739b,
     color-twitch: #c084fc,
     color-vkvideo: #a78bfa,

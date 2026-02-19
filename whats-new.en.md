@@ -121,3 +121,6 @@
 - **The Randomizer tab has been removed**: the interface and settings are streamlined, and navigation now includes only active workflow tabs.
 - **Redesigned the Download History list**: the layout is cleaner and more compact, key actions are aligned more clearly, and entries are easier to scan even on narrow screens.
 - **Improved History list readability**: title/meta hierarchy is clearer, and filters/actions are cleaner and more stable on small screens.
+- **Refined the History filters panel**: the block is visually lighter, filter values are easier to read, and on small screens filters scroll smoothly in a single row.
+- **Expanded the History search field**: it is now noticeably wider on desktop, and on small screens it moves to a full-width row for easier input.
+- **Refreshed the app background**: the interface now uses a cleaner tech-lines style backdrop that feels more modern without reducing readability.
