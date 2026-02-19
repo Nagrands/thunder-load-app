@@ -111,3 +111,4 @@
 - **Fixed History context menu behavior**: when confirming record or file deletion, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
 - **Improved History entries**: details now expand by clicking the row, primary actions are kept in main buttons, and long “Source”/“File” values are cleaner with quick copy buttons.
 - **Cleaned up the Quality picker list**: duplicate values in option cards were removed, and format details are now grouped in a clearer, more compact layout.
+- **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer, more consistent hover and press states.
