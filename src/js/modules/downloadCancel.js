@@ -52,7 +52,10 @@ function initDownloadCancel() {
         cancelCountBadge.classList.add("hidden");
       }
       downloadCancelButton.setAttribute("title", t("actions.cancelDownload"));
-      downloadCancelButton.setAttribute("aria-label", t("actions.cancelDownload"));
+      downloadCancelButton.setAttribute(
+        "aria-label",
+        t("actions.cancelDownload"),
+      );
       downloadCancelButton.setAttribute(
         "data-bs-original-title",
         t("actions.cancelDownload"),

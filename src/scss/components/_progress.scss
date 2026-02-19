@@ -41,7 +41,8 @@
     var(--color-progress-bar) 80%
   );
   border-radius: 999px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-progress-bar) 32%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--color-progress-bar) 32%, transparent);
   transform-origin: left center;
   transform: scaleX(var(--progress-ratio));
   transition:

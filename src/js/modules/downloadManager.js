@@ -3,7 +3,6 @@
 import { historyContainer } from "./domElements.js";
 import { state, updateButtonState } from "./state.js";
 import { showToast } from "./toast.js";
-import { updateIcon } from "./iconUpdater.js";
 import {
   addNewEntryToHistory,
   updateDownloadCount,
@@ -25,7 +24,7 @@ import {
 import { openDownloadQualityModal } from "./downloadQualityModal.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { getLanguage, t } from "./i18n.js";
-import { getCachedVideoInfo, setCachedVideoInfo } from "./videoInfoCache.js";
+import { getCachedVideoInfo } from "./videoInfoCache.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
@@ -89,7 +88,8 @@ function syncDownloadState() {
   const activeCount = Array.isArray(state.activeDownloads)
     ? state.activeDownloads.length
     : 0;
-  const maxActive = Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
+  const maxActive =
+    Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   state.isDownloading = activeCount > 0;
   if (activeCount > 0 && buttonText) {
     buttonText.textContent = t("download.pool.status", {
@@ -148,7 +148,9 @@ function getCurrentDownloadSignatures() {
 function getFailedSignatures() {
   if (!Array.isArray(state.failedDownloads)) return new Set();
   return new Set(
-    state.failedDownloads.map((item) => getQueueSignature(item.url, item.quality)),
+    state.failedDownloads.map((item) =>
+      getQueueSignature(item.url, item.quality),
+    ),
   );
 }
 
@@ -803,7 +805,6 @@ function updateQueueDisplay() {
   updateDownloaderTabLabel();
 }
 
-let lastInputBeforeDownload = null;
 let lastChosenQuality = null;
 let lastChosenQualityLabel = null;
 let progressResetTimer = null;
@@ -820,12 +821,6 @@ const resetProgressIndicator = () => {
   progressBarContainer.classList.remove("is-active", "is-complete");
   progressBarContainer.setAttribute("aria-valuenow", "0");
   progressBarContainer.style.setProperty("--progress-ratio", "0");
-};
-
-const getQualityLabel = (quality) => {
-  if (!quality) return t("quality.source");
-  if (typeof quality === "string") return quality;
-  return quality.label || t("quality.custom");
 };
 
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
@@ -994,7 +989,8 @@ function pumpDownloadPool(reason = "auto") {
   const activeCount = Array.isArray(state.activeDownloads)
     ? state.activeDownloads.length
     : 0;
-  const maxActive = Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
+  const maxActive =
+    Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   while (
     Array.isArray(state.activeDownloads) &&
     state.activeDownloads.length < maxActive &&
@@ -1009,7 +1005,11 @@ function pumpDownloadPool(reason = "auto") {
     persistQueue();
     updateQueueDisplay();
     if (reason !== "silent") showQueueStartIndicator();
-    console.log(QUEUE_LOG_TAG, "pump", { reason, started, activeCountBefore: activeCount });
+    console.log(QUEUE_LOG_TAG, "pump", {
+      reason,
+      started,
+      activeCountBefore: activeCount,
+    });
   }
 }
 
@@ -1021,7 +1021,8 @@ const initiateDownload = async (url, quality, options = {}) => {
     return null;
   }
 
-  const maxActive = Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
+  const maxActive =
+    Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   if (state.activeDownloads.length >= maxActive) {
     if (!fromQueue) {
       state.downloadQueue.push({ url, quality });
@@ -1086,7 +1087,8 @@ const initiateDownload = async (url, quality, options = {}) => {
 const handleDownloadButtonClick = async (options = {}) => {
   state.suppressAutoPump = false;
   const raw = urlInput.value.trim();
-  const maxActive = Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
+  const maxActive =
+    Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   const isPoolFull = state.activeDownloads.length >= maxActive;
 
   // Извлекаем URL из произвольного текста
@@ -1102,7 +1104,6 @@ const handleDownloadButtonClick = async (options = {}) => {
   // Если несколько: стартуем первый/добавляем остальные в очередь
   if (validUrls.length > 1) {
     const first = validUrls[0];
-    const rest = validUrls.slice(1);
     const selectionRaw = await openDownloadQualityModal(first, {
       presetQuality: resolvePresetQuality(),
       preferredLabel: lastChosenQualityLabel || readLastQuality(),
@@ -1145,12 +1146,7 @@ const handleDownloadButtonClick = async (options = {}) => {
         ...options,
         downloadedMap,
       });
-      if (
-        res.added ||
-        res.duplicates ||
-        res.invalid ||
-        res.alreadyDownloaded
-      ) {
+      if (res.added || res.duplicates || res.invalid || res.alreadyDownloaded) {
         showToast(
           t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
           "info",
@@ -1355,7 +1351,9 @@ function initDownloadButton() {
       state.failedDownloads = [];
       persistFailedQueue();
       const existing = new Set(
-        state.downloadQueue.map((item) => getQueueSignature(item.url, item.quality)),
+        state.downloadQueue.map((item) =>
+          getQueueSignature(item.url, item.quality),
+        ),
       );
       const active = getCurrentDownloadSignatures();
       let added = 0;

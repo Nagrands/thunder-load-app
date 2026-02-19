@@ -335,7 +335,9 @@ export default function renderBackup() {
   // Ленивая инициализация тултипов: только создание отсутствующих экземпляров
   const initBackupTooltips = (root = wrapper) => {
     if (!root || !bootstrap?.Tooltip) return;
-    const tooltipTriggerList = root.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipTriggerList = root.querySelectorAll(
+      '[data-bs-toggle="tooltip"]',
+    );
     tooltipTriggerList.forEach((tooltipTriggerEl) => {
       ensureTooltip(tooltipTriggerEl);
     });
@@ -1430,7 +1432,10 @@ export default function renderBackup() {
     row.setAttribute("aria-pressed", isSelected ? "true" : "false");
     row.tabIndex = 0;
     row.setAttribute("role", "button");
-    row.setAttribute("aria-label", `${p.name}: ${p.source_path} → ${p.backup_path}`);
+    row.setAttribute(
+      "aria-label",
+      `${p.name}: ${p.source_path} → ${p.backup_path}`,
+    );
     root.appendChild(row);
     applyLockToRow(row, locked);
     return row;
@@ -1637,8 +1642,8 @@ export default function renderBackup() {
           ?.addEventListener("click", resetFilters);
       } else {
         root
-            .querySelector("#bk-create-first")
-            ?.addEventListener("click", () => showEditForm(-1));
+          .querySelector("#bk-create-first")
+          ?.addEventListener("click", () => showEditForm(-1));
       }
       hasRenderedListOnce = true;
       return;
@@ -1673,7 +1678,9 @@ export default function renderBackup() {
     if (indexedPaged.length >= VIRTUALIZATION_MIN_ITEMS) {
       clearVirtualization = renderVirtualizedRows(root, indexedPaged);
     } else {
-      indexedPaged.forEach((entry) => createProgramRow(entry, entry.pageIndex, root));
+      indexedPaged.forEach((entry) =>
+        createProgramRow(entry, entry.pageIndex, root),
+      );
       queueMicrotask(() => initBackupTooltips(root));
     }
 

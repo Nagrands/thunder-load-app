@@ -84,4 +84,3 @@ function registerDismissibleOverlay({
 }
 
 export { registerDismissibleOverlay, closeDismissibleOverlays };
-

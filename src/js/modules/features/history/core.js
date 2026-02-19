@@ -2271,7 +2271,8 @@ function createLogEntry(entry) {
     menuButton.setAttribute("aria-expanded", willOpen ? "true" : "false");
     if (willOpen) {
       if (!menuButton.dataset.tooltipTitle) {
-        menuButton.dataset.tooltipTitle = menuButton.getAttribute("title") || "";
+        menuButton.dataset.tooltipTitle =
+          menuButton.getAttribute("title") || "";
       }
       menuButton.removeAttribute("title");
       menuButton.setAttribute("data-bs-original-title", "");
@@ -2325,7 +2326,10 @@ function createLogEntry(entry) {
     const downloadPreviewBtn = document.createElement("button");
     downloadPreviewBtn.type = "button";
     downloadPreviewBtn.className = "history-row__preview-download";
-    downloadPreviewBtn.setAttribute("aria-label", t("history.preview.download"));
+    downloadPreviewBtn.setAttribute(
+      "aria-label",
+      t("history.preview.download"),
+    );
     downloadPreviewBtn.setAttribute(
       "data-i18n-aria",
       "history.preview.download",
@@ -2842,7 +2846,8 @@ function renderHistory(entries, meta = {}) {
   if (filtersRow) filtersRow.classList.remove("hidden");
 
   syncSelectedEntriesWith(pageEntries);
-  const shouldVirtualize = pageEntries.length >= HISTORY_VIRTUALIZATION_MIN_ITEMS;
+  const shouldVirtualize =
+    pageEntries.length >= HISTORY_VIRTUALIZATION_MIN_ITEMS;
   container.dataset.virtualized = shouldVirtualize ? "true" : "false";
   if (shouldVirtualize) {
     historyVirtualList = renderHistoryVirtualized(container, pageEntries);

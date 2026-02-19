@@ -1,11 +1,7 @@
 // src/js/modules/downloadProgress.js
 
 import { state } from "./state.js";
-import {
-  buttonText,
-  progressBar,
-  progressBarContainer,
-} from "./domElements.js";
+import { buttonText, progressBarContainer } from "./domElements.js";
 import { t } from "./i18n.js";
 
 function initDownloadProgress() {
@@ -56,7 +52,8 @@ function initDownloadProgress() {
 
   window.electron.onProgress((progressValue) => {
     const isBusy =
-      (Array.isArray(state.activeDownloads) && state.activeDownloads.length > 0) ||
+      (Array.isArray(state.activeDownloads) &&
+        state.activeDownloads.length > 0) ||
       state.isDownloading;
     if (!isBusy && activeCount <= 0) return;
 
@@ -96,7 +93,9 @@ function initDownloadProgress() {
           : Array.from(progressByJob.values());
       const total = sourceValues.reduce((acc, value) => acc + value, 0);
       displayedProgress =
-        sourceValues.length > 0 ? total / sourceValues.length : normalizedProgress;
+        sourceValues.length > 0
+          ? total / sourceValues.length
+          : normalizedProgress;
     } else {
       return;
     }

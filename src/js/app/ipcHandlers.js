@@ -587,21 +587,25 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT, async () => {
-    try {
-      return createWindowsDesktopShortcut({
-        fileName: "Restart to UEFI.lnk",
-        target: "C:\\Windows\\System32\\cmd.exe",
-        args: '/c "shutdown /r /fw /f /t 0 || shutdown /r /o /f /t 0"',
-        description: "Restart to UEFI firmware settings (fallback to advanced startup)",
-        iconPath: "C:\\Windows\\System32\\imageres.dll",
-        iconIndex: 106,
-      });
-    } catch (error) {
-      log.error("tools:createWindowsUefiRebootShortcut error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
+  ipcMain.handle(
+    CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT,
+    async () => {
+      try {
+        return createWindowsDesktopShortcut({
+          fileName: "Restart to UEFI.lnk",
+          target: "C:\\Windows\\System32\\cmd.exe",
+          args: '/c "shutdown /r /fw /f /t 0 || shutdown /r /o /f /t 0"',
+          description:
+            "Restart to UEFI firmware settings (fallback to advanced startup)",
+          iconPath: "C:\\Windows\\System32\\imageres.dll",
+          iconIndex: 106,
+        });
+      } catch (error) {
+        log.error("tools:createWindowsUefiRebootShortcut error:", error);
+        return { success: false, error: error.message || String(error) };
+      }
+    },
+  );
 
   ipcMain.handle(
     CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT,
@@ -1666,11 +1670,16 @@ function setupIpcHandlers(dependencies) {
 
     iconCandidates.push(path.join(__dirname, "../../../assets/icons/icon.ico"));
 
-    const iconPath = iconCandidates.find((candidate) => fs.existsSync(candidate));
+    const iconPath = iconCandidates.find((candidate) =>
+      fs.existsSync(candidate),
+    );
     return iconPath || exePath;
   }
 
-  function resolveWindowsIconReference(preferredIconPath, preferredIconIndex = 0) {
+  function resolveWindowsIconReference(
+    preferredIconPath,
+    preferredIconIndex = 0,
+  ) {
     if (
       typeof preferredIconPath === "string" &&
       preferredIconPath &&
@@ -1678,7 +1687,9 @@ function setupIpcHandlers(dependencies) {
     ) {
       return {
         icon: preferredIconPath,
-        iconIndex: Number.isInteger(preferredIconIndex) ? preferredIconIndex : 0,
+        iconIndex: Number.isInteger(preferredIconIndex)
+          ? preferredIconIndex
+          : 0,
       };
     }
     return {
@@ -1713,8 +1724,18 @@ function setupIpcHandlers(dependencies) {
 
     const candidateNames = [iconName, "video"];
     for (const name of candidateNames) {
-      const svgPath = path.join(app.getAppPath(), "assets", "icons", `${name}.svg`);
-      const pngPath = path.join(app.getAppPath(), "assets", "icons", `${name}.png`);
+      const svgPath = path.join(
+        app.getAppPath(),
+        "assets",
+        "icons",
+        `${name}.svg`,
+      );
+      const pngPath = path.join(
+        app.getAppPath(),
+        "assets",
+        "icons",
+        `${name}.png`,
+      );
 
       try {
         await fs.promises.access(svgPath);
@@ -1978,7 +1999,8 @@ function setupIpcHandlers(dependencies) {
         }
       } finally {
         downloadState.activeDownloads.delete(jobId);
-        downloadState.downloadInProgress = downloadState.activeDownloads.size > 0;
+        downloadState.downloadInProgress =
+          downloadState.activeDownloads.size > 0;
         setActiveDownloadToken(null);
       }
     },

@@ -179,7 +179,8 @@ describe("ipcHandlers tools quick actions", () => {
     const { CHANNELS } = require("../../ipc/channels");
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
+    const result =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
 
     expect(result.success).toBe(false);
     expect(result.unsupported).toBe(true);
@@ -195,7 +196,8 @@ describe("ipcHandlers tools quick actions", () => {
     shell.writeShortcutLink.mockReturnValue(true);
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
+    const result =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
 
     expect(result.success).toBe(true);
     expect(shell.writeShortcutLink).toHaveBeenCalledWith(
@@ -259,11 +261,15 @@ describe("ipcHandlers tools quick actions", () => {
     const networkSettingsResult =
       await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT]();
 
-    [uefiResult, advancedBootResult, deviceManagerResult, networkSettingsResult]
-      .forEach((result) => {
-        expect(result.success).toBe(false);
-        expect(result.unsupported).toBe(true);
-      });
+    [
+      uefiResult,
+      advancedBootResult,
+      deviceManagerResult,
+      networkSettingsResult,
+    ].forEach((result) => {
+      expect(result.success).toBe(false);
+      expect(result.unsupported).toBe(true);
+    });
   });
 
   test("new windows shortcut handlers set icon fields on windows", async () => {

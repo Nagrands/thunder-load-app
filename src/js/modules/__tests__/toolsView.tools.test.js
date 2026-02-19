@@ -123,9 +123,9 @@ describe("toolsView quick actions", () => {
 
   test("opens launcher by default and shows power tool on macos", async () => {
     const el = await renderView();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
     expect(el.querySelector("#tools-open-wg")).not.toBeNull();
     expect(el.querySelector("#tools-open-hash")).not.toBeNull();
     expect(
@@ -146,9 +146,7 @@ describe("toolsView quick actions", () => {
       el
         .querySelector(".tools-launcher-section-title")
         ?.getAttribute("data-i18n"),
-    ).toBe(
-      "tools.launcher.availableTitle",
-    );
+    ).toBe("tools.launcher.availableTitle");
   });
 
   test("shows total tools counter for macos", async () => {
@@ -172,18 +170,18 @@ describe("toolsView quick actions", () => {
       platform: "win32",
     });
     const el = await renderView();
-    expect(el.querySelector("#tools-open-power")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-open-power")?.classList.contains("hidden"),
+    ).toBe(false);
     expect(el.querySelectorAll(".tools-launcher-button").length).toBe(3);
   });
 
   test("opens launcher by default even if last tool is stored", async () => {
     localStorage.setItem("toolsLastView", "hash");
     const el = await renderView();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
     expect(
       el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
     ).toBe(true);
@@ -193,15 +191,15 @@ describe("toolsView quick actions", () => {
     localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "hash");
     const el = await renderView();
-    expect(el.querySelector('#tools-launcher')?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(true);
     expect(
       el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
     ).toBe(false);
-    expect(el.querySelector("#tools-back-btn")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-back-btn")?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("falls back to launcher when last view power is unavailable", async () => {
@@ -212,11 +210,13 @@ describe("toolsView quick actions", () => {
       platform: "linux",
     });
     const el = await renderView();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
-    );
     expect(
-      el.querySelector('[data-tool-view="power"]')?.classList.contains("hidden"),
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector('[data-tool-view="power"]')
+        ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
       "tools.launcher.totalLabel: 2",
@@ -232,15 +232,15 @@ describe("toolsView quick actions", () => {
   test("opens WG view from launcher and shows back button", async () => {
     const el = await renderView();
     await openTool(el, "wg");
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(true);
     expect(
       el.querySelector('[data-tool-view="wg"]')?.classList.contains("hidden"),
     ).toBe(false);
-    expect(el.querySelector("#tools-back-btn")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-back-btn")?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("back button returns to launcher", async () => {
@@ -248,36 +248,40 @@ describe("toolsView quick actions", () => {
     await openTool(el, "hash");
     el.querySelector("#tools-back-btn")?.click();
     await nextTick();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("breadcrumbs stay visible and return to launcher", async () => {
     const el = await renderView();
     await openTool(el, "wg");
-    expect(el.querySelector("#tools-launcher-header")?.classList.contains("hidden")).toBe(
-      false,
-    );
-    expect(el.querySelector("#tools-breadcrumb-current")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-launcher-header")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector("#tools-breadcrumb-current")
+        ?.classList.contains("hidden"),
+    ).toBe(false);
     el.querySelector("#tools-breadcrumb-tools")?.click();
     await nextTick();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("escape in tool view returns to launcher", async () => {
     const el = await renderView();
     await openTool(el, "hash");
     const root = el.querySelector("#wireguard-view");
-    root?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    await nextTick();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
     );
+    await nextTick();
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("Esc key variant in tool view returns to launcher", async () => {
@@ -285,12 +289,16 @@ describe("toolsView quick actions", () => {
     await openTool(el, "hash");
     const root = el.querySelector("#wireguard-view");
     root?.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Esc", code: "Escape", bubbles: true }),
+      new KeyboardEvent("keydown", {
+        key: "Esc",
+        code: "Escape",
+        bubbles: true,
+      }),
     );
     await nextTick();
-    expect(el.querySelector("#tools-launcher")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("launcher arrow navigation moves focus to next tool", async () => {
@@ -371,13 +379,19 @@ describe("toolsView quick actions", () => {
 
     const quickCard = el.querySelector(".tools-card-wg-quick");
     const primarySend = quickCard?.querySelector("#wg-send");
-    const secondaryLabel = quickCard?.querySelector(".tools-card__secondary-label");
-    const secondaryActions = quickCard?.querySelector(".tools-card__secondary-actions");
+    const secondaryLabel = quickCard?.querySelector(
+      ".tools-card__secondary-label",
+    );
+    const secondaryActions = quickCard?.querySelector(
+      ".tools-card__secondary-actions",
+    );
 
     expect(primarySend).not.toBeNull();
     expect(secondaryLabel?.textContent).toBe("More actions");
     expect(secondaryActions?.querySelector("#wg-reset")).not.toBeNull();
-    expect(secondaryActions?.querySelector("#wg-open-config-file")).not.toBeNull();
+    expect(
+      secondaryActions?.querySelector("#wg-open-config-file"),
+    ).not.toBeNull();
     expect(secondaryActions?.querySelector("#wg-help")).not.toBeNull();
   });
 
@@ -487,7 +501,9 @@ describe("toolsView quick actions", () => {
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("abcd");
     expect(copyBtn.querySelector("span")).toBeNull();
-    expect(copyBtn.querySelector("i")?.classList.contains("fa-check")).toBe(true);
+    expect(copyBtn.querySelector("i")?.classList.contains("fa-check")).toBe(
+      true,
+    );
     expect(copyFeedback?.textContent).toBe("hashCheck.copySuccess");
   });
 
@@ -718,7 +734,9 @@ describe("toolsView quick actions", () => {
     const uefiBtn = el.querySelector("#create-uefi-shortcut");
     const advancedBootBtn = el.querySelector("#create-advanced-boot-shortcut");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
-    const deviceManagerBtn = el.querySelector("#create-device-manager-shortcut");
+    const deviceManagerBtn = el.querySelector(
+      "#create-device-manager-shortcut",
+    );
     const networkSettingsBtn = el.querySelector(
       "#create-network-settings-shortcut",
     );
@@ -811,9 +829,9 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(showConfirmationDialog).toHaveBeenCalled();
-    expect(window.electron.tools.createWindowsUefiRebootShortcut).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(
+      window.electron.tools.createWindowsUefiRebootShortcut,
+    ).toHaveBeenCalledTimes(1);
     expect(el.querySelector("#uefi-shortcut-result")?.textContent).toBe(
       "quickActions.uefi.created",
     );

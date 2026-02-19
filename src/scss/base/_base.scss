@@ -26,14 +26,15 @@ body {
   height: 100vh;
   position: relative;
   user-select: none;
+  --app-bg-alpha: var(--app-bg-opacity, 1);
   background-image:
-    var(--app-bg-vignette),
-    var(--app-bg-gradient),
-    var(--app-bg-pattern);
+    var(--app-bg-vignette), var(--app-bg-gradient), var(--app-bg-pattern);
   background-position: center;
   background-repeat: no-repeat, no-repeat, repeat;
   background-size: cover, cover, var(--app-bg-size);
   background-blend-mode: var(--app-bg-blend);
+  background-attachment: fixed, fixed, fixed;
+  opacity: 1;
 }
 
 body.modal-scroll-lock {
@@ -134,10 +135,10 @@ body.low-effects * {
 }
 
 body.low-effects {
-  background-image:
-    var(--app-bg-vignette),
-    var(--app-bg-gradient) !important;
+  --app-bg-alpha: 0.42;
+  background-image: var(--app-bg-vignette), var(--app-bg-gradient) !important;
   background-repeat: no-repeat, no-repeat !important;
   background-size: cover, cover !important;
+  background-position: center, center !important;
   background-blend-mode: normal !important;
 }

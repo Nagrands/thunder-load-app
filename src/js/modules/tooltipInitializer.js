@@ -363,7 +363,7 @@ function applyHotkeyTitles(tooltipTriggerList, isMac) {
       previousHotkeySuffix &&
       baseTitle.endsWith(` (${previousHotkeySuffix})`)
     ) {
-      baseTitle = baseTitle.slice(0, -(` (${previousHotkeySuffix})`.length));
+      baseTitle = baseTitle.slice(0, -` (${previousHotkeySuffix})`.length);
     }
     const hotkey = el.dataset.hotkey;
     if (!baseTitle) {
@@ -419,7 +419,10 @@ function initTooltips(root = document) {
   );
 
   // Патч Bootstrap Tooltip для безопасного вызова _isWithActiveTrigger
-  if (!activeTriggerPatched && bootstrap?.Tooltip?.prototype?._isWithActiveTrigger) {
+  if (
+    !activeTriggerPatched &&
+    bootstrap?.Tooltip?.prototype?._isWithActiveTrigger
+  ) {
     const original = bootstrap.Tooltip.prototype._isWithActiveTrigger;
 
     bootstrap.Tooltip.prototype._isWithActiveTrigger = function (trigger) {

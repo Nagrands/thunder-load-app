@@ -1528,7 +1528,8 @@ $wg-max-width: 1200px;
     color: var(--color-highlight);
     font-size: 0.8rem;
     line-height: 1.25;
-    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
+    font-family:
+      "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     white-space: nowrap;
     overflow-x: auto;
@@ -1778,7 +1779,9 @@ $wg-max-width: 1200px;
     background-position:
       calc(100% - 18px) 53%,
       calc(100% - 12px) 53%;
-    background-size: 6px 6px, 6px 6px;
+    background-size:
+      6px 6px,
+      6px 6px;
     background-repeat: no-repeat;
   }
 

@@ -326,7 +326,10 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
 
       const { state } = require("../state");
-      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
 
       state.downloadQueue = [
         { url: "https://example.com/a", quality: "Source" },
@@ -338,8 +341,12 @@ describe("downloadManager queue smart logic", () => {
       const downBtn = document.querySelector(
         '.queue-item-actions [data-queue-move="down"][data-index="0"]',
       );
-      const pendingRow = document.querySelector("#queue-list li:not(.is-active):not(.is-failed)");
-      expect(pendingRow?.querySelector(".queue-item-chips .queue-quality-chip")).toBeTruthy();
+      const pendingRow = document.querySelector(
+        "#queue-list li:not(.is-active):not(.is-failed)",
+      );
+      expect(
+        pendingRow?.querySelector(".queue-item-chips .queue-quality-chip"),
+      ).toBeTruthy();
       downBtn.click();
       expect(state.downloadQueue[0].url).toBe("https://example.com/b");
 
@@ -499,7 +506,8 @@ describe("downloadManager queue smart logic", () => {
         t: jest.fn((key, params = {}) => {
           if (key === "queue.item.active") return "Выполняется";
           if (key === "queue.item.failed") return "Ошибка";
-          if (key === "queue.item.retrying") return "Повторная загрузка запущена.";
+          if (key === "queue.item.retrying")
+            return "Повторная загрузка запущена.";
           if (key === "queue.retryFailed.toast")
             return `Повтор: ${params.count || 0} задач`;
           if (key === "queue.limit.near")
@@ -512,7 +520,10 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
 
       const { state } = require("../state");
-      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
       state.failedDownloads = [
         { url: "https://example.com/failed", quality: "Source" },
       ];
@@ -522,8 +533,14 @@ describe("downloadManager queue smart logic", () => {
 
       const failedRow = document.querySelector("#queue-list li.is-failed");
       expect(failedRow).toBeTruthy();
-      expect(failedRow?.querySelector(".queue-item-chips .queue-quality-chip")).toBeTruthy();
-      expect(failedRow?.querySelector(".queue-item-actions [data-queue-remove-failed]")).toBeTruthy();
+      expect(
+        failedRow?.querySelector(".queue-item-chips .queue-quality-chip"),
+      ).toBeTruthy();
+      expect(
+        failedRow?.querySelector(
+          ".queue-item-actions [data-queue-remove-failed]",
+        ),
+      ).toBeTruthy();
       const retryBtn = failedRow.querySelector("[data-queue-retry-failed]");
       retryBtn.click();
       await Promise.resolve();
@@ -617,9 +634,9 @@ describe("downloadManager progress activity class", () => {
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
       await promise;
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
-      expect(progressBarContainer.style.getPropertyValue("--progress-ratio")).toBe(
-        "0",
-      );
+      expect(
+        progressBarContainer.style.getPropertyValue("--progress-ratio"),
+      ).toBe("0");
       expect(progressBarContainer.getAttribute("aria-valuenow")).toBe("0");
     });
   });
@@ -697,9 +714,9 @@ describe("downloadManager progress activity class", () => {
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
       await jest.advanceTimersByTimeAsync(901);
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
-      expect(progressBarContainer.style.getPropertyValue("--progress-ratio")).toBe(
-        "0",
-      );
+      expect(
+        progressBarContainer.style.getPropertyValue("--progress-ratio"),
+      ).toBe("0");
       expect(progressBarContainer.getAttribute("aria-valuenow")).toBe("0");
     });
     jest.useRealTimers();
@@ -830,11 +847,17 @@ describe("downloadManager parallel pool", () => {
       jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
 
       const { state } = require("../state");
-      const { initiateDownload, handleDownloadButtonClick } = require("../downloadManager");
+      const {
+        initiateDownload,
+        handleDownloadButtonClick,
+      } = require("../downloadManager");
       const urlInput = document.getElementById("url");
 
       state.maxParallelDownloads = 2;
-      const activePromise = initiateDownload("https://example.com/active", "Source");
+      const activePromise = initiateDownload(
+        "https://example.com/active",
+        "Source",
+      );
       await Promise.resolve();
       expect(state.activeDownloads.length).toBe(1);
 
@@ -915,7 +938,9 @@ describe("downloadManager parallel pool", () => {
       const { state } = require("../state");
       const { initiateDownload } = require("../downloadManager");
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [{ url: "https://example.com/c", quality: "Source" }];
+      state.downloadQueue = [
+        { url: "https://example.com/c", quality: "Source" },
+      ];
 
       const p1 = initiateDownload("https://example.com/a", "Source");
       const p2 = initiateDownload("https://example.com/b", "Source");

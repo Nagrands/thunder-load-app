@@ -43,7 +43,8 @@ export const translations = {
     "tabs.download": "Загрузчик",
     "tabs.wireguard": "WG Unlock",
     "tabs.tools": "Tools",
-    "tabs.backup": "Backup",    "quality.title": "Выбор качества",
+    "tabs.backup": "Backup",
+    "quality.title": "Выбор качества",
     "quality.subtitle": "Загрузка",
     "quality.close": "Закрыть окно",
     "quality.openSource": "Открыть источник",
@@ -68,7 +69,8 @@ export const translations = {
     "quality.selected": "Выбранный вариант",
     "quality.notSelected": "Вариант не выбран",
     "quality.selectHint": "Выберите качество в списке выше.",
-    "quality.resultPlaceholder": "Итог загрузки появится после выбора варианта.",
+    "quality.resultPlaceholder":
+      "Итог загрузки появится после выбора варианта.",
     "quality.resultSummary":
       "Итог: {quality} • Контейнер: {container} • Размер: {size}",
     "quality.metric.resolution": "Разрешение",
@@ -113,7 +115,8 @@ export const translations = {
     "settings.tabs.general": "Общие",
     "settings.tabs.downloader": "Загрузчик",
     "settings.tabs.wg": "Tools",
-    "settings.tabs.backup": "Backup",    "settings.tabs.appearance": "Внешний вид",
+    "settings.tabs.backup": "Backup",
+    "settings.tabs.appearance": "Внешний вид",
     "settings.tabs.other": "Другое",
     "settings.tab.enabled": "Вкл",
     "settings.tab.disabled": "Выкл",
@@ -123,7 +126,8 @@ export const translations = {
     "firstRun.tabs": "Вкладки для работы",
     "firstRun.tabs.downloadHint": "Загрузка видео и аудио",
     "firstRun.tabs.wgHint": "WG Unlock, Hash Check и быстрые инструменты",
-    "firstRun.tabs.backupHint": "Резервные копии и профили",    "firstRun.theme": "Цветовая тема",
+    "firstRun.tabs.backupHint": "Резервные копии и профили",
+    "firstRun.theme": "Цветовая тема",
     "firstRun.apply": "Применить",
     "settings.startup.title": "Настройки запуска",
     "settings.startup.hint":
@@ -160,7 +164,8 @@ export const translations = {
     "settings.downloader.profile.audio.desc":
       "Открывает только звуковые дорожки без видео.",
     "settings.downloader.parallel.title": "Одновременные загрузки",
-    "settings.downloader.parallel.saved": "Лимит одновременных загрузок: {count}",
+    "settings.downloader.parallel.saved":
+      "Лимит одновременных загрузок: {count}",
     "settings.downloader.expandAfter":
       "Разворачивать окно <strong>по окончанию загрузки</strong>",
     "settings.downloader.expandOnCopy":
@@ -175,8 +180,7 @@ export const translations = {
     "settings.wg.disable.hint":
       "Скрывает вкладку Tools и отключает её запуск. При отключении связанные параметры становятся недоступны.",
     "settings.wg.autosend": "Авто‑отправка при запуске приложения",
-    "settings.wg.rememberLastTool":
-      "Запоминать последний открытый инструмент",
+    "settings.wg.rememberLastTool": "Запоминать последний открытый инструмент",
     "settings.wg.rememberLastTool.hint":
       "При следующем открытии вкладки Tools сразу показывает инструмент, который был открыт последним.",
     "settings.wg.autoclose.hint":
@@ -203,7 +207,8 @@ export const translations = {
       "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
     "quickActions.restart.title": "Создание ярлыка перезагрузки",
     "quickActions.restart.cardTitle": "Перезагрузка",
-    "quickActions.restart.cardHint": "Перезапускает Windows сразу после запуска ярлыка.",
+    "quickActions.restart.cardHint":
+      "Перезапускает Windows сразу после запуска ярлыка.",
     "quickActions.restart.action": "Создать ярлык перезагрузки",
     "quickActions.restart.confirm": "Создать ярлык перезагрузки?",
     "quickActions.restart.error": "Не удалось создать ярлык перезагрузки",
@@ -221,8 +226,7 @@ export const translations = {
     "quickActions.advancedBoot.cardHint":
       "Открывает дополнительные параметры восстановления Windows.",
     "quickActions.advancedBoot.action": "Создать ярлык расширенной загрузки",
-    "quickActions.advancedBoot.confirm":
-      "Создать ярлык расширенной загрузки?",
+    "quickActions.advancedBoot.confirm": "Создать ярлык расширенной загрузки?",
     "quickActions.advancedBoot.error":
       "Не удалось создать ярлык расширенной загрузки",
     "quickActions.advancedBoot.created":
@@ -234,30 +238,23 @@ export const translations = {
     "quickActions.shutdown.action": "Создать ярлык выключения",
     "quickActions.shutdown.confirm": "Создать ярлык выключения?",
     "quickActions.shutdown.error": "Не удалось создать ярлык выключения",
-    "quickActions.shutdown.created":
-      "Ярлык выключения создан: Рабочий стол",
-    "quickActions.deviceManager.title":
-      "Создание ярлыка диспетчера устройств",
+    "quickActions.shutdown.created": "Ярлык выключения создан: Рабочий стол",
+    "quickActions.deviceManager.title": "Создание ярлыка диспетчера устройств",
     "quickActions.deviceManager.cardTitle": "Диспетчер устройств",
     "quickActions.deviceManager.cardHint":
       "Быстрый доступ к управлению устройствами и драйверами.",
-    "quickActions.deviceManager.action":
-      "Создать ярлык диспетчера устройств",
-    "quickActions.deviceManager.confirm":
-      "Создать ярлык диспетчера устройств?",
+    "quickActions.deviceManager.action": "Создать ярлык диспетчера устройств",
+    "quickActions.deviceManager.confirm": "Создать ярлык диспетчера устройств?",
     "quickActions.deviceManager.error":
       "Не удалось создать ярлык диспетчера устройств",
     "quickActions.deviceManager.created":
       "Ярлык диспетчера устройств создан: Рабочий стол",
-    "quickActions.networkSettings.title":
-      "Создание ярлыка параметров сети",
+    "quickActions.networkSettings.title": "Создание ярлыка параметров сети",
     "quickActions.networkSettings.cardTitle": "Параметры сети",
     "quickActions.networkSettings.cardHint":
       "Открывает современное окно сетевых параметров Windows.",
-    "quickActions.networkSettings.action":
-      "Создать ярлык параметров сети",
-    "quickActions.networkSettings.confirm":
-      "Создать ярлык параметров сети?",
+    "quickActions.networkSettings.action": "Создать ярлык параметров сети",
+    "quickActions.networkSettings.confirm": "Создать ярлык параметров сети?",
     "quickActions.networkSettings.error":
       "Не удалось создать ярлык параметров сети",
     "quickActions.networkSettings.created":
@@ -280,25 +277,21 @@ export const translations = {
     "tools.launcher.open.power": "Ярлыки питания",
     "tools.launcher.desc.wg": "Быстрое восстановление WireGuard.",
     "tools.launcher.desc.hash": "Сравнение контрольных сумм файлов.",
-    "tools.launcher.desc.power":
-      "Создание ярлыков в Windows.",
+    "tools.launcher.desc.power": "Создание ярлыков в Windows.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",
     "tools.launcher.shortcut.power": "Alt+3",
     "tools.launcher.shortcut.wg.mac": "⌥1",
     "tools.launcher.shortcut.hash.mac": "⌥2",
     "tools.launcher.shortcut.power.mac": "⌥3",
-    "tools.launcher.hotkeysHint":
-      "Горячие клавиши: Alt+1, Alt+2, Alt+3, Esc",
-    "tools.launcher.hotkeysHint.mac":
-      "Горячие клавиши: ⌥1, ⌥2, ⌥3, Esc",
+    "tools.launcher.hotkeysHint": "Горячие клавиши: Alt+1, Alt+2, Alt+3, Esc",
+    "tools.launcher.hotkeysHint.mac": "Горячие клавиши: ⌥1, ⌥2, ⌥3, Esc",
     "tools.nav.back": "Назад к инструментам",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Проверка хеша",
     "tools.nav.current.power": "Ярлыки питания",
     "hashCheck.title": "Проверка хеша",
-    "hashCheck.subtitle":
-      "Проверьте целостность файла по контрольной сумме.",
+    "hashCheck.subtitle": "Проверьте целостность файла по контрольной сумме.",
     "hashCheck.file1": "Файл 1",
     "hashCheck.file2": "Файл 2",
     "hashCheck.pickFile": "Выбрать файл",
@@ -308,8 +301,7 @@ export const translations = {
     "hashCheck.clearSecond": "Очистить файл 2",
     "hashCheck.algorithm": "Алгоритм",
     "hashCheck.expected": "Ожидаемый хеш",
-    "hashCheck.expectedPlaceholder":
-      "Вставьте хеш для сравнения (опционально)",
+    "hashCheck.expectedPlaceholder": "Вставьте хеш для сравнения (опционально)",
     "hashCheck.expectedHint":
       "Если выбран второй файл, ожидаемый хеш сравнивается с каждым файлом отдельно.",
     "hashCheck.run": "Проверить",
@@ -354,7 +346,8 @@ export const translations = {
     "wg.actions.more": "Доп. действия",
     "wg.action.reset.title": "Сбросить значения полей",
     "wg.action.editConfig.title": "Открыть конфигурацию WireGuard",
-    "wg.action.openNetworkSettings.title": "Открыть системные сетевые настройки",
+    "wg.action.openNetworkSettings.title":
+      "Открыть системные сетевые настройки",
     "wg.action.openNetworkSettings.mac": "Открыть настройки сети (macOS)",
     "wg.action.openNetworkSettings.windows": "Открыть параметры сети (Windows)",
     "wg.help.tooltip": "Зачем нужна эта вкладка",
@@ -362,7 +355,7 @@ export const translations = {
     "wg.help.subtitle": "Коротко о том, когда это полезно",
     "wg.help.confirm": "Понятно",
     "wg.help.messageHtml":
-      "<div class=\"toast-message\"><p>WG Unlock помогает восстановить работу WireGuard, когда соединение «засыпает» или сеть после смены Wi-Fi работает нестабильно.</p><ul><li>Отправляет UDP-сигнал на указанный адрес и порт.</li><li>Удобен после сна ноутбука, смены сети и при нестабильном VPN.</li><li>Не заменяет WireGuard-клиент: при проблемах сервера/ключей может не помочь.</li></ul></div>",
+      '<div class="toast-message"><p>WG Unlock помогает восстановить работу WireGuard, когда соединение «засыпает» или сеть после смены Wi-Fi работает нестабильно.</p><ul><li>Отправляет UDP-сигнал на указанный адрес и порт.</li><li>Удобен после сна ноутбука, смены сети и при нестабильном VPN.</li><li>Не заменяет WireGuard-клиент: при проблемах сервера/ключей может не помочь.</li></ul></div>',
     "wg.info.title": "Информация",
     "wg.info.body":
       "Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.",
@@ -679,7 +672,8 @@ export const translations = {
     "shortcuts.toggleTheme": "Переключить тему",
     "shortcuts.tab.downloader": "Вкладка «Загрузчик»",
     "shortcuts.tab.wg": "Вкладка «Tools»",
-    "shortcuts.tab.backup": "Вкладка «Backup»",    "shortcuts.history": "История загрузок",
+    "shortcuts.tab.backup": "Вкладка «Backup»",
+    "shortcuts.history": "История загрузок",
     "shortcuts.downloadsFolder": "Папка с загрузками",
     "shortcuts.downloadHint": "При наличии ссылки в поле ввода URL",
     "shortcuts.startDownload": "Начать скачивание",
@@ -798,8 +792,7 @@ export const translations = {
     "settings.theme.set": "Выбрана тема: <strong>{theme}</strong>",
     "settings.theme.reset":
       "<strong>Тема</strong> сброшена на <strong>{theme}</strong>",
-    "settings.module.wg.disabled":
-      "Вкладка <strong>Tools</strong> отключена",
+    "settings.module.wg.disabled": "Вкладка <strong>Tools</strong> отключена",
     "settings.module.wg.enabled": "Вкладка <strong>Tools</strong> включена",
     "settings.module.backup.disabled":
       "Вкладка <strong>Backup</strong> отключена",
@@ -1130,7 +1123,8 @@ export const translations = {
     "tabs.download": "Downloader",
     "tabs.wireguard": "WG Unlock",
     "tabs.tools": "Tools",
-    "tabs.backup": "Backup",    "quality.title": "Quality selection",
+    "tabs.backup": "Backup",
+    "quality.title": "Quality selection",
     "quality.subtitle": "Download",
     "quality.close": "Close dialog",
     "quality.openSource": "Open source",
@@ -1155,7 +1149,8 @@ export const translations = {
     "quality.selected": "Selected option",
     "quality.notSelected": "No option selected",
     "quality.selectHint": "Pick a quality option from the list above.",
-    "quality.resultPlaceholder": "Final download output appears after selection.",
+    "quality.resultPlaceholder":
+      "Final download output appears after selection.",
     "quality.resultSummary":
       "Output: {quality} • Container: {container} • Size: {size}",
     "quality.metric.resolution": "Resolution",
@@ -1200,17 +1195,20 @@ export const translations = {
     "settings.tabs.general": "General",
     "settings.tabs.downloader": "Downloader",
     "settings.tabs.wg": "Tools",
-    "settings.tabs.backup": "Backup",    "settings.tabs.appearance": "Appearance",
+    "settings.tabs.backup": "Backup",
+    "settings.tabs.appearance": "Appearance",
     "settings.tabs.other": "Other",
     "settings.tab.enabled": "On",
     "settings.tab.disabled": "Off",
     "firstRun.title": "Welcome to Thunder Load",
-    "firstRun.subtitle": "Choose language, tabs, and theme before getting started.",
+    "firstRun.subtitle":
+      "Choose language, tabs, and theme before getting started.",
     "firstRun.language": "Interface language",
     "firstRun.tabs": "Tabs for your workflow",
     "firstRun.tabs.downloadHint": "Video and audio downloads",
     "firstRun.tabs.wgHint": "WG Unlock, hash check, and quick tools",
-    "firstRun.tabs.backupHint": "Backups and profiles",    "firstRun.theme": "Color theme",
+    "firstRun.tabs.backupHint": "Backups and profiles",
+    "firstRun.theme": "Color theme",
     "firstRun.apply": "Apply",
     "settings.startup.title": "Startup settings",
     "settings.startup.hint": "Configure startup behavior for convenience.",
@@ -1244,8 +1242,7 @@ export const translations = {
     "settings.downloader.profile.audio.desc":
       "Opens audio-only streams without video.",
     "settings.downloader.parallel.title": "Parallel downloads",
-    "settings.downloader.parallel.saved":
-      "Parallel download limit: {count}",
+    "settings.downloader.parallel.saved": "Parallel download limit: {count}",
     "settings.downloader.expandAfter":
       "Expand the window <strong>after download</strong>",
     "settings.downloader.expandOnCopy":
@@ -1277,7 +1274,8 @@ export const translations = {
     "quickActions.converter.subtitle":
       "Convert audio and video files after download.",
     "quickActions.power.title": "Windows Power Shortcuts",
-    "quickActions.power.hint": "Creates power shortcuts on your Windows desktop.",
+    "quickActions.power.hint":
+      "Creates power shortcuts on your Windows desktop.",
     "quickActions.power.windowsOnly":
       "Available only on Windows. Actions are disabled on this platform.",
     "quickActions.power.windowsReady":
@@ -1306,8 +1304,7 @@ export const translations = {
     "quickActions.advancedBoot.cardHint":
       "Opens Windows advanced recovery options on reboot.",
     "quickActions.advancedBoot.action": "Create advanced startup shortcut",
-    "quickActions.advancedBoot.confirm":
-      "Create an advanced startup shortcut?",
+    "quickActions.advancedBoot.confirm": "Create an advanced startup shortcut?",
     "quickActions.advancedBoot.error":
       "Failed to create advanced startup shortcut",
     "quickActions.advancedBoot.created":
@@ -1325,8 +1322,7 @@ export const translations = {
     "quickActions.deviceManager.cardHint":
       "Quick access to hardware devices and driver management.",
     "quickActions.deviceManager.action": "Create Device Manager shortcut",
-    "quickActions.deviceManager.confirm":
-      "Create a Device Manager shortcut?",
+    "quickActions.deviceManager.confirm": "Create a Device Manager shortcut?",
     "quickActions.deviceManager.error":
       "Failed to create Device Manager shortcut",
     "quickActions.deviceManager.created":
@@ -1360,8 +1356,7 @@ export const translations = {
     "tools.launcher.open.power": "Power Shortcuts",
     "tools.launcher.desc.wg": "Quick WireGuard recovery actions.",
     "tools.launcher.desc.hash": "Compare file checksums.",
-    "tools.launcher.desc.power":
-      "Create restart and shutdown shortcuts.",
+    "tools.launcher.desc.power": "Create restart and shutdown shortcuts.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",
     "tools.launcher.shortcut.power": "Alt+3",
@@ -1385,8 +1380,7 @@ export const translations = {
     "hashCheck.clearSecond": "Clear file 2",
     "hashCheck.algorithm": "Algorithm",
     "hashCheck.expected": "Expected hash",
-    "hashCheck.expectedPlaceholder":
-      "Paste hash to compare (optional)",
+    "hashCheck.expectedPlaceholder": "Paste hash to compare (optional)",
     "hashCheck.expectedHint":
       "When the second file is selected, expected hash is checked against each file.",
     "hashCheck.run": "Verify",
@@ -1439,7 +1433,7 @@ export const translations = {
     "wg.help.subtitle": "When this can help",
     "wg.help.confirm": "Got it",
     "wg.help.messageHtml":
-      "<div class=\"toast-message\"><p>WG Unlock helps restore WireGuard when the connection falls asleep or becomes unstable after switching Wi‑Fi.</p><ul><li>Sends a UDP signal to the configured address and port.</li><li>Useful after wake from sleep, network changes, or unstable VPN sessions.</li><li>It does not replace the WireGuard client and may not help with server or key issues.</li></ul></div>",
+      '<div class="toast-message"><p>WG Unlock helps restore WireGuard when the connection falls asleep or becomes unstable after switching Wi‑Fi.</p><ul><li>Sends a UDP signal to the configured address and port.</li><li>Useful after wake from sleep, network changes, or unstable VPN sessions.</li><li>It does not replace the WireGuard client and may not help with server or key issues.</li></ul></div>',
     "wg.info.title": "Info",
     "wg.info.body":
       "This function sends a UDP packet with the specified parameters to unlock WireGuard.",
@@ -1588,8 +1582,7 @@ export const translations = {
     "settings.appearance.lowEffects.hint":
       "Disables animations and blur effects",
     "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
-    "settings.appearance.networkStatus":
-      "Show network status in the top bar",
+    "settings.appearance.networkStatus": "Show network status in the top bar",
     "settings.appearance.networkStatus.hint":
       "Show network status indicator in the top bar",
     "settings.appearance.networkStatus.enabled":
@@ -1745,7 +1738,8 @@ export const translations = {
     "shortcuts.toggleTheme": "Toggle theme",
     "shortcuts.tab.downloader": "Tab “Downloader”",
     "shortcuts.tab.wg": "Tab “Tools”",
-    "shortcuts.tab.backup": "Tab “Backup”",    "shortcuts.history": "Download history",
+    "shortcuts.tab.backup": "Tab “Backup”",
+    "shortcuts.history": "Download history",
     "shortcuts.downloadsFolder": "Downloads folder",
     "shortcuts.downloadHint": "When URL input contains a link",
     "shortcuts.startDownload": "Start download",

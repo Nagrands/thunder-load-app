@@ -79,7 +79,9 @@ describe("downloadQualityModal close behavior", () => {
       const modal = document.getElementById("download-quality-modal");
       const close = modal.querySelector("[data-quality-close]");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -110,13 +112,17 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
 
       const previewBtn = document.getElementById(
         "download-quality-download-preview",
       );
-      const resolution = document.getElementById("download-quality-preview-resolution");
+      const resolution = document.getElementById(
+        "download-quality-preview-resolution",
+      );
       for (let i = 0; i < 5 && typeof previewBtn.onclick !== "function"; i++) {
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
@@ -126,9 +132,12 @@ describe("downloadQualityModal close behavior", () => {
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(fetch).toHaveBeenCalledWith("https://cdn.example.com/preview.jpg", {
-        cache: "no-cache",
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        "https://cdn.example.com/preview.jpg",
+        {
+          cache: "no-cache",
+        },
+      );
       expect(resolution.textContent).toContain("1280x720");
       expect(showToast).toHaveBeenCalledWith(expect.any(String), "success");
 
@@ -154,7 +163,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -191,14 +202,22 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
       const thumb = document.getElementById("download-quality-thumb");
-      const thumbFallback = document.getElementById("download-quality-thumb-fallback");
-      const previewBtn = document.getElementById("download-quality-download-preview");
-      const resolution = document.getElementById("download-quality-preview-resolution");
+      const thumbFallback = document.getElementById(
+        "download-quality-thumb-fallback",
+      );
+      const previewBtn = document.getElementById(
+        "download-quality-download-preview",
+      );
+      const resolution = document.getElementById(
+        "download-quality-preview-resolution",
+      );
 
       expect(thumb.style.display).toBe("none");
       expect(thumbFallback.classList.contains("hidden")).toBe(false);
@@ -215,7 +234,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -260,7 +281,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -270,8 +293,12 @@ describe("downloadQualityModal close behavior", () => {
 
       secondToggle.click();
       const refreshedOptions = document.querySelectorAll(".quality-option");
-      const firstMetrics = refreshedOptions[0].querySelector(".quality-option-metrics");
-      const secondMetrics = refreshedOptions[1].querySelector(".quality-option-metrics");
+      const firstMetrics = refreshedOptions[0].querySelector(
+        ".quality-option-metrics",
+      );
+      const secondMetrics = refreshedOptions[1].querySelector(
+        ".quality-option-metrics",
+      );
       const refreshedSecondToggle = refreshedOptions[1].querySelector(
         ".quality-option-toggle",
       );
@@ -290,7 +317,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -299,14 +328,18 @@ describe("downloadQualityModal close behavior", () => {
       let metrics = option.querySelector(".quality-option-metrics");
 
       toggle.click();
-      metrics = document.querySelector(".quality-option .quality-option-metrics");
+      metrics = document.querySelector(
+        ".quality-option .quality-option-metrics",
+      );
       expect(metrics.classList.contains("is-collapsed")).toBe(false);
 
       const toggleAfterExpand = document.querySelector(
         ".quality-option .quality-option-toggle",
       );
       toggleAfterExpand.click();
-      metrics = document.querySelector(".quality-option .quality-option-metrics");
+      metrics = document.querySelector(
+        ".quality-option .quality-option-metrics",
+      );
       expect(metrics.classList.contains("is-collapsed")).toBe(true);
 
       document.getElementById("download-quality-cancel").click();
@@ -345,18 +378,26 @@ describe("downloadQualityModal close behavior", () => {
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
       const modal = document.getElementById("download-quality-modal");
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
-      const optionsBefore = Array.from(document.querySelectorAll(".quality-option"));
+      const optionsBefore = Array.from(
+        document.querySelectorAll(".quality-option"),
+      );
       const initiallySelectedId = optionsBefore.find(
         (el) => el.getAttribute("aria-checked") === "true",
       )?.dataset.optionId;
-      const secondToggle = optionsBefore[1].querySelector(".quality-option-toggle");
+      const secondToggle = optionsBefore[1].querySelector(
+        ".quality-option-toggle",
+      );
       secondToggle.click();
 
-      const optionsAfter = Array.from(document.querySelectorAll(".quality-option"));
+      const optionsAfter = Array.from(
+        document.querySelectorAll(".quality-option"),
+      );
       const selectedAfterToggle = optionsAfter.find(
         (el) => el.getAttribute("aria-checked") === "true",
       )?.dataset.optionId;
@@ -379,7 +420,11 @@ describe("downloadQualityModal close behavior", () => {
         duration: 120,
         thumbnail: "https://cdn.example.com/preview-alt.jpg",
         thumbnails: [
-          { url: "https://cdn.example.com/preview-alt.jpg", width: 1920, height: 1080 },
+          {
+            url: "https://cdn.example.com/preview-alt.jpg",
+            width: 1920,
+            height: 1080,
+          },
         ],
         formats: [
           {
@@ -394,12 +439,18 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
-      const resolution = document.getElementById("download-quality-preview-resolution");
-      const previewBtn = document.getElementById("download-quality-download-preview");
+      const resolution = document.getElementById(
+        "download-quality-preview-resolution",
+      );
+      const previewBtn = document.getElementById(
+        "download-quality-download-preview",
+      );
       expect(resolution.textContent).toContain("1920x1080");
       expect(previewBtn.disabled).toBe(false);
 
@@ -413,7 +464,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -441,13 +494,17 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const modalPromise = openDownloadQualityModal("https://example.com/video");
+      const modalPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
 
       const selectionSummary = document.getElementById(
         "download-quality-selection-summary",
       );
-      const openSourceBtn = document.getElementById("download-quality-open-source");
+      const openSourceBtn = document.getElementById(
+        "download-quality-open-source",
+      );
       const previewBtn = document.getElementById(
         "download-quality-download-preview",
       );

@@ -107,7 +107,9 @@ describe("backupView performance behaviors", () => {
     activeDownload?.classList.remove("active");
     backupTab?.classList.add("active");
 
-    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "backup" } }));
+    window.dispatchEvent(
+      new CustomEvent("tabs:activated", { detail: { id: "backup" } }),
+    );
     const hintIntervalCallsAfter = setIntervalSpy.mock.calls.filter(
       (call) => call[1] === 10000,
     ).length;
@@ -143,7 +145,9 @@ describe("backupView performance behaviors", () => {
     setupWindowElectronMock(makePrograms(30));
     const view = renderBackup();
     document.body.appendChild(view);
-    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "backup" } }));
+    window.dispatchEvent(
+      new CustomEvent("tabs:activated", { detail: { id: "backup" } }),
+    );
     await flush();
 
     const list = view.querySelector("#bk-list");
@@ -163,7 +167,9 @@ describe("backupView performance behaviors", () => {
     setupWindowElectronMock(makePrograms(25));
     const view = renderBackup();
     document.body.appendChild(view);
-    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "backup" } }));
+    window.dispatchEvent(
+      new CustomEvent("tabs:activated", { detail: { id: "backup" } }),
+    );
     await flush();
 
     instances.forEach((instance) => instance.dispose.mockClear());

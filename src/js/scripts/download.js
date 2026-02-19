@@ -1756,7 +1756,10 @@ async function stopDownload(tokenOrTokens = activeDownloadToken) {
           }
         }
       } catch (err) {
-        log.error("Error scanning download directory for temporary files:", err);
+        log.error(
+          "Error scanning download directory for temporary files:",
+          err,
+        );
       }
       token.currentDownloadPath = null;
     }

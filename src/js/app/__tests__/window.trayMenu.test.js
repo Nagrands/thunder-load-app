@@ -34,14 +34,17 @@ const {
 function createStore(values = {}) {
   return {
     get: jest.fn((key, fallback) =>
-      Object.prototype.hasOwnProperty.call(values, key) ? values[key] : fallback,
+      Object.prototype.hasOwnProperty.call(values, key)
+        ? values[key]
+        : fallback,
     ),
   };
 }
 
 function findMenuItem(template, startsWithLabel) {
   return template.find(
-    (item) => typeof item?.label === "string" && item.label.startsWith(startsWithLabel),
+    (item) =>
+      typeof item?.label === "string" && item.label.startsWith(startsWithLabel),
   );
 }
 
@@ -149,7 +152,10 @@ describe("window tray/dock menu templates", () => {
   });
 
   test("tray and dock keep identical action order", () => {
-    const filePath = path.join(os.tmpdir(), `window-menu-order-${Date.now()}.mp4`);
+    const filePath = path.join(
+      os.tmpdir(),
+      `window-menu-order-${Date.now()}.mp4`,
+    );
     fs.writeFileSync(filePath, "ok");
     const downloadDir = os.tmpdir();
 

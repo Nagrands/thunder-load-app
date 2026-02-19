@@ -1056,7 +1056,10 @@ export default function renderToolsView() {
     countEl.textContent = `${label}: ${availableCount}`;
   };
 
-  const setToolView = (nextView, { persist = true, focusLauncher = false } = {}) => {
+  const setToolView = (
+    nextView,
+    { persist = true, focusLauncher = false } = {},
+  ) => {
     const shell = view.querySelector(".tools-shell");
     const launcher = getEl("tools-launcher", view);
     const launcherSectionHeader = getEl("tools-launcher-section-header", view);
@@ -1093,15 +1096,12 @@ export default function renderToolsView() {
           ? "tools.nav.current.hash"
           : "tools.nav.current.power";
     if (title) title.textContent = t(titleKey);
-    if (breadcrumbCurrent) breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
+    if (breadcrumbCurrent)
+      breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
     breadcrumbCurrent?.classList.toggle("hidden", showLauncher);
     breadcrumbCurrentSep?.classList.toggle("hidden", showLauncher);
 
-    if (
-      persist &&
-      targetView !== "launcher" &&
-      shouldRememberLastToolView()
-    ) {
+    if (persist && targetView !== "launcher" && shouldRememberLastToolView()) {
       try {
         window.localStorage.setItem(LAST_TOOL_KEY, targetView);
       } catch {}
@@ -1324,7 +1324,8 @@ export default function renderToolsView() {
       );
       const key = String(e.key || "");
       const code = String(e.code || "");
-      const isEscapePressed = key === "Escape" || key === "Esc" || code === "Escape";
+      const isEscapePressed =
+        key === "Escape" || key === "Esc" || code === "Escape";
 
       if (isEscapePressed && currentToolView !== "launcher") {
         e.preventDefault();
@@ -1339,11 +1340,7 @@ export default function renderToolsView() {
           e.key === "ArrowUp" ||
           e.key === "ArrowDown";
         if (isArrowKey) {
-          const launcherButtons = [
-            openWgBtn,
-            openHashBtn,
-            openPowerBtn,
-          ].filter(
+          const launcherButtons = [openWgBtn, openHashBtn, openPowerBtn].filter(
             (btn) =>
               btn &&
               !btn.disabled &&
@@ -1352,7 +1349,9 @@ export default function renderToolsView() {
           );
 
           if (launcherButtons.length) {
-            const focusedLauncherBtn = targetEl?.closest(".tools-launcher-button");
+            const focusedLauncherBtn = targetEl?.closest(
+              ".tools-launcher-button",
+            );
             const activeButton =
               launcherButtons.find((btn) => btn === document.activeElement) ||
               focusedLauncherBtn;
@@ -1609,7 +1608,10 @@ export default function renderToolsView() {
       if (hashAlgorithmEl) hashAlgorithmEl.disabled = hashBusy;
       if (hashExpectedEl) hashExpectedEl.disabled = hashBusy;
       if (hashResultPanelEl) {
-        hashResultPanelEl.setAttribute("aria-busy", hashBusy ? "true" : "false");
+        hashResultPanelEl.setAttribute(
+          "aria-busy",
+          hashBusy ? "true" : "false",
+        );
       }
       syncSecondFileControls();
     };
@@ -1633,7 +1635,14 @@ export default function renderToolsView() {
     } = {}) => {
       hashActualValueFirst = actualHash || "";
       hashActualValueSecond = actualHashSecond || "";
-      const statusTone = tone === "error" ? "error" : tone === "success" ? "success" : tone === "warning" ? "warning" : "muted";
+      const statusTone =
+        tone === "error"
+          ? "error"
+          : tone === "success"
+            ? "success"
+            : tone === "warning"
+              ? "warning"
+              : "muted";
       if (hashStatusBadgeEl) {
         hashStatusBadgeEl.textContent = t(statusKey);
         hashStatusBadgeEl.className = `hash-status-badge ${statusTone}`;
@@ -1669,15 +1678,22 @@ export default function renderToolsView() {
         hashActualValueSecondEl.textContent = hashActualValueSecond || "-";
       }
       if (hashActualBoxSecondEl) {
-        hashActualBoxSecondEl.classList.toggle("hidden", !hashActualValueSecond);
+        hashActualBoxSecondEl.classList.toggle(
+          "hidden",
+          !hashActualValueSecond,
+        );
       }
-      if (hashCopyActualFirstBtn) hashCopyActualFirstBtn.disabled = !canCopyFirst;
-      if (hashCopyActualSecondBtn) hashCopyActualSecondBtn.disabled = !canCopySecond;
+      if (hashCopyActualFirstBtn)
+        hashCopyActualFirstBtn.disabled = !canCopyFirst;
+      if (hashCopyActualSecondBtn)
+        hashCopyActualSecondBtn.disabled = !canCopySecond;
       if (hashCompareDetailsEl) {
         hashCompareDetailsEl.classList.toggle("hidden", !showCompareDetails);
       }
       if (hashCompareStateFirstEl) {
-        const firstTone = ["success", "warning", "error", "muted"].includes(compareStateFirstTone)
+        const firstTone = ["success", "warning", "error", "muted"].includes(
+          compareStateFirstTone,
+        )
           ? compareStateFirstTone
           : "muted";
         hashCompareStateFirstEl.textContent = compareStateFirstKey
@@ -1686,7 +1702,9 @@ export default function renderToolsView() {
         hashCompareStateFirstEl.className = `hash-compare-state ${firstTone}`;
       }
       if (hashCompareStateSecondEl) {
-        const secondTone = ["success", "warning", "error", "muted"].includes(compareStateSecondTone)
+        const secondTone = ["success", "warning", "error", "muted"].includes(
+          compareStateSecondTone,
+        )
           ? compareStateSecondTone
           : "muted";
         hashCompareStateSecondEl.textContent = compareStateSecondKey
@@ -1695,10 +1713,12 @@ export default function renderToolsView() {
         hashCompareStateSecondEl.className = `hash-compare-state ${secondTone}`;
       }
       if (hashCompareNameFirstEl) {
-        hashCompareNameFirstEl.textContent = compareNameFirst || t("hashCheck.file1");
+        hashCompareNameFirstEl.textContent =
+          compareNameFirst || t("hashCheck.file1");
       }
       if (hashCompareNameSecondEl) {
-        hashCompareNameSecondEl.textContent = compareNameSecond || t("hashCheck.file2");
+        hashCompareNameSecondEl.textContent =
+          compareNameSecond || t("hashCheck.file2");
       }
     };
 
@@ -1726,13 +1746,20 @@ export default function renderToolsView() {
     };
 
     const normalizeHashValue = (value) =>
-      String(value || "").replace(/\s+/g, "").toLowerCase();
+      String(value || "")
+        .replace(/\s+/g, "")
+        .toLowerCase();
 
-    const setHashActualLabels = (algorithm = hashAlgorithmEl?.value || "SHA-256") => {
+    const setHashActualLabels = (
+      algorithm = hashAlgorithmEl?.value || "SHA-256",
+    ) => {
       if (hashActualLabelEl) {
-        hashActualLabelEl.textContent = t("hashCheck.actualLabelWithAlgorithm", {
-          algorithm,
-        });
+        hashActualLabelEl.textContent = t(
+          "hashCheck.actualLabelWithAlgorithm",
+          {
+            algorithm,
+          },
+        );
       }
       if (hashActualLabelSecondEl) {
         hashActualLabelSecondEl.textContent = t(
@@ -1893,7 +1920,8 @@ export default function renderToolsView() {
             : false;
 
           if (expectedHash) {
-            const anyExpectedMatch = firstMatchesExpected || secondMatchesExpected;
+            const anyExpectedMatch =
+              firstMatchesExpected || secondMatchesExpected;
             setHashUiState({
               tone: anyExpectedMatch ? "success" : "warning",
               statusKey: anyExpectedMatch
@@ -1911,8 +1939,12 @@ export default function renderToolsView() {
               compareStateSecondKey: secondMatchesExpected
                 ? "hashCheck.compareState.match"
                 : "hashCheck.compareState.mismatch",
-              compareStateFirstTone: firstMatchesExpected ? "success" : "warning",
-              compareStateSecondTone: secondMatchesExpected ? "success" : "warning",
+              compareStateFirstTone: firstMatchesExpected
+                ? "success"
+                : "warning",
+              compareStateSecondTone: secondMatchesExpected
+                ? "success"
+                : "warning",
               compareNameFirst: getHashFileDisplayName(
                 hashSelectedFile,
                 "hashCheck.file1",
@@ -1925,9 +1957,10 @@ export default function renderToolsView() {
             return;
           }
 
-          const matches = firstHashNormalized && secondHashNormalized
-            ? firstHashNormalized === secondHashNormalized
-            : false;
+          const matches =
+            firstHashNormalized && secondHashNormalized
+              ? firstHashNormalized === secondHashNormalized
+              : false;
           setHashUiState({
             tone: matches ? "success" : "warning",
             statusKey: matches
@@ -2089,7 +2122,10 @@ export default function renderToolsView() {
     const powerPlatformBannerText = getEl("power-platform-banner-text", view);
     const restartShortcutResult = getEl("restart-shortcut-result", view);
     const uefiShortcutResult = getEl("uefi-shortcut-result", view);
-    const advancedBootShortcutResult = getEl("advanced-boot-shortcut-result", view);
+    const advancedBootShortcutResult = getEl(
+      "advanced-boot-shortcut-result",
+      view,
+    );
     const shutdownShortcutResult = getEl("shutdown-shortcut-result", view);
     const deviceManagerShortcutResult = getEl(
       "device-manager-shortcut-result",
@@ -2161,7 +2197,8 @@ export default function renderToolsView() {
       {
         button: createUefiShortcutBtn,
         resultEl: uefiShortcutResult,
-        invoke: () => window.electron?.tools?.createWindowsUefiRebootShortcut?.(),
+        invoke: () =>
+          window.electron?.tools?.createWindowsUefiRebootShortcut?.(),
         titleKey: "quickActions.uefi.title",
         confirmKey: "quickActions.uefi.confirm",
         errorKey: "quickActions.uefi.error",
@@ -2171,7 +2208,8 @@ export default function renderToolsView() {
       {
         button: createAdvancedBootShortcutBtn,
         resultEl: advancedBootShortcutResult,
-        invoke: () => window.electron?.tools?.createWindowsAdvancedBootShortcut?.(),
+        invoke: () =>
+          window.electron?.tools?.createWindowsAdvancedBootShortcut?.(),
         titleKey: "quickActions.advancedBoot.title",
         confirmKey: "quickActions.advancedBoot.confirm",
         errorKey: "quickActions.advancedBoot.error",
@@ -2426,11 +2464,12 @@ export default function renderToolsView() {
         pre.textContent = t("wg.log.placeholder");
       }
 
-      toolsPlatformInfo =
-        (await window.electron.getPlatformInfo?.().catch(() => null)) || {
-          isWindows: false,
-          platform: "",
-        };
+      toolsPlatformInfo = (await window.electron
+        .getPlatformInfo?.()
+        .catch(() => null)) || {
+        isWindows: false,
+        platform: "",
+      };
       isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
       setToolView(resolveInitialToolView(), { persist: false });
 
@@ -2458,7 +2497,8 @@ export default function renderToolsView() {
         if (!p || !prevBtn || !nextBtn || !toggleBtn || !counterEl) return;
 
         try {
-          const tipsPath = lang === "en" ? "info/tips.en.json" : "info/tips.json";
+          const tipsPath =
+            lang === "en" ? "info/tips.en.json" : "info/tips.json";
           const response = await fetch(tipsPath);
           const data = await response.json();
           tipsItems = Array.isArray(data.tips) ? data.tips : [];
@@ -2506,7 +2546,9 @@ export default function renderToolsView() {
 
           const renderTip = (nextIndex, { animate = true } = {}) => {
             if (!tipsItems.length) return;
-            tipsIndex = ((nextIndex % tipsItems.length) + tipsItems.length) % tipsItems.length;
+            tipsIndex =
+              ((nextIndex % tipsItems.length) + tipsItems.length) %
+              tipsItems.length;
             const text = tipsItems[tipsIndex];
             if (!animate) {
               p.textContent = text;
@@ -2520,7 +2562,10 @@ export default function renderToolsView() {
               p.textContent = text;
               p.classList.remove("fade-out");
               p.classList.add("fade-in");
-              tipsFadeTimer = setTimeout(() => p.classList.remove("fade-in"), 800);
+              tipsFadeTimer = setTimeout(
+                () => p.classList.remove("fade-in"),
+                800,
+              );
               updateCounter();
             }, 180);
           };
@@ -2664,7 +2709,10 @@ export default function renderToolsView() {
     }
   });
   if (document.body) {
-    disconnectObserver.observe(document.body, { childList: true, subtree: true });
+    disconnectObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
     addCleanup(() => disconnectObserver.disconnect());
   }
 

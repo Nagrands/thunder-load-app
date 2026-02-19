@@ -2,11 +2,7 @@
 
 import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
-import {
-  isValidUrl,
-  isSupportedUrl,
-  normalizeUrlInput,
-} from "./validation.js";
+import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
 import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
@@ -57,7 +53,8 @@ function initUrlInputHandler() {
   const getValidationState = (value = urlInput.value) => {
     const normalized = normalizeUrlInput(value);
     const hasValue = normalized.trim() !== "";
-    const isValid = hasValue && isValidUrl(normalized) && isSupportedUrl(normalized);
+    const isValid =
+      hasValue && isValidUrl(normalized) && isSupportedUrl(normalized);
     return { normalized, hasValue, isValid };
   };
 

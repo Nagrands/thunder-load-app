@@ -9,7 +9,9 @@ const INFO_REQUEST_TIMEOUT = 15000;
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
 const loadingEl = document.getElementById("download-quality-loading");
-const loadingDetailEl = document.getElementById("download-quality-loading-detail");
+const loadingDetailEl = document.getElementById(
+  "download-quality-loading-detail",
+);
 const emptyEl = document.getElementById("download-quality-empty");
 const errorEl = document.getElementById("download-quality-error");
 const errorTextEl = errorEl?.querySelector(".quality-error-text");
@@ -35,13 +37,21 @@ const previewResolutionEl = document.getElementById(
   "download-quality-preview-resolution",
 );
 const openSourceBtn = document.getElementById("download-quality-open-source");
-const copySourceUrlBtn = document.getElementById("download-quality-copy-source");
+const copySourceUrlBtn = document.getElementById(
+  "download-quality-copy-source",
+);
 const downloadPreviewBtn = document.getElementById(
   "download-quality-download-preview",
 );
-const thumbFallbackEl = document.getElementById("download-quality-thumb-fallback");
-const selectionTitleEl = document.getElementById("download-quality-selection-title");
-const selectionMetaEl = document.getElementById("download-quality-selection-meta");
+const thumbFallbackEl = document.getElementById(
+  "download-quality-thumb-fallback",
+);
+const selectionTitleEl = document.getElementById(
+  "download-quality-selection-title",
+);
+const selectionMetaEl = document.getElementById(
+  "download-quality-selection-meta",
+);
 const selectionOutputEl = document.getElementById(
   "download-quality-selection-output",
 );
@@ -163,7 +173,8 @@ function updateSelectionSummary(option) {
   selectionTitleEl.textContent =
     option.payload?.label || option.title || t("quality.selected");
   selectionMetaEl.textContent =
-    option.description || [option.extLabel, option.sizeLabel].filter(Boolean).join(" • ");
+    option.description ||
+    [option.extLabel, option.sizeLabel].filter(Boolean).join(" • ");
   if (selectionOutputEl) {
     selectionOutputEl.textContent = t("quality.resultSummary", {
       container: option.containerLabel || "—",
@@ -243,7 +254,9 @@ function updateLoadingDetail() {
     0,
     Math.floor((Date.now() - (state.loadingStartedAt || Date.now())) / 1000),
   );
-  loadingDetailEl.textContent = t("quality.loading.detailTimed", { seconds: elapsed });
+  loadingDetailEl.textContent = t("quality.loading.detailTimed", {
+    seconds: elapsed,
+  });
 }
 
 function syncLoadingUi(isLoading) {
@@ -670,7 +683,9 @@ function buildOptions(info) {
         (fmt.filesize || fmt.filesize_approx || 0) +
           (bestAudio?.filesize || bestAudio?.filesize_approx || 0),
       ),
-      extra: hasAudioPair ? t("quality.extra.bestAudio") : t("quality.extra.noAudio"),
+      extra: hasAudioPair
+        ? t("quality.extra.bestAudio")
+        : t("quality.extra.noAudio"),
       resolutionLabel: resolution || "—",
       fpsLabel: fps ? `${fps}` : "—",
       codecLabel: codecLabel(fmt),
@@ -835,7 +850,9 @@ function renderOptions(tab) {
             t("quality.metrics.aria"),
           )}" aria-expanded="${isExpanded ? "true" : "false"}">
             ${escapeHTML(
-              isExpanded ? t("quality.metrics.collapse") : t("quality.metrics.expand"),
+              isExpanded
+                ? t("quality.metrics.collapse")
+                : t("quality.metrics.expand"),
             )}
           </button>
         </div>
@@ -867,7 +884,10 @@ function selectOption(option, { remember = true } = {}) {
     el.tabIndex = isActive ? 0 : -1;
   });
   if (option) {
-    optionsContainer.setAttribute("aria-activedescendant", `quality-option-${option.id}`);
+    optionsContainer.setAttribute(
+      "aria-activedescendant",
+      `quality-option-${option.id}`,
+    );
   } else {
     optionsContainer.removeAttribute("aria-activedescendant");
   }
@@ -1052,7 +1072,9 @@ function closeModal(result = null) {
   resetModalState();
   tabButtons.forEach((btn) => btn.classList.remove("active"));
   tabButtons.forEach((btn) => btn.setAttribute("aria-selected", "false"));
-  const defaultTab = tabButtons.find((btn) => btn.dataset.qualityTab === "video");
+  const defaultTab = tabButtons.find(
+    (btn) => btn.dataset.qualityTab === "video",
+  );
   defaultTab?.classList.add("active");
   defaultTab?.setAttribute("aria-selected", "true");
   if (state.resolver) {

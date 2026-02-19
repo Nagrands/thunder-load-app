@@ -7,7 +7,6 @@ const THEME_CYCLE = ["dark", "midnight", "sunset", "violet", "light"];
  * Устанавливает тему вручную или переключает, если параметр не передан
  */
 function toggleTheme(theme) {
-
   const newTheme =
     theme ||
     (() => {

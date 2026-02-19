@@ -403,8 +403,14 @@ function createTray(mainWindow, app, store, downloadPath) {
   const trayMenuPaths = {
     trayIconPath,
     videoIconPath: path.join(__dirname, "../../../assets/icons/video.png"),
-    folderIconPath: path.join(__dirname, "../../../assets/icons/open-folder.png"),
-    settingsIconPath: path.join(__dirname, "../../../assets/icons/settings.png"),
+    folderIconPath: path.join(
+      __dirname,
+      "../../../assets/icons/open-folder.png",
+    ),
+    settingsIconPath: path.join(
+      __dirname,
+      "../../../assets/icons/settings.png",
+    ),
     logoutIconPath: path.join(__dirname, "../../../assets/icons/logout.png"),
   };
 

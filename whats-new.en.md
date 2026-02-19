@@ -124,3 +124,5 @@
 - **Refined the History filters panel**: the block is visually lighter, filter values are easier to read, and on small screens filters scroll smoothly in a single row.
 - **Expanded the History search field**: it is now noticeably wider on desktop, and on small screens it moves to a full-width row for easier input.
 - **Refreshed the app background**: the interface now uses a cleaner tech-lines style backdrop that feels more modern without reducing readability.
+- **Improved colors for the Dark and Midnight themes**: UI contrast is cleaner, and accent elements and backgrounds are easier to read.
+- **The app background now uses Soft Aurora**: visuals are calmer and cleaner, reducing distraction while preserving readability across all themes.

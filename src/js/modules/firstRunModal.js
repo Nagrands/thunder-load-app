@@ -36,14 +36,14 @@ const applyTabFlags = (flags) => {
     new CustomEvent("wg:toggleDisabled", { detail: { disabled: wgDisabled } }),
   );
   window.dispatchEvent(
-    new CustomEvent("backup:toggleDisabled", { detail: { disabled: backupDisabled } }),
+    new CustomEvent("backup:toggleDisabled", {
+      detail: { disabled: backupDisabled },
+    }),
   );
 };
 
 const getSelectedRadio = (name) => {
-  const checked = document.querySelector(
-    `input[name="${name}"]:checked`,
-  );
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
   return checked ? checked.value : "";
 };
 

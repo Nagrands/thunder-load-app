@@ -96,7 +96,9 @@ describe("topBarResponsive", () => {
     });
 
     expect(
-      document.documentElement.style.getPropertyValue("--topbar-current-height"),
+      document.documentElement.style.getPropertyValue(
+        "--topbar-current-height",
+      ),
     ).toBe("88px");
   });
 });
