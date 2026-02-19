@@ -119,3 +119,5 @@
 - **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
 - **Refined download queue visuals**: the list is now more compact, statuses are easier to read, and item alignment is cleaner.
 - **The Randomizer tab has been removed**: the interface and settings are streamlined, and navigation now includes only active workflow tabs.
+- **Redesigned the Download History list**: the layout is cleaner and more compact, key actions are aligned more clearly, and entries are easier to scan even on narrow screens.
+- **Improved History list readability**: title/meta hierarchy is clearer, and filters/actions are cleaner and more stable on small screens.

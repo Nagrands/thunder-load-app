@@ -134,6 +134,8 @@ describe("Downloader history list", () => {
 
     const actions = document.querySelector(".history-row__actions");
     expect(actions).not.toBeNull();
+    expect(actions.querySelector(".history-row__actions-primary")).not.toBeNull();
+    expect(actions.querySelector(".history-row__actions-secondary")).not.toBeNull();
 
     const actionButtons = actions.querySelectorAll(".history-row__action");
     expect(actionButtons).toHaveLength(3);

@@ -377,7 +377,7 @@ function ensureHistoryCardsElements() {
             ${t("history.cards.title")}
           </h3>
         </div>
-        <div class="history-cards-search history-actions">
+        <div class="history-toolbar__controls history-cards-search history-actions">
           <div class="history-search-wrapper history-input-wrapper">
             <i id="icon-filter-search" class="fas fa-search search-icon"></i>
             <input
@@ -399,7 +399,17 @@ function ensureHistoryCardsElements() {
               &times;
             </button>
           </div>
-          <div class="history-search-actions">
+          <div class="history-actions-primary">
+            <button
+              id="history-header"
+              class="history-action-button history-count-pill"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="${t("history.count")}"
+              data-i18n-title="history.count"
+            >
+              <span id="total-downloads">0</span>
+            </button>
             <button
               id="refresh-button"
               class="history-action-button"
@@ -463,6 +473,8 @@ function ensureHistoryCardsElements() {
                 <i class="fa-solid fa-expand"></i>
               </button>
             </div>
+          </div>
+          <div class="history-actions-secondary">
             <button
               id="clear-history"
               class="history-action-button"
@@ -482,16 +494,6 @@ function ensureHistoryCardsElements() {
               data-i18n-title="history.deleteSelected"
             >
               <i class="fa-solid fa-trash-can"></i>
-            </button>
-            <button
-              id="history-header"
-              class="history-action-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.count")}"
-              data-i18n-title="history.count"
-            >
-              <span id="total-downloads">0</span>
             </button>
           </div>
         </div>
@@ -2159,6 +2161,10 @@ function createLogEntry(entry) {
 
   const actions = document.createElement("div");
   actions.className = "history-row__actions";
+  const primaryActions = document.createElement("div");
+  primaryActions.className = "history-row__actions-primary";
+  const secondaryActions = document.createElement("div");
+  secondaryActions.className = "history-row__actions-secondary";
 
   const openBtn = document.createElement("button");
   openBtn.type = "button";
@@ -2289,7 +2295,8 @@ function createLogEntry(entry) {
     }
   });
 
-  actions.append(openBtn, openFolderBtn, menu);
+  primaryActions.append(openBtn, openFolderBtn);
+  secondaryActions.append(menu);
 
   const toggle = document.createElement("button");
   toggle.type = "button";
@@ -2302,7 +2309,8 @@ function createLogEntry(entry) {
   toggle.setAttribute("aria-label", initialToggleLabel);
   toggle.title = initialToggleLabel;
   toggle.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
-  actions.append(toggle);
+  secondaryActions.append(toggle);
+  actions.append(primaryActions, secondaryActions);
 
   const details = document.createElement("div");
   details.className = "history-row__details";
