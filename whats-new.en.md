@@ -45,6 +45,7 @@
 
 - **Improved File Sorter stability**: log-file write errors are now handled safely, so sorting shows a proper error instead of crashing.
 - **Improved File Sorter UI behavior**: selected-folder status now updates more reliably.
+- **Added a “How it works” modal for File Sorter**: the tool now includes a step-by-step carousel that explains sorting in plain language.
 
 - **Added a new File Sorter tool to the Tools tab**: you can now pick a folder and automatically organize files into categories (images, videos, music, documents, archives, and other).
 - **Added a safe dry-run mode in File Sorter**: preview sorting results before moving any files.

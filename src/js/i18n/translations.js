@@ -317,6 +317,24 @@ export const translations = {
       "Обработано: {moved}/{total}. Пропущено: {skipped}.",
     "tools.sorter.dryRunHint": "Режим предпросмотра: файлы не перемещались.",
     "tools.sorter.errors": "Ошибок: {count}.",
+    "tools.sorter.howto.open": "Как это работает",
+    "tools.sorter.howto.title": "Как работает File Sorter",
+    "tools.sorter.howto.close": "Закрыть",
+    "tools.sorter.howto.prev": "Назад",
+    "tools.sorter.howto.next": "Далее",
+    "tools.sorter.howto.step": "Шаг {current} из {total}",
+    "tools.sorter.howto.slide1.title": "Выберите папку",
+    "tools.sorter.howto.slide1.desc":
+      "Нажмите «Выбрать папку» и укажите место, где лежат файлы для сортировки.",
+    "tools.sorter.howto.slide2.title": "Проверьте результат в dry-run",
+    "tools.sorter.howto.slide2.desc":
+      "Включите предпросмотр, чтобы увидеть, как будут разложены файлы, без изменений на диске.",
+    "tools.sorter.howto.slide3.title": "Запустите сортировку",
+    "tools.sorter.howto.slide3.desc":
+      "Инструмент создаст папки категорий и перенесёт файлы по типам. Одинаковые имена не перезаписываются.",
+    "tools.sorter.howto.slide4.title": "Смотрите итог и лог",
+    "tools.sorter.howto.slide4.desc":
+      "После запуска вы увидите статистику. При желании можно сохранить лог-файл со всеми действиями.",
     "hashCheck.title": "Проверка хеша",
     "hashCheck.subtitle": "Проверьте целостность файла по контрольной сумме.",
     "hashCheck.file1": "Файл 1",
@@ -1420,6 +1438,24 @@ export const translations = {
     "tools.sorter.done": "Processed: {moved}/{total}. Skipped: {skipped}.",
     "tools.sorter.dryRunHint": "Preview mode: files were not moved.",
     "tools.sorter.errors": "Errors: {count}.",
+    "tools.sorter.howto.open": "How it works",
+    "tools.sorter.howto.title": "How File Sorter works",
+    "tools.sorter.howto.close": "Close",
+    "tools.sorter.howto.prev": "Back",
+    "tools.sorter.howto.next": "Next",
+    "tools.sorter.howto.step": "Step {current} of {total}",
+    "tools.sorter.howto.slide1.title": "Choose a folder",
+    "tools.sorter.howto.slide1.desc":
+      "Click “Choose folder” and select where the files are located.",
+    "tools.sorter.howto.slide2.title": "Preview with dry-run",
+    "tools.sorter.howto.slide2.desc":
+      "Enable preview to see the sorting result before any files are moved.",
+    "tools.sorter.howto.slide3.title": "Run sorting",
+    "tools.sorter.howto.slide3.desc":
+      "The tool creates category folders and moves files by type. Duplicate names are handled safely.",
+    "tools.sorter.howto.slide4.title": "Review result and log",
+    "tools.sorter.howto.slide4.desc":
+      "After running, check the summary. You can also save a log file with all actions.",
     "hashCheck.title": "Hash Check",
     "hashCheck.subtitle": "Verify file integrity with checksums.",
     "hashCheck.file1": "File 1",

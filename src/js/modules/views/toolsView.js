@@ -108,6 +108,7 @@ export default function renderToolsView() {
   let currentToolView = "launcher";
   let toolsPlatformInfo = { isWindows: false, platform: "" };
   let sorterSelectedFolder = "";
+  let sorterHowtoPrevOverflow = null;
   const cleanupFns = [];
 
   const addCleanup = (fn) => {
@@ -127,6 +128,10 @@ export default function renderToolsView() {
   };
 
   const disposeView = () => {
+    if (sorterHowtoPrevOverflow !== null) {
+      document.documentElement.style.overflow = sorterHowtoPrevOverflow;
+      sorterHowtoPrevOverflow = null;
+    }
     stopCountdown();
     if (tipsIntervalId) {
       clearInterval(tipsIntervalId);
@@ -1018,6 +1023,10 @@ export default function renderToolsView() {
           <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="tools.sorter.title">File Sorter</h2>
+              <button id="sorter-open-howto" type="button" class="small-button sorter-howto-open">
+                <i class="fa-regular fa-circle-question"></i>
+                <span data-i18n="tools.sorter.howto.open">Как это работает</span>
+              </button>
             </div>
             <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
               Сортирует файлы в выбранной папке по категориям расширений.
@@ -1060,6 +1069,65 @@ export default function renderToolsView() {
             </div>
             <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
               Результат появится после запуска.
+            </div>
+            <div id="sorter-howto-modal" class="sorter-howto-overlay hidden" aria-hidden="true">
+              <div
+                id="sorter-howto-dialog"
+                class="sorter-howto-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-hidden="true"
+                aria-labelledby="sorter-howto-title"
+                tabindex="-1"
+              >
+                <div class="sorter-howto-header">
+                  <h3 id="sorter-howto-title" data-i18n="tools.sorter.howto.title">Как работает File Sorter</h3>
+                  <button id="sorter-howto-close" type="button" class="small-button" data-i18n-aria="tools.sorter.howto.close" aria-label="Закрыть">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div id="sorter-howto-step" class="sorter-howto-step muted"></div>
+                <div class="sorter-howto-viewport">
+                  <div id="sorter-howto-track" class="sorter-howto-track">
+                    <article class="sorter-howto-slide" data-howto-slide="0">
+                      <div class="sorter-howto-slide__icon"><i class="fa-regular fa-folder-open"></i></div>
+                      <h4 data-i18n="tools.sorter.howto.slide1.title">Выберите папку</h4>
+                      <p data-i18n="tools.sorter.howto.slide1.desc">Нажмите «Выбрать папку» и укажите место, где лежат файлы для сортировки.</p>
+                    </article>
+                    <article class="sorter-howto-slide" data-howto-slide="1">
+                      <div class="sorter-howto-slide__icon"><i class="fa-regular fa-eye"></i></div>
+                      <h4 data-i18n="tools.sorter.howto.slide2.title">Проверьте результат в dry-run</h4>
+                      <p data-i18n="tools.sorter.howto.slide2.desc">Включите предпросмотр, чтобы увидеть, как будут разложены файлы, без изменений на диске.</p>
+                    </article>
+                    <article class="sorter-howto-slide" data-howto-slide="2">
+                      <div class="sorter-howto-slide__icon"><i class="fa-solid fa-list-check"></i></div>
+                      <h4 data-i18n="tools.sorter.howto.slide3.title">Запустите сортировку</h4>
+                      <p data-i18n="tools.sorter.howto.slide3.desc">Инструмент создаст папки категорий и перенесёт файлы по типам. Одинаковые имена не перезаписываются.</p>
+                    </article>
+                    <article class="sorter-howto-slide" data-howto-slide="3">
+                      <div class="sorter-howto-slide__icon"><i class="fa-regular fa-file-lines"></i></div>
+                      <h4 data-i18n="tools.sorter.howto.slide4.title">Смотрите итог и лог</h4>
+                      <p data-i18n="tools.sorter.howto.slide4.desc">После запуска вы увидите статистику. При желании можно сохранить лог-файл со всеми действиями.</p>
+                    </article>
+                  </div>
+                </div>
+                <div id="sorter-howto-dots" class="sorter-howto-dots" role="tablist" data-i18n-aria="tools.sorter.howto.title" aria-label="How-to steps">
+                  <button type="button" class="sorter-howto-dot" data-index="0" aria-label="Step 1"></button>
+                  <button type="button" class="sorter-howto-dot" data-index="1" aria-label="Step 2"></button>
+                  <button type="button" class="sorter-howto-dot" data-index="2" aria-label="Step 3"></button>
+                  <button type="button" class="sorter-howto-dot" data-index="3" aria-label="Step 4"></button>
+                </div>
+                <div class="sorter-howto-actions">
+                  <button id="sorter-howto-prev" type="button" class="small-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span data-i18n="tools.sorter.howto.prev">Назад</span>
+                  </button>
+                  <button id="sorter-howto-next" type="button" class="small-button">
+                    <span data-i18n="tools.sorter.howto.next">Далее</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </article>
         </section>
@@ -1385,6 +1453,24 @@ export default function renderToolsView() {
 
     // Отправка по Enter и Ctrl/Cmd+Enter
     view.addEventListener("keydown", (e) => {
+      if (isSorterHowtoOpen()) {
+        const key = String(e.key || "");
+        if (key === "Escape" || key === "Esc") {
+          e.preventDefault();
+          closeSorterHowtoModal();
+          return;
+        }
+        if (key === "ArrowLeft") {
+          e.preventDefault();
+          setSorterHowtoSlide(sorterHowtoIndex - 1);
+          return;
+        }
+        if (key === "ArrowRight") {
+          e.preventDefault();
+          setSorterHowtoSlide(sorterHowtoIndex + 1);
+          return;
+        }
+      }
       const target = e.target;
       const targetEl = target instanceof Element ? target : null;
       const isEditableTarget = !!targetEl?.closest(
@@ -2180,6 +2266,21 @@ export default function renderToolsView() {
     const sorterDryRunEl = getEl("sorter-dry-run", view);
     const sorterLogPathEl = getEl("sorter-log-path", view);
     const sorterResultEl = getEl("sorter-result", view);
+    const sorterOpenHowtoBtn = getEl("sorter-open-howto", view);
+    const sorterHowtoModalEl = getEl("sorter-howto-modal", view);
+    const sorterHowtoDialogEl = getEl("sorter-howto-dialog", view);
+    const sorterHowtoTrackEl = getEl("sorter-howto-track", view);
+    const sorterHowtoStepEl = getEl("sorter-howto-step", view);
+    const sorterHowtoCloseBtn = getEl("sorter-howto-close", view);
+    const sorterHowtoPrevBtn = getEl("sorter-howto-prev", view);
+    const sorterHowtoNextBtn = getEl("sorter-howto-next", view);
+    const sorterHowtoDotsEl = getEl("sorter-howto-dots", view);
+    const sorterHowtoDots = Array.from(
+      sorterHowtoDotsEl?.querySelectorAll(".sorter-howto-dot") || [],
+    );
+    const sorterHowtoSlideCount = 4;
+    let sorterHowtoIndex = 0;
+    let sorterHowtoReturnFocusEl = null;
     let sorterBusy = false;
 
     const saveSorterFolder = (folder) => {
@@ -2222,6 +2323,67 @@ export default function renderToolsView() {
       if (!sorterResultEl) return;
       sorterResultEl.textContent = message;
       sorterResultEl.className = `quick-action-result ${tone}`;
+    };
+
+    const isSorterHowtoOpen = () =>
+      !!sorterHowtoModalEl && !sorterHowtoModalEl.classList.contains("hidden");
+
+    const updateSorterHowtoUi = () => {
+      if (!sorterHowtoTrackEl) return;
+      sorterHowtoTrackEl.style.transform = `translateX(-${sorterHowtoIndex * 100}%)`;
+      if (sorterHowtoStepEl) {
+        sorterHowtoStepEl.textContent = t("tools.sorter.howto.step", {
+          current: sorterHowtoIndex + 1,
+          total: sorterHowtoSlideCount,
+        });
+      }
+      if (sorterHowtoPrevBtn) sorterHowtoPrevBtn.disabled = sorterHowtoIndex <= 0;
+      if (sorterHowtoNextBtn) {
+        sorterHowtoNextBtn.disabled = sorterHowtoIndex >= sorterHowtoSlideCount - 1;
+      }
+      sorterHowtoDots.forEach((dot, idx) => {
+        const isActive = idx === sorterHowtoIndex;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+    };
+
+    const setSorterHowtoSlide = (index) => {
+      const nextIndex = Math.max(
+        0,
+        Math.min(Number(index) || 0, sorterHowtoSlideCount - 1),
+      );
+      sorterHowtoIndex = nextIndex;
+      updateSorterHowtoUi();
+    };
+
+    const openSorterHowtoModal = () => {
+      if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
+      sorterHowtoReturnFocusEl = document.activeElement;
+      if (sorterHowtoPrevOverflow === null) {
+        sorterHowtoPrevOverflow = document.documentElement.style.overflow;
+      }
+      document.documentElement.style.overflow = "hidden";
+      sorterHowtoModalEl.classList.remove("hidden");
+      sorterHowtoModalEl.setAttribute("aria-hidden", "false");
+      sorterHowtoDialogEl.setAttribute("aria-hidden", "false");
+      setSorterHowtoSlide(0);
+      setTimeout(() => sorterHowtoCloseBtn?.focus(), 0);
+    };
+
+    const closeSorterHowtoModal = ({ returnFocus = true } = {}) => {
+      if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
+      sorterHowtoModalEl.classList.add("hidden");
+      sorterHowtoModalEl.setAttribute("aria-hidden", "true");
+      sorterHowtoDialogEl.setAttribute("aria-hidden", "true");
+      if (sorterHowtoPrevOverflow !== null) {
+        document.documentElement.style.overflow = sorterHowtoPrevOverflow;
+        sorterHowtoPrevOverflow = null;
+      }
+      if (returnFocus) {
+        if (sorterHowtoReturnFocusEl?.focus) sorterHowtoReturnFocusEl.focus();
+        else sorterOpenHowtoBtn?.focus();
+      }
     };
 
     sorterPickFolderBtn?.addEventListener("click", async () => {
@@ -2280,8 +2442,26 @@ export default function renderToolsView() {
       }
     });
 
+    sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
+    sorterHowtoCloseBtn?.addEventListener("click", () => closeSorterHowtoModal());
+    sorterHowtoPrevBtn?.addEventListener("click", () =>
+      setSorterHowtoSlide(sorterHowtoIndex - 1),
+    );
+    sorterHowtoNextBtn?.addEventListener("click", () =>
+      setSorterHowtoSlide(sorterHowtoIndex + 1),
+    );
+    sorterHowtoDots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        setSorterHowtoSlide(Number(dot.dataset.index || "0"));
+      });
+    });
+    sorterHowtoModalEl?.addEventListener("mousedown", (event) => {
+      if (event.target === sorterHowtoModalEl) closeSorterHowtoModal();
+    });
+
     setSorterFolder(loadSorterFolder());
     setSorterResult(t("tools.sorter.resultIdle"), "muted");
+    updateSorterHowtoUi();
 
     const restartCard = getEl("tools-restart-card", view);
     const createRestartShortcutBtn = getEl("create-restart-shortcut", view);

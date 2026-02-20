@@ -446,6 +446,79 @@ describe("toolsView quick actions", () => {
     expect(result?.classList.contains("success")).toBe(true);
   });
 
+  test("sorter how-to modal opens and can navigate slides", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const openBtn = el.querySelector("#sorter-open-howto");
+    const modal = el.querySelector("#sorter-howto-modal");
+    const track = el.querySelector("#sorter-howto-track");
+    const prevBtn = el.querySelector("#sorter-howto-prev");
+    const nextBtn = el.querySelector("#sorter-howto-next");
+
+    openBtn.click();
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(false);
+    expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(prevBtn?.disabled).toBe(true);
+    expect(nextBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-0%)");
+
+    nextBtn.click();
+    await nextTick();
+    expect(prevBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-100%)");
+
+    nextBtn.click();
+    nextBtn.click();
+    await nextTick();
+    expect(nextBtn?.disabled).toBe(true);
+    expect(track?.style.transform).toBe("translateX(-300%)");
+  });
+
+  test("sorter how-to modal closes by Escape and returns focus", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const root = el.querySelector("#wireguard-view");
+    const openBtn = el.querySelector("#sorter-open-howto");
+    const modal = el.querySelector("#sorter-howto-modal");
+    const closeBtn = el.querySelector("#sorter-howto-close");
+
+    openBtn.focus();
+    openBtn.click();
+    await nextTick();
+
+    expect(document.activeElement).toBe(closeBtn);
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.activeElement).toBe(openBtn);
+  });
+
+  test("sorter how-to modal closes on overlay click", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const openBtn = el.querySelector("#sorter-open-howto");
+    const modal = el.querySelector("#sorter-howto-modal");
+
+    openBtn.click();
+    await nextTick();
+
+    modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+  });
+
   test("renders WG quick hierarchy with primary and secondary actions", async () => {
     const el = await renderView();
     await openTool(el, "wg");
