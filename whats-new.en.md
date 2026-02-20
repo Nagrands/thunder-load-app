@@ -43,6 +43,13 @@
 
 ### Tools tab
 
+- **Improved File Sorter stability**: log-file write errors are now handled safely, so sorting shows a proper error instead of crashing.
+- **Improved File Sorter UI behavior**: selected-folder status now updates more reliably.
+
+- **Added a new File Sorter tool to the Tools tab**: you can now pick a folder and automatically organize files into categories (images, videos, music, documents, archives, and other).
+- **Added a safe dry-run mode in File Sorter**: preview sorting results before moving any files.
+- **Added optional log-file output in File Sorter**: save a detailed list of sorting actions to a separate file when needed.
+
 - **Updated the top Tools header layout**: the title/description and breadcrumb navigation are now combined into one block, with navigation placed right below the description.
 - **Made Tools breadcrumb naming clearer**: the first breadcrumb item is now labeled “Tools” and uses the tools icon.
 - **Fully redesigned the Tools tab look and feel**: the launcher now includes a dedicated intro block, breadcrumb navigation, and stronger visual tool cards in a unified style.

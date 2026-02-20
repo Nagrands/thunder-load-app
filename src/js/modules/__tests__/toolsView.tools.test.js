@@ -34,7 +34,9 @@ async function openTool(el, tool) {
       ? "#tools-open-wg"
       : tool === "hash"
         ? "#tools-open-hash"
-        : "#tools-open-power";
+        : tool === "power"
+          ? "#tools-open-power"
+          : "#tools-open-sorter";
   el.querySelector(id)?.click();
   await nextTick();
 }
@@ -52,6 +54,18 @@ describe("toolsView quick actions", () => {
         pickFileForHash: jest.fn().mockResolvedValue({
           success: true,
           filePath: "/tmp/demo.bin",
+        }),
+        pickSorterFolder: jest.fn().mockResolvedValue({
+          success: true,
+          folderPath: "/tmp/sorter",
+        }),
+        sortFilesByCategory: jest.fn().mockResolvedValue({
+          success: true,
+          dryRun: true,
+          moved: 2,
+          totalFiles: 2,
+          skipped: 0,
+          errors: [],
         }),
         calculateHash: jest.fn().mockResolvedValue({
           success: true,
@@ -152,7 +166,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 3",
+      "tools.launcher.totalLabel: 4",
     );
   });
 
@@ -164,7 +178,7 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#tools-launcher-shortcut-power")).toBeNull();
   });
 
-  test("renders three launcher buttons on windows", async () => {
+  test("renders four launcher buttons on windows", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
@@ -173,7 +187,7 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector("#tools-open-power")?.classList.contains("hidden"),
     ).toBe(false);
-    expect(el.querySelectorAll(".tools-launcher-button").length).toBe(3);
+    expect(el.querySelectorAll(".tools-launcher-button").length).toBe(4);
   });
 
   test("opens launcher by default even if last tool is stored", async () => {
@@ -219,7 +233,7 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 2",
+      "tools.launcher.totalLabel: 3",
     );
   });
 
@@ -321,7 +335,7 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
     const wgBtn = el.querySelector("#tools-open-wg");
-    const powerBtn = el.querySelector("#tools-open-power");
+    const sorterBtn = el.querySelector("#tools-open-sorter");
     wgBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -330,7 +344,7 @@ describe("toolsView quick actions", () => {
       }),
     );
     await nextTick();
-    expect(document.activeElement).toBe(powerBtn);
+    expect(document.activeElement).toBe(sorterBtn);
   });
 
   test("does not switch tools with Alt+2", async () => {
@@ -371,6 +385,65 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector('[data-tool-view="wg"]')?.classList.contains("hidden"),
     ).toBe(true);
+  });
+
+  test("sorter picks folder and stores selection", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const folderPill = el.querySelector("#sorter-folder-pill");
+
+    pickBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.pickSorterFolder).toHaveBeenCalledTimes(1);
+    expect(folderPill?.textContent).toBe("/tmp/sorter");
+    expect(folderPill?.getAttribute("title")).toBe("/tmp/sorter");
+    expect(localStorage.getItem("toolsSorterLastFolder")).toBe("/tmp/sorter");
+  });
+
+  test("sorter shows warning when run is clicked without folder", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const runBtn = el.querySelector("#sorter-run");
+    const result = el.querySelector("#sorter-result");
+
+    runBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.sortFilesByCategory).not.toHaveBeenCalled();
+    expect(result?.textContent).toBe("tools.sorter.needFolder");
+    expect(result?.classList.contains("warning")).toBe(true);
+  });
+
+  test("sorter runs in dry-run mode and shows success summary", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const runBtn = el.querySelector("#sorter-run");
+    const dryRun = el.querySelector("#sorter-dry-run");
+    const logPath = el.querySelector("#sorter-log-path");
+    const result = el.querySelector("#sorter-result");
+
+    dryRun.checked = true;
+    logPath.value = "~/sorter.log";
+
+    pickBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.sortFilesByCategory).toHaveBeenCalledWith({
+      folderPath: "/tmp/sorter",
+      dryRun: true,
+      logFilePath: "~/sorter.log",
+    });
+    expect(result?.textContent).toContain("tools.sorter.done");
+    expect(result?.textContent).toContain("tools.sorter.dryRunHint");
+    expect(result?.classList.contains("success")).toBe(true);
   });
 
   test("renders WG quick hierarchy with primary and secondary actions", async () => {

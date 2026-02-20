@@ -104,8 +104,10 @@ export default function renderToolsView() {
   const WG_ADVANCED_STATE_KEY = "toolsWgAdvancedOpen";
   const LAST_TOOL_KEY = "toolsLastView";
   const REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
+  const SORTER_LAST_FOLDER_KEY = "toolsSorterLastFolder";
   let currentToolView = "launcher";
   let toolsPlatformInfo = { isWindows: false, platform: "" };
+  let sorterSelectedFolder = "";
   const cleanupFns = [];
 
   const addCleanup = (fn) => {
@@ -597,6 +599,13 @@ export default function renderToolsView() {
                 Создание ярлыков в Windows.
               </small>
             </button>
+            <button id="tools-open-sorter" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-folder-tree"></i>
+              <span data-i18n="tools.launcher.open.sorter">File Sorter</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
+                Сортировка файлов по категориям.
+              </small>
+            </button>
           </div>
         </div>
       </section>
@@ -1004,6 +1013,56 @@ export default function renderToolsView() {
             </div>
           </article>
         </section>
+
+        <section class="tools-view hidden" data-tool-view="sorter" aria-label="File Sorter Tool View">
+          <article class="tools-card tools-detail-card">
+            <div class="tools-card__header">
+              <h2 data-i18n="tools.sorter.title">File Sorter</h2>
+            </div>
+            <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
+              Сортирует файлы в выбранной папке по категориям расширений.
+            </p>
+            <div class="hash-check-grid">
+              <div class="hash-row hash-row--top">
+                <div class="hash-file-control">
+                  <span class="muted hash-file-label" data-i18n="tools.sorter.folder">Папка для сортировки</span>
+                  <div class="hash-actions-inline">
+                    <button id="sorter-pick-folder" type="button" class="small-button">
+                      <i class="fa-regular fa-folder-open"></i>
+                      <span data-i18n="tools.sorter.pickFolder">Выбрать папку</span>
+                    </button>
+                    <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">Папка не выбрана</span>
+                  </div>
+                </div>
+              </div>
+              <div class="hash-row">
+                <div class="hash-expected-wrap">
+                  <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">Лог-файл (опционально)</label>
+                  <input
+                    id="sorter-log-path"
+                    type="text"
+                    class="wg-input"
+                    data-i18n-placeholder="tools.sorter.logPlaceholder"
+                    placeholder="Например: ~/sorter.log"
+                  />
+                </div>
+              </div>
+              <div class="hash-row hash-row--bottom">
+                <label class="muted" for="sorter-dry-run">
+                  <input id="sorter-dry-run" type="checkbox" />
+                  <span data-i18n="tools.sorter.dryRun">Только предпросмотр (без перемещения файлов)</span>
+                </label>
+                <button id="sorter-run" type="button" class="large-button">
+                  <i class="fa-solid fa-play"></i>
+                  <span data-i18n="tools.sorter.run">Запустить сортировку</span>
+                </button>
+              </div>
+            </div>
+            <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
+              Результат появится после запуска.
+            </div>
+          </article>
+        </section>
       </section>
     </div>
   `;
@@ -1018,7 +1077,12 @@ export default function renderToolsView() {
 
   const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
     if (toolView === "power") return isPowerToolVisible(info);
-    return toolView === "launcher" || toolView === "wg" || toolView === "hash";
+    return (
+      toolView === "launcher" ||
+      toolView === "wg" ||
+      toolView === "hash" ||
+      toolView === "sorter"
+    );
   };
 
   const readLastToolView = () => {
@@ -1049,7 +1113,7 @@ export default function renderToolsView() {
   const updateLauncherToolsCount = () => {
     const countEl = getEl("tools-launcher-tools-count", view);
     if (!countEl) return;
-    const availableCount = ["wg", "hash", "power"].filter((toolView) =>
+    const availableCount = ["wg", "hash", "power", "sorter"].filter((toolView) =>
       isToolAvailable(toolView),
     ).length;
     const label = t("tools.launcher.totalLabel");
@@ -1094,7 +1158,9 @@ export default function renderToolsView() {
         ? "tools.nav.current.wg"
         : targetView === "hash"
           ? "tools.nav.current.hash"
-          : "tools.nav.current.power";
+          : targetView === "power"
+            ? "tools.nav.current.power"
+            : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
@@ -1298,6 +1364,7 @@ export default function renderToolsView() {
     const openWgBtn = getEl("tools-open-wg", view);
     const openHashBtn = getEl("tools-open-hash", view);
     const openPowerBtn = getEl("tools-open-power", view);
+    const openSorterBtn = getEl("tools-open-sorter", view);
     const backBtn = getEl("tools-back-btn", view);
     const breadcrumbHomeBtn = getEl("tools-breadcrumb-home", view);
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
@@ -1305,6 +1372,7 @@ export default function renderToolsView() {
     openWgBtn?.addEventListener("click", () => setToolView("wg"));
     openHashBtn?.addEventListener("click", () => setToolView("hash"));
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
+    openSorterBtn?.addEventListener("click", () => setToolView("sorter"));
     backBtn?.addEventListener("click", () =>
       setToolView("launcher", { persist: false, focusLauncher: true }),
     );
@@ -1340,7 +1408,12 @@ export default function renderToolsView() {
           e.key === "ArrowUp" ||
           e.key === "ArrowDown";
         if (isArrowKey) {
-          const launcherButtons = [openWgBtn, openHashBtn, openPowerBtn].filter(
+          const launcherButtons = [
+            openWgBtn,
+            openHashBtn,
+            openPowerBtn,
+            openSorterBtn,
+          ].filter(
             (btn) =>
               btn &&
               !btn.disabled &&
@@ -2100,6 +2173,115 @@ export default function renderToolsView() {
     setHashBusy(false);
     syncSecondFileControls();
     hashAlgorithmEl?.addEventListener("change", () => setHashActualLabels());
+
+    const sorterPickFolderBtn = getEl("sorter-pick-folder", view);
+    const sorterRunBtn = getEl("sorter-run", view);
+    const sorterFolderPillEl = getEl("sorter-folder-pill", view);
+    const sorterDryRunEl = getEl("sorter-dry-run", view);
+    const sorterLogPathEl = getEl("sorter-log-path", view);
+    const sorterResultEl = getEl("sorter-result", view);
+    let sorterBusy = false;
+
+    const saveSorterFolder = (folder) => {
+      try {
+        window.localStorage.setItem(SORTER_LAST_FOLDER_KEY, String(folder || ""));
+      } catch {}
+    };
+
+    const loadSorterFolder = () => {
+      try {
+        return window.localStorage.getItem(SORTER_LAST_FOLDER_KEY) || "";
+      } catch {
+        return "";
+      }
+    };
+
+    const setSorterBusy = (busy) => {
+      sorterBusy = !!busy;
+      if (sorterPickFolderBtn) sorterPickFolderBtn.disabled = sorterBusy;
+      if (sorterRunBtn) sorterRunBtn.disabled = sorterBusy;
+      if (sorterDryRunEl) sorterDryRunEl.disabled = sorterBusy;
+      if (sorterLogPathEl) sorterLogPathEl.disabled = sorterBusy;
+    };
+
+    const setSorterFolder = (folderPath) => {
+      sorterSelectedFolder = String(folderPath || "");
+      if (!sorterFolderPillEl) return;
+      if (!sorterSelectedFolder) {
+        sorterFolderPillEl.classList.add("muted");
+        sorterFolderPillEl.textContent = t("tools.sorter.noFolder");
+        sorterFolderPillEl.removeAttribute("title");
+        return;
+      }
+      sorterFolderPillEl.classList.remove("muted");
+      sorterFolderPillEl.textContent = sorterSelectedFolder;
+      sorterFolderPillEl.title = sorterSelectedFolder;
+    };
+
+    const setSorterResult = (message, tone = "muted") => {
+      if (!sorterResultEl) return;
+      sorterResultEl.textContent = message;
+      sorterResultEl.className = `quick-action-result ${tone}`;
+    };
+
+    sorterPickFolderBtn?.addEventListener("click", async () => {
+      if (sorterBusy) return;
+      try {
+        const res = await window.electron?.tools?.pickSorterFolder?.();
+        if (!res?.success || !res?.folderPath) {
+          if (res?.canceled) return;
+          setSorterResult(res?.error || t("tools.sorter.pickError"), "error");
+          return;
+        }
+        setSorterFolder(res.folderPath);
+        saveSorterFolder(res.folderPath);
+        setSorterResult(t("tools.sorter.folderSelected"), "muted");
+      } catch (error) {
+        setSorterResult(error?.message || t("tools.sorter.pickError"), "error");
+      }
+    });
+
+    sorterRunBtn?.addEventListener("click", async () => {
+      if (sorterBusy) return;
+      if (!sorterSelectedFolder) {
+        setSorterResult(t("tools.sorter.needFolder"), "warning");
+        return;
+      }
+      setSorterBusy(true);
+      setSorterResult(t("tools.sorter.running"), "muted");
+      try {
+        const res = await window.electron?.tools?.sortFilesByCategory?.({
+          folderPath: sorterSelectedFolder,
+          dryRun: !!sorterDryRunEl?.checked,
+          logFilePath: sorterLogPathEl?.value || "",
+        });
+        if (!res?.success) {
+          setSorterResult(res?.error || t("tools.sorter.error"), "error");
+          return;
+        }
+
+        const summary = t("tools.sorter.done", {
+          moved: Number(res.moved || 0),
+          total: Number(res.totalFiles || 0),
+          skipped: Number(res.skipped || 0),
+        });
+        const hasErrors = Array.isArray(res.errors) && res.errors.length > 0;
+        const modeHint = res.dryRun
+          ? ` ${t("tools.sorter.dryRunHint")}`
+          : "";
+        const errorHint = hasErrors
+          ? ` ${t("tools.sorter.errors", { count: res.errors.length })}`
+          : "";
+        setSorterResult(`${summary}${modeHint}${errorHint}`, hasErrors ? "warning" : "success");
+      } catch (error) {
+        setSorterResult(error?.message || t("tools.sorter.error"), "error");
+      } finally {
+        setSorterBusy(false);
+      }
+    });
+
+    setSorterFolder(loadSorterFolder());
+    setSorterResult(t("tools.sorter.resultIdle"), "muted");
 
     const restartCard = getEl("tools-restart-card", view);
     const createRestartShortcutBtn = getEl("create-restart-shortcut", view);

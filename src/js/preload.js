@@ -240,6 +240,9 @@ try {
       resetLocation: () => safeInvoke("tools:resetLocation"),
       pickFileForHash: () => safeInvoke("tools:hashPickFile"),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
+      pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
+      sortFilesByCategory: (payload) =>
+        safeInvoke("tools:sorterRun", payload),
       createWindowsRestartShortcut: () =>
         safeInvoke("tools:createWindowsRestartShortcut"),
       createWindowsShutdownShortcut: () =>

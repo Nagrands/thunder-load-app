@@ -175,6 +175,95 @@ describe("ipcHandlers tools quick actions", () => {
     );
   });
 
+  test("sorterPickFolder returns selected directory path", async () => {
+    const { dialog } = require("electron");
+    const { CHANNELS } = require("../../ipc/channels");
+    dialog.showOpenDialog.mockResolvedValue({
+      canceled: false,
+      filePaths: ["/tmp/sorter-folder"],
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_PICK_FOLDER]();
+
+    expect(result).toEqual({
+      success: true,
+      folderPath: "/tmp/sorter-folder",
+    });
+  });
+
+  test("sorterRun supports dry-run with category stats", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-dry-"));
+    fs.writeFileSync(path.join(root, "photo.heic"), "img", "utf8");
+    fs.writeFileSync(path.join(root, "readme.md"), "# test", "utf8");
+    fs.writeFileSync(path.join(root, "archive.zip"), "zip", "utf8");
+    fs.writeFileSync(path.join(root, ".hidden"), "ignore", "utf8");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.dryRun).toBe(true);
+    expect(result.moved).toBe(3);
+    expect(result.skipped).toBe(1);
+    expect(result.categoryCount.Images).toBe(1);
+    expect(result.categoryCount.Documents).toBe(1);
+    expect(result.categoryCount.Archives).toBe(1);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("sorterRun moves files and generates unique names", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-run-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
+    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
+    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "exists", "utf8");
+    const logPath = path.join(root, "sort.log");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: false,
+      logFilePath: logPath,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.moved).toBe(1);
+    expect(result.errors).toEqual([]);
+    expect(fs.existsSync(path.join(root, "a.txt"))).toBe(false);
+    expect(fs.existsSync(path.join(root, "Documents", "a (1).txt"))).toBe(
+      true,
+    );
+    expect(fs.existsSync(logPath)).toBe(true);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("sorterRun returns error when log path points to a directory", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-logdir-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
+    const logDir = path.join(root, "log-dir");
+    fs.mkdirSync(logDir, { recursive: true });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: false,
+      logFilePath: logDir,
+    });
+
+    expect(result.success).toBe(false);
+    expect(String(result.error || "")).toMatch(/EISDIR|illegal operation on a directory/i);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
   test("createWindowsRestartShortcut returns unsupported on non-windows", async () => {
     const { CHANNELS } = require("../../ipc/channels");
 

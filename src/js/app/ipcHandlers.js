@@ -15,6 +15,7 @@ const { getToolsVersions } = require("./toolsVersions");
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
+const os = require("os");
 const log = require("electron-log");
 const https = require("https");
 const http = require("http");
@@ -552,6 +553,298 @@ function setupIpcHandlers(dependencies) {
     } catch (error) {
       log.error("tools:hashCalculate error:", error);
       return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  const SORTER_CATEGORIES = Object.freeze({
+    Images: new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp",
+      ".svg",
+      ".bmp",
+      ".heic",
+      ".heif",
+      ".tif",
+      ".tiff",
+      ".ico",
+      ".avif",
+      ".raw",
+    ]),
+    Videos: new Set([
+      ".mp4",
+      ".mov",
+      ".avi",
+      ".mkv",
+      ".wmv",
+      ".webm",
+      ".m4v",
+      ".flv",
+      ".mpeg",
+      ".mpg",
+      ".3gp",
+    ]),
+    Music: new Set([
+      ".mp3",
+      ".wav",
+      ".flac",
+      ".m4a",
+      ".aac",
+      ".ogg",
+      ".wma",
+      ".aiff",
+      ".opus",
+    ]),
+    Documents: new Set([
+      ".pdf",
+      ".docx",
+      ".txt",
+      ".xlsx",
+      ".pptx",
+      ".csv",
+      ".rtf",
+      ".doc",
+      ".xls",
+      ".ppt",
+      ".odt",
+      ".ods",
+      ".odp",
+      ".epub",
+      ".md",
+    ]),
+    Archives: new Set([
+      ".zip",
+      ".rar",
+      ".7z",
+      ".tar",
+      ".gz",
+      ".bz2",
+      ".xz",
+      ".iso",
+    ]),
+  });
+
+  const sorterCategoryKeys = Object.keys(SORTER_CATEGORIES);
+
+  function expandUserPath(inputPath) {
+    const raw = String(inputPath || "").trim();
+    if (!raw) return "";
+    if (raw === "~") return os.homedir();
+    if (raw.startsWith("~/") || raw.startsWith("~\\")) {
+      return path.join(os.homedir(), raw.slice(2));
+    }
+    return raw;
+  }
+
+  function getSorterCategory(extension) {
+    const ext = String(extension || "").toLowerCase();
+    for (const key of sorterCategoryKeys) {
+      if (SORTER_CATEGORIES[key].has(ext)) return key;
+    }
+    return "Other";
+  }
+
+  async function generateUniqueTarget(targetPath) {
+    const parsed = path.parse(targetPath);
+    let candidate = targetPath;
+    let index = 1;
+    while (true) {
+      try {
+        await fsPromises.access(candidate, fs.constants.F_OK);
+        candidate = path.join(
+          parsed.dir,
+          `${parsed.name} (${index})${parsed.ext}`,
+        );
+        index += 1;
+      } catch {
+        return candidate;
+      }
+    }
+  }
+
+  async function moveFileSafe(sourcePath, targetPath) {
+    try {
+      await fsPromises.rename(sourcePath, targetPath);
+    } catch (error) {
+      if (error?.code !== "EXDEV") throw error;
+      await fsPromises.copyFile(sourcePath, targetPath);
+      await fsPromises.unlink(sourcePath);
+    }
+  }
+
+  ipcMain.handle(CHANNELS.TOOLS_SORTER_PICK_FOLDER, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openDirectory", "createDirectory"],
+      });
+      if (result.canceled || !result.filePaths?.length) {
+        return { success: false, canceled: true };
+      }
+      return { success: true, folderPath: result.filePaths[0] };
+    } catch (error) {
+      log.error("tools:sorterPickFolder error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_SORTER_RUN, async (_evt, payload = {}) => {
+    const dryRun = Boolean(payload?.dryRun);
+    const categoryCount = sorterCategoryKeys.reduce((acc, key) => {
+      acc[key] = 0;
+      return acc;
+    }, {});
+    categoryCount.Other = 0;
+
+    let logStream = null;
+    let logStreamHasError = false;
+    const operations = [];
+    const errors = [];
+
+    const writeLog = (message) => {
+      if (!logStream || logStreamHasError || logStream.destroyed) return;
+      try {
+        logStream.write(`${message}\n`);
+      } catch {}
+    };
+
+    try {
+      const folderPath = String(payload?.folderPath || "").trim();
+      if (!folderPath) {
+        return { success: false, error: "Folder path is required" };
+      }
+
+      const resolvedFolder = path.resolve(expandUserPath(folderPath));
+      const folderStat = await fsPromises.stat(resolvedFolder).catch(() => null);
+      if (!folderStat?.isDirectory()) {
+        return {
+          success: false,
+          error: "Selected path is not a folder or is unavailable",
+        };
+      }
+
+      const rawLogPath = expandUserPath(payload?.logFilePath);
+      const resolvedLogPath = rawLogPath ? path.resolve(rawLogPath) : null;
+      if (resolvedLogPath) {
+        await fsPromises.mkdir(path.dirname(resolvedLogPath), {
+          recursive: true,
+        });
+        logStream = fs.createWriteStream(resolvedLogPath, {
+          flags: "a",
+          encoding: "utf8",
+        });
+        await new Promise((resolve, reject) => {
+          const onOpen = () => {
+            cleanup();
+            resolve();
+          };
+          const onError = (error) => {
+            cleanup();
+            reject(error);
+          };
+          const cleanup = () => {
+            logStream.off("open", onOpen);
+            logStream.off("error", onError);
+          };
+          logStream.once("open", onOpen);
+          logStream.once("error", onError);
+        });
+        logStream.on("error", (error) => {
+          logStreamHasError = true;
+          log.error("tools:sorterRun log stream error:", error);
+        });
+      }
+
+      const entries = await fsPromises.readdir(resolvedFolder, {
+        withFileTypes: true,
+      });
+      const files = entries.filter((entry) => entry.isFile());
+
+      let moved = 0;
+      let skipped = 0;
+
+      for (const entry of files) {
+        if (entry.name.startsWith(".")) {
+          skipped += 1;
+          continue;
+        }
+
+        const sourcePath = path.join(resolvedFolder, entry.name);
+        const resolvedSource = path.resolve(sourcePath);
+        if (resolvedLogPath && resolvedSource === resolvedLogPath) {
+          skipped += 1;
+          continue;
+        }
+
+        const category = getSorterCategory(path.extname(entry.name));
+        const targetDir = path.join(resolvedFolder, category);
+        const targetPath = await generateUniqueTarget(
+          path.join(targetDir, entry.name),
+        );
+        const item = {
+          fileName: entry.name,
+          category,
+          sourcePath: resolvedSource,
+          targetPath,
+          renamed: path.basename(targetPath) !== entry.name,
+        };
+
+        if (dryRun) {
+          operations.push(item);
+          categoryCount[category] += 1;
+          moved += 1;
+          writeLog(
+            `[DRY-RUN] ${entry.name} -> ${category}/${path.basename(targetPath)}`,
+          );
+          continue;
+        }
+
+        try {
+          await fsPromises.mkdir(targetDir, { recursive: true });
+          await moveFileSafe(resolvedSource, targetPath);
+          operations.push(item);
+          categoryCount[category] += 1;
+          moved += 1;
+          writeLog(
+            `OK ${entry.name} -> ${category}/${path.basename(targetPath)}`,
+          );
+        } catch (error) {
+          const message = error?.message || String(error);
+          errors.push({ fileName: entry.name, message });
+          writeLog(`ERROR ${entry.name}: ${message}`);
+        }
+      }
+
+      return {
+        success: true,
+        dryRun,
+        folderPath: resolvedFolder,
+        logFilePath: resolvedLogPath || "",
+        moved,
+        skipped,
+        totalFiles: files.length,
+        categoryCount,
+        operations,
+        errors,
+      };
+    } catch (error) {
+      log.error("tools:sorterRun error:", error);
+      return { success: false, error: error.message || String(error) };
+    } finally {
+      if (logStream) {
+        await new Promise((resolve) => {
+          try {
+            if (logStream.destroyed) {
+              resolve();
+              return;
+            }
+            logStream.end(resolve);
+          } catch {
+            resolve();
+          }
+        });
+      }
     }
   });
 
