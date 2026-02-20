@@ -919,7 +919,7 @@ describe("toolsView quick actions", () => {
     expect(
       secondaryActions?.querySelector("#wg-open-config-file"),
     ).not.toBeNull();
-    expect(secondaryActions?.querySelector("#wg-help")).not.toBeNull();
+    expect(secondaryActions?.querySelector("#wg-help")).toBeNull();
   });
 
   test("keeps WG advanced collapsed by default", async () => {
@@ -1364,20 +1364,4 @@ describe("toolsView quick actions", () => {
     );
   });
 
-  test("opens WG help with localized keys", async () => {
-    const el = await renderView();
-    await openTool(el, "wg");
-    const helpBtn = el.querySelector("#wg-help");
-    helpBtn.click();
-    expect(showConfirmationDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "wg.help.title",
-        subtitle: "wg.help.subtitle",
-        confirmText: "wg.help.confirm",
-        message: "wg.help.messageHtml",
-        singleButton: true,
-        tone: "info",
-      }),
-    );
-  });
 });

@@ -690,9 +690,6 @@ export default function renderToolsView() {
               <button id="wg-open-network-settings" class="small-button hidden" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
                 <i class="fa-solid fa-network-wired"></i>
               </button>
-              <button id="wg-help" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Зачем нужна эта вкладка" data-i18n-title="wg.help.tooltip">
-                <i class="fa-solid fa-circle-info"></i>
-              </button>
               </div>
             </div>
             <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
@@ -1911,19 +1908,6 @@ export default function renderToolsView() {
 
     // Отправка UDP-пакета
     getEl("wg-send", view)?.addEventListener("click", handleSend);
-
-    // Подсказка о назначении вкладки WG Unlock
-    const helpBtn = getEl("wg-help", view);
-    helpBtn?.addEventListener("click", () => {
-      showConfirmationDialog({
-        title: t("wg.help.title"),
-        subtitle: t("wg.help.subtitle"),
-        confirmText: t("wg.help.confirm"),
-        singleButton: true,
-        tone: "info",
-        message: t("wg.help.messageHtml"),
-      });
-    });
 
     //
     // Добавим новые обработчики после существующего обработчика очистки лога:

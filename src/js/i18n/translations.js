@@ -242,7 +242,7 @@ export const translations = {
     "quickActions.advancedBoot.title": "Создание ярлыка расширенной загрузки",
     "quickActions.advancedBoot.cardTitle": "Расширенная загрузка",
     "quickActions.advancedBoot.cardHint":
-      "Открывает дополнительные параметры восстановления Windows.",
+      "Открывает параметры восстановления Windows.",
     "quickActions.advancedBoot.action": "Создать ярлык расширенной загрузки",
     "quickActions.advancedBoot.confirm": "Создать ярлык расширенной загрузки?",
     "quickActions.advancedBoot.error":
@@ -459,12 +459,6 @@ export const translations = {
       "Открыть системные сетевые настройки",
     "wg.action.openNetworkSettings.mac": "Открыть настройки сети (macOS)",
     "wg.action.openNetworkSettings.windows": "Открыть параметры сети (Windows)",
-    "wg.help.tooltip": "Зачем нужна эта вкладка",
-    "wg.help.title": "Зачем нужна WG Unlock",
-    "wg.help.subtitle": "Коротко о том, когда это полезно",
-    "wg.help.confirm": "Понятно",
-    "wg.help.messageHtml":
-      '<div class="toast-message"><p>WG Unlock помогает восстановить работу WireGuard, когда соединение «засыпает» или сеть после смены Wi-Fi работает нестабильно.</p><ul><li>Отправляет UDP-сигнал на указанный адрес и порт.</li><li>Удобен после сна ноутбука, смены сети и при нестабильном VPN.</li><li>Не заменяет WireGuard-клиент: при проблемах сервера/ключей может не помочь.</li></ul></div>',
     "wg.info.title": "Информация",
     "wg.info.body":
       "Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.",
@@ -1643,12 +1637,6 @@ export const translations = {
     "wg.action.openNetworkSettings.title": "Open system network settings",
     "wg.action.openNetworkSettings.mac": "Open network settings (macOS)",
     "wg.action.openNetworkSettings.windows": "Open network settings (Windows)",
-    "wg.help.tooltip": "What is this tab for",
-    "wg.help.title": "What WG Unlock is for",
-    "wg.help.subtitle": "When this can help",
-    "wg.help.confirm": "Got it",
-    "wg.help.messageHtml":
-      '<div class="toast-message"><p>WG Unlock helps restore WireGuard when the connection falls asleep or becomes unstable after switching Wi‑Fi.</p><ul><li>Sends a UDP signal to the configured address and port.</li><li>Useful after wake from sleep, network changes, or unstable VPN sessions.</li><li>It does not replace the WireGuard client and may not help with server or key issues.</li></ul></div>',
     "wg.info.title": "Info",
     "wg.info.body":
       "This function sends a UDP packet with the specified parameters to unlock WireGuard.",

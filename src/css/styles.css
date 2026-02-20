@@ -10758,7 +10758,7 @@
 }
 
 [data-theme=light] {
-  --color-accent: #629ead;
+  --color-accent: #b8c0ff;
   --color-bg-log: #aeaeae;
   --color-bg-main: rgba(110, 114, 123, 0.3607843137);
   --color-bg-secondary: #dfdfdf;
@@ -10768,7 +10768,7 @@
   --color-disabled: #5a5a5a;
   --color-highlight: #e0f4f8;
   --color-history-scroll: rgba(168, 168, 168, 0.18);
-  --color-hover: rgba(167, 164, 162, 0.742);
+  --color-hover: rgba(137, 137, 137, 0.18);
   --color-icon-links: #f472b6;
   --color-progress-bar: #858483;
   --color-progress-bg: rgba(15, 10, 18, 0.7);
@@ -10821,9 +10821,9 @@
   --badge-size-border: rgba(255, 233, 223, 0.24);
   --color-delete: rgba(255, 93, 93, 0.16);
   --color-accent-rgb:
-    98,
-    158,
-    173;
+    184,
+    192,
+    255;
   --tooltip-bg-color: rgba(255, 255, 255, 0.96);
   --tooltip-text-color: #0f172a;
   --tooltip-border-color: rgba(15, 23, 42, 0.16);
@@ -21094,7 +21094,7 @@ video {
 
 .hash-check-grid {
   display: grid;
-  gap: 12px;
+  gap: 20px;
 }
 
 .hash-row {
@@ -21282,7 +21282,7 @@ video {
 .hash-algorithm-wrap,
 .hash-expected-wrap {
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
 .hash-expected-hint {

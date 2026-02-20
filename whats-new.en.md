@@ -2,6 +2,7 @@
 
 ### Interface
 
+- **Simplified the WG Unlock block**: removed the “What is this tab for” button so quick actions now focus only on functional controls.
 - **Improved dry-run preview in File Sorter**: preview mode now shows a clear card with key metrics and a short list of upcoming sorting actions.
 - **Improved the folder selector in File Sorter**: the “Open folder” button now appears to the right of the shown path, and on mobile the controls are stacked into clear separate rows.
 - **Added in-app how-to carousels in Tools for WG Unlock and Power Shortcuts**: both tools now include a “How it works” button with step-by-step guidance so it is easier to run actions and understand results.
