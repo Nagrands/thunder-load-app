@@ -86,6 +86,7 @@ const CHANNELS = Object.freeze({
   TOOLS_HASH_PICK_FILE: "tools:hashPickFile",
   TOOLS_HASH_CALCULATE: "tools:hashCalculate",
   TOOLS_SORTER_PICK_FOLDER: "tools:sorterPickFolder",
+  TOOLS_SORTER_OPEN_FOLDER: "tools:sorterOpenFolder",
   TOOLS_SORTER_RUN: "tools:sorterRun",
   TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT: "tools:createWindowsRestartShortcut",
   TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT: "tools:createWindowsShutdownShortcut",

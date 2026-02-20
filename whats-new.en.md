@@ -2,6 +2,8 @@
 
 ### Interface
 
+- **Improved dry-run preview in File Sorter**: preview mode now shows a clear card with key metrics and a short list of upcoming sorting actions.
+- **Improved the folder selector in File Sorter**: the “Open folder” button now appears to the right of the shown path, and on mobile the controls are stacked into clear separate rows.
 - **Added in-app how-to carousels in Tools for WG Unlock and Power Shortcuts**: both tools now include a “How it works” button with step-by-step guidance so it is easier to run actions and understand results.
 - **Completely redesigned the top app menu**: the bar now adapts much better to both large and small screens.
 - **Added a “More” menu for narrow screens**: secondary actions now move into an overflow dropdown so the top bar stays clean.

@@ -636,9 +636,18 @@ export default function renderToolsView() {
             <div class="tools-card__header">
               <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
               <div class="tools-card__header-actions">
-                <button id="wg-open-howto" type="button" class="small-button wg-howto-open">
+                <button
+                  id="wg-open-howto"
+                  type="button"
+                  class="small-button wg-howto-open"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  data-i18n-title="tools.wg.howto.open"
+                  data-i18n-aria="tools.wg.howto.open"
+                  title="Как это работает"
+                  aria-label="Как это работает"
+                >
                   <i class="fa-regular fa-circle-question"></i>
-                  <span data-i18n="tools.wg.howto.open">Как это работает</span>
                 </button>
                 <button
                   id="tools-wg-advanced-toggle"
@@ -831,9 +840,18 @@ export default function renderToolsView() {
           <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
-              <button id="hash-open-howto" type="button" class="small-button hash-howto-open">
+              <button
+                id="hash-open-howto"
+                type="button"
+                class="small-button hash-howto-open"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-i18n-title="hashCheck.howto.open"
+                data-i18n-aria="hashCheck.howto.open"
+                title="Как это работает"
+                aria-label="Как это работает"
+              >
                 <i class="fa-regular fa-circle-question"></i>
-                <span data-i18n="hashCheck.howto.open">Как это работает</span>
               </button>
             </div>
             <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
@@ -1035,17 +1053,30 @@ export default function renderToolsView() {
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="Power Tool View">
           <article id="tools-restart-card" class="tools-card tools-detail-card">
-            <div class="tools-card__header power-shortcuts-header">
+            <div class="power-shortcuts-header">
               <div class="power-shortcuts-header__top">
-                <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
-                <button id="power-open-howto" type="button" class="small-button power-howto-open">
-                  <i class="fa-regular fa-circle-question"></i>
-                  <span data-i18n="quickActions.power.howto.open">Как это работает</span>
-                </button>
+                <div class="power-shortcuts-header__title-wrap">
+                  <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+                  <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
+                    Создаёт ярлыки питания на рабочем столе Windows.
+                  </p>
+                </div>
+                <div class="power-shortcuts-header__actions">
+                  <button
+                    id="power-open-howto"
+                    type="button"
+                    class="small-button power-howto-open"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-i18n-title="quickActions.power.howto.open"
+                    data-i18n-aria="quickActions.power.howto.open"
+                    title="Как это работает"
+                    aria-label="Как это работает"
+                  >
+                    <i class="fa-regular fa-circle-question"></i>
+                  </button>
+                </div>
               </div>
-              <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
-                Создаёт ярлыки питания на рабочем столе Windows.
-              </p>
             </div>
             <div
               id="power-platform-banner"
@@ -1231,9 +1262,18 @@ export default function renderToolsView() {
           <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="tools.sorter.title">File Sorter</h2>
-              <button id="sorter-open-howto" type="button" class="small-button sorter-howto-open">
+              <button
+                id="sorter-open-howto"
+                type="button"
+                class="small-button sorter-howto-open"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-i18n-title="tools.sorter.howto.open"
+                data-i18n-aria="tools.sorter.howto.open"
+                title="Как это работает"
+                aria-label="Как это работает"
+              >
                 <i class="fa-regular fa-circle-question"></i>
-                <span data-i18n="tools.sorter.howto.open">Как это работает</span>
               </button>
             </div>
             <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
@@ -1243,12 +1283,16 @@ export default function renderToolsView() {
               <div class="hash-row hash-row--top">
                 <div class="hash-file-control">
                   <span class="muted hash-file-label" data-i18n="tools.sorter.folder">Папка для сортировки</span>
-                  <div class="hash-actions-inline">
+                  <div class="hash-actions-inline sorter-folder-actions">
                     <button id="sorter-pick-folder" type="button" class="small-button">
                       <i class="fa-regular fa-folder-open"></i>
                       <span data-i18n="tools.sorter.pickFolder">Выбрать папку</span>
                     </button>
                     <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">Папка не выбрана</span>
+                    <button id="sorter-open-folder" type="button" class="small-button" disabled>
+                      <i class="fa-solid fa-up-right-from-square"></i>
+                      <span data-i18n="tools.sorter.openFolder">Открыть папку</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1278,6 +1322,38 @@ export default function renderToolsView() {
             <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
               Результат появится после запуска.
             </div>
+            <section id="sorter-preview-panel" class="sorter-preview-panel hidden" aria-live="polite">
+              <div class="sorter-preview-header">
+                <h3 data-i18n="tools.sorter.preview.title">Предпросмотр dry-run</h3>
+                <span
+                  id="sorter-preview-badge"
+                  class="sorter-preview-badge"
+                  data-i18n="tools.sorter.preview.badge"
+                >
+                  Предпросмотр
+                </span>
+              </div>
+              <div id="sorter-preview-stats" class="sorter-preview-stats">
+                <div class="sorter-preview-stat">
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.moved">Обработано</span>
+                  <strong id="sorter-preview-stat-moved">0</strong>
+                </div>
+                <div class="sorter-preview-stat">
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.total">Всего файлов</span>
+                  <strong id="sorter-preview-stat-total">0</strong>
+                </div>
+                <div class="sorter-preview-stat">
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.skipped">Пропущено</span>
+                  <strong id="sorter-preview-stat-skipped">0</strong>
+                </div>
+                <div class="sorter-preview-stat">
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.errors">Ошибок</span>
+                  <strong id="sorter-preview-stat-errors">0</strong>
+                </div>
+              </div>
+              <div id="sorter-preview-list" class="sorter-preview-list"></div>
+              <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
+            </section>
             <div id="sorter-howto-modal" class="sorter-howto-overlay hidden" aria-hidden="true">
               <div
                 id="sorter-howto-dialog"
@@ -2711,11 +2787,19 @@ export default function renderToolsView() {
     updateHashHowtoUi();
 
     const sorterPickFolderBtn = getEl("sorter-pick-folder", view);
+    const sorterOpenFolderBtn = getEl("sorter-open-folder", view);
     const sorterRunBtn = getEl("sorter-run", view);
     const sorterFolderPillEl = getEl("sorter-folder-pill", view);
     const sorterDryRunEl = getEl("sorter-dry-run", view);
     const sorterLogPathEl = getEl("sorter-log-path", view);
     const sorterResultEl = getEl("sorter-result", view);
+    const sorterPreviewPanelEl = getEl("sorter-preview-panel", view);
+    const sorterPreviewListEl = getEl("sorter-preview-list", view);
+    const sorterPreviewMoreEl = getEl("sorter-preview-more", view);
+    const sorterPreviewMovedEl = getEl("sorter-preview-stat-moved", view);
+    const sorterPreviewTotalEl = getEl("sorter-preview-stat-total", view);
+    const sorterPreviewSkippedEl = getEl("sorter-preview-stat-skipped", view);
+    const sorterPreviewErrorsEl = getEl("sorter-preview-stat-errors", view);
     const sorterOpenHowtoBtn = getEl("sorter-open-howto", view);
     const sorterHowtoModalEl = getEl("sorter-howto-modal", view);
     const sorterHowtoDialogEl = getEl("sorter-howto-dialog", view);
@@ -2728,6 +2812,7 @@ export default function renderToolsView() {
     const sorterHowtoDots = Array.from(
       sorterHowtoDotsEl?.querySelectorAll(".sorter-howto-dot") || [],
     );
+    const SORTER_PREVIEW_LIMIT = 20;
     const sorterHowtoSlideCount = 4;
     let sorterHowtoIndex = 0;
     let sorterHowtoReturnFocusEl = null;
@@ -2753,10 +2838,16 @@ export default function renderToolsView() {
       if (sorterRunBtn) sorterRunBtn.disabled = sorterBusy;
       if (sorterDryRunEl) sorterDryRunEl.disabled = sorterBusy;
       if (sorterLogPathEl) sorterLogPathEl.disabled = sorterBusy;
+      if (sorterOpenFolderBtn) {
+        sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
+      }
     };
 
     const setSorterFolder = (folderPath) => {
       sorterSelectedFolder = String(folderPath || "");
+      if (sorterOpenFolderBtn) {
+        sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
+      }
       if (!sorterFolderPillEl) return;
       if (!sorterSelectedFolder) {
         sorterFolderPillEl.classList.add("muted");
@@ -2773,6 +2864,96 @@ export default function renderToolsView() {
       if (!sorterResultEl) return;
       sorterResultEl.textContent = message;
       sorterResultEl.className = `quick-action-result ${tone}`;
+    };
+
+    const hideSorterPreview = () => {
+      sorterPreviewPanelEl?.classList.add("hidden");
+      if (sorterPreviewListEl) sorterPreviewListEl.replaceChildren();
+      if (sorterPreviewMoreEl) {
+        sorterPreviewMoreEl.classList.add("hidden");
+        sorterPreviewMoreEl.textContent = "";
+        delete sorterPreviewMoreEl.dataset.count;
+      }
+      if (sorterPreviewMovedEl) sorterPreviewMovedEl.textContent = "0";
+      if (sorterPreviewTotalEl) sorterPreviewTotalEl.textContent = "0";
+      if (sorterPreviewSkippedEl) sorterPreviewSkippedEl.textContent = "0";
+      if (sorterPreviewErrorsEl) sorterPreviewErrorsEl.textContent = "0";
+    };
+
+    const formatSorterOperationRow = (item = {}) => {
+      const fileName = String(item.fileName || "").trim() || "—";
+      const category = String(item.category || "").trim() || "Other";
+      const targetName =
+        String(item.targetPath || "")
+          .split(/[\\/]/)
+          .pop()
+          ?.trim() || fileName;
+      return { fileName, targetName, category };
+    };
+
+    const renderSorterPreview = (res = {}) => {
+      if (!sorterPreviewPanelEl || !sorterPreviewListEl) return;
+      const operations = Array.isArray(res.operations) ? res.operations : [];
+      const shownOperations = operations.slice(0, SORTER_PREVIEW_LIMIT);
+      const remainingCount = Math.max(0, operations.length - shownOperations.length);
+
+      sorterPreviewPanelEl.classList.remove("hidden");
+      if (sorterPreviewMovedEl)
+        sorterPreviewMovedEl.textContent = String(Number(res.moved || 0));
+      if (sorterPreviewTotalEl)
+        sorterPreviewTotalEl.textContent = String(Number(res.totalFiles || 0));
+      if (sorterPreviewSkippedEl)
+        sorterPreviewSkippedEl.textContent = String(Number(res.skipped || 0));
+      if (sorterPreviewErrorsEl)
+        sorterPreviewErrorsEl.textContent = String(
+          Array.isArray(res.errors) ? res.errors.length : 0,
+        );
+
+      sorterPreviewListEl.replaceChildren();
+
+      if (!shownOperations.length) {
+        const emptyEl = document.createElement("p");
+        emptyEl.className = "sorter-preview-list__empty muted";
+        emptyEl.textContent = t("tools.sorter.preview.list.empty");
+        sorterPreviewListEl.appendChild(emptyEl);
+      } else {
+        shownOperations.forEach((operation) => {
+          const rowData = formatSorterOperationRow(operation);
+          const row = document.createElement("div");
+          row.className = "sorter-preview-row";
+
+          const fileEl = document.createElement("span");
+          fileEl.className = "sorter-preview-row__file";
+          fileEl.textContent = rowData.fileName;
+          fileEl.title = rowData.fileName;
+
+          const targetEl = document.createElement("span");
+          targetEl.className = "sorter-preview-row__target muted";
+          targetEl.textContent = rowData.targetName;
+          targetEl.title = rowData.targetName;
+
+          const categoryEl = document.createElement("span");
+          categoryEl.className = "sorter-preview-row__category";
+          categoryEl.textContent = rowData.category;
+
+          row.append(fileEl, targetEl, categoryEl);
+          sorterPreviewListEl.appendChild(row);
+        });
+      }
+
+      if (sorterPreviewMoreEl) {
+        if (remainingCount > 0) {
+          sorterPreviewMoreEl.classList.remove("hidden");
+          sorterPreviewMoreEl.textContent = t("tools.sorter.preview.more", {
+            count: remainingCount,
+          });
+          sorterPreviewMoreEl.dataset.count = String(remainingCount);
+        } else {
+          sorterPreviewMoreEl.classList.add("hidden");
+          sorterPreviewMoreEl.textContent = "";
+          delete sorterPreviewMoreEl.dataset.count;
+        }
+      }
     };
 
     const isSorterHowtoOpen = () =>
@@ -2847,19 +3028,44 @@ export default function renderToolsView() {
         }
         setSorterFolder(res.folderPath);
         saveSorterFolder(res.folderPath);
+        hideSorterPreview();
         setSorterResult(t("tools.sorter.folderSelected"), "muted");
       } catch (error) {
+        hideSorterPreview();
         setSorterResult(error?.message || t("tools.sorter.pickError"), "error");
+      }
+    });
+
+    sorterOpenFolderBtn?.addEventListener("click", async () => {
+      if (sorterBusy || !sorterSelectedFolder) return;
+      try {
+        const res = await window.electron?.tools?.openSorterFolder?.(
+          sorterSelectedFolder,
+        );
+        if (!res?.success) {
+          setSorterResult(
+            res?.error || t("tools.sorter.openFolderError"),
+            "error",
+          );
+          return;
+        }
+      } catch (error) {
+        setSorterResult(
+          error?.message || t("tools.sorter.openFolderError"),
+          "error",
+        );
       }
     });
 
     sorterRunBtn?.addEventListener("click", async () => {
       if (sorterBusy) return;
       if (!sorterSelectedFolder) {
+        hideSorterPreview();
         setSorterResult(t("tools.sorter.needFolder"), "warning");
         return;
       }
       setSorterBusy(true);
+      hideSorterPreview();
       setSorterResult(t("tools.sorter.running"), "muted");
       try {
         const res = await window.electron?.tools?.sortFilesByCategory?.({
@@ -2868,6 +3074,7 @@ export default function renderToolsView() {
           logFilePath: sorterLogPathEl?.value || "",
         });
         if (!res?.success) {
+          hideSorterPreview();
           setSorterResult(res?.error || t("tools.sorter.error"), "error");
           return;
         }
@@ -2885,7 +3092,10 @@ export default function renderToolsView() {
           ? ` ${t("tools.sorter.errors", { count: res.errors.length })}`
           : "";
         setSorterResult(`${summary}${modeHint}${errorHint}`, hasErrors ? "warning" : "success");
+        if (res.dryRun) renderSorterPreview(res);
+        else hideSorterPreview();
       } catch (error) {
+        hideSorterPreview();
         setSorterResult(error?.message || t("tools.sorter.error"), "error");
       } finally {
         setSorterBusy(false);
@@ -2910,6 +3120,7 @@ export default function renderToolsView() {
     });
 
     setSorterFolder(loadSorterFolder());
+    hideSorterPreview();
     setSorterResult(t("tools.sorter.resultIdle"), "muted");
     updateSorterHowtoUi();
 

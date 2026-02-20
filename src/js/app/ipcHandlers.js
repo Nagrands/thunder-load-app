@@ -689,6 +689,31 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(CHANNELS.TOOLS_SORTER_OPEN_FOLDER, async (_evt, folderPath) => {
+    try {
+      const rawPath = String(folderPath || "").trim();
+      if (!rawPath) {
+        return { success: false, error: "Folder path is required" };
+      }
+      const resolvedFolder = path.resolve(expandUserPath(rawPath));
+      const folderStat = await fsPromises.stat(resolvedFolder).catch(() => null);
+      if (!folderStat?.isDirectory()) {
+        return {
+          success: false,
+          error: "Selected path is not a folder or is unavailable",
+        };
+      }
+      const result = await shell.openPath(resolvedFolder);
+      if (result) {
+        return { success: false, error: result };
+      }
+      return { success: true, folderPath: resolvedFolder };
+    } catch (error) {
+      log.error("tools:sorterOpenFolder error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
   ipcMain.handle(CHANNELS.TOOLS_SORTER_RUN, async (_evt, payload = {}) => {
     const dryRun = Boolean(payload?.dryRun);
     const categoryCount = sorterCategoryKeys.reduce((acc, key) => {

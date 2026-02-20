@@ -59,6 +59,10 @@ describe("toolsView quick actions", () => {
           success: true,
           folderPath: "/tmp/sorter",
         }),
+        openSorterFolder: jest.fn().mockResolvedValue({
+          success: true,
+          folderPath: "/tmp/sorter",
+        }),
         sortFilesByCategory: jest.fn().mockResolvedValue({
           success: true,
           dryRun: true,
@@ -66,6 +70,18 @@ describe("toolsView quick actions", () => {
           totalFiles: 2,
           skipped: 0,
           errors: [],
+          operations: [
+            {
+              fileName: "first.txt",
+              category: "Documents",
+              targetPath: "/tmp/sorter/Documents/first.txt",
+            },
+            {
+              fileName: "second.jpg",
+              category: "Images",
+              targetPath: "/tmp/sorter/Images/second.jpg",
+            },
+          ],
         }),
         calculateHash: jest.fn().mockResolvedValue({
           success: true,
@@ -392,7 +408,14 @@ describe("toolsView quick actions", () => {
     await openTool(el, "sorter");
 
     const pickBtn = el.querySelector("#sorter-pick-folder");
+    const openFolderBtn = el.querySelector("#sorter-open-folder");
     const folderPill = el.querySelector("#sorter-folder-pill");
+    const actionsRow = el.querySelector(".sorter-folder-actions");
+
+    expect(openFolderBtn?.disabled).toBe(true);
+    expect(actionsRow?.children[0]?.id).toBe("sorter-pick-folder");
+    expect(actionsRow?.children[1]?.id).toBe("sorter-folder-pill");
+    expect(actionsRow?.children[2]?.id).toBe("sorter-open-folder");
 
     pickBtn.click();
     await nextTick();
@@ -401,6 +424,25 @@ describe("toolsView quick actions", () => {
     expect(folderPill?.textContent).toBe("/tmp/sorter");
     expect(folderPill?.getAttribute("title")).toBe("/tmp/sorter");
     expect(localStorage.getItem("toolsSorterLastFolder")).toBe("/tmp/sorter");
+    expect(openFolderBtn?.disabled).toBe(false);
+  });
+
+  test("sorter opens selected folder", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const openFolderBtn = el.querySelector("#sorter-open-folder");
+
+    pickBtn.click();
+    await nextTick();
+
+    openFolderBtn.click();
+    await nextTick();
+
+    expect(window.electron.tools.openSorterFolder).toHaveBeenCalledWith(
+      "/tmp/sorter",
+    );
   });
 
   test("sorter shows warning when run is clicked without folder", async () => {
@@ -444,6 +486,126 @@ describe("toolsView quick actions", () => {
     expect(result?.textContent).toContain("tools.sorter.done");
     expect(result?.textContent).toContain("tools.sorter.dryRunHint");
     expect(result?.classList.contains("success")).toBe(true);
+  });
+
+  test("sorter renders dry-run preview panel with stats and operations", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const runBtn = el.querySelector("#sorter-run");
+    const dryRun = el.querySelector("#sorter-dry-run");
+    const previewPanel = el.querySelector("#sorter-preview-panel");
+    const previewList = el.querySelector("#sorter-preview-list");
+    const movedStat = el.querySelector("#sorter-preview-stat-moved");
+    const totalStat = el.querySelector("#sorter-preview-stat-total");
+    const skippedStat = el.querySelector("#sorter-preview-stat-skipped");
+    const errorsStat = el.querySelector("#sorter-preview-stat-errors");
+
+    dryRun.checked = true;
+    pickBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    expect(previewPanel?.classList.contains("hidden")).toBe(false);
+    expect(movedStat?.textContent).toBe("2");
+    expect(totalStat?.textContent).toBe("2");
+    expect(skippedStat?.textContent).toBe("0");
+    expect(errorsStat?.textContent).toBe("0");
+    expect(previewList?.querySelectorAll(".sorter-preview-row")).toHaveLength(2);
+  });
+
+  test("sorter dry-run preview shows top 20 operations and remainder", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const operations = Array.from({ length: 25 }).map((_, index) => ({
+      fileName: `file-${index + 1}.txt`,
+      category: "Documents",
+      targetPath: `/tmp/sorter/Documents/file-${index + 1}.txt`,
+    }));
+    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
+      success: true,
+      dryRun: true,
+      moved: 25,
+      totalFiles: 25,
+      skipped: 0,
+      errors: [],
+      operations,
+    });
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const runBtn = el.querySelector("#sorter-run");
+    const dryRun = el.querySelector("#sorter-dry-run");
+    const previewList = el.querySelector("#sorter-preview-list");
+    const previewMore = el.querySelector("#sorter-preview-more");
+
+    dryRun.checked = true;
+    pickBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    expect(previewList?.querySelectorAll(".sorter-preview-row")).toHaveLength(20);
+    expect(previewMore?.classList.contains("hidden")).toBe(false);
+    expect(previewMore?.dataset.count).toBe("5");
+    expect(previewMore?.textContent).toBe("tools.sorter.preview.more");
+  });
+
+  test("sorter hides dry-run preview panel on non-dry-run", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
+      success: true,
+      dryRun: false,
+      moved: 2,
+      totalFiles: 2,
+      skipped: 0,
+      errors: [],
+      operations: [
+        {
+          fileName: "first.txt",
+          category: "Documents",
+          targetPath: "/tmp/sorter/Documents/first.txt",
+        },
+      ],
+    });
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const runBtn = el.querySelector("#sorter-run");
+    const previewPanel = el.querySelector("#sorter-preview-panel");
+
+    pickBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    expect(previewPanel?.classList.contains("hidden")).toBe(true);
+  });
+
+  test("sorter keeps dry-run preview hidden on run error", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
+      success: false,
+      error: "fail",
+    });
+
+    const pickBtn = el.querySelector("#sorter-pick-folder");
+    const runBtn = el.querySelector("#sorter-run");
+    const dryRun = el.querySelector("#sorter-dry-run");
+    const previewPanel = el.querySelector("#sorter-preview-panel");
+
+    dryRun.checked = true;
+    pickBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    expect(previewPanel?.classList.contains("hidden")).toBe(true);
   });
 
   test("sorter how-to modal opens and can navigate slides", async () => {

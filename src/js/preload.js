@@ -241,6 +241,8 @@ try {
       pickFileForHash: () => safeInvoke("tools:hashPickFile"),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
       pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
+      openSorterFolder: (folderPath) =>
+        safeInvoke("tools:sorterOpenFolder", folderPath),
       sortFilesByCategory: (payload) =>
         safeInvoke("tools:sorterRun", payload),
       createWindowsRestartShortcut: () =>

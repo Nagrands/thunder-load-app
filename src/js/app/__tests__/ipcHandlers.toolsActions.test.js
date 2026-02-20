@@ -264,6 +264,38 @@ describe("ipcHandlers tools quick actions", () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
+  test("sorterOpenFolder opens selected directory", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-open-"));
+    shell.openPath.mockResolvedValue("");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_OPEN_FOLDER](
+      null,
+      root,
+    );
+
+    expect(result).toEqual({ success: true, folderPath: root });
+    expect(shell.openPath).toHaveBeenCalledWith(root);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("sorterOpenFolder returns error for unknown path", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const unknownPath = path.join(os.tmpdir(), `missing-${Date.now()}`);
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_OPEN_FOLDER](
+      null,
+      unknownPath,
+    );
+
+    expect(result.success).toBe(false);
+    expect(String(result.error || "")).toMatch(/not a folder|unavailable/i);
+  });
+
   test("createWindowsRestartShortcut returns unsupported on non-windows", async () => {
     const { CHANNELS } = require("../../ipc/channels");
 
