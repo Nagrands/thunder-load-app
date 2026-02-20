@@ -108,6 +108,9 @@ export default function renderToolsView() {
   let currentToolView = "launcher";
   let toolsPlatformInfo = { isWindows: false, platform: "" };
   let sorterSelectedFolder = "";
+  let wgHowtoPrevOverflow = null;
+  let powerHowtoPrevOverflow = null;
+  let hashHowtoPrevOverflow = null;
   let sorterHowtoPrevOverflow = null;
   const cleanupFns = [];
 
@@ -128,6 +131,18 @@ export default function renderToolsView() {
   };
 
   const disposeView = () => {
+    if (wgHowtoPrevOverflow !== null) {
+      document.documentElement.style.overflow = wgHowtoPrevOverflow;
+      wgHowtoPrevOverflow = null;
+    }
+    if (powerHowtoPrevOverflow !== null) {
+      document.documentElement.style.overflow = powerHowtoPrevOverflow;
+      powerHowtoPrevOverflow = null;
+    }
+    if (hashHowtoPrevOverflow !== null) {
+      document.documentElement.style.overflow = hashHowtoPrevOverflow;
+      hashHowtoPrevOverflow = null;
+    }
     if (sorterHowtoPrevOverflow !== null) {
       document.documentElement.style.overflow = sorterHowtoPrevOverflow;
       sorterHowtoPrevOverflow = null;
@@ -620,16 +635,22 @@ export default function renderToolsView() {
           <article class="tools-card tools-card-wg-quick tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
-              <button
-                id="tools-wg-advanced-toggle"
-                type="button"
-                class="small-button"
-                aria-controls="tools-wg-advanced-panel"
-                aria-expanded="false"
-                data-i18n="tools.wg.advanced.toggle.open"
-              >
-                Advanced
-              </button>
+              <div class="tools-card__header-actions">
+                <button id="wg-open-howto" type="button" class="small-button wg-howto-open">
+                  <i class="fa-regular fa-circle-question"></i>
+                  <span data-i18n="tools.wg.howto.open">Как это работает</span>
+                </button>
+                <button
+                  id="tools-wg-advanced-toggle"
+                  type="button"
+                  class="small-button"
+                  aria-controls="tools-wg-advanced-panel"
+                  aria-expanded="false"
+                  data-i18n="tools.wg.advanced.toggle.open"
+                >
+                  Advanced
+                </button>
+              </div>
             </div>
             <p class="tools-card__hint" data-i18n="tools.wg.quick.hint">Quick recovery actions for WireGuard.</p>
             <div class="tools-card__meta">
@@ -666,6 +687,65 @@ export default function renderToolsView() {
               </div>
             </div>
             <div id="wg-status-indicator" class="hidden" role="status" aria-live="polite"></div>
+            <div id="wg-howto-modal" class="wg-howto-overlay hidden" aria-hidden="true">
+              <div
+                id="wg-howto-dialog"
+                class="wg-howto-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-hidden="true"
+                aria-labelledby="wg-howto-title"
+                tabindex="-1"
+              >
+                <div class="wg-howto-header">
+                  <h3 id="wg-howto-title" data-i18n="tools.wg.howto.title">Как работает WG Unlock</h3>
+                  <button id="wg-howto-close" type="button" class="small-button" data-i18n-aria="tools.wg.howto.close" aria-label="Закрыть">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div id="wg-howto-step" class="wg-howto-step muted"></div>
+                <div class="wg-howto-viewport">
+                  <div id="wg-howto-track" class="wg-howto-track">
+                    <article class="wg-howto-slide" data-howto-slide="0">
+                      <div class="wg-howto-slide__icon"><i class="fa-solid fa-pen-to-square"></i></div>
+                      <h4 data-i18n="tools.wg.howto.slide1.title">Проверьте параметры</h4>
+                      <p data-i18n="tools.wg.howto.slide1.desc">Укажите IP и порты, по которым нужно отправить пакет для восстановления связи.</p>
+                    </article>
+                    <article class="wg-howto-slide" data-howto-slide="1">
+                      <div class="wg-howto-slide__icon"><i class="fa-solid fa-paper-plane"></i></div>
+                      <h4 data-i18n="tools.wg.howto.slide2.title">Отправьте запрос</h4>
+                      <p data-i18n="tools.wg.howto.slide2.desc">Нажмите «Отправить», чтобы инструмент отправил UDP-пакет на указанный адрес.</p>
+                    </article>
+                    <article class="wg-howto-slide" data-howto-slide="2">
+                      <div class="wg-howto-slide__icon"><i class="fa-solid fa-chart-line"></i></div>
+                      <h4 data-i18n="tools.wg.howto.slide3.title">Проверьте статус</h4>
+                      <p data-i18n="tools.wg.howto.slide3.desc">Статус покажет, удалось ли отправить запрос и есть ли ошибки в параметрах.</p>
+                    </article>
+                    <article class="wg-howto-slide" data-howto-slide="3">
+                      <div class="wg-howto-slide__icon"><i class="fa-regular fa-file-lines"></i></div>
+                      <h4 data-i18n="tools.wg.howto.slide4.title">Используйте лог</h4>
+                      <p data-i18n="tools.wg.howto.slide4.desc">В расширенном блоке можно открыть лог, чтобы посмотреть детали и при необходимости экспортировать его.</p>
+                    </article>
+                  </div>
+                </div>
+                <div id="wg-howto-dots" class="wg-howto-dots" role="tablist" data-i18n-aria="tools.wg.howto.title" aria-label="How-to steps">
+                  <button type="button" class="wg-howto-dot" data-index="0" aria-label="Step 1"></button>
+                  <button type="button" class="wg-howto-dot" data-index="1" aria-label="Step 2"></button>
+                  <button type="button" class="wg-howto-dot" data-index="2" aria-label="Step 3"></button>
+                  <button type="button" class="wg-howto-dot" data-index="3" aria-label="Step 4"></button>
+                </div>
+                <div class="wg-howto-actions">
+                  <button id="wg-howto-prev" type="button" class="small-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span data-i18n="tools.wg.howto.prev">Назад</span>
+                  </button>
+                  <button id="wg-howto-next" type="button" class="small-button">
+                    <span data-i18n="tools.wg.howto.next">Далее</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </article>
 
           <section id="tools-wg-advanced-panel" class="tools-wg-advanced-panel is-collapsed" aria-hidden="true">
@@ -751,6 +831,10 @@ export default function renderToolsView() {
           <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
               <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
+              <button id="hash-open-howto" type="button" class="small-button hash-howto-open">
+                <i class="fa-regular fa-circle-question"></i>
+                <span data-i18n="hashCheck.howto.open">Как это работает</span>
+              </button>
             </div>
             <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
             <div class="hash-check-grid">
@@ -887,13 +971,78 @@ export default function renderToolsView() {
               </div>
               <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">Результат появится после проверки.</div>
             </div>
+            <div id="hash-howto-modal" class="hash-howto-overlay hidden" aria-hidden="true">
+              <div
+                id="hash-howto-dialog"
+                class="hash-howto-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-hidden="true"
+                aria-labelledby="hash-howto-title"
+                tabindex="-1"
+              >
+                <div class="hash-howto-header">
+                  <h3 id="hash-howto-title" data-i18n="hashCheck.howto.title">Как работает Проверка хеша</h3>
+                  <button id="hash-howto-close" type="button" class="small-button" data-i18n-aria="hashCheck.howto.close" aria-label="Закрыть">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div id="hash-howto-step" class="hash-howto-step muted"></div>
+                <div class="hash-howto-viewport">
+                  <div id="hash-howto-track" class="hash-howto-track">
+                    <article class="hash-howto-slide" data-howto-slide="0">
+                      <div class="hash-howto-slide__icon"><i class="fa-regular fa-file"></i></div>
+                      <h4 data-i18n="hashCheck.howto.slide1.title">Выберите файл</h4>
+                      <p data-i18n="hashCheck.howto.slide1.desc">Укажите файл, для которого нужно посчитать контрольную сумму.</p>
+                    </article>
+                    <article class="hash-howto-slide" data-howto-slide="1">
+                      <div class="hash-howto-slide__icon"><i class="fa-solid fa-hashtag"></i></div>
+                      <h4 data-i18n="hashCheck.howto.slide2.title">Выберите алгоритм</h4>
+                      <p data-i18n="hashCheck.howto.slide2.desc">Выберите MD5, SHA-1, SHA-256 или SHA-512 в зависимости от того, с чем сравниваете.</p>
+                    </article>
+                    <article class="hash-howto-slide" data-howto-slide="2">
+                      <div class="hash-howto-slide__icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                      <h4 data-i18n="hashCheck.howto.slide3.title">Сравните результат</h4>
+                      <p data-i18n="hashCheck.howto.slide3.desc">Можно вставить ожидаемый хеш или выбрать второй файл, чтобы проверить совпадение.</p>
+                    </article>
+                    <article class="hash-howto-slide" data-howto-slide="3">
+                      <div class="hash-howto-slide__icon"><i class="fa-regular fa-copy"></i></div>
+                      <h4 data-i18n="hashCheck.howto.slide4.title">Используйте итог</h4>
+                      <p data-i18n="hashCheck.howto.slide4.desc">После проверки вы увидите статус совпадения и сможете скопировать вычисленный хеш.</p>
+                    </article>
+                  </div>
+                </div>
+                <div id="hash-howto-dots" class="hash-howto-dots" role="tablist" data-i18n-aria="hashCheck.howto.title" aria-label="How-to steps">
+                  <button type="button" class="hash-howto-dot" data-index="0" aria-label="Step 1"></button>
+                  <button type="button" class="hash-howto-dot" data-index="1" aria-label="Step 2"></button>
+                  <button type="button" class="hash-howto-dot" data-index="2" aria-label="Step 3"></button>
+                  <button type="button" class="hash-howto-dot" data-index="3" aria-label="Step 4"></button>
+                </div>
+                <div class="hash-howto-actions">
+                  <button id="hash-howto-prev" type="button" class="small-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span data-i18n="hashCheck.howto.prev">Назад</span>
+                  </button>
+                  <button id="hash-howto-next" type="button" class="small-button">
+                    <span data-i18n="hashCheck.howto.next">Далее</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </article>
         </section>
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="Power Tool View">
           <article id="tools-restart-card" class="tools-card tools-detail-card">
             <div class="tools-card__header power-shortcuts-header">
-              <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+              <div class="power-shortcuts-header__top">
+                <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+                <button id="power-open-howto" type="button" class="small-button power-howto-open">
+                  <i class="fa-regular fa-circle-question"></i>
+                  <span data-i18n="quickActions.power.howto.open">Как это работает</span>
+                </button>
+              </div>
               <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
                 Создаёт ярлыки питания на рабочем столе Windows.
               </p>
@@ -1015,6 +1164,65 @@ export default function renderToolsView() {
                   class="quick-action-result power-action-row__result muted"
                 ></div>
               </section>
+            </div>
+            <div id="power-howto-modal" class="power-howto-overlay hidden" aria-hidden="true">
+              <div
+                id="power-howto-dialog"
+                class="power-howto-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-hidden="true"
+                aria-labelledby="power-howto-title"
+                tabindex="-1"
+              >
+                <div class="power-howto-header">
+                  <h3 id="power-howto-title" data-i18n="quickActions.power.howto.title">Как работают Ярлыки питания</h3>
+                  <button id="power-howto-close" type="button" class="small-button" data-i18n-aria="quickActions.power.howto.close" aria-label="Закрыть">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div id="power-howto-step" class="power-howto-step muted"></div>
+                <div class="power-howto-viewport">
+                  <div id="power-howto-track" class="power-howto-track">
+                    <article class="power-howto-slide" data-howto-slide="0">
+                      <div class="power-howto-slide__icon"><i class="fa-brands fa-windows"></i></div>
+                      <h4 data-i18n="quickActions.power.howto.slide1.title">Проверьте платформу</h4>
+                      <p data-i18n="quickActions.power.howto.slide1.desc">Инструмент активен в Windows. На других платформах действия показаны, но недоступны.</p>
+                    </article>
+                    <article class="power-howto-slide" data-howto-slide="1">
+                      <div class="power-howto-slide__icon"><i class="fa-solid fa-list-check"></i></div>
+                      <h4 data-i18n="quickActions.power.howto.slide2.title">Выберите нужный ярлык</h4>
+                      <p data-i18n="quickActions.power.howto.slide2.desc">Выберите действие: перезагрузка, UEFI, расширенная загрузка, выключение и другие.</p>
+                    </article>
+                    <article class="power-howto-slide" data-howto-slide="2">
+                      <div class="power-howto-slide__icon"><i class="fa-solid fa-desktop"></i></div>
+                      <h4 data-i18n="quickActions.power.howto.slide3.title">Подтвердите создание</h4>
+                      <p data-i18n="quickActions.power.howto.slide3.desc">После подтверждения ярлык будет создан на рабочем столе для быстрого запуска.</p>
+                    </article>
+                    <article class="power-howto-slide" data-howto-slide="3">
+                      <div class="power-howto-slide__icon"><i class="fa-regular fa-circle-check"></i></div>
+                      <h4 data-i18n="quickActions.power.howto.slide4.title">Проверьте результат</h4>
+                      <p data-i18n="quickActions.power.howto.slide4.desc">Под каждой кнопкой появится итог: успешно создан ярлык или сообщение об ошибке.</p>
+                    </article>
+                  </div>
+                </div>
+                <div id="power-howto-dots" class="power-howto-dots" role="tablist" data-i18n-aria="quickActions.power.howto.title" aria-label="How-to steps">
+                  <button type="button" class="power-howto-dot" data-index="0" aria-label="Step 1"></button>
+                  <button type="button" class="power-howto-dot" data-index="1" aria-label="Step 2"></button>
+                  <button type="button" class="power-howto-dot" data-index="2" aria-label="Step 3"></button>
+                  <button type="button" class="power-howto-dot" data-index="3" aria-label="Step 4"></button>
+                </div>
+                <div class="power-howto-actions">
+                  <button id="power-howto-prev" type="button" class="small-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span data-i18n="quickActions.power.howto.prev">Назад</span>
+                  </button>
+                  <button id="power-howto-next" type="button" class="small-button">
+                    <span data-i18n="quickActions.power.howto.next">Далее</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </article>
         </section>
@@ -1453,6 +1661,60 @@ export default function renderToolsView() {
 
     // Отправка по Enter и Ctrl/Cmd+Enter
     view.addEventListener("keydown", (e) => {
+      if (isWgHowtoOpen()) {
+        const key = String(e.key || "");
+        if (key === "Escape" || key === "Esc") {
+          e.preventDefault();
+          closeWgHowtoModal();
+          return;
+        }
+        if (key === "ArrowLeft") {
+          e.preventDefault();
+          setWgHowtoSlide(wgHowtoIndex - 1);
+          return;
+        }
+        if (key === "ArrowRight") {
+          e.preventDefault();
+          setWgHowtoSlide(wgHowtoIndex + 1);
+          return;
+        }
+      }
+      if (isPowerHowtoOpen()) {
+        const key = String(e.key || "");
+        if (key === "Escape" || key === "Esc") {
+          e.preventDefault();
+          closePowerHowtoModal();
+          return;
+        }
+        if (key === "ArrowLeft") {
+          e.preventDefault();
+          setPowerHowtoSlide(powerHowtoIndex - 1);
+          return;
+        }
+        if (key === "ArrowRight") {
+          e.preventDefault();
+          setPowerHowtoSlide(powerHowtoIndex + 1);
+          return;
+        }
+      }
+      if (isHashHowtoOpen()) {
+        const key = String(e.key || "");
+        if (key === "Escape" || key === "Esc") {
+          e.preventDefault();
+          closeHashHowtoModal();
+          return;
+        }
+        if (key === "ArrowLeft") {
+          e.preventDefault();
+          setHashHowtoSlide(hashHowtoIndex - 1);
+          return;
+        }
+        if (key === "ArrowRight") {
+          e.preventDefault();
+          setHashHowtoSlide(hashHowtoIndex + 1);
+          return;
+        }
+      }
       if (isSorterHowtoOpen()) {
         const key = String(e.key || "");
         if (key === "Escape" || key === "Esc") {
@@ -1725,6 +1987,101 @@ export default function renderToolsView() {
       });
     });
 
+    const wgOpenHowtoBtn = getEl("wg-open-howto", view);
+    const wgHowtoModalEl = getEl("wg-howto-modal", view);
+    const wgHowtoDialogEl = getEl("wg-howto-dialog", view);
+    const wgHowtoTrackEl = getEl("wg-howto-track", view);
+    const wgHowtoStepEl = getEl("wg-howto-step", view);
+    const wgHowtoCloseBtn = getEl("wg-howto-close", view);
+    const wgHowtoPrevBtn = getEl("wg-howto-prev", view);
+    const wgHowtoNextBtn = getEl("wg-howto-next", view);
+    const wgHowtoDotsEl = getEl("wg-howto-dots", view);
+    const wgHowtoDots = Array.from(
+      wgHowtoDotsEl?.querySelectorAll(".wg-howto-dot") || [],
+    );
+    const wgHowtoSlideCount = 4;
+    let wgHowtoIndex = 0;
+    let wgHowtoReturnFocusEl = null;
+
+    const isWgHowtoOpen = () =>
+      !!wgHowtoModalEl && !wgHowtoModalEl.classList.contains("hidden");
+
+    const updateWgHowtoUi = () => {
+      if (!wgHowtoTrackEl) return;
+      wgHowtoTrackEl.style.transform = `translateX(-${wgHowtoIndex * 100}%)`;
+      if (wgHowtoStepEl) {
+        wgHowtoStepEl.textContent = t("tools.wg.howto.step", {
+          current: wgHowtoIndex + 1,
+          total: wgHowtoSlideCount,
+        });
+      }
+      if (wgHowtoPrevBtn) wgHowtoPrevBtn.disabled = wgHowtoIndex <= 0;
+      if (wgHowtoNextBtn) {
+        wgHowtoNextBtn.disabled = wgHowtoIndex >= wgHowtoSlideCount - 1;
+      }
+      wgHowtoDots.forEach((dot, idx) => {
+        const isActive = idx === wgHowtoIndex;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+    };
+
+    const setWgHowtoSlide = (index) => {
+      const nextIndex = Math.max(
+        0,
+        Math.min(Number(index) || 0, wgHowtoSlideCount - 1),
+      );
+      wgHowtoIndex = nextIndex;
+      updateWgHowtoUi();
+    };
+
+    const openWgHowtoModal = () => {
+      if (!wgHowtoModalEl || !wgHowtoDialogEl) return;
+      wgHowtoReturnFocusEl = document.activeElement;
+      if (wgHowtoPrevOverflow === null) {
+        wgHowtoPrevOverflow = document.documentElement.style.overflow;
+      }
+      document.documentElement.style.overflow = "hidden";
+      wgHowtoModalEl.classList.remove("hidden");
+      wgHowtoModalEl.setAttribute("aria-hidden", "false");
+      wgHowtoDialogEl.setAttribute("aria-hidden", "false");
+      setWgHowtoSlide(0);
+      setTimeout(() => wgHowtoCloseBtn?.focus(), 0);
+    };
+
+    const closeWgHowtoModal = ({ returnFocus = true } = {}) => {
+      if (!wgHowtoModalEl || !wgHowtoDialogEl) return;
+      wgHowtoModalEl.classList.add("hidden");
+      wgHowtoModalEl.setAttribute("aria-hidden", "true");
+      wgHowtoDialogEl.setAttribute("aria-hidden", "true");
+      if (wgHowtoPrevOverflow !== null) {
+        document.documentElement.style.overflow = wgHowtoPrevOverflow;
+        wgHowtoPrevOverflow = null;
+      }
+      if (returnFocus) {
+        if (wgHowtoReturnFocusEl?.focus) wgHowtoReturnFocusEl.focus();
+        else wgOpenHowtoBtn?.focus();
+      }
+    };
+
+    wgOpenHowtoBtn?.addEventListener("click", () => openWgHowtoModal());
+    wgHowtoCloseBtn?.addEventListener("click", () => closeWgHowtoModal());
+    wgHowtoPrevBtn?.addEventListener("click", () =>
+      setWgHowtoSlide(wgHowtoIndex - 1),
+    );
+    wgHowtoNextBtn?.addEventListener("click", () =>
+      setWgHowtoSlide(wgHowtoIndex + 1),
+    );
+    wgHowtoDots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        setWgHowtoSlide(Number(dot.dataset.index || "0"));
+      });
+    });
+    wgHowtoModalEl?.addEventListener("mousedown", (event) => {
+      if (event.target === wgHowtoModalEl) closeWgHowtoModal();
+    });
+    updateWgHowtoUi();
+
     const hashPickFileBtn = getEl("hash-pick-file", view);
     const hashPickFileSecondBtn = getEl("hash-pick-file-2", view);
     const hashClearFileSecondBtn = getEl("hash-clear-file-2", view);
@@ -1750,6 +2107,21 @@ export default function renderToolsView() {
     const hashCopyActualSecondBtn = getEl("hash-copy-actual-2", view);
     const hashCopyFeedbackFirstEl = getEl("hash-copy-feedback-1", view);
     const hashCopyFeedbackSecondEl = getEl("hash-copy-feedback-2", view);
+    const hashOpenHowtoBtn = getEl("hash-open-howto", view);
+    const hashHowtoModalEl = getEl("hash-howto-modal", view);
+    const hashHowtoDialogEl = getEl("hash-howto-dialog", view);
+    const hashHowtoTrackEl = getEl("hash-howto-track", view);
+    const hashHowtoStepEl = getEl("hash-howto-step", view);
+    const hashHowtoCloseBtn = getEl("hash-howto-close", view);
+    const hashHowtoPrevBtn = getEl("hash-howto-prev", view);
+    const hashHowtoNextBtn = getEl("hash-howto-next", view);
+    const hashHowtoDotsEl = getEl("hash-howto-dots", view);
+    const hashHowtoDots = Array.from(
+      hashHowtoDotsEl?.querySelectorAll(".hash-howto-dot") || [],
+    );
+    const hashHowtoSlideCount = 4;
+    let hashHowtoIndex = 0;
+    let hashHowtoReturnFocusEl = null;
     let hashActualValueFirst = "";
     let hashActualValueSecond = "";
     let hashBusy = false;
@@ -1757,6 +2129,67 @@ export default function renderToolsView() {
     const syncSecondFileControls = () => {
       if (!hashClearFileSecondBtn) return;
       hashClearFileSecondBtn.disabled = hashBusy || !hashSelectedFileSecond;
+    };
+
+    const isHashHowtoOpen = () =>
+      !!hashHowtoModalEl && !hashHowtoModalEl.classList.contains("hidden");
+
+    const updateHashHowtoUi = () => {
+      if (!hashHowtoTrackEl) return;
+      hashHowtoTrackEl.style.transform = `translateX(-${hashHowtoIndex * 100}%)`;
+      if (hashHowtoStepEl) {
+        hashHowtoStepEl.textContent = t("hashCheck.howto.step", {
+          current: hashHowtoIndex + 1,
+          total: hashHowtoSlideCount,
+        });
+      }
+      if (hashHowtoPrevBtn) hashHowtoPrevBtn.disabled = hashHowtoIndex <= 0;
+      if (hashHowtoNextBtn) {
+        hashHowtoNextBtn.disabled = hashHowtoIndex >= hashHowtoSlideCount - 1;
+      }
+      hashHowtoDots.forEach((dot, idx) => {
+        const isActive = idx === hashHowtoIndex;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+    };
+
+    const setHashHowtoSlide = (index) => {
+      const nextIndex = Math.max(
+        0,
+        Math.min(Number(index) || 0, hashHowtoSlideCount - 1),
+      );
+      hashHowtoIndex = nextIndex;
+      updateHashHowtoUi();
+    };
+
+    const openHashHowtoModal = () => {
+      if (!hashHowtoModalEl || !hashHowtoDialogEl) return;
+      hashHowtoReturnFocusEl = document.activeElement;
+      if (hashHowtoPrevOverflow === null) {
+        hashHowtoPrevOverflow = document.documentElement.style.overflow;
+      }
+      document.documentElement.style.overflow = "hidden";
+      hashHowtoModalEl.classList.remove("hidden");
+      hashHowtoModalEl.setAttribute("aria-hidden", "false");
+      hashHowtoDialogEl.setAttribute("aria-hidden", "false");
+      setHashHowtoSlide(0);
+      setTimeout(() => hashHowtoCloseBtn?.focus(), 0);
+    };
+
+    const closeHashHowtoModal = ({ returnFocus = true } = {}) => {
+      if (!hashHowtoModalEl || !hashHowtoDialogEl) return;
+      hashHowtoModalEl.classList.add("hidden");
+      hashHowtoModalEl.setAttribute("aria-hidden", "true");
+      hashHowtoDialogEl.setAttribute("aria-hidden", "true");
+      if (hashHowtoPrevOverflow !== null) {
+        document.documentElement.style.overflow = hashHowtoPrevOverflow;
+        hashHowtoPrevOverflow = null;
+      }
+      if (returnFocus) {
+        if (hashHowtoReturnFocusEl?.focus) hashHowtoReturnFocusEl.focus();
+        else hashOpenHowtoBtn?.focus();
+      }
     };
 
     const setHashBusy = (busy) => {
@@ -2259,6 +2692,23 @@ export default function renderToolsView() {
     setHashBusy(false);
     syncSecondFileControls();
     hashAlgorithmEl?.addEventListener("change", () => setHashActualLabels());
+    hashOpenHowtoBtn?.addEventListener("click", () => openHashHowtoModal());
+    hashHowtoCloseBtn?.addEventListener("click", () => closeHashHowtoModal());
+    hashHowtoPrevBtn?.addEventListener("click", () =>
+      setHashHowtoSlide(hashHowtoIndex - 1),
+    );
+    hashHowtoNextBtn?.addEventListener("click", () =>
+      setHashHowtoSlide(hashHowtoIndex + 1),
+    );
+    hashHowtoDots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        setHashHowtoSlide(Number(dot.dataset.index || "0"));
+      });
+    });
+    hashHowtoModalEl?.addEventListener("mousedown", (event) => {
+      if (event.target === hashHowtoModalEl) closeHashHowtoModal();
+    });
+    updateHashHowtoUi();
 
     const sorterPickFolderBtn = getEl("sorter-pick-folder", view);
     const sorterRunBtn = getEl("sorter-run", view);
@@ -2479,6 +2929,21 @@ export default function renderToolsView() {
       "create-network-settings-shortcut",
       view,
     );
+    const powerOpenHowtoBtn = getEl("power-open-howto", view);
+    const powerHowtoModalEl = getEl("power-howto-modal", view);
+    const powerHowtoDialogEl = getEl("power-howto-dialog", view);
+    const powerHowtoTrackEl = getEl("power-howto-track", view);
+    const powerHowtoStepEl = getEl("power-howto-step", view);
+    const powerHowtoCloseBtn = getEl("power-howto-close", view);
+    const powerHowtoPrevBtn = getEl("power-howto-prev", view);
+    const powerHowtoNextBtn = getEl("power-howto-next", view);
+    const powerHowtoDotsEl = getEl("power-howto-dots", view);
+    const powerHowtoDots = Array.from(
+      powerHowtoDotsEl?.querySelectorAll(".power-howto-dot") || [],
+    );
+    const powerHowtoSlideCount = 4;
+    let powerHowtoIndex = 0;
+    let powerHowtoReturnFocusEl = null;
     const restartShortcutNote = getEl("restart-shortcut-note", view);
     const powerPlatformBanner = getEl("power-platform-banner", view);
     const powerPlatformBannerText = getEl("power-platform-banner-text", view);
@@ -2497,6 +2962,68 @@ export default function renderToolsView() {
       "network-settings-shortcut-result",
       view,
     );
+
+    const isPowerHowtoOpen = () =>
+      !!powerHowtoModalEl && !powerHowtoModalEl.classList.contains("hidden");
+
+    const updatePowerHowtoUi = () => {
+      if (!powerHowtoTrackEl) return;
+      powerHowtoTrackEl.style.transform = `translateX(-${powerHowtoIndex * 100}%)`;
+      if (powerHowtoStepEl) {
+        powerHowtoStepEl.textContent = t("quickActions.power.howto.step", {
+          current: powerHowtoIndex + 1,
+          total: powerHowtoSlideCount,
+        });
+      }
+      if (powerHowtoPrevBtn) powerHowtoPrevBtn.disabled = powerHowtoIndex <= 0;
+      if (powerHowtoNextBtn) {
+        powerHowtoNextBtn.disabled = powerHowtoIndex >= powerHowtoSlideCount - 1;
+      }
+      powerHowtoDots.forEach((dot, idx) => {
+        const isActive = idx === powerHowtoIndex;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+    };
+
+    const setPowerHowtoSlide = (index) => {
+      const nextIndex = Math.max(
+        0,
+        Math.min(Number(index) || 0, powerHowtoSlideCount - 1),
+      );
+      powerHowtoIndex = nextIndex;
+      updatePowerHowtoUi();
+    };
+
+    const openPowerHowtoModal = () => {
+      if (!powerHowtoModalEl || !powerHowtoDialogEl) return;
+      powerHowtoReturnFocusEl = document.activeElement;
+      if (powerHowtoPrevOverflow === null) {
+        powerHowtoPrevOverflow = document.documentElement.style.overflow;
+      }
+      document.documentElement.style.overflow = "hidden";
+      powerHowtoModalEl.classList.remove("hidden");
+      powerHowtoModalEl.setAttribute("aria-hidden", "false");
+      powerHowtoDialogEl.setAttribute("aria-hidden", "false");
+      setPowerHowtoSlide(0);
+      setTimeout(() => powerHowtoCloseBtn?.focus(), 0);
+    };
+
+    const closePowerHowtoModal = ({ returnFocus = true } = {}) => {
+      if (!powerHowtoModalEl || !powerHowtoDialogEl) return;
+      powerHowtoModalEl.classList.add("hidden");
+      powerHowtoModalEl.setAttribute("aria-hidden", "true");
+      powerHowtoDialogEl.setAttribute("aria-hidden", "true");
+      if (powerHowtoPrevOverflow !== null) {
+        document.documentElement.style.overflow = powerHowtoPrevOverflow;
+        powerHowtoPrevOverflow = null;
+      }
+      if (returnFocus) {
+        if (powerHowtoReturnFocusEl?.focus) powerHowtoReturnFocusEl.focus();
+        else powerOpenHowtoBtn?.focus();
+      }
+    };
+
     const setPowerResult = (resultEl, text, tone = "muted") => {
       if (!resultEl) return;
       resultEl.textContent = text;
@@ -2634,6 +3161,24 @@ export default function renderToolsView() {
         setPowerResult(action.resultEl, t(action.createdKey), "success");
       });
     });
+
+    powerOpenHowtoBtn?.addEventListener("click", () => openPowerHowtoModal());
+    powerHowtoCloseBtn?.addEventListener("click", () => closePowerHowtoModal());
+    powerHowtoPrevBtn?.addEventListener("click", () =>
+      setPowerHowtoSlide(powerHowtoIndex - 1),
+    );
+    powerHowtoNextBtn?.addEventListener("click", () =>
+      setPowerHowtoSlide(powerHowtoIndex + 1),
+    );
+    powerHowtoDots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        setPowerHowtoSlide(Number(dot.dataset.index || "0"));
+      });
+    });
+    powerHowtoModalEl?.addEventListener("mousedown", (event) => {
+      if (event.target === powerHowtoModalEl) closePowerHowtoModal();
+    });
+    updatePowerHowtoUi();
 
     isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
     const showPowerTool = isPowerToolVisible(toolsPlatformInfo);

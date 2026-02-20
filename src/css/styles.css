@@ -20625,13 +20625,19 @@ video {
   width: fit-content;
 }
 
-.sorter-howto-open {
+.sorter-howto-open,
+.hash-howto-open,
+.wg-howto-open,
+.power-howto-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.sorter-howto-overlay {
+.sorter-howto-overlay,
+.hash-howto-overlay,
+.wg-howto-overlay,
+.power-howto-overlay {
   position: fixed;
   inset: 0;
   z-index: 1300;
@@ -20643,7 +20649,10 @@ video {
   backdrop-filter: blur(6px);
 }
 
-.sorter-howto-dialog {
+.sorter-howto-dialog,
+.hash-howto-dialog,
+.wg-howto-dialog,
+.power-howto-dialog {
   width: min(860px, 94vw);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -20654,34 +20663,52 @@ video {
   gap: 12px;
 }
 
-.sorter-howto-header {
+.sorter-howto-header,
+.hash-howto-header,
+.wg-howto-header,
+.power-howto-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-.sorter-howto-header h3 {
+.sorter-howto-header h3,
+.hash-howto-header h3,
+.wg-howto-header h3,
+.power-howto-header h3 {
   margin: 0;
   font-size: 1.1rem;
   color: var(--color-highlight);
 }
 
-.sorter-howto-step {
+.sorter-howto-step,
+.hash-howto-step,
+.wg-howto-step,
+.power-howto-step {
   margin: 0;
 }
 
-.sorter-howto-viewport {
+.sorter-howto-viewport,
+.hash-howto-viewport,
+.wg-howto-viewport,
+.power-howto-viewport {
   overflow: hidden;
 }
 
-.sorter-howto-track {
+.sorter-howto-track,
+.hash-howto-track,
+.wg-howto-track,
+.power-howto-track {
   display: flex;
   width: 100%;
   transition: transform 0.3s ease;
   will-change: transform;
 }
 
-.sorter-howto-slide {
+.sorter-howto-slide,
+.hash-howto-slide,
+.wg-howto-slide,
+.power-howto-slide {
   width: 100%;
   flex: 0 0 100%;
   border-radius: 12px;
@@ -20691,18 +20718,27 @@ video {
   display: grid;
   gap: 10px;
 }
-.sorter-howto-slide h4 {
+.sorter-howto-slide h4,
+.hash-howto-slide h4,
+.wg-howto-slide h4,
+.power-howto-slide h4 {
   margin: 0;
   font-size: 1rem;
   color: var(--color-highlight);
 }
-.sorter-howto-slide p {
+.sorter-howto-slide p,
+.hash-howto-slide p,
+.wg-howto-slide p,
+.power-howto-slide p {
   margin: 0;
   color: var(--color-quality);
   line-height: 1.45;
 }
 
-.sorter-howto-slide__icon {
+.sorter-howto-slide__icon,
+.hash-howto-slide__icon,
+.wg-howto-slide__icon,
+.power-howto-slide__icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
@@ -20714,14 +20750,20 @@ video {
   font-size: 1.15rem;
 }
 
-.sorter-howto-dots {
+.sorter-howto-dots,
+.hash-howto-dots,
+.wg-howto-dots,
+.power-howto-dots {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-.sorter-howto-dot {
+.sorter-howto-dot,
+.hash-howto-dot,
+.wg-howto-dot,
+.power-howto-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -20730,17 +20772,26 @@ video {
   padding: 0;
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
-.sorter-howto-dot.is-active {
+.sorter-howto-dot.is-active,
+.hash-howto-dot.is-active,
+.wg-howto-dot.is-active,
+.power-howto-dot.is-active {
   background: rgba(var(--color-accent-rgb), 0.95);
   transform: scale(1.15);
 }
 
-.sorter-howto-actions {
+.sorter-howto-actions,
+.hash-howto-actions,
+.wg-howto-actions,
+.power-howto-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
-.sorter-howto-actions .small-button {
+.sorter-howto-actions .small-button,
+.hash-howto-actions .small-button,
+.wg-howto-actions .small-button,
+.power-howto-actions .small-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -20975,6 +21026,12 @@ video {
   margin: 0;
   font-size: 1.02rem;
   color: var(--color-highlight);
+}
+
+.tools-card__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tools-card__hint {
@@ -21274,6 +21331,13 @@ video {
   gap: 8px;
 }
 
+.power-shortcuts-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .power-shortcuts-header__hint {
   margin: 0;
 }
@@ -21548,19 +21612,31 @@ video {
   .power-actions-grid {
     grid-template-columns: 1fr;
   }
-  .sorter-howto-overlay {
+  .sorter-howto-overlay,
+  .hash-howto-overlay,
+  .wg-howto-overlay,
+  .power-howto-overlay {
     padding: 14px;
   }
-  .sorter-howto-dialog {
+  .sorter-howto-dialog,
+  .hash-howto-dialog,
+  .wg-howto-dialog,
+  .power-howto-dialog {
     width: 94vw;
     max-height: calc(100vh - 28px);
     overflow: auto;
     padding: 14px;
   }
-  .sorter-howto-slide {
+  .sorter-howto-slide,
+  .hash-howto-slide,
+  .wg-howto-slide,
+  .power-howto-slide {
     padding: 14px;
   }
-  .sorter-howto-actions {
+  .sorter-howto-actions,
+  .hash-howto-actions,
+  .wg-howto-actions,
+  .power-howto-actions {
     grid-template-columns: 1fr;
   }
 }

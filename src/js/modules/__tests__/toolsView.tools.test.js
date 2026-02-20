@@ -519,6 +519,225 @@ describe("toolsView quick actions", () => {
     expect(modal?.classList.contains("hidden")).toBe(true);
   });
 
+  test("hash how-to modal opens and can navigate slides", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const openBtn = el.querySelector("#hash-open-howto");
+    const modal = el.querySelector("#hash-howto-modal");
+    const track = el.querySelector("#hash-howto-track");
+    const prevBtn = el.querySelector("#hash-howto-prev");
+    const nextBtn = el.querySelector("#hash-howto-next");
+
+    openBtn.click();
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(false);
+    expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(prevBtn?.disabled).toBe(true);
+    expect(nextBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-0%)");
+
+    nextBtn.click();
+    await nextTick();
+    expect(prevBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-100%)");
+
+    nextBtn.click();
+    nextBtn.click();
+    await nextTick();
+    expect(nextBtn?.disabled).toBe(true);
+    expect(track?.style.transform).toBe("translateX(-300%)");
+  });
+
+  test("hash how-to modal closes by Escape and returns focus", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const root = el.querySelector("#wireguard-view");
+    const openBtn = el.querySelector("#hash-open-howto");
+    const modal = el.querySelector("#hash-howto-modal");
+    const closeBtn = el.querySelector("#hash-howto-close");
+
+    openBtn.focus();
+    openBtn.click();
+    await nextTick();
+
+    expect(document.activeElement).toBe(closeBtn);
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.activeElement).toBe(openBtn);
+  });
+
+  test("hash how-to modal closes on overlay click", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const openBtn = el.querySelector("#hash-open-howto");
+    const modal = el.querySelector("#hash-howto-modal");
+
+    openBtn.click();
+    await nextTick();
+
+    modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+  });
+
+  test("wg how-to modal opens and can navigate slides", async () => {
+    const el = await renderView();
+    await openTool(el, "wg");
+
+    const openBtn = el.querySelector("#wg-open-howto");
+    const modal = el.querySelector("#wg-howto-modal");
+    const track = el.querySelector("#wg-howto-track");
+    const prevBtn = el.querySelector("#wg-howto-prev");
+    const nextBtn = el.querySelector("#wg-howto-next");
+
+    openBtn.click();
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(false);
+    expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(prevBtn?.disabled).toBe(true);
+    expect(nextBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-0%)");
+
+    nextBtn.click();
+    await nextTick();
+    expect(prevBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-100%)");
+
+    nextBtn.click();
+    nextBtn.click();
+    await nextTick();
+    expect(nextBtn?.disabled).toBe(true);
+    expect(track?.style.transform).toBe("translateX(-300%)");
+  });
+
+  test("wg how-to modal closes by Escape and returns focus", async () => {
+    const el = await renderView();
+    await openTool(el, "wg");
+
+    const root = el.querySelector("#wireguard-view");
+    const openBtn = el.querySelector("#wg-open-howto");
+    const modal = el.querySelector("#wg-howto-modal");
+    const closeBtn = el.querySelector("#wg-howto-close");
+
+    openBtn.focus();
+    openBtn.click();
+    await nextTick();
+
+    expect(document.activeElement).toBe(closeBtn);
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.activeElement).toBe(openBtn);
+  });
+
+  test("wg how-to modal closes on overlay click", async () => {
+    const el = await renderView();
+    await openTool(el, "wg");
+
+    const openBtn = el.querySelector("#wg-open-howto");
+    const modal = el.querySelector("#wg-howto-modal");
+
+    openBtn.click();
+    await nextTick();
+
+    modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+  });
+
+  test("power how-to modal opens and can navigate slides", async () => {
+    const el = await renderView();
+    await openTool(el, "power");
+
+    const openBtn = el.querySelector("#power-open-howto");
+    const modal = el.querySelector("#power-howto-modal");
+    const track = el.querySelector("#power-howto-track");
+    const prevBtn = el.querySelector("#power-howto-prev");
+    const nextBtn = el.querySelector("#power-howto-next");
+
+    openBtn.click();
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(false);
+    expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(prevBtn?.disabled).toBe(true);
+    expect(nextBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-0%)");
+
+    nextBtn.click();
+    await nextTick();
+    expect(prevBtn?.disabled).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-100%)");
+
+    nextBtn.click();
+    nextBtn.click();
+    await nextTick();
+    expect(nextBtn?.disabled).toBe(true);
+    expect(track?.style.transform).toBe("translateX(-300%)");
+  });
+
+  test("power how-to modal closes by Escape and returns focus", async () => {
+    const el = await renderView();
+    await openTool(el, "power");
+
+    const root = el.querySelector("#wireguard-view");
+    const openBtn = el.querySelector("#power-open-howto");
+    const modal = el.querySelector("#power-howto-modal");
+    const closeBtn = el.querySelector("#power-howto-close");
+
+    openBtn.focus();
+    openBtn.click();
+    await nextTick();
+
+    expect(document.activeElement).toBe(closeBtn);
+    root?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.activeElement).toBe(openBtn);
+  });
+
+  test("power how-to modal closes on overlay click", async () => {
+    const el = await renderView();
+    await openTool(el, "power");
+
+    const openBtn = el.querySelector("#power-open-howto");
+    const modal = el.querySelector("#power-howto-modal");
+
+    openBtn.click();
+    await nextTick();
+
+    modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+  });
+
   test("renders WG quick hierarchy with primary and secondary actions", async () => {
     const el = await renderView();
     await openTool(el, "wg");

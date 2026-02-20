@@ -2,6 +2,7 @@
 
 ### Interface
 
+- **Added in-app how-to carousels in Tools for WG Unlock and Power Shortcuts**: both tools now include a “How it works” button with step-by-step guidance so it is easier to run actions and understand results.
 - **Completely redesigned the top app menu**: the bar now adapts much better to both large and small screens.
 - **Added a “More” menu for narrow screens**: secondary actions now move into an overflow dropdown so the top bar stays clean.
 - **Improved readability on wide monitors**: quick actions now show text labels next to icons.
@@ -46,6 +47,7 @@
 - **Improved File Sorter stability**: log-file write errors are now handled safely, so sorting shows a proper error instead of crashing.
 - **Improved File Sorter UI behavior**: selected-folder status now updates more reliably.
 - **Added a “How it works” modal for File Sorter**: the tool now includes a step-by-step carousel that explains sorting in plain language.
+- **Added a “How it works” modal for Hash Check**: the tool now includes a step-by-step carousel explaining algorithm choice and result comparison.
 
 - **Added a new File Sorter tool to the Tools tab**: you can now pick a folder and automatically organize files into categories (images, videos, music, documents, archives, and other).
 - **Added a safe dry-run mode in File Sorter**: preview sorting results before moving any files.

@@ -205,6 +205,24 @@ export const translations = {
     "quickActions.power.banner.title": "Ограничение платформы",
     "quickActions.power.banner.windowsOnly":
       "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
+    "quickActions.power.howto.open": "Как это работает",
+    "quickActions.power.howto.title": "Как работают Ярлыки питания",
+    "quickActions.power.howto.close": "Закрыть",
+    "quickActions.power.howto.prev": "Назад",
+    "quickActions.power.howto.next": "Далее",
+    "quickActions.power.howto.step": "Шаг {current} из {total}",
+    "quickActions.power.howto.slide1.title": "Проверьте платформу",
+    "quickActions.power.howto.slide1.desc":
+      "Инструмент активен в Windows. На других платформах действия показаны, но недоступны.",
+    "quickActions.power.howto.slide2.title": "Выберите нужный ярлык",
+    "quickActions.power.howto.slide2.desc":
+      "Выберите действие: перезагрузка, UEFI, расширенная загрузка, выключение и другие.",
+    "quickActions.power.howto.slide3.title": "Подтвердите создание",
+    "quickActions.power.howto.slide3.desc":
+      "После подтверждения ярлык будет создан на рабочем столе для быстрого запуска.",
+    "quickActions.power.howto.slide4.title": "Проверьте результат",
+    "quickActions.power.howto.slide4.desc":
+      "Под каждой кнопкой появится итог: успешно создан ярлык или сообщение об ошибке.",
     "quickActions.restart.title": "Создание ярлыка перезагрузки",
     "quickActions.restart.cardTitle": "Перезагрузка",
     "quickActions.restart.cardHint":
@@ -262,6 +280,24 @@ export const translations = {
     "tools.dashboard.title": "Панель инструментов",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Быстрые действия для восстановления WireGuard.",
+    "tools.wg.howto.open": "Как это работает",
+    "tools.wg.howto.title": "Как работает WG Unlock",
+    "tools.wg.howto.close": "Закрыть",
+    "tools.wg.howto.prev": "Назад",
+    "tools.wg.howto.next": "Далее",
+    "tools.wg.howto.step": "Шаг {current} из {total}",
+    "tools.wg.howto.slide1.title": "Проверьте параметры",
+    "tools.wg.howto.slide1.desc":
+      "Укажите IP и порты, по которым нужно отправить пакет для восстановления связи.",
+    "tools.wg.howto.slide2.title": "Отправьте запрос",
+    "tools.wg.howto.slide2.desc":
+      "Нажмите «Отправить», чтобы инструмент отправил UDP-пакет на указанный адрес.",
+    "tools.wg.howto.slide3.title": "Проверьте статус",
+    "tools.wg.howto.slide3.desc":
+      "Статус покажет, удалось ли отправить запрос и есть ли ошибки в параметрах.",
+    "tools.wg.howto.slide4.title": "Используйте лог",
+    "tools.wg.howto.slide4.desc":
+      "В расширенном блоке можно открыть лог, чтобы посмотреть детали и при необходимости экспортировать его.",
     "tools.wg.advanced.title": "WG Advanced",
     "tools.wg.advanced.toggle.open": "Advanced",
     "tools.wg.advanced.toggle.close": "Скрыть Advanced",
@@ -384,6 +420,24 @@ export const translations = {
     "hashCheck.copyError": "Не удалось скопировать хеш",
     "hashCheck.pickError": "Не удалось выбрать файл",
     "hashCheck.error": "Ошибка проверки хеша",
+    "hashCheck.howto.open": "Как это работает",
+    "hashCheck.howto.title": "Как работает Проверка хеша",
+    "hashCheck.howto.close": "Закрыть",
+    "hashCheck.howto.prev": "Назад",
+    "hashCheck.howto.next": "Далее",
+    "hashCheck.howto.step": "Шаг {current} из {total}",
+    "hashCheck.howto.slide1.title": "Выберите файл",
+    "hashCheck.howto.slide1.desc":
+      "Укажите файл, для которого нужно посчитать контрольную сумму.",
+    "hashCheck.howto.slide2.title": "Выберите алгоритм",
+    "hashCheck.howto.slide2.desc":
+      "Выберите MD5, SHA-1, SHA-256 или SHA-512 в зависимости от того, с чем сравниваете.",
+    "hashCheck.howto.slide3.title": "Сравните результат",
+    "hashCheck.howto.slide3.desc":
+      "Можно вставить ожидаемый хеш или выбрать второй файл, чтобы проверить совпадение.",
+    "hashCheck.howto.slide4.title": "Используйте итог",
+    "hashCheck.howto.slide4.desc":
+      "После проверки вы увидите статус совпадения и сможете скопировать вычисленный хеш.",
     "wg.debug.label": "Лог активности",
     "wg.section.network": "Сетевые параметры",
     "wg.section.control": "Управление",
@@ -1328,6 +1382,24 @@ export const translations = {
     "quickActions.power.banner.title": "Platform limitation",
     "quickActions.power.banner.windowsOnly":
       "Shortcut creation is available only on Windows. Actions are disabled on this platform.",
+    "quickActions.power.howto.open": "How it works",
+    "quickActions.power.howto.title": "How Power Shortcuts works",
+    "quickActions.power.howto.close": "Close",
+    "quickActions.power.howto.prev": "Back",
+    "quickActions.power.howto.next": "Next",
+    "quickActions.power.howto.step": "Step {current} of {total}",
+    "quickActions.power.howto.slide1.title": "Check platform",
+    "quickActions.power.howto.slide1.desc":
+      "The tool is active on Windows. On other platforms the actions are shown but disabled.",
+    "quickActions.power.howto.slide2.title": "Choose shortcut type",
+    "quickActions.power.howto.slide2.desc":
+      "Pick an action like restart, UEFI, advanced startup, shutdown, and more.",
+    "quickActions.power.howto.slide3.title": "Confirm creation",
+    "quickActions.power.howto.slide3.desc":
+      "After confirmation, the shortcut is created on your desktop for quick access.",
+    "quickActions.power.howto.slide4.title": "Review result",
+    "quickActions.power.howto.slide4.desc":
+      "Each action row shows whether shortcut creation succeeded or failed.",
     "quickActions.restart.title": "Create restart shortcut",
     "quickActions.restart.cardTitle": "Restart",
     "quickActions.restart.cardHint":
@@ -1386,6 +1458,24 @@ export const translations = {
     "tools.dashboard.title": "Tools dashboard",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Fast recovery actions for WireGuard.",
+    "tools.wg.howto.open": "How it works",
+    "tools.wg.howto.title": "How WG Unlock works",
+    "tools.wg.howto.close": "Close",
+    "tools.wg.howto.prev": "Back",
+    "tools.wg.howto.next": "Next",
+    "tools.wg.howto.step": "Step {current} of {total}",
+    "tools.wg.howto.slide1.title": "Check parameters",
+    "tools.wg.howto.slide1.desc":
+      "Set the IP and ports where the recovery packet should be sent.",
+    "tools.wg.howto.slide2.title": "Send request",
+    "tools.wg.howto.slide2.desc":
+      "Click Send to let the tool send a UDP packet to the target address.",
+    "tools.wg.howto.slide3.title": "Check status",
+    "tools.wg.howto.slide3.desc":
+      "Status shows whether the request was sent and if there are input errors.",
+    "tools.wg.howto.slide4.title": "Use activity log",
+    "tools.wg.howto.slide4.desc":
+      "Open the advanced log block to review details and export the log when needed.",
     "tools.wg.advanced.title": "WG Advanced",
     "tools.wg.advanced.toggle.open": "Advanced",
     "tools.wg.advanced.toggle.close": "Hide Advanced",
@@ -1505,6 +1595,24 @@ export const translations = {
     "hashCheck.copyError": "Failed to copy hash",
     "hashCheck.pickError": "Failed to pick file",
     "hashCheck.error": "Hash verification error",
+    "hashCheck.howto.open": "How it works",
+    "hashCheck.howto.title": "How Hash Check works",
+    "hashCheck.howto.close": "Close",
+    "hashCheck.howto.prev": "Back",
+    "hashCheck.howto.next": "Next",
+    "hashCheck.howto.step": "Step {current} of {total}",
+    "hashCheck.howto.slide1.title": "Choose a file",
+    "hashCheck.howto.slide1.desc":
+      "Select the file you want to verify with a checksum.",
+    "hashCheck.howto.slide2.title": "Pick an algorithm",
+    "hashCheck.howto.slide2.desc":
+      "Use MD5, SHA-1, SHA-256, or SHA-512 depending on the checksum source.",
+    "hashCheck.howto.slide3.title": "Compare the result",
+    "hashCheck.howto.slide3.desc":
+      "You can paste an expected hash or pick a second file to compare both values.",
+    "hashCheck.howto.slide4.title": "Use the output",
+    "hashCheck.howto.slide4.desc":
+      "After verification, review the status and copy the calculated hash if needed.",
     "wg.debug.label": "Activity log",
     "wg.section.network": "Network settings",
     "wg.section.control": "Controls",

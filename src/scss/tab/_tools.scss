@@ -1072,13 +1072,19 @@ $wg-max-width: 1200px;
   width: fit-content;
 }
 
-.sorter-howto-open {
+.sorter-howto-open,
+.hash-howto-open,
+.wg-howto-open,
+.power-howto-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.sorter-howto-overlay {
+.sorter-howto-overlay,
+.hash-howto-overlay,
+.wg-howto-overlay,
+.power-howto-overlay {
   position: fixed;
   inset: 0;
   z-index: 1300;
@@ -1090,7 +1096,10 @@ $wg-max-width: 1200px;
   backdrop-filter: blur(6px);
 }
 
-.sorter-howto-dialog {
+.sorter-howto-dialog,
+.hash-howto-dialog,
+.wg-howto-dialog,
+.power-howto-dialog {
   width: min(860px, 94vw);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1101,7 +1110,10 @@ $wg-max-width: 1200px;
   gap: 12px;
 }
 
-.sorter-howto-header {
+.sorter-howto-header,
+.hash-howto-header,
+.wg-howto-header,
+.power-howto-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1114,22 +1126,34 @@ $wg-max-width: 1200px;
   }
 }
 
-.sorter-howto-step {
+.sorter-howto-step,
+.hash-howto-step,
+.wg-howto-step,
+.power-howto-step {
   margin: 0;
 }
 
-.sorter-howto-viewport {
+.sorter-howto-viewport,
+.hash-howto-viewport,
+.wg-howto-viewport,
+.power-howto-viewport {
   overflow: hidden;
 }
 
-.sorter-howto-track {
+.sorter-howto-track,
+.hash-howto-track,
+.wg-howto-track,
+.power-howto-track {
   display: flex;
   width: 100%;
   transition: transform 0.3s ease;
   will-change: transform;
 }
 
-.sorter-howto-slide {
+.sorter-howto-slide,
+.hash-howto-slide,
+.wg-howto-slide,
+.power-howto-slide {
   width: 100%;
   flex: 0 0 100%;
   border-radius: 12px;
@@ -1152,7 +1176,10 @@ $wg-max-width: 1200px;
   }
 }
 
-.sorter-howto-slide__icon {
+.sorter-howto-slide__icon,
+.hash-howto-slide__icon,
+.wg-howto-slide__icon,
+.power-howto-slide__icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
@@ -1164,14 +1191,20 @@ $wg-max-width: 1200px;
   font-size: 1.15rem;
 }
 
-.sorter-howto-dots {
+.sorter-howto-dots,
+.hash-howto-dots,
+.wg-howto-dots,
+.power-howto-dots {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-.sorter-howto-dot {
+.sorter-howto-dot,
+.hash-howto-dot,
+.wg-howto-dot,
+.power-howto-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -1188,7 +1221,10 @@ $wg-max-width: 1200px;
   }
 }
 
-.sorter-howto-actions {
+.sorter-howto-actions,
+.hash-howto-actions,
+.wg-howto-actions,
+.power-howto-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -1444,6 +1480,12 @@ $wg-max-width: 1200px;
     font-size: 1.02rem;
     color: var(--color-highlight);
   }
+}
+
+.tools-card__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tools-card__hint {
@@ -1761,6 +1803,13 @@ $wg-max-width: 1200px;
 .power-shortcuts-header {
   display: grid;
   gap: 8px;
+}
+
+.power-shortcuts-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .power-shortcuts-header__hint {
@@ -2096,22 +2145,34 @@ $wg-max-width: 1200px;
     grid-template-columns: 1fr;
   }
 
-  .sorter-howto-overlay {
+  .sorter-howto-overlay,
+  .hash-howto-overlay,
+  .wg-howto-overlay,
+  .power-howto-overlay {
     padding: 14px;
   }
 
-  .sorter-howto-dialog {
+  .sorter-howto-dialog,
+  .hash-howto-dialog,
+  .wg-howto-dialog,
+  .power-howto-dialog {
     width: min(94vw, 94vw);
     max-height: calc(100vh - 28px);
     overflow: auto;
     padding: 14px;
   }
 
-  .sorter-howto-slide {
+  .sorter-howto-slide,
+  .hash-howto-slide,
+  .wg-howto-slide,
+  .power-howto-slide {
     padding: 14px;
   }
 
-  .sorter-howto-actions {
+  .sorter-howto-actions,
+  .hash-howto-actions,
+  .wg-howto-actions,
+  .power-howto-actions {
     grid-template-columns: 1fr;
   }
 }
