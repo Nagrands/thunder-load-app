@@ -118,6 +118,8 @@ export const translations = {
     "settings.tabs.backup": "Backup",
     "settings.tabs.appearance": "Внешний вид",
     "settings.tabs.other": "Другое",
+    "settings.sections.menu": "Разделы",
+    "settings.sections.toggle": "Показать разделы настроек",
     "settings.tab.enabled": "Вкл",
     "settings.tab.disabled": "Выкл",
     "firstRun.title": "Добро пожаловать в Thunder Load",
@@ -164,6 +166,12 @@ export const translations = {
     "settings.downloader.profile.audio.desc":
       "Открывает только звуковые дорожки без видео.",
     "settings.downloader.parallel.title": "Одновременные загрузки",
+    "settings.downloader.parallel.hint":
+      "2 быстрее, но выше нагрузка на систему.",
+    "settings.downloader.parallel.option1": "1",
+    "settings.downloader.parallel.option2": "2",
+    "settings.downloader.parallel.aria":
+      "Выбор лимита одновременных загрузок",
     "settings.downloader.parallel.saved":
       "Лимит одновременных загрузок: {count}",
     "settings.downloader.expandAfter":
@@ -1301,6 +1309,8 @@ export const translations = {
     "settings.tabs.backup": "Backup",
     "settings.tabs.appearance": "Appearance",
     "settings.tabs.other": "Other",
+    "settings.sections.menu": "Sections",
+    "settings.sections.toggle": "Show settings sections",
     "settings.tab.enabled": "On",
     "settings.tab.disabled": "Off",
     "firstRun.title": "Welcome to Thunder Load",
@@ -1345,6 +1355,12 @@ export const translations = {
     "settings.downloader.profile.audio.desc":
       "Opens audio-only streams without video.",
     "settings.downloader.parallel.title": "Parallel downloads",
+    "settings.downloader.parallel.hint":
+      "2 is faster, but uses more system resources.",
+    "settings.downloader.parallel.option1": "1",
+    "settings.downloader.parallel.option2": "2",
+    "settings.downloader.parallel.aria":
+      "Select the parallel downloads limit",
     "settings.downloader.parallel.saved": "Parallel download limit: {count}",
     "settings.downloader.expandAfter":
       "Expand the window <strong>after download</strong>",

@@ -1082,8 +1082,34 @@
           </h1>
 
           <div class="settings-layout">
+            <div class="settings-sections-toolbar">
+              <button
+                id="settings-sections-toggle"
+                class="settings-sections-toggle"
+                type="button"
+                aria-label="Показать разделы настроек"
+                data-i18n-aria="settings.sections.toggle"
+                aria-expanded="false"
+                aria-controls="settings-tabs-panel"
+              >
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+                <span data-i18n="settings.sections.menu">Разделы</span>
+              </button>
+              <span
+                id="settings-active-section-label"
+                class="settings-active-section-label"
+              >
+                Общие
+              </span>
+            </div>
+
             <!-- Tab Navigation -->
-            <div class="settings-tabs">
+            <div
+              id="settings-tabs-panel"
+              class="settings-tabs-wrapper"
+              data-open="false"
+            >
+              <div class="settings-tabs">
               <!-- <div class="tab-navigation"> -->
               <button
                 class="tab-link active"
@@ -1141,426 +1167,515 @@
                   >
                 </div>
               </div>
+              </div>
             </div>
 
             <!-- Tab Content -->
             <div class="tab-content">
               <!-- General Settings Tab -->
               <div id="general-settings" class="tab-pane active">
-                <h2>
-                  <span data-i18n="settings.startup.title">Настройки запуска</span>
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Настройте параметры запуска для удобного использования."
-                    data-i18n-title="settings.startup.hint"
-                  ></i>
-                </h2>
-                <ul class="module">
-                  <li>
-                    <input type="checkbox" id="settings-auto-launch-toggle" />
-                    <label for="settings-auto-launch-toggle">
-                      <i class="fa-brands fa-windows"></i>
-                      <span data-i18n-html="settings.startup.autolaunch"
-                        ><strong>Автоматически запускать</strong> при старте
-                        системы</span
-                      >
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-minimize-on-launch-toggle"
-                    />
-                    <label for="settings-minimize-on-launch-toggle">
-                      <i class="fa fa-window-restore"></i>
-                      <span data-i18n-html="settings.startup.minimize"
-                        ><strong>Сворачивать</strong> приложение при
-                        запуске</span
-                      >
-                    </label>
-                  </li>
-                </ul>
-                <h2>
-                  <span data-i18n="settings.startup.openTab">
-                    При запуске открывать
-                  </span>
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Выберите вкладку, которая будет открываться по умолчанию при запуске приложения."
-                    data-i18n-title="settings.startup.openTabHint"
-                  ></i>
-                </h2>
-                <ul class="module default-tab-group">
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-downloader"
-                      name="defaultTab"
-                      value="download"
-                      checked
-                    />
-                    <label for="settings-tab-downloader">
-                      <i class="fa-solid fa-download"></i>
-                      <strong data-i18n="tabs.download">Downloader</strong></label
-                    >
-                  </li>
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-wgsend"
-                      name="defaultTab"
-                      value="wireguard"
-                    />
-                    <label for="settings-tab-wgsend">
-                      <i class="fa-solid fa-unlock-keyhole"></i>
-                      <strong data-i18n="tabs.tools">Tools</strong></label
-                    >
-                  </li>
-                  <li class="custom-theme-select">
-                    <input
-                      type="radio"
-                      id="settings-tab-backup"
-                      name="defaultTab"
-                      value="backup"
-                    />
-                    <label for="settings-tab-backup">
-                      <i class="fa-solid fa-box-archive"></i>
-                      <strong data-i18n="tabs.backup">Backup</strong>
-                    </label>
-                  </li>
-                </ul>
-                <h2>
-                  <span data-i18n="settings.close.title">Закрытие приложения</span>
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Выберите, как приложение должно вести себя при закрытии."
-                    data-i18n-title="settings.close.hint"
-                  ></i>
-                </h2>
-                <ul class="module">
-                  <li>
-                    <input
-                      type="radio"
-                      id="settings-close-to-tray"
-                      name="closeOption"
-                    />
-                    <label for="settings-close-to-tray">
-                      <i class="fa-regular fa-message"></i>
-                      <span data-i18n-html="settings.close.toTray"
-                        ><strong>Сворачивать</strong> в трей</span
-                      >
-                    </label>
-                  </li>
-                  <li class="submenu">
-                    <input
-                      type="checkbox"
-                      id="settings-close-notification-toggle"
-                    />
-                    <label for="settings-close-notification-toggle">
-                      <i class="fa-solid fa-bell"></i>
-                      <span data-i18n-html="settings.close.notify"
-                        ><strong>Уведомление</strong> о сворачивании</span
-                      >
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="radio"
-                      id="settings-close-app-radio"
-                      name="closeOption"
-                    />
-                    <label for="settings-close-app-radio">
-                      <i class="fa-solid fa-circle-xmark"></i>
-                      <span data-i18n-html="settings.close.exit"
-                        ><strong>Выйти</strong> из приложения</span
-                      >
-                    </label>
-                  </li>
-                </ul>
+                <div class="settings-pane-header">
+                  <h2 data-i18n="settings.tabs.general">Общие</h2>
+                  <p data-i18n="settings.startup.hint">
+                    Настройте параметры запуска для удобного использования.
+                  </p>
+                </div>
+                <div class="settings-grid">
+                  <section class="settings-card">
+                    <h3 class="settings-card__title" data-i18n="settings.startup.title">
+                      Настройки запуска
+                    </h3>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-auto-launch-toggle" />
+                          <label for="settings-auto-launch-toggle">
+                            <i class="fa-brands fa-windows"></i>
+                            <span data-i18n-html="settings.startup.autolaunch"
+                              ><strong>Автоматически запускать</strong> при старте
+                              системы</span
+                            >
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input
+                            type="checkbox"
+                            id="settings-minimize-on-launch-toggle"
+                          />
+                          <label for="settings-minimize-on-launch-toggle">
+                            <i class="fa fa-window-restore"></i>
+                            <span data-i18n-html="settings.startup.minimize"
+                              ><strong>Сворачивать</strong> приложение при
+                              запуске</span
+                            >
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="settings-card">
+                    <h3 class="settings-card__title" data-i18n="settings.startup.openTab">
+                      При запуске открывать
+                    </h3>
+                    <p class="settings-card__desc" data-i18n="settings.startup.openTabHint">
+                      Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.
+                    </p>
+                    <div class="settings-card__body">
+                      <ul class="module default-tab-group settings-control-list">
+                        <li class="custom-theme-select settings-control">
+                          <input
+                            type="radio"
+                            id="settings-tab-downloader"
+                            name="defaultTab"
+                            value="download"
+                            checked
+                          />
+                          <label for="settings-tab-downloader">
+                            <i class="fa-solid fa-download"></i>
+                            <strong data-i18n="tabs.download">Downloader</strong></label
+                          >
+                        </li>
+                        <li class="custom-theme-select settings-control">
+                          <input
+                            type="radio"
+                            id="settings-tab-wgsend"
+                            name="defaultTab"
+                            value="wireguard"
+                          />
+                          <label for="settings-tab-wgsend">
+                            <i class="fa-solid fa-unlock-keyhole"></i>
+                            <strong data-i18n="tabs.tools">Tools</strong></label
+                          >
+                        </li>
+                        <li class="custom-theme-select settings-control">
+                          <input
+                            type="radio"
+                            id="settings-tab-backup"
+                            name="defaultTab"
+                            value="backup"
+                          />
+                          <label for="settings-tab-backup">
+                            <i class="fa-solid fa-box-archive"></i>
+                            <strong data-i18n="tabs.backup">Backup</strong>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="settings-card">
+                    <h3 class="settings-card__title" data-i18n="settings.close.title">
+                      Закрытие приложения
+                    </h3>
+                    <p class="settings-card__desc" data-i18n="settings.close.hint">
+                      Выберите, как приложение должно вести себя при закрытии.
+                    </p>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input
+                            type="radio"
+                            id="settings-close-to-tray"
+                            name="closeOption"
+                          />
+                          <label for="settings-close-to-tray">
+                            <i class="fa-regular fa-message"></i>
+                            <span data-i18n-html="settings.close.toTray"
+                              ><strong>Сворачивать</strong> в трей</span
+                            >
+                          </label>
+                        </li>
+                        <li class="submenu settings-control">
+                          <input
+                            type="checkbox"
+                            id="settings-close-notification-toggle"
+                          />
+                          <label for="settings-close-notification-toggle">
+                            <i class="fa-solid fa-bell"></i>
+                            <span data-i18n-html="settings.close.notify"
+                              ><strong>Уведомление</strong> о сворачивании</span
+                            >
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input
+                            type="radio"
+                            id="settings-close-app-radio"
+                            name="closeOption"
+                          />
+                          <label for="settings-close-app-radio">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            <span data-i18n-html="settings.close.exit"
+                              ><strong>Выйти</strong> из приложения</span
+                            >
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
               </div>
 
               <!-- Window Settings Tab -->
               <div id="window-settings" class="tab-pane">
-                <h2 data-i18n="settings.downloader.title">Вкладка «Downloader»</h2>
-                    <div class="quality-profile-card">
-                  <div class="quality-profile-header">
-                    <div>
-                      <p class="quality-profile-eyebrow" data-i18n="settings.downloader.profile.open">
-                        При открытии
-                      </p>
-                      <h3 data-i18n="settings.downloader.profile.title">
-                        Выбор качества загрузки
-                      </h3>
-                    </div>
-                    <div class="quality-profile-chip">
-                      <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
-                      <span data-i18n="settings.downloader.profile.default">
-                        по умолчанию
-                      </span>
-                    </div>
-                  </div>
-                  <ul class="quality-profile-options" id="quality-profile-group">
-                    <li>
-                      <input
-                        type="radio"
-                        id="quality-profile-remember"
-                        name="downloadQualityProfile"
-                        value="remember"
-                        checked
-                      />
-                      <label for="quality-profile-remember">
-                        <span class="quality-option-icon" aria-hidden="true">
-                          <i class="fa-solid fa-rotate"></i>
-                        </span>
-                        <span class="quality-option-text">
-                          <strong data-i18n="settings.downloader.profile.remember.title">
-                            Последний выбор
-                          </strong>
-                          <small data-i18n="settings.downloader.profile.remember.desc">
-                            Откроет тот же тип потока, что и в прошлый раз.
-                          </small>
-                        </span>
-                        <span class="quality-option-check" aria-hidden="true"></span>
-                      </label>
-                    </li>
-                    <li>
-                      <input
-                        type="radio"
-                        id="quality-profile-audio"
-                        name="downloadQualityProfile"
-                        value="audio"
-                      />
-                      <label for="quality-profile-audio">
-                        <span class="quality-option-icon" aria-hidden="true">
-                          <i class="fa-solid fa-music"></i>
-                        </span>
-                        <span class="quality-option-text">
-                          <strong data-i18n="settings.downloader.profile.audio.title">
-                            Аудио
-                          </strong>
-                          <small data-i18n="settings.downloader.profile.audio.desc">
-                            Открывает только звуковые дорожки без видео.
-                          </small>
-                        </span>
-                        <span class="quality-option-check" aria-hidden="true"></span>
-                      </label>
-                    </li>
-                  </ul>
+                <div class="settings-pane-header">
+                  <h2 data-i18n="settings.downloader.title">Вкладка «Downloader»</h2>
                 </div>
-                <ul class="module">
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-download-parallel-toggle"
-                      checked
-                    />
-                    <label for="settings-download-parallel-toggle">
-                      <i class="fa-solid fa-layer-group"></i>
-                      <span data-i18n="settings.downloader.parallel.title">
-                        Одновременные загрузки
-                      </span>
-                      <strong id="settings-download-parallel-value">2</strong>
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-expand-window-after-load"
-                    />
-                    <label for="settings-expand-window-after-load">
-                      <i class="fa-solid fa-maximize"></i>
-                      <span data-i18n-html="settings.downloader.expandAfter">
-                        Разворачивать окно <strong>по окончанию загрузки</strong>
-                      </span>
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="settings-expand-window-copy" />
-                    <label for="settings-expand-window-copy">
-                      <i class="fa-solid fa-maximize"></i>
-                      <span data-i18n-html="settings.downloader.expandOnCopy">
-                        Разворачивать окно <strong>при копировании URL</strong>
-                      </span>
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-disable-complete-modal-toggle"
-                    />
-                    <label for="settings-disable-complete-modal-toggle">
-                      <i class="fa-solid fa-window-close"></i>
-                      <span data-i18n-html="settings.downloader.disableComplete">
-                        Отключить <strong>окно открытия файла</strong> после
-                        завершения загрузки
-                      </span>
-                    </label>
-                  </li>
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-show-tools-status"
-                      checked
-                    />
-                    <label for="settings-show-tools-status">
-                      <i class="fa-solid fa-eye"></i>
-                      <span data-i18n="settings.downloader.toolsStatus">
-                        Показывать статус инструментов
-                      </span>
-                    </label>
-                  </li>
-                </ul>
+                <div class="settings-grid">
+                  <section class="settings-card settings-card--quality">
+                    <h3 class="settings-card__title" data-i18n="settings.downloader.profile.title">
+                      Выбор качества загрузки
+                    </h3>
+                    <div class="settings-card__body">
+                      <div class="quality-profile-card">
+                        <div class="quality-profile-header">
+                          <div>
+                            <p class="quality-profile-eyebrow" data-i18n="settings.downloader.profile.open">
+                              При открытии
+                            </p>
+                          </div>
+                          <div class="quality-profile-chip">
+                            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                            <span data-i18n="settings.downloader.profile.default">
+                              по умолчанию
+                            </span>
+                          </div>
+                        </div>
+                        <ul class="quality-profile-options" id="quality-profile-group">
+                          <li>
+                            <input
+                              type="radio"
+                              id="quality-profile-remember"
+                              name="downloadQualityProfile"
+                              value="remember"
+                              checked
+                            />
+                            <label for="quality-profile-remember">
+                              <span class="quality-option-icon" aria-hidden="true">
+                                <i class="fa-solid fa-rotate"></i>
+                              </span>
+                              <span class="quality-option-text">
+                                <strong data-i18n="settings.downloader.profile.remember.title">
+                                  Последний выбор
+                                </strong>
+                                <small data-i18n="settings.downloader.profile.remember.desc">
+                                  Откроет тот же тип потока, что и в прошлый раз.
+                                </small>
+                              </span>
+                              <span class="quality-option-check" aria-hidden="true"></span>
+                            </label>
+                          </li>
+                          <li>
+                            <input
+                              type="radio"
+                              id="quality-profile-audio"
+                              name="downloadQualityProfile"
+                              value="audio"
+                            />
+                            <label for="quality-profile-audio">
+                              <span class="quality-option-icon" aria-hidden="true">
+                                <i class="fa-solid fa-music"></i>
+                              </span>
+                              <span class="quality-option-text">
+                                <strong data-i18n="settings.downloader.profile.audio.title">
+                                  Аудио
+                                </strong>
+                                <small data-i18n="settings.downloader.profile.audio.desc">
+                                  Открывает только звуковые дорожки без видео.
+                                </small>
+                              </span>
+                              <span class="quality-option-check" aria-hidden="true"></span>
+                            </label>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </section>
 
-                <section id="tools-info" class="settings-section">
-                  <h2 data-i18n="settings.tools.title">Инструменты</h2>
-                  <p class="muted" data-i18n="settings.tools.loading">
-                    Загружаем сведения о зависимостях…
-                  </p>
-                </section>
+                  <section class="settings-card settings-card--downloader">
+                    <h3 class="settings-card__title" data-i18n="settings.tabs.downloader">Downloader</h3>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <div class="settings-parallel-item">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <div class="settings-parallel-meta">
+                              <span data-i18n="settings.downloader.parallel.title">
+                                Одновременные загрузки
+                              </span>
+                              <small
+                                class="settings-parallel-hint"
+                                data-i18n="settings.downloader.parallel.hint"
+                              >
+                                2 быстрее, но выше нагрузка на систему.
+                              </small>
+                            </div>
+                            <div
+                              class="settings-parallel-segment"
+                              id="settings-download-parallel-segment"
+                              role="radiogroup"
+                              aria-label="Одновременные загрузки"
+                              data-i18n-aria="settings.downloader.parallel.aria"
+                            >
+                              <button
+                                type="button"
+                                class="settings-parallel-segment__btn"
+                                id="settings-download-parallel-1"
+                                role="radio"
+                                aria-checked="false"
+                                data-limit="1"
+                                data-i18n="settings.downloader.parallel.option1"
+                              >
+                                1
+                              </button>
+                              <button
+                                type="button"
+                                class="settings-parallel-segment__btn"
+                                id="settings-download-parallel-2"
+                                role="radio"
+                                aria-checked="true"
+                                data-limit="2"
+                                data-i18n="settings.downloader.parallel.option2"
+                              >
+                                2
+                              </button>
+                            </div>
+                            <strong id="settings-download-parallel-value">2</strong>
+                          </div>
+                        </li>
+                        <li class="settings-control">
+                          <input
+                            type="checkbox"
+                            id="settings-expand-window-after-load"
+                          />
+                          <label for="settings-expand-window-after-load">
+                            <i class="fa-solid fa-maximize"></i>
+                            <span data-i18n-html="settings.downloader.expandAfter">
+                              Разворачивать окно <strong>по окончанию загрузки</strong>
+                            </span>
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-expand-window-copy" />
+                          <label for="settings-expand-window-copy">
+                            <i class="fa-solid fa-maximize"></i>
+                            <span data-i18n-html="settings.downloader.expandOnCopy">
+                              Разворачивать окно <strong>при копировании URL</strong>
+                            </span>
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input
+                            type="checkbox"
+                            id="settings-disable-complete-modal-toggle"
+                          />
+                          <label for="settings-disable-complete-modal-toggle">
+                            <i class="fa-solid fa-window-close"></i>
+                            <span data-i18n-html="settings.downloader.disableComplete">
+                              Отключить <strong>окно открытия файла</strong> после
+                              завершения загрузки
+                            </span>
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input
+                            type="checkbox"
+                            id="settings-show-tools-status"
+                            checked
+                          />
+                          <label for="settings-show-tools-status">
+                            <i class="fa-solid fa-eye"></i>
+                            <span data-i18n="settings.downloader.toolsStatus">
+                              Показывать статус инструментов
+                            </span>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="settings-card settings-card--tools-compact">
+                    <h3 class="settings-card__title" data-i18n="settings.tools.title">Инструменты</h3>
+                    <div class="settings-card__body">
+                      <section id="tools-info" class="settings-section">
+                        <p class="muted" data-i18n="settings.tools.loading">
+                          Загружаем сведения о зависимостях…
+                        </p>
+                      </section>
+                    </div>
+                  </section>
+                </div>
               </div>
 
               <div id="wgunlock-settings" class="tab-pane">
-                <h2 data-i18n="settings.wg.title">Вкладка «Tools»</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="wg-disable-toggle" checked />
-                    <label
-                      for="wg-disable-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’."
-                      data-i18n-title="settings.wg.disable.hint"
-                    >
-                      <i class="fa-solid fa-unlock-keyhole"></i>
-                      <strong data-i18n="settings.disableTab">Отключить вкладку</strong>
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="wg-autosend" />
-                    <label for="wg-autosend">
-                      <i class="fa-solid fa-share"></i>
-                      <span data-i18n="settings.wg.autosend">
-                        Авто‑отправка при запуске
-                      </span>
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="wg-remember-last-tool" />
-                    <label
-                      for="wg-remember-last-tool"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Запоминает последний открытый инструмент во вкладке Tools и открывает его при следующем запуске."
-                      data-i18n-title="settings.wg.rememberLastTool.hint"
-                    >
-                      <i class="fa-solid fa-rotate"></i>
-                      <span data-i18n="settings.wg.rememberLastTool">
-                        Запоминать последний инструмент
-                      </span>
-                    </label>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="wg-auto-shutdown-toggle" />
-                    <label
-                      for="wg-auto-shutdown-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Включить/выключить авто‑закрытие приложения"
-                      data-i18n-title="settings.wg.autoclose.hint"
-                    >
-                      <i class="fa-solid fa-power-off"></i>
-                      <span data-i18n="settings.wg.autoclose">
-                        Авто‑закрытие приложения
-                      </span>
-                    </label>
-                  </li>
-                  <li
-                    id="wg-auto-shutdown-range"
-                    class="submenu"
-                    style="display: none"
-                  >
-                    <label for="wg-auto-shutdown-seconds">
-                      <i class="fa-solid fa-hourglass-half"></i>
-                      <span data-i18n="settings.wg.autoclose.after">
-                        Закрытие приложения через:
-                      </span>
-                      <strong
-                        ><span id="wg-auto-shutdown-value">30</span>
-                        <span data-i18n="settings.wg.autoclose.seconds">сек.</span></strong
-                      >
-                    </label>
-                    <input
-                      type="range"
-                      id="wg-auto-shutdown-seconds"
-                      min="10"
-                      max="60"
-                      step="1"
-                      aria-label="Время до авто‑закрытия в секундах"
-                      data-i18n-aria="settings.wg.autoclose.aria"
-                    />
-                  </li>
-                </ul>
+                <div class="settings-pane-header">
+                  <h2 data-i18n="settings.wg.title">Вкладка «Tools»</h2>
+                </div>
+                <div class="settings-grid">
+                  <section class="settings-card">
+                    <h3 class="settings-card__title" data-i18n="settings.tabs.wg">Tools</h3>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="custom-theme-select settings-control">
+                          <input type="checkbox" id="wg-disable-toggle" checked />
+                          <label
+                            for="wg-disable-toggle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Скрывает вкладку и отключает её инициализацию. При отключении блокируется опция ‘Авто‑отправка при запуске’."
+                            data-i18n-title="settings.wg.disable.hint"
+                          >
+                            <i class="fa-solid fa-unlock-keyhole"></i>
+                            <strong data-i18n="settings.disableTab">Отключить вкладку</strong>
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input type="checkbox" id="wg-autosend" />
+                          <label for="wg-autosend">
+                            <i class="fa-solid fa-share"></i>
+                            <span data-i18n="settings.wg.autosend">
+                              Авто‑отправка при запуске
+                            </span>
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input type="checkbox" id="wg-remember-last-tool" />
+                          <label
+                            for="wg-remember-last-tool"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Запоминает последний открытый инструмент во вкладке Tools и открывает его при следующем запуске."
+                            data-i18n-title="settings.wg.rememberLastTool.hint"
+                          >
+                            <i class="fa-solid fa-rotate"></i>
+                            <span data-i18n="settings.wg.rememberLastTool">
+                              Запоминать последний инструмент
+                            </span>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+                  <section class="settings-card settings-card--stacked">
+                    <h3 class="settings-card__title" data-i18n="settings.wg.autoclose">
+                      Авто‑закрытие приложения
+                    </h3>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input type="checkbox" id="wg-auto-shutdown-toggle" />
+                          <label
+                            for="wg-auto-shutdown-toggle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Включить/выключить авто‑закрытие приложения"
+                            data-i18n-title="settings.wg.autoclose.hint"
+                          >
+                            <i class="fa-solid fa-power-off"></i>
+                            <span data-i18n="settings.wg.autoclose">
+                              Авто‑закрытие приложения
+                            </span>
+                          </label>
+                        </li>
+                        <li
+                          id="wg-auto-shutdown-range"
+                          class="submenu settings-control settings-control--stacked"
+                          style="display: none"
+                        >
+                          <label for="wg-auto-shutdown-seconds">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                            <span data-i18n="settings.wg.autoclose.after">
+                              Закрытие приложения через:
+                            </span>
+                            <strong
+                              ><span id="wg-auto-shutdown-value">30</span>
+                              <span data-i18n="settings.wg.autoclose.seconds">сек.</span></strong
+                            >
+                          </label>
+                          <input
+                            type="range"
+                            id="wg-auto-shutdown-seconds"
+                            min="10"
+                            max="60"
+                            step="1"
+                            aria-label="Время до авто‑закрытия в секундах"
+                            data-i18n-aria="settings.wg.autoclose.aria"
+                          />
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
               </div>
 
               <div id="backup-settings" class="tab-pane">
-                <h2 data-i18n="settings.backup.title">Вкладка «Backup»</h2>
-                <ul class="module">
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="backup-disable-toggle" />
-                    <label
-                      for="backup-disable-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрывает вкладку и отключает её инициализацию."
-                      data-i18n-title="settings.backup.disable.hint"
-                    >
-                      <i class="fa-solid fa-box-archive"></i>
-                      <strong data-i18n="settings.disableTab">Отключить вкладку</strong>
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="backup-compact-toggle" />
-                    <label
-                      for="backup-compact-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Переключает отображение профилей между подробным и компактным режимом."
-                      data-i18n-title="settings.backup.compact.hint"
-                    >
-                      <i class="fa-solid fa-list"></i>
-                      <strong data-i18n="settings.backup.compact">
-                        Компактный список профилей
-                      </strong>
-                    </label>
-                  </li>
-                  <li class="custom-theme-select">
-                    <input type="checkbox" id="backup-log-toggle" />
-                    <label
-                      for="backup-log-toggle"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Скрыть или показать блок с логом операций резервного копирования."
-                      data-i18n-title="settings.backup.log.hint"
-                    >
-                      <i class="fa-solid fa-terminal"></i>
-                      <strong data-i18n="settings.backup.log">
-                        Показывать лог операций
-                      </strong>
-                    </label>
-                  </li>
-                </ul>
+                <div class="settings-pane-header">
+                  <h2 data-i18n="settings.backup.title">Вкладка «Backup»</h2>
+                </div>
+                <div class="settings-grid">
+                  <section class="settings-card">
+                    <h3 class="settings-card__title" data-i18n="settings.tabs.backup">Backup</h3>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="custom-theme-select settings-control">
+                          <input type="checkbox" id="backup-disable-toggle" />
+                          <label
+                            for="backup-disable-toggle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Скрывает вкладку и отключает её инициализацию."
+                            data-i18n-title="settings.backup.disable.hint"
+                          >
+                            <i class="fa-solid fa-box-archive"></i>
+                            <strong data-i18n="settings.disableTab">Отключить вкладку</strong>
+                          </label>
+                        </li>
+                        <li class="custom-theme-select settings-control">
+                          <input type="checkbox" id="backup-compact-toggle" />
+                          <label
+                            for="backup-compact-toggle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Переключает отображение профилей между подробным и компактным режимом."
+                            data-i18n-title="settings.backup.compact.hint"
+                          >
+                            <i class="fa-solid fa-list"></i>
+                            <strong data-i18n="settings.backup.compact">
+                              Компактный список профилей
+                            </strong>
+                          </label>
+                        </li>
+                        <li class="custom-theme-select settings-control">
+                          <input type="checkbox" id="backup-log-toggle" />
+                          <label
+                            for="backup-log-toggle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Скрыть или показать блок с логом операций резервного копирования."
+                            data-i18n-title="settings.backup.log.hint"
+                          >
+                            <i class="fa-solid fa-terminal"></i>
+                            <strong data-i18n="settings.backup.log">
+                              Показывать лог операций
+                            </strong>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
               </div>
 
               <!-- Appearance Settings Tab -->
               <div id="appearance-settings" class="tab-pane">
-                <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
-                <ul class="module">
+                <div class="settings-pane-header">
+                  <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
+                </div>
+                <div class="settings-grid">
+                  <section class="settings-card settings-card--stacked">
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
                   <li class="custom-theme-select">
                     <label for="settings-language-select">
                       <i class="fa-solid fa-language"></i>
@@ -1687,66 +1802,82 @@
                       </span>
                     </label>
                   </li>
-                </ul>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
               </div>
 
               <!-- Other Settings Tab -->
               <div id="other-settings" class="tab-pane">
-                <h2>
-                  <span data-i18n="settings.other.title">Другие настройки</span>
-                  <i
-                    class="fa-solid fa-circle-info"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Дополнительные параметры для детальной настройки поведения приложения."
-                    data-i18n-title="settings.other.hint"
-                  ></i>
-                </h2>
-                <ul class="module">
-                  <li>
-                    <input
-                      type="checkbox"
-                      id="settings-disable-global-shortcuts-toggle"
-                    />
-                    <label for="settings-disable-global-shortcuts-toggle">
-                      <i class="fa-solid fa-keyboard"></i>
-                      <span data-i18n-html="settings.other.disableHotkeys">
-                        Отключить <strong>специальные</strong> (горячие) клавиши
-                      </span>
-                    </label>
-                  </li>
-                </ul>
-                <div class="module export-import-section">
-                  <h3 data-i18n="settings.other.appConfig">Настройки приложения</h3>
-                  <button id="export-config-button">
-                    <i class="fa-solid fa-download"></i>
-                    <span data-i18n="settings.other.export">Сохранить</span>
-                  </button>
-                  <button id="import-config-button">
-                    <i class="fa-solid fa-upload"></i>
-                    <span data-i18n="settings.other.import">Загрузить</span>
-                  </button>
-                  <button id="open-config-folder-button">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <span data-i18n="settings.other.openFolder">Папка настроек</span>
-                  </button>
-                  <input
-                    type="file"
-                    id="import-config-input"
-                    accept=".json"
-                    style="display: none"
-                  />
+                <div class="settings-pane-header">
+                  <h2 data-i18n="settings.other.title">Другие настройки</h2>
+                  <p data-i18n="settings.other.hint">
+                    Дополнительные параметры для детальной настройки поведения приложения.
+                  </p>
                 </div>
-                <div class="module reset-settings-section">
-                  <h3 data-i18n="settings.other.resetTitle">Сброс настроек</h3>
-                  <button id="reset-config-button">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    <span data-i18n="settings.other.reset">Настройки по умолчанию</span>
-                  </button>
-                  <button id="first-run-reset-button">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span data-i18n="settings.other.firstRun">Первичная настройка</span>
-                  </button>
+                <div class="settings-grid">
+                  <section class="settings-card">
+                    <h3 class="settings-card__title">Горячие клавиши</h3>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input
+                            type="checkbox"
+                            id="settings-disable-global-shortcuts-toggle"
+                          />
+                          <label for="settings-disable-global-shortcuts-toggle">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span data-i18n-html="settings.other.disableHotkeys">
+                              Отключить <strong>специальные</strong> (горячие) клавиши
+                            </span>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="settings-card settings-card--stacked">
+                    <h3 class="settings-card__title" data-i18n="settings.other.appConfig">Настройки приложения</h3>
+                    <div class="settings-card__body">
+                      <div class="module export-import-section">
+                        <button id="export-config-button">
+                          <i class="fa-solid fa-download"></i>
+                          <span data-i18n="settings.other.export">Сохранить</span>
+                        </button>
+                        <button id="import-config-button">
+                          <i class="fa-solid fa-upload"></i>
+                          <span data-i18n="settings.other.import">Загрузить</span>
+                        </button>
+                        <button id="open-config-folder-button">
+                          <i class="fa-solid fa-folder-open"></i>
+                          <span data-i18n="settings.other.openFolder">Папка настроек</span>
+                        </button>
+                        <input
+                          type="file"
+                          id="import-config-input"
+                          accept=".json"
+                          style="display: none"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="settings-card settings-card--stacked">
+                    <h3 class="settings-card__title" data-i18n="settings.other.resetTitle">Сброс настроек</h3>
+                    <div class="settings-card__body">
+                      <div class="module reset-settings-section">
+                        <button id="reset-config-button">
+                          <i class="fa-solid fa-rotate-left"></i>
+                          <span data-i18n="settings.other.reset">Настройки по умолчанию</span>
+                        </button>
+                        <button id="first-run-reset-button">
+                          <i class="fa-solid fa-wand-magic-sparkles"></i>
+                          <span data-i18n="settings.other.firstRun">Первичная настройка</span>
+                        </button>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               </div>
             </div>

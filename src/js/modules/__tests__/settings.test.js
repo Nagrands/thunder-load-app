@@ -217,21 +217,26 @@ describe("download parallel limit toggle", () => {
     };
   });
 
-  it("migrates legacy value 3 to 2 and reflects toggle state", async () => {
+  it("migrates legacy value 3 to 2 and reflects segment state", async () => {
     localStorage.setItem("downloadParallelLimit", "3");
     document.body.innerHTML = `
       <div id="window-settings">
-        <input type="checkbox" id="settings-download-parallel-toggle" />
+        <div id="settings-download-parallel-segment">
+          <button id="settings-download-parallel-1" data-limit="1"></button>
+          <button id="settings-download-parallel-2" data-limit="2"></button>
+        </div>
         <strong id="settings-download-parallel-value"></strong>
       </div>`;
 
     const mod = require("../settings");
     await mod.initSettings?.();
 
-    const toggle = document.getElementById("settings-download-parallel-toggle");
+    const option1 = document.getElementById("settings-download-parallel-1");
+    const option2 = document.getElementById("settings-download-parallel-2");
     const value = document.getElementById("settings-download-parallel-value");
     expect(localStorage.getItem("downloadParallelLimit")).toBe("2");
-    expect(toggle?.checked).toBe(true);
+    expect(option1?.classList.contains("is-active")).toBe(false);
+    expect(option2?.classList.contains("is-active")).toBe(true);
     expect(value?.textContent).toBe("2");
     expect(window.electron.invoke).toHaveBeenCalledWith(
       "set-download-parallel-limit",
@@ -239,11 +244,14 @@ describe("download parallel limit toggle", () => {
     );
   });
 
-  it("writes 1/2 and dispatches download:parallel-limit-changed on toggle", async () => {
+  it("writes 1/2 and dispatches download:parallel-limit-changed on segment click", async () => {
     localStorage.setItem("downloadParallelLimit", "2");
     document.body.innerHTML = `
       <div id="window-settings">
-        <input type="checkbox" id="settings-download-parallel-toggle" checked />
+        <div id="settings-download-parallel-segment">
+          <button id="settings-download-parallel-1" data-limit="1"></button>
+          <button id="settings-download-parallel-2" data-limit="2"></button>
+        </div>
         <strong id="settings-download-parallel-value"></strong>
       </div>`;
 
@@ -255,12 +263,13 @@ describe("download parallel limit toggle", () => {
       eventDetail = event?.detail || null;
     });
 
-    const toggle = document.getElementById("settings-download-parallel-toggle");
-    toggle.checked = false;
-    toggle.dispatchEvent(new Event("change"));
+    const option1 = document.getElementById("settings-download-parallel-1");
+    const value = document.getElementById("settings-download-parallel-value");
+    option1.dispatchEvent(new Event("click"));
 
     expect(localStorage.getItem("downloadParallelLimit")).toBe("1");
     expect(eventDetail).toEqual({ limit: 1 });
+    expect(value?.textContent).toBe("1");
     expect(window.electron.invoke).toHaveBeenCalledWith(
       "set-download-parallel-limit",
       1,

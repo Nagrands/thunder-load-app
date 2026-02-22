@@ -21,6 +21,10 @@
 - **Made tray menu updates more reliable**: tray actions now refresh faster after download path and download status changes.
 - **Fixed repeated Settings-open event bindings**: the extra-listener warning no longer appears after opening Settings multiple times.
 - **Parallel downloads setting is now clearer**: it now uses a simple 1/2 toggle, and the limit is synchronized with the backend.
+- **Settings menu UI has been fully redesigned**: sections are now denser and easier to navigate in a compact system-style layout.
+- **Added a collapsible sections list in Settings for narrow screens**: switching between tabs is now more convenient on mobile widths.
+- **Settings section content now uses a card-based layout**: related options are grouped into clear blocks so they are easier to scan.
+- **Settings readability is improved**: clearer block titles and tighter spacing make common toggles faster to find.
 - **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
 - **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
 - **Improved the Backup “Tips” block**: it now appears on the right side of the tab header, and is hidden on small screens for a cleaner layout.
@@ -143,3 +147,6 @@
 - **Refreshed the app background**: the interface now uses a cleaner tech-lines style backdrop that feels more modern without reducing readability.
 - **Improved colors for the Dark and Midnight themes**: UI contrast is cleaner, and accent elements and backgrounds are easier to read.
 - **The app background now uses Soft Aurora**: visuals are calmer and cleaner, reducing distraction while preserving readability across all themes.
+- **Settings text was cleaned up**: duplicate headings and repeated descriptions were removed from settings cards for better readability.
+- **Downloader Tools settings block is now more compact**: on wide screens it now sits next to the Downloader block.
+- **Parallel downloads setting was updated**: the checkbox is replaced with a clear 1/2 segmented switch and a short performance hint.

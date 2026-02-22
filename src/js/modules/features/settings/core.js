@@ -284,9 +284,11 @@ async function initSettings() {
   })();
 
   (function initDownloadParallelLimit() {
-    const toggle = document.getElementById("settings-download-parallel-toggle");
+    const segment = document.getElementById("settings-download-parallel-segment");
+    const option1 = document.getElementById("settings-download-parallel-1");
+    const option2 = document.getElementById("settings-download-parallel-2");
     const valueEl = document.getElementById("settings-download-parallel-value");
-    if (!toggle) return;
+    if (!segment || !option1 || !option2) return;
 
     const normalize = (value) => {
       const raw = Number(value);
@@ -310,7 +312,11 @@ async function initSettings() {
 
     const apply = (value) => {
       const normalized = normalize(value);
-      toggle.checked = normalized === 2;
+      const isOne = normalized === 1;
+      option1.classList.toggle("is-active", isOne);
+      option2.classList.toggle("is-active", !isOne);
+      option1.setAttribute("aria-checked", isOne ? "true" : "false");
+      option2.setAttribute("aria-checked", !isOne ? "true" : "false");
       if (valueEl) valueEl.textContent = String(normalized);
     };
 
@@ -349,9 +355,8 @@ async function initSettings() {
     };
 
     syncFromStore();
-    toggle.addEventListener("change", () => {
-      write(toggle.checked ? 2 : 1);
-    });
+    option1.addEventListener("click", () => write(1));
+    option2.addEventListener("click", () => write(2));
 
     onOpenSettings("download-parallel-limit", () => {
       syncFromStore();

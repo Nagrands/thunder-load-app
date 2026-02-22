@@ -14,6 +14,54 @@ import { t } from "./i18n.js";
 let previousFocus = null;
 let trapHandler = null;
 
+function getSettingsTabsWrapper() {
+  return document.getElementById("settings-tabs-panel");
+}
+
+function getSettingsSectionsToggle() {
+  return document.getElementById("settings-sections-toggle");
+}
+
+function closeSettingsSectionsPanel() {
+  const wrapper = getSettingsTabsWrapper();
+  const toggle = getSettingsSectionsToggle();
+  if (wrapper) {
+    wrapper.classList.remove("settings-tabs--open");
+    wrapper.dataset.open = "false";
+  }
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", "false");
+  }
+}
+
+function openSettingsSectionsPanel() {
+  const wrapper = getSettingsTabsWrapper();
+  const toggle = getSettingsSectionsToggle();
+  if (wrapper) {
+    wrapper.classList.add("settings-tabs--open");
+    wrapper.dataset.open = "true";
+  }
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", "true");
+  }
+}
+
+function syncActiveSettingsSectionLabel() {
+  const label = document.getElementById("settings-active-section-label");
+  if (!label) return;
+  const activeBtn = settingsModal?.querySelector(".tab-link.active");
+  const directTextSpan = activeBtn
+    ? Array.from(activeBtn.children).find(
+        (el) => el.tagName === "SPAN" && !el.classList.contains("tab-badge"),
+      )
+    : null;
+  const text =
+    directTextSpan?.textContent ||
+    activeBtn?.textContent ||
+    "";
+  label.textContent = String(text).trim();
+}
+
 function getTabbables(root) {
   if (!root) return [];
   const selector = [
@@ -39,6 +87,8 @@ export function openSettings() {
   try {
     window.dispatchEvent(new Event("settings:opened"));
   } catch {}
+  syncActiveSettingsSectionLabel();
+  closeSettingsSectionsPanel();
 
   const tabbables = getTabbables(settingsModal);
   if (tabbables.length) {
@@ -90,6 +140,7 @@ export function closeSettings() {
     window.removeEventListener("keydown", trapHandler, true);
     trapHandler = null;
   }
+  closeSettingsSectionsPanel();
   try {
     (settingsButton || previousFocus)?.focus?.();
   } catch {}
@@ -119,6 +170,7 @@ export function initSettingsModal() {
   const fontSizeToggle = document.getElementById("settings-font-size-toggle");
   const resetBtn = document.getElementById("reset-config-button");
   const firstRunResetBtn = document.getElementById("first-run-reset-button");
+  const sectionsToggle = getSettingsSectionsToggle();
 
   const initDefaultTabSetting = async () => {
     const radios = document.querySelectorAll('input[name="defaultTab"]');
@@ -131,6 +183,19 @@ export function initSettingsModal() {
 
   // Обработчики табов в модалке
   if (tabLinks.length) {
+    if (sectionsToggle) {
+      sectionsToggle.addEventListener("click", () => {
+        const wrapper = getSettingsTabsWrapper();
+        const isOpen =
+          wrapper?.classList.contains("settings-tabs--open") || false;
+        if (isOpen) {
+          closeSettingsSectionsPanel();
+        } else {
+          openSettingsSectionsPanel();
+        }
+      });
+    }
+
     tabLinks.forEach((button) => {
       button.addEventListener("click", () => {
         // Удаляем активный класс со всех вкладок
@@ -148,6 +213,8 @@ export function initSettingsModal() {
 
         // Сохраняем выбранную вкладку
         localStorage.setItem("lastSettingsTab", tabId);
+        syncActiveSettingsSectionLabel();
+        closeSettingsSectionsPanel();
       });
     });
 
@@ -156,6 +223,7 @@ export function initSettingsModal() {
     if (savedTab) {
       activateSettingsTab(savedTab);
     }
+    syncActiveSettingsSectionLabel();
   }
 
   if (exportBtn) exportBtn.addEventListener("click", exportConfig);
