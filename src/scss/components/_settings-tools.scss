@@ -93,6 +93,16 @@
       box-shadow: 0 0 0 4px rgba(124, 194, 255, 0.2);
     }
 
+    &--offline {
+      background: #aab4c2;
+      box-shadow: 0 0 0 4px rgba(170, 180, 194, 0.2);
+    }
+
+    &--busy {
+      background: #6fb0ff;
+      box-shadow: 0 0 0 4px rgba(111, 176, 255, 0.2);
+    }
+
     &--neutral {
       background: rgba(255, 255, 255, 0.12);
     }
@@ -128,6 +138,16 @@
       background: rgba(124, 194, 255, 0.16);
       color: #e1f1ff;
     }
+    &--offline {
+      border-color: rgba(170, 180, 194, 0.45);
+      background: rgba(170, 180, 194, 0.16);
+      color: #e7edf6;
+    }
+    &--busy {
+      border-color: rgba(111, 176, 255, 0.4);
+      background: rgba(111, 176, 255, 0.16);
+      color: #e1f1ff;
+    }
   }
 
   &__body {
@@ -136,6 +156,83 @@
     gap: 8px;
     border-top: 1px dashed rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.tools-panel-quick {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tools-panel-quick-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  #tools-check-btn,
+  #tools-update-btn,
+  #tools-quick-retry-btn,
+  #tools-quick-open-location-btn {
+    height: 34px;
+    border-radius: 10px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease,
+      transform 0.08s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.tools-advanced {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+
+  &__toggle {
+    cursor: pointer;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--color-quality);
+    user-select: none;
+  }
+
+  &__toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  &__body {
+    display: grid;
+    gap: 8px;
+    padding: 8px 10px 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
   }
 }
 
@@ -431,7 +528,7 @@
 // --- Футер инструментов
 .tools-footer {
   display: grid;
-  grid-template-columns: 1fr auto auto; // статус • основная • форс
+  grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
   margin-top: 10px;
@@ -473,7 +570,7 @@
 
   #tools-status {
     text-align: left;
-    min-height: 18px; // чтобы не прыгала сетка при смене текста
+    min-height: 18px;
   }
 
   // сгруппируем действия справа
@@ -485,6 +582,22 @@
 
 // --- Адаптив под узкие окна
 @media (max-width: 720px) {
+  .tools-panel-quick {
+    grid-template-columns: 1fr;
+  }
+
+  .tools-panel-quick-actions {
+    width: 100%;
+  }
+
+  .tools-panel-quick-actions #tools-check-btn,
+  .tools-panel-quick-actions #tools-update-btn,
+  .tools-panel-quick-actions #tools-quick-retry-btn,
+  .tools-panel-quick-actions #tools-quick-open-location-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
   .tools-location .tools-location-row {
     grid-template-columns: 1fr 1fr 1fr; // input + 2 колонки
     grid-auto-flow: row;
@@ -510,7 +623,7 @@
   }
 
   .tools-footer {
-    grid-template-columns: 1fr; // всё в столбец
+    grid-template-columns: 1fr;
     #tools-status {
       order: 1;
     }

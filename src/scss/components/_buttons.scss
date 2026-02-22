@@ -628,20 +628,6 @@
   }
 }
 
-/* --- Tools section layout fixes (avoid clipping the install button) --- */
-#tools-info {
-  overflow: visible;
-  padding-bottom: calc(var(--spacing-large) + 6px);
-}
-
-#tools-info .tools-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: var(--spacing-medium);
-  overflow: visible;
-}
-
 @keyframes downloadOrb {
   0% {
     transform: translate3d(-40%, -50%, 0) scale(0.45);

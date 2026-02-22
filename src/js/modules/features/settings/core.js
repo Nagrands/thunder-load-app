@@ -19,7 +19,11 @@ import {
   setFontSize,
   setTheme,
 } from "../../settingsStore.js";
-import { renderToolsInfo } from "../../toolsInfo.js";
+import {
+  renderToolsInfo,
+  refreshToolsInfoState,
+  isToolsInfoStale,
+} from "../../toolsInfo.js";
 import { showConfirmationDialog } from "../../modals.js";
 import { getLowEffects, setLowEffects } from "../../effectsMode.js";
 import { applyI18n, getLanguage, setLanguage, t } from "../../i18n.js";
@@ -32,11 +36,13 @@ import {
 // Lazy-render guards
 let toolsInfoRendered = false;
 let toolsRenderPromise = null;
+const TOOLS_INFO_REFRESH_TTL_MS = 20_000;
 
 async function ensureToolsInfo(force = false) {
   if (toolsRenderPromise) return toolsRenderPromise;
-  if (toolsInfoRendered && !force) return null;
-  toolsRenderPromise = renderToolsInfo()
+  const shouldRefresh = toolsInfoRendered && (force || isToolsInfoStale(TOOLS_INFO_REFRESH_TTL_MS));
+  if (toolsInfoRendered && !shouldRefresh) return null;
+  toolsRenderPromise = (toolsInfoRendered ? refreshToolsInfoState({ force: true }) : renderToolsInfo())
     .then(() => {
       toolsInfoRendered = true;
     })

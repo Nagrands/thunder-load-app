@@ -1,4 +1,8 @@
-import { renderToolsInfo } from "../toolsInfo";
+import {
+  renderToolsInfo,
+  refreshToolsInfoState,
+  __resetToolsInfoForTests,
+} from "../toolsInfo";
 
 jest.mock("../tooltipInitializer.js", () => ({
   initTooltips: jest.fn(),
@@ -17,6 +21,7 @@ describe("renderToolsInfo", () => {
   const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
   beforeEach(() => {
+    __resetToolsInfoForTests();
     document.body.innerHTML = '<section id="tools-info"></section>';
     Object.defineProperty(window.navigator, "onLine", {
       value: true,
@@ -170,5 +175,110 @@ describe("renderToolsInfo", () => {
     expect(window.electron.tools.migrateOld).toHaveBeenCalledWith(
       expect.objectContaining({ overwrite: true }),
     );
+  });
+
+  it("does not recreate root DOM on repeated refresh", async () => {
+    await renderToolsInfo();
+    const rootBefore = document.getElementById("tools-panel");
+    await refreshToolsInfoState({ force: true });
+    const rootAfter = document.getElementById("tools-panel");
+    expect(rootAfter).toBe(rootBefore);
+  });
+
+  it("keeps single-bound handlers across multiple refreshes", async () => {
+    window.electron.tools.checkUpdates.mockResolvedValue({
+      ytDlp: { current: "2024.01.01", latest: "2024.02.01" },
+      ffmpeg: { current: "7.1", latest: "7.1" },
+      deno: { current: "1.42.0", latest: "1.42.0" },
+    });
+    await renderToolsInfo();
+    await refreshToolsInfoState({ force: true });
+    await refreshToolsInfoState({ force: true });
+
+    const checkBtn = document.getElementById("tools-check-btn");
+    checkBtn?.click();
+    await flush();
+
+    expect(window.electron.tools.checkUpdates).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores stale refresh response and keeps latest state", async () => {
+    await renderToolsInfo();
+
+    let resolveFirst;
+    const firstPromise = new Promise((resolve) => {
+      resolveFirst = resolve;
+    });
+    const secondPayload = {
+      ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2025.01.01" },
+      ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "ffmpeg version 8.0" },
+      deno: { ok: true, path: "/bin/deno", version: "deno 2.2.0" },
+    };
+
+    window.electron.tools.getVersions.mockReset();
+    window.electron.tools.getVersions
+      .mockImplementationOnce(() => firstPromise)
+      .mockImplementationOnce(() => Promise.resolve(secondPayload));
+
+    const p1 = refreshToolsInfoState({ force: true });
+    const p2 = refreshToolsInfoState({ force: true });
+    await p2;
+    resolveFirst(versionPayload);
+    await p1;
+    await flush();
+
+    const versions = Array.from(document.querySelectorAll(".tool-card__version"))
+      .map((el) => el.textContent.trim())
+      .join(" ");
+    expect(versions).toContain("2025.01.01");
+    expect(versions).toContain("8.0");
+  });
+
+  it("reuses existing tool card nodes on refresh (partial update)", async () => {
+    await renderToolsInfo();
+    const ytBefore = document.querySelector('.tool-card[data-tool="yt"]');
+    window.electron.tools.getVersions.mockResolvedValueOnce({
+      ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2026.01.01" },
+      ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "ffmpeg version 7.1" },
+      deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
+    });
+    await refreshToolsInfoState({ force: true });
+    const ytAfter = document.querySelector('.tool-card[data-tool="yt"]');
+    expect(ytAfter).toBe(ytBefore);
+    expect(ytAfter?.querySelector(".tool-card__version")?.textContent).toBe(
+      "2026.01.01",
+    );
+  });
+
+  it("uses cached checkUpdates result within TTL", async () => {
+    const updatesPayload = {
+      ytDlp: { current: "2024.01.01", latest: "2024.02.01" },
+      ffmpeg: { current: "7.1", latest: "7.1" },
+      deno: { current: "1.42.0", latest: "1.42.0" },
+    };
+    window.electron.tools.checkUpdates.mockResolvedValue(updatesPayload);
+    await renderToolsInfo();
+    const checkBtn = document.getElementById("tools-check-btn");
+    checkBtn?.click();
+    await flush();
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    checkBtn?.click();
+    await flush();
+
+    expect(window.electron.tools.checkUpdates).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows explicit offline summary state and quick actions", async () => {
+    await renderToolsInfo();
+    window.dispatchEvent(new Event("offline"));
+    const panel = document.getElementById("tools-panel");
+    const badge = document.getElementById("tools-summary-badge");
+    const retryBtn = document.getElementById("tools-quick-retry-btn");
+    const openBtn = document.getElementById("tools-quick-open-location-btn");
+    expect(panel?.getAttribute("data-summary-state")).toBe("offline");
+    expect(badge?.textContent).toMatch(/Офлайн|Offline/i);
+    expect(retryBtn?.style.display).toBe("");
+    expect(openBtn?.style.display).toBe("");
   });
 });

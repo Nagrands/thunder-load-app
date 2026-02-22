@@ -7,33 +7,10 @@ import {
   registerDismissibleOverlay,
 } from "./overlayManager.js";
 
-/**
- * Модуль рендера секции «Инструменты» (yt-dlp, ffmpeg).
- * Отвечает за первичную разметку, проверку наличия/обновлений и установку/переустановку.
- * Требует `window.electron.tools.*` (preload‑bridge) и Bootstrap tooltips (initTooltips).
- *
- * Особенности:
- *  - Пошаговый сценарий: мастер установки при отсутствии и отдельные действия «Проверить» → «Обновить».
- *  - Не допускается даунгрейд ffmpeg (7.1 == 7.1.x) и yt‑dlp (сравнение по дате YYYY.MM.DD).
- *  - Сетевые состояния: кнопки отключаются, если нет сети или идёт операция.
- *
- * @module toolsInfo
- */
-
-/**
- * Взять первую строку строки.
- * @param {string} [s=""]
- * @returns {string}
- */
 function firstLine(s = "") {
   return s.split("\n")[0];
 }
 
-/**
- * Привести deno --version к компактному виду «deno X.Y.Z».
- * @param {string} [s=""]
- * @returns {string}
- */
 function formatDenoVersion(s = "") {
   const line = firstLine(s).trim();
   if (!line) return "";
@@ -44,22 +21,11 @@ function formatDenoVersion(s = "") {
   return line.replace(/^deno\s+/i, "").trim();
 }
 
-/**
- * Нормализовать строку версии: обрезать префикс `v`, трим, в нижний регистр.
- * Пустые/«—» → пустая строка.
- * @param {string} [v=""]
- * @returns {string}
- */
 function normVer(v = "") {
   if (!v || v === "—") return "";
   return String(v).trim().replace(/^v/i, "").toLowerCase();
 }
 
-/**
- * Парсинг даты версии yt‑dlp вида YYYY.MM.DD
- * @param {string} v
- * @returns {[number,number,number]|null} [Y, M, D] или null
- */
 function parseYtDlpVer(v) {
   v = normVer(v);
   const m = v.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
@@ -67,28 +33,17 @@ function parseYtDlpVer(v) {
   return [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)];
 }
 
-/**
- * Сравнение дат версий yt‑dlp.
- * @param {string} latest
- * @param {string} current
- * @returns {1|0|-1|null} 1 если latest>current, 0 если равны, -1 если latest<current, null если нераспознано
- */
 function cmpYtDlp(latest, current) {
-  const L = parseYtDlpVer(latest),
-    C = parseYtDlpVer(current);
+  const L = parseYtDlpVer(latest);
+  const C = parseYtDlpVer(current);
   if (!L || !C) return null;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 3; i += 1) {
     if (L[i] > C[i]) return 1;
     if (L[i] < C[i]) return -1;
   }
   return 0;
 }
 
-/**
- * Детальный парсинг semver (без пререлизов/метаданных): MAJOR.MINOR[.PATCH]
- * @param {string} v
- * @returns {{major:number,minor:number,patch:number|null,hadPatch:boolean}|null}
- */
 function parseSemverDetailed(v) {
   v = normVer(v);
   v = v.split("-")[0].split("+")[0];
@@ -98,23 +53,15 @@ function parseSemverDetailed(v) {
     major: parseInt(m[1] || "0", 10),
     minor: parseInt(m[2] || "0", 10),
     patch: m[3] !== undefined ? parseInt(m[3], 10) : null,
-    hadPatch: m[3] !== undefined,
   };
 }
 
-/**
- * Сравнение версий ffmpeg с правилом: если latest без PATCH (напр. 7.1),
- * то любая 7.1.x считается равной.
- * @param {string} latest
- * @param {string} current
- * @returns {1|0|-1|null}
- */
 function cmpFfSemver(latest, current) {
   const L = parseSemverDetailed(latest);
   const C = parseSemverDetailed(current);
   if (!L || !C) return null;
   if (L.major === C.major && L.minor === C.minor && L.patch === null) {
-    return 0; // 7.1 == 7.1.x
+    return 0;
   }
   const lp = L.patch == null ? 0 : L.patch;
   const cp = C.patch == null ? 0 : C.patch;
@@ -124,12 +71,6 @@ function cmpFfSemver(latest, current) {
   return 0;
 }
 
-/**
- * Унифицированная сводка состояния инструментов: наличие и строки версий.
- * Используется и в настройках, и в шапке Загрузчика.
- * @param {object} res результат tools.getVersions()
- * @returns {{state:'ok'|'error', hasAll:boolean, missing:string[], text:string, versions:{yt?:string, ff?:string, deno?:string}, details:Array<{id:'yt'|'ff'|'deno', label:string, ok:boolean, version:string|null, skip?:boolean}>}}
- */
 export function summarizeToolsState(res) {
   const yt = res?.ytDlp;
   const ff = res?.ffmpeg;
@@ -167,9 +108,16 @@ export function summarizeToolsState(res) {
   ];
 
   if (!missing.length) {
-    const text = t("tools.summary.ok");
-    return { state: "ok", hasAll: true, missing, text, versions, details };
+    return {
+      state: "ok",
+      hasAll: true,
+      missing,
+      text: t("tools.summary.ok"),
+      versions,
+      details,
+    };
   }
+
   return {
     state: "error",
     hasAll: false,
@@ -191,12 +139,6 @@ function emitToolsStatus(res) {
   }
 }
 
-/**
- * Единый хелпер для переустановки всех инструментов (yt-dlp, ffmpeg, Deno).
- * Используется как в настройках, так и в шапке Загрузчика.
- * @param {object} options
- * @returns {Promise<any>}
- */
 export async function installAllTools(options = {}) {
   if (!window.electron?.tools?.installAll) {
     throw new Error("installAll недоступен в этой сборке");
@@ -207,12 +149,54 @@ export async function installAllTools(options = {}) {
   });
 }
 
-/**
- * Запуск «аниматора точек» у кнопки (… → …)
- * @param {HTMLElement} labelEl
- * @param {string} base
- * @returns {{stop:() => void}}
- */
+const TOOL_LINKS = {
+  yt: "https://github.com/yt-dlp/yt-dlp",
+  ff: "https://ffmpeg.org",
+  deno: "https://deno.com",
+};
+
+const TOOLS_REFRESH_STALE_MS = 20_000;
+const UPDATES_CACHE_TTL_MS = 5 * 60 * 1000;
+const ACTION_COOLDOWN_MS = 350;
+const updatesCheckCache = {
+  ts: 0,
+  versionsSignature: "",
+  payload: null,
+  etag: "",
+};
+
+function buildVersionsSignature(res) {
+  const yt = normVer(firstLine(res?.ytDlp?.version || "").replace(/^v/i, ""));
+  const ff = normVer(
+    firstLine(res?.ffmpeg?.version || "")
+      .replace(/^ffmpeg version\s*/i, "")
+      .split(" ")[0],
+  );
+  const dn = formatDenoVersion(res?.deno?.version || "");
+  return `${yt}|${ff}|${dn}`;
+}
+
+function getCachedUpdates(versionsSignature) {
+  const now = Date.now();
+  if (
+    !updatesCheckCache.payload ||
+    !updatesCheckCache.ts ||
+    now - updatesCheckCache.ts > UPDATES_CACHE_TTL_MS
+  ) {
+    return null;
+  }
+  if (updatesCheckCache.versionsSignature !== versionsSignature) return null;
+  return updatesCheckCache.payload;
+}
+
+function setCachedUpdates(versionsSignature, payload) {
+  if (!payload) return;
+  updatesCheckCache.ts = Date.now();
+  updatesCheckCache.versionsSignature = versionsSignature;
+  updatesCheckCache.payload = payload;
+  updatesCheckCache.etag = String(payload?.etag || "");
+}
+
 function startDotsAnimator(labelEl, base) {
   let dots = 0;
   const id = setInterval(() => {
@@ -222,13 +206,6 @@ function startDotsAnimator(labelEl, base) {
   return { stop: () => clearInterval(id) };
 }
 
-/**
- * Применить доступность кнопок по сетевому состоянию/процессам
- * @param {HTMLButtonElement|null} primaryBtn
- * @param {HTMLButtonElement|null} forceBtn
- * @param {boolean} isInstalling
- * @param {boolean} isChecking
- */
 function applyNetworkState(buttons = [], isInstalling, isChecking) {
   const offline = !navigator.onLine;
   buttons.forEach((btn) => {
@@ -237,387 +214,354 @@ function applyNetworkState(buttons = [], isInstalling, isChecking) {
   });
 }
 
-const backgroundUpdateState = {
-  inProgress: false,
-  lastSignature: null,
-  lastRun: 0,
-};
-const BACKGROUND_UPDATE_COOLDOWN_MS = 5 * 60 * 1000;
-
-/**
- * Фоновая проверка обновлений инструментов без всплывающих уведомлений.
- * Запускается только когда оба инструмента установлены и вкладка настроек открыта.
- * @param {object} currentVersions
- */
-async function triggerBackgroundToolsUpdateCheck(currentVersions) {
-  if (backgroundUpdateState.inProgress) return;
-  if (!navigator.onLine) return;
-  if (
-    !currentVersions?.ytDlp?.ok ||
-    !currentVersions?.ffmpeg?.ok ||
-    !currentVersions?.deno?.ok
-  ) {
-    return;
+function setSummaryState(el, state = "neutral", text = "") {
+  const dotClass = ["tools-panel__dot", `tools-panel__dot--${state}`].join(" ");
+  if (el.panel) {
+    el.panel.setAttribute("data-summary-state", state);
   }
-
-  const now = Date.now();
-  if (now - backgroundUpdateState.lastRun < BACKGROUND_UPDATE_COOLDOWN_MS) {
-    return;
-  }
-
-  backgroundUpdateState.inProgress = true;
-  backgroundUpdateState.lastRun = now;
-
-  try {
-    const updates = await window.electron?.tools?.checkUpdates?.({
-      background: true,
-      noCache: false,
-    });
-    if (!updates) return;
-
-    const notices = [];
-    const signatureParts = [];
-
-    const ytLatest = normVer(updates?.ytDlp?.latest || "");
-    const ytCurrent = normVer(
-      updates?.ytDlp?.current ||
-        updates?.ytDlp?.local ||
-        firstLine(currentVersions?.ytDlp?.version || "").replace(/^v/i, ""),
-    );
-    if (ytLatest && ytCurrent && cmpYtDlp(ytLatest, ytCurrent) === 1) {
-      notices.push(`yt-dlp ${updates.ytDlp.latest}`);
-      signatureParts.push(`yt:${updates.ytDlp.latest}`);
-    }
-
-    const ffLatest = normVer(updates?.ffmpeg?.latest || "");
-    const ffCurrent = normVer(
-      updates?.ffmpeg?.current ||
-        updates?.ffmpeg?.local ||
-        firstLine(currentVersions?.ffmpeg?.version || "")
-          .replace(/^ffmpeg version\s*/i, "")
-          .split(" ")[0],
-    );
-    if (ffLatest && ffCurrent && cmpFfSemver(ffLatest, ffCurrent) === 1) {
-      notices.push(`ffmpeg ${updates.ffmpeg.latest}`);
-      signatureParts.push(`ff:${updates.ffmpeg.latest}`);
-    }
-
-    if (!notices.length) return;
-
-    const signature = signatureParts.join("|");
-    if (signature && backgroundUpdateState.lastSignature === signature) {
-      return;
-    }
-    backgroundUpdateState.lastSignature = signature || null;
-
-    // Тихий режим: не показываем тосты для фоновой проверки
-  } catch (error) {
-    console.warn("[toolsInfo] background update check failed:", error);
-  } finally {
-    backgroundUpdateState.inProgress = false;
+  if (el.summaryDotEl) el.summaryDotEl.className = dotClass;
+  if (el.summaryStatusEl) el.summaryStatusEl.textContent = text || "—";
+  if (el.summaryBadgeEl) {
+    el.summaryBadgeEl.className = `tools-panel__badge tools-panel__badge--${state}`;
+    const badgeKey =
+      state === "ok"
+        ? "tools.summary.ok"
+        : state === "update"
+          ? "tools.summary.update"
+          : state === "missing"
+            ? "tools.summary.missing"
+              : state === "checking"
+                ? "tools.summary.checking"
+                : state === "offline"
+                  ? "tools.summary.offline"
+                  : state === "busy"
+                    ? "tools.summary.busy"
+                : state === "error"
+                  ? "tools.summary.error"
+                  : null;
+    el.summaryBadgeEl.textContent = badgeKey ? t(badgeKey) : "—";
   }
 }
 
-/**
- * Рендер секции «Инструменты» и навешивание обработчиков.
- * Делает безопасные IPC вызовы через preload‑bridge `window.electron.tools`.
- *
- * @returns {Promise<void>}
- */
-const TOOL_LINKS = {
-  yt: "https://github.com/yt-dlp/yt-dlp",
-  ff: "https://ffmpeg.org",
-  deno: "https://deno.com",
-};
+function buildToolsCardItems(summary, overrides = {}) {
+  return (summary?.details || []).map((detail) => {
+    let state = detail.ok ? "ok" : "missing";
+    if (overrides[detail.id] === "update") state = "update";
+    return {
+      ...detail,
+      state,
+      version: detail.version || (detail.ok ? "—" : t("tools.version.missing")),
+    };
+  });
+}
 
-export async function renderToolsInfo() {
-  const section = document.getElementById("tools-info");
-  if (!section) return;
+function buildSingleToolCardMarkup({ id, label, version, state }) {
+  return `
+    <div class="tool-card tool-card--${state}" data-tool="${id}" role="listitem">
+      <span class="tool-card__dot"></span>
+      <div class="tool-card__label">
+        ${label}
+        ${
+          TOOL_LINKS[id]
+            ? `<span
+                 class="tool-external-link"
+                 data-tool="${id}"
+                 title="${t("tools.link.openSite")}"
+                 data-i18n-title="tools.link.openSite"
+               ><i class="fa-solid fa-arrow-up-right-from-square"></i></span>`
+            : ""
+        }
+      </div>
+      <div class="tool-card__version">${version || "—"}</div>
+    </div>`;
+}
 
-  // Базовая разметка (с блоком выбора папки инструментов)
+function patchToolCards(container, items = []) {
+  if (!container) return;
+  const nextIds = new Set(items.map((item) => item.id));
+
+  container.querySelectorAll(".tool-card[data-tool]").forEach((card) => {
+    const id = card.getAttribute("data-tool");
+    if (!nextIds.has(id)) {
+      card.remove();
+    }
+  });
+
+  items.forEach((item) => {
+    let card = container.querySelector(`.tool-card[data-tool="${item.id}"]`);
+    if (!card) {
+      container.insertAdjacentHTML("beforeend", buildSingleToolCardMarkup(item));
+      return;
+    }
+    card.className = `tool-card tool-card--${item.state}`;
+    const versionEl = card.querySelector(".tool-card__version");
+    if (versionEl) versionEl.textContent = item.version || "—";
+  });
+}
+
+function renderToolsInfoSkeleton(section) {
   section.innerHTML = `
-    <details class="tools-panel" id="tools-panel">
-      <summary class="tools-panel__summary">
+    <details class="tools-panel" id="tools-panel" data-tools-state="compact">
+      <summary class="tools-panel__summary" id="tools-panel-summary" aria-controls="tools-panel-body" aria-expanded="false">
         <div class="tools-panel__summary-left">
           <span class="tools-panel__dot tools-panel__dot--neutral" id="tools-summary-dot" aria-hidden="true"></span>
           <div class="tools-panel__titles">
             <h2 data-i18n="tools.title">${t("tools.title")}</h2>
-            <small id="tools-summary-status" class="muted" data-i18n="tools.summary.checking">
-              ${t("tools.summary.checking")}
-            </small>
+            <small id="tools-summary-status" class="muted" aria-live="polite" data-i18n="tools.summary.checking">${t("tools.summary.checking")}</small>
           </div>
         </div>
         <div class="tools-panel__summary-right">
-          <span class="tools-panel__badge tools-panel__badge--neutral" id="tools-summary-badge">
-            ${t("tools.summary.checking")}
-          </span>
+          <span class="tools-panel__badge tools-panel__badge--neutral" id="tools-summary-badge">${t("tools.summary.checking")}</span>
           <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
         </div>
       </summary>
 
-      <div class="tools-panel__body">
-        <div
-          class="tools-wizard"
-          id="tools-wizard"
-          role="region"
-          aria-label="${t("tools.wizard.title")}"
-          data-i18n-aria="tools.wizard.title"
-        >
-          <div class="tools-wizard__header">
-            <h3 data-i18n="tools.wizard.title">${t("tools.wizard.title")}</h3>
-          </div>
-          <div class="tools-wizard__steps" id="tools-wizard-steps">
-            <div class="tools-wizard__step">
-              <div class="tools-wizard__step-index">1</div>
-              <div class="tools-wizard__step-body">
-                <h4 data-i18n="tools.wizard.step1.title">${t("tools.wizard.step1.title")}</h4>
-                <p class="muted" data-i18n="tools.wizard.step1.desc">
-                  ${t("tools.wizard.step1.desc")}
-                </p>
-                <div id="tools-wizard-location"></div>
-              </div>
-            </div>
-            <div class="tools-wizard__step">
-              <div class="tools-wizard__step-index">2</div>
-              <div class="tools-wizard__step-body">
-                <h4 data-i18n="tools.wizard.step2.title">${t("tools.wizard.step2.title")}</h4>
-                <p class="muted" data-i18n="tools.wizard.step2.desc">
-                  ${t("tools.wizard.step2.desc")}
-                </p>
-                <button id="tools-install-btn" type="button">
-                  <i class="fa-solid fa-download"></i>
-                  <span data-i18n="tools.button.install">${t("tools.button.install")}</span>
-                </button>
-              </div>
-            </div>
-            <div class="tools-wizard__step">
-              <div class="tools-wizard__step-index">3</div>
-              <div class="tools-wizard__step-body">
-                <h4 data-i18n="tools.wizard.step3.title">${t("tools.wizard.step3.title")}</h4>
-                <p class="muted" data-i18n="tools.wizard.step3.desc">
-                  ${t("tools.wizard.step3.desc")}
-                </p>
-                <small id="tools-wizard-status" class="muted"></small>
-              </div>
-            </div>
+      <div class="tools-panel__body" id="tools-panel-body" aria-live="polite">
+        <div class="tools-panel-quick">
+          <small id="tools-status" class="muted"></small>
+          <div class="tools-panel-quick-actions">
+            <button id="tools-check-btn" type="button" title="${t("tools.button.check")}" data-i18n-title="tools.button.check">
+              <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
+              <span id="tools-check-label" data-i18n="tools.button.check">${t("tools.button.check")}</span>
+            </button>
+            <button id="tools-update-btn" type="button" title="${t("tools.button.update")}" data-i18n-title="tools.button.update" style="display:none;">
+              <i class="fa-solid fa-download" id="tools-update-icon"></i>
+              <span id="tools-update-label" data-i18n="tools.button.update">${t("tools.button.update")}</span>
+            </button>
+            <button id="tools-quick-retry-btn" type="button" title="${t("tools.quick.retry")}" data-i18n-title="tools.quick.retry" style="display:none;">
+              <i class="fa-solid fa-rotate-right"></i>
+              <span data-i18n="tools.quick.retry">${t("tools.quick.retry")}</span>
+            </button>
+            <button id="tools-quick-open-location-btn" type="button" title="${t("tools.quick.openLocation")}" data-i18n-title="tools.quick.openLocation" style="display:none;">
+              <i class="fa-solid fa-folder-open"></i>
+              <span data-i18n="tools.quick.openLocation">${t("tools.quick.openLocation")}</span>
+            </button>
           </div>
         </div>
 
         <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
 
-        <div id="tools-location-host">
-          <div class="tools-location module">
-            <label for="ti-tools-location-path">
-              <i class="fa-solid fa-folder"></i>
-              <span data-i18n="tools.location.title">${t("tools.location.title")}</span>
-            </label>
-            <div class="tools-location-row">
-              <input id="ti-tools-location-path" type="text" readonly />
-              <button
-                id="ti-tools-location-choose"
-                data-bs-toggle="tooltip"
-                title="${t("tools.location.choose")}"
-                data-i18n-title="tools.location.choose"
-              >
-                <i class="fa-solid fa-folder-open"></i>
-              </button>
-              <button
-                id="ti-tools-location-open"
-                data-bs-toggle="tooltip"
-                title="${t("tools.location.open")}"
-                data-i18n-title="tools.location.open"
-              >
-                <i class="fa-regular fa-folder-open"></i>
-              </button>
-              <button
-                id="ti-tools-location-reset"
-                data-bs-toggle="tooltip"
-                title="${t("tools.location.reset")}"
-                data-i18n-title="tools.location.reset"
-              >
-                <i class="fa-solid fa-rotate-left"></i>
-              </button>
-              <button
-                id="ti-tools-location-migrate"
-                data-bs-toggle="tooltip"
-                title="${t("tools.location.migrate")}"
-                data-i18n-title="tools.location.migrate"
-              >
-                <i class="fa-solid fa-database"></i>
-              </button>
+        <details class="tools-advanced" id="tools-advanced" aria-label="${t("tools.moreMenu")}" data-i18n-aria="tools.moreMenu">
+          <summary class="tools-advanced__toggle" id="tools-advanced-toggle">
+            <span data-i18n="tools.more">${t("tools.more")}</span>
+          </summary>
+
+          <div class="tools-advanced__body">
+            <div class="tools-wizard" id="tools-wizard" role="region" aria-label="${t("tools.wizard.title")}" data-i18n-aria="tools.wizard.title">
+              <div class="tools-wizard__header">
+                <h3 data-i18n="tools.wizard.title">${t("tools.wizard.title")}</h3>
+              </div>
+              <div class="tools-wizard__steps" id="tools-wizard-steps">
+                <div class="tools-wizard__step">
+                  <div class="tools-wizard__step-index">1</div>
+                  <div class="tools-wizard__step-body">
+                    <h4 data-i18n="tools.wizard.step1.title">${t("tools.wizard.step1.title")}</h4>
+                    <p class="muted" data-i18n="tools.wizard.step1.desc">${t("tools.wizard.step1.desc")}</p>
+                    <div id="tools-wizard-location"></div>
+                  </div>
+                </div>
+                <div class="tools-wizard__step">
+                  <div class="tools-wizard__step-index">2</div>
+                  <div class="tools-wizard__step-body">
+                    <h4 data-i18n="tools.wizard.step2.title">${t("tools.wizard.step2.title")}</h4>
+                    <p class="muted" data-i18n="tools.wizard.step2.desc">${t("tools.wizard.step2.desc")}</p>
+                    <button id="tools-install-btn" type="button">
+                      <i class="fa-solid fa-download"></i>
+                      <span data-i18n="tools.button.install">${t("tools.button.install")}</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="tools-wizard__step">
+                  <div class="tools-wizard__step-index">3</div>
+                  <div class="tools-wizard__step-body">
+                    <h4 data-i18n="tools.wizard.step3.title">${t("tools.wizard.step3.title")}</h4>
+                    <p class="muted" data-i18n="tools.wizard.step3.desc">${t("tools.wizard.step3.desc")}</p>
+                    <small id="tools-wizard-status" class="muted"></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tools-location-host">
+              <div class="tools-location module">
+                <label for="ti-tools-location-path">
+                  <i class="fa-solid fa-folder"></i>
+                  <span data-i18n="tools.location.title">${t("tools.location.title")}</span>
+                </label>
+                <div class="tools-location-row">
+                  <input id="ti-tools-location-path" type="text" readonly />
+                  <button id="ti-tools-location-choose" data-bs-toggle="tooltip" title="${t("tools.location.choose")}" data-i18n-title="tools.location.choose"><i class="fa-solid fa-folder-open"></i></button>
+                  <button id="ti-tools-location-open" data-bs-toggle="tooltip" title="${t("tools.location.open")}" data-i18n-title="tools.location.open"><i class="fa-regular fa-folder-open"></i></button>
+                  <button id="ti-tools-location-reset" data-bs-toggle="tooltip" title="${t("tools.location.reset")}" data-i18n-title="tools.location.reset"><i class="fa-solid fa-rotate-left"></i></button>
+                  <button id="ti-tools-location-migrate" data-bs-toggle="tooltip" title="${t("tools.location.migrate")}" data-i18n-title="tools.location.migrate"><i class="fa-solid fa-database"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <small id="tools-hint" class="muted"></small>
+            <small id="ti-tools-location-info" class="muted"></small>
+
+            <div class="tools-footer">
+              <div class="tools-actions" id="tools-actions"></div>
+              <div id="tools-more" class="tools-more">
+                <button id="tools-more-btn" class="tools-more-btn" title="${t("tools.more")}" aria-label="${t("tools.more")}" data-i18n-title="tools.more" data-i18n-aria="tools.more">
+                  <i class="fa-solid fa-ellipsis"></i>
+                </button>
+                <div id="tools-more-menu" class="tools-more-menu" role="menu" aria-label="${t("tools.moreMenu")}" data-i18n-aria="tools.moreMenu">
+                  <button id="tools-force-btn" type="button" title="${t("tools.button.force")}" data-bs-toggle="tooltip" data-i18n-title="tools.button.force">
+                    <i class="fa-solid fa-arrow-rotate-right"></i>
+                    <span data-i18n="tools.button.force">${t("tools.button.force")}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <small id="tools-hint" class="muted"></small>
-        <small id="ti-tools-location-info" class="muted"></small>
-
-        <div class="tools-footer">
-          <small id="tools-status" class="muted"></small>
-          <div class="tools-actions" id="tools-actions">
-            <button
-              id="tools-check-btn"
-              type="button"
-              title="${t("tools.button.check")}"
-              data-i18n-title="tools.button.check"
-            >
-              <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
-              <span id="tools-check-label" data-i18n="tools.button.check">
-                ${t("tools.button.check")}
-              </span>
-            </button>
-            <button
-              id="tools-update-btn"
-              type="button"
-              title="${t("tools.button.update")}"
-              data-i18n-title="tools.button.update"
-              style="display:none;"
-            >
-              <i class="fa-solid fa-download" id="tools-update-icon"></i>
-              <span id="tools-update-label" data-i18n="tools.button.update">
-                ${t("tools.button.update")}
-              </span>
-            </button>
-          </div>
-          <div id="tools-more" class="tools-more" style="display:none;">
-            <button
-              id="tools-more-btn"
-              class="tools-more-btn"
-              title="${t("tools.more")}"
-              aria-label="${t("tools.more")}"
-              data-i18n-title="tools.more"
-              data-i18n-aria="tools.more"
-            >
-              <i class="fa-solid fa-ellipsis"></i>
-            </button>
-            <div
-              id="tools-more-menu"
-              class="tools-more-menu"
-              role="menu"
-              aria-label="${t("tools.moreMenu")}"
-              data-i18n-aria="tools.moreMenu"
-            >
-              <button
-                id="tools-force-btn"
-                type="button"
-                title="${t("tools.button.force")}"
-                data-bs-toggle="tooltip"
-                data-i18n-title="tools.button.force"
-              >
-                <i class="fa-solid fa-arrow-rotate-right"></i>
-                <span data-i18n="tools.button.force">${t("tools.button.force")}</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        </details>
       </div>
     </details>
   `;
+}
 
-  /** @type {HTMLButtonElement|null} */
-  const checkBtn = document.getElementById("tools-check-btn");
-  /** @type {HTMLElement|null} */
-  const checkIcon = document.getElementById("tools-check-icon");
-  /** @type {HTMLElement|null} */
-  const checkLabel = document.getElementById("tools-check-label");
-  /** @type {HTMLButtonElement|null} */
-  const updateBtn = document.getElementById("tools-update-btn");
-  /** @type {HTMLElement|null} */
-  const updateLabel = document.getElementById("tools-update-label");
-  /** @type {HTMLButtonElement|null} */
-  const installBtn = document.getElementById("tools-install-btn");
-  /** @type {HTMLDivElement|null} */
-  const moreWrap = document.getElementById("tools-more");
-  /** @type {HTMLButtonElement|null} */
-  const moreBtn = document.getElementById("tools-more-btn");
-  /** @type {HTMLElement|null} */
-  const moreMenu = document.getElementById("tools-more-menu");
-  /** @type {HTMLButtonElement|null} */
-  const forceBtn = document.getElementById("tools-force-btn");
-  /** @type {HTMLElement|null} */
-  const hintEl = document.getElementById("tools-hint");
-  /** @type {HTMLElement|null} */
-  const statusEl = document.getElementById("tools-status");
-  /** @type {HTMLElement|null} */
-  const wizardEl = document.getElementById("tools-wizard");
-  /** @type {HTMLElement|null} */
-  const wizardStatusEl = document.getElementById("tools-wizard-status");
-  /** @type {HTMLElement|null} */
-  const wizardLocationSlot = document.getElementById("tools-wizard-location");
-  /** @type {HTMLElement|null} */
-  const locationHost = document.getElementById("tools-location-host");
-  /** @type {HTMLElement|null} */
-  const statusCardsEl = document.getElementById("tools-status-cards");
-  /** @type {HTMLElement|null} */
-  const summaryDotEl = document.getElementById("tools-summary-dot");
-  /** @type {HTMLElement|null} */
-  const summaryStatusEl = document.getElementById("tools-summary-status");
-  /** @type {HTMLElement|null} */
-  const summaryBadgeEl = document.getElementById("tools-summary-badge");
+function getElements(section) {
+  return {
+    panel: section.querySelector("#tools-panel"),
+    panelSummary: section.querySelector("#tools-panel-summary"),
+    panelBody: section.querySelector("#tools-panel-body"),
+    advanced: section.querySelector("#tools-advanced"),
+    advancedToggle: section.querySelector("#tools-advanced-toggle"),
+    statusCardsEl: section.querySelector("#tools-status-cards"),
+    summaryDotEl: section.querySelector("#tools-summary-dot"),
+    summaryStatusEl: section.querySelector("#tools-summary-status"),
+    summaryBadgeEl: section.querySelector("#tools-summary-badge"),
+    statusEl: section.querySelector("#tools-status"),
+    hintEl: section.querySelector("#tools-hint"),
+    wizardEl: section.querySelector("#tools-wizard"),
+    wizardStatusEl: section.querySelector("#tools-wizard-status"),
+    wizardLocationSlot: section.querySelector("#tools-wizard-location"),
+    locationHost: section.querySelector("#tools-location-host"),
+    checkBtn: section.querySelector("#tools-check-btn"),
+    checkIcon: section.querySelector("#tools-check-icon"),
+    checkLabel: section.querySelector("#tools-check-label"),
+    updateBtn: section.querySelector("#tools-update-btn"),
+    updateLabel: section.querySelector("#tools-update-label"),
+    quickRetryBtn: section.querySelector("#tools-quick-retry-btn"),
+    quickOpenLocationBtn: section.querySelector("#tools-quick-open-location-btn"),
+    installBtn: section.querySelector("#tools-install-btn"),
+    moreWrap: section.querySelector("#tools-more"),
+    moreBtn: section.querySelector("#tools-more-btn"),
+    moreMenu: section.querySelector("#tools-more-menu"),
+    forceBtn: section.querySelector("#tools-force-btn"),
+    locInput: section.querySelector("#ti-tools-location-path"),
+    locChoose: section.querySelector("#ti-tools-location-choose"),
+    locOpen: section.querySelector("#ti-tools-location-open"),
+    locReset: section.querySelector("#ti-tools-location-reset"),
+    locMigrate: section.querySelector("#ti-tools-location-migrate"),
+  };
+}
 
-  const setSummaryState = (state = "neutral", text = "") => {
-    const dotClass = ["tools-panel__dot", `tools-panel__dot--${state}`]
-      .filter(Boolean)
-      .join(" ");
-    if (summaryDotEl) summaryDotEl.className = dotClass;
-    if (summaryStatusEl) summaryStatusEl.textContent = text || "—";
-    if (summaryBadgeEl) {
-      summaryBadgeEl.className = `tools-panel__badge tools-panel__badge--${state}`;
-      const badgeKey =
-        state === "ok"
-          ? "tools.summary.ok"
-          : state === "update"
-            ? "tools.summary.update"
-            : state === "missing"
-              ? "tools.summary.missing"
-              : state === "checking"
-                ? "tools.summary.checking"
-                : state === "error"
-                  ? "tools.summary.error"
-                  : null;
-      summaryBadgeEl.textContent = badgeKey ? t(badgeKey) : "—";
-    }
+function setText(el, value = "") {
+  if (el) el.textContent = value;
+}
+
+function initContext(section) {
+  renderToolsInfoSkeleton(section);
+
+  const el = getElements(section);
+  const state = {
+    isChecking: false,
+    isInstalling: false,
+    pendingUpdate: { yt: false, ff: false },
+    requestId: 0,
+    lastRefreshedAt: 0,
+    versions: null,
+    actionLocks: new Map(),
   };
 
+  const ctx = {
+    section,
+    el,
+    state,
+    refresh: async () => {},
+  };
+
+  const allButtons = [
+    el.checkBtn,
+    el.updateBtn,
+    el.quickRetryBtn,
+    el.quickOpenLocationBtn,
+    el.installBtn,
+    el.forceBtn,
+    el.locChoose,
+    el.locOpen,
+    el.locReset,
+    el.locMigrate,
+  ];
+
   const setStatusText = (text = "") => {
-    if (statusEl) statusEl.textContent = text;
-    if (wizardStatusEl) wizardStatusEl.textContent = text;
+    setText(el.statusEl, text);
+    setText(el.wizardStatusEl, text);
   };
 
   const setHintText = (text = "") => {
-    if (hintEl) hintEl.textContent = text;
+    setText(el.hintEl, text);
   };
 
-  /**
-   * Обновляет карточки статусов и сводку по инструментам.
-   * @param {ReturnType<typeof summarizeToolsState>} summary
-   * @param {Record<string, "update" | undefined>} overrides
-   * @param {{customState?: "ok" | "update" | "missing" | "checking" | "error" | "neutral", customText?: string}} options
-   */
-  const updateStatusUI = (summary, overrides = {}, options = {}) => {
+  const isActionLocked = (key, cooldownMs = ACTION_COOLDOWN_MS) => {
+    const now = Date.now();
+    const nextAllowedAt = state.actionLocks.get(key) || 0;
+    if (nextAllowedAt > now) return true;
+    state.actionLocks.set(key, now + cooldownMs);
+    return false;
+  };
+
+  const setQuickActionsVisibility = ({
+    showRetry = false,
+    showOpenLocation = false,
+  } = {}) => {
+    if (el.quickRetryBtn) {
+      el.quickRetryBtn.style.display = showRetry ? "" : "none";
+    }
+    if (el.quickOpenLocationBtn) {
+      el.quickOpenLocationBtn.style.display = showOpenLocation ? "" : "none";
+    }
+  };
+
+  const setQuickState = (
+    summaryState,
+    text,
+    { showRetry = false, showOpenLocation = false } = {},
+  ) => {
+    setSummaryState(el, summaryState, text);
+    setStatusText(text);
+    setQuickActionsVisibility({ showRetry, showOpenLocation });
+  };
+
+  const syncSummaryExpandedState = () => {
+    if (!el.panelSummary || !el.panel) return;
+    el.panelSummary.setAttribute("aria-expanded", el.panel.open ? "true" : "false");
+  };
+
+  el.panel?.addEventListener("toggle", syncSummaryExpandedState);
+  syncSummaryExpandedState();
+
+  el.advanced?.addEventListener("toggle", () => {
+    const expanded = el.advanced?.open ? "true" : "false";
+    el.advancedToggle?.setAttribute("aria-expanded", expanded);
+  });
+
+  const updateStatusCards = (summary, overrides = {}, options = {}) => {
     if (!summary) {
-      setSummaryState(
-        options.customState || "error",
-        options.customText || t("tools.error.getVersions"),
-      );
-      if (statusCardsEl) statusCardsEl.innerHTML = "";
+      setSummaryState(el, options.customState || "error", options.customText || t("tools.error.getVersions"));
+      if (el.statusCardsEl) patchToolCards(el.statusCardsEl, []);
       return;
     }
+    const cardItems = buildToolsCardItems(summary, overrides);
+    if (el.statusCardsEl) patchToolCards(el.statusCardsEl, cardItems);
 
-    const items = (summary.details || []).map((detail) => {
-      let state = detail.ok ? "ok" : "missing";
-      if (overrides[detail.id] === "update") state = "update";
-      return {
-        ...detail,
-        state,
-        version:
-          detail.version || (detail.ok ? "—" : t("tools.version.missing")),
-      };
-    });
-
-    const derivedState = items.some((it) => it.state === "update")
+    const items = cardItems.map((item) => item.state);
+    const derivedState = items.includes("update")
       ? "update"
-      : items.every((it) => it.state === "ok")
+      : items.every((x) => x === "ok")
         ? "ok"
         : "missing";
 
@@ -631,138 +575,324 @@ export async function renderToolsInfo() {
           ? t("tools.status.updatesFound")
           : t("tools.summary.problemText"));
 
-    setSummaryState(overallState, summaryText);
+    setSummaryState(el, overallState, summaryText);
+  };
 
-    if (statusCardsEl) {
-      statusCardsEl.innerHTML = items
-        .map(
-          ({ id, label, version, state }) => `
-          <div class="tool-card tool-card--${state}" data-tool="${id}" role="listitem">
-            <span class="tool-card__dot"></span>
-            <div class="tool-card__label">
-  ${label}
-  ${
-    TOOL_LINKS[id]
-      ? `<span
-           class="tool-external-link"
-           data-tool="${id}"
-           title="${t("tools.link.openSite")}"
-           data-i18n-title="tools.link.openSite"
-         ><i class="fa-solid fa-arrow-up-right-from-square"></i></span>`
-      : ""
-  }
-</div>
-            <div class="tool-card__version">${version || "—"}</div>
-          </div>`,
-        )
-        .join("");
+  const syncWizardVisibility = (missing) => {
+    if (el.wizardEl) el.wizardEl.style.display = missing ? "" : "none";
+    if (el.installBtn) el.installBtn.style.display = missing ? "" : "none";
+    if (el.moreWrap) el.moreWrap.style.display = missing ? "none" : "";
+    if (el.checkBtn) el.checkBtn.style.display = missing ? "none" : "";
+    if (el.updateBtn && missing) el.updateBtn.style.display = "none";
+
+    const locationEl = section.querySelector(".tools-location");
+    if (locationEl && el.wizardLocationSlot && el.locationHost) {
+      if (missing) el.wizardLocationSlot.appendChild(locationEl);
+      else el.locationHost.appendChild(locationEl);
     }
   };
 
-  setSummaryState("checking", t("tools.summary.checking"));
-
-  /** @type {HTMLInputElement|null} */
-  const locInput = document.getElementById("ti-tools-location-path");
-  /** @type {HTMLButtonElement|null} */
-  const locChoose = document.getElementById("ti-tools-location-choose");
-  /** @type {HTMLButtonElement|null} */
-  const locOpen = document.getElementById("ti-tools-location-open");
-  /** @type {HTMLButtonElement|null} */
-  const locReset = document.getElementById("ti-tools-location-reset");
-  /** @type {HTMLButtonElement|null} */
-  const locMigrate = document.getElementById("ti-tools-location-migrate");
-  const toast = (msg, type = "info") =>
-    window.electron?.invoke?.("toast", msg, type);
-  // === Tools location wiring (inline UI in Tools section) ===
-  async function refreshLocationUI() {
+  const refreshLocationUI = async () => {
     try {
       const info = await window.electron?.tools?.getLocation?.();
-      if (info?.success && locInput) {
-        locInput.value = info.path || "";
-        if (locReset) {
-          locReset.disabled = !!info.isDefault;
-          const pathSuffix = info.defaultPath ? `: ${info.defaultPath}` : "";
-          const title = info.isDefault
-            ? t("tools.location.defaultTitle", { path: pathSuffix })
-            : t("tools.location.resetTitle", { path: pathSuffix });
-          locReset.setAttribute("title", title);
-        }
-        if (locInput) locInput.setAttribute("title", info.path || "");
+      if (!info?.success) return;
+      if (el.locInput) {
+        el.locInput.value = info.path || "";
+        el.locInput.setAttribute("title", info.path || "");
       }
-    } catch (e) {
-      console.error("[toolsInfo] getLocation error:", e);
+      if (el.locReset) {
+        el.locReset.disabled = !!info.isDefault;
+        const pathSuffix = info.defaultPath ? `: ${info.defaultPath}` : "";
+        const title = info.isDefault
+          ? t("tools.location.defaultTitle", { path: pathSuffix })
+          : t("tools.location.resetTitle", { path: pathSuffix });
+        el.locReset.setAttribute("title", title);
+      }
+    } catch (error) {
+      console.error("[toolsInfo] getLocation error:", error);
     }
-  }
+  };
 
-  async function chooseDirDialog() {
+  const chooseDirDialog = async () => {
     try {
       const res = await window.electron.invoke("dialog:choose-tools-dir");
       if (res && res.filePaths && res.filePaths[0]) return res.filePaths[0];
       if (typeof res === "string") return res;
-      if (res && res.canceled === false && res.paths && res.paths[0])
+      if (res && res.canceled === false && res.paths && res.paths[0]) {
         return res.paths[0];
-    } catch {}
+      }
+    } catch {
+      // noop
+    }
     return null;
-  }
+  };
 
-  locChoose?.addEventListener("click", async () => {
+  const runInstallAll = async ({ statusText = t("tools.status.installing") } = {}) => {
+    if (isActionLocked("install-all")) return;
+    if (!navigator.onLine) {
+      setQuickState("offline", t("tools.status.noNetwork"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      return;
+    }
+    let dots;
+    try {
+      state.isInstalling = true;
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      setQuickState("busy", statusText);
+      const labelEl = el.checkLabel || el.installBtn?.querySelector("span");
+      if (labelEl) dots = startDotsAnimator(labelEl, statusText);
+      await window.electron?.tools?.installAll?.();
+      await window.electron?.invoke?.("toast", t("tools.toast.installSuccess"), "success");
+      await ctx.refresh({ force: true, reason: "install" });
+    } catch (error) {
+      console.error("[toolsInfo] installAll failed:", error);
+      setQuickState("error", t("tools.error.install"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      await window.electron?.invoke?.("toast", t("tools.toast.installError"), "error");
+    } finally {
+      state.isInstalling = false;
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      try {
+        dots?.stop?.();
+      } catch {
+        // noop
+      }
+    }
+  };
+
+  const checkUpdates = async () => {
+    if (state.isChecking || isActionLocked("check-updates")) return;
+    if (!navigator.onLine) {
+      if (!navigator.onLine) setStatusText(t("tools.status.noNetwork"));
+      setQuickState("offline", t("tools.status.noNetwork"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      return;
+    }
+
+    const cur = (await window.electron?.tools?.getVersions?.()) || state.versions;
+    if (!cur) return;
+    const versionsSignature = buildVersionsSignature(cur);
+    const cachedUpdates = getCachedUpdates(versionsSignature);
+
+    const summaryBase = summarizeToolsState(cur);
+    updateStatusCards(summaryBase, {}, {
+      customState: "checking",
+      customText: t("tools.status.checkingUpdates"),
+    });
+    setQuickState("busy", t("tools.status.checkingUpdates"));
+
+    const prevIconClass = el.checkIcon?.className;
+    if (el.checkIcon) el.checkIcon.classList.add("fa-spin");
+
+    let dots;
+    try {
+      state.isChecking = true;
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      const labelEl = el.checkLabel || el.checkBtn?.querySelector("span");
+      if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.checkingUpdates"));
+
+      const upd =
+        cachedUpdates ||
+        (await window.electron?.tools?.checkUpdates?.({
+          noCache: false,
+          forceFetch: false,
+          etag: updatesCheckCache.etag || undefined,
+        }));
+      if (!cachedUpdates) {
+        setCachedUpdates(versionsSignature, upd);
+      }
+
+      const yCurUpd = normVer(upd?.ytDlp?.current || "");
+      const fCurUpd = normVer(upd?.ffmpeg?.current || "");
+      const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
+      const yLatN = normVer(upd?.ytDlp?.latest || "");
+      const fLatN = normVer(upd?.ffmpeg?.latest || "");
+
+      const yCurLocal = normVer(firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""));
+      const fCurLocal = normVer(
+        firstLine(cur?.ffmpeg?.version || "")
+          .replace(/^ffmpeg version\s*/i, "")
+          .split(" ")[0],
+      );
+
+      const ytCur = yCurUpd || yCurLocal || "";
+      const ffCur = fCurUpd || fCurLocal || "";
+      const ytLatest = yLatN;
+      const ffSkip = !!upd?.ffmpeg?.skipUpdates;
+      const ffLatest = ffSkip ? ffCur : fLatN;
+
+      let ytCmp = null;
+      let ffCmp = null;
+      if (ytCur && ytLatest) ytCmp = cmpYtDlp(ytLatest, ytCur);
+      if (!ffSkip && ffCur && ffLatest) ffCmp = cmpFfSemver(ffLatest, ffCur);
+
+      state.pendingUpdate = {
+        yt: ytCmp === 1,
+        ff: !ffSkip && ffCmp === 1,
+      };
+
+      const anyUpdate = state.pendingUpdate.yt || state.pendingUpdate.ff;
+      const overrides = {
+        yt: state.pendingUpdate.yt ? "update" : undefined,
+        ff: state.pendingUpdate.ff ? "update" : undefined,
+      };
+      updateStatusCards(summaryBase, overrides, {
+        customState: anyUpdate ? "update" : undefined,
+        customText: anyUpdate ? t("tools.status.updatesFound") : t("tools.status.upToDate"),
+      });
+      setQuickState(
+        anyUpdate ? "update" : "ok",
+        anyUpdate ? t("tools.status.updatesFound") : t("tools.status.upToDate"),
+        { showOpenLocation: true },
+      );
+      if (el.updateBtn) el.updateBtn.style.display = anyUpdate ? "" : "none";
+      if (dCurUpd) setHintText(`${t("tools.label.deno")}: ${dCurUpd}`);
+    } catch (error) {
+      console.error("[toolsInfo] check updates failed:", error);
+      updateStatusCards(summaryBase, {}, {
+        customState: "error",
+        customText: t("tools.error.update"),
+      });
+      setQuickState("error", t("tools.error.update"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      await window.electron?.invoke?.("toast", t("tools.error.update"), "error");
+    } finally {
+      state.isChecking = false;
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      if (el.checkIcon && prevIconClass) el.checkIcon.className = prevIconClass;
+      try {
+        dots?.stop?.();
+      } catch {
+        // noop
+      }
+    }
+  };
+
+  const updateAvailableTools = async () => {
+    if (isActionLocked("update-tools")) return;
+    if (!navigator.onLine) {
+      setQuickState("offline", t("tools.status.noNetwork"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      return;
+    }
+
+    try {
+      state.isInstalling = true;
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      setQuickState("busy", t("tools.status.installing"));
+      if (state.pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
+      if (state.pendingUpdate.ff) await window.electron?.tools?.updateFfmpeg?.();
+      await ctx.refresh({ force: true, reason: "update" });
+    } catch (error) {
+      console.error("[toolsInfo] selective update failed:", error);
+      setQuickState("error", t("tools.error.update"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      await window.electron?.invoke?.("toast", t("tools.error.update"), "error");
+    } finally {
+      state.isInstalling = false;
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+    }
+  };
+
+  const maybeConfirmForceInstall = async () => {
+    if (typeof showConfirmationDialog !== "function") {
+      await runInstallAll();
+      return;
+    }
+    const confirmed = await showConfirmationDialog({
+      title: t("tools.confirm.force.title"),
+      subtitle: t("tools.confirm.force.subtitle"),
+      message: t("tools.confirm.force.message"),
+      confirmText: t("tools.confirm.force.confirm"),
+      cancelText: t("tools.confirm.force.cancel"),
+      tone: "danger",
+    });
+    if (confirmed) {
+      await runInstallAll();
+    }
+  };
+
+  el.installBtn?.addEventListener("click", () => {
+    runInstallAll();
+  });
+  el.checkBtn?.addEventListener("click", () => {
+    checkUpdates();
+  });
+  el.updateBtn?.addEventListener("click", () => {
+    updateAvailableTools();
+  });
+  el.quickRetryBtn?.addEventListener("click", () => {
+    if (isActionLocked("quick-retry")) return;
+    ctx.refresh({ force: true, reason: "quick-retry" });
+  });
+  el.quickOpenLocationBtn?.addEventListener("click", async () => {
+    if (isActionLocked("quick-open-location")) return;
+    const r = await window.electron?.tools?.openLocation?.();
+    if (!r?.success) {
+      setQuickState("error", t("tools.location.openError"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      await window.electron?.invoke?.("toast", t("tools.location.openError"), "error");
+    }
+  });
+  el.forceBtn?.addEventListener("click", () => {
+    maybeConfirmForceInstall();
+  });
+
+  el.locChoose?.addEventListener("click", async () => {
     const dir = await chooseDirDialog();
     if (!dir) return;
-    try {
-      const r = await window.electron?.tools?.setLocation?.(dir);
-      if (!r?.success) {
-        await toast(t("tools.location.setError"), "error");
-        setStatusText(t("tools.location.setError"));
-        return;
-      }
-      await refreshLocationUI();
-      setStatusText(t("tools.location.updated"));
-      await renderToolsInfo();
-    } catch (e) {
-      console.error("[toolsInfo] setLocation error:", e);
-      await toast(t("tools.location.setError"), "error");
+    const r = await window.electron?.tools?.setLocation?.(dir);
+    if (!r?.success) {
       setStatusText(t("tools.location.setError"));
+      await window.electron?.invoke?.("toast", t("tools.location.setError"), "error");
+      return;
+    }
+    setStatusText(t("tools.location.updated"));
+    await ctx.refresh({ force: true, reason: "set-location" });
+  });
+
+  el.locOpen?.addEventListener("click", async () => {
+    const r = await window.electron?.tools?.openLocation?.();
+    if (!r?.success) {
+      setQuickState("error", t("tools.location.openError"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
+      await window.electron?.invoke?.("toast", t("tools.location.openError"), "error");
     }
   });
 
-  locOpen?.addEventListener("click", async () => {
-    try {
-      const r = await window.electron?.tools?.openLocation?.();
-      if (!r?.success) {
-        await toast(t("tools.location.openError"), "error");
-        setStatusText(t("tools.location.openError"));
-      }
-    } catch (e) {
-      console.error("[toolsInfo] openLocation error:", e);
-      await toast(t("tools.location.openError"), "error");
-      setStatusText(t("tools.location.openError"));
-    }
-  });
-
-  locReset?.addEventListener("click", async () => {
-    try {
-      const r = await window.electron?.tools?.resetLocation?.();
-      if (!r?.success) {
-        await toast(t("tools.location.resetError"), "error");
-        setStatusText(t("tools.location.resetError"));
-        return;
-      }
-      await refreshLocationUI();
-      setStatusText(t("tools.location.resetSuccess"));
-      await renderToolsInfo();
-    } catch (e) {
-      console.error("[toolsInfo] resetLocation error:", e);
-      await toast(t("tools.location.resetError"), "error");
+  el.locReset?.addEventListener("click", async () => {
+    const r = await window.electron?.tools?.resetLocation?.();
+    if (!r?.success) {
       setStatusText(t("tools.location.resetError"));
+      await window.electron?.invoke?.("toast", t("tools.location.resetError"), "error");
+      return;
     }
+    setStatusText(t("tools.location.resetSuccess"));
+    await ctx.refresh({ force: true, reason: "reset-location" });
   });
 
-  locMigrate?.addEventListener("click", async () => {
+  el.locMigrate?.addEventListener("click", async () => {
     try {
       const detect = await window.electron?.tools?.detectLegacy?.();
       if (!detect?.success) {
-        await toast(t("tools.migrate.detectError"), "error");
         setStatusText(t("tools.migrate.detectError"));
+        await window.electron?.invoke?.("toast", t("tools.migrate.detectError"), "error");
         return;
       }
       if (!detect.found || !detect.found.length) {
@@ -770,488 +900,192 @@ export async function renderToolsInfo() {
         return;
       }
       let overwrite = false;
-      try {
-        if (typeof showConfirmationDialog === "function") {
-          const confirmed = await showConfirmationDialog({
-            title: t("tools.migrate.confirm.title"),
-            subtitle: t("tools.migrate.confirm.subtitle"),
-            message: t("tools.migrate.confirm.message"),
-            confirmText: t("tools.migrate.confirm.confirm"),
-            cancelText: t("tools.migrate.confirm.cancel"),
-            tone: "danger",
-          });
-          overwrite = !!confirmed;
-        }
-      } catch {}
-      const res = await window.electron?.tools?.migrateOld?.({
-        overwrite,
-      });
-      if (res?.success) {
-        const copied = res.copied?.length || 0;
-        const skipped = res.skipped?.length || 0;
-        setStatusText(
-          t("tools.migrate.success", {
-            mode: overwrite
-              ? t("tools.migrate.mode.overwrite")
-              : t("tools.migrate.mode.keep"),
-            copied,
-            skipped,
-          }),
-        );
-        await refreshLocationUI();
-        // После успешной миграции перерисуем блок, чтобы обновились бейджи/статусы
-        await renderToolsInfo();
-      } else {
-        await toast(t("tools.migrate.error"), "error");
-        setStatusText(t("tools.migrate.error"));
+      if (typeof showConfirmationDialog === "function") {
+        overwrite = !!(await showConfirmationDialog({
+          title: t("tools.migrate.confirm.title"),
+          subtitle: t("tools.migrate.confirm.subtitle"),
+          message: t("tools.migrate.confirm.message"),
+          confirmText: t("tools.migrate.confirm.confirm"),
+          cancelText: t("tools.migrate.confirm.cancel"),
+          tone: "danger",
+        }));
       }
-    } catch (e) {
-      console.error("[toolsInfo] migrateOld error:", e);
-      await toast(t("tools.migrate.error"), "error");
+      const res = await window.electron?.tools?.migrateOld?.({ overwrite });
+      if (!res?.success) {
+        setStatusText(t("tools.migrate.error"));
+        await window.electron?.invoke?.("toast", t("tools.migrate.error"), "error");
+        return;
+      }
+      const copied = res.copied?.length || 0;
+      const skipped = res.skipped?.length || 0;
+      setStatusText(
+        t("tools.migrate.success", {
+          mode: overwrite ? t("tools.migrate.mode.overwrite") : t("tools.migrate.mode.keep"),
+          copied,
+          skipped,
+        }),
+      );
+      await ctx.refresh({ force: true, reason: "migrate" });
+    } catch (error) {
+      console.error("[toolsInfo] migrateOld error:", error);
       setStatusText(t("tools.migrate.error"));
+      await window.electron?.invoke?.("toast", t("tools.migrate.error"), "error");
     }
   });
 
-  // Копирование пути по двойному клику
-  locInput?.addEventListener("dblclick", async () => {
+  el.locInput?.addEventListener("dblclick", async () => {
     try {
-      await navigator.clipboard.writeText(locInput.value || "");
+      await navigator.clipboard.writeText(el.locInput.value || "");
       setStatusText(t("tools.location.copied"));
     } catch {
-      console.warn("[toolsInfo] clipboard write failed");
+      // noop
     }
   });
 
-  await refreshLocationUI();
-  // === /Tools location wiring ===
-
-  // --- Overflow menu: click to open/close ---
-  if (moreWrap && moreBtn && moreMenu) {
+  if (el.moreWrap && el.moreBtn && el.moreMenu) {
     window.__toolsInfoOverlayCleanup?.();
-    // reset state
-    moreWrap.classList.remove("is-open");
-    moreBtn.setAttribute("aria-expanded", "false");
-
     const closeMenu = () => {
-      if (!moreWrap.classList.contains("is-open")) return;
-      moreWrap.classList.remove("is-open");
-      moreBtn.setAttribute("aria-expanded", "false");
+      if (!el.moreWrap.classList.contains("is-open")) return;
+      el.moreWrap.classList.remove("is-open");
+      el.moreBtn.setAttribute("aria-expanded", "false");
     };
-
     const toggleMenu = (ev) => {
       ev.stopPropagation();
-      const willOpen = !moreWrap.classList.contains("is-open");
+      const willOpen = !el.moreWrap.classList.contains("is-open");
       closeDismissibleOverlays("tools-more-menu");
-      moreWrap.classList.toggle("is-open", willOpen);
-      moreBtn.setAttribute("aria-expanded", String(willOpen));
+      el.moreWrap.classList.toggle("is-open", willOpen);
+      el.moreBtn.setAttribute("aria-expanded", String(willOpen));
     };
-
-    moreBtn.addEventListener("click", toggleMenu);
+    el.moreBtn.addEventListener("click", toggleMenu);
     window.__toolsInfoOverlayCleanup = registerDismissibleOverlay({
       id: "tools-more-menu",
-      panel: moreMenu,
-      isOpen: () => moreWrap.classList.contains("is-open"),
+      panel: el.moreMenu,
+      isOpen: () => el.moreWrap.classList.contains("is-open"),
       close: closeMenu,
-      isInsideEvent: (target) => moreWrap.contains(target),
+      isInsideEvent: (target) => el.moreWrap.contains(target),
     });
   }
 
-  let isChecking = false;
-  let isInstalling = false;
-  let pendingUpdate = { yt: false, ff: false };
+  el.statusCardsEl?.addEventListener("click", (event) => {
+    const trigger = event.target.closest?.(".tool-external-link");
+    if (!trigger) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const url = TOOL_LINKS[trigger.dataset.tool];
+    if (url) window.electron?.openExternal?.(url);
+  });
 
-  const allButtons = [
-    checkBtn,
-    updateBtn,
-    installBtn,
-    forceBtn,
-    locChoose,
-    locOpen,
-    locReset,
-    locMigrate,
-  ];
-
-  const moveLocation = (toWizard) => {
-    const locationEl = section.querySelector(".tools-location");
-    if (!locationEl) return;
-    if (toWizard && wizardLocationSlot) {
-      wizardLocationSlot.appendChild(locationEl);
-    } else if (!toWizard && locationHost) {
-      locationHost.appendChild(locationEl);
-    }
-  };
-
-  const syncWizardVisibility = (missing) => {
-    if (wizardEl) wizardEl.style.display = missing ? "" : "none";
-    if (checkBtn) checkBtn.style.display = missing ? "none" : "";
-    if (updateBtn) updateBtn.style.display = "none";
-    if (installBtn) installBtn.style.display = missing ? "" : "none";
-    if (moreWrap) moreWrap.style.display = missing ? "none" : "";
-    moveLocation(missing);
-  };
-
-  // init and subscribe to online/offline
   if (window.__toolsInfoNetHandlers) {
     window.removeEventListener("online", window.__toolsInfoNetHandlers.on);
     window.removeEventListener("offline", window.__toolsInfoNetHandlers.off);
   }
   window.__toolsInfoNetHandlers = {
     on: () => {
-      applyNetworkState(allButtons, isInstalling, isChecking);
-      if (statusEl?.textContent === t("tools.status.noNetwork")) {
-        setStatusText("");
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      if (el.statusEl?.textContent === t("tools.status.noNetwork")) {
+        setQuickState("checking", t("tools.summary.checking"));
       }
-      if (hintEl?.textContent === t("tools.status.noNetwork")) {
-        setHintText("");
-      }
+      if (el.hintEl?.textContent === t("tools.status.noNetwork")) setHintText("");
     },
     off: () => {
-      applyNetworkState(allButtons, isInstalling, isChecking);
-      setStatusText(t("tools.status.noNetwork"));
+      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      setQuickState("offline", t("tools.status.noNetwork"), {
+        showRetry: true,
+        showOpenLocation: true,
+      });
       setHintText(t("tools.status.noNetwork"));
     },
   };
   window.addEventListener("online", window.__toolsInfoNetHandlers.on);
   window.addEventListener("offline", window.__toolsInfoNetHandlers.off);
-  applyNetworkState(allButtons, isInstalling, isChecking);
 
-  try {
-    const res = await window.electron?.tools?.getVersions?.();
+  ctx.refresh = async ({ force = false } = {}) => {
+    if (!force && Date.now() - state.lastRefreshedAt < 1200) return;
 
-    if (!res) {
-      console.error("No response from tools.getVersions");
-      updateStatusUI(null);
-      setStatusText(t("tools.error.getVersions"));
-      return;
-    }
+    const requestId = ++state.requestId;
+    applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+    setQuickState("checking", t("tools.summary.checking"));
 
-    if (res.ytDlp?.error) {
-      console.error("yt-dlp error:", res.ytDlp.error);
-    }
-    if (res.ffmpeg?.error) {
-      console.error("ffmpeg error:", res.ffmpeg.error);
-    }
-    if (res.deno?.error) {
-      console.error("deno error:", res.deno.error);
-    }
+    try {
+      const [versionsRes] = await Promise.all([
+        window.electron?.tools?.getVersions?.(),
+        refreshLocationUI(),
+      ]);
 
-    const summary = summarizeToolsState(res);
-    updateStatusUI(summary);
+      if (requestId !== state.requestId) return;
 
-    const missing = !res?.ytDlp?.ok || !res?.ffmpeg?.ok || !res?.deno?.ok;
-    syncWizardVisibility(missing);
+      if (!versionsRes) {
+        updateStatusCards(null);
+        setQuickState("error", t("tools.error.getVersions"), {
+          showRetry: true,
+          showOpenLocation: true,
+        });
+        return;
+      }
 
-    setHintText(missing ? t("tools.hint.missing") : "");
-    setStatusText(missing ? t("tools.summary.missing") : "");
+      state.versions = versionsRes;
+      state.pendingUpdate = { yt: false, ff: false };
+      if (el.updateBtn) el.updateBtn.style.display = "none";
 
-    if (installBtn) {
-      installBtn.onclick = async () => {
-        if (!navigator.onLine) {
-          setStatusText(t("tools.status.noNetwork"));
-          return;
-        }
-        const labelEl = installBtn.querySelector("span");
-        let dots;
-        try {
-          isInstalling = true;
-          applyNetworkState(allButtons, isInstalling, isChecking);
-          installBtn.setAttribute("aria-busy", "true");
-          setStatusText(t("tools.status.installing"));
-          if (labelEl)
-            dots = startDotsAnimator(labelEl, t("tools.status.installing"));
-          await window.electron?.tools?.installAll?.();
-          await window.electron?.invoke?.(
-            "toast",
-            t("tools.toast.installSuccess"),
-            "success",
-          );
-          await renderToolsInfo();
-        } catch (e) {
-          console.error("[toolsInfo] installAll failed:", e);
-          setStatusText(t("tools.error.install"));
-          await window.electron?.invoke?.(
-            "toast",
-            t("tools.toast.installError"),
-            "error",
-          );
-        } finally {
-          isInstalling = false;
-          installBtn.removeAttribute("aria-busy");
-          applyNetworkState(allButtons, isInstalling, isChecking);
-          try {
-            if (typeof dots?.stop === "function") dots.stop();
-          } catch {}
-        }
-      };
-    }
+      const summary = summarizeToolsState(versionsRes);
+      updateStatusCards(summary);
 
-    const enableForceReinstall = () => {
-      if (!forceBtn) return;
-      if (moreWrap) moreWrap.style.display = "";
-      forceBtn.onclick = () => {
-        const run = async () => {
-          if (!navigator.onLine) {
-            setStatusText(t("tools.status.noNetwork"));
-            return;
-          }
-          let dots;
-          const labelEl = checkLabel || checkBtn?.querySelector("span");
-          try {
-            isInstalling = true;
-            applyNetworkState(allButtons, isInstalling, isChecking);
-            if (checkBtn) checkBtn.setAttribute("aria-busy", "true");
-            if (labelEl)
-              dots = startDotsAnimator(labelEl, t("tools.status.installing"));
-            setStatusText(t("tools.status.installing"));
-            await window.electron?.tools?.installAll?.();
-            await window.electron?.invoke?.(
-              "toast",
-              t("tools.toast.installSuccess"),
-              "success",
-            );
-            await renderToolsInfo();
-          } catch (e) {
-            console.error("[toolsInfo] force installAll failed:", e);
-            setStatusText(t("tools.error.install"));
-            await window.electron?.invoke?.(
-              "toast",
-              t("tools.toast.installError"),
-              "error",
-            );
-          } finally {
-            isInstalling = false;
-            if (checkBtn) checkBtn.removeAttribute("aria-busy");
-            applyNetworkState(allButtons, isInstalling, isChecking);
-            try {
-              if (typeof dots?.stop === "function") dots.stop();
-            } catch {}
-          }
-        };
+      const missing = !versionsRes?.ytDlp?.ok || !versionsRes?.ffmpeg?.ok || !versionsRes?.deno?.ok;
+      syncWizardVisibility(missing);
+      setHintText(missing ? t("tools.hint.missing") : "");
+      setQuickState(
+        missing ? "missing" : "ok",
+        missing ? t("tools.summary.missing") : t("tools.summary.readyText"),
+        { showOpenLocation: true },
+      );
 
-        if (typeof showConfirmationDialog === "function") {
-          showConfirmationDialog({
-            title: t("tools.confirm.force.title"),
-            subtitle: t("tools.confirm.force.subtitle"),
-            message: t("tools.confirm.force.message"),
-            confirmText: t("tools.confirm.force.confirm"),
-            cancelText: t("tools.confirm.force.cancel"),
-            tone: "danger",
-          }).then((confirmed) => {
-            if (confirmed) run();
-          });
-        } else {
-          run();
-        }
-      };
-    };
-
-    if (!missing) enableForceReinstall();
-
-    if (checkBtn) {
-      checkBtn.onclick = async () => {
-        if (isChecking) return;
-        if (!navigator.onLine) {
-          setStatusText(t("tools.status.noNetwork"));
-          return;
-        }
-        const cur = await window.electron?.tools?.getVersions?.();
-        if (!cur?.ytDlp?.ok || !cur?.ffmpeg?.ok) {
-          await renderToolsInfo();
-          return;
-        }
-        const summaryBase = summarizeToolsState(cur || {});
-        updateStatusUI(
-          summaryBase,
-          {},
-          {
-            customState: "checking",
-            customText: t("tools.status.checkingUpdates"),
-          },
-        );
-        setStatusText(t("tools.status.checkingUpdates"));
-
-        const prevIconClass = checkIcon?.className;
-        if (checkIcon) checkIcon.classList.add("fa-spin");
-        const labelEl = checkLabel || checkBtn.querySelector("span");
-        let dots;
-        try {
-          isChecking = true;
-          applyNetworkState(allButtons, isInstalling, isChecking);
-          checkBtn.setAttribute("aria-busy", "true");
-          if (labelEl)
-            dots = startDotsAnimator(
-              labelEl,
-              t("tools.status.checkingUpdates"),
-            );
-
-          const upd = await window.electron?.tools?.checkUpdates?.({
-            noCache: true,
-            forceFetch: true,
-          });
-
-          const yCurUpd = normVer(upd?.ytDlp?.current || "");
-          const fCurUpd = normVer(upd?.ffmpeg?.current || "");
-          const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
-          const yLatN = normVer(upd?.ytDlp?.latest || "");
-          const fLatN = normVer(upd?.ffmpeg?.latest || "");
-
-          const yCurLocal = normVer(
-            firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""),
-          );
-          const fCurLocal = normVer(
-            firstLine(cur?.ffmpeg?.version || "")
-              .replace(/^ffmpeg version\s*/i, "")
-              .split(" ")[0],
-          );
-          const dCurLocal = formatDenoVersion(cur?.deno?.version || "");
-
-          const ytCur = yCurUpd || yCurLocal || "";
-          const ffCur = fCurUpd || fCurLocal || "";
-          const denoCur = dCurUpd || dCurLocal || "";
-          const ytLatest = yLatN;
-          const ffSkip = !!upd?.ffmpeg?.skipUpdates;
-          const ffLatest = ffSkip ? ffCur : fLatN;
-
-          let ytCmp = null,
-            ffCmp = null;
-          if (ytCur && ytLatest) ytCmp = cmpYtDlp(ytLatest, ytCur);
-          if (!ffSkip && ffCur && ffLatest) {
-            ffCmp = cmpFfSemver(ffLatest, ffCur);
-          }
-
-          pendingUpdate = {
-            yt: ytCmp === 1,
-            ff: !ffSkip && ffCmp === 1,
-          };
-          const anyUpdate = pendingUpdate.yt || pendingUpdate.ff;
-          const overrides = {
-            yt: pendingUpdate.yt ? "update" : undefined,
-            ff: pendingUpdate.ff ? "update" : undefined,
-          };
-          updateStatusUI(summaryBase, overrides, {
-            customState: anyUpdate ? "update" : undefined,
-            customText: anyUpdate
-              ? t("tools.status.updatesFound")
-              : t("tools.status.upToDate"),
-          });
-          setStatusText(
-            anyUpdate
-              ? t("tools.status.updatesFound")
-              : t("tools.status.upToDate"),
-          );
-
-          if (updateBtn) {
-            updateBtn.style.display = anyUpdate ? "" : "none";
-          }
-
-          if (anyUpdate && updateBtn) {
-            updateBtn.onclick = async () => {
-              if (!navigator.onLine) {
-                setStatusText(t("tools.status.noNetwork"));
-                return;
-              }
-              let dots2;
-              const updateLabelEl =
-                updateLabel || updateBtn.querySelector("span");
-              try {
-                isInstalling = true;
-                applyNetworkState(allButtons, isInstalling, isChecking);
-                updateBtn.setAttribute("aria-busy", "true");
-                setStatusText(t("tools.status.installing"));
-                if (updateLabelEl)
-                  dots2 = startDotsAnimator(
-                    updateLabelEl,
-                    t("tools.status.installing"),
-                  );
-                if (pendingUpdate.yt)
-                  await window.electron?.tools?.updateYtDlp?.();
-                if (pendingUpdate.ff)
-                  await window.electron?.tools?.updateFfmpeg?.();
-                await renderToolsInfo();
-              } catch (e2) {
-                console.error("[toolsInfo] selective update failed:", e2);
-                setStatusText(t("tools.error.update"));
-                await window.electron?.invoke?.(
-                  "toast",
-                  t("tools.error.update"),
-                  "error",
-                );
-              } finally {
-                isInstalling = false;
-                updateBtn.removeAttribute("aria-busy");
-                applyNetworkState(allButtons, isInstalling, isChecking);
-                try {
-                  if (typeof dots2?.stop === "function") dots2.stop();
-                } catch {}
-              }
-            };
-          }
-
-          if (denoCur) {
-            setHintText(`${t("tools.label.deno")}: ${denoCur}`);
-          } else if (cur?.deno?.ok === false) {
-            setHintText(t("tools.deno.missing"));
-          }
-        } catch (err) {
-          console.error("[toolsInfo] check updates failed:", err);
-          updateStatusUI(
-            summaryBase,
-            {},
-            {
-              customState: "error",
-              customText: t("tools.error.update"),
-            },
-          );
-          setStatusText(t("tools.error.update"));
-          await window.electron?.invoke?.(
-            "toast",
-            t("tools.error.update"),
-            "error",
-          );
-        } finally {
-          isChecking = false;
-          checkBtn.removeAttribute("aria-busy");
-          applyNetworkState(allButtons, isInstalling, isChecking);
-          if (checkIcon && prevIconClass) checkIcon.className = prevIconClass;
-          try {
-            if (typeof dots?.stop === "function") dots.stop();
-          } catch {}
-        }
-      };
-    }
-
-    if (!missing) {
-      triggerBackgroundToolsUpdateCheck(res);
-    }
-    emitToolsStatus(res);
-  } catch (e) {
-    setHintText(t("tools.error.getVersions"));
-    updateStatusUI(
-      null,
-      {},
-      { customState: "error", customText: t("tools.error.getVersions") },
-    );
-    console.error("[toolsInfo] getVersions failed:", e);
-    emitToolsStatus(null);
-  }
-
-  try {
-    section.querySelectorAll(".tool-external-link").forEach((el) => {
-      el.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const tool = el.dataset.tool;
-        const url = TOOL_LINKS[tool];
-
-        if (url) {
-          window.electron?.openExternal(url);
-        }
+      emitToolsStatus(versionsRes);
+      state.lastRefreshedAt = Date.now();
+    } catch (error) {
+      if (requestId !== state.requestId) return;
+      console.error("[toolsInfo] refresh failed:", error);
+      updateStatusCards(null, {}, { customState: "error", customText: t("tools.error.getVersions") });
+      setHintText(t("tools.error.getVersions"));
+      setQuickState("error", t("tools.error.getVersions"), {
+        showRetry: true,
+        showOpenLocation: true,
       });
-    });
-    applyI18n(section);
-    initTooltips();
-  } catch (e) {
-    console.warn("[toolsInfo] initTooltips skipped:", e);
-  }
+      emitToolsStatus(null);
+    } finally {
+      if (requestId === state.requestId) {
+        applyI18n(section);
+        initTooltips();
+      }
+    }
+  };
+
+  section.__toolsInfoCtx = ctx;
+  return ctx;
+}
+
+export async function refreshToolsInfoState(options = {}) {
+  const section = document.getElementById("tools-info");
+  if (!section) return;
+  const ctx = section.__toolsInfoCtx || initContext(section);
+  await ctx.refresh(options);
+}
+
+export async function renderToolsInfo(options = {}) {
+  const section = document.getElementById("tools-info");
+  if (!section) return;
+  const ctx = section.__toolsInfoCtx || initContext(section);
+  await ctx.refresh(options);
+}
+
+export function isToolsInfoStale(maxAgeMs = TOOLS_REFRESH_STALE_MS) {
+  const section = document.getElementById("tools-info");
+  const ts = section?.__toolsInfoCtx?.state?.lastRefreshedAt || 0;
+  return Date.now() - ts > maxAgeMs;
+}
+
+export function __resetToolsInfoForTests() {
+  updatesCheckCache.ts = 0;
+  updatesCheckCache.versionsSignature = "";
+  updatesCheckCache.payload = null;
+  updatesCheckCache.etag = "";
 }

@@ -13472,20 +13472,6 @@ hr {
   transform: none;
 }
 
-/* --- Tools section layout fixes (avoid clipping the install button) --- */
-#tools-info {
-  overflow: visible;
-  padding-bottom: calc(var(--spacing-large) + 6px);
-}
-
-#tools-info .tools-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: var(--spacing-medium);
-  overflow: visible;
-}
-
 @keyframes downloadOrb {
   0% {
     transform: translate3d(-40%, -50%, 0) scale(0.45);
@@ -15507,97 +15493,6 @@ hr {
   line-height: 1.45;
 }
 
-.settings-modal #tools-info {
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  margin: 0;
-  overflow: visible;
-}
-.settings-modal #tools-info h2 {
-  font-weight: 500;
-}
-.settings-modal #tools-info #tools-hint {
-  display: block;
-  margin-top: 8px;
-  color: var(--color-highlight);
-  opacity: 0.8;
-}
-.settings-modal #tools-info .tools-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
-}
-.settings-modal #tools-info #tools-status {
-  flex: 1 1 220px;
-  min-height: 18px;
-  font-size: 12px;
-  color: var(--color-quality);
-  opacity: 0.95;
-  line-height: 1.35;
-  white-space: normal;
-  word-break: break-word;
-}
-.settings-modal #tools-info #tools-primary-btn,
-.settings-modal #tools-info #open-tools-folder,
-.settings-modal #tools-info #tools-force-btn {
-  position: relative;
-  background: none;
-  text-decoration: none;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  overflow: hidden;
-  height: 46px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  letter-spacing: 0.02rem;
-  transition: all 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
-  min-width: 60px;
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.22) 0%, rgba(var(--color-accent-rgb), 0.14) 50%, rgba(var(--color-accent-rgb), 0.08) 100%);
-  backdrop-filter: none;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.3);
-  border-radius: 12px;
-  color: var(--color-highlight);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-.settings-modal #tools-info #tools-primary-btn i,
-.settings-modal #tools-info #open-tools-folder i,
-.settings-modal #tools-info #tools-force-btn i {
-  font-size: 1rem;
-}
-.settings-modal #tools-info #tools-primary-btn:hover,
-.settings-modal #tools-info #open-tools-folder:hover,
-.settings-modal #tools-info #tools-force-btn:hover {
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.35) 0%, rgba(var(--color-accent-rgb), 0.22) 50%, rgba(var(--color-accent-rgb), 0.12) 100%);
-  color: var(--color-text-main);
-}
-.settings-modal #tools-info #tools-primary-btn:disabled,
-.settings-modal #tools-info #open-tools-folder:disabled,
-.settings-modal #tools-info #tools-force-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-.settings-modal #tools-info.no-footer {
-  padding-bottom: 12px;
-}
-@media screen and (max-width: 720px) {
-  .settings-modal #tools-info .tools-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
 .settings-modal h1 {
   font-size: 24px;
   margin-bottom: 1.5rem;
@@ -17287,41 +17182,8 @@ hr {
   grid-area: tools;
   align-content: start;
 }
-.settings-modal #window-settings .settings-card--tools-compact .settings-card__body {
-  display: grid;
-  gap: 6px;
-}
 .settings-modal #window-settings .settings-card--tools-compact #tools-info {
-  padding: 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-}
-.settings-modal #window-settings .settings-card--tools-compact #tools-info p {
   margin: 0;
-  padding: 0;
-  font-size: 12px;
-  font-style: normal;
-}
-.settings-modal #window-settings .settings-card--tools-compact #tools-info .tools-footer {
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-.settings-modal #window-settings .settings-card--tools-compact #tools-info #tools-status {
-  flex: 1 1 100%;
-  min-height: 16px;
-  font-size: 11px;
-}
-.settings-modal #window-settings .settings-card--tools-compact #tools-info #tools-primary-btn,
-.settings-modal #window-settings .settings-card--tools-compact #tools-info #open-tools-folder,
-.settings-modal #window-settings .settings-card--tools-compact #tools-info #tools-force-btn {
-  height: 34px;
-  min-width: 48px;
-  padding: 0 12px;
-  border-radius: 10px;
-  font-size: 12px;
 }
 .settings-modal .settings-card__title {
   margin: 0;
@@ -18739,6 +18601,14 @@ hr {
   background: #7cc2ff;
   box-shadow: 0 0 0 4px rgba(124, 194, 255, 0.2);
 }
+.tools-panel__dot--offline {
+  background: #aab4c2;
+  box-shadow: 0 0 0 4px rgba(170, 180, 194, 0.2);
+}
+.tools-panel__dot--busy {
+  background: #6fb0ff;
+  box-shadow: 0 0 0 4px rgba(111, 176, 255, 0.2);
+}
 .tools-panel__dot--neutral {
   background: rgba(255, 255, 255, 0.12);
 }
@@ -18771,12 +18641,98 @@ hr {
   background: rgba(124, 194, 255, 0.16);
   color: #e1f1ff;
 }
+.tools-panel__badge--offline {
+  border-color: rgba(170, 180, 194, 0.45);
+  background: rgba(170, 180, 194, 0.16);
+  color: #e7edf6;
+}
+.tools-panel__badge--busy {
+  border-color: rgba(111, 176, 255, 0.4);
+  background: rgba(111, 176, 255, 0.16);
+  color: #e1f1ff;
+}
 .tools-panel__body {
   padding: 12px;
   display: grid;
   gap: 8px;
   border-top: 1px dashed rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
+}
+
+.tools-panel-quick {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tools-panel-quick-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.tools-panel-quick-actions #tools-check-btn,
+.tools-panel-quick-actions #tools-update-btn,
+.tools-panel-quick-actions #tools-quick-retry-btn,
+.tools-panel-quick-actions #tools-quick-open-location-btn {
+  height: 34px;
+  border-radius: 10px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease;
+}
+.tools-panel-quick-actions #tools-check-btn:hover,
+.tools-panel-quick-actions #tools-update-btn:hover,
+.tools-panel-quick-actions #tools-quick-retry-btn:hover,
+.tools-panel-quick-actions #tools-quick-open-location-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.tools-panel-quick-actions #tools-check-btn:active,
+.tools-panel-quick-actions #tools-update-btn:active,
+.tools-panel-quick-actions #tools-quick-retry-btn:active,
+.tools-panel-quick-actions #tools-quick-open-location-btn:active {
+  transform: translateY(1px);
+}
+.tools-panel-quick-actions #tools-check-btn:focus-visible,
+.tools-panel-quick-actions #tools-update-btn:focus-visible,
+.tools-panel-quick-actions #tools-quick-retry-btn:focus-visible,
+.tools-panel-quick-actions #tools-quick-open-location-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tools-advanced {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.tools-advanced__toggle {
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--color-quality);
+  user-select: none;
+}
+.tools-advanced__toggle::-webkit-details-marker {
+  display: none;
+}
+.tools-advanced__body {
+  display: grid;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
 }
 
 .tools-status-cards {
@@ -19028,7 +18984,7 @@ hr {
 
 .tools-footer {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
   margin-top: 10px;
@@ -19080,6 +19036,19 @@ hr {
 }
 
 @media (max-width: 720px) {
+  .tools-panel-quick {
+    grid-template-columns: 1fr;
+  }
+  .tools-panel-quick-actions {
+    width: 100%;
+  }
+  .tools-panel-quick-actions #tools-check-btn,
+  .tools-panel-quick-actions #tools-update-btn,
+  .tools-panel-quick-actions #tools-quick-retry-btn,
+  .tools-panel-quick-actions #tools-quick-open-location-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
   .tools-location .tools-location-row {
     grid-template-columns: 1fr 1fr 1fr;
     grid-auto-flow: row;

@@ -150,3 +150,6 @@
 - **Settings text was cleaned up**: duplicate headings and repeated descriptions were removed from settings cards for better readability.
 - **Downloader Tools settings block is now more compact**: on wide screens it now sits next to the Downloader block.
 - **Parallel downloads setting was updated**: the checkbox is replaced with a clear 1/2 segmented switch and a short performance hint.
+- **Tools block in Settings was fully optimized**: the UI is more compact, state updates are faster, and unnecessary full rerenders were removed after actions.
+- **Tools update checks are faster**: results are now cached, and repeated rapid checks are throttled.
+- **Tools states are clearer**: explicit Offline/In progress/Error summary states were added, with quick Retry and Folder actions.

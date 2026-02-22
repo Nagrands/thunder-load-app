@@ -522,108 +522,6 @@
 
 // Стили для модального окна "Настройки"
 .settings-modal {
-  // === Инструменты (yt-dlp / ffmpeg) ===
-  #tools-info {
-    padding: 8px 10px;
-    background: rgba(255, 255, 255, 0.05);
-    // backdrop-filter: blur(15px);
-    border-radius: 16px;
-    margin: 0;
-    overflow: visible;
-
-    h2 {
-      font-weight: 500;
-      // margin: 2px;
-    }
-
-    #tools-hint {
-      display: block;
-      margin-top: 8px;
-      color: var(--color-highlight);
-      opacity: 0.8;
-    }
-
-    // --- Footer: status + check updates button ---
-    .tools-footer {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    #tools-status {
-      flex: 1 1 220px;
-      min-height: 18px;
-      font-size: 12px;
-      color: var(--color-quality);
-      opacity: 0.95;
-      line-height: 1.35;
-      white-space: normal;
-      word-break: break-word;
-    }
-
-    // Обновляем кнопки инструментов в стиле Liquid Glass
-    #tools-primary-btn,
-    #open-tools-folder,
-    #tools-force-btn {
-      @include mixins.button-base;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      height: 40px;
-      padding: 0 16px;
-      min-width: 60px;
-      background: linear-gradient(
-        135deg,
-        rgba(var(--color-accent-rgb), 0.22) 0%,
-        rgba(var(--color-accent-rgb), 0.14) 50%,
-        rgba(var(--color-accent-rgb), 0.08) 100%
-      );
-      backdrop-filter: none;
-      border: 1px solid rgba(var(--color-accent-rgb), 0.3);
-      border-radius: 12px;
-      color: var(--color-highlight);
-      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-
-      i {
-        font-size: 1rem;
-      }
-
-      &:hover {
-        background: linear-gradient(
-          135deg,
-          rgba(var(--color-accent-rgb), 0.35) 0%,
-          rgba(var(--color-accent-rgb), 0.22) 50%,
-          rgba(var(--color-accent-rgb), 0.12) 100%
-        );
-        color: var(--color-text-main);
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-      }
-    }
-
-    // Модификатор при скрытом футере
-    &.no-footer {
-      padding-bottom: 12px;
-    }
-  }
-
-  // Адаптив под узкие окна
-  @media screen and (max-width: 720px) {
-    #tools-info {
-      .tools-footer {
-        flex-direction: column;
-        align-items: stretch;
-      }
-    }
-  }
-
   // === Переменные ===
   $transition-time: 0.3s;
   $input-size: 20px;
@@ -2559,46 +2457,8 @@
       align-content: start;
     }
 
-    .settings-card--tools-compact .settings-card__body {
-      display: grid;
-      gap: 6px;
-    }
-
     .settings-card--tools-compact #tools-info {
-      padding: 8px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .settings-card--tools-compact #tools-info p {
       margin: 0;
-      padding: 0;
-      font-size: 12px;
-      font-style: normal;
-    }
-
-    .settings-card--tools-compact #tools-info .tools-footer {
-      justify-content: flex-start;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .settings-card--tools-compact #tools-info #tools-status {
-      flex: 1 1 100%;
-      min-height: 16px;
-      font-size: 11px;
-    }
-
-    .settings-card--tools-compact #tools-info #tools-primary-btn,
-    .settings-card--tools-compact #tools-info #open-tools-folder,
-    .settings-card--tools-compact #tools-info #tools-force-btn {
-      height: 34px;
-      min-width: 48px;
-      padding: 0 12px;
-      border-radius: 10px;
-      font-size: 12px;
     }
   }
 
