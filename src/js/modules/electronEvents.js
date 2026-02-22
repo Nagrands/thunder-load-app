@@ -51,11 +51,14 @@ function initElectronEvents() {
   });
 
   // Обработчик события 'open-settings'
-  window.electron.on("open-settings", () => {
-    if (settingsButton) {
-      settingsButton.click(); // Открытие окна настроек
-    }
-  });
+  if (!window.openSettingsHandlerRegistered) {
+    window.electron.on("open-settings", () => {
+      if (settingsButton) {
+        settingsButton.click(); // Открытие окна настроек
+      }
+    });
+    window.openSettingsHandlerRegistered = true;
+  }
 }
 
 export { initElectronEvents };

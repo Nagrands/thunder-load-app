@@ -55,6 +55,37 @@ const moduleBadgeMap = {
 };
 const NETWORK_STATUS_VISIBILITY_KEY = "topbarNetworkStatusVisible";
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
+const OPEN_SETTINGS_HANDLERS_KEY = "__thunder_open_settings_handlers__";
+const OPEN_SETTINGS_DISPATCH_READY_KEY = "__thunder_open_settings_dispatch_ready__";
+
+function onOpenSettings(listenerKey, handler) {
+  const subscribe = window?.electron?.on;
+  if (typeof subscribe !== "function" || typeof handler !== "function") return;
+  const handlers =
+    window[OPEN_SETTINGS_HANDLERS_KEY] ||
+    (window[OPEN_SETTINGS_HANDLERS_KEY] = new Map());
+  handlers.set(listenerKey, handler);
+
+  if (window[OPEN_SETTINGS_DISPATCH_READY_KEY]) return;
+
+  subscribe("open-settings", (...args) => {
+    for (const [key, listener] of handlers.entries()) {
+      try {
+        listener(...args);
+      } catch (e) {
+        console.error(`[settings] open-settings handler error (${key}):`, e);
+      }
+    }
+  });
+  window[OPEN_SETTINGS_DISPATCH_READY_KEY] = true;
+}
+
+function clearOpenSettingsHandlers() {
+  const handlers = window?.[OPEN_SETTINGS_HANDLERS_KEY];
+  if (handlers && typeof handlers.clear === "function") {
+    handlers.clear();
+  }
+}
 
 function readNetworkStatusVisible() {
   try {
@@ -115,6 +146,8 @@ function updateModuleBadge(moduleKey, disabled) {
  * Функция для инициализации настроек
  */
 async function initSettings() {
+  clearOpenSettingsHandlers();
+
   // Font size dropdown (custom) logic
   const openConfigFolderBtn = document.getElementById(
     "open-config-folder-button",
@@ -245,7 +278,7 @@ async function initSettings() {
       }),
     );
 
-    window.electron.on("open-settings", () => {
+    onOpenSettings("download-quality-profile", () => {
       apply(read());
     });
   })();
@@ -300,7 +333,7 @@ async function initSettings() {
       });
     });
 
-    window.electron.on("open-settings", () => {
+    onOpenSettings("download-parallel-limit", () => {
       apply(read());
     });
   })();
@@ -414,7 +447,7 @@ async function initSettings() {
         )
         .catch(() => {});
     });
-    window.electron?.on?.("open-settings", () => {
+    onOpenSettings("appearance-network-status-visibility", () => {
       syncFromStore();
     });
   })();
@@ -906,7 +939,7 @@ async function initSettings() {
       staticToggle.addEventListener("change", () =>
         write(staticToggle.checked),
       );
-      window.electron?.on?.("open-settings", () => {
+      onOpenSettings("wg-disable-toggle-static", () => {
         const val = read();
         staticToggle.checked = val;
         toggleWgSettingsDisabled(val);
@@ -925,7 +958,7 @@ async function initSettings() {
         once: true,
       });
       toggleWgSettingsDisabled(read());
-      window.electron?.on?.("open-settings", () => {
+      onOpenSettings("wg-disable-toggle-existing", () => {
         const val = read();
         existing.checked = val;
         toggleWgSettingsDisabled(val);
@@ -1010,7 +1043,7 @@ async function initSettings() {
     input.addEventListener("change", () => write(input.checked));
 
     // Синхронизация при каждом открытии модалки
-    window.electron?.on?.("open-settings", () => {
+    onOpenSettings("wg-disable-toggle-generated", () => {
       const val = read();
       input.checked = val;
       toggleWgSettingsDisabled(val);
@@ -1050,7 +1083,7 @@ async function initSettings() {
     };
     syncFromStore();
     input.addEventListener("change", () => write(input.checked));
-    window.electron?.on?.("open-settings", syncFromStore);
+    onOpenSettings("wg-remember-last-tool", syncFromStore);
   })();
   // === /WG Unlock: запоминать последний инструмент ===
 
@@ -1116,7 +1149,7 @@ async function initSettings() {
     if (!input) return;
     input.checked = read();
     input.addEventListener("change", () => write(input.checked));
-    window.electron?.on?.("open-settings", () => {
+    onOpenSettings("backup-disable-toggle", () => {
       const val = read();
       input.checked = val;
       toggleBackupControlsDisabled(val);
@@ -1163,7 +1196,7 @@ async function initSettings() {
         input.checked = shouldCheck;
       }
     });
-    window.electron?.on?.("open-settings", () => {
+    onOpenSettings("backup-view-mode", () => {
       const val = read();
       if (input.checked !== val) input.checked = val;
     });
@@ -1202,7 +1235,7 @@ async function initSettings() {
       const visible = detail.visible !== false;
       if (input.checked !== visible) input.checked = visible;
     });
-    window.electron?.on?.("open-settings", () => {
+    onOpenSettings("backup-log-visibility", () => {
       const visible = read();
       if (input.checked !== visible) input.checked = visible;
     });
@@ -1313,14 +1346,14 @@ async function initSettings() {
     });
 
     // refresh on modal open
-    window.electron.on("open-settings", async () => {
+    onOpenSettings("wg-auto-shutdown", async () => {
       await syncAutoShutdownFromStore();
     });
   }
   // === /WG Unlock: авто‑закрытие ===
 
   // Обновлять блок версий только при открытии настроек
-  window.electron.on("open-settings", async () => {
+  onOpenSettings("tools-info-on-open-settings", async () => {
     await ensureToolsInfo(false);
   });
   window.addEventListener("settings:opened", () => {
