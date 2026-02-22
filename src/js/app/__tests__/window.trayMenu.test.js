@@ -128,6 +128,37 @@ describe("window tray/dock menu templates", () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith("open-settings");
   });
 
+  test("tray 'Открыть' restores minimized window and focuses it", () => {
+    const mainWindow = {
+      restore: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+      isMinimized: jest.fn(() => true),
+      webContents: { send: jest.fn() },
+    };
+    const app = {
+      getName: () => "Thunder Load",
+      getVersion: () => "1.3.6",
+      isQuitting: false,
+      quit: jest.fn(),
+    };
+
+    const template = buildTrayMenuTemplate({
+      app,
+      store: createStore({ downloadPath: os.tmpdir() }),
+      downloadPath: os.tmpdir(),
+      mainWindow,
+      paths: {},
+    });
+
+    const openItem = findMenuItem(template, "Открыть");
+    openItem.click();
+
+    expect(mainWindow.restore).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+  });
+
   test("quit menu item sets isQuitting and calls app.quit", () => {
     const mainWindow = {
       show: jest.fn(),

@@ -443,7 +443,11 @@ function createTray(mainWindow, app, store, downloadPath) {
   refreshTrayMenu();
 
   windowTray.on("click", () => {
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+    if (mainWindow?.isVisible?.()) {
+      mainWindow?.hide?.();
+      return;
+    }
+    menuHandlers.open();
   });
 
   windowTray.on("right-click", () => {
@@ -452,7 +456,7 @@ function createTray(mainWindow, app, store, downloadPath) {
   });
 
   windowTray.on("double-click", () => {
-    mainWindow.show();
+    menuHandlers.open();
   });
 
   ipcMain.on("download-started", () => {
