@@ -18,6 +18,7 @@
 - **Added a top-bar “Network status” visibility setting**: you can now enable or disable the indicator in Appearance settings (disabled by default).
 - **Improved tray and Dock menus on macOS**: actions are clearer, and unavailable items are now correctly disabled so only actionable options are shown.
 - **Fixed opening from the tray**: when restoring from the tray, the app window now correctly unminimizes and receives focus right away.
+- **Made tray menu updates more reliable**: tray actions now refresh faster after download path and download status changes.
 - **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
 - **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
 - **Improved the Backup “Tips” block**: it now appears on the right side of the tab header, and is hidden on small screens for a cleaner layout.

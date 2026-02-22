@@ -156,6 +156,7 @@ if (!app.requestSingleInstanceLock()) {
       try {
         downloadPath = newPath;
         store.set("downloadPath", newPath);
+        app.emit("thunder-load:tray-refresh");
         // keep runtime state in sync
         dependencies.downloadState.downloadPath = newPath;
 
@@ -296,6 +297,7 @@ if (!app.requestSingleInstanceLock()) {
       if (mainWindow && mainWindow.webContents) {
         mainWindow.webContents.send("download-path-changed", downloadPath);
       }
+      app.emit("thunder-load:tray-refresh");
 
       log.info(`Загрузчик → Путь загрузки восстановлен: ${downloadPath}`);
     } catch (error) {

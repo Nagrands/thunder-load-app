@@ -109,6 +109,14 @@ function createMenuHandlers({ app, mainWindow, notifications = {} }) {
   };
 }
 
+function toggleFromTray(mainWindow, openMainWindow) {
+  if (mainWindow?.isVisible?.()) {
+    mainWindow?.hide?.();
+    return;
+  }
+  openMainWindow();
+}
+
 function buildDockMenuTemplate({
   app,
   store,
@@ -438,16 +446,16 @@ function createTray(mainWindow, app, store, downloadPath) {
     );
     windowTray.setContextMenu(contextMenu);
   };
+  const handleTrayRefreshRequest = () => {
+    refreshTrayMenu();
+  };
 
   windowTray.setToolTip("Thunder Load");
   refreshTrayMenu();
+  app?.on?.("thunder-load:tray-refresh", handleTrayRefreshRequest);
 
   windowTray.on("click", () => {
-    if (mainWindow?.isVisible?.()) {
-      mainWindow?.hide?.();
-      return;
-    }
-    menuHandlers.open();
+    toggleFromTray(mainWindow, menuHandlers.open);
   });
 
   windowTray.on("right-click", () => {
