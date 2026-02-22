@@ -85,7 +85,9 @@ describe("settingsModal mobile sections navigation", () => {
 
     const toggle = document.getElementById("settings-sections-toggle");
     const wrapper = document.getElementById("settings-tabs-panel");
-    const nextTab = document.querySelector('.tab-link[data-tab="window-settings"]');
+    const nextTab = document.querySelector(
+      '.tab-link[data-tab="window-settings"]',
+    );
     const label = document.getElementById("settings-active-section-label");
 
     toggle.click();

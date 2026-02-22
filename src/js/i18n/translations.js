@@ -17,9 +17,6 @@ export const translations = {
     "topbar.action.theme": "Тема",
     "topbar.action.github": "GitHub",
     "topbar.action.reload": "Обновить",
-    "topbar.network.online": "Сеть: онлайн",
-    "topbar.network.offline": "Сеть: офлайн",
-    "topbar.network.aria": "Состояние сети",
     "topbar.reload": "Обновить окно",
     "topbar.minimize": "Свернуть",
     "topbar.close": "Закрыть",
@@ -180,8 +177,7 @@ export const translations = {
       "2 быстрее, но выше нагрузка на систему.",
     "settings.downloader.parallel.option1": "1",
     "settings.downloader.parallel.option2": "2",
-    "settings.downloader.parallel.aria":
-      "Выбор лимита одновременных загрузок",
+    "settings.downloader.parallel.aria": "Выбор лимита одновременных загрузок",
     "settings.downloader.parallel.saved":
       "Лимит одновременных загрузок: {count}",
     "settings.downloader.layout.hint":
@@ -352,8 +348,7 @@ export const translations = {
     "tools.launcher.shortcut.sorter.mac": "⌥4",
     "tools.launcher.hotkeysHint":
       "Горячие клавиши: Alt+1, Alt+2, Alt+3, Alt+4, Esc",
-    "tools.launcher.hotkeysHint.mac":
-      "Горячие клавиши: ⌥1, ⌥2, ⌥3, ⌥4, Esc",
+    "tools.launcher.hotkeysHint.mac": "Горячие клавиши: ⌥1, ⌥2, ⌥3, ⌥4, Esc",
     "tools.nav.back": "Назад к инструментам",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Проверка хеша",
@@ -377,8 +372,7 @@ export const translations = {
     "tools.sorter.pickError": "Не удалось выбрать папку.",
     "tools.sorter.openFolderError": "Не удалось открыть папку.",
     "tools.sorter.error": "Ошибка сортировки файлов.",
-    "tools.sorter.done":
-      "Обработано: {moved}/{total}. Пропущено: {skipped}.",
+    "tools.sorter.done": "Обработано: {moved}/{total}. Пропущено: {skipped}.",
     "tools.sorter.dryRunHint": "Режим предпросмотра: файлы не перемещались.",
     "tools.sorter.errors": "Ошибок: {count}.",
     "tools.sorter.preview.title": "Предпросмотр dry-run",
@@ -642,14 +636,6 @@ export const translations = {
       "Отключает анимации и эффекты размытия",
     "settings.appearance.lowEffects":
       "Режим <strong>экономии эффектов</strong>",
-    "settings.appearance.networkStatus":
-      "Показывать состояние сети в верхнем меню",
-    "settings.appearance.networkStatus.hint":
-      "Показывать индикатор состояния сети в верхнем меню",
-    "settings.appearance.networkStatus.enabled":
-      "Индикатор состояния сети включен",
-    "settings.appearance.networkStatus.disabled":
-      "Индикатор состояния сети отключен",
     "settings.other.title": "Другие настройки",
     "settings.other.hint":
       "Дополнительные параметры для детальной настройки поведения приложения.",
@@ -1242,9 +1228,6 @@ export const translations = {
     "topbar.action.theme": "Theme",
     "topbar.action.github": "GitHub",
     "topbar.action.reload": "Reload",
-    "topbar.network.online": "Network: online",
-    "topbar.network.offline": "Network: offline",
-    "topbar.network.aria": "Network status",
     "topbar.reload": "Reload window",
     "topbar.minimize": "Minimize",
     "topbar.close": "Close",
@@ -1403,8 +1386,7 @@ export const translations = {
       "2 is faster, but uses more system resources.",
     "settings.downloader.parallel.option1": "1",
     "settings.downloader.parallel.option2": "2",
-    "settings.downloader.parallel.aria":
-      "Select the parallel downloads limit",
+    "settings.downloader.parallel.aria": "Select the parallel downloads limit",
     "settings.downloader.parallel.saved": "Parallel download limit: {count}",
     "settings.downloader.layout.hint":
       "Core download options and window behavior settings.",
@@ -1853,13 +1835,6 @@ export const translations = {
     "settings.appearance.lowEffects.hint":
       "Disables animations and blur effects",
     "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
-    "settings.appearance.networkStatus": "Show network status in the top bar",
-    "settings.appearance.networkStatus.hint":
-      "Show network status indicator in the top bar",
-    "settings.appearance.networkStatus.enabled":
-      "Network status indicator enabled",
-    "settings.appearance.networkStatus.disabled":
-      "Network status indicator disabled",
     "settings.other.title": "Other settings",
     "settings.other.hint":
       "Additional parameters for fine‑tuning app behavior.",

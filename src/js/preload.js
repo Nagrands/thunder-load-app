@@ -243,8 +243,7 @@ try {
       pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
       openSorterFolder: (folderPath) =>
         safeInvoke("tools:sorterOpenFolder", folderPath),
-      sortFilesByCategory: (payload) =>
-        safeInvoke("tools:sorterRun", payload),
+      sortFilesByCategory: (payload) => safeInvoke("tools:sorterRun", payload),
       createWindowsRestartShortcut: () =>
         safeInvoke("tools:createWindowsRestartShortcut"),
       createWindowsShutdownShortcut: () =>

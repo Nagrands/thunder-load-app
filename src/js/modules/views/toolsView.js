@@ -1470,11 +1470,7 @@ export default function renderToolsView() {
   const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
     if (toolView === "power") return isPowerToolAvailable(info);
     if (toolView === "sorter") return developerToolsUnlocked;
-    return (
-      toolView === "launcher" ||
-      toolView === "wg" ||
-      toolView === "hash"
-    );
+    return toolView === "launcher" || toolView === "wg" || toolView === "hash";
   };
 
   const readLastToolView = () => {
@@ -1505,8 +1501,8 @@ export default function renderToolsView() {
   const updateLauncherToolsCount = () => {
     const countEl = getEl("tools-launcher-tools-count", view);
     if (!countEl) return;
-    const availableCount = ["wg", "hash", "power", "sorter"].filter((toolView) =>
-      isToolAvailable(toolView),
+    const availableCount = ["wg", "hash", "power", "sorter"].filter(
+      (toolView) => isToolAvailable(toolView),
     ).length;
     const label = t("tools.launcher.totalLabel");
     countEl.textContent = `${label}: ${availableCount}`;
@@ -2931,7 +2927,10 @@ export default function renderToolsView() {
 
     const saveSorterFolder = (folder) => {
       try {
-        window.localStorage.setItem(SORTER_LAST_FOLDER_KEY, String(folder || ""));
+        window.localStorage.setItem(
+          SORTER_LAST_FOLDER_KEY,
+          String(folder || ""),
+        );
       } catch {}
     };
 
@@ -3006,7 +3005,10 @@ export default function renderToolsView() {
       if (!sorterPreviewPanelEl || !sorterPreviewListEl) return;
       const operations = Array.isArray(res.operations) ? res.operations : [];
       const shownOperations = operations.slice(0, SORTER_PREVIEW_LIMIT);
-      const remainingCount = Math.max(0, operations.length - shownOperations.length);
+      const remainingCount = Math.max(
+        0,
+        operations.length - shownOperations.length,
+      );
 
       sorterPreviewPanelEl.classList.remove("hidden");
       if (sorterPreviewMovedEl)
@@ -3079,9 +3081,11 @@ export default function renderToolsView() {
           total: sorterHowtoSlideCount,
         });
       }
-      if (sorterHowtoPrevBtn) sorterHowtoPrevBtn.disabled = sorterHowtoIndex <= 0;
+      if (sorterHowtoPrevBtn)
+        sorterHowtoPrevBtn.disabled = sorterHowtoIndex <= 0;
       if (sorterHowtoNextBtn) {
-        sorterHowtoNextBtn.disabled = sorterHowtoIndex >= sorterHowtoSlideCount - 1;
+        sorterHowtoNextBtn.disabled =
+          sorterHowtoIndex >= sorterHowtoSlideCount - 1;
       }
       sorterHowtoDots.forEach((dot, idx) => {
         const isActive = idx === sorterHowtoIndex;
@@ -3150,9 +3154,10 @@ export default function renderToolsView() {
     sorterOpenFolderBtn?.addEventListener("click", async () => {
       if (sorterBusy || !sorterSelectedFolder) return;
       try {
-        const res = await window.electron?.tools?.openSorterFolder?.(
-          sorterSelectedFolder,
-        );
+        const res =
+          await window.electron?.tools?.openSorterFolder?.(
+            sorterSelectedFolder,
+          );
         if (!res?.success) {
           setSorterResult(
             res?.error || t("tools.sorter.openFolderError"),
@@ -3196,13 +3201,14 @@ export default function renderToolsView() {
           skipped: Number(res.skipped || 0),
         });
         const hasErrors = Array.isArray(res.errors) && res.errors.length > 0;
-        const modeHint = res.dryRun
-          ? ` ${t("tools.sorter.dryRunHint")}`
-          : "";
+        const modeHint = res.dryRun ? ` ${t("tools.sorter.dryRunHint")}` : "";
         const errorHint = hasErrors
           ? ` ${t("tools.sorter.errors", { count: res.errors.length })}`
           : "";
-        setSorterResult(`${summary}${modeHint}${errorHint}`, hasErrors ? "warning" : "success");
+        setSorterResult(
+          `${summary}${modeHint}${errorHint}`,
+          hasErrors ? "warning" : "success",
+        );
         if (res.dryRun) renderSorterPreview(res);
         else hideSorterPreview();
       } catch (error) {
@@ -3214,7 +3220,9 @@ export default function renderToolsView() {
     });
 
     sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
-    sorterHowtoCloseBtn?.addEventListener("click", () => closeSorterHowtoModal());
+    sorterHowtoCloseBtn?.addEventListener("click", () =>
+      closeSorterHowtoModal(),
+    );
     sorterHowtoPrevBtn?.addEventListener("click", () =>
       setSorterHowtoSlide(sorterHowtoIndex - 1),
     );
@@ -3299,7 +3307,8 @@ export default function renderToolsView() {
       }
       if (powerHowtoPrevBtn) powerHowtoPrevBtn.disabled = powerHowtoIndex <= 0;
       if (powerHowtoNextBtn) {
-        powerHowtoNextBtn.disabled = powerHowtoIndex >= powerHowtoSlideCount - 1;
+        powerHowtoNextBtn.disabled =
+          powerHowtoIndex >= powerHowtoSlideCount - 1;
       }
       powerHowtoDots.forEach((dot, idx) => {
         const isActive = idx === powerHowtoIndex;

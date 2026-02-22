@@ -253,7 +253,9 @@ describe("download quality profile segment", () => {
     const mod = require("../settings");
     await mod.initSettings?.();
 
-    const remember = document.getElementById("quality-profile-segment-remember");
+    const remember = document.getElementById(
+      "quality-profile-segment-remember",
+    );
     const audio = document.getElementById("quality-profile-segment-audio");
     const title = document.getElementById("quality-profile-summary-title");
 
@@ -299,11 +301,13 @@ describe("download quality profile segment", () => {
     expect(localStorage.getItem("downloadQualityProfile")).toBe("audio");
 
     localStorage.setItem("downloadQualityProfile", "remember");
-    window.__thunder_open_settings_handlers__
-      ?.get("download-quality-profile")
-      ?.();
+    window.__thunder_open_settings_handlers__?.get(
+      "download-quality-profile",
+    )?.();
 
-    const remember = document.getElementById("quality-profile-segment-remember");
+    const remember = document.getElementById(
+      "quality-profile-segment-remember",
+    );
     const audio = document.getElementById("quality-profile-segment-audio");
     expect(remember?.classList.contains("is-active")).toBe(true);
     expect(audio?.classList.contains("is-active")).toBe(false);
@@ -343,7 +347,9 @@ describe("developer tools gate", () => {
     await mod.initSettings?.();
 
     const input = document.getElementById("settings-developer-secret-input");
-    const button = document.getElementById("settings-developer-activate-button");
+    const button = document.getElementById(
+      "settings-developer-activate-button",
+    );
     const status = document.getElementById("settings-developer-status");
     input.value = "thunder-dev";
     button?.click();
@@ -368,7 +374,9 @@ describe("developer tools gate", () => {
     await mod.initSettings?.();
 
     const input = document.getElementById("settings-developer-secret-input");
-    const button = document.getElementById("settings-developer-activate-button");
+    const button = document.getElementById(
+      "settings-developer-activate-button",
+    );
     const status = document.getElementById("settings-developer-status");
     input.value = "wrong";
     button?.click();
@@ -392,7 +400,9 @@ describe("developer tools gate", () => {
     await mod.initSettings?.();
 
     const input = document.getElementById("settings-developer-secret-input");
-    const button = document.getElementById("settings-developer-activate-button");
+    const button = document.getElementById(
+      "settings-developer-activate-button",
+    );
     const status = document.getElementById("settings-developer-status");
     input.value = "thunder-dev";
     button?.click();
@@ -525,5 +535,45 @@ describe("downloader tools status visibility toggle", () => {
 
     expect(localStorage.getItem("downloaderToolsStatusHidden")).toBeNull();
     expect(eventDetail).toEqual({ hidden: false });
+  });
+});
+
+describe("network status setting removal", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue(false),
+      on: jest.fn(),
+      send: jest.fn(),
+      ipcRenderer: {
+        send: jest.fn(),
+        invoke: jest.fn().mockResolvedValue({ autosend: false }),
+      },
+      tools: {
+        getLocation: jest.fn().mockResolvedValue(null),
+      },
+    };
+  });
+
+  it("collectCurrentConfig does not expose appearance.showNetworkStatus", async () => {
+    const mod = require("../settings");
+    const config = await mod.__test_collectCurrentConfig();
+    expect(config?.appearance).toBeDefined();
+    expect("showNetworkStatus" in config.appearance).toBe(false);
+  });
+
+  it("applyConfig clears legacy topbarNetworkStatusVisible key", async () => {
+    localStorage.setItem("topbarNetworkStatusVisible", "true");
+    const mod = require("../settings");
+    await mod.__test_applyConfig({
+      appearance: {
+        theme: "system",
+        fontSize: "16",
+        lowEffects: false,
+      },
+    });
+    expect(localStorage.getItem("topbarNetworkStatusVisible")).toBeNull();
   });
 });

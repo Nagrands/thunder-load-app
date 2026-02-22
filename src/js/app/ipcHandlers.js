@@ -695,30 +695,35 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.TOOLS_SORTER_OPEN_FOLDER, async (_evt, folderPath) => {
-    try {
-      const rawPath = String(folderPath || "").trim();
-      if (!rawPath) {
-        return { success: false, error: "Folder path is required" };
+  ipcMain.handle(
+    CHANNELS.TOOLS_SORTER_OPEN_FOLDER,
+    async (_evt, folderPath) => {
+      try {
+        const rawPath = String(folderPath || "").trim();
+        if (!rawPath) {
+          return { success: false, error: "Folder path is required" };
+        }
+        const resolvedFolder = path.resolve(expandUserPath(rawPath));
+        const folderStat = await fsPromises
+          .stat(resolvedFolder)
+          .catch(() => null);
+        if (!folderStat?.isDirectory()) {
+          return {
+            success: false,
+            error: "Selected path is not a folder or is unavailable",
+          };
+        }
+        const result = await shell.openPath(resolvedFolder);
+        if (result) {
+          return { success: false, error: result };
+        }
+        return { success: true, folderPath: resolvedFolder };
+      } catch (error) {
+        log.error("tools:sorterOpenFolder error:", error);
+        return { success: false, error: error.message || String(error) };
       }
-      const resolvedFolder = path.resolve(expandUserPath(rawPath));
-      const folderStat = await fsPromises.stat(resolvedFolder).catch(() => null);
-      if (!folderStat?.isDirectory()) {
-        return {
-          success: false,
-          error: "Selected path is not a folder or is unavailable",
-        };
-      }
-      const result = await shell.openPath(resolvedFolder);
-      if (result) {
-        return { success: false, error: result };
-      }
-      return { success: true, folderPath: resolvedFolder };
-    } catch (error) {
-      log.error("tools:sorterOpenFolder error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
+    },
+  );
 
   ipcMain.handle(CHANNELS.TOOLS_SORTER_RUN, async (_evt, payload = {}) => {
     const dryRun = Boolean(payload?.dryRun);
@@ -747,7 +752,9 @@ function setupIpcHandlers(dependencies) {
       }
 
       const resolvedFolder = path.resolve(expandUserPath(folderPath));
-      const folderStat = await fsPromises.stat(resolvedFolder).catch(() => null);
+      const folderStat = await fsPromises
+        .stat(resolvedFolder)
+        .catch(() => null);
       if (!folderStat?.isDirectory()) {
         return {
           success: false,
@@ -2366,11 +2373,14 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.SET_DOWNLOAD_PARALLEL_LIMIT, async (_event, value) => {
-    const limit = normalizeParallelDownloadLimit(value);
-    store.set("downloadParallelLimit", limit);
-    return { success: true, limit };
-  });
+  ipcMain.handle(
+    CHANNELS.SET_DOWNLOAD_PARALLEL_LIMIT,
+    async (_event, value) => {
+      const limit = normalizeParallelDownloadLimit(value);
+      store.set("downloadParallelLimit", limit);
+      return { success: true, limit };
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_DOWNLOAD_PARALLEL_LIMIT, async () => {
     return getParallelDownloadLimit();

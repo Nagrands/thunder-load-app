@@ -208,12 +208,16 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector("#tools-open-power")?.classList.contains("hidden"),
     ).toBe(false);
-    expect(el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length).toBe(3);
+    expect(
+      el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
+    ).toBe(3);
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
     ).not.toBeNull();
     expect(
-      el.querySelector("#tools-open-sorter")?.classList.contains("is-unavailable"),
+      el
+        .querySelector("#tools-open-sorter")
+        ?.classList.contains("is-unavailable"),
     ).toBe(true);
   });
 
@@ -306,7 +310,9 @@ describe("toolsView quick actions", () => {
     const powerBtn = el.querySelector("#tools-open-power");
 
     expect(
-      el.querySelector("#tools-launcher-unavailable-section")?.classList.contains("hidden"),
+      el
+        .querySelector("#tools-launcher-unavailable-section")
+        ?.classList.contains("hidden"),
     ).toBe(true);
     expect(sorterBtn?.disabled).toBe(false);
     expect(sorterBtn?.classList.contains("is-unavailable")).toBe(false);
@@ -1172,5 +1178,4 @@ describe("toolsView quick actions", () => {
       "quickActions.uefi.created",
     );
   });
-
 });

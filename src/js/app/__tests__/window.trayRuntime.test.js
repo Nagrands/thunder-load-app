@@ -143,7 +143,8 @@ describe("tray runtime behavior", () => {
     expect(mainWindow.show).toHaveBeenCalledTimes(2);
     expect(mainWindow.focus).toHaveBeenCalledTimes(2);
 
-    const contextMenuCallsBeforeRightClick = tray.setContextMenu.mock.calls.length;
+    const contextMenuCallsBeforeRightClick =
+      tray.setContextMenu.mock.calls.length;
     tray.handlers["right-click"]();
     expect(tray.setContextMenu.mock.calls.length).toBe(
       contextMenuCallsBeforeRightClick + 1,
@@ -164,7 +165,8 @@ describe("tray runtime behavior", () => {
       contextMenuCallsBeforeFinish + 1,
     );
 
-    const contextMenuCallsBeforeAppRefresh = tray.setContextMenu.mock.calls.length;
+    const contextMenuCallsBeforeAppRefresh =
+      tray.setContextMenu.mock.calls.length;
     app.emit("thunder-load:tray-refresh");
     expect(tray.setContextMenu.mock.calls.length).toBe(
       contextMenuCallsBeforeAppRefresh + 1,

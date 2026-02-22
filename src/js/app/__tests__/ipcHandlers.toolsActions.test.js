@@ -241,9 +241,7 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result.moved).toBe(1);
     expect(result.errors).toEqual([]);
     expect(fs.existsSync(path.join(root, "a.txt"))).toBe(false);
-    expect(fs.existsSync(path.join(root, "Documents", "a (1).txt"))).toBe(
-      true,
-    );
+    expect(fs.existsSync(path.join(root, "Documents", "a (1).txt"))).toBe(true);
     expect(fs.existsSync(logPath)).toBe(true);
 
     fs.rmSync(root, { recursive: true, force: true });
@@ -264,7 +262,9 @@ describe("ipcHandlers tools quick actions", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(String(result.error || "")).toMatch(/EISDIR|illegal operation on a directory/i);
+    expect(String(result.error || "")).toMatch(
+      /EISDIR|illegal operation on a directory/i,
+    );
 
     fs.rmSync(root, { recursive: true, force: true });
   });

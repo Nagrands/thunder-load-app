@@ -1,167 +1,34 @@
-<!-- version: 1.3.6 -->
+<!-- version: 1.3.7 -->
 
 ### Interface
 
-- **Simplified the WG Unlock block**: removed the “What is this tab for” button so quick actions now focus only on functional controls.
-- **Improved dry-run preview in File Sorter**: preview mode now shows a clear card with key metrics and a short list of upcoming sorting actions.
-- **Improved the folder selector in File Sorter**: the “Open folder” button now appears to the right of the shown path, and on mobile the controls are stacked into clear separate rows.
-- **Added in-app how-to carousels in Tools for WG Unlock and Power Shortcuts**: both tools now include a “How it works” button with step-by-step guidance so it is easier to run actions and understand results.
-- **Completely redesigned the top app menu**: the bar now adapts much better to both large and small screens.
-- **Added a “More” menu for narrow screens**: secondary actions now move into an overflow dropdown so the top bar stays clean.
-- **Improved readability on wide monitors**: quick actions now show text labels next to icons.
-- **Fixed content overlap under the top bar**: the main view spacing now follows the real top bar height.
-- **Improved the “More” menu**: the dropdown now shows only hidden actions, and on small screens it stays properly constrained in width and height.
-- **Made the right side of the top bar more compact**: quick actions now use icon-only buttons without text labels.
-- **Fixed the “Reload” button style**: it now visually matches the other top-bar action buttons.
-- **Improved top bar tab buttons**: tabs now use a cleaner segmented style with balanced spacing and a calmer active state.
-- **Improved top-bar quick actions**: action buttons now share a consistent glass style, calmer hover/active states, and clearer keyboard focus.
-- **Added a top-bar “Network status” visibility setting**: you can now enable or disable the indicator in Appearance settings (disabled by default).
-- **Improved tray and Dock menus on macOS**: actions are clearer, and unavailable items are now correctly disabled so only actionable options are shown.
-- **Fixed opening from the tray**: when restoring from the tray, the app window now correctly unminimizes and receives focus right away.
-- **Made tray menu updates more reliable**: tray actions now refresh faster after download path and download status changes.
+- **Improved top menu tab buttons**: tabs now use a cleaner segmented style, balanced spacing, and a calmer active state.
+- **Removed the “Network status” indicator from the top bar**: the related toggle was also removed from “Appearance” settings to keep the interface simpler.
+- **Made tray menu updates more stable**: menu items now react faster to changes in download path and download status.
 - **Fixed repeated Settings-open event bindings**: the extra-listener warning no longer appears after opening Settings multiple times.
-- **Parallel downloads setting is now clearer**: it now uses a simple 1/2 toggle, and the limit is synchronized with the backend.
-- **Settings menu UI has been fully redesigned**: sections are now denser and easier to navigate in a compact system-style layout.
-- **Added a collapsible sections list in Settings for narrow screens**: switching between tabs is now more convenient on mobile widths.
-- **Settings section content now uses a card-based layout**: related options are grouped into clear blocks so they are easier to scan.
-- **Settings readability is improved**: clearer block titles and tighter spacing make common toggles faster to find.
-- **Made the Downloader Settings “Quality profile” block more compact**: option cards are now tighter and shorter, so the section takes less vertical space.
-- **Fully redesigned the Downloader Settings “Quality profile” block**: two large cards were replaced with a compact mode segment and a short contextual summary.
-- **In the Tools tab, File Sorter was moved to an “Unavailable” section**: its card is now shown as disabled and no longer launches from the launcher.
-- **Added a Developer section in Settings -> Other**: entering a secret word now unlocks hidden functions in the Tools tab.
-- **Developer mode is now session-based**: after restarting the app, it must be unlocked again.
-- **When developer mode is active, the button switches to “Disable”**: you can quickly turn hidden functions off without restarting.
-- **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
-- **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
-- **Improved the Backup “Tips” block**: it now appears on the right side of the tab header, and is hidden on small screens for a cleaner layout.
+- **Updated the Settings menu interface**: sections are now more compact and easier to navigate in a dense system-style layout.
+- **Improved readability in Settings**: clearer block titles and tighter spacing make common toggles faster to find.
+- **Updated tab backgrounds across the app**: all sections now use a single shared background for a more unified look.
+- **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being constantly recreated during rerenders, reducing unnecessary UI load.
+- **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
+- **Fixed History context menu behavior**: when confirming deletion of a record or file, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
 
 ### Downloader tab
 
-- **Updated the Downloader hero section to match Tools style**: the top area now uses the same larger icon/title layout and subtitle pattern as the Tools tab.
-- **Removed breadcrumbs from Downloader**: the top area is now cleaner and more compact without the extra navigation trail.
-- **Updated the progress indicator in the URL field**: it is now shown as a cleaner thin line at the bottom of the input.
-- **Reduced visual noise during downloads**: progress is easier to follow and less distracting while you work with links.
-- **Fixed the close button in the quality picker**: the modal now closes reliably when clicking the “×” button.
-- **Fixed progress bar jitter during downloads**: the URL-field indicator no longer jumps backward while downloading.
-- **Fixed URL progress overflow**: the line now always stays inside the input field and no longer extends past the right edge.
-- **Added preview download in the quality picker**: you can now save the video thumbnail directly from the modal.
-- **Made the queue action more compact**: the “Add to queue” button now uses a clear icon-only style.
-- **Improved the Quality picker layout**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block previews the final download output.
-- **Made format loading clearer**: added a timed loading status, visual skeleton placeholders, and stronger keyboard/screen-reader accessibility states.
-- **Refined Quality picker behavior while formats are loading**: the selected-option block and source/preview actions are temporarily hidden until loading completes, and the queue button stays disabled during that phase.
-- **Improved the Quality picker preview block**: added preview resolution, a source URL copy action, and a clear fallback state when the preview image is unavailable.
-- **Added visible hotkey hints in the Quality picker**: the modal footer now shows navigation/action shortcuts, including a quick `A` shortcut to enqueue the selected option.
-- **Refined Quality picker footer actions**: action buttons are now anchored on the right, the visible Queue button was removed, and enqueue is now done via the `A` hotkey.
-- **Fixed preview resolution detection in the Quality picker**: the resolution line now reads from available preview metadata more reliably, so it appears correctly more often.
-- **Made the Quality picker list more compact**: detailed metric badges are now collapsed by default, and each option card includes an `Expand/Collapse` control to view full details on demand.
-- **Added mode-aware duplicate protection**: links already in history for the same mode (for example, video) are skipped, while downloading audio separately for the same URL is still allowed.
-- **Queue throughput is now faster in Downloader**: you can download up to two files in parallel, and pending tasks start automatically as slots become available.
-- **Improved multi-download UI in Downloader**: active jobs are now clearer, slot usage is visible, and cancel behavior is more explicit for parallel downloads.
-- **Multi-download in Downloader is now more capable**: active items show per-link progress, failed jobs can be retried quickly, and the parallel limit is now configurable in Settings.
+- **Multi-download in Downloader is now more capable**: active jobs now show per-link progress, failed downloads can be retried quickly, and the parallel limit is configurable in the Settings modal.
+- **Queue throughput is now faster in Downloader**: you can now download up to two files at once, and pending tasks start automatically as slots become available.
+- **Improved the Quality picker**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block immediately previews the final output.
+- **Improved the preview block in Quality picker**: added preview resolution, a source URL copy action, and a clear fallback state when the preview image is unavailable.
+- **Added visible hotkey hints in Quality picker**: the modal footer now shows navigation/action keys, including a quick `A` shortcut to enqueue the selected quality.
+- **Added mode-aware duplicate protection**: if a link already exists in history for the same mode (for example, video), it is skipped, while audio can still be downloaded separately for the same URL.
+- **Improved History entries**: details now expand by clicking the row, primary actions are in main buttons, and long “Source”/“File” values are cleaner with quick copy buttons.
+- **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer and more predictable hover/press states.
+- **URL input in Downloader is now easier to use**: added clearer link validation with inline hints, improved button states, and better clear/paste behavior.
+- **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
+- **Added History list virtualization**: on large pages, only visible entries are rendered, making scrolling and history interactions smoother with lower system load.
+- **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered size, making scrolling more stable across different density modes and expanded details.
 
 ### Tools tab
 
-- **Improved File Sorter stability**: log-file write errors are now handled safely, so sorting shows a proper error instead of crashing.
-- **Improved File Sorter UI behavior**: selected-folder status now updates more reliably.
-- **Added a “How it works” modal for File Sorter**: the tool now includes a step-by-step carousel that explains sorting in plain language.
-- **Added a “How it works” modal for Hash Check**: the tool now includes a step-by-step carousel explaining algorithm choice and result comparison.
-
-- **Added a new File Sorter tool to the Tools tab**: you can now pick a folder and automatically organize files into categories (images, videos, music, documents, archives, and other).
-- **Added a safe dry-run mode in File Sorter**: preview sorting results before moving any files.
-- **Added optional log-file output in File Sorter**: save a detailed list of sorting actions to a separate file when needed.
-
-- **Updated the top Tools header layout**: the title/description and breadcrumb navigation are now combined into one block, with navigation placed right below the description.
-- **Made Tools breadcrumb naming clearer**: the first breadcrumb item is now labeled “Tools” and uses the tools icon.
-- **Fully redesigned the Tools tab look and feel**: the launcher now includes a dedicated intro block, breadcrumb navigation, and stronger visual tool cards in a unified style.
-- **Added a dedicated “Available tools” section with a counter**: you can now instantly see how many tools are available on your current platform.
-- **Refreshed WG Unlock, Hash Check, and Power Shortcuts detail screens**: cards, spacing, and visual emphasis are now cleaner and easier to read on both desktop and mobile layouts.
-
-- **Redesigned the quality picker in the Downloader tab**: added per-tab format counters, a current-selection panel, and quick best-option selection for the active tab.
-- **Simplified the quality picker in Downloader**: removed the separate “Best quality” button to avoid duplicating quick selection in the active tab.
-- **Improved quality-selection controls**: added keyboard navigation with ↑/↓ and Enter to start download faster without using the mouse.
-
 - **Added** the **Tools** tab: quick actions in one place (WG Unlock, hash check, system tools).
-- **Added** file hash verification (MD5, SHA‑1, SHA‑256, SHA‑512) with expected-value comparison.
-- **Added** a button to create Windows restart and shutdown desktop shortcuts.
-- **Added** a “Format Converter” block as a placeholder for the next update.
-- **Improved** buttons, inputs, and dropdowns in the **Tools** tab: better readability, clearer hover/focus states, and cleaner visual style.
-- **Made Enter behavior more predictable in the Tools tab**: WG send now triggers only inside the WG Advanced form and no longer interferes with hash-check inputs.
-- **Improved Advanced panel accessibility**: the toggle now reports expanded/collapsed state correctly, and keyboard focus moves into the form on open and back to the toggle on close.
-- **Localized the WG Unlock help dialog**: help content in the Tools tab now follows the selected app language.
-- **Hid the Windows power shortcuts card on non-Windows systems**: the Tools tab now shows only actions available on your platform.
-- **Improved hash verification flow**: controls are now locked while hash calculation is running to prevent accidental duplicate runs.
-- **Refined network settings button behavior**: the button now appears only on platforms where opening system network settings is supported.
-- **Improved action hierarchy in WG Quick**: the primary “Send” action is now separated from secondary actions under a dedicated “More actions” block.
-- **Refreshed the Tools tab in a flatter, more minimal style**: cards and buttons now look cleaner with less visual noise and more consistent spacing.
-- **Removed the “Format Converter (Soon)” placeholder card**: the dashboard now focuses on currently available tools only.
-- **Improved Tools block composition**: WG Quick is now visually prioritized as the main workflow, while secondary actions are grouped more compactly.
-- **Simplified the hash-check presentation**: result states and busy feedback are now easier to read with cleaner visual emphasis.
-- **Redesigned Tools tab navigation**: it now opens with a centered launcher screen that shows large buttons for available tools.
-- **Added dedicated tool-view mode with a Back button**: use the top-left arrow to return to the launcher at any time.
-- **Added last-tool restore behavior**: reopening the Tools tab now returns you to the last tool you used when it is available on your platform.
-- **Fixed duplicate hash-check wording**: the result text no longer repeats the “Calculated hash” label.
-- **Simplified the hash copy action**: the hash-check panel now uses a compact icon-only copy button with a hover tooltip.
-- **Expanded hash verification**: you can now select a second file and compare two files directly by their hashes.
-- **Improved expected-hash comparison**: when two files are selected, the check now shows whether the expected hash matches file 1, file 2, or both.
-- **Updated hash-check layout**: the second file now uses the same “Pick file” button label, and copy buttons are placed next to each calculated hash.
-- **Made two-file verification clearer**: added explicit “File 1/File 2” roles, an expected-hash hint, and a compact per-file status block after verification.
-- **Refined hash-check status behavior**: the “Matched” badge now appears only for real matches (between files or against expected hash), while plain calculation without comparison uses a separate status.
-- **Improved two-file comparison details**: the result details now show selected file names instead of generic “File 1/File 2” labels.
-- **Improved two-file hash-check flow**: added a clear button for the second file, and expected-hash input now compares correctly even when it contains spaces or line breaks.
-- **Improved calculated-hash label**: hash results now show which algorithm was used for the calculation.
-- **Cleaned up the Tools launcher screen**: removed duplicate heading, improved text contrast, and added a clearer backdrop behind the centered launcher block.
-- **Added short descriptions for launcher tools**: each tool card now includes a brief purpose hint before opening it.
-- **Windows shortcuts tool is now visible on macOS**: you can open the section and review available actions, while shortcut creation itself remains Windows-only.
-- **Improved Tools tab structure**: internal module naming and organization were cleaned up to simplify future updates and maintenance.
-- **Added hotkeys in the Tools tab**: Alt+1 opens WG Unlock, Alt+2 opens Hash Check, Alt+3 opens Power Shortcuts, and Esc returns to the launcher.
-- **Added shortcut labels in the Tools launcher**: tool cards now display visible key hints for faster navigation.
-- **Added macOS-specific hotkey labels**: on Mac, launcher hints now use Option key notation (⌥1/⌥2/⌥3).
-- **Fixed Tools hotkeys on macOS**: switching with ⌥1/⌥2/⌥3 now works correctly across different keyboard layouts.
-- **Temporarily removed numeric Tools tab hotkeys**: Alt/Option+number switching is now disabled.
-- **Added arrow-key navigation in the Tools tab**: on the launcher screen, you can move between tools with ←/→/↑/↓, and the selected card is now clearly highlighted.
-- **Restored Esc navigation in the Tools tab**: Esc now returns from a tool back to the launcher.
-- **Improved Esc handling on macOS in the Tools tab**: returning to the launcher now works more reliably.
-- **Added a separate setting to remember the last tool in the Tools tab**: by default, the tab now opens on the launcher screen.
-- **Refined descriptions in Tools tab settings**: labels and hints are now clearer and better explain what each option does.
-- **Aligned the Tools tab background with the rest of the app**: it now matches the visual style used by other tabs.
-- **Refreshed the Windows Shortcuts block in Tools**: both actions are now grouped into one compact section with cleaner structure and a flatter visual style.
-- **Simplified non-Windows messaging**: macOS and other unsupported platforms now show one clear banner instead of repeated warnings.
-- **Fixed Windows shortcut icons**: restart and shutdown shortcuts are now created with a valid icon instead of a missing/blank one.
-- **Added new Windows shortcuts in Tools**: you can now create shortcuts for BIOS/UEFI reboot, Advanced Startup, Device Manager, and Network Settings.
-- **Added per-shortcut Windows icons**: each system shortcut now uses its own icon, with a fallback icon if a system icon is unavailable.
-- **Improved the BIOS/UEFI shortcut in Tools on Windows**: reboot command is now more reliable and includes a fallback path when direct firmware reboot is unavailable.
-
-- **Optimized** UI performance in the **Tools** and **Randomizer** tabs: reduced constant GPU load, cut unnecessary animation, and made visual indicators update more efficiently so the app runs cooler during long sessions.
-- **Improved Backup tab performance**: background hints now pause outside the active tab, profile lists render lighter during frequent filtering, and row animations are limited for large lists.
-- **Added profile list virtualization in Backup**: on large pages, only visible items are rendered, making scrolling and filtering noticeably smoother.
-- **Added History list virtualization**: on large pages, only visible entries are rendered, making scrolling and history interactions smoother with lower system load.
-- **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered size, making scrolling more stable across different density modes and expanded details.
-- **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being recreated on rerenders, reducing unnecessary UI load.
-- **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
-- **Fixed History context menu behavior**: when confirming record or file deletion, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
-- **Improved History entries**: details now expand by clicking the row, primary actions are kept in main buttons, and long “Source”/“File” values are cleaner with quick copy buttons.
-- **Cleaned up the Quality picker list**: duplicate values in option cards were removed, and format details are now grouped in a clearer, more compact layout.
-- **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer, more consistent hover and press states.
-- **URL input in Downloader is now easier to use**: added clear inline link validation, cleaner action-button states, and improved clear/paste behavior.
-- **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
-- **Refined download queue visuals**: the list is now more compact, statuses are easier to read, and item alignment is cleaner.
-- **The Randomizer tab has been removed**: the interface and settings are streamlined, and navigation now includes only active workflow tabs.
-- **Redesigned the Download History list**: the layout is cleaner and more compact, key actions are aligned more clearly, and entries are easier to scan even on narrow screens.
-- **Improved History list readability**: title/meta hierarchy is clearer, and filters/actions are cleaner and more stable on small screens.
-- **Refined the History filters panel**: the block is visually lighter, filter values are easier to read, and on small screens filters scroll smoothly in a single row.
-- **Expanded the History search field**: it is now noticeably wider on desktop, and on small screens it moves to a full-width row for easier input.
-- **Refreshed the app background**: the interface now uses a cleaner tech-lines style backdrop that feels more modern without reducing readability.
-- **Improved colors for the Dark and Midnight themes**: UI contrast is cleaner, and accent elements and backgrounds are easier to read.
-- **The app background now uses Soft Aurora**: visuals are calmer and cleaner, reducing distraction while preserving readability across all themes.
-- **Settings text was cleaned up**: duplicate headings and repeated descriptions were removed from settings cards for better readability.
-- **Downloader Tools settings block is now more compact**: on wide screens it now sits next to the Downloader block.
-- **Parallel downloads setting was updated**: the checkbox is replaced with a clear 1/2 segmented switch and a short performance hint.
-- **Tools block in Settings was fully optimized**: the UI is more compact, state updates are faster, and unnecessary full rerenders were removed after actions.
-- **Tools update checks are faster**: results are now cached, and repeated rapid checks are throttled.
-- **Tools states are clearer**: explicit Offline/In progress/Error summary states were added, with quick Retry and Folder actions.
-- **Downloader settings layout was fully reworked**: quality is now a dedicated top block, while downloader controls and tools are split into clearer side-by-side columns.
-- **Downloader options are grouped more logically**: parallel/startup controls are separated from window/completion behavior for faster scanning.
-- **Quality profile was moved into the Downloader settings card**: key download options are now grouped in one place for faster setup.
-- **Settings cards now use full width in Tools, Backup, Appearance, and Other tabs**: the layout is cleaner and easier to scan for longer options.
-- **Power Shortcuts on macOS are now developer-mode only**: in normal mode the tool is shown as unavailable and cannot be opened.
-- **Fixed quality picker behavior for “Audio Only” profile**: the modal now prioritizes audio mode and no longer reuses a previous video selection.
+- **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value comparison.

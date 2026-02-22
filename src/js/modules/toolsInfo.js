@@ -230,15 +230,15 @@ function setSummaryState(el, state = "neutral", text = "") {
           ? "tools.summary.update"
           : state === "missing"
             ? "tools.summary.missing"
-              : state === "checking"
-                ? "tools.summary.checking"
-                : state === "offline"
-                  ? "tools.summary.offline"
-                  : state === "busy"
-                    ? "tools.summary.busy"
-                : state === "error"
-                  ? "tools.summary.error"
-                  : null;
+            : state === "checking"
+              ? "tools.summary.checking"
+              : state === "offline"
+                ? "tools.summary.offline"
+                : state === "busy"
+                  ? "tools.summary.busy"
+                  : state === "error"
+                    ? "tools.summary.error"
+                    : null;
     el.summaryBadgeEl.textContent = badgeKey ? t(badgeKey) : "—";
   }
 }
@@ -290,7 +290,10 @@ function patchToolCards(container, items = []) {
   items.forEach((item) => {
     let card = container.querySelector(`.tool-card[data-tool="${item.id}"]`);
     if (!card) {
-      container.insertAdjacentHTML("beforeend", buildSingleToolCardMarkup(item));
+      container.insertAdjacentHTML(
+        "beforeend",
+        buildSingleToolCardMarkup(item),
+      );
       return;
     }
     card.className = `tool-card tool-card--${item.state}`;
@@ -445,7 +448,9 @@ function getElements(section) {
     updateBtn: section.querySelector("#tools-update-btn"),
     updateLabel: section.querySelector("#tools-update-label"),
     quickRetryBtn: section.querySelector("#tools-quick-retry-btn"),
-    quickOpenLocationBtn: section.querySelector("#tools-quick-open-location-btn"),
+    quickOpenLocationBtn: section.querySelector(
+      "#tools-quick-open-location-btn",
+    ),
     installBtn: section.querySelector("#tools-install-btn"),
     moreWrap: section.querySelector("#tools-more"),
     moreBtn: section.querySelector("#tools-more-btn"),
@@ -538,7 +543,10 @@ function initContext(section) {
 
   const syncSummaryExpandedState = () => {
     if (!el.panelSummary || !el.panel) return;
-    el.panelSummary.setAttribute("aria-expanded", el.panel.open ? "true" : "false");
+    el.panelSummary.setAttribute(
+      "aria-expanded",
+      el.panel.open ? "true" : "false",
+    );
   };
 
   el.panel?.addEventListener("toggle", syncSummaryExpandedState);
@@ -551,7 +559,11 @@ function initContext(section) {
 
   const updateStatusCards = (summary, overrides = {}, options = {}) => {
     if (!summary) {
-      setSummaryState(el, options.customState || "error", options.customText || t("tools.error.getVersions"));
+      setSummaryState(
+        el,
+        options.customState || "error",
+        options.customText || t("tools.error.getVersions"),
+      );
       if (el.statusCardsEl) patchToolCards(el.statusCardsEl, []);
       return;
     }
@@ -627,7 +639,9 @@ function initContext(section) {
     return null;
   };
 
-  const runInstallAll = async ({ statusText = t("tools.status.installing") } = {}) => {
+  const runInstallAll = async ({
+    statusText = t("tools.status.installing"),
+  } = {}) => {
     if (isActionLocked("install-all")) return;
     if (!navigator.onLine) {
       setQuickState("offline", t("tools.status.noNetwork"), {
@@ -644,7 +658,11 @@ function initContext(section) {
       const labelEl = el.checkLabel || el.installBtn?.querySelector("span");
       if (labelEl) dots = startDotsAnimator(labelEl, statusText);
       await window.electron?.tools?.installAll?.();
-      await window.electron?.invoke?.("toast", t("tools.toast.installSuccess"), "success");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.toast.installSuccess"),
+        "success",
+      );
       await ctx.refresh({ force: true, reason: "install" });
     } catch (error) {
       console.error("[toolsInfo] installAll failed:", error);
@@ -652,7 +670,11 @@ function initContext(section) {
         showRetry: true,
         showOpenLocation: true,
       });
-      await window.electron?.invoke?.("toast", t("tools.toast.installError"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.toast.installError"),
+        "error",
+      );
     } finally {
       state.isInstalling = false;
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
@@ -675,16 +697,21 @@ function initContext(section) {
       return;
     }
 
-    const cur = (await window.electron?.tools?.getVersions?.()) || state.versions;
+    const cur =
+      (await window.electron?.tools?.getVersions?.()) || state.versions;
     if (!cur) return;
     const versionsSignature = buildVersionsSignature(cur);
     const cachedUpdates = getCachedUpdates(versionsSignature);
 
     const summaryBase = summarizeToolsState(cur);
-    updateStatusCards(summaryBase, {}, {
-      customState: "checking",
-      customText: t("tools.status.checkingUpdates"),
-    });
+    updateStatusCards(
+      summaryBase,
+      {},
+      {
+        customState: "checking",
+        customText: t("tools.status.checkingUpdates"),
+      },
+    );
     setQuickState("busy", t("tools.status.checkingUpdates"));
 
     const prevIconClass = el.checkIcon?.className;
@@ -695,7 +722,8 @@ function initContext(section) {
       state.isChecking = true;
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
       const labelEl = el.checkLabel || el.checkBtn?.querySelector("span");
-      if (labelEl) dots = startDotsAnimator(labelEl, t("tools.status.checkingUpdates"));
+      if (labelEl)
+        dots = startDotsAnimator(labelEl, t("tools.status.checkingUpdates"));
 
       const upd =
         cachedUpdates ||
@@ -714,7 +742,9 @@ function initContext(section) {
       const yLatN = normVer(upd?.ytDlp?.latest || "");
       const fLatN = normVer(upd?.ffmpeg?.latest || "");
 
-      const yCurLocal = normVer(firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""));
+      const yCurLocal = normVer(
+        firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""),
+      );
       const fCurLocal = normVer(
         firstLine(cur?.ffmpeg?.version || "")
           .replace(/^ffmpeg version\s*/i, "")
@@ -744,7 +774,9 @@ function initContext(section) {
       };
       updateStatusCards(summaryBase, overrides, {
         customState: anyUpdate ? "update" : undefined,
-        customText: anyUpdate ? t("tools.status.updatesFound") : t("tools.status.upToDate"),
+        customText: anyUpdate
+          ? t("tools.status.updatesFound")
+          : t("tools.status.upToDate"),
       });
       setQuickState(
         anyUpdate ? "update" : "ok",
@@ -755,15 +787,23 @@ function initContext(section) {
       if (dCurUpd) setHintText(`${t("tools.label.deno")}: ${dCurUpd}`);
     } catch (error) {
       console.error("[toolsInfo] check updates failed:", error);
-      updateStatusCards(summaryBase, {}, {
-        customState: "error",
-        customText: t("tools.error.update"),
-      });
+      updateStatusCards(
+        summaryBase,
+        {},
+        {
+          customState: "error",
+          customText: t("tools.error.update"),
+        },
+      );
       setQuickState("error", t("tools.error.update"), {
         showRetry: true,
         showOpenLocation: true,
       });
-      await window.electron?.invoke?.("toast", t("tools.error.update"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.error.update"),
+        "error",
+      );
     } finally {
       state.isChecking = false;
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
@@ -791,7 +831,8 @@ function initContext(section) {
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
       setQuickState("busy", t("tools.status.installing"));
       if (state.pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
-      if (state.pendingUpdate.ff) await window.electron?.tools?.updateFfmpeg?.();
+      if (state.pendingUpdate.ff)
+        await window.electron?.tools?.updateFfmpeg?.();
       await ctx.refresh({ force: true, reason: "update" });
     } catch (error) {
       console.error("[toolsInfo] selective update failed:", error);
@@ -799,7 +840,11 @@ function initContext(section) {
         showRetry: true,
         showOpenLocation: true,
       });
-      await window.electron?.invoke?.("toast", t("tools.error.update"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.error.update"),
+        "error",
+      );
     } finally {
       state.isInstalling = false;
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
@@ -845,7 +890,11 @@ function initContext(section) {
         showRetry: true,
         showOpenLocation: true,
       });
-      await window.electron?.invoke?.("toast", t("tools.location.openError"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.location.openError"),
+        "error",
+      );
     }
   });
   el.forceBtn?.addEventListener("click", () => {
@@ -858,7 +907,11 @@ function initContext(section) {
     const r = await window.electron?.tools?.setLocation?.(dir);
     if (!r?.success) {
       setStatusText(t("tools.location.setError"));
-      await window.electron?.invoke?.("toast", t("tools.location.setError"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.location.setError"),
+        "error",
+      );
       return;
     }
     setStatusText(t("tools.location.updated"));
@@ -872,7 +925,11 @@ function initContext(section) {
         showRetry: true,
         showOpenLocation: true,
       });
-      await window.electron?.invoke?.("toast", t("tools.location.openError"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.location.openError"),
+        "error",
+      );
     }
   });
 
@@ -880,7 +937,11 @@ function initContext(section) {
     const r = await window.electron?.tools?.resetLocation?.();
     if (!r?.success) {
       setStatusText(t("tools.location.resetError"));
-      await window.electron?.invoke?.("toast", t("tools.location.resetError"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.location.resetError"),
+        "error",
+      );
       return;
     }
     setStatusText(t("tools.location.resetSuccess"));
@@ -892,7 +953,11 @@ function initContext(section) {
       const detect = await window.electron?.tools?.detectLegacy?.();
       if (!detect?.success) {
         setStatusText(t("tools.migrate.detectError"));
-        await window.electron?.invoke?.("toast", t("tools.migrate.detectError"), "error");
+        await window.electron?.invoke?.(
+          "toast",
+          t("tools.migrate.detectError"),
+          "error",
+        );
         return;
       }
       if (!detect.found || !detect.found.length) {
@@ -913,14 +978,20 @@ function initContext(section) {
       const res = await window.electron?.tools?.migrateOld?.({ overwrite });
       if (!res?.success) {
         setStatusText(t("tools.migrate.error"));
-        await window.electron?.invoke?.("toast", t("tools.migrate.error"), "error");
+        await window.electron?.invoke?.(
+          "toast",
+          t("tools.migrate.error"),
+          "error",
+        );
         return;
       }
       const copied = res.copied?.length || 0;
       const skipped = res.skipped?.length || 0;
       setStatusText(
         t("tools.migrate.success", {
-          mode: overwrite ? t("tools.migrate.mode.overwrite") : t("tools.migrate.mode.keep"),
+          mode: overwrite
+            ? t("tools.migrate.mode.overwrite")
+            : t("tools.migrate.mode.keep"),
           copied,
           skipped,
         }),
@@ -929,7 +1000,11 @@ function initContext(section) {
     } catch (error) {
       console.error("[toolsInfo] migrateOld error:", error);
       setStatusText(t("tools.migrate.error"));
-      await window.electron?.invoke?.("toast", t("tools.migrate.error"), "error");
+      await window.electron?.invoke?.(
+        "toast",
+        t("tools.migrate.error"),
+        "error",
+      );
     }
   });
 
@@ -985,7 +1060,8 @@ function initContext(section) {
       if (el.statusEl?.textContent === t("tools.status.noNetwork")) {
         setQuickState("checking", t("tools.summary.checking"));
       }
-      if (el.hintEl?.textContent === t("tools.status.noNetwork")) setHintText("");
+      if (el.hintEl?.textContent === t("tools.status.noNetwork"))
+        setHintText("");
     },
     off: () => {
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
@@ -1030,7 +1106,10 @@ function initContext(section) {
       const summary = summarizeToolsState(versionsRes);
       updateStatusCards(summary);
 
-      const missing = !versionsRes?.ytDlp?.ok || !versionsRes?.ffmpeg?.ok || !versionsRes?.deno?.ok;
+      const missing =
+        !versionsRes?.ytDlp?.ok ||
+        !versionsRes?.ffmpeg?.ok ||
+        !versionsRes?.deno?.ok;
       syncWizardVisibility(missing);
       setHintText(missing ? t("tools.hint.missing") : "");
       setQuickState(
@@ -1044,7 +1123,11 @@ function initContext(section) {
     } catch (error) {
       if (requestId !== state.requestId) return;
       console.error("[toolsInfo] refresh failed:", error);
-      updateStatusCards(null, {}, { customState: "error", customText: t("tools.error.getVersions") });
+      updateStatusCards(
+        null,
+        {},
+        { customState: "error", customText: t("tools.error.getVersions") },
+      );
       setHintText(t("tools.error.getVersions"));
       setQuickState("error", t("tools.error.getVersions"), {
         showRetry: true,

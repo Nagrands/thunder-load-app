@@ -40,9 +40,14 @@ const TOOLS_INFO_REFRESH_TTL_MS = 20_000;
 
 async function ensureToolsInfo(force = false) {
   if (toolsRenderPromise) return toolsRenderPromise;
-  const shouldRefresh = toolsInfoRendered && (force || isToolsInfoStale(TOOLS_INFO_REFRESH_TTL_MS));
+  const shouldRefresh =
+    toolsInfoRendered && (force || isToolsInfoStale(TOOLS_INFO_REFRESH_TTL_MS));
   if (toolsInfoRendered && !shouldRefresh) return null;
-  toolsRenderPromise = (toolsInfoRendered ? refreshToolsInfoState({ force: true }) : renderToolsInfo())
+  toolsRenderPromise = (
+    toolsInfoRendered
+      ? refreshToolsInfoState({ force: true })
+      : renderToolsInfo()
+  )
     .then(() => {
       toolsInfoRendered = true;
     })
@@ -59,12 +64,12 @@ const moduleBadgeMap = {
   wg: { tab: "wgunlock-settings", badgeId: "tab-badge-wg" },
   backup: { tab: "backup-settings", badgeId: "tab-badge-backup" },
 };
-const NETWORK_STATUS_VISIBILITY_KEY = "topbarNetworkStatusVisible";
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
 const DEVELOPER_SECRET_WORD = "thunder-dev";
 const OPEN_SETTINGS_HANDLERS_KEY = "__thunder_open_settings_handlers__";
-const OPEN_SETTINGS_DISPATCH_READY_KEY = "__thunder_open_settings_dispatch_ready__";
+const OPEN_SETTINGS_DISPATCH_READY_KEY =
+  "__thunder_open_settings_dispatch_ready__";
 
 function onOpenSettings(listenerKey, handler) {
   const subscribe = window?.electron?.on;
@@ -93,30 +98,6 @@ function clearOpenSettingsHandlers() {
   if (handlers && typeof handlers.clear === "function") {
     handlers.clear();
   }
-}
-
-function readNetworkStatusVisible() {
-  try {
-    const raw = localStorage.getItem(NETWORK_STATUS_VISIBILITY_KEY);
-    if (raw === null) return false;
-    return JSON.parse(raw) === true;
-  } catch {
-    return false;
-  }
-}
-
-function applyTopBarNetworkStatusVisibility(visible) {
-  const shouldShow = !!visible;
-  const statusEl = document.getElementById("network-status");
-  if (statusEl) {
-    statusEl.hidden = !shouldShow;
-    statusEl.setAttribute("aria-hidden", shouldShow ? "false" : "true");
-  }
-  window.dispatchEvent(
-    new CustomEvent("topbar:network-visibility", {
-      detail: { visible: shouldShow },
-    }),
-  );
 }
 
 function updateModuleBadge(moduleKey, disabled) {
@@ -155,6 +136,9 @@ function updateModuleBadge(moduleKey, disabled) {
  */
 async function initSettings() {
   clearOpenSettingsHandlers();
+  try {
+    localStorage.removeItem("topbarNetworkStatusVisible");
+  } catch {}
 
   // Font size dropdown (custom) logic
   const openConfigFolderBtn = document.getElementById(
@@ -247,7 +231,9 @@ async function initSettings() {
 
   (function initDeveloperGate() {
     const input = document.getElementById("settings-developer-secret-input");
-    const button = document.getElementById("settings-developer-activate-button");
+    const button = document.getElementById(
+      "settings-developer-activate-button",
+    );
     const status = document.getElementById("settings-developer-status");
     if (!input || !button || !status) return;
 
@@ -303,7 +289,9 @@ async function initSettings() {
         input.value = "";
         return;
       }
-      const value = String(input.value || "").trim().toLowerCase();
+      const value = String(input.value || "")
+        .trim()
+        .toLowerCase();
       if (value === DEVELOPER_SECRET_WORD) {
         writeUnlocked(true);
         applyStatus(true);
@@ -337,7 +325,9 @@ async function initSettings() {
     );
     const audioBtn = document.getElementById("quality-profile-segment-audio");
     const summaryIcon = document.getElementById("quality-profile-summary-icon");
-    const summaryTitle = document.getElementById("quality-profile-summary-title");
+    const summaryTitle = document.getElementById(
+      "quality-profile-summary-title",
+    );
     const summaryHint = document.getElementById("quality-profile-summary-hint");
     if (!segment || !rememberBtn || !audioBtn || !summaryTitle || !summaryHint)
       return;
@@ -463,7 +453,9 @@ async function initSettings() {
   })();
 
   (function initDownloadParallelLimit() {
-    const segment = document.getElementById("settings-download-parallel-segment");
+    const segment = document.getElementById(
+      "settings-download-parallel-segment",
+    );
     const option1 = document.getElementById("settings-download-parallel-1");
     const option2 = document.getElementById("settings-download-parallel-2");
     const valueEl = document.getElementById("settings-download-parallel-value");
@@ -622,39 +614,6 @@ async function initSettings() {
       setLowEffects(enabled);
     });
   }
-
-  // Top bar network status visibility toggle
-  (function initNetworkStatusVisibilityToggle() {
-    const checkbox = document.getElementById("settings-show-network-status");
-    if (!checkbox) return;
-    const syncFromStore = () => {
-      checkbox.checked = readNetworkStatusVisible();
-    };
-    syncFromStore();
-    applyTopBarNetworkStatusVisibility(checkbox.checked);
-    checkbox.addEventListener("change", () => {
-      const visible = checkbox.checked;
-      try {
-        localStorage.setItem(
-          NETWORK_STATUS_VISIBILITY_KEY,
-          JSON.stringify(visible),
-        );
-      } catch {}
-      applyTopBarNetworkStatusVisibility(visible);
-      window.electron
-        ?.invoke?.(
-          "toast",
-          visible
-            ? t("settings.appearance.networkStatus.enabled")
-            : t("settings.appearance.networkStatus.disabled"),
-          "success",
-        )
-        .catch(() => {});
-    });
-    onOpenSettings("appearance-network-status-visibility", () => {
-      syncFromStore();
-    });
-  })();
 
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
@@ -1661,7 +1620,6 @@ async function collectCurrentConfig() {
       return true;
     }
   })();
-  const showNetworkStatus = readNetworkStatusVisible();
   const firstRunCompleted = (() => {
     try {
       return localStorage.getItem("firstRunCompleted") === "1";
@@ -1729,7 +1687,6 @@ async function collectCurrentConfig() {
       theme,
       fontSize,
       lowEffects: getLowEffects(),
-      showNetworkStatus,
     },
     shortcuts: {
       disableGlobalShortcuts,
@@ -1760,6 +1717,9 @@ async function collectCurrentConfig() {
 
 async function applyConfig(config, options = {}) {
   const cfg = deepMergeConfig(DEFAULT_CONFIG, config || {});
+  try {
+    localStorage.removeItem("topbarNetworkStatusVisible");
+  } catch {}
 
   await setTheme(cfg.appearance.theme);
   await setFontSize(String(cfg.appearance.fontSize));
@@ -1779,14 +1739,6 @@ async function applyConfig(config, options = {}) {
       localStorage.setItem("downloaderToolsStatusHidden", "1");
     }
   } catch {}
-
-  try {
-    localStorage.setItem(
-      NETWORK_STATUS_VISIBILITY_KEY,
-      JSON.stringify(!!cfg.appearance.showNetworkStatus),
-    );
-  } catch {}
-  applyTopBarNetworkStatusVisibility(!!cfg.appearance.showNetworkStatus);
 
   const writeJson = (key, value) => {
     try {
@@ -1992,6 +1944,8 @@ export const setDefaultTab = (tabId) =>
 
 // Тестовая прокладка для unit-тестов
 export const __test_updateModuleBadge = updateModuleBadge;
+export const __test_collectCurrentConfig = collectCurrentConfig;
+export const __test_applyConfig = applyConfig;
 export { updateModuleBadge };
 
 export { initSettings };

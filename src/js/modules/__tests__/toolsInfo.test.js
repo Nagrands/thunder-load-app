@@ -227,7 +227,9 @@ describe("renderToolsInfo", () => {
     await p1;
     await flush();
 
-    const versions = Array.from(document.querySelectorAll(".tool-card__version"))
+    const versions = Array.from(
+      document.querySelectorAll(".tool-card__version"),
+    )
       .map((el) => el.textContent.trim())
       .join(" ");
     expect(versions).toContain("2025.01.01");

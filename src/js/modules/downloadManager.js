@@ -830,7 +830,8 @@ const QUALITY_PROFILE_DEFAULT = "remember";
 const readQualityProfile = () => {
   try {
     const raw =
-      window.localStorage.getItem(QUALITY_PROFILE_KEY) || QUALITY_PROFILE_DEFAULT;
+      window.localStorage.getItem(QUALITY_PROFILE_KEY) ||
+      QUALITY_PROFILE_DEFAULT;
     return raw === "audio" || raw === "remember" || raw === "best"
       ? raw
       : QUALITY_PROFILE_DEFAULT;

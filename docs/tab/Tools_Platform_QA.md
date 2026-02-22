@@ -30,6 +30,7 @@ alias: Проверка Tools на Windows и macOS
 ## Чек-лист ручной проверки
 
 1. **Smoke вход в Tools**
+
 - Открыть вкладку `Tools`.
 - Проверить launcher, счетчик инструментов, переходы между инструментами.
 - Ожидание:
@@ -37,33 +38,40 @@ alias: Проверка Tools на Windows и macOS
   - Windows: power-раздел активен, ярлыки создаются.
 
 2. **Settings -> Downloader -> `#tools-info`**
+
 - Проверить compact summary, badge, раскрытие `details`, quick actions.
 - Ожидание: действия `Проверить обновления`, `Обновить`, `Папка`, `Дополнительно` работают без полного перерендеринга.
 
 3. **Lifecycle зависимостей**
+
 - Выполнить `Проверить обновления`.
 - Если есть апдейты: выполнить `Обновить`.
 - Если инструментов нет: выполнить `Скачать зависимости`.
 - Проверить обновление статусов и версий.
 
 4. **Папка инструментов (Location flow)**
+
 - `Выбрать папку` -> `Открыть папку` -> `Сбросить` -> `Мигрировать` (если доступно).
 - Проверить тосты/ошибки и фактическое открытие пути в системе.
 
 5. **Hash tool**
+
 - Выбрать файл, рассчитать хеш, проверить копирование.
 - Сравнить два файла, проверить сценарий с expected hash.
 - Убедиться, что во время вычисления блокируются повторные действия.
 
 6. **File Sorter**
+
 - Запустить `dry-run`, затем реальную сортировку.
 - Проверить статистику, обработку ошибок и открытие папки результата.
 
 7. **Power shortcuts**
+
 - Windows: создать все доступные ярлыки, проверить наличие файлов на Desktop и корректный запуск.
 - macOS: действия Windows не должны выполняться; должен быть корректный `unsupported/disabled`.
 
 8. **Регресс устойчивости**
+
 - 5-10 раз открыть/закрыть `Settings` и `Tools`, переключать вкладки.
 - Убедиться, что нет визуальных вспышек, утечек слушателей и повторной привязки обработчиков.
 
@@ -71,17 +79,17 @@ alias: Проверка Tools на Windows и macOS
 
 Заполнить после ручного прогона.
 
-| Feature | Windows (actual) | Windows (status) | macOS (actual) | macOS (status) | Notes / screenshot |
-|---|---|---|---|---|---|
-| Tools launcher + счетчик |  | PASS/FAIL |  | PASS/FAIL |  |
-| Tools navigation / back / shortcuts |  | PASS/FAIL |  | PASS/FAIL |  |
-| `#tools-info` compact summary + quick actions |  | PASS/FAIL |  | PASS/FAIL |  |
-| Check updates / update / install flow |  | PASS/FAIL |  | PASS/FAIL |  |
-| Tools location flow |  | PASS/FAIL |  | PASS/FAIL |  |
-| Hash tool |  | PASS/FAIL |  | PASS/FAIL |  |
-| File Sorter dry-run + run |  | PASS/FAIL |  | PASS/FAIL |  |
-| Power shortcuts (Windows-specific) |  | PASS/FAIL |  | PASS/FAIL |  |
-| Reopen stability (5-10 циклов) |  | PASS/FAIL |  | PASS/FAIL |  |
+| Feature                                       | Windows (actual) | Windows (status) | macOS (actual) | macOS (status) | Notes / screenshot |
+| --------------------------------------------- | ---------------- | ---------------- | -------------- | -------------- | ------------------ |
+| Tools launcher + счетчик                      |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Tools navigation / back / shortcuts           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| `#tools-info` compact summary + quick actions |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Check updates / update / install flow         |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Tools location flow                           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Hash tool                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| File Sorter dry-run + run                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Power shortcuts (Windows-specific)            |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Reopen stability (5-10 циклов)                |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 
 ## Критерии приемки
 

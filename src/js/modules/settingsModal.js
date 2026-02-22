@@ -55,10 +55,7 @@ function syncActiveSettingsSectionLabel() {
         (el) => el.tagName === "SPAN" && !el.classList.contains("tab-badge"),
       )
     : null;
-  const text =
-    directTextSpan?.textContent ||
-    activeBtn?.textContent ||
-    "";
+  const text = directTextSpan?.textContent || activeBtn?.textContent || "";
   label.textContent = String(text).trim();
 }
 
