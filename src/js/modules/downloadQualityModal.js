@@ -87,6 +87,7 @@ const state = {
   optionMap: new Map(),
   info: null,
   forceAudio: false,
+  defaultQualityProfile: "remember",
   defaultQuality: "Source",
   currentUrl: "",
   currentFetchToken: 0,
@@ -970,7 +971,10 @@ async function loadFormatsWithRetry(
     }
 
     if (!picked) {
-      if (state.forceAudio || state.defaultQuality === "Audio Only") {
+      const audioProfileSelected =
+        state.defaultQualityProfile === "audio" ||
+        state.defaultQuality === "Audio Only";
+      if (state.forceAudio || audioProfileSelected) {
         const audioSelected = selectBestFromTab("audio");
         if (!audioSelected) {
           showToast("Аудио варианты недоступны для этой ссылки.", "warning");
@@ -1191,6 +1195,8 @@ async function openDownloadQualityModal(url, opts = {}) {
   }
   bindEvents();
   state.forceAudio = !!opts.forceAudioOnly;
+  state.defaultQualityProfile =
+    opts.defaultQualityProfile === "audio" ? "audio" : "remember";
   state.defaultQuality = opts.presetQuality || "Source";
   state.currentUrl = url;
   setModalOpen(true);

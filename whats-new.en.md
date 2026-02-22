@@ -164,3 +164,4 @@
 - **Quality profile was moved into the Downloader settings card**: key download options are now grouped in one place for faster setup.
 - **Settings cards now use full width in Tools, Backup, Appearance, and Other tabs**: the layout is cleaner and easier to scan for longer options.
 - **Power Shortcuts on macOS are now developer-mode only**: in normal mode the tool is shown as unavailable and cannot be opened.
+- **Fixed quality picker behavior for “Audio Only” profile**: the modal now prioritizes audio mode and no longer reuses a previous video selection.

@@ -829,10 +829,11 @@ const QUALITY_PROFILE_DEFAULT = "remember";
 
 const readQualityProfile = () => {
   try {
-    return (
-      window.localStorage.getItem(QUALITY_PROFILE_KEY) ||
-      QUALITY_PROFILE_DEFAULT
-    );
+    const raw =
+      window.localStorage.getItem(QUALITY_PROFILE_KEY) || QUALITY_PROFILE_DEFAULT;
+    return raw === "audio" || raw === "remember" || raw === "best"
+      ? raw
+      : QUALITY_PROFILE_DEFAULT;
   } catch {
     return QUALITY_PROFILE_DEFAULT;
   }
@@ -852,8 +853,7 @@ const persistLastQuality = (quality) => {
   } catch {}
 };
 
-const resolvePresetQuality = () => {
-  const profile = readQualityProfile();
+const resolvePresetQuality = (profile = readQualityProfile()) => {
   if (profile === "audio") return t("quality.audioOnly");
   if (profile === "best") return t("quality.source");
   const remembered = lastChosenQualityLabel || readLastQuality();
@@ -1104,9 +1104,14 @@ const handleDownloadButtonClick = async (options = {}) => {
   // Если несколько: стартуем первый/добавляем остальные в очередь
   if (validUrls.length > 1) {
     const first = validUrls[0];
+    const qualityProfile = readQualityProfile();
     const selectionRaw = await openDownloadQualityModal(first, {
-      presetQuality: resolvePresetQuality(),
-      preferredLabel: lastChosenQualityLabel || readLastQuality(),
+      presetQuality: resolvePresetQuality(qualityProfile),
+      defaultQualityProfile: qualityProfile,
+      preferredLabel:
+        qualityProfile === "remember"
+          ? lastChosenQualityLabel || readLastQuality()
+          : null,
       forceAudioOnly: options.forceAudioOnly,
     });
     if (!selectionRaw) return;
@@ -1163,9 +1168,14 @@ const handleDownloadButtonClick = async (options = {}) => {
 
   // Один URL
   const url = validUrls[0];
+  const qualityProfile = readQualityProfile();
   const selectionRaw = await openDownloadQualityModal(url, {
-    presetQuality: resolvePresetQuality(),
-    preferredLabel: lastChosenQualityLabel || readLastQuality(),
+    presetQuality: resolvePresetQuality(qualityProfile),
+    defaultQualityProfile: qualityProfile,
+    preferredLabel:
+      qualityProfile === "remember"
+        ? lastChosenQualityLabel || readLastQuality()
+        : null,
     forceAudioOnly: options.forceAudioOnly,
   });
   if (!selectionRaw) return;
