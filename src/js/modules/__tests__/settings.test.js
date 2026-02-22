@@ -276,3 +276,47 @@ describe("download parallel limit toggle", () => {
     );
   });
 });
+
+describe("downloader tools status visibility toggle", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({ success: true }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("syncs checkbox with storage and dispatches tools:visibility", async () => {
+    localStorage.setItem("downloaderToolsStatusHidden", "1");
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <div class="settings-control-group">
+          <ul class="module settings-control-list">
+            <li class="settings-control">
+              <input type="checkbox" id="settings-show-tools-status" />
+            </li>
+          </ul>
+        </div>
+      </div>`;
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const checkbox = document.getElementById("settings-show-tools-status");
+    expect(checkbox?.checked).toBe(false);
+
+    let eventDetail = null;
+    window.addEventListener("tools:visibility", (event) => {
+      eventDetail = event?.detail || null;
+    });
+
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event("change"));
+
+    expect(localStorage.getItem("downloaderToolsStatusHidden")).toBeNull();
+    expect(eventDetail).toEqual({ hidden: false });
+  });
+});

@@ -153,3 +153,7 @@
 - **Tools block in Settings was fully optimized**: the UI is more compact, state updates are faster, and unnecessary full rerenders were removed after actions.
 - **Tools update checks are faster**: results are now cached, and repeated rapid checks are throttled.
 - **Tools states are clearer**: explicit Offline/In progress/Error summary states were added, with quick Retry and Folder actions.
+- **Downloader settings layout was fully reworked**: quality is now a dedicated top block, while downloader controls and tools are split into clearer side-by-side columns.
+- **Downloader options are grouped more logically**: parallel/startup controls are separated from window/completion behavior for faster scanning.
+- **Quality profile was moved into the Downloader settings card**: key download options are now grouped in one place for faster setup.
+- **Settings cards now use full width in Tools, Backup, Appearance, and Other tabs**: the layout is cleaner and easier to scan for longer options.

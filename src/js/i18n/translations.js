@@ -174,6 +174,12 @@ export const translations = {
       "Выбор лимита одновременных загрузок",
     "settings.downloader.parallel.saved":
       "Лимит одновременных загрузок: {count}",
+    "settings.downloader.layout.hint":
+      "Основные параметры загрузки и поведения окна.",
+    "settings.downloader.group.parallel": "Параллельность и запуск",
+    "settings.downloader.group.behavior": "Поведение окна и завершения",
+    "settings.downloader.tools.hint":
+      "Проверка статуса и обновление зависимостей загрузчика.",
     "settings.downloader.expandAfter":
       "Разворачивать окно <strong>по окончанию загрузки</strong>",
     "settings.downloader.expandOnCopy":
@@ -1366,6 +1372,12 @@ export const translations = {
     "settings.downloader.parallel.aria":
       "Select the parallel downloads limit",
     "settings.downloader.parallel.saved": "Parallel download limit: {count}",
+    "settings.downloader.layout.hint":
+      "Core download options and window behavior settings.",
+    "settings.downloader.group.parallel": "Parallelism and startup",
+    "settings.downloader.group.behavior": "Window and completion behavior",
+    "settings.downloader.tools.hint":
+      "Check status and update downloader dependencies.",
     "settings.downloader.expandAfter":
       "Expand the window <strong>after download</strong>",
     "settings.downloader.expandOnCopy":

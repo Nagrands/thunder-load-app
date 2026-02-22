@@ -1535,6 +1535,19 @@
     }
   }
 
+  #wgunlock-settings,
+  #backup-settings,
+  #appearance-settings,
+  #other-settings {
+    .settings-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .settings-card {
+      grid-column: 1 / -1;
+    }
+  }
+
   // === Чекбоксы и радио ===
   input[type="checkbox"],
   input[type="radio"] {
@@ -2437,28 +2450,78 @@
 
   #window-settings {
     .settings-grid {
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+      grid-template-columns: 1fr;
       grid-template-areas:
-        "quality quality"
-        "downloader tools";
+        "tools tools"
+        "downloader downloader";
       align-items: start;
+      gap: 12px;
     }
 
     .settings-card--quality {
-      grid-area: quality;
+      display: none;
     }
 
     .settings-card--downloader {
       grid-area: downloader;
+      min-width: 0;
+      min-height: 100%;
+    }
+
+    .settings-card--tools-top {
+      grid-area: tools;
     }
 
     .settings-card--tools-compact {
-      grid-area: tools;
+      align-content: start;
+      min-width: 0;
+      min-height: 100%;
+    }
+
+    .settings-card--tools-compact .settings-card__body,
+    .settings-card--downloader .settings-card__body {
+      display: grid;
+      gap: 8px;
       align-content: start;
     }
 
     .settings-card--tools-compact #tools-info {
       margin: 0;
+      min-width: 0;
+    }
+
+    .settings-control-group {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .settings-control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .settings-control-group--quality {
+      margin-bottom: 12px;
+    }
+
+    .settings-control-group__title {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-quality);
+      opacity: 0.95;
+    }
+
+    .settings-tools-shell {
+      min-height: 100%;
+      display: grid;
+      align-content: start;
+    }
+
+    .settings-card--downloader .settings-control {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.025);
     }
   }
 
@@ -2751,9 +2814,23 @@
       .settings-grid {
         grid-template-columns: 1fr;
         grid-template-areas:
-          "quality"
-          "downloader"
-          "tools";
+          "tools"
+          "downloader";
+      }
+
+      .settings-card--downloader,
+      .settings-card--tools-compact,
+      .settings-card--quality {
+        min-height: 0;
+      }
+    }
+
+    #wgunlock-settings,
+    #backup-settings,
+    #appearance-settings,
+    #other-settings {
+      .settings-grid {
+        grid-template-columns: 1fr;
       }
     }
 

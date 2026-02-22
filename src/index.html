@@ -1323,186 +1323,205 @@
                   <h2 data-i18n="settings.downloader.title">Вкладка «Downloader»</h2>
                 </div>
                 <div class="settings-grid">
-                  <section class="settings-card settings-card--quality">
-                    <h3 class="settings-card__title" data-i18n="settings.downloader.profile.title">
-                      Выбор качества загрузки
-                    </h3>
+                  <section class="settings-card settings-card--tools-top settings-card--tools-compact">
+                    <h3 class="settings-card__title" data-i18n="settings.tools.title">Инструменты</h3>
+                    <p class="settings-card__desc" data-i18n="settings.downloader.tools.hint">
+                      Проверка статуса и обновление зависимостей загрузчика.
+                    </p>
                     <div class="settings-card__body">
-                      <div class="quality-profile-card">
-                        <div class="quality-profile-header">
-                          <div>
-                            <p class="quality-profile-eyebrow" data-i18n="settings.downloader.profile.open">
-                              При открытии
-                            </p>
-                          </div>
-                          <div class="quality-profile-chip">
-                            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
-                            <span data-i18n="settings.downloader.profile.default">
-                              по умолчанию
-                            </span>
-                          </div>
-                        </div>
-                        <ul class="quality-profile-options" id="quality-profile-group">
-                          <li>
-                            <input
-                              type="radio"
-                              id="quality-profile-remember"
-                              name="downloadQualityProfile"
-                              value="remember"
-                              checked
-                            />
-                            <label for="quality-profile-remember">
-                              <span class="quality-option-icon" aria-hidden="true">
-                                <i class="fa-solid fa-rotate"></i>
-                              </span>
-                              <span class="quality-option-text">
-                                <strong data-i18n="settings.downloader.profile.remember.title">
-                                  Последний выбор
-                                </strong>
-                                <small data-i18n="settings.downloader.profile.remember.desc">
-                                  Откроет тот же тип потока, что и в прошлый раз.
-                                </small>
-                              </span>
-                              <span class="quality-option-check" aria-hidden="true"></span>
-                            </label>
-                          </li>
-                          <li>
-                            <input
-                              type="radio"
-                              id="quality-profile-audio"
-                              name="downloadQualityProfile"
-                              value="audio"
-                            />
-                            <label for="quality-profile-audio">
-                              <span class="quality-option-icon" aria-hidden="true">
-                                <i class="fa-solid fa-music"></i>
-                              </span>
-                              <span class="quality-option-text">
-                                <strong data-i18n="settings.downloader.profile.audio.title">
-                                  Аудио
-                                </strong>
-                                <small data-i18n="settings.downloader.profile.audio.desc">
-                                  Открывает только звуковые дорожки без видео.
-                                </small>
-                              </span>
-                              <span class="quality-option-check" aria-hidden="true"></span>
-                            </label>
-                          </li>
-                        </ul>
+                      <div class="settings-tools-shell">
+                        <section id="tools-info" class="settings-section">
+                          <p class="muted" data-i18n="settings.tools.loading">
+                            Загружаем сведения о зависимостях…
+                          </p>
+                        </section>
                       </div>
                     </div>
                   </section>
 
                   <section class="settings-card settings-card--downloader">
                     <h3 class="settings-card__title" data-i18n="settings.tabs.downloader">Downloader</h3>
+                    <p class="settings-card__desc" data-i18n="settings.downloader.layout.hint">
+                      Основные параметры загрузки и поведения окна.
+                    </p>
                     <div class="settings-card__body">
-                      <ul class="module settings-control-list">
-                        <li class="settings-control">
-                          <div class="settings-parallel-item">
-                            <i class="fa-solid fa-layer-group"></i>
-                            <div class="settings-parallel-meta">
-                              <span data-i18n="settings.downloader.parallel.title">
-                                Одновременные загрузки
+                      <div class="settings-control-group settings-control-group--quality">
+                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.profile.title">
+                          Выбор качества загрузки
+                        </h4>
+                        <div class="quality-profile-card">
+                          <div class="quality-profile-header">
+                            <div>
+                              <p class="quality-profile-eyebrow" data-i18n="settings.downloader.profile.open">
+                                При открытии
+                              </p>
+                            </div>
+                            <div class="quality-profile-chip">
+                              <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                              <span data-i18n="settings.downloader.profile.default">
+                                по умолчанию
                               </span>
-                              <small
-                                class="settings-parallel-hint"
-                                data-i18n="settings.downloader.parallel.hint"
-                              >
-                                2 быстрее, но выше нагрузка на систему.
-                              </small>
                             </div>
-                            <div
-                              class="settings-parallel-segment"
-                              id="settings-download-parallel-segment"
-                              role="radiogroup"
-                              aria-label="Одновременные загрузки"
-                              data-i18n-aria="settings.downloader.parallel.aria"
-                            >
-                              <button
-                                type="button"
-                                class="settings-parallel-segment__btn"
-                                id="settings-download-parallel-1"
-                                role="radio"
-                                aria-checked="false"
-                                data-limit="1"
-                                data-i18n="settings.downloader.parallel.option1"
-                              >
-                                1
-                              </button>
-                              <button
-                                type="button"
-                                class="settings-parallel-segment__btn"
-                                id="settings-download-parallel-2"
-                                role="radio"
-                                aria-checked="true"
-                                data-limit="2"
-                                data-i18n="settings.downloader.parallel.option2"
-                              >
-                                2
-                              </button>
-                            </div>
-                            <strong id="settings-download-parallel-value">2</strong>
                           </div>
-                        </li>
-                        <li class="settings-control">
-                          <input
-                            type="checkbox"
-                            id="settings-expand-window-after-load"
-                          />
-                          <label for="settings-expand-window-after-load">
-                            <i class="fa-solid fa-maximize"></i>
-                            <span data-i18n-html="settings.downloader.expandAfter">
-                              Разворачивать окно <strong>по окончанию загрузки</strong>
-                            </span>
-                          </label>
-                        </li>
-                        <li class="settings-control">
-                          <input type="checkbox" id="settings-expand-window-copy" />
-                          <label for="settings-expand-window-copy">
-                            <i class="fa-solid fa-maximize"></i>
-                            <span data-i18n-html="settings.downloader.expandOnCopy">
-                              Разворачивать окно <strong>при копировании URL</strong>
-                            </span>
-                          </label>
-                        </li>
-                        <li class="settings-control">
-                          <input
-                            type="checkbox"
-                            id="settings-disable-complete-modal-toggle"
-                          />
-                          <label for="settings-disable-complete-modal-toggle">
-                            <i class="fa-solid fa-window-close"></i>
-                            <span data-i18n-html="settings.downloader.disableComplete">
-                              Отключить <strong>окно открытия файла</strong> после
-                              завершения загрузки
-                            </span>
-                          </label>
-                        </li>
-                        <li class="settings-control">
-                          <input
-                            type="checkbox"
-                            id="settings-show-tools-status"
-                            checked
-                          />
-                          <label for="settings-show-tools-status">
-                            <i class="fa-solid fa-eye"></i>
-                            <span data-i18n="settings.downloader.toolsStatus">
-                              Показывать статус инструментов
-                            </span>
-                          </label>
-                        </li>
-                      </ul>
-                    </div>
-                  </section>
+                          <ul class="quality-profile-options" id="quality-profile-group">
+                            <li>
+                              <input
+                                type="radio"
+                                id="quality-profile-remember"
+                                name="downloadQualityProfile"
+                                value="remember"
+                                checked
+                              />
+                              <label for="quality-profile-remember">
+                                <span class="quality-option-icon" aria-hidden="true">
+                                  <i class="fa-solid fa-rotate"></i>
+                                </span>
+                                <span class="quality-option-text">
+                                  <strong data-i18n="settings.downloader.profile.remember.title">
+                                    Последний выбор
+                                  </strong>
+                                  <small data-i18n="settings.downloader.profile.remember.desc">
+                                    Откроет тот же тип потока, что и в прошлый раз.
+                                  </small>
+                                </span>
+                                <span class="quality-option-check" aria-hidden="true"></span>
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="radio"
+                                id="quality-profile-audio"
+                                name="downloadQualityProfile"
+                                value="audio"
+                              />
+                              <label for="quality-profile-audio">
+                                <span class="quality-option-icon" aria-hidden="true">
+                                  <i class="fa-solid fa-music"></i>
+                                </span>
+                                <span class="quality-option-text">
+                                  <strong data-i18n="settings.downloader.profile.audio.title">
+                                    Аудио
+                                  </strong>
+                                  <small data-i18n="settings.downloader.profile.audio.desc">
+                                    Открывает только звуковые дорожки без видео.
+                                  </small>
+                                </span>
+                                <span class="quality-option-check" aria-hidden="true"></span>
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
 
-                  <section class="settings-card settings-card--tools-compact">
-                    <h3 class="settings-card__title" data-i18n="settings.tools.title">Инструменты</h3>
-                    <div class="settings-card__body">
-                      <section id="tools-info" class="settings-section">
-                        <p class="muted" data-i18n="settings.tools.loading">
-                          Загружаем сведения о зависимостях…
-                        </p>
-                      </section>
+                      <div class="settings-control-group">
+                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.parallel">
+                          Параллельность и запуск
+                        </h4>
+                        <ul class="module settings-control-list">
+                          <li class="settings-control">
+                            <div class="settings-parallel-item">
+                              <i class="fa-solid fa-layer-group"></i>
+                              <div class="settings-parallel-meta">
+                                <span data-i18n="settings.downloader.parallel.title">
+                                  Одновременные загрузки
+                                </span>
+                                <small
+                                  class="settings-parallel-hint"
+                                  data-i18n="settings.downloader.parallel.hint"
+                                >
+                                  2 быстрее, но выше нагрузка на систему.
+                                </small>
+                              </div>
+                              <div
+                                class="settings-parallel-segment"
+                                id="settings-download-parallel-segment"
+                                role="radiogroup"
+                                aria-label="Одновременные загрузки"
+                                data-i18n-aria="settings.downloader.parallel.aria"
+                              >
+                                <button
+                                  type="button"
+                                  class="settings-parallel-segment__btn"
+                                  id="settings-download-parallel-1"
+                                  role="radio"
+                                  aria-checked="false"
+                                  data-limit="1"
+                                  data-i18n="settings.downloader.parallel.option1"
+                                >
+                                  1
+                                </button>
+                                <button
+                                  type="button"
+                                  class="settings-parallel-segment__btn"
+                                  id="settings-download-parallel-2"
+                                  role="radio"
+                                  aria-checked="true"
+                                  data-limit="2"
+                                  data-i18n="settings.downloader.parallel.option2"
+                                >
+                                  2
+                                </button>
+                              </div>
+                              <strong id="settings-download-parallel-value">2</strong>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div class="settings-control-group">
+                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.behavior">
+                          Поведение окна и завершения
+                        </h4>
+                        <ul class="module settings-control-list">
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-expand-window-after-load"
+                            />
+                            <label for="settings-expand-window-after-load">
+                              <i class="fa-solid fa-maximize"></i>
+                              <span data-i18n-html="settings.downloader.expandAfter">
+                                Разворачивать окно <strong>по окончанию загрузки</strong>
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input type="checkbox" id="settings-expand-window-copy" />
+                            <label for="settings-expand-window-copy">
+                              <i class="fa-solid fa-maximize"></i>
+                              <span data-i18n-html="settings.downloader.expandOnCopy">
+                                Разворачивать окно <strong>при копировании URL</strong>
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-disable-complete-modal-toggle"
+                            />
+                            <label for="settings-disable-complete-modal-toggle">
+                              <i class="fa-solid fa-window-close"></i>
+                              <span data-i18n-html="settings.downloader.disableComplete">
+                                Отключить <strong>окно открытия файла</strong> после
+                                завершения загрузки
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-show-tools-status"
+                              checked
+                            />
+                            <label for="settings-show-tools-status">
+                              <i class="fa-solid fa-eye"></i>
+                              <span data-i18n="settings.downloader.toolsStatus">
+                                Показывать статус инструментов
+                              </span>
+                            </label>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </section>
                 </div>
