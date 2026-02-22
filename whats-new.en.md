@@ -27,6 +27,10 @@
 - **Settings readability is improved**: clearer block titles and tighter spacing make common toggles faster to find.
 - **Made the Downloader Settings “Quality profile” block more compact**: option cards are now tighter and shorter, so the section takes less vertical space.
 - **Fully redesigned the Downloader Settings “Quality profile” block**: two large cards were replaced with a compact mode segment and a short contextual summary.
+- **In the Tools tab, File Sorter was moved to an “Unavailable” section**: its card is now shown as disabled and no longer launches from the launcher.
+- **Added a Developer section in Settings -> Other**: entering a secret word now unlocks hidden functions in the Tools tab.
+- **Developer mode is now session-based**: after restarting the app, it must be unlocked again.
+- **When developer mode is active, the button switches to “Disable”**: you can quickly turn hidden functions off without restarting.
 - **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
 - **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
 - **Improved the Backup “Tips” block**: it now appears on the right side of the tab header, and is hidden on small screens for a cleaner layout.
@@ -159,3 +163,4 @@
 - **Downloader options are grouped more logically**: parallel/startup controls are separated from window/completion behavior for faster scanning.
 - **Quality profile was moved into the Downloader settings card**: key download options are now grouped in one place for faster setup.
 - **Settings cards now use full width in Tools, Backup, Appearance, and Other tabs**: the layout is cleaner and easier to scan for longer options.
+- **Power Shortcuts on macOS are now developer-mode only**: in normal mode the tool is shown as unavailable and cannot be opened.

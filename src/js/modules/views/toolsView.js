@@ -105,8 +105,10 @@ export default function renderToolsView() {
   const LAST_TOOL_KEY = "toolsLastView";
   const REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
   const SORTER_LAST_FOLDER_KEY = "toolsSorterLastFolder";
+  const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
   let currentToolView = "launcher";
   let toolsPlatformInfo = { isWindows: false, platform: "" };
+  let developerToolsUnlocked = false;
   let sorterSelectedFolder = "";
   let wgHowtoPrevOverflow = null;
   let powerHowtoPrevOverflow = null;
@@ -619,13 +621,39 @@ export default function renderToolsView() {
                 Создание ярлыков в Windows.
               </small>
             </button>
-            <button id="tools-open-sorter" type="button" class="tools-launcher-button">
+          </div>
+
+          <div
+            id="tools-launcher-unavailable-section"
+            class="tools-launcher-unavailable-section"
+          >
+            <h3
+              class="tools-launcher-unavailable-title"
+              data-i18n="tools.launcher.unavailableTitle"
+            >
+              Недоступно
+            </h3>
+            <div class="tools-launcher-unavailable-grid">
+              <button
+                id="tools-open-sorter"
+                type="button"
+                class="tools-launcher-button is-unavailable"
+                disabled
+                aria-disabled="true"
+              >
               <i class="fa-solid fa-folder-tree"></i>
               <span data-i18n="tools.launcher.open.sorter">File Sorter</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
                 Сортировка файлов по категориям.
               </small>
-            </button>
+              <small
+                class="tools-launcher-button__unavailable"
+                data-i18n="tools.launcher.unavailable.sorter"
+              >
+                Временно недоступно
+              </small>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1419,18 +1447,33 @@ export default function renderToolsView() {
   container.appendChild(view);
   applyI18n(view);
 
-  const isPowerToolVisible = (info = toolsPlatformInfo) => {
+  const isPowerToolSupportedPlatform = (info = toolsPlatformInfo) => {
     const platform = String(info?.platform || "");
     return !!info?.isWindows || platform === "darwin";
   };
 
+  const isPowerToolAvailable = (info = toolsPlatformInfo) => {
+    const platform = String(info?.platform || "");
+    if (info?.isWindows) return true;
+    if (platform === "darwin") return developerToolsUnlocked;
+    return false;
+  };
+
+  const readDeveloperToolsUnlocked = () => {
+    try {
+      return window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] === true;
+    } catch {
+      return false;
+    }
+  };
+
   const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
-    if (toolView === "power") return isPowerToolVisible(info);
+    if (toolView === "power") return isPowerToolAvailable(info);
+    if (toolView === "sorter") return developerToolsUnlocked;
     return (
       toolView === "launcher" ||
       toolView === "wg" ||
-      toolView === "hash" ||
-      toolView === "sorter"
+      toolView === "hash"
     );
   };
 
@@ -1710,6 +1753,14 @@ export default function renderToolsView() {
   // =============================================
 
   const setupEventHandlers = () => {
+    const launcherAvailableGrid = view.querySelector(".tools-launcher-grid");
+    const launcherUnavailableSection = getEl(
+      "tools-launcher-unavailable-section",
+      view,
+    );
+    const launcherUnavailableGrid = view.querySelector(
+      ".tools-launcher-unavailable-grid",
+    );
     const openWgBtn = getEl("tools-open-wg", view);
     const openHashBtn = getEl("tools-open-hash", view);
     const openPowerBtn = getEl("tools-open-power", view);
@@ -1718,10 +1769,72 @@ export default function renderToolsView() {
     const breadcrumbHomeBtn = getEl("tools-breadcrumb-home", view);
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
 
+    const applyDeveloperToolsAvailability = () => {
+      developerToolsUnlocked = readDeveloperToolsUnlocked();
+      if (
+        !openPowerBtn ||
+        !openSorterBtn ||
+        !launcherAvailableGrid ||
+        !launcherUnavailableGrid ||
+        !launcherUnavailableSection
+      ) {
+        return;
+      }
+
+      const powerSupported = isPowerToolSupportedPlatform(toolsPlatformInfo);
+      const powerAvailable = isToolAvailable("power");
+      if (!powerSupported) {
+        openPowerBtn.classList.add("hidden");
+        openPowerBtn.disabled = true;
+        openPowerBtn.setAttribute("aria-disabled", "true");
+      } else if (powerAvailable) {
+        openPowerBtn.classList.remove("hidden");
+        if (openPowerBtn.parentElement !== launcherAvailableGrid) {
+          launcherAvailableGrid.appendChild(openPowerBtn);
+        }
+        openPowerBtn.disabled = false;
+        openPowerBtn.removeAttribute("aria-disabled");
+        openPowerBtn.classList.remove("is-unavailable");
+      } else {
+        openPowerBtn.classList.remove("hidden");
+        if (openPowerBtn.parentElement !== launcherUnavailableGrid) {
+          launcherUnavailableGrid.appendChild(openPowerBtn);
+        }
+        openPowerBtn.disabled = true;
+        openPowerBtn.setAttribute("aria-disabled", "true");
+        openPowerBtn.classList.add("is-unavailable");
+      }
+
+      if (developerToolsUnlocked) {
+        if (openSorterBtn.parentElement !== launcherAvailableGrid) {
+          launcherAvailableGrid.appendChild(openSorterBtn);
+        }
+        openSorterBtn.disabled = false;
+        openSorterBtn.removeAttribute("aria-disabled");
+        openSorterBtn.classList.remove("is-unavailable");
+        launcherUnavailableSection.classList.add("hidden");
+      } else {
+        if (openSorterBtn.parentElement !== launcherUnavailableGrid) {
+          launcherUnavailableGrid.appendChild(openSorterBtn);
+        }
+        openSorterBtn.disabled = true;
+        openSorterBtn.setAttribute("aria-disabled", "true");
+        openSorterBtn.classList.add("is-unavailable");
+      }
+      launcherUnavailableSection.classList.toggle(
+        "hidden",
+        launcherUnavailableGrid.children.length === 0,
+      );
+      updateLauncherToolsCount();
+    };
+
     openWgBtn?.addEventListener("click", () => setToolView("wg"));
     openHashBtn?.addEventListener("click", () => setToolView("hash"));
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
-    openSorterBtn?.addEventListener("click", () => setToolView("sorter"));
+    openSorterBtn?.addEventListener("click", () => {
+      if (!isToolAvailable("sorter")) return;
+      setToolView("sorter");
+    });
     backBtn?.addEventListener("click", () =>
       setToolView("launcher", { persist: false, focusLauncher: true }),
     );
@@ -1731,6 +1844,20 @@ export default function renderToolsView() {
     breadcrumbToolsBtn?.addEventListener("click", () =>
       setToolView("launcher", { persist: false, focusLauncher: true }),
     );
+
+    onWindowEvent("tools:developer-unlock-changed", (event) => {
+      const enabled = !!event?.detail?.enabled;
+      try {
+        window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] = enabled;
+      } catch {}
+      developerToolsUnlocked = enabled;
+      applyDeveloperToolsAvailability();
+      if (!isToolAvailable(currentToolView)) {
+        setToolView("launcher", { persist: false, focusLauncher: true });
+      } else if (currentToolView === "launcher") {
+        setToolView("launcher", { persist: false });
+      }
+    });
 
     // Отправка по Enter и Ctrl/Cmd+Enter
     view.addEventListener("keydown", (e) => {
@@ -2043,7 +2170,7 @@ export default function renderToolsView() {
       setToolView(currentToolView, { persist: false });
       setPowerAvailabilityUi({
         isWindows: isWindowsPlatform,
-        showTool: isPowerToolVisible(toolsPlatformInfo),
+        showTool: isPowerToolSupportedPlatform(toolsPlatformInfo),
       });
     });
 
@@ -3376,11 +3503,12 @@ export default function renderToolsView() {
     updatePowerHowtoUi();
 
     isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
-    const showPowerTool = isPowerToolVisible(toolsPlatformInfo);
+    const showPowerTool = isPowerToolSupportedPlatform(toolsPlatformInfo);
     setPowerAvailabilityUi({
       isWindows: isWindowsPlatform,
       showTool: showPowerTool,
     });
+    applyDeveloperToolsAvailability();
   };
 
   const handleSend = () => {
@@ -3573,6 +3701,7 @@ export default function renderToolsView() {
         platform: "",
       };
       isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
+      developerToolsUnlocked = readDeveloperToolsUnlocked();
       setToolView(resolveInitialToolView(), { persist: false });
 
       await loadConfiguration();

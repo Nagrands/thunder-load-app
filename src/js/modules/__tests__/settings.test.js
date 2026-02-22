@@ -210,6 +210,7 @@ describe("download quality profile segment", () => {
     jest.resetModules();
     localStorage.clear();
     global.window = global.window || {};
+    delete window.__thunder_dev_tools_unlocked__;
     window.electron = {
       invoke: jest.fn().mockResolvedValue({ success: true }),
       on: jest.fn(),
@@ -306,6 +307,108 @@ describe("download quality profile segment", () => {
     const audio = document.getElementById("quality-profile-segment-audio");
     expect(remember?.classList.contains("is-active")).toBe(true);
     expect(audio?.classList.contains("is-active")).toBe(false);
+  });
+});
+
+describe("developer tools gate", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    delete window.__thunder_dev_tools_unlocked__;
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({ success: true }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  const renderDevGateDom = () => {
+    document.body.innerHTML = `
+      <div id="other-settings">
+        <input id="settings-developer-secret-input" />
+        <button id="settings-developer-activate-button" type="button"></button>
+        <small id="settings-developer-status"></small>
+      </div>`;
+  };
+
+  it("activates developer tools with correct secret word", async () => {
+    renderDevGateDom();
+    const events = [];
+    window.addEventListener("tools:developer-unlock-changed", (event) => {
+      events.push(event.detail);
+    });
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const input = document.getElementById("settings-developer-secret-input");
+    const button = document.getElementById("settings-developer-activate-button");
+    const status = document.getElementById("settings-developer-status");
+    input.value = "thunder-dev";
+    button?.click();
+
+    expect(window.__thunder_dev_tools_unlocked__).toBe(true);
+    expect(button?.textContent).toBe("settings.developer.deactivate");
+    expect(status?.textContent).toBe("settings.developer.status.enabled");
+    expect(events).toEqual(expect.arrayContaining([{ enabled: true }]));
+    expect(
+      window.electron.invoke.mock.calls.some(
+        (args) =>
+          args[0] === "toast" &&
+          args[1] === "settings.developer.unlock.success" &&
+          args[2] === "success",
+      ),
+    ).toBe(true);
+  });
+
+  it("does not activate developer tools with invalid secret", async () => {
+    renderDevGateDom();
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const input = document.getElementById("settings-developer-secret-input");
+    const button = document.getElementById("settings-developer-activate-button");
+    const status = document.getElementById("settings-developer-status");
+    input.value = "wrong";
+    button?.click();
+
+    expect(window.__thunder_dev_tools_unlocked__).not.toBe(true);
+    expect(button?.textContent).toBe("settings.developer.activate");
+    expect(status?.textContent).toBe("settings.developer.status.disabled");
+    expect(
+      window.electron.invoke.mock.calls.some(
+        (args) =>
+          args[0] === "toast" &&
+          args[1] === "settings.developer.unlock.error" &&
+          args[2] === "error",
+      ),
+    ).toBe(true);
+  });
+
+  it("disables developer tools on second click when already enabled", async () => {
+    renderDevGateDom();
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const input = document.getElementById("settings-developer-secret-input");
+    const button = document.getElementById("settings-developer-activate-button");
+    const status = document.getElementById("settings-developer-status");
+    input.value = "thunder-dev";
+    button?.click();
+    button?.click();
+
+    expect(window.__thunder_dev_tools_unlocked__).toBe(false);
+    expect(button?.textContent).toBe("settings.developer.activate");
+    expect(status?.textContent).toBe("settings.developer.status.disabled");
+    expect(
+      window.electron.invoke.mock.calls.some(
+        (args) =>
+          args[0] === "toast" &&
+          args[1] === "settings.developer.lock.success" &&
+          args[2] === "success",
+      ),
+    ).toBe(true);
   });
 });
 

@@ -46,6 +46,7 @@ describe("toolsView quick actions", () => {
     showConfirmationDialog.mockReset();
     showConfirmationDialog.mockResolvedValue(true);
     localStorage.clear();
+    delete window.__thunder_dev_tools_unlocked__;
     localStorage.setItem("wgUnlockDisabled", "false");
     document.body.innerHTML = "";
 
@@ -151,16 +152,20 @@ describe("toolsView quick actions", () => {
     });
   });
 
-  test("opens launcher by default and shows power tool on macos", async () => {
+  test("opens launcher by default and keeps power tool unavailable on macos", async () => {
     const el = await renderView();
+    const powerBtn = el.querySelector("#tools-open-power");
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
     ).toBe(false);
     expect(el.querySelector("#tools-open-wg")).not.toBeNull();
     expect(el.querySelector("#tools-open-hash")).not.toBeNull();
+    expect(powerBtn?.classList.contains("hidden")).toBe(false);
+    expect(powerBtn?.disabled).toBe(true);
+    expect(powerBtn?.classList.contains("is-unavailable")).toBe(true);
     expect(
-      el.querySelector("#tools-open-power")?.classList.contains("hidden"),
-    ).toBe(false);
+      powerBtn?.closest("#tools-launcher-unavailable-section"),
+    ).not.toBeNull();
   });
 
   test("renders combined header with breadcrumbs and tools section header", async () => {
@@ -182,7 +187,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 4",
+      "tools.launcher.totalLabel: 2",
     );
   });
 
@@ -194,7 +199,7 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#tools-launcher-shortcut-power")).toBeNull();
   });
 
-  test("renders four launcher buttons on windows", async () => {
+  test("renders available and unavailable sections on windows", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
@@ -203,7 +208,13 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector("#tools-open-power")?.classList.contains("hidden"),
     ).toBe(false);
-    expect(el.querySelectorAll(".tools-launcher-button").length).toBe(4);
+    expect(el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length).toBe(3);
+    expect(
+      el.querySelector("#tools-launcher-unavailable-section"),
+    ).not.toBeNull();
+    expect(
+      el.querySelector("#tools-open-sorter")?.classList.contains("is-unavailable"),
+    ).toBe(true);
   });
 
   test("opens launcher by default even if last tool is stored", async () => {
@@ -249,8 +260,69 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 3",
+      "tools.launcher.totalLabel: 2",
     );
+  });
+
+  test("falls back to launcher when last view sorter is remembered", async () => {
+    localStorage.setItem("toolsRememberLastView", "true");
+    localStorage.setItem("toolsLastView", "sorter");
+    const el = await renderView();
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector('[data-tool-view="sorter"]')
+        ?.classList.contains("hidden"),
+    ).toBe(true);
+  });
+
+  test("keeps File Sorter in unavailable section and prevents opening it", async () => {
+    const el = await renderView();
+    const sorterBtn = el.querySelector("#tools-open-sorter");
+    expect(
+      sorterBtn?.closest("#tools-launcher-unavailable-section"),
+    ).not.toBeNull();
+    expect(sorterBtn?.disabled).toBe(true);
+    expect(sorterBtn?.getAttribute("aria-disabled")).toBe("true");
+
+    sorterBtn?.click();
+    await nextTick();
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector('[data-tool-view="sorter"]')
+        ?.classList.contains("hidden"),
+    ).toBe(true);
+  });
+
+  test("unlocks File Sorter when developer mode is enabled", async () => {
+    window.__thunder_dev_tools_unlocked__ = true;
+    const el = await renderView();
+    const sorterBtn = el.querySelector("#tools-open-sorter");
+    const powerBtn = el.querySelector("#tools-open-power");
+
+    expect(
+      el.querySelector("#tools-launcher-unavailable-section")?.classList.contains("hidden"),
+    ).toBe(true);
+    expect(sorterBtn?.disabled).toBe(false);
+    expect(sorterBtn?.classList.contains("is-unavailable")).toBe(false);
+    expect(powerBtn?.disabled).toBe(false);
+    expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
+    expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
+      "tools.launcher.totalLabel: 4",
+    );
+
+    sorterBtn?.click();
+    await nextTick();
+    expect(
+      el
+        .querySelector('[data-tool-view="sorter"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
   });
 
   test("does not render converter placeholder card", async () => {
@@ -351,7 +423,7 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
     const wgBtn = el.querySelector("#tools-open-wg");
-    const sorterBtn = el.querySelector("#tools-open-sorter");
+    const hashBtn = el.querySelector("#tools-open-hash");
     wgBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -360,7 +432,7 @@ describe("toolsView quick actions", () => {
       }),
     );
     await nextTick();
-    expect(document.activeElement).toBe(sorterBtn);
+    expect(document.activeElement).toBe(hashBtn);
   });
 
   test("does not switch tools with Alt+2", async () => {
@@ -401,284 +473,6 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector('[data-tool-view="wg"]')?.classList.contains("hidden"),
     ).toBe(true);
-  });
-
-  test("sorter picks folder and stores selection", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const openFolderBtn = el.querySelector("#sorter-open-folder");
-    const folderPill = el.querySelector("#sorter-folder-pill");
-    const actionsRow = el.querySelector(".sorter-folder-actions");
-
-    expect(openFolderBtn?.disabled).toBe(true);
-    expect(actionsRow?.children[0]?.id).toBe("sorter-pick-folder");
-    expect(actionsRow?.children[1]?.id).toBe("sorter-folder-pill");
-    expect(actionsRow?.children[2]?.id).toBe("sorter-open-folder");
-
-    pickBtn.click();
-    await nextTick();
-
-    expect(window.electron.tools.pickSorterFolder).toHaveBeenCalledTimes(1);
-    expect(folderPill?.textContent).toBe("/tmp/sorter");
-    expect(folderPill?.getAttribute("title")).toBe("/tmp/sorter");
-    expect(localStorage.getItem("toolsSorterLastFolder")).toBe("/tmp/sorter");
-    expect(openFolderBtn?.disabled).toBe(false);
-  });
-
-  test("sorter opens selected folder", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const openFolderBtn = el.querySelector("#sorter-open-folder");
-
-    pickBtn.click();
-    await nextTick();
-
-    openFolderBtn.click();
-    await nextTick();
-
-    expect(window.electron.tools.openSorterFolder).toHaveBeenCalledWith(
-      "/tmp/sorter",
-    );
-  });
-
-  test("sorter shows warning when run is clicked without folder", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const runBtn = el.querySelector("#sorter-run");
-    const result = el.querySelector("#sorter-result");
-
-    runBtn.click();
-    await nextTick();
-
-    expect(window.electron.tools.sortFilesByCategory).not.toHaveBeenCalled();
-    expect(result?.textContent).toBe("tools.sorter.needFolder");
-    expect(result?.classList.contains("warning")).toBe(true);
-  });
-
-  test("sorter runs in dry-run mode and shows success summary", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const runBtn = el.querySelector("#sorter-run");
-    const dryRun = el.querySelector("#sorter-dry-run");
-    const logPath = el.querySelector("#sorter-log-path");
-    const result = el.querySelector("#sorter-result");
-
-    dryRun.checked = true;
-    logPath.value = "~/sorter.log";
-
-    pickBtn.click();
-    await nextTick();
-    runBtn.click();
-    await nextTick();
-
-    expect(window.electron.tools.sortFilesByCategory).toHaveBeenCalledWith({
-      folderPath: "/tmp/sorter",
-      dryRun: true,
-      logFilePath: "~/sorter.log",
-    });
-    expect(result?.textContent).toContain("tools.sorter.done");
-    expect(result?.textContent).toContain("tools.sorter.dryRunHint");
-    expect(result?.classList.contains("success")).toBe(true);
-  });
-
-  test("sorter renders dry-run preview panel with stats and operations", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const runBtn = el.querySelector("#sorter-run");
-    const dryRun = el.querySelector("#sorter-dry-run");
-    const previewPanel = el.querySelector("#sorter-preview-panel");
-    const previewList = el.querySelector("#sorter-preview-list");
-    const movedStat = el.querySelector("#sorter-preview-stat-moved");
-    const totalStat = el.querySelector("#sorter-preview-stat-total");
-    const skippedStat = el.querySelector("#sorter-preview-stat-skipped");
-    const errorsStat = el.querySelector("#sorter-preview-stat-errors");
-
-    dryRun.checked = true;
-    pickBtn.click();
-    await nextTick();
-    runBtn.click();
-    await nextTick();
-
-    expect(previewPanel?.classList.contains("hidden")).toBe(false);
-    expect(movedStat?.textContent).toBe("2");
-    expect(totalStat?.textContent).toBe("2");
-    expect(skippedStat?.textContent).toBe("0");
-    expect(errorsStat?.textContent).toBe("0");
-    expect(previewList?.querySelectorAll(".sorter-preview-row")).toHaveLength(2);
-  });
-
-  test("sorter dry-run preview shows top 20 operations and remainder", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const operations = Array.from({ length: 25 }).map((_, index) => ({
-      fileName: `file-${index + 1}.txt`,
-      category: "Documents",
-      targetPath: `/tmp/sorter/Documents/file-${index + 1}.txt`,
-    }));
-    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
-      success: true,
-      dryRun: true,
-      moved: 25,
-      totalFiles: 25,
-      skipped: 0,
-      errors: [],
-      operations,
-    });
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const runBtn = el.querySelector("#sorter-run");
-    const dryRun = el.querySelector("#sorter-dry-run");
-    const previewList = el.querySelector("#sorter-preview-list");
-    const previewMore = el.querySelector("#sorter-preview-more");
-
-    dryRun.checked = true;
-    pickBtn.click();
-    await nextTick();
-    runBtn.click();
-    await nextTick();
-
-    expect(previewList?.querySelectorAll(".sorter-preview-row")).toHaveLength(20);
-    expect(previewMore?.classList.contains("hidden")).toBe(false);
-    expect(previewMore?.dataset.count).toBe("5");
-    expect(previewMore?.textContent).toBe("tools.sorter.preview.more");
-  });
-
-  test("sorter hides dry-run preview panel on non-dry-run", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
-      success: true,
-      dryRun: false,
-      moved: 2,
-      totalFiles: 2,
-      skipped: 0,
-      errors: [],
-      operations: [
-        {
-          fileName: "first.txt",
-          category: "Documents",
-          targetPath: "/tmp/sorter/Documents/first.txt",
-        },
-      ],
-    });
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const runBtn = el.querySelector("#sorter-run");
-    const previewPanel = el.querySelector("#sorter-preview-panel");
-
-    pickBtn.click();
-    await nextTick();
-    runBtn.click();
-    await nextTick();
-
-    expect(previewPanel?.classList.contains("hidden")).toBe(true);
-  });
-
-  test("sorter keeps dry-run preview hidden on run error", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
-      success: false,
-      error: "fail",
-    });
-
-    const pickBtn = el.querySelector("#sorter-pick-folder");
-    const runBtn = el.querySelector("#sorter-run");
-    const dryRun = el.querySelector("#sorter-dry-run");
-    const previewPanel = el.querySelector("#sorter-preview-panel");
-
-    dryRun.checked = true;
-    pickBtn.click();
-    await nextTick();
-    runBtn.click();
-    await nextTick();
-
-    expect(previewPanel?.classList.contains("hidden")).toBe(true);
-  });
-
-  test("sorter how-to modal opens and can navigate slides", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const openBtn = el.querySelector("#sorter-open-howto");
-    const modal = el.querySelector("#sorter-howto-modal");
-    const track = el.querySelector("#sorter-howto-track");
-    const prevBtn = el.querySelector("#sorter-howto-prev");
-    const nextBtn = el.querySelector("#sorter-howto-next");
-
-    openBtn.click();
-    await nextTick();
-
-    expect(modal?.classList.contains("hidden")).toBe(false);
-    expect(modal?.getAttribute("aria-hidden")).toBe("false");
-    expect(prevBtn?.disabled).toBe(true);
-    expect(nextBtn?.disabled).toBe(false);
-    expect(track?.style.transform).toBe("translateX(-0%)");
-
-    nextBtn.click();
-    await nextTick();
-    expect(prevBtn?.disabled).toBe(false);
-    expect(track?.style.transform).toBe("translateX(-100%)");
-
-    nextBtn.click();
-    nextBtn.click();
-    await nextTick();
-    expect(nextBtn?.disabled).toBe(true);
-    expect(track?.style.transform).toBe("translateX(-300%)");
-  });
-
-  test("sorter how-to modal closes by Escape and returns focus", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const root = el.querySelector("#wireguard-view");
-    const openBtn = el.querySelector("#sorter-open-howto");
-    const modal = el.querySelector("#sorter-howto-modal");
-    const closeBtn = el.querySelector("#sorter-howto-close");
-
-    openBtn.focus();
-    openBtn.click();
-    await nextTick();
-
-    expect(document.activeElement).toBe(closeBtn);
-    root?.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "Escape",
-        bubbles: true,
-      }),
-    );
-    await nextTick();
-
-    expect(modal?.classList.contains("hidden")).toBe(true);
-    expect(document.activeElement).toBe(openBtn);
-  });
-
-  test("sorter how-to modal closes on overlay click", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    const openBtn = el.querySelector("#sorter-open-howto");
-    const modal = el.querySelector("#sorter-howto-modal");
-
-    openBtn.click();
-    await nextTick();
-
-    modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-    await nextTick();
-
-    expect(modal?.classList.contains("hidden")).toBe(true);
   });
 
   test("hash how-to modal opens and can navigate slides", async () => {
@@ -1251,7 +1045,8 @@ describe("toolsView quick actions", () => {
     expect(panel.getAttribute("aria-busy")).toBe("false");
   });
 
-  test("shows power tool on macos but keeps windows actions disabled", async () => {
+  test("shows power tool on macos in developer mode but keeps windows actions disabled", async () => {
+    window.__thunder_dev_tools_unlocked__ = true;
     const el = await renderView();
     await openTool(el, "power");
     const restartCard = el.querySelector("#tools-restart-card");
@@ -1286,6 +1081,20 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     const openPowerBtn = el.querySelector("#tools-open-power");
     expect(openPowerBtn?.classList.contains("hidden")).toBe(true);
+  });
+
+  test("falls back to launcher when last view power is remembered on macos without developer mode", async () => {
+    localStorage.setItem("toolsRememberLastView", "true");
+    localStorage.setItem("toolsLastView", "power");
+    const el = await renderView();
+    expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector('[data-tool-view="power"]')
+        ?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("asks confirmation before restart shortcut IPC call", async () => {

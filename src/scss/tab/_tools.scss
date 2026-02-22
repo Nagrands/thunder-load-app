@@ -1374,9 +1374,29 @@ $wg-max-width: 1200px;
 
 .tools-launcher-inner {
   width: 100%;
+  display: grid;
+  gap: 18px;
 }
 
 .tools-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.tools-launcher-unavailable-section {
+  display: grid;
+  gap: 12px;
+}
+
+.tools-launcher-unavailable-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--color-quality);
+}
+
+.tools-launcher-unavailable-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
@@ -1434,6 +1454,50 @@ $wg-max-width: 1200px;
       0 0 0 3px rgba(var(--color-accent-rgb), 0.35),
       0 14px 28px rgba(4, 10, 25, 0.35);
   }
+}
+
+.tools-launcher-button.is-unavailable {
+  min-height: 210px;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+
+  i {
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  > span,
+  .tools-launcher-button__desc {
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  &:hover,
+  &:active {
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &:focus-visible {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  }
+}
+
+.tools-launcher-button__unavailable {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .tools-views {
@@ -2244,6 +2308,10 @@ $wg-max-width: 1200px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .tools-launcher-unavailable-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .tools-wg-advanced-grid {
     grid-template-columns: 1fr;
   }
@@ -2275,6 +2343,10 @@ $wg-max-width: 1200px;
   }
 
   .tools-launcher-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tools-launcher-unavailable-grid {
     grid-template-columns: 1fr;
   }
 

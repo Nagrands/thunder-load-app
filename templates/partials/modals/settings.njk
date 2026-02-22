@@ -788,6 +788,51 @@
                     </div>
                   </section>
 
+                  <section class="settings-card">
+                    <h3 class="settings-card__title" data-i18n="settings.developer.title">
+                      Для разработчика
+                    </h3>
+                    <p class="settings-card__desc" data-i18n="settings.developer.hint">
+                      Введите секретное слово, чтобы активировать скрытые функции во вкладке Tools.
+                    </p>
+                    <div class="settings-card__body">
+                      <div class="settings-developer-gate">
+                        <label
+                          for="settings-developer-secret-input"
+                          class="settings-developer-gate__label"
+                          data-i18n="settings.developer.secret.label"
+                        >
+                          Секретное слово
+                        </label>
+                        <div class="settings-developer-gate__controls">
+                          <input
+                            type="password"
+                            id="settings-developer-secret-input"
+                            class="settings-developer-gate__input"
+                            autocomplete="off"
+                            placeholder="Введите слово"
+                            data-i18n-placeholder="settings.developer.secret.placeholder"
+                          />
+                          <button
+                            type="button"
+                            id="settings-developer-activate-button"
+                            class="settings-developer-gate__button"
+                            data-i18n="settings.developer.activate"
+                          >
+                            Активировать
+                          </button>
+                        </div>
+                        <small
+                          id="settings-developer-status"
+                          class="settings-developer-gate__status muted"
+                          data-i18n="settings.developer.status.disabled"
+                        >
+                          Функции разработчика выключены
+                        </small>
+                      </div>
+                    </div>
+                  </section>
+
                   <section class="settings-card settings-card--stacked">
                     <h3 class="settings-card__title" data-i18n="settings.other.appConfig">Настройки приложения</h3>
                     <div class="settings-card__body">

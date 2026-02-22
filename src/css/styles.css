@@ -17267,6 +17267,62 @@ hr {
 .settings-modal .settings-control .dropdown {
   margin-left: auto;
 }
+.settings-modal .settings-developer-gate {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+.settings-modal .settings-developer-gate__label {
+  font-size: 12px;
+  color: var(--color-quality);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.settings-modal .settings-developer-gate__controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.settings-modal .settings-developer-gate__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-main);
+  padding: 0 10px;
+}
+.settings-modal .settings-developer-gate__input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.settings-modal .settings-developer-gate__button {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.35);
+  background: rgba(var(--color-accent-rgb), 0.18);
+  color: var(--color-text-main);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.settings-modal .settings-developer-gate__button:hover {
+  border-color: rgba(var(--color-accent-rgb), 0.5);
+  background: rgba(var(--color-accent-rgb), 0.26);
+}
+.settings-modal .settings-developer-gate__button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.settings-modal .settings-developer-gate__status.success {
+  color: #5ce3a5;
+}
 .settings-modal .settings-control .dropdown-reset {
   margin-left: 8px;
   flex-shrink: 0;
@@ -17405,6 +17461,10 @@ hr {
   }
   .settings-modal .settings-control {
     padding: 8px;
+  }
+  .settings-modal .settings-developer-gate__controls {
+    flex-direction: column;
+    align-items: stretch;
   }
   .settings-modal .settings-control label {
     gap: 6px;
@@ -21288,9 +21348,29 @@ video {
 
 .tools-launcher-inner {
   width: 100%;
+  display: grid;
+  gap: 18px;
 }
 
 .tools-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.tools-launcher-unavailable-section {
+  display: grid;
+  gap: 12px;
+}
+
+.tools-launcher-unavailable-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--color-quality);
+}
+
+.tools-launcher-unavailable-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
@@ -21333,6 +21413,45 @@ video {
   outline: none;
   border-color: rgba(var(--color-accent-rgb), 0.9);
   box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.35), 0 14px 28px rgba(4, 10, 25, 0.35);
+}
+
+.tools-launcher-button.is-unavailable {
+  min-height: 210px;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+.tools-launcher-button.is-unavailable i {
+  color: rgba(255, 255, 255, 0.42);
+}
+.tools-launcher-button.is-unavailable > span,
+.tools-launcher-button.is-unavailable .tools-launcher-button__desc {
+  color: rgba(255, 255, 255, 0.62);
+}
+.tools-launcher-button.is-unavailable:hover, .tools-launcher-button.is-unavailable:active {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.03);
+}
+.tools-launcher-button.is-unavailable:focus-visible {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.tools-launcher-button__unavailable {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .tools-views {
@@ -22068,6 +22187,9 @@ video {
   .tools-launcher-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .tools-launcher-unavailable-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .tools-wg-advanced-grid {
     grid-template-columns: 1fr;
   }
@@ -22093,6 +22215,9 @@ video {
     font-size: 1.45rem;
   }
   .tools-launcher-grid {
+    grid-template-columns: 1fr;
+  }
+  .tools-launcher-unavailable-grid {
     grid-template-columns: 1fr;
   }
   .tools-launcher-button {
