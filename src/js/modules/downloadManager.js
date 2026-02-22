@@ -1407,7 +1407,7 @@ function initDownloadButton() {
   window.addEventListener("download:parallel-limit-changed", (event) => {
     const nextLimit = Math.max(
       1,
-      Math.min(3, Number(event?.detail?.limit) || PARALLEL_DOWNLOAD_LIMIT),
+      Math.min(2, Number(event?.detail?.limit) || PARALLEL_DOWNLOAD_LIMIT),
     );
     state.maxParallelDownloads = nextLimit;
     syncDownloadState();

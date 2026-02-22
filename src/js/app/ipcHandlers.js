@@ -105,7 +105,13 @@ function setupIpcHandlers(dependencies) {
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;
-  const MAX_PARALLEL_DOWNLOADS = 2;
+  const normalizeParallelDownloadLimit = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 2;
+    return Math.max(1, Math.min(2, Math.trunc(n)));
+  };
+  const getParallelDownloadLimit = () =>
+    normalizeParallelDownloadLimit(store.get("downloadParallelLimit", 2));
 
   try {
     setSharedStore(store);
@@ -2283,8 +2289,9 @@ function setupIpcHandlers(dependencies) {
       if (!downloadState.activeDownloads) {
         downloadState.activeDownloads = new Map();
       }
+      const parallelLimit = getParallelDownloadLimit();
       log.info("[queue] download-video invoked", { url, quality, jobId });
-      if (downloadState.activeDownloads.size >= MAX_PARALLEL_DOWNLOADS) {
+      if (downloadState.activeDownloads.size >= parallelLimit) {
         throw new Error("Parallel download limit reached");
       }
 
@@ -2357,6 +2364,16 @@ function setupIpcHandlers(dependencies) {
       log.error("Invalid download path:", error);
       return { success: false, error: error.message };
     }
+  });
+
+  ipcMain.handle(CHANNELS.SET_DOWNLOAD_PARALLEL_LIMIT, async (_event, value) => {
+    const limit = normalizeParallelDownloadLimit(value);
+    store.set("downloadParallelLimit", limit);
+    return { success: true, limit };
+  });
+
+  ipcMain.handle(CHANNELS.GET_DOWNLOAD_PARALLEL_LIMIT, async () => {
+    return getParallelDownloadLimit();
   });
 
   ipcMain.handle(CHANNELS.GET_DOWNLOAD_PATH, async () => {

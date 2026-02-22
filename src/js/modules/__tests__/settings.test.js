@@ -204,3 +204,66 @@ describe("language dropdown initializes and updates language", () => {
     expect(setLanguage).toHaveBeenCalledWith("en");
   });
 });
+
+describe("download parallel limit toggle", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({ success: true, limit: 2 }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("migrates legacy value 3 to 2 and reflects toggle state", async () => {
+    localStorage.setItem("downloadParallelLimit", "3");
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <input type="checkbox" id="settings-download-parallel-toggle" />
+        <strong id="settings-download-parallel-value"></strong>
+      </div>`;
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const toggle = document.getElementById("settings-download-parallel-toggle");
+    const value = document.getElementById("settings-download-parallel-value");
+    expect(localStorage.getItem("downloadParallelLimit")).toBe("2");
+    expect(toggle?.checked).toBe(true);
+    expect(value?.textContent).toBe("2");
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-download-parallel-limit",
+      2,
+    );
+  });
+
+  it("writes 1/2 and dispatches download:parallel-limit-changed on toggle", async () => {
+    localStorage.setItem("downloadParallelLimit", "2");
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <input type="checkbox" id="settings-download-parallel-toggle" checked />
+        <strong id="settings-download-parallel-value"></strong>
+      </div>`;
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    let eventDetail = null;
+    window.addEventListener("download:parallel-limit-changed", (event) => {
+      eventDetail = event?.detail || null;
+    });
+
+    const toggle = document.getElementById("settings-download-parallel-toggle");
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event("change"));
+
+    expect(localStorage.getItem("downloadParallelLimit")).toBe("1");
+    expect(eventDetail).toEqual({ limit: 1 });
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-download-parallel-limit",
+      1,
+    );
+  });
+});

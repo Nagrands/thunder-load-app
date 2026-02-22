@@ -109,8 +109,13 @@ describe("ipcHandlers tools quick actions", () => {
     });
   });
 
-  function initHandlers() {
+  function initHandlers({ storeValues = {} } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
+    const storeGet = jest.fn((key, def) =>
+      Object.prototype.hasOwnProperty.call(storeValues, key)
+        ? storeValues[key]
+        : def,
+    );
     setupIpcHandlers({
       mainWindow: {
         webContents: {
@@ -120,7 +125,7 @@ describe("ipcHandlers tools quick actions", () => {
         },
       },
       store: {
-        get: jest.fn((key, def) => def),
+        get: storeGet,
         set: jest.fn(),
         delete: jest.fn(),
       },
@@ -450,8 +455,13 @@ describe("ipcHandlers download pool", () => {
     jest.clearAllMocks();
   });
 
-  function initHandlers() {
+  function initHandlers({ storeValues = {} } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
+    const storeGet = jest.fn((key, def) =>
+      Object.prototype.hasOwnProperty.call(storeValues, key)
+        ? storeValues[key]
+        : def,
+    );
     setupIpcHandlers({
       mainWindow: {
         webContents: {
@@ -461,7 +471,7 @@ describe("ipcHandlers download pool", () => {
         },
       },
       store: {
-        get: jest.fn((key, def) => def),
+        get: storeGet,
         set: jest.fn(),
         delete: jest.fn(),
       },
@@ -523,7 +533,7 @@ describe("ipcHandlers download pool", () => {
       return Promise.resolve("/tmp/file-3.mp4");
     });
 
-    initHandlers();
+    initHandlers({ storeValues: { downloadParallelLimit: 2 } });
     const event = { sender: { send: jest.fn() } };
     const p1 = handlers[CHANNELS.DOWNLOAD_VIDEO](
       event,
@@ -557,6 +567,56 @@ describe("ipcHandlers download pool", () => {
     await expect(p2).resolves.toEqual(
       expect.objectContaining({
         sourceUrl: expect.stringContaining("https://example.com/b"),
+      }),
+    );
+  });
+
+  test("rejects second DOWNLOAD_VIDEO when parallel limit is set to 1", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const { getToolsVersions } = require("../toolsVersions");
+    const mediaA = deferred();
+
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
+    });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Test title",
+      formats: [{ format_id: "best" }],
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia.mockImplementation(() => mediaA.promise);
+
+    initHandlers({ storeValues: { downloadParallelLimit: 1 } });
+    const event = { sender: { send: jest.fn() } };
+    const p1 = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/a",
+      "Source",
+      "job-a",
+    );
+
+    await expect(
+      handlers[CHANNELS.DOWNLOAD_VIDEO](
+        event,
+        "https://example.com/b",
+        "Source",
+        "job-b",
+      ),
+    ).rejects.toThrow("Parallel download limit reached");
+
+    mediaA.resolve("/tmp/file-a.mp4");
+    await expect(p1).resolves.toEqual(
+      expect.objectContaining({
+        sourceUrl: expect.stringContaining("https://example.com/a"),
       }),
     );
   });

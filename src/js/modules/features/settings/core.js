@@ -284,57 +284,77 @@ async function initSettings() {
   })();
 
   (function initDownloadParallelLimit() {
-    const radios = document.querySelectorAll(
-      'input[name="downloadParallelLimit"]',
-    );
-    if (!radios || !radios.length) return;
+    const toggle = document.getElementById("settings-download-parallel-toggle");
+    const valueEl = document.getElementById("settings-download-parallel-value");
+    if (!toggle) return;
+
+    const normalize = (value) => {
+      const raw = Number(value);
+      if (!Number.isFinite(raw)) return 2;
+      return Math.max(1, Math.min(2, Math.trunc(raw)));
+    };
 
     const read = () => {
       try {
-        const raw = Number(localStorage.getItem("downloadParallelLimit"));
-        if (!Number.isFinite(raw)) return 2;
-        return Math.max(1, Math.min(3, Math.trunc(raw)));
+        const raw = localStorage.getItem("downloadParallelLimit");
+        if (raw === null) return 2;
+        const normalized = normalize(raw);
+        if (String(normalized) !== raw) {
+          localStorage.setItem("downloadParallelLimit", String(normalized));
+        }
+        return normalized;
       } catch {
         return 2;
       }
     };
 
     const apply = (value) => {
-      const v = String(value || 2);
-      radios.forEach((radio) => {
-        radio.checked = radio.value === v;
-      });
+      const normalized = normalize(value);
+      toggle.checked = normalized === 2;
+      if (valueEl) valueEl.textContent = String(normalized);
     };
 
-    const write = (value) => {
-      const limit = Math.max(1, Math.min(3, Number(value) || 2));
+    const syncMainLimit = (limit) => {
+      window.electron
+        ?.invoke?.("set-download-parallel-limit", limit)
+        .catch(() => {});
+    };
+
+    const write = (value, { toast = true } = {}) => {
+      const limit = normalize(value);
       try {
         localStorage.setItem("downloadParallelLimit", String(limit));
       } catch {}
+      apply(limit);
+      syncMainLimit(limit);
       window.dispatchEvent(
         new CustomEvent("download:parallel-limit-changed", {
           detail: { limit },
         }),
       );
-      window.electron
-        ?.invoke?.(
-          "toast",
-          t("settings.downloader.parallel.saved", { count: limit }),
-          "success",
-        )
-        .catch(() => {});
+      if (toast) {
+        window.electron
+          ?.invoke?.(
+            "toast",
+            t("settings.downloader.parallel.saved", { count: limit }),
+            "success",
+          )
+          .catch(() => {});
+      }
     };
 
-    apply(read());
-    radios.forEach((radio) => {
-      radio.addEventListener("change", () => {
-        if (!radio.checked) return;
-        write(radio.value);
-      });
+    const syncFromStore = () => {
+      const limit = read();
+      write(limit, { toast: false });
+    };
+
+    syncFromStore();
+    toggle.addEventListener("change", () => {
+      write(toggle.checked ? 2 : 1);
     });
 
     onOpenSettings("download-parallel-limit", () => {
-      apply(read());
+      syncFromStore();
     });
   })();
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");

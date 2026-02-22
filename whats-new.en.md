@@ -20,6 +20,7 @@
 - **Fixed opening from the tray**: when restoring from the tray, the app window now correctly unminimizes and receives focus right away.
 - **Made tray menu updates more reliable**: tray actions now refresh faster after download path and download status changes.
 - **Fixed repeated Settings-open event bindings**: the extra-listener warning no longer appears after opening Settings multiple times.
+- **Parallel downloads setting is now clearer**: it now uses a simple 1/2 toggle, and the limit is synchronized with the backend.
 - **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
 - **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
 - **Improved the Backup “Tips” block**: it now appears on the right side of the tab header, and is hidden on small screens for a cleaner layout.

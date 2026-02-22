@@ -12,7 +12,7 @@ const readParallelLimit = () => {
   try {
     const raw = Number(window.localStorage.getItem("downloadParallelLimit"));
     if (!Number.isFinite(raw)) return 2;
-    return Math.max(1, Math.min(3, Math.trunc(raw)));
+    return Math.max(1, Math.min(2, Math.trunc(raw)));
   } catch {
     return 2;
   }
