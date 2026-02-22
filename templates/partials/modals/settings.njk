@@ -288,67 +288,60 @@
                         <h4 class="settings-control-group__title" data-i18n="settings.downloader.profile.title">
                           Выбор качества загрузки
                         </h4>
-                        <div class="quality-profile-card">
-                          <div class="quality-profile-header">
-                            <div>
-                              <p class="quality-profile-eyebrow" data-i18n="settings.downloader.profile.open">
-                                При открытии
-                              </p>
-                            </div>
-                            <div class="quality-profile-chip">
-                              <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
-                              <span data-i18n="settings.downloader.profile.default">
-                                по умолчанию
-                              </span>
-                            </div>
+                        <div class="quality-profile-shell">
+                          <div
+                            class="quality-profile-segment"
+                            id="quality-profile-segment"
+                            role="radiogroup"
+                            aria-label="Профиль качества загрузки"
+                            data-i18n-aria="settings.downloader.profile.segment.aria"
+                          >
+                            <button
+                              type="button"
+                              id="quality-profile-segment-remember"
+                              class="quality-profile-segment__btn"
+                              data-value="remember"
+                              role="radio"
+                              aria-checked="true"
+                              tabindex="0"
+                              data-i18n="settings.downloader.profile.segment.remember"
+                            >
+                              Последний
+                            </button>
+                            <button
+                              type="button"
+                              id="quality-profile-segment-audio"
+                              class="quality-profile-segment__btn"
+                              data-value="audio"
+                              role="radio"
+                              aria-checked="false"
+                              tabindex="-1"
+                              data-i18n="settings.downloader.profile.segment.audio"
+                            >
+                              Аудио
+                            </button>
                           </div>
-                          <ul class="quality-profile-options" id="quality-profile-group">
-                            <li>
-                              <input
-                                type="radio"
-                                id="quality-profile-remember"
-                                name="downloadQualityProfile"
-                                value="remember"
-                                checked
-                              />
-                              <label for="quality-profile-remember">
-                                <span class="quality-option-icon" aria-hidden="true">
-                                  <i class="fa-solid fa-rotate"></i>
-                                </span>
-                                <span class="quality-option-text">
-                                  <strong data-i18n="settings.downloader.profile.remember.title">
-                                    Последний выбор
-                                  </strong>
-                                  <small data-i18n="settings.downloader.profile.remember.desc">
-                                    Откроет тот же тип потока, что и в прошлый раз.
-                                  </small>
-                                </span>
-                                <span class="quality-option-check" aria-hidden="true"></span>
-                              </label>
-                            </li>
-                            <li>
-                              <input
-                                type="radio"
-                                id="quality-profile-audio"
-                                name="downloadQualityProfile"
-                                value="audio"
-                              />
-                              <label for="quality-profile-audio">
-                                <span class="quality-option-icon" aria-hidden="true">
-                                  <i class="fa-solid fa-music"></i>
-                                </span>
-                                <span class="quality-option-text">
-                                  <strong data-i18n="settings.downloader.profile.audio.title">
-                                    Аудио
-                                  </strong>
-                                  <small data-i18n="settings.downloader.profile.audio.desc">
-                                    Открывает только звуковые дорожки без видео.
-                                  </small>
-                                </span>
-                                <span class="quality-option-check" aria-hidden="true"></span>
-                              </label>
-                            </li>
-                          </ul>
+                          <section class="quality-profile-summary" id="quality-profile-summary" aria-live="polite">
+                            <span class="quality-profile-summary__icon" id="quality-profile-summary-icon" aria-hidden="true">
+                              <i class="fa-solid fa-rotate"></i>
+                            </span>
+                            <div class="quality-profile-summary__text">
+                              <strong
+                                class="quality-profile-summary__title"
+                                id="quality-profile-summary-title"
+                                data-i18n="settings.downloader.profile.summary.remember.title"
+                              >
+                                Последний выбор
+                              </strong>
+                              <small
+                                class="quality-profile-summary__hint"
+                                id="quality-profile-summary-hint"
+                                data-i18n="settings.downloader.profile.summary.remember.hint"
+                              >
+                                Повторяет прошлый тип потока.
+                              </small>
+                            </div>
+                          </section>
                         </div>
                       </div>
 

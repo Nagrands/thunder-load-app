@@ -16,6 +16,7 @@
 - `docs/tab/Downloader_Tab.md`
 - `docs/tab/Backup_Tab.md`
 - `docs/tab/Randomizer_Tab.md`
+- `docs/tab/Tools_Platform_QA.md`
 
 ## Конвенции стиля
 

@@ -205,6 +205,110 @@ describe("language dropdown initializes and updates language", () => {
   });
 });
 
+describe("download quality profile segment", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({ success: true }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  const renderQualityDom = () => {
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <div
+          id="quality-profile-segment"
+          role="radiogroup"
+          aria-label="quality profile"
+        >
+          <button
+            id="quality-profile-segment-remember"
+            data-value="remember"
+            role="radio"
+            aria-checked="false"
+            tabindex="-1"
+          ></button>
+          <button
+            id="quality-profile-segment-audio"
+            data-value="audio"
+            role="radio"
+            aria-checked="false"
+            tabindex="-1"
+          ></button>
+        </div>
+        <span id="quality-profile-summary-icon"></span>
+        <strong id="quality-profile-summary-title"></strong>
+        <small id="quality-profile-summary-hint"></small>
+      </div>`;
+  };
+
+  it("initializes remember mode from storage and updates summary", async () => {
+    localStorage.setItem("downloadQualityProfile", "remember");
+    renderQualityDom();
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const remember = document.getElementById("quality-profile-segment-remember");
+    const audio = document.getElementById("quality-profile-segment-audio");
+    const title = document.getElementById("quality-profile-summary-title");
+
+    expect(remember?.classList.contains("is-active")).toBe(true);
+    expect(remember?.getAttribute("aria-checked")).toBe("true");
+    expect(audio?.classList.contains("is-active")).toBe(false);
+    expect(audio?.getAttribute("aria-checked")).toBe("false");
+    expect(title?.textContent).toBe(
+      "settings.downloader.profile.summary.remember.title",
+    );
+  });
+
+  it("switches to audio on click and persists value", async () => {
+    localStorage.setItem("downloadQualityProfile", "remember");
+    renderQualityDom();
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const audio = document.getElementById("quality-profile-segment-audio");
+    audio?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(localStorage.getItem("downloadQualityProfile")).toBe("audio");
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "toast",
+      "settings.qualityProfile.saved",
+      "success",
+    );
+  });
+
+  it("supports keyboard selection and restores state on open-settings", async () => {
+    localStorage.setItem("downloadQualityProfile", "remember");
+    renderQualityDom();
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const segment = document.getElementById("quality-profile-segment");
+    segment?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+    );
+    segment?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    expect(localStorage.getItem("downloadQualityProfile")).toBe("audio");
+
+    localStorage.setItem("downloadQualityProfile", "remember");
+    window.__thunder_open_settings_handlers__
+      ?.get("download-quality-profile")
+      ?.();
+
+    const remember = document.getElementById("quality-profile-segment-remember");
+    const audio = document.getElementById("quality-profile-segment-audio");
+    expect(remember?.classList.contains("is-active")).toBe(true);
+    expect(audio?.classList.contains("is-active")).toBe(false);
+  });
+});
+
 describe("download parallel limit toggle", () => {
   beforeEach(() => {
     jest.resetModules();

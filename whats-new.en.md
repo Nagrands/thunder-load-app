@@ -25,6 +25,8 @@
 - **Added a collapsible sections list in Settings for narrow screens**: switching between tabs is now more convenient on mobile widths.
 - **Settings section content now uses a card-based layout**: related options are grouped into clear blocks so they are easier to scan.
 - **Settings readability is improved**: clearer block titles and tighter spacing make common toggles faster to find.
+- **Made the Downloader Settings “Quality profile” block more compact**: option cards are now tighter and shorter, so the section takes less vertical space.
+- **Fully redesigned the Downloader Settings “Quality profile” block**: two large cards were replaced with a compact mode segment and a short contextual summary.
 - **Updated tab backgrounds across the app**: all tabs now share one common background for a more consistent look and feel.
 - **Unified Tools, Backup, and Randomizer headers to match Downloader**: the top icon/title/subtitle hero block now uses one consistent style across the main tabs.
 - **Improved the Backup “Tips” block**: it now appears on the right side of the tab header, and is hidden on small screens for a cleaner layout.

@@ -159,6 +159,16 @@ export const translations = {
     "settings.downloader.profile.open": "При открытии",
     "settings.downloader.profile.title": "Выбор качества загрузки",
     "settings.downloader.profile.default": "по умолчанию",
+    "settings.downloader.profile.segment.aria":
+      "Выбор профиля качества загрузки",
+    "settings.downloader.profile.segment.remember": "Последний",
+    "settings.downloader.profile.segment.audio": "Аудио",
+    "settings.downloader.profile.summary.remember.title": "Последний выбор",
+    "settings.downloader.profile.summary.remember.hint":
+      "Повторяет прошлый тип потока.",
+    "settings.downloader.profile.summary.audio.title": "Только аудио",
+    "settings.downloader.profile.summary.audio.hint":
+      "Сразу показывает звуковые форматы.",
     "settings.downloader.profile.remember.title": "Последний выбор",
     "settings.downloader.profile.remember.desc":
       "Откроет тот же тип потока, что и в прошлый раз.",
@@ -1358,6 +1368,16 @@ export const translations = {
     "settings.downloader.profile.open": "On open",
     "settings.downloader.profile.title": "Download quality selection",
     "settings.downloader.profile.default": "default",
+    "settings.downloader.profile.segment.aria":
+      "Select download quality profile",
+    "settings.downloader.profile.segment.remember": "Last",
+    "settings.downloader.profile.segment.audio": "Audio",
+    "settings.downloader.profile.summary.remember.title": "Last choice",
+    "settings.downloader.profile.summary.remember.hint":
+      "Reuses the previous stream type.",
+    "settings.downloader.profile.summary.audio.title": "Audio only",
+    "settings.downloader.profile.summary.audio.hint":
+      "Opens audio formats immediately.",
     "settings.downloader.profile.remember.title": "Last choice",
     "settings.downloader.profile.remember.desc":
       "Opens the same stream type as last time.",

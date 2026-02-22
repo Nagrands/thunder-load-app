@@ -245,22 +245,46 @@ async function initSettings() {
 
   // Загрузчик: профиль качества по умолчанию
   (function initDownloadQualityProfile() {
-    const radios = document.querySelectorAll(
-      'input[name="downloadQualityProfile"]',
+    const segment = document.getElementById("quality-profile-segment");
+    const rememberBtn = document.getElementById(
+      "quality-profile-segment-remember",
     );
-    if (!radios || !radios.length) return;
+    const audioBtn = document.getElementById("quality-profile-segment-audio");
+    const summaryIcon = document.getElementById("quality-profile-summary-icon");
+    const summaryTitle = document.getElementById("quality-profile-summary-title");
+    const summaryHint = document.getElementById("quality-profile-summary-hint");
+    if (!segment || !rememberBtn || !audioBtn || !summaryTitle || !summaryHint)
+      return;
+
+    const OPTIONS = ["remember", "audio"];
+    const SUMMARY_META = {
+      remember: {
+        icon: "fa-solid fa-rotate",
+        titleKey: "settings.downloader.profile.summary.remember.title",
+        hintKey: "settings.downloader.profile.summary.remember.hint",
+      },
+      audio: {
+        icon: "fa-solid fa-music",
+        titleKey: "settings.downloader.profile.summary.audio.title",
+        hintKey: "settings.downloader.profile.summary.audio.hint",
+      },
+    };
+    const buttons = [rememberBtn, audioBtn];
 
     const read = () => {
       try {
-        return (
-          localStorage.getItem(QUALITY_PROFILE_KEY) || QUALITY_PROFILE_DEFAULT
-        );
+        const raw = localStorage.getItem(QUALITY_PROFILE_KEY);
+        return OPTIONS.includes(raw) ? raw : QUALITY_PROFILE_DEFAULT;
       } catch {
         return QUALITY_PROFILE_DEFAULT;
       }
     };
+
+    const normalize = (value) =>
+      OPTIONS.includes(value) ? value : QUALITY_PROFILE_DEFAULT;
+
     const write = (val) => {
-      const v = val || QUALITY_PROFILE_DEFAULT;
+      const v = normalize(val);
       try {
         localStorage.setItem(QUALITY_PROFILE_KEY, v);
       } catch {}
@@ -270,19 +294,82 @@ async function initSettings() {
     };
 
     const apply = (val) => {
-      radios.forEach((r) => {
-        r.checked = r.value === val;
+      const current = normalize(val);
+      buttons.forEach((btn) => {
+        const isActive = btn.dataset.value === current;
+        btn.classList.toggle("is-active", isActive);
+        btn.setAttribute("aria-checked", isActive ? "true" : "false");
+        btn.tabIndex = isActive ? 0 : -1;
       });
+      const meta = SUMMARY_META[current];
+      if (summaryIcon) summaryIcon.innerHTML = `<i class="${meta.icon}"></i>`;
+      summaryTitle.setAttribute("data-i18n", meta.titleKey);
+      summaryTitle.textContent = t(meta.titleKey);
+      summaryHint.setAttribute("data-i18n", meta.hintKey);
+      summaryHint.textContent = t(meta.hintKey);
+    };
+
+    const selectAndPersist = (value) => {
+      const normalized = normalize(value);
+      write(normalized);
+      apply(normalized);
+    };
+
+    const moveSelection = (offset, { commit = false } = {}) => {
+      const current = normalize(read());
+      const index = OPTIONS.indexOf(current);
+      const next = OPTIONS[(index + offset + OPTIONS.length) % OPTIONS.length];
+      apply(next);
+      if (commit) write(next);
+    };
+
+    const moveToEdge = (toLast, { commit = false } = {}) => {
+      const next = toLast ? OPTIONS[OPTIONS.length - 1] : OPTIONS[0];
+      apply(next);
+      if (commit) write(next);
     };
 
     const current = read();
     apply(current);
 
-    radios.forEach((r) =>
-      r.addEventListener("change", () => {
-        if (r.checked) write(r.value);
-      }),
-    );
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectAndPersist(btn.dataset.value);
+      });
+    });
+
+    segment.addEventListener("keydown", (event) => {
+      switch (event.key) {
+        case "ArrowRight":
+        case "ArrowDown":
+          event.preventDefault();
+          moveSelection(1);
+          break;
+        case "ArrowLeft":
+        case "ArrowUp":
+          event.preventDefault();
+          moveSelection(-1);
+          break;
+        case "Home":
+          event.preventDefault();
+          moveToEdge(false);
+          break;
+        case "End":
+          event.preventDefault();
+          moveToEdge(true);
+          break;
+        case "Enter":
+        case " ":
+          event.preventDefault();
+          write(
+            buttons.find((btn) => btn.tabIndex === 0)?.dataset.value ||
+              normalize(read()),
+          );
+          break;
+        default:
+          break;
+      }
+    });
 
     onOpenSettings("download-quality-profile", () => {
       apply(read());
