@@ -2,6 +2,7 @@
 
 const { Notification, shell } = require("electron");
 const path = require("path");
+const { bringMainWindowToFront } = require("./windowActivation");
 
 function showTrayNotification(message) {
   const notification = new Notification({
@@ -48,9 +49,7 @@ function sendDownloadCompletionNotification(
     false,
   );
   if (expandWindowOnDownloadComplete) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.show();
-    mainWindow.focus();
+    bringMainWindowToFront(mainWindow);
   }
 }
 
