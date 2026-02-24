@@ -16,6 +16,7 @@
 - **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
 - **Fixed History context menu behavior**: when confirming deletion of a record or file, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
 - **Added Undo for full History clear**: clearing all history now shows the same timed Undo window used for selected-entry deletion.
+- **Fixed expanded History preview sizing across services**: images from Reddit, Twitch, and similar sources now fit inside the preview modal without stretching outside bounds.
 
 ### Downloader tab
 
