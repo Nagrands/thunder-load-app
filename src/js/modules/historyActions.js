@@ -20,6 +20,8 @@ import { state, setHistoryData } from "./state.js";
 import { t } from "./i18n.js";
 
 let isClearingHistory = false;
+const CLEAR_HISTORY_UNDO_MS = 5500;
+const CLEAR_HISTORY_PREVIEW_CLEANUP_MS = 6000;
 
 /**
  * Обработчик очистки истории
@@ -39,22 +41,57 @@ async function handleClearHistory() {
     });
     if (!confirmed) return;
 
-    await window.electron.invoke("clear-history");
+    const previousHistory = [...(state.downloadHistory || [])];
+    const previewPaths = previousHistory
+      .map((entry) => entry?.thumbnailCacheFile)
+      .filter(Boolean);
+
     state.downloadHistory = [];
     setHistoryData([]);
 
     // ✅ очищаем интерфейс и локальное состояние
+    clearHistorySelection();
     state.currentSearchQuery = "";
     state.historyPage = 1;
     localStorage.removeItem("lastSearch");
     setFilterInputValue("");
+    await window.electron.invoke("save-history", []);
     renderHistory([]);
     await updateDownloadCount();
-    await loadHistory(true);
     localStorage.setItem("historyVisible", "false");
 
-    showToast(t("history.clear.success"), "success");
-    console.log("История успешно очищена.");
+    let cleanupTimer = null;
+    if (previewPaths.length) {
+      cleanupTimer = setTimeout(() => {
+        window.electron
+          .invoke("delete-history-preview", previewPaths)
+          .catch((error) =>
+            console.warn(
+              "Не удалось очистить превью после очистки истории:",
+              error,
+            ),
+          );
+      }, CLEAR_HISTORY_PREVIEW_CLEANUP_MS);
+    }
+
+    showToast(
+      t("history.toast.deletedEntries", { count: previousHistory.length }),
+      "info",
+      CLEAR_HISTORY_UNDO_MS,
+      null,
+      async () => {
+        if (cleanupTimer) {
+          clearTimeout(cleanupTimer);
+          cleanupTimer = null;
+        }
+        state.downloadHistory = [...previousHistory];
+        setHistoryData(previousHistory);
+        await window.electron.invoke("save-history", previousHistory);
+        await loadHistory(true);
+        await updateDownloadCount();
+        showToast(t("history.toast.deleteCancelled"), "success");
+      },
+    );
   } catch (error) {
     console.error("Error clearing history:", error);
     showToast(t("history.clear.error"), "error");

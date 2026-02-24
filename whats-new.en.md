@@ -15,6 +15,7 @@
 - **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being constantly recreated during rerenders, reducing unnecessary UI load.
 - **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
 - **Fixed History context menu behavior**: when confirming deletion of a record or file, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
+- **Added Undo for full History clear**: clearing all history now shows the same timed Undo window used for selected-entry deletion.
 
 ### Downloader tab
 
