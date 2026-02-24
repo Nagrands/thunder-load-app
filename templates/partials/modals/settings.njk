@@ -268,13 +268,14 @@
                       Проверка статуса и обновление зависимостей загрузчика.
                     </p>
                     <div class="settings-card__body">
-                      <div class="settings-tools-shell">
-                        <section id="tools-info" class="settings-section">
-                          <p class="muted" data-i18n="settings.tools.loading">
-                            Загружаем сведения о зависимостях…
-                          </p>
-                        </section>
-                      </div>
+                      <button
+                        type="button"
+                        id="settings-tools-open"
+                        class="settings-tools-open"
+                        data-i18n="settings.tools.openModal"
+                      >
+                        Открыть инструменты
+                      </button>
                     </div>
                   </section>
 
@@ -855,6 +856,42 @@
                         </button>
                       </div>
                     </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="settings-tools-modal"
+              class="settings-tools-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="settings-tools-modal-title"
+              style="display: none"
+            >
+              <div class="settings-tools-modal__content" role="document">
+                <button
+                  type="button"
+                  id="settings-tools-close"
+                  class="settings-tools-modal__close"
+                  aria-label="Закрыть инструменты"
+                  data-i18n-aria="modal.close"
+                >
+                  &times;
+                </button>
+                <header class="settings-tools-modal__header">
+                  <h2 id="settings-tools-modal-title" data-i18n="settings.tools.modal.title">
+                    Инструменты
+                  </h2>
+                  <p data-i18n="settings.tools.modal.subtitle">
+                    Проверка статуса, переустановка и смена папки зависимостей.
+                  </p>
+                </header>
+                <div class="settings-tools-shell">
+                  <section id="tools-info" class="settings-section">
+                    <p class="muted" data-i18n="settings.tools.loading">
+                      Загружаем сведения о зависимостях…
+                    </p>
                   </section>
                 </div>
               </div>

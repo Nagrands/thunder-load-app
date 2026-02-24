@@ -33,5 +33,11 @@
 
 ### Tools tab
 
+- **Fixed tools-folder switching on macOS**: when you select a new tools directory, Thunder Load now migrates detected binaries (`yt-dlp`, `ffmpeg`, `ffprobe`, `deno`) so downloads keep working without manual reinstall.
+- **Fixed install progress visibility in Tools**: after clicking “Download”, the install button now clearly shows that dependency download is in progress.
+- **Fixed downloads when using a custom Tools folder**: after changing the Tools directory, dependency checks now use the selected path, so video/audio downloads start correctly.
+- **Moved Tools controls in Settings into a separate modal**: in the Downloader section, tools checks and folder management now open in a dedicated window.
+- **Added automatic tools fallback at download time**: if the selected folder lacks working `yt-dlp/ffmpeg/ffprobe`, downloads now use valid binaries from the default tools folder automatically.
+- **Fixed `Requested format is not available` download failures**: when a saved quality profile contains stale format IDs, the app now auto-selects a valid format for the current video instead of failing.
 - **Added** the **Tools** tab: quick actions in one place (WG Unlock, hash check, system tools).
 - **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value comparison.

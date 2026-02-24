@@ -76,6 +76,59 @@ function getDenoPath() {
   return resolveToolPath("deno", getToolsDir());
 }
 
+function isExecutableFile(filePath) {
+  try {
+    fs.accessSync(filePath, fs.constants.F_OK);
+    if (process.platform !== "win32") {
+      fs.accessSync(filePath, fs.constants.X_OK);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveRuntimeToolPath(tool) {
+  const preferredDir = getToolsDir();
+  const preferredPath = resolveToolPath(tool, preferredDir);
+  if (isExecutableFile(preferredPath)) return preferredPath;
+
+  const fallbackDir = getDefaultToolsDir();
+  const fallbackPath = resolveToolPath(tool, fallbackDir);
+  if (fallbackDir !== preferredDir && isExecutableFile(fallbackPath)) {
+    return fallbackPath;
+  }
+  return preferredPath;
+}
+
+function resolveRuntimeFfmpegDir() {
+  const preferredDir = getToolsDir();
+  const preferredFfmpeg = resolveToolPath("ffmpeg", preferredDir);
+  const preferredFfprobe = path.join(
+    preferredDir,
+    process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
+  );
+  if (isExecutableFile(preferredFfmpeg) && isExecutableFile(preferredFfprobe)) {
+    return preferredDir;
+  }
+
+  const fallbackDir = getDefaultToolsDir();
+  const fallbackFfmpeg = resolveToolPath("ffmpeg", fallbackDir);
+  const fallbackFfprobe = path.join(
+    fallbackDir,
+    process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
+  );
+  if (
+    fallbackDir !== preferredDir &&
+    isExecutableFile(fallbackFfmpeg) &&
+    isExecutableFile(fallbackFfprobe)
+  ) {
+    return fallbackDir;
+  }
+
+  return preferredDir;
+}
+
 function ensureDenoCacheDir() {
   const cacheDir = path.join(getToolsDir(), "deno-cache");
   if (!fs.existsSync(cacheDir)) {
@@ -96,7 +149,15 @@ function appendToolsDirToPath(currentPath = "") {
 function getYtDlpEnvironment() {
   const env = { ...process.env };
   env.PATH = appendToolsDirToPath(env.PATH || "");
-  const denoPath = getDenoPath();
+  const runtimeFfmpegDir = resolveRuntimeFfmpegDir();
+  if (runtimeFfmpegDir && runtimeFfmpegDir !== getToolsDir()) {
+    const parts = (env.PATH || "").split(path.delimiter).filter(Boolean);
+    if (!parts.includes(runtimeFfmpegDir)) {
+      parts.unshift(runtimeFfmpegDir);
+      env.PATH = parts.join(path.delimiter);
+    }
+  }
+  const denoPath = resolveRuntimeToolPath("deno");
   if (fs.existsSync(denoPath)) {
     try {
       env.DENO_DIR = ensureDenoCacheDir();
@@ -436,20 +497,56 @@ function downloadFile(url, dest, redirects = 0, attempt = 1, options = {}) {
  */
 function selectFormatsByQuality(formats, desiredQuality) {
   const pickBest = (arr, cmp) => (arr.length ? arr.sort(cmp)[0] : null);
+  const inferQualityFromObject = (qualityObj) => {
+    const marker = `${qualityObj?.quality || ""} ${qualityObj?.label || ""}`
+      .toLowerCase()
+      .trim();
+    if (
+      qualityObj?.type === "audio-only" ||
+      qualityObj?.downloadKind === "audio" ||
+      /audio|аудио/.test(marker)
+    ) {
+      return QUALITY_AUDIO_ONLY;
+    }
+    if (/1080|fhd/.test(marker)) return QUALITY_FHD;
+    if (/720|hd/.test(marker)) return QUALITY_HD;
+    if (/360|sd/.test(marker)) return QUALITY_SD;
+    if (/source|исход|original|best/.test(marker)) return QUALITY_SOURCE;
+    return null;
+  };
 
   if (desiredQuality && typeof desiredQuality === "object") {
     const findFmt = (id) =>
       id ? formats.find((fmt) => fmt?.format_id === id) : null;
-    const videoFmt = findFmt(desiredQuality.videoFormatId);
-    const audioFmt = findFmt(desiredQuality.audioFormatId);
+    const requestedVideoId = desiredQuality.videoFormatId || null;
+    const requestedAudioId = desiredQuality.audioFormatId || null;
+    const videoFmt = findFmt(requestedVideoId);
+    const audioFmt = findFmt(requestedAudioId);
+    const hasAllRequested =
+      (!requestedVideoId || !!videoFmt) && (!requestedAudioId || !!audioFmt);
+    if (!hasAllRequested) {
+      const fallbackQuality = inferQualityFromObject(desiredQuality);
+      log.warn("[download] Requested format IDs are unavailable, fallback", {
+        requestedVideoId,
+        requestedAudioId,
+        fallbackQuality: fallbackQuality || "(auto)",
+      });
+      if (fallbackQuality) {
+        return selectFormatsByQuality(formats, fallbackQuality);
+      }
+      if (requestedAudioId && !requestedVideoId) {
+        return selectFormatsByQuality(formats, QUALITY_AUDIO_ONLY);
+      }
+      return selectFormatsByQuality(formats, QUALITY_SOURCE);
+    }
     const resolution =
       desiredQuality.resolution ||
       videoFmt?.resolution ||
       (videoFmt?.height ? `${videoFmt.height}p` : "custom");
     const fps = desiredQuality.fps || videoFmt?.fps || null;
     return {
-      videoFormat: desiredQuality.videoFormatId || null,
-      audioFormat: desiredQuality.audioFormatId || null,
+      videoFormat: requestedVideoId,
+      audioFormat: requestedAudioId,
       resolution,
       fps,
       videoExt: desiredQuality.videoExt || videoFmt?.ext || null,
@@ -1208,8 +1305,13 @@ function getVideoInfo(url, token = null) {
   }
   const processStore = getProcessStore(token);
   const promise = new Promise((resolve, reject) => {
-    const ytDlpPath = getYtDlpPath();
-    const ffmpegDir = getToolsDir();
+    const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+    const ffmpegDir = resolveRuntimeFfmpegDir();
+    log.info("[download] getVideoInfo runtime tools", {
+      preferredToolsDir: getToolsDir(),
+      ytDlpPath,
+      ffmpegDir,
+    });
     processStore.getVideoInfo = spawn(
       ytDlpPath,
       [
@@ -1223,6 +1325,7 @@ function getVideoInfo(url, token = null) {
       getYtDlpSpawnOptions(),
     );
     let output = "";
+    let stderrOutput = "";
     processStore.getVideoInfo.stdout.on("data", (data) => {
       if (isCancelled(token)) {
         processStore.getVideoInfo?.kill("SIGTERM");
@@ -1230,9 +1333,11 @@ function getVideoInfo(url, token = null) {
       }
       output += data.toString();
     });
-    processStore.getVideoInfo.stderr.on("data", (data) =>
-      log.error(`Error: ${data}`),
-    );
+    processStore.getVideoInfo.stderr.on("data", (data) => {
+      const text = data?.toString?.() || "";
+      stderrOutput += text;
+      log.error(`Error: ${text}`);
+    });
     processStore.getVideoInfo.on("close", (code) => {
       processStore.getVideoInfo = null;
       if (isCancelled(token)) {
@@ -1240,7 +1345,11 @@ function getVideoInfo(url, token = null) {
         return reject(new Error("Download cancelled"));
       }
       if (code !== 0) {
-        return reject(new Error(`yt-dlp exited with code ${code}`));
+        const reason = stderrOutput.trim();
+        const suffix = reason
+          ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
+          : "";
+        return reject(new Error(`yt-dlp exited with code ${code}${suffix}`));
       }
       try {
         const info = JSON.parse(output);
@@ -1285,8 +1394,13 @@ function spawnDownloadProcess(
   } = options;
   const processStore = getProcessStore(token);
   return new Promise((resolve, reject) => {
-    const ytDlpPath = getYtDlpPath();
-    const ffmpegDir = getToolsDir();
+    const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+    const ffmpegDir = resolveRuntimeFfmpegDir();
+    log.info("[download] spawnDownloadProcess runtime tools", {
+      preferredToolsDir: getToolsDir(),
+      ytDlpPath,
+      ffmpegDir,
+    });
     const args = [];
     if (format) {
       args.push("-f", format);
@@ -1306,6 +1420,7 @@ function spawnDownloadProcess(
     }
     const proc = spawn(ytDlpPath, args, getYtDlpSpawnOptions());
     processStore[processKey] = proc;
+    let stderrOutput = "";
     proc.stdout.on("data", (data) => {
       if (isCancelled(token)) {
         proc.kill("SIGTERM");
@@ -1319,14 +1434,22 @@ function spawnDownloadProcess(
           if (progress !== null) progressCallback(progress);
         });
     });
-    proc.stderr.on("data", (data) => log.error(data.toString()));
+    proc.stderr.on("data", (data) => {
+      const text = data?.toString?.() || "";
+      stderrOutput += text;
+      log.error(text);
+    });
     proc.on("close", (code) => {
       processStore[processKey] = null;
       if (isCancelled(token)) {
         return reject(new Error(token.cancelReason || "Download cancelled"));
       }
       if (code !== 0) {
-        return reject(new Error(`yt-dlp exited with code ${code}`));
+        const reason = stderrOutput.trim();
+        const suffix = reason
+          ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
+          : "";
+        return reject(new Error(`yt-dlp exited with code ${code}${suffix}`));
       }
       resolve();
     });
@@ -1439,9 +1562,9 @@ async function downloadMedia(
     });
 
     // Подготовим пути к инструментам один раз для всей функции
-    const ytDlpPath = getYtDlpPath();
-    const ffmpegDir = getToolsDir();
-    const denoPath = getDenoPath();
+    const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+    const ffmpegDir = resolveRuntimeFfmpegDir();
+    const denoPath = resolveRuntimeToolPath("deno");
     log.info("[download] Tools being used", {
       ytDlpPath,
       ffmpegDir,

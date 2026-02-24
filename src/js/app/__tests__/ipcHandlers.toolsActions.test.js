@@ -100,6 +100,14 @@ describe("ipcHandlers tools quick actions", () => {
   beforeEach(() => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);
     jest.clearAllMocks();
+    const toolsPaths = require("../toolsPaths");
+    toolsPaths.getDefaultToolsDir.mockImplementation(() => "/tmp/tools");
+    toolsPaths.getEffectiveToolsDir.mockImplementation(() => "/tmp/tools");
+    toolsPaths.ensureToolsDir.mockImplementation(async (v) => v || "/tmp/tools");
+    toolsPaths.detectLegacyLocations.mockImplementation(async () => []);
+    toolsPaths.migrateLegacy.mockImplementation(
+      async () => ({ copied: [], skipped: [] }),
+    );
   });
 
   afterEach(() => {
@@ -116,6 +124,11 @@ describe("ipcHandlers tools quick actions", () => {
         ? storeValues[key]
         : def,
     );
+    const store = {
+      get: storeGet,
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
     setupIpcHandlers({
       mainWindow: {
         webContents: {
@@ -124,11 +137,7 @@ describe("ipcHandlers tools quick actions", () => {
           on: jest.fn(),
         },
       },
-      store: {
-        get: storeGet,
-        set: jest.fn(),
-        delete: jest.fn(),
-      },
+      store,
       downloadState: { downloadPath: "/tmp", downloadInProgress: false },
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
       setDownloadPath: jest.fn(),
@@ -144,6 +153,7 @@ describe("ipcHandlers tools quick actions", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
+    return { store };
   }
 
   test("hashPickFile returns selected path", async () => {
@@ -299,6 +309,41 @@ describe("ipcHandlers tools quick actions", () => {
 
     expect(result.success).toBe(false);
     expect(String(result.error || "")).toMatch(/not a folder|unavailable/i);
+  });
+
+  test("tools:setLocation migrates existing binaries from previous directory", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const toolsPaths = require("../toolsPaths");
+    const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), "tools-old-"));
+    const newDir = fs.mkdtempSync(path.join(os.tmpdir(), "tools-new-"));
+    const ytName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
+    const ffName = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+    const fpName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+
+    fs.writeFileSync(path.join(oldDir, ytName), "yt");
+    fs.writeFileSync(path.join(oldDir, ffName), "ff");
+    fs.writeFileSync(path.join(oldDir, fpName), "fp");
+
+    toolsPaths.getEffectiveToolsDir.mockImplementation(() => oldDir);
+    toolsPaths.ensureToolsDir.mockImplementation(async () => newDir);
+
+    const { store } = initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SET_LOCATION](null, newDir);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: true,
+        path: newDir,
+      }),
+    );
+    expect(result.migrated).toEqual(expect.arrayContaining([ytName, ffName, fpName]));
+    expect(fs.existsSync(path.join(newDir, ytName))).toBe(true);
+    expect(fs.existsSync(path.join(newDir, ffName))).toBe(true);
+    expect(fs.existsSync(path.join(newDir, fpName))).toBe(true);
+    expect(store.set).toHaveBeenCalledWith("tools.dir", newDir);
+
+    fs.rmSync(oldDir, { recursive: true, force: true });
+    fs.rmSync(newDir, { recursive: true, force: true });
   });
 
   test("createWindowsRestartShortcut returns unsupported on non-windows", async () => {
@@ -568,6 +613,11 @@ describe("ipcHandlers download pool", () => {
       expect.objectContaining({
         sourceUrl: expect.stringContaining("https://example.com/b"),
       }),
+    );
+    expect(getToolsVersions).toHaveBeenCalled();
+    const firstToolsArg = getToolsVersions.mock.calls[0]?.[0];
+    expect(firstToolsArg).toEqual(
+      expect.objectContaining({ get: expect.any(Function) }),
     );
   });
 

@@ -195,6 +195,10 @@ export const translations = {
     "settings.downloader.toolsStatus": "Показывать статус инструментов",
     "settings.tools.title": "Инструменты",
     "settings.tools.loading": "Загружаем сведения о зависимостях…",
+    "settings.tools.openModal": "Открыть инструменты",
+    "settings.tools.modal.title": "Управление инструментами",
+    "settings.tools.modal.subtitle":
+      "Проверка статуса, переустановка и смена папки зависимостей.",
     "settings.disableTab": "Отключить вкладку",
     "settings.wg.title": "Вкладка «Tools»",
     "settings.wg.disable.hint":
@@ -1403,6 +1407,10 @@ export const translations = {
     "settings.downloader.toolsStatus": "Show tools status",
     "settings.tools.title": "Tools",
     "settings.tools.loading": "Loading dependency information…",
+    "settings.tools.openModal": "Open tools",
+    "settings.tools.modal.title": "Tools management",
+    "settings.tools.modal.subtitle":
+      "Check status, reinstall dependencies, and change the tools folder.",
     "settings.disableTab": "Disable tab",
     "settings.wg.title": "Tab “Tools”",
     "settings.wg.disable.hint":

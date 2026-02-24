@@ -655,7 +655,7 @@ function initContext(section) {
       state.isInstalling = true;
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
       setQuickState("busy", statusText);
-      const labelEl = el.checkLabel || el.installBtn?.querySelector("span");
+      const labelEl = el.installBtn?.querySelector("span") || el.checkLabel;
       if (labelEl) dots = startDotsAnimator(labelEl, statusText);
       await window.electron?.tools?.installAll?.();
       await window.electron?.invoke?.(

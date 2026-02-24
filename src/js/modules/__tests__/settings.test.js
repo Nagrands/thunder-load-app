@@ -538,6 +538,63 @@ describe("downloader tools status visibility toggle", () => {
   });
 });
 
+describe("tools settings modal", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({ success: true }),
+      on: jest.fn(),
+      send: jest.fn(),
+      tools: {
+        getLocation: jest.fn().mockResolvedValue(null),
+      },
+    };
+  });
+
+  it("opens and closes tools modal from downloader settings card", async () => {
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <button id="settings-tools-open" type="button">Open tools</button>
+        <div id="settings-tools-modal" style="display:none" aria-hidden="true">
+          <div class="settings-tools-modal__content">
+            <button id="settings-tools-close" type="button">x</button>
+            <section id="tools-info"></section>
+          </div>
+        </div>
+      </div>`;
+
+    let mod;
+    let toolsInfo;
+    jest.isolateModules(() => {
+      jest.doMock("../toolsInfo.js", () => ({
+        renderToolsInfo: jest.fn().mockResolvedValue(undefined),
+        refreshToolsInfoState: jest.fn().mockResolvedValue(undefined),
+        isToolsInfoStale: jest.fn(() => true),
+      }));
+      mod = require("../settings");
+      toolsInfo = require("../toolsInfo.js");
+    });
+
+    await mod.initSettings?.();
+    const openBtn = document.getElementById("settings-tools-open");
+    const closeBtn = document.getElementById("settings-tools-close");
+    const modal = document.getElementById("settings-tools-modal");
+
+    openBtn?.click();
+    await Promise.resolve();
+
+    expect(toolsInfo.renderToolsInfo).toHaveBeenCalled();
+    expect(modal?.style.display).toBe("flex");
+    expect(modal?.getAttribute("aria-hidden")).toBe("false");
+
+    closeBtn?.click();
+    expect(modal?.style.display).toBe("none");
+    expect(modal?.getAttribute("aria-hidden")).toBe("true");
+  });
+});
+
 describe("network status setting removal", () => {
   beforeEach(() => {
     jest.resetModules();

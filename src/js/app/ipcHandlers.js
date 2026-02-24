@@ -1046,9 +1046,37 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.TOOLS_SET_LOCATION, async (_evt, newDir) => {
     try {
+      const previousDir = getEffectiveToolsDir(store);
       const dir = await ensureToolsDir(newDir);
+      const from = path.resolve(String(previousDir || ""));
+      const to = path.resolve(String(dir || ""));
+      const migrated = [];
+      if (from && to && from !== to) {
+        const execNames =
+          process.platform === "win32"
+            ? ["yt-dlp.exe", "ffmpeg.exe", "ffprobe.exe", "deno.exe"]
+            : ["yt-dlp", "ffmpeg", "ffprobe", "deno"];
+        for (const name of execNames) {
+          const src = path.join(from, name);
+          const dst = path.join(to, name);
+          if (!fs.existsSync(src) || fs.existsSync(dst)) continue;
+          try {
+            await fsPromises.copyFile(src, dst);
+            if (process.platform !== "win32") {
+              try {
+                await fsPromises.chmod(dst, 0o755);
+              } catch (chmodErr) {
+                log.warn(`tools:setLocation chmod failed for ${dst}:`, chmodErr);
+              }
+            }
+            migrated.push(name);
+          } catch (copyErr) {
+            log.warn(`tools:setLocation migrate failed for ${name}:`, copyErr);
+          }
+        }
+      }
       store.set("tools.dir", dir);
-      return { success: true, path: dir };
+      return { success: true, path: dir, migrated };
     } catch (e) {
       log.error("tools:setLocation error:", e);
       return { success: false, error: e.message };
@@ -1795,7 +1823,7 @@ function setupIpcHandlers(dependencies) {
       }
 
       // Проверяем наличие утилит, не устанавливаем автоматически
-      const tools = await getToolsVersions();
+      const tools = await getToolsVersions(store);
       const hasYt = tools?.ytDlp?.ok;
       const hasFf = tools?.ffmpeg?.ok;
       if (!hasYt || !hasFf) {

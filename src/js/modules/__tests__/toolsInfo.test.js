@@ -87,6 +87,36 @@ describe("renderToolsInfo", () => {
     expect(window.electron.tools.installAll).toHaveBeenCalledTimes(1);
   });
 
+  it("shows install progress text on install button while downloading tools", async () => {
+    let resolveInstall;
+    window.electron.tools.installAll.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveInstall = resolve;
+        }),
+    );
+    window.electron.tools.getVersions.mockResolvedValueOnce({
+      ytDlp: { ok: false },
+      ffmpeg: { ok: false },
+      deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
+    });
+    await renderToolsInfo();
+
+    const installBtn = document.getElementById("tools-install-btn");
+    const installLabel = installBtn?.querySelector("span");
+    const initialText = installLabel?.textContent?.trim();
+
+    installBtn?.click();
+    await flush();
+    await new Promise((resolve) => setTimeout(resolve, 450));
+
+    expect(installLabel?.textContent?.trim()).not.toBe(initialText);
+    expect(installLabel?.textContent).toMatch(/\./);
+
+    resolveInstall?.();
+    await flush();
+  });
+
   it("check button reveals update flow when updates are available", async () => {
     window.electron.tools.getVersions.mockResolvedValueOnce({
       ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2024.01.01" },

@@ -1515,13 +1515,62 @@ async function initSettings() {
   }
   // === /WG Unlock: авто‑закрытие ===
 
-  // Обновлять блок версий только при открытии настроек
-  onOpenSettings("tools-info-on-open-settings", async () => {
-    await ensureToolsInfo(false);
-  });
-  window.addEventListener("settings:opened", () => {
-    ensureToolsInfo(false);
-  });
+  // Модальное окно "Инструменты" внутри настроек
+  (function initToolsModal() {
+    const trigger = document.getElementById("settings-tools-open");
+    const modal = document.getElementById("settings-tools-modal");
+    const closeBtn = document.getElementById("settings-tools-close");
+    const content = modal?.querySelector(".settings-tools-modal__content");
+    if (!trigger || !modal || !closeBtn || !content) return;
+
+    let previousFocus = null;
+
+    const closeToolsModal = () => {
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+      trigger.setAttribute("aria-expanded", "false");
+      try {
+        previousFocus?.focus?.();
+      } catch {
+        // noop
+      }
+      previousFocus = null;
+    };
+
+    const openToolsModal = async () => {
+      previousFocus = document.activeElement;
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+      trigger.setAttribute("aria-expanded", "true");
+      closeBtn.focus();
+      await ensureToolsInfo(false);
+    };
+
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.setAttribute("aria-controls", "settings-tools-modal");
+    trigger.setAttribute("aria-expanded", "false");
+    modal.setAttribute("aria-hidden", "true");
+
+    trigger.addEventListener("click", () => {
+      openToolsModal();
+    });
+    closeBtn.addEventListener("click", () => {
+      closeToolsModal();
+    });
+    modal.addEventListener("mousedown", (event) => {
+      if (event.target === modal) closeToolsModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (modal.style.display !== "flex") return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeToolsModal();
+      }
+    });
+    window.addEventListener("settings:opened", () => {
+      closeToolsModal();
+    });
+  })();
 
   // Переключатель отображения статуса инструментов в шапке Загрузчика
   (function initToolsStatusVisibilityToggle() {
