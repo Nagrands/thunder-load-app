@@ -32,20 +32,35 @@ const setupDom = () => {
     <button id="download-cancel"></button>
     <button id="open-history"></button>
     <div id="history-container">
-      <div class="history-controls"></div>
+      <div class="history-controls">
+        <button id="history-header"><span id="total-downloads">0</span></button>
+        <button id="refresh-button"></button>
+        <button id="sort-button"><i class="fa-solid"></i></button>
+        <button id="clear-history"></button>
+        <button id="delete-selected" class="hidden"></button>
+        <button id="history-more-trigger" aria-expanded="false"></button>
+        <div id="history-more-menu" class="hidden">
+          <button id="restore-history" class="history-more-menu__item"></button>
+          <button id="history-export-json" class="history-more-menu__item"></button>
+          <button id="history-export-csv" class="history-more-menu__item"></button>
+          <button id="history-density-compact" class="history-more-menu__item"></button>
+          <button id="history-density-comfort" class="history-more-menu__item"></button>
+          <button id="toggle-all-details" class="history-more-menu__item"></button>
+        </div>
+      </div>
       <div class="history-filters-row"></div>
       <div class="history-search-wrapper"></div>
+      <select id="history-source-filter"></select>
+      <select id="history-sort-key"></select>
+      <select id="history-sort-mode"></select>
       <i id="icon-filter-search"></i>
       <div id="history-bulk-bar" class="history-bulk-bar hidden"></div>
       <span id="history-selected-count"></span>
       <button id="history-clear-selection"></button>
-      <button id="toggle-all-details"></button>
       <div id="history"></div>
       <div id="history-empty"></div>
     </div>
     <input id="filter-input" />
-    <button id="history-density-compact"></button>
-    <button id="history-density-comfort"></button>
   `;
 
   global.window.electron = {
@@ -155,6 +170,22 @@ describe("Downloader history list", () => {
 
     menuButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(menu.classList.contains("is-open")).toBe(true);
+  });
+
+  test("toggles control-deck more menu and closes on escape", async () => {
+    const { initHistory } = await import("../history.js");
+    const trigger = document.getElementById("history-more-trigger");
+    const menu = document.getElementById("history-more-menu");
+
+    initHistory();
+
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(menu.classList.contains("hidden")).toBe(false);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(menu.classList.contains("hidden")).toBe(true);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
   test("enables virtualized rendering for large history pages", async () => {

@@ -87,6 +87,9 @@ let lastRenderedFiltered = [];
 let historyTruncationBound = false;
 let historyTruncationResizeTimer = null;
 let historyMenuBound = false;
+let historyMoreMenuBound = false;
+let historyMoreTriggerButton = null;
+let historyMoreMenu = null;
 let historyVirtualList = null;
 
 const pluralize = (value, [one, few, many]) => {
@@ -701,6 +704,12 @@ function ensureHistoryControlElements() {
     historyDensityButtons.comfort = document.getElementById(
       "history-density-comfort",
     );
+  }
+  if (!historyMoreTriggerButton || !historyMoreTriggerButton.isConnected) {
+    historyMoreTriggerButton = document.getElementById("history-more-trigger");
+  }
+  if (!historyMoreMenu || !historyMoreMenu.isConnected) {
+    historyMoreMenu = document.getElementById("history-more-menu");
   }
 
   if (!historySelectUIs.source) {
@@ -1333,6 +1342,60 @@ function closeAllHistoryMenus(except = null) {
     }
     const row = menu.closest(".history-row");
     if (row) row.classList.remove("is-menu-open");
+  });
+}
+
+function closeHistoryMoreMenu() {
+  if (!historyMoreMenu) return;
+  historyMoreMenu.classList.add("hidden");
+  historyMoreTriggerButton?.classList.remove("is-open");
+  historyMoreTriggerButton?.setAttribute("aria-expanded", "false");
+}
+
+function toggleHistoryMoreMenu() {
+  if (!historyMoreMenu) return;
+  const shouldOpen = historyMoreMenu.classList.contains("hidden");
+  historyMoreMenu.classList.toggle("hidden", !shouldOpen);
+  historyMoreTriggerButton?.classList.toggle("is-open", shouldOpen);
+  historyMoreTriggerButton?.setAttribute(
+    "aria-expanded",
+    shouldOpen ? "true" : "false",
+  );
+}
+
+function bindHistoryMoreMenu() {
+  if (historyMoreMenuBound) return;
+  historyMoreMenuBound = true;
+
+  historyMoreTriggerButton?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleHistoryMoreMenu();
+  });
+
+  historyMoreMenu?.addEventListener("click", (event) => {
+    const item = event.target.closest(".history-more-menu__item");
+    if (!item) return;
+    closeHistoryMoreMenu();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!historyMoreMenu || historyMoreMenu.classList.contains("hidden")) return;
+    if (historyMoreMenu.contains(event.target)) return;
+    if (historyMoreTriggerButton?.contains(event.target)) return;
+    closeHistoryMoreMenu();
+  });
+
+  document.addEventListener("focusin", (event) => {
+    if (!historyMoreMenu || historyMoreMenu.classList.contains("hidden")) return;
+    if (historyMoreMenu.contains(event.target)) return;
+    if (historyMoreTriggerButton?.contains(event.target)) return;
+    closeHistoryMoreMenu();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    closeHistoryMoreMenu();
   });
 }
 
@@ -2783,6 +2846,7 @@ function renderHistory(entries, meta = {}) {
   const container = document.getElementById("history");
   applyHistoryDensity();
   bindHistoryMenuClose();
+  closeHistoryMoreMenu();
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
   destroyHistoryVirtualList();
@@ -2906,6 +2970,7 @@ async function initHistoryState() {
 
 function initHistory() {
   ensureHistoryControlElements();
+  bindHistoryMoreMenu();
   applyHistoryDensity();
   historySourceFilterSelect?.addEventListener("change", (e) => {
     state.historySourceFilter = e.target.value || "";

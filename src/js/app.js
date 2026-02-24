@@ -73,7 +73,10 @@ const historyFilePath = path.join(
   "download_history.json",
 );
 let downloadPath = path.join(app.getPath("videos"), "Download");
-const previewCacheDir = path.join(app.getPath("temp"), "thunderload-previews");
+const previewCacheDir = path.join(
+  app.getPath("userData"),
+  "thunderload-previews",
+);
 try {
   fs.mkdirSync(previewCacheDir, { recursive: true });
 } catch (error) {

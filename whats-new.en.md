@@ -2,6 +2,9 @@
 
 ### Interface
 
+- **Completely redesigned the History control block**: search, sorting, delete actions, and filters are now organized into a clearer two-level Control Deck with larger controls.
+- **Moved secondary History actions into a single “More” menu**: export, restore, list density, and expand/collapse details are now grouped in one compact dropdown.
+- **Changed where History previews are stored**: thumbnails are now saved in the app settings folder, so they are less likely to disappear when the system temp folder is cleaned.
 - **Improved top menu tab buttons**: tabs now use a cleaner segmented style, balanced spacing, and a calmer active state.
 - **Removed the “Network status” indicator from the top bar**: the related toggle was also removed from “Appearance” settings to keep the interface simpler.
 - **Made tray menu updates more stable**: menu items now react faster to changes in download path and download status.

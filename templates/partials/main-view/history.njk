@@ -9,245 +9,258 @@
         <h3 class="history-cards-title" data-i18n="history.title">История</h3>
       </div>
 
-      <button
-        id="history-header"
-        class="history-action-button history-count-pill"
-        aria-label="Количество записей"
-        data-hint="Количество записей"
-        data-i18n-aria="history.count"
-        data-i18n-hint="history.count"
-      >
-        <i class="fa-solid fa-list-ol"></i>
-        <span id="total-downloads">0</span>
-      </button>
     </div>
 
     <div class="history-controls">
-      <div class="history-search-card">
-        <div class="history-search-wrapper history-input-wrapper">
-          <i id="icon-filter-search" class="fas fa-search search-icon"></i>
-          <input
-            type="text"
-            id="filter-input"
-            placeholder="Поиск по истории"
-            aria-label="Поиск по истории"
-            data-i18n-placeholder="history.search.placeholder"
-            data-i18n-aria="history.search.aria"
-          />
-          <button
-            id="clear-filter-input"
-            class="history-action-button"
-            aria-label="Очистить поиск"
-            data-hint="Сбросить поисковый запрос"
-            data-i18n-aria="history.search.clear"
-            data-i18n-hint="history.search.clearHint"
-          >
-            &times;
-          </button>
+      <div class="history-controls-row history-controls-row--primary">
+        <div class="history-search-card">
+          <div class="history-search-wrapper history-input-wrapper">
+            <i id="icon-filter-search" class="fas fa-search search-icon"></i>
+            <input
+              type="text"
+              id="filter-input"
+              placeholder="Поиск по истории"
+              aria-label="Поиск по истории"
+              data-i18n-placeholder="history.search.placeholder"
+              data-i18n-aria="history.search.aria"
+            />
+            <button
+              id="clear-filter-input"
+              class="history-action-button"
+              aria-label="Очистить поиск"
+              data-hint="Сбросить поисковый запрос"
+              data-i18n-aria="history.search.clear"
+              data-i18n-hint="history.search.clearHint"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+
+        <div class="history-deck-actions">
+          <div class="history-action-segment history-action-segment--view">
+            <button
+              id="history-header"
+              class="history-action-button history-count-pill"
+              aria-label="Количество записей"
+              data-hint="Количество записей"
+              data-i18n-aria="history.count"
+              data-i18n-hint="history.count"
+            >
+              <i class="fa-solid fa-list-ol"></i>
+              <span id="total-downloads">0</span>
+            </button>
+            <button
+              id="refresh-button"
+              class="history-action-button"
+              aria-label="Обновить список"
+              data-hint="Обновить список"
+              data-i18n-aria="history.refresh"
+              data-i18n-hint="history.refresh"
+            >
+              <i class="fa-solid fa-arrow-rotate-right"></i>
+            </button>
+            <button
+              id="sort-button"
+              class="history-action-button"
+              aria-label="Сортировка"
+              data-hint="Сменить порядок сортировки"
+              data-i18n-aria="history.sort"
+              data-i18n-hint="history.sortHint"
+            >
+              <i class="fa-solid"></i>
+            </button>
+          </div>
+
+          <div class="history-action-segment history-action-segment--danger">
+            <button
+              id="delete-selected"
+              class="history-action-button hidden"
+              aria-label="Удалить выбранные записи"
+              data-hint="Удалить выбранные"
+              data-i18n-aria="history.deleteSelected"
+              data-i18n-hint="history.deleteSelected"
+            >
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <button
+              id="clear-history"
+              class="history-action-button"
+              aria-label="Очистить историю"
+              data-hint="Очистить всю историю"
+              data-i18n-aria="history.clear"
+              data-i18n-hint="history.clearHint"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+
+          <div class="history-action-segment history-action-segment--more">
+            <button
+              id="history-more-trigger"
+              class="history-action-button history-more-trigger"
+              type="button"
+              aria-label="Дополнительные действия"
+              data-i18n-aria="history.action.more"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="history-more-menu"
+              data-hint="Дополнительные действия"
+              data-i18n-hint="history.action.more"
+            >
+              <i class="fa-solid fa-ellipsis"></i>
+            </button>
+            <div id="history-more-menu" class="history-more-menu hidden" role="menu">
+              <button
+                id="restore-history"
+                class="history-more-menu__item"
+                type="button"
+                role="menuitem"
+                aria-label="Восстановить удалённые записи"
+                data-i18n-aria="history.restore"
+              >
+                <i class="fa-solid fa-rotate-left"></i>
+                <span data-i18n="history.restore">Восстановить удалённые записи</span>
+              </button>
+              <button
+                id="history-export-json"
+                class="history-more-menu__item"
+                type="button"
+                role="menuitem"
+                aria-label="Экспорт в JSON"
+                data-i18n-aria="history.exportJson"
+              >
+                <i class="fa-solid fa-file-code"></i>
+                <span data-i18n="history.exportJson">Экспорт в JSON</span>
+              </button>
+              <button
+                id="history-export-csv"
+                class="history-more-menu__item"
+                type="button"
+                role="menuitem"
+                aria-label="Экспорт в CSV"
+                data-i18n-aria="history.exportCsv"
+              >
+                <i class="fa-solid fa-file-csv"></i>
+                <span data-i18n="history.exportCsv">Экспорт в CSV</span>
+              </button>
+              <button
+                id="history-density-compact"
+                class="history-more-menu__item"
+                type="button"
+                role="menuitem"
+                aria-label="Компактно"
+                data-i18n-aria="history.density.compact"
+              >
+                <i class="fa-solid fa-compress"></i>
+                <span data-i18n="history.density.compact">Компактно</span>
+              </button>
+              <button
+                id="history-density-comfort"
+                class="history-more-menu__item"
+                type="button"
+                role="menuitem"
+                aria-label="Подробный"
+                data-i18n-aria="history.density.comfort"
+              >
+                <i class="fa-solid fa-expand"></i>
+                <span data-i18n="history.density.comfort">Подробный</span>
+              </button>
+              <button
+                id="toggle-all-details"
+                class="history-more-menu__item"
+                type="button"
+                role="menuitem"
+                aria-label="Развернуть все"
+                data-i18n-aria="history.details.toggleAll"
+              >
+                <i class="fa-solid fa-chevron-down"></i>
+                <span data-i18n="history.details.toggleAll">Развернуть все</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="history-actions-card">
-        <div class="history-action-group">
-          <button
-            id="refresh-button"
-            class="history-action-button"
-            aria-label="Обновить список"
-            data-hint="Обновить список"
-            data-i18n-aria="history.refresh"
-            data-i18n-hint="history.refresh"
-          >
-            <i class="fa-solid fa-arrow-rotate-right"></i>
-          </button>
-          <button
-            id="sort-button"
-            class="history-action-button"
-            aria-label="Сортировка"
-            data-hint="Сменить порядок сортировки"
-            data-i18n-aria="history.sort"
-            data-i18n-hint="history.sortHint"
-          >
-            <i class="fa-solid"></i>
-          </button>
-          <div
-            class="history-density-group"
-            role="group"
-            aria-label="Плотность списка"
-            data-i18n-aria="history.density.label"
-          >
-            <button
-              id="history-density-compact"
-              class="history-density-btn"
-              aria-label="Компактно"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Компактно"
-              data-i18n-title="history.density.compact"
-              data-hint="Компактно"
-              data-i18n-aria="history.density.compact"
-              data-i18n-hint="history.density.compact"
-              type="button"
-            >
-              <i class="fa-solid fa-compress"></i>
-            </button>
-            <button
-              id="history-density-comfort"
-              class="history-density-btn"
-              aria-label="Подробный"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Подробный"
-              data-i18n-title="history.density.comfort"
-              data-hint="Подробный"
-              data-i18n-aria="history.density.comfort"
-              data-i18n-hint="history.density.comfort"
-              type="button"
-            >
-              <i class="fa-solid fa-expand"></i>
-            </button>
-          </div>
-          <button
-            id="toggle-all-details"
-            class="history-action-button"
-            aria-label="Развернуть все"
-            data-hint="Развернуть все"
-            data-i18n-aria="history.details.toggleAll"
-            data-i18n-hint="history.details.toggleAll"
-          >
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <button
-            id="clear-history"
-            class="history-action-button"
-            aria-label="Очистить историю"
-            data-hint="Очистить всю историю"
-            data-i18n-aria="history.clear"
-            data-i18n-hint="history.clearHint"
-          >
-            <i class="fa-solid fa-trash"></i>
-          </button>
-          <button
-            id="delete-selected"
-            class="history-action-button hidden"
-            aria-label="Удалить выбранные записи"
-            data-hint="Удалить выбранные"
-            data-i18n-aria="history.deleteSelected"
-            data-i18n-hint="history.deleteSelected"
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-          <button
-            id="restore-history"
-            class="history-action-button"
-            aria-label="Восстановить удалённые записи"
-            data-hint="Восстановить удалённые"
-            data-i18n-aria="history.restore"
-            data-i18n-hint="history.restore"
-          >
-            <i class="fa-solid fa-rotate-left"></i>
-          </button>
-          <button
-            id="history-export-json"
-            class="history-action-button"
-            aria-label="Экспорт в JSON"
-            data-hint="Экспорт в JSON"
-            data-i18n-aria="history.exportJson"
-            data-i18n-hint="history.exportJson"
-          >
-            <i class="fa-solid fa-file-code"></i>
-          </button>
-          <button
-            id="history-export-csv"
-            class="history-action-button"
-            aria-label="Экспорт в CSV"
-            data-hint="Экспорт в CSV"
-            data-i18n-aria="history.exportCsv"
-            data-i18n-hint="history.exportCsv"
-          >
-            <i class="fa-solid fa-file-csv"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="history-filters-row">
-      <div class="history-filters-card">
-        <div class="history-filter-group">
-          <div class="history-filter-pill">
-            <i class="fa-solid fa-globe"></i>
-            <div class="history-filter-meta">
-              <span data-i18n="history.filter.source.label">Источник</span>
-              <select
-                id="history-source-filter"
-                class="history-filter-select"
-                aria-label="Фильтр по источнику"
-                data-i18n-aria="history.filter.source"
-              >
-                <option value="" data-i18n="history.filter.source.all">
-                  Все источники
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="history-filter-pill">
-            <i class="fa-solid fa-arrow-up-wide-short"></i>
-            <div class="history-filter-meta">
-              <span data-i18n="history.sort.by.label">Сортировка</span>
-              <select
-                id="history-sort-key"
-                class="history-filter-select"
-                aria-label="Сортировка"
-                data-i18n-aria="history.sort.by.label"
-              >
-                <option value="date" data-i18n="history.sort.by.date">
-                  По дате
-                </option>
-                <option value="size" data-i18n="history.sort.by.size">
-                  По размеру
-                </option>
-                <option value="quality" data-i18n="history.sort.by.quality">
-                  По качеству
-                </option>
-                <option value="source" data-i18n="history.sort.by.source">
-                  По источнику
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="history-filter-pill">
-            <i class="fa-solid fa-photo-film"></i>
-            <div class="history-filter-meta">
-              <div class="history-filter-label">
-                <span data-i18n="history.sort.mode.label">Тип</span>
+      <div class="history-controls-row history-controls-row--filters history-filters-row">
+        <div class="history-filters-card">
+          <div class="history-filter-group">
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-globe"></i>
+              <div class="history-filter-meta">
+                <span data-i18n="history.filter.source.label">Источник</span>
+                <select
+                  id="history-source-filter"
+                  class="history-filter-select"
+                  aria-label="Фильтр по источнику"
+                  data-i18n-aria="history.filter.source"
+                >
+                  <option value="" data-i18n="history.filter.source.all">
+                    Все источники
+                  </option>
+                </select>
               </div>
-              <select
-                id="history-sort-mode"
-                class="history-filter-select"
-                aria-label="Тип медиа"
-                data-i18n-aria="history.sort.mode.label"
-              >
-                <option
-                  value="video"
-                  data-i18n="history.sort.mode.video"
-                  data-icon="fa-solid fa-video"
+            </div>
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-arrow-up-wide-short"></i>
+              <div class="history-filter-meta">
+                <span data-i18n="history.sort.by.label">Сортировка</span>
+                <select
+                  id="history-sort-key"
+                  class="history-filter-select"
+                  aria-label="Сортировка"
+                  data-i18n-aria="history.sort.by.label"
                 >
-                  Видео
-                </option>
-                <option
-                  value="audio"
-                  data-i18n="history.sort.mode.audio"
-                  data-icon="fa-solid fa-music"
+                  <option value="date" data-i18n="history.sort.by.date">
+                    По дате
+                  </option>
+                  <option value="size" data-i18n="history.sort.by.size">
+                    По размеру
+                  </option>
+                  <option value="quality" data-i18n="history.sort.by.quality">
+                    По качеству
+                  </option>
+                  <option value="source" data-i18n="history.sort.by.source">
+                    По источнику
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="history-filter-pill">
+              <i class="fa-solid fa-photo-film"></i>
+              <div class="history-filter-meta">
+                <div class="history-filter-label">
+                  <span data-i18n="history.sort.mode.label">Тип</span>
+                </div>
+                <select
+                  id="history-sort-mode"
+                  class="history-filter-select"
+                  aria-label="Тип медиа"
+                  data-i18n-aria="history.sort.mode.label"
                 >
-                  Аудио
-                </option>
-                <option
-                  value="mixed"
-                  data-i18n="history.sort.mode.mixed"
-                  data-icon="fa-solid fa-photo-film"
-                >
-                  Смешано
-                </option>
-              </select>
+                  <option
+                    value="video"
+                    data-i18n="history.sort.mode.video"
+                    data-icon="fa-solid fa-video"
+                  >
+                    Видео
+                  </option>
+                  <option
+                    value="audio"
+                    data-i18n="history.sort.mode.audio"
+                    data-icon="fa-solid fa-music"
+                  >
+                    Аудио
+                  </option>
+                  <option
+                    value="mixed"
+                    data-i18n="history.sort.mode.mixed"
+                    data-icon="fa-solid fa-photo-film"
+                  >
+                    Смешано
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

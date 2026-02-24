@@ -124,7 +124,7 @@ function setupIpcHandlers(dependencies) {
   let isReloadShortcutBlocked = false;
   const previewDirPath =
     (typeof previewCacheDir === "string" && previewCacheDir) ||
-    path.join(app.getPath("temp"), "thunderload-previews");
+    path.join(app.getPath("userData"), "thunderload-previews");
   const PREVIEW_REDIRECT_LIMIT = 5;
   const PREVIEW_USER_AGENT = "ThunderLoad/1.0 PreviewCache";
 
