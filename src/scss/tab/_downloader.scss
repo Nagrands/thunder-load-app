@@ -172,6 +172,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
+    padding-right: 34px;
 
     .quality-modal-subtitle {
       margin: 0;
@@ -188,17 +189,25 @@
     }
 
     .quality-modal-close {
-      min-width: 36px;
-      min-height: 36px;
-      border-radius: 10px;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 8;
+      pointer-events: auto;
+      width: 26px;
+      height: 26px;
+      min-width: 26px;
+      min-height: 26px;
+      border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.05);
       color: rgba(255, 255, 255, 0.9);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.05rem;
+      font-size: 0.92rem;
       line-height: 1;
+      padding: 0;
       cursor: pointer;
       transition:
         background 0.2s ease,
