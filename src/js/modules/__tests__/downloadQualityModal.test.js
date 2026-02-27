@@ -4,17 +4,55 @@ const buildDom = () => {
       <button type="button" data-quality-close>&times;</button>
       <div id="download-quality-loading" class="hidden"></div>
       <small id="download-quality-loading-detail"></small>
+      <div id="download-quality-options-placeholder" class="hidden"></div>
       <div id="download-quality-empty" class="hidden"></div>
       <div id="download-quality-error" class="hidden">
         <div class="quality-error-text"></div>
       </div>
       <button id="download-quality-retry" type="button"></button>
-      <button id="download-quality-confirm" type="button"></button>
       <button id="download-quality-cancel" type="button"></button>
-      <div id="download-quality-options"></div>
-      <button class="quality-tab" data-quality-tab="video"></button>
-      <button class="quality-tab" data-quality-tab="video-only"></button>
-      <button class="quality-tab" data-quality-tab="audio"></button>
+      <div class="quality-split-actions">
+        <button id="download-quality-primary" type="button"></button>
+        <button id="download-quality-menu-toggle" type="button" aria-expanded="false"></button>
+        <div id="download-quality-menu" class="hidden" role="menu">
+          <button id="download-quality-action-download" type="button" role="menuitem"></button>
+          <button id="download-quality-action-enqueue" type="button" role="menuitem"></button>
+        </div>
+      </div>
+      <div
+        id="download-quality-options-panel"
+        role="tabpanel"
+        aria-labelledby="download-quality-tab-video"
+      >
+        <div id="download-quality-options" role="radiogroup"></div>
+      </div>
+      <button
+        id="download-quality-tab-video"
+        class="quality-tab"
+        data-quality-tab="video"
+        role="tab"
+        aria-selected="true"
+        tabindex="0"
+        aria-controls="download-quality-options-panel"
+      ></button>
+      <button
+        id="download-quality-tab-video-only"
+        class="quality-tab"
+        data-quality-tab="video-only"
+        role="tab"
+        aria-selected="false"
+        tabindex="-1"
+        aria-controls="download-quality-options-panel"
+      ></button>
+      <button
+        id="download-quality-tab-audio"
+        class="quality-tab"
+        data-quality-tab="audio"
+        role="tab"
+        aria-selected="false"
+        tabindex="-1"
+        aria-controls="download-quality-options-panel"
+      ></button>
       <span id="download-quality-count-video"></span>
       <span id="download-quality-count-video-only"></span>
       <span id="download-quality-count-audio"></span>
@@ -481,7 +519,145 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
-  it("hides selection/actions and disables enqueue while formats are loading", async () => {
+  it("opens and closes split action menu via toggle and Escape", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const modal = document.getElementById("download-quality-modal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const toggle = document.getElementById("download-quality-menu-toggle");
+      const menu = document.getElementById("download-quality-menu");
+
+      toggle.click();
+      expect(menu.classList.contains("hidden")).toBe(false);
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+      expect(menu.classList.contains("hidden")).toBe(true);
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(modal.classList.contains("is-open")).toBe(true);
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+      const result = await resultPromise;
+
+      expect(result).toBeNull();
+      expect(modal.classList.contains("is-open")).toBe(false);
+    });
+  });
+
+  it("runs enqueue action from split menu item", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      document.getElementById("download-quality-menu-toggle").click();
+      document.getElementById("download-quality-action-enqueue").click();
+      const result = await resultPromise;
+
+      expect(result).toBeTruthy();
+      expect(result?.enqueue).toBe(true);
+      expect(result?.payload).toBeTruthy();
+    });
+  });
+
+  it("confirms download on Enter hotkey", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+      const result = await resultPromise;
+      expect(result).toBeTruthy();
+      expect(result?.enqueue).toBeUndefined();
+      expect(result?.type).toBeTruthy();
+    });
+  });
+
+  it("syncs tab ARIA state and tabpanel label on tab switch", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const tabVideo = document.getElementById("download-quality-tab-video");
+      const tabAudio = document.getElementById("download-quality-tab-audio");
+      const panel = document.getElementById("download-quality-options-panel");
+
+      expect(tabVideo.getAttribute("aria-selected")).toBe("true");
+      expect(tabVideo.tabIndex).toBe(0);
+      expect(panel.getAttribute("aria-labelledby")).toBe(
+        "download-quality-tab-video",
+      );
+
+      tabAudio.click();
+
+      expect(tabVideo.getAttribute("aria-selected")).toBe("false");
+      expect(tabVideo.tabIndex).toBe(-1);
+      expect(tabAudio.getAttribute("aria-selected")).toBe("true");
+      expect(tabAudio.tabIndex).toBe(0);
+      expect(panel.getAttribute("aria-labelledby")).toBe(
+        "download-quality-tab-audio",
+      );
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("keeps options ARIA roles and active descendant in sync", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const options = document.getElementById("download-quality-options");
+      const firstOption = document.querySelector(".quality-option");
+
+      expect(options.getAttribute("role")).toBe("radiogroup");
+      expect(firstOption.getAttribute("role")).toBe("radio");
+      expect(firstOption.getAttribute("aria-checked")).toBe("true");
+      expect(options.getAttribute("aria-activedescendant")).toBe(firstOption.id);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("hides selection/actions and disables split actions while formats are loading", async () => {
     await jest.isolateModulesAsync(async () => {
       let resolveInfo;
       window.electron.ipcRenderer.invoke = jest.fn(
@@ -509,11 +685,30 @@ describe("downloadQualityModal close behavior", () => {
         "download-quality-download-preview",
       );
       const copyBtn = document.getElementById("download-quality-copy-source");
+      const placeholder = document.getElementById(
+        "download-quality-options-placeholder",
+      );
+      const primaryBtn = document.getElementById("download-quality-primary");
+      const menuToggleBtn = document.getElementById(
+        "download-quality-menu-toggle",
+      );
+      const actionDownloadBtn = document.getElementById(
+        "download-quality-action-download",
+      );
+      const actionEnqueueBtn = document.getElementById(
+        "download-quality-action-enqueue",
+      );
 
       expect(selectionSummary.classList.contains("hidden")).toBe(true);
       expect(openSourceBtn.classList.contains("hidden")).toBe(true);
       expect(previewBtn.classList.contains("hidden")).toBe(true);
       expect(copyBtn.classList.contains("hidden")).toBe(true);
+      expect(placeholder.classList.contains("hidden")).toBe(false);
+      expect(primaryBtn.disabled).toBe(true);
+      expect(menuToggleBtn.disabled).toBe(true);
+      expect(actionDownloadBtn.disabled).toBe(true);
+      expect(actionEnqueueBtn.disabled).toBe(true);
+      expect(primaryBtn.textContent).toContain("Выберите");
 
       resolveInfo({
         success: true,
@@ -539,6 +734,12 @@ describe("downloadQualityModal close behavior", () => {
       expect(openSourceBtn.classList.contains("hidden")).toBe(false);
       expect(previewBtn.classList.contains("hidden")).toBe(false);
       expect(copyBtn.classList.contains("hidden")).toBe(false);
+      expect(placeholder.classList.contains("hidden")).toBe(true);
+      expect(primaryBtn.disabled).toBe(false);
+      expect(menuToggleBtn.disabled).toBe(false);
+      expect(actionDownloadBtn.disabled).toBe(false);
+      expect(actionEnqueueBtn.disabled).toBe(false);
+      expect(primaryBtn.textContent).toContain("Скачать");
 
       const cancelBtn = document.getElementById("download-quality-cancel");
       cancelBtn.click();

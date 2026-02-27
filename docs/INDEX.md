@@ -6,6 +6,8 @@
 
 - `docs/WORKFLOW.ru.md` — рабочий процесс разработки и выпуска.
 - `docs/WORKFLOW.en.md` — англоязычная версия workflow.
+- `docs/DOCS.ru.md` — методология D.O.C.S. (RU) для выполнения задач.
+- `docs/DOCS.en.md` — D.O.C.S. methodology (EN).
 - `docs/IMPROVEMENTS_WORKFLOW.ru.md` — процесс улучшений.
 - `docs/IMPROVEMENTS_WORKFLOW.en.md` — improvements workflow (EN).
 - `docs/README.ru.md` — краткое описание проекта (RU).
@@ -15,7 +17,6 @@
 
 - `docs/tab/Downloader_Tab.md`
 - `docs/tab/Backup_Tab.md`
-- `docs/tab/Randomizer_Tab.md`
 - `docs/tab/Tools_Platform_QA.md`
 
 ## Конвенции стиля

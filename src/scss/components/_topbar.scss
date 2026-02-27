@@ -22,7 +22,7 @@
   padding: var(--topbar-padding-y) var(--topbar-padding-x)
     calc(var(--topbar-padding-y) - 2px);
   z-index: 1000;
-  --topbar-control-size: 34px;
+  --topbar-control-size: 44px;
   @include mixins.fade-in(0.35s);
 }
 
@@ -123,7 +123,7 @@
 .center-menu {
   width: 100%;
   --menu-item-gap: 8px;
-  --menu-item-height: 35px;
+  --menu-item-height: 44px;
   --menu-item-padding: 0 14px;
   --menu-item-radius: 11px;
   --menu-item-font-size: 15px;
@@ -450,7 +450,7 @@
   background: transparent;
   color: var(--color-highlight);
   border-radius: 9px;
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 10px;
   text-align: left;
 
@@ -562,7 +562,7 @@
       "left left"
       "progress progress";
     row-gap: 6px;
-    --topbar-control-size: 30px;
+    --topbar-control-size: 40px;
   }
 
   .top-bar__left {
@@ -593,7 +593,7 @@
 
   .center-menu .menu-item {
     padding: 0 10px;
-    min-height: 30px;
+    min-height: 40px;
 
     .menu-text {
       font-size: 12px;
@@ -603,7 +603,7 @@
 
 @media (max-width: 480px) {
   .top-bar {
-    --topbar-control-size: 28px;
+    --topbar-control-size: 36px;
     --topbar-padding-x: 10px;
     padding: 8px var(--topbar-padding-x) 6px;
   }
@@ -622,7 +622,7 @@
 
   .center-menu .menu-item {
     padding: 0 8px;
-    min-height: 28px;
+    min-height: 36px;
 
     .menu-text {
       display: none;

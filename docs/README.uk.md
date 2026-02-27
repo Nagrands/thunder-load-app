@@ -20,7 +20,7 @@
 
 - [Downloader](tab/Downloader_Tab.md)
 - [Backup](tab/Backup_Tab.md)
-- [Randomizer](tab/Randomizer_Tab.md)
+- [Tools QA](tab/Tools_Platform_QA.md)
 
 ## Технології та скрипти
 

@@ -2,6 +2,8 @@
 
 This document describes a consistent, safe, and repeatable flow for project improvements.
 
+Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Organize → Check → Share`).
+
 ## 1. Define the Improvement
 
 - Describe the problem/goal in 1–2 sentences.

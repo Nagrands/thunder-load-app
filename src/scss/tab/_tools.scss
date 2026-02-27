@@ -2051,6 +2051,7 @@ $wg-max-width: 1200px;
   min-height: 38px;
   padding: 0;
   justify-content: center;
+  color: var(--color-toast-error);
 }
 
 .power-shortcuts-header__hint {
@@ -2118,6 +2119,7 @@ $wg-max-width: 1200px;
   min-height: 1.2rem;
   margin-top: 2px;
   font-size: 0.78rem;
+  color: var(--color-toast-success);
 }
 
 .tools-shell {

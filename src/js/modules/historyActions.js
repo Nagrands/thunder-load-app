@@ -16,7 +16,7 @@ import { setFilterInputValue } from "./historyFilter.js";
 import { showConfirmationDialog } from "./modals.js";
 import { showToast } from "./toast.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
-import { state, setHistoryData } from "./state.js";
+import { state, setHistoryData, getHistoryData } from "./state.js";
 import { t } from "./i18n.js";
 
 let isClearingHistory = false;
@@ -41,7 +41,7 @@ async function handleClearHistory() {
     });
     if (!confirmed) return;
 
-    const previousHistory = [...(state.downloadHistory || [])];
+    const previousHistory = [...(getHistoryData() || state.downloadHistory || [])];
     const previewPaths = previousHistory
       .map((entry) => entry?.thumbnailCacheFile)
       .filter(Boolean);

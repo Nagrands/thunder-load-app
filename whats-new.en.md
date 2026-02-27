@@ -2,6 +2,7 @@
 
 ### Interface
 
+- **Improved accessibility in the top bar and URL input block**: increased tap/click target sizes for primary actions, added clearer screen-reader labels, and improved keyboard-friendly button behavior.
 - **Completely redesigned the History control block**: search, sorting, delete actions, and filters are now organized into a clearer two-level Control Deck with larger controls.
 - **Moved secondary History actions into a single “More” menu**: export, restore, list density, and expand/collapse details are now grouped in one compact dropdown.
 - **Changed where History previews are stored**: thumbnails are now saved in the app settings folder, so they are less likely to disappear when the system temp folder is cleaned.
@@ -22,6 +23,10 @@
 
 ### Downloader tab
 
+- **Quality picker is now clearer while loading formats**: the right side now shows a compact format-list placeholder, so the modal no longer looks empty while options are being fetched.
+- **Action clarity in Quality picker has been improved**: the disabled primary button now shows an explicit “Pick a format” hint, and footer hotkeys are grouped more cleanly next to action buttons.
+- **Format list in Quality picker is now more compact**: cards, metrics, and tags use tighter spacing so more options fit on screen without hurting readability.
+- **Quality picker is now easier on keyboard and narrow desktop windows**: the footer now uses a split action button with clear “Download” and “Add to queue” choices, keyboard flow for `Tab/Enter/Esc/↑/↓/A` is more predictable, and the layout stays usable around 620–900 px widths.
 - **Multi-download in Downloader is now more capable**: active jobs now show per-link progress, failed downloads can be retried quickly, and the parallel limit is configurable in the Settings modal.
 - **Queue throughput is now faster in Downloader**: you can now download up to two files at once, and pending tasks start automatically as slots become available.
 - **Improved the Quality picker**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block immediately previews the final output.

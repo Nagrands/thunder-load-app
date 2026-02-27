@@ -140,10 +140,17 @@
           <div class="quality-tabs" role="tablist">
             <button
               type="button"
+              id="download-quality-tab-video"
               class="quality-tab active"
               data-quality-tab="video"
+              role="tab"
+              aria-selected="true"
+              tabindex="0"
+              aria-controls="download-quality-options-panel"
               title="Видео + аудио"
               data-i18n-title="quality.tab.video"
+              aria-label="Видео + аудио"
+              data-i18n-aria="quality.aria.tab.video"
             >
               <span data-i18n="quality.tab.video">Видео + аудио</span>
               <span
@@ -156,10 +163,17 @@
             </button>
             <button
               type="button"
+              id="download-quality-tab-video-only"
               class="quality-tab"
               data-quality-tab="video-only"
+              role="tab"
+              aria-selected="false"
+              tabindex="-1"
+              aria-controls="download-quality-options-panel"
               title="Только видео"
               data-i18n-title="quality.tab.videoOnly"
+              aria-label="Только видео"
+              data-i18n-aria="quality.aria.tab.videoOnly"
             >
               <span data-i18n="quality.tab.videoOnly">Только видео</span>
               <span
@@ -170,7 +184,18 @@
                 0
               </span>
             </button>
-            <button type="button" class="quality-tab" data-quality-tab="audio">
+            <button
+              type="button"
+              id="download-quality-tab-audio"
+              class="quality-tab"
+              data-quality-tab="audio"
+              role="tab"
+              aria-selected="false"
+              tabindex="-1"
+              aria-controls="download-quality-options-panel"
+              aria-label="Только аудио"
+              data-i18n-aria="quality.aria.tab.audio"
+            >
               <span data-i18n="quality.tab.audio">Только аудио</span>
               <span
                 class="quality-tab-count"
@@ -201,6 +226,27 @@
           </div>
         </div>
         <div
+          id="download-quality-options-placeholder"
+          class="quality-options-placeholder hidden"
+          aria-hidden="true"
+        >
+          <div class="quality-placeholder-card">
+            <span class="quality-placeholder-title"></span>
+            <span class="quality-placeholder-line"></span>
+            <span class="quality-placeholder-badges"></span>
+          </div>
+          <div class="quality-placeholder-card">
+            <span class="quality-placeholder-title"></span>
+            <span class="quality-placeholder-line"></span>
+            <span class="quality-placeholder-badges"></span>
+          </div>
+          <div class="quality-placeholder-card">
+            <span class="quality-placeholder-title"></span>
+            <span class="quality-placeholder-line"></span>
+            <span class="quality-placeholder-badges"></span>
+          </div>
+        </div>
+        <div
           id="download-quality-error"
           class="quality-error hidden"
           role="alert"
@@ -226,16 +272,28 @@
           >
         </div>
         <div
-          id="download-quality-options"
-          class="quality-options"
-          role="radiogroup"
-          aria-live="polite"
-          aria-busy="false"
-        ></div>
+          id="download-quality-options-panel"
+          class="quality-options-panel"
+          role="tabpanel"
+          aria-labelledby="download-quality-tab-video"
+        >
+          <div
+            id="download-quality-options"
+            class="quality-options"
+            role="radiogroup"
+            aria-live="polite"
+            aria-busy="false"
+            aria-label="Доступные форматы"
+            data-i18n-aria="quality.aria.optionsGroup"
+            aria-describedby="download-quality-hint-text download-quality-selection-title"
+          ></div>
+        </div>
         <div
           id="download-quality-selection-summary"
           class="quality-selection-summary"
           aria-live="polite"
+          aria-label="Сводка выбранного качества"
+          data-i18n-aria="quality.aria.selectionSummary"
         >
           <div class="quality-selection-text">
             <span class="quality-selection-label" data-i18n="quality.selected">
@@ -270,21 +328,25 @@
             >Двойной клик по варианту сразу начнёт загрузку.</span
           >
           <div class="quality-hotkeys" aria-label="Горячие клавиши выбора качества">
-            <span class="hotkey-chip"
-              ><kbd>↑/↓</kbd> <span data-i18n="quality.hotkey.select">выбор</span></span
-            >
-            <span class="hotkey-chip"
-              ><kbd>Enter</kbd> <span data-i18n="quality.hotkey.confirm">скачать</span></span
-            >
-            <span class="hotkey-chip"
-              ><kbd>A</kbd> <span data-i18n="quality.hotkey.enqueue">в очередь</span></span
-            >
-            <span class="hotkey-chip"
-              ><kbd>Esc</kbd> <span data-i18n="quality.hotkey.close">закрыть</span></span
-            >
-            <span class="hotkey-chip"
-              ><kbd>Tab</kbd> <span data-i18n="quality.hotkey.focus">фокус</span></span
-            >
+            <div class="quality-hotkeys-main">
+              <span class="hotkey-chip"
+                ><kbd>↑/↓</kbd> <span data-i18n="quality.hotkey.select">выбор</span></span
+              >
+              <span class="hotkey-chip"
+                ><kbd>Enter</kbd> <span data-i18n="quality.hotkey.confirm">скачать</span></span
+              >
+              <span class="hotkey-chip"
+                ><kbd>Esc</kbd> <span data-i18n="quality.hotkey.close">закрыть</span></span
+              >
+            </div>
+            <div class="quality-hotkeys-extra">
+              <span class="hotkey-chip"
+                ><kbd>A</kbd> <span data-i18n="quality.hotkey.enqueue">в очередь</span></span
+              >
+              <span class="hotkey-chip"
+                ><kbd>Tab</kbd> <span data-i18n="quality.hotkey.focus">фокус</span></span
+              >
+            </div>
           </div>
         </div>
       </div>
@@ -297,15 +359,58 @@
         >
           Отмена
         </button>
-        <button
-          type="button"
-          id="download-quality-confirm"
-          class="btn-primary"
-          disabled
-          data-i18n="quality.confirm"
-        >
-          Скачать выбранное
-        </button>
+        <div class="quality-split-actions">
+          <button
+            type="button"
+            id="download-quality-primary"
+            class="btn-primary quality-split-primary"
+            disabled
+            data-i18n="quality.split.primary"
+          >
+            Скачать
+          </button>
+          <button
+            type="button"
+            id="download-quality-menu-toggle"
+            class="btn-primary quality-split-toggle"
+            aria-label="Выбрать действие загрузки"
+            data-i18n-aria="quality.split.menuToggle"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="download-quality-menu"
+            disabled
+          >
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div
+            id="download-quality-menu"
+            class="quality-action-menu hidden"
+            role="menu"
+            aria-label="Действия с выбранным качеством"
+            data-i18n-aria="quality.split.menuLabel"
+          >
+            <button
+              type="button"
+              id="download-quality-action-download"
+              class="quality-action-menu-item"
+              role="menuitem"
+              data-i18n="quality.split.action.download"
+              disabled
+            >
+              Скачать
+            </button>
+            <button
+              type="button"
+              id="download-quality-action-enqueue"
+              class="quality-action-menu-item"
+              role="menuitem"
+              data-i18n="quality.split.action.enqueue"
+              disabled
+            >
+              В очередь
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

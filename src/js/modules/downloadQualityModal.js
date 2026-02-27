@@ -9,6 +9,9 @@ const INFO_REQUEST_TIMEOUT = 15000;
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
 const loadingEl = document.getElementById("download-quality-loading");
+const optionsPlaceholderEl = document.getElementById(
+  "download-quality-options-placeholder",
+);
 const loadingDetailEl = document.getElementById(
   "download-quality-loading-detail",
 );
@@ -16,13 +19,21 @@ const emptyEl = document.getElementById("download-quality-empty");
 const errorEl = document.getElementById("download-quality-error");
 const errorTextEl = errorEl?.querySelector(".quality-error-text");
 const retryBtn = document.getElementById("download-quality-retry");
-const confirmBtn = document.getElementById("download-quality-confirm");
-const enqueueBtn = document.getElementById("download-quality-enqueue");
+const primaryBtn = document.getElementById("download-quality-primary");
+const menuToggleBtn = document.getElementById("download-quality-menu-toggle");
+const actionMenu = document.getElementById("download-quality-menu");
+const actionDownloadBtn = document.getElementById(
+  "download-quality-action-download",
+);
+const actionEnqueueBtn = document.getElementById(
+  "download-quality-action-enqueue",
+);
 const cancelBtn = document.getElementById("download-quality-cancel");
 const closeBtn = modal?.querySelector("[data-quality-close]");
 const tabButtons = Array.from(
   document.querySelectorAll(".quality-tab[data-quality-tab]"),
 );
+const optionsPanel = document.getElementById("download-quality-options-panel");
 const tabCountEls = {
   video: document.getElementById("download-quality-count-video"),
   "video-only": document.getElementById("download-quality-count-video-only"),
@@ -95,6 +106,8 @@ const state = {
   expandedOptions: new Set(),
   loadingStartedAt: 0,
   loadingTickTimer: null,
+  isActionMenuOpen: false,
+  lastFocusedBeforeMenu: null,
 };
 
 const extractHeight = (fmt) => {
@@ -204,12 +217,23 @@ function resetModalState() {
   state.optionMap.clear();
   state.selectedByTab.clear();
   state.expandedOptions.clear();
+  state.isActionMenuOpen = false;
+  state.lastFocusedBeforeMenu = null;
   optionsContainer.innerHTML = "";
-  confirmBtn.disabled = true;
-  if (enqueueBtn) enqueueBtn.disabled = true;
-  confirmBtn.textContent = "Скачать выбранное";
+  if (primaryBtn) {
+    primaryBtn.disabled = true;
+    primaryBtn.textContent = t("quality.split.primaryDisabledHint");
+  }
+  if (menuToggleBtn) {
+    menuToggleBtn.disabled = true;
+    menuToggleBtn.setAttribute("aria-expanded", "false");
+  }
+  if (actionMenu) actionMenu.classList.add("hidden");
+  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
+  if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
+  optionsPlaceholderEl?.classList.add("hidden");
   clearLoadingTimer();
   optionsContainer?.setAttribute("aria-busy", "false");
   if (downloadPreviewBtn) {
@@ -234,12 +258,6 @@ function resetModalState() {
   thumbFallbackEl?.classList.add("hidden");
   updateTabCounts();
   updateSelectionSummary(null);
-  if (enqueueBtn) {
-    enqueueBtn.classList.remove("is-done");
-    enqueueBtn.title = t("quality.enqueue");
-    const icon = enqueueBtn.querySelector("i");
-    if (icon) icon.className = "fa-solid fa-list-check";
-  }
 }
 
 function clearLoadingTimer() {
@@ -265,14 +283,21 @@ function syncLoadingUi(isLoading) {
   openSourceBtn?.classList.toggle("hidden", isLoading);
   copySourceUrlBtn?.classList.toggle("hidden", isLoading);
   downloadPreviewBtn?.classList.toggle("hidden", isLoading);
-  if (enqueueBtn) {
-    enqueueBtn.disabled = isLoading || !state.selectedOption;
+  const hasOption = !!state.selectedOption;
+  const disableActions = isLoading || !hasOption;
+  if (primaryBtn) primaryBtn.disabled = disableActions;
+  if (menuToggleBtn) menuToggleBtn.disabled = disableActions;
+  if (actionDownloadBtn) actionDownloadBtn.disabled = disableActions;
+  if (actionEnqueueBtn) actionEnqueueBtn.disabled = disableActions;
+  if (disableActions && state.isActionMenuOpen) {
+    closeActionMenu({ restoreFocus: false });
   }
 }
 
 function setLoading(flag) {
   if (flag) {
     loadingEl?.classList.remove("hidden");
+    optionsPlaceholderEl?.classList.remove("hidden");
     state.loadingStartedAt = Date.now();
     updateLoadingDetail();
     clearLoadingTimer();
@@ -280,10 +305,43 @@ function setLoading(flag) {
     optionsContainer?.setAttribute("aria-busy", "true");
   } else {
     loadingEl?.classList.add("hidden");
+    optionsPlaceholderEl?.classList.add("hidden");
     clearLoadingTimer();
     optionsContainer?.setAttribute("aria-busy", "false");
   }
   syncLoadingUi(flag);
+}
+
+function getMenuItems() {
+  return [actionDownloadBtn, actionEnqueueBtn].filter(Boolean);
+}
+
+function closeActionMenu({ restoreFocus = false } = {}) {
+  if (!state.isActionMenuOpen) return;
+  state.isActionMenuOpen = false;
+  actionMenu?.classList.add("hidden");
+  menuToggleBtn?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && state.lastFocusedBeforeMenu?.focus) {
+    state.lastFocusedBeforeMenu.focus();
+  }
+  state.lastFocusedBeforeMenu = null;
+}
+
+function openActionMenu() {
+  if (!actionMenu || !menuToggleBtn || menuToggleBtn.disabled) return;
+  state.isActionMenuOpen = true;
+  state.lastFocusedBeforeMenu = menuToggleBtn;
+  actionMenu.classList.remove("hidden");
+  menuToggleBtn.setAttribute("aria-expanded", "true");
+  getMenuItems()[0]?.focus();
+}
+
+function toggleActionMenu() {
+  if (state.isActionMenuOpen) {
+    closeActionMenu({ restoreFocus: true });
+    return;
+  }
+  openActionMenu();
 }
 
 function beginFetchView() {
@@ -291,7 +349,10 @@ function beginFetchView() {
   errorEl?.classList.add("hidden");
   emptyEl?.classList.add("hidden");
   optionsContainer.innerHTML = "";
-  confirmBtn.disabled = true;
+  if (primaryBtn) primaryBtn.disabled = true;
+  if (menuToggleBtn) menuToggleBtn.disabled = true;
+  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
+  if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   updateTabCounts();
   updateSelectionSummary(null);
@@ -303,7 +364,11 @@ function showError(message) {
   optionsContainer.innerHTML = "";
   errorEl.classList.remove("hidden");
   emptyEl?.classList.add("hidden");
-  confirmBtn.disabled = true;
+  optionsPlaceholderEl?.classList.add("hidden");
+  if (primaryBtn) primaryBtn.disabled = true;
+  if (menuToggleBtn) menuToggleBtn.disabled = true;
+  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
+  if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   if (errorTextEl) {
     errorTextEl.textContent =
@@ -314,8 +379,12 @@ function showError(message) {
 
 function showEmpty() {
   emptyEl?.classList.remove("hidden");
+  optionsPlaceholderEl?.classList.add("hidden");
   optionsContainer.innerHTML = "";
-  confirmBtn.disabled = true;
+  if (primaryBtn) primaryBtn.disabled = true;
+  if (menuToggleBtn) menuToggleBtn.disabled = true;
+  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
+  if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   updateSelectionSummary(null);
 }
@@ -871,12 +940,22 @@ function selectOption(option, { remember = true } = {}) {
     if (option?.id) state.selectedByTab.set(state.currentTab, option.id);
     else state.selectedByTab.delete(state.currentTab);
   }
-  confirmBtn.disabled = !option;
-  if (enqueueBtn) enqueueBtn.disabled = !option;
+  const hasOption = !!option;
+  if (primaryBtn) primaryBtn.disabled = !hasOption;
+  if (menuToggleBtn) menuToggleBtn.disabled = !hasOption;
+  if (actionDownloadBtn) actionDownloadBtn.disabled = !hasOption;
+  if (actionEnqueueBtn) actionEnqueueBtn.disabled = !hasOption;
   if (option) {
-    confirmBtn.textContent = `Скачать (${option.payload.label})`;
+    if (primaryBtn) {
+      primaryBtn.textContent = t("quality.confirmWithLabel", {
+        label: option.payload.label,
+      });
+    }
   } else {
-    confirmBtn.textContent = "Скачать выбранное";
+    if (primaryBtn) {
+      primaryBtn.textContent = t("quality.split.primaryDisabledHint");
+    }
+    closeActionMenu({ restoreFocus: false });
   }
   Array.from(optionsContainer.children).forEach((el) => {
     const isActive = el.dataset.optionId === option?.id;
@@ -1009,12 +1088,17 @@ async function loadFormatsWithRetry(
 
 function setActiveTab(tab) {
   state.currentTab = tab;
+  let activeTabId = "";
   tabButtons.forEach((btn) => {
     const active = btn.dataset.qualityTab === tab;
     btn.classList.toggle("active", active);
     btn.setAttribute("aria-selected", String(active));
     btn.tabIndex = active ? 0 : -1;
+    if (active) activeTabId = btn.id || "";
   });
+  if (optionsPanel && activeTabId) {
+    optionsPanel.setAttribute("aria-labelledby", activeTabId);
+  }
   renderOptions(tab);
   restoreSelectionForTab(tab);
 }
@@ -1072,15 +1156,21 @@ function moveSelection(step) {
 }
 
 function closeModal(result = null) {
+  closeActionMenu({ restoreFocus: false });
   setModalOpen(false);
   resetModalState();
   tabButtons.forEach((btn) => btn.classList.remove("active"));
   tabButtons.forEach((btn) => btn.setAttribute("aria-selected", "false"));
+  tabButtons.forEach((btn) => (btn.tabIndex = -1));
   const defaultTab = tabButtons.find(
     (btn) => btn.dataset.qualityTab === "video",
   );
   defaultTab?.classList.add("active");
   defaultTab?.setAttribute("aria-selected", "true");
+  if (defaultTab) defaultTab.tabIndex = 0;
+  if (optionsPanel && defaultTab?.id) {
+    optionsPanel.setAttribute("aria-labelledby", defaultTab.id);
+  }
   if (state.resolver) {
     state.resolver(result);
     state.resolver = null;
@@ -1097,14 +1187,7 @@ function confirmSelection() {
 
 function confirmEnqueue() {
   if (!state.selectedOption) return;
-  if (enqueueBtn) {
-    enqueueBtn.classList.add("is-done");
-    enqueueBtn.title = t("queue.added");
-    const icon = enqueueBtn.querySelector("i");
-    if (icon) {
-      icon.className = "fa-solid fa-check";
-    }
-  }
+  closeActionMenu({ restoreFocus: false });
   console.log("[quality]", "confirm-enqueue", {
     label: state.selectedOption?.payload?.label || "",
   });
@@ -1124,7 +1207,66 @@ function bindEvents() {
         if (tab) setActiveTab(tab);
       }),
     );
+    tabButtons.forEach((btn) =>
+      btn.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        const index = tabButtons.indexOf(btn);
+        if (index < 0) return;
+        const step = event.key === "ArrowRight" ? 1 : -1;
+        const nextIndex = (index + step + tabButtons.length) % tabButtons.length;
+        const nextBtn = tabButtons[nextIndex];
+        if (!nextBtn) return;
+        const tab = nextBtn.dataset.qualityTab;
+        if (tab) setActiveTab(tab);
+        nextBtn.focus();
+      }),
+    );
+    menuToggleBtn?.addEventListener("click", (event) => {
+      event.preventDefault();
+      toggleActionMenu();
+    });
+    actionDownloadBtn?.addEventListener("click", () => {
+      closeActionMenu({ restoreFocus: false });
+      confirmSelection();
+    });
+    actionEnqueueBtn?.addEventListener("click", () => {
+      closeActionMenu({ restoreFocus: false });
+      confirmEnqueue();
+    });
+    actionMenu?.addEventListener("keydown", (event) => {
+      if (!state.isActionMenuOpen) return;
+      const items = getMenuItems();
+      const currentIndex = items.indexOf(document.activeElement);
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        if (!items.length) return;
+        const step = event.key === "ArrowDown" ? 1 : -1;
+        const nextIndex =
+          currentIndex < 0
+            ? 0
+            : (currentIndex + step + items.length) % items.length;
+        items[nextIndex]?.focus();
+        return;
+      }
+      if (event.key === "Tab") {
+        closeActionMenu({ restoreFocus: false });
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeActionMenu({ restoreFocus: true });
+        return;
+      }
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        document.activeElement?.click?.();
+      }
+    });
     modal.addEventListener("click", (event) => {
+      if (state.isActionMenuOpen && !event.target?.closest?.(".quality-split-actions")) {
+        closeActionMenu({ restoreFocus: false });
+      }
       if (event.target?.closest?.("[data-quality-close]")) {
         event.preventDefault();
         closeModal(null);
@@ -1143,6 +1285,10 @@ function bindEvents() {
         targetTag === "select";
       if (event.key === "Escape") {
         event.preventDefault();
+        if (state.isActionMenuOpen) {
+          closeActionMenu({ restoreFocus: true });
+          return;
+        }
         closeModal(null);
         return;
       }
@@ -1156,7 +1302,11 @@ function bindEvents() {
         moveSelection(-1);
         return;
       }
-      if (event.key === "Enter" && state.selectedOption) {
+      if (
+        event.key === "Enter" &&
+        state.selectedOption &&
+        !state.isActionMenuOpen
+      ) {
         event.preventDefault();
         confirmSelection();
         return;
@@ -1168,14 +1318,14 @@ function bindEvents() {
         !event.altKey &&
         event.key.toLowerCase() === "a" &&
         state.selectedOption &&
-        !enqueueBtn?.disabled
+        !actionEnqueueBtn?.disabled
       ) {
         event.preventDefault();
+        closeActionMenu({ restoreFocus: false });
         confirmEnqueue();
       }
     });
-    confirmBtn?.addEventListener("click", confirmSelection);
-    enqueueBtn?.addEventListener("click", confirmEnqueue);
+    primaryBtn?.addEventListener("click", confirmSelection);
     bestCurrentBtn?.addEventListener("click", () => {
       if (bestCurrentBtn.disabled) return;
       selectBestFromTab(state.currentTab);

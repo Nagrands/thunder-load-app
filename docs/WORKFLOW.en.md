@@ -7,6 +7,12 @@ Short reference for where things live and what to do during development and rele
 Thunder Load is an Electron app for downloading video/audio and managing related tools
 (yt-dlp, ffmpeg, Deno).
 
+## D.O.C.S. Delivery Method
+
+- All tasks follow `D.O.C.S.`: `Discover → Organize → Check → Share`.
+- Full guidance: `docs/DOCS.en.md`.
+- Any user-facing change must update both `whats-new.md` and `whats-new.en.md`.
+
 ## Main Folders
 
 - `src/` — app sources (main/renderer, styles, templates).
@@ -46,7 +52,7 @@ Thunder Load is an Electron app for downloading video/audio and managing related
 - `npm test` — unit tests (Jest).
 - `npm run lint` — ESLint.
 - `npm run check` — lint + tests.
-- `console.log` is suppressed in tests via `src/js/__tests__/setupTests.js`.
+- `console.log` is suppressed in tests via `src/js/tests/setupTests.js`.
 
 ## Build
 

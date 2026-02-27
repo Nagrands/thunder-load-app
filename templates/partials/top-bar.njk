@@ -40,6 +40,8 @@
         <button
           class="menu-item"
           id="open-history"
+          type="button"
+          aria-label="История загрузок"
           data-topbar-priority="p3"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -56,6 +58,8 @@
         <button
           class="menu-item"
           id="shortcuts-button"
+          type="button"
+          aria-label="Горячие клавиши"
           data-topbar-priority="p3"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -72,6 +76,8 @@
         <button
           class="menu-item"
           id="settings-button"
+          type="button"
+          aria-label="Настройки"
           data-topbar-priority="p2"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -88,6 +94,8 @@
         <button
           class="menu-item"
           id="theme-toggle"
+          type="button"
+          aria-label="Сменить тему"
           data-topbar-priority="p2"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -103,6 +111,8 @@
         <button
           class="menu-item"
           id="open-github"
+          type="button"
+          aria-label="Открыть репозиторий на GitHub"
           data-topbar-priority="p3"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -117,6 +127,8 @@
 
         <button
           id="reload-app"
+          type="button"
+          aria-label="Обновить окно"
           data-topbar-priority="p3"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
@@ -136,6 +148,8 @@
       <div class="window-controls" data-topbar-priority="p1">
         <button
           class="btn-minimize"
+          type="button"
+          aria-label="Свернуть окно"
           title="Свернуть"
           data-i18n-title="topbar.minimize"
           onclick="window.electron.minimize()"
@@ -144,6 +158,8 @@
         </button>
         <button
           class="btn-close"
+          type="button"
+          aria-label="Закрыть окно"
           title="Закрыть"
           data-i18n-title="topbar.close"
           onclick="window.electron.close()"
