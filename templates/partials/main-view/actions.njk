@@ -270,6 +270,9 @@
           <span data-i18n="quality.empty"
             >Нет вариантов для выбранного режима.</span
           >
+          <small class="quality-empty-help" data-i18n="quality.empty.help">
+            Попробуйте переключить вкладку или нажать «Повторить».
+          </small>
         </div>
         <div
           id="download-quality-options-panel"
@@ -322,7 +325,13 @@
 
     <div class="quality-modal-footer">
       <div class="quality-hint">
-        <i class="fa-regular fa-circle-question"></i>
+        <i
+          class="fa-regular fa-circle-question"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Дополнительно: A — в очередь, Tab — фокус"
+          data-i18n-title="quality.hint.more"
+        ></i>
         <div class="quality-hint-texts">
           <span id="download-quality-hint-text" data-i18n="quality.hint"
             >Двойной клик по варианту сразу начнёт загрузку.</span
@@ -337,14 +346,6 @@
               >
               <span class="hotkey-chip"
                 ><kbd>Esc</kbd> <span data-i18n="quality.hotkey.close">закрыть</span></span
-              >
-            </div>
-            <div class="quality-hotkeys-extra">
-              <span class="hotkey-chip"
-                ><kbd>A</kbd> <span data-i18n="quality.hotkey.enqueue">в очередь</span></span
-              >
-              <span class="hotkey-chip"
-                ><kbd>Tab</kbd> <span data-i18n="quality.hotkey.focus">фокус</span></span
               >
             </div>
           </div>

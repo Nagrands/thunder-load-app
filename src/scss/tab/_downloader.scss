@@ -149,9 +149,10 @@
 
 .download-quality-modal {
   display: none;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 40px;
+  overflow-y: auto;
 
   &.is-open {
     display: flex;
@@ -159,6 +160,7 @@
 
   .download-quality-content {
     width: min(1040px, 94vw);
+    margin: clamp(14px, 3vh, 30px) auto;
     border-radius: 24px;
     padding: 28px;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -215,8 +217,8 @@
         color 0.2s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.16);
-        border-color: rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.24);
+        border-color: rgba(255, 255, 255, 0.44);
       }
 
       &:focus-visible {
@@ -228,13 +230,14 @@
 
   .quality-modal-body {
     display: flex;
+    align-items: flex-start;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 12px;
   }
 
   .quality-preview {
-    flex: 1 1 280px;
-    min-width: 260px;
+    flex: 0 1 290px;
+    min-width: 240px;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: linear-gradient(
@@ -243,10 +246,10 @@
       rgba(255, 255, 255, 0.03)
     );
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    padding: 18px;
+    padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
 
     .quality-thumb {
       width: 100%;
@@ -289,16 +292,16 @@
       }
 
       p {
-        margin: 10px 0;
-        font-size: 0.9rem;
+        margin: 7px 0;
+        font-size: 0.86rem;
         color: rgba(255, 255, 255, 0.75);
       }
 
       .quality-link-row {
-        margin-top: 8px;
+        margin-top: 6px;
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
       }
 
       .btn-link {
@@ -334,7 +337,7 @@
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.03);
-    padding: 14px;
+    padding: 12px;
   }
 
   .quality-tabs-row {
@@ -408,6 +411,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    background: rgba(40, 68, 112, 0.28);
+    border-color: rgba(126, 182, 255, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
     .quality-loading-main {
       display: inline-flex;
@@ -437,9 +443,9 @@
       border-radius: 999px;
       background: linear-gradient(
         90deg,
-        rgba(255, 255, 255, 0.08),
-        rgba(255, 255, 255, 0.22),
-        rgba(255, 255, 255, 0.08)
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0.05)
       );
       background-size: 220% 100%;
       animation: qualityLoadingShimmer 1.2s linear infinite;
@@ -455,6 +461,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    opacity: 0.55;
 
     &.hidden {
       display: none;
@@ -532,6 +539,18 @@
         background: rgba(255, 255, 255, 0.14);
         transform: translateY(-1px);
       }
+    }
+  }
+
+  .quality-empty {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+
+    .quality-empty-help {
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 0.8rem;
+      line-height: 1.25;
     }
   }
 
@@ -676,9 +695,13 @@
   }
 
   .quality-selection-summary {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(10, 20, 38, 0.9);
+    backdrop-filter: blur(6px);
     padding: 12px 14px;
     display: flex;
     align-items: center;
@@ -772,19 +795,19 @@
       gap: 3px;
       width: 100%;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
     }
 
-    .quality-hotkeys-main,
-    .quality-hotkeys-extra {
+    .quality-hotkeys-main {
       display: inline-flex;
       flex-wrap: wrap;
       gap: 3px;
       align-items: center;
     }
 
-    .quality-hotkeys-extra {
-      opacity: 0.9;
+    i {
+      cursor: help;
+      color: rgba(255, 255, 255, 0.72);
     }
 
     .hotkey-chip {
@@ -817,7 +840,7 @@
     justify-content: flex-end;
     gap: 10px;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
 
     button {
       border-radius: 12px;
@@ -844,7 +867,10 @@
         background: rgba(120, 180, 255, 0.2);
 
         &:disabled {
-          opacity: 0.5;
+          opacity: 0.8;
+          color: rgba(214, 226, 245, 0.7);
+          background: rgba(105, 136, 184, 0.16);
+          border-color: rgba(132, 156, 192, 0.36);
           cursor: not-allowed;
         }
       }
@@ -1039,11 +1065,34 @@
     .download-quality-content {
       width: min(1040px, 96vw);
       padding: 20px;
-      gap: 18px;
+      gap: 14px;
+    }
+
+    .quality-modal-body {
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .quality-preview {
+      flex: 0 0 250px;
+      min-width: 220px;
+      padding: 12px;
+      gap: 8px;
+
+      .quality-thumb {
+        aspect-ratio: 16 / 8.8;
+      }
+
+      .quality-info p {
+        margin: 5px 0;
+      }
     }
 
     .quality-modal-footer {
       align-items: stretch;
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 8px;
     }
 
     .quality-actions {
@@ -1051,6 +1100,11 @@
       margin-left: 0;
       justify-content: space-between;
       order: 1;
+
+      button {
+        min-height: 36px;
+        padding: 7px 14px;
+      }
     }
 
     .quality-split-actions {
@@ -1067,18 +1121,46 @@
         gap: 3px;
       }
 
-      .quality-hotkeys-extra {
-        margin-left: auto;
+      .quality-hotkeys-main .hotkey-chip {
+        font-size: 0.68rem;
       }
     }
 
+    .quality-selector {
+      min-height: 276px;
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .quality-tabs-row {
+      gap: 8px;
+    }
+
+    .quality-tabs .quality-tab {
+      min-height: 34px;
+      padding: 5px 10px 5px 12px;
+      font-size: 0.8rem;
+    }
+
+    .quality-loading,
+    .quality-empty,
+    .quality-error {
+      padding: 10px;
+      border-radius: 12px;
+    }
+
     .quality-options {
-      max-height: min(46vh, 460px);
-      gap: 7px;
+      max-height: min(40vh, 390px);
+      gap: 6px;
+      padding: 8px;
     }
 
     .quality-option {
       padding: 11px 12px;
+    }
+
+    .quality-selection-summary {
+      padding: 10px 12px;
     }
   }
 }

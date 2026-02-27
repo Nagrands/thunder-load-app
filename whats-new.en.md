@@ -26,8 +26,12 @@
 - **Queue UI polish has been applied**: task statuses and control buttons are now easier to scan, and the queue block keeps a cleaner rhythm across window widths.
 - **Download queue panel has been refined**: active, pending, and failed tasks are now easier to distinguish, and queue control buttons are clearer and better aligned in one compact block.
 - **Quality picker is now clearer while loading formats**: the right side now shows a compact format-list placeholder, so the modal no longer looks empty while options are being fetched.
+- **The Quality picker is now cleaner and easier to use**: the preview block is more compact, format-loading status is clearer, the footer now includes a direct “pick a format” hint, and hotkey hints were simplified to core actions.
+- **Improved Quality picker layout on medium widths (about 620–900 px)**: the right panel is now denser and more consistent, with tighter spacing and a more stable format-list height.
 - **The close button in the Quality picker is now more compact**: its size and spacing now match the style used in other app modals.
 - **Fixed the close button in the Quality picker**: after formats finish loading, the close action now works reliably on click again.
+- **Fixed Quality picker scrolling on long lists**: you can now scroll back to the top reliably and close the modal without getting stuck below.
+- **Removed redundant helper text in the Quality picker**: the “Pick a format from the list above” line is no longer duplicated in the footer area.
 - **Action clarity in Quality picker has been improved**: the disabled primary button now shows an explicit “Pick a format” hint, and footer hotkeys are grouped more cleanly next to action buttons.
 - **Format list in Quality picker is now more compact**: cards, metrics, and tags use tighter spacing so more options fit on screen without hurting readability.
 - **Quality picker is now easier on keyboard and narrow desktop windows**: the footer now uses a split action button with clear “Download” and “Add to queue” choices, keyboard flow for `Tab/Enter/Esc/↑/↓/A` is more predictable, and the layout stays usable around 620–900 px widths.
