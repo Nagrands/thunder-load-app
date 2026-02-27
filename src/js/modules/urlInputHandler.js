@@ -29,7 +29,10 @@ function initUrlInputHandler() {
       const prog = document.getElementById("progress-bar-container");
       if (prog) {
         const top = wRect.top - cRect.top;
+        const left = wRect.left - cRect.left;
         prog.style.top = `${Math.max(0, top)}px`;
+        prog.style.left = `${Math.max(0, left)}px`;
+        prog.style.width = `${Math.max(0, wRect.width)}px`;
         prog.style.height = `${wRect.height}px`;
         prog.style.borderRadius =
           getComputedStyle(wrapperEl).borderRadius || "12px";

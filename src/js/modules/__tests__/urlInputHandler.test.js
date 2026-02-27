@@ -36,6 +36,7 @@ const getState = () => ({
   pasteBtn: document.getElementById("paste-url"),
   clearBtn: document.getElementById("clear-url"),
   previewCard: document.getElementById("preview-card"),
+  progressContainer: document.getElementById("progress-bar-container"),
   downloadBtn: document.getElementById("download-button"),
 });
 
@@ -205,5 +206,34 @@ describe("urlInputHandler", () => {
     expect(input.value).toBe("");
     expect(clearBtn.classList.contains("hidden")).toBe(true);
     expect(pasteBtn.classList.contains("hidden")).toBe(false);
+  });
+
+  test("syncs progress overlay bounds to url input wrapper rect", () => {
+    const { wrapper, progressContainer } = getState();
+    const container = document.querySelector(".input-container");
+    const baseComputedStyle = window.getComputedStyle;
+
+    jest
+      .spyOn(container, "getBoundingClientRect")
+      .mockReturnValue({ top: 100, left: 50 });
+    jest.spyOn(wrapper, "getBoundingClientRect").mockReturnValue({
+      top: 132,
+      left: 78,
+      width: 640,
+      height: 52,
+    });
+    jest.spyOn(window, "getComputedStyle").mockImplementation((el) => {
+      if (el === wrapper) return { borderRadius: "14px" };
+      return baseComputedStyle(el);
+    });
+
+    window.dispatchEvent(new Event("resize"));
+    jest.runOnlyPendingTimers();
+
+    expect(progressContainer.style.top).toBe("32px");
+    expect(progressContainer.style.left).toBe("28px");
+    expect(progressContainer.style.width).toBe("640px");
+    expect(progressContainer.style.height).toBe("52px");
+    expect(progressContainer.style.borderRadius).toBe("14px");
   });
 });

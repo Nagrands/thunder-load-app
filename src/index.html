@@ -763,53 +763,61 @@
 </div>
 
     <div id="download-queue-info" class="download-queue-info hidden">
-    <div class="queue-summary">
-      <span class="queue-active-label" data-i18n="queue.active.label">Активно:</span>
-      <span id="queue-active-count" class="queue-count-pill queue-active-pill hidden">0</span>
-      <span data-i18n="queue.label">В очереди:</span>
-      <span id="queue-count" class="queue-count-pill">0</span>
-      <span data-i18n="queue.links">ссылок</span>
-      <span id="queue-cap-state" class="queue-cap-state hidden"></span>
+    <div class="queue-summary-row">
+      <div class="queue-summary" aria-label="Сводка очереди">
+        <span class="queue-summary-cluster queue-summary-active">
+          <span class="queue-active-label" data-i18n="queue.active.label">Активно:</span>
+          <span id="queue-active-count" class="queue-count-pill queue-active-pill hidden">0</span>
+        </span>
+        <span class="queue-summary-cluster queue-summary-pending">
+          <span data-i18n="queue.label">В очереди:</span>
+          <span id="queue-count" class="queue-count-pill">0</span>
+          <span data-i18n="queue.links">ссылок</span>
+        </span>
+        <span class="queue-summary-cluster queue-summary-capacity">
+          <span id="queue-cap-state" class="queue-cap-state hidden"></span>
+        </span>
+      </div>
+      <div class="queue-actions">
+        <button
+          id="queue-retry-failed-button"
+          class="small-button btn btn-sm btn-secondary hidden"
+          aria-label="Повторить ошибки"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Повторить неуспешные"
+          data-i18n-title="queue.retryFailed.title"
+          data-i18n-aria="queue.retryFailed.title"
+        >
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button
+          id="queue-start-button"
+          class="small-button btn btn-sm btn-primary"
+          aria-label="Запустить очередь"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Запустить очередь"
+          data-i18n-title="queue.start.title"
+          data-i18n-aria="queue.start.title"
+        >
+          <i class="fa-solid fa-play"></i>
+        </button>
+        <button
+          id="queue-clear-button"
+          class="small-button btn btn-sm btn-secondary"
+          aria-label="Очистить очередь"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Очистить очередь"
+          data-i18n-title="queue.clear.title"
+          data-i18n-aria="queue.clear.title"
+        >
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
     </div>
-    <div class="queue-actions">
-      <button
-        id="queue-retry-failed-button"
-        class="small-button btn btn-sm btn-secondary hidden"
-        aria-label="Повторить ошибки"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Повторить неуспешные"
-        data-i18n-title="queue.retryFailed.title"
-        data-i18n-aria="queue.retryFailed.title"
-      >
-        <i class="fa-solid fa-rotate-right"></i>
-      </button>
-      <button
-        id="queue-start-button"
-        class="small-button btn btn-sm btn-primary"
-        aria-label="Запустить очередь"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Запустить очередь"
-        data-i18n-title="queue.start.title"
-        data-i18n-aria="queue.start.title"
-      >
-        <i class="fa-solid fa-play"></i>
-      </button>
-      <button
-        id="queue-clear-button"
-        class="small-button btn btn-sm btn-secondary"
-        aria-label="Очистить очередь"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Очистить очередь"
-        data-i18n-title="queue.clear.title"
-        data-i18n-aria="queue.clear.title"
-      >
-        <i class="fa-solid fa-trash"></i>
-      </button>
-    </div>
-    <div id="queue-list" class="queue-list" aria-live="polite"></div>
+    <div id="queue-list" class="queue-list" aria-live="polite" role="list"></div>
   </div>
 
 <div

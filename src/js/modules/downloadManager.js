@@ -82,7 +82,65 @@ const QUEUE_STORAGE_KEY = "downloadQueue";
 const QUEUE_FAILED_STORAGE_KEY = "downloadFailedQueue";
 const PARALLEL_DOWNLOAD_LIMIT = 2;
 const PROGRESS_RENDER_THROTTLE_MS = 220;
+const QUEUE_MAX_LABEL_LEN = 64;
 let lastProgressRenderTs = 0;
+let lastQueueMarkup = "";
+
+const escapeQueueHtml = (value) =>
+  String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+const makeQueueUrlLabel = (url) => {
+  try {
+    const parsed = new URL(url);
+    const base = `${parsed.hostname}${parsed.pathname}`;
+    return base.length > QUEUE_MAX_LABEL_LEN
+      ? `${base.slice(0, QUEUE_MAX_LABEL_LEN - 1)}…`
+      : base;
+  } catch {
+    const raw = String(url || "");
+    return raw.length > QUEUE_MAX_LABEL_LEN
+      ? `${raw.slice(0, QUEUE_MAX_LABEL_LEN - 1)}…`
+      : raw;
+  }
+};
+
+const makeQueueTitle = (url) => {
+  const cached = getCachedVideoInfo(url);
+  const title = cached?.title ? String(cached.title) : "";
+  return title.length > QUEUE_MAX_LABEL_LEN
+    ? `${title.slice(0, QUEUE_MAX_LABEL_LEN - 1)}…`
+    : title;
+};
+
+const buildQueueAriaLabel = ({ status, qualityLabel, fullUrl }) =>
+  `${status}. ${t("queue.quality.label")}: ${qualityLabel}. ${fullUrl}`;
+
+const buildQueueMetaHtml = ({
+  fullUrl,
+  titleLabel,
+  urlLabel,
+  includeSpinner = false,
+}) => {
+  const renderedTitle = titleLabel || urlLabel;
+  const renderedUrl = titleLabel ? urlLabel : "";
+  return `
+    <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
+      <div class="queue-item-title-row">
+        ${includeSpinner ? '<i class="fa-solid fa-spinner fa-spin queue-item-spinner" aria-hidden="true"></i>' : ""}
+        <div class="queue-item-title">${escapeQueueHtml(renderedTitle)}</div>
+      </div>
+      ${
+        renderedUrl
+          ? `<div class="queue-item-url">${escapeQueueHtml(renderedUrl)}</div>`
+          : ""
+      }
+    </div>
+  `;
+};
 
 function syncDownloadState() {
   const activeCount = Array.isArray(state.activeDownloads)
@@ -594,73 +652,50 @@ function updateQueueDisplay() {
     }
   }
   if (queueList) {
+    queueList.setAttribute("role", "list");
     if (totalVisible === 0) {
-      queueList.innerHTML = "";
+      if (lastQueueMarkup !== "") {
+        queueList.innerHTML = "";
+        lastQueueMarkup = "";
+      }
     } else {
-      const maxLabelLen = 64;
-      const escapeHtml = (value) =>
-        String(value || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      const makeLabel = (url) => {
-        try {
-          const parsed = new URL(url);
-          const base = `${parsed.hostname}${parsed.pathname}`;
-          return base.length > maxLabelLen
-            ? `${base.slice(0, maxLabelLen - 1)}…`
-            : base;
-        } catch {
-          const raw = String(url || "");
-          return raw.length > maxLabelLen
-            ? `${raw.slice(0, maxLabelLen - 1)}…`
-            : raw;
-        }
-      };
-      const makeTitle = (url) => {
-        const cached = getCachedVideoInfo(url);
-        const title = cached?.title ? String(cached.title) : "";
-        return title.length > maxLabelLen
-          ? `${title.slice(0, maxLabelLen - 1)}…`
-          : title;
-      };
       const activeRows = state.activeDownloads
         .map((item) => {
-          const urlLabel = makeLabel(item.url);
-          const titleLabel = makeTitle(item.url);
+          const fullUrl = String(item.url || "");
+          const urlLabel = makeQueueUrlLabel(fullUrl);
+          const titleLabel = makeQueueTitle(fullUrl);
           const qualityLabel = getQueueQualityLabel(item.quality);
+          const statusLabel = t("queue.item.active");
           const progress = Math.max(
             0,
             Math.min(100, Number(item.progress) || 0),
           );
-          const titleHtml = titleLabel
-            ? `<div class="queue-item-title">${escapeHtml(titleLabel)}</div>`
-            : "";
-          const urlHtml = `<div class="queue-item-url">${escapeHtml(urlLabel)}</div>`;
           return `
-            <li class="is-active">
-              <div class="queue-item-meta" title="${escapeHtml(
-                String(item.url || ""),
-              )}">
-                <div class="queue-item-title-row">
-                  <i class="fa-solid fa-spinner fa-spin queue-item-spinner" aria-hidden="true"></i>
-                  ${titleHtml || `<div class="queue-item-title">${escapeHtml(urlLabel)}</div>`}
-                </div>
-                ${titleHtml ? urlHtml : ""}
-              </div>
+            <li class="is-active" role="listitem" aria-label="${escapeQueueHtml(
+              buildQueueAriaLabel({
+                status: statusLabel,
+                qualityLabel,
+                fullUrl,
+              }),
+            )}">
+              ${buildQueueMetaHtml({
+                fullUrl,
+                titleLabel,
+                urlLabel,
+                includeSpinner: true,
+              })}
               <div class="queue-item-controls">
                 <div class="queue-item-chips">
-                  <span class="queue-status-chip">${escapeHtml(
-                    t("queue.item.active"),
+                  <span class="queue-status-chip">${escapeQueueHtml(
+                    statusLabel,
                   )}</span>
-                  <span class="queue-progress-chip">${escapeHtml(
+                  <span class="queue-progress-chip">${escapeQueueHtml(
                     `${progress.toFixed(1)}%`,
                   )}</span>
                   <span
                     class="queue-quality-chip"
-                    title="${escapeHtml(t("queue.quality.label"))}: ${escapeHtml(qualityLabel)}"
-                  >${escapeHtml(qualityLabel)}</span>
+                    title="${escapeQueueHtml(t("queue.quality.label"))}: ${escapeQueueHtml(qualityLabel)}"
+                  >${escapeQueueHtml(qualityLabel)}</span>
                 </div>
               </div>
             </li>
@@ -669,32 +704,33 @@ function updateQueueDisplay() {
         .join("");
       const failedRows = state.failedDownloads
         .map((item, idx) => {
-          const urlLabel = makeLabel(item.url);
-          const titleLabel = makeTitle(item.url);
+          const fullUrl = String(item.url || "");
+          const urlLabel = makeQueueUrlLabel(fullUrl);
+          const titleLabel = makeQueueTitle(fullUrl);
           const qualityLabel = getQueueQualityLabel(item.quality);
-          const titleHtml = titleLabel
-            ? `<div class="queue-item-title">${escapeHtml(titleLabel)}</div>`
-            : "";
-          const urlHtml = `<div class="queue-item-url">${escapeHtml(
-            urlLabel,
-          )}</div>`;
+          const statusLabel = t("queue.item.failed");
           return `
-            <li class="is-failed">
-              <div class="queue-item-meta" title="${escapeHtml(
-                String(item.url || ""),
-              )}">
-                ${titleHtml}
-                ${urlHtml}
-              </div>
+            <li class="is-failed" role="listitem" aria-label="${escapeQueueHtml(
+              buildQueueAriaLabel({
+                status: statusLabel,
+                qualityLabel,
+                fullUrl,
+              }),
+            )}">
+              ${buildQueueMetaHtml({
+                fullUrl,
+                titleLabel,
+                urlLabel,
+              })}
               <div class="queue-item-controls">
                 <div class="queue-item-chips">
-                  <span class="queue-status-chip is-failed">${escapeHtml(
-                    t("queue.item.failed"),
+                  <span class="queue-status-chip is-failed">${escapeQueueHtml(
+                    statusLabel,
                   )}</span>
                   <span
                     class="queue-quality-chip"
-                    title="${escapeHtml(t("queue.quality.label"))}: ${escapeHtml(qualityLabel)}"
-                  >${escapeHtml(qualityLabel)}</span>
+                    title="${escapeQueueHtml(t("queue.quality.label"))}: ${escapeQueueHtml(qualityLabel)}"
+                  >${escapeQueueHtml(qualityLabel)}</span>
                 </div>
                 <div class="queue-item-actions">
                   <button
@@ -727,31 +763,32 @@ function updateQueueDisplay() {
         .join("");
       const pendingRows = state.downloadQueue
         .map((item, idx) => {
-          const urlLabel = makeLabel(item.url);
-          const titleLabel = makeTitle(item.url);
+          const fullUrl = String(item.url || "");
+          const urlLabel = makeQueueUrlLabel(fullUrl);
+          const titleLabel = makeQueueTitle(fullUrl);
           const qualityLabel = getQueueQualityLabel(item.quality);
-          const titleHtml = titleLabel
-            ? `<div class="queue-item-title">${escapeHtml(titleLabel)}</div>`
-            : "";
-          const urlHtml = `<div class="queue-item-url">${escapeHtml(
-            urlLabel,
-          )}</div>`;
+          const statusLabel = t("queue.item.pending");
           const isFirst = idx === 0;
           const isLast = idx === state.downloadQueue.length - 1;
           return `
-            <li>
-              <div class="queue-item-meta" title="${escapeHtml(
-                String(item.url || ""),
-              )}">
-                ${titleHtml}
-                ${urlHtml}
-              </div>
+            <li role="listitem" aria-label="${escapeQueueHtml(
+              buildQueueAriaLabel({
+                status: statusLabel,
+                qualityLabel,
+                fullUrl,
+              }),
+            )}">
+              ${buildQueueMetaHtml({
+                fullUrl,
+                titleLabel,
+                urlLabel,
+              })}
               <div class="queue-item-controls">
                 <div class="queue-item-chips">
                   <span
                     class="queue-quality-chip"
-                    title="${escapeHtml(t("queue.quality.label"))}: ${escapeHtml(qualityLabel)}"
-                  >${escapeHtml(qualityLabel)}</span>
+                    title="${escapeQueueHtml(t("queue.quality.label"))}: ${escapeQueueHtml(qualityLabel)}"
+                  >${escapeQueueHtml(qualityLabel)}</span>
                 </div>
                 <div class="queue-item-actions">
                   <button
@@ -795,11 +832,15 @@ function updateQueueDisplay() {
           `;
         })
         .join("");
-      queueList.innerHTML = `
-        <ul>
+      const nextMarkup = `
+        <ul role="list">
           ${activeRows}${failedRows}${pendingRows}
         </ul>
       `;
+      if (nextMarkup !== lastQueueMarkup) {
+        queueList.innerHTML = nextMarkup;
+        lastQueueMarkup = nextMarkup;
+      }
     }
   }
   updateDownloaderTabLabel();

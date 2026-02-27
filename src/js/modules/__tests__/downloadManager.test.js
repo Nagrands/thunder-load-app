@@ -492,6 +492,57 @@ describe("downloadManager queue smart logic", () => {
       expect(activeRow?.querySelector(".queue-status-chip")?.textContent).toBe(
         "Выполняется",
       );
+      expect(activeRow?.getAttribute("role")).toBe("listitem");
+      expect(activeRow?.getAttribute("aria-label")).toContain("Выполняется");
+    });
+  });
+
+  it("renders queue list with list/listitem roles and pending aria label", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "ru"),
+        t: jest.fn((key, vars = {}) => {
+          if (key === "queue.item.pending") return "В очереди";
+          if (key === "queue.quality.label") return "Качество";
+          if (key === "queue.links.many") return "ссылок";
+          if (key === "queue.links.one") return "ссылка";
+          if (key === "queue.links.few") return "ссылки";
+          if (key === "queue.limit.near")
+            return `Осталось мест: ${vars.count || 0}`;
+          if (key === "queue.limit.full") return "Лимит очереди достигнут";
+          return key;
+        }),
+      }));
+
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+      state.downloadQueue = [
+        { url: "https://example.com/a", quality: "Source" },
+      ];
+      updateQueueDisplay();
+
+      const queueList = document.getElementById("queue-list");
+      const pendingRow = queueList.querySelector("li");
+      expect(queueList.getAttribute("role")).toBe("list");
+      expect(queueList.querySelector("ul")?.getAttribute("role")).toBe("list");
+      expect(pendingRow?.getAttribute("role")).toBe("listitem");
+      expect(pendingRow?.getAttribute("aria-label")).toContain("В очереди");
     });
   });
 

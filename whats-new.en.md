@@ -23,6 +23,8 @@
 
 ### Downloader tab
 
+- **Queue UI polish has been applied**: task statuses and control buttons are now easier to scan, and the queue block keeps a cleaner rhythm across window widths.
+- **Download queue panel has been refined**: active, pending, and failed tasks are now easier to distinguish, and queue control buttons are clearer and better aligned in one compact block.
 - **Quality picker is now clearer while loading formats**: the right side now shows a compact format-list placeholder, so the modal no longer looks empty while options are being fetched.
 - **Action clarity in Quality picker has been improved**: the disabled primary button now shows an explicit “Pick a format” hint, and footer hotkeys are grouped more cleanly next to action buttons.
 - **Format list in Quality picker is now more compact**: cards, metrics, and tags use tighter spacing so more options fit on screen without hurting readability.
@@ -36,6 +38,7 @@
 - **Improved History entries**: details now expand by clicking the row, primary actions are in main buttons, and long “Source”/“File” values are cleaner with quick copy buttons.
 - **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer and more predictable hover/press states.
 - **URL input in Downloader is now easier to use**: added clearer link validation with inline hints, improved button states, and better clear/paste behavior.
+- **Aligned the URL field progress bar**: the download indicator now follows the field's inner contour and stays visually even across input states.
 - **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
 - **Added History list virtualization**: on large pages, only visible entries are rendered, making scrolling and history interactions smoother with lower system load.
 - **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered size, making scrolling more stable across different density modes and expanded details.
