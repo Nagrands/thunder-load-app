@@ -32,7 +32,7 @@ const state = {
   theme: window.localStorage.getItem("theme") || "dark",
   currentSortOrder: window.localStorage.getItem("currentSortOrder") || "desc",
   currentSortKey: window.localStorage.getItem("currentSortKey") || "date",
-  currentSortMode: window.localStorage.getItem("currentSortMode") || "video",
+  currentSortMode: window.localStorage.getItem("currentSortMode") || "mixed",
   currentSearchQuery: window.localStorage.getItem("lastSearch") || "",
   lastPastedUrl: "",
   downloadQueue: [],

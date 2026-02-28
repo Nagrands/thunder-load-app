@@ -1014,8 +1014,6 @@
       flex-direction: column;
       gap: 6px;
       padding: 4px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
 
       li.custom-theme-select {
         background: rgba(255, 255, 255, 0.05);
@@ -2406,10 +2404,10 @@
 
   .settings-card__title {
     margin: 0;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--color-text-main);
-    letter-spacing: 0.01em;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-accent);
+    letter-spacing: 0.03em;
   }
 
   .settings-card__desc {
@@ -2493,18 +2491,16 @@
     display: inline-grid;
     grid-template-columns: repeat(2, minmax(30px, 1fr));
     gap: 4px;
-    padding: 4px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.04);
     flex: 0 0 auto;
   }
 
   #settings-download-parallel-value {
     min-width: 1ch;
-    margin-left: 2px;
+    margin-left: 10px;
     text-align: center;
-    color: var(--color-accent);
+    color: var(--color-hover);
     flex: 0 0 auto;
   }
 

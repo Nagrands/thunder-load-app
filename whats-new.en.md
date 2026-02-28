@@ -2,6 +2,11 @@
 
 ### Interface
 
+- **Redesigned the History filters block with a flat minimal style**: filter cards are now cleaner and more compact, a dedicated “Reset” action was added, and an active-filters counter now shows how many filters are currently applied.
+- **Applied final polish to History filter dropdowns**: rows are slightly more compact, active selection is softer, and the menu separates better from list content.
+- **Polished History filter dropdowns further**: improved alignment, clearer filter captions, a lighter selected-item state, and cleaner menu separation from the background.
+- **Improved visual style of History filter dropdowns**: sort and filter menus are cleaner, the selected item is easier to recognize, and list navigation feels more consistent.
+- **Redesigned the History controls block**: filters, search, and action buttons now use a cleaner compact layout, selected values are easier to scan, and filters stack more reliably on narrow screens.
 - **Improved accessibility in the top bar and URL input block**: increased tap/click target sizes for primary actions, added clearer screen-reader labels, and improved keyboard-friendly button behavior.
 - **Completely redesigned the History control block**: search, sorting, delete actions, and filters are now organized into a clearer two-level Control Deck with larger controls.
 - **Moved secondary History actions into a single “More” menu**: export, restore, list density, and expand/collapse details are now grouped in one compact dropdown.

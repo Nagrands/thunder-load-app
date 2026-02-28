@@ -50,6 +50,8 @@ const setupDom = () => {
       </div>
       <div class="history-filters-row"></div>
       <div class="history-search-wrapper"></div>
+      <button id="history-reset-filters"></button>
+      <span id="history-active-filters-count" class="hidden"></span>
       <select id="history-source-filter"></select>
       <select id="history-sort-key"></select>
       <select id="history-sort-mode"></select>
@@ -186,6 +188,52 @@ describe("Downloader history list", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     expect(menu.classList.contains("hidden")).toBe(true);
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("updates active filters badge and resets filters to defaults", async () => {
+    const sourceSelect = document.getElementById("history-source-filter");
+    sourceSelect.innerHTML = `
+      <option value="">Все источники</option>
+      <option value="youtube.com">youtube.com</option>
+    `;
+    const sortKeySelect = document.getElementById("history-sort-key");
+    sortKeySelect.innerHTML = `
+      <option value="date">По дате</option>
+      <option value="quality">По качеству</option>
+    `;
+    const sortModeSelect = document.getElementById("history-sort-mode");
+    sortModeSelect.innerHTML = `
+      <option value="video">Видео</option>
+      <option value="audio">Аудио</option>
+      <option value="mixed">Смешано</option>
+    `;
+
+    const { initHistory } = await import("../history.js");
+
+    initHistory();
+
+    const badge = document.getElementById("history-active-filters-count");
+    const resetBtn = document.getElementById("history-reset-filters");
+
+    expect(badge.classList.contains("hidden")).toBe(true);
+    expect(resetBtn.disabled).toBe(true);
+
+    sourceSelect.value = "youtube.com";
+    sourceSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    sortModeSelect.value = "audio";
+    sortModeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(badge.classList.contains("hidden")).toBe(false);
+    expect(badge.textContent).toContain("2");
+    expect(resetBtn.disabled).toBe(false);
+
+    resetBtn.click();
+
+    expect(sourceSelect.value).toBe("");
+    expect(sortKeySelect.value).toBe("date");
+    expect(sortModeSelect.value).toBe("mixed");
+    expect(badge.classList.contains("hidden")).toBe(true);
+    expect(resetBtn.disabled).toBe(true);
   });
 
   test("enables virtualized rendering for large history pages", async () => {

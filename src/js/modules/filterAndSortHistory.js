@@ -117,7 +117,7 @@ function filterAndSortHistory(
   const q = query.trim().toLowerCase();
   const sourceFilter = (state.historySourceFilter || "").toLowerCase();
   const sortKey = state.currentSortKey || "date";
-  const sortMode = state.currentSortMode || "video";
+  const sortMode = state.currentSortMode || "mixed";
 
   if (q !== lastQuery) {
     lastQuery = q;

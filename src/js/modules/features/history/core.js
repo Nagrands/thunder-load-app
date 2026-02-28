@@ -38,6 +38,11 @@ const HISTORY_VIRTUAL_OVERSCAN_PX = 480;
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
+const HISTORY_FILTER_DEFAULTS = {
+  source: "",
+  sortKey: "date",
+  sortMode: "mixed",
+};
 const attemptedPreviewRestores = new Set();
 
 let historyCardsRoot = historyCards;
@@ -67,6 +72,8 @@ let paginationNextFast = null;
 let paginationSize = null;
 let historySortKeySelect = null;
 let historySortModeSelect = null;
+let historyResetFiltersButton = null;
+let historyActiveFiltersCount = null;
 let historyDensityButtons = {
   compact: null,
   comfort: null,
@@ -144,6 +151,65 @@ const setHistoryDensity = (value) => {
   applyHistoryDensity();
 };
 
+const getHistoryActiveFiltersCount = () => {
+  const sourceValue =
+    historySourceFilterSelect?.value ?? state.historySourceFilter ?? "";
+  const sortKeyValue =
+    historySortKeySelect?.value ?? state.currentSortKey ?? "date";
+  const sortModeValue =
+    historySortModeSelect?.value ?? state.currentSortMode ?? "mixed";
+
+  let count = 0;
+  if (sourceValue !== HISTORY_FILTER_DEFAULTS.source) count += 1;
+  if (sortKeyValue !== HISTORY_FILTER_DEFAULTS.sortKey) count += 1;
+  if (sortModeValue !== HISTORY_FILTER_DEFAULTS.sortMode) count += 1;
+  return count;
+};
+
+const updateHistoryActiveFiltersUi = () => {
+  const count = getHistoryActiveFiltersCount();
+  if (historyResetFiltersButton) {
+    historyResetFiltersButton.disabled = count === 0;
+  }
+  if (!historyActiveFiltersCount) return;
+  if (count === 0) {
+    historyActiveFiltersCount.textContent = "";
+    historyActiveFiltersCount.classList.add("hidden");
+    return;
+  }
+  historyActiveFiltersCount.textContent = t("history.filters.activeCount", {
+    count,
+  });
+  historyActiveFiltersCount.classList.remove("hidden");
+};
+
+const resetHistoryFilters = () => {
+  ensureHistoryControlElements();
+  const applySelectValue = (selectEl, nextValue) => {
+    if (!selectEl || selectEl.value === nextValue) return false;
+    selectEl.value = nextValue;
+    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  };
+
+  const sourceChanged = applySelectValue(
+    historySourceFilterSelect,
+    HISTORY_FILTER_DEFAULTS.source,
+  );
+  const sortKeyChanged = applySelectValue(
+    historySortKeySelect,
+    HISTORY_FILTER_DEFAULTS.sortKey,
+  );
+  const sortModeChanged = applySelectValue(
+    historySortModeSelect,
+    HISTORY_FILTER_DEFAULTS.sortMode,
+  );
+
+  if (!sourceChanged && !sortKeyChanged && !sortModeChanged) {
+    updateHistoryActiveFiltersUi();
+  }
+};
+
 const syncHistorySelectValues = () => {
   if (historySourceFilterSelect) {
     historySourceFilterSelect.value = state.historySourceFilter || "";
@@ -156,13 +222,16 @@ const syncHistorySelectValues = () => {
     historySelectUIs.pageSize?.updateLabel?.();
   }
   if (historySortKeySelect) {
-    historySortKeySelect.value = state.currentSortKey || "date";
+    historySortKeySelect.value =
+      state.currentSortKey || HISTORY_FILTER_DEFAULTS.sortKey;
     historySelectUIs.sortKey?.updateLabel?.();
   }
   if (historySortModeSelect) {
-    historySortModeSelect.value = state.currentSortMode || "video";
+    historySortModeSelect.value =
+      state.currentSortMode || HISTORY_FILTER_DEFAULTS.sortMode;
     historySelectUIs.sortMode?.updateLabel?.();
   }
+  updateHistoryActiveFiltersUi();
 };
 
 const attachPlaceholderOnError = (img, placeholderSrc, container) => {
@@ -689,6 +758,14 @@ function ensureHistoryControlElements() {
   if (!historySortModeSelect || !historySortModeSelect.isConnected) {
     historySortModeSelect = document.getElementById("history-sort-mode");
   }
+  if (!historyResetFiltersButton || !historyResetFiltersButton.isConnected) {
+    historyResetFiltersButton = document.getElementById("history-reset-filters");
+  }
+  if (!historyActiveFiltersCount || !historyActiveFiltersCount.isConnected) {
+    historyActiveFiltersCount = document.getElementById(
+      "history-active-filters-count",
+    );
+  }
   if (
     !historyDensityButtons.compact ||
     !historyDensityButtons.compact.isConnected
@@ -721,6 +798,7 @@ function ensureHistoryControlElements() {
   if (!historySelectUIs.sortMode) {
     historySelectUIs.sortMode = enhanceSelect(historySortModeSelect);
   }
+  updateHistoryActiveFiltersUi();
 }
 
 function ensureHistoryCardPreviewOverlay() {
@@ -2970,6 +3048,7 @@ async function initHistoryState() {
 
 function initHistory() {
   ensureHistoryControlElements();
+  syncHistorySelectValues();
   bindHistoryMoreMenu();
   applyHistoryDensity();
   historySourceFilterSelect?.addEventListener("change", (e) => {
@@ -2977,6 +3056,7 @@ function initHistory() {
     localStorage.setItem("historySourceFilter", state.historySourceFilter);
     state.historyPage = 1;
     historySelectUIs.source?.updateLabel?.();
+    updateHistoryActiveFiltersUi();
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
@@ -2984,9 +3064,10 @@ function initHistory() {
     );
   });
   historySortKeySelect?.addEventListener("change", (e) => {
-    state.currentSortKey = e.target.value || "date";
+    state.currentSortKey = e.target.value || HISTORY_FILTER_DEFAULTS.sortKey;
     localStorage.setItem("currentSortKey", state.currentSortKey);
     historySelectUIs.sortKey?.updateLabel?.();
+    updateHistoryActiveFiltersUi();
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
@@ -2994,15 +3075,19 @@ function initHistory() {
     );
   });
   historySortModeSelect?.addEventListener("change", (e) => {
-    state.currentSortMode = e.target.value || "video";
+    state.currentSortMode = e.target.value || HISTORY_FILTER_DEFAULTS.sortMode;
     localStorage.setItem("currentSortMode", state.currentSortMode);
     historySelectUIs.sortMode?.updateLabel?.();
+    updateHistoryActiveFiltersUi();
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
       true,
     );
   });
+  historyResetFiltersButton?.addEventListener("click", () =>
+    resetHistoryFilters(),
+  );
   historyExportJsonButton?.addEventListener("click", () =>
     exportHistory("json"),
   );
