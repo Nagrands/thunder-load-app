@@ -23,6 +23,7 @@
 
 ### Downloader tab
 
+- **Refined the Quality picker visual design**: the options list is now more minimal and faster to scan, key details are easier to read, and advanced metrics remain available on expand.
 - **Queue UI polish has been applied**: task statuses and control buttons are now easier to scan, and the queue block keeps a cleaner rhythm across window widths.
 - **Download queue panel has been refined**: active, pending, and failed tasks are now easier to distinguish, and queue control buttons are clearer and better aligned in one compact block.
 - **Quality picker is now clearer while loading formats**: the right side now shows a compact format-list placeholder, so the modal no longer looks empty while options are being fetched.

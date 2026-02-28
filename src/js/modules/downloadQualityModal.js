@@ -850,6 +850,15 @@ function renderOptions(tab) {
   const frag = document.createDocumentFragment();
   list.forEach((option, index) => {
     const isExpanded = state.expandedOptions.has(option.id);
+    const compactMeta = [
+      option.containerLabel && option.containerLabel !== "—"
+        ? option.containerLabel
+        : "",
+      option.sizeLabel || "",
+      option.audioBitrateLabel || "",
+    ]
+      .filter(Boolean)
+      .join(" • ");
     const metrics = [];
     if (option.resolutionLabel && option.resolutionLabel !== "Audio") {
       metrics.push([
@@ -888,7 +897,7 @@ function renderOptions(tab) {
     }
     const tagsMarkup = tags.length
       ? `<div class="quality-option-tags">${tags.join("")}</div>`
-      : "";
+      : '<div class="quality-option-tags quality-option-tags-empty" aria-hidden="true"></div>';
 
     const el = document.createElement("div");
     el.className = "quality-option";
@@ -904,10 +913,18 @@ function renderOptions(tab) {
     el.innerHTML = `
       <div class="quality-option-main">
         <div class="quality-option-content">
-          <p class="quality-option-title">${escapeHTML(option.title)}</p>
+          <div class="quality-option-head">
+            <p class="quality-option-title">${escapeHTML(option.title)}</p>
+            ${tagsMarkup}
+          </div>
           <p class="quality-option-desc" id="quality-option-desc-${option.id}">${escapeHTML(
             describeOption(option),
           )}</p>
+          ${
+            compactMeta
+              ? `<p class="quality-option-meta">${escapeHTML(compactMeta)}</p>`
+              : ""
+          }
           <div class="quality-option-metrics ${isExpanded ? "" : "is-collapsed"}" aria-hidden="${isExpanded ? "false" : "true"}">
             ${metrics
               .map(
@@ -926,7 +943,6 @@ function renderOptions(tab) {
             )}
           </button>
         </div>
-        ${tagsMarkup}
       </div>
     `;
     frag.appendChild(el);
