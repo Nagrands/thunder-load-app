@@ -22,9 +22,6 @@ const retryBtn = document.getElementById("download-quality-retry");
 const primaryBtn = document.getElementById("download-quality-primary");
 const menuToggleBtn = document.getElementById("download-quality-menu-toggle");
 const actionMenu = document.getElementById("download-quality-menu");
-const actionDownloadBtn = document.getElementById(
-  "download-quality-action-download",
-);
 const actionEnqueueBtn = document.getElementById(
   "download-quality-action-enqueue",
 );
@@ -229,7 +226,6 @@ function resetModalState() {
     menuToggleBtn.setAttribute("aria-expanded", "false");
   }
   if (actionMenu) actionMenu.classList.add("hidden");
-  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
@@ -287,7 +283,6 @@ function syncLoadingUi(isLoading) {
   const disableActions = isLoading || !hasOption;
   if (primaryBtn) primaryBtn.disabled = disableActions;
   if (menuToggleBtn) menuToggleBtn.disabled = disableActions;
-  if (actionDownloadBtn) actionDownloadBtn.disabled = disableActions;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = disableActions;
   if (disableActions && state.isActionMenuOpen) {
     closeActionMenu({ restoreFocus: false });
@@ -313,7 +308,7 @@ function setLoading(flag) {
 }
 
 function getMenuItems() {
-  return [actionDownloadBtn, actionEnqueueBtn].filter(Boolean);
+  return [actionEnqueueBtn].filter(Boolean);
 }
 
 function closeActionMenu({ restoreFocus = false } = {}) {
@@ -351,7 +346,6 @@ function beginFetchView() {
   optionsContainer.innerHTML = "";
   if (primaryBtn) primaryBtn.disabled = true;
   if (menuToggleBtn) menuToggleBtn.disabled = true;
-  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   updateTabCounts();
@@ -367,7 +361,6 @@ function showError(message) {
   optionsPlaceholderEl?.classList.add("hidden");
   if (primaryBtn) primaryBtn.disabled = true;
   if (menuToggleBtn) menuToggleBtn.disabled = true;
-  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   if (errorTextEl) {
@@ -383,7 +376,6 @@ function showEmpty() {
   optionsContainer.innerHTML = "";
   if (primaryBtn) primaryBtn.disabled = true;
   if (menuToggleBtn) menuToggleBtn.disabled = true;
-  if (actionDownloadBtn) actionDownloadBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   updateSelectionSummary(null);
@@ -959,7 +951,6 @@ function selectOption(option, { remember = true } = {}) {
   const hasOption = !!option;
   if (primaryBtn) primaryBtn.disabled = !hasOption;
   if (menuToggleBtn) menuToggleBtn.disabled = !hasOption;
-  if (actionDownloadBtn) actionDownloadBtn.disabled = !hasOption;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = !hasOption;
   if (option) {
     if (primaryBtn) {
@@ -1241,10 +1232,6 @@ function bindEvents() {
     menuToggleBtn?.addEventListener("click", (event) => {
       event.preventDefault();
       toggleActionMenu();
-    });
-    actionDownloadBtn?.addEventListener("click", () => {
-      closeActionMenu({ restoreFocus: false });
-      confirmSelection();
     });
     actionEnqueueBtn?.addEventListener("click", () => {
       closeActionMenu({ restoreFocus: false });

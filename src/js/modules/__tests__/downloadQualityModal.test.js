@@ -15,7 +15,6 @@ const buildDom = () => {
         <button id="download-quality-primary" type="button"></button>
         <button id="download-quality-menu-toggle" type="button" aria-expanded="false"></button>
         <div id="download-quality-menu" class="hidden" role="menu">
-          <button id="download-quality-action-download" type="button" role="menuitem"></button>
           <button id="download-quality-action-enqueue" type="button" role="menuitem"></button>
         </div>
       </div>
@@ -692,9 +691,6 @@ describe("downloadQualityModal close behavior", () => {
       const menuToggleBtn = document.getElementById(
         "download-quality-menu-toggle",
       );
-      const actionDownloadBtn = document.getElementById(
-        "download-quality-action-download",
-      );
       const actionEnqueueBtn = document.getElementById(
         "download-quality-action-enqueue",
       );
@@ -706,7 +702,6 @@ describe("downloadQualityModal close behavior", () => {
       expect(placeholder.classList.contains("hidden")).toBe(false);
       expect(primaryBtn.disabled).toBe(true);
       expect(menuToggleBtn.disabled).toBe(true);
-      expect(actionDownloadBtn.disabled).toBe(true);
       expect(actionEnqueueBtn.disabled).toBe(true);
       expect(primaryBtn.textContent).toContain("Выберите");
 
@@ -737,7 +732,6 @@ describe("downloadQualityModal close behavior", () => {
       expect(placeholder.classList.contains("hidden")).toBe(true);
       expect(primaryBtn.disabled).toBe(false);
       expect(menuToggleBtn.disabled).toBe(false);
-      expect(actionDownloadBtn.disabled).toBe(false);
       expect(actionEnqueueBtn.disabled).toBe(false);
       expect(primaryBtn.textContent).toContain("Скачать");
 
