@@ -706,7 +706,7 @@ describe("ipcHandlers download pool", () => {
       .mockImplementationOnce(() => mediaB.promise);
     download.stopDownload.mockResolvedValue(2);
 
-    initHandlers();
+    initHandlers({ storeValues: { downloadParallelLimit: 2 } });
     const event = { sender: { send: jest.fn() } };
     const p1 = handlers[CHANNELS.DOWNLOAD_VIDEO](
       event,

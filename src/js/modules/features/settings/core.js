@@ -463,21 +463,21 @@ async function initSettings() {
 
     const normalize = (value) => {
       const raw = Number(value);
-      if (!Number.isFinite(raw)) return 2;
+      if (!Number.isFinite(raw)) return 1;
       return Math.max(1, Math.min(2, Math.trunc(raw)));
     };
 
     const read = () => {
       try {
         const raw = localStorage.getItem("downloadParallelLimit");
-        if (raw === null) return 2;
+        if (raw === null) return 1;
         const normalized = normalize(raw);
         if (String(normalized) !== raw) {
           localStorage.setItem("downloadParallelLimit", String(normalized));
         }
         return normalized;
       } catch {
-        return 2;
+        return 1;
       }
     };
 

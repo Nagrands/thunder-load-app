@@ -3,16 +3,6 @@
       <div class="queue-header-left">
         <span class="queue-title-icon" aria-hidden="true"><i data-lucide="list-video"></i></span>
         <h3 class="queue-title" data-i18n="queue.title">Очередь</h3>
-        <button
-          id="queue-toggle-button"
-          class="queue-toggle-button"
-          aria-label="Свернуть очередь"
-          title="Свернуть очередь"
-          data-i18n-title="queue.toggle.collapse.title"
-          data-i18n-aria="queue.toggle.collapse.title"
-        >
-          <i data-lucide="chevron-up"></i>
-        </button>
         <div class="queue-pills" aria-label="Сводка очереди">
           <span id="queue-active-count" class="queue-count-pill queue-count-pill--active">0 активно</span>
           <span id="queue-count" class="queue-count-pill queue-count-pill--pending">0 в очереди</span>
@@ -40,7 +30,16 @@
           data-i18n-aria="queue.pause.title"
         >
           <i data-lucide="pause"></i>
-          <span data-i18n="queue.pause">Пауза</span>
+        </button>
+        <button
+          id="queue-toggle-button"
+          class="queue-toggle-button"
+          aria-label="Свернуть очередь"
+          title="Свернуть очередь"
+          data-i18n-title="queue.toggle.collapse.title"
+          data-i18n-aria="queue.toggle.collapse.title"
+        >
+          <i data-lucide="chevron-up"></i>
         </button>
         <span class="queue-actions-divider" aria-hidden="true"></span>
         <button

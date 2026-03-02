@@ -107,11 +107,11 @@ function setupIpcHandlers(dependencies) {
   } = dependencies;
   const normalizeParallelDownloadLimit = (value) => {
     const n = Number(value);
-    if (!Number.isFinite(n)) return 2;
+    if (!Number.isFinite(n)) return 1;
     return Math.max(1, Math.min(2, Math.trunc(n)));
   };
   const getParallelDownloadLimit = () =>
-    normalizeParallelDownloadLimit(store.get("downloadParallelLimit", 2));
+    normalizeParallelDownloadLimit(store.get("downloadParallelLimit", 1));
 
   try {
     setSharedStore(store);

@@ -748,6 +748,53 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
+  it("pause button stops active downloads and keeps queue paused", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { state } = require("../state");
+      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+      const pauseBtn = document.getElementById("queue-pause-button");
+
+      window.electron.invoke = jest.fn(async (channel) => {
+        if (channel === "stop-download") return { success: true, cancelled: 1 };
+        return null;
+      });
+
+      state.downloadQueue = [{ url: "https://example.com/pending", quality: "Source" }];
+      state.activeDownloads = [
+        { jobId: "job-1", url: "https://example.com/active", quality: "Source", progress: 35 },
+      ];
+      state.suppressAutoPump = false;
+      initDownloadButton();
+      updateQueueDisplay();
+
+      pauseBtn.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(window.electron.invoke).toHaveBeenCalledWith("stop-download");
+      expect(state.suppressAutoPump).toBe(true);
+      expect(state.activeDownloads).toHaveLength(0);
+      expect(document.getElementById("queue-start-button").disabled).toBe(false);
+    });
+  });
+
   it("hides queue block when there are no queue items", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({

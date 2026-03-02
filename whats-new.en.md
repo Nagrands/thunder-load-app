@@ -28,6 +28,16 @@
 
 ### Downloader tab
 
+- **Changed the default parallel download limit**: on new installs, downloads now start one at a time by default for more predictable queue behavior.
+
+- **Fixed queue “Pause” behavior**: when pressed during an active download, current downloads are now actually stopped, and new tasks stay paused until you press “Start”.
+
+- **Updated queue collapse button placement**: the “Collapse/Expand” control is now in the actions row next to the pause button.
+
+- **Updated queue button labels**: the start action is now labeled “Start”, and the pause button now uses icon-only style for a cleaner compact header.
+
+- **Fixed the “Start queue” button state**: it now becomes active right after links are added to the queue and starts processing tasks as expected.
+
 - **Added a warning before clearing the queue**: clicking the trash button now opens a confirmation dialog explaining that all queue entries will be removed.
 
 - **The download queue block now auto-hides when empty**: if there are no active or added tasks, the queue panel no longer takes space and appears only when items exist.

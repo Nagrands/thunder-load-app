@@ -716,7 +716,7 @@ function updateQueueDisplay() {
       queueDoneCount.classList.toggle("hidden", doneCount <= 0);
     }
     if (queueStartButton) {
-      queueStartButton.disabled = pendingCount <= 0 || !state.suppressAutoPump;
+      queueStartButton.disabled = pendingCount <= 0;
     }
     if (queuePauseButton) {
       queuePauseButton.disabled = activeCount <= 0;
@@ -1392,14 +1392,53 @@ function initDownloadButton() {
   }
 
   if (queuePauseButton) {
-    queuePauseButton.addEventListener("click", () => {
+    queuePauseButton.addEventListener("click", async () => {
       const activeCount = Array.isArray(state.activeDownloads)
         ? state.activeDownloads.length
         : 0;
       if (activeCount <= 0) return;
-      state.suppressAutoPump = !state.suppressAutoPump;
-      state.queuePaused = state.suppressAutoPump;
+      state.suppressAutoPump = true;
+      state.queuePaused = true;
       updateQueueDisplay();
+      try {
+        const result = await window.electron.invoke("stop-download");
+        if (result?.success) {
+          const cancelledCount = Number(result.cancelled || 0);
+          showToast(
+            t("download.cancelledMany", { count: cancelledCount || activeCount }),
+            "warning",
+          );
+        } else {
+          showToast(t("download.cancel.failed"), "error");
+        }
+      } catch (error) {
+        console.error("Error stopping download from queue pause:", error);
+        showToast(t("download.cancel.error"), "error");
+      } finally {
+        state.activeDownloads = [];
+        state.isDownloading = false;
+        clearProgressResetTimer();
+        if (downloadButton) {
+          downloadButton.classList.remove("disabled", "loading");
+        }
+        if (buttonText) {
+          buttonText.textContent = t("actions.download");
+        }
+        if (progressBarContainer) {
+          resetProgressIndicator();
+        }
+        if (downloadCancelButton) {
+          downloadCancelButton.disabled = true;
+        }
+        if (urlInput) {
+          urlInput.disabled = false;
+        }
+        if (cancelCountBadge) {
+          cancelCountBadge.textContent = "0";
+          cancelCountBadge.classList.add("hidden");
+        }
+        syncDownloadState();
+      }
     });
   }
 

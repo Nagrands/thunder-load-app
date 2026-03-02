@@ -11,10 +11,10 @@ import { isValidUrl, isSupportedUrl } from "./validation.js";
 const readParallelLimit = () => {
   try {
     const raw = Number(window.localStorage.getItem("downloadParallelLimit"));
-    if (!Number.isFinite(raw)) return 2;
+    if (!Number.isFinite(raw)) return 1;
     return Math.max(1, Math.min(2, Math.trunc(raw)));
   } catch {
-    return 2;
+    return 1;
   }
 };
 
