@@ -28,6 +28,8 @@
 
 ### Downloader tab
 
+- **Removed the progress bar from the URL field**: the input area is cleaner now, while active download progress is still shown in the action button and queue.
+
 - **Changed the default parallel download limit**: on new installs, downloads now start one at a time by default for more predictable queue behavior.
 
 - **Fixed queue “Pause” behavior**: when pressed during an active download, current downloads are now actually stopped, and new tasks stay paused until you press “Start”.

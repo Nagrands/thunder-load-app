@@ -113,6 +113,8 @@ const OPTIONAL_KEYS = new Set([
   "queueToggleButton",
   "queueClearButton",
   "queueRetryFailedButton",
+  "progressBarContainer",
+  "progressBar",
 ]);
 
 // Проверка наличия всех элементов и вывод ошибок

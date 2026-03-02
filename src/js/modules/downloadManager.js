@@ -888,6 +888,7 @@ const clearProgressResetTimer = () => {
 };
 
 const resetProgressIndicator = () => {
+  if (!progressBarContainer) return;
   progressBarContainer.style.opacity = 0;
   progressBarContainer.classList.remove("is-active", "is-complete");
   progressBarContainer.setAttribute("aria-valuenow", "0");
@@ -1109,9 +1110,11 @@ const initiateDownload = async (url, quality, options = {}) => {
 
   clearProgressResetTimer();
   downloadButton.classList.add("loading");
-  progressBarContainer.style.opacity = 1;
-  progressBarContainer.classList.remove("is-complete");
-  progressBarContainer.classList.add("is-active");
+  if (progressBarContainer) {
+    progressBarContainer.style.opacity = 1;
+    progressBarContainer.classList.remove("is-complete");
+    progressBarContainer.classList.add("is-active");
+  }
 
   const jobId = `job-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   addActiveDownload(
@@ -1170,8 +1173,9 @@ const initiateDownload = async (url, quality, options = {}) => {
       downloadButton.classList.remove("disabled");
       downloadButton.classList.remove("loading");
       clearProgressResetTimer();
-      const shouldDelayProgressReset =
-        progressBarContainer.classList.contains("is-complete");
+      const shouldDelayProgressReset = progressBarContainer?.classList.contains(
+        "is-complete",
+      );
       if (shouldDelayProgressReset) {
         progressResetTimer = setTimeout(() => {
           resetProgressIndicator();

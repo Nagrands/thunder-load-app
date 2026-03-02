@@ -60,10 +60,12 @@ function initDownloadCancel() {
         "data-bs-original-title",
         t("actions.cancelDownload"),
       );
-      progressBarContainer.style.opacity = 0;
-      progressBarContainer.classList.remove("is-active", "is-complete");
-      progressBarContainer.setAttribute("aria-valuenow", "0");
-      progressBarContainer.style.setProperty("--progress-ratio", "0");
+      if (progressBarContainer) {
+        progressBarContainer.style.opacity = 0;
+        progressBarContainer.classList.remove("is-active", "is-complete");
+        progressBarContainer.setAttribute("aria-valuenow", "0");
+        progressBarContainer.style.setProperty("--progress-ratio", "0");
+      }
       buttonText.textContent = t("actions.download");
       try {
         window.dispatchEvent(

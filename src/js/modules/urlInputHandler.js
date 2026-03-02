@@ -25,18 +25,6 @@ function initUrlInputHandler() {
       const center = wRect.top - cRect.top + wRect.height / 2;
       inputContainer.style.setProperty("--icon-top", `${center}px`);
 
-      // Также синхронизируем прогресс-оверлей под размеры строки инпута
-      const prog = document.getElementById("progress-bar-container");
-      if (prog) {
-        const top = wRect.top - cRect.top;
-        const left = wRect.left - cRect.left;
-        prog.style.top = `${Math.max(0, top)}px`;
-        prog.style.left = `${Math.max(0, left)}px`;
-        prog.style.width = `${Math.max(0, wRect.width)}px`;
-        prog.style.height = `${wRect.height}px`;
-        prog.style.borderRadius =
-          getComputedStyle(wrapperEl).borderRadius || "12px";
-      }
     } catch (_) {}
   };
   const toggleButtons = () => {
