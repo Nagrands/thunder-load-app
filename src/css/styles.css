@@ -12369,6 +12369,10 @@ body.is-mac .window-controls .btn-minimize {
   border-color: rgba(255, 120, 120, 0.72);
   box-shadow: 0 0 0 2px rgba(255, 110, 110, 0.22), 0 8px 20px rgba(90, 15, 20, 0.25);
 }
+.url-input-wrapper.is-valid:not(.is-invalid) {
+  border-color: rgba(105, 219, 124, 0.6);
+  box-shadow: 0 0 0 2px rgba(105, 219, 124, 0.2), 0 8px 20px rgba(16, 80, 34, 0.22);
+}
 .url-input-wrapper input {
   width: 100%;
   padding-right: 70px; /* освободим место для крестика и иконки */
@@ -12382,6 +12386,29 @@ body.is-mac .window-controls .btn-minimize {
   outline-offset: 6px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
+}
+.url-input-wrapper.is-preview-loading .url-preview-spinner {
+  opacity: 0.88;
+  transform: translateY(-50%) scale(1);
+}
+
+.url-preview-spinner {
+  position: absolute;
+  right: 126px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.94);
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--color-accent) 72%, #ffffff 28%);
+  background: rgba(255, 255, 255, 0.03);
+  opacity: 0;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .action-button, .folder-button, .paste-button,
@@ -18446,13 +18473,10 @@ hr {
 .download-queue-info .queue-title-icon {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #7cb3ff;
-  border: 1px solid rgba(74, 158, 255, 0.35);
-  background: rgba(74, 158, 255, 0.1);
 }
 .download-queue-info .queue-title-icon svg {
   width: 15px;
@@ -18467,17 +18491,13 @@ hr {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.86);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-.download-queue-info .queue-toggle-button svg {
-  width: 14px;
-  height: 14px;
+  transition: transform 0.2s ease, svg;
+  transition-width: 14px;
+  transition-height: 14px;
 }
 .download-queue-info .queue-toggle-button:hover {
   border-color: rgba(140, 194, 255, 0.46);

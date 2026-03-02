@@ -11,6 +11,7 @@ const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
 const selectFolderButton = document.getElementById("select-folder");
 const urlErrorEl = document.getElementById("url-inline-error");
+const previewSpinner = document.getElementById("url-preview-spinner");
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
@@ -40,6 +41,16 @@ function initUrlInputHandler() {
   let previewTimer = null;
   let lastPreviewUrl = "";
   let hasInteracted = false;
+  let previewRequestId = 0;
+  let dragDepth = 0;
+
+  const setPreviewLoading = (isLoading) => {
+    wrapperEl?.classList.toggle("is-preview-loading", isLoading);
+    if (previewSpinner) {
+      previewSpinner.classList.toggle("hidden", !isLoading);
+      previewSpinner.setAttribute("aria-hidden", isLoading ? "false" : "true");
+    }
+  };
 
   const getValidationState = (value = urlInput.value) => {
     const normalized = normalizeUrlInput(value);
@@ -49,10 +60,11 @@ function initUrlInputHandler() {
     return { normalized, hasValue, isValid };
   };
 
-  const showInlineError = () => {
+  const showInlineError = (messageKey = "input.url.error.invalidOrUnsupported") => {
     wrapperEl?.classList.add("is-invalid");
+    wrapperEl?.classList.remove("is-valid");
     if (!urlErrorEl) return;
-    urlErrorEl.textContent = t("input.url.error.invalidOrUnsupported");
+    urlErrorEl.textContent = t(messageKey);
     urlErrorEl.classList.remove("hidden");
   };
 
@@ -75,9 +87,21 @@ function initUrlInputHandler() {
 
   const syncUrlUiState = ({ showError = false } = {}) => {
     const validation = getValidationState();
-    if (showError && validation.hasValue && !validation.isValid) {
-      showInlineError();
-    } else if (!validation.hasValue || validation.isValid || !hasInteracted) {
+    wrapperEl?.classList.toggle(
+      "is-valid",
+      validation.hasValue && validation.isValid,
+    );
+    if (showError && !validation.isValid) {
+      if (!validation.hasValue) {
+        showInlineError("input.url.error.empty");
+      } else if (!isValidUrl(validation.normalized)) {
+        showInlineError("input.url.error.invalid");
+      } else if (!isSupportedUrl(validation.normalized)) {
+        showInlineError("input.url.error.unsupported");
+      } else {
+        showInlineError();
+      }
+    } else if (!showError || validation.isValid || !hasInteracted) {
       hideInlineError();
     }
     updateButtonState();
@@ -286,32 +310,52 @@ function initUrlInputHandler() {
   const maybeFetchPreview = () => {
     const url = urlInput.value.trim();
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
+      setPreviewLoading(false);
       renderPreview(null);
       return;
     }
     syncIconPosition();
-    if (url === lastPreviewUrl) return; // не повторяем
+    if (url === lastPreviewUrl) {
+      setPreviewLoading(false);
+      return; // не повторяем
+    }
     lastPreviewUrl = url;
+    const currentRequest = ++previewRequestId;
+    setPreviewLoading(true);
     window.electron.ipcRenderer
       .invoke("get-video-info", url)
-      .then(renderPreview)
-      .catch(() => renderPreview(null));
+      .then((data) => {
+        if (currentRequest !== previewRequestId) return;
+        renderPreview(data);
+      })
+      .catch(() => {
+        if (currentRequest !== previewRequestId) return;
+        renderPreview(null);
+      })
+      .finally(() => {
+        if (currentRequest !== previewRequestId) return;
+        setPreviewLoading(false);
+      });
   };
 
   // Внешний триггер принудительного показа предпросмотра (например, из истории → Повторить)
   urlInput.addEventListener("force-preview", () => {
+    if (previewTimer) clearTimeout(previewTimer);
     // сбрасываем кэш URL, чтобы форсировать повторный запрос
     lastPreviewUrl = "";
     // вызываем немедленно без debounce
     const url = urlInput.value.trim();
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
+      setPreviewLoading(false);
       renderPreview(null);
       return;
     }
+    setPreviewLoading(true);
     window.electron.ipcRenderer
       .invoke("get-video-info", url)
       .then(renderPreview)
-      .catch(() => renderPreview(null));
+      .catch(() => renderPreview(null))
+      .finally(() => setPreviewLoading(false));
   });
 
   urlInput.addEventListener("input", () => {
@@ -323,12 +367,17 @@ function initUrlInputHandler() {
       hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
       lastPreviewUrl = "";
+      setPreviewLoading(false);
       renderPreview(null);
       requestAnimationFrame(syncIconPosition);
       return;
     }
     if (previewTimer) clearTimeout(previewTimer);
-    previewTimer = setTimeout(maybeFetchPreview, 500);
+    setPreviewLoading(true);
+    previewTimer = setTimeout(() => {
+      previewTimer = null;
+      maybeFetchPreview();
+    }, 500);
   });
   urlInput.addEventListener("focus", () => {
     toggleButtons();
@@ -351,6 +400,7 @@ function initUrlInputHandler() {
       hasInteracted = false;
       urlInput.value = "";
       lastPreviewUrl = "";
+      setPreviewLoading(false);
       renderPreview(null);
       hideInlineError();
       toggleButtons();
@@ -395,6 +445,7 @@ function initUrlInputHandler() {
     toggleButtons();
     // Немедленно скрываем превью
     lastPreviewUrl = "";
+    setPreviewLoading(false);
     renderPreview(null);
     hideInlineError();
     updateButtonState();
@@ -424,15 +475,23 @@ function initUrlInputHandler() {
     ["dragenter", "dragover", "dragleave", "drop"].forEach((ev) =>
       wrapper.addEventListener(ev, prevent),
     );
-    wrapper.addEventListener("dragenter", () =>
-      wrapper.classList.add("drag-over"),
-    );
-    wrapper.addEventListener("dragleave", () =>
-      wrapper.classList.remove("drag-over"),
-    );
-    wrapper.addEventListener("drop", () =>
-      wrapper.classList.remove("drag-over"),
-    );
+    wrapper.addEventListener("dragenter", () => {
+      dragDepth += 1;
+      wrapper.classList.add("drag-over");
+    });
+    wrapper.addEventListener("dragover", () => {
+      wrapper.classList.add("drag-over");
+    });
+    wrapper.addEventListener("dragleave", () => {
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (dragDepth === 0) {
+        wrapper.classList.remove("drag-over");
+      }
+    });
+    wrapper.addEventListener("drop", () => {
+      dragDepth = 0;
+      wrapper.classList.remove("drag-over");
+    });
     wrapper.addEventListener("drop", (e) => {
       try {
         const text = (
@@ -454,12 +513,19 @@ function initUrlInputHandler() {
 
   // Изначально выставим позицию иконки/прогресса
   requestAnimationFrame(syncIconPosition);
+  setPreviewLoading(false);
   syncUrlUiState({ showError: false });
 
   // Пересчёт при ресайзе окна
   window.addEventListener("resize", () =>
     requestAnimationFrame(syncIconPosition),
   );
+
+  window.addEventListener("download:url-submitted", () => {
+    try {
+      urlInput.focus();
+    } catch {}
+  });
 }
 
 function hideUrlActionButtons() {

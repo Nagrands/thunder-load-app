@@ -130,13 +130,10 @@
   .queue-title-icon {
     width: 28px;
     height: 28px;
-    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #7cb3ff;
-    border: 1px solid rgba(74, 158, 255, 0.35);
-    background: rgba(74, 158, 255, 0.1);
 
     svg {
       width: 15px;
@@ -154,16 +151,12 @@
     width: 30px;
     height: 30px;
     border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.86);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition:
       transform 0.2s ease,
-      border-color 0.2s ease,
-      background 0.2s ease;
 
     svg {
       width: 14px;

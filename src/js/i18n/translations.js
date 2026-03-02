@@ -22,6 +22,10 @@ export const translations = {
     "topbar.close": "Закрыть",
     "input.url.placeholder": "Введите URL видео или аудио",
     "input.url.aria": "Введите URL видео или аудио",
+    "input.url.preview.loading": "Загрузка превью",
+    "input.url.error.empty": "Вставьте ссылку, чтобы начать загрузку.",
+    "input.url.error.invalid": "Ссылка введена некорректно. Проверьте формат URL.",
+    "input.url.error.unsupported": "Этот источник пока не поддерживается.",
     "input.url.error.invalidOrUnsupported":
       "Проверьте ссылку: нужен корректный URL поддерживаемого источника.",
     "input.paste": "Вставить из буфера",
@@ -1277,6 +1281,10 @@ export const translations = {
     "topbar.close": "Close",
     "input.url.placeholder": "Enter video or audio URL",
     "input.url.aria": "Enter video or audio URL",
+    "input.url.preview.loading": "Loading preview",
+    "input.url.error.empty": "Paste a link to start downloading.",
+    "input.url.error.invalid": "The link format is invalid. Check the URL.",
+    "input.url.error.unsupported": "This source is not supported yet.",
     "input.url.error.invalidOrUnsupported":
       "Check the link: enter a valid URL from a supported source.",
     "input.paste": "Paste from clipboard",

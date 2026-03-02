@@ -28,6 +28,13 @@
 
 ### Downloader tab
 
+- **Queue Pause behavior has been updated**: it no longer cancels active downloads and now only prevents automatic start of next queued tasks until you press “Start”.
+
+- **URL input has been improved**: clearer inline error reasons (empty field, invalid format, unsupported source), a valid-link visual state, drag-and-drop highlighting, and an inline preview loading indicator were added.
+- **Faster link entry flow**: after a successful download start or queue add, the URL field is cleared and focused again so you can paste the next link immediately.
+
+- **URL field now clears after starting a download**: once a download starts successfully or a link is added to the queue, the field is cleared automatically so you can paste the next link faster.
+
 - **Removed the progress bar from the URL field**: the input area is cleaner now, while active download progress is still shown in the action button and queue.
 
 - **Changed the default parallel download limit**: on new installs, downloads now start one at a time by default for more predictable queue behavior.

@@ -175,6 +175,38 @@ describe("downloadManager enqueueOnly behavior", () => {
       await handleDownloadButtonClick({ enqueueOnly: true });
       expect(state.downloadQueue).toHaveLength(0);
       expect(state.isDownloading).toBe(false);
+      expect(urlInput.value).toBe("https://example.com/a");
+    });
+  });
+
+  it("keeps URL when quality modal is cancelled", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue(null),
+      }));
+
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const urlInput = document.getElementById("url");
+      urlInput.value = "https://example.com/cancel";
+
+      await handleDownloadButtonClick();
+
+      expect(urlInput.value).toBe("https://example.com/cancel");
     });
   });
 
@@ -713,7 +745,7 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("disables pause when no active downloads and enables with active", () => {
+  it("disables pause only when queue has no active and no pending items", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -740,15 +772,20 @@ describe("downloadManager queue smart logic", () => {
       state.activeDownloads = [];
       state.downloadQueue = [{ url: "https://example.com/a", quality: "Source" }];
       updateQueueDisplay();
-      expect(pauseBtn.disabled).toBe(true);
+      expect(pauseBtn.disabled).toBe(false);
 
       state.activeDownloads = [{ jobId: "job-1", url: "https://example.com/a", quality: "Source" }];
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(false);
+
+      state.activeDownloads = [];
+      state.downloadQueue = [];
+      updateQueueDisplay();
+      expect(pauseBtn.disabled).toBe(true);
     });
   });
 
-  it("pause button stops active downloads and keeps queue paused", async () => {
+  it("pause button keeps active downloads running and pauses auto-start", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -772,10 +809,7 @@ describe("downloadManager queue smart logic", () => {
       const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
       const pauseBtn = document.getElementById("queue-pause-button");
 
-      window.electron.invoke = jest.fn(async (channel) => {
-        if (channel === "stop-download") return { success: true, cancelled: 1 };
-        return null;
-      });
+      window.electron.invoke = jest.fn(async () => null);
 
       state.downloadQueue = [{ url: "https://example.com/pending", quality: "Source" }];
       state.activeDownloads = [
@@ -788,9 +822,9 @@ describe("downloadManager queue smart logic", () => {
       pauseBtn.click();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(window.electron.invoke).toHaveBeenCalledWith("stop-download");
+      expect(window.electron.invoke).not.toHaveBeenCalledWith("stop-download");
       expect(state.suppressAutoPump).toBe(true);
-      expect(state.activeDownloads).toHaveLength(0);
+      expect(state.activeDownloads).toHaveLength(1);
       expect(document.getElementById("queue-start-button").disabled).toBe(false);
     });
   });
@@ -1128,6 +1162,14 @@ describe("downloadManager parallel pool", () => {
       const urlInput = document.getElementById("url");
 
       state.maxParallelDownloads = 2;
+      let inputEvents = 0;
+      let submittedEvents = 0;
+      urlInput.addEventListener("input", () => {
+        inputEvents += 1;
+      });
+      window.addEventListener("download:url-submitted", () => {
+        submittedEvents += 1;
+      });
       const activePromise = initiateDownload(
         "https://example.com/active",
         "Source",
@@ -1140,6 +1182,10 @@ describe("downloadManager parallel pool", () => {
 
       expect(started).toContain("https://example.com/new");
       expect(state.downloadQueue).toHaveLength(0);
+      expect(urlInput.value).toBe("");
+      expect(inputEvents).toBeGreaterThan(0);
+      expect(submittedEvents).toBe(1);
+      expect(document.activeElement).toBe(urlInput);
 
       activeDeferred.resolve({
         fileName: "active.mp4",

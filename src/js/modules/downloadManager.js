@@ -719,7 +719,7 @@ function updateQueueDisplay() {
       queueStartButton.disabled = pendingCount <= 0;
     }
     if (queuePauseButton) {
-      queuePauseButton.disabled = activeCount <= 0;
+      queuePauseButton.disabled = activeCount <= 0 && pendingCount <= 0;
       queuePauseButton.classList.toggle("is-active", state.suppressAutoPump);
     }
     if (queueClearButton) {
@@ -931,6 +931,20 @@ const resolvePresetQuality = (profile = readQualityProfile()) => {
   if (profile === "best") return t("quality.source");
   const remembered = lastChosenQualityLabel || readLastQuality();
   return remembered || t("quality.source");
+};
+
+const clearUrlInputAfterSubmit = () => {
+  if (!urlInput) return;
+  urlInput.value = "";
+  try {
+    urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+  } catch {}
+  try {
+    urlInput.focus();
+  } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent("download:url-submitted"));
+  } catch {}
 };
 
 function normalizeSelection(selection) {
@@ -1266,10 +1280,7 @@ const handleDownloadButtonClick = async (options = {}) => {
       }
       pumpDownloadPool("auto");
     }
-    urlInput.value = "";
-    try {
-      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
-    } catch {}
+    clearUrlInputAfterSubmit();
     return;
   }
 
@@ -1338,14 +1349,12 @@ const handleDownloadButtonClick = async (options = {}) => {
     persistQueue();
     console.log(QUEUE_LOG_TAG, "enqueueOne", { url, from: "modal/button" });
     showToast(t("queue.added"), "info");
-    urlInput.value = "";
-    try {
-      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
-    } catch {}
+    clearUrlInputAfterSubmit();
     updateQueueDisplay();
   } else {
     initiateDownload(url, payload, { fromQueue: false });
     pumpDownloadPool("auto");
+    clearUrlInputAfterSubmit();
   }
 };
 
@@ -1400,49 +1409,15 @@ function initDownloadButton() {
       const activeCount = Array.isArray(state.activeDownloads)
         ? state.activeDownloads.length
         : 0;
-      if (activeCount <= 0) return;
+      const pendingCount = Array.isArray(state.downloadQueue)
+        ? state.downloadQueue.length
+        : 0;
+      if (activeCount <= 0 && pendingCount <= 0) return;
+      if (state.suppressAutoPump) return;
       state.suppressAutoPump = true;
       state.queuePaused = true;
       updateQueueDisplay();
-      try {
-        const result = await window.electron.invoke("stop-download");
-        if (result?.success) {
-          const cancelledCount = Number(result.cancelled || 0);
-          showToast(
-            t("download.cancelledMany", { count: cancelledCount || activeCount }),
-            "warning",
-          );
-        } else {
-          showToast(t("download.cancel.failed"), "error");
-        }
-      } catch (error) {
-        console.error("Error stopping download from queue pause:", error);
-        showToast(t("download.cancel.error"), "error");
-      } finally {
-        state.activeDownloads = [];
-        state.isDownloading = false;
-        clearProgressResetTimer();
-        if (downloadButton) {
-          downloadButton.classList.remove("disabled", "loading");
-        }
-        if (buttonText) {
-          buttonText.textContent = t("actions.download");
-        }
-        if (progressBarContainer) {
-          resetProgressIndicator();
-        }
-        if (downloadCancelButton) {
-          downloadCancelButton.disabled = true;
-        }
-        if (urlInput) {
-          urlInput.disabled = false;
-        }
-        if (cancelCountBadge) {
-          cancelCountBadge.textContent = "0";
-          cancelCountBadge.classList.add("hidden");
-        }
-        syncDownloadState();
-      }
+      showToast(t("queue.status.paused"), "info");
     });
   }
 

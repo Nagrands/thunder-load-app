@@ -85,6 +85,13 @@
       0 8px 20px rgba(90, 15, 20, 0.25);
   }
 
+  &.is-valid:not(.is-invalid) {
+    border-color: rgba(105, 219, 124, 0.6);
+    box-shadow:
+      0 0 0 2px rgba(105, 219, 124, 0.2),
+      0 8px 20px rgba(16, 80, 34, 0.22);
+  }
+
   input {
     width: 100%;
     padding-right: 70px; /* освободим место для крестика и иконки */
@@ -98,6 +105,34 @@
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.02);
   }
+
+  &.is-preview-loading {
+    .url-preview-spinner {
+      opacity: 0.88;
+      transform: translateY(-50%) scale(1);
+    }
+  }
+}
+
+.url-preview-spinner {
+  position: absolute;
+  right: 126px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.94);
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--color-accent) 72%, #ffffff 28%);
+  background: rgba(255, 255, 255, 0.03);
+  opacity: 0;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+  z-index: 2;
 }
 
 // === Базовый стиль для всех иконок-кнопок ===

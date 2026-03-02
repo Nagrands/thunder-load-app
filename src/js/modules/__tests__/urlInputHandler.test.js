@@ -5,6 +5,7 @@ const buildDom = () => {
     <div class="input-container">
       <div class="url-input-wrapper">
         <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
+        <span id="url-preview-spinner" class="url-preview-spinner hidden"></span>
         <input id="url" type="text" />
         <div class="button-grid">
           <button id="paste-url" class="paste-button hidden"></button>
@@ -35,6 +36,7 @@ const getState = () => ({
   pasteBtn: document.getElementById("paste-url"),
   clearBtn: document.getElementById("clear-url"),
   previewCard: document.getElementById("preview-card"),
+  spinner: document.getElementById("url-preview-spinner"),
   downloadBtn: document.getElementById("download-button"),
 });
 
@@ -58,10 +60,21 @@ describe("urlInputHandler", () => {
         updateButtonState: updateButtonStateMock,
       }));
       jest.doMock("../i18n", () => ({
-        t: (key) =>
-          key === "input.url.error.invalidOrUnsupported"
-            ? "Проверьте ссылку: нужен корректный URL поддерживаемого источника."
-            : key,
+        t: (key) => {
+          if (key === "input.url.error.invalidOrUnsupported") {
+            return "Проверьте ссылку: нужен корректный URL поддерживаемого источника.";
+          }
+          if (key === "input.url.error.empty") {
+            return "Вставьте ссылку, чтобы начать загрузку.";
+          }
+          if (key === "input.url.error.invalid") {
+            return "Ссылка введена некорректно. Проверьте формат URL.";
+          }
+          if (key === "input.url.error.unsupported") {
+            return "Этот источник пока не поддерживается.";
+          }
+          return key;
+        },
       }));
       ({ initUrlInputHandler } = require("../urlInputHandler"));
     });
@@ -105,7 +118,7 @@ describe("urlInputHandler", () => {
     input.dispatchEvent(new Event("blur", { bubbles: true }));
 
     expect(error.classList.contains("hidden")).toBe(false);
-    expect(error.textContent).toContain("Проверьте ссылку");
+    expect(error.textContent).toContain("Ссылка введена некорректно");
     expect(wrapper.classList.contains("is-invalid")).toBe(true);
   });
 
@@ -134,6 +147,7 @@ describe("urlInputHandler", () => {
 
     expect(error.classList.contains("hidden")).toBe(true);
     expect(wrapper.classList.contains("is-invalid")).toBe(false);
+    expect(wrapper.classList.contains("is-valid")).toBe(true);
   });
 
   test("normalizes URL on blur, paste, drop and Enter", async () => {
@@ -176,6 +190,22 @@ describe("urlInputHandler", () => {
     expect(previewCard.style.display).toBe("none");
   });
 
+  test("shows preview spinner while waiting and fetching preview", async () => {
+    const { input, spinner, wrapper } = getState();
+    input.value = "https://example.com/video";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(wrapper.classList.contains("is-preview-loading")).toBe(true);
+    expect(spinner.classList.contains("hidden")).toBe(false);
+
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalled();
+    expect(wrapper.classList.contains("is-preview-loading")).toBe(false);
+    expect(spinner.classList.contains("hidden")).toBe(true);
+  });
+
   test("Escape clears input, preview and inline error", () => {
     const { input, error, wrapper, previewCard } = getState();
     input.value = "bad-url";
@@ -204,6 +234,14 @@ describe("urlInputHandler", () => {
     expect(input.value).toBe("");
     expect(clearBtn.classList.contains("hidden")).toBe(true);
     expect(pasteBtn.classList.contains("hidden")).toBe(false);
+  });
+
+  test("adds and removes drag-over class for drag events", () => {
+    const { wrapper } = getState();
+    wrapper.dispatchEvent(new Event("dragenter", { bubbles: true }));
+    expect(wrapper.classList.contains("drag-over")).toBe(true);
+    wrapper.dispatchEvent(new Event("dragleave", { bubbles: true }));
+    expect(wrapper.classList.contains("drag-over")).toBe(false);
   });
 
 });
