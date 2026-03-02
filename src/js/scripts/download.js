@@ -33,6 +33,7 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const crypto = require("crypto");
 const unzipper = require("unzipper");
 const treeKill = require("tree-kill");
 const log = require("electron-log");
@@ -1411,6 +1412,8 @@ function spawnDownloadProcess(
       url,
       "--ffmpeg-location",
       ffmpegDir,
+      "--continue",
+      "--part",
       "--newline",
       "--ignore-errors",
       "--no-warnings",
@@ -1495,6 +1498,61 @@ function emitDownloadProgress(event, progress, options = {}) {
   }
 }
 
+function buildResumeKey(parts = []) {
+  const payload = parts.map((v) => String(v || "")).join("|");
+  return crypto.createHash("sha1").update(payload).digest("hex").slice(0, 12);
+}
+
+function getResumeStateDir(downloadPath) {
+  const dir = path.join(downloadPath, ".thunderload-resume");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+
+function getResumeStatePath(downloadPath, key) {
+  return path.join(getResumeStateDir(downloadPath), `${key}.json`);
+}
+
+function writeResumeState(downloadPath, key, payload = {}) {
+  try {
+    const filePath = getResumeStatePath(downloadPath, key);
+    const data = {
+      key,
+      updatedAt: Date.now(),
+      ...payload,
+    };
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+  } catch (err) {
+    log.warn("Failed to write resume state:", err.message);
+  }
+}
+
+function clearResumeState(downloadPath, key) {
+  try {
+    const filePath = getResumeStatePath(downloadPath, key);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (err) {
+    log.warn("Failed to clear resume state:", err.message);
+  }
+}
+
+function hasResumeArtifacts(tempPath, downloadPath, key) {
+  try {
+    const statePath = getResumeStatePath(downloadPath, key);
+    return (
+      fs.existsSync(statePath) ||
+      fs.existsSync(`${tempPath}.part`) ||
+      fs.existsSync(`${tempPath}.ytdl`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function createOverallProgressTracker(segmentCount, event, options = {}) {
   const { jobId = null } = options;
   const totalSegments = Math.max(1, segmentCount || 1);
@@ -1541,7 +1599,18 @@ async function downloadMedia(
     setActiveDownloadToken(token);
     const processStore = getProcessStore(token);
     const sanitizedFilename = outputFilename.replace(/[\\/:*?"<>|]/g, "");
-    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const resumeKey = buildResumeKey([
+      url,
+      quality,
+      videoFormat,
+      audioFormat,
+      resolution,
+      fps,
+      audioExt,
+      videoExt,
+      sanitizedFilename,
+    ]);
+    const resumePrefix = `${sanitizedFilename}__${resumeKey}`;
     // дефолт расширений (если вызывающий код ещё не передаёт videoExt/audioExt)
     audioExt = audioExt || "m4a";
     videoExt = videoExt || "mp4";
@@ -1644,10 +1713,7 @@ async function downloadMedia(
           downloadPath,
           `${sanitizedFilename}.${audioExtension}`,
         );
-        const tempAudioPath = path.join(
-          downloadPath,
-          `audio_${uniqueId}.${audioExtension}`,
-        );
+        const tempAudioPath = path.join(downloadPath, `audio_${resumePrefix}.${audioExtension}`);
         let lastLogged = 0;
         const updateProgress = (progress) => {
           if (progress - lastLogged >= 5 || progress >= 100) {
@@ -1660,6 +1726,14 @@ async function downloadMedia(
           output: tempAudioPath,
           audioFormat,
           url,
+          resume: hasResumeArtifacts(tempAudioPath, downloadPath, resumeKey),
+        });
+        writeResumeState(downloadPath, resumeKey, {
+          mode: "audio-only",
+          url,
+          quality,
+          targetPath: finalAudioPath,
+          tempPath: tempAudioPath,
         });
         try {
           await spawnDownloadProcess(
@@ -1678,6 +1752,7 @@ async function downloadMedia(
           throw err;
         }
         safeMoveFile(tempAudioPath, finalAudioPath);
+        clearResumeState(downloadPath, resumeKey);
         log.info(`Audio downloaded: ${finalAudioPath}`);
         emitDownloadProgress(event, 100, { jobId, phase: "download" });
         return finalAudioPath;
@@ -1709,15 +1784,23 @@ async function downloadMedia(
       );
       const tempMergedOutput = path.join(
         downloadPath,
-        `combined_${uniqueId}.${mergedExt}`,
+        `combined_${resumePrefix}.${mergedExt}`,
       );
       log.info("[download] Spawning yt-dlp for combined download", {
         format: `${videoFormat}+${audioFormat}`,
         tempOutput: tempMergedOutput,
         finalOutput: finalMergedOutput,
         url,
+        resume: hasResumeArtifacts(tempMergedOutput, downloadPath, resumeKey),
       });
       try {
+        writeResumeState(downloadPath, resumeKey, {
+          mode: "combined",
+          url,
+          quality,
+          targetPath: finalMergedOutput,
+          tempPath: tempMergedOutput,
+        });
         const combinedFormat = `${String(videoFormat)}+${String(audioFormat)}`;
         await spawnDownloadProcess(
           combinedFormat,
@@ -1739,6 +1822,7 @@ async function downloadMedia(
         throw err;
       }
       safeMoveFile(tempMergedOutput, finalMergedOutput);
+      clearResumeState(downloadPath, resumeKey);
       emitDownloadProgress(event, 100, { jobId, phase: "download" });
       log.info(`[download] Combined stream saved as ${finalMergedOutput}`);
       return finalMergedOutput;
@@ -1755,15 +1839,23 @@ async function downloadMedia(
     );
     const tempOutput = path.join(
       downloadPath,
-      `direct_${uniqueId}.${finalExt}`,
+      `direct_${resumePrefix}.${finalExt}`,
     );
     log.info("[download] Spawning yt-dlp for direct stream download", {
       format: directFormat,
       tempOutput,
       finalOutput,
       url,
+      resume: hasResumeArtifacts(tempOutput, downloadPath, resumeKey),
     });
     try {
+      writeResumeState(downloadPath, resumeKey, {
+        mode: "direct",
+        url,
+        quality,
+        targetPath: finalOutput,
+        tempPath: tempOutput,
+      });
       await spawnDownloadProcess(
         String(directFormat),
         tempOutput,
@@ -1784,6 +1876,7 @@ async function downloadMedia(
       throw err;
     }
     safeMoveFile(tempOutput, finalOutput);
+    clearResumeState(downloadPath, resumeKey);
     emitDownloadProgress(event, 100, { jobId, phase: "download" });
     log.info(`[download] Direct stream saved as ${finalOutput}`);
     return finalOutput;
@@ -1863,29 +1956,8 @@ async function stopDownload(tokenOrTokens = activeDownloadToken) {
       token.activeProcesses.merge = null;
     }
 
-    if (token.currentDownloadPath) {
-      try {
-        const files = await fs.promises.readdir(token.currentDownloadPath);
-        const tempFiles = files.filter(
-          (file) => file.endsWith(".part") || file.endsWith(".ytdl"),
-        );
-        for (const file of tempFiles) {
-          const fullPath = path.join(token.currentDownloadPath, file);
-          try {
-            await fs.promises.unlink(fullPath);
-            log.info(`Temporary file deleted: ${fullPath}`);
-          } catch (err) {
-            log.error(`Error deleting temporary file ${fullPath}:`, err);
-          }
-        }
-      } catch (err) {
-        log.error(
-          "Error scanning download directory for temporary files:",
-          err,
-        );
-      }
-      token.currentDownloadPath = null;
-    }
+    // Не удаляем .part/.ytdl, чтобы yt-dlp мог продолжить загрузку при следующем запуске.
+    token.currentDownloadPath = null;
   }
 
   setActiveDownloadToken(null);

@@ -28,6 +28,10 @@
 
 ### Downloader tab
 
+- **Fixed URL field warning behavior**: the “Paste a link to start downloading” message no longer appears on regular blur of an empty field and is now shown only after an explicit download attempt.
+
+- **Added reliable download resume flow**: Thunder Load now keeps intermediate download state and attempts to continue the same task from already downloaded progress when started again.
+
 - **Queue Pause behavior has been updated**: it no longer cancels active downloads and now only prevents automatic start of next queued tasks until you press “Start”.
 
 - **URL input has been improved**: clearer inline error reasons (empty field, invalid format, unsupported source), a valid-link visual state, drag-and-drop highlighting, and an inline preview loading indicator were added.

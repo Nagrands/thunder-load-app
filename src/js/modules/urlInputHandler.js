@@ -85,7 +85,7 @@ function initUrlInputHandler() {
     return false;
   };
 
-  const syncUrlUiState = ({ showError = false } = {}) => {
+  const syncUrlUiState = ({ showError = false, errorOnEmpty = false } = {}) => {
     const validation = getValidationState();
     wrapperEl?.classList.toggle(
       "is-valid",
@@ -93,7 +93,11 @@ function initUrlInputHandler() {
     );
     if (showError && !validation.isValid) {
       if (!validation.hasValue) {
-        showInlineError("input.url.error.empty");
+        if (errorOnEmpty) {
+          showInlineError("input.url.error.empty");
+        } else {
+          hideInlineError();
+        }
       } else if (!isValidUrl(validation.normalized)) {
         showInlineError("input.url.error.invalid");
       } else if (!isSupportedUrl(validation.normalized)) {
@@ -389,7 +393,7 @@ function initUrlInputHandler() {
   urlInput.addEventListener("blur", () => {
     normalizeInputValue();
     hasInteracted = true;
-    syncUrlUiState({ showError: true });
+    syncUrlUiState({ showError: true, errorOnEmpty: false });
     toggleButtons();
   });
 
@@ -412,7 +416,7 @@ function initUrlInputHandler() {
     if (e.key !== "Enter") return;
     normalizeInputValue();
     hasInteracted = true;
-    const validation = syncUrlUiState({ showError: true });
+    const validation = syncUrlUiState({ showError: true, errorOnEmpty: true });
     if (!validation.isValid) {
       e.preventDefault();
       lastPreviewUrl = "";
