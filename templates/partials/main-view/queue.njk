@@ -1,59 +1,68 @@
   <div id="download-queue-info" class="download-queue-info hidden">
-    <div class="queue-summary-row">
-      <div class="queue-summary" aria-label="Сводка очереди">
-        <span class="queue-summary-cluster queue-summary-active">
-          <span class="queue-active-label" data-i18n="queue.active.label">Активно:</span>
-          <span id="queue-active-count" class="queue-count-pill queue-active-pill hidden">0</span>
-        </span>
-        <span class="queue-summary-cluster queue-summary-pending">
-          <span data-i18n="queue.label">В очереди:</span>
-          <span id="queue-count" class="queue-count-pill">0</span>
-          <span data-i18n="queue.links">ссылок</span>
-        </span>
-        <span class="queue-summary-cluster queue-summary-capacity">
-          <span id="queue-cap-state" class="queue-cap-state hidden"></span>
-        </span>
+    <div class="queue-header">
+      <div class="queue-header-left">
+        <span class="queue-title-icon" aria-hidden="true"><i data-lucide="list-video"></i></span>
+        <h3 class="queue-title" data-i18n="queue.title">Очередь</h3>
+        <button
+          id="queue-toggle-button"
+          class="queue-toggle-button"
+          aria-label="Свернуть очередь"
+          title="Свернуть очередь"
+          data-i18n-title="queue.toggle.collapse.title"
+          data-i18n-aria="queue.toggle.collapse.title"
+        >
+          <i data-lucide="chevron-up"></i>
+        </button>
+        <div class="queue-pills" aria-label="Сводка очереди">
+          <span id="queue-active-count" class="queue-count-pill queue-count-pill--active">0 активно</span>
+          <span id="queue-count" class="queue-count-pill queue-count-pill--pending">0 в очереди</span>
+          <span id="queue-done-count" class="queue-count-pill queue-count-pill--done hidden">0 готово</span>
+        </div>
       </div>
       <div class="queue-actions">
         <button
-          id="queue-retry-failed-button"
-          class="small-button btn btn-sm btn-secondary hidden"
-          aria-label="Повторить ошибки"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Повторить неуспешные"
-          data-i18n-title="queue.retryFailed.title"
-          data-i18n-aria="queue.retryFailed.title"
-        >
-          <i class="fa-solid fa-rotate-right"></i>
-        </button>
-        <button
           id="queue-start-button"
-          class="small-button btn btn-sm btn-primary"
+          class="queue-action-button queue-action-button--start"
           aria-label="Запустить очередь"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
           title="Запустить очередь"
           data-i18n-title="queue.start.title"
           data-i18n-aria="queue.start.title"
         >
-          <i class="fa-solid fa-play"></i>
+          <i data-lucide="play"></i>
+          <span data-i18n="queue.start">Запустить</span>
         </button>
         <button
+          id="queue-pause-button"
+          class="queue-action-button queue-action-button--pause"
+          aria-label="Пауза очереди"
+          title="Пауза очереди"
+          data-i18n-title="queue.pause.title"
+          data-i18n-aria="queue.pause.title"
+        >
+          <i data-lucide="pause"></i>
+          <span data-i18n="queue.pause">Пауза</span>
+        </button>
+        <span class="queue-actions-divider" aria-hidden="true"></span>
+        <button
           id="queue-clear-button"
-          class="small-button btn btn-sm btn-secondary"
+          class="queue-action-button queue-action-button--clear"
           aria-label="Очистить очередь"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
           title="Очистить очередь"
           data-i18n-title="queue.clear.title"
           data-i18n-aria="queue.clear.title"
         >
-          <i class="fa-solid fa-trash"></i>
+          <i data-lucide="trash-2"></i>
         </button>
       </div>
     </div>
-    <div id="queue-list" class="queue-list" aria-live="polite" role="list"></div>
+
+    <div id="queue-list" class="queue-list" aria-live="polite" role="list">
+      <div class="queue-empty">
+        <span class="queue-empty-icon" aria-hidden="true"><i data-lucide="inbox"></i></span>
+        <p class="queue-empty-title" data-i18n="queue.empty.title">Очередь пуста</p>
+        <p class="queue-empty-hint" data-i18n="queue.empty.hint">Добавьте URL выше, чтобы начать.</p>
+      </div>
+    </div>
   </div>
 
 <div

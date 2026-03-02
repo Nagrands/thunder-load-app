@@ -28,6 +28,17 @@
 
 ### Downloader tab
 
+- **Added a warning before clearing the queue**: clicking the trash button now opens a confirmation dialog explaining that all queue entries will be removed.
+
+- **The download queue block now auto-hides when empty**: if there are no active or added tasks, the queue panel no longer takes space and appears only when items exist.
+
+- **Added collapse support for the download queue block**: you can now hide/show the queue list from the header, and the app remembers the state between launches.
+- **Fixed the queue “Pause” button behavior**: it is now enabled only while an active download is running, and stays disabled when nothing is currently downloading.
+
+- **Completely redesigned the “Download Queue” panel**: the queue now uses card-based items with clearer color-coded statuses, active/queued/done counters, and a more visible progress line for current downloads.
+- **Added a dedicated queue “Pause” control**: you can pause automatic start of next tasks without interrupting already active downloads.
+- **Improved queue item controls**: move/remove actions now appear on hover, failed tasks can be retried directly from the card, and an explicit empty-state view is shown when the queue has no tasks.
+
 - **Simplified the action menu in Quality picker**: the split-button dropdown now keeps only “Add to queue”, so enqueueing the selected option is faster and less cluttered.
 - **Refined the Quality picker visual design**: the options list is now more minimal and faster to scan, key details are easier to read, and advanced metrics remain available on expand.
 - **Queue UI polish has been applied**: task statuses and control buttons are now easier to scan, and the queue block keeps a cleaner rhythm across window widths.

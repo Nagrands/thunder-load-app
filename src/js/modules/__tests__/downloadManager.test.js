@@ -10,10 +10,13 @@ const buildDom = () => {
     <div id="download-queue-info" class="hidden"></div>
     <span id="queue-count"></span>
     <span id="queue-active-count" class="hidden"></span>
+    <span id="queue-done-count" class="hidden"></span>
     <span id="queue-cap-state" class="hidden"></span>
     <div id="queue-start-indicator" class="hidden"></div>
     <button id="queue-retry-failed-button"></button>
     <button id="queue-start-button"></button>
+    <button id="queue-pause-button"></button>
+    <button id="queue-toggle-button"></button>
     <button id="queue-clear-button"></button>
     <div id="queue-list"></div>
     <span id="download-cancel-count" class="hidden"></span>
@@ -382,12 +385,8 @@ describe("downloadManager queue smart logic", () => {
       const downBtn = document.querySelector(
         '.queue-item-actions [data-queue-move="down"][data-index="0"]',
       );
-      const pendingRow = document.querySelector(
-        "#queue-list li:not(.is-active):not(.is-failed)",
-      );
-      expect(
-        pendingRow?.querySelector(".queue-item-chips .queue-quality-chip"),
-      ).toBeTruthy();
+      const pendingRow = document.querySelector("#queue-list li");
+      expect(pendingRow?.querySelector(".queue-quality-chip")).toBeTruthy();
       downBtn.click();
       expect(state.downloadQueue[0].url).toBe("https://example.com/b");
 
@@ -399,7 +398,7 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("applies full-limit status class when queue reaches max size", () => {
+  it("renders 200 queued items when queue reaches max size", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -434,10 +433,8 @@ describe("downloadManager queue smart logic", () => {
       }));
       updateQueueDisplay();
 
-      const queueInfo = document.getElementById("download-queue-info");
-      const capState = document.getElementById("queue-cap-state");
-      expect(queueInfo.classList.contains("is-full")).toBe(true);
-      expect(capState.classList.contains("hidden")).toBe(false);
+      const queueItems = document.querySelectorAll("#queue-list li");
+      expect(queueItems).toHaveLength(200);
     });
   });
 
@@ -462,7 +459,10 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../i18n", () => ({
         getLanguage: jest.fn(() => "ru"),
         t: jest.fn((key, vars = {}) => {
-          if (key === "queue.item.active") return "Выполняется";
+          if (key === "queue.pill.active") return `${vars.count || 0} активно`;
+          if (key === "queue.status.downloading") return "Загрузка";
+          if (key === "queue.pill.pending") return `${vars.count || 0} в очереди`;
+          if (key === "queue.quality.label") return "Качество";
           if (key === "queue.limit.near")
             return `Осталось мест: ${vars.count || 0}`;
           if (key === "queue.limit.full") return "Лимит очереди достигнут";
@@ -482,18 +482,15 @@ describe("downloadManager queue smart logic", () => {
       ];
       updateQueueDisplay();
 
-      expect(activeCounter?.textContent).toBe("1");
+      expect(activeCounter?.textContent).toBe("1 активно");
       expect(activeCounter?.classList.contains("hidden")).toBe(false);
-      const activeRow = document.querySelector("#queue-list li.is-active");
+      const activeRow = document.querySelector("#queue-list li");
       expect(activeRow).toBeTruthy();
-      expect(activeRow?.querySelector(".queue-item-chips")).toBeTruthy();
-      expect(activeRow?.querySelector(".queue-progress-chip")).toBeTruthy();
       expect(activeRow?.querySelector(".queue-quality-chip")).toBeTruthy();
-      expect(activeRow?.querySelector(".queue-status-chip")?.textContent).toBe(
-        "Выполняется",
+      expect(activeRow?.querySelector(".queue-status-chip")?.textContent).toContain(
+        "Загрузка",
       );
       expect(activeRow?.getAttribute("role")).toBe("listitem");
-      expect(activeRow?.getAttribute("aria-label")).toContain("Выполняется");
     });
   });
 
@@ -518,7 +515,8 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../i18n", () => ({
         getLanguage: jest.fn(() => "ru"),
         t: jest.fn((key, vars = {}) => {
-          if (key === "queue.item.pending") return "В очереди";
+          if (key === "queue.pill.pending") return `${vars.count || 0} в очереди`;
+          if (key === "queue.status.pending") return "В очереди";
           if (key === "queue.quality.label") return "Качество";
           if (key === "queue.links.many") return "ссылок";
           if (key === "queue.links.one") return "ссылка";
@@ -542,7 +540,9 @@ describe("downloadManager queue smart logic", () => {
       expect(queueList.getAttribute("role")).toBe("list");
       expect(queueList.querySelector("ul")?.getAttribute("role")).toBe("list");
       expect(pendingRow?.getAttribute("role")).toBe("listitem");
-      expect(pendingRow?.getAttribute("aria-label")).toContain("В очереди");
+      expect(
+        pendingRow?.querySelector(".queue-status-chip")?.textContent || "",
+      ).toContain("В очереди");
     });
   });
 
@@ -596,8 +596,10 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../i18n", () => ({
         getLanguage: jest.fn(() => "ru"),
         t: jest.fn((key, params = {}) => {
-          if (key === "queue.item.active") return "Выполняется";
-          if (key === "queue.item.failed") return "Ошибка";
+          if (key === "queue.status.downloading") return "Загрузка";
+          if (key === "queue.status.error") return "Ошибка";
+          if (key === "queue.pill.pending") return `${params.count || 0} в очереди`;
+          if (key === "queue.pill.active") return `${params.count || 0} активно`;
           if (key === "queue.item.retrying")
             return "Повторная загрузка запущена.";
           if (key === "queue.retryFailed.toast")
@@ -623,11 +625,9 @@ describe("downloadManager queue smart logic", () => {
       initDownloadButton();
       updateQueueDisplay();
 
-      const failedRow = document.querySelector("#queue-list li.is-failed");
+      const failedRow = document.querySelector("#queue-list li");
       expect(failedRow).toBeTruthy();
-      expect(
-        failedRow?.querySelector(".queue-item-chips .queue-quality-chip"),
-      ).toBeTruthy();
+      expect(failedRow?.querySelector(".queue-quality-chip")).toBeTruthy();
       expect(
         failedRow?.querySelector(
           ".queue-item-actions [data-queue-remove-failed]",
@@ -644,6 +644,140 @@ describe("downloadManager queue smart logic", () => {
         "Source",
         expect.stringMatching(/^job-/),
       );
+    });
+  });
+
+  it("toggles queue list visibility and persists collapsed state", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { state } = require("../state");
+      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+      state.downloadQueue = [{ url: "https://example.com/a", quality: "Source" }];
+      initDownloadButton();
+      updateQueueDisplay();
+
+      const queueList = document.getElementById("queue-list");
+      const toggleBtn = document.getElementById("queue-toggle-button");
+      expect(queueList.classList.contains("hidden")).toBe(false);
+
+      toggleBtn.click();
+      expect(queueList.classList.contains("hidden")).toBe(true);
+      expect(localStorage.getItem("downloadQueueCollapsed")).toBe("1");
+
+      jest.resetModules();
+      buildDom();
+      window.electron = { invoke: jest.fn(), ipcRenderer: { invoke: jest.fn() }, on: jest.fn() };
+      jest.isolateModules(() => {
+        jest.doMock("../domElements", () => ({
+          urlInput: document.getElementById("url"),
+          downloadButton: document.getElementById("download-button"),
+          enqueueButton: document.getElementById("enqueue-button"),
+          downloadCancelButton: document.getElementById("download-cancel"),
+          buttonText: document.querySelector(".button-text"),
+          progressBarContainer: document.getElementById("progress-bar-container"),
+          progressBar: document.getElementById("progress-bar"),
+          openLastVideoButton: document.getElementById("open-last-video"),
+          queueStartButton: document.getElementById("queue-start-button"),
+          queuePauseButton: document.getElementById("queue-pause-button"),
+          queueToggleButton: document.getElementById("queue-toggle-button"),
+          queueClearButton: document.getElementById("queue-clear-button"),
+          historyContainer: null,
+        }));
+        jest.doMock("../history", () => ({
+          getHistoryData: jest.fn(() => []),
+        }));
+        const { state } = require("../state");
+        const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+        state.downloadQueue = [{ url: "https://example.com/a", quality: "Source" }];
+        initDownloadButton();
+        updateQueueDisplay();
+        expect(document.getElementById("queue-list").classList.contains("hidden")).toBe(true);
+      });
+    });
+  });
+
+  it("disables pause when no active downloads and enables with active", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+      const pauseBtn = document.getElementById("queue-pause-button");
+
+      state.activeDownloads = [];
+      state.downloadQueue = [{ url: "https://example.com/a", quality: "Source" }];
+      updateQueueDisplay();
+      expect(pauseBtn.disabled).toBe(true);
+
+      state.activeDownloads = [{ jobId: "job-1", url: "https://example.com/a", quality: "Source" }];
+      updateQueueDisplay();
+      expect(pauseBtn.disabled).toBe(false);
+    });
+  });
+
+  it("hides queue block when there are no queue items", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+      state.activeDownloads = [];
+      state.downloadQueue = [];
+      state.failedDownloads = [];
+      state.completedDownloads = [];
+      updateQueueDisplay();
+      expect(
+        document.getElementById("download-queue-info").classList.contains("hidden"),
+      ).toBe(true);
     });
   });
 });
@@ -868,9 +1002,10 @@ describe("downloadManager parallel pool", () => {
 
       await initiateDownload("https://example.com/c", "Source");
       expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0]).toEqual({
+      expect(state.downloadQueue[0]).toMatchObject({
         url: "https://example.com/c",
         quality: "Source",
+        status: "pending",
       });
       expect(window.electron.invoke).not.toHaveBeenCalledWith(
         "download-video",

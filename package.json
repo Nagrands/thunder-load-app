@@ -40,12 +40,13 @@
     "whats-new:build": "node scripts/build-whats-new.mjs"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
     "dompurify": "^3.2.5",
+    "dotenv": "^17.2.3",
     "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.3.3",
     "electron-window-state": "^5.0.3",
+    "lucide": "^0.575.0",
     "marked": "^16.4.1",
     "sudo-prompt": "^9.2.1",
     "tree-kill": "^1.2.2",
