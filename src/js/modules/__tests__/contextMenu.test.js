@@ -1,6 +1,7 @@
 import { jest } from "@jest/globals";
 
 const mockShowConfirmationDialog = jest.fn();
+const mockShowToast = jest.fn();
 
 const deferred = () => {
   let resolve;
@@ -12,12 +13,17 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 
+const flush = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
 jest.mock("../modals.js", () => ({
   showConfirmationDialog: mockShowConfirmationDialog,
 }));
 
 jest.mock("../toast.js", () => ({
-  showToast: jest.fn(),
+  showToast: mockShowToast,
 }));
 
 jest.mock("../history.js", () => ({
@@ -72,14 +78,28 @@ const setupDom = () => {
     <input id="filter-input" />
     <button id="history-density-compact"></button>
     <button id="history-density-comfort"></button>
-    <div id="context-menu" style="display:none; position:absolute;">
-      <ul>
-        <li id="open-video">Open video</li>
-        <li id="open-folderc">Open folder</li>
-        <li id="delete-entry">Delete entry</li>
-        <li id="delete-file">Delete file</li>
+    <nav id="context-menu" style="display:none; position:absolute;">
+      <ul role="menu">
+        <li role="none">
+          <button id="open-video" type="button" role="menuitem">Open video</button>
+        </li>
+        <li role="none">
+          <button id="open-folder" type="button" role="menuitem">Open folder</button>
+        </li>
+        <li role="none">
+          <button id="open-site" type="button" role="menuitem">Open site</button>
+        </li>
+        <li role="none">
+          <button id="retry-download" type="button" role="menuitem">Retry</button>
+        </li>
+        <li role="none">
+          <button id="delete-entry" type="button" role="menuitem">Delete entry</button>
+        </li>
+        <li role="none">
+          <button id="delete-file" type="button" role="menuitem">Delete file</button>
+        </li>
       </ul>
-    </div>
+    </nav>
   `;
 
   global.window.electron = {
@@ -90,7 +110,20 @@ const setupDom = () => {
   };
 };
 
-describe("context menu confirmation", () => {
+const openContextMenuOnEntry = async () => {
+  const logEntry = document.querySelector(".log-entry");
+  logEntry.dispatchEvent(
+    new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      pageX: 160,
+      pageY: 120,
+    }),
+  );
+  await flush();
+};
+
+describe("context menu UI", () => {
   beforeAll(() => {
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -103,6 +136,102 @@ describe("context menu confirmation", () => {
     jest.resetModules();
     setupDom();
     mockShowConfirmationDialog.mockReset();
+    mockShowToast.mockReset();
+  });
+
+  test("opens and focuses first enabled menu item", async () => {
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    await openContextMenuOnEntry();
+
+    expect(document.getElementById("context-menu").style.display).toBe("block");
+    expect(document.activeElement).toBe(document.getElementById("open-video"));
+  });
+
+  test("supports ArrowUp/ArrowDown/Home/End keyboard navigation", async () => {
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    await openContextMenuOnEntry();
+    const menu = document.getElementById("context-menu");
+
+    menu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(document.getElementById("open-folder"));
+
+    menu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(document.getElementById("delete-file"));
+
+    menu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(document.getElementById("delete-entry"));
+
+    menu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Home", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(document.getElementById("open-video"));
+  });
+
+  test("runs action on Enter", async () => {
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    await openContextMenuOnEntry();
+    const menu = document.getElementById("context-menu");
+    const openSite = document.getElementById("open-site");
+    openSite.focus();
+
+    menu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    await flush();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-external-link",
+      "https://example.com/video",
+    );
+  });
+
+  test("closes menu on Escape", async () => {
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    await openContextMenuOnEntry();
+
+    const menu = document.getElementById("context-menu");
+    menu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(menu.style.display).toBe("none");
+  });
+
+  test("does not execute disabled menu item", async () => {
+    window.electron.invoke.mockImplementation(async (channel) => {
+      if (channel === "check-file-exists") return false;
+      return null;
+    });
+
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    await openContextMenuOnEntry();
+
+    const openVideo = document.getElementById("open-video");
+    expect(openVideo.disabled).toBe(true);
+
+    openVideo.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await flush();
+
+    expect(window.electron.invoke).not.toHaveBeenCalledWith(
+      "open-last-video",
+      "/tmp/test.mp4",
+    );
   });
 
   test("hides context menu immediately when delete confirmation opens", async () => {
@@ -110,28 +239,16 @@ describe("context menu confirmation", () => {
     mockShowConfirmationDialog.mockReturnValue(pendingConfirm.promise);
 
     const { initContextMenu } = await import("../contextMenu.js");
-
     initContextMenu();
 
-    const logEntry = document.querySelector(".log-entry");
+    await openContextMenuOnEntry();
+
     const menu = document.getElementById("context-menu");
-
-    logEntry.dispatchEvent(
-      new MouseEvent("contextmenu", {
-        bubbles: true,
-        cancelable: true,
-        pageX: 160,
-        pageY: 120,
-      }),
-    );
-
-    await Promise.resolve();
-    await Promise.resolve();
-
     expect(menu.style.display).toBe("block");
 
-    const deleteItem = document.getElementById("delete-entry");
-    deleteItem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document
+      .getElementById("delete-entry")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     await Promise.resolve();
 

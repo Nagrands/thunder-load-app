@@ -2,6 +2,10 @@
 
 ### Interface
 
+- **Updated the History right-click context menu**: it is now more compact
+  (single-line actions), destructive delete actions are visually separated,
+  and keyboard navigation now works predictably
+  (`↑/↓`, `Home/End`, `Enter`, `Esc`, `Tab`).
 - **Redesigned the History filters block with a flat minimal style**: filter cards are now cleaner and more compact, a dedicated “Reset” action was added, and an active-filters counter now shows how many filters are currently applied.
 - **Applied final polish to History filter dropdowns**: rows are slightly more compact, active selection is softer, and the menu separates better from list content.
 - **Polished History filter dropdowns further**: improved alignment, clearer filter captions, a lighter selected-item state, and cleaner menu separation from the background.
@@ -27,6 +31,9 @@
 - **Fixed expanded History preview sizing across services**: images from Reddit, Twitch, and similar sources now fit inside the preview modal without stretching outside bounds.
 
 ### Downloader tab
+
+- **Queue Pause behavior was updated again**: when a download is active, Pause now stops the current process and puts that task back into the queue so it can continue later via resume flow.
+- **File deletion from History is now safer**: removed files are now sent to the system trash first instead of immediate permanent deletion, with a fallback delete path if trash is unavailable.
 
 - **Fixed URL field warning behavior**: the “Paste a link to start downloading” message no longer appears on regular blur of an empty field and is now shown only after an explicit download attempt.
 

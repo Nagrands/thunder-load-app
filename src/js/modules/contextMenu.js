@@ -41,6 +41,32 @@ import { registerDismissibleOverlay } from "./overlayManager.js";
  */
 let currentLogEntry = null;
 let contextMenuInitialized = false;
+let lastFocusedElement = null;
+
+function getMenuItems() {
+  if (!contextMenu) return [];
+  return [...contextMenu.querySelectorAll("button[role='menuitem']")];
+}
+
+function getEnabledMenuItems() {
+  return getMenuItems().filter((item) => !item.disabled);
+}
+
+function setMenuItemDisabled(item, disabled) {
+  if (!item) return;
+  item.disabled = Boolean(disabled);
+  item.setAttribute("aria-disabled", disabled ? "true" : "false");
+}
+
+function focusMenuItem(item) {
+  if (!item || item.disabled) return;
+  item.focus({ preventScroll: true });
+}
+
+function focusFirstEnabledMenuItem() {
+  const first = getEnabledMenuItems()[0];
+  focusMenuItem(first);
+}
 
 function getEntryData(logEntry) {
   if (!logEntry) return {};
@@ -85,6 +111,8 @@ function getEntryData(logEntry) {
  */
 async function showContextMenu(event, logEntry) {
   event.preventDefault();
+  lastFocusedElement =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
   // Снимаем выделение с предыдущего выбранного лога, если он есть
   if (currentLogEntry) {
@@ -106,18 +134,12 @@ async function showContextMenu(event, logEntry) {
 
   // Отключаем пункты меню, если файл не существует
   const openVideoItem = contextMenu.querySelector("#open-video");
-  const openFolderItem = contextMenu.querySelector("#open-folderc");
+  const openFolderItem = contextMenu.querySelector("#open-folder");
   const deleteFileItem = contextMenu.querySelector("#delete-file");
 
-  if (!fileExists) {
-    openVideoItem.classList.add("disabled");
-    openFolderItem.classList.add("disabled");
-    deleteFileItem.classList.add("disabled");
-  } else {
-    openVideoItem.classList.remove("disabled");
-    openFolderItem.classList.remove("disabled");
-    deleteFileItem.classList.remove("disabled");
-  }
+  setMenuItemDisabled(openVideoItem, !fileExists);
+  setMenuItemDisabled(openFolderItem, !fileExists);
+  setMenuItemDisabled(deleteFileItem, !fileExists);
 
   // Получаем координаты клика (учитывая прокрутку страницы)
   const { pageX: clickPageX, pageY: clickPageY } = event;
@@ -156,6 +178,7 @@ async function showContextMenu(event, logEntry) {
   contextMenu.style.top = `${adjustedY}px`;
   contextMenu.style.left = `${adjustedX}px`;
   contextMenu.style.display = "block"; // Показываем меню
+  focusFirstEnabledMenuItem();
 }
 
 /**
@@ -164,8 +187,20 @@ async function showContextMenu(event, logEntry) {
 function hideContextMenu() {
   if (!contextMenu) return;
   contextMenu.style.display = "none";
+  const focusTarget = currentLogEntry?.isConnected
+    ? currentLogEntry
+    : lastFocusedElement?.isConnected
+      ? lastFocusedElement
+      : null;
+
   if (currentLogEntry) {
     currentLogEntry.classList.remove("selected");
+  }
+  if (focusTarget) {
+    if (focusTarget === currentLogEntry && !focusTarget.hasAttribute("tabindex")) {
+      focusTarget.setAttribute("tabindex", "-1");
+    }
+    focusTarget.focus?.({ preventScroll: true });
   }
 }
 
@@ -175,9 +210,9 @@ function hideContextMenu() {
  */
 async function handleContextMenuClick(event) {
   const targetElement = event.target;
-  const menuItem = targetElement.closest("li");
+  const menuItem = targetElement.closest("button[role='menuitem']");
 
-  if (!menuItem || !currentLogEntry) return;
+  if (!menuItem || menuItem.disabled || !currentLogEntry) return;
 
   const action = menuItem.id;
   const { filePath } = getEntryData(currentLogEntry);
@@ -187,7 +222,7 @@ async function handleContextMenuClick(event) {
       case "open-video":
         await handleOpenVideo(filePath);
         break;
-      case "open-folderc":
+      case "open-folder":
         await handleOpenFolder(filePath);
         break;
       case "open-site":
@@ -210,6 +245,63 @@ async function handleContextMenuClick(event) {
     showToast("Ошибка при выполнении действия.", "error");
   } finally {
     hideContextMenu();
+  }
+}
+
+function handleContextMenuKeydown(event) {
+  if (!contextMenu || contextMenu.style.display !== "block") return;
+
+  const enabledItems = getEnabledMenuItems();
+  const activeItem = document.activeElement?.closest?.(
+    "button[role='menuitem']",
+  );
+  const currentIndex = enabledItems.findIndex((item) => item === activeItem);
+
+  switch (event.key) {
+    case "Escape":
+      event.preventDefault();
+      hideContextMenu();
+      break;
+    case "Tab":
+      hideContextMenu();
+      break;
+    case "ArrowDown": {
+      if (enabledItems.length === 0) break;
+      event.preventDefault();
+      const nextIndex =
+        currentIndex < 0 ? 0 : (currentIndex + 1) % enabledItems.length;
+      focusMenuItem(enabledItems[nextIndex]);
+      break;
+    }
+    case "ArrowUp": {
+      if (enabledItems.length === 0) break;
+      event.preventDefault();
+      const nextIndex =
+        currentIndex < 0
+          ? enabledItems.length - 1
+          : (currentIndex - 1 + enabledItems.length) % enabledItems.length;
+      focusMenuItem(enabledItems[nextIndex]);
+      break;
+    }
+    case "Home":
+      if (enabledItems.length === 0) break;
+      event.preventDefault();
+      focusMenuItem(enabledItems[0]);
+      break;
+    case "End":
+      if (enabledItems.length === 0) break;
+      event.preventDefault();
+      focusMenuItem(enabledItems[enabledItems.length - 1]);
+      break;
+    case "Enter":
+    case " ": {
+      if (!activeItem || activeItem.disabled) break;
+      event.preventDefault();
+      activeItem.click();
+      break;
+    }
+    default:
+      break;
   }
 }
 
@@ -392,6 +484,29 @@ async function deleteEntryFromHistory(entryId) {
   return { currentHistory, wasDeleted, deletedEntry: entryToDelete };
 }
 
+async function markDeletedFileAsMissing(logEntry, deletedPath) {
+  const currentHistory = getHistoryData();
+  if (!Array.isArray(currentHistory) || currentHistory.length === 0) return;
+  const rawId = logEntry?.dataset?.id;
+  const numericId = Number(rawId);
+  let changed = false;
+  const updatedHistory = currentHistory.map((entry) => {
+    if (!entry) return entry;
+    const idMatch = Number.isFinite(numericId) && entry.id === numericId;
+    const pathMatch = deletedPath && entry.filePath === deletedPath;
+    if (!idMatch && !pathMatch) return entry;
+    changed = true;
+    return { ...entry, isMissing: true };
+  });
+  if (!changed) return;
+  setHistoryData(updatedHistory);
+  try {
+    await window.electron.invoke("save-history", updatedHistory);
+  } catch (error) {
+    console.warn("Не удалось сохранить статус удалённого файла в истории:", error);
+  }
+}
+
 /**
  * Функция для удаления файла с диска
  * @param {HTMLElement} logEntry - Элемент лога
@@ -458,15 +573,22 @@ async function handleDeleteFile(logEntry) {
     if (deletionResult) {
       // Обновляем интерфейс после удаления файла
       logEntry.dataset.filepath = "";
-      logEntry.classList.add("file-deleted", "is-missing");
+      logEntry.classList.add("file-deleted", "is-missing", "missing");
       const textEl = logEntry.querySelector(".text");
       if (textEl) {
         textEl.removeAttribute("data-filepath");
-      } else {
-        logEntry.querySelectorAll(".history-card-btn").forEach((btn) => {
-          if (btn.dataset.action !== "retry") btn.disabled = true;
-        });
       }
+      logEntry
+        .querySelectorAll(
+          ".history-card-btn, .history-row__action, .open-folder-btn",
+        )
+        .forEach((btn) => {
+          if (btn.dataset.action === "retry") return;
+          if (btn.classList.contains("history-row__delete")) return;
+          btn.disabled = true;
+          btn.setAttribute("aria-disabled", "true");
+        });
+      await markDeletedFileAsMissing(logEntry, filePath);
       showToast(
         `Файл успешно удалён: <strong>${fileName}</strong>.`,
         "success",
@@ -571,6 +693,7 @@ function initContextMenu() {
 
   // Обработчик кликов по контекстному меню
   contextMenu.addEventListener("click", handleContextMenuClick);
+  contextMenu.addEventListener("keydown", handleContextMenuKeydown);
 }
 
 export { initContextMenu, handleDeleteEntry };

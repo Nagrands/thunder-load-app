@@ -5,84 +5,105 @@
         aria-label="Контекстное меню"
         data-i18n-aria="context.menu"
       >
-        <ul>
-          <li id="open-video">
-            <div class="cm-icon">
-              <i class="fa-solid fa-circle-play"></i>
-            </div>
-            <div class="cm-text">
+        <ul
+          role="menu"
+          aria-label="Контекстное меню"
+          data-i18n-aria="context.menu"
+        >
+          <li role="none">
+            <button
+              id="open-video"
+              class="context-menu__item"
+              type="button"
+              role="menuitem"
+            >
+              <span class="cm-icon" aria-hidden="true">
+                <i class="fa-solid fa-circle-play"></i>
+              </span>
               <span class="cm-title" data-i18n="context.openVideo"
                 >Открыть видео</span
               >
-              <span class="cm-desc" data-i18n="context.openVideoDesc"
-                >Воспроизвести файл</span
-              >
-            </div>
+            </button>
           </li>
-          <li id="open-folderc">
-            <div class="cm-icon">
-              <i class="fa-regular fa-folder-open"></i>
-            </div>
-            <div class="cm-text">
+          <li role="none">
+            <button
+              id="open-folder"
+              class="context-menu__item"
+              type="button"
+              role="menuitem"
+            >
+              <span class="cm-icon" aria-hidden="true">
+                <i class="fa-regular fa-folder-open"></i>
+              </span>
               <span class="cm-title" data-i18n="context.openFolder"
                 >Открыть папку</span
               >
-              <span class="cm-desc" data-i18n="context.openFolderDesc"
-                >Показать расположение файла</span
-              >
-            </div>
+            </button>
           </li>
-          <li id="open-site">
-            <div class="cm-icon">
-              <i class="fa-solid fa-link"></i>
-            </div>
-            <div class="cm-text">
+          <li role="none">
+            <button
+              id="open-site"
+              class="context-menu__item"
+              type="button"
+              role="menuitem"
+            >
+              <span class="cm-icon" aria-hidden="true">
+                <i class="fa-solid fa-link"></i>
+              </span>
               <span class="cm-title" data-i18n="context.openSite"
                 >Открыть сайт</span
               >
-              <span class="cm-desc" data-i18n="context.openSiteDesc"
-                >Перейти на источник загрузки</span
-              >
-            </div>
+            </button>
           </li>
-          <li id="delete-entry">
-            <div class="cm-icon">
-              <i class="fa-regular fa-calendar-xmark"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title" data-i18n="context.deleteEntry"
-                >Удалить запись</span
-              >
-              <span class="cm-desc" data-i18n="context.deleteEntryDesc"
-                >Убрать строку из истории</span
-              >
-            </div>
-          </li>
-          <li id="delete-file">
-            <div class="cm-icon">
-              <i class="fa-solid fa-trash"></i>
-            </div>
-            <div class="cm-text">
-              <span class="cm-title" data-i18n="context.deleteFile"
-                >Удалить файл</span
-              >
-              <span class="cm-desc" data-i18n="context.deleteFileDesc"
-                >Удалить физически с диска</span
-              >
-            </div>
-          </li>
-          <li id="retry-download">
-            <div class="cm-icon">
-              <i class="fa-solid fa-arrow-rotate-right"></i>
-            </div>
-            <div class="cm-text">
+          <li
+            class="context-menu__separator"
+            role="separator"
+            aria-hidden="true"
+          ></li>
+          <li role="none">
+            <button
+              id="retry-download"
+              class="context-menu__item"
+              type="button"
+              role="menuitem"
+            >
+              <span class="cm-icon" aria-hidden="true">
+                <i class="fa-solid fa-arrow-rotate-right"></i>
+              </span>
               <span class="cm-title" data-i18n="context.retry"
                 >Повторить загрузку</span
               >
-              <span class="cm-desc" data-i18n="context.retryDesc"
-                >Добавить ссылку снова</span
+            </button>
+          </li>
+          <li role="none">
+            <button
+              id="delete-entry"
+              class="context-menu__item context-menu__item--danger"
+              type="button"
+              role="menuitem"
+            >
+              <span class="cm-icon" aria-hidden="true">
+                <i class="fa-regular fa-calendar-xmark"></i>
+              </span>
+              <span class="cm-title" data-i18n="context.deleteEntry"
+                >Удалить запись</span
               >
-            </div>
+            </button>
+          </li>
+          <li role="none">
+            <button
+              id="delete-file"
+              class="context-menu__item context-menu__item--danger"
+              type="button"
+              role="menuitem"
+            >
+              <span class="cm-icon" aria-hidden="true">
+                <i class="fa-solid fa-trash"></i>
+              </span>
+              <span class="cm-title" data-i18n="context.deleteFile"
+                >Удалить файл</span
+              >
+            </button>
           </li>
         </ul>
       </nav>
