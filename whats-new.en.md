@@ -32,6 +32,7 @@
 
 ### Downloader tab
 
+- **Refined queue “Start” button behavior**: while a download is already active, the button is now disabled to prevent accidental re-triggering.
 - **Queue Pause behavior was updated again**: when a download is active, Pause now stops the current process and puts that task back into the queue so it can continue later via resume flow.
 - **File deletion from History is now safer**: removed files are now sent to the system trash first instead of immediate permanent deletion, with a fallback delete path if trash is unavailable.
 

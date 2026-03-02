@@ -20,6 +20,7 @@ jest.mock("electron", () => ({
     showItemInFolder: jest.fn(),
     openPath: jest.fn(),
     writeShortcutLink: jest.fn(),
+    trashItem: jest.fn(),
   },
   globalShortcut: { unregisterAll: jest.fn() },
   app: {
@@ -168,6 +169,39 @@ describe("ipcHandlers tools quick actions", () => {
     const result = await handlers[CHANNELS.TOOLS_HASH_PICK_FILE]();
 
     expect(result).toEqual({ success: true, filePath: "/tmp/sample.bin" });
+  });
+
+  test("delete-file uses shell.trashItem when available", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    const filePath = path.join("/tmp", `delete-trash-${Date.now()}.tmp`);
+    fs.writeFileSync(filePath, "trash-me", "utf8");
+    shell.trashItem.mockResolvedValue(undefined);
+
+    initHandlers();
+    const result = await handlers[CHANNELS.DELETE_FILE](null, filePath);
+
+    expect(result).toBe(true);
+    expect(shell.trashItem).toHaveBeenCalledWith(filePath);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  });
+
+  test("delete-file falls back to unlink when trashItem fails", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    const filePath = path.join("/tmp", `delete-trash-fallback-${Date.now()}.tmp`);
+    fs.writeFileSync(filePath, "fallback-me", "utf8");
+    shell.trashItem.mockRejectedValue(new Error("trash failed"));
+
+    initHandlers();
+    const result = await handlers[CHANNELS.DELETE_FILE](null, filePath);
+
+    expect(result).toBe(true);
+    expect(shell.trashItem).toHaveBeenCalledWith(filePath);
+    expect(fs.existsSync(filePath)).toBe(false);
   });
 
   test("hashCalculate returns SHA-256 hash and match", async () => {

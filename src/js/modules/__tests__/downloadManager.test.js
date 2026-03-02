@@ -785,7 +785,44 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("pause button keeps active downloads running and pauses auto-start", async () => {
+  it("disables start button while there is an active download", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+      const startBtn = document.getElementById("queue-start-button");
+
+      state.activeDownloads = [];
+      state.downloadQueue = [{ url: "https://example.com/pending", quality: "Source" }];
+      updateQueueDisplay();
+      expect(startBtn.disabled).toBe(false);
+
+      state.activeDownloads = [
+        { jobId: "job-1", url: "https://example.com/active", quality: "Source" },
+      ];
+      updateQueueDisplay();
+      expect(startBtn.disabled).toBe(true);
+    });
+  });
+
+  it("pause button stops active downloads and puts them back to queue", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -822,9 +859,11 @@ describe("downloadManager queue smart logic", () => {
       pauseBtn.click();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(window.electron.invoke).not.toHaveBeenCalledWith("stop-download");
+      expect(window.electron.invoke).toHaveBeenCalledWith("stop-download");
       expect(state.suppressAutoPump).toBe(true);
-      expect(state.activeDownloads).toHaveLength(1);
+      expect(state.activeDownloads).toHaveLength(0);
+      expect(state.downloadQueue).toHaveLength(2);
+      expect(state.downloadQueue[0].url).toBe("https://example.com/active");
       expect(document.getElementById("queue-start-button").disabled).toBe(false);
     });
   });

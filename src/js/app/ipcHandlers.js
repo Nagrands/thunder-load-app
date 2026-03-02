@@ -2282,8 +2282,21 @@ function setupIpcHandlers(dependencies) {
       // Опционально: Создание резервной копии файла перед удалением
       // await backupFile(filePath, baseDir);
 
-      // Удаление файла
-      await fsPromises.unlink(filePath);
+      // Удаление в корзину (Windows/macOS), при ошибке — fallback на физическое удаление.
+      const trashSupported = typeof shell?.trashItem === "function";
+      if (trashSupported) {
+        try {
+          await shell.trashItem(filePath);
+        } catch (trashError) {
+          log.warn(
+            `Failed to move file to trash, fallback to unlink: ${filePath}`,
+            trashError,
+          );
+          await fsPromises.unlink(filePath);
+        }
+      } else {
+        await fsPromises.unlink(filePath);
+      }
       log.info(`File successfully deleted: ${filePath}`);
       return true;
     } catch (error) {

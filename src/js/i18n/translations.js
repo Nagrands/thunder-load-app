@@ -932,6 +932,8 @@ export const translations = {
     "queue.start.title": "Запустить",
     "queue.pause": "Пауза",
     "queue.pause.title": "Пауза очереди",
+    "queue.pause.stoppedAndQueued":
+      "Загрузка остановлена и возвращена в очередь.",
     "queue.toggle.collapse.title": "Свернуть очередь",
     "queue.toggle.expand.title": "Развернуть очередь",
     "queue.status.downloading": "Загрузка",
@@ -2175,6 +2177,8 @@ export const translations = {
     "queue.start.title": "Start",
     "queue.pause": "Pause",
     "queue.pause.title": "Pause queue",
+    "queue.pause.stoppedAndQueued":
+      "Download was stopped and returned to queue.",
     "queue.toggle.collapse.title": "Collapse queue",
     "queue.toggle.expand.title": "Expand queue",
     "queue.status.downloading": "Downloading",
