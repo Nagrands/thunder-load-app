@@ -391,9 +391,11 @@ function applyHotkeyTitles(tooltipTriggerList, isMac) {
 
 function initTooltips(root = document) {
   if (!(window.bootstrap && window.bootstrap.Tooltip)) {
-    console.info(
-      "[Tooltips] Bootstrap is not available. Skipping tooltip init.",
-    );
+    if (process.env.NODE_ENV !== "test") {
+      console.info(
+        "[Tooltips] Bootstrap is not available. Skipping tooltip init.",
+      );
+    }
     return;
   }
   ensureTooltipSafety();

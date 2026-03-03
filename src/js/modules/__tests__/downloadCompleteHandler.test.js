@@ -37,9 +37,8 @@ describe("downloadCompleteHandler", () => {
       }),
     };
 
-    const { initDownloadCompleteHandler } = await import(
-      "../downloadCompleteHandler.js"
-    );
+    const { initDownloadCompleteHandler } =
+      await import("../downloadCompleteHandler.js");
     initDownloadCompleteHandler();
 
     expect(typeof handler).toBe("function");
@@ -64,9 +63,8 @@ describe("downloadCompleteHandler", () => {
       }),
     };
 
-    const { initDownloadCompleteHandler } = await import(
-      "../downloadCompleteHandler.js"
-    );
+    const { initDownloadCompleteHandler } =
+      await import("../downloadCompleteHandler.js");
     initDownloadCompleteHandler();
 
     expect(typeof handler).toBe("function");

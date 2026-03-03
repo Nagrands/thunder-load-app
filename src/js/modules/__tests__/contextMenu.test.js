@@ -169,7 +169,9 @@ describe("context menu UI", () => {
     menu.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }),
     );
-    expect(document.activeElement).toBe(document.getElementById("delete-entry"));
+    expect(document.activeElement).toBe(
+      document.getElementById("delete-entry"),
+    );
 
     menu.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Home", bubbles: true }),

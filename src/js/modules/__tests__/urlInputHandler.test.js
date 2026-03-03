@@ -243,5 +243,4 @@ describe("urlInputHandler", () => {
     wrapper.dispatchEvent(new Event("dragleave", { bubbles: true }));
     expect(wrapper.classList.contains("drag-over")).toBe(false);
   });
-
 });

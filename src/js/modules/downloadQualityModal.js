@@ -1031,7 +1031,9 @@ async function loadFormatsWithRetry(
     );
     if (!info || info.success === false) {
       const reason = String(info?.error || "").trim();
-      const err = new Error(reason || "Не удалось получить информацию о видео.");
+      const err = new Error(
+        reason || "Не удалось получить информацию о видео.",
+      );
       if (info?.errorCode) err.code = info.errorCode;
       if (typeof info?.retryAfterMinutes === "number") {
         err.retryAfterMinutes = info.retryAfterMinutes;
@@ -1237,7 +1239,8 @@ function bindEvents() {
         const index = tabButtons.indexOf(btn);
         if (index < 0) return;
         const step = event.key === "ArrowRight" ? 1 : -1;
-        const nextIndex = (index + step + tabButtons.length) % tabButtons.length;
+        const nextIndex =
+          (index + step + tabButtons.length) % tabButtons.length;
         const nextBtn = tabButtons[nextIndex];
         if (!nextBtn) return;
         const tab = nextBtn.dataset.qualityTab;
@@ -1283,7 +1286,10 @@ function bindEvents() {
       }
     });
     modal.addEventListener("click", (event) => {
-      if (state.isActionMenuOpen && !event.target?.closest?.(".quality-split-actions")) {
+      if (
+        state.isActionMenuOpen &&
+        !event.target?.closest?.(".quality-split-actions")
+      ) {
         closeActionMenu({ restoreFocus: false });
       }
       if (event.target?.closest?.("[data-quality-close]")) {

@@ -112,7 +112,9 @@ function getEntryData(logEntry) {
 async function showContextMenu(event, logEntry) {
   event.preventDefault();
   lastFocusedElement =
-    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
 
   // Снимаем выделение с предыдущего выбранного лога, если он есть
   if (currentLogEntry) {
@@ -197,7 +199,10 @@ function hideContextMenu() {
     currentLogEntry.classList.remove("selected");
   }
   if (focusTarget) {
-    if (focusTarget === currentLogEntry && !focusTarget.hasAttribute("tabindex")) {
+    if (
+      focusTarget === currentLogEntry &&
+      !focusTarget.hasAttribute("tabindex")
+    ) {
       focusTarget.setAttribute("tabindex", "-1");
     }
     focusTarget.focus?.({ preventScroll: true });
@@ -503,7 +508,10 @@ async function markDeletedFileAsMissing(logEntry, deletedPath) {
   try {
     await window.electron.invoke("save-history", updatedHistory);
   } catch (error) {
-    console.warn("Не удалось сохранить статус удалённого файла в истории:", error);
+    console.warn(
+      "Не удалось сохранить статус удалённого файла в истории:",
+      error,
+    );
   }
 }
 

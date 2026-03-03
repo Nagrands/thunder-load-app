@@ -20,6 +20,7 @@ const log = require("electron-log");
 const https = require("https");
 const http = require("http");
 const crypto = require("crypto");
+const net = require("net");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const { pipeline } = require("stream");
@@ -79,10 +80,32 @@ function isPathInsideBaseDir(filePath, baseDir) {
  * @returns {boolean}
  */
 function isValidFilePath(filePath) {
+  if (typeof filePath !== "string" || filePath.includes("\u0000")) {
+    log.info(`Validating file path "${filePath}": false`);
+    return false;
+  }
   const resolvedPath = path.resolve(filePath);
-  const isValid = path.isAbsolute(resolvedPath) && !resolvedPath.includes("..");
+  const pathSegments = resolvedPath.split(/[\\/]+/);
+  const hasTraversalSegment = pathSegments.some((segment) => segment === "..");
+  const isValid = path.isAbsolute(resolvedPath) && !hasTraversalSegment;
   log.info(`Validating file path "${resolvedPath}": ${isValid}`);
   return isValid;
+}
+
+function hasValidHttpHost(url) {
+  try {
+    const parsed = new URL(String(url || "").trim());
+    if (!["http:", "https:"].includes(parsed.protocol)) return false;
+    const host = String(parsed.hostname || "")
+      .trim()
+      .toLowerCase();
+    if (!host) return false;
+    if (host === "localhost") return true;
+    if (net.isIP(host) !== 0) return true;
+    return host.includes(".") && !host.startsWith(".") && !host.endsWith(".");
+  } catch {
+    return false;
+  }
 }
 
 function setupIpcHandlers(dependencies) {
@@ -441,6 +464,11 @@ function setupIpcHandlers(dependencies) {
     try {
       const normalizedUrl = normalizeUrl(url);
       if (!normalizedUrl) throw new Error("Invalid URL");
+      if (!hasValidHttpHost(normalizedUrl)) {
+        throw new Error(
+          "Invalid URL: host is incomplete. Example: https://example.com",
+        );
+      }
       const info = await getVideoInfo(normalizedUrl);
       const title = info?.title || "";
       const duration = Number(info?.duration || 0);
@@ -1084,7 +1112,10 @@ function setupIpcHandlers(dependencies) {
               try {
                 await fsPromises.chmod(dst, 0o755);
               } catch (chmodErr) {
-                log.warn(`tools:setLocation chmod failed for ${dst}:`, chmodErr);
+                log.warn(
+                  `tools:setLocation chmod failed for ${dst}:`,
+                  chmodErr,
+                );
               }
             }
             migrated.push(name);
@@ -1833,6 +1864,13 @@ function setupIpcHandlers(dependencies) {
   // Функция для начала процесса загрузки
   async function startDownloadProcess(event, url, quality, jobId = null) {
     try {
+      const normalizedUrl = normalizeUrl(url);
+      if (!isValidUrl(normalizedUrl) || !hasValidHttpHost(normalizedUrl)) {
+        throw new Error(
+          "Invalid URL: host is incomplete. Example: https://example.com",
+        );
+      }
+
       const token = createDownloadToken();
       setActiveDownloadToken(token);
       if (jobId && downloadState.activeDownloads?.has(jobId)) {
@@ -1859,7 +1897,7 @@ function setupIpcHandlers(dependencies) {
         throw new Error("Отсутствуют необходимые инструменты (yt-dlp/ffmpeg)");
       }
 
-      const videoInfo = await getVideoInfo(url, token);
+      const videoInfo = await getVideoInfo(normalizedUrl, token);
       checkIfCancelled(token, "getVideoInfo");
 
       const formats = videoInfo.formats;
@@ -1884,7 +1922,7 @@ function setupIpcHandlers(dependencies) {
         filePath = await downloadMedia(
           event,
           downloadState.downloadPath,
-          url,
+          normalizedUrl,
           videoFormat,
           audioFormat,
           title,
@@ -1929,7 +1967,7 @@ function setupIpcHandlers(dependencies) {
                 : "unknown"
           }`,
         );
-        log.info(`Source: ${url}`);
+        log.info(`Source: ${normalizedUrl}`);
         return {
           fileName: title,
           filePath,
@@ -1942,7 +1980,7 @@ function setupIpcHandlers(dependencies) {
                 : "unknown",
           resolution,
           fps,
-          sourceUrl: url,
+          sourceUrl: normalizedUrl,
         };
       }
 
@@ -1961,7 +1999,7 @@ function setupIpcHandlers(dependencies) {
               : "unknown"
         }`,
       );
-      log.info(`Source: ${url}`);
+      log.info(`Source: ${normalizedUrl}`);
 
       return {
         fileName: title,
@@ -1975,7 +2013,7 @@ function setupIpcHandlers(dependencies) {
               : "unknown",
         resolution,
         fps,
-        sourceUrl: url,
+        sourceUrl: normalizedUrl,
       };
     } catch (error) {
       if (error.message === "Download cancelled") {

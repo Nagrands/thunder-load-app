@@ -5,6 +5,12 @@ jest.mock("electron", () => ({
   },
 }));
 
+jest.mock("electron-log", () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+}));
+
 const { selectFormatsByQuality } = require("../download.js");
 
 describe("selectFormatsByQuality object fallback", () => {

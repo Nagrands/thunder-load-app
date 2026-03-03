@@ -29,10 +29,32 @@ async function checkCommandExists(command) {
 async function getFreeDiskSpace(dirPath) {
   try {
     if (process.platform === "win32") {
-      const { stdout } = await execAsync(
-        `wmic logicaldisk where "DeviceID='${path.parse(dirPath).root.replace("\\", "")}'" get FreeSpace /value`,
+      const root = path.parse(path.resolve(dirPath)).root;
+      const driveLetter = root.replace(/[:\\/]/g, "").charAt(0);
+      if (!driveLetter) throw new Error("Unable to resolve drive letter");
+
+      const script = [
+        "$ErrorActionPreference = 'Stop'",
+        `$drive = '${driveLetter}'`,
+        "$free = $null",
+        "try { $free = (Get-PSDrive -Name $drive -ErrorAction Stop).Free }",
+        "catch {",
+        "  try { $free = (Get-Volume -DriveLetter $drive -ErrorAction Stop).SizeRemaining }",
+        "  catch { throw }",
+        "}",
+        "if ($null -eq $free) { throw 'Unable to determine free space' }",
+        "[Console]::Out.WriteLine([int64]$free)",
+      ].join("; ");
+
+      const { stdout } = await execFileAsync(
+        "powershell.exe",
+        ["-NoProfile", "-Command", script],
+        { windowsHide: true },
       );
-      const freeBytes = parseInt(stdout.split("=")[1].trim());
+      const freeBytes = parseInt(String(stdout || "").trim(), 10);
+      if (!Number.isFinite(freeBytes)) {
+        throw new Error("Failed to parse free disk space");
+      }
       return Math.round(freeBytes / 1024 / 1024); // MB
     } else {
       const { stdout } = await execAsync(

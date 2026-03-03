@@ -24,7 +24,8 @@ export const translations = {
     "input.url.aria": "Введите URL видео или аудио",
     "input.url.preview.loading": "Загрузка превью",
     "input.url.error.empty": "Вставьте ссылку, чтобы начать загрузку.",
-    "input.url.error.invalid": "Ссылка введена некорректно. Проверьте формат URL.",
+    "input.url.error.invalid":
+      "Ссылка введена некорректно. Проверьте формат URL.",
     "input.url.error.unsupported": "Этот источник пока не поддерживается.",
     "input.url.error.invalidOrUnsupported":
       "Проверьте ссылку: нужен корректный URL поддерживаемого источника.",
@@ -1917,8 +1918,7 @@ export const translations = {
     "settings.other.hint":
       "Additional parameters for fine‑tuning app behavior.",
     "settings.developer.title": "Developer",
-    "settings.developer.hint":
-      "Unlock hidden functions.",
+    "settings.developer.hint": "Unlock hidden functions.",
     "settings.developer.secret.label": "Secret word",
     "settings.developer.secret.placeholder": "Enter word",
     "settings.developer.activate": "Unlock",

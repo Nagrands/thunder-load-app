@@ -104,11 +104,14 @@ describe("ipcHandlers tools quick actions", () => {
     const toolsPaths = require("../toolsPaths");
     toolsPaths.getDefaultToolsDir.mockImplementation(() => "/tmp/tools");
     toolsPaths.getEffectiveToolsDir.mockImplementation(() => "/tmp/tools");
-    toolsPaths.ensureToolsDir.mockImplementation(async (v) => v || "/tmp/tools");
-    toolsPaths.detectLegacyLocations.mockImplementation(async () => []);
-    toolsPaths.migrateLegacy.mockImplementation(
-      async () => ({ copied: [], skipped: [] }),
+    toolsPaths.ensureToolsDir.mockImplementation(
+      async (v) => v || "/tmp/tools",
     );
+    toolsPaths.detectLegacyLocations.mockImplementation(async () => []);
+    toolsPaths.migrateLegacy.mockImplementation(async () => ({
+      copied: [],
+      skipped: [],
+    }));
   });
 
   afterEach(() => {
@@ -145,8 +148,10 @@ describe("ipcHandlers tools quick actions", () => {
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
       iconCache: new Map(),
-      clipboardMonitor:
-        clipboardMonitor || { start: jest.fn(), stop: jest.fn() },
+      clipboardMonitor: clipboardMonitor || {
+        start: jest.fn(),
+        stop: jest.fn(),
+      },
       setupGlobalShortcuts: jest.fn(),
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
@@ -208,7 +213,10 @@ describe("ipcHandlers tools quick actions", () => {
   test("delete-file falls back to unlink when trashItem fails", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const { shell } = require("electron");
-    const filePath = path.join("/tmp", `delete-trash-fallback-${Date.now()}.tmp`);
+    const filePath = path.join(
+      "/tmp",
+      `delete-trash-fallback-${Date.now()}.tmp`,
+    );
     fs.writeFileSync(filePath, "fallback-me", "utf8");
     shell.trashItem.mockRejectedValue(new Error("trash failed"));
 
@@ -218,6 +226,36 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result).toBe(true);
     expect(shell.trashItem).toHaveBeenCalledWith(filePath);
     expect(fs.existsSync(filePath)).toBe(false);
+  });
+
+  test("delete-file allows names containing double dots", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { shell } = require("electron");
+    const filePath = path.join("/tmp", `track..mix-${Date.now()}.webm`);
+    fs.writeFileSync(filePath, "ok", "utf8");
+    shell.trashItem.mockResolvedValue(undefined);
+
+    initHandlers();
+    const result = await handlers[CHANNELS.DELETE_FILE](null, filePath);
+
+    expect(result).toBe(true);
+    expect(shell.trashItem).toHaveBeenCalledWith(filePath);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  });
+
+  test("get-video-info rejects incomplete host before yt-dlp call", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](null, "https://w");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/host is incomplete/i);
+    expect(download.getVideoInfo).not.toHaveBeenCalled();
   });
 
   test("hashCalculate returns SHA-256 hash and match", async () => {
@@ -386,7 +424,9 @@ describe("ipcHandlers tools quick actions", () => {
         path: newDir,
       }),
     );
-    expect(result.migrated).toEqual(expect.arrayContaining([ytName, ffName, fpName]));
+    expect(result.migrated).toEqual(
+      expect.arrayContaining([ytName, ffName, fpName]),
+    );
     expect(fs.existsSync(path.join(newDir, ytName))).toBe(true);
     expect(fs.existsSync(path.join(newDir, ffName))).toBe(true);
     expect(fs.existsSync(path.join(newDir, fpName))).toBe(true);

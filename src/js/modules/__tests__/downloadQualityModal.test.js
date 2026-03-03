@@ -136,7 +136,9 @@ describe("downloadQualityModal close behavior", () => {
   it("downloads preview image from quality modal", async () => {
     await jest.isolateModulesAsync(async () => {
       const showToast = jest.fn();
-      const anchorClick = jest.spyOn(HTMLAnchorElement.prototype, "click");
+      const anchorClick = jest
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(() => {});
       const originalCreateObjectURL = URL.createObjectURL;
       const originalRevokeObjectURL = URL.revokeObjectURL;
       global.fetch = jest.fn().mockResolvedValue({
@@ -649,7 +651,9 @@ describe("downloadQualityModal close behavior", () => {
       expect(options.getAttribute("role")).toBe("radiogroup");
       expect(firstOption.getAttribute("role")).toBe("radio");
       expect(firstOption.getAttribute("aria-checked")).toBe("true");
-      expect(options.getAttribute("aria-activedescendant")).toBe(firstOption.id);
+      expect(options.getAttribute("aria-activedescendant")).toBe(
+        firstOption.id,
+      );
 
       document.getElementById("download-quality-cancel").click();
       await resultPromise;

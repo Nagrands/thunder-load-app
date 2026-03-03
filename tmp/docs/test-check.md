@@ -1,6 +1,7 @@
 # Test Check
 
 ## Run Meta
+
 - App version:
 - OS:
 - Date:
@@ -8,12 +9,14 @@
 - Scope: Smoke / Regression
 
 ## Status Legend
+
 - `NOT_RUN` - не проверено
 - `PASS` - работает по ожиданию
 - `FAIL` - есть отклонение
 - `BLOCKED` - проверка заблокирована
 
 ## Summary
+
 - Total: 35
 - PASS: 18
 - FAIL: 0
@@ -28,6 +31,7 @@
 ## Общие
 
 ### TC-SET-GEN-001 (P1)
+
 - What: Настройки запуска
 - Steps:
   1. Открыть настройки.
@@ -39,6 +43,7 @@
 - Bug:
 
 ### TC-SET-GEN-002 (P0)
+
 - What: Закрытие приложения
 - Steps:
   1. Изменить настройку, связанную с закрытием.
@@ -49,6 +54,7 @@
 - Bug:
 
 ### TC-SET-GEN-003 (P1)
+
 - What: Открытие вкладки при запуске
 - Steps:
   1. Выбрать стартовую вкладку в настройках.
@@ -61,6 +67,7 @@
 ## Загрузчик
 
 ### TC-SET-DL-001 (P0)
+
 - What: Инструменты
 - Steps:
   1. Открыть настройки загрузчика.
@@ -71,6 +78,7 @@
 - Bug:
 
 ### TC-SET-DL-002 (P1)
+
 - What: Выбор качества загрузки
 - Steps:
   1. Изменить настройки выбора качества.
@@ -81,6 +89,7 @@
 - Bug:
 
 ### TC-SET-DL-003 (P0)
+
 - What: Параллельный запуск
 - Steps:
   1. Выставить лимит параллельных загрузок.
@@ -91,6 +100,7 @@
 - Bug:
 
 ### TC-SET-DL-004 (P1)
+
 - What: Поведение окна и завершения
 - Steps:
   1. Изменить параметры поведения окна.
@@ -103,6 +113,7 @@
 ## Tools
 
 ### TC-SET-TOOLS-001 (P1)
+
 - What: Отключение вкладки
 - Steps:
   1. Отключить вкладку Tools в настройках.
@@ -113,6 +124,7 @@
 - Bug:
 
 ### TC-SET-TOOLS-002 (P1)
+
 - What: Авто-отправка при запуске приложения
 - Steps:
   1. Включить авто-отправку.
@@ -123,6 +135,7 @@
 - Bug:
 
 ### TC-SET-TOOLS-003 (P1)
+
 - What: Запомнить последний открытый инструмент
 - Steps:
   1. Открыть инструмент в Tools.
@@ -133,6 +146,7 @@
 - Bug:
 
 ### TC-SET-TOOLS-004 (P1)
+
 - What: Авто-закрытие приложения
 - Steps:
   1. Включить авто-закрытие.
@@ -145,6 +159,7 @@
 ## Backup
 
 ### TC-SET-BKP-001 (P1)
+
 - What: Отключение вкладки
 - Steps:
   1. Отключить вкладку Backup.
@@ -155,6 +170,7 @@
 - Bug:
 
 ### TC-SET-BKP-002 (P2)
+
 - What: Компактный список профилей
 - Steps:
   1. Включить компактный режим.
@@ -165,6 +181,7 @@
 - Bug:
 
 ### TC-SET-BKP-003 (P2)
+
 - What: Показать лог операций
 - Steps:
   1. Включить показ лога.
@@ -177,6 +194,7 @@
 ## Внешний вид
 
 ### TC-SET-UI-001 (P1)
+
 - What: Язык
 - Steps:
   1. Сменить язык интерфейса.
@@ -187,6 +205,7 @@
 - Bug:
 
 ### TC-SET-UI-002 (P1)
+
 - What: Цветовая тема
 - Steps:
   1. Переключить тему.
@@ -197,6 +216,7 @@
 - Bug:
 
 ### TC-SET-UI-003 (P2)
+
 - What: Размер текста
 - Steps:
   1. Изменить размер текста.
@@ -207,6 +227,7 @@
 - Bug:
 
 ### TC-SET-UI-004 (P2)
+
 - What: Режим экономии эффектов
 - Steps:
   1. Включить режим экономии эффектов.
@@ -219,6 +240,7 @@
 ## Другое
 
 ### TC-SET-MISC-001 (P1)
+
 - What: Отключение горячих клавиш
 - Steps:
   1. Отключить горячие клавиши.
@@ -229,6 +251,7 @@
 - Bug:
 
 ### TC-SET-MISC-002 (P2)
+
 - What: Функции разработчика
 - Steps:
   1. Включить функции разработчика.
@@ -239,6 +262,7 @@
 - Bug:
 
 ### TC-SET-MISC-003 (P1)
+
 - What: Настройки приложения
 - Steps:
   1. Изменить набор общих настроек.
@@ -249,6 +273,7 @@
 - Bug:
 
 ### TC-SET-MISC-004 (P0)
+
 - What: Сброс настроек приложения
 - Steps:
   1. Изменить несколько настроек.
@@ -262,6 +287,7 @@
 # Вкладка Загрузчик
 
 ### TC-DL-001 (P1)
+
 - What: Открытие «Последние видео»
 - Steps:
   1. Перейти в Загрузчик.
@@ -272,6 +298,7 @@
 - Bug:
 
 ### TC-DL-002 (P1)
+
 - What: Открытие «Папки с видео»
 - Steps:
   1. Перейти в Загрузчик.
@@ -284,6 +311,7 @@
 ## История
 
 ### TC-DL-HIST-001 (P0)
+
 - What: Очистить всю историю
 - Steps:
   1. Открыть историю.
@@ -294,6 +322,7 @@
 - Bug:
 
 ### TC-DL-HIST-002 (P1)
+
 - What: Сохранение выбранного фильтра после обновления/перезапуска
 - Steps:
   1. Выбрать фильтры (источник, сортировка, тип).
@@ -304,6 +333,7 @@
 - Bug:
 
 ### TC-DL-HIST-003 (P0)
+
 - What: Удаление записи и файла через меню и отметка результата
 - Steps:
   1. Открыть контекстное меню записи.
@@ -314,6 +344,7 @@
 - Bug:
 
 ### TC-DL-HIST-004 (P1)
+
 - What: Открытие видео, папки, сайта через меню
 - Steps:
   1. Открыть меню записи в истории.
@@ -324,6 +355,7 @@
 - Bug:
 
 ### TC-DL-HIST-005 (P1)
+
 - What: Поиск и сохранение после обновления/перезапуска
 - Steps:
   1. Ввести запрос поиска.
@@ -338,6 +370,7 @@
 ## Ярлыки питания
 
 ### TC-TOOLS-PWR-001 (P1)
+
 - What: Создание и работа ярлыка «Перезагрузка»
 - Steps:
   1. Создать ярлык.
@@ -348,6 +381,7 @@
 - Bug:
 
 ### TC-TOOLS-PWR-002 (P1)
+
 - What: Создание и работа ярлыка «BIOS/UEFI»
 - Steps:
   1. Создать ярлык.
@@ -358,6 +392,7 @@
 - Bug:
 
 ### TC-TOOLS-PWR-003 (P1)
+
 - What: Создание и работа ярлыка «Расширенная загрузка»
 - Steps:
   1. Создать ярлык.
@@ -368,6 +403,7 @@
 - Bug:
 
 ### TC-TOOLS-PWR-004 (P1)
+
 - What: Создание и работа ярлыка «Выключение»
 - Steps:
   1. Создать ярлык.
@@ -378,6 +414,7 @@
 - Bug:
 
 ### TC-TOOLS-PWR-005 (P2)
+
 - What: Создание и работа ярлыка «Диспетчер устройств»
 - Steps:
   1. Создать ярлык.
@@ -388,6 +425,7 @@
 - Bug:
 
 ### TC-TOOLS-PWR-006 (P2)
+
 - What: Создание и работа ярлыка «Параметры сети»
 - Steps:
   1. Создать ярлык.
@@ -406,6 +444,7 @@
 <!-- AUTO-JEST-TESTS:START -->
 
 ### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (19)
+
 - [ ] hashPickFile returns selected path
 - [ ] hashCalculate returns SHA-256 hash and match
 - [ ] sorterPickFolder returns selected directory path
@@ -427,6 +466,7 @@
 - [ ] STOP_DOWNLOAD cancels all active tokens
 
 ### `src/js/app/__tests__/utils.test.js` (6)
+
 - [ ] adds https:// when scheme is missing
 - [ ] preserves existing scheme
 - [ ] trims whitespace and surrounding quotes/brackets
@@ -435,10 +475,12 @@
 - [ ] rejects unsupported schemes and invalid strings
 
 ### `src/js/app/__tests__/whatsNewVersion.test.js` (2)
+
 - [ ] matches package.json
 - [ ] english whatsNew stays in sync when present
 
 ### `src/js/app/__tests__/window.trayMenu.test.js` (7)
+
 - [ ] disables 'Последнее видео' when file is missing
 - [ ] enables 'Последнее видео' and adds file name in label when file exists
 - [ ] disables 'Папка загрузок' when download path is invalid
@@ -448,13 +490,16 @@
 - [ ] tray and dock keep identical action order
 
 ### `src/js/app/__tests__/window.trayRuntime.test.js` (1)
+
 - [ ] handles click/double-click/right-click and refresh events
 
 ### `src/js/app/__tests__/windowActivation.test.js` (2)
+
 - [ ] activates and focuses window on macOS
 - [ ] returns false for missing window
 
 ### `src/js/modules/__tests__/backupView.performance.test.js` (5)
+
 - [ ] hints timer starts only when backup tab is active and pauses on tab switch
 - [ ] renders downloader-like backup header and places hints in header right slot
 - [ ] large backup list uses no-animation mode on rerenders
@@ -462,18 +507,22 @@
 - [ ] virtualizes backup rows for large pages
 
 ### `src/js/modules/__tests__/contextMenu.test.js` (1)
+
 - [ ] hides context menu immediately when delete confirmation opens
 
 ### `src/js/modules/__tests__/downloaderToolsStatus.test.js` (4)
+
 - [ ] shows ready state when yt-dlp/ffmpeg/Deno present
 - [ ] shows error state when tools missing
 - [ ] reinstall triggers installAll and refresh
 - [ ] close hides container until settings shows it
 
 ### `src/js/modules/__tests__/downloaderView.test.js` (1)
+
 - [ ] builds tools-like hero without breadcrumbs
 
 ### `src/js/modules/__tests__/downloadManager.test.js` (17)
+
 - [ ] loadQueueFromStorage filters invalid entries and exact duplicates
 - [ ] persistQueue stores the queue in localStorage
 - [ ] adds to queue without starting download when enqueueOnly is true
@@ -493,11 +542,13 @@
 - [ ] starts next pending task when one active download completes
 
 ### `src/js/modules/__tests__/downloadProgress.test.js` (3)
+
 - [ ] supports legacy numeric progress payload
 - [ ] aggregates object payload progress for two active jobs
 - [ ] resets tracking when download state transitions to idle
 
 ### `src/js/modules/__tests__/downloadQualityModal.test.js` (11)
+
 - [ ] closes modal when close button is clicked
 - [ ] downloads preview image from quality modal
 - [ ] copies source url from quality modal
@@ -511,13 +562,16 @@
 - [ ] hides selection/actions and disables enqueue while formats are loading
 
 ### `src/js/modules/__tests__/firstRunModal.test.js` (2)
+
 - [ ] shows modal on first run and applies selections
 - [ ] does not show modal when already completed
 
 ### `src/js/modules/__tests__/historyActions.test.js` (1)
+
 - [ ] refresh button updates search query and pulls history
 
 ### `src/js/modules/__tests__/historyView.test.js` (8)
+
 - [ ] applies density class and active button
 - [ ] groups entries by date with labels
 - [ ] moves secondary actions into menu
@@ -528,11 +582,13 @@
 - [ ] renders copy controls for source and file detail rows
 
 ### `src/js/modules/__tests__/network.test.js` (3)
+
 - [ ] shows error toast on offline event
 - [ ] shows success toast on online event
 - [ ] does not require network indicator DOM nodes
 
 ### `src/js/modules/__tests__/settings.test.js` (18)
+
 - [ ] shows badge and marks button disabled when disabled = true
 - [ ] hides badge and removes disabled class when disabled = false
 - [ ] silently ignores unknown module keys
@@ -553,12 +609,14 @@
 - [ ] applyConfig clears legacy topbarNetworkStatusVisible key
 
 ### `src/js/modules/__tests__/settingsModal.test.js` (4)
+
 - [ ] opens and closes mobile sections panel via toggle
 - [ ] closes mobile panel and updates active label after tab click
 - [ ] restores label from saved lastSettingsTab on init
 - [ ] openSettings resets mobile panel state and syncs label
 
 ### `src/js/modules/__tests__/toolsInfo.test.js` (14)
+
 - [ ] renders dynamic tools UI with ti- prefixed ids
 - [ ] shows tools version summary when all tools exist
 - [ ] install button downloads when tools are missing
@@ -575,6 +633,7 @@
 - [ ] shows explicit offline summary state and quick actions
 
 ### `src/js/modules/__tests__/toolsView.tools.test.js` (48)
+
 - [ ] opens launcher by default and keeps power tool unavailable on macos
 - [ ] renders combined header with breadcrumbs and tools section header
 - [ ] shows total tools counter for macos
@@ -625,12 +684,14 @@
 - [ ] creates UEFI shortcut on windows
 
 ### `src/js/modules/__tests__/topBarResponsive.test.js` (4)
+
 - [ ] opens and closes overflow by toggle
 - [ ] closes overflow on Escape
 - [ ] clicking proxy item triggers target click
 - [ ] sets --topbar-current-height CSS variable
 
 ### `src/js/modules/__tests__/urlInputHandler.test.js` (8)
+
 - [ ] does not show inline error while typing before blur/enter
 - [ ] shows inline error on blur for invalid URL
 - [ ] shows error and does not trigger download on Enter with invalid URL
@@ -641,11 +702,13 @@
 - [ ] keeps current paste/clear visibility behavior
 
 ### `src/js/modules/__tests__/whatsNewModal.test.js` (3)
+
 - [ ] keeps allowed tags
 - [ ] removes script tags
 - [ ] strips javascript: href
 
 ### `src/js/scripts/__tests__/download.selectFormats.test.js` (2)
+
 - [ ] falls back by quality label when stored format IDs are unavailable
 - [ ] falls back to audio-only when object has stale audio format ID
 

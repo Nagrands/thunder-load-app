@@ -41,7 +41,9 @@ async function handleClearHistory() {
     });
     if (!confirmed) return;
 
-    const previousHistory = [...(getHistoryData() || state.downloadHistory || [])];
+    const previousHistory = [
+      ...(getHistoryData() || state.downloadHistory || []),
+    ];
     const previewPaths = previousHistory
       .map((entry) => entry?.thumbnailCacheFile)
       .filter(Boolean);

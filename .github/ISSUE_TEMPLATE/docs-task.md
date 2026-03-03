@@ -15,8 +15,10 @@ assignees: ""
 ## O — Organize
 
 - Implementation steps (2-5):
+
 1.
 2.
+
 - Risks/rollback:
 - Validation commands:
 

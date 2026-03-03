@@ -16,9 +16,11 @@ for (const match of content.matchAll(statusRegex)) {
 }
 
 const total = counts.PASS + counts.FAIL + counts.BLOCKED + counts.NOT_RUN;
-const passRate = total > 0 ? `${((counts.PASS / total) * 100).toFixed(1)}%` : "0.0%";
+const passRate =
+  total > 0 ? `${((counts.PASS / total) * 100).toFixed(1)}%` : "0.0%";
 
-const summaryBlockRegex = /## Summary[\s\S]*?(?=\n# |\n## [^\n]+|\n### [^\n]+|$)/;
+const summaryBlockRegex =
+  /## Summary[\s\S]*?(?=\n# |\n## [^\n]+|\n### [^\n]+|$)/;
 const summaryBlockMatch = content.match(summaryBlockRegex);
 
 if (!summaryBlockMatch) {
@@ -27,11 +29,26 @@ if (!summaryBlockMatch) {
 
 let updatedSummary = summaryBlockMatch[0];
 updatedSummary = updatedSummary.replace(/^- Total:.*$/m, `- Total: ${total}`);
-updatedSummary = updatedSummary.replace(/^- PASS:.*$/m, `- PASS: ${counts.PASS}`);
-updatedSummary = updatedSummary.replace(/^- FAIL:.*$/m, `- FAIL: ${counts.FAIL}`);
-updatedSummary = updatedSummary.replace(/^- BLOCKED:.*$/m, `- BLOCKED: ${counts.BLOCKED}`);
-updatedSummary = updatedSummary.replace(/^- NOT_RUN:.*$/m, `- NOT_RUN: ${counts.NOT_RUN}`);
-updatedSummary = updatedSummary.replace(/^- Pass rate:.*$/m, `- Pass rate: ${passRate}`);
+updatedSummary = updatedSummary.replace(
+  /^- PASS:.*$/m,
+  `- PASS: ${counts.PASS}`,
+);
+updatedSummary = updatedSummary.replace(
+  /^- FAIL:.*$/m,
+  `- FAIL: ${counts.FAIL}`,
+);
+updatedSummary = updatedSummary.replace(
+  /^- BLOCKED:.*$/m,
+  `- BLOCKED: ${counts.BLOCKED}`,
+);
+updatedSummary = updatedSummary.replace(
+  /^- NOT_RUN:.*$/m,
+  `- NOT_RUN: ${counts.NOT_RUN}`,
+);
+updatedSummary = updatedSummary.replace(
+  /^- Pass rate:.*$/m,
+  `- Pass rate: ${passRate}`,
+);
 
 const nextContent = content.replace(summaryBlockRegex, updatedSummary);
 fs.writeFileSync(targetPath, nextContent);

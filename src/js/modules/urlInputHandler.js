@@ -25,7 +25,6 @@ function initUrlInputHandler() {
       const wRect = wrapperEl.getBoundingClientRect();
       const center = wRect.top - cRect.top + wRect.height / 2;
       inputContainer.style.setProperty("--icon-top", `${center}px`);
-
     } catch (_) {}
   };
   const toggleButtons = () => {
@@ -60,7 +59,9 @@ function initUrlInputHandler() {
     return { normalized, hasValue, isValid };
   };
 
-  const showInlineError = (messageKey = "input.url.error.invalidOrUnsupported") => {
+  const showInlineError = (
+    messageKey = "input.url.error.invalidOrUnsupported",
+  ) => {
     wrapperEl?.classList.add("is-invalid");
     wrapperEl?.classList.remove("is-valid");
     if (!urlErrorEl) return;

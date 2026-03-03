@@ -95,6 +95,7 @@ const QUEUE_MAX_LABEL_LEN = 64;
 let lastProgressRenderTs = 0;
 let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
+const queueTitleRequestsInFlight = new Map();
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -125,6 +126,75 @@ const makeQueueTitle = (url) => {
     ? `${title.slice(0, QUEUE_MAX_LABEL_LEN - 1)}…`
     : title;
 };
+
+async function ensureQueueTitle(url, opts = {}) {
+  const { jobId = "", signature = "", onResolved = null } = opts;
+  const notifyResolved = (title) => {
+    if (!title || typeof onResolved !== "function") return;
+    try {
+      onResolved(title);
+    } catch {}
+  };
+  const cacheTitle = makeQueueTitle(url);
+  if (cacheTitle) {
+    notifyResolved(cacheTitle);
+    return cacheTitle;
+  }
+  const key = signature || `${normalizeUrl(url)}::title`;
+  if (queueTitleRequestsInFlight.has(key)) {
+    return queueTitleRequestsInFlight.get(key).then((title) => {
+      notifyResolved(title);
+      return title;
+    });
+  }
+  const invokeResult = window?.electron?.ipcRenderer?.invoke?.(
+    "get-video-info",
+    url,
+  );
+  if (!invokeResult || typeof invokeResult.then !== "function") {
+    return "";
+  }
+  const request = invokeResult
+    .then((info) => {
+      if (!info?.success || !info?.title) return "";
+      const title = String(info.title).trim();
+      if (!title) return "";
+      if (jobId) {
+        const active = findActiveDownload(jobId);
+        if (active && !active.title) {
+          active.title = title;
+          updateQueueDisplay();
+        }
+      }
+      notifyResolved(title);
+      return title;
+    })
+    .catch(() => "")
+    .finally(() => {
+      queueTitleRequestsInFlight.delete(key);
+    });
+  queueTitleRequestsInFlight.set(key, request);
+  return request;
+}
+
+function refreshPendingQueueTitles() {
+  if (!Array.isArray(state.downloadQueue) || state.downloadQueue.length === 0) {
+    return;
+  }
+  for (const item of state.downloadQueue) {
+    if (!item?.url || item?.title) continue;
+    const signature = getQueueSignature(item.url, item.quality);
+    void ensureQueueTitle(item.url, {
+      signature,
+      onResolved: (title) => {
+        if (!title || item.title === title) return;
+        item.title = title;
+        persistQueue();
+        updateQueueDisplay();
+      },
+    });
+  }
+}
 
 const QUEUE_COLORS = {
   cardBg: "rgba(255,255,255,0.04)",
@@ -312,6 +382,13 @@ function removeFailedBySignature(signature) {
 
 function persistQueue() {
   try {
+    if (
+      !Array.isArray(state.downloadQueue) ||
+      state.downloadQueue.length === 0
+    ) {
+      window.localStorage.removeItem(QUEUE_STORAGE_KEY);
+      return;
+    }
     window.localStorage.setItem(
       QUEUE_STORAGE_KEY,
       JSON.stringify(state.downloadQueue),
@@ -324,6 +401,13 @@ function persistQueue() {
 
 function persistFailedQueue() {
   try {
+    if (
+      !Array.isArray(state.failedDownloads) ||
+      state.failedDownloads.length === 0
+    ) {
+      window.localStorage.removeItem(QUEUE_FAILED_STORAGE_KEY);
+      return;
+    }
     window.localStorage.setItem(
       QUEUE_FAILED_STORAGE_KEY,
       JSON.stringify(state.failedDownloads || []),
@@ -341,10 +425,11 @@ function readQueueCollapsedState() {
 
 function persistQueueCollapsedState() {
   try {
-    window.localStorage.setItem(
-      QUEUE_COLLAPSED_STORAGE_KEY,
-      state.queueCollapsed ? "1" : "0",
-    );
+    if (state.queueCollapsed) {
+      window.localStorage.setItem(QUEUE_COLLAPSED_STORAGE_KEY, "1");
+      return;
+    }
+    window.localStorage.removeItem(QUEUE_COLLAPSED_STORAGE_KEY);
   } catch {}
 }
 
@@ -651,9 +736,21 @@ function enqueueMany(urls, quality, options = {}) {
       capped++;
       continue;
     }
-    state.downloadQueue.push(
-      normalizeQueueItem({ url: raw, quality, status: "pending" }),
-    );
+    const queueItem = normalizeQueueItem({
+      url: raw,
+      quality,
+      status: "pending",
+    });
+    state.downloadQueue.push(queueItem);
+    void ensureQueueTitle(raw, {
+      signature,
+      onResolved: (title) => {
+        if (!title || queueItem.title === title) return;
+        queueItem.title = title;
+        persistQueue();
+        updateQueueDisplay();
+      },
+    });
     existing.add(signature);
     added++;
   }
@@ -699,7 +796,8 @@ function updateQueueDisplay() {
   const activeCount = activeItems.length;
   const pendingCount = pendingItems.length;
   const doneCount = doneItems.length;
-  const totalVisible = activeCount + pendingCount + errorItems.length + doneCount;
+  const totalVisible =
+    activeCount + pendingCount + errorItems.length + doneCount;
   const hasQueueItems = totalVisible > 0;
 
   state.queuePaused = Boolean(state.suppressAutoPump);
@@ -708,7 +806,9 @@ function updateQueueDisplay() {
     queueInfo.classList.toggle("hidden", !hasQueueItems);
     queueCount.textContent = t("queue.pill.pending", { count: pendingCount });
     if (queueActiveCount) {
-      queueActiveCount.textContent = t("queue.pill.active", { count: activeCount });
+      queueActiveCount.textContent = t("queue.pill.active", {
+        count: activeCount,
+      });
       queueActiveCount.classList.toggle("hidden", activeCount <= 0);
     }
     if (queueDoneCount) {
@@ -732,10 +832,16 @@ function updateQueueDisplay() {
   }
 
   if (queueList) {
-    queueList.classList.toggle("hidden", !hasQueueItems || Boolean(state.queueCollapsed));
+    queueList.classList.toggle(
+      "hidden",
+      !hasQueueItems || Boolean(state.queueCollapsed),
+    );
   }
   if (queueToggleButton) {
-    queueToggleButton.classList.toggle("is-collapsed", Boolean(state.queueCollapsed));
+    queueToggleButton.classList.toggle(
+      "is-collapsed",
+      Boolean(state.queueCollapsed),
+    );
     const key = state.queueCollapsed
       ? "queue.toggle.expand.title"
       : "queue.toggle.collapse.title";
@@ -779,7 +885,9 @@ function updateQueueDisplay() {
     const fullUrl = String(item.url || "");
     const urlLabel = makeQueueUrlLabel(fullUrl);
     const cachedTitle = makeQueueTitle(fullUrl);
-    const titleLabel = String(item.title || cachedTitle || t("queue.title.loading"));
+    const titleLabel = String(
+      item.title || cachedTitle || t("queue.title.loading"),
+    );
     const qualityLabel = getQueueQualityLabel(item.quality);
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);
@@ -949,7 +1057,10 @@ const clearUrlInputAfterSubmit = () => {
 };
 
 const requeueActiveDownloads = () => {
-  if (!Array.isArray(state.activeDownloads) || state.activeDownloads.length === 0) {
+  if (
+    !Array.isArray(state.activeDownloads) ||
+    state.activeDownloads.length === 0
+  ) {
     return 0;
   }
   const existingSignatures = new Set(
@@ -1118,7 +1229,10 @@ function pumpDownloadPool(reason = "auto") {
     const next = state.downloadQueue.shift();
     if (!next) break;
     started += 1;
-    initiateDownload(next.url, next.quality, { fromQueue: true });
+    initiateDownload(next.url, next.quality, {
+      fromQueue: true,
+      initialTitle: next.title || "",
+    });
   }
   if (started > 0) {
     persistQueue();
@@ -1133,7 +1247,7 @@ function pumpDownloadPool(reason = "auto") {
 }
 
 const initiateDownload = async (url, quality, options = {}) => {
-  const { fromQueue = false } = options;
+  const { fromQueue = false, initialTitle = "" } = options;
   const signature = getQueueSignature(url, quality);
   removeFailedBySignature(signature);
   if (getCurrentDownloadSignatures().has(signature)) {
@@ -1144,9 +1258,17 @@ const initiateDownload = async (url, quality, options = {}) => {
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   if (state.activeDownloads.length >= maxActive) {
     if (!fromQueue) {
-      state.downloadQueue.push(
-        normalizeQueueItem({ url, quality, status: "pending" }),
-      );
+      const queueItem = normalizeQueueItem({ url, quality, status: "pending" });
+      state.downloadQueue.push(queueItem);
+      void ensureQueueTitle(url, {
+        signature,
+        onResolved: (title) => {
+          if (!title || queueItem.title === title) return;
+          queueItem.title = title;
+          persistQueue();
+          updateQueueDisplay();
+        },
+      });
       persistQueue();
       updateQueueDisplay();
       showToast(t("download.url.queued"), "info");
@@ -1168,24 +1290,31 @@ const initiateDownload = async (url, quality, options = {}) => {
       id: jobId,
       jobId,
       url,
-      title: makeQueueTitle(url),
+      title: initialTitle || makeQueueTitle(url),
       quality,
       status: "downloading",
       progress: 0,
       signature,
     }),
   );
+  // Если заголовка пока нет в кэше, подтянем его в фоне и перерисуем строку.
+  void ensureQueueTitle(url, { jobId, signature });
 
   let result = null;
   try {
     result = await downloadVideo(url, quality, { jobId });
   } finally {
+    const activeEntry = findActiveDownload(jobId);
+    const resolvedTitle = String(
+      activeEntry?.title || makeQueueTitle(url) || "",
+    );
     if (result?.error) {
       const failedSignatures = getFailedSignatures();
       if (!failedSignatures.has(signature)) {
         state.failedDownloads.push(
           normalizeQueueItem({
             id: jobId,
+            title: resolvedTitle,
             url,
             quality,
             status: "error",
@@ -1200,6 +1329,7 @@ const initiateDownload = async (url, quality, options = {}) => {
     } else if (result?.ok) {
       const completed = normalizeQueueItem({
         id: jobId,
+        title: resolvedTitle,
         url,
         quality,
         status: "done",
@@ -1219,9 +1349,8 @@ const initiateDownload = async (url, quality, options = {}) => {
       downloadButton.classList.remove("disabled");
       downloadButton.classList.remove("loading");
       clearProgressResetTimer();
-      const shouldDelayProgressReset = progressBarContainer?.classList.contains(
-        "is-complete",
-      );
+      const shouldDelayProgressReset =
+        progressBarContainer?.classList.contains("is-complete");
       if (shouldDelayProgressReset) {
         progressResetTimer = setTimeout(() => {
           resetProgressIndicator();
@@ -1378,6 +1507,17 @@ const handleDownloadButtonClick = async (options = {}) => {
     state.downloadQueue.push(
       normalizeQueueItem({ url, quality: payload, status: "pending" }),
     );
+    const queuedItem = state.downloadQueue[state.downloadQueue.length - 1];
+    const queuedSignature = getQueueSignature(url, payload);
+    void ensureQueueTitle(url, {
+      signature: queuedSignature,
+      onResolved: (title) => {
+        if (!title || !queuedItem || queuedItem.title === title) return;
+        queuedItem.title = title;
+        persistQueue();
+        updateQueueDisplay();
+      },
+    });
     persistQueue();
     console.log(QUEUE_LOG_TAG, "enqueueOne", { url, from: "modal/button" });
     showToast(t("queue.added"), "info");
@@ -1650,6 +1790,7 @@ function initDownloadButton() {
     });
   }
   updateQueueDisplay();
+  refreshPendingQueueTitles();
 
   // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
   window.addEventListener("queue:addMany", (e) => {

@@ -1425,7 +1425,9 @@ function getVideoInfo(url, token = null) {
             const suffix = reason
               ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
               : "";
-            return reject(new Error(`yt-dlp exited with code ${code}${suffix}`));
+            return reject(
+              new Error(`yt-dlp exited with code ${code}${suffix}`),
+            );
           }
           try {
             const info = JSON.parse(output);
@@ -1792,7 +1794,10 @@ async function downloadMedia(
           downloadPath,
           `${sanitizedFilename}.${audioExtension}`,
         );
-        const tempAudioPath = path.join(downloadPath, `audio_${resumePrefix}.${audioExtension}`);
+        const tempAudioPath = path.join(
+          downloadPath,
+          `audio_${resumePrefix}.${audioExtension}`,
+        );
         let lastLogged = 0;
         const updateProgress = (progress) => {
           if (progress - lastLogged >= 5 || progress >= 100) {

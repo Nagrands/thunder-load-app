@@ -24,6 +24,7 @@
 - **Updated tab backgrounds across the app**: all sections now use a single shared background for a more unified look.
 - **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being constantly recreated during rerenders, reducing unnecessary UI load.
 - **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
+- **Improved tooltip initialization in maintenance/test flows**: extra diagnostic messages no longer clutter output during test runs.
 - **Fixed History context menu behavior**: when confirming deletion of a record or file, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
 - **Added Undo for full History clear**: clearing all history now shows the same timed Undo window used for selected-entry deletion.
 - **Fixed full History-clear counter**: the notification now shows the correct number of removed entries even after list rerender timing differences.
@@ -32,9 +33,14 @@
 
 ### Downloader tab
 
+- **Fixed deletion of some History files**: files with unusual names (for example, curly braces or double dots in the filename) can now be removed correctly.
+- **Added stricter link validation before loading video info**: if a link has an incomplete host (for example, a cut-off domain), the app now shows a clear error immediately instead of running a failing request.
+
 - **Improved resilience to YouTube limits**: video info checks now run more carefully (sequentially), and when temporary rate-limit is detected the app pauses new info requests to reduce repeated failures.
 - **Added a clear YouTube limit message**: when YouTube temporarily restricts requests, the quality picker now shows a clear hint with an approximate retry time.
 - **Improved queue title while metadata is loading**: instead of a technical URL, queue entries now show a clear “Fetching title…” status until video metadata arrives.
+- **Fixed queue title refresh after app restart**: if the app was closed before metadata loaded, missing titles are now fetched in the background and saved for future launches.
+- **Cleaned up queue data in local storage**: when queue/error lists become empty, their service entries are now removed from `localStorage` instead of keeping empty payloads.
 - **Redesigned the tools-check status block in Downloader and Tools**: the status row is now more compact, version chips (`yt-dlp`, `ffmpeg`, `Deno`) are easier to scan, and the visual style is now cleaner and more consistent.
 - **Refined queue “Start” button behavior**: while a download is already active, the button is now disabled to prevent accidental re-triggering.
 - **Queue Pause behavior was updated again**: when a download is active, Pause now stops the current process and puts that task back into the queue so it can continue later via resume flow.
@@ -103,6 +109,8 @@
 - **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered size, making scrolling more stable across different density modes and expanded details.
 
 ### Tools tab
+
+- **Improved free-space checks for backups on Windows**: the app now uses a modern PowerShell check instead of the deprecated command, reducing false warning messages.
 
 - **Fixed tools-folder switching on macOS**: when you select a new tools directory, Thunder Load now migrates detected binaries (`yt-dlp`, `ffmpeg`, `ffprobe`, `deno`) so downloads keep working without manual reinstall.
 - **Fixed install progress visibility in Tools**: after clicking “Download”, the install button now clearly shows that dependency download is in progress.
