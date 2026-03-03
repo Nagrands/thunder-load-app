@@ -798,35 +798,80 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
-  border-radius: var(--border-radius);
+  min-height: 25px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
   font-size: 12px;
-  line-height: 1.2;
-  border: 1px solid var(--color-hover);
-  background: rgba(255, 255, 255, 0.05);
+  line-height: 1;
+  border: 1px solid rgba(124, 194, 160, 0.26);
+  background: linear-gradient(
+    140deg,
+    rgba(19, 45, 36, 0.72),
+    rgba(18, 49, 39, 0.44)
+  );
+  color: #d6f1e3;
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
-    color 0.16s ease,
-    transform 0.08s ease;
+    color 0.16s ease;
 
-  &:hover {
-    transform: translateY(-1px);
+  .tool-badge__state {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(126, 222, 169, 0.14);
+    color: #9cf2c3;
+
+    i {
+      font-size: 8px;
+    }
+  }
+
+  .tool-badge__label {
+    font-weight: 500;
+    color: #e8f8f0;
+    white-space: nowrap;
+  }
+
+  .tool-badge__version {
+    color: rgba(220, 243, 231, 0.88);
+    white-space: nowrap;
   }
 
   &.ok {
-    border-color: var(--color-hover);
-    color: var(--color-highlight);
-    background-color: rgba(18, 97, 33, 0.12);
+    border-color: rgba(124, 194, 160, 0.26);
+    color: #d6f1e3;
+    background: linear-gradient(
+      140deg,
+      rgba(19, 45, 36, 0.72),
+      rgba(18, 49, 39, 0.44)
+    );
   }
   &.missing {
-    border-color: #d9534f;
-    background: rgba(217, 83, 79, 0.12);
+    border-color: rgba(255, 124, 124, 0.42);
+    background: linear-gradient(
+      140deg,
+      rgba(68, 25, 29, 0.72),
+      rgba(61, 23, 28, 0.44)
+    );
+    color: #ffd2d2;
+
+    .tool-badge__state {
+      background: rgba(255, 138, 138, 0.17);
+      color: #ffb4b4;
+    }
   }
   &.update {
-    border-color: #e6a700; // amber-ish
-    background: rgba(230, 167, 0, 0.12);
-    color: #ffc107;
+    border-color: rgba(255, 188, 112, 0.42);
+    background: linear-gradient(
+      140deg,
+      rgba(87, 58, 22, 0.6),
+      rgba(79, 52, 18, 0.4)
+    );
+    color: #ffe1ad;
   }
 }
 
@@ -975,6 +1020,7 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 @media (max-width: 760px) {

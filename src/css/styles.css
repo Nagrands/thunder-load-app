@@ -12422,16 +12422,13 @@ body.is-mac .window-controls .btn-minimize {
   border-radius: 8px;
   color: var(--color-text-main);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.14s ease, opacity 0.3s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.14s ease, opacity 0.3s ease;
   border: 1px solid transparent;
-  background-color: rgba(255, 255, 255, 0.02);
 }
 .action-button:hover, .folder-button:hover, .paste-button:hover,
 .clear-button:hover {
-  background-color: rgba(255, 255, 255, 0.07);
   border-color: rgba(var(--color-accent-rgb), 0.28);
   color: var(--color-accent);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
 }
 .action-button:active, .folder-button:active, .paste-button:active,
 .clear-button:active {
@@ -20332,30 +20329,56 @@ hr {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
-  border-radius: var(--border-radius);
+  min-height: 25px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
   font-size: 12px;
-  line-height: 1.2;
-  border: 1px solid var(--color-hover);
-  background: rgba(255, 255, 255, 0.05);
-  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.08s ease;
+  line-height: 1;
+  border: 1px solid rgba(124, 194, 160, 0.26);
+  background: linear-gradient(140deg, rgba(19, 45, 36, 0.72), rgba(18, 49, 39, 0.44));
+  color: #d6f1e3;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
-.tool-badge:hover {
-  transform: translateY(-1px);
+.tool-badge .tool-badge__state {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(126, 222, 169, 0.14);
+  color: #9cf2c3;
+}
+.tool-badge .tool-badge__state i {
+  font-size: 8px;
+}
+.tool-badge .tool-badge__label {
+  font-weight: 500;
+  color: #e8f8f0;
+  white-space: nowrap;
+}
+.tool-badge .tool-badge__version {
+  color: rgba(220, 243, 231, 0.88);
+  white-space: nowrap;
 }
 .tool-badge.ok {
-  border-color: var(--color-hover);
-  color: var(--color-highlight);
-  background-color: rgba(18, 97, 33, 0.12);
+  border-color: rgba(124, 194, 160, 0.26);
+  color: #d6f1e3;
+  background: linear-gradient(140deg, rgba(19, 45, 36, 0.72), rgba(18, 49, 39, 0.44));
 }
 .tool-badge.missing {
-  border-color: #d9534f;
-  background: rgba(217, 83, 79, 0.12);
+  border-color: rgba(255, 124, 124, 0.42);
+  background: linear-gradient(140deg, rgba(68, 25, 29, 0.72), rgba(61, 23, 28, 0.44));
+  color: #ffd2d2;
+}
+.tool-badge.missing .tool-badge__state {
+  background: rgba(255, 138, 138, 0.17);
+  color: #ffb4b4;
 }
 .tool-badge.update {
-  border-color: #e6a700;
-  background: rgba(230, 167, 0, 0.12);
-  color: #ffc107;
+  border-color: rgba(255, 188, 112, 0.42);
+  background: linear-gradient(140deg, rgba(87, 58, 22, 0.6), rgba(79, 52, 18, 0.4));
+  color: #ffe1ad;
 }
 
 .tools-status-animate {
@@ -20493,6 +20516,7 @@ hr {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 @media (max-width: 760px) {
@@ -20723,66 +20747,143 @@ video {
   font-size: 0.9rem;
   font-style: italic;
 }
+.downloader-shell-header .downloader-tools-status {
+  margin-top: -2px;
+  margin-bottom: 10px;
+  padding-left: 72px;
+}
 
 .downloader-tools-status {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  margin: 4px 10px 14px;
-  gap: 25px;
+  justify-content: flex-start;
+  margin: 2px 0 12px;
+  gap: 10px;
+  min-height: 26px;
 }
 .downloader-tools-status.hidden {
   display: none;
 }
-.downloader-tools-status #dl-tools-toggle {
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  display: inline-grid;
-  place-items: center;
-  color: var(--color-quality);
-  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
-}
-.downloader-tools-status #dl-tools-toggle:hover {
-  color: var(--color-accent);
-}
-.downloader-tools-status .status-line {
+.downloader-tools-status .downloader-tools-status__line {
+  min-width: 0;
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 0;
   font-size: 12px;
+  line-height: 1;
   color: var(--color-quality);
 }
+.downloader-tools-status #dl-tools-icon {
+  width: 12px;
+  height: 12px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.95;
+}
 .downloader-tools-status .status-line.is-ok {
-  color: var(--color-highlight);
+  color: rgba(225, 241, 235, 0.9);
 }
 .downloader-tools-status .status-line.is-error {
-  color: #ffa657;
+  color: #ffcaa5;
 }
 .downloader-tools-status .status-line.is-loading {
-  color: #ffc107;
+  color: #ffda80;
 }
-.downloader-tools-status .status-line .tool-badges {
+.downloader-tools-status .downloader-tools-status__text {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.downloader-tools-status .downloader-tools-status__badges {
+  min-width: 0;
+  flex: 1 1 auto;
   display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  align-items: center;
 }
 .downloader-tools-status .tool-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 25px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 194, 160, 0.26);
+  background: linear-gradient(140deg, rgba(19, 45, 36, 0.72), rgba(18, 49, 39, 0.44));
+  color: #d6f1e3;
+  font-size: 12px;
+  line-height: 1;
+}
+.downloader-tools-status .tool-badge .tool-badge__state {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(126, 222, 169, 0.14);
+  color: #9cf2c3;
+}
+.downloader-tools-status .tool-badge .tool-badge__state i {
+  font-size: 8px;
+}
+.downloader-tools-status .tool-badge .tool-badge__label {
+  font-weight: 500;
+  color: #e8f8f0;
+  white-space: nowrap;
+}
+.downloader-tools-status .tool-badge .tool-badge__version {
+  color: rgba(220, 243, 231, 0.88);
+  white-space: nowrap;
+}
+.downloader-tools-status .tool-badge.missing {
+  border-color: rgba(255, 124, 124, 0.42);
+  background: linear-gradient(140deg, rgba(68, 25, 29, 0.72), rgba(61, 23, 28, 0.44));
+  color: #ffd2d2;
+}
+.downloader-tools-status .tool-badge.missing .tool-badge__state {
+  background: rgba(255, 138, 138, 0.17);
+  color: #ffb4b4;
+}
+.downloader-tools-status #dl-tools-toggle {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: inline-grid;
+  place-items: center;
+  color: rgba(190, 207, 227, 0.72);
+  border-radius: 6px;
+  transition: color 0.16s ease;
+}
+.downloader-tools-status #dl-tools-toggle i {
+  font-size: 13px;
+  line-height: 1;
+}
+.downloader-tools-status #dl-tools-toggle:hover {
+  color: rgba(222, 233, 247, 0.95);
 }
 .downloader-tools-status #dl-tools-reinstall {
-  margin-left: auto;
+  margin-left: 2px;
   white-space: nowrap;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--color-hover);
-  background: var(--color-hover);
-  color: var(--color-highlight);
-  font-size: 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 188, 112, 0.34);
+  background: rgba(87, 58, 22, 0.38);
+  color: #ffdca8;
+  font-size: 12px;
+  font-weight: 500;
+  height: 26px;
+  padding: 0 9px;
 }
 .downloader-tools-status #dl-tools-reinstall.hidden {
   display: none;
@@ -20801,6 +20902,27 @@ video {
   .downloader-view .downloader-shell-header .title-content h1 {
     font-size: 1.55rem;
     margin-bottom: 4px;
+  }
+  .downloader-view .downloader-shell-header .downloader-tools-status {
+    padding-left: 0;
+    margin-top: 0;
+  }
+  .downloader-view .downloader-tools-status {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .downloader-view .downloader-tools-status .downloader-tools-status__line {
+    width: 100%;
+    align-items: flex-start;
+  }
+  .downloader-view .downloader-tools-status .downloader-tools-status__text {
+    padding-top: 1px;
+  }
+  .downloader-view .downloader-tools-status .downloader-tools-status__badges {
+    width: 100%;
+  }
+  .downloader-view .downloader-tools-status #dl-tools-reinstall {
+    margin-left: 0;
   }
 }
 

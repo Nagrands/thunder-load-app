@@ -86,21 +86,21 @@ describe("downloaderToolsStatus", () => {
     ).toBe(true);
     const container = document.querySelector(".downloader-tools-status");
     expect(container.outerHTML).toMatchInlineSnapshot(`
-"<div class=\"downloader-tools-status\">
-      <div class=\"status-line is-ok\" id=\"dl-tools-status\" role=\"status\" aria-live=\"polite\">
-        <i class=\"fa-solid fa-check\" id=\"dl-tools-icon\" aria-hidden=\"true\"></i>
-        <span id=\"dl-tools-text\">Инструменты готовы</span>
-        <div class=\"tool-badges\" id=\"dl-tools-badges\"><span class=\"tool-badge ok\" data-tool=\"yt\"><i class=\"fa-solid fa-check\"></i> yt-dlp 2024.01.01</span><span class=\"tool-badge ok\" data-tool=\"ff\"><i class=\"fa-solid fa-check\"></i> ffmpeg 7.1</span><span class=\"tool-badge ok\" data-tool=\"deno\"><i class=\"fa-solid fa-check\"></i> Deno 2.0.0</span></div>
-      </div>
-      <button type=\"button\" id=\"dl-tools-toggle\" title=\"Скрыть статус\" data-bs-toggle=\"tooltip\" aria-label=\"Скрыть статус инструментов\">
-        <i class=\"fa-solid fa-xmark\"></i>
-      </button>
-      <button type=\"button\" id=\"dl-tools-reinstall\" title=\"Переустановить зависимости (yt-dlp, ffmpeg, Deno)\" data-bs-toggle=\"tooltip\" class=\"hidden\">
-        <i class=\"fa-solid fa-arrow-rotate-right\"></i>
-        <span>Переустановить</span>
-      </button>
-    </div>"
-`);
+     "<div class="downloader-tools-status">
+           <div class="status-line is-ok" id="dl-tools-status" role="status" aria-live="polite">
+             <i class="fa-solid fa-check" id="dl-tools-icon" aria-hidden="true"></i>
+             <span id="dl-tools-text">Инструменты готовы</span>
+             <div class="tool-badges" id="dl-tools-badges"><span class="tool-badge ok" data-tool="yt"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">yt-dlp</span> <span class="tool-badge__version">2024.01.01</span></span><span class="tool-badge ok" data-tool="ff"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">ffmpeg</span> <span class="tool-badge__version">7.1</span></span><span class="tool-badge ok" data-tool="deno"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">Deno</span> <span class="tool-badge__version">2.0.0</span></span></div>
+           </div>
+           <button type="button" id="dl-tools-toggle" title="Скрыть статус" data-bs-toggle="tooltip" aria-label="Скрыть статус инструментов">
+             <i class="fa-solid fa-xmark"></i>
+           </button>
+           <button type="button" id="dl-tools-reinstall" title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)" data-bs-toggle="tooltip" class="hidden">
+             <i class="fa-solid fa-arrow-rotate-right"></i>
+             <span>Переустановить</span>
+           </button>
+         </div>"
+    `);
   });
 
   test("shows error state when tools missing", async () => {

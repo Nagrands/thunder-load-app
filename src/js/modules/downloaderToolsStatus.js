@@ -27,7 +27,7 @@ const setBadges = (details = []) => {
     badge.className = `tool-badge ${tool.ok ? "ok" : "missing"}`;
     badge.dataset.tool = tool.id;
     const ver = tool.version || "—";
-    badge.innerHTML = `<i class="fa-solid ${tool.ok ? "fa-check" : "fa-xmark"}"></i> ${tool.label}${tool.ok ? ` ${ver}${tool.skip ? " (macOS)" : ""}` : ""}`;
+    badge.innerHTML = `<span class="tool-badge__state" aria-hidden="true"><i class="fa-solid ${tool.ok ? "fa-check" : "fa-xmark"}"></i></span><span class="tool-badge__label">${tool.label}</span>${tool.ok ? ` <span class="tool-badge__version">${ver}${tool.skip ? " (macOS)" : ""}</span>` : ""}`;
     frag.appendChild(badge);
   });
   el.badges.appendChild(frag);

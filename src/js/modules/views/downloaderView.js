@@ -50,15 +50,32 @@ export default function renderDownloader(wrapper) {
     const toolsStatus = document.createElement("div");
     toolsStatus.className = "downloader-tools-status";
     toolsStatus.innerHTML = `
-      <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
-        <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
-        <span id="dl-tools-text" data-i18n="downloader.tools.checking">
+      <div
+        class="status-line downloader-tools-status__line"
+        id="dl-tools-status"
+        role="status"
+        aria-live="polite"
+      >
+        <i
+          class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
+          id="dl-tools-icon"
+          aria-hidden="true"
+        ></i>
+        <span
+          id="dl-tools-text"
+          class="downloader-tools-status__text"
+          data-i18n="downloader.tools.checking"
+        >
           Checking tools…
         </span>
-        <div class="tool-badges" id="dl-tools-badges"></div>
+        <div
+          class="tool-badges downloader-tools-status__badges"
+          id="dl-tools-badges"
+        ></div>
       </div>
       <button
         type="button"
+        class="downloader-tools-status__toggle"
         id="dl-tools-toggle"
         title="Hide status"
         data-bs-toggle="tooltip"
@@ -70,6 +87,7 @@ export default function renderDownloader(wrapper) {
       </button>
       <button
         type="button"
+        class="downloader-tools-status__reinstall"
         id="dl-tools-reinstall"
         title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)"
         data-bs-toggle="tooltip"
@@ -80,8 +98,8 @@ export default function renderDownloader(wrapper) {
       </button>
     `;
 
+    hdr.appendChild(toolsStatus);
     shell.appendChild(hdr);
-    shell.appendChild(toolsStatus);
     glass.appendChild(shell);
 
     if (headerEl) glass.appendChild(headerEl);
