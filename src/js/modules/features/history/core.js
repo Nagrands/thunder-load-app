@@ -627,7 +627,7 @@ function enhanceSelect(selectEl) {
   trigger.className = "bk-select-trigger";
   const labelEl = document.createElement("span");
   labelEl.className = "bk-select-label";
-  const labelIcon = document.createElement("i");
+  let labelIcon = document.createElement("i");
   labelIcon.className = "bk-select-label-icon";
   const labelText = document.createElement("span");
   labelText.className = "bk-select-label-text";
@@ -640,19 +640,47 @@ function enhanceSelect(selectEl) {
   menu.className = "bk-select-menu";
   menu.hidden = true;
 
+  const applyIcon = (iconEl, iconValue = "") => {
+    let node = iconEl;
+    if (!node || node.tagName?.toLowerCase() !== "i") {
+      const replacement = document.createElement("i");
+      replacement.className = "bk-select-option-icon";
+      if (node?.parentNode) {
+        node.parentNode.replaceChild(replacement, node);
+      } else {
+        labelEl.insertBefore(replacement, labelText);
+      }
+      node = replacement;
+    }
+    node.className = "bk-select-option-icon";
+    node.style.display = "none";
+    node.textContent = "";
+    node.removeAttribute("data-lucide");
+
+    if (!iconValue) return node;
+
+    if (iconValue.startsWith("lucide:")) {
+      const lucideIcon = iconValue.slice("lucide:".length).trim();
+      if (!lucideIcon) return node;
+      node.setAttribute("data-lucide", lucideIcon);
+      node.style.display = "";
+      return node;
+    }
+
+    node.className = `bk-select-option-icon ${iconValue}`;
+    node.style.display = "";
+    return node;
+  };
+
   const updateLabel = () => {
     const opt =
       selectEl.selectedOptions && selectEl.selectedOptions[0]
         ? selectEl.selectedOptions[0]
         : selectEl.options[selectEl.selectedIndex];
-    const iconClass = opt?.dataset?.icon || "";
-    if (iconClass) {
-      labelIcon.className = `bk-select-label-icon ${iconClass}`;
-      labelIcon.style.display = "";
-    } else {
-      labelIcon.className = "bk-select-label-icon";
-      labelIcon.style.display = "none";
-    }
+    const currentIconNode =
+      labelEl.querySelector(".bk-select-label-icon") || labelEl.firstElementChild;
+    labelIcon = applyIcon(currentIconNode, opt?.dataset?.icon || "");
+    labelIcon.classList.add("bk-select-label-icon");
     labelText.textContent = opt ? opt.textContent : "";
     menu
       .querySelectorAll(".bk-select-option")
@@ -662,6 +690,7 @@ function enhanceSelect(selectEl) {
           item.dataset.value === selectEl.value,
         ),
       );
+    refreshHistoryLucideIcons();
   };
 
   const rebuild = () => {
@@ -672,12 +701,7 @@ function enhanceSelect(selectEl) {
       item.className = "bk-select-option";
       item.dataset.value = opt.value;
       const itemIcon = document.createElement("i");
-      itemIcon.className = "bk-select-option-icon";
-      if (opt.dataset.icon) {
-        itemIcon.className = `bk-select-option-icon ${opt.dataset.icon}`;
-      } else {
-        itemIcon.style.display = "none";
-      }
+      applyIcon(itemIcon, opt.dataset.icon || "");
       const itemText = document.createElement("span");
       itemText.className = "bk-select-option-text";
       itemText.textContent = opt.textContent;
@@ -694,6 +718,7 @@ function enhanceSelect(selectEl) {
       menu.appendChild(item);
     });
     updateLabel();
+    refreshHistoryLucideIcons();
   };
 
   const closeAll = (e) => {
@@ -996,6 +1021,7 @@ function buildFilterOptions(entries = []) {
     const base = document.createElement("option");
     base.value = "";
     base.textContent = placeholder;
+    base.dataset.icon = "lucide:globe";
     select.appendChild(base);
     Array.from(values)
       .sort((a, b) => a.localeCompare(b))
@@ -1003,12 +1029,14 @@ function buildFilterOptions(entries = []) {
         const opt = document.createElement("option");
         opt.value = value;
         opt.textContent = value;
+        opt.dataset.icon = `lucide:${getSourceIconClass(`https://${value}`) || "globe"}`;
         select.appendChild(opt);
       });
     if (current && !values.has(current)) {
       const opt = document.createElement("option");
       opt.value = current;
       opt.textContent = current;
+      opt.dataset.icon = `lucide:${getSourceIconClass(`https://${current}`) || "globe"}`;
       select.appendChild(opt);
     }
     select.value = current || "";

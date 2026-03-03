@@ -157,129 +157,135 @@
       </div>
 
       <div class="history-controls">
-        <div class="history-controls-row history-controls-row--primary">
-          <div class="history-search-card">
-            <div class="history-search-wrapper history-input-wrapper">
-              <i id="icon-filter-search" class="search-icon" data-lucide="search"></i>
-              <input
-                type="text"
-                id="filter-input"
-                placeholder="Поиск по истории"
-                aria-label="Поиск по истории"
-                data-i18n-placeholder="history.search.placeholder"
-                data-i18n-aria="history.search.aria"
-              />
-              <button
-                id="clear-filter-input"
-                class="history-action-button hidden"
-                aria-label="Очистить поиск"
-                data-hint="Сбросить поисковый запрос"
-                data-i18n-aria="history.search.clear"
-                data-i18n-hint="history.search.clearHint"
-              >
-                <i data-lucide="x"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="history-controls-row history-controls-row--filters history-filters-row">
-          <div class="history-filters-card" id="history-filters-card">
-            <div class="history-filters-head">
-              <button
-                id="history-filters-toggle"
-                class="history-filters-toggle"
-                type="button"
-                aria-expanded="true"
-                aria-controls="history-filters-body"
-                data-i18n-aria="history.filters.toggle"
-              >
-                <span class="history-filters-title" data-i18n="history.filters.title">Фильтры</span>
-                <i data-lucide="chevron-up"></i>
-              </button>
-              <div class="history-filters-head-actions">
-                <span
-                  id="history-active-filters-count"
-                  class="history-active-filters-count hidden"
-                  aria-live="polite"
-                ></span>
+        <div class="history-search-filters-card">
+          <div class="history-controls-row history-controls-row--primary">
+            <div class="history-search-card">
+              <div class="history-search-wrapper history-input-wrapper">
+                <i id="icon-filter-search" class="search-icon" data-lucide="search"></i>
+                <input
+                  type="text"
+                  id="filter-input"
+                  placeholder="Поиск по истории"
+                  aria-label="Поиск по истории"
+                  data-i18n-placeholder="history.search.placeholder"
+                  data-i18n-aria="history.search.aria"
+                />
                 <button
-                  id="history-reset-filters"
-                  class="history-filter-reset"
-                  type="button"
-                  aria-label="Сбросить фильтры"
-                  data-i18n-aria="history.filters.reset"
-                  data-i18n="history.filters.reset"
+                  id="clear-filter-input"
+                  class="history-action-button hidden"
+                  aria-label="Очистить поиск"
+                  data-hint="Сбросить поисковый запрос"
+                  data-i18n-aria="history.search.clear"
+                  data-i18n-hint="history.search.clearHint"
                 >
-                  Сбросить
+                  <i data-lucide="x"></i>
                 </button>
               </div>
             </div>
-            <div id="history-filters-body" class="history-filters-body">
-              <div class="history-filter-group">
-                <div class="history-filter-pill">
-                  <i data-lucide="globe"></i>
-                  <div class="history-filter-meta">
-                    <span data-i18n="history.filter.source.label">Источник</span>
-                    <select
-                      id="history-source-filter"
-                      class="history-filter-select"
-                      aria-label="Фильтр по источнику"
-                      data-i18n-aria="history.filter.source"
-                    >
-                      <option value="" data-i18n="history.filter.source.all">
-                        Все источники
-                      </option>
-                    </select>
-                  </div>
+          </div>
+
+          <div class="history-controls-row history-controls-row--filters history-filters-row">
+            <div class="history-filters-card" id="history-filters-card">
+              <div class="history-filters-head">
+                <button
+                  id="history-filters-toggle"
+                  class="history-filters-toggle"
+                  type="button"
+                  aria-expanded="true"
+                  aria-controls="history-filters-body"
+                  data-i18n-aria="history.filters.toggle"
+                >
+                  <span class="history-filters-title" data-i18n="history.filters.title">Фильтры</span>
+                  <i data-lucide="chevron-up"></i>
+                </button>
+                <div class="history-filters-head-actions">
+                  <span
+                    id="history-active-filters-count"
+                    class="history-active-filters-count hidden"
+                    aria-live="polite"
+                  ></span>
+                  <button
+                    id="history-reset-filters"
+                    class="history-filter-reset"
+                    type="button"
+                    aria-label="Сбросить фильтры"
+                    data-i18n-aria="history.filters.reset"
+                    data-i18n="history.filters.reset"
+                  >
+                    Сбросить
+                  </button>
                 </div>
-                <div class="history-filter-pill">
-                  <i data-lucide="arrow-up-wide-narrow"></i>
-                  <div class="history-filter-meta">
-                    <span data-i18n="history.sort.by.label">Сортировка</span>
-                    <select
-                      id="history-sort-key"
-                      class="history-filter-select"
-                      aria-label="Сортировка"
-                      data-i18n-aria="history.sort.by.label"
-                    >
-                      <option value="date" data-i18n="history.sort.by.date">
-                        По дате
-                      </option>
-                      <option value="size" data-i18n="history.sort.by.size">
-                        По размеру
-                      </option>
-                      <option value="quality" data-i18n="history.sort.by.quality">
-                        По качеству
-                      </option>
-                      <option value="source" data-i18n="history.sort.by.source">
-                        По источнику
-                      </option>
-                    </select>
-                  </div>
-                </div>
-                <div class="history-filter-pill history-filter-pill--type">
-                  <i data-lucide="layers-3"></i>
-                  <div class="history-filter-meta">
-                    <div class="history-filter-label">
-                      <span data-i18n="history.sort.mode.label">Тип</span>
+              </div>
+              <div id="history-filters-body" class="history-filters-body">
+                <div class="history-filter-group">
+                  <div class="history-filter-pill">
+                    <i data-lucide="globe"></i>
+                    <div class="history-filter-meta">
+                      <span data-i18n="history.filter.source.label">Источник</span>
+                      <select
+                        id="history-source-filter"
+                        class="history-filter-select"
+                        aria-label="Фильтр по источнику"
+                        data-i18n-aria="history.filter.source"
+                      >
+                        <option
+                          value=""
+                          data-icon="lucide:globe"
+                          data-i18n="history.filter.source.all"
+                        >
+                          Все источники
+                        </option>
+                      </select>
                     </div>
-                    <select
-                      id="history-sort-mode"
-                      class="history-filter-select"
-                      aria-label="Тип медиа"
-                      data-i18n-aria="history.sort.mode.label"
-                    >
-                      <option value="video" data-i18n="history.sort.mode.video">
-                        Видео
-                      </option>
-                      <option value="audio" data-i18n="history.sort.mode.audio">
-                        Аудио
-                      </option>
-                      <option value="mixed" data-i18n="history.sort.mode.mixed">
-                        Смешано
-                      </option>
-                    </select>
+                  </div>
+                  <div class="history-filter-pill">
+                    <i data-lucide="arrow-up-wide-narrow"></i>
+                    <div class="history-filter-meta">
+                      <span data-i18n="history.sort.by.label">Сортировка</span>
+                      <select
+                        id="history-sort-key"
+                        class="history-filter-select"
+                        aria-label="Сортировка"
+                        data-i18n-aria="history.sort.by.label"
+                      >
+                        <option value="date" data-icon="lucide:calendar-days" data-i18n="history.sort.by.date">
+                          По дате
+                        </option>
+                        <option value="size" data-icon="lucide:hard-drive" data-i18n="history.sort.by.size">
+                          По размеру
+                        </option>
+                        <option value="quality" data-icon="lucide:sliders-horizontal" data-i18n="history.sort.by.quality">
+                          По качеству
+                        </option>
+                        <option value="source" data-icon="lucide:globe" data-i18n="history.sort.by.source">
+                          По источнику
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="history-filter-pill history-filter-pill--type">
+                    <i data-lucide="layers-3"></i>
+                    <div class="history-filter-meta">
+                      <div class="history-filter-label">
+                        <span data-i18n="history.sort.mode.label">Тип</span>
+                      </div>
+                      <select
+                        id="history-sort-mode"
+                        class="history-filter-select"
+                        aria-label="Тип медиа"
+                        data-i18n-aria="history.sort.mode.label"
+                      >
+                        <option value="video" data-icon="lucide:film" data-i18n="history.sort.mode.video">
+                          Видео
+                        </option>
+                        <option value="audio" data-icon="lucide:music-2" data-i18n="history.sort.mode.audio">
+                          Аудио
+                        </option>
+                        <option value="mixed" data-icon="lucide:layers-3" data-i18n="history.sort.mode.mixed">
+                          Смешано
+                        </option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>

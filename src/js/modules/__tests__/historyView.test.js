@@ -47,29 +47,40 @@ const setupDom = () => {
           <button id="history-density-comfort" class="history-more-menu__item"></button>
           <button id="toggle-all-details" class="history-more-menu__item"></button>
         </div>
-      </div>
-      <div class="history-filters-row">
-        <div id="history-filters-card">
-          <button id="history-filters-toggle" aria-expanded="true">
-            <i data-lucide="chevron-up"></i>
-          </button>
-          <div id="history-filters-body"></div>
+
+        <div class="history-search-filters-card">
+          <div class="history-controls-row history-controls-row--primary">
+            <div class="history-search-card">
+              <div class="history-search-wrapper">
+                <i id="icon-filter-search"></i>
+                <input id="filter-input" />
+                <button id="clear-filter-input" class="hidden"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="history-controls-row history-controls-row--filters history-filters-row">
+            <div id="history-filters-card">
+              <button id="history-filters-toggle" aria-expanded="true">
+                <i data-lucide="chevron-up"></i>
+              </button>
+              <div id="history-filters-body"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="history-search-wrapper"></div>
+
       <button id="history-reset-filters"></button>
       <span id="history-active-filters-count" class="hidden"></span>
       <select id="history-source-filter"></select>
       <select id="history-sort-key"></select>
       <select id="history-sort-mode"></select>
-      <i id="icon-filter-search"></i>
       <div id="history-bulk-bar" class="history-bulk-bar hidden"></div>
       <span id="history-selected-count"></span>
       <button id="history-clear-selection"></button>
       <div id="history"></div>
       <div id="history-empty"></div>
     </div>
-    <input id="filter-input" />
   `;
 
   global.window.electron = {
@@ -226,7 +237,7 @@ describe("Downloader history list", () => {
   test("updates active filters badge and resets filters to defaults", async () => {
     const sourceSelect = document.getElementById("history-source-filter");
     sourceSelect.innerHTML = `
-      <option value="">Все источники</option>
+      <option value="">Все</option>
       <option value="youtube.com">youtube.com</option>
     `;
     const sortKeySelect = document.getElementById("history-sort-key");
@@ -267,6 +278,13 @@ describe("Downloader history list", () => {
     expect(sortModeSelect.value).toBe("mixed");
     expect(badge.classList.contains("hidden")).toBe(true);
     expect(resetBtn.disabled).toBe(true);
+  });
+
+  test("renders unified search+filters card with required controls", async () => {
+    const unifiedCard = document.querySelector(".history-search-filters-card");
+    expect(unifiedCard).not.toBeNull();
+    expect(unifiedCard.querySelector("#filter-input")).not.toBeNull();
+    expect(unifiedCard.querySelector("#history-filters-card")).not.toBeNull();
   });
 
   test("enables virtualized rendering for large history pages", async () => {

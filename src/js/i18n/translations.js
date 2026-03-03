@@ -708,7 +708,7 @@ export const translations = {
     "history.filters.activeCount": "Активно: {count}",
     "history.filter.source": "Фильтр по источнику",
     "history.filter.source.label": "Источник",
-    "history.filter.source.all": "Все источники",
+    "history.filter.source.all": "Все",
     "history.refresh": "Обновить список",
     "history.sort": "Сортировка",
     "history.sortHint": "Сменить порядок сортировки",
