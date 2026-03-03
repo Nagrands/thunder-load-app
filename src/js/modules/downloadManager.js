@@ -778,7 +778,8 @@ function updateQueueDisplay() {
   ) => {
     const fullUrl = String(item.url || "");
     const urlLabel = makeQueueUrlLabel(fullUrl);
-    const titleLabel = String(item.title || makeQueueTitle(fullUrl) || urlLabel);
+    const cachedTitle = makeQueueTitle(fullUrl);
+    const titleLabel = String(item.title || cachedTitle || t("queue.title.loading"));
     const qualityLabel = getQueueQualityLabel(item.quality);
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);

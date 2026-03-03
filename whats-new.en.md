@@ -34,6 +34,7 @@
 
 - **Improved resilience to YouTube limits**: video info checks now run more carefully (sequentially), and when temporary rate-limit is detected the app pauses new info requests to reduce repeated failures.
 - **Added a clear YouTube limit message**: when YouTube temporarily restricts requests, the quality picker now shows a clear hint with an approximate retry time.
+- **Improved queue title while metadata is loading**: instead of a technical URL, queue entries now show a clear “Fetching title…” status until video metadata arrives.
 - **Redesigned the tools-check status block in Downloader and Tools**: the status row is now more compact, version chips (`yt-dlp`, `ffmpeg`, `Deno`) are easier to scan, and the visual style is now cleaner and more consistent.
 - **Refined queue “Start” button behavior**: while a download is already active, the button is now disabled to prevent accidental re-triggering.
 - **Queue Pause behavior was updated again**: when a download is active, Pause now stops the current process and puts that task back into the queue so it can continue later via resume flow.
