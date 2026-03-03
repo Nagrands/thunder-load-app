@@ -114,3 +114,4 @@
 - **History got a full visual redesign**: the panel now uses a cleaner dark layout with updated action header, refined list cards, and better readability.
 - **Added date-group bulk selection**: you can now quickly select or unselect all entries within the same day group.
 - **Improved filter usability**: the filters block is now collapsible with saved state, and the search clear button appears only when text is present.
+- **Adjusted the top History block to match the new layout**: action controls are now aligned to the right of the title, and the search field is placed on a separate row below.

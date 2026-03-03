@@ -1717,12 +1717,14 @@
 
 .history-area {
   margin: 20px auto;
+  background: #161b27;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
 }
 
 .history-panel-shell {
   display: grid;
+  gap: 12px;
 }
 
 .history-cards-subtitle {
@@ -1734,20 +1736,41 @@
 
 .history-cards-title {
   color: var(--color-highlight);
-  font-size: 24px;
+  font-size: 38px;
+  line-height: 1.05;
 }
 
 .history-controls-row--primary {
-  grid-template-columns: minmax(320px, 1fr) auto;
-  align-items: center;
+  grid-template-columns: 1fr;
+}
+
+.history-toolbar {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.history-actions-card {
+  width: auto;
+  margin-left: auto;
+}
+
+.history-deck-actions {
+  width: auto;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.history-search-card {
+  width: 100%;
 }
 
 .history-search-wrapper input {
-  height: 44px;
+  height: 40px;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: #1a2030;
-  color: #fff;
+  color: #cbd5e1;
   padding: 10px 42px 10px 38px;
 }
 
@@ -1761,22 +1784,58 @@
 }
 
 .history-action-segment {
-  background: #1a2030;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  gap: 8px;
 }
 
 .history-action-button {
-  color: #94a3b8;
+  min-width: 36px;
+  min-height: 36px;
+  color: #8aa0bf;
   border: 1px solid transparent;
+  background: transparent;
+}
+
+.history-count-pill {
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: #1e2638;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.history-count-pill #total-downloads {
+  color: #47a3ff;
+}
+
+.history-action-segment--more .history-action-button {
+  border-radius: 11px;
+  background: #1e2638;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.history-action-segment--danger .history-action-button {
+  border-radius: 11px;
+  background: rgba(190, 24, 93, 0.22);
+  border-color: rgba(251, 113, 133, 0.3);
+  color: #fb7185;
 }
 
 .history-action-button:hover {
   color: #fff;
+  border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.04);
 }
 
 .history-action-segment--danger .history-action-button {
-  color: #fda4af;
+  color: #fb8ea3;
+}
+
+.history-action-segment--danger .history-action-button:hover {
+  background: rgba(190, 24, 93, 0.3);
+  border-color: rgba(251, 113, 133, 0.45);
 }
 
 .history-action-button i[data-lucide],
@@ -1937,8 +1996,20 @@
     max-width: none;
   }
 
-  .history-controls-row--primary {
-    grid-template-columns: 1fr;
+  .history-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .history-actions-card {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .history-deck-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .history-filter-group {

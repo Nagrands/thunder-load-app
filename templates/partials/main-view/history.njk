@@ -9,6 +9,151 @@
           </p>
           <h3 class="history-cards-title" data-i18n="history.title">История</h3>
         </div>
+        <div class="history-actions-card">
+          <div class="history-deck-actions">
+            <div class="history-action-segment history-action-segment--view">
+              <button
+                id="history-header"
+                class="history-action-button history-count-pill"
+                aria-label="Количество записей"
+                data-hint="Количество записей"
+                data-i18n-aria="history.count"
+                data-i18n-hint="history.count"
+              >
+                <i data-lucide="list-filter"></i>
+                <span id="total-downloads">0</span>
+              </button>
+              <button
+                id="refresh-button"
+                class="history-action-button"
+                aria-label="Обновить список"
+                data-hint="Обновить список"
+                data-i18n-aria="history.refresh"
+                data-i18n-hint="history.refresh"
+              >
+                <i data-lucide="refresh-cw"></i>
+              </button>
+              <button
+                id="sort-button"
+                class="history-action-button"
+                aria-label="Сортировка"
+                data-hint="Сменить порядок сортировки"
+                data-i18n-aria="history.sort"
+                data-i18n-hint="history.sortHint"
+              >
+                <i data-lucide="arrow-down-wide-narrow"></i>
+              </button>
+            </div>
+
+            <div class="history-action-segment history-action-segment--danger">
+              <button
+                id="delete-selected"
+                class="history-action-button hidden"
+                aria-label="Удалить выбранные записи"
+                data-hint="Удалить выбранные"
+                data-i18n-aria="history.deleteSelected"
+                data-i18n-hint="history.deleteSelected"
+              >
+                <i data-lucide="trash-2"></i>
+              </button>
+              <button
+                id="clear-history"
+                class="history-action-button"
+                aria-label="Очистить историю"
+                data-hint="Очистить всю историю"
+                data-i18n-aria="history.clear"
+                data-i18n-hint="history.clearHint"
+              >
+                <i data-lucide="trash"></i>
+              </button>
+            </div>
+
+            <div class="history-action-segment history-action-segment--more">
+              <button
+                id="history-more-trigger"
+                class="history-action-button history-more-trigger"
+                type="button"
+                aria-label="Дополнительные действия"
+                data-i18n-aria="history.action.more"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="history-more-menu"
+                data-hint="Дополнительные действия"
+                data-i18n-hint="history.action.more"
+              >
+                <i data-lucide="ellipsis"></i>
+              </button>
+              <div id="history-more-menu" class="history-more-menu hidden" role="menu">
+                <button
+                  id="restore-history"
+                  class="history-more-menu__item"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Восстановить удалённые записи"
+                  data-i18n-aria="history.restore"
+                >
+                  <i data-lucide="undo-2"></i>
+                  <span data-i18n="history.restore">Восстановить удалённые записи</span>
+                </button>
+                <button
+                  id="history-export-json"
+                  class="history-more-menu__item"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Экспорт в JSON"
+                  data-i18n-aria="history.exportJson"
+                >
+                  <i data-lucide="file-json"></i>
+                  <span data-i18n="history.exportJson">Экспорт в JSON</span>
+                </button>
+                <button
+                  id="history-export-csv"
+                  class="history-more-menu__item"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Экспорт в CSV"
+                  data-i18n-aria="history.exportCsv"
+                >
+                  <i data-lucide="file-spreadsheet"></i>
+                  <span data-i18n="history.exportCsv">Экспорт в CSV</span>
+                </button>
+                <button
+                  id="history-density-compact"
+                  class="history-more-menu__item"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Компактно"
+                  data-i18n-aria="history.density.compact"
+                >
+                  <i data-lucide="rows-3"></i>
+                  <span data-i18n="history.density.compact">Компактно</span>
+                </button>
+                <button
+                  id="history-density-comfort"
+                  class="history-more-menu__item"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Подробный"
+                  data-i18n-aria="history.density.comfort"
+                >
+                  <i data-lucide="panel-top-open"></i>
+                  <span data-i18n="history.density.comfort">Подробный</span>
+                </button>
+                <button
+                  id="toggle-all-details"
+                  class="history-more-menu__item"
+                  type="button"
+                  role="menuitem"
+                  aria-label="Развернуть все"
+                  data-i18n-aria="history.details.toggleAll"
+                >
+                  <i data-lucide="chevron-down"></i>
+                  <span data-i18n="history.details.toggleAll">Развернуть все</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="history-controls">
@@ -34,152 +179,6 @@
               >
                 <i data-lucide="x"></i>
               </button>
-            </div>
-          </div>
-
-          <div class="history-actions-card">
-            <div class="history-deck-actions">
-              <div class="history-action-segment history-action-segment--view">
-                <button
-                  id="history-header"
-                  class="history-action-button history-count-pill"
-                  aria-label="Количество записей"
-                  data-hint="Количество записей"
-                  data-i18n-aria="history.count"
-                  data-i18n-hint="history.count"
-                >
-                  <i data-lucide="list-filter"></i>
-                  <span id="total-downloads">0</span>
-                </button>
-                <button
-                  id="refresh-button"
-                  class="history-action-button"
-                  aria-label="Обновить список"
-                  data-hint="Обновить список"
-                  data-i18n-aria="history.refresh"
-                  data-i18n-hint="history.refresh"
-                >
-                  <i data-lucide="refresh-cw"></i>
-                </button>
-                <button
-                  id="sort-button"
-                  class="history-action-button"
-                  aria-label="Сортировка"
-                  data-hint="Сменить порядок сортировки"
-                  data-i18n-aria="history.sort"
-                  data-i18n-hint="history.sortHint"
-                >
-                  <i data-lucide="arrow-down-wide-narrow"></i>
-                </button>
-              </div>
-
-              <div class="history-action-segment history-action-segment--danger">
-                <button
-                  id="delete-selected"
-                  class="history-action-button hidden"
-                  aria-label="Удалить выбранные записи"
-                  data-hint="Удалить выбранные"
-                  data-i18n-aria="history.deleteSelected"
-                  data-i18n-hint="history.deleteSelected"
-                >
-                  <i data-lucide="trash-2"></i>
-                </button>
-                <button
-                  id="clear-history"
-                  class="history-action-button"
-                  aria-label="Очистить историю"
-                  data-hint="Очистить всю историю"
-                  data-i18n-aria="history.clear"
-                  data-i18n-hint="history.clearHint"
-                >
-                  <i data-lucide="trash"></i>
-                </button>
-              </div>
-
-              <div class="history-action-segment history-action-segment--more">
-                <button
-                  id="history-more-trigger"
-                  class="history-action-button history-more-trigger"
-                  type="button"
-                  aria-label="Дополнительные действия"
-                  data-i18n-aria="history.action.more"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  aria-controls="history-more-menu"
-                  data-hint="Дополнительные действия"
-                  data-i18n-hint="history.action.more"
-                >
-                  <i data-lucide="ellipsis"></i>
-                </button>
-                <div id="history-more-menu" class="history-more-menu hidden" role="menu">
-                  <button
-                    id="restore-history"
-                    class="history-more-menu__item"
-                    type="button"
-                    role="menuitem"
-                    aria-label="Восстановить удалённые записи"
-                    data-i18n-aria="history.restore"
-                  >
-                    <i data-lucide="undo-2"></i>
-                    <span data-i18n="history.restore">Восстановить удалённые записи</span>
-                  </button>
-                  <button
-                    id="history-export-json"
-                    class="history-more-menu__item"
-                    type="button"
-                    role="menuitem"
-                    aria-label="Экспорт в JSON"
-                    data-i18n-aria="history.exportJson"
-                  >
-                    <i data-lucide="file-json"></i>
-                    <span data-i18n="history.exportJson">Экспорт в JSON</span>
-                  </button>
-                  <button
-                    id="history-export-csv"
-                    class="history-more-menu__item"
-                    type="button"
-                    role="menuitem"
-                    aria-label="Экспорт в CSV"
-                    data-i18n-aria="history.exportCsv"
-                  >
-                    <i data-lucide="file-spreadsheet"></i>
-                    <span data-i18n="history.exportCsv">Экспорт в CSV</span>
-                  </button>
-                  <button
-                    id="history-density-compact"
-                    class="history-more-menu__item"
-                    type="button"
-                    role="menuitem"
-                    aria-label="Компактно"
-                    data-i18n-aria="history.density.compact"
-                  >
-                    <i data-lucide="rows-3"></i>
-                    <span data-i18n="history.density.compact">Компактно</span>
-                  </button>
-                  <button
-                    id="history-density-comfort"
-                    class="history-more-menu__item"
-                    type="button"
-                    role="menuitem"
-                    aria-label="Подробный"
-                    data-i18n-aria="history.density.comfort"
-                  >
-                    <i data-lucide="panel-top-open"></i>
-                    <span data-i18n="history.density.comfort">Подробный</span>
-                  </button>
-                  <button
-                    id="toggle-all-details"
-                    class="history-more-menu__item"
-                    type="button"
-                    role="menuitem"
-                    aria-label="Развернуть все"
-                    data-i18n-aria="history.details.toggleAll"
-                  >
-                    <i data-lucide="chevron-down"></i>
-                    <span data-i18n="history.details.toggleAll">Развернуть все</span>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
