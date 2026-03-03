@@ -6,10 +6,9 @@
 
 #filter-input {
   @include mixins.input-base(
-    var(--spacing-small) 35px var(--spacing-small) 40px
+    var(--spacing-small) 35px var(--spacing-small) 45px
   );
   color: var(--color-accent);
-  font-size: 14px;
   transition:
     background-color var(--transition-duration),
     color var(--transition-duration);

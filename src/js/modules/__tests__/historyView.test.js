@@ -35,7 +35,7 @@ const setupDom = () => {
       <div class="history-controls">
         <button id="history-header"><span id="total-downloads">0</span></button>
         <button id="refresh-button"></button>
-        <button id="sort-button"><i class="fa-solid"></i></button>
+        <button id="sort-button"><i data-lucide="arrow-down-wide-narrow"></i></button>
         <button id="clear-history"></button>
         <button id="delete-selected" class="hidden"></button>
         <button id="history-more-trigger" aria-expanded="false"></button>
@@ -48,7 +48,14 @@ const setupDom = () => {
           <button id="toggle-all-details" class="history-more-menu__item"></button>
         </div>
       </div>
-      <div class="history-filters-row"></div>
+      <div class="history-filters-row">
+        <div id="history-filters-card">
+          <button id="history-filters-toggle" aria-expanded="true">
+            <i data-lucide="chevron-up"></i>
+          </button>
+          <div id="history-filters-body"></div>
+        </div>
+      </div>
       <div class="history-search-wrapper"></div>
       <button id="history-reset-filters"></button>
       <span id="history-active-filters-count" class="hidden"></span>
@@ -68,6 +75,10 @@ const setupDom = () => {
   global.window.electron = {
     invoke: jest.fn(),
   };
+  global.window.lucide = {
+    createIcons: jest.fn(),
+    icons: {},
+  };
 
   global.requestAnimationFrame = (cb) => cb();
 };
@@ -82,6 +93,7 @@ const createEntry = (overrides = {}) => ({
   resolution: overrides.resolution ?? "1920x1080",
   formattedSize: overrides.formattedSize ?? "10 MB",
   filePath: overrides.filePath ?? "/tmp/video.mp4",
+  isMissing: overrides.isMissing ?? false,
   thumbnail:
     overrides.thumbnail ??
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=",
@@ -138,8 +150,8 @@ describe("Downloader history list", () => {
     const labels = groups.map((g) => g.textContent.trim());
 
     expect(groups).toHaveLength(2);
-    expect(labels).toContain("Сегодня");
-    expect(labels).toContain("Вчера");
+    expect(labels.some((label) => label.startsWith("Сегодня"))).toBe(true);
+    expect(labels.some((label) => label.startsWith("Вчера"))).toBe(true);
 
     jest.useRealTimers();
   });
@@ -160,6 +172,8 @@ describe("Downloader history list", () => {
 
     const actionButtons = actions.querySelectorAll(".history-row__action");
     expect(actionButtons).toHaveLength(3);
+    expect(actions.querySelector('[data-lucide="play"]')).not.toBeNull();
+    expect(actions.querySelector('[data-lucide="folder-open"]')).not.toBeNull();
 
     const menu = actions.querySelector(".history-row__menu");
     const menuButton = actions.querySelector(".history-row__menu-button");
@@ -319,5 +333,68 @@ describe("Downloader history list", () => {
 
     expect(copyButtons).toHaveLength(2);
     expect(truncatedValues.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("toggles select all / unselect all for a date group", async () => {
+    const { renderHistory, initHistory } = await import("../history.js");
+    const sameDay = new Date("2026-02-07T10:00:00").toISOString();
+    initHistory();
+    renderHistory([
+      createEntry({ id: "1", timestamp: sameDay }),
+      createEntry({ id: "2", timestamp: sameDay, fileName: "Second" }),
+    ]);
+
+    const toggle = document.querySelector(".history-group__toggle");
+    expect(toggle).not.toBeNull();
+    expect(toggle.textContent).toContain("Выбрать");
+
+    toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const checkedAfterSelect = document.querySelectorAll(
+      ".history-row__checkbox:checked",
+    );
+    expect(checkedAfterSelect.length).toBe(2);
+    expect(toggle.textContent).toContain("Снять");
+
+    toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const checkedAfterUnselect = document.querySelectorAll(
+      ".history-row__checkbox:checked",
+    );
+    expect(checkedAfterUnselect.length).toBe(0);
+  });
+
+  test("renders deleted badge and disables open actions for deleted entry", async () => {
+    const { renderHistory } = await import("../history.js");
+    renderHistory([
+      createEntry({
+        id: "deleted",
+        isMissing: true,
+      }),
+    ]);
+
+    const row = document.querySelector(".history-row");
+    expect(row.classList.contains("history-row--deleted")).toBe(true);
+    expect(row.querySelector(".history-badge--missing").textContent).toContain(
+      "удал",
+    );
+    const actions = row.querySelectorAll(".history-row__action");
+    expect(actions[0].disabled).toBe(true);
+    expect(actions[1].disabled).toBe(true);
+  });
+
+  test("collapses and expands filters with persisted state", async () => {
+    const { initHistory } = await import("../history.js");
+    const toggle = document.getElementById("history-filters-toggle");
+    const body = document.getElementById("history-filters-body");
+
+    initHistory();
+    expect(body.hidden).toBe(false);
+
+    toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(body.hidden).toBe(true);
+    expect(localStorage.getItem("historyFiltersCollapsed")).toBe("1");
+
+    toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(body.hidden).toBe(false);
+    expect(localStorage.getItem("historyFiltersCollapsed")).toBe("0");
   });
 });

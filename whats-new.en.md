@@ -108,3 +108,9 @@
 - **Fixed `Requested format is not available` download failures**: when a saved quality profile contains stale format IDs, the app now auto-selects a valid format for the current video instead of failing.
 - **Added** the **Tools** tab: quick actions in one place (WG Unlock, hash check, system tools).
 - **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value comparison.
+
+### History
+
+- **History got a full visual redesign**: the panel now uses a cleaner dark layout with updated action header, refined list cards, and better readability.
+- **Added date-group bulk selection**: you can now quickly select or unselect all entries within the same day group.
+- **Improved filter usability**: the filters block is now collapsible with saved state, and the search clear button appears only when text is present.

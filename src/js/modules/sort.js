@@ -25,18 +25,13 @@ function handleSortButtonClick() {
  * Функция для обновления иконки сортировки
  */
 function updateSortIcon() {
-  const sortIcon = sortButton.querySelector("i");
-  sortIcon.classList.remove(
-    "fa-arrow-up-short-wide",
-    "fa-arrow-down-wide-short",
-  );
-
   const isAscending = state.currentSortOrder === "asc";
-  const iconClass = isAscending
-    ? "fa-arrow-up-short-wide"
-    : "fa-arrow-down-wide-short";
+  sortButton.innerHTML = `<i data-lucide="${isAscending ? "arrow-up-wide-narrow" : "arrow-down-wide-narrow"}"></i>`;
 
-  sortIcon.classList.add(iconClass);
+  const api = window?.lucide;
+  if (api?.createIcons && api?.icons) {
+    api.createIcons({ icons: api.icons });
+  }
 
   const tooltipText = isAscending
     ? t("history.sort.asc")

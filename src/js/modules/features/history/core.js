@@ -91,6 +91,7 @@ let lastPaginationMeta = {
   pageSize: state.historyPageSize || HISTORY_PAGE_SIZES[0],
 };
 let lastRenderedFiltered = [];
+let lastRenderedPageEntries = [];
 let historyTruncationBound = false;
 let historyTruncationResizeTimer = null;
 let historyMenuBound = false;
@@ -98,6 +99,12 @@ let historyMoreMenuBound = false;
 let historyMoreTriggerButton = null;
 let historyMoreMenu = null;
 let historyVirtualList = null;
+let historyFiltersToggleButton = null;
+let historyFiltersBody = null;
+let historyFiltersCollapsed = false;
+let historySearchClearBound = false;
+
+const HISTORY_FILTERS_COLLAPSED_KEY = "historyFiltersCollapsed";
 
 const pluralize = (value, [one, few, many]) => {
   const n = Math.abs(Number(value)) || 0;
@@ -245,6 +252,16 @@ const attachPlaceholderOnError = (img, placeholderSrc, container) => {
   });
 };
 
+const refreshHistoryLucideIcons = () => {
+  const api = window?.lucide;
+  if (!api?.createIcons || !api?.icons) return;
+  try {
+    api.createIcons({ icons: api.icons });
+  } catch (error) {
+    console.warn("Не удалось обновить Lucide-иконки истории:", error);
+  }
+};
+
 function goToPage(target) {
   const nextPage = Math.max(1, Math.min(target, lastPaginationMeta.totalPages));
   if (nextPage === state.historyPage) return;
@@ -277,7 +294,7 @@ function ensurePaginationElements() {
         id="history-page-prev-fast"
         aria-label="${t("history.pagination.prevFastAria")}"
       >
-        <i class="fa-solid fa-angles-left"></i>
+        <i data-lucide="chevrons-left"></i>
       </button>
       <button
         type="button"
@@ -285,7 +302,7 @@ function ensurePaginationElements() {
         id="history-page-prev"
         aria-label="${t("history.pagination.prevAria")}"
       >
-        <i class="fa-solid fa-chevron-left"></i>
+        <i data-lucide="chevron-left"></i>
       </button>
     </div>
     <div class="history-page-center">
@@ -315,7 +332,7 @@ function ensurePaginationElements() {
         id="history-page-next"
         aria-label="${t("history.pagination.nextAria")}"
       >
-        <i class="fa-solid fa-chevron-right"></i>
+        <i data-lucide="chevron-right"></i>
       </button>
       <button
         type="button"
@@ -323,7 +340,7 @@ function ensurePaginationElements() {
         id="history-page-next-fast"
         aria-label="${t("history.pagination.nextFastAria")}"
       >
-        <i class="fa-solid fa-angles-right"></i>
+        <i data-lucide="chevrons-right"></i>
       </button>
     </div>
   `;
@@ -451,7 +468,7 @@ function ensureHistoryCardsElements() {
         </div>
         <div class="history-toolbar__controls history-cards-search history-actions">
           <div class="history-search-wrapper history-input-wrapper">
-            <i id="icon-filter-search" class="fas fa-search search-icon"></i>
+            <i id="icon-filter-search" class="search-icon" data-lucide="search"></i>
             <input
               type="text"
               id="filter-input"
@@ -490,7 +507,7 @@ function ensureHistoryCardsElements() {
               title="${t("history.refresh")}"
               data-i18n-title="history.refresh"
             >
-              <i class="fa-solid fa-arrow-rotate-right"></i>
+              <i data-lucide="refresh-cw"></i>
             </button>
             <button
               id="sort-button"
@@ -500,7 +517,7 @@ function ensureHistoryCardsElements() {
               title="${t("history.sort")}"
               data-i18n-title="history.sort"
             >
-              <i class="fa-solid"></i>
+              <i data-lucide="arrow-down-wide-narrow"></i>
             </button>
             <div
               class="history-density-group"
@@ -518,7 +535,7 @@ function ensureHistoryCardsElements() {
                 title="${t("history.density.compact")}"
                 data-i18n-title="history.density.compact"
               >
-                <i class="fa-solid fa-compress"></i>
+                <i data-lucide="rows-3"></i>
               </button>
               <button
                 id="history-density-regular"
@@ -530,7 +547,7 @@ function ensureHistoryCardsElements() {
                 title="${t("history.density.regular")}"
                 data-i18n-title="history.density.regular"
               >
-                <i class="fa-solid fa-grip-lines"></i>
+                <i data-lucide="grip-horizontal"></i>
               </button>
               <button
                 id="history-density-comfort"
@@ -542,7 +559,7 @@ function ensureHistoryCardsElements() {
                 title="${t("history.density.comfort")}"
                 data-i18n-title="history.density.comfort"
               >
-                <i class="fa-solid fa-expand"></i>
+                <i data-lucide="panel-top-open"></i>
               </button>
             </div>
           </div>
@@ -555,7 +572,7 @@ function ensureHistoryCardsElements() {
               title="${t("history.clear")}"
               data-i18n-title="history.clear"
             >
-              <i class="fa-solid fa-trash"></i>
+              <i data-lucide="trash"></i>
             </button>
             <button
               id="delete-selected"
@@ -565,7 +582,7 @@ function ensureHistoryCardsElements() {
               title="${t("history.deleteSelected")}"
               data-i18n-title="history.deleteSelected"
             >
-              <i class="fa-solid fa-trash-can"></i>
+              <i data-lucide="trash-2"></i>
             </button>
           </div>
         </div>
@@ -616,7 +633,7 @@ function enhanceSelect(selectEl) {
   labelText.className = "bk-select-label-text";
   labelEl.append(labelIcon, labelText);
   const icon = document.createElement("i");
-  icon.className = "fa-solid fa-chevron-down";
+  icon.setAttribute("data-lucide", "chevron-down");
   trigger.append(labelEl, icon);
 
   const menu = document.createElement("div");
@@ -788,6 +805,12 @@ function ensureHistoryControlElements() {
   if (!historyMoreMenu || !historyMoreMenu.isConnected) {
     historyMoreMenu = document.getElementById("history-more-menu");
   }
+  if (!historyFiltersToggleButton || !historyFiltersToggleButton.isConnected) {
+    historyFiltersToggleButton = document.getElementById("history-filters-toggle");
+  }
+  if (!historyFiltersBody || !historyFiltersBody.isConnected) {
+    historyFiltersBody = document.getElementById("history-filters-body");
+  }
 
   if (!historySelectUIs.source) {
     historySelectUIs.source = enhanceSelect(historySourceFilterSelect);
@@ -799,6 +822,56 @@ function ensureHistoryControlElements() {
     historySelectUIs.sortMode = enhanceSelect(historySortModeSelect);
   }
   updateHistoryActiveFiltersUi();
+}
+
+function updateSearchClearButtonVisibility() {
+  const clearButton = document.getElementById("clear-filter-input");
+  if (!clearButton || !filterInput) return;
+  const hasValue = Boolean(filterInput.value?.trim());
+  clearButton.classList.toggle("hidden", !hasValue);
+}
+
+function bindHistorySearchClearVisibility() {
+  if (historySearchClearBound || !filterInput) return;
+  historySearchClearBound = true;
+  filterInput.addEventListener("input", () => updateSearchClearButtonVisibility());
+  updateSearchClearButtonVisibility();
+}
+
+function applyHistoryFiltersState() {
+  const card = document.getElementById("history-filters-card");
+  const toggleIcon = historyFiltersToggleButton?.querySelector("[data-lucide]");
+  if (!historyFiltersBody || !historyFiltersToggleButton || !card) return;
+
+  historyFiltersBody.hidden = historyFiltersCollapsed;
+  historyFiltersToggleButton.setAttribute(
+    "aria-expanded",
+    historyFiltersCollapsed ? "false" : "true",
+  );
+  card.classList.toggle("is-collapsed", historyFiltersCollapsed);
+  if (toggleIcon) {
+    toggleIcon.setAttribute(
+      "data-lucide",
+      historyFiltersCollapsed ? "chevron-down" : "chevron-up",
+    );
+  }
+  refreshHistoryLucideIcons();
+}
+
+function bindHistoryFiltersToggle() {
+  if (!historyFiltersToggleButton) return;
+  if (historyFiltersToggleButton.dataset.bound === "1") return;
+  historyFiltersToggleButton.dataset.bound = "1";
+  historyFiltersToggleButton.addEventListener("click", () => {
+    historyFiltersCollapsed = !historyFiltersCollapsed;
+    try {
+      localStorage.setItem(
+        HISTORY_FILTERS_COLLAPSED_KEY,
+        historyFiltersCollapsed ? "1" : "0",
+      );
+    } catch {}
+    applyHistoryFiltersState();
+  });
 }
 
 function ensureHistoryCardPreviewOverlay() {
@@ -820,7 +893,7 @@ function ensureHistoryCardPreviewOverlay() {
         aria-label="${t("history.preview.close")}"
         data-i18n-aria="history.preview.close"
       >
-        <i class="fa-solid fa-xmark"></i>
+        <i data-lucide="x"></i>
       </button>
       <button
         type="button"
@@ -828,7 +901,7 @@ function ensureHistoryCardPreviewOverlay() {
         aria-label="${t("history.preview.prev")}"
         data-i18n-aria="history.preview.prev"
       >
-        <i class="fa-solid fa-chevron-left"></i>
+        <i data-lucide="chevron-left"></i>
       </button>
       <button
         type="button"
@@ -836,7 +909,7 @@ function ensureHistoryCardPreviewOverlay() {
         aria-label="${t("history.preview.next")}"
         data-i18n-aria="history.preview.next"
       >
-        <i class="fa-solid fa-chevron-right"></i>
+        <i data-lucide="chevron-right"></i>
       </button>
       <img class="history-card-preview-image" alt="" />
       <div class="history-card-preview-counter"></div>
@@ -894,6 +967,7 @@ function ensureHistoryCardPreviewOverlay() {
   historyCardPreviewNext = overlay.querySelector(".history-card-preview-next");
 
   document.body.appendChild(overlay);
+  refreshHistoryLucideIcons();
   return overlay;
 }
 
@@ -1083,10 +1157,11 @@ function destroyHistoryVirtualList() {
   historyVirtualList = null;
 }
 
-function createHistoryGroupElement(entry) {
+function createHistoryGroupElement(entry, groupKey = "unknown") {
   const entryDate = normalizeEntryDate(entry);
   const group = document.createElement("div");
   group.className = "history-group";
+  group.dataset.groupKey = groupKey;
   const left = `<span class="history-group__title">${escapeHtml(
     getDayLabel(entryDate),
   )}</span>`;
@@ -1095,10 +1170,21 @@ function createHistoryGroupElement(entry) {
   const right =
     state.currentSortKey === "source"
       ? `<span class="history-group__source">${
-          sourceIcon ? `<i class="${sourceIcon}"></i>` : ""
+          sourceIcon ? `<i data-lucide="${sourceIcon}"></i>` : ""
         }${escapeHtml(sourceLabel)}</span>`
       : "";
-  group.innerHTML = `${left}${right}`;
+  group.innerHTML = `
+    <div class="history-group__left">${left}${right}</div>
+    <button
+      type="button"
+      class="history-group__toggle"
+      data-group-key="${escapeHtml(groupKey)}"
+      aria-label="${t("history.group.selectAll")}"
+      data-i18n-aria="history.group.selectAll"
+    >
+      ${t("history.group.selectAll")}
+    </button>
+  `;
   return group;
 }
 
@@ -1127,6 +1213,7 @@ function buildVirtualHistoryItems(entries = []) {
       items.push({
         type: "group",
         key: `group:${groupKey}`,
+        groupKey,
         entry,
         height: estimateVirtualItemHeight("group"),
       });
@@ -1134,6 +1221,7 @@ function buildVirtualHistoryItems(entries = []) {
     items.push({
       type: "entry",
       key: `entry:${entry?.id ?? entry?.filePath ?? Math.random()}`,
+      groupKey,
       entry,
       height: estimateVirtualItemHeight("entry"),
     });
@@ -1225,12 +1313,12 @@ function renderHistoryVirtualized(container, entries = []) {
     for (let i = start; i < end; i += 1) {
       const item = items[i];
       if (item.type === "group") {
-        const group = createHistoryGroupElement(item.entry);
+        const group = createHistoryGroupElement(item.entry, item.groupKey);
         group.dataset.virtualIndex = String(i);
         fragment.appendChild(group);
         continue;
       }
-      const { el } = createLogEntry(item.entry);
+      const { el } = createLogEntry(item.entry, item.groupKey);
       el.dataset.virtualIndex = String(i);
       fragment.appendChild(el);
     }
@@ -1242,6 +1330,8 @@ function renderHistoryVirtualized(container, entries = []) {
       updateTitleTruncation();
       initTooltips();
       updateToggleAllButtonState();
+      updateGroupSelectionLabels();
+      refreshHistoryLucideIcons();
     });
 
     let measuredChanged = false;
@@ -1297,6 +1387,52 @@ function syncSelectedEntriesWith(entries = []) {
   );
 }
 
+function getGroupEntryIds(groupKey) {
+  return lastRenderedPageEntries
+    .filter((entry) => getDayKey(normalizeEntryDate(entry)) === groupKey)
+    .map((entry) => String(entry.id || ""))
+    .filter(Boolean);
+}
+
+function updateGroupSelectionLabels() {
+  const toggles = document.querySelectorAll(".history-group__toggle");
+  toggles.forEach((toggle) => {
+    const groupKey = toggle.dataset.groupKey || "";
+    const ids = getGroupEntryIds(groupKey);
+    if (!ids.length) return;
+    const allSelected = ids.every((id) => state.selectedEntries.includes(id));
+    const label = allSelected
+      ? t("history.group.unselectAll")
+      : t("history.group.selectAll");
+    toggle.textContent = label;
+    toggle.setAttribute("aria-label", label);
+  });
+}
+
+function toggleGroupSelection(groupKey) {
+  const groupIds = getGroupEntryIds(groupKey);
+  if (!groupIds.length) return;
+  const allSelected = groupIds.every((id) => state.selectedEntries.includes(id));
+  if (allSelected) {
+    state.selectedEntries = state.selectedEntries.filter(
+      (id) => !groupIds.includes(String(id)),
+    );
+  } else {
+    const merged = new Set(state.selectedEntries.map((id) => String(id)));
+    groupIds.forEach((id) => merged.add(id));
+    state.selectedEntries = Array.from(merged);
+  }
+
+  document.querySelectorAll(".history-row__checkbox").forEach((checkbox) => {
+    const id = checkbox.dataset.id ? String(checkbox.dataset.id) : "";
+    if (!id || !groupIds.includes(id)) return;
+    const selected = state.selectedEntries.includes(id);
+    checkbox.checked = selected;
+    checkbox.closest(".history-row")?.classList.toggle("selected", selected);
+  });
+  updateDeleteSelectedButton();
+}
+
 function updateDeleteSelectedButton() {
   const clearBtn = document.getElementById("clear-history");
   const deleteBtn = document.getElementById("delete-selected");
@@ -1319,6 +1455,7 @@ function updateDeleteSelectedButton() {
     clearBtn.classList.remove("hidden");
     deleteBtn.classList.add("hidden");
   }
+  updateGroupSelectionLabels();
 }
 
 function clearHistorySelection() {
@@ -1527,16 +1664,16 @@ const getSourceIconClass = (url = "") => {
     host === "youtu.be" ||
     host === "music.youtube.com"
   ) {
-    return "fa-brands fa-youtube";
+    return "play-circle";
   }
-  if (host === "twitch.tv") return "fa-brands fa-twitch";
-  if (host === "vkvideo.ru" || host === "vk.com") return "fa-brands fa-vk";
+  if (host === "twitch.tv") return "tv";
+  if (host === "vkvideo.ru" || host === "vk.com") return "badge-russian-ruble";
   if (
     host === "reddit.com" ||
     host === "old.reddit.com" ||
     host === "redd.it"
   ) {
-    return "fa-brands fa-reddit";
+    return "message-circle";
   }
   return "";
 };
@@ -2005,14 +2142,13 @@ function renderHistoryCards(entries = []) {
       );
       const zoomBadge = document.createElement("span");
       zoomBadge.className = "history-card-thumb-zoom";
-      zoomBadge.innerHTML =
-        '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+      zoomBadge.innerHTML = '<i data-lucide="expand"></i>';
 
       zoomBtn.append(img, zoomBadge);
       thumb.appendChild(zoomBtn);
     } else {
       const icon = document.createElement("i");
-      icon.className = "fa-regular fa-image";
+      icon.setAttribute("data-lucide", "image");
       thumb.appendChild(icon);
     }
     if (entry.quality) {
@@ -2075,7 +2211,7 @@ function renderHistoryCards(entries = []) {
     openBtn.type = "button";
     openBtn.className = "history-card-btn";
     openBtn.dataset.action = "open";
-    openBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i><span>${t(
+    openBtn.innerHTML = `<i data-lucide="play"></i><span>${t(
       "history.action.open",
     )}</span>`;
     openBtn.title = t("history.action.openFile");
@@ -2089,7 +2225,7 @@ function renderHistoryCards(entries = []) {
     openFolderBtn.type = "button";
     openFolderBtn.className = "history-card-btn ghost";
     openFolderBtn.dataset.action = "open-folder";
-    openFolderBtn.innerHTML = `<i class="fa-solid fa-folder-open"></i><span>${t(
+    openFolderBtn.innerHTML = `<i data-lucide="folder-open"></i><span>${t(
       "history.action.folder",
     )}</span>`;
     openFolderBtn.title = t("history.action.openFolder");
@@ -2103,7 +2239,7 @@ function renderHistoryCards(entries = []) {
     retryBtn.type = "button";
     retryBtn.className = "history-card-btn ghost";
     retryBtn.dataset.action = "retry";
-    retryBtn.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i><span>${t(
+    retryBtn.innerHTML = `<i data-lucide="refresh-cw"></i><span>${t(
       "history.action.retry",
     )}</span>`;
     retryBtn.title = t("history.action.retryFile");
@@ -2127,7 +2263,7 @@ function renderHistoryCards(entries = []) {
     deleteBtn.setAttribute("data-i18n-title", "history.action.delete");
     deleteBtn.setAttribute("data-bs-toggle", "tooltip");
     deleteBtn.setAttribute("data-bs-placement", "top");
-    deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    deleteBtn.innerHTML = '<i data-lucide="x"></i>';
     deleteBtn.addEventListener("click", async (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -2155,7 +2291,7 @@ function markEntryMissing(entry) {
   renderHistoryCards(updated);
 }
 
-function createLogEntry(entry) {
+function createLogEntry(entry, groupKey = "unknown") {
   const el = document.createElement("div");
   el.className = "log-entry history-row";
   el.setAttribute("role", "listitem");
@@ -2169,6 +2305,7 @@ function createLogEntry(entry) {
   el.dataset.datetime = entry.dateText || "";
   el.dataset.resolution = entry.resolution || "";
   el.dataset.size = entry.formattedSize || "";
+  el.dataset.groupKey = groupKey;
 
   if (!entry.dateText) console.warn("⚠️ Нет dateText у записи:", entry);
   if (entry.isMissing) el.classList.add("missing");
@@ -2188,6 +2325,7 @@ function createLogEntry(entry) {
   checkbox.className = "history-row__checkbox";
   checkbox.id = checkboxId;
   checkbox.dataset.id = entry.id || "";
+  checkbox.dataset.groupKey = groupKey;
   const isSelected = state.selectedEntries.includes(entry.id?.toString() || "");
   checkbox.checked = isSelected;
   const checkboxUi = document.createElement("span");
@@ -2214,7 +2352,7 @@ function createLogEntry(entry) {
     thumb.appendChild(img);
   } else {
     const icon = document.createElement("i");
-    icon.className = "fa-regular fa-image";
+    icon.setAttribute("data-lucide", "image");
     thumb.appendChild(icon);
   }
   thumb.addEventListener("click", (event) => {
@@ -2263,6 +2401,9 @@ function createLogEntry(entry) {
   if (entry.resolution) {
     const resBadge = document.createElement("span");
     resBadge.className = "history-badge history-badge--resolution";
+    if (/3840|4k/i.test(entry.resolution)) {
+      resBadge.classList.add("history-badge--resolution-4k");
+    }
     resBadge.textContent = entry.resolution;
     badges.appendChild(resBadge);
   }
@@ -2281,8 +2422,9 @@ function createLogEntry(entry) {
   if (entry.isMissing) {
     const missingBadge = document.createElement("span");
     missingBadge.className = "history-badge history-badge--missing";
-    missingBadge.textContent = t("history.file.missing");
+    missingBadge.textContent = t("history.deleted.badge");
     badges.appendChild(missingBadge);
+    el.classList.add("history-row--deleted");
   }
 
   titleRow.append(name, sourceChip);
@@ -2294,7 +2436,7 @@ function createLogEntry(entry) {
   if (sizeLabel) {
     const size = document.createElement("span");
     size.className = "history-row__size";
-    size.innerHTML = `<i class=\"fa-solid fa-database\"></i><span>${sizeLabel}</span>`;
+    size.innerHTML = `<i data-lucide=\"hard-drive-download\"></i><span>${sizeLabel}</span>`;
     meta.appendChild(size);
   }
 
@@ -2314,7 +2456,7 @@ function createLogEntry(entry) {
   openBtn.setAttribute("data-bs-placement", "top");
   openBtn.title = t("history.action.openFile");
   openBtn.setAttribute("data-i18n-title", "history.action.openFile");
-  openBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
+  openBtn.innerHTML = '<i data-lucide="play"></i>';
   openBtn.disabled = entry.isMissing;
   openBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
@@ -2331,7 +2473,7 @@ function createLogEntry(entry) {
     "data-i18n-title",
     "history.action.openFolderShort",
   );
-  openFolderBtn.innerHTML = '<i class="fa-solid fa-folder-open"></i>';
+  openFolderBtn.innerHTML = '<i data-lucide="folder-open"></i>';
   openFolderBtn.disabled = entry.isMissing;
   openFolderBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
@@ -2344,7 +2486,7 @@ function createLogEntry(entry) {
     item.className = `history-row__menu-item${options.className || ""}`;
     item.setAttribute("role", "menuitem");
     if (options.disabled) item.disabled = true;
-    item.innerHTML = `<i class="${icon}"></i><span>${label}</span>`;
+    item.innerHTML = `<i data-lucide="${icon}"></i><span>${label}</span>`;
     if (options.onClick) {
       item.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -2368,7 +2510,7 @@ function createLogEntry(entry) {
   menuButton.setAttribute("data-bs-placement", "top");
   menuButton.title = t("history.action.more");
   menuButton.setAttribute("data-i18n-title", "history.action.more");
-  menuButton.innerHTML = '<i class="fa-solid fa-ellipsis-vertical"></i>';
+  menuButton.innerHTML = '<i data-lucide="ellipsis"></i>';
 
   const menuList = document.createElement("div");
   menuList.className = "history-row__menu-list";
@@ -2376,7 +2518,7 @@ function createLogEntry(entry) {
 
   const openSourceItem = menuItem(
     t("history.action.openSource"),
-    "fa-solid fa-up-right-from-square",
+    "external-link",
     {
       disabled: !entry.sourceUrl,
       onClick: () => openHistorySourceLink(entry.sourceUrl),
@@ -2385,7 +2527,7 @@ function createLogEntry(entry) {
 
   const retryItem = menuItem(
     t("history.action.retry"),
-    "fa-solid fa-arrow-rotate-right",
+    "refresh-cw",
     {
       disabled: !entry.sourceUrl,
       onClick: () => retryHistoryCardDownload(entry),
@@ -2394,7 +2536,7 @@ function createLogEntry(entry) {
 
   const deleteItem = menuItem(
     t("history.action.deleteFromHistory"),
-    "fa-solid fa-trash",
+    "trash-2",
     {
       className: " history-row__delete",
     },
@@ -2450,7 +2592,7 @@ function createLogEntry(entry) {
     : t("history.details.expand");
   toggle.setAttribute("aria-label", initialToggleLabel);
   toggle.title = initialToggleLabel;
-  toggle.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+  toggle.innerHTML = '<i data-lucide="chevron-down"></i>';
   secondaryActions.append(toggle);
   actions.append(primaryActions, secondaryActions);
 
@@ -2482,7 +2624,7 @@ function createLogEntry(entry) {
       "data-i18n-title",
       "history.preview.download",
     );
-    downloadPreviewBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+    downloadPreviewBtn.innerHTML = '<i data-lucide="download"></i>';
     downloadPreviewBtn.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -2498,7 +2640,7 @@ function createLogEntry(entry) {
     preview.appendChild(img);
   } else {
     const icon = document.createElement("i");
-    icon.className = "fa-regular fa-image";
+    icon.setAttribute("data-lucide", "image");
     preview.appendChild(icon);
   }
   if (thumbSrc) {
@@ -2546,7 +2688,7 @@ function createLogEntry(entry) {
       copyBtn.setAttribute("data-bs-placement", "top");
       copyBtn.title = t("history.action.copy");
       copyBtn.setAttribute("data-i18n-title", "history.action.copy");
-      copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+      copyBtn.innerHTML = '<i data-lucide="copy"></i>';
       copyBtn.addEventListener("click", async (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -2910,6 +3052,7 @@ function renderHistory(entries, meta = {}) {
   const count = totalEntries;
   const isEmpty = totalEntries === 0;
   lastRenderedFiltered = fullEntries;
+  lastRenderedPageEntries = pageEntries;
   buildFilterOptions(fullEntries);
   updateRestoreButton();
   ensureHistoryEmptyElement();
@@ -2967,6 +3110,8 @@ function renderHistory(entries, meta = {}) {
       pageSize,
     });
     setTimeout(() => initTooltips(), 0);
+    updateSearchClearButtonVisibility();
+    refreshHistoryLucideIcons();
     return;
   }
 
@@ -3000,22 +3145,24 @@ function renderHistory(entries, meta = {}) {
       const groupKey = getDayKey(entryDate);
       if (groupKey !== lastGroupKey) {
         lastGroupKey = groupKey;
-        container.appendChild(createHistoryGroupElement(entry));
+        container.appendChild(createHistoryGroupElement(entry, groupKey));
       }
 
-      const { el } = createLogEntry(entry);
+      const { el } = createLogEntry(entry, groupKey);
       container.appendChild(el);
     });
     requestAnimationFrame(() => {
       updateTitleTruncation();
       initTooltips();
+      updateGroupSelectionLabels();
+      refreshHistoryLucideIcons();
     });
     attachDeleteListeners();
   }
 
   const highlighted = container.querySelector(".new-entry");
   if (highlighted) {
-    highlighted.scrollIntoView({ behavior: "smooth", block: "center" });
+    highlighted.scrollIntoView({ behavior: "auto", block: "center" });
   }
 
   updateDeleteSelectedButton();
@@ -3027,15 +3174,21 @@ function renderHistory(entries, meta = {}) {
     pageSize,
   });
   updateToggleAllButtonState();
+  updateSearchClearButtonVisibility();
+  refreshHistoryLucideIcons();
 }
 
 async function initHistoryState() {
   try {
     ensureHistoryControlElements();
+    bindHistorySearchClearVisibility();
     syncHistorySelectValues();
+    applyHistoryFiltersState();
     await loadHistory(true); // 👈 forceRender=true — гарантируем перерисовку
 
     setFilterInputValue(state.currentSearchQuery || "");
+    updateSearchClearButtonVisibility();
+    refreshHistoryLucideIcons();
     await updateDownloadCount();
     historyContainer.style.display = state.historyVisible ? "block" : "none";
     updateButtonState();
@@ -3048,6 +3201,15 @@ async function initHistoryState() {
 
 function initHistory() {
   ensureHistoryControlElements();
+  bindHistorySearchClearVisibility();
+  try {
+    historyFiltersCollapsed =
+      localStorage.getItem(HISTORY_FILTERS_COLLAPSED_KEY) === "1";
+  } catch {
+    historyFiltersCollapsed = false;
+  }
+  bindHistoryFiltersToggle();
+  applyHistoryFiltersState();
   syncHistorySelectValues();
   bindHistoryMoreMenu();
   applyHistoryDensity();
@@ -3107,6 +3269,18 @@ function initHistory() {
   historyDensityButtons.comfort?.addEventListener("click", () =>
     setHistoryDensity("comfort"),
   );
+  if (history && history.dataset.groupToggleBound !== "1") {
+    history.dataset.groupToggleBound = "1";
+    history.addEventListener("click", (event) => {
+      const toggle = event.target.closest(".history-group__toggle");
+      if (!toggle) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const groupKey = toggle.dataset.groupKey || "";
+      if (!groupKey) return;
+      toggleGroupSelection(groupKey);
+    });
+  }
 
   openHistoryButton.addEventListener("click", () => {
     const newVisibility = !state.historyVisible;
@@ -3120,6 +3294,7 @@ function initHistory() {
 
   historyContainer.style.display = state.historyVisible ? "block" : "none";
   filterInput.style.display = state.historyVisible ? "block" : "none";
+  refreshHistoryLucideIcons();
 
   if (!historyTruncationBound) {
     historyTruncationBound = true;

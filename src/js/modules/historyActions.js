@@ -142,8 +142,20 @@ function initHistoryActions() {
       state.currentSearchQuery = "";
       state.historyPage = 1;
       localStorage.removeItem("lastSearch");
+      clearFilterInputButton.classList.add("hidden");
       filterAndSortHistory("", state.currentSortOrder, true);
     });
+  }
+
+  if (filterInput && clearFilterInputButton) {
+    const syncClearButton = () => {
+      clearFilterInputButton.classList.toggle(
+        "hidden",
+        !filterInput.value?.trim(),
+      );
+    };
+    filterInput.addEventListener("input", syncClearButton);
+    syncClearButton();
   }
 }
 
