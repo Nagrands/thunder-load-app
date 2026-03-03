@@ -215,6 +215,11 @@ const videoInfoCache = new Map(); // url -> { timestamp, data }
 const VIDEO_INFO_CACHE_TTL = 60 * 1000; // 1 минута
 const VIDEO_INFO_CACHE_MAX = 50;
 const videoInfoInFlight = new Map(); // url -> Promise
+const VIDEO_INFO_MAX_CONCURRENCY = 1;
+const VIDEO_INFO_QUEUE_POLL_MS = 80;
+const YOUTUBE_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000;
+let videoInfoRunning = 0;
+let youtubeRateLimitUntilTs = 0;
 const TOOL_DOWNLOAD_OPTIONS = {
   maxRetries: 4,
   requestTimeout: 30000,
@@ -1283,15 +1288,74 @@ function normalizeCacheKey(url) {
     // оставляем базовый путь и query без лишнего мусора (например, t=...)
     u.searchParams.delete("t");
     u.searchParams.delete("time_continue");
+    // Для youtube-плейлистов оставляем только идентификатор самого ролика.
+    if (/youtube\.com$|youtu\.be$/i.test(u.hostname)) {
+      u.searchParams.delete("list");
+      u.searchParams.delete("index");
+      u.searchParams.delete("start_radio");
+      u.searchParams.delete("pp");
+      u.searchParams.delete("feature");
+      u.searchParams.delete("si");
+    }
     return u.toString();
   } catch {
     return String(url || "").trim();
   }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function isYouTubeUrl(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host.includes("youtube.com") || host.includes("youtu.be");
+  } catch {
+    return false;
+  }
+}
+
+function isYoutubeRateLimitError(stderrOutput = "") {
+  return /rate-limited by YouTube|This content isn't available, try again later/i.test(
+    String(stderrOutput || ""),
+  );
+}
+
+async function acquireVideoInfoSlot(token = null) {
+  while (videoInfoRunning >= VIDEO_INFO_MAX_CONCURRENCY) {
+    if (isCancelled(token)) {
+      throw new Error(token.cancelReason || "Download cancelled");
+    }
+    await sleep(VIDEO_INFO_QUEUE_POLL_MS);
+  }
+  videoInfoRunning += 1;
+}
+
+function releaseVideoInfoSlot() {
+  videoInfoRunning = Math.max(0, videoInfoRunning - 1);
+}
+
+function checkYoutubeRateLimitCooldown(url) {
+  if (!isYouTubeUrl(url)) return;
+  const now = Date.now();
+  if (youtubeRateLimitUntilTs > now) {
+    const waitMinutes = Math.max(
+      1,
+      Math.ceil((youtubeRateLimitUntilTs - now) / 60000),
+    );
+    throw new Error(
+      `YouTube temporarily rate-limited requests. Try again in about ${waitMinutes} minute(s).`,
+    );
+  }
+}
+
 function getVideoInfo(url, token = null) {
   log.info(`Getting video information for URL: ${url}`);
   const key = normalizeCacheKey(url);
+  try {
+    checkYoutubeRateLimitCooldown(url);
+  } catch (err) {
+    return Promise.reject(err);
+  }
   if (videoInfoCache.has(key)) {
     const cached = videoInfoCache.get(key);
     if (Date.now() - cached.timestamp < VIDEO_INFO_CACHE_TTL) {
@@ -1304,74 +1368,89 @@ function getVideoInfo(url, token = null) {
     log.info(`[download] Awaiting in-flight video info for ${key}`);
     return videoInfoInFlight.get(key);
   }
-  const processStore = getProcessStore(token);
-  const promise = new Promise((resolve, reject) => {
-    const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
-    const ffmpegDir = resolveRuntimeFfmpegDir();
-    log.info("[download] getVideoInfo runtime tools", {
-      preferredToolsDir: getToolsDir(),
-      ytDlpPath,
-      ffmpegDir,
-    });
-    processStore.getVideoInfo = spawn(
-      ytDlpPath,
-      [
-        "-J",
-        url,
-        "--ffmpeg-location",
-        ffmpegDir,
-        "--no-warnings",
-        "--ignore-config",
-      ],
-      getYtDlpSpawnOptions(),
-    );
-    let output = "";
-    let stderrOutput = "";
-    processStore.getVideoInfo.stdout.on("data", (data) => {
-      if (isCancelled(token)) {
-        processStore.getVideoInfo?.kill("SIGTERM");
-        return;
-      }
-      output += data.toString();
-    });
-    processStore.getVideoInfo.stderr.on("data", (data) => {
-      const text = data?.toString?.() || "";
-      stderrOutput += text;
-      log.error(`Error: ${text}`);
-    });
-    processStore.getVideoInfo.on("close", (code) => {
-      processStore.getVideoInfo = null;
-      if (isCancelled(token)) {
-        log.info("getVideoInfo operation cancelled.");
-        return reject(new Error("Download cancelled"));
-      }
-      if (code !== 0) {
-        const reason = stderrOutput.trim();
-        const suffix = reason
-          ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
-          : "";
-        return reject(new Error(`yt-dlp exited with code ${code}${suffix}`));
-      }
-      try {
-        const info = JSON.parse(output);
-        if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
-          const oldestKey = [...videoInfoCache.entries()].sort(
-            (a, b) => a[1].timestamp - b[1].timestamp,
-          )[0]?.[0];
-          if (oldestKey) videoInfoCache.delete(oldestKey);
-        }
-        videoInfoCache.set(key, { timestamp: Date.now(), data: info });
-        resolve(info);
-      } catch (err) {
-        log.error(`Error parsing video information: ${err.message}`);
-        reject(err);
-      }
-    });
-    processStore.getVideoInfo.on("error", (err) => {
-      processStore.getVideoInfo = null;
-      reject(err);
-    });
-  });
+  const promise = (async () => {
+    await acquireVideoInfoSlot(token);
+    const processStore = getProcessStore(token);
+    try {
+      checkYoutubeRateLimitCooldown(url);
+      return await new Promise((resolve, reject) => {
+        const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+        const ffmpegDir = resolveRuntimeFfmpegDir();
+        log.info("[download] getVideoInfo runtime tools", {
+          preferredToolsDir: getToolsDir(),
+          ytDlpPath,
+          ffmpegDir,
+        });
+        processStore.getVideoInfo = spawn(
+          ytDlpPath,
+          [
+            "-J",
+            url,
+            "--ffmpeg-location",
+            ffmpegDir,
+            "--no-warnings",
+            "--ignore-config",
+          ],
+          getYtDlpSpawnOptions(),
+        );
+        let output = "";
+        let stderrOutput = "";
+        processStore.getVideoInfo.stdout.on("data", (data) => {
+          if (isCancelled(token)) {
+            processStore.getVideoInfo?.kill("SIGTERM");
+            return;
+          }
+          output += data.toString();
+        });
+        processStore.getVideoInfo.stderr.on("data", (data) => {
+          const text = data?.toString?.() || "";
+          stderrOutput += text;
+          log.error(`Error: ${text}`);
+        });
+        processStore.getVideoInfo.on("close", (code) => {
+          processStore.getVideoInfo = null;
+          if (isCancelled(token)) {
+            log.info("getVideoInfo operation cancelled.");
+            return reject(new Error("Download cancelled"));
+          }
+          if (code !== 0) {
+            if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
+              youtubeRateLimitUntilTs =
+                Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
+              log.warn(
+                `[download] YouTube rate-limit detected; enabling getVideoInfo cooldown for ${Math.ceil(YOUTUBE_RATE_LIMIT_COOLDOWN_MS / 60000)} minutes.`,
+              );
+            }
+            const reason = stderrOutput.trim();
+            const suffix = reason
+              ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
+              : "";
+            return reject(new Error(`yt-dlp exited with code ${code}${suffix}`));
+          }
+          try {
+            const info = JSON.parse(output);
+            if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
+              const oldestKey = [...videoInfoCache.entries()].sort(
+                (a, b) => a[1].timestamp - b[1].timestamp,
+              )[0]?.[0];
+              if (oldestKey) videoInfoCache.delete(oldestKey);
+            }
+            videoInfoCache.set(key, { timestamp: Date.now(), data: info });
+            resolve(info);
+          } catch (err) {
+            log.error(`Error parsing video information: ${err.message}`);
+            reject(err);
+          }
+        });
+        processStore.getVideoInfo.on("error", (err) => {
+          processStore.getVideoInfo = null;
+          reject(err);
+        });
+      });
+    } finally {
+      releaseVideoInfoSlot();
+    }
+  })();
   videoInfoInFlight.set(key, promise);
   return promise.finally(() => {
     videoInfoInFlight.delete(key);

@@ -1029,6 +1029,15 @@ async function loadFormatsWithRetry(
       window.electron.ipcRenderer.invoke("get-video-info", url),
       INFO_REQUEST_TIMEOUT,
     );
+    if (!info || info.success === false) {
+      const reason = String(info?.error || "").trim();
+      const err = new Error(reason || "Не удалось получить информацию о видео.");
+      if (info?.errorCode) err.code = info.errorCode;
+      if (typeof info?.retryAfterMinutes === "number") {
+        err.retryAfterMinutes = info.retryAfterMinutes;
+      }
+      throw err;
+    }
     if (state.currentFetchToken !== token) return false;
 
     state.info = info;
@@ -1080,6 +1089,13 @@ async function loadFormatsWithRetry(
     console.error("Ошибка получения форматов:", error);
     const message = (() => {
       const text = String(error?.message || error || "");
+      if (error?.code === "YOUTUBE_RATE_LIMIT") {
+        const mins = Number(error?.retryAfterMinutes || 0);
+        if (mins > 0) {
+          return `YouTube временно ограничил запросы. Повторите примерно через ${mins} мин.`;
+        }
+        return "YouTube временно ограничил запросы. Повторите чуть позже.";
+      }
       if (text.toLowerCase().includes("timeout")) {
         return "Превышено время ожидания. Попробуйте ещё раз.";
       }

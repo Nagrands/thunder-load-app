@@ -481,8 +481,26 @@ function setupIpcHandlers(dependencies) {
         extractor: info?.extractor || "",
       };
     } catch (e) {
-      log.warn("get-video-info error:", e?.message || e);
-      return { success: false, error: e?.message || String(e) };
+      const rawMessage = e?.message || String(e);
+      log.warn("get-video-info error:", rawMessage);
+      const rateLimitMatch = String(rawMessage).match(
+        /about\s+(\d+)\s+minute/i,
+      );
+      if (/YouTube temporarily rate-limited requests/i.test(rawMessage)) {
+        const retryAfterMinutes = rateLimitMatch
+          ? Number(rateLimitMatch[1]) || null
+          : null;
+        const humanMessage = retryAfterMinutes
+          ? `YouTube временно ограничил запросы. Попробуйте снова примерно через ${retryAfterMinutes} мин.`
+          : "YouTube временно ограничил запросы. Попробуйте снова чуть позже.";
+        return {
+          success: false,
+          errorCode: "YOUTUBE_RATE_LIMIT",
+          retryAfterMinutes,
+          error: humanMessage,
+        };
+      }
+      return { success: false, error: rawMessage };
     }
   });
 

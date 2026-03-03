@@ -538,6 +538,87 @@ describe("downloader tools status visibility toggle", () => {
   });
 });
 
+describe("downloader behavior toggles", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn((channel, payload) => {
+        switch (channel) {
+          case "get-open-on-copy-url-status":
+            return Promise.resolve(true);
+          case "get-open-on-download-complete-status":
+            return Promise.resolve(false);
+          case "get-disable-complete-modal-status":
+            return Promise.resolve(true);
+          case "set-open-on-copy-url-status":
+          case "set-open-on-download-complete-status":
+          case "set-disable-complete-modal-status":
+          case "toast":
+            return Promise.resolve({ success: true, channel, payload });
+          default:
+            return Promise.resolve(false);
+        }
+      }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("applies initial states and persists changes for downloader behavior switches", async () => {
+    const mod = require("../settings");
+    const dom = require("../domElements");
+    await mod.initSettings?.();
+
+    const copyToggle = dom.settingsOpenOnCopyUrlToggle;
+    const afterLoadToggle = dom.settingsOpenOnDownloadCompleteToggle;
+    const disableModalToggle = dom.settingsDisableCompleteModalToggle;
+
+    expect(copyToggle?.checked).toBe(true);
+    expect(afterLoadToggle?.checked).toBe(false);
+    expect(disableModalToggle?.checked).toBe(true);
+
+    copyToggle.checked = false;
+    const onCopyChange = copyToggle.addEventListener.mock.calls.find(
+      ([event]) => event === "change",
+    )?.[1];
+    onCopyChange?.();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-open-on-copy-url-status",
+      false,
+    );
+
+    afterLoadToggle.checked = true;
+    const onAfterLoadChange = afterLoadToggle.addEventListener.mock.calls.find(
+      ([event]) => event === "change",
+    )?.[1];
+    onAfterLoadChange?.();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-open-on-download-complete-status",
+      true,
+    );
+
+    disableModalToggle.checked = false;
+    const onDisableModalChange =
+      disableModalToggle.addEventListener.mock.calls.find(
+        ([event]) => event === "change",
+      )?.[1];
+    onDisableModalChange?.();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-disable-complete-modal-status",
+      false,
+    );
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "toast",
+      expect.any(String),
+      "success",
+    );
+  });
+});
+
 describe("tools settings modal", () => {
   beforeEach(() => {
     jest.resetModules();

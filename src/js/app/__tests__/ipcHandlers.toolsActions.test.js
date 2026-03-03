@@ -118,7 +118,7 @@ describe("ipcHandlers tools quick actions", () => {
     });
   });
 
-  function initHandlers({ storeValues = {} } = {}) {
+  function initHandlers({ storeValues = {}, clipboardMonitor = null } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
     const storeGet = jest.fn((key, def) =>
       Object.prototype.hasOwnProperty.call(storeValues, key)
@@ -145,7 +145,8 @@ describe("ipcHandlers tools quick actions", () => {
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
       iconCache: new Map(),
-      clipboardMonitor: {},
+      clipboardMonitor:
+        clipboardMonitor || { start: jest.fn(), stop: jest.fn() },
       setupGlobalShortcuts: jest.fn(),
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
@@ -156,6 +157,21 @@ describe("ipcHandlers tools quick actions", () => {
     });
     return { store };
   }
+
+  test("set-open-on-copy-url-status toggles clipboard monitor and persists state", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const clipboardMonitor = { start: jest.fn(), stop: jest.fn() };
+    const { store } = initHandlers({ clipboardMonitor });
+
+    await handlers[CHANNELS.SET_OPEN_ON_COPY_URL_STATUS](null, true);
+    expect(store.set).toHaveBeenCalledWith("openOnCopyUrl", true);
+    expect(clipboardMonitor.start).toHaveBeenCalledTimes(1);
+    expect(clipboardMonitor.stop).not.toHaveBeenCalled();
+
+    await handlers[CHANNELS.SET_OPEN_ON_COPY_URL_STATUS](null, false);
+    expect(store.set).toHaveBeenCalledWith("openOnCopyUrl", false);
+    expect(clipboardMonitor.stop).toHaveBeenCalledTimes(1);
+  });
 
   test("hashPickFile returns selected path", async () => {
     const { dialog } = require("electron");
