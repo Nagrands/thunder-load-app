@@ -1162,19 +1162,21 @@ function createHistoryGroupElement(entry, groupKey = "unknown") {
   const group = document.createElement("div");
   group.className = "history-group";
   group.dataset.groupKey = groupKey;
-  const left = `<span class="history-group__title">${escapeHtml(
-    getDayLabel(entryDate),
-  )}</span>`;
+  const left = `<span class="history-group__title">${escapeHtml(getDayLabel(entryDate))}</span>`;
   const sourceLabel = formatSourceLabel(entry.sourceUrl);
   const sourceIcon = getSourceIconClass(entry.sourceUrl);
-  const right =
+  const source =
     state.currentSortKey === "source"
       ? `<span class="history-group__source">${
           sourceIcon ? `<i data-lucide="${sourceIcon}"></i>` : ""
         }${escapeHtml(sourceLabel)}</span>`
       : "";
   group.innerHTML = `
-    <div class="history-group__left">${left}${right}</div>
+    <div class="history-group__left">
+      ${left}
+      ${source}
+    </div>
+    <span class="history-group__line" aria-hidden="true"></span>
     <button
       type="button"
       class="history-group__toggle"
@@ -2380,38 +2382,35 @@ function createLogEntry(entry, groupKey = "unknown") {
   const sourceChipLabel =
     state.currentSortKey === "source" ? formatSourceLabel(entry.sourceUrl) : "";
   const sourceChip = document.createElement("span");
-  sourceChip.className = "history-row__source-chip";
+  sourceChip.className = "history-badge history-badge--host history-row__source-chip";
   sourceChip.textContent = sourceChipLabel || "";
   if (!sourceChipLabel) sourceChip.classList.add("hidden");
 
   const badges = document.createElement("div");
   badges.className = "history-row__badges";
-  if (host) {
+  badges.appendChild(sourceChip);
+  if (host && !sourceChipLabel) {
     const hostBadge = document.createElement("span");
     hostBadge.className = "history-badge history-badge--host";
     hostBadge.textContent = host;
     badges.appendChild(hostBadge);
   }
-  if (entry.quality) {
+  const mediaBadgeParts = [];
+  if (entry.resolution) mediaBadgeParts.push(entry.resolution);
+  if (entry.fps) mediaBadgeParts.push(`${entry.fps}fps`);
+  if (mediaBadgeParts.length > 0) {
+    const mediaBadge = document.createElement("span");
+    mediaBadge.className = "history-badge history-badge--quality history-badge--media";
+    if (/3840|4k/i.test(entry.resolution || "")) {
+      mediaBadge.classList.add("history-badge--resolution-4k");
+    }
+    mediaBadge.textContent = mediaBadgeParts.join(" ");
+    badges.appendChild(mediaBadge);
+  } else if (entry.quality) {
     const qualityBadge = document.createElement("span");
     qualityBadge.className = "history-badge history-badge--quality";
     qualityBadge.textContent = entry.quality;
     badges.appendChild(qualityBadge);
-  }
-  if (entry.resolution) {
-    const resBadge = document.createElement("span");
-    resBadge.className = "history-badge history-badge--resolution";
-    if (/3840|4k/i.test(entry.resolution)) {
-      resBadge.classList.add("history-badge--resolution-4k");
-    }
-    resBadge.textContent = entry.resolution;
-    badges.appendChild(resBadge);
-  }
-  if (entry.fps) {
-    const fpsBadge = document.createElement("span");
-    fpsBadge.className = "history-badge history-badge--fps";
-    fpsBadge.textContent = `${entry.fps}fps`;
-    badges.appendChild(fpsBadge);
   }
   if (isAudio) {
     const audioBadge = document.createElement("span");
@@ -2427,20 +2426,17 @@ function createLogEntry(entry, groupKey = "unknown") {
     el.classList.add("history-row--deleted");
   }
 
-  titleRow.append(name, sourceChip);
-
-  const meta = document.createElement("div");
-  meta.className = "history-row__meta";
+  titleRow.append(name);
 
   const sizeLabel = formatSizeLabel(entry);
   if (sizeLabel) {
     const size = document.createElement("span");
     size.className = "history-row__size";
-    size.innerHTML = `<i data-lucide=\"hard-drive-download\"></i><span>${sizeLabel}</span>`;
-    meta.appendChild(size);
+    size.innerHTML = `<i data-lucide=\"hard-drive\"></i><span>${sizeLabel}</span>`;
+    badges.appendChild(size);
   }
 
-  main.append(titleRow, badges, meta);
+  main.append(titleRow, badges);
 
   const actions = document.createElement("div");
   actions.className = "history-row__actions";
@@ -2717,6 +2713,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   });
   addDetail(t("history.detail.quality"), entry.quality || "");
   addDetail(t("history.detail.resolution"), entry.resolution || "");
+  addDetail(t("history.detail.size"), formatSizeLabel(entry));
   addDetail(t("history.detail.date"), entry.dateText || "");
 
   details.append(preview, detailsMeta);

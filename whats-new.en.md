@@ -115,3 +115,5 @@
 - **Added date-group bulk selection**: you can now quickly select or unselect all entries within the same day group.
 - **Improved filter usability**: the filters block is now collapsible with saved state, and the search clear button appears only when text is present.
 - **Adjusted the top History block to match the new layout**: action controls are now aligned to the right of the title, and the search field is placed on a separate row below.
+- **Refined History rows to a denser card layout**: date headers are cleaner, entry cards now use a compact 56×40 thumbnail, badges are aligned on one line, and right-side actions are visually tightened.
+- **Redesigned expanded History entry details**: the details card is cleaner and easier to scan, a file size field is now included, and long source/path values are presented more neatly.

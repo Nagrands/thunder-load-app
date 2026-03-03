@@ -188,6 +188,25 @@ describe("Downloader history list", () => {
     expect(menu.classList.contains("is-open")).toBe(true);
   });
 
+  test("renders compact row badge line with source and size", async () => {
+    const { renderHistory } = await import("../history.js");
+    renderHistory([
+      createEntry({
+        sourceUrl: "https://youtube.com/watch?v=1",
+        resolution: "1920x1080",
+        fps: 60,
+        formattedSize: "74.9 MB",
+      }),
+    ]);
+
+    const row = document.querySelector(".history-row");
+    const badges = row.querySelector(".history-row__badges");
+    expect(badges).not.toBeNull();
+    expect(badges.querySelector(".history-badge--host")).not.toBeNull();
+    expect(badges.querySelector(".history-badge--media")).not.toBeNull();
+    expect(badges.querySelector(".history-row__size")).not.toBeNull();
+  });
+
   test("toggles control-deck more menu and closes on escape", async () => {
     const { initHistory } = await import("../history.js");
     const trigger = document.getElementById("history-more-trigger");
@@ -333,6 +352,28 @@ describe("Downloader history list", () => {
 
     expect(copyButtons).toHaveLength(2);
     expect(truncatedValues.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("renders redesigned details structure including size field", async () => {
+    const { renderHistory } = await import("../history.js");
+    renderHistory([
+      createEntry({
+        formattedSize: "74.9 MB",
+        resolution: "1920x822",
+        fps: 30,
+      }),
+    ]);
+
+    const row = document.querySelector(".history-row");
+    const details = row.querySelector(".history-row__details");
+    const preview = details.querySelector(".history-row__preview");
+    const meta = details.querySelector(".history-row__details-meta");
+    const items = details.querySelectorAll(".history-row__details-item");
+
+    expect(preview).not.toBeNull();
+    expect(meta).not.toBeNull();
+    expect(items.length).toBeGreaterThanOrEqual(6);
+    expect(details.textContent).toContain("74.9 MB");
   });
 
   test("toggles select all / unselect all for a date group", async () => {
