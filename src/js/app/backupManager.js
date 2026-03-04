@@ -339,14 +339,43 @@ async function zipFolder(
   } else {
     // ZIP format
     if (platform === "win32") {
-      // Use PowerShell Compress-Archive with compression level
+      // Use PowerShell Compress-Archive. If Archive module is unavailable, fallback to .NET ZipFile.
       const ps = "powershell.exe";
-      const args = [
+      const escapedFolder = folderPathLong.replace(/'/g, "''");
+      const escapedZip = zipPathLong.replace(/'/g, "''");
+      const compressionScript = `$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal; if (${compressionLevel} -eq 0) { $compressionLevel = [System.IO.Compression.CompressionLevel]::NoCompression } elseif (${compressionLevel} -lt 5) { $compressionLevel = [System.IO.Compression.CompressionLevel]::Fastest }`;
+      const compressArchiveArgs = [
         "-NoProfile",
         "-Command",
-        `$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal; if (${compressionLevel} -eq 0) { $compressionLevel = [System.IO.Compression.CompressionLevel]::NoCompression } elseif (${compressionLevel} -lt 5) { $compressionLevel = [System.IO.Compression.CompressionLevel]::Fastest }; Compress-Archive -LiteralPath '${folderPathLong.replace(/'/g, "''")}' -DestinationPath '${zipPathLong.replace(/'/g, "''")}' -CompressionLevel $compressionLevel -Force`,
+        `${compressionScript}; Compress-Archive -LiteralPath '${escapedFolder}' -DestinationPath '${escapedZip}' -CompressionLevel $compressionLevel -Force`,
       ];
-      await execFileAsync(ps, args, { windowsHide: true });
+      try {
+        await execFileAsync(ps, compressArchiveArgs, { windowsHide: true });
+      } catch (e) {
+        if (!isArchiveModuleLoadError(e)) {
+          throw e;
+        }
+
+        log.warn(
+          `[backup] Compress-Archive is unavailable, trying .NET ZipFile fallback: ${e?.message || e}`,
+        );
+
+        const dotNetZipArgs = [
+          "-NoProfile",
+          "-Command",
+          `${compressionScript}; Add-Type -AssemblyName System.IO.Compression.FileSystem; if (Test-Path -LiteralPath '${escapedZip}') { Remove-Item -LiteralPath '${escapedZip}' -Force }; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedFolder}', '${escapedZip}', $compressionLevel, $false)`,
+        ];
+
+        try {
+          await execFileAsync(ps, dotNetZipArgs, { windowsHide: true });
+        } catch (dotNetErr) {
+          log.warn(
+            `[backup] .NET ZipFile fallback failed, trying tar.gz fallback: ${dotNetErr?.message || dotNetErr}`,
+          );
+          const tgz = zipPathLong.replace(/\.zip$/i, ".tar.gz");
+          return await zipFolder(folderPathLong, tgz, "tar.gz", compressionLevel);
+        }
+      }
     } else {
       // Use zip command with compression level - проверяем доступность
       const zipAvailable = await checkCommandExists("zip");
@@ -385,6 +414,16 @@ async function zipFolder(
     }
     return zipPathLong;
   }
+}
+
+function isArchiveModuleLoadError(error) {
+  const details = `${error?.message || ""}\n${error?.stdout || ""}\n${error?.stderr || ""}`.toLowerCase();
+  return (
+    details.includes("compress-archive") &&
+    (details.includes("couldnotautoloadmatchingmodule") ||
+      details.includes("microsoft.powershell.archive") ||
+      details.includes("module could not be loaded"))
+  );
 }
 
 // Fallback implementation for tar.gz using node.js
@@ -916,4 +955,7 @@ module.exports = {
   prepareLongPath,
   preFlightChecks,
   preFlightChecksDetailed,
+  __test: {
+    isArchiveModuleLoadError,
+  },
 };

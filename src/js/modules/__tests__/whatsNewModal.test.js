@@ -40,6 +40,16 @@ describe("whatsNew sanitizer", () => {
     expect(output).toBe("<p>x</p>");
   });
 
+  test("keeps h1 and table tags for rich markdown", () => {
+    const input =
+      '<h1>Title</h1><table><thead><tr><th align="right">A</th></tr></thead><tbody><tr><td align="center">B</td></tr></tbody></table>';
+    const output = sanitize(input);
+    expect(output).toContain("<h1>Title</h1>");
+    expect(output).toContain("<table>");
+    expect(output).toContain("<th>A</th>");
+    expect(output).toContain("<td>B</td>");
+  });
+
   test("strips javascript: href", () => {
     const input = '<a href="javascript:alert(1)">x</a>';
     const output = sanitize(input);

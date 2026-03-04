@@ -1,137 +1,77 @@
-<!-- version: 1.3.7 -->
+<!-- version: 1.4.0 -->
 
-### Interface
+# What's New
 
-- **Improved safety for notifications and confirmation dialogs**: file names and links are now rendered safely, so embedded HTML from external metadata is no longer executed.
-- **Updated the History right-click context menu**: it is now more compact
-  (single-line actions), destructive delete actions are visually separated,
-  and keyboard navigation now works predictably
-  (`↑/↓`, `Home/End`, `Enter`, `Esc`, `Tab`).
-- **Redesigned the History filters block with a flat minimal style**: filter cards are now cleaner and more compact, a dedicated “Reset” action was added, and an active-filters counter now shows how many filters are currently applied.
-- **Applied final polish to History filter dropdowns**: rows are slightly more compact, active selection is softer, and the menu separates better from list content.
-- **Polished History filter dropdowns further**: improved alignment, clearer filter captions, a lighter selected-item state, and cleaner menu separation from the background.
-- **Improved visual style of History filter dropdowns**: sort and filter menus are cleaner, the selected item is easier to recognize, and list navigation feels more consistent.
-- **Redesigned the History controls block**: filters, search, and action buttons now use a cleaner compact layout, selected values are easier to scan, and filters stack more reliably on narrow screens.
-- **Improved accessibility in the top bar and URL input block**: increased tap/click target sizes for primary actions, added clearer screen-reader labels, and improved keyboard-friendly button behavior.
-- **Completely redesigned the History control block**: search, sorting, delete actions, and filters are now organized into a clearer two-level Control Deck with larger controls.
-- **Moved secondary History actions into a single “More” menu**: export, restore, list density, and expand/collapse details are now grouped in one compact dropdown.
-- **Changed where History previews are stored**: thumbnails are now saved in the app settings folder, so they are less likely to disappear when the system temp folder is cleaned.
-- **Improved top menu tab buttons**: tabs now use a cleaner segmented style, balanced spacing, and a calmer active state.
-- **Removed the “Network status” indicator from the top bar**: the related toggle was also removed from “Appearance” settings to keep the interface simpler.
-- **Made tray menu updates more stable**: menu items now react faster to changes in download path and download status.
-- **Fixed repeated Settings-open event bindings**: the extra-listener warning no longer appears after opening Settings multiple times.
-- **Updated the Settings menu interface**: sections are now more compact and easier to navigate in a dense system-style layout.
-- **Improved readability in Settings**: clearer block titles and tighter spacing make common toggles faster to find.
-- **Updated tab backgrounds across the app**: all sections now use a single shared background for a more unified look.
-- **Optimized tooltips across the app**: tooltips now initialize lazily and are reused instead of being constantly recreated during rerenders, reducing unnecessary UI load.
-- **Improved popup menu behavior**: added a shared overlay manager so menus and context panels close centrally without duplicate handlers.
-- **Improved tooltip initialization in maintenance/test flows**: extra diagnostic messages no longer clutter output during test runs.
-- **Fixed History context menu behavior**: when confirming deletion of a record or file, the right-click menu now closes immediately and no longer overlaps the confirmation dialog.
-- **Added Undo for full History clear**: clearing all history now shows the same timed Undo window used for selected-entry deletion.
-- **Fixed full History-clear counter**: the notification now shows the correct number of removed entries even after list rerender timing differences.
-- **Improved macOS window restore behavior**: both “Expand window after download” and “Expand window on URL copy” now reliably bring the app window to the foreground.
-- **Fixed expanded History preview sizing across services**: images from Reddit, Twitch, and similar sources now fit inside the preview modal without stretching outside bounds.
+> In short: refreshed visuals, improved stability, and better workflows across Downloader, History, Tools, and Backup.
 
-### Downloader tab
+---
 
-- **Fixed deletion of some History files**: files with unusual names (for example, curly braces or double dots in the filename) can now be removed correctly.
-- **Added stricter link validation before loading video info**: if a link has an incomplete host (for example, a cut-off domain), the app now shows a clear error immediately instead of running a failing request.
+## Interface
 
-- **Improved resilience to YouTube limits**: video info checks now run more carefully (sequentially), and when temporary rate-limit is detected the app pauses new info requests to reduce repeated failures.
-- **Added a clear YouTube limit message**: when YouTube temporarily restricts requests, the quality picker now shows a clear hint with an approximate retry time.
-- **Improved queue title while metadata is loading**: instead of a technical URL, queue entries now show a clear “Fetching title…” status until video metadata arrives.
-- **Fixed queue title refresh after app restart**: if the app was closed before metadata loaded, missing titles are now fetched in the background and saved for future launches.
-- **Cleaned up queue data in local storage**: when queue/error lists become empty, their service entries are now removed from `localStorage` instead of keeping empty payloads.
-- **Redesigned the tools-check status block in Downloader and Tools**: the status row is now more compact, version chips (`yt-dlp`, `ffmpeg`, `Deno`) are easier to scan, and the visual style is now cleaner and more consistent.
-- **Refined queue “Start” button behavior**: while a download is already active, the button is now disabled to prevent accidental re-triggering.
-- **Queue Pause behavior was updated again**: when a download is active, Pause now stops the current process and puts that task back into the queue so it can continue later via resume flow.
-- **File deletion from History is now safer**: removed files are now sent to the system trash first instead of immediate permanent deletion, with a fallback delete path if trash is unavailable.
+| What changed | What you get |
+|---|---|
+| Refreshed overall app visual style | Tabs, section backgrounds, and spacing look cleaner and calmer |
+| Redesigned **Settings** window | More compact layout and clearer navigation |
+| Improved popup behavior | Unified overlay manager and more reliable menu closing |
+| Optimized tooltips | Fewer unnecessary rerenders with lazy initialization |
+| Improved macOS window behavior | App comes to the foreground correctly when needed |
+| Improved tray and internal handler stability | More predictable UI event behavior |
+| Fixed “What’s New” modal rendering | Markdown headings and tables now render correctly and are easier to read |
 
-- **Fixed URL field warning behavior**: the “Paste a link to start downloading” message no longer appears on regular blur of an empty field and is now shown only after an explicit download attempt.
+## Downloader
 
-- **Added reliable download resume flow**: Thunder Load now keeps intermediate download state and attempts to continue the same task from already downloaded progress when started again.
+| What changed | What you get |
+|---|---|
+| Improved link validation before downloads | Clearer error reasons |
+| Better resilience to YouTube limits | Improved handling of temporary limits |
+| Added proper download resume (**resume**) | Less progress loss on restart |
+| Improved URL input | Better highlight states, drag-and-drop, and faster repeated input |
+| Optimized queue start and processing | More stable task execution |
+| Fixed task title issues after restart | Correct labels in the list |
+| Improved History file handling | Safer deletion through system trash |
 
-- **Queue Pause behavior has been updated**: it no longer cancels active downloads and now only prevents automatic start of next queued tasks until you press “Start”.
+## Download Queue
 
-- **URL input has been improved**: clearer inline error reasons (empty field, invalid format, unsupported source), a valid-link visual state, drag-and-drop highlighting, and an inline preview loading indicator were added.
-- **Faster link entry flow**: after a successful download start or queue add, the URL field is cleared and focused again so you can paste the next link immediately.
+| What changed | What you get |
+|---|---|
+| Fully redesigned queue interface | Task cards, statuses, and progress are easier to read |
+| Added pause/start and clearer controls | Easier task flow control |
+| Improved retry flow and error handling | Fewer manual recovery steps |
+| Queue block auto-hides when empty | Cleaner interface |
+| Added queue clear confirmation | Lower risk of accidental deletion |
 
-- **URL field now clears after starting a download**: once a download starts successfully or a link is added to the queue, the field is cleared automatically so you can paste the next link faster.
+## Quality Picker
 
-- **Removed the progress bar from the URL field**: the input area is cleaner now, while active download progress is still shown in the action button and queue.
+| What changed | What you get |
+|---|---|
+| Updated formats list design | More compact and easier to scan |
+| Improved keyboard navigation and actions logic | Faster mouse-free workflow |
+| Fixed scrolling and close issues | More stable modal behavior |
+| Added clear loading states and placeholders | Fewer confusing empty states |
 
-- **Changed the default parallel download limit**: on new installs, downloads now start one at a time by default for more predictable queue behavior.
+## Download History
 
-- **Fixed queue “Pause” behavior**: when pressed during an active download, current downloads are now actually stopped, and new tasks stay paused until you press “Start”.
+| What changed | What you get |
+|---|---|
+| Fully redesigned list visuals | Better readability |
+| Added date-group actions | Faster bulk operations |
+| Improved search and filters | Easier record discovery |
+| Added list virtualization | Better performance on large histories |
+| Improved record details card | Faster understanding of entry details |
 
-- **Updated queue collapse button placement**: the “Collapse/Expand” control is now in the actions row next to the pause button.
+## Tools
 
-- **Updated queue button labels**: the start action is now labeled “Start”, and the pause button now uses icon-only style for a cleaner compact header.
+| What changed | What you get |
+|---|---|
+| Hardened IPC bridge between UI and core | Safer module interaction |
+| Fixed WireGuard compatibility after security changes | Stable WG workflows |
+| Improved tools folder handling and discovery | More reliable binary detection |
+| Added tools fallback during downloads | Fewer download startup failures |
+| Improved dependency install progress indication | Clearer install state feedback |
+| Added file hash checks (MD5, SHA-1, SHA-256, SHA-512) | Easier integrity verification |
 
-- **Fixed the “Start queue” button state**: it now becomes active right after links are added to the queue and starts processing tasks as expected.
+## Backup
 
-- **Added a warning before clearing the queue**: clicking the trash button now opens a confirmation dialog explaining that all queue entries will be removed.
-
-- **The download queue block now auto-hides when empty**: if there are no active or added tasks, the queue panel no longer takes space and appears only when items exist.
-
-- **Added collapse support for the download queue block**: you can now hide/show the queue list from the header, and the app remembers the state between launches.
-- **Fixed the queue “Pause” button behavior**: it is now enabled only while an active download is running, and stays disabled when nothing is currently downloading.
-
-- **Completely redesigned the “Download Queue” panel**: the queue now uses card-based items with clearer color-coded statuses, active/queued/done counters, and a more visible progress line for current downloads.
-- **Added a dedicated queue “Pause” control**: you can pause automatic start of next tasks without interrupting already active downloads.
-- **Improved queue item controls**: move/remove actions now appear on hover, failed tasks can be retried directly from the card, and an explicit empty-state view is shown when the queue has no tasks.
-
-- **Simplified the action menu in Quality picker**: the split-button dropdown now keeps only “Add to queue”, so enqueueing the selected option is faster and less cluttered.
-- **Refined the Quality picker visual design**: the options list is now more minimal and faster to scan, key details are easier to read, and advanced metrics remain available on expand.
-- **Queue UI polish has been applied**: task statuses and control buttons are now easier to scan, and the queue block keeps a cleaner rhythm across window widths.
-- **Download queue panel has been refined**: active, pending, and failed tasks are now easier to distinguish, and queue control buttons are clearer and better aligned in one compact block.
-- **Quality picker is now clearer while loading formats**: the right side now shows a compact format-list placeholder, so the modal no longer looks empty while options are being fetched.
-- **The Quality picker is now cleaner and easier to use**: the preview block is more compact, format-loading status is clearer, the footer now includes a direct “pick a format” hint, and hotkey hints were simplified to core actions.
-- **Improved Quality picker layout on medium widths (about 620–900 px)**: the right panel is now denser and more consistent, with tighter spacing and a more stable format-list height.
-- **The close button in the Quality picker is now more compact**: its size and spacing now match the style used in other app modals.
-- **Fixed the close button in the Quality picker**: after formats finish loading, the close action now works reliably on click again.
-- **Fixed Quality picker scrolling on long lists**: you can now scroll back to the top reliably and close the modal without getting stuck below.
-- **Removed redundant helper text in the Quality picker**: the “Pick a format from the list above” line is no longer duplicated in the footer area.
-- **Action clarity in Quality picker has been improved**: the disabled primary button now shows an explicit “Pick a format” hint, and footer hotkeys are grouped more cleanly next to action buttons.
-- **Format list in Quality picker is now more compact**: cards, metrics, and tags use tighter spacing so more options fit on screen without hurting readability.
-- **Quality picker is now easier on keyboard and narrow desktop windows**: the footer now uses a split action button with clear “Download” and “Add to queue” choices, keyboard flow for `Tab/Enter/Esc/↑/↓/A` is more predictable, and the layout stays usable around 620–900 px widths.
-- **Multi-download in Downloader is now more capable**: active jobs now show per-link progress, failed downloads can be retried quickly, and the parallel limit is configurable in the Settings modal.
-- **Queue throughput is now faster in Downloader**: you can now download up to two files at once, and pending tasks start automatically as slots become available.
-- **Improved the Quality picker**: options now show structured details (resolution, FPS, codec, size, and container), and the selection block immediately previews the final output.
-- **Improved the preview block in Quality picker**: added preview resolution, a source URL copy action, and a clear fallback state when the preview image is unavailable.
-- **Added visible hotkey hints in Quality picker**: the modal footer now shows navigation/action keys, including a quick `A` shortcut to enqueue the selected quality.
-- **Added mode-aware duplicate protection**: if a link already exists in history for the same mode (for example, video), it is skipped, while audio can still be downloaded separately for the same URL.
-- **Improved History entries**: details now expand by clicking the row, primary actions are in main buttons, and long “Source”/“File” values are cleaner with quick copy buttons.
-- **Refreshed Downloader action button visuals**: core buttons now use a cleaner glass style with clearer and more predictable hover/press states.
-- **URL input in Downloader is now easier to use**: added clearer link validation with inline hints, improved button states, and better clear/paste behavior.
-- **Aligned the URL field progress bar**: the download indicator now follows the field's inner contour and stays visually even across input states.
-- **Queue management is now cleaner and more compact**: added item priorities (move up/down), improved duplicate detection by URL + selected quality, and refreshed queue visuals.
-- **Added History list virtualization**: on large pages, only visible entries are rendered, making scrolling and history interactions smoother with lower system load.
-- **Improved History virtualization accuracy**: item heights are now auto-calibrated from real rendered size, making scrolling more stable across different density modes and expanded details.
-
-### Tools tab
-
-- **Hardened the IPC bridge between UI and core**: renderer calls now go through a strict allowlist by default, reducing the chance of unintended command access.
-- **Restored WireGuard panel compatibility after IPC hardening**: WG settings updates and UDP send actions now work again through explicitly allowed service channels.
-- **Fixed startup IPC-block issue in preload**: channel allowlist initialization no longer fails in sandbox mode.
-- **Improved free-space checks for backups on Windows**: the app now uses a modern PowerShell check instead of the deprecated command, reducing false warning messages.
-
-- **Fixed tools-folder switching on macOS**: when you select a new tools directory, Thunder Load now migrates detected binaries (`yt-dlp`, `ffmpeg`, `ffprobe`, `deno`) so downloads keep working without manual reinstall.
-- **Fixed install progress visibility in Tools**: after clicking “Download”, the install button now clearly shows that dependency download is in progress.
-- **Fixed downloads when using a custom Tools folder**: after changing the Tools directory, dependency checks now use the selected path, so video/audio downloads start correctly.
-- **Moved Tools controls in Settings into a separate modal**: in the Downloader section, tools checks and folder management now open in a dedicated window.
-- **Added automatic tools fallback at download time**: if the selected folder lacks working `yt-dlp/ffmpeg/ffprobe`, downloads now use valid binaries from the default tools folder automatically.
-- **Fixed `Requested format is not available` download failures**: when a saved quality profile contains stale format IDs, the app now auto-selects a valid format for the current video instead of failing.
-- **Added** the **Tools** tab: quick actions in one place (WG Unlock, hash check, system tools).
-- **Added** file hash verification (MD5, SHA-1, SHA-256, SHA-512) with expected-value comparison.
-
-### History
-
-- **History got a full visual redesign**: the panel now uses a cleaner dark layout with updated action header, refined list cards, and better readability.
-- **Added date-group bulk selection**: you can now quickly select or unselect all entries within the same day group.
-- **Improved filter usability**: the filters block is now collapsible with saved state, and the search clear button appears only when text is present.
-- **Adjusted the top History block to match the new layout**: action controls are now aligned to the right of the title, and the search field is placed on a separate row below.
-- **History search and filters are now merged into one block**: the top controls look cleaner, and the search input with collapsible filters now behaves as a single visual card.
-- **History filter dropdowns now include icons for each option**: source, sorting, and media type items are easier to scan and pick quickly.
-- **Refined History rows to a denser card layout**: date headers are cleaner, entry cards now use a compact 56×40 thumbnail, badges are aligned on one line, and right-side actions are visually tightened.
-- **Redesigned expanded History entry details**: the details card is cleaner and easier to scan, a file size field is now included, and long source/path values are presented more neatly.
+| What changed | What you get |
+|---|---|
+| Improved ZIP backup reliability on Windows when the standard command is unavailable | Backup does not fail immediately when `Compress-Archive` is unavailable |

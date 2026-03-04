@@ -12,6 +12,7 @@ import {
 import { closeAllModals } from "./modalManager.js";
 import { getLanguage, t } from "./i18n.js";
 const WHATSNEW_ALLOWED_TAGS = [
+  "h1",
   "h2",
   "h3",
   "h4",
@@ -28,11 +29,19 @@ const WHATSNEW_ALLOWED_TAGS = [
   "br",
   "small",
   "a",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
 ];
 
 const WHATSNEW_ALLOWED_ATTR = {
   "*": ["title"],
   a: ["href", "title", "target", "rel"],
+  th: ["align"],
+  td: ["align"],
 };
 
 const WHATSNEW_ALLOWED_URI = /^(https?:|mailto:)/i;
@@ -46,6 +55,7 @@ function sanitizeWhatsNewHtml(html) {
   return purifier.sanitize(html, {
     ALLOWED_TAGS: WHATSNEW_ALLOWED_TAGS,
     ALLOWED_ATTR: WHATSNEW_ALLOWED_ATTR,
+    ADD_ATTR: ["align"],
     ALLOWED_URI_REGEXP: WHATSNEW_ALLOWED_URI,
   });
 }
