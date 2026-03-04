@@ -27,19 +27,44 @@ function showToast(
     : `toast toast-${type}`;
   toast.className = toastClass;
 
-  // Создаем HTML структуру в стиле Liquid Glass
-  toast.innerHTML = `
-    <i class="toast-icon ${getIconClass(type)}"></i>
-    <div class="toast-content">
-      ${title ? `<div class="toast-title">${title}</div>` : ""}
-      <div class="toast-message">${message}</div>
-      ${onClickUndo ? `<a href="#" class="toast-undo" id="undo-action">${t("toast.undo")}</a>` : ""}
-    </div>
-    <button class="toast-close" aria-label="${t("toast.close")}">
-      <i class="fas fa-times"></i>
-    </button>
-    <div class="toast-progress"></div>
-  `;
+  const icon = document.createElement("i");
+  icon.className = `toast-icon ${getIconClass(type)}`;
+
+  const content = document.createElement("div");
+  content.className = "toast-content";
+
+  if (title) {
+    const titleEl = document.createElement("div");
+    titleEl.className = "toast-title";
+    titleEl.textContent = String(title);
+    content.appendChild(titleEl);
+  }
+
+  const messageEl = document.createElement("div");
+  messageEl.className = "toast-message";
+  messageEl.textContent = String(message || "");
+  content.appendChild(messageEl);
+
+  if (onClickUndo) {
+    const undo = document.createElement("a");
+    undo.href = "#";
+    undo.className = "toast-undo";
+    undo.id = "undo-action";
+    undo.textContent = t("toast.undo");
+    content.appendChild(undo);
+  }
+
+  const closeButton = document.createElement("button");
+  closeButton.className = "toast-close";
+  closeButton.setAttribute("aria-label", t("toast.close"));
+  const closeIcon = document.createElement("i");
+  closeIcon.className = "fas fa-times";
+  closeButton.appendChild(closeIcon);
+
+  const progress = document.createElement("div");
+  progress.className = "toast-progress";
+
+  toast.append(icon, content, closeButton, progress);
 
   toastContainer.appendChild(toast);
 
@@ -218,16 +243,28 @@ function showLoading(
 ) {
   const toast = document.createElement("div");
   toast.className = "toast toast-info toast-loading";
-  toast.innerHTML = `
-    <i class="toast-icon fas fa-spinner fa-spin"></i>
-    <div class="toast-content">
-      <div class="toast-title">${title}</div>
-      <div class="toast-message">${message}</div>
-    </div>
-    <button class="toast-close" aria-label="${t("toast.close")}">
-      <i class="fas fa-times"></i>
-    </button>
-  `;
+
+  const icon = document.createElement("i");
+  icon.className = "toast-icon fas fa-spinner fa-spin";
+
+  const content = document.createElement("div");
+  content.className = "toast-content";
+  const titleEl = document.createElement("div");
+  titleEl.className = "toast-title";
+  titleEl.textContent = String(title || "");
+  const messageEl = document.createElement("div");
+  messageEl.className = "toast-message";
+  messageEl.textContent = String(message || "");
+  content.append(titleEl, messageEl);
+
+  const closeButton = document.createElement("button");
+  closeButton.className = "toast-close";
+  closeButton.setAttribute("aria-label", t("toast.close"));
+  const closeIcon = document.createElement("i");
+  closeIcon.className = "fas fa-times";
+  closeButton.appendChild(closeIcon);
+
+  toast.append(icon, content, closeButton);
 
   toastContainer.appendChild(toast);
 
@@ -235,16 +272,13 @@ function showLoading(
     toast.classList.add("show");
   }, 100);
 
-  const closeButton = toast.querySelector(".toast-close");
   closeButton.addEventListener("click", () => closeToast(toast));
 
   return {
     close: () => closeToast(toast),
     update: (newMessage, newTitle = null) => {
-      const messageEl = toast.querySelector(".toast-message");
-      const titleEl = toast.querySelector(".toast-title");
-      if (messageEl) messageEl.textContent = newMessage;
-      if (newTitle && titleEl) titleEl.textContent = newTitle;
+      messageEl.textContent = String(newMessage || "");
+      if (newTitle) titleEl.textContent = String(newTitle);
     },
   };
 }

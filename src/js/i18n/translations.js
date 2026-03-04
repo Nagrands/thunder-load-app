@@ -789,7 +789,7 @@ export const translations = {
     "history.toast.folderOpenError": "Не удалось открыть папку.",
     "history.toast.retryUnavailable":
       "Ссылка для повторной загрузки недоступна.",
-    "history.toast.retryStart": "Повторная загрузка: <strong>{name}</strong>.",
+    "history.toast.retryStart": "Повторная загрузка: {name}.",
     "history.toast.deletedEntries": "Удалено {count} записей.",
     "history.toast.deleteCancelled": "Удаление отменено.",
     "history.toast.folderMissingShort": "Папка не найдена.",
@@ -2041,7 +2041,7 @@ export const translations = {
     "history.toast.folderMissing": "Folder not found on disk.",
     "history.toast.folderOpenError": "Failed to open folder.",
     "history.toast.retryUnavailable": "Retry link is unavailable.",
-    "history.toast.retryStart": "Retry download: <strong>{name}</strong>.",
+    "history.toast.retryStart": "Retry download: {name}.",
     "history.toast.deletedEntries": "Deleted {count} entries.",
     "history.toast.deleteCancelled": "Deletion canceled.",
     "history.toast.folderMissingShort": "Folder not found.",

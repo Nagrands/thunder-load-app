@@ -2,6 +2,7 @@
 
 ### Interface
 
+- **Improved safety for notifications and confirmation dialogs**: file names and links are now rendered safely, so embedded HTML from external metadata is no longer executed.
 - **Updated the History right-click context menu**: it is now more compact
   (single-line actions), destructive delete actions are visually separated,
   and keyboard navigation now works predictably
@@ -110,6 +111,9 @@
 
 ### Tools tab
 
+- **Hardened the IPC bridge between UI and core**: renderer calls now go through a strict allowlist by default, reducing the chance of unintended command access.
+- **Restored WireGuard panel compatibility after IPC hardening**: WG settings updates and UDP send actions now work again through explicitly allowed service channels.
+- **Fixed startup IPC-block issue in preload**: channel allowlist initialization no longer fails in sandbox mode.
 - **Improved free-space checks for backups on Windows**: the app now uses a modern PowerShell check instead of the deprecated command, reducing false warning messages.
 
 - **Fixed tools-folder switching on macOS**: when you select a new tools directory, Thunder Load now migrates detected binaries (`yt-dlp`, `ffmpeg`, `ffprobe`, `deno`) so downloads keep working without manual reinstall.

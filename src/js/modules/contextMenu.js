@@ -41,6 +41,14 @@ import { registerDismissibleOverlay } from "./overlayManager.js";
  */
 let currentLogEntry = null;
 let contextMenuInitialized = false;
+
+const escapeHtml = (value = "") =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 let lastFocusedElement = null;
 
 function getMenuItems() {
@@ -393,17 +401,20 @@ async function handleDeleteEntry(logEntry) {
     .replace(entryDateTime, "")
     .replace(entryQuality, "")
     .trim();
+  const safeFormattedName = escapeHtml(formattedName);
+  const safeEntryDateTime = escapeHtml(entryDateTime || "");
+  const safeEntryQuality = escapeHtml(entryQuality || "");
   const confirmationMessage = `
     <div class="info-entry">
       <div class="info-note">
-        <p><i class="fa-solid fa-film"></i> ${formattedName}</p>
+        <p><i class="fa-solid fa-film"></i> ${safeFormattedName}</p>
       </div>
       <div class="date-time-quality">
         <span class="date-time">
-          <i class="fa-solid fa-clock"></i> ${entryDateTime || "Без даты"}
+          <i class="fa-solid fa-clock"></i> ${safeEntryDateTime || "Без даты"}
         </span>
         <span class="quality">
-          <i class="fa-regular fa-rectangle-list"></i> ${entryQuality || "—"}
+          <i class="fa-regular fa-rectangle-list"></i> ${safeEntryQuality || "—"}
         </span>
       </div>
     </div>
@@ -416,6 +427,7 @@ async function handleDeleteEntry(logEntry) {
     confirmText: t("history.delete.confirm"),
     cancelText: t("history.delete.cancel"),
     tone: "danger",
+    allowHtml: true,
   });
   if (!confirmed) return;
 
@@ -545,12 +557,13 @@ async function handleDeleteFile(logEntry) {
   }
 
   const { fileName, dateTime, quality } = getEntryData(logEntry);
-  const entryDateTime = dateTime || "";
-  const entryQuality = quality || "";
+  const entryDateTime = escapeHtml(dateTime || "");
+  const entryQuality = escapeHtml(quality || "");
+  const safeFileName = escapeHtml(fileName || "");
   const confirmationMessage = `
     <div class="info-entry">
       <div class="info-delete">
-        <p><i class="fa-solid fa-film"></i> ${fileName}</p>
+        <p><i class="fa-solid fa-film"></i> ${safeFileName}</p>
       </div>
       <div class="date-time-quality">
         <span class="date-time">
@@ -570,6 +583,7 @@ async function handleDeleteFile(logEntry) {
     confirmText: t("history.deleteFile.confirm"),
     cancelText: t("history.deleteFile.cancel"),
     tone: "danger",
+    allowHtml: true,
   });
   if (!confirmed) return;
 
@@ -597,10 +611,7 @@ async function handleDeleteFile(logEntry) {
           btn.setAttribute("aria-disabled", "true");
         });
       await markDeletedFileAsMissing(logEntry, filePath);
-      showToast(
-        `Файл успешно удалён: <strong>${fileName}</strong>.`,
-        "success",
-      );
+      showToast(`Файл успешно удалён: ${fileName}.`, "success");
     } else {
       // В случае, если delete-file вернул false или другую неудачную индикацию
       showToast("Не удалось удалить файл.", "error");
@@ -639,7 +650,7 @@ function handleRetryDownload(logEntry) {
     downloadButton.classList.remove("disabled");
     downloadButton.classList.add("active");
 
-    showToast(`Повторная загрузка: <strong>${fileName}</strong>.`, "warning");
+    showToast(`Повторная загрузка: ${fileName}.`, "warning");
   }
 }
 

@@ -797,9 +797,23 @@ export default function renderBackup() {
   // Restore logBox content from localStorage if present
   if (logBox) {
     try {
-      const logData = localStorage.getItem("backupLog");
-      if (logData) {
-        logBox.innerHTML = logData;
+      const logDataText =
+        localStorage.getItem("backupLogText") ||
+        localStorage.getItem("backupLog");
+      if (logDataText) {
+        const legacyContainer = document.createElement("div");
+        legacyContainer.innerHTML = String(logDataText);
+        const plainText = legacyContainer.textContent || String(logDataText);
+        const lines = plainText
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        lines.forEach((lineText) => {
+          const line = document.createElement("div");
+          line.className = "log-line log-info";
+          line.textContent = lineText;
+          logBox.appendChild(line);
+        });
       }
     } catch {}
   }
@@ -910,7 +924,7 @@ export default function renderBackup() {
 
     // Save log to localStorage
     try {
-      localStorage.setItem("backupLog", logBox.innerHTML);
+      localStorage.setItem("backupLogText", getLogPlainText());
     } catch {}
   };
 
@@ -2970,6 +2984,7 @@ export default function renderBackup() {
     if (logBox) logBox.textContent = "";
     try {
       localStorage.removeItem("backupLog");
+      localStorage.removeItem("backupLogText");
     } catch {}
   });
 

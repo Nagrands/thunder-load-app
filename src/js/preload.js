@@ -28,30 +28,152 @@ try {
   const { contextBridge, ipcRenderer } = require("electron");
 
   /**
-   * Признак production‑сборки
+   * Аварийный режим: разрешить любые каналы только при явном флаге.
    * @type {boolean}
    */
-  const IS_PROD = process.env.NODE_ENV === "production";
+  const ALWAYS_ALLOW = process.env.THUNDER_LOAD_ALLOW_UNSAFE_IPC === "1";
 
   /**
-   * В dev разрешаем любые каналы, чтобы не ломать работу при несовпадении whitelist.
-   * В prod — включайте общий список каналов в `./ipc/channels`.
-   * @type {boolean}
-   */
-  const ALWAYS_ALLOW = !IS_PROD;
-
-  /**
-   * Список разрешённых каналов, если доступен общий enum каналов.
+   * Статический список разрешённых IPC-каналов.
+   * Не загружается через require, чтобы работать в sandboxed preload.
    * @type {string[]}
    */
-  let VALID_CHANNELS = [];
-  try {
-    // Необязательный импорт: может отсутствовать в старых ветках
-    const { CHANNELS_LIST } = require("./ipc/channels");
-    if (Array.isArray(CHANNELS_LIST)) VALID_CHANNELS = CHANNELS_LIST;
-  } catch (_) {
-    // ignore
-  }
+  const VALID_CHANNELS = Object.freeze([
+    "check-file-exists",
+    "clear-history",
+    "delete-file",
+    "download-update",
+    "download-video",
+    "get-auto-launch-status",
+    "get-auto-shutdown-deadline",
+    "get-auto-shutdown-seconds",
+    "get-auto-shutdown-status",
+    "get-close-notification-status",
+    "get-default-tab",
+    "get-disable-complete-modal-status",
+    "get-disable-global-shortcuts-status",
+    "get-download-count",
+    "get-download-parallel-limit",
+    "get-download-path",
+    "get-file-size",
+    "get-font-size",
+    "get-icon-path",
+    "cache-history-preview",
+    "delete-history-preview",
+    "get-video-info",
+    "get-minimize-instead-of-close-status",
+    "get-minimize-on-launch-status",
+    "get-minimize-to-tray-status",
+    "get-open-on-copy-url-status",
+    "get-open-on-download-complete-status",
+    "get-platform-info",
+    "get-theme",
+    "get-version",
+    "get-whats-new",
+    "whats-new:ready",
+    "whats-new:ack",
+    "load-history",
+    "open-config-folder",
+    "open-download-folder",
+    "open-external-link",
+    "open-last-video",
+    "open-terminal",
+    "restart-app",
+    "save-history",
+    "select-download-folder",
+    "set-auto-shutdown-seconds",
+    "set-auto-shutdown-status",
+    "set-close-notification-status",
+    "set-default-tab",
+    "set-disable-complete-modal-status",
+    "set-disable-global-shortcuts-status",
+    "set-download-path",
+    "set-download-parallel-limit",
+    "set-font-size",
+    "set-minimize-instead-of-close",
+    "set-minimize-on-launch-status",
+    "set-minimize-to-tray-status",
+    "set-open-on-copy-url-status",
+    "set-open-on-download-complete-status",
+    "set-theme",
+    "show-system-notification",
+    "stop-download",
+    "toast",
+    "toggle-auto-launch",
+    "tools:checkUpdates",
+    "tools:getVersions",
+    "tools:installAll",
+    "tools:showInFolder",
+    "tools:updateFfmpeg",
+    "tools:updateYtDlp",
+    "tools:getLocation",
+    "tools:setLocation",
+    "tools:openLocation",
+    "tools:migrateOld",
+    "tools:detectLegacy",
+    "tools:resetLocation",
+    "tools:hashPickFile",
+    "tools:hashCalculate",
+    "tools:sorterPickFolder",
+    "tools:sorterOpenFolder",
+    "tools:sorterRun",
+    "tools:createWindowsRestartShortcut",
+    "tools:createWindowsShutdownShortcut",
+    "tools:createWindowsUefiRebootShortcut",
+    "tools:createWindowsAdvancedBootShortcut",
+    "tools:createWindowsDeviceManagerShortcut",
+    "tools:createWindowsNetworkSettingsShortcut",
+    "dialog:choose-tools-dir",
+    "wg-open-config-folder",
+    "open-network-settings",
+    "wg-export-log",
+    "wg-get-config",
+    "wg-set-config",
+    "wg-reset-config-defaults",
+    "wg-send-udp",
+    "update:state",
+    "update:progress",
+    "update:error",
+    "update-available",
+    "update-available-info",
+    "update-progress",
+    "update-downloaded",
+    "update-error",
+    "update-message",
+    "update:dev-open",
+    "update:dev-progress",
+    "update:dev-downloaded",
+    "update:dev-error",
+    "backup:getPrograms",
+    "backup:savePrograms",
+    "backup:run",
+    "backup:preflight",
+    "backup:chooseDir",
+    "backup:openPath",
+    "backup:getLastTimes",
+    "backup:toggleReloadBlock",
+  ]);
+
+  /**
+   * Legacy-каналы, которые используются в совместимых обёртках preload.
+   * Они не входят в CHANNELS enum, но нужны для обратной совместимости.
+   * @type {string[]}
+   */
+  const LEGACY_ALLOWED_CHANNELS = Object.freeze([
+    "open-external",
+    "window-minimize",
+    "minimize",
+    "app:minimize",
+    "window-close",
+    "close",
+    "app:close",
+    "show-whats-new",
+    "window-focused",
+    "download-progress",
+    "download-notification",
+    "paste-notification",
+    "toast",
+  ]);
 
   /**
    * Проверка доступа к каналу.
@@ -59,7 +181,9 @@ try {
    * @returns {boolean}
    */
   const isAllowed = (channel) =>
-    ALWAYS_ALLOW || VALID_CHANNELS.includes(channel);
+    ALWAYS_ALLOW ||
+    VALID_CHANNELS.includes(channel) ||
+    LEGACY_ALLOWED_CHANNELS.includes(channel);
 
   // ────────────────────────────────────────────────────────────────────────────
   // Безопасные обёртки IPC

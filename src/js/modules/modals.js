@@ -42,6 +42,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     cancelText = t("confirm.default.cancel"),
     tone = "danger",
     singleButton = false,
+    allowHtml = false,
     onConfirm: confirmCb,
     onCancel: cancelCb,
   } = opts;
@@ -69,7 +70,11 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     return Promise.resolve(false);
   }
 
-  confirmationMessage.innerHTML = message;
+  if (allowHtml) {
+    confirmationMessage.innerHTML = String(message || "");
+  } else {
+    confirmationMessage.textContent = String(message || "");
+  }
   titleEl.textContent = title;
   subtitleEl.textContent = subtitle;
   confirmButton.textContent = confirmText;

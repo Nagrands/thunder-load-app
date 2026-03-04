@@ -104,6 +104,10 @@ const CHANNELS = Object.freeze({
   WG_OPEN_CONFIG_FOLDER: "wg-open-config-folder",
   WG_OPEN_NETWORK_SETTINGS: "open-network-settings",
   WG_EXPORT_LOG: "wg-export-log",
+  WG_GET_CONFIG: "wg-get-config",
+  WG_SET_CONFIG: "wg-set-config",
+  WG_RESET_CONFIG_DEFAULTS: "wg-reset-config-defaults",
+  WG_SEND_UDP: "wg-send-udp",
 
   // Update window events
   UPDATE_STATE_EVENT: "update:state",
