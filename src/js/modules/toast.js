@@ -3,6 +3,38 @@
 import { toastContainer } from "./domElements.js";
 import { t } from "./i18n.js";
 
+const TOAST_HTML_ALLOWED_TAGS = ["strong", "em", "b", "i", "br", "code", "span"];
+const TOAST_HTML_ALLOWED_ATTR = {
+  span: ["class"],
+  code: ["class"],
+};
+
+function sanitizeToastHtml(html) {
+  const purifier = window?.DOMPurify;
+  if (!purifier || typeof purifier.sanitize !== "function") {
+    return null;
+  }
+  return purifier.sanitize(html, {
+    ALLOWED_TAGS: TOAST_HTML_ALLOWED_TAGS,
+    ALLOWED_ATTR: TOAST_HTML_ALLOWED_ATTR,
+  });
+}
+
+function renderToastMessage(messageEl, message, options = {}) {
+  const { allowHtml = false } = options;
+  const text = String(message || "");
+  if (!allowHtml) {
+    messageEl.textContent = text;
+    return;
+  }
+  const safeHtml = sanitizeToastHtml(text);
+  if (typeof safeHtml === "string") {
+    messageEl.innerHTML = safeHtml;
+    return;
+  }
+  messageEl.textContent = text;
+}
+
 /**
  * Функция для отображения уведомлений (тостов) в стиле Liquid Glass
  * @param {string} message - Сообщение для отображения
@@ -11,6 +43,7 @@ import { t } from "./i18n.js";
  * @param {string} title - Заголовок уведомления (опционально)
  * @param {function} onClickUndo - Callback функция для действия отмены
  * @param {boolean} accent - Использовать акцентный стиль
+ * @param {{allowHtml?: boolean}} options - Дополнительные параметры рендера
  */
 function showToast(
   message,
@@ -19,6 +52,7 @@ function showToast(
   title = null,
   onClickUndo = null,
   accent = false,
+  options = {},
 ) {
   if (!toastContainer) return;
   const toast = document.createElement("div");
@@ -42,7 +76,7 @@ function showToast(
 
   const messageEl = document.createElement("div");
   messageEl.className = "toast-message";
-  messageEl.textContent = String(message || "");
+  renderToastMessage(messageEl, message, options);
   content.appendChild(messageEl);
 
   if (onClickUndo) {
@@ -276,8 +310,12 @@ function showLoading(
 
   return {
     close: () => closeToast(toast),
-    update: (newMessage, newTitle = null) => {
-      messageEl.textContent = String(newMessage || "");
+    update: (newMessage, newTitle = null, updateOptions = {}) => {
+      const nextOptions = {
+        allowHtml: options?.allowHtml ?? false,
+        ...updateOptions,
+      };
+      renderToastMessage(messageEl, newMessage, nextOptions);
       if (newTitle) titleEl.textContent = String(newTitle);
     },
   };

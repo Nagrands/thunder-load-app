@@ -47,12 +47,6 @@
     font-size: 0.9rem;
     font-style: italic;
   }
-
-  .downloader-tools-status {
-    margin-top: -2px;
-    margin-bottom: 10px;
-    padding-left: 72px;
-  }
 }
 
 .downloader-tools-status {
@@ -60,7 +54,6 @@
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  margin: 2px 0 12px;
   gap: 10px;
   min-height: 26px;
 
@@ -75,8 +68,6 @@
     align-items: center;
     gap: 10px;
     padding: 0;
-    font-size: 12px;
-    line-height: 1;
     color: var(--color-quality);
   }
 

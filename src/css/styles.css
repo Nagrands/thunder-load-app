@@ -12427,13 +12427,8 @@ body.is-mac .window-controls .btn-minimize {
 }
 .action-button:hover, .folder-button:hover, .paste-button:hover,
 .clear-button:hover {
-  border-color: rgba(var(--color-accent-rgb), 0.28);
   color: var(--color-accent);
-}
-.action-button:active, .folder-button:active, .paste-button:active,
-.clear-button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  font-size: 18px;
 }
 .action-button:focus-visible, .folder-button:focus-visible, .paste-button:focus-visible,
 .clear-button:focus-visible {
@@ -20843,18 +20838,12 @@ video {
   font-size: 0.9rem;
   font-style: italic;
 }
-.downloader-shell-header .downloader-tools-status {
-  margin-top: -2px;
-  margin-bottom: 10px;
-  padding-left: 72px;
-}
 
 .downloader-tools-status {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  margin: 2px 0 12px;
   gap: 10px;
   min-height: 26px;
 }
@@ -20868,8 +20857,6 @@ video {
   align-items: center;
   gap: 10px;
   padding: 0;
-  font-size: 12px;
-  line-height: 1;
   color: var(--color-quality);
 }
 .downloader-tools-status #dl-tools-icon {

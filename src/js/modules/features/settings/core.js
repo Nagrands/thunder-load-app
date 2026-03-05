@@ -24,6 +24,7 @@ import {
   refreshToolsInfoState,
   isToolsInfoStale,
 } from "../../toolsInfo.js";
+import { showToast } from "../../toast.js";
 import { showConfirmationDialog } from "../../modals.js";
 import { getLowEffects, setLowEffects } from "../../effectsMode.js";
 import { applyI18n, getLanguage, setLanguage, t } from "../../i18n.js";
@@ -569,10 +570,14 @@ async function initSettings() {
         item.classList.add("active");
         await setFontSize(newSize);
         fontSizeDropdownMenu.classList.remove("show");
-        window.electron.invoke(
-          "toast",
+        showToast(
           t("settings.fontSize.set", { size: newSize }),
           "success",
+          5500,
+          null,
+          null,
+          false,
+          { allowHtml: true },
         );
       });
     });
@@ -598,10 +603,14 @@ async function initSettings() {
         }
       });
       await setFontSize(defaultSize);
-      window.electron.invoke(
-        "toast",
+      showToast(
         t("settings.fontSize.reset", { size: defaultSize }),
         "success",
+        5500,
+        null,
+        null,
+        false,
+        { allowHtml: true },
       );
     });
   }
@@ -675,10 +684,14 @@ async function initSettings() {
           () => document.documentElement.classList.remove("theme-transition"),
           260,
         );
-        window.electron.invoke(
-          "toast",
+        showToast(
           t("settings.theme.set", { theme: themeLabel.textContent }),
           "success",
+          5500,
+          null,
+          null,
+          false,
+          { allowHtml: true },
         );
       });
     });
@@ -727,10 +740,14 @@ async function initSettings() {
         () => document.documentElement.classList.remove("theme-transition"),
         260,
       );
-      window.electron.invoke(
-        "toast",
+      showToast(
         t("settings.theme.reset", { theme: formatThemeLabel(defaultTheme) }),
         "success",
+        5500,
+        null,
+        null,
+        false,
+        { allowHtml: true },
       );
     });
   }
