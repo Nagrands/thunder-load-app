@@ -17679,6 +17679,9 @@ hr {
     transform: scale(1);
   }
 }
+.confirmation-modal {
+  z-index: 2140;
+}
 .confirmation-modal .modal-content {
   max-width: 520px;
   width: 100%;

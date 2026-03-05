@@ -1856,6 +1856,9 @@
 // Подтверждение (delete/file/history)
 // ----------------------------------------
 .confirmation-modal {
+  // Keep confirmation above Bootstrap tooltip layer (.tooltip z-index: 1070).
+  z-index: 2140;
+
   .modal-content {
     max-width: 520px;
     width: 100%;

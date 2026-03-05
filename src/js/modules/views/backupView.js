@@ -3,6 +3,7 @@
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { applyI18n, t } from "../i18n.js";
+import { initTooltips } from "../tooltipInitializer.js";
 
 /**
  * @typedef {Object} BackupProgram
@@ -307,41 +308,6 @@ export default function renderBackup() {
       }
     });
   }
-
-  const ensureTooltip = (el, text = "") => {
-    if (!el || !bootstrap?.Tooltip) return;
-    const title = String(text || el.getAttribute("title") || "").trim();
-    const prev = el.dataset.bkTooltipTitle || "";
-    const instance = bootstrap.Tooltip.getInstance(el);
-
-    if (!title) {
-      if (instance) instance.dispose();
-      delete el.dataset.bkTooltipTitle;
-      return;
-    }
-
-    if (prev === title && instance) return;
-
-    if (instance && prev !== title) {
-      instance.dispose();
-    }
-    el.setAttribute("title", title);
-    bootstrap.Tooltip.getOrCreateInstance(el, {
-      boundary: wrapper,
-    });
-    el.dataset.bkTooltipTitle = title;
-  };
-
-  // Ленивая инициализация тултипов: только создание отсутствующих экземпляров
-  const initBackupTooltips = (root = wrapper) => {
-    if (!root || !bootstrap?.Tooltip) return;
-    const tooltipTriggerList = root.querySelectorAll(
-      '[data-bs-toggle="tooltip"]',
-    );
-    tooltipTriggerList.forEach((tooltipTriggerEl) => {
-      ensureTooltip(tooltipTriggerEl);
-    });
-  };
 
   // --- Модальное окно удаления/выбора профилей (единый стиль с редактированием) ---
   function openBackupDeleteModal() {
@@ -1218,11 +1184,18 @@ export default function renderBackup() {
 
     // Update Bootstrap tooltips
     const updateTooltip = (el, text) => {
-      ensureTooltip(el, text);
+      if (!el) return;
+      const title = String(text || "").trim();
+      if (title) {
+        el.setAttribute("title", title);
+      } else {
+        el.removeAttribute("title");
+      }
     };
 
     updateTooltip(runSel, runSel ? runSel.title : "");
     updateTooltip(del, del ? del.title : "");
+    queueMicrotask(() => initTooltips(wrapper));
 
     // Update badges
     const delBadge = getEl("#bk-del-count");
@@ -1498,7 +1471,7 @@ export default function renderBackup() {
 
       root.innerHTML = "";
       root.appendChild(fragment);
-      queueMicrotask(() => initBackupTooltips(root));
+      queueMicrotask(() => initTooltips(root));
     };
 
     const onScroll = () => {
@@ -1695,7 +1668,7 @@ export default function renderBackup() {
       indexedPaged.forEach((entry) =>
         createProgramRow(entry, entry.pageIndex, root),
       );
-      queueMicrotask(() => initBackupTooltips(root));
+      queueMicrotask(() => initTooltips(root));
     }
 
     updateActionsState();
@@ -2616,7 +2589,7 @@ export default function renderBackup() {
     });
 
     // Initialize tooltips
-    queueMicrotask(() => initBackupTooltips());
+    queueMicrotask(() => initTooltips(wrapper));
   }
 
   const formatBytes = (bytes) => {
@@ -3038,9 +3011,6 @@ export default function renderBackup() {
   function updateClearVisibility() {
     if (!clearFilterBtn) return;
     const has = !!(filterInput && filterInput.value.trim());
-    // Уничтожить tooltip при скрытии кнопки
-    const tip = window.bootstrap?.Tooltip?.getInstance(clearFilterBtn);
-    if (tip) tip.dispose();
     clearFilterBtn.style.display = has ? "" : "none";
     clearFilterBtn.setAttribute("aria-hidden", has ? "false" : "true");
   }
@@ -3196,7 +3166,7 @@ export default function renderBackup() {
   });
 
   // Initialize tooltips
-  queueMicrotask(() => initBackupTooltips());
+  queueMicrotask(() => initTooltips(wrapper));
 
   const destroyViewResources = () => {
     stopHintsRotation();

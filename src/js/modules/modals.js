@@ -8,6 +8,7 @@ import {
   settingsModal,
 } from "./domElements.js";
 import { t } from "./i18n.js";
+import { hideAllTooltips } from "./tooltipInitializer.js";
 
 /**
  * Закрывает все модальные окна.
@@ -31,6 +32,13 @@ function closeAllModalsFunction() {
  * @param {Function} onCancel - Callback при отмене (deprecated, оставлен для совместимости)
  */
 function showConfirmationDialog(options, onConfirm, onCancel) {
+  // Prevent tooltip/popover overlap above the confirmation modal.
+  document.body.classList.add("confirmation-open");
+  hideAllTooltips();
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
   const opts =
     typeof options === "string" ? { message: options } : { ...(options || {}) };
 
@@ -129,6 +137,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     const closeModal = (returnFocus = true) => {
       confirmationModal.style.display = "none";
       confirmationModal.removeAttribute("data-tone");
+      document.body.classList.remove("confirmation-open");
       cancelButton.style.display = "";
       confirmButton.removeEventListener("click", onConfirmClick);
       cancelButton.removeEventListener("click", onCancelClick);

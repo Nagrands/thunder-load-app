@@ -41,10 +41,7 @@ const tooltipInstances = new Map();
 const popoverInstances = new Map();
 let tooltipSafetyPatched = false;
 let bodyClickListenerAttached = false;
-let delegatedTooltipListenersAttached = false;
 let delegatedPopoverListenersAttached = false;
-let activeTooltipElement = null;
-let activeTooltipTouch = false;
 let activeTriggerPatched = false;
 
 function ensureTooltipSafety() {
@@ -81,6 +78,22 @@ function ensureTooltipSafety() {
         return originalHide.apply(this, args);
       } catch (error) {
         console.warn("[Tooltips] Ошибка при скрытии tooltip:", error);
+        return this;
+      }
+    };
+  }
+
+  const originalShow = typeof proto.show === "function" ? proto.show : null;
+  if (originalShow) {
+    proto.show = function (...args) {
+      try {
+        // Do not allow tooltip rendering while confirmation modal is open.
+        if (document.body?.classList?.contains("confirmation-open")) {
+          return this;
+        }
+        return originalShow.apply(this, args);
+      } catch (error) {
+        console.warn("[Tooltips] Ошибка при показе tooltip:", error);
         return this;
       }
     };
@@ -196,60 +209,127 @@ function createTooltip(el) {
   return tooltip;
 }
 
-function findTooltipTarget(target) {
-  if (!target || !(target instanceof Element)) return null;
-  return target.closest('[data-bs-toggle="tooltip"]');
-}
-
 function hideTooltipForElement(el) {
-  const tooltip = tooltipInstances.get(el) || createTooltip(el);
+  const tooltip = tooltipInstances.get(el);
   if (!tooltip) return;
   try {
     tooltip.hide();
   } catch {}
 }
 
-function maybeShowTooltipFromEvent(event) {
-  const el = findTooltipTarget(event.target);
-  if (!el || !el.isConnected || el.disabled) return;
-  const tooltip = createTooltip(el);
+function hideAllTooltips() {
+  tooltipInstances.forEach((tooltip, el) => {
+    if (!(tooltip && el?.isConnected)) {
+      tooltipInstances.delete(el);
+      return;
+    }
+    try {
+      tooltip.hide?.();
+    } catch {}
+  });
+  popoverInstances.forEach((popover, el) => {
+    if (!(popover && el?.isConnected)) {
+      popoverInstances.delete(el);
+      return;
+    }
+    try {
+      popover.hide?.();
+    } catch {}
+  });
+
+  // Fallback for instances that were created outside our map.
+  if (window.bootstrap?.Tooltip) {
+    document
+      .querySelectorAll('[data-bs-toggle="tooltip"]')
+      .forEach((el) => {
+        try {
+          window.bootstrap.Tooltip.getInstance(el)?.hide?.();
+        } catch {}
+      });
+  }
+  if (window.bootstrap?.Popover) {
+    document
+      .querySelectorAll('[data-bs-toggle="popover"]')
+      .forEach((el) => {
+        try {
+          window.bootstrap.Popover.getInstance(el)?.hide?.();
+        } catch {}
+      });
+  }
+}
+
+function cleanupOrphanTooltips() {
+  tooltipInstances.forEach((tooltip, el) => {
+    if (el?.isConnected) return;
+    try {
+      tooltip?.hide?.();
+    } catch {}
+    tooltipInstances.delete(el);
+  });
+}
+
+function resolveTooltipTitle(el) {
+  if (!el) return "";
+  const title = String(el.getAttribute("title") || "").trim();
+  if (title) return title;
+  const bsOriginalTitle = String(
+    el.getAttribute("data-bs-original-title") || "",
+  ).trim();
+  if (bsOriginalTitle) return bsOriginalTitle;
+  return String(el.dataset.tooltipTitle || "").trim();
+}
+
+function syncTooltipInstance(el) {
+  if (!el || el.disabled) return;
+  const title = resolveTooltipTitle(el);
+  const instance = tooltipInstances.get(el);
+
+  if (!title) {
+    if (instance) {
+      try {
+        instance.dispose?.();
+      } catch {}
+      tooltipInstances.delete(el);
+    }
+    try {
+      el.removeAttribute("data-tooltip-managed");
+      el.removeAttribute("data-tooltip-title");
+    } catch {}
+    return;
+  }
+
+  const tooltip = instance || createTooltip(el);
   if (!tooltip) return;
-  if (event.type === "pointerenter") {
-    activeTooltipTouch = event.pointerType === "touch";
-    if (activeTooltipTouch) return;
+  if (!el.getAttribute("data-bs-original-title") && title) {
+    el.setAttribute("data-bs-original-title", title);
   }
-  activeTooltipElement = el;
-  try {
-    tooltip.show();
-  } catch {}
-}
+  const prevTitle = el.dataset.tooltipTitle || "";
 
-function maybeHideTooltipFromEvent(event) {
-  const el = findTooltipTarget(event.target);
-  if (!el || !el.isConnected) return;
-  if (event.type === "pointerleave" && activeTooltipTouch) return;
-  hideTooltipForElement(el);
-  if (activeTooltipElement === el) {
-    activeTooltipElement = null;
+  if (prevTitle !== title) {
+    try {
+      if (typeof tooltip.setContent === "function") {
+        tooltip.setContent({ ".tooltip-inner": title });
+      } else {
+        // Bootstrap instance without setContent (older runtime/mocks):
+        // update title sources in place without dispose/recreate churn.
+        el.setAttribute("data-bs-original-title", title);
+        if (tooltip._config && typeof tooltip._config === "object") {
+          tooltip._config.title = title;
+        }
+      }
+    } catch {
+      try {
+        tooltip.dispose?.();
+      } catch {}
+      tooltipInstances.delete(el);
+      createTooltip(el);
+    }
+    el.dataset.tooltipTitle = title;
   }
-}
 
-function attachDelegatedTooltipListeners() {
-  if (delegatedTooltipListenersAttached) return;
-  delegatedTooltipListenersAttached = true;
-
-  document.addEventListener("pointerenter", maybeShowTooltipFromEvent, true);
-  document.addEventListener("focusin", maybeShowTooltipFromEvent, true);
-  document.addEventListener("pointerleave", maybeHideTooltipFromEvent, true);
-  document.addEventListener("focusout", maybeHideTooltipFromEvent, true);
-  document.addEventListener(
-    "click",
-    (event) => {
-      const el = findTooltipTarget(event.target);
-      if (el) hideTooltipForElement(el);
-    },
-    true,
-  );
+  if (el.dataset.tooltipManaged !== "1") {
+    el.dataset.tooltipManaged = "1";
+  }
 }
 
 function findPopoverTarget(target) {
@@ -399,8 +479,7 @@ function initTooltips(root = document) {
     return;
   }
   ensureTooltipSafety();
-  disposeAllTooltips();
-  attachDelegatedTooltipListeners();
+  cleanupOrphanTooltips();
 
   const isMac = navigator.platform.toUpperCase().includes("MAC");
 
@@ -442,9 +521,9 @@ function initTooltips(root = document) {
   applyHotkeyTitles(tooltipTriggerList, isMac);
 
   tooltipTriggerList.forEach((el) => {
-    if (el.dataset.tooltipManaged === "1") return;
-    el.dataset.tooltipManaged = "1";
+    syncTooltipInstance(el);
   });
+  cleanupOrphanTooltips();
   initPopovers(contextRoot);
 
   // Обработка текста горячих клавиш в модальном окне (кроме блока "открытие сайтов")
@@ -554,4 +633,4 @@ function _isWithActiveTrigger(trigger) {
   return Object.values(trigger).some((value) => value);
 }
 
-export { initTooltips, disposeAllTooltips };
+export { initTooltips, disposeAllTooltips, hideAllTooltips };
