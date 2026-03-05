@@ -10639,7 +10639,7 @@
   --color-url-border: #2f425c;
   --color-url-link: #71beff;
   --color-url-text: #d6e3f9;
-  --topbar-bg: rgba(14, 19, 28, 0.74);
+  --topbar-bg: rgb(14, 19, 28);
   --topbar-border: rgba(255, 255, 255, 0.07);
   --topbar-shadow: 0 10px 24px rgba(6, 10, 18, 0.5);
   --topbar-height: 54px;
@@ -10713,7 +10713,7 @@
   --color-url-border: #274a7b;
   --color-url-link: #74b8ff;
   --color-url-text: #dbe9ff;
-  --topbar-bg: rgba(9, 18, 31, 0.8);
+  --topbar-bg: rgb(9, 18, 31);
   --topbar-border: rgba(255, 255, 255, 0.07);
   --topbar-shadow: 0 10px 24px rgba(4, 10, 20, 0.5);
   --topbar-height: 54px;
@@ -10782,7 +10782,7 @@
   --color-url-border: #79797a;
   --color-url-link: #252525;
   --color-url-text: #ffe7da;
-  --topbar-bg: rgba(58, 58, 58, 0.4784313725);
+  --topbar-bg: #3a3a3a;
   --topbar-border: rgba(0, 0, 0, 0.08);
   --topbar-shadow: 0 10px 24px rgba(10, 6, 14, 0.45);
   --topbar-height: 54px;
@@ -10854,7 +10854,7 @@
   --color-url-border: #4d233c;
   --color-url-link: #f97316;
   --color-url-text: #ffe7da;
-  --topbar-bg: rgba(26, 18, 30, 0.78);
+  --topbar-bg: rgb(26, 18, 30);
   --topbar-border: rgba(255, 255, 255, 0.08);
   --topbar-shadow: 0 10px 24px rgba(10, 6, 14, 0.45);
   --topbar-height: 54px;
@@ -10923,7 +10923,7 @@
   --color-url-border: #3b2359;
   --color-url-link: #c084fc;
   --color-url-text: #f7edff;
-  --topbar-bg: rgba(20, 12, 30, 0.78);
+  --topbar-bg: rgb(20, 12, 30);
   --topbar-border: rgba(255, 255, 255, 0.08);
   --topbar-shadow: 0 10px 24px rgba(8, 5, 14, 0.45);
   --topbar-height: 54px;
@@ -13791,9 +13791,8 @@ hr {
   position: relative;
 }
 .history-action-button:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  transform: translateY(-1px);
+  color: var(--color-highlight);
+  background: var(--color-hover);
 }
 .history-action-button:focus-visible {
   outline: none;
@@ -13857,7 +13856,7 @@ hr {
   width: 240px;
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  padding: 4px;
   gap: 4px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.17);
@@ -14005,9 +14004,9 @@ hr {
 
 .history-filter-pill {
   background: rgba(8, 14, 27, 0.65);
-  padding: 8px;
-  margin: 10px;
-  min-height: 38px;
+  padding: 12px;
+  margin: 2px;
+  min-height: 40px;
   min-width: 0;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
@@ -14026,12 +14025,11 @@ hr {
 }
 .history-filter-pill .history-filter-meta {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
   min-width: 0;
-  font-size: 12px;
   text-transform: none;
   color: rgba(255, 255, 255, 0.86);
   white-space: nowrap;
@@ -19938,26 +19936,28 @@ hr {
   outline-offset: 2px;
 }
 
-.tools-advanced {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.tools-advanced-section {
+  margin-top: 2px;
+  border: 1px solid rgba(132, 188, 255, 0.22);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: linear-gradient(180deg, rgba(122, 174, 238, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-.tools-advanced__toggle {
-  cursor: pointer;
-  padding: 8px 10px;
+.tools-advanced-section__title {
+  margin: 0;
+  padding: 10px 12px;
   font-size: 12px;
-  color: var(--color-quality);
-  user-select: none;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-highlight);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
 }
-.tools-advanced__toggle::-webkit-details-marker {
-  display: none;
-}
-.tools-advanced__body {
+.tools-advanced-section__body {
   display: grid;
   gap: 8px;
-  padding: 8px 10px 10px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  padding: 10px 12px 12px;
 }
 
 .tools-status-cards {
@@ -20157,11 +20157,9 @@ hr {
 .tools-location #tools-location-choose,
 .tools-location #tools-location-open,
 .tools-location #tools-location-reset,
-.tools-location #tools-location-migrate,
 .tools-location #ti-tools-location-choose,
 .tools-location #ti-tools-location-open,
-.tools-location #ti-tools-location-reset,
-.tools-location #ti-tools-location-migrate {
+.tools-location #ti-tools-location-reset {
   height: 36px;
   min-width: 36px;
   display: inline-flex;
@@ -20178,32 +20176,26 @@ hr {
 .tools-location #tools-location-choose:hover,
 .tools-location #tools-location-open:hover,
 .tools-location #tools-location-reset:hover,
-.tools-location #tools-location-migrate:hover,
 .tools-location #ti-tools-location-choose:hover,
 .tools-location #ti-tools-location-open:hover,
-.tools-location #ti-tools-location-reset:hover,
-.tools-location #ti-tools-location-migrate:hover {
+.tools-location #ti-tools-location-reset:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.12);
 }
 .tools-location #tools-location-choose:active,
 .tools-location #tools-location-open:active,
 .tools-location #tools-location-reset:active,
-.tools-location #tools-location-migrate:active,
 .tools-location #ti-tools-location-choose:active,
 .tools-location #ti-tools-location-open:active,
-.tools-location #ti-tools-location-reset:active,
-.tools-location #ti-tools-location-migrate:active {
+.tools-location #ti-tools-location-reset:active {
   transform: translateY(1px);
 }
 .tools-location #tools-location-choose:focus-visible,
 .tools-location #tools-location-open:focus-visible,
 .tools-location #tools-location-reset:focus-visible,
-.tools-location #tools-location-migrate:focus-visible,
 .tools-location #ti-tools-location-choose:focus-visible,
 .tools-location #ti-tools-location-open:focus-visible,
-.tools-location #ti-tools-location-reset:focus-visible,
-.tools-location #ti-tools-location-migrate:focus-visible {
+.tools-location #ti-tools-location-reset:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -20295,10 +20287,6 @@ hr {
   .tools-location .tools-location-row #tools-location-reset,
   .tools-location .tools-location-row #ti-tools-location-reset {
     grid-column: 2/span 1;
-  }
-  .tools-location .tools-location-row #tools-location-migrate,
-  .tools-location .tools-location-row #ti-tools-location-migrate {
-    grid-column: 3/span 1;
   }
   .tools-footer {
     grid-template-columns: 1fr;

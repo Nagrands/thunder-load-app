@@ -344,12 +344,9 @@ function renderToolsInfoSkeleton(section) {
 
         <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
 
-        <details class="tools-advanced" id="tools-advanced" aria-label="${t("tools.moreMenu")}" data-i18n-aria="tools.moreMenu">
-          <summary class="tools-advanced__toggle" id="tools-advanced-toggle">
-            <span data-i18n="tools.more">${t("tools.more")}</span>
-          </summary>
-
-          <div class="tools-advanced__body">
+        <section class="tools-advanced-section" id="tools-advanced-section" role="region" aria-labelledby="tools-advanced-title">
+          <h3 id="tools-advanced-title" class="tools-advanced-section__title" data-i18n="tools.more">${t("tools.more")}</h3>
+          <div class="tools-advanced-section__body">
             <div class="tools-wizard" id="tools-wizard" role="region" aria-label="${t("tools.wizard.title")}" data-i18n-aria="tools.wizard.title">
               <div class="tools-wizard__header">
                 <h3 data-i18n="tools.wizard.title">${t("tools.wizard.title")}</h3>
@@ -396,7 +393,6 @@ function renderToolsInfoSkeleton(section) {
                   <button id="ti-tools-location-choose" data-bs-toggle="tooltip" title="${t("tools.location.choose")}" data-i18n-title="tools.location.choose"><i class="fa-solid fa-folder-open"></i></button>
                   <button id="ti-tools-location-open" data-bs-toggle="tooltip" title="${t("tools.location.open")}" data-i18n-title="tools.location.open"><i class="fa-regular fa-folder-open"></i></button>
                   <button id="ti-tools-location-reset" data-bs-toggle="tooltip" title="${t("tools.location.reset")}" data-i18n-title="tools.location.reset"><i class="fa-solid fa-rotate-left"></i></button>
-                  <button id="ti-tools-location-migrate" data-bs-toggle="tooltip" title="${t("tools.location.migrate")}" data-i18n-title="tools.location.migrate"><i class="fa-solid fa-database"></i></button>
                 </div>
               </div>
             </div>
@@ -419,7 +415,7 @@ function renderToolsInfoSkeleton(section) {
               </div>
             </div>
           </div>
-        </details>
+        </section>
       </div>
     </details>
   `;
@@ -430,8 +426,8 @@ function getElements(section) {
     panel: section.querySelector("#tools-panel"),
     panelSummary: section.querySelector("#tools-panel-summary"),
     panelBody: section.querySelector("#tools-panel-body"),
-    advanced: section.querySelector("#tools-advanced"),
-    advancedToggle: section.querySelector("#tools-advanced-toggle"),
+    advancedSection: section.querySelector("#tools-advanced-section"),
+    advancedTitle: section.querySelector("#tools-advanced-title"),
     statusCardsEl: section.querySelector("#tools-status-cards"),
     summaryDotEl: section.querySelector("#tools-summary-dot"),
     summaryStatusEl: section.querySelector("#tools-summary-status"),
@@ -460,7 +456,6 @@ function getElements(section) {
     locChoose: section.querySelector("#ti-tools-location-choose"),
     locOpen: section.querySelector("#ti-tools-location-open"),
     locReset: section.querySelector("#ti-tools-location-reset"),
-    locMigrate: section.querySelector("#ti-tools-location-migrate"),
   };
 }
 
@@ -499,7 +494,6 @@ function initContext(section) {
     el.locChoose,
     el.locOpen,
     el.locReset,
-    el.locMigrate,
   ];
 
   const setStatusText = (text = "") => {
@@ -551,11 +545,6 @@ function initContext(section) {
 
   el.panel?.addEventListener("toggle", syncSummaryExpandedState);
   syncSummaryExpandedState();
-
-  el.advanced?.addEventListener("toggle", () => {
-    const expanded = el.advanced?.open ? "true" : "false";
-    el.advancedToggle?.setAttribute("aria-expanded", expanded);
-  });
 
   const updateStatusCards = (summary, overrides = {}, options = {}) => {
     if (!summary) {
@@ -946,66 +935,6 @@ function initContext(section) {
     }
     setStatusText(t("tools.location.resetSuccess"));
     await ctx.refresh({ force: true, reason: "reset-location" });
-  });
-
-  el.locMigrate?.addEventListener("click", async () => {
-    try {
-      const detect = await window.electron?.tools?.detectLegacy?.();
-      if (!detect?.success) {
-        setStatusText(t("tools.migrate.detectError"));
-        await window.electron?.invoke?.(
-          "toast",
-          t("tools.migrate.detectError"),
-          "error",
-        );
-        return;
-      }
-      if (!detect.found || !detect.found.length) {
-        setStatusText(t("tools.migrate.none"));
-        return;
-      }
-      let overwrite = false;
-      if (typeof showConfirmationDialog === "function") {
-        overwrite = !!(await showConfirmationDialog({
-          title: t("tools.migrate.confirm.title"),
-          subtitle: t("tools.migrate.confirm.subtitle"),
-          message: t("tools.migrate.confirm.message"),
-          confirmText: t("tools.migrate.confirm.confirm"),
-          cancelText: t("tools.migrate.confirm.cancel"),
-          tone: "danger",
-        }));
-      }
-      const res = await window.electron?.tools?.migrateOld?.({ overwrite });
-      if (!res?.success) {
-        setStatusText(t("tools.migrate.error"));
-        await window.electron?.invoke?.(
-          "toast",
-          t("tools.migrate.error"),
-          "error",
-        );
-        return;
-      }
-      const copied = res.copied?.length || 0;
-      const skipped = res.skipped?.length || 0;
-      setStatusText(
-        t("tools.migrate.success", {
-          mode: overwrite
-            ? t("tools.migrate.mode.overwrite")
-            : t("tools.migrate.mode.keep"),
-          copied,
-          skipped,
-        }),
-      );
-      await ctx.refresh({ force: true, reason: "migrate" });
-    } catch (error) {
-      console.error("[toolsInfo] migrateOld error:", error);
-      setStatusText(t("tools.migrate.error"));
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.migrate.error"),
-        "error",
-      );
-    }
   });
 
   el.locInput?.addEventListener("dblclick", async () => {

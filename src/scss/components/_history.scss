@@ -278,9 +278,8 @@
   position: relative;
 
   &:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.14);
-    transform: translateY(-1px);
+    color: var(--color-highlight);
+    background: var(--color-hover);
   }
 
   &:focus-visible {
@@ -353,7 +352,7 @@
   width: 240px;
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  padding: 4px;
   gap: 4px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.17);
@@ -511,9 +510,9 @@
 
 .history-filter-pill {
   background: rgba(8, 14, 27, 0.65);
-  padding: 8px;
-  margin: 10px;
-  min-height: 38px;
+  padding: 12px;
+  margin: 2px;
+  min-height: 40px;
   min-width: 0;
   transition:
     background-color 0.2s ease,
@@ -537,12 +536,11 @@
 
   .history-filter-meta {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: wrap ;
+    gap: 4px;
     min-width: 0;
-    font-size: 12px;
     text-transform: none;
     color: rgba(255, 255, 255, 0.86);
     white-space: nowrap;

@@ -354,28 +354,33 @@
   }
 }
 
-.tools-advanced {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.tools-advanced-section {
+  margin-top: 2px;
+  border: 1px solid rgba(132, 188, 255, 0.22);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: linear-gradient(
+    180deg,
+    rgba(122, 174, 238, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
-  &__toggle {
-    cursor: pointer;
-    padding: 8px 10px;
+  &__title {
+    margin: 0;
+    padding: 10px 12px;
     font-size: 12px;
-    color: var(--color-quality);
-    user-select: none;
-  }
-
-  &__toggle::-webkit-details-marker {
-    display: none;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-highlight);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
   }
 
   &__body {
     display: grid;
     gap: 8px;
-    padding: 8px 10px 10px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    padding: 10px 12px 12px;
   }
 }
 
@@ -609,11 +614,9 @@
   #tools-location-choose,
   #tools-location-open,
   #tools-location-reset,
-  #tools-location-migrate,
   #ti-tools-location-choose,
   #ti-tools-location-open,
-  #ti-tools-location-reset,
-  #ti-tools-location-migrate {
+  #ti-tools-location-reset {
     height: 36px;
     min-width: 36px;
     display: inline-flex;
@@ -635,33 +638,27 @@
   #tools-location-choose:hover,
   #tools-location-open:hover,
   #tools-location-reset:hover,
-  #tools-location-migrate:hover,
   #ti-tools-location-choose:hover,
   #ti-tools-location-open:hover,
-  #ti-tools-location-reset:hover,
-  #ti-tools-location-migrate:hover {
+  #ti-tools-location-reset:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.12);
   }
   #tools-location-choose:active,
   #tools-location-open:active,
   #tools-location-reset:active,
-  #tools-location-migrate:active,
   #ti-tools-location-choose:active,
   #ti-tools-location-open:active,
-  #ti-tools-location-reset:active,
-  #ti-tools-location-migrate:active {
+  #ti-tools-location-reset:active {
     transform: translateY(1px);
   }
 
   #tools-location-choose:focus-visible,
   #tools-location-open:focus-visible,
   #tools-location-reset:focus-visible,
-  #tools-location-migrate:focus-visible,
   #ti-tools-location-choose:focus-visible,
   #ti-tools-location-open:focus-visible,
-  #ti-tools-location-reset:focus-visible,
-  #ti-tools-location-migrate:focus-visible {
+  #ti-tools-location-reset:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
@@ -764,10 +761,6 @@
     #tools-location-reset,
     #ti-tools-location-reset {
       grid-column: 2 / span 1;
-    }
-    #tools-location-migrate,
-    #ti-tools-location-migrate {
-      grid-column: 3 / span 1;
     }
   }
 
