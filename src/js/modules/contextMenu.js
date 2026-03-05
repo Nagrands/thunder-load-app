@@ -35,6 +35,7 @@ import { updateDownloadCount, sortHistory } from "./history.js";
 import { state, updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { registerDismissibleOverlay } from "./overlayManager.js";
+import { focusUrlInputAfterRetry } from "./retryFocus.js";
 
 /**
  * Текущий выбранный элемент истории
@@ -649,6 +650,7 @@ function handleRetryDownload(logEntry) {
 
     downloadButton.classList.remove("disabled");
     downloadButton.classList.add("active");
+    focusUrlInputAfterRetry();
 
     showToast(`Повторная загрузка: ${fileName}.`, "warning");
   }

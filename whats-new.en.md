@@ -4,8 +4,6 @@
 
 ---
 
-## Interface
-
 | What changed | What you get |
 |---|---|
 | Fixed toast formatting in Settings | Notification text now renders correctly without visible HTML tags |
@@ -14,3 +12,4 @@
 | Unified tooltip behavior across the app | Tooltips now behave consistently in all sections |
 | Fixed tooltips in Download History | Main actions and controls in history entries now show tooltips reliably again |
 | Fixed delete confirmation overlap in History | Tooltips no longer appear above the delete confirmation dialog |
+| Improved “Retry download” in History | The app now smoothly scrolls to the URL field and focuses it after retry |

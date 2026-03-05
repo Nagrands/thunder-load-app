@@ -27,7 +27,11 @@ jest.mock("../filterAndSortHistory.js", () => ({
 
 const setupDom = () => {
   document.body.innerHTML = `
-    <input id="url" />
+    <div class="input-container">
+      <div class="url-input-wrapper" id="url-input-wrapper">
+        <input id="url" />
+      </div>
+    </div>
     <button id="download-button"><span class="button-text"></span></button>
     <button id="download-cancel"></button>
     <button id="open-history"></button>
@@ -86,12 +90,23 @@ const setupDom = () => {
   global.window.electron = {
     invoke: jest.fn(),
   };
+  global.window.scrollTo = jest.fn();
   global.window.lucide = {
     createIcons: jest.fn(),
     icons: {},
   };
 
   global.requestAnimationFrame = (cb) => cb();
+
+  const retryTarget = document.getElementById("url-input-wrapper");
+  retryTarget.getBoundingClientRect = jest.fn(() => ({
+    top: 520,
+    left: 0,
+    width: 120,
+    height: 40,
+    right: 120,
+    bottom: 560,
+  }));
 };
 
 const createEntry = (overrides = {}) => ({
@@ -216,6 +231,39 @@ describe("Downloader history list", () => {
     expect(badges.querySelector(".history-badge--host")).not.toBeNull();
     expect(badges.querySelector(".history-badge--media")).not.toBeNull();
     expect(badges.querySelector(".history-row__size")).not.toBeNull();
+  });
+
+  test("retry from row menu scrolls to URL input and focuses it", async () => {
+    jest.useFakeTimers();
+    const { renderHistory } = await import("../history.js");
+    window.electron.invoke.mockResolvedValue(true);
+
+    renderHistory([createEntry()]);
+
+    const menuButton = document.querySelector(".history-row__menu-button");
+    menuButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const menuItems = document.querySelectorAll(".history-row__menu-item");
+    const retryItem = menuItems[1];
+    retryItem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const url = document.getElementById("url");
+
+    expect(url.value).toBe("https://example.com/watch?v=1");
+    expect(window.scrollTo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        behavior: "smooth",
+      }),
+    );
+
+    jest.runAllTimers();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(url);
+    expect(url.selectionStart).toBe(0);
+    expect(url.selectionEnd).toBe(url.value.length);
+    jest.useRealTimers();
   });
 
   test("toggles control-deck more menu and closes on escape", async () => {

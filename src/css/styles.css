@@ -11571,7 +11571,7 @@ footer {
   justify-content: center;
   width: 100%;
   flex-wrap: wrap;
-  max-width: 1020px;
+  max-width: 1080px;
   animation: fadeIn 0.5s ease-in-out;
   transition: background-color var(--transition-duration), color var(--transition-duration), border-color var(--transition-duration), box-shadow var(--transition-duration);
 }
@@ -13643,7 +13643,7 @@ hr {
 }
 
 .history-controls {
-  margin-top: 14px;
+  margin-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -15073,7 +15073,7 @@ hr {
 
 .history-area {
   margin: 20px auto;
-  background: #161b27;
+  background: var(--color-bg-main);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
 }
@@ -15112,7 +15112,6 @@ hr {
 }
 
 .history-toolbar {
-  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }

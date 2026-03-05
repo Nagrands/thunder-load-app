@@ -107,7 +107,7 @@
 }
 
 .history-controls {
-  margin-top: 14px;
+  margin-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1707,7 +1707,7 @@
 
 .history-area {
   margin: 20px auto;
-  background: #161b27;
+  background: var(--color-bg-main);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
 }
@@ -1746,7 +1746,6 @@
 }
 
 .history-toolbar {
-  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }

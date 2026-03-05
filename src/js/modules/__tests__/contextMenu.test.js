@@ -55,7 +55,11 @@ jest.mock("../i18n.js", () => ({
 
 const setupDom = () => {
   document.body.innerHTML = `
-    <input id="url" />
+    <div class="input-container">
+      <div class="url-input-wrapper" id="url-input-wrapper">
+        <input id="url" />
+      </div>
+    </div>
     <button id="download-button"><span class="button-text"></span></button>
     <button id="download-cancel"></button>
     <button id="open-history"></button>
@@ -108,6 +112,17 @@ const setupDom = () => {
       return null;
     }),
   };
+  global.window.scrollTo = jest.fn();
+
+  const retryTarget = document.getElementById("url-input-wrapper");
+  retryTarget.getBoundingClientRect = jest.fn(() => ({
+    top: 540,
+    left: 0,
+    width: 100,
+    height: 40,
+    right: 100,
+    bottom: 580,
+  }));
 };
 
 const openContextMenuOnEntry = async () => {
@@ -259,5 +274,33 @@ describe("context menu UI", () => {
 
     pendingConfirm.resolve(false);
     await Promise.resolve();
+  });
+
+  test("retry scrolls to URL input and focuses it", async () => {
+    jest.useFakeTimers();
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    await openContextMenuOnEntry();
+    document
+      .getElementById("retry-download")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const url = document.getElementById("url");
+
+    expect(url.value).toBe("https://example.com/video");
+    expect(window.scrollTo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        behavior: "smooth",
+      }),
+    );
+
+    jest.runAllTimers();
+    await flush();
+
+    expect(document.activeElement).toBe(url);
+    expect(url.selectionStart).toBe(0);
+    expect(url.selectionEnd).toBe(url.value.length);
+    jest.useRealTimers();
   });
 });

@@ -31,6 +31,7 @@ import { normalizeEntry } from "../../normalizeEntry.js";
 import { handleDeleteEntry } from "../../contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
+import { focusUrlInputAfterRetry } from "../../retryFocus.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
@@ -2117,6 +2118,7 @@ function retryHistoryCardDownload(entry) {
   } catch (_) {}
   updateButtonState();
   downloadButton.classList.add("active");
+  focusUrlInputAfterRetry();
   showToast(
     t("history.toast.retryStart", {
       name: entry.fileName || entry.sourceUrl,
