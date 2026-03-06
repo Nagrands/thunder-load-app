@@ -1290,18 +1290,27 @@ export default function renderToolsView() {
             <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
               Сортирует файлы в выбранной папке по категориям расширений.
             </p>
-            <div class="hash-check-grid">
-              <section class="sorter-rules-panel" aria-label="File Sorter rules">
-                <div class="sorter-rules-panel__header">
-                  <h3 data-i18n="tools.sorter.rules.title">Категории сортировки</h3>
-                  <p class="muted" data-i18n="tools.sorter.rules.subtitle">
-                    Перед запуском проверьте, в какие папки попадут файлы.
+            <section class="sorter-workspace-panel" aria-label="File Sorter workspace">
+              <div class="sorter-workspace-panel__header">
+                <div>
+                  <h3 data-i18n="tools.sorter.workspace.title">Рабочая область</h3>
+                  <p class="muted" data-i18n="tools.sorter.workspace.subtitle">
+                    Выберите папку, при необходимости укажите лог и затем запустите предпросмотр или сортировку.
                   </p>
                 </div>
-                <div id="sorter-rules-list" class="sorter-rules-list"></div>
-              </section>
-              <div class="hash-row hash-row--top">
-                <div class="hash-file-control">
+                <div class="sorter-actions">
+                  <button id="sorter-preview-run" type="button" class="large-button secondary">
+                    <i class="fa-regular fa-eye"></i>
+                    <span data-i18n="tools.sorter.previewAction">Показать предпросмотр</span>
+                  </button>
+                  <button id="sorter-apply-run" type="button" class="large-button">
+                    <i class="fa-solid fa-play"></i>
+                    <span data-i18n="tools.sorter.applyAction">Применить сортировку</span>
+                  </button>
+                </div>
+              </div>
+              <div class="sorter-workspace-grid">
+                <div class="sorter-workspace-field sorter-workspace-field--folder">
                   <span class="muted hash-file-label" data-i18n="tools.sorter.folder">Папка для сортировки</span>
                   <div class="hash-actions-inline sorter-folder-actions">
                     <button id="sorter-pick-folder" type="button" class="small-button">
@@ -1315,9 +1324,7 @@ export default function renderToolsView() {
                     </button>
                   </div>
                 </div>
-              </div>
-              <div class="hash-row">
-                <div class="hash-expected-wrap">
+                <div class="sorter-workspace-field sorter-workspace-field--log">
                   <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">Лог-файл (опционально)</label>
                   <input
                     id="sorter-log-path"
@@ -1328,6 +1335,17 @@ export default function renderToolsView() {
                   />
                 </div>
               </div>
+            </section>
+            <div class="sorter-setup-grid">
+              <section class="sorter-rules-panel" aria-label="File Sorter rules">
+                <div class="sorter-rules-panel__header">
+                  <h3 data-i18n="tools.sorter.rules.title">Категории сортировки</h3>
+                  <p class="muted" data-i18n="tools.sorter.rules.subtitle">
+                    Перед запуском проверьте, в какие папки попадут файлы.
+                  </p>
+                </div>
+                <div id="sorter-rules-list" class="sorter-rules-list"></div>
+              </section>
               <section class="sorter-options-panel" aria-label="File Sorter options">
                 <div class="sorter-options-panel__header">
                   <h3 data-i18n="tools.sorter.options.title">Параметры сортировки</h3>
@@ -1370,23 +1388,11 @@ export default function renderToolsView() {
                       type="text"
                       class="wg-input"
                       data-i18n-placeholder="tools.sorter.ignoreFolders.placeholder"
-                      placeholder="node_modules, Cache, temp"
+                      placeholder="temp, cache"
                     />
                   </div>
                 </div>
               </section>
-              <div class="hash-row hash-row--bottom">
-                <div class="sorter-actions">
-                  <button id="sorter-preview-run" type="button" class="large-button secondary">
-                    <i class="fa-regular fa-eye"></i>
-                    <span data-i18n="tools.sorter.previewAction">Показать предпросмотр</span>
-                  </button>
-                  <button id="sorter-apply-run" type="button" class="large-button">
-                    <i class="fa-solid fa-play"></i>
-                    <span data-i18n="tools.sorter.applyAction">Применить сортировку</span>
-                  </button>
-                </div>
-              </div>
             </div>
             <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
               Результат появится после запуска.
@@ -1439,7 +1445,7 @@ export default function renderToolsView() {
                 </div>
               </div>
               <div id="sorter-preview-stats" class="sorter-preview-stats">
-                <div class="sorter-preview-stat">
+                <div class="sorter-preview-stat sorter-preview-stat--primary">
                   <span class="muted" data-i18n="tools.sorter.preview.stats.moved">Обработано</span>
                   <strong id="sorter-preview-stat-moved">0</strong>
                 </div>
@@ -1447,32 +1453,46 @@ export default function renderToolsView() {
                   <span class="muted" data-i18n="tools.sorter.preview.stats.total">Всего файлов</span>
                   <strong id="sorter-preview-stat-total">0</strong>
                 </div>
-                <div class="sorter-preview-stat">
+                <div class="sorter-preview-stat sorter-preview-stat--warning">
                   <span class="muted" data-i18n="tools.sorter.preview.stats.skipped">Пропущено</span>
                   <strong id="sorter-preview-stat-skipped">0</strong>
                 </div>
-                <div class="sorter-preview-stat">
+                <div class="sorter-preview-stat sorter-preview-stat--danger">
                   <span class="muted" data-i18n="tools.sorter.preview.stats.errors">Ошибок</span>
                   <strong id="sorter-preview-stat-errors">0</strong>
                 </div>
               </div>
-              <div class="sorter-breakdown">
-                <div class="sorter-breakdown__header">
-                  <h4 data-i18n="tools.sorter.breakdown.title">По категориям</h4>
+              <div class="sorter-preview-layout">
+                <div class="sorter-preview-main">
+                  <div class="sorter-preview-list-panel">
+                    <div class="sorter-preview-list-panel__header">
+                      <h4 data-i18n="tools.sorter.preview.list.title">Операции</h4>
+                      <span id="sorter-preview-list-count" class="sorter-section-count muted">0</span>
+                    </div>
+                    <div id="sorter-preview-list" class="sorter-preview-list"></div>
+                    <p id="sorter-preview-filter-empty" class="sorter-preview-list__empty muted hidden" data-i18n="tools.sorter.preview.filterEmpty">
+                      По текущему фильтру ничего не найдено.
+                    </p>
+                    <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
+                  </div>
                 </div>
-                <div id="sorter-breakdown-list" class="sorter-breakdown-list"></div>
+                <aside class="sorter-preview-sidebar">
+                  <div class="sorter-breakdown">
+                    <div class="sorter-breakdown__header">
+                      <h4 data-i18n="tools.sorter.breakdown.title">По категориям</h4>
+                      <span id="sorter-breakdown-count" class="sorter-section-count muted">0</span>
+                    </div>
+                    <div id="sorter-breakdown-list" class="sorter-breakdown-list"></div>
+                  </div>
+                  <div id="sorter-errors-panel" class="sorter-errors-panel hidden">
+                    <div class="sorter-errors-panel__header">
+                      <h4 data-i18n="tools.sorter.errorsPanel.title">Ошибки и пропуски</h4>
+                      <span id="sorter-errors-count" class="sorter-section-count muted">0</span>
+                    </div>
+                    <div id="sorter-errors-list" class="sorter-errors-list"></div>
+                  </div>
+                </aside>
               </div>
-              <div id="sorter-errors-panel" class="sorter-errors-panel hidden">
-                <div class="sorter-errors-panel__header">
-                  <h4 data-i18n="tools.sorter.errorsPanel.title">Ошибки и пропуски</h4>
-                </div>
-                <div id="sorter-errors-list" class="sorter-errors-list"></div>
-              </div>
-              <div id="sorter-preview-list" class="sorter-preview-list"></div>
-              <p id="sorter-preview-filter-empty" class="sorter-preview-list__empty muted hidden" data-i18n="tools.sorter.preview.filterEmpty">
-                По текущему фильтру ничего не найдено.
-              </p>
-              <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
             </section>
             <div id="sorter-howto-modal" class="sorter-howto-overlay hidden" aria-hidden="true">
               <div

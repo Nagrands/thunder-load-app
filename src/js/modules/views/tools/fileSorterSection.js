@@ -52,9 +52,12 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
   const sorterExportResultBtn = getEl("sorter-export-result", view);
   const sorterRulesListEl = getEl("sorter-rules-list", view);
   const sorterBreakdownListEl = getEl("sorter-breakdown-list", view);
+  const sorterBreakdownCountEl = getEl("sorter-breakdown-count", view);
   const sorterErrorsPanelEl = getEl("sorter-errors-panel", view);
   const sorterErrorsListEl = getEl("sorter-errors-list", view);
+  const sorterErrorsCountEl = getEl("sorter-errors-count", view);
   const sorterPreviewListEl = getEl("sorter-preview-list", view);
+  const sorterPreviewListCountEl = getEl("sorter-preview-list-count", view);
   const sorterPreviewFilterEmptyEl = getEl("sorter-preview-filter-empty", view);
   const sorterPreviewMoreEl = getEl("sorter-preview-more", view);
   const sorterPreviewMovedEl = getEl("sorter-preview-stat-moved", view);
@@ -218,11 +221,16 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     })).filter((entry) => entry.count > 0);
 
     if (!entries.length) {
+      if (sorterBreakdownCountEl) sorterBreakdownCountEl.textContent = "0";
       const empty = document.createElement("p");
       empty.className = "sorter-breakdown-list__empty muted";
       empty.textContent = t("tools.sorter.breakdown.empty");
       sorterBreakdownListEl.appendChild(empty);
       return;
+    }
+
+    if (sorterBreakdownCountEl) {
+      sorterBreakdownCountEl.textContent = String(entries.length);
     }
 
     entries.forEach(({ category, count }) => {
@@ -421,11 +429,13 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     }
     if (!sorterFolderPillEl) return;
     if (!sorterSelectedFolder) {
+      sorterFolderPillEl.classList.remove("is-selected");
       sorterFolderPillEl.classList.add("muted");
       sorterFolderPillEl.textContent = t("tools.sorter.noFolder");
       sorterFolderPillEl.removeAttribute("title");
       return;
     }
+    sorterFolderPillEl.classList.add("is-selected");
     sorterFolderPillEl.classList.remove("muted");
     sorterFolderPillEl.textContent = sorterSelectedFolder;
     sorterFolderPillEl.title = sorterSelectedFolder;
@@ -439,6 +449,7 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
 
   const hideSorterPreview = () => {
     sorterPreviewPanelEl?.classList.add("hidden");
+    sorterPreviewPanelEl?.classList.remove("is-results");
     sorterLatestResult = null;
     if (sorterPreviewTitleEl) {
       sorterPreviewTitleEl.textContent = t("tools.sorter.preview.title");
@@ -450,6 +461,8 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     sorterErrorsPanelEl?.classList.add("hidden");
     if (sorterErrorsListEl) sorterErrorsListEl.replaceChildren();
     if (sorterPreviewListEl) sorterPreviewListEl.replaceChildren();
+    if (sorterPreviewListCountEl) sorterPreviewListCountEl.textContent = "0";
+    if (sorterErrorsCountEl) sorterErrorsCountEl.textContent = "0";
     sorterPreviewFilterEmptyEl?.classList.add("hidden");
     if (sorterPreviewMoreEl) {
       sorterPreviewMoreEl.classList.add("hidden");
@@ -473,10 +486,14 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
       .filter((item) => item?.status === "skipped" || item?.status === "error");
 
     if (!problemItems.length) {
+      if (sorterErrorsCountEl) sorterErrorsCountEl.textContent = "0";
       sorterErrorsPanelEl.classList.add("hidden");
       return;
     }
 
+    if (sorterErrorsCountEl) {
+      sorterErrorsCountEl.textContent = String(problemItems.length);
+    }
     sorterErrorsPanelEl.classList.remove("hidden");
     problemItems.forEach((item) => {
       const row = document.createElement("div");
@@ -509,6 +526,7 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     );
 
     sorterPreviewPanelEl.classList.remove("hidden");
+    sorterPreviewPanelEl.classList.toggle("is-results", mode !== "preview");
     if (sorterPreviewTitleEl) {
       sorterPreviewTitleEl.textContent = t(
         mode === "preview"
@@ -543,6 +561,9 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     if (sorterExportResultBtn) sorterExportResultBtn.disabled = false;
 
     sorterPreviewListEl.replaceChildren();
+    if (sorterPreviewListCountEl) {
+      sorterPreviewListCountEl.textContent = String(filteredOperations.length);
+    }
     sorterPreviewFilterEmptyEl?.classList.toggle(
       "hidden",
       !(filteredOperations.length === 0 && operations.length > 0),

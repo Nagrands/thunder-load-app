@@ -334,6 +334,12 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "sorter");
 
+    expect(el.querySelector(".sorter-workspace-panel")).not.toBeNull();
+    expect(el.querySelector(".sorter-setup-grid")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-layout")).not.toBeNull();
+    expect(el.querySelector("#sorter-preview-list-count")).not.toBeNull();
+    expect(el.querySelector("#sorter-breakdown-count")).not.toBeNull();
+    expect(el.querySelector("#sorter-errors-count")).not.toBeNull();
     const rules = el.querySelectorAll("#sorter-rules-list .sorter-rule-card");
     expect(rules.length).toBe(6);
     expect(el.querySelector("#sorter-conflict-mode")).not.toBeNull();
@@ -383,6 +389,8 @@ describe("toolsView quick actions", () => {
       el.querySelectorAll("#sorter-breakdown-list .sorter-breakdown-item")
         .length,
     ).toBe(2);
+    expect(el.querySelector("#sorter-preview-list-count")?.textContent).toBe("2");
+    expect(el.querySelector("#sorter-breakdown-count")?.textContent).toBe("2");
     el.querySelector("#sorter-preview-search").value = "second";
     el.querySelector("#sorter-preview-search")?.dispatchEvent(
       new Event("input", { bubbles: true }),
@@ -471,8 +479,12 @@ describe("toolsView quick actions", () => {
       "tools.sorter.results.title",
     );
     expect(
+      el.querySelector("#sorter-preview-panel")?.classList.contains("is-results"),
+    ).toBe(true);
+    expect(
       el.querySelectorAll("#sorter-errors-list .sorter-errors-row").length,
     ).toBe(3);
+    expect(el.querySelector("#sorter-errors-count")?.textContent).toBe("3");
     expect(el.querySelector("#sorter-errors-list")?.textContent).toContain(
       "nested/ignored.tmp",
     );

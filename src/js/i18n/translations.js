@@ -381,6 +381,9 @@ export const translations = {
     "tools.sorter.title": "File Sorter",
     "tools.sorter.subtitle":
       "Сортирует файлы в выбранной папке по категориям расширений.",
+    "tools.sorter.workspace.title": "Рабочая область",
+    "tools.sorter.workspace.subtitle":
+      "Выберите папку, при необходимости укажите лог и затем запустите предпросмотр или сортировку.",
     "tools.sorter.folder": "Папка для сортировки",
     "tools.sorter.pickFolder": "Выбрать папку",
     "tools.sorter.openFolder": "Открыть папку",
@@ -419,6 +422,7 @@ export const translations = {
     "tools.sorter.preview.filterEmpty": "По текущему фильтру ничего не найдено.",
     "tools.sorter.breakdown.title": "По категориям",
     "tools.sorter.breakdown.empty": "После предпросмотра здесь появится разбивка по категориям.",
+    "tools.sorter.preview.list.title": "Операции",
     "tools.sorter.preview.list.empty": "Нет операций для предпросмотра.",
     "tools.sorter.preview.more": "И еще {count}…",
     "tools.sorter.export": "Экспорт",
@@ -445,7 +449,7 @@ export const translations = {
     "tools.sorter.ignoreExtensions.placeholder":
       ".tmp, .part, .crdownload",
     "tools.sorter.ignoreFolders.label": "Игнорировать папки",
-    "tools.sorter.ignoreFolders.placeholder": "node_modules, Cache, temp",
+    "tools.sorter.ignoreFolders.placeholder": "temp, cache",
     "tools.sorter.category.Images": "Изображения",
     "tools.sorter.category.Videos": "Видео",
     "tools.sorter.category.Music": "Музыка",
@@ -1703,6 +1707,9 @@ export const translations = {
     "tools.sorter.title": "File Sorter",
     "tools.sorter.subtitle":
       "Sort files in a selected folder into extension-based categories.",
+    "tools.sorter.workspace.title": "Workspace",
+    "tools.sorter.workspace.subtitle":
+      "Choose a folder, add an optional log file, then start a preview or the actual sort.",
     "tools.sorter.folder": "Folder to sort",
     "tools.sorter.pickFolder": "Choose folder",
     "tools.sorter.openFolder": "Open folder",
@@ -1742,6 +1749,7 @@ export const translations = {
     "tools.sorter.breakdown.title": "By category",
     "tools.sorter.breakdown.empty":
       "Run a preview to see how files will be split by category.",
+    "tools.sorter.preview.list.title": "Operations",
     "tools.sorter.preview.list.empty": "No operations to preview.",
     "tools.sorter.preview.more": "And {count} more…",
     "tools.sorter.export": "Export",
@@ -1768,7 +1776,7 @@ export const translations = {
     "tools.sorter.ignoreExtensions.placeholder":
       ".tmp, .part, .crdownload",
     "tools.sorter.ignoreFolders.label": "Ignore folders",
-    "tools.sorter.ignoreFolders.placeholder": "node_modules, Cache, temp",
+    "tools.sorter.ignoreFolders.placeholder": "temp, cache",
     "tools.sorter.category.Images": "Images",
     "tools.sorter.category.Videos": "Videos",
     "tools.sorter.category.Music": "Music",
