@@ -115,6 +115,22 @@ export default function renderToolsView() {
   let hashHowtoPrevOverflow = null;
   let sorterHowtoPrevOverflow = null;
   const cleanupFns = [];
+  const SORTER_CATEGORY_ORDER = [
+    "Images",
+    "Videos",
+    "Music",
+    "Documents",
+    "Archives",
+    "Other",
+  ];
+  const SORTER_CATEGORY_SAMPLES = {
+    Images: ".jpg .png .heic .webp",
+    Videos: ".mp4 .mov .mkv .webm",
+    Music: ".mp3 .wav .flac .m4a",
+    Documents: ".pdf .docx .txt .xlsx",
+    Archives: ".zip .rar .7z .tar",
+    Other: t("tools.sorter.rules.other"),
+  };
 
   const addCleanup = (fn) => {
     if (typeof fn === "function") cleanupFns.push(fn);
@@ -637,20 +653,12 @@ export default function renderToolsView() {
               <button
                 id="tools-open-sorter"
                 type="button"
-                class="tools-launcher-button is-unavailable"
-                disabled
-                aria-disabled="true"
+                class="tools-launcher-button"
               >
               <i class="fa-solid fa-folder-tree"></i>
               <span data-i18n="tools.launcher.open.sorter">File Sorter</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
                 Сортировка файлов по категориям.
-              </small>
-              <small
-                class="tools-launcher-button__unavailable"
-                data-i18n="tools.launcher.unavailable.sorter"
-              >
-                Временно недоступно
               </small>
               </button>
             </div>
@@ -1305,6 +1313,15 @@ export default function renderToolsView() {
               Сортирует файлы в выбранной папке по категориям расширений.
             </p>
             <div class="hash-check-grid">
+              <section class="sorter-rules-panel" aria-label="File Sorter rules">
+                <div class="sorter-rules-panel__header">
+                  <h3 data-i18n="tools.sorter.rules.title">Категории сортировки</h3>
+                  <p class="muted" data-i18n="tools.sorter.rules.subtitle">
+                    Перед запуском проверьте, в какие папки попадут файлы.
+                  </p>
+                </div>
+                <div id="sorter-rules-list" class="sorter-rules-list"></div>
+              </section>
               <div class="hash-row hash-row--top">
                 <div class="hash-file-control">
                   <span class="muted hash-file-label" data-i18n="tools.sorter.folder">Папка для сортировки</span>
@@ -1334,14 +1351,16 @@ export default function renderToolsView() {
                 </div>
               </div>
               <div class="hash-row hash-row--bottom">
-                <label class="muted" for="sorter-dry-run">
-                  <input id="sorter-dry-run" type="checkbox" />
-                  <span data-i18n="tools.sorter.dryRun">Только предпросмотр (без перемещения файлов)</span>
-                </label>
-                <button id="sorter-run" type="button" class="large-button">
-                  <i class="fa-solid fa-play"></i>
-                  <span data-i18n="tools.sorter.run">Запустить сортировку</span>
-                </button>
+                <div class="sorter-actions">
+                  <button id="sorter-preview-run" type="button" class="large-button secondary">
+                    <i class="fa-regular fa-eye"></i>
+                    <span data-i18n="tools.sorter.previewAction">Показать предпросмотр</span>
+                  </button>
+                  <button id="sorter-apply-run" type="button" class="large-button">
+                    <i class="fa-solid fa-play"></i>
+                    <span data-i18n="tools.sorter.applyAction">Применить сортировку</span>
+                  </button>
+                </div>
               </div>
             </div>
             <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
@@ -1375,6 +1394,12 @@ export default function renderToolsView() {
                   <span class="muted" data-i18n="tools.sorter.preview.stats.errors">Ошибок</span>
                   <strong id="sorter-preview-stat-errors">0</strong>
                 </div>
+              </div>
+              <div class="sorter-breakdown">
+                <div class="sorter-breakdown__header">
+                  <h4 data-i18n="tools.sorter.breakdown.title">По категориям</h4>
+                </div>
+                <div id="sorter-breakdown-list" class="sorter-breakdown-list"></div>
               </div>
               <div id="sorter-preview-list" class="sorter-preview-list"></div>
               <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
@@ -1469,7 +1494,7 @@ export default function renderToolsView() {
 
   const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
     if (toolView === "power") return isPowerToolAvailable(info);
-    if (toolView === "sorter") return developerToolsUnlocked;
+    if (toolView === "sorter") return true;
     return toolView === "launcher" || toolView === "wg" || toolView === "hash";
   };
 
@@ -1801,22 +1826,12 @@ export default function renderToolsView() {
         openPowerBtn.classList.add("is-unavailable");
       }
 
-      if (developerToolsUnlocked) {
-        if (openSorterBtn.parentElement !== launcherAvailableGrid) {
-          launcherAvailableGrid.appendChild(openSorterBtn);
-        }
-        openSorterBtn.disabled = false;
-        openSorterBtn.removeAttribute("aria-disabled");
-        openSorterBtn.classList.remove("is-unavailable");
-        launcherUnavailableSection.classList.add("hidden");
-      } else {
-        if (openSorterBtn.parentElement !== launcherUnavailableGrid) {
-          launcherUnavailableGrid.appendChild(openSorterBtn);
-        }
-        openSorterBtn.disabled = true;
-        openSorterBtn.setAttribute("aria-disabled", "true");
-        openSorterBtn.classList.add("is-unavailable");
+      if (openSorterBtn.parentElement !== launcherAvailableGrid) {
+        launcherAvailableGrid.appendChild(openSorterBtn);
       }
+      openSorterBtn.disabled = false;
+      openSorterBtn.removeAttribute("aria-disabled");
+      openSorterBtn.classList.remove("is-unavailable");
       launcherUnavailableSection.classList.toggle(
         "hidden",
         launcherUnavailableGrid.children.length === 0,
@@ -2895,12 +2910,14 @@ export default function renderToolsView() {
 
     const sorterPickFolderBtn = getEl("sorter-pick-folder", view);
     const sorterOpenFolderBtn = getEl("sorter-open-folder", view);
-    const sorterRunBtn = getEl("sorter-run", view);
+    const sorterPreviewRunBtn = getEl("sorter-preview-run", view);
+    const sorterApplyRunBtn = getEl("sorter-apply-run", view);
     const sorterFolderPillEl = getEl("sorter-folder-pill", view);
-    const sorterDryRunEl = getEl("sorter-dry-run", view);
     const sorterLogPathEl = getEl("sorter-log-path", view);
     const sorterResultEl = getEl("sorter-result", view);
     const sorterPreviewPanelEl = getEl("sorter-preview-panel", view);
+    const sorterRulesListEl = getEl("sorter-rules-list", view);
+    const sorterBreakdownListEl = getEl("sorter-breakdown-list", view);
     const sorterPreviewListEl = getEl("sorter-preview-list", view);
     const sorterPreviewMoreEl = getEl("sorter-preview-more", view);
     const sorterPreviewMovedEl = getEl("sorter-preview-stat-moved", view);
@@ -2945,12 +2962,64 @@ export default function renderToolsView() {
     const setSorterBusy = (busy) => {
       sorterBusy = !!busy;
       if (sorterPickFolderBtn) sorterPickFolderBtn.disabled = sorterBusy;
-      if (sorterRunBtn) sorterRunBtn.disabled = sorterBusy;
-      if (sorterDryRunEl) sorterDryRunEl.disabled = sorterBusy;
+      if (sorterPreviewRunBtn) sorterPreviewRunBtn.disabled = sorterBusy;
+      if (sorterApplyRunBtn) sorterApplyRunBtn.disabled = sorterBusy;
       if (sorterLogPathEl) sorterLogPathEl.disabled = sorterBusy;
       if (sorterOpenFolderBtn) {
         sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
       }
+    };
+
+    const renderSorterRules = () => {
+      if (!sorterRulesListEl) return;
+      sorterRulesListEl.replaceChildren();
+      SORTER_CATEGORY_ORDER.forEach((category) => {
+        const item = document.createElement("article");
+        item.className = "sorter-rule-card";
+
+        const title = document.createElement("strong");
+        title.textContent = t(`tools.sorter.category.${category}`);
+
+        const sample = document.createElement("span");
+        sample.className = "muted";
+        sample.textContent =
+          SORTER_CATEGORY_SAMPLES[category] || t("tools.sorter.rules.other");
+
+        item.append(title, sample);
+        sorterRulesListEl.appendChild(item);
+      });
+    };
+
+    const renderSorterBreakdown = (categoryCount = {}) => {
+      if (!sorterBreakdownListEl) return;
+      sorterBreakdownListEl.replaceChildren();
+
+      const entries = SORTER_CATEGORY_ORDER.map((category) => ({
+        category,
+        count: Number(categoryCount?.[category] || 0),
+      })).filter((entry) => entry.count > 0);
+
+      if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "sorter-breakdown-list__empty muted";
+        empty.textContent = t("tools.sorter.breakdown.empty");
+        sorterBreakdownListEl.appendChild(empty);
+        return;
+      }
+
+      entries.forEach(({ category, count }) => {
+        const item = document.createElement("div");
+        item.className = "sorter-breakdown-item";
+
+        const label = document.createElement("span");
+        label.textContent = t(`tools.sorter.category.${category}`);
+
+        const value = document.createElement("strong");
+        value.textContent = String(count);
+
+        item.append(label, value);
+        sorterBreakdownListEl.appendChild(item);
+      });
     };
 
     const setSorterFolder = (folderPath) => {
@@ -2978,6 +3047,7 @@ export default function renderToolsView() {
 
     const hideSorterPreview = () => {
       sorterPreviewPanelEl?.classList.add("hidden");
+      renderSorterBreakdown({});
       if (sorterPreviewListEl) sorterPreviewListEl.replaceChildren();
       if (sorterPreviewMoreEl) {
         sorterPreviewMoreEl.classList.add("hidden");
@@ -3021,6 +3091,7 @@ export default function renderToolsView() {
         sorterPreviewErrorsEl.textContent = String(
           Array.isArray(res.errors) ? res.errors.length : 0,
         );
+      renderSorterBreakdown(res.categoryCount || {});
 
       sorterPreviewListEl.replaceChildren();
 
@@ -3173,7 +3244,7 @@ export default function renderToolsView() {
       }
     });
 
-    sorterRunBtn?.addEventListener("click", async () => {
+    const runSorter = async (dryRun) => {
       if (sorterBusy) return;
       if (!sorterSelectedFolder) {
         hideSorterPreview();
@@ -3182,11 +3253,14 @@ export default function renderToolsView() {
       }
       setSorterBusy(true);
       hideSorterPreview();
-      setSorterResult(t("tools.sorter.running"), "muted");
+      setSorterResult(
+        t(dryRun ? "tools.sorter.runningPreview" : "tools.sorter.runningApply"),
+        "muted",
+      );
       try {
         const res = await window.electron?.tools?.sortFilesByCategory?.({
           folderPath: sorterSelectedFolder,
-          dryRun: !!sorterDryRunEl?.checked,
+          dryRun,
           logFilePath: sorterLogPathEl?.value || "",
         });
         if (!res?.success) {
@@ -3217,7 +3291,10 @@ export default function renderToolsView() {
       } finally {
         setSorterBusy(false);
       }
-    });
+    };
+
+    sorterPreviewRunBtn?.addEventListener("click", async () => runSorter(true));
+    sorterApplyRunBtn?.addEventListener("click", async () => runSorter(false));
 
     sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
     sorterHowtoCloseBtn?.addEventListener("click", () =>
@@ -3240,6 +3317,8 @@ export default function renderToolsView() {
 
     setSorterFolder(loadSorterFolder());
     hideSorterPreview();
+    renderSorterRules();
+    renderSorterBreakdown({});
     setSorterResult(t("tools.sorter.resultIdle"), "muted");
     updateSorterHowtoUi();
 

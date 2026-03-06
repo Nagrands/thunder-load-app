@@ -70,6 +70,10 @@ describe("toolsView quick actions", () => {
           moved: 2,
           totalFiles: 2,
           skipped: 0,
+          categoryCount: {
+            Images: 1,
+            Documents: 1,
+          },
           errors: [],
           operations: [
             {
@@ -187,7 +191,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 2",
+      "tools.launcher.totalLabel: 3",
     );
   });
 
@@ -210,14 +214,12 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(3);
+    ).toBe(4);
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
     ).not.toBeNull();
     expect(
-      el
-        .querySelector("#tools-open-sorter")
-        ?.classList.contains("is-unavailable"),
+      el.querySelector("#tools-launcher-unavailable-section")?.classList.contains("hidden"),
     ).toBe(true);
   });
 
@@ -264,56 +266,44 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 2",
+      "tools.launcher.totalLabel: 3",
     );
   });
 
-  test("falls back to launcher when last view sorter is remembered", async () => {
+  test("restores File Sorter when last view is remembered", async () => {
     localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "sorter");
     const el = await renderView();
     expect(
-      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
       el
         .querySelector('[data-tool-view="sorter"]')
         ?.classList.contains("hidden"),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  test("keeps File Sorter in unavailable section and prevents opening it", async () => {
+  test("shows File Sorter as available tool and opens it", async () => {
     const el = await renderView();
     const sorterBtn = el.querySelector("#tools-open-sorter");
     expect(
-      sorterBtn?.closest("#tools-launcher-unavailable-section"),
+      sorterBtn?.closest(".tools-launcher-grid"),
     ).not.toBeNull();
-    expect(sorterBtn?.disabled).toBe(true);
-    expect(sorterBtn?.getAttribute("aria-disabled")).toBe("true");
+    expect(sorterBtn?.disabled).toBe(false);
 
     sorterBtn?.click();
     await nextTick();
     expect(
-      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
       el
         .querySelector('[data-tool-view="sorter"]')
         ?.classList.contains("hidden"),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  test("unlocks File Sorter when developer mode is enabled", async () => {
+  test("keeps File Sorter available when developer mode is enabled", async () => {
     window.__thunder_dev_tools_unlocked__ = true;
     const el = await renderView();
     const sorterBtn = el.querySelector("#tools-open-sorter");
     const powerBtn = el.querySelector("#tools-open-power");
 
-    expect(
-      el
-        .querySelector("#tools-launcher-unavailable-section")
-        ?.classList.contains("hidden"),
-    ).toBe(true);
     expect(sorterBtn?.disabled).toBe(false);
     expect(sorterBtn?.classList.contains("is-unavailable")).toBe(false);
     expect(powerBtn?.disabled).toBe(false);
@@ -329,6 +319,47 @@ describe("toolsView quick actions", () => {
         .querySelector('[data-tool-view="sorter"]')
         ?.classList.contains("hidden"),
     ).toBe(false);
+  });
+
+  test("renders sorter rules and uses separate preview/apply actions", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const rules = el.querySelectorAll("#sorter-rules-list .sorter-rule-card");
+    expect(rules.length).toBe(6);
+    expect(el.querySelector("#sorter-preview-run")).not.toBeNull();
+    expect(el.querySelector("#sorter-apply-run")).not.toBeNull();
+    expect(el.querySelector("#sorter-dry-run")).toBeNull();
+
+    el.querySelector("#sorter-preview-run")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.sortFilesByCategory).not.toHaveBeenCalled();
+
+    el.querySelector("#sorter-pick-folder")?.click();
+    await nextTick();
+    el.querySelector("#sorter-preview-run")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.sortFilesByCategory).toHaveBeenLastCalledWith({
+      folderPath: "/tmp/sorter",
+      dryRun: true,
+      logFilePath: "",
+    });
+    expect(
+      el.querySelectorAll("#sorter-breakdown-list .sorter-breakdown-item")
+        .length,
+    ).toBe(2);
+
+    window.electron.tools.sortFilesByCategory.mockClear();
+    el.querySelector("#sorter-apply-run")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.sortFilesByCategory).toHaveBeenLastCalledWith({
+      folderPath: "/tmp/sorter",
+      dryRun: false,
+      logFilePath: "",
+    });
   });
 
   test("does not render converter placeholder card", async () => {
@@ -429,7 +460,7 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
     const wgBtn = el.querySelector("#tools-open-wg");
-    const hashBtn = el.querySelector("#tools-open-hash");
+    const sorterBtn = el.querySelector("#tools-open-sorter");
     wgBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -438,7 +469,7 @@ describe("toolsView quick actions", () => {
       }),
     );
     await nextTick();
-    expect(document.activeElement).toBe(hashBtn);
+    expect(document.activeElement).toBe(sorterBtn);
   });
 
   test("does not switch tools with Alt+2", async () => {
