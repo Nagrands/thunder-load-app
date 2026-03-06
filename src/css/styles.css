@@ -23351,6 +23351,69 @@ video {
   line-height: 1.35;
 }
 
+.sorter-options-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.sorter-options-panel__header {
+  display: grid;
+  gap: 4px;
+}
+.sorter-options-panel__header h3,
+.sorter-options-panel__header p {
+  margin: 0;
+}
+.sorter-options-panel__header h3 {
+  font-size: 0.95rem;
+  color: var(--color-highlight);
+}
+.sorter-options-panel__header p {
+  font-size: 0.8rem;
+}
+
+.sorter-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sorter-option-field {
+  display: grid;
+  gap: 8px;
+}
+
+.sorter-option-toggle {
+  min-height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.sorter-option-toggle input {
+  margin-top: 3px;
+}
+.sorter-option-toggle span {
+  display: grid;
+  gap: 4px;
+}
+.sorter-option-toggle strong {
+  font-size: 0.84rem;
+  color: var(--color-highlight);
+}
+.sorter-option-toggle small {
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
 .sorter-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -23522,6 +23585,39 @@ video {
 .sorter-preview-more {
   margin: 0;
   font-size: 0.8rem;
+}
+
+.sorter-errors-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.sorter-errors-panel__header h4 {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-highlight);
+}
+
+.sorter-errors-list {
+  display: grid;
+  gap: 8px;
+}
+
+.sorter-errors-row {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(239, 68, 68, 0.06);
+  display: grid;
+  gap: 4px;
+}
+.sorter-errors-row strong {
+  font-size: 0.8rem;
+  color: var(--color-highlight);
+}
+.sorter-errors-row span {
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .hash-file-pill {
@@ -24042,6 +24138,7 @@ video {
     justify-content: center;
   }
   .sorter-rules-list,
+  .sorter-options-grid,
   .sorter-breakdown-list,
   .sorter-actions {
     grid-template-columns: 1fr;

@@ -105,6 +105,11 @@ export default function renderToolsView() {
   const LAST_TOOL_KEY = "toolsLastView";
   const REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
   const SORTER_LAST_FOLDER_KEY = "toolsSorterLastFolder";
+  const SORTER_LOG_PATH_KEY = "toolsSorterLogPath";
+  const SORTER_CONFLICT_MODE_KEY = "toolsSorterConflictMode";
+  const SORTER_RECURSIVE_KEY = "toolsSorterRecursive";
+  const SORTER_IGNORE_EXTENSIONS_KEY = "toolsSorterIgnoreExtensions";
+  const SORTER_IGNORE_FOLDERS_KEY = "toolsSorterIgnoreFolders";
   const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
   let currentToolView = "launcher";
   let toolsPlatformInfo = { isWindows: false, platform: "" };
@@ -1350,6 +1355,53 @@ export default function renderToolsView() {
                   />
                 </div>
               </div>
+              <section class="sorter-options-panel" aria-label="File Sorter options">
+                <div class="sorter-options-panel__header">
+                  <h3 data-i18n="tools.sorter.options.title">Параметры сортировки</h3>
+                  <p class="muted" data-i18n="tools.sorter.options.subtitle">
+                    Настройте, как обрабатывать вложенные папки, конфликты имен и исключения.
+                  </p>
+                </div>
+                <div class="sorter-options-grid">
+                  <div class="sorter-option-field">
+                    <label for="sorter-conflict-mode" class="muted" data-i18n="tools.sorter.conflicts.label">Конфликт имен</label>
+                    <select id="sorter-conflict-mode" class="wg-input">
+                      <option value="rename" data-i18n="tools.sorter.conflicts.rename">Переименовать</option>
+                      <option value="skip" data-i18n="tools.sorter.conflicts.skip">Пропустить файл</option>
+                      <option value="replace" data-i18n="tools.sorter.conflicts.replace">Заменить существующий</option>
+                    </select>
+                  </div>
+                  <label class="sorter-option-toggle" for="sorter-recursive">
+                    <input id="sorter-recursive" type="checkbox" />
+                    <span>
+                      <strong data-i18n="tools.sorter.recursive.label">Включить подпапки</strong>
+                      <small class="muted" data-i18n="tools.sorter.recursive.hint">
+                        Сканирует вложенные папки, кроме уже созданных категорий сортировщика.
+                      </small>
+                    </span>
+                  </label>
+                  <div class="sorter-option-field">
+                    <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">Игнорировать расширения</label>
+                    <input
+                      id="sorter-ignore-extensions"
+                      type="text"
+                      class="wg-input"
+                      data-i18n-placeholder="tools.sorter.ignoreExtensions.placeholder"
+                      placeholder=".tmp, .part, .crdownload"
+                    />
+                  </div>
+                  <div class="sorter-option-field">
+                    <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">Игнорировать папки</label>
+                    <input
+                      id="sorter-ignore-folders"
+                      type="text"
+                      class="wg-input"
+                      data-i18n-placeholder="tools.sorter.ignoreFolders.placeholder"
+                      placeholder="node_modules, Cache, temp"
+                    />
+                  </div>
+                </div>
+              </section>
               <div class="hash-row hash-row--bottom">
                 <div class="sorter-actions">
                   <button id="sorter-preview-run" type="button" class="large-button secondary">
@@ -1368,7 +1420,7 @@ export default function renderToolsView() {
             </div>
             <section id="sorter-preview-panel" class="sorter-preview-panel hidden" aria-live="polite">
               <div class="sorter-preview-header">
-                <h3 data-i18n="tools.sorter.preview.title">Предпросмотр dry-run</h3>
+                <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">Предпросмотр dry-run</h3>
                 <span
                   id="sorter-preview-badge"
                   class="sorter-preview-badge"
@@ -1400,6 +1452,12 @@ export default function renderToolsView() {
                   <h4 data-i18n="tools.sorter.breakdown.title">По категориям</h4>
                 </div>
                 <div id="sorter-breakdown-list" class="sorter-breakdown-list"></div>
+              </div>
+              <div id="sorter-errors-panel" class="sorter-errors-panel hidden">
+                <div class="sorter-errors-panel__header">
+                  <h4 data-i18n="tools.sorter.errorsPanel.title">Ошибки и пропуски</h4>
+                </div>
+                <div id="sorter-errors-list" class="sorter-errors-list"></div>
               </div>
               <div id="sorter-preview-list" class="sorter-preview-list"></div>
               <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
@@ -2914,10 +2972,18 @@ export default function renderToolsView() {
     const sorterApplyRunBtn = getEl("sorter-apply-run", view);
     const sorterFolderPillEl = getEl("sorter-folder-pill", view);
     const sorterLogPathEl = getEl("sorter-log-path", view);
+    const sorterConflictModeEl = getEl("sorter-conflict-mode", view);
+    const sorterRecursiveEl = getEl("sorter-recursive", view);
+    const sorterIgnoreExtensionsEl = getEl("sorter-ignore-extensions", view);
+    const sorterIgnoreFoldersEl = getEl("sorter-ignore-folders", view);
     const sorterResultEl = getEl("sorter-result", view);
     const sorterPreviewPanelEl = getEl("sorter-preview-panel", view);
+    const sorterPreviewTitleEl = getEl("sorter-preview-title", view);
+    const sorterPreviewBadgeEl = getEl("sorter-preview-badge", view);
     const sorterRulesListEl = getEl("sorter-rules-list", view);
     const sorterBreakdownListEl = getEl("sorter-breakdown-list", view);
+    const sorterErrorsPanelEl = getEl("sorter-errors-panel", view);
+    const sorterErrorsListEl = getEl("sorter-errors-list", view);
     const sorterPreviewListEl = getEl("sorter-preview-list", view);
     const sorterPreviewMoreEl = getEl("sorter-preview-more", view);
     const sorterPreviewMovedEl = getEl("sorter-preview-stat-moved", view);
@@ -2959,15 +3025,83 @@ export default function renderToolsView() {
       }
     };
 
+    const saveSorterPref = (key, value) => {
+      try {
+        window.localStorage.setItem(key, String(value ?? ""));
+      } catch {}
+    };
+
+    const loadSorterPref = (key, fallback = "") => {
+      try {
+        const stored = window.localStorage.getItem(key);
+        return stored == null ? fallback : stored;
+      } catch {
+        return fallback;
+      }
+    };
+
     const setSorterBusy = (busy) => {
       sorterBusy = !!busy;
       if (sorterPickFolderBtn) sorterPickFolderBtn.disabled = sorterBusy;
       if (sorterPreviewRunBtn) sorterPreviewRunBtn.disabled = sorterBusy;
       if (sorterApplyRunBtn) sorterApplyRunBtn.disabled = sorterBusy;
       if (sorterLogPathEl) sorterLogPathEl.disabled = sorterBusy;
+      if (sorterConflictModeEl) sorterConflictModeEl.disabled = sorterBusy;
+      if (sorterRecursiveEl) sorterRecursiveEl.disabled = sorterBusy;
+      if (sorterIgnoreExtensionsEl) sorterIgnoreExtensionsEl.disabled = sorterBusy;
+      if (sorterIgnoreFoldersEl) sorterIgnoreFoldersEl.disabled = sorterBusy;
       if (sorterOpenFolderBtn) {
         sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
       }
+    };
+
+    const getSorterOptions = () => ({
+      logFilePath: sorterLogPathEl?.value || "",
+      conflictMode: sorterConflictModeEl?.value || "rename",
+      recursive: !!sorterRecursiveEl?.checked,
+      ignoreExtensions: sorterIgnoreExtensionsEl?.value || "",
+      ignoreFolders: sorterIgnoreFoldersEl?.value || "",
+    });
+
+    const applySorterOptionState = () => {
+      if (sorterLogPathEl) {
+        sorterLogPathEl.value = loadSorterPref(SORTER_LOG_PATH_KEY, "");
+      }
+      if (sorterConflictModeEl) {
+        sorterConflictModeEl.value = loadSorterPref(
+          SORTER_CONFLICT_MODE_KEY,
+          "rename",
+        );
+      }
+      if (sorterRecursiveEl) {
+        sorterRecursiveEl.checked =
+          loadSorterPref(SORTER_RECURSIVE_KEY, "false") === "true";
+      }
+      if (sorterIgnoreExtensionsEl) {
+        sorterIgnoreExtensionsEl.value = loadSorterPref(
+          SORTER_IGNORE_EXTENSIONS_KEY,
+          "",
+        );
+      }
+      if (sorterIgnoreFoldersEl) {
+        sorterIgnoreFoldersEl.value = loadSorterPref(
+          SORTER_IGNORE_FOLDERS_KEY,
+          "",
+        );
+      }
+    };
+
+    const persistSorterOptions = () => {
+      const options = getSorterOptions();
+      saveSorterPref(SORTER_LOG_PATH_KEY, options.logFilePath);
+      saveSorterPref(SORTER_CONFLICT_MODE_KEY, options.conflictMode);
+      saveSorterPref(SORTER_RECURSIVE_KEY, options.recursive ? "true" : "false");
+      saveSorterPref(
+        SORTER_IGNORE_EXTENSIONS_KEY,
+        options.ignoreExtensions,
+      );
+      saveSorterPref(SORTER_IGNORE_FOLDERS_KEY, options.ignoreFolders);
+      return options;
     };
 
     const renderSorterRules = () => {
@@ -3047,7 +3181,15 @@ export default function renderToolsView() {
 
     const hideSorterPreview = () => {
       sorterPreviewPanelEl?.classList.add("hidden");
+      if (sorterPreviewTitleEl) {
+        sorterPreviewTitleEl.textContent = t("tools.sorter.preview.title");
+      }
+      if (sorterPreviewBadgeEl) {
+        sorterPreviewBadgeEl.textContent = t("tools.sorter.preview.badge");
+      }
       renderSorterBreakdown({});
+      sorterErrorsPanelEl?.classList.add("hidden");
+      if (sorterErrorsListEl) sorterErrorsListEl.replaceChildren();
       if (sorterPreviewListEl) sorterPreviewListEl.replaceChildren();
       if (sorterPreviewMoreEl) {
         sorterPreviewMoreEl.classList.add("hidden");
@@ -3068,10 +3210,46 @@ export default function renderToolsView() {
           .split(/[\\/]/)
           .pop()
           ?.trim() || fileName;
-      return { fileName, targetName, category };
+      const relativeDir = String(item.relativeDir || "").trim();
+      const status = String(item.status || "").trim() || "planned";
+      const action = String(item.action || "").trim() || "";
+      return { fileName, targetName, category, relativeDir, status, action };
     };
 
-    const renderSorterPreview = (res = {}) => {
+    const renderSorterErrors = (res = {}) => {
+      if (!sorterErrorsPanelEl || !sorterErrorsListEl) return;
+      sorterErrorsListEl.replaceChildren();
+
+      const problemItems = []
+        .concat(Array.isArray(res.operations) ? res.operations : [])
+        .filter((item) => item?.status === "skipped" || item?.status === "error");
+
+      if (!problemItems.length) {
+        sorterErrorsPanelEl.classList.add("hidden");
+        return;
+      }
+
+      sorterErrorsPanelEl.classList.remove("hidden");
+      problemItems.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "sorter-errors-row";
+
+        const name = document.createElement("strong");
+        name.textContent = String(item.fileName || "—");
+
+        const meta = document.createElement("span");
+        meta.className = "muted";
+        meta.textContent =
+          item.status === "error"
+            ? item.message || t("tools.sorter.error")
+            : t("tools.sorter.status.skipExisting");
+
+        row.append(name, meta);
+        sorterErrorsListEl.appendChild(row);
+      });
+    };
+
+    const renderSorterPreview = (res = {}, mode = "preview") => {
       if (!sorterPreviewPanelEl || !sorterPreviewListEl) return;
       const operations = Array.isArray(res.operations) ? res.operations : [];
       const shownOperations = operations.slice(0, SORTER_PREVIEW_LIMIT);
@@ -3081,6 +3259,20 @@ export default function renderToolsView() {
       );
 
       sorterPreviewPanelEl.classList.remove("hidden");
+      if (sorterPreviewTitleEl) {
+        sorterPreviewTitleEl.textContent = t(
+          mode === "preview"
+            ? "tools.sorter.preview.title"
+            : "tools.sorter.results.title",
+        );
+      }
+      if (sorterPreviewBadgeEl) {
+        sorterPreviewBadgeEl.textContent = t(
+          mode === "preview"
+            ? "tools.sorter.preview.badge"
+            : "tools.sorter.results.badge",
+        );
+      }
       if (sorterPreviewMovedEl)
         sorterPreviewMovedEl.textContent = String(Number(res.moved || 0));
       if (sorterPreviewTotalEl)
@@ -3092,6 +3284,7 @@ export default function renderToolsView() {
           Array.isArray(res.errors) ? res.errors.length : 0,
         );
       renderSorterBreakdown(res.categoryCount || {});
+      renderSorterErrors(res);
 
       sorterPreviewListEl.replaceChildren();
 
@@ -3113,8 +3306,21 @@ export default function renderToolsView() {
 
           const targetEl = document.createElement("span");
           targetEl.className = "sorter-preview-row__target muted";
-          targetEl.textContent = rowData.targetName;
-          targetEl.title = rowData.targetName;
+          const sourcePrefix = rowData.relativeDir
+            ? `${rowData.relativeDir} -> `
+            : "";
+          const actionLabel =
+            rowData.action === "replace"
+              ? ` (${t("tools.sorter.status.replaced")})`
+              : rowData.action === "rename"
+                ? ` (${t("tools.sorter.status.renamed")})`
+                : rowData.status === "skipped"
+                  ? ` (${t("tools.sorter.status.skipped")})`
+                  : rowData.status === "error"
+                    ? ` (${t("tools.sorter.status.error")})`
+                    : "";
+          targetEl.textContent = `${sourcePrefix}${rowData.targetName}${actionLabel}`;
+          targetEl.title = targetEl.textContent;
 
           const categoryEl = document.createElement("span");
           categoryEl.className = "sorter-preview-row__category";
@@ -3251,6 +3457,7 @@ export default function renderToolsView() {
         setSorterResult(t("tools.sorter.needFolder"), "warning");
         return;
       }
+      const sorterOptions = persistSorterOptions();
       setSorterBusy(true);
       hideSorterPreview();
       setSorterResult(
@@ -3261,7 +3468,7 @@ export default function renderToolsView() {
         const res = await window.electron?.tools?.sortFilesByCategory?.({
           folderPath: sorterSelectedFolder,
           dryRun,
-          logFilePath: sorterLogPathEl?.value || "",
+          ...sorterOptions,
         });
         if (!res?.success) {
           hideSorterPreview();
@@ -3283,8 +3490,7 @@ export default function renderToolsView() {
           `${summary}${modeHint}${errorHint}`,
           hasErrors ? "warning" : "success",
         );
-        if (res.dryRun) renderSorterPreview(res);
-        else hideSorterPreview();
+        renderSorterPreview(res, res.dryRun ? "preview" : "results");
       } catch (error) {
         hideSorterPreview();
         setSorterResult(error?.message || t("tools.sorter.error"), "error");
@@ -3295,6 +3501,11 @@ export default function renderToolsView() {
 
     sorterPreviewRunBtn?.addEventListener("click", async () => runSorter(true));
     sorterApplyRunBtn?.addEventListener("click", async () => runSorter(false));
+    sorterLogPathEl?.addEventListener("change", persistSorterOptions);
+    sorterConflictModeEl?.addEventListener("change", persistSorterOptions);
+    sorterRecursiveEl?.addEventListener("change", persistSorterOptions);
+    sorterIgnoreExtensionsEl?.addEventListener("change", persistSorterOptions);
+    sorterIgnoreFoldersEl?.addEventListener("change", persistSorterOptions);
 
     sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
     sorterHowtoCloseBtn?.addEventListener("click", () =>
@@ -3319,6 +3530,7 @@ export default function renderToolsView() {
     hideSorterPreview();
     renderSorterRules();
     renderSorterBreakdown({});
+    applySorterOptionState();
     setSorterResult(t("tools.sorter.resultIdle"), "muted");
     updateSorterHowtoUi();
 

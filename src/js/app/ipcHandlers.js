@@ -698,6 +698,118 @@ function setupIpcHandlers(dependencies) {
     return "Other";
   }
 
+  function parseSorterCsvList(value) {
+    return String(value || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function normalizeSorterConflictMode(value) {
+    const mode = String(value || "").trim().toLowerCase();
+    if (mode === "skip" || mode === "replace") return mode;
+    return "rename";
+  }
+
+  function normalizeSorterIgnoreExtensions(value) {
+    return new Set(
+      parseSorterCsvList(value).map((item) => {
+        const normalized = item.toLowerCase();
+        return normalized.startsWith(".") ? normalized : `.${normalized}`;
+      }),
+    );
+  }
+
+  function normalizeSorterIgnoreFolders(value) {
+    return new Set(
+      parseSorterCsvList(value).map((item) => item.toLowerCase()),
+    );
+  }
+
+  function isSorterManagedDirectoryName(name) {
+    const normalized = String(name || "").trim().toLowerCase();
+    return (
+      normalized === "other" ||
+      sorterCategoryKeys.some((key) => key.toLowerCase() === normalized)
+    );
+  }
+
+  async function countFilesInDirectory(dir) {
+    let total = 0;
+    const entries = await fsPromises.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        total += await countFilesInDirectory(fullPath);
+      } else if (entry.isFile()) {
+        total += 1;
+      }
+    }
+    return total;
+  }
+
+  async function collectSorterFiles(
+    rootDir,
+    {
+      recursive = false,
+      resolvedLogPath = null,
+      ignoreExtensions = new Set(),
+      ignoreFolders = new Set(),
+    } = {},
+  ) {
+    const files = [];
+    let skipped = 0;
+
+    async function walk(currentDir, depth = 0) {
+      const entries = await fsPromises.readdir(currentDir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(currentDir, entry.name);
+        const normalizedName = String(entry.name || "").toLowerCase();
+
+        if (entry.isDirectory()) {
+          if (ignoreFolders.has(normalizedName)) {
+            skipped += await countFilesInDirectory(fullPath);
+            continue;
+          }
+          if (depth === 0 && isSorterManagedDirectoryName(entry.name)) {
+            skipped += await countFilesInDirectory(fullPath);
+            continue;
+          }
+          if (recursive) {
+            await walk(fullPath, depth + 1);
+          }
+          continue;
+        }
+
+        if (!entry.isFile()) continue;
+        if (entry.name.startsWith(".")) {
+          skipped += 1;
+          continue;
+        }
+        if (
+          resolvedLogPath &&
+          path.resolve(fullPath) === resolvedLogPath
+        ) {
+          skipped += 1;
+          continue;
+        }
+        const extension = path.extname(entry.name).toLowerCase();
+        if (ignoreExtensions.has(extension)) {
+          skipped += 1;
+          continue;
+        }
+        files.push({
+          name: entry.name,
+          sourcePath: path.resolve(fullPath),
+          relativeDir: path.relative(rootDir, currentDir),
+        });
+      }
+    }
+
+    await walk(rootDir, 0);
+    return { files, skipped };
+  }
+
   async function generateUniqueTarget(targetPath) {
     const parsed = path.parse(targetPath);
     let candidate = targetPath;
@@ -773,6 +885,12 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.TOOLS_SORTER_RUN, async (_evt, payload = {}) => {
     const dryRun = Boolean(payload?.dryRun);
+    const recursive = Boolean(payload?.recursive);
+    const conflictMode = normalizeSorterConflictMode(payload?.conflictMode);
+    const ignoreExtensions = normalizeSorterIgnoreExtensions(
+      payload?.ignoreExtensions,
+    );
+    const ignoreFolders = normalizeSorterIgnoreFolders(payload?.ignoreFolders);
     const categoryCount = sorterCategoryKeys.reduce((acc, key) => {
       acc[key] = 0;
       return acc;
@@ -840,38 +958,68 @@ function setupIpcHandlers(dependencies) {
         });
       }
 
-      const entries = await fsPromises.readdir(resolvedFolder, {
-        withFileTypes: true,
-      });
-      const files = entries.filter((entry) => entry.isFile());
-
       let moved = 0;
       let skipped = 0;
+      const { files, skipped: preSkipped } = await collectSorterFiles(
+        resolvedFolder,
+        {
+          recursive,
+          resolvedLogPath,
+          ignoreExtensions,
+          ignoreFolders,
+        },
+      );
+      skipped += preSkipped;
 
       for (const entry of files) {
-        if (entry.name.startsWith(".")) {
-          skipped += 1;
-          continue;
-        }
-
-        const sourcePath = path.join(resolvedFolder, entry.name);
-        const resolvedSource = path.resolve(sourcePath);
-        if (resolvedLogPath && resolvedSource === resolvedLogPath) {
-          skipped += 1;
-          continue;
-        }
-
         const category = getSorterCategory(path.extname(entry.name));
         const targetDir = path.join(resolvedFolder, category);
-        const targetPath = await generateUniqueTarget(
-          path.join(targetDir, entry.name),
-        );
+        let targetPath = path.join(targetDir, entry.name);
+        let conflictAction = "move";
+
+        if (conflictMode === "rename") {
+          targetPath = await generateUniqueTarget(targetPath);
+          if (path.basename(targetPath) !== entry.name) {
+            conflictAction = "rename";
+          }
+        } else {
+          try {
+            await fsPromises.access(targetPath, fs.constants.F_OK);
+            if (conflictMode === "skip") {
+              skipped += 1;
+              operations.push({
+                fileName: entry.name,
+                category,
+                sourcePath: entry.sourcePath,
+                targetPath,
+                renamed: false,
+                status: "skipped",
+                action: "skip-existing",
+                message: "Target file already exists",
+              });
+              writeLog(
+                `SKIP ${entry.name} -> ${category}/${path.basename(targetPath)} (exists)`,
+              );
+              continue;
+            }
+            if (conflictMode === "replace") {
+              conflictAction = "replace";
+            }
+          } catch {}
+        }
+
         const item = {
           fileName: entry.name,
           category,
-          sourcePath: resolvedSource,
+          sourcePath: entry.sourcePath,
           targetPath,
           renamed: path.basename(targetPath) !== entry.name,
+          relativeDir:
+            entry.relativeDir && entry.relativeDir !== "."
+              ? entry.relativeDir
+              : "",
+          status: dryRun ? "planned" : "moved",
+          action: dryRun ? conflictAction : "move",
         };
 
         if (dryRun) {
@@ -886,15 +1034,23 @@ function setupIpcHandlers(dependencies) {
 
         try {
           await fsPromises.mkdir(targetDir, { recursive: true });
-          await moveFileSafe(resolvedSource, targetPath);
+          if (conflictMode === "replace") {
+            await fsPromises.rm(targetPath, { force: true });
+          }
+          await moveFileSafe(entry.sourcePath, targetPath);
+          item.action = conflictAction;
           operations.push(item);
           categoryCount[category] += 1;
           moved += 1;
           writeLog(
-            `OK ${entry.name} -> ${category}/${path.basename(targetPath)}`,
+            `OK ${entry.name} -> ${category}/${path.basename(targetPath)}${conflictAction === "replace" ? " (replaced)" : conflictAction === "rename" ? " (renamed)" : ""}`,
           );
         } catch (error) {
           const message = error?.message || String(error);
+          item.status = "error";
+          item.action = "error";
+          item.message = message;
+          operations.push(item);
           errors.push({ fileName: entry.name, message });
           writeLog(`ERROR ${entry.name}: ${message}`);
         }
@@ -907,8 +1063,13 @@ function setupIpcHandlers(dependencies) {
         logFilePath: resolvedLogPath || "",
         moved,
         skipped,
-        totalFiles: files.length,
+        totalFiles: files.length + skipped,
+        processedFiles: files.length,
         categoryCount,
+        conflictMode,
+        recursive,
+        ignoreExtensions: Array.from(ignoreExtensions),
+        ignoreFolders: Array.from(ignoreFolders),
         operations,
         errors,
       };

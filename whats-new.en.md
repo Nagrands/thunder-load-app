@@ -11,6 +11,7 @@
 | Removed the migration option from old tools location | Tools management UI is now simpler and clearer |
 | Fixed yt-dlp version display on macOS | The Tools section now shows the installed yt-dlp version again |
 | Improved File Sorter in the Tools section | You can now preview sorting first, see file categories, and only then apply the changes |
+| Expanded File Sorter settings | You can choose how name conflicts are handled, include subfolders, and exclude specific files or folders |
 | Unified tooltip behavior across the app | Tooltips now behave consistently in all sections |
 | Fixed tooltips in Download History | Main actions and controls in history entries now show tooltips reliably again |
 | Fixed delete confirmation overlap in History | Tooltips no longer appear above the delete confirmation dialog |

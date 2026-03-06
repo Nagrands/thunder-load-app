@@ -69,7 +69,12 @@ describe("toolsView quick actions", () => {
           dryRun: true,
           moved: 2,
           totalFiles: 2,
+          processedFiles: 2,
           skipped: 0,
+          conflictMode: "rename",
+          recursive: false,
+          ignoreExtensions: [],
+          ignoreFolders: [],
           categoryCount: {
             Images: 1,
             Documents: 1,
@@ -327,6 +332,10 @@ describe("toolsView quick actions", () => {
 
     const rules = el.querySelectorAll("#sorter-rules-list .sorter-rule-card");
     expect(rules.length).toBe(6);
+    expect(el.querySelector("#sorter-conflict-mode")).not.toBeNull();
+    expect(el.querySelector("#sorter-recursive")).not.toBeNull();
+    expect(el.querySelector("#sorter-ignore-extensions")).not.toBeNull();
+    expect(el.querySelector("#sorter-ignore-folders")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-run")).not.toBeNull();
     expect(el.querySelector("#sorter-apply-run")).not.toBeNull();
     expect(el.querySelector("#sorter-dry-run")).toBeNull();
@@ -338,6 +347,16 @@ describe("toolsView quick actions", () => {
 
     el.querySelector("#sorter-pick-folder")?.click();
     await nextTick();
+    el.querySelector("#sorter-conflict-mode").value = "skip";
+    el.querySelector("#sorter-conflict-mode")?.dispatchEvent(
+      new Event("change", { bubbles: true }),
+    );
+    el.querySelector("#sorter-recursive").checked = true;
+    el.querySelector("#sorter-recursive")?.dispatchEvent(
+      new Event("change", { bubbles: true }),
+    );
+    el.querySelector("#sorter-ignore-extensions").value = ".tmp, .part";
+    el.querySelector("#sorter-ignore-folders").value = "Cache, temp";
     el.querySelector("#sorter-preview-run")?.click();
     await nextTick();
 
@@ -345,13 +364,55 @@ describe("toolsView quick actions", () => {
       folderPath: "/tmp/sorter",
       dryRun: true,
       logFilePath: "",
+      conflictMode: "skip",
+      recursive: true,
+      ignoreExtensions: ".tmp, .part",
+      ignoreFolders: "Cache, temp",
     });
     expect(
       el.querySelectorAll("#sorter-breakdown-list .sorter-breakdown-item")
         .length,
     ).toBe(2);
+    expect(localStorage.getItem("toolsSorterConflictMode")).toBe("skip");
+    expect(localStorage.getItem("toolsSorterRecursive")).toBe("true");
 
     window.electron.tools.sortFilesByCategory.mockClear();
+    window.electron.tools.sortFilesByCategory.mockResolvedValueOnce({
+      success: true,
+      dryRun: false,
+      moved: 1,
+      totalFiles: 3,
+      processedFiles: 2,
+      skipped: 2,
+      categoryCount: {
+        Documents: 1,
+      },
+      errors: [{ fileName: "broken.txt", message: "Disk full" }],
+      operations: [
+        {
+          fileName: "first.txt",
+          category: "Documents",
+          targetPath: "/tmp/sorter/Documents/first.txt",
+          status: "moved",
+          action: "move",
+        },
+        {
+          fileName: "second.txt",
+          category: "Documents",
+          targetPath: "/tmp/sorter/Documents/second.txt",
+          status: "skipped",
+          action: "skip-existing",
+        },
+        {
+          fileName: "broken.txt",
+          category: "Documents",
+          targetPath: "/tmp/sorter/Documents/broken.txt",
+          status: "error",
+          action: "error",
+          message: "Disk full",
+        },
+      ],
+    });
     el.querySelector("#sorter-apply-run")?.click();
     await nextTick();
 
@@ -359,7 +420,17 @@ describe("toolsView quick actions", () => {
       folderPath: "/tmp/sorter",
       dryRun: false,
       logFilePath: "",
+      conflictMode: "skip",
+      recursive: true,
+      ignoreExtensions: ".tmp, .part",
+      ignoreFolders: "Cache, temp",
     });
+    expect(el.querySelector("#sorter-preview-title")?.textContent).toBe(
+      "tools.sorter.results.title",
+    );
+    expect(
+      el.querySelectorAll("#sorter-errors-list .sorter-errors-row").length,
+    ).toBe(2);
   });
 
   test("does not render converter placeholder card", async () => {

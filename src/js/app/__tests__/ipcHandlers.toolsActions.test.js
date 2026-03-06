@@ -345,6 +345,105 @@ describe("ipcHandlers tools quick actions", () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
+  test("sorterRun supports skip conflict mode", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-skip-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
+    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
+    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "exists", "utf8");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: false,
+      conflictMode: "skip",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.moved).toBe(0);
+    expect(result.skipped).toBe(2);
+    expect(result.operations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "a.txt",
+          status: "skipped",
+          action: "skip-existing",
+        }),
+      ]),
+    );
+    expect(fs.existsSync(path.join(root, "a.txt"))).toBe(true);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("sorterRun supports replace conflict mode", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-replace-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
+    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
+    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "exists", "utf8");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: false,
+      conflictMode: "replace",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.moved).toBe(1);
+    expect(fs.readFileSync(path.join(root, "Documents", "a.txt"), "utf8")).toBe(
+      "source",
+    );
+    expect(result.operations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "a.txt",
+          action: "replace",
+          status: "moved",
+        }),
+      ]),
+    );
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("sorterRun respects ignore lists and recursive mode", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-recursive-"));
+    fs.mkdirSync(path.join(root, "nested"), { recursive: true });
+    fs.mkdirSync(path.join(root, "Cache"), { recursive: true });
+    fs.mkdirSync(path.join(root, "Images"), { recursive: true });
+    fs.writeFileSync(path.join(root, "nested", "track.mp3"), "audio", "utf8");
+    fs.writeFileSync(path.join(root, "nested", "skip.tmp"), "tmp", "utf8");
+    fs.writeFileSync(path.join(root, "Cache", "cached.mp3"), "cache", "utf8");
+    fs.writeFileSync(path.join(root, "Images", "already.jpg"), "img", "utf8");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: true,
+      recursive: true,
+      ignoreExtensions: ".tmp",
+      ignoreFolders: "Cache",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.moved).toBe(1);
+    expect(result.skipped).toBe(3);
+    expect(result.categoryCount.Music).toBe(1);
+    expect(result.operations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "track.mp3",
+          relativeDir: "nested",
+        }),
+      ]),
+    );
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
   test("sorterRun returns error when log path points to a directory", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-logdir-"));
