@@ -2,14 +2,28 @@
 
 const { spawn } = require("node:child_process");
 const fs = require("fs");
+const fsPromises = require("fs/promises");
 const { getEffectiveToolsDir, resolveToolPath } = require("./toolsPaths");
 
 /**
  * Run a binary with args and return its first line of stdout (or null).
  */
-function runVersion(cmd, args, timeoutMs = 2000) {
+async function prepareBinaryForExecution(cmd) {
+  if (process.platform === "win32" || !cmd || !fs.existsSync(cmd)) return;
+
+  try {
+    await fsPromises.access(cmd, fs.constants.X_OK);
+  } catch {
+    try {
+      await fsPromises.chmod(cmd, 0o755);
+    } catch {}
+  }
+}
+
+function runVersion(cmd, args, timeoutMs = 8000) {
   return new Promise((resolve) => {
     let output = "";
+    let stderr = "";
     let resolved = false;
     let timer = null;
     let proc = null;
@@ -27,7 +41,10 @@ function runVersion(cmd, args, timeoutMs = 2000) {
         done(null);
       }, timeoutMs);
 
-      proc = spawn(cmd, args);
+      proc = spawn(cmd, args, {
+        env: { ...process.env },
+        windowsHide: true,
+      });
     } catch {
       if (timer) clearTimeout(timer);
       return done(null);
@@ -36,6 +53,9 @@ function runVersion(cmd, args, timeoutMs = 2000) {
     proc.stdout.on("data", (chunk) => {
       output += chunk.toString();
     });
+    proc.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
     proc.on("error", () => {
       if (timer) clearTimeout(timer);
       done(null);
@@ -43,7 +63,10 @@ function runVersion(cmd, args, timeoutMs = 2000) {
     proc.on("close", (code) => {
       if (timer) clearTimeout(timer);
       if (code === 0) {
-        const line = output.split("\n")[0].trim();
+        const line = `${output}\n${stderr}`
+          .split("\n")
+          .map((entry) => entry.trim())
+          .find(Boolean);
         done(line || null);
       } else {
         done(null);
@@ -65,6 +88,7 @@ async function getToolsVersions(store) {
   const ytExists = fs.existsSync(ytPath);
   let yt = { ok: ytExists, path: ytPath };
   if (ytExists) {
+    await prepareBinaryForExecution(ytPath);
     const ver = await runVersion(ytPath, ["--version"]);
     if (ver) yt.version = ver;
   }
@@ -72,6 +96,7 @@ async function getToolsVersions(store) {
   const ffExists = fs.existsSync(ffPath);
   let ff = { ok: ffExists, path: ffPath };
   if (ffExists) {
+    await prepareBinaryForExecution(ffPath);
     const ver = await runVersion(ffPath, ["-version"]);
     if (ver) ff.version = ver;
   }
@@ -79,6 +104,7 @@ async function getToolsVersions(store) {
   const denoExists = fs.existsSync(denoPath);
   let deno = { ok: denoExists, path: denoPath };
   if (denoExists) {
+    await prepareBinaryForExecution(denoPath);
     const ver = await runVersion(denoPath, ["--version"]);
     if (ver) deno.version = ver;
   }
