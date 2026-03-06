@@ -16,6 +16,7 @@
 | Expanded File Sorter export options | You can copy the filtered list to the clipboard or save it as TXT, CSV, or JSON |
 | Improved the “Skipped” list in File Sorter | You can now see which exact files were skipped and why: hidden file, ignored extension, ignored folder, or already inside a category folder |
 | Refreshed the File Sorter interface | Workspace, settings, and results are now visually separated, making the tool easier to scan on both large and small screens |
+| Refreshed the first-run setup | First launch is now step-by-step, so it is easier to choose the language, active sections, and theme before applying everything |
 | File Sorter was reworked internally | The tool is now better structured for future improvements and more stable iteration |
 | Unified tooltip behavior across the app | Tooltips now behave consistently in all sections |
 | Fixed tooltips in Download History | Main actions and controls in history entries now show tooltips reliably again |

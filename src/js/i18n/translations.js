@@ -139,14 +139,46 @@ export const translations = {
     "settings.sections.toggle": "Показать разделы настроек",
     "settings.tab.enabled": "Вкл",
     "settings.tab.disabled": "Выкл",
+    "firstRun.eyebrow": "Первый запуск",
     "firstRun.title": "Добро пожаловать в Thunder Load",
     "firstRun.subtitle": "Настройте язык, вкладки и тему перед началом работы.",
+    "firstRun.stepCounter": "Шаг {current} из {total}",
+    "firstRun.steps.language": "Язык",
+    "firstRun.steps.modules": "Модули",
+    "firstRun.steps.theme": "Тема",
+    "firstRun.steps.summary": "Итог",
     "firstRun.language": "Язык интерфейса",
+    "firstRun.languageSubtitle":
+      "Выберите язык интерфейса. Изменение сразу отобразится в окне настройки.",
+    "firstRun.languageRuHint":
+      "Основной интерфейс и подсказки на русском языке",
+    "firstRun.languageEnHint":
+      "English interface for menus, tips, and dialogs",
     "firstRun.tabs": "Вкладки для работы",
+    "firstRun.tabsSubtitle":
+      "Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.",
     "firstRun.tabs.downloadHint": "Загрузка видео и аудио",
     "firstRun.tabs.wgHint": "WG Unlock, Hash Check и быстрые инструменты",
     "firstRun.tabs.backupHint": "Резервные копии и профили",
+    "firstRun.required": "Обязательно",
     "firstRun.theme": "Цветовая тема",
+    "firstRun.themeSubtitle":
+      "Выберите внешний вид приложения. Предпросмотр темы применяется сразу.",
+    "firstRun.theme.darkHint":
+      "Классическая темная тема для повседневной работы",
+    "firstRun.theme.midnightHint":
+      "Более глубокая темная палитра с холодным акцентом",
+    "firstRun.theme.sunsetHint":
+      "Теплый контрастный вариант с мягкими оранжевыми акцентами",
+    "firstRun.theme.violetHint":
+      "Выразительная тёмная тема с ярким акцентным цветом",
+    "firstRun.theme.lightHint":
+      "Светлая тема для дневного и офисного режима",
+    "firstRun.summary": "Проверьте настройки",
+    "firstRun.summarySubtitle":
+      "Всё готово. Примените настройки и перезапустите интерфейс с выбранными параметрами.",
+    "firstRun.back": "Назад",
+    "firstRun.next": "Далее",
     "firstRun.apply": "Применить",
     "settings.startup.title": "Настройки запуска",
     "settings.startup.hint":
@@ -1467,15 +1499,47 @@ export const translations = {
     "settings.sections.toggle": "Show settings sections",
     "settings.tab.enabled": "On",
     "settings.tab.disabled": "Off",
+    "firstRun.eyebrow": "First launch",
     "firstRun.title": "Welcome to Thunder Load",
     "firstRun.subtitle":
       "Choose language, tabs, and theme before getting started.",
+    "firstRun.stepCounter": "Step {current} of {total}",
+    "firstRun.steps.language": "Language",
+    "firstRun.steps.modules": "Modules",
+    "firstRun.steps.theme": "Theme",
+    "firstRun.steps.summary": "Summary",
     "firstRun.language": "Interface language",
+    "firstRun.languageSubtitle":
+      "Choose the interface language. The change is previewed immediately in this setup window.",
+    "firstRun.languageRuHint":
+      "Russian interface for the main app and guidance text",
+    "firstRun.languageEnHint":
+      "English interface for menus, tips, and dialogs",
     "firstRun.tabs": "Tabs for your workflow",
+    "firstRun.tabsSubtitle":
+      "Keep only the sections you plan to use regularly. Downloader stays enabled.",
     "firstRun.tabs.downloadHint": "Video and audio downloads",
     "firstRun.tabs.wgHint": "WG Unlock, hash check, and quick tools",
     "firstRun.tabs.backupHint": "Backups and profiles",
+    "firstRun.required": "Required",
     "firstRun.theme": "Color theme",
+    "firstRun.themeSubtitle":
+      "Choose how the app looks. Theme preview is applied immediately.",
+    "firstRun.theme.darkHint":
+      "Classic dark theme for everyday work",
+    "firstRun.theme.midnightHint":
+      "A deeper dark palette with a colder accent",
+    "firstRun.theme.sunsetHint":
+      "Warm contrast with softer orange highlights",
+    "firstRun.theme.violetHint":
+      "A more expressive dark theme with a vivid accent",
+    "firstRun.theme.lightHint":
+      "Light theme for daytime and office use",
+    "firstRun.summary": "Review your setup",
+    "firstRun.summarySubtitle":
+      "Everything is ready. Apply the settings and restart the interface with your chosen options.",
+    "firstRun.back": "Back",
+    "firstRun.next": "Next",
     "firstRun.apply": "Apply",
     "settings.startup.title": "Startup settings",
     "settings.startup.hint": "Configure startup behavior for convenience.",
