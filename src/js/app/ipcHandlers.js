@@ -1099,14 +1099,21 @@ function setupIpcHandlers(dependencies) {
       if (!content.trim()) {
         return { success: false, error: "Export content is empty" };
       }
+      const format = String(payload?.format || "txt").trim().toLowerCase();
+      const normalizedFormat =
+        format === "csv" || format === "json" ? format : "txt";
       const suggestedName =
         String(payload?.suggestedName || "").trim() ||
-        `file-sorter-${new Date().toISOString().slice(0, 10)}.txt`;
+        `file-sorter-${new Date().toISOString().slice(0, 10)}.${normalizedFormat}`;
       const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
         title: "Export File Sorter result",
         defaultPath: suggestedName,
         filters: [
-          { name: "Text Files", extensions: ["txt"] },
+          normalizedFormat === "csv"
+            ? { name: "CSV Files", extensions: ["csv"] }
+            : normalizedFormat === "json"
+              ? { name: "JSON Files", extensions: ["json"] }
+              : { name: "Text Files", extensions: ["txt"] },
           { name: "All Files", extensions: ["*"] },
         ],
       });

@@ -503,7 +503,7 @@ describe("ipcHandlers tools quick actions", () => {
     const { CHANNELS } = require("../../ipc/channels");
     const { dialog } = require("electron");
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-export-"));
-    const exportPath = path.join(root, "result.txt");
+    const exportPath = path.join(root, "result.json");
     dialog.showSaveDialog.mockResolvedValue({
       canceled: false,
       filePath: exportPath,
@@ -511,12 +511,13 @@ describe("ipcHandlers tools quick actions", () => {
 
     initHandlers();
     const result = await handlers[CHANNELS.TOOLS_SORTER_EXPORT](null, {
-      content: "File Sorter Results\n- demo.txt",
-      suggestedName: "demo.txt",
+      content: '{"demo":"ok"}',
+      suggestedName: "demo.json",
+      format: "json",
     });
 
     expect(result).toEqual({ success: true, filePath: exportPath });
-    expect(fs.readFileSync(exportPath, "utf8")).toContain("demo.txt");
+    expect(fs.readFileSync(exportPath, "utf8")).toContain('"demo":"ok"');
 
     fs.rmSync(root, { recursive: true, force: true });
   });

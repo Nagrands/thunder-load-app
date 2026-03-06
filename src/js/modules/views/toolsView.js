@@ -1449,10 +1449,21 @@ export default function renderToolsView() {
                     <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">Только ошибки</option>
                   </select>
                 </div>
-                <button id="sorter-export-result" type="button" class="small-button">
-                  <i class="fa-regular fa-file-export"></i>
-                  <span data-i18n="tools.sorter.export">Экспорт</span>
-                </button>
+                <div class="sorter-preview-toolbar__actions">
+                  <select id="sorter-export-format" class="wg-input sorter-export-format">
+                    <option value="txt">TXT</option>
+                    <option value="csv">CSV</option>
+                    <option value="json">JSON</option>
+                  </select>
+                  <button id="sorter-copy-result" type="button" class="small-button">
+                    <i class="fa-regular fa-copy"></i>
+                    <span data-i18n="tools.sorter.copy">Копировать</span>
+                  </button>
+                  <button id="sorter-export-result" type="button" class="small-button">
+                    <i class="fa-regular fa-file-export"></i>
+                    <span data-i18n="tools.sorter.export">Экспорт</span>
+                  </button>
+                </div>
               </div>
               <div id="sorter-preview-stats" class="sorter-preview-stats">
                 <div class="sorter-preview-stat">
@@ -3017,6 +3028,8 @@ export default function renderToolsView() {
       "sorter-preview-status-filter",
       view,
     );
+    const sorterExportFormatEl = getEl("sorter-export-format", view);
+    const sorterCopyResultBtn = getEl("sorter-copy-result", view);
     const sorterExportResultBtn = getEl("sorter-export-result", view);
     const sorterRulesListEl = getEl("sorter-rules-list", view);
     const sorterBreakdownListEl = getEl("sorter-breakdown-list", view);
@@ -3096,6 +3109,9 @@ export default function renderToolsView() {
         sorterPreviewCategoryFilterEl.disabled = sorterBusy;
       if (sorterPreviewStatusFilterEl)
         sorterPreviewStatusFilterEl.disabled = sorterBusy;
+      if (sorterExportFormatEl) sorterExportFormatEl.disabled = sorterBusy;
+      if (sorterCopyResultBtn)
+        sorterCopyResultBtn.disabled = sorterBusy || !sorterLatestResult;
       if (sorterExportResultBtn)
         sorterExportResultBtn.disabled = sorterBusy || !sorterLatestResult;
       if (sorterOpenFolderBtn) {
@@ -3255,7 +3271,46 @@ export default function renderToolsView() {
       });
     };
 
-    const buildSorterExportContent = (res = {}, operations = []) => {
+    const buildSorterExportContent = (res = {}, operations = [], format = "txt") => {
+      if (format === "json") {
+        return JSON.stringify(
+          {
+            meta: {
+              dryRun: !!res?.dryRun,
+              folderPath: res?.folderPath || sorterSelectedFolder || "",
+              moved: Number(res?.moved || 0),
+              totalFiles: Number(res?.totalFiles || 0),
+              skipped: Number(res?.skipped || 0),
+              errors: Array.isArray(res?.errors) ? res.errors.length : 0,
+              conflictMode: res?.conflictMode || getSorterOptions().conflictMode,
+              recursive: !!res?.recursive,
+            },
+            operations: operations.map((item) => ({
+              ...formatSorterOperationRow(item),
+            })),
+          },
+          null,
+          2,
+        );
+      }
+
+      if (format === "csv") {
+        const header = ["status", "fileName", "targetName", "category", "relativeDir"];
+        const rows = operations.map((item) => {
+          const row = formatSorterOperationRow(item);
+          return [
+            row.status,
+            row.fileName,
+            row.targetName,
+            row.category,
+            row.relativeDir,
+          ]
+            .map((value) => `"${String(value || "").replace(/"/g, '""')}"`)
+            .join(",");
+        });
+        return [header.join(","), ...rows].join("\n");
+      }
+
       const header = [
         `File Sorter ${res?.dryRun ? "Preview" : "Results"}`,
         `Folder: ${res?.folderPath || sorterSelectedFolder || "-"}`,
@@ -3323,6 +3378,7 @@ export default function renderToolsView() {
       if (sorterPreviewTotalEl) sorterPreviewTotalEl.textContent = "0";
       if (sorterPreviewSkippedEl) sorterPreviewSkippedEl.textContent = "0";
       if (sorterPreviewErrorsEl) sorterPreviewErrorsEl.textContent = "0";
+      if (sorterCopyResultBtn) sorterCopyResultBtn.disabled = true;
       if (sorterExportResultBtn) sorterExportResultBtn.disabled = true;
     };
 
@@ -3413,6 +3469,7 @@ export default function renderToolsView() {
         );
       renderSorterBreakdown(res.categoryCount || {});
       renderSorterErrors(res);
+      if (sorterCopyResultBtn) sorterCopyResultBtn.disabled = false;
       if (sorterExportResultBtn) sorterExportResultBtn.disabled = false;
 
       sorterPreviewListEl.replaceChildren();
@@ -3651,8 +3708,9 @@ export default function renderToolsView() {
       if (sorterLatestResult)
         renderSorterPreview(sorterLatestResult, sorterLatestMode);
     });
-    sorterExportResultBtn?.addEventListener("click", async () => {
+    sorterCopyResultBtn?.addEventListener("click", async () => {
       if (!sorterLatestResult) return;
+      const format = String(sorterExportFormatEl?.value || "txt");
       const content = buildSorterExportContent(
         sorterLatestResult,
         getFilteredSorterOperations(
@@ -3660,11 +3718,35 @@ export default function renderToolsView() {
             ? sorterLatestResult.operations
             : [],
         ),
+        format,
+      );
+      try {
+        await navigator.clipboard?.writeText?.(content);
+        setSorterResult(t("tools.sorter.copyDone"), "success");
+      } catch (error) {
+        setSorterResult(
+          error?.message || t("tools.sorter.copyError"),
+          "error",
+        );
+      }
+    });
+    sorterExportResultBtn?.addEventListener("click", async () => {
+      if (!sorterLatestResult) return;
+      const format = String(sorterExportFormatEl?.value || "txt");
+      const content = buildSorterExportContent(
+        sorterLatestResult,
+        getFilteredSorterOperations(
+          Array.isArray(sorterLatestResult.operations)
+            ? sorterLatestResult.operations
+            : [],
+        ),
+        format,
       );
       try {
         const res = await window.electron?.tools?.exportSorterResult?.({
           content,
-          suggestedName: `file-sorter-${sorterLatestResult.dryRun ? "preview" : "result"}-${new Date().toISOString().slice(0, 10)}.txt`,
+          suggestedName: `file-sorter-${sorterLatestResult.dryRun ? "preview" : "result"}-${new Date().toISOString().slice(0, 10)}.${format}`,
+          format,
         });
         if (!res?.success) {
           if (res?.canceled) return;

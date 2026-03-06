@@ -345,6 +345,8 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#sorter-preview-search")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-category-filter")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-status-filter")).not.toBeNull();
+    expect(el.querySelector("#sorter-export-format")).not.toBeNull();
+    expect(el.querySelector("#sorter-copy-result")).not.toBeNull();
     expect(el.querySelector("#sorter-export-result")).not.toBeNull();
     expect(el.querySelector("#sorter-dry-run")).toBeNull();
 
@@ -388,11 +390,19 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelectorAll("#sorter-preview-list .sorter-preview-row").length,
     ).toBe(1);
+    el.querySelector("#sorter-export-format").value = "json";
+    el.querySelector("#sorter-copy-result")?.click();
+    await nextTick();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining('"fileName": "second.jpg"'),
+    );
     el.querySelector("#sorter-export-result")?.click();
     await nextTick();
     expect(window.electron.tools.exportSorterResult).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: expect.stringContaining("second.jpg"),
+        format: "json",
+        suggestedName: expect.stringMatching(/\.json$/),
+        content: expect.stringContaining('"fileName": "second.jpg"'),
       }),
     );
     expect(localStorage.getItem("toolsSorterConflictMode")).toBe("skip");

@@ -1834,6 +1834,16 @@ $wg-max-width: 1200px;
   gap: 10px;
 }
 
+.sorter-preview-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sorter-export-format {
+  min-width: 88px;
+}
+
 .sorter-preview-badge {
   display: inline-flex;
   align-items: center;
@@ -2641,6 +2651,17 @@ $wg-max-width: 1200px;
 
   .sorter-preview-toolbar__filters {
     grid-template-columns: 1fr;
+  }
+
+  .sorter-preview-toolbar__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .sorter-export-format,
+  #sorter-copy-result,
+  #sorter-export-result {
+    width: 100%;
   }
 
   .sorter-preview-row {
