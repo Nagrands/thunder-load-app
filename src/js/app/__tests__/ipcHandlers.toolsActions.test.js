@@ -441,6 +441,91 @@ describe("ipcHandlers tools quick actions", () => {
         }),
       ]),
     );
+    expect(result.operations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "skip.tmp",
+          relativeDir: "nested",
+          status: "skipped",
+          action: "ignored-extension",
+        }),
+        expect.objectContaining({
+          fileName: "cached.mp3",
+          relativeDir: "Cache",
+          status: "skipped",
+          action: "ignored-folder",
+        }),
+        expect.objectContaining({
+          fileName: "already.jpg",
+          relativeDir: "Images",
+          status: "skipped",
+          action: "managed-category",
+        }),
+      ]),
+    );
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("sorterRun reports each skipped file with a reason", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-skipped-"));
+    const logPath = path.join(root, "sort.log");
+    fs.mkdirSync(path.join(root, "Cache"), { recursive: true });
+    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".hidden"), "hidden", "utf8");
+    fs.writeFileSync(path.join(root, "video.tmp"), "tmp", "utf8");
+    fs.writeFileSync(path.join(root, "sort.log"), "", "utf8");
+    fs.writeFileSync(path.join(root, "Cache", "cached.mp3"), "cache", "utf8");
+    fs.writeFileSync(
+      path.join(root, "Documents", "existing.txt"),
+      "doc",
+      "utf8",
+    );
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+      folderPath: root,
+      dryRun: true,
+      recursive: true,
+      logFilePath: logPath,
+      ignoreExtensions: ".tmp",
+      ignoreFolders: "Cache",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.skipped).toBe(5);
+    expect(result.operations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: ".hidden",
+          status: "skipped",
+          action: "ignored-hidden",
+        }),
+        expect.objectContaining({
+          fileName: "video.tmp",
+          status: "skipped",
+          action: "ignored-extension",
+        }),
+        expect.objectContaining({
+          fileName: "sort.log",
+          status: "skipped",
+          action: "log-file",
+        }),
+        expect.objectContaining({
+          fileName: "cached.mp3",
+          relativeDir: "Cache",
+          status: "skipped",
+          action: "ignored-folder",
+        }),
+        expect.objectContaining({
+          fileName: "existing.txt",
+          relativeDir: "Documents",
+          status: "skipped",
+          action: "managed-category",
+        }),
+      ]),
+    );
 
     fs.rmSync(root, { recursive: true, force: true });
   });

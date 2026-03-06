@@ -734,18 +734,36 @@ function setupIpcHandlers(dependencies) {
     );
   }
 
-  async function countFilesInDirectory(dir) {
-    let total = 0;
+  async function collectSkippedFilesInDirectory(
+    rootDir,
+    dir,
+    { action, message },
+  ) {
+    const items = [];
     const entries = await fsPromises.readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        total += await countFilesInDirectory(fullPath);
-      } else if (entry.isFile()) {
-        total += 1;
+        items.push(
+          ...(await collectSkippedFilesInDirectory(rootDir, fullPath, {
+            action,
+            message,
+          })),
+        );
+        continue;
       }
+      if (!entry.isFile()) continue;
+      items.push({
+        fileName: entry.name,
+        category: getSorterCategory(path.extname(entry.name)),
+        sourcePath: path.resolve(fullPath),
+        relativeDir: path.relative(rootDir, path.dirname(fullPath)),
+        status: "skipped",
+        action,
+        message,
+      });
     }
-    return total;
+    return items;
   }
 
   async function collectSorterFiles(
@@ -758,7 +776,7 @@ function setupIpcHandlers(dependencies) {
     } = {},
   ) {
     const files = [];
-    let skipped = 0;
+    const skippedItems = [];
 
     async function walk(currentDir, depth = 0) {
       const entries = await fsPromises.readdir(currentDir, { withFileTypes: true });
@@ -768,11 +786,21 @@ function setupIpcHandlers(dependencies) {
 
         if (entry.isDirectory()) {
           if (ignoreFolders.has(normalizedName)) {
-            skipped += await countFilesInDirectory(fullPath);
+            skippedItems.push(
+              ...(await collectSkippedFilesInDirectory(rootDir, fullPath, {
+                action: "ignored-folder",
+                message: "Ignored by folder rule",
+              })),
+            );
             continue;
           }
           if (depth === 0 && isSorterManagedDirectoryName(entry.name)) {
-            skipped += await countFilesInDirectory(fullPath);
+            skippedItems.push(
+              ...(await collectSkippedFilesInDirectory(rootDir, fullPath, {
+                action: "managed-category",
+                message: "Already inside a sorter category folder",
+              })),
+            );
             continue;
           }
           if (recursive) {
@@ -783,19 +811,43 @@ function setupIpcHandlers(dependencies) {
 
         if (!entry.isFile()) continue;
         if (entry.name.startsWith(".")) {
-          skipped += 1;
+          skippedItems.push({
+            fileName: entry.name,
+            category: "Other",
+            sourcePath: path.resolve(fullPath),
+            relativeDir: path.relative(rootDir, currentDir),
+            status: "skipped",
+            action: "ignored-hidden",
+            message: "Hidden files are skipped",
+          });
           continue;
         }
         if (
           resolvedLogPath &&
           path.resolve(fullPath) === resolvedLogPath
         ) {
-          skipped += 1;
+          skippedItems.push({
+            fileName: entry.name,
+            category: getSorterCategory(path.extname(entry.name)),
+            sourcePath: path.resolve(fullPath),
+            relativeDir: path.relative(rootDir, currentDir),
+            status: "skipped",
+            action: "log-file",
+            message: "Sorter log file is excluded",
+          });
           continue;
         }
         const extension = path.extname(entry.name).toLowerCase();
         if (ignoreExtensions.has(extension)) {
-          skipped += 1;
+          skippedItems.push({
+            fileName: entry.name,
+            category: getSorterCategory(extension),
+            sourcePath: path.resolve(fullPath),
+            relativeDir: path.relative(rootDir, currentDir),
+            status: "skipped",
+            action: "ignored-extension",
+            message: `Ignored by extension rule (${extension})`,
+          });
           continue;
         }
         files.push({
@@ -807,7 +859,7 @@ function setupIpcHandlers(dependencies) {
     }
 
     await walk(rootDir, 0);
-    return { files, skipped };
+    return { files, skippedItems };
   }
 
   async function generateUniqueTarget(targetPath) {
@@ -959,8 +1011,7 @@ function setupIpcHandlers(dependencies) {
       }
 
       let moved = 0;
-      let skipped = 0;
-      const { files, skipped: preSkipped } = await collectSorterFiles(
+      const { files, skippedItems } = await collectSorterFiles(
         resolvedFolder,
         {
           recursive,
@@ -969,7 +1020,8 @@ function setupIpcHandlers(dependencies) {
           ignoreFolders,
         },
       );
-      skipped += preSkipped;
+      operations.push(...skippedItems);
+      let skipped = skippedItems.length;
 
       for (const entry of files) {
         const category = getSorterCategory(path.extname(entry.name));

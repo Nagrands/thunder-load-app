@@ -283,6 +283,37 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     return { fileName, targetName, category, relativeDir, status, action };
   };
 
+  const getSorterDisplayName = (item = {}) => {
+    const row = formatSorterOperationRow(item);
+    return row.relativeDir && row.relativeDir !== "."
+      ? `${row.relativeDir}/${row.fileName}`
+      : row.fileName;
+  };
+
+  const getSorterProblemLabel = (item = {}) => {
+    if (item?.status === "error") {
+      return item.message || t("tools.sorter.error");
+    }
+
+    const action = String(item?.action || "").trim();
+    if (action === "ignored-hidden") {
+      return t("tools.sorter.status.ignoredHidden");
+    }
+    if (action === "ignored-extension") {
+      return item.message || t("tools.sorter.status.ignoredExtension");
+    }
+    if (action === "ignored-folder") {
+      return t("tools.sorter.status.ignoredFolder");
+    }
+    if (action === "managed-category") {
+      return t("tools.sorter.status.managedCategory");
+    }
+    if (action === "log-file") {
+      return t("tools.sorter.status.logFile");
+    }
+    return t("tools.sorter.status.skipExisting");
+  };
+
   const getFilteredSorterOperations = (operations = []) => {
     const query = String(sorterPreviewSearchEl?.value || "")
       .trim()
@@ -325,6 +356,8 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
           },
           operations: operations.map((item) => ({
             ...formatSorterOperationRow(item),
+            message: String(item?.message || ""),
+            sourcePath: String(item?.sourcePath || ""),
           })),
         },
         null,
@@ -335,19 +368,23 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     if (format === "csv") {
       const header = [
         "status",
+        "action",
         "fileName",
         "targetName",
         "category",
         "relativeDir",
+        "message",
       ];
       const rows = operations.map((item) => {
         const row = formatSorterOperationRow(item);
         return [
           row.status,
+          row.action,
           row.fileName,
           row.targetName,
           row.category,
           row.relativeDir,
+          String(item?.message || ""),
         ]
           .map((value) => `"${String(value || "").replace(/"/g, '""')}"`)
           .join(",");
@@ -370,7 +407,8 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     const body = operations.map((item) => {
       const row = formatSorterOperationRow(item);
       const sourcePrefix = row.relativeDir ? `${row.relativeDir} -> ` : "";
-      return `- [${row.status}] ${row.fileName} => ${sourcePrefix}${row.targetName} (${row.category})`;
+      const suffix = item?.message ? ` | ${item.message}` : "";
+      return `- [${row.status}] ${row.fileName} => ${sourcePrefix}${row.targetName} (${row.category})${suffix}`;
     });
 
     return header.concat(body).join("\n");
@@ -445,14 +483,12 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
       row.className = "sorter-errors-row";
 
       const name = document.createElement("strong");
-      name.textContent = String(item.fileName || "—");
+      name.textContent = getSorterDisplayName(item);
+      name.title = String(item.sourcePath || name.textContent);
 
       const meta = document.createElement("span");
       meta.className = "muted";
-      meta.textContent =
-        item.status === "error"
-          ? item.message || t("tools.sorter.error")
-          : t("tools.sorter.status.skipExisting");
+      meta.textContent = getSorterProblemLabel(item);
 
       row.append(name, meta);
       sorterErrorsListEl.appendChild(row);

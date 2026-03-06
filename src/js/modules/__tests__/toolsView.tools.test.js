@@ -436,6 +436,16 @@ describe("toolsView quick actions", () => {
           action: "skip-existing",
         },
         {
+          fileName: "ignored.tmp",
+          category: "Other",
+          targetPath: "/tmp/sorter/ignored.tmp",
+          sourcePath: "/tmp/sorter/nested/ignored.tmp",
+          relativeDir: "nested",
+          status: "skipped",
+          action: "ignored-extension",
+          message: "Ignored by extension rule (.tmp)",
+        },
+        {
           fileName: "broken.txt",
           category: "Documents",
           targetPath: "/tmp/sorter/Documents/broken.txt",
@@ -462,7 +472,13 @@ describe("toolsView quick actions", () => {
     );
     expect(
       el.querySelectorAll("#sorter-errors-list .sorter-errors-row").length,
-    ).toBe(2);
+    ).toBe(3);
+    expect(el.querySelector("#sorter-errors-list")?.textContent).toContain(
+      "nested/ignored.tmp",
+    );
+    expect(el.querySelector("#sorter-errors-list")?.textContent).toContain(
+      "Ignored by extension rule (.tmp)",
+    );
   });
 
   test("does not render converter placeholder card", async () => {
