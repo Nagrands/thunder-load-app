@@ -1093,6 +1093,36 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(CHANNELS.TOOLS_SORTER_EXPORT, async (_evt, payload = {}) => {
+    try {
+      const content = String(payload?.content || "");
+      if (!content.trim()) {
+        return { success: false, error: "Export content is empty" };
+      }
+      const suggestedName =
+        String(payload?.suggestedName || "").trim() ||
+        `file-sorter-${new Date().toISOString().slice(0, 10)}.txt`;
+      const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+        title: "Export File Sorter result",
+        defaultPath: suggestedName,
+        filters: [
+          { name: "Text Files", extensions: ["txt"] },
+          { name: "All Files", extensions: ["*"] },
+        ],
+      });
+
+      if (canceled || !filePath) {
+        return { success: false, canceled: true };
+      }
+
+      await fsPromises.writeFile(filePath, content, "utf8");
+      return { success: true, filePath };
+    } catch (error) {
+      log.error("tools:sorterExport error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
   ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT, async () => {
     try {
       return createWindowsDesktopShortcut({

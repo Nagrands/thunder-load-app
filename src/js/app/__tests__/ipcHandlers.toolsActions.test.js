@@ -13,6 +13,7 @@ jest.mock("electron", () => ({
   },
   dialog: {
     showOpenDialog: jest.fn(),
+    showSaveDialog: jest.fn(),
   },
   Notification: { isSupported: () => false },
   shell: {
@@ -496,6 +497,28 @@ describe("ipcHandlers tools quick actions", () => {
 
     expect(result.success).toBe(false);
     expect(String(result.error || "")).toMatch(/not a folder|unavailable/i);
+  });
+
+  test("sorterExport writes result file via save dialog", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { dialog } = require("electron");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-export-"));
+    const exportPath = path.join(root, "result.txt");
+    dialog.showSaveDialog.mockResolvedValue({
+      canceled: false,
+      filePath: exportPath,
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_SORTER_EXPORT](null, {
+      content: "File Sorter Results\n- demo.txt",
+      suggestedName: "demo.txt",
+    });
+
+    expect(result).toEqual({ success: true, filePath: exportPath });
+    expect(fs.readFileSync(exportPath, "utf8")).toContain("demo.txt");
+
+    fs.rmSync(root, { recursive: true, force: true });
   });
 
   test("tools:setLocation migrates existing binaries from previous directory", async () => {

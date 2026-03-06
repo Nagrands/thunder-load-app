@@ -1429,6 +1429,31 @@ export default function renderToolsView() {
                   Предпросмотр
                 </span>
               </div>
+              <div class="sorter-preview-toolbar">
+                <div class="sorter-preview-toolbar__filters">
+                  <input
+                    id="sorter-preview-search"
+                    type="text"
+                    class="wg-input"
+                    data-i18n-placeholder="tools.sorter.preview.searchPlaceholder"
+                    placeholder="Поиск по имени файла или цели"
+                  />
+                  <select id="sorter-preview-category-filter" class="wg-input">
+                    <option value="all" data-i18n="tools.sorter.preview.filter.all">Все категории</option>
+                  </select>
+                  <select id="sorter-preview-status-filter" class="wg-input">
+                    <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">Все статусы</option>
+                    <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">Только запланированные</option>
+                    <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">Только перемещённые</option>
+                    <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">Только пропущенные</option>
+                    <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">Только ошибки</option>
+                  </select>
+                </div>
+                <button id="sorter-export-result" type="button" class="small-button">
+                  <i class="fa-regular fa-file-export"></i>
+                  <span data-i18n="tools.sorter.export">Экспорт</span>
+                </button>
+              </div>
               <div id="sorter-preview-stats" class="sorter-preview-stats">
                 <div class="sorter-preview-stat">
                   <span class="muted" data-i18n="tools.sorter.preview.stats.moved">Обработано</span>
@@ -1460,6 +1485,9 @@ export default function renderToolsView() {
                 <div id="sorter-errors-list" class="sorter-errors-list"></div>
               </div>
               <div id="sorter-preview-list" class="sorter-preview-list"></div>
+              <p id="sorter-preview-filter-empty" class="sorter-preview-list__empty muted hidden" data-i18n="tools.sorter.preview.filterEmpty">
+                По текущему фильтру ничего не найдено.
+              </p>
               <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
             </section>
             <div id="sorter-howto-modal" class="sorter-howto-overlay hidden" aria-hidden="true">
@@ -2980,11 +3008,22 @@ export default function renderToolsView() {
     const sorterPreviewPanelEl = getEl("sorter-preview-panel", view);
     const sorterPreviewTitleEl = getEl("sorter-preview-title", view);
     const sorterPreviewBadgeEl = getEl("sorter-preview-badge", view);
+    const sorterPreviewSearchEl = getEl("sorter-preview-search", view);
+    const sorterPreviewCategoryFilterEl = getEl(
+      "sorter-preview-category-filter",
+      view,
+    );
+    const sorterPreviewStatusFilterEl = getEl(
+      "sorter-preview-status-filter",
+      view,
+    );
+    const sorterExportResultBtn = getEl("sorter-export-result", view);
     const sorterRulesListEl = getEl("sorter-rules-list", view);
     const sorterBreakdownListEl = getEl("sorter-breakdown-list", view);
     const sorterErrorsPanelEl = getEl("sorter-errors-panel", view);
     const sorterErrorsListEl = getEl("sorter-errors-list", view);
     const sorterPreviewListEl = getEl("sorter-preview-list", view);
+    const sorterPreviewFilterEmptyEl = getEl("sorter-preview-filter-empty", view);
     const sorterPreviewMoreEl = getEl("sorter-preview-more", view);
     const sorterPreviewMovedEl = getEl("sorter-preview-stat-moved", view);
     const sorterPreviewTotalEl = getEl("sorter-preview-stat-total", view);
@@ -3007,6 +3046,8 @@ export default function renderToolsView() {
     let sorterHowtoIndex = 0;
     let sorterHowtoReturnFocusEl = null;
     let sorterBusy = false;
+    let sorterLatestResult = null;
+    let sorterLatestMode = "preview";
 
     const saveSorterFolder = (folder) => {
       try {
@@ -3050,6 +3091,13 @@ export default function renderToolsView() {
       if (sorterRecursiveEl) sorterRecursiveEl.disabled = sorterBusy;
       if (sorterIgnoreExtensionsEl) sorterIgnoreExtensionsEl.disabled = sorterBusy;
       if (sorterIgnoreFoldersEl) sorterIgnoreFoldersEl.disabled = sorterBusy;
+      if (sorterPreviewSearchEl) sorterPreviewSearchEl.disabled = sorterBusy;
+      if (sorterPreviewCategoryFilterEl)
+        sorterPreviewCategoryFilterEl.disabled = sorterBusy;
+      if (sorterPreviewStatusFilterEl)
+        sorterPreviewStatusFilterEl.disabled = sorterBusy;
+      if (sorterExportResultBtn)
+        sorterExportResultBtn.disabled = sorterBusy || !sorterLatestResult;
       if (sorterOpenFolderBtn) {
         sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
       }
@@ -3156,6 +3204,79 @@ export default function renderToolsView() {
       });
     };
 
+    const updateSorterCategoryFilterOptions = (operations = []) => {
+      if (!sorterPreviewCategoryFilterEl) return;
+      const current = sorterPreviewCategoryFilterEl.value || "all";
+      sorterPreviewCategoryFilterEl.innerHTML = "";
+
+      const allOption = document.createElement("option");
+      allOption.value = "all";
+      allOption.textContent = t("tools.sorter.preview.filter.all");
+      sorterPreviewCategoryFilterEl.appendChild(allOption);
+
+      const presentCategories = new Set(
+        operations.map((item) => String(item?.category || "").trim()).filter(Boolean),
+      );
+      SORTER_CATEGORY_ORDER.forEach((category) => {
+        if (!presentCategories.has(category)) return;
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = t(`tools.sorter.category.${category}`);
+        sorterPreviewCategoryFilterEl.appendChild(option);
+      });
+      sorterPreviewCategoryFilterEl.value = Array.from(
+        sorterPreviewCategoryFilterEl.options,
+      ).some((option) => option.value === current)
+        ? current
+        : "all";
+    };
+
+    const getFilteredSorterOperations = (operations = []) => {
+      const query = String(sorterPreviewSearchEl?.value || "")
+        .trim()
+        .toLowerCase();
+      const category = String(sorterPreviewCategoryFilterEl?.value || "all");
+      const statusFilter = String(sorterPreviewStatusFilterEl?.value || "all");
+
+      return operations.filter((item) => {
+        const rowData = formatSorterOperationRow(item);
+        const haystack = [
+          rowData.fileName,
+          rowData.targetName,
+          rowData.category,
+          rowData.relativeDir,
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (query && !haystack.includes(query)) return false;
+        if (category !== "all" && rowData.category !== category) return false;
+        if (statusFilter !== "all" && rowData.status !== statusFilter) return false;
+        return true;
+      });
+    };
+
+    const buildSorterExportContent = (res = {}, operations = []) => {
+      const header = [
+        `File Sorter ${res?.dryRun ? "Preview" : "Results"}`,
+        `Folder: ${res?.folderPath || sorterSelectedFolder || "-"}`,
+        `Processed: ${Number(res?.moved || 0)}/${Number(res?.totalFiles || 0)}`,
+        `Skipped: ${Number(res?.skipped || 0)}`,
+        `Errors: ${Array.isArray(res?.errors) ? res.errors.length : 0}`,
+        `Conflict mode: ${res?.conflictMode || getSorterOptions().conflictMode}`,
+        `Recursive: ${res?.recursive ? "yes" : "no"}`,
+        "",
+        "Operations:",
+      ];
+
+      const body = operations.map((item) => {
+        const row = formatSorterOperationRow(item);
+        const sourcePrefix = row.relativeDir ? `${row.relativeDir} -> ` : "";
+        return `- [${row.status}] ${row.fileName} => ${sourcePrefix}${row.targetName} (${row.category})`;
+      });
+
+      return header.concat(body).join("\n");
+    };
+
     const setSorterFolder = (folderPath) => {
       sorterSelectedFolder = String(folderPath || "");
       if (sorterOpenFolderBtn) {
@@ -3181,6 +3302,7 @@ export default function renderToolsView() {
 
     const hideSorterPreview = () => {
       sorterPreviewPanelEl?.classList.add("hidden");
+      sorterLatestResult = null;
       if (sorterPreviewTitleEl) {
         sorterPreviewTitleEl.textContent = t("tools.sorter.preview.title");
       }
@@ -3191,6 +3313,7 @@ export default function renderToolsView() {
       sorterErrorsPanelEl?.classList.add("hidden");
       if (sorterErrorsListEl) sorterErrorsListEl.replaceChildren();
       if (sorterPreviewListEl) sorterPreviewListEl.replaceChildren();
+      sorterPreviewFilterEmptyEl?.classList.add("hidden");
       if (sorterPreviewMoreEl) {
         sorterPreviewMoreEl.classList.add("hidden");
         sorterPreviewMoreEl.textContent = "";
@@ -3200,6 +3323,7 @@ export default function renderToolsView() {
       if (sorterPreviewTotalEl) sorterPreviewTotalEl.textContent = "0";
       if (sorterPreviewSkippedEl) sorterPreviewSkippedEl.textContent = "0";
       if (sorterPreviewErrorsEl) sorterPreviewErrorsEl.textContent = "0";
+      if (sorterExportResultBtn) sorterExportResultBtn.disabled = true;
     };
 
     const formatSorterOperationRow = (item = {}) => {
@@ -3252,10 +3376,14 @@ export default function renderToolsView() {
     const renderSorterPreview = (res = {}, mode = "preview") => {
       if (!sorterPreviewPanelEl || !sorterPreviewListEl) return;
       const operations = Array.isArray(res.operations) ? res.operations : [];
-      const shownOperations = operations.slice(0, SORTER_PREVIEW_LIMIT);
+      sorterLatestResult = res;
+      sorterLatestMode = mode;
+      updateSorterCategoryFilterOptions(operations);
+      const filteredOperations = getFilteredSorterOperations(operations);
+      const shownOperations = filteredOperations.slice(0, SORTER_PREVIEW_LIMIT);
       const remainingCount = Math.max(
         0,
-        operations.length - shownOperations.length,
+        filteredOperations.length - shownOperations.length,
       );
 
       sorterPreviewPanelEl.classList.remove("hidden");
@@ -3285,15 +3413,20 @@ export default function renderToolsView() {
         );
       renderSorterBreakdown(res.categoryCount || {});
       renderSorterErrors(res);
+      if (sorterExportResultBtn) sorterExportResultBtn.disabled = false;
 
       sorterPreviewListEl.replaceChildren();
+      sorterPreviewFilterEmptyEl?.classList.toggle(
+        "hidden",
+        !(filteredOperations.length === 0 && operations.length > 0),
+      );
 
-      if (!shownOperations.length) {
+      if (!shownOperations.length && operations.length === 0) {
         const emptyEl = document.createElement("p");
         emptyEl.className = "sorter-preview-list__empty muted";
         emptyEl.textContent = t("tools.sorter.preview.list.empty");
         sorterPreviewListEl.appendChild(emptyEl);
-      } else {
+      } else if (shownOperations.length) {
         shownOperations.forEach((operation) => {
           const rowData = formatSorterOperationRow(operation);
           const row = document.createElement("div");
@@ -3506,6 +3639,49 @@ export default function renderToolsView() {
     sorterRecursiveEl?.addEventListener("change", persistSorterOptions);
     sorterIgnoreExtensionsEl?.addEventListener("change", persistSorterOptions);
     sorterIgnoreFoldersEl?.addEventListener("change", persistSorterOptions);
+    sorterPreviewSearchEl?.addEventListener("input", () => {
+      if (sorterLatestResult)
+        renderSorterPreview(sorterLatestResult, sorterLatestMode);
+    });
+    sorterPreviewCategoryFilterEl?.addEventListener("change", () => {
+      if (sorterLatestResult)
+        renderSorterPreview(sorterLatestResult, sorterLatestMode);
+    });
+    sorterPreviewStatusFilterEl?.addEventListener("change", () => {
+      if (sorterLatestResult)
+        renderSorterPreview(sorterLatestResult, sorterLatestMode);
+    });
+    sorterExportResultBtn?.addEventListener("click", async () => {
+      if (!sorterLatestResult) return;
+      const content = buildSorterExportContent(
+        sorterLatestResult,
+        getFilteredSorterOperations(
+          Array.isArray(sorterLatestResult.operations)
+            ? sorterLatestResult.operations
+            : [],
+        ),
+      );
+      try {
+        const res = await window.electron?.tools?.exportSorterResult?.({
+          content,
+          suggestedName: `file-sorter-${sorterLatestResult.dryRun ? "preview" : "result"}-${new Date().toISOString().slice(0, 10)}.txt`,
+        });
+        if (!res?.success) {
+          if (res?.canceled) return;
+          setSorterResult(res?.error || t("tools.sorter.exportError"), "error");
+          return;
+        }
+        setSorterResult(
+          t("tools.sorter.exportDone", { filePath: res.filePath || "" }),
+          "success",
+        );
+      } catch (error) {
+        setSorterResult(
+          error?.message || t("tools.sorter.exportError"),
+          "error",
+        );
+      }
+    });
 
     sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
     sorterHowtoCloseBtn?.addEventListener("click", () =>

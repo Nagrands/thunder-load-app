@@ -117,6 +117,7 @@ try {
     "tools:sorterPickFolder",
     "tools:sorterOpenFolder",
     "tools:sorterRun",
+    "tools:sorterExport",
     "tools:createWindowsRestartShortcut",
     "tools:createWindowsShutdownShortcut",
     "tools:createWindowsUefiRebootShortcut",
@@ -368,6 +369,7 @@ try {
       openSorterFolder: (folderPath) =>
         safeInvoke("tools:sorterOpenFolder", folderPath),
       sortFilesByCategory: (payload) => safeInvoke("tools:sorterRun", payload),
+      exportSorterResult: (payload) => safeInvoke("tools:sorterExport", payload),
       createWindowsRestartShortcut: () =>
         safeInvoke("tools:createWindowsRestartShortcut"),
       createWindowsShutdownShortcut: () =>

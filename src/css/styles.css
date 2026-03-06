@@ -23441,6 +23441,20 @@ video {
   color: var(--color-highlight);
 }
 
+.sorter-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sorter-preview-toolbar__filters {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(160px, 220px));
+  gap: 10px;
+}
+
 .sorter-preview-badge {
   display: inline-flex;
   align-items: center;
@@ -24147,7 +24161,14 @@ video {
     align-items: flex-start;
     flex-direction: column;
   }
+  .sorter-preview-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
   .sorter-preview-stats {
+    grid-template-columns: 1fr;
+  }
+  .sorter-preview-toolbar__filters {
     grid-template-columns: 1fr;
   }
   .sorter-preview-row {

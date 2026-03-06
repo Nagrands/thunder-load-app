@@ -64,6 +64,10 @@ describe("toolsView quick actions", () => {
           success: true,
           folderPath: "/tmp/sorter",
         }),
+        exportSorterResult: jest.fn().mockResolvedValue({
+          success: true,
+          filePath: "/tmp/file-sorter.txt",
+        }),
         sortFilesByCategory: jest.fn().mockResolvedValue({
           success: true,
           dryRun: true,
@@ -338,6 +342,10 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#sorter-ignore-folders")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-run")).not.toBeNull();
     expect(el.querySelector("#sorter-apply-run")).not.toBeNull();
+    expect(el.querySelector("#sorter-preview-search")).not.toBeNull();
+    expect(el.querySelector("#sorter-preview-category-filter")).not.toBeNull();
+    expect(el.querySelector("#sorter-preview-status-filter")).not.toBeNull();
+    expect(el.querySelector("#sorter-export-result")).not.toBeNull();
     expect(el.querySelector("#sorter-dry-run")).toBeNull();
 
     el.querySelector("#sorter-preview-run")?.click();
@@ -373,6 +381,20 @@ describe("toolsView quick actions", () => {
       el.querySelectorAll("#sorter-breakdown-list .sorter-breakdown-item")
         .length,
     ).toBe(2);
+    el.querySelector("#sorter-preview-search").value = "second";
+    el.querySelector("#sorter-preview-search")?.dispatchEvent(
+      new Event("input", { bubbles: true }),
+    );
+    expect(
+      el.querySelectorAll("#sorter-preview-list .sorter-preview-row").length,
+    ).toBe(1);
+    el.querySelector("#sorter-export-result")?.click();
+    await nextTick();
+    expect(window.electron.tools.exportSorterResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("second.jpg"),
+      }),
+    );
     expect(localStorage.getItem("toolsSorterConflictMode")).toBe("skip");
     expect(localStorage.getItem("toolsSorterRecursive")).toBe("true");
 

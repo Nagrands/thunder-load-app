@@ -90,6 +90,7 @@ const CHANNELS = Object.freeze({
   TOOLS_SORTER_PICK_FOLDER: "tools:sorterPickFolder",
   TOOLS_SORTER_OPEN_FOLDER: "tools:sorterOpenFolder",
   TOOLS_SORTER_RUN: "tools:sorterRun",
+  TOOLS_SORTER_EXPORT: "tools:sorterExport",
   TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT: "tools:createWindowsRestartShortcut",
   TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT: "tools:createWindowsShutdownShortcut",
   TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT:
