@@ -13,6 +13,21 @@ describe("notifications", () => {
     jest.resetModules();
   });
 
+  test("classifies rate-limited downloader errors with retry delay", () => {
+    const { classifyDownloadError } = require("../notifications.js");
+
+    expect(
+      classifyDownloadError(
+        new Error(
+          "YouTube temporarily rate-limited requests for this client (about 7 minutes)",
+        ),
+      ),
+    ).toMatchObject({
+      code: "YOUTUBE_RATE_LIMIT",
+      retryAfterMinutes: 7,
+    });
+  });
+
   test("formats downloader auth errors into user-friendly text", () => {
     const { formatDownloadErrorMessage } = require("../notifications.js");
 
@@ -35,5 +50,17 @@ describe("notifications", () => {
         ),
       ),
     ).toContain("YouTube");
+  });
+
+  test("formats downloader rate-limited errors with retry hint", () => {
+    const { formatDownloadErrorMessage } = require("../notifications.js");
+
+    expect(
+      formatDownloadErrorMessage(
+        new Error(
+          "YouTube temporarily rate-limited requests for this client (about 7 minutes)",
+        ),
+      ),
+    ).toContain("7 мин");
   });
 });

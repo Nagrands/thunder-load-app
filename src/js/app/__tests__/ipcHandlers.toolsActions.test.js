@@ -259,6 +259,109 @@ describe("ipcHandlers tools quick actions", () => {
     expect(download.getVideoInfo).not.toHaveBeenCalled();
   });
 
+  test("get-video-info maps auth errors to AUTH_REQUIRED", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_AUTH_REQUIRED: login required"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "AUTH_REQUIRED",
+    });
+    expect(result.error).toContain("авторизации");
+  });
+
+  test("get-video-info maps geo errors to GEO_BLOCKED", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_GEO_BLOCKED: region blocked"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "GEO_BLOCKED",
+    });
+    expect(result.error).toContain("регионе");
+  });
+
+  test("get-video-info maps unavailable errors to UNAVAILABLE", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_UNAVAILABLE: video unavailable"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "UNAVAILABLE",
+    });
+    expect(result.error).toContain("недоступно");
+  });
+
+  test("get-video-info maps network timeouts to NETWORK_TIMEOUT", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_NETWORK_TIMEOUT: read timed out"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "NETWORK_TIMEOUT",
+    });
+    expect(result.error).toContain("YouTube");
+  });
+
+  test("get-video-info maps rate limits with retryAfterMinutes", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error(
+        "YouTube temporarily rate-limited requests for this client (about 7 minutes)",
+      ),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "YOUTUBE_RATE_LIMIT",
+      retryAfterMinutes: 7,
+    });
+    expect(result.error).toContain("7 мин");
+  });
+
   test("hashCalculate returns SHA-256 hash and match", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const filePath = path.join(os.tmpdir(), `hash-test-${Date.now()}.txt`);

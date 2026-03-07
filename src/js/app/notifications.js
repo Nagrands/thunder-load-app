@@ -4,25 +4,77 @@ const { Notification, shell } = require("electron");
 const path = require("path");
 const { bringMainWindowToFront } = require("./windowActivation");
 
+function classifyDownloadError(errorLike) {
+  const rawMessage = String(errorLike?.message || errorLike || "").trim();
+  if (!rawMessage) {
+    return {
+      code: null,
+      message: "Ошибка при загрузке.",
+      retryAfterMinutes: null,
+      rawMessage,
+    };
+  }
+
+  if (/ERR_YTDLP_NETWORK_TIMEOUT:/i.test(rawMessage)) {
+    return {
+      code: "NETWORK_TIMEOUT",
+      message:
+        "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
+      retryAfterMinutes: null,
+      rawMessage,
+    };
+  }
+  if (/ERR_YTDLP_AUTH_REQUIRED:/i.test(rawMessage)) {
+    return {
+      code: "AUTH_REQUIRED",
+      message:
+        "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.",
+      retryAfterMinutes: null,
+      rawMessage,
+    };
+  }
+  if (/ERR_YTDLP_GEO_BLOCKED:/i.test(rawMessage)) {
+    return {
+      code: "GEO_BLOCKED",
+      message: "Видео недоступно в вашем регионе.",
+      retryAfterMinutes: null,
+      rawMessage,
+    };
+  }
+  if (/ERR_YTDLP_UNAVAILABLE:/i.test(rawMessage)) {
+    return {
+      code: "UNAVAILABLE",
+      message: "Видео недоступно или было удалено.",
+      retryAfterMinutes: null,
+      rawMessage,
+    };
+  }
+  if (/YouTube temporarily rate-limited requests/i.test(rawMessage)) {
+    const rateLimitMatch = rawMessage.match(/about\s+(\d+)\s+minute/i);
+    const retryAfterMinutes = rateLimitMatch
+      ? Number(rateLimitMatch[1]) || null
+      : null;
+    return {
+      code: "YOUTUBE_RATE_LIMIT",
+      message: retryAfterMinutes
+        ? `YouTube временно ограничил запросы. Попробуйте снова примерно через ${retryAfterMinutes} мин.`
+        : "YouTube временно ограничил запросы. Повторите попытку позже.",
+      retryAfterMinutes,
+      rawMessage,
+    };
+  }
+
+  return {
+    code: null,
+    message:
+      rawMessage.replace(/^ERR_YTDLP_[A-Z_]+:\s*/i, "").trim() || rawMessage,
+    retryAfterMinutes: null,
+    rawMessage,
+  };
+}
+
 function formatDownloadErrorMessage(errorLike) {
-  const message = String(errorLike?.message || errorLike || "").trim();
-  if (!message) return "Ошибка при загрузке.";
-  if (/ERR_YTDLP_NETWORK_TIMEOUT:/i.test(message)) {
-    return "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.";
-  }
-  if (/ERR_YTDLP_AUTH_REQUIRED:/i.test(message)) {
-    return "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.";
-  }
-  if (/ERR_YTDLP_GEO_BLOCKED:/i.test(message)) {
-    return "Видео недоступно в вашем регионе.";
-  }
-  if (/ERR_YTDLP_UNAVAILABLE:/i.test(message)) {
-    return "Видео недоступно или было удалено.";
-  }
-  if (/YouTube temporarily rate-limited requests/i.test(message)) {
-    return "YouTube временно ограничил запросы. Повторите попытку позже.";
-  }
-  return message.replace(/^ERR_YTDLP_[A-Z_]+:\s*/i, "").trim() || message;
+  return classifyDownloadError(errorLike).message;
 }
 
 function showTrayNotification(message) {
@@ -75,6 +127,7 @@ function sendDownloadCompletionNotification(
 }
 
 module.exports = {
+  classifyDownloadError,
   formatDownloadErrorMessage,
   showTrayNotification,
   notifyDownloadError,

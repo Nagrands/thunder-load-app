@@ -12,7 +12,10 @@ const { autoUpdater } = require("electron-updater");
 const { CHANNELS } = require("../ipc/channels");
 
 const { getToolsVersions } = require("./toolsVersions");
-const { formatDownloadErrorMessage } = require("./notifications");
+const {
+  classifyDownloadError,
+  formatDownloadErrorMessage,
+} = require("./notifications");
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
@@ -512,49 +515,13 @@ function setupIpcHandlers(dependencies) {
     } catch (e) {
       const rawMessage = e?.message || String(e);
       log.warn("get-video-info error:", rawMessage);
-      if (/ERR_YTDLP_AUTH_REQUIRED:/i.test(rawMessage)) {
+      const classified = classifyDownloadError(rawMessage);
+      if (classified.code) {
         return {
           success: false,
-          errorCode: "AUTH_REQUIRED",
-          error: rawMessage,
-        };
-      }
-      if (/ERR_YTDLP_GEO_BLOCKED:/i.test(rawMessage)) {
-        return {
-          success: false,
-          errorCode: "GEO_BLOCKED",
-          error: rawMessage,
-        };
-      }
-      if (/ERR_YTDLP_UNAVAILABLE:/i.test(rawMessage)) {
-        return {
-          success: false,
-          errorCode: "UNAVAILABLE",
-          error: rawMessage,
-        };
-      }
-      if (/ERR_YTDLP_NETWORK_TIMEOUT:/i.test(rawMessage)) {
-        return {
-          success: false,
-          errorCode: "NETWORK_TIMEOUT",
-          error: rawMessage,
-        };
-      }
-      const rateLimitMatch = String(rawMessage).match(
-        /about\s+(\d+)\s+minute/i,
-      );
-      if (/YouTube temporarily rate-limited requests/i.test(rawMessage)) {
-        const retryAfterMinutes = rateLimitMatch
-          ? Number(rateLimitMatch[1]) || null
-          : null;
-        const humanMessage = retryAfterMinutes
-          ? `YouTube временно ограничил запросы. Попробуйте снова примерно через ${retryAfterMinutes} мин.`
-          : "YouTube временно ограничил запросы. Попробуйте снова чуть позже.";
-        return {
-          success: false,
-          errorCode: "YOUTUBE_RATE_LIMIT",
-          retryAfterMinutes,
-          error: humanMessage,
+          errorCode: classified.code,
+          retryAfterMinutes: classified.retryAfterMinutes,
+          error: classified.message,
         };
       }
       return { success: false, error: rawMessage };
