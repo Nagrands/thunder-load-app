@@ -96,6 +96,7 @@ let lastProgressRenderTs = 0;
 let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
+const YTDLP_NETWORK_TIMEOUT_PREFIX = "ERR_YTDLP_NETWORK_TIMEOUT:";
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -118,6 +119,25 @@ const makeQueueUrlLabel = (url) => {
       : raw;
   }
 };
+
+function getDownloadErrorToastKey(error) {
+  const message = String(error?.message || error || "");
+  if (message.startsWith(YTDLP_NETWORK_TIMEOUT_PREFIX)) {
+    return "download.error.networkTimeout";
+  }
+  if (/YouTube temporarily rate-limited requests/i.test(message)) {
+    return "download.error.youtubeRateLimit";
+  }
+  return "download.error.retry";
+}
+
+function getDownloadErrorMessage(error) {
+  const message = String(error?.message || error || "");
+  if (message.startsWith(YTDLP_NETWORK_TIMEOUT_PREFIX)) {
+    return message.slice(YTDLP_NETWORK_TIMEOUT_PREFIX.length).trim();
+  }
+  return message;
+}
 
 const makeQueueTitle = (url) => {
   const cached = getCachedVideoInfo(url);
@@ -1192,10 +1212,10 @@ const downloadVideo = async (url, quality, options = {}) => {
       return { poolFull: true };
     } else {
       console.error("Ошибка при загрузке видео:", error);
-      showToast(t("download.error.retry"), "error");
+      showToast(t(getDownloadErrorToastKey(error)), "error");
       return {
         error: true,
-        message: error?.message || String(error),
+        message: getDownloadErrorMessage(error),
       };
     }
   }

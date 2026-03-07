@@ -218,6 +218,8 @@ const videoInfoInFlight = new Map(); // url -> Promise
 const VIDEO_INFO_MAX_CONCURRENCY = 1;
 const VIDEO_INFO_QUEUE_POLL_MS = 80;
 const YOUTUBE_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000;
+const YTDLP_NETWORK_RETRY_MAX_ATTEMPTS = 3;
+const YTDLP_NETWORK_RETRY_DELAY_MS = 1500;
 let videoInfoRunning = 0;
 let youtubeRateLimitUntilTs = 0;
 const TOOL_DOWNLOAD_OPTIONS = {
@@ -1320,6 +1322,122 @@ function isYoutubeRateLimitError(stderrOutput = "") {
   );
 }
 
+function isYtDlpTransientNetworkError(stderrOutput = "") {
+  return /Read timed out|timed out|Unable to download API page|Unable to download webpage|TransportError|Connection reset by peer|Temporary failure in name resolution|Network is unreachable|TLS handshake timeout|Connection timed out/i.test(
+    String(stderrOutput || ""),
+  );
+}
+
+function makeYtDlpExitError(code, stderrOutput = "") {
+  const reason = String(stderrOutput || "").trim();
+  const lastLine = reason.split("\n").filter(Boolean).slice(-1)[0] || "";
+  const suffix = lastLine ? `: ${lastLine}` : "";
+  const error = new Error(`yt-dlp exited with code ${code}${suffix}`);
+  if (isYtDlpTransientNetworkError(reason)) {
+    error.message = `ERR_YTDLP_NETWORK_TIMEOUT: ${lastLine || `yt-dlp exited with code ${code}`}`;
+  }
+  return error;
+}
+
+async function runYtDlpVideoInfo(url, token, cacheKey) {
+  const processStore = getProcessStore(token);
+  let lastError = null;
+  for (
+    let attempt = 1;
+    attempt <= YTDLP_NETWORK_RETRY_MAX_ATTEMPTS;
+    attempt += 1
+  ) {
+    try {
+      return await new Promise((resolve, reject) => {
+        const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+        const ffmpegDir = resolveRuntimeFfmpegDir();
+        log.info("[download] getVideoInfo runtime tools", {
+          preferredToolsDir: getToolsDir(),
+          ytDlpPath,
+          ffmpegDir,
+          attempt,
+        });
+        processStore.getVideoInfo = spawn(
+          ytDlpPath,
+          [
+            "-J",
+            url,
+            "--ffmpeg-location",
+            ffmpegDir,
+            "--no-warnings",
+            "--ignore-config",
+          ],
+          getYtDlpSpawnOptions(),
+        );
+        let output = "";
+        let stderrOutput = "";
+        processStore.getVideoInfo.stdout.on("data", (data) => {
+          if (isCancelled(token)) {
+            processStore.getVideoInfo?.kill("SIGTERM");
+            return;
+          }
+          output += data.toString();
+        });
+        processStore.getVideoInfo.stderr.on("data", (data) => {
+          const text = data?.toString?.() || "";
+          stderrOutput += text;
+          log.error(`Error: ${text}`);
+        });
+        processStore.getVideoInfo.on("close", (code) => {
+          processStore.getVideoInfo = null;
+          if (isCancelled(token)) {
+            log.info("getVideoInfo operation cancelled.");
+            return reject(new Error("Download cancelled"));
+          }
+          if (code !== 0) {
+            if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
+              youtubeRateLimitUntilTs = Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
+              log.warn(
+                `[download] YouTube rate-limit detected; enabling getVideoInfo cooldown for ${Math.ceil(YOUTUBE_RATE_LIMIT_COOLDOWN_MS / 60000)} minutes.`,
+              );
+            }
+            return reject(makeYtDlpExitError(code, stderrOutput));
+          }
+          try {
+            const info = JSON.parse(output);
+            if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
+              const oldestKey = [...videoInfoCache.entries()].sort(
+                (a, b) => a[1].timestamp - b[1].timestamp,
+              )[0]?.[0];
+              if (oldestKey) videoInfoCache.delete(oldestKey);
+            }
+            videoInfoCache.set(cacheKey, { timestamp: Date.now(), data: info });
+            resolve(info);
+          } catch (err) {
+            log.error(`Error parsing video information: ${err.message}`);
+            reject(err);
+          }
+        });
+        processStore.getVideoInfo.on("error", (err) => {
+          processStore.getVideoInfo = null;
+          reject(err);
+        });
+      });
+    } catch (error) {
+      lastError = error;
+      if (
+        isCancelled(token) ||
+        !isYouTubeUrl(url) ||
+        !String(error?.message || "").startsWith("ERR_YTDLP_NETWORK_TIMEOUT:") ||
+        attempt >= YTDLP_NETWORK_RETRY_MAX_ATTEMPTS
+      ) {
+        throw error;
+      }
+      const retryDelay = YTDLP_NETWORK_RETRY_DELAY_MS * attempt;
+      log.warn(
+        `[download] getVideoInfo transient network error for ${cacheKey}; retry ${attempt}/${YTDLP_NETWORK_RETRY_MAX_ATTEMPTS} in ${retryDelay}ms.`,
+      );
+      await sleep(retryDelay);
+    }
+  }
+  throw lastError || new Error("Failed to fetch video information");
+}
+
 async function acquireVideoInfoSlot(token = null) {
   while (videoInfoRunning >= VIDEO_INFO_MAX_CONCURRENCY) {
     if (isCancelled(token)) {
@@ -1370,85 +1488,9 @@ function getVideoInfo(url, token = null) {
   }
   const promise = (async () => {
     await acquireVideoInfoSlot(token);
-    const processStore = getProcessStore(token);
     try {
       checkYoutubeRateLimitCooldown(url);
-      return await new Promise((resolve, reject) => {
-        const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
-        const ffmpegDir = resolveRuntimeFfmpegDir();
-        log.info("[download] getVideoInfo runtime tools", {
-          preferredToolsDir: getToolsDir(),
-          ytDlpPath,
-          ffmpegDir,
-        });
-        processStore.getVideoInfo = spawn(
-          ytDlpPath,
-          [
-            "-J",
-            url,
-            "--ffmpeg-location",
-            ffmpegDir,
-            "--no-warnings",
-            "--ignore-config",
-          ],
-          getYtDlpSpawnOptions(),
-        );
-        let output = "";
-        let stderrOutput = "";
-        processStore.getVideoInfo.stdout.on("data", (data) => {
-          if (isCancelled(token)) {
-            processStore.getVideoInfo?.kill("SIGTERM");
-            return;
-          }
-          output += data.toString();
-        });
-        processStore.getVideoInfo.stderr.on("data", (data) => {
-          const text = data?.toString?.() || "";
-          stderrOutput += text;
-          log.error(`Error: ${text}`);
-        });
-        processStore.getVideoInfo.on("close", (code) => {
-          processStore.getVideoInfo = null;
-          if (isCancelled(token)) {
-            log.info("getVideoInfo operation cancelled.");
-            return reject(new Error("Download cancelled"));
-          }
-          if (code !== 0) {
-            if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
-              youtubeRateLimitUntilTs =
-                Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
-              log.warn(
-                `[download] YouTube rate-limit detected; enabling getVideoInfo cooldown for ${Math.ceil(YOUTUBE_RATE_LIMIT_COOLDOWN_MS / 60000)} minutes.`,
-              );
-            }
-            const reason = stderrOutput.trim();
-            const suffix = reason
-              ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
-              : "";
-            return reject(
-              new Error(`yt-dlp exited with code ${code}${suffix}`),
-            );
-          }
-          try {
-            const info = JSON.parse(output);
-            if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
-              const oldestKey = [...videoInfoCache.entries()].sort(
-                (a, b) => a[1].timestamp - b[1].timestamp,
-              )[0]?.[0];
-              if (oldestKey) videoInfoCache.delete(oldestKey);
-            }
-            videoInfoCache.set(key, { timestamp: Date.now(), data: info });
-            resolve(info);
-          } catch (err) {
-            log.error(`Error parsing video information: ${err.message}`);
-            reject(err);
-          }
-        });
-        processStore.getVideoInfo.on("error", (err) => {
-          processStore.getVideoInfo = null;
-          reject(err);
-        });
-      });
+      return await runYtDlpVideoInfo(url, token, key);
     } finally {
       releaseVideoInfoSlot();
     }
@@ -1529,11 +1571,7 @@ function spawnDownloadProcess(
         return reject(new Error(token.cancelReason || "Download cancelled"));
       }
       if (code !== 0) {
-        const reason = stderrOutput.trim();
-        const suffix = reason
-          ? `: ${reason.split("\n").filter(Boolean).slice(-1)[0]}`
-          : "";
-        return reject(new Error(`yt-dlp exited with code ${code}${suffix}`));
+        return reject(makeYtDlpExitError(code, stderrOutput));
       }
       resolve();
     });

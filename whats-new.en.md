@@ -22,3 +22,4 @@
 | Fixed tooltips in Download History | Main actions and controls in history entries now show tooltips reliably again |
 | Fixed delete confirmation overlap in History | Tooltips no longer appear above the delete confirmation dialog |
 | Improved “Retry download” in History | The app now smoothly scrolls to the URL field and focuses it after retry |
+| Improved handling of YouTube download failures | The app now explains temporary network issues more clearly and automatically retries some failed requests |

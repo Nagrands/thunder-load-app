@@ -985,6 +985,10 @@ export const translations = {
     "download.inProgress": "Загрузка в процессе — {summary}.",
     "download.pool.full": "Лимит одновременных загрузок достигнут.",
     "download.error.retry": "Не удалось загрузить. Повторите попытку.",
+    "download.error.networkTimeout":
+      "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
+    "download.error.youtubeRateLimit":
+      "YouTube временно ограничил запросы. Повторите попытку позже.",
     "download.url.invalid": "Введите корректный URL.",
     "download.url.active": "URL уже загружается.",
     "download.url.queued": "URL уже есть в очереди.",
@@ -2330,6 +2334,10 @@ export const translations = {
     "download.inProgress": "Download in progress — {summary}.",
     "download.pool.full": "Parallel download limit reached.",
     "download.error.retry": "Download failed. Please try again.",
+    "download.error.networkTimeout":
+      "Could not reach YouTube. Check your connection and try again.",
+    "download.error.youtubeRateLimit":
+      "YouTube temporarily limited requests. Please try again later.",
     "download.url.invalid": "Enter a valid URL.",
     "download.url.active": "This URL is already downloading.",
     "download.url.queued": "This URL is already queued.",
