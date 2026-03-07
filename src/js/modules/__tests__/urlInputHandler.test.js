@@ -60,7 +60,7 @@ describe("urlInputHandler", () => {
         updateButtonState: updateButtonStateMock,
       }));
       jest.doMock("../i18n", () => ({
-        t: (key) => {
+        t: (key, vars = {}) => {
           if (key === "input.url.error.invalidOrUnsupported") {
             return "Проверьте ссылку: нужен корректный URL поддерживаемого источника.";
           }
@@ -87,6 +87,27 @@ describe("urlInputHandler", () => {
           }
           if (key === "download.error.youtubeRateLimit") {
             return "YouTube временно ограничил запросы. Повторите попытку позже.";
+          }
+          if (key === "download.error.youtubeRateLimitTimed") {
+            return `YouTube временно ограничил запросы. Повторите примерно через ${vars.minutes} мин.`;
+          }
+          if (key === "input.url.preview.duration") {
+            return `Длительность: ${vars.duration}`;
+          }
+          if (key === "input.url.preview.addAll") {
+            return `Добавить все (${vars.count})`;
+          }
+          if (key === "input.url.preview.addAllTitle") {
+            return "Добавить все элементы плейлиста в очередь";
+          }
+          if (key === "input.url.preview.close") {
+            return "Закрыть предпросмотр";
+          }
+          if (key === "input.url.preview.save") {
+            return "Сохранить превью";
+          }
+          if (key === "input.url.preview.saveWithTitle") {
+            return `Сохранить: "${vars.title}"`;
           }
           return key;
         },

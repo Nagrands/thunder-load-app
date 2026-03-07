@@ -4,6 +4,27 @@ const { Notification, shell } = require("electron");
 const path = require("path");
 const { bringMainWindowToFront } = require("./windowActivation");
 
+function formatDownloadErrorMessage(errorLike) {
+  const message = String(errorLike?.message || errorLike || "").trim();
+  if (!message) return "Ошибка при загрузке.";
+  if (/ERR_YTDLP_NETWORK_TIMEOUT:/i.test(message)) {
+    return "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.";
+  }
+  if (/ERR_YTDLP_AUTH_REQUIRED:/i.test(message)) {
+    return "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.";
+  }
+  if (/ERR_YTDLP_GEO_BLOCKED:/i.test(message)) {
+    return "Видео недоступно в вашем регионе.";
+  }
+  if (/ERR_YTDLP_UNAVAILABLE:/i.test(message)) {
+    return "Видео недоступно или было удалено.";
+  }
+  if (/YouTube temporarily rate-limited requests/i.test(message)) {
+    return "YouTube временно ограничил запросы. Повторите попытку позже.";
+  }
+  return message.replace(/^ERR_YTDLP_[A-Z_]+:\s*/i, "").trim() || message;
+}
+
 function showTrayNotification(message) {
   const notification = new Notification({
     title: "Thunder Load",
@@ -16,7 +37,7 @@ function showTrayNotification(message) {
 function notifyDownloadError(error) {
   const notification = new Notification({
     title: "Ошибка загрузки",
-    body: `Ошибка при загрузке: ${error.message}`,
+    body: formatDownloadErrorMessage(error),
     icon: path.join(__dirname, "../../../assets/icons/info-error.png"),
   });
   notification.show();
@@ -54,6 +75,7 @@ function sendDownloadCompletionNotification(
 }
 
 module.exports = {
+  formatDownloadErrorMessage,
   showTrayNotification,
   notifyDownloadError,
   sendDownloadCompletionNotification,

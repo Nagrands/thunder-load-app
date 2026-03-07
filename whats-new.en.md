@@ -26,3 +26,5 @@
 | Improved downloader stability | Temporary network failures during downloads are now handled more gracefully, and download history no longer depends on an extra metadata request |
 | Improved download error messages | It is now clearer whether a video needs authorization, is unavailable, or is blocked in your region |
 | Improved preview and quality selection | Before starting a download, the app now explains more clearly if a video needs authorization, is unavailable, or is temporarily not responding |
+| Download error messages are now more consistent | Notifications from different parts of the downloader now describe the same problem in a more uniform way |
+| Improved downloader localization | Messages for opening folders, opening the last file, and changing the downloads folder now better match the selected language |

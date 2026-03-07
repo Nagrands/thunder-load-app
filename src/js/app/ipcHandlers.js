@@ -12,6 +12,7 @@ const { autoUpdater } = require("electron-updater");
 const { CHANNELS } = require("../ipc/channels");
 
 const { getToolsVersions } = require("./toolsVersions");
+const { formatDownloadErrorMessage } = require("./notifications");
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
@@ -2221,7 +2222,7 @@ function setupIpcHandlers(dependencies) {
         if (mainWindow && mainWindow.webContents) {
           mainWindow.webContents.send(
             "toast",
-            `Ошибка при скачивании видео: ${error.message}`,
+            formatDownloadErrorMessage(error),
             "error",
           );
         }

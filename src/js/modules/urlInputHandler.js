@@ -136,7 +136,7 @@ function initUrlInputHandler() {
     if (code === "YOUTUBE_RATE_LIMIT") {
       const mins = Number(payload?.retryAfterMinutes || 0);
       if (mins > 0) {
-        return `YouTube временно ограничил запросы. Повторите примерно через ${mins} мин.`;
+        return t("download.error.youtubeRateLimitTimed", { minutes: mins });
       }
       return t("download.error.youtubeRateLimit");
     }
@@ -171,7 +171,7 @@ function initUrlInputHandler() {
     hideInlineError();
     t.textContent = data.title || "";
     d.textContent = data.duration
-      ? `Длительность: ${durationToStr(data.duration)}`
+      ? t("input.url.preview.duration", { duration: durationToStr(data.duration) })
       : "";
     t.setAttribute("title", data.title || "");
     if (data.thumbnail) {
@@ -211,19 +211,16 @@ function initUrlInputHandler() {
         addAllBtn.className = "btn btn-small";
         addAllBtn.style.marginLeft = "12px";
         addAllBtn.style.whiteSpace = "nowrap";
-        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> Добавить все (${data.entries.length})`;
+        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: data.entries.length })}`;
         addAllBtn.setAttribute("data-bs-toggle", "tooltip");
         addAllBtn.setAttribute("data-bs-placement", "top");
-        addAllBtn.setAttribute(
-          "title",
-          "Добавить все элементы плейлиста в очередь",
-        );
+        addAllBtn.setAttribute("title", t("input.url.preview.addAllTitle"));
         card.appendChild(addAllBtn);
         try {
           initTooltips();
         } catch (_) {}
       } else {
-        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> Добавить все (${data.entries.length})`;
+        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: data.entries.length })}`;
         addAllBtn.style.display = "";
         try {
           initTooltips();
@@ -246,7 +243,7 @@ function initUrlInputHandler() {
     if (!closeBtn) {
       closeBtn = document.createElement("button");
       closeBtn.className = "preview-close";
-      closeBtn.setAttribute("aria-label", "Закрыть предпросмотр");
+      closeBtn.setAttribute("aria-label", t("input.url.preview.close"));
       closeBtn.innerHTML = "&times;";
       closeBtn.addEventListener("click", () => {
         card.style.display = "none";
@@ -329,7 +326,9 @@ function initUrlInputHandler() {
       // Обновляем актуальный src и тултип при каждом новом предпросмотре
       saveBtn.dataset.src = data.thumbnail;
       const ttl = (data.title || "").trim();
-      saveBtn.title = ttl ? `Сохранить: \"${ttl}\"` : "Сохранить превью";
+      saveBtn.title = ttl
+        ? t("input.url.preview.saveWithTitle", { title: ttl })
+        : t("input.url.preview.save");
       ensureSaveHandler(saveBtn, data.thumbnail, ttl);
     } else if (saveBtn) {
       // Если превью нет — скрываем кнопку

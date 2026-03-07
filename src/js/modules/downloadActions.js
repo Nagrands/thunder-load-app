@@ -8,6 +8,7 @@ import {
 import { initTooltips } from "./tooltipInitializer.js";
 import { initDownloadButton } from "./downloadManager.js";
 import { showToast } from "./toast.js";
+import { t } from "./i18n.js";
 
 /**
  * Обработчик открытия папки загрузок
@@ -22,7 +23,7 @@ async function handleOpenFolder() {
       if (currentDir) {
         await window.electron.invoke("open-download-folder", currentDir);
       } else {
-        showToast("Не удалось определить папку загрузок.", "warning");
+        showToast(t("download.folder.resolveError"), "warning");
       }
     };
 
@@ -37,10 +38,7 @@ async function handleOpenFolder() {
           lastDownloadedFile,
         );
       } else {
-        showToast(
-          "Последний файл не найден. Откройте текущую папку загрузок.",
-          "warning",
-        );
+        showToast(t("download.folder.lastMissing"), "warning");
         await openCurrentDownloadDir();
       }
     } else {
@@ -48,7 +46,7 @@ async function handleOpenFolder() {
     }
   } catch (error) {
     console.error("Error opening download folder:", error);
-    showToast("Ошибка открытия папки загрузок.", "error");
+    showToast(t("download.folder.openError"), "error");
   }
 }
 
@@ -71,17 +69,17 @@ async function handleOpenLastVideo() {
           "Failed to open last video:",
           result ? result.error : "Unknown error",
         );
-        showToast("Не удалось открыть последнее видео.", "error");
+        showToast(t("download.complete.openError"), "error");
       } else {
         console.log("Последнее видео успешно открыто.");
       }
     } catch (error) {
       console.error("Error opening last video:", error);
-      showToast("Не удалось открыть последнее видео.", "error");
+      showToast(t("download.complete.openError"), "error");
     }
   } else {
     console.warn("No last downloaded file path found.");
-    showToast("Не найден путь к последнему скачанному файлу.", "warning");
+    showToast(t("download.lastFile.missing"), "warning");
   }
 }
 
@@ -94,11 +92,11 @@ async function handleSelectDownloadFolder() {
     if (result.success) {
       // Тост приходит из события "download-path-changed"; здесь ничего не делаем
     } else {
-      showToast("Выбор папки отменён.", "warning");
+      showToast(t("download.folder.selectCancelled"), "warning");
     }
   } catch (error) {
     console.error("Error selecting folder:", error);
-    showToast("Не удалось выбрать папку.", "error");
+    showToast(t("download.folder.selectError"), "error");
   }
 }
 
@@ -110,7 +108,7 @@ function initDownloadActions() {
   // Слушаем событие изменения пути загрузки
   window.electron.on("download-path-changed", (newPath) => {
     console.log(`Путь загрузки изменен: ${newPath}`);
-    showToast(`Папка для загрузки изменена на: ${newPath}`, "success");
+    showToast(t("download.folder.changed", { path: newPath }), "success");
     // при необходимости обновляем UI здесь
   });
   initDownloadButton();

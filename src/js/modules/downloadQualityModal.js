@@ -73,7 +73,7 @@ function formatVideoInfoError(errorLike) {
   if (code === "YOUTUBE_RATE_LIMIT") {
     const mins = Number(errorLike?.retryAfterMinutes || 0);
     if (mins > 0) {
-      return `YouTube временно ограничил запросы. Повторите примерно через ${mins} мин.`;
+      return t("download.error.youtubeRateLimitTimed", { minutes: mins });
     }
     return t("download.error.youtubeRateLimit");
   }
@@ -82,14 +82,16 @@ function formatVideoInfoError(errorLike) {
   if (code === "UNAVAILABLE") return t("download.error.unavailable");
   if (code === "NETWORK_TIMEOUT") return t("download.error.networkTimeout");
   if (message.toLowerCase().includes("timeout")) {
-    return "Превышено время ожидания. Попробуйте ещё раз.";
+    return t("quality.error.timeout");
   }
-  return `Не удалось получить доступные качества: ${errorLike?.message || errorLike?.error || "ошибка"}`;
+  return t("quality.error.formats", {
+    message: errorLike?.message || errorLike?.error || "error",
+  });
 }
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
-  const units = ["Б", "КБ", "МБ", "ГБ"];
+  const units = ["B", "KB", "MB", "GB"];
   const exponent = Math.min(
     units.length - 1,
     Math.floor(Math.log(bytes) / Math.log(1024)),
@@ -384,8 +386,7 @@ function showError(message) {
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   if (errorTextEl) {
-    errorTextEl.textContent =
-      message || "Не удалось получить информацию о видео.";
+    errorTextEl.textContent = message || t("quality.error");
   }
   updateSelectionSummary(null);
 }
@@ -523,10 +524,10 @@ function renderPreview(info, url) {
   try {
     setCachedVideoInfo(info.webpage_url || info.original_url || url, info);
   } catch (_) {}
-  titleEl.textContent = info.title || "Без названия";
+  titleEl.textContent = info.title || t("quality.previewUnavailable");
   uploaderEl.textContent = info.uploader || info.channel || "";
   durationEl.textContent = info.duration
-    ? `Длительность: ${secondsToTime(info.duration)}`
+    ? t("input.url.preview.duration", { duration: secondsToTime(info.duration) })
     : "";
   const preview = getPreviewData(info);
   const previewResolution =
@@ -581,7 +582,7 @@ function renderPreview(info, url) {
       if (!targetUrl) return;
       window.electron.invoke("open-external-link", targetUrl).catch((err) => {
         console.error("Не удалось открыть источник:", err);
-        showToast("Не удалось открыть источник.", "error");
+        showToast(t("quality.openSourceError"), "error");
       });
     };
   }
@@ -738,7 +739,7 @@ function buildOptions(info) {
       score: sortScore(fmt) + 10, // бонус за готовое muxed-видео
       payload: buildOptionPayload({
         type: "muxed",
-        label: resolution || fmt.format_note || "Видео",
+        label: resolution || fmt.format_note || t("quality.label.video"),
         videoFormat: fmt.format_id,
         audioFormat: null,
         videoExt,
@@ -757,8 +758,8 @@ function buildOptions(info) {
       id: `pair-${fmt.format_id}`,
       tab: "video",
       title: resolution || fmt.format_note || fmt.format_id,
-      description: `${describeFormat(fmt)} • аудио: ${
-        bestAudio?.abr ? `${bestAudio.abr}kbps` : "нет"
+      description: `${describeFormat(fmt)} • ${t("quality.label.audio").toLowerCase()}: ${
+        bestAudio?.abr ? `${bestAudio.abr}kbps` : t("quality.extra.noAudio")
       }`,
       extLabel: (videoExt || "mp4").toUpperCase(),
       sizeLabel: bytesToSize(
@@ -777,8 +778,10 @@ function buildOptions(info) {
       payload: buildOptionPayload({
         type: "pair",
         label: hasAudioPair
-          ? `${resolution || "Видео"} + аудио`
-          : `${resolution || "Видео"}`,
+          ? t("quality.label.videoWithAudio", {
+              label: resolution || t("quality.label.video"),
+            })
+          : `${resolution || t("quality.label.video")}`,
         videoFormat: fmt.format_id,
         audioFormat: bestAudio?.format_id || null,
         videoExt,
@@ -804,7 +807,9 @@ function buildOptions(info) {
       score: sortScore(fmt),
       payload: buildOptionPayload({
         type: "video-only",
-        label: `${resolution || "Видео"} (без звука)`,
+        label: t("quality.label.videoNoAudio", {
+          label: resolution || t("quality.label.video"),
+        }),
         videoFormat: fmt.format_id,
         audioFormat: null,
         videoExt,
@@ -827,7 +832,7 @@ function buildOptions(info) {
       extLabel: (fmt.ext || "m4a").toUpperCase(),
       sizeLabel: size,
       extra: "",
-      resolutionLabel: "Audio",
+      resolutionLabel: t("quality.label.audio"),
       fpsLabel: "—",
       codecLabel: codecLabel(fmt),
       containerLabel: (fmt.ext || "m4a").toUpperCase(),
@@ -835,7 +840,7 @@ function buildOptions(info) {
       score: (fmt.abr || fmt.tbr || 0) / 10,
       payload: buildOptionPayload({
         type: "audio-only",
-        label: fmt.format_note || "Аудио",
+        label: fmt.format_note || t("quality.label.audio"),
         videoFormat: null,
         audioFormat: fmt.format_id,
         videoExt: null,
@@ -1031,7 +1036,7 @@ async function loadFormatsWithRetry(
   { preferredLabel = null, force = false } = {},
 ) {
   if (!url) {
-    showError("Ссылка недоступна. Повторите ещё раз.");
+    showError(t("quality.error.urlUnavailable"));
     return false;
   }
   if (!force && state.optionMap.size > 0 && state.currentUrl === url) {
@@ -1051,9 +1056,7 @@ async function loadFormatsWithRetry(
     );
     if (!info || info.success === false) {
       const reason = String(info?.error || "").trim();
-      const err = new Error(
-        reason || "Не удалось получить информацию о видео.",
-      );
+      const err = new Error(reason || t("quality.error"));
       if (info?.errorCode) err.code = info.errorCode;
       if (typeof info?.retryAfterMinutes === "number") {
         err.retryAfterMinutes = info.retryAfterMinutes;
@@ -1094,7 +1097,7 @@ async function loadFormatsWithRetry(
       if (state.forceAudio || audioProfileSelected) {
         const audioSelected = selectBestFromTab("audio");
         if (!audioSelected) {
-          showToast("Аудио варианты недоступны для этой ссылки.", "warning");
+          showToast(t("quality.audioUnavailable"), "warning");
           selectBestVideoOption();
         } else if (state.forceAudio) {
           confirmSelection();
@@ -1147,7 +1150,7 @@ function selectBestFromTab(tab) {
 function selectBestVideoOption(showWarning = false) {
   const ok = selectBestFromTab("video");
   if (!ok && showWarning) {
-    showToast("Видео варианты недоступны для этой ссылки.", "warning");
+    showToast(t("quality.videoUnavailable"), "warning");
   }
   return ok;
 }
@@ -1372,7 +1375,7 @@ function bindEvents() {
 
 async function openDownloadQualityModal(url, opts = {}) {
   if (!modal) {
-    showToast("Не удалось открыть выбор качества.", "error");
+    showToast(t("quality.openError"), "error");
     return null;
   }
   bindEvents();
