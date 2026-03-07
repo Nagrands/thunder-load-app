@@ -1072,6 +1072,118 @@ describe("ipcHandlers download pool", () => {
     );
   });
 
+  test("DOWNLOAD_VIDEO shows warning when yt-dlp and ffmpeg are missing", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { getToolsVersions } = require("../toolsVersions");
+    const { setupIpcHandlers } = require("../ipcHandlers");
+    const send = jest.fn();
+
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: false },
+      ffmpeg: { ok: false },
+    });
+
+    setupIpcHandlers({
+      mainWindow: {
+        webContents: {
+          send,
+          isDestroyed: () => false,
+          on: jest.fn(),
+        },
+      },
+      store: {
+        get: jest.fn((key, fallback) => fallback),
+        set: jest.fn(),
+        delete: jest.fn(),
+      },
+      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
+      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
+      setDownloadPath: jest.fn(),
+      historyFilePath: path.join(os.tmpdir(), "history.json"),
+      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
+      iconCache: new Map(),
+      clipboardMonitor: {},
+      setupGlobalShortcuts: jest.fn(),
+      notifyDownloadError: jest.fn(),
+      sendDownloadCompletionNotification: jest.fn(),
+      showTrayNotification: jest.fn(),
+      setReloadMenuEnabled: jest.fn(),
+      dispatchPendingWhatsNew: jest.fn(),
+      clearPendingWhatsNewVersion: jest.fn(),
+    });
+
+    await expect(
+      handlers[CHANNELS.DOWNLOAD_VIDEO](
+        { sender: { send: jest.fn() } },
+        "https://example.com/a",
+        "Source",
+        "job-missing-tools",
+      ),
+    ).rejects.toThrow("Отсутствуют необходимые инструменты");
+
+    expect(send).toHaveBeenCalledWith(
+      "toast",
+      expect.stringContaining("yt-dlp и ffmpeg"),
+      "warning",
+    );
+  });
+
+  test("DOWNLOAD_VIDEO shows warning when only ffmpeg is missing", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { getToolsVersions } = require("../toolsVersions");
+    const { setupIpcHandlers } = require("../ipcHandlers");
+    const send = jest.fn();
+
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: false },
+    });
+
+    setupIpcHandlers({
+      mainWindow: {
+        webContents: {
+          send,
+          isDestroyed: () => false,
+          on: jest.fn(),
+        },
+      },
+      store: {
+        get: jest.fn((key, fallback) => fallback),
+        set: jest.fn(),
+        delete: jest.fn(),
+      },
+      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
+      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
+      setDownloadPath: jest.fn(),
+      historyFilePath: path.join(os.tmpdir(), "history.json"),
+      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
+      iconCache: new Map(),
+      clipboardMonitor: {},
+      setupGlobalShortcuts: jest.fn(),
+      notifyDownloadError: jest.fn(),
+      sendDownloadCompletionNotification: jest.fn(),
+      showTrayNotification: jest.fn(),
+      setReloadMenuEnabled: jest.fn(),
+      dispatchPendingWhatsNew: jest.fn(),
+      clearPendingWhatsNewVersion: jest.fn(),
+    });
+
+    await expect(
+      handlers[CHANNELS.DOWNLOAD_VIDEO](
+        { sender: { send: jest.fn() } },
+        "https://example.com/a",
+        "Source",
+        "job-missing-ffmpeg",
+      ),
+    ).rejects.toThrow("Отсутствуют необходимые инструменты");
+
+    expect(send).toHaveBeenCalledWith(
+      "toast",
+      expect.stringContaining("Не найден ffmpeg"),
+      "warning",
+    );
+  });
+
   test("STOP_DOWNLOAD cancels all active tokens", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");

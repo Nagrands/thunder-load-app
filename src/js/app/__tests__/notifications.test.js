@@ -63,4 +63,26 @@ describe("notifications", () => {
       ),
     ).toContain("7 мин");
   });
+
+  test("formats missing tools message when both dependencies are unavailable", () => {
+    const { formatMissingDownloadToolsMessage } = require("../notifications.js");
+
+    expect(
+      formatMissingDownloadToolsMessage({
+        hasYtDlp: false,
+        hasFfmpeg: false,
+      }),
+    ).toContain("yt-dlp и ffmpeg");
+  });
+
+  test("formats missing tools message when yt-dlp is unavailable", () => {
+    const { formatMissingDownloadToolsMessage } = require("../notifications.js");
+
+    expect(
+      formatMissingDownloadToolsMessage({
+        hasYtDlp: false,
+        hasFfmpeg: true,
+      }),
+    ).toContain("Не найден yt-dlp");
+  });
 });

@@ -1,6 +1,7 @@
 import {
   renderToolsInfo,
   refreshToolsInfoState,
+  installAllTools,
   __resetToolsInfoForTests,
 } from "../toolsInfo";
 
@@ -293,5 +294,11 @@ describe("renderToolsInfo", () => {
     expect(badge?.textContent).toMatch(/Офлайн|Offline/i);
     expect(retryBtn?.style.display).toBe("");
     expect(openBtn?.style.display).toBe("");
+  });
+
+  it("throws localized error when installAll bridge is unavailable", async () => {
+    delete window.electron.tools.installAll;
+
+    await expect(installAllTools()).rejects.toThrow(/недоступна|unavailable/i);
   });
 });

@@ -10,32 +10,50 @@ jest.mock("../settingsModal.js", () => ({
   openSettingsWithTab: jest.fn(),
 }));
 jest.mock("../modals.js", () => ({})); // toolsInfo imports modals/domElements; keep empty
+jest.mock("../i18n.js", () => ({
+  t: (key, vars = {}) => {
+    const map = {
+      "tools.status.ready": "Tools are ready",
+      "tools.status.unavailable": "Tools are unavailable",
+      "tools.status.checking": "Checking tools…",
+      "tools.status.bridgeMissing": "Tools: bridge unavailable",
+      "tools.status.error": "Tools check failed",
+      "tools.summary.ok": "All dependencies are installed",
+      "tools.summary.missingList": "Missing: {items}",
+    };
+    let text = map[key] || key;
+    Object.entries(vars).forEach(([name, value]) => {
+      text = text.replace(new RegExp(`\\{${name}\\}`, "g"), String(value));
+    });
+    return text;
+  },
+}));
 
 const buildDom = () => {
   document.body.innerHTML = `
     <div class="downloader-tools-status">
       <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
         <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
-        <span id="dl-tools-text">Проверяем инструменты…</span>
+        <span id="dl-tools-text">Checking tools…</span>
         <div class="tool-badges" id="dl-tools-badges"></div>
       </div>
       <button
         type="button"
         id="dl-tools-toggle"
-        title="Скрыть статус"
+        title="Hide status"
         data-bs-toggle="tooltip"
-        aria-label="Скрыть статус инструментов"
+        aria-label="Hide tools status"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
       <button
         type="button"
         id="dl-tools-reinstall"
-        title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
+        title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)"
         data-bs-toggle="tooltip"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span>Переустановить</span>
+        <span>Reinstall</span>
       </button>
     </div>
   `;
@@ -73,7 +91,7 @@ describe("downloaderToolsStatus", () => {
     initDownloaderToolsStatus();
     await tick();
     expect(document.getElementById("dl-tools-text").textContent).toContain(
-      "Инструменты готовы",
+      "Tools are ready",
     );
     const badges = Array.from(document.querySelectorAll(".tool-badge")).map(
       (el) => el.textContent.trim(),
@@ -89,15 +107,15 @@ describe("downloaderToolsStatus", () => {
      "<div class="downloader-tools-status">
            <div class="status-line is-ok" id="dl-tools-status" role="status" aria-live="polite">
              <i class="fa-solid fa-check" id="dl-tools-icon" aria-hidden="true"></i>
-             <span id="dl-tools-text">Инструменты готовы</span>
+             <span id="dl-tools-text">Tools are ready</span>
              <div class="tool-badges" id="dl-tools-badges"><span class="tool-badge ok" data-tool="yt"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">yt-dlp</span> <span class="tool-badge__version">2024.01.01</span></span><span class="tool-badge ok" data-tool="ff"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">ffmpeg</span> <span class="tool-badge__version">7.1</span></span><span class="tool-badge ok" data-tool="deno"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">Deno</span> <span class="tool-badge__version">2.0.0</span></span></div>
            </div>
-           <button type="button" id="dl-tools-toggle" title="Скрыть статус" data-bs-toggle="tooltip" aria-label="Скрыть статус инструментов">
+           <button type="button" id="dl-tools-toggle" title="Hide status" data-bs-toggle="tooltip" aria-label="Hide tools status">
              <i class="fa-solid fa-xmark"></i>
            </button>
-           <button type="button" id="dl-tools-reinstall" title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)" data-bs-toggle="tooltip" class="hidden">
+           <button type="button" id="dl-tools-reinstall" title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)" data-bs-toggle="tooltip" class="hidden">
              <i class="fa-solid fa-arrow-rotate-right"></i>
-             <span>Переустановить</span>
+             <span>Reinstall</span>
            </button>
          </div>"
     `);
@@ -115,6 +133,24 @@ describe("downloaderToolsStatus", () => {
     await tick();
     expect(document.getElementById("dl-tools-text").textContent).toContain(
       "yt-dlp, Deno",
+    );
+    expect(
+      document
+        .getElementById("dl-tools-reinstall")
+        .classList.contains("hidden"),
+    ).toBe(false);
+  });
+
+  test("shows bridge missing state when tools bridge is unavailable", async () => {
+    delete window.electron.tools;
+    const { initDownloaderToolsStatus } =
+      await import("../downloaderToolsStatus.js");
+
+    initDownloaderToolsStatus();
+    await tick();
+
+    expect(document.getElementById("dl-tools-text").textContent).toBe(
+      "Tools: bridge unavailable",
     );
     expect(
       document

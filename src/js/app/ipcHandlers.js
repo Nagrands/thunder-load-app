@@ -15,6 +15,7 @@ const { getToolsVersions } = require("./toolsVersions");
 const {
   classifyDownloadError,
   formatDownloadErrorMessage,
+  formatMissingDownloadToolsMessage,
 } = require("./notifications");
 const fs = require("fs");
 const fsPromises = fs.promises;
@@ -2132,11 +2133,10 @@ function setupIpcHandlers(dependencies) {
         if (mainWindow && mainWindow.webContents) {
           mainWindow.webContents.send(
             "toast",
-            !hasYt && !hasFf
-              ? "Не найдены yt-dlp и ffmpeg. Откройте Настройки → Загрузчик → Инструменты и нажмите ‘Скачать зависимости’."
-              : !hasYt
-                ? "Не найден yt-dlp. Откройте Настройки → Загрузчик → Инструменты и нажмите ‘Скачать зависимости’."
-                : "Не найден ffmpeg. Откройте Настройки → Загрузчик → Инструменты и нажмите ‘Скачать зависимости’.",
+            formatMissingDownloadToolsMessage({
+              hasYtDlp: hasYt,
+              hasFfmpeg: hasFf,
+            }),
             "warning",
           );
         }

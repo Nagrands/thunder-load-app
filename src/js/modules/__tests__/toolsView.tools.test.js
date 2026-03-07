@@ -197,6 +197,23 @@ describe("toolsView quick actions", () => {
     ).toBe("tools.launcher.availableTitle");
   });
 
+  test("uses localized launcher strings in initial markup", async () => {
+    const el = await renderView();
+
+    expect(el.querySelector("#tools-view-title")?.textContent?.trim()).toBe(
+      "tools.launcher.title",
+    );
+    expect(
+      el.querySelector(".tools-launcher-section-title")?.textContent?.trim(),
+    ).toBe("tools.launcher.availableTitle");
+    expect(
+      el.querySelector(".tools-launcher-unavailable-title")?.textContent?.trim(),
+    ).toBe("tools.launcher.unavailableTitle");
+    expect(
+      el.querySelector("#tools-back-btn")?.getAttribute("title"),
+    ).toBe("tools.nav.back");
+  });
+
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
@@ -857,6 +874,33 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(true);
+  });
+
+  test("sorter how-to modal opens and can navigate slides", async () => {
+    const el = await renderView();
+    await openTool(el, "sorter");
+
+    const openBtn = el.querySelector("#sorter-open-howto");
+    const modal = el.querySelector("#sorter-howto-modal");
+    const nextBtn = el.querySelector("#sorter-howto-next");
+    const closeBtn = el.querySelector("#sorter-howto-close");
+    const track = el.querySelector("#sorter-howto-track");
+
+    openBtn?.click();
+    await nextTick();
+
+    expect(modal?.classList.contains("hidden")).toBe(false);
+    expect(track?.style.transform).toBe("translateX(-0%)");
+
+    nextBtn?.click();
+    await nextTick();
+
+    expect(track?.style.transform).toBe("translateX(-100%)");
+
+    closeBtn?.click();
     await nextTick();
 
     expect(modal?.classList.contains("hidden")).toBe(true);

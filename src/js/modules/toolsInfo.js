@@ -141,7 +141,7 @@ function emitToolsStatus(res) {
 
 export async function installAllTools(options = {}) {
   if (!window.electron?.tools?.installAll) {
-    throw new Error("installAll недоступен в этой сборке");
+    throw new Error(t("tools.error.installUnavailable"));
   }
   return window.electron.tools.installAll({
     force: true,

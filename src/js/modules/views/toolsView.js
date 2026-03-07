@@ -112,6 +112,7 @@ export default function renderToolsView() {
   let wgHowtoPrevOverflow = null;
   let powerHowtoPrevOverflow = null;
   let hashHowtoPrevOverflow = null;
+  let sorterHowtoPrevOverflow = null;
   const cleanupFns = [];
 
   const addCleanup = (fn) => {
@@ -142,6 +143,10 @@ export default function renderToolsView() {
     if (hashHowtoPrevOverflow !== null) {
       document.documentElement.style.overflow = hashHowtoPrevOverflow;
       hashHowtoPrevOverflow = null;
+    }
+    if (sorterHowtoPrevOverflow !== null) {
+      document.documentElement.style.overflow = sorterHowtoPrevOverflow;
+      sorterHowtoPrevOverflow = null;
     }
     stopCountdown();
     if (tipsIntervalId) {
@@ -576,19 +581,19 @@ export default function renderToolsView() {
           class="small-button hidden"
           data-i18n-title="tools.nav.back"
           data-i18n-aria="tools.nav.back"
-          title="Назад"
-          aria-label="Назад"
+          title="${t("tools.nav.back")}"
+          aria-label="${t("tools.nav.back")}"
         >
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <h2 id="tools-view-title" class="tools-view-title" data-i18n="tools.launcher.title">
-          Инструменты
+          ${t("tools.launcher.title")}
         </h2>
       </div>
 
       <div id="tools-launcher-section-header" class="tools-launcher-section-header">
-        <h2 class="tools-launcher-section-title" data-i18n="tools.launcher.availableTitle">Доступные инструменты</h2>
-        <span id="tools-launcher-tools-count" class="tools-launcher-tools-count" data-i18n="tools.launcher.totalLabel">Всего</span>
+        <h2 class="tools-launcher-section-title" data-i18n="tools.launcher.availableTitle">${t("tools.launcher.availableTitle")}</h2>
+        <span id="tools-launcher-tools-count" class="tools-launcher-tools-count" data-i18n="tools.launcher.totalLabel">${t("tools.launcher.totalLabel")}</span>
       </div>
 
       <section id="tools-launcher" class="tools-launcher" aria-label="Tools Launcher">
@@ -598,21 +603,21 @@ export default function renderToolsView() {
               <i class="fa-solid fa-satellite-dish"></i>
               <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">
-                Быстрое восстановление WireGuard.
+                ${t("tools.launcher.desc.wg")}
               </small>
             </button>
             <button id="tools-open-hash" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-fingerprint"></i>
               <span data-i18n="tools.launcher.open.hash">Hash Check</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">
-                Сравнение контрольных сумм файлов.
+                ${t("tools.launcher.desc.hash")}
               </small>
             </button>
             <button id="tools-open-power" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-power-off"></i>
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
-                Создание ярлыков в Windows.
+                ${t("tools.launcher.desc.power")}
               </small>
             </button>
           </div>
@@ -625,7 +630,7 @@ export default function renderToolsView() {
               class="tools-launcher-unavailable-title"
               data-i18n="tools.launcher.unavailableTitle"
             >
-              Недоступно
+              ${t("tools.launcher.unavailableTitle")}
             </h3>
             <div class="tools-launcher-unavailable-grid">
               <button
@@ -636,7 +641,7 @@ export default function renderToolsView() {
               <i class="fa-solid fa-folder-tree"></i>
               <span data-i18n="tools.launcher.open.sorter">File Sorter</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
-                Сортировка файлов по категориям.
+                ${t("tools.launcher.desc.sorter")}
               </small>
               </button>
             </div>
@@ -3002,6 +3007,103 @@ export default function renderToolsView() {
       if (event.target === hashHowtoModalEl) closeHashHowtoModal();
     });
     updateHashHowtoUi();
+
+    const sorterOpenHowtoBtn = getEl("sorter-open-howto", view);
+    const sorterHowtoModalEl = getEl("sorter-howto-modal", view);
+    const sorterHowtoDialogEl = getEl("sorter-howto-dialog", view);
+    const sorterHowtoTrackEl = getEl("sorter-howto-track", view);
+    const sorterHowtoStepEl = getEl("sorter-howto-step", view);
+    const sorterHowtoCloseBtn = getEl("sorter-howto-close", view);
+    const sorterHowtoPrevBtn = getEl("sorter-howto-prev", view);
+    const sorterHowtoNextBtn = getEl("sorter-howto-next", view);
+    const sorterHowtoDotsEl = getEl("sorter-howto-dots", view);
+    const sorterHowtoDots = Array.from(
+      sorterHowtoDotsEl?.querySelectorAll(".sorter-howto-dot") || [],
+    );
+    const sorterHowtoSlideCount = 4;
+    let sorterHowtoIndex = 0;
+    let sorterHowtoReturnFocusEl = null;
+
+    const updateSorterHowtoUi = () => {
+      if (!sorterHowtoTrackEl) return;
+      sorterHowtoTrackEl.style.transform = `translateX(-${sorterHowtoIndex * 100}%)`;
+      if (sorterHowtoStepEl) {
+        sorterHowtoStepEl.textContent = t("tools.sorter.howto.step", {
+          current: sorterHowtoIndex + 1,
+          total: sorterHowtoSlideCount,
+        });
+      }
+      if (sorterHowtoPrevBtn) {
+        sorterHowtoPrevBtn.disabled = sorterHowtoIndex <= 0;
+      }
+      if (sorterHowtoNextBtn) {
+        sorterHowtoNextBtn.disabled =
+          sorterHowtoIndex >= sorterHowtoSlideCount - 1;
+      }
+      sorterHowtoDots.forEach((dot, idx) => {
+        const isActive = idx === sorterHowtoIndex;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+    };
+
+    const setSorterHowtoSlide = (index) => {
+      const nextIndex = Math.max(
+        0,
+        Math.min(Number(index) || 0, sorterHowtoSlideCount - 1),
+      );
+      sorterHowtoIndex = nextIndex;
+      updateSorterHowtoUi();
+    };
+
+    const openSorterHowtoModal = () => {
+      if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
+      sorterHowtoReturnFocusEl = document.activeElement;
+      if (sorterHowtoPrevOverflow === null) {
+        sorterHowtoPrevOverflow = document.documentElement.style.overflow;
+      }
+      document.documentElement.style.overflow = "hidden";
+      sorterHowtoModalEl.classList.remove("hidden");
+      sorterHowtoModalEl.setAttribute("aria-hidden", "false");
+      sorterHowtoDialogEl.setAttribute("aria-hidden", "false");
+      setSorterHowtoSlide(0);
+      setTimeout(() => sorterHowtoCloseBtn?.focus(), 0);
+    };
+
+    const closeSorterHowtoModal = ({ returnFocus = true } = {}) => {
+      if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
+      sorterHowtoModalEl.classList.add("hidden");
+      sorterHowtoModalEl.setAttribute("aria-hidden", "true");
+      sorterHowtoDialogEl.setAttribute("aria-hidden", "true");
+      if (sorterHowtoPrevOverflow !== null) {
+        document.documentElement.style.overflow = sorterHowtoPrevOverflow;
+        sorterHowtoPrevOverflow = null;
+      }
+      if (returnFocus) {
+        if (sorterHowtoReturnFocusEl?.focus) sorterHowtoReturnFocusEl.focus();
+        else sorterOpenHowtoBtn?.focus();
+      }
+    };
+
+    sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
+    sorterHowtoCloseBtn?.addEventListener("click", () =>
+      closeSorterHowtoModal(),
+    );
+    sorterHowtoPrevBtn?.addEventListener("click", () =>
+      setSorterHowtoSlide(sorterHowtoIndex - 1),
+    );
+    sorterHowtoNextBtn?.addEventListener("click", () =>
+      setSorterHowtoSlide(sorterHowtoIndex + 1),
+    );
+    sorterHowtoDots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        setSorterHowtoSlide(Number(dot.dataset.index || "0"));
+      });
+    });
+    sorterHowtoModalEl?.addEventListener("mousedown", (event) => {
+      if (event.target === sorterHowtoModalEl) closeSorterHowtoModal();
+    });
+    updateSorterHowtoUi();
 
     initFileSorterSection({
       view,

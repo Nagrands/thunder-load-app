@@ -73,6 +73,19 @@ function classifyDownloadError(errorLike) {
   };
 }
 
+function formatMissingDownloadToolsMessage({ hasYtDlp, hasFfmpeg }) {
+  if (!hasYtDlp && !hasFfmpeg) {
+    return "Не найдены yt-dlp и ffmpeg. Откройте Настройки → Загрузчик → Инструменты и нажмите «Скачать зависимости».";
+  }
+  if (!hasYtDlp) {
+    return "Не найден yt-dlp. Откройте Настройки → Загрузчик → Инструменты и нажмите «Скачать зависимости».";
+  }
+  if (!hasFfmpeg) {
+    return "Не найден ffmpeg. Откройте Настройки → Загрузчик → Инструменты и нажмите «Скачать зависимости».";
+  }
+  return "";
+}
+
 function formatDownloadErrorMessage(errorLike) {
   return classifyDownloadError(errorLike).message;
 }
@@ -128,6 +141,7 @@ function sendDownloadCompletionNotification(
 
 module.exports = {
   classifyDownloadError,
+  formatMissingDownloadToolsMessage,
   formatDownloadErrorMessage,
   showTrayNotification,
   notifyDownloadError,

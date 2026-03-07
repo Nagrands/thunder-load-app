@@ -1192,6 +1192,8 @@ export const translations = {
     "tools.quick.openLocation": "Папка",
     "tools.error.getVersions": "Не удалось получить версии инструментов.",
     "tools.error.install": "Ошибка при установке инструментов.",
+    "tools.error.installUnavailable":
+      "Установка инструментов недоступна в этой сборке.",
     "tools.error.update": "Ошибка при проверке/обновлении.",
     "tools.toast.installSuccess": "Зависимости установлены.",
     "tools.toast.installError": "Не удалось установить зависимости.",
@@ -2571,6 +2573,8 @@ export const translations = {
     "tools.quick.openLocation": "Folder",
     "tools.error.getVersions": "Failed to get tools versions.",
     "tools.error.install": "Failed to install tools.",
+    "tools.error.installUnavailable":
+      "Tool installation is unavailable in this build.",
     "tools.error.update": "Update check failed.",
     "tools.toast.installSuccess": "Dependencies installed.",
     "tools.toast.installError": "Failed to install dependencies.",
