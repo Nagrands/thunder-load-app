@@ -987,6 +987,12 @@ export const translations = {
     "download.error.retry": "Не удалось загрузить. Повторите попытку.",
     "download.error.networkTimeout":
       "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
+    "download.error.authRequired":
+      "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.",
+    "download.error.geoBlocked":
+      "Видео недоступно в вашем регионе.",
+    "download.error.unavailable":
+      "Видео недоступно или было удалено.",
     "download.error.youtubeRateLimit":
       "YouTube временно ограничил запросы. Повторите попытку позже.",
     "download.url.invalid": "Введите корректный URL.",
@@ -2336,6 +2342,12 @@ export const translations = {
     "download.error.retry": "Download failed. Please try again.",
     "download.error.networkTimeout":
       "Could not reach YouTube. Check your connection and try again.",
+    "download.error.authRequired":
+      "This video requires authorization. Add browser cookies and try again.",
+    "download.error.geoBlocked":
+      "This video is unavailable in your region.",
+    "download.error.unavailable":
+      "This video is unavailable or was removed.",
     "download.error.youtubeRateLimit":
       "YouTube temporarily limited requests. Please try again later.",
     "download.url.invalid": "Enter a valid URL.",

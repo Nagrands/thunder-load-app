@@ -67,6 +67,26 @@ const selectionSummaryEl = document.getElementById(
   "download-quality-selection-summary",
 );
 
+function formatVideoInfoError(errorLike) {
+  const message = String(errorLike?.message || errorLike?.error || errorLike || "");
+  const code = String(errorLike?.code || errorLike?.errorCode || "");
+  if (code === "YOUTUBE_RATE_LIMIT") {
+    const mins = Number(errorLike?.retryAfterMinutes || 0);
+    if (mins > 0) {
+      return `YouTube временно ограничил запросы. Повторите примерно через ${mins} мин.`;
+    }
+    return t("download.error.youtubeRateLimit");
+  }
+  if (code === "AUTH_REQUIRED") return t("download.error.authRequired");
+  if (code === "GEO_BLOCKED") return t("download.error.geoBlocked");
+  if (code === "UNAVAILABLE") return t("download.error.unavailable");
+  if (code === "NETWORK_TIMEOUT") return t("download.error.networkTimeout");
+  if (message.toLowerCase().includes("timeout")) {
+    return "Превышено время ожидания. Попробуйте ещё раз.";
+  }
+  return `Не удалось получить доступные качества: ${errorLike?.message || errorLike?.error || "ошибка"}`;
+}
+
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
   const units = ["Б", "КБ", "МБ", "ГБ"];
@@ -1089,22 +1109,9 @@ async function loadFormatsWithRetry(
   } catch (error) {
     if (state.currentFetchToken !== token) return false;
     console.error("Ошибка получения форматов:", error);
-    const message = (() => {
-      const text = String(error?.message || error || "");
-      if (error?.code === "YOUTUBE_RATE_LIMIT") {
-        const mins = Number(error?.retryAfterMinutes || 0);
-        if (mins > 0) {
-          return `YouTube временно ограничил запросы. Повторите примерно через ${mins} мин.`;
-        }
-        return "YouTube временно ограничил запросы. Повторите чуть позже.";
-      }
-      if (text.toLowerCase().includes("timeout")) {
-        return "Превышено время ожидания. Попробуйте ещё раз.";
-      }
-      return `Не удалось получить доступные качества: ${error?.message || "ошибка"}`;
-    })();
+    const message = formatVideoInfoError(error);
     showError(message);
-    showToast("Не удалось получить доступные качества.", "error");
+    showToast(message, "error");
     return false;
   } finally {
     if (state.currentFetchToken === token) setLoading(false);

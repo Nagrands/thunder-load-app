@@ -190,6 +190,34 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
+  it("shows specific auth-required error in quality modal", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const showToast = jest.fn();
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: false,
+        errorCode: "AUTH_REQUIRED",
+        error: "ERR_YTDLP_AUTH_REQUIRED: auth required",
+      });
+
+      jest.doMock("../toast", () => ({ showToast }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const errorBox = document.getElementById("download-quality-error");
+      const errorText = errorBox.querySelector(".quality-error-text");
+
+      expect(errorBox.classList.contains("hidden")).toBe(false);
+      expect(errorText.textContent).toMatch(/авторизац|authorization/i);
+      expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/авторизац|authorization/i), "error");
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
   it("copies source url from quality modal", async () => {
     await jest.isolateModulesAsync(async () => {
       const showToast = jest.fn();

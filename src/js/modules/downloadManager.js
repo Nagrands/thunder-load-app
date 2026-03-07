@@ -97,6 +97,9 @@ let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
 const YTDLP_NETWORK_TIMEOUT_PREFIX = "ERR_YTDLP_NETWORK_TIMEOUT:";
+const YTDLP_AUTH_REQUIRED_PREFIX = "ERR_YTDLP_AUTH_REQUIRED:";
+const YTDLP_GEO_BLOCKED_PREFIX = "ERR_YTDLP_GEO_BLOCKED:";
+const YTDLP_UNAVAILABLE_PREFIX = "ERR_YTDLP_UNAVAILABLE:";
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -125,6 +128,15 @@ function getDownloadErrorToastKey(error) {
   if (message.startsWith(YTDLP_NETWORK_TIMEOUT_PREFIX)) {
     return "download.error.networkTimeout";
   }
+  if (message.startsWith(YTDLP_AUTH_REQUIRED_PREFIX)) {
+    return "download.error.authRequired";
+  }
+  if (message.startsWith(YTDLP_GEO_BLOCKED_PREFIX)) {
+    return "download.error.geoBlocked";
+  }
+  if (message.startsWith(YTDLP_UNAVAILABLE_PREFIX)) {
+    return "download.error.unavailable";
+  }
   if (/YouTube temporarily rate-limited requests/i.test(message)) {
     return "download.error.youtubeRateLimit";
   }
@@ -133,8 +145,15 @@ function getDownloadErrorToastKey(error) {
 
 function getDownloadErrorMessage(error) {
   const message = String(error?.message || error || "");
-  if (message.startsWith(YTDLP_NETWORK_TIMEOUT_PREFIX)) {
-    return message.slice(YTDLP_NETWORK_TIMEOUT_PREFIX.length).trim();
+  for (const prefix of [
+    YTDLP_NETWORK_TIMEOUT_PREFIX,
+    YTDLP_AUTH_REQUIRED_PREFIX,
+    YTDLP_GEO_BLOCKED_PREFIX,
+    YTDLP_UNAVAILABLE_PREFIX,
+  ]) {
+    if (message.startsWith(prefix)) {
+      return message.slice(prefix.length).trim();
+    }
   }
   return message;
 }
@@ -1024,6 +1043,43 @@ const resetProgressIndicator = () => {
   progressBarContainer.style.setProperty("--progress-ratio", "0");
 };
 
+function resetDownloadUiState(options = {}) {
+  const {
+    suppressAutoPump = state.suppressAutoPump,
+    resetActiveDownloads = true,
+  } = options;
+  clearProgressResetTimer();
+  state.suppressAutoPump = suppressAutoPump;
+  if (resetActiveDownloads) {
+    state.activeDownloads = [];
+  }
+  state.isDownloading = false;
+  if (downloadButton) {
+    downloadButton.classList.remove("disabled", "loading");
+  }
+  if (buttonText) {
+    buttonText.textContent = t("actions.download");
+  }
+  if (downloadCancelButton) {
+    downloadCancelButton.disabled = true;
+    downloadCancelButton.setAttribute("title", t("actions.cancelDownload"));
+    downloadCancelButton.setAttribute("aria-label", t("actions.cancelDownload"));
+    downloadCancelButton.setAttribute(
+      "data-bs-original-title",
+      t("actions.cancelDownload"),
+    );
+  }
+  if (urlInput) {
+    urlInput.disabled = false;
+  }
+  if (cancelCountBadge) {
+    cancelCountBadge.textContent = "0";
+    cancelCountBadge.classList.add("hidden");
+  }
+  resetProgressIndicator();
+  syncDownloadState();
+}
+
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 const QUALITY_LAST_KEY = "downloadLastQuality";
 const QUALITY_PROFILE_DEFAULT = "remember";
@@ -1130,6 +1186,7 @@ const downloadVideo = async (url, quality, options = {}) => {
       quality: selectedQuality,
       actualQuality,
       sourceUrl,
+      thumbnail: resolvedThumbnail = "",
       cancelled,
     } = await window.electron.invoke("download-video", url, quality, jobId);
 
@@ -1152,15 +1209,8 @@ const downloadVideo = async (url, quality, options = {}) => {
     });
     const iconUrl = await window.electron.invoke("get-icon-path", url);
     const entryId = Date.now();
-    let thumbnail = "";
+    let thumbnail = resolvedThumbnail;
     let thumbnailCacheFile = "";
-    try {
-      const info = await window.electron.ipcRenderer.invoke(
-        "get-video-info",
-        url,
-      );
-      if (info && info.success && info.thumbnail) thumbnail = info.thumbnail;
-    } catch (_) {}
     if (thumbnail) {
       try {
         const cacheResult = await window.electron.invoke(
@@ -1625,30 +1675,7 @@ function initDownloadButton() {
           console.error("Error stopping download from queue pause:", error);
           showToast(t("download.cancel.error"), "error");
         } finally {
-          state.activeDownloads = [];
-          state.isDownloading = false;
-          clearProgressResetTimer();
-          if (downloadButton) {
-            downloadButton.classList.remove("disabled", "loading");
-          }
-          if (buttonText) {
-            buttonText.textContent = t("actions.download");
-          }
-          if (progressBarContainer) {
-            resetProgressIndicator();
-          }
-          if (downloadCancelButton) {
-            downloadCancelButton.disabled = true;
-          }
-          if (urlInput) {
-            urlInput.disabled = false;
-          }
-          if (cancelCountBadge) {
-            cancelCountBadge.textContent = "0";
-            cancelCountBadge.classList.add("hidden");
-          }
-          syncDownloadState();
-          updateQueueDisplay();
+          resetDownloadUiState({ suppressAutoPump: true });
         }
       } else {
         showToast(t("queue.status.paused"), "info");
@@ -1860,6 +1887,7 @@ export {
   handleDownloadButtonClick,
   initDownloadButton,
   updateQueueDisplay,
+  resetDownloadUiState,
   resolvePresetQuality,
   loadQueueFromStorage,
   persistQueue,

@@ -73,6 +73,21 @@ describe("urlInputHandler", () => {
           if (key === "input.url.error.unsupported") {
             return "Этот источник пока не поддерживается.";
           }
+          if (key === "download.error.authRequired") {
+            return "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.";
+          }
+          if (key === "download.error.geoBlocked") {
+            return "Видео недоступно в вашем регионе.";
+          }
+          if (key === "download.error.unavailable") {
+            return "Видео недоступно или было удалено.";
+          }
+          if (key === "download.error.networkTimeout") {
+            return "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.";
+          }
+          if (key === "download.error.youtubeRateLimit") {
+            return "YouTube временно ограничил запросы. Повторите попытку позже.";
+          }
           return key;
         },
       }));
@@ -204,6 +219,24 @@ describe("urlInputHandler", () => {
     expect(getVideoInfoMock).toHaveBeenCalled();
     expect(wrapper.classList.contains("is-preview-loading")).toBe(false);
     expect(spinner.classList.contains("hidden")).toBe(true);
+  });
+
+  test("shows auth-required inline error for preview fetch failures", async () => {
+    const { input, error, previewCard } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: false,
+      errorCode: "AUTH_REQUIRED",
+      error: "ERR_YTDLP_AUTH_REQUIRED: auth required",
+    });
+    input.value = "https://example.com/video";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(error.classList.contains("hidden")).toBe(false);
+    expect(error.textContent).toContain("требует авторизации");
+    expect(previewCard.style.display).toBe("none");
   });
 
   test("Escape clears input, preview and inline error", () => {

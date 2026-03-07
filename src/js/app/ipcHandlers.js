@@ -511,6 +511,34 @@ function setupIpcHandlers(dependencies) {
     } catch (e) {
       const rawMessage = e?.message || String(e);
       log.warn("get-video-info error:", rawMessage);
+      if (/ERR_YTDLP_AUTH_REQUIRED:/i.test(rawMessage)) {
+        return {
+          success: false,
+          errorCode: "AUTH_REQUIRED",
+          error: rawMessage,
+        };
+      }
+      if (/ERR_YTDLP_GEO_BLOCKED:/i.test(rawMessage)) {
+        return {
+          success: false,
+          errorCode: "GEO_BLOCKED",
+          error: rawMessage,
+        };
+      }
+      if (/ERR_YTDLP_UNAVAILABLE:/i.test(rawMessage)) {
+        return {
+          success: false,
+          errorCode: "UNAVAILABLE",
+          error: rawMessage,
+        };
+      }
+      if (/ERR_YTDLP_NETWORK_TIMEOUT:/i.test(rawMessage)) {
+        return {
+          success: false,
+          errorCode: "NETWORK_TIMEOUT",
+          error: rawMessage,
+        };
+      }
       const rateLimitMatch = String(rawMessage).match(
         /about\s+(\d+)\s+minute/i,
       );
@@ -2164,6 +2192,11 @@ function setupIpcHandlers(dependencies) {
       // Получаем разрешение и fps
       const resolution = selectedFormats.resolution;
       const fps = selectedFormats.fps;
+      const downloadMetadata = {
+        thumbnail: videoInfo.thumbnail || "",
+        title: videoInfo.title || "",
+        duration: Number(videoInfo.duration) || 0,
+      };
 
       checkIfCancelled(token, "before downloadMedia");
 
@@ -2231,6 +2264,7 @@ function setupIpcHandlers(dependencies) {
           resolution,
           fps,
           sourceUrl: normalizedUrl,
+          ...downloadMetadata,
         };
       }
 
@@ -2264,6 +2298,7 @@ function setupIpcHandlers(dependencies) {
         resolution,
         fps,
         sourceUrl: normalizedUrl,
+        ...downloadMetadata,
       };
     } catch (error) {
       if (error.message === "Download cancelled") {

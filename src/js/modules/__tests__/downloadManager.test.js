@@ -1090,6 +1090,7 @@ describe("downloadManager progress activity class", () => {
             quality: "Source",
             actualQuality: "Source",
             sourceUrl: "https://example.com/a",
+            thumbnail: "https://img.example.com/thumb.jpg",
             cancelled: false,
           };
         }
@@ -1151,7 +1152,16 @@ describe("downloadManager progress activity class", () => {
 
       const promise = initiateDownload("https://example.com/a", "Source");
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
+      const previewInfoCallCountBeforeAwait =
+        window.electron.ipcRenderer.invoke.mock.calls.filter(
+          ([channel]) => channel === "get-video-info",
+        ).length;
       await promise;
+      const previewInfoCallCountAfterAwait =
+        window.electron.ipcRenderer.invoke.mock.calls.filter(
+          ([channel]) => channel === "get-video-info",
+        ).length;
+      expect(previewInfoCallCountAfterAwait).toBe(previewInfoCallCountBeforeAwait);
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
       expect(
         progressBarContainer.style.getPropertyValue("--progress-ratio"),
@@ -1173,6 +1183,7 @@ describe("downloadManager progress activity class", () => {
                 quality: "Source",
                 actualQuality: "Source",
                 sourceUrl: "https://example.com/a",
+                thumbnail: "https://img.example.com/thumb.jpg",
                 cancelled: false,
               }),
             50,
@@ -1301,6 +1312,72 @@ describe("downloadManager progress activity class", () => {
       );
       expect(showToast).toHaveBeenCalledWith(
         "download.error.networkTimeout",
+        "error",
+      );
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  it("shows dedicated toast for auth-required videos", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "download-video") {
+            throw new Error(
+              "ERR_YTDLP_AUTH_REQUIRED: This video requires authorization. Add browser cookies and try again.",
+            );
+          }
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../validation", () => ({
+        isValidUrl: jest.fn(() => true),
+        isSupportedUrl: jest.fn(() => true),
+      }));
+      jest.doMock("../tooltipInitializer", () => ({
+        initTooltips: jest.fn(),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "en"),
+        t: jest.fn((key) => key),
+      }));
+      jest.doMock("../urlInputHandler", () => ({
+        hideUrlActionButtons: jest.fn(),
+      }));
+
+      const { initiateDownload } = require("../downloadManager");
+      const { showToast } = require("../toast");
+
+      await initiateDownload(
+        "https://www.youtube.com/watch?v=private-video",
+        "Source",
+      );
+      expect(showToast).toHaveBeenCalledWith(
+        "download.error.authRequired",
         "error",
       );
       consoleErrorSpy.mockRestore();

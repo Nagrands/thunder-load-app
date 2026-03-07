@@ -220,6 +220,9 @@ const VIDEO_INFO_QUEUE_POLL_MS = 80;
 const YOUTUBE_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000;
 const YTDLP_NETWORK_RETRY_MAX_ATTEMPTS = 3;
 const YTDLP_NETWORK_RETRY_DELAY_MS = 1500;
+const YTDLP_DOWNLOAD_RETRY_MAX_ATTEMPTS = 3;
+const YTDLP_DOWNLOAD_RETRY_DELAY_MS = 2000;
+const YTDLP_ERROR_PREFIX = "ERR_YTDLP_";
 let videoInfoRunning = 0;
 let youtubeRateLimitUntilTs = 0;
 const TOOL_DOWNLOAD_OPTIONS = {
@@ -892,10 +895,9 @@ async function installYtDlp(token = null) {
 
     log.info("yt-dlp downloaded successfully.");
   } catch (error) {
-    if (error.message && error.message.includes("Failed to parse JSON")) {
-      throw new Error(
-        "❗ Видео требует авторизации. Сохраните cookies.txt из браузера и поместите в папку Thunder Load.",
-      );
+    const classified = classifyYtDlpErrorMessage(error?.message || error);
+    if (classified) {
+      throw new Error(`${classified.code}: ${classified.detail}`);
     }
     log.error("Error in installYtDlp:", error);
     throw error;
@@ -1270,10 +1272,9 @@ async function installFfmpeg(token = null) {
     }
     return;
   } catch (error) {
-    if (error.message && error.message.includes("Failed to parse JSON")) {
-      throw new Error(
-        "❗ Видео требует авторизации. Сохраните cookies.txt из браузера и поместите в папку Thunder Load.",
-      );
+    const classified = classifyYtDlpErrorMessage(error?.message || error);
+    if (classified) {
+      throw new Error(`${classified.code}: ${classified.detail}`);
     }
     log.error("Error in installFfmpeg:", error);
     throw error;
@@ -1328,15 +1329,68 @@ function isYtDlpTransientNetworkError(stderrOutput = "") {
   );
 }
 
+function classifyYtDlpErrorMessage(message = "") {
+  const normalized = String(message || "").trim();
+  if (!normalized) return null;
+  if (isYtDlpTransientNetworkError(normalized)) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}NETWORK_TIMEOUT`,
+      detail: normalized,
+    };
+  }
+  if (
+    /Sign in to confirm your age|Use --cookies-from-browser|cookies\.txt|login required|This video is private|Private video|members-only|Join this channel|Failed to parse JSON/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}AUTH_REQUIRED`,
+      detail:
+        "This video requires authorization. Add browser cookies and try again.",
+    };
+  }
+  if (
+    /The uploader has not made this video available in your country|not available in your country|blocked in your country|geo.?restricted|country restriction/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}GEO_BLOCKED`,
+      detail: "This video is unavailable in your region.",
+    };
+  }
+  if (
+    /This video is unavailable|Video unavailable|Requested content is not available|has been removed|has been deleted/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}UNAVAILABLE`,
+      detail: "This video is unavailable or was removed.",
+    };
+  }
+  return null;
+}
+
 function makeYtDlpExitError(code, stderrOutput = "") {
   const reason = String(stderrOutput || "").trim();
   const lastLine = reason.split("\n").filter(Boolean).slice(-1)[0] || "";
   const suffix = lastLine ? `: ${lastLine}` : "";
   const error = new Error(`yt-dlp exited with code ${code}${suffix}`);
-  if (isYtDlpTransientNetworkError(reason)) {
-    error.message = `ERR_YTDLP_NETWORK_TIMEOUT: ${lastLine || `yt-dlp exited with code ${code}`}`;
+  const classified = classifyYtDlpErrorMessage(reason || lastLine);
+  if (classified) {
+    error.message = `${classified.code}: ${classified.detail}`;
   }
   return error;
+}
+
+function shouldRetryYtDlpDownload(url, error, attempt) {
+  return (
+    isYouTubeUrl(url) &&
+    !isCancelError(error) &&
+    String(error?.message || "").startsWith("ERR_YTDLP_NETWORK_TIMEOUT:") &&
+    attempt < YTDLP_DOWNLOAD_RETRY_MAX_ATTEMPTS
+  );
 }
 
 async function runYtDlpVideoInfo(url, token, cacheKey) {
@@ -1515,71 +1569,96 @@ function spawnDownloadProcess(
     extraArgs = [],
     processKey = "videoDownload",
     token = null,
+    retryable = true,
   } = options;
   const processStore = getProcessStore(token);
-  return new Promise((resolve, reject) => {
-    const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
-    const ffmpegDir = resolveRuntimeFfmpegDir();
-    log.info("[download] spawnDownloadProcess runtime tools", {
-      preferredToolsDir: getToolsDir(),
-      ytDlpPath,
-      ffmpegDir,
+  const runOnce = () =>
+    new Promise((resolve, reject) => {
+      const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+      const ffmpegDir = resolveRuntimeFfmpegDir();
+      log.info("[download] spawnDownloadProcess runtime tools", {
+        preferredToolsDir: getToolsDir(),
+        ytDlpPath,
+        ffmpegDir,
+      });
+      const args = [];
+      if (format) {
+        args.push("-f", format);
+      }
+      args.push(
+        "-o",
+        outputPath,
+        url,
+        "--ffmpeg-location",
+        ffmpegDir,
+        "--continue",
+        "--part",
+        "--newline",
+        "--ignore-errors",
+        "--no-warnings",
+      );
+      if (extraArgs.length) {
+        args.push(...extraArgs);
+      }
+      const proc = spawn(ytDlpPath, args, getYtDlpSpawnOptions());
+      processStore[processKey] = proc;
+      let stderrOutput = "";
+      proc.stdout.on("data", (data) => {
+        if (isCancelled(token)) {
+          proc.kill("SIGTERM");
+          return;
+        }
+        data
+          .toString()
+          .split("\n")
+          .forEach((line) => {
+            const progress = parseProgress(line);
+            if (progress !== null) progressCallback(progress);
+          });
+      });
+      proc.stderr.on("data", (data) => {
+        const text = data?.toString?.() || "";
+        stderrOutput += text;
+        log.error(text);
+      });
+      proc.on("close", (code) => {
+        processStore[processKey] = null;
+        if (isCancelled(token)) {
+          return reject(new Error(token.cancelReason || "Download cancelled"));
+        }
+        if (code !== 0) {
+          return reject(makeYtDlpExitError(code, stderrOutput));
+        }
+        resolve();
+      });
+      proc.on("error", (err) => {
+        processStore[processKey] = null;
+        reject(err);
+      });
     });
-    const args = [];
-    if (format) {
-      args.push("-f", format);
-    }
-    args.push(
-      "-o",
-      outputPath,
-      url,
-      "--ffmpeg-location",
-      ffmpegDir,
-      "--continue",
-      "--part",
-      "--newline",
-      "--ignore-errors",
-      "--no-warnings",
-    );
-    if (extraArgs.length) {
-      args.push(...extraArgs);
-    }
-    const proc = spawn(ytDlpPath, args, getYtDlpSpawnOptions());
-    processStore[processKey] = proc;
-    let stderrOutput = "";
-    proc.stdout.on("data", (data) => {
-      if (isCancelled(token)) {
-        proc.kill("SIGTERM");
+
+  const runWithRetries = async () => {
+    let lastError = null;
+    for (let attempt = 1; attempt <= YTDLP_DOWNLOAD_RETRY_MAX_ATTEMPTS; attempt += 1) {
+      try {
+        await runOnce();
         return;
+      } catch (error) {
+        lastError = error;
+        if (!retryable || !shouldRetryYtDlpDownload(url, error, attempt)) {
+          throw error;
+        }
+        const delay = YTDLP_DOWNLOAD_RETRY_DELAY_MS * attempt;
+        log.warn(
+          `[download] transient yt-dlp download error for ${url}; retry ${attempt}/${YTDLP_DOWNLOAD_RETRY_MAX_ATTEMPTS} in ${delay}ms.`,
+        );
+        await sleep(delay);
       }
-      data
-        .toString()
-        .split("\n")
-        .forEach((line) => {
-          const progress = parseProgress(line);
-          if (progress !== null) progressCallback(progress);
-        });
-    });
-    proc.stderr.on("data", (data) => {
-      const text = data?.toString?.() || "";
-      stderrOutput += text;
-      log.error(text);
-    });
-    proc.on("close", (code) => {
-      processStore[processKey] = null;
-      if (isCancelled(token)) {
-        return reject(new Error(token.cancelReason || "Download cancelled"));
-      }
-      if (code !== 0) {
-        return reject(makeYtDlpExitError(code, stderrOutput));
-      }
-      resolve();
-    });
-    proc.on("error", (err) => {
-      processStore[processKey] = null;
-      reject(err);
-    });
-  });
+    }
+    throw lastError || new Error("yt-dlp download failed");
+  };
+
+  return runWithRetries();
 }
 
 const isCancelError = (err) =>
@@ -2003,10 +2082,9 @@ async function downloadMedia(
     log.info(`[download] Direct stream saved as ${finalOutput}`);
     return finalOutput;
   } catch (error) {
-    if (error.message && error.message.includes("Failed to parse JSON")) {
-      throw new Error(
-        "❗ Видео требует авторизации. Сохраните cookies.txt из браузера и поместите в папку Thunder Load.",
-      );
+    const classified = classifyYtDlpErrorMessage(error?.message || error);
+    if (classified) {
+      throw new Error(`${classified.code}: ${classified.detail}`);
     }
     if (!isCancelError(error)) {
       log.error("Error in downloadMedia:", error);

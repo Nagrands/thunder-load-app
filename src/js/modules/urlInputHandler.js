@@ -69,6 +69,14 @@ function initUrlInputHandler() {
     urlErrorEl.classList.remove("hidden");
   };
 
+  const showInlineErrorText = (message) => {
+    wrapperEl?.classList.add("is-invalid");
+    wrapperEl?.classList.remove("is-valid");
+    if (!urlErrorEl) return;
+    urlErrorEl.textContent = String(message || "");
+    urlErrorEl.classList.remove("hidden");
+  };
+
   const hideInlineError = () => {
     wrapperEl?.classList.remove("is-invalid");
     if (!urlErrorEl) return;
@@ -123,6 +131,22 @@ function initUrlInputHandler() {
       : `${m}:${String(r).padStart(2, "0")}`;
   };
 
+  const formatPreviewFetchError = (payload) => {
+    const code = String(payload?.errorCode || payload?.code || "");
+    if (code === "YOUTUBE_RATE_LIMIT") {
+      const mins = Number(payload?.retryAfterMinutes || 0);
+      if (mins > 0) {
+        return `YouTube временно ограничил запросы. Повторите примерно через ${mins} мин.`;
+      }
+      return t("download.error.youtubeRateLimit");
+    }
+    if (code === "AUTH_REQUIRED") return t("download.error.authRequired");
+    if (code === "GEO_BLOCKED") return t("download.error.geoBlocked");
+    if (code === "UNAVAILABLE") return t("download.error.unavailable");
+    if (code === "NETWORK_TIMEOUT") return t("download.error.networkTimeout");
+    return "";
+  };
+
   const renderPreview = (data) => {
     const card = document.getElementById("preview-card");
     const t = document.getElementById("preview-title");
@@ -144,6 +168,7 @@ function initUrlInputHandler() {
         data,
       );
     } catch (_) {}
+    hideInlineError();
     t.textContent = data.title || "";
     d.textContent = data.duration
       ? `Длительность: ${durationToStr(data.duration)}`
@@ -331,6 +356,12 @@ function initUrlInputHandler() {
       .invoke("get-video-info", url)
       .then((data) => {
         if (currentRequest !== previewRequestId) return;
+        const fetchError = !data?.success ? formatPreviewFetchError(data) : "";
+        if (fetchError) {
+          showInlineErrorText(fetchError);
+          renderPreview(null);
+          return;
+        }
         renderPreview(data);
       })
       .catch(() => {
@@ -358,7 +389,15 @@ function initUrlInputHandler() {
     setPreviewLoading(true);
     window.electron.ipcRenderer
       .invoke("get-video-info", url)
-      .then(renderPreview)
+      .then((data) => {
+        const fetchError = !data?.success ? formatPreviewFetchError(data) : "";
+        if (fetchError) {
+          showInlineErrorText(fetchError);
+          renderPreview(null);
+          return;
+        }
+        renderPreview(data);
+      })
       .catch(() => renderPreview(null))
       .finally(() => setPreviewLoading(false));
   });
