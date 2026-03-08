@@ -88,37 +88,37 @@ function ensureFlyover() {
   wrap.innerHTML = `
     <button id=\"upd-close\" class=\"upd-close\" aria-label=\"${t("modal.close")}\" data-i18n-aria="modal.close">&times;</button>
     <div class="state state-available">
-      <h3 class="hdr" data-i18n="update.flyover.available.title">Доступно обновление!</h3>
+      <h3 class="hdr" data-i18n="update.flyover.available.title">${t("update.flyover.available.title")}</h3>
       <div class="ver">
-        <span data-i18n="update.flyover.available.current">Текущая:</span>
+        <span data-i18n="update.flyover.available.current">${t("update.flyover.available.current")}</span>
         <span class="cur" id="upd-cur">—</span>
         <span class="dot"> · </span>
-        <span data-i18n="update.flyover.available.next">Новая:</span>
+        <span data-i18n="update.flyover.available.next">${t("update.flyover.available.next")}</span>
         <span class="next" id="upd-next">—</span>
       </div>
       <div class="row">
-        <button id="upd-start" class="btn btn-sm btn-primary" data-i18n="update.flyover.available.action">Обновить</button>
+        <button id="upd-start" class="btn btn-sm btn-primary" data-i18n="update.flyover.available.action">${t("update.flyover.available.action")}</button>
       </div>
     </div>
     <div class="state state-progress" style="display:none">
-      <h3 class="hdr" data-i18n="update.flyover.progress.title">Загрузка обновления…</h3>
+      <h3 class="hdr" data-i18n="update.flyover.progress.title">${t("update.flyover.progress.title")}</h3>
       <div class="ver muted">
-        <span data-i18n="update.flyover.progress.version">Версия:</span>
+        <span data-i18n="update.flyover.progress.version">${t("update.flyover.progress.version")}</span>
         <span id="upd-next-p">—</span>
       </div>
       <progress id="upd-bar" value="0" max="100"></progress>
       <div class="muted" id="upd-label">0%</div>
     </div>
     <div class="state state-done" style="display:none">
-      <h3 class="hdr" data-i18n="update.flyover.done.title">Обновление загружено</h3>
-      <div class="muted" data-i18n="update.flyover.done.body">Перезапустите приложение для установки.</div>
+      <h3 class="hdr" data-i18n="update.flyover.done.title">${t("update.flyover.done.title")}</h3>
+      <div class="muted" data-i18n="update.flyover.done.body">${t("update.flyover.done.body")}</div>
       <div class="row" style="margin-top:8px">
-        <button id="upd-restart" class="btn btn-sm btn-primary" data-i18n="update.flyover.done.action">Перезапуск</button>
+        <button id="upd-restart" class="btn btn-sm btn-primary" data-i18n="update.flyover.done.action">${t("update.flyover.done.action")}</button>
       </div>
     </div>
     <div class="state state-error" style="display:none">
-      <h3 class="hdr" data-i18n="update.flyover.error.title">Ошибка обновления</h3>
-      <div class="muted" id="upd-err" data-i18n="update.flyover.error.body">Произошла ошибка</div>
+      <h3 class="hdr" data-i18n="update.flyover.error.title">${t("update.flyover.error.title")}</h3>
+      <div class="muted" id="upd-err" data-i18n="update.flyover.error.body">${t("update.flyover.error.body")}</div>
     </div>`;
   document.body.appendChild(wrap);
   _updFly = wrap;

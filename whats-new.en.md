@@ -35,3 +35,6 @@
 | Tools UI is more consistent | Card labels, helper modals, and in-screen hints now mix languages less often when the Tools screen opens |
 | Downloader UI is more consistent | The Downloader header and dependency status panel now show fewer English fallback labels before the chosen language is applied |
 | Backup UI is more consistent | The Backup header, controls, and profile management modal now follow the selected language more reliably from the first render |
+| Tools settings are more consistent | The Tools tab disable toggle and Backup hints now follow the selected language more reliably |
+| System UI is more consistent | The update flyover and auto-close notification now follow the selected language more reliably without older fallback labels |
+| Future translation updates will be easier to maintain | The internal localization dictionary is now organized more cleanly, which should make future text and translation fixes more reliable |

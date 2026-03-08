@@ -165,6 +165,10 @@ describe("backupView performance behaviors", () => {
     expect(view.querySelector("#bk-log-copy")?.getAttribute("title")).toBe(
       "backup.log.copy",
     );
+    expect(
+      view.querySelector(".bk-hints [data-i18n='backup.hints.title']")
+        ?.textContent,
+    ).toBe("backup.hints.title");
   });
 
   test("large backup list uses no-animation mode on rerenders", async () => {

@@ -1,6 +1,7 @@
 // src/js/modules/wgAutoShutdownNotifier.js
 
 import { toastContainer } from "./domElements.js";
+import { t } from "./i18n.js";
 import { showToast } from "./toast.js";
 
 let activeToast = null;
@@ -118,17 +119,17 @@ const createToast = () => {
   toast.innerHTML = `
     <i class="toast-icon fa-solid fa-clock"></i>
     <div class="toast-content">
-      <div class="toast-title">Авто‑закрытие</div>
+      <div class="toast-title">${t("wg.autoShutdown.toast.title")}</div>
       <div class="toast-countdown-row">
         <div class="toast-message">
-          Приложение закроется через <span class="toast-countdown-value">—</span>
+          ${t("wg.autoShutdown.toast.body")} <span class="toast-countdown-value">—</span>
         </div>
         <button class="toast-action-btn" type="button">
-          Отменить закрытие
+          ${t("wg.autoShutdown.toast.cancel")}
         </button>
       </div>
     </div>
-    <button class="toast-close" aria-label="Закрыть уведомление">
+    <button class="toast-close" aria-label="${t("toast.close")}">
       <i class="fas fa-times"></i>
     </button>
     <div class="toast-progress"></div>
@@ -165,10 +166,10 @@ const createToast = () => {
     cancelBtn.disabled = true;
     try {
       await window.electron.invoke("set-auto-shutdown-status", false);
-      showToast("Авто‑закрытие отменено", "success");
+      showToast(t("wg.autoShutdown.toast.cancelled"), "success");
     } catch (error) {
       console.error("[wg-autoshutdown] cancel error:", error);
-      showToast("Не удалось отменить авто‑закрытие", "error");
+      showToast(t("wg.autoShutdown.toast.cancelError"), "error");
       cancelBtn.disabled = false;
       return;
     }

@@ -683,7 +683,7 @@ export default function renderBackup() {
   const hintsBlock = document.createElement("div");
   hintsBlock.className = "info-card bk-hints";
   hintsBlock.innerHTML = `
-    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="backup.hints.title">Советы</span></h3>
+    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="backup.hints.title">${tb("hints.title")}</span></h3>
     <p class="bk-hint-text"></p>
   `;
   headerRight?.appendChild(hintsBlock);
@@ -987,7 +987,7 @@ export default function renderBackup() {
           <span>${summaryText}</span>
         </div>
         <div class="pf-actions">
-          <button type="button" class="history-action-button pf-hide" title="Скрыть" data-i18n-title="backup.common.hide">
+          <button type="button" class="history-action-button pf-hide" title="${tb("common.hide")}" data-i18n-title="backup.common.hide">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
