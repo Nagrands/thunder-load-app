@@ -15,12 +15,16 @@ const sourceLinkButton = document.getElementById("url-source-link");
 const urlErrorEl = document.getElementById("url-inline-error");
 const previewSpinner = document.getElementById("url-preview-spinner");
 const helperTextEl = document.getElementById("url-helper-text");
+const presetButtons = Array.from(
+  document.querySelectorAll("[data-url-preset]"),
+);
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
 
   const inputContainer = document.querySelector(".input-container");
   const wrapperEl = document.querySelector(".url-input-wrapper");
+  let currentPreset = "video";
 
   const setStateClass = (className, enabled) => {
     wrapperEl?.classList.toggle(className, enabled);
@@ -32,6 +36,15 @@ function initUrlInputHandler() {
     helperTextEl.textContent = t(messageKey, vars);
   };
 
+  const syncPresetState = (preset = currentPreset) => {
+    currentPreset = preset || "video";
+    presetButtons.forEach((button) => {
+      const active = button.dataset.urlPreset === currentPreset;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  };
+
   const syncShellState = (value = urlInput.value) => {
     const normalized = normalizeUrlInput(value).trim();
     setStateClass("is-empty", normalized === "");
@@ -41,6 +54,21 @@ function initUrlInputHandler() {
         normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
       );
     }
+  };
+
+  const triggerPresetDownload = (preset) => {
+    const validation = syncUrlUiState({ showError: true, errorOnEmpty: true });
+    if (!validation.isValid) return;
+    const btn = document.getElementById("download-button");
+    if (!btn || btn.disabled) return;
+    delete btn.dataset.enqueueOnly;
+    delete btn.dataset.forceAudioOnly;
+    delete btn.dataset.presetProfile;
+    if (preset === "queue") btn.dataset.enqueueOnly = "1";
+    if (preset === "audio") btn.dataset.forceAudioOnly = "1";
+    if (preset === "best") btn.dataset.presetProfile = "best";
+    syncPresetState(preset === "queue" ? "queue" : preset || "video");
+    btn.click();
   };
 
   const toggleButtons = () => {
@@ -465,6 +493,7 @@ function initUrlInputHandler() {
       hideInlineError();
       toggleButtons();
       updateButtonState();
+      syncPresetState("video");
       syncShellState("");
       setHelperText("input.url.helper");
       return;
@@ -486,17 +515,20 @@ function initUrlInputHandler() {
     e.preventDefault();
     // Shift+Enter → только в очередь
     if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      syncPresetState("queue");
       btn.dataset.enqueueOnly = "1";
       btn.click();
       return;
     }
     // Alt+Enter → Audio Only
     if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      syncPresetState("audio");
       btn.dataset.forceAudioOnly = "1";
       btn.click();
       return;
     }
     // Обычный Enter → как прежде
+    syncPresetState("video");
     btn.click();
   });
 
@@ -510,6 +542,7 @@ function initUrlInputHandler() {
     renderPreview(null);
     hideInlineError();
     updateButtonState();
+    syncPresetState("video");
     syncShellState("");
     setHelperText("input.url.helper");
     urlInput.focus();
@@ -538,6 +571,13 @@ function initUrlInputHandler() {
     } catch (error) {
       console.error("Failed to open source link from URL input:", error);
     }
+  });
+
+  presetButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      hasInteracted = true;
+      triggerPresetDownload(button.dataset.urlPreset || "video");
+    });
   });
 
   // Drag & Drop ссылок в область ввода URL
@@ -592,6 +632,7 @@ function initUrlInputHandler() {
   }
 
   setPreviewLoading(false);
+  syncPresetState("video");
   syncShellState();
   setHelperText("input.url.helper");
   syncUrlUiState({ showError: false });

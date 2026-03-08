@@ -41,6 +41,9 @@ describe("downloadProgress", () => {
       jest.doMock("../i18n", () => ({
         t: jest.fn((key, vars = {}) => {
           if (key === "download.eta") return `ETA ${vars.time}`;
+          if (key === "queue.stage.download") return "Downloading data";
+          if (key === "download.progress.stage")
+            return `${vars.stage} ${vars.progress}${vars.eta || ""}`;
           if (key === "download.progress")
             return `Downloading ${vars.progress}${vars.eta || ""}`;
           if (key === "download.progress.multi")
@@ -82,6 +85,9 @@ describe("downloadProgress", () => {
       jest.doMock("../i18n", () => ({
         t: jest.fn((key, vars = {}) => {
           if (key === "download.eta") return `ETA ${vars.time}`;
+          if (key === "queue.stage.download") return "Downloading data";
+          if (key === "download.progress.stage")
+            return `${vars.stage} ${vars.progress}${vars.eta || ""}`;
           if (key === "download.progress")
             return `Downloading ${vars.progress}${vars.eta || ""}`;
           if (key === "download.progress.multi")
@@ -133,6 +139,9 @@ describe("downloadProgress", () => {
       jest.doMock("../i18n", () => ({
         t: jest.fn((key, vars = {}) => {
           if (key === "download.eta") return `ETA ${vars.time}`;
+          if (key === "queue.stage.download") return "Downloading data";
+          if (key === "download.progress.stage")
+            return `${vars.stage} ${vars.progress}${vars.eta || ""}`;
           if (key === "download.progress")
             return `Downloading ${vars.progress}${vars.eta || ""}`;
           if (key === "download.progress.multi")
@@ -174,5 +183,56 @@ describe("downloadProgress", () => {
     progressHandler({ jobId: "c", progress: 25 });
     const container = document.getElementById("progress-bar-container");
     expect(container.getAttribute("aria-valuenow")).toBe("25.0");
+  });
+
+  it("shows current stage in button text for a single active job", () => {
+    let progressHandler = null;
+    window.electron = {
+      onProgress: jest.fn((cb) => {
+        progressHandler = cb;
+      }),
+    };
+
+    jest.isolateModules(() => {
+      jest.doMock("../state", () => ({
+        state: {
+          isDownloading: false,
+          activeDownloads: [],
+        },
+      }));
+      jest.doMock("../domElements", () => ({
+        buttonText: document.querySelector(".button-text"),
+        progressBar: document.getElementById("progress-bar"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+      }));
+      jest.doMock("../i18n", () => ({
+        t: jest.fn((key, vars = {}) => {
+          if (key === "download.eta") return `ETA ${vars.time}`;
+          if (key === "queue.stage.download") return "Downloading data";
+          if (key === "download.progress.stage")
+            return `${vars.stage} ${vars.progress}${vars.eta || ""}`;
+          if (key === "download.progress")
+            return `Downloading ${vars.progress}${vars.eta || ""}`;
+          if (key === "download.progress.multi")
+            return `Downloading ${vars.progress}% (${vars.count} active)`;
+          return key;
+        }),
+      }));
+
+      const { initDownloadProgress } = require("../downloadProgress");
+      initDownloadProgress();
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("download:state", {
+        detail: { isDownloading: true, activeCount: 1 },
+      }),
+    );
+
+    progressHandler({ jobId: "a", progress: 40, phase: "download" });
+
+    expect(document.querySelector(".button-text").textContent).toContain(
+      "Downloading data",
+    );
   });
 });

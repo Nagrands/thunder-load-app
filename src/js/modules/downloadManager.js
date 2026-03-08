@@ -337,7 +337,27 @@ function normalizeQueueItem(item) {
     retryable:
       typeof item?.retryable === "boolean" ? item.retryable : undefined,
     failedAt: Number(item?.failedAt) || 0,
+    createdAt: Number(item?.createdAt) || 0,
   };
+}
+
+function formatEtaEstimate(createdAt, progress) {
+  const pct = Number(progress);
+  const started = Number(createdAt);
+  if (!Number.isFinite(pct) || pct <= 0 || pct >= 100) return "";
+  if (!Number.isFinite(started) || started <= 0) return "";
+  const elapsed = Math.max(1, (Date.now() - started) / 1000);
+  const rate = pct / elapsed;
+  if (!Number.isFinite(rate) || rate <= 0) return "";
+  const remaining = Math.max(0, (100 - pct) / rate);
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+  const seconds = Math.floor(remaining % 60);
+  const time =
+    hours > 0
+      ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+      : `${minutes}:${String(seconds).padStart(2, "0")}`;
+  return t("queue.meta.eta", { time });
 }
 
 function syncDownloadState() {
@@ -416,6 +436,10 @@ function updateDownloadJobSummary() {
   }
   if (Number.isFinite(Number(current.progress))) {
     metaParts.push(`${Math.max(0, Math.min(100, Number(current.progress))).toFixed(0)}%`);
+  }
+  const etaLabel = formatEtaEstimate(current.createdAt, current.progress);
+  if (etaLabel) {
+    metaParts.push(etaLabel);
   }
   metaParts.push(t("queue.pill.active", { count: activeCount }));
   const badge = document.getElementById("downloader-job-summary-badge");
@@ -871,6 +895,7 @@ function updateQueueDisplay() {
       progress: Number(item.progress) || 0,
       size: item.size || "",
       stage: item.stage || "prepare",
+      createdAt: item.createdAt || 0,
     }),
   );
   const pendingItems = getPendingDownloadJobs(state).map((item) =>
@@ -989,10 +1014,15 @@ function updateQueueDisplay() {
       item.status === "downloading" && item.stage
         ? t(`queue.stage.${item.stage}`)
         : "";
+    const etaLabel =
+      item.status === "downloading"
+        ? formatEtaEstimate(item.createdAt, item.progress)
+        : "";
     const reasonLabel = item.status === "error" ? getQueueReasonLabel(item) : "";
     const retryStateLabel =
       item.status === "error" ? getQueueRetryStateLabel(item) : "";
     const qualityLabel = getQueueQualityLabel(item.quality);
+    const kindLabel = item.type === "audio" ? t("queue.kind.audio") : "";
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);
     const isDownloading = item.status === "downloading";
@@ -1008,12 +1038,14 @@ function updateQueueDisplay() {
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
           <div class="queue-item-title">${escapeQueueHtml(titleLabel)}</div>
-          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}${reasonLabel ? ` · ${escapeQueueHtml(reasonLabel)}` : ""}${retryStateLabel ? ` · ${escapeQueueHtml(retryStateLabel)}` : ""}</div>
+          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}${etaLabel ? ` · ${escapeQueueHtml(etaLabel)}` : ""}${reasonLabel ? ` · ${escapeQueueHtml(reasonLabel)}` : ""}${retryStateLabel ? ` · ${escapeQueueHtml(retryStateLabel)}` : ""}</div>
         </div>
         <div class="queue-item-right">
           <span class="queue-status-chip ${isDownloading ? "is-spinning" : ""}" style="${meta.style}">
             <i data-lucide="${meta.icon}"></i><span>${escapeQueueHtml(meta.label)}</span>
           </span>
+          ${stageLabel ? `<span class="queue-stage-chip">${escapeQueueHtml(stageLabel)}</span>` : ""}
+          ${kindLabel ? `<span class="queue-kind-chip">${escapeQueueHtml(kindLabel)}</span>` : ""}
           <span class="queue-quality-chip">${escapeQueueHtml(qualityLabel)}</span>
           <div class="queue-item-actions queue-hover-controls">
             ${
@@ -1608,7 +1640,7 @@ const handleDownloadButtonClick = async (options = {}) => {
   // Если несколько: стартуем первый/добавляем остальные в очередь
   if (validUrls.length > 1) {
     const first = validUrls[0];
-    const qualityProfile = readQualityProfile();
+    const qualityProfile = options.presetProfile || readQualityProfile();
     const selectionRaw = await openDownloadQualityModal(first, {
       presetQuality: resolvePresetQuality(qualityProfile),
       defaultQualityProfile: qualityProfile,
@@ -1669,7 +1701,7 @@ const handleDownloadButtonClick = async (options = {}) => {
 
   // Один URL
   const url = validUrls[0];
-  const qualityProfile = readQualityProfile();
+  const qualityProfile = options.presetProfile || readQualityProfile();
   const selectionRaw = await openDownloadQualityModal(url, {
     presetQuality: resolvePresetQuality(qualityProfile),
     defaultQualityProfile: qualityProfile,
@@ -1763,9 +1795,11 @@ function initDownloadButton() {
     const opts = {
       enqueueOnly: downloadButton.dataset.enqueueOnly === "1",
       forceAudioOnly: downloadButton.dataset.forceAudioOnly === "1",
+      presetProfile: downloadButton.dataset.presetProfile || "",
     };
     delete downloadButton.dataset.enqueueOnly;
     delete downloadButton.dataset.forceAudioOnly;
+    delete downloadButton.dataset.presetProfile;
     await handleDownloadButtonClick(opts);
   });
 

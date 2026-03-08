@@ -62,3 +62,6 @@
 | The action buttons below the URL field now sit inside the same surface | The top of the Downloader now feels more cohesive, without a visual split between input and download controls |
 | The Downloader top area is more compact now | Hints, preview, and action buttons now take less space and feel more cohesive together |
 | The Downloader top area has cleaner typography | Helper hints below the URL field are easier to read, and the download button feels more balanced |
+| The URL field now has quick download modes | You can now choose normal download, audio only, queue, or the best quality preset directly without relying on hidden key combos |
+| Download mode and current stage are more visible | Quick modes now highlight more clearly, and the downloader better shows whether it is preparing, downloading, or finalizing a file |
+| The download queue is more informative now | Active items now make the current stage, estimated remaining time, and audio-only mode easier to spot |

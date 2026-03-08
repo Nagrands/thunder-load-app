@@ -30,6 +30,12 @@ const buildDom = () => {
             <div class="url-input-shortcuts"></div>
           </div>
         </div>
+        <div class="url-input-presets">
+          <button type="button" data-url-preset="video"></button>
+          <button type="button" data-url-preset="audio"></button>
+          <button type="button" data-url-preset="queue"></button>
+          <button type="button" data-url-preset="best"></button>
+        </div>
         <div id="url-inline-error" class="url-inline-error hidden"></div>
       </div>
       <div id="preview-card" style="display:none;">
@@ -64,6 +70,7 @@ const getState = () => ({
   helperText: document.getElementById("url-helper-text"),
   container: document.querySelector(".input-container"),
   sourceLink: document.getElementById("url-source-link"),
+  presetButtons: Array.from(document.querySelectorAll("[data-url-preset]")),
 });
 
 describe("urlInputHandler", () => {
@@ -94,7 +101,7 @@ describe("urlInputHandler", () => {
             return "Получаем превью и проверяем ссылку…";
           }
           if (key === "input.url.helper.valid") {
-            return "Ссылка распознана. Нажмите Enter для загрузки.";
+            return "Ссылка распознана. Выберите режим ниже или нажмите Enter для обычной загрузки.";
           }
           if (key === "input.url.helper.drag") {
             return "Отпустите ссылку, чтобы вставить её в поле";
@@ -150,6 +157,10 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.saveWithTitle") {
             return `Сохранить: "${vars.title}"`;
           }
+          if (key === "input.url.presets.video") return "Видео";
+          if (key === "input.url.presets.audio") return "Только аудио";
+          if (key === "input.url.presets.queue") return "В очередь";
+          if (key === "input.url.presets.best") return "Лучшее";
           return key;
         },
       }));
@@ -380,5 +391,65 @@ describe("urlInputHandler", () => {
       "open-external-link",
       "https://youtube.com/watch?v=test",
     );
+  });
+
+  test("queue preset reuses download flow with enqueueOnly flag", () => {
+    const { input, downloadBtn, presetButtons } = getState();
+    let captured = null;
+    input.value = "https://example.com/video";
+    downloadBtn.disabled = false;
+    jest.spyOn(downloadBtn, "click").mockImplementation(() => {
+      captured = downloadBtn.dataset.enqueueOnly;
+    });
+
+    presetButtons.find((button) => button.dataset.urlPreset === "queue").click();
+
+    expect(captured).toBe("1");
+  });
+
+  test("audio preset reuses download flow with forceAudioOnly flag", () => {
+    const { input, downloadBtn, presetButtons } = getState();
+    let captured = null;
+    input.value = "https://example.com/video";
+    downloadBtn.disabled = false;
+    jest.spyOn(downloadBtn, "click").mockImplementation(() => {
+      captured = downloadBtn.dataset.forceAudioOnly;
+    });
+
+    presetButtons.find((button) => button.dataset.urlPreset === "audio").click();
+
+    expect(captured).toBe("1");
+  });
+
+  test("best preset reuses download flow with best profile override", () => {
+    const { input, downloadBtn, presetButtons } = getState();
+    let captured = null;
+    input.value = "https://example.com/video";
+    downloadBtn.disabled = false;
+    jest.spyOn(downloadBtn, "click").mockImplementation(() => {
+      captured = downloadBtn.dataset.presetProfile;
+    });
+
+    presetButtons.find((button) => button.dataset.urlPreset === "best").click();
+
+    expect(captured).toBe("best");
+  });
+
+  test("preset buttons reflect the active mode", () => {
+    const { input, presetButtons } = getState();
+    input.value = "https://example.com/video";
+
+    const videoPreset = presetButtons.find(
+      (button) => button.dataset.urlPreset === "video",
+    );
+    const audioPreset = presetButtons.find(
+      (button) => button.dataset.urlPreset === "audio",
+    );
+
+    expect(videoPreset.classList.contains("is-active")).toBe(true);
+    audioPreset.click();
+
+    expect(audioPreset.classList.contains("is-active")).toBe(true);
+    expect(videoPreset.classList.contains("is-active")).toBe(false);
   });
 });

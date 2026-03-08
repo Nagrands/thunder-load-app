@@ -383,6 +383,47 @@ describe("downloadManager enqueueOnly behavior", () => {
       );
     });
   });
+
+  it("allows overriding the quality profile with the best preset", async () => {
+    await jest.isolateModulesAsync(async () => {
+      localStorage.setItem("downloadQualityProfile", "remember");
+      localStorage.setItem("downloadLastQuality", "1080p");
+
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
+      }));
+
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const urlInput = document.getElementById("url");
+
+      urlInput.value = "https://example.com/best";
+      await handleDownloadButtonClick({ presetProfile: "best" });
+
+      expect(openDownloadQualityModal).toHaveBeenCalledWith(
+        "https://example.com/best",
+        expect.objectContaining({
+          defaultQualityProfile: "best",
+          presetQuality: expect.any(String),
+        }),
+      );
+    });
+  });
 });
 
 describe("downloadManager job summary", () => {
@@ -455,6 +496,63 @@ describe("downloadManager job summary", () => {
         document.getElementById("downloader-job-summary-meta").textContent,
       ).toContain("42%");
     });
+  });
+
+  it("renders stage, eta and audio badge for active queue items", () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-03-08T12:00:00Z"));
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+        addNewEntryToHistory: jest.fn(),
+        updateDownloadCount: jest.fn(),
+      }));
+
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+
+      state.activeDownloads = [
+        {
+          jobId: "job-2",
+          title: "Audio demo",
+          url: "https://example.com/audio",
+          quality: { type: "audio-only", label: "Audio" },
+          type: "audio",
+          progress: 50,
+          stage: "download",
+          createdAt: Date.now() - 10000,
+        },
+      ];
+      state.downloadQueue = [];
+      state.failedDownloads = [];
+      state.completedDownloads = [];
+
+      updateQueueDisplay();
+
+      const queueText =
+        document.getElementById("queue-list").textContent || "";
+      expect(queueText).toContain("Скачивание данных");
+      expect(queueText).toContain("ETA");
+      expect(queueText).toContain("Аудио");
+    });
+    jest.useRealTimers();
   });
 });
 

@@ -398,7 +398,9 @@
   }
 
   .queue-status-chip,
-  .queue-quality-chip {
+  .queue-quality-chip,
+  .queue-stage-chip,
+  .queue-kind-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -420,6 +422,18 @@
     color: rgba(170, 205, 255, 0.95);
     border-color: rgba(96, 169, 255, 0.28);
     background: rgba(74, 158, 255, 0.12);
+  }
+
+  .queue-stage-chip {
+    color: rgba(232, 239, 250, 0.88);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .queue-kind-chip {
+    color: rgba(246, 223, 176, 0.95);
+    border-color: rgba(255, 191, 96, 0.26);
+    background: rgba(255, 191, 96, 0.1);
   }
 
   .queue-status-chip.is-spinning svg {
@@ -562,7 +576,9 @@
       flex-wrap: wrap;
     }
 
-    .queue-quality-chip {
+    .queue-quality-chip,
+    .queue-stage-chip,
+    .queue-kind-chip {
       order: 2;
     }
 

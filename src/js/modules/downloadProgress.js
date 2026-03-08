@@ -9,6 +9,7 @@ function initDownloadProgress() {
   let startedAt = null;
   let displayedProgress = 0;
   const progressByJob = new Map();
+  const phaseByJob = new Map();
   let activeCount =
     getActiveDownloadJobs(state).length || (state.isDownloading ? 1 : 0);
   let prevActiveCount = activeCount;
@@ -43,6 +44,7 @@ function initDownloadProgress() {
     startedAt = null;
     displayedProgress = 0;
     progressByJob.clear();
+    phaseByJob.clear();
     if (progressBarContainer) {
       progressBarContainer.style.setProperty("--progress-ratio", "0");
     }
@@ -72,14 +74,16 @@ function initDownloadProgress() {
         ? Math.max(0, Math.min(100, parsedProgress))
         : 0;
       const jobId = progressValue.jobId || "__unknown";
+      const phase = String(progressValue.phase || "").trim().toLowerCase();
       progressByJob.set(jobId, normalizedProgress);
+      if (phase) phaseByJob.set(jobId, phase);
       try {
         window.dispatchEvent(
           new CustomEvent("download:progress-item", {
             detail: {
               jobId,
               progress: normalizedProgress,
-              phase: String(progressValue.phase || ""),
+              phase,
             },
           }),
         );
@@ -115,16 +119,30 @@ function initDownloadProgress() {
       etaLabel = t("download.eta", { time });
     }
     const etaSuffix = etaLabel ? ` ${etaLabel}` : "";
+    const activeIds = getActiveDownloadJobs(state)
+      .map((item) => item.jobId)
+      .filter(Boolean);
+    const primaryPhase =
+      activeIds.map((id) => phaseByJob.get(id)).find(Boolean) ||
+      Array.from(phaseByJob.values()).find(Boolean) ||
+      phaseByJob.get("__unknown") ||
+      "";
+    const stageKey = primaryPhase ? `queue.stage.${primaryPhase}` : "";
+    const stageLabel = stageKey ? t(stageKey) : "";
     if (activeCount > 1) {
       buttonText.textContent = t("download.progress.multi", {
         progress: progressStr,
         count: activeCount,
       });
     } else {
-      buttonText.textContent = t("download.progress", {
-        progress: progressStr,
-        eta: etaSuffix,
-      });
+      buttonText.textContent = t(
+        stageLabel ? "download.progress.stage" : "download.progress",
+        {
+          stage: stageLabel,
+          progress: progressStr,
+          eta: etaSuffix,
+        },
+      );
     }
     if (progressBarContainer) {
       progressBarContainer.style.setProperty(
