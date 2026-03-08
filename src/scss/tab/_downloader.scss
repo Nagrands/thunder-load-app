@@ -136,12 +136,13 @@
   justify-content: flex-start;
   gap: 10px;
   min-height: 26px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(10, 16, 28, 0.18)),
-    rgba(255, 255, 255, 0.015);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(10, 16, 28, 0.12)),
+    rgba(255, 255, 255, 0.01);
+  box-shadow: none;
 
   &.hidden {
     display: none;
@@ -180,10 +181,11 @@
   }
 
   .downloader-tools-status__text {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.01em;
     white-space: nowrap;
+    color: rgba(221, 231, 246, 0.82);
   }
 
   .downloader-tools-status__badges {
@@ -200,8 +202,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 25px;
-    padding: 3px 10px 3px 8px;
+    min-height: 23px;
+    padding: 2px 9px 2px 7px;
     border-radius: 999px;
     border: 1px solid rgba(124, 194, 160, 0.26);
     background: linear-gradient(
@@ -210,7 +212,7 @@
       rgba(18, 49, 39, 0.44)
     );
     color: #d6f1e3;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
 
     .tool-badge__state {
@@ -297,20 +299,25 @@
 }
 
 .downloader-view {
+  .input-container {
+    gap: 12px;
+    padding: 0;
+  }
+
   .downloader-action-row {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: stretch;
-    gap: 14px;
-    margin: 10px 0 18px;
-    padding: 12px;
-    border-radius: 26px;
-    border: 1px solid rgba(170, 206, 255, 0.12);
+    gap: 8px;
+    margin: 0;
+    padding: 8px;
+    border-radius: 22px;
+    border: 1px solid rgba(170, 206, 255, 0.08);
     background:
-      radial-gradient(circle at center, rgba(var(--color-accent-rgb), 0.08), transparent 56%),
-      linear-gradient(155deg, rgba(8, 18, 35, 0.92), rgba(10, 16, 28, 0.84));
+      linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(7, 12, 22, 0.06)),
+      rgba(255, 255, 255, 0.01);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 18px 36px rgba(4, 10, 24, 0.2);
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 8px 18px rgba(3, 9, 20, 0.1);
 
     > * {
       min-width: 0;
@@ -320,19 +327,21 @@
 
   .downloader-action-row__primary {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 680px) auto;
     align-items: stretch;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
+    justify-self: center;
+    width: 100%;
   }
 
   .downloader-action-row__aside,
   .downloader-action-row__cancel {
-    min-width: 58px;
-    width: 58px;
-    min-height: 58px;
+    min-width: 48px;
+    width: 48px;
+    min-height: 48px;
     padding: 0;
-    border-radius: 18px;
+    border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
@@ -356,19 +365,22 @@
   }
 
   .downloader-action-row__download {
-    min-height: 58px;
-    border-radius: 20px;
+    min-height: 48px;
+    border-radius: 18px;
     border: 1px solid rgba(150, 196, 255, 0.16);
     background:
-      linear-gradient(135deg, rgba(87, 145, 219, 0.28), rgba(31, 57, 99, 0.14)),
+      linear-gradient(135deg, rgba(87, 145, 219, 0.26), rgba(31, 57, 99, 0.13)),
       linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 14px 30px rgba(8, 18, 38, 0.18);
+      0 10px 22px rgba(8, 18, 38, 0.15);
     color: rgba(244, 248, 255, 0.94);
+    width: 100%;
+    max-width: 680px;
+    justify-self: center;
 
     .button-text {
-      font-size: 1.06rem;
+      font-size: 1rem;
       font-weight: 700;
       letter-spacing: 0.01em;
     }
@@ -395,7 +407,17 @@
         linear-gradient(135deg, rgba(66, 89, 123, 0.24), rgba(25, 35, 52, 0.14)),
         rgba(255, 255, 255, 0.02);
       color: rgba(210, 222, 242, 0.52);
-      box-shadow: none;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+
+      .button-text {
+        color: rgba(223, 232, 247, 0.58);
+      }
+
+      i {
+        color: rgba(199, 214, 238, 0.52);
+      }
     }
   }
 
@@ -415,8 +437,8 @@
 
   .downloader-action-row .cancel-count {
     position: absolute;
-    right: 8px;
-    top: 8px;
+    right: 7px;
+    top: 7px;
     min-width: 18px;
     height: 18px;
     padding: 0 5px;
@@ -433,7 +455,7 @@
 }
 
 .downloader-view {
-  @media (max-width: 768px) {
+    @media (max-width: 768px) {
     .downloader-shell-header .title {
       gap: 12px;
 
@@ -459,10 +481,12 @@
 
     .downloader-action-row {
       grid-template-columns: 1fr;
+      padding: 8px;
     }
 
     .downloader-action-row__primary {
       grid-template-columns: minmax(0, 1fr) auto;
+      justify-self: stretch;
     }
 
     .downloader-job-summary {

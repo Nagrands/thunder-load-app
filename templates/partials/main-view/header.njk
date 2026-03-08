@@ -118,5 +118,59 @@
       </div>
     </div>
 
+    <nav
+      class="button-group downloader-action-row"
+      aria-label="Основные действия"
+      data-i18n-aria="actions.primary"
+    >
+      <button
+        id="open-last-video"
+        class="small-button btn btn-sm btn-secondary downloader-action-row__aside"
+        aria-label="Открыть последнее скачанное видео"
+        data-i18n-aria="actions.openLast"
+        disabled
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Последнее видео"
+        data-i18n-title="actions.lastVideo"
+      >
+        <i class="fa fa-play" aria-hidden="true"></i>
+      </button>
+
+      <div class="download-quality-group downloader-action-row__primary">
+        <button id="download-button" class="large-button btn btn-lg btn-primary downloader-action-row__download" disabled aria-disabled="true">
+          <i class="fas fa-download"></i>
+          <span class="button-text" data-i18n="actions.download">Скачать</span>
+        </button>
+
+        <button
+          id="download-cancel"
+          class="small-button btn btn-sm btn-danger downloader-action-row__cancel"
+          aria-label="Отменить скачивание"
+          data-i18n-aria="actions.cancelDownload"
+          disabled
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Отменить скачивание"
+          data-i18n-title="actions.cancelDownload"
+        >
+          <i class="fa-solid fa-xmark"></i>
+          <span id="download-cancel-count" class="cancel-count hidden">0</span>
+        </button>
+      </div>
+
+      <button
+        id="open-folder"
+        class="small-button btn btn-sm btn-secondary downloader-action-row__aside"
+        aria-label="Открыть папку с видео"
+        data-i18n-aria="actions.openFolder"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Папка с видео"
+        data-i18n-title="actions.videoFolder"
+      >
+        <i class="fa-regular fa-folder-open"></i>
+      </button>
+    </nav>
   </div>
 </header>

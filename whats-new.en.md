@@ -58,3 +58,7 @@
 | The Downloader top area now feels unified | The URL field, preview, and action buttons now read as one coordinated surface |
 | The source icon in the URL field is aligned again | The site icon inside the URL field no longer slips outside its chip |
 | URL field shortcut hints are clearer now | The Enter, Shift+Enter, and Alt+Enter hints now explain the action instead of showing only the key combo |
+| The Downloader top area is cleaner and more compact | The URL field, shortcut hints, tools status, and download button now read more clearly without crowding the screen |
+| The action buttons below the URL field now sit inside the same surface | The top of the Downloader now feels more cohesive, without a visual split between input and download controls |
+| The Downloader top area is more compact now | Hints, preview, and action buttons now take less space and feel more cohesive together |
+| The Downloader top area has cleaner typography | Helper hints below the URL field are easier to read, and the download button feels more balanced |

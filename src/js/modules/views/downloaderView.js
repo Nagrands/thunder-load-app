@@ -125,7 +125,9 @@ export default function renderDownloader(wrapper) {
     glass.appendChild(shell);
 
     if (headerEl) glass.appendChild(headerEl);
-    if (buttonGroup) glass.appendChild(buttonGroup);
+    if (buttonGroup && !headerEl?.contains(buttonGroup)) {
+      glass.appendChild(buttonGroup);
+    }
     if (queueInfo) glass.appendChild(queueInfo);
     if (queueStart) glass.appendChild(queueStart);
     if (historySection) glass.appendChild(historySection);
