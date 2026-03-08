@@ -27,8 +27,18 @@ const buildDom = () => {
               <span class="url-input-statusline__dot"></span>
               <span id="url-helper-text" class="url-helper-text"></span>
             </div>
-            <div class="url-input-shortcuts"></div>
+          <div class="url-input-shortcuts"></div>
           </div>
+          <nav class="button-group downloader-action-row url-input-action-row">
+            <button id="open-last-video" type="button"></button>
+            <div class="download-quality-group downloader-action-row__primary">
+              <button id="download-button" type="button"></button>
+              <button id="download-cancel" type="button">
+                <span id="download-cancel-count" class="cancel-count hidden">0</span>
+              </button>
+            </div>
+            <button id="open-folder" type="button"></button>
+          </nav>
         </div>
         <div id="url-inline-error" class="url-inline-error hidden"></div>
       </div>
@@ -43,7 +53,6 @@ const buildDom = () => {
         </div>
       </div>
     </div>
-    <button id="download-button"></button>
   `;
 };
 
@@ -64,6 +73,7 @@ const getState = () => ({
   helperText: document.getElementById("url-helper-text"),
   container: document.querySelector(".input-container"),
   sourceLink: document.getElementById("url-source-link"),
+  actionRow: document.querySelector(".url-input-action-row"),
 });
 
 describe("urlInputHandler", () => {
@@ -197,12 +207,32 @@ describe("urlInputHandler", () => {
   });
 
   test("does not show inline error while typing before blur/enter", () => {
-    const { input, error, wrapper } = getState();
+    const { input, error, wrapper, actionRow } = getState();
     input.value = "http://";
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
     expect(error.classList.contains("hidden")).toBe(true);
     expect(wrapper.classList.contains("is-invalid")).toBe(false);
+    expect(actionRow.hidden).toBe(false);
+  });
+
+  test("hides action row when URL is empty and shows it after input", () => {
+    const { input, actionRow } = getState();
+
+    expect(actionRow.hidden).toBe(true);
+    expect(actionRow.getAttribute("aria-hidden")).toBe("true");
+
+    input.value = "https://example.com/video";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(actionRow.hidden).toBe(false);
+    expect(actionRow.getAttribute("aria-hidden")).toBe("false");
+
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(actionRow.hidden).toBe(true);
+    expect(actionRow.getAttribute("aria-hidden")).toBe("true");
   });
 
   test("shows inline error on blur for invalid URL", () => {

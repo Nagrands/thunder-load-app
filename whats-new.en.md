@@ -75,6 +75,12 @@
 | The quick modes block is simpler now | The Downloader now keeps only the clearest quick actions in the URL area: video, audio only, and queue |
 | Quick modes now appear only for recognized links | When the URL is empty or invalid, extra mode buttons stay hidden until the source is recognized |
 | The download button is more compact and easier to notice | The main action at the top of the Downloader now feels more deliberate and stands out more clearly from the side buttons |
+| The action buttons now share the same card as the URL field | The top of the Downloader now feels like one surface, with the link field, hint, and main actions grouped together |
+| The Downloader top card is more polished now | The URL hint, input, and download button now read more clearly and sit closer together without awkward empty space at the sides |
+| The Downloader top bar is more balanced now | Secondary buttons now compete less with each other, while the main Download action stands out more clearly inside the shared card |
+| The Downloader top buttons are more minimal now | Primary and secondary actions now use a flatter, calmer style without the heavier glass effect |
+| The Downloader buttons are visually simpler now | The main action now reads as a clear flat button, while secondary actions stay quieter and do not pull focus away |
+| The action row below the URL now stays hidden until needed | The top of the Downloader looks cleaner when the URL field is empty, and the actions appear after you enter a link |
 | The Downloader header is calmer now | The main title draws less attention away from the URL field, preview, and queue controls |
 | The preview card is denser and more polished now | Link previews now fit more naturally with the URL field and action controls at the top of the Downloader |
 | The top of the Downloader is more even now | The URL field, preview, and action controls now sit closer together and feel more like one coordinated block |

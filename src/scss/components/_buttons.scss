@@ -13,20 +13,11 @@
   @include mixins.button-base;
   position: relative;
   overflow: hidden;
-  padding: 0.7em 1.4em;
+  padding: 0.7em 3.4em;
   transition: all var(--btn-hover-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  box-shadow:
-    var(--glass-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
-
   color: var(--color-highlight);
+  border: 1px solid var(--color-hover);
   border-radius: 16px;
 
   &::before,
@@ -42,10 +33,6 @@
       rgba(255, 255, 255, 0.06) 100%
     );
     border-color: rgba(255, 255, 255, 0.18);
-    box-shadow:
-      0 8px 20px rgba(0, 0, 0, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   }
 
   &:active {
@@ -259,33 +246,9 @@
 .button--open-folder,
 .button--open-last-video {
   @extend %btn;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.11) 0%,
-    rgba(255, 255, 255, 0.06) 55%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition:
-    transform 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease;
 
   &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.15) 0%,
-      rgba(255, 255, 255, 0.08) 55%,
-      rgba(255, 255, 255, 0.04) 100%
-    );
-    border-color: rgba(255, 255, 255, 0.26);
-    box-shadow:
-      0 6px 15px rgba(0, 0, 0, 0.22),
-      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    color: var(--color-accent);
   }
 
   &:active {
@@ -305,30 +268,14 @@
 
 .button--download-button {
   @extend %btn;
-  background: linear-gradient(
-    135deg,
-    rgba(var(--color-accent-rgb), 0.32) 0%,
-    rgba(var(--color-accent-rgb), 0.2) 52%,
-    rgba(12, 18, 32, 0.84) 100%
-  );
-  border-color: rgba(var(--color-accent-rgb), 0.42);
-  box-shadow:
-    0 6px 18px rgba(40, 110, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    border-color 0.16s ease,
-    background 0.16s ease;
 
   &:not(:disabled):hover {
     transform: translateY(-1px);
     box-shadow:
       0 8px 20px rgba(40, 110, 255, 0.27),
       inset 0 1px 0 rgba(255, 255, 255, 0.18);
-    border-color: rgba(var(--color-accent-rgb), 0.55);
   }
 
   &:not(:disabled):active {
@@ -339,13 +286,7 @@
   }
 
   &.active {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--color-accent-rgb), 0.4) 0%,
-      rgba(var(--color-accent-rgb), 0.25) 52%,
-      rgba(12, 18, 32, 0.9) 100%
-    );
-    border-color: rgba(var(--color-accent-rgb), 0.58);
+    background-color: var(--color-hover);
   }
 
   &:disabled .button-text {

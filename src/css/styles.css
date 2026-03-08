@@ -12347,9 +12347,9 @@ body.is-mac .window-controls .btn-minimize {
   position: relative;
   width: 100%;
   display: grid;
-  gap: 14px;
+  gap: 11px;
   padding: 18px;
-  border-radius: 26px;
+  border-radius: 24px;
   z-index: 1;
   border: 1px solid rgba(170, 206, 255, 0.18);
   background: radial-gradient(circle at top left, rgba(var(--color-accent-rgb), 0.16), transparent 34%), linear-gradient(145deg, rgba(8, 23, 49, 0.96), rgba(8, 18, 35, 0.9));
@@ -12484,7 +12484,7 @@ body.is-mac .window-controls .btn-minimize {
   gap: 10px;
   min-height: 62px;
   padding: 0 14px 0 10px;
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.02);
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
@@ -12511,28 +12511,26 @@ body.is-mac .window-controls .btn-minimize {
 .clear-button,
 .folder-button {
   position: relative;
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 34px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0;
   padding: 0;
-  border-radius: 12px;
-  color: rgba(232, 240, 255, 0.76);
+  border-radius: 9px;
+  color: rgba(214, 225, 241, 0.74);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.14s ease, opacity 0.3s ease, box-shadow 0.2s ease;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.3s ease;
 }
 .action-button:hover, .paste-button:hover,
 .clear-button:hover,
 .folder-button:hover {
-  color: rgba(244, 248, 255, 0.96);
-  border-color: rgba(var(--color-accent-rgb), 0.24);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 16px rgba(8, 18, 38, 0.18);
-  transform: translateY(-1px);
+  color: rgba(238, 244, 251, 0.9);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
 }
 .action-button:focus-visible, .paste-button:focus-visible,
 .clear-button:focus-visible,
@@ -12544,7 +12542,7 @@ body.is-mac .window-controls .btn-minimize {
 .clear-button i,
 .folder-button i {
   pointer-events: none;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 .action-button span, .paste-button span,
 .clear-button span,
@@ -12557,12 +12555,21 @@ body.is-mac .window-controls .btn-minimize {
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 6px;
 }
 
 .folder-button {
-  background: rgba(var(--color-accent-rgb), 0.08);
-  border-color: rgba(var(--color-accent-rgb), 0.18);
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: 9px;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.05);
+  color: rgba(205, 219, 238, 0.64);
+}
+.folder-button:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(233, 241, 250, 0.82);
 }
 
 .hidden {
@@ -12621,7 +12628,7 @@ body.is-mac .window-controls .btn-minimize {
   outline: none;
 }
 #url::placeholder {
-  color: rgba(215, 227, 246, 0.76);
+  color: rgba(228, 238, 251, 0.86);
   font-style: italic;
   font-weight: 500;
 }
@@ -12632,9 +12639,30 @@ body.is-mac .window-controls .btn-minimize {
   align-items: center;
   justify-content: space-between;
   gap: 4px 12px;
-  padding: 5px 6px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  padding: 4px 6px;
+}
+
+.url-input-action-row {
+  position: relative;
+  margin-top: 0;
+  padding-top: 7px;
+  padding-inline: 2px;
+  border-radius: 0;
+  background: transparent;
+}
+.url-input-action-row::before {
+  content: "";
+  position: absolute;
+  left: 42px;
+  right: 42px;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.025) 28%, rgba(255, 255, 255, 0.045) 50%, rgba(255, 255, 255, 0.025) 72%, rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.url-input-wrapper.is-empty .url-input-action-row {
+  display: none !important;
 }
 
 .url-input-statusline {
@@ -12660,7 +12688,7 @@ body.is-mac .window-controls .btn-minimize {
   font-weight: 550;
   letter-spacing: 0.005em;
   text-wrap: pretty;
-  color: rgba(226, 236, 248, 0.82);
+  color: rgba(232, 240, 250, 0.9);
 }
 
 .url-input-shortcuts {
@@ -13222,14 +13250,12 @@ hr {
   align-items: center;
   letter-spacing: 0.02rem;
   transition: all 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
-  padding: 0.7em 1.4em;
+  padding: 0.7em 3.4em;
   transition: all var(--btn-hover-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.08);
   color: var(--color-highlight);
+  border: 1px solid var(--color-hover);
   border-radius: 16px;
 }
 .button--install-deps::before, #install-deps-btn::before, .btn--install-deps::before, .button--cancel::before, #download-cancel::before, .btn--cancel::before, .button--download-button::before, #download-button::before, .btn--download::before, .button--open-folder::before, #open-folder::before, .btn--open-folder::before,
@@ -13251,7 +13277,6 @@ hr {
   transform: translateY(-1px);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
   border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
 }
 .button--install-deps:active, #install-deps-btn:active, .btn--install-deps:active, .button--cancel:active, #download-cancel:active, .btn--cancel:active, .button--download-button:active, #download-button:active, .btn--download:active, .button--open-folder:active, #open-folder:active, .btn--open-folder:active,
 .button--open-last-video:active,
@@ -13459,22 +13484,11 @@ hr {
   }
 }
 /* ========== Модификаторы кнопок ========== */
-.button--open-folder, #open-folder, .btn--open-folder,
-.button--open-last-video,
-#open-last-video,
-.btn--open-last-video {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.06) 55%, rgba(255, 255, 255, 0.03) 100%);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
-}
 .button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover,
 .button--open-last-video:hover,
 #open-last-video:hover,
 .btn--open-last-video:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 55%, rgba(255, 255, 255, 0.04) 100%);
-  border-color: rgba(255, 255, 255, 0.26);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  color: var(--color-accent);
 }
 .button--open-folder:active, #open-folder:active, .btn--open-folder:active,
 .button--open-last-video:active,
@@ -13492,25 +13506,19 @@ hr {
 }
 
 .button--download-button, #download-button, .btn--download {
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.32) 0%, rgba(var(--color-accent-rgb), 0.2) 52%, rgba(12, 18, 32, 0.84) 100%);
-  border-color: rgba(var(--color-accent-rgb), 0.42);
-  box-shadow: 0 6px 18px rgba(40, 110, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 .button--download-button:not(:disabled):hover, #download-button:not(:disabled):hover, .btn--download:not(:disabled):hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 20px rgba(40, 110, 255, 0.27), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  border-color: rgba(var(--color-accent-rgb), 0.55);
 }
 .button--download-button:not(:disabled):active, #download-button:not(:disabled):active, .btn--download:not(:disabled):active {
   transform: translateY(1px);
   box-shadow: 0 4px 12px rgba(20, 50, 130, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 .button--download-button.active, .active#download-button, .active.btn--download {
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.4) 0%, rgba(var(--color-accent-rgb), 0.25) 52%, rgba(12, 18, 32, 0.9) 100%);
-  border-color: rgba(var(--color-accent-rgb), 0.58);
+  background-color: var(--color-hover);
 }
 .button--download-button:disabled .button-text, #download-button:disabled .button-text, .btn--download:disabled .button-text {
   opacity: 0.7;
@@ -17279,7 +17287,6 @@ hr {
   align-items: center;
   letter-spacing: 0.02rem;
   transition: all 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -18014,7 +18021,6 @@ hr {
   align-items: center;
   letter-spacing: 0.02rem;
   transition: all 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   margin-left: 0;
   width: 140px;
   height: 44px;
@@ -21602,16 +21608,16 @@ video {
   padding: 0;
 }
 .downloader-view .downloader-action-row {
-  grid-template-columns: auto minmax(0, auto) auto;
+  grid-template-columns: auto minmax(0, minmax(0, 1fr)) auto;
   align-items: stretch;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
-  padding: 7px;
-  border-radius: 22px;
-  border: 1px solid rgba(170, 206, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(7, 12, 22, 0.06)), rgba(255, 255, 255, 0.01);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 8px 18px rgba(3, 9, 20, 0.1);
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 .downloader-view .downloader-action-row > * {
   min-width: 0;
@@ -21619,86 +21625,90 @@ video {
 }
 .downloader-view .downloader-action-row__primary {
   display: grid;
-  grid-template-columns: minmax(280px, 560px) auto;
+  grid-template-columns: minmax(320px, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   justify-self: center;
-  width: auto;
+  width: min(100%, 660px);
   max-width: 100%;
 }
 .downloader-view .downloader-action-row__aside,
 .downloader-view .downloader-action-row__cancel {
-  min-width: 46px;
-  width: 46px;
-  min-height: 46px;
+  min-width: 38px;
+  width: 38px;
+  min-height: 38px;
   padding: 0;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)), rgba(9, 16, 28, 0.52);
-  color: rgba(228, 237, 252, 0.82);
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  color: rgba(210, 223, 240, 0.76);
   box-shadow: none;
 }
 .downloader-view .downloader-action-row__aside i,
 .downloader-view .downloader-action-row__cancel i {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 .downloader-view .downloader-action-row__aside:hover:not(:disabled),
 .downloader-view .downloader-action-row__cancel:hover:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.22);
-  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.03)), rgba(9, 16, 28, 0.62);
-  color: rgba(246, 249, 255, 0.96);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(7, 14, 28, 0.18);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(240, 246, 252, 0.9);
 }
 .downloader-view .downloader-action-row__download {
-  min-height: 46px;
-  padding-inline: 24px;
-  border-radius: 16px;
-  border: 1px solid rgba(150, 196, 255, 0.18);
-  background: linear-gradient(135deg, rgba(92, 153, 230, 0.34), rgba(35, 63, 108, 0.18)), linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 26px rgba(8, 18, 38, 0.16);
-  color: rgba(246, 249, 255, 0.98);
-  width: min(560px, 100%);
+  min-height: 38px;
+  padding-inline: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(82, 159, 248, 0.38);
+  background: #3f7fcb;
+  box-shadow: none;
+  color: #f5f9ff;
+  width: 100%;
   min-width: 0;
   justify-self: center;
-  gap: 10px;
+  gap: 9px;
 }
 .downloader-view .downloader-action-row__download .button-text {
-  font-size: 0.98rem;
-  font-weight: 700;
-  letter-spacing: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: none;
 }
 .downloader-view .downloader-action-row__download i {
-  font-size: 1.05rem;
-  opacity: 0.98;
+  font-size: 0.92rem;
+  opacity: 1;
+  filter: none;
 }
 .downloader-view .downloader-action-row__download:hover:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.26);
-  background: linear-gradient(135deg, rgba(102, 165, 242, 0.42), rgba(42, 79, 132, 0.22)), linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 18px 34px rgba(9, 24, 52, 0.24);
-  transform: translateY(-1px);
+  border-color: rgba(104, 180, 255, 0.42);
+  background: #4a8ddd;
+  color: #f8fbff;
+}
+.downloader-view .downloader-action-row__download:active:not(:disabled) {
+  background: #3772b7;
 }
 .downloader-view .downloader-action-row__download:disabled, .downloader-view .downloader-action-row__download[aria-disabled=true] {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(135deg, rgba(76, 100, 137, 0.28), rgba(28, 39, 58, 0.16)), rgba(255, 255, 255, 0.02);
-  color: rgba(210, 222, 242, 0.52);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(210, 223, 239, 0.52);
+  box-shadow: none;
 }
 .downloader-view .downloader-action-row__download:disabled .button-text, .downloader-view .downloader-action-row__download[aria-disabled=true] .button-text {
-  color: rgba(223, 232, 247, 0.58);
+  color: rgba(220, 229, 243, 0.56);
 }
 .downloader-view .downloader-action-row__download:disabled i, .downloader-view .downloader-action-row__download[aria-disabled=true] i {
-  color: rgba(199, 214, 238, 0.52);
+  color: rgba(203, 217, 238, 0.5);
+  filter: none;
 }
 .downloader-view .downloader-action-row__cancel {
   position: relative;
-  border-color: rgba(255, 132, 132, 0.18);
-  color: rgba(255, 187, 187, 0.92);
+  border-color: rgba(255, 126, 126, 0.14);
+  color: rgba(255, 182, 182, 0.78);
+  background: transparent;
 }
 .downloader-view .downloader-action-row__cancel:hover:not(:disabled) {
-  border-color: rgba(255, 132, 132, 0.28);
-  background: linear-gradient(180deg, rgba(255, 112, 112, 0.12), rgba(255, 255, 255, 0.02)), rgba(32, 10, 12, 0.42);
+  border-color: rgba(255, 126, 126, 0.22);
+  background: rgba(255, 108, 108, 0.035);
   color: #ffd6d6;
 }
 .downloader-view .downloader-action-row .cancel-count {
@@ -21741,7 +21751,6 @@ video {
   }
   .downloader-view .downloader-action-row {
     grid-template-columns: 1fr;
-    padding: 7px;
     justify-content: stretch;
   }
   .downloader-view .downloader-action-row__primary {
@@ -21780,6 +21789,10 @@ video {
   .downloader-view .downloader-action-row__download {
     width: 100%;
     min-width: 0;
+  }
+  .downloader-view .downloader-action-row__aside,
+  .downloader-view .downloader-action-row__cancel {
+    min-height: 36px;
   }
 }
 
@@ -22408,9 +22421,7 @@ video {
 }
 .download-quality-modal .quality-actions button.btn-primary {
   border-color: rgba(var(--color-accent-rgb), 0.34);
-  color: rgba(248, 251, 255, 0.98);
-  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.26), rgba(var(--color-accent-rgb), 0.14)), rgba(120, 180, 255, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 22px rgba(12, 28, 56, 0.18);
+  color: var(--color-highlight);
 }
 .download-quality-modal .quality-actions button.btn-primary:not(:disabled):hover {
   border-color: rgba(var(--color-accent-rgb), 0.46);
@@ -22440,7 +22451,6 @@ video {
 .download-quality-modal .quality-split-primary,
 .download-quality-modal .quality-split-secondary {
   min-height: 42px;
-  font-weight: 700;
 }
 .download-quality-modal .quality-split-primary {
   border-radius: 13px !important;

@@ -8,7 +8,11 @@ const buildWrapper = () => {
   wrapper.innerHTML = `
     <header>
       <div class="input-container">
-        <nav class="button-group"></nav>
+        <div class="url-entry-shell">
+          <div class="url-input-wrapper">
+            <nav class="button-group"></nav>
+          </div>
+        </div>
       </div>
     </header>
     <div id="download-queue-info" class="download-queue-info hidden"></div>
@@ -53,7 +57,7 @@ describe("downloaderView hero", () => {
     expect(wrapper.querySelector("#dl-tools-toggle")).not.toBeNull();
     expect(wrapper.querySelector("#dl-tools-reinstall")).not.toBeNull();
     expect(
-      wrapper.querySelector("header .input-container > nav.button-group"),
+      wrapper.querySelector("header .url-input-wrapper nav.button-group"),
     ).not.toBeNull();
     expect(wrapper.querySelector(".downloader-breadcrumbs")).toBeNull();
   });

@@ -21,6 +21,7 @@ function initUrlInputHandler() {
 
   const inputContainer = document.querySelector(".input-container");
   const wrapperEl = document.querySelector(".url-input-wrapper");
+  const actionRowEl = document.querySelector(".url-input-action-row");
 
   const setStateClass = (className, enabled) => {
     wrapperEl?.classList.toggle(className, enabled);
@@ -43,8 +44,13 @@ function initUrlInputHandler() {
 
   const syncShellState = (value = urlInput.value) => {
     const normalized = normalizeUrlInput(value).trim();
-    setStateClass("is-empty", normalized === "");
-    setStateClass("has-value", normalized !== "");
+    const isEmpty = normalized === "";
+    setStateClass("is-empty", isEmpty);
+    setStateClass("has-value", !isEmpty);
+    if (actionRowEl) {
+      actionRowEl.hidden = isEmpty;
+      actionRowEl.setAttribute("aria-hidden", isEmpty ? "true" : "false");
+    }
     if (sourceLinkButton) {
       sourceLinkButton.disabled = !(
         normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
