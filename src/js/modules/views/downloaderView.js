@@ -47,6 +47,22 @@ export default function renderDownloader(wrapper) {
           </p>
         </div>
       </div>
+      <div
+        id="downloader-job-summary"
+        class="downloader-job-summary hidden"
+        role="status"
+        aria-live="polite"
+      >
+        <span
+          id="downloader-job-summary-badge"
+          class="downloader-job-summary__badge"
+          data-i18n="downloader.jobSummary.badge"
+        >${t("downloader.jobSummary.badge")}</span>
+        <div class="downloader-job-summary__content">
+          <strong id="downloader-job-summary-title">${t("downloader.jobSummary.idle")}</strong>
+          <span id="downloader-job-summary-meta">${t("downloader.jobSummary.idleMeta")}</span>
+        </div>
+      </div>
     `;
 
     const toolsStatus = document.createElement("div");

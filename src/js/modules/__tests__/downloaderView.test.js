@@ -35,6 +35,10 @@ describe("downloaderView hero", () => {
     expect(
       wrapper.querySelector(".downloader-shell-header .title-content"),
     ).not.toBeNull();
+    expect(wrapper.querySelector("#downloader-job-summary")).not.toBeNull();
+    expect(
+      wrapper.querySelector("#downloader-job-summary-title")?.textContent,
+    ).toBeTruthy();
     expect(wrapper.querySelector(".downloader-breadcrumbs")).toBeNull();
   });
 });

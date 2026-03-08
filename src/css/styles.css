@@ -21042,6 +21042,11 @@ video {
 
 .downloader-shell-header {
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
 }
 .downloader-shell-header .title {
   display: flex;
@@ -21079,6 +21084,57 @@ video {
   color: var(--color-quality);
   font-size: 0.9rem;
   font-style: italic;
+}
+
+.downloader-job-summary {
+  min-width: 260px;
+  max-width: 420px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(74, 158, 255, 0.22);
+  background: linear-gradient(180deg, rgba(74, 158, 255, 0.12), rgba(18, 24, 39, 0.22)), rgba(255, 255, 255, 0.02);
+  box-shadow: 0 10px 28px rgba(10, 14, 24, 0.18);
+}
+.downloader-job-summary.hidden {
+  display: none;
+}
+.downloader-job-summary .downloader-job-summary__badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(74, 158, 255, 0.16);
+  border: 1px solid rgba(74, 158, 255, 0.25);
+  color: #b8d6ff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.downloader-job-summary .downloader-job-summary__content {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.downloader-job-summary #downloader-job-summary-title {
+  color: rgba(245, 249, 255, 0.96);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.downloader-job-summary #downloader-job-summary-meta {
+  color: rgba(205, 217, 235, 0.76);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .downloader-tools-status {
@@ -21215,6 +21271,10 @@ video {
 }
 
 @media (max-width: 768px) {
+  .downloader-view .downloader-shell-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
   .downloader-view .downloader-shell-header .title {
     gap: 12px;
     margin-bottom: 12px;
@@ -21231,6 +21291,11 @@ video {
   .downloader-view .downloader-shell-header .downloader-tools-status {
     padding-left: 0;
     margin-top: 0;
+  }
+  .downloader-view .downloader-job-summary {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
   }
   .downloader-view .downloader-tools-status {
     flex-wrap: wrap;

@@ -4,6 +4,10 @@ const buildDom = () => {
     <button id="download-button"><span class="button-text"></span></button>
     <button id="enqueue-button"></button>
     <button id="download-cancel"></button>
+    <div id="downloader-job-summary" class="hidden">
+      <strong id="downloader-job-summary-title"></strong>
+      <span id="downloader-job-summary-meta"></span>
+    </div>
     <div id="progress-bar-container"></div>
     <div id="progress-bar"></div>
     <button id="open-last-video"></button>
@@ -369,6 +373,79 @@ describe("downloadManager enqueueOnly behavior", () => {
           preferredLabel: null,
         }),
       );
+    });
+  });
+});
+
+describe("downloadManager job summary", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    buildDom();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn(),
+      ipcRenderer: { invoke: jest.fn() },
+      on: jest.fn(),
+    };
+  });
+
+  it("shows current active job stage and progress in summary", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+        addNewEntryToHistory: jest.fn(),
+        updateDownloadCount: jest.fn(),
+      }));
+
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+
+      state.activeDownloads = [
+        {
+          jobId: "job-1",
+          title: "Demo video",
+          url: "https://example.com/demo",
+          quality: "Source",
+          progress: 42,
+          stage: "download",
+        },
+      ];
+      state.downloadQueue = [];
+      state.failedDownloads = [];
+      state.completedDownloads = [];
+
+      updateQueueDisplay();
+
+      expect(
+        document
+          .getElementById("downloader-job-summary")
+          .classList.contains("hidden"),
+      ).toBe(false);
+      expect(
+        document.getElementById("downloader-job-summary-title").textContent,
+      ).toBe("Demo video");
+      expect(
+        document.getElementById("downloader-job-summary-meta").textContent,
+      ).toContain("42%");
     });
   });
 });
@@ -918,6 +995,7 @@ describe("downloadManager queue smart logic", () => {
       const { updateQueueDisplay } = require("../downloadManager");
       const pauseBtn = document.getElementById("queue-pause-button");
 
+      state.downloadJobs = [];
       state.activeDownloads = [];
       state.downloadQueue = [
         { url: "https://example.com/a", quality: "Source" },
@@ -925,12 +1003,14 @@ describe("downloadManager queue smart logic", () => {
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(false);
 
+      state.downloadJobs = [];
       state.activeDownloads = [
         { jobId: "job-1", url: "https://example.com/a", quality: "Source" },
       ];
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(false);
 
+      state.downloadJobs = [];
       state.activeDownloads = [];
       state.downloadQueue = [];
       updateQueueDisplay();
@@ -962,6 +1042,7 @@ describe("downloadManager queue smart logic", () => {
       const { updateQueueDisplay } = require("../downloadManager");
       const startBtn = document.getElementById("queue-start-button");
 
+      state.downloadJobs = [];
       state.activeDownloads = [];
       state.downloadQueue = [
         { url: "https://example.com/pending", quality: "Source" },
@@ -969,6 +1050,7 @@ describe("downloadManager queue smart logic", () => {
       updateQueueDisplay();
       expect(startBtn.disabled).toBe(false);
 
+      state.downloadJobs = [];
       state.activeDownloads = [
         {
           jobId: "job-1",

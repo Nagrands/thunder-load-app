@@ -6,6 +6,7 @@ import {
   downloadCancelButton,
   urlInput,
 } from "./domElements.js";
+import { getActiveDownloadJobs } from "./downloadJobs.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
 
 const readParallelLimit = () => {
@@ -23,6 +24,7 @@ const readParallelLimit = () => {
  */
 const state = {
   isDownloading: false,
+  downloadJobs: [],
   activeDownloads: [],
   failedDownloads: [],
   completedDownloads: [],
@@ -116,9 +118,7 @@ const updateButtonState = () => {
   }
 
   const isBusy =
-    (Array.isArray(state.activeDownloads) &&
-      state.activeDownloads.length > 0) ||
-    state.isDownloading;
+    getActiveDownloadJobs(state).length > 0 || state.isDownloading;
   state.isDownloading = isBusy;
 
   // Кнопка "Отмена загрузки" активна только когда есть активные задачи

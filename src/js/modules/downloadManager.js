@@ -28,6 +28,19 @@ import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
+import {
+  JOB_STATUS,
+  ensureDownloadJobsState,
+  findDownloadJob,
+  getActiveDownloadJobs,
+  getCompletedDownloadJobs,
+  getFailedDownloadJobs,
+  getPendingDownloadJobs,
+  patchDownloadJob,
+  removeDownloadJob,
+  syncLegacyDownloadCollections,
+  upsertDownloadJob,
+} from "./downloadJobs.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
@@ -36,6 +49,9 @@ const queueDoneCount = document.getElementById("queue-done-count");
 const queueIndicator = document.getElementById("queue-start-indicator");
 const queueList = document.getElementById("queue-list");
 const cancelCountBadge = document.getElementById("download-cancel-count");
+const jobSummary = document.getElementById("downloader-job-summary");
+const jobSummaryTitle = document.getElementById("downloader-job-summary-title");
+const jobSummaryMeta = document.getElementById("downloader-job-summary-meta");
 const QUEUE_LOG_TAG = "[queue]";
 
 const DOWNLOAD_HISTORY_CACHE_TTL_MS = 12000;
@@ -48,17 +64,10 @@ function updateDownloaderTabLabel() {
     const label = tab.querySelector(".menu-text");
     const badge = tab.querySelector(".menu-badge");
     if (!label) return;
-    const activeCount = Array.isArray(state.activeDownloads)
-      ? state.activeDownloads.length
-      : 0;
-    const failedCount = Array.isArray(state.failedDownloads)
-      ? state.failedDownloads.length
-      : 0;
-    const doneCount = Array.isArray(state.completedDownloads)
-      ? state.completedDownloads.length
-      : 0;
-    const count =
-      activeCount + state.downloadQueue.length + failedCount + doneCount;
+    const activeCount = getActiveDownloadJobs(state).length;
+    const failedCount = getFailedDownloadJobs(state).length;
+    const doneCount = getCompletedDownloadJobs(state).length;
+    const count = activeCount + getPendingDownloadJobs(state).length + failedCount + doneCount;
     const base = t("tabs.download");
     label.textContent = base;
     if (badge) {
@@ -85,7 +94,6 @@ function updateDownloaderTabLabel() {
 
 // === Queue helpers ===
 const QUEUE_MAX = 200;
-const QUEUE_DONE_MAX = 100;
 const QUEUE_STORAGE_KEY = "downloadQueue";
 const QUEUE_FAILED_STORAGE_KEY = "downloadFailedQueue";
 const QUEUE_COLLAPSED_STORAGE_KEY = "downloadQueueCollapsed";
@@ -226,7 +234,9 @@ function refreshPendingQueueTitles() {
     void ensureQueueTitle(item.url, {
       signature,
       onResolved: (title) => {
-        if (!title || item.title === title) return;
+        const pendingJob = findDownloadJob(state, signature);
+        if (!title || pendingJob?.title === title || item.title === title) return;
+        patchDownloadJob(state, signature, { title });
         item.title = title;
         persistQueue();
         updateQueueDisplay();
@@ -334,16 +344,15 @@ function normalizeQueueItem(item) {
     status,
     progress: Number(item?.progress) || 0,
     size: item?.size ? String(item.size) : "",
-    signature: item?.signature || "",
+    stage: item?.stage ? String(item.stage) : "",
+    signature: item?.signature || getQueueSignature(url, quality),
     reason: item?.reason ? String(item.reason) : "",
     failedAt: Number(item?.failedAt) || 0,
   };
 }
 
 function syncDownloadState() {
-  const activeCount = Array.isArray(state.activeDownloads)
-    ? state.activeDownloads.length
-    : 0;
+  const activeCount = getActiveDownloadJobs(state).length;
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   state.queuePaused = Boolean(state.suppressAutoPump);
@@ -376,45 +385,71 @@ function syncDownloadState() {
   updateDownloaderTabLabel();
 }
 
+function updateDownloadJobSummary() {
+  if (!jobSummary || !jobSummaryTitle || !jobSummaryMeta) return;
+  const activeItems = getActiveDownloadJobs(state);
+  const activeCount = activeItems.length;
+  const current = activeItems[0];
+  if (!current) {
+    jobSummary.classList.add("hidden");
+    jobSummaryTitle.textContent = t("downloader.jobSummary.idle");
+    jobSummaryMeta.textContent = t("downloader.jobSummary.idleMeta");
+    return;
+  }
+  const title =
+    String(current.title || "").trim() ||
+    makeQueueTitle(current.url) ||
+    makeQueueUrlLabel(current.url);
+  const stageKey = current.stage
+    ? `queue.stage.${String(current.stage).trim().toLowerCase()}`
+    : "";
+  const metaParts = [];
+  if (stageKey) {
+    metaParts.push(t(stageKey));
+  }
+  if (Number.isFinite(Number(current.progress))) {
+    metaParts.push(`${Math.max(0, Math.min(100, Number(current.progress))).toFixed(0)}%`);
+  }
+  metaParts.push(t("queue.pill.active", { count: activeCount }));
+  jobSummary.classList.remove("hidden");
+  jobSummaryTitle.textContent = title || t("downloader.jobSummary.idle");
+  jobSummaryMeta.textContent = metaParts.join(" · ");
+}
+
 function findActiveDownload(jobId) {
-  if (!Array.isArray(state.activeDownloads)) state.activeDownloads = [];
-  return state.activeDownloads.find((item) => item.jobId === jobId) || null;
+  return getActiveDownloadJobs(state).find((item) => item.jobId === jobId) || null;
 }
 
 function addActiveDownload(entry) {
-  if (!Array.isArray(state.activeDownloads)) state.activeDownloads = [];
-  state.activeDownloads.push(entry);
-  syncDownloadState();
-}
-
-function removeActiveDownload(jobId) {
-  if (!Array.isArray(state.activeDownloads)) state.activeDownloads = [];
-  state.activeDownloads = state.activeDownloads.filter(
-    (item) => item.jobId !== jobId,
-  );
+  upsertDownloadJob(state, {
+    ...entry,
+    status: JOB_STATUS.running,
+    stage: entry?.stage || "prepare",
+  });
   syncDownloadState();
 }
 
 function getCurrentDownloadSignatures() {
-  if (!Array.isArray(state.activeDownloads)) return new Set();
   return new Set(
-    state.activeDownloads.map((item) => item.signature).filter(Boolean),
+    getActiveDownloadJobs(state).map((item) => item.signature).filter(Boolean),
   );
 }
 
 function getFailedSignatures() {
-  if (!Array.isArray(state.failedDownloads)) return new Set();
   return new Set(
-    state.failedDownloads.map((item) =>
+    getFailedDownloadJobs(state).map((item) =>
       getQueueSignature(item.url, item.quality),
     ),
   );
 }
 
 function removeFailedBySignature(signature) {
-  if (!signature || !Array.isArray(state.failedDownloads)) return;
-  state.failedDownloads = state.failedDownloads.filter(
-    (item) => getQueueSignature(item.url, item.quality) !== signature,
+  if (!signature) return;
+  removeDownloadJob(
+    state,
+    (item) =>
+      item.status === JOB_STATUS.failed &&
+      getQueueSignature(item.url, item.quality) === signature,
   );
   persistFailedQueue();
 }
@@ -737,10 +772,13 @@ function markAsDownloaded(url, downloadKind) {
 }
 
 function enqueueMany(urls, quality, options = {}) {
+  ensureDownloadJobsState(state);
   const activeSignatures = getCurrentDownloadSignatures();
   const failedSignatures = getFailedSignatures();
   const existing = new Set(
-    state.downloadQueue.map((it) => getQueueSignature(it.url, it.quality)),
+    getPendingDownloadJobs(state).map((it) =>
+      getQueueSignature(it.url, it.quality),
+    ),
   );
   const downloadedMap = options.downloadedMap || getDownloadedUrlMapSync();
   let added = 0,
@@ -771,7 +809,7 @@ function enqueueMany(urls, quality, options = {}) {
       duplicates++;
       continue;
     }
-    if (state.downloadQueue.length >= QUEUE_MAX) {
+    if (getPendingDownloadJobs(state).length >= QUEUE_MAX) {
       capped++;
       continue;
     }
@@ -780,12 +818,16 @@ function enqueueMany(urls, quality, options = {}) {
       quality,
       status: "pending",
     });
-    state.downloadQueue.push(queueItem);
+    upsertDownloadJob(state, {
+      ...queueItem,
+      status: JOB_STATUS.pending,
+    });
     void ensureQueueTitle(raw, {
       signature,
       onResolved: (title) => {
-        if (!title || queueItem.title === title) return;
-        queueItem.title = title;
+        const pendingJob = findDownloadJob(state, signature);
+        if (!title || !pendingJob || pendingJob.title === title) return;
+        patchDownloadJob(state, signature, { title });
         persistQueue();
         updateQueueDisplay();
       },
@@ -807,7 +849,9 @@ function enqueueMany(urls, quality, options = {}) {
 }
 
 function updateQueueDisplay() {
-  const activeItems = (state.activeDownloads || []).map((item) =>
+  ensureDownloadJobsState(state);
+  syncLegacyDownloadCollections(state);
+  const activeItems = getActiveDownloadJobs(state).map((item) =>
     normalizeQueueItem({
       id: item.jobId,
       title: item.title || makeQueueTitle(item.url),
@@ -817,18 +861,22 @@ function updateQueueDisplay() {
       status: "downloading",
       progress: Number(item.progress) || 0,
       size: item.size || "",
+      stage: item.stage || "prepare",
     }),
   );
-  const pendingItems = (state.downloadQueue || []).map((item) =>
+  const pendingItems = getPendingDownloadJobs(state).map((item) =>
     normalizeQueueItem({
       ...item,
-      status: state.suppressAutoPump ? "paused" : "pending",
+      status:
+        item.status === JOB_STATUS.paused || state.suppressAutoPump
+          ? "paused"
+          : "pending",
     }),
   );
-  const errorItems = (state.failedDownloads || []).map((item) =>
+  const errorItems = getFailedDownloadJobs(state).map((item) =>
     normalizeQueueItem({ ...item, status: "error" }),
   );
-  const doneItems = (state.completedDownloads || []).map((item) =>
+  const doneItems = getCompletedDownloadJobs(state).map((item) =>
     normalizeQueueItem({ ...item, status: "done" }),
   );
 
@@ -891,6 +939,7 @@ function updateQueueDisplay() {
     queueToggleButton.setAttribute("data-i18n-title", key);
     queueToggleButton.setAttribute("data-i18n-aria", key);
   }
+  updateDownloadJobSummary();
 
   const statusMeta = (status, progress) => {
     const statusMap = {
@@ -927,6 +976,10 @@ function updateQueueDisplay() {
     const titleLabel = String(
       item.title || cachedTitle || t("queue.title.loading"),
     );
+    const stageLabel =
+      item.status === "downloading" && item.stage
+        ? t(`queue.stage.${item.stage}`)
+        : "";
     const qualityLabel = getQueueQualityLabel(item.quality);
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);
@@ -943,7 +996,7 @@ function updateQueueDisplay() {
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
           <div class="queue-item-title">${escapeQueueHtml(titleLabel)}</div>
-          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}</div>
+          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}</div>
         </div>
         <div class="queue-item-right">
           <span class="queue-status-chip ${isDownloading ? "is-spinning" : ""}" style="${meta.style}">
@@ -1051,6 +1104,9 @@ function resetDownloadUiState(options = {}) {
   clearProgressResetTimer();
   state.suppressAutoPump = suppressAutoPump;
   if (resetActiveDownloads) {
+    state.downloadJobs = state.downloadJobs.filter(
+      (item) => item.status !== JOB_STATUS.running,
+    );
     state.activeDownloads = [];
   }
   state.isDownloading = false;
@@ -1133,37 +1189,37 @@ const clearUrlInputAfterSubmit = () => {
 };
 
 const requeueActiveDownloads = () => {
-  if (
-    !Array.isArray(state.activeDownloads) ||
-    state.activeDownloads.length === 0
-  ) {
-    return 0;
-  }
+  const activeJobs = getActiveDownloadJobs(state);
+  if (activeJobs.length === 0) return 0;
   const existingSignatures = new Set(
-    (state.downloadQueue || []).map((item) =>
+    getPendingDownloadJobs(state).map((item) =>
       getQueueSignature(item.url, item.quality),
     ),
   );
-  const toRequeue = [];
-  for (const item of state.activeDownloads) {
+  let requeuedCount = 0;
+  for (const item of activeJobs) {
     if (!item?.url || !item?.quality) continue;
     const signature = getQueueSignature(item.url, item.quality);
     if (existingSignatures.has(signature)) continue;
     existingSignatures.add(signature);
-    toRequeue.push(
-      normalizeQueueItem({
+    upsertDownloadJob(state, {
+      ...normalizeQueueItem({
+        id: item.id,
+        jobId: item.jobId,
         url: item.url,
         quality: item.quality,
         title: item.title || makeQueueTitle(item.url),
         status: "pending",
         progress: 0,
+        signature,
       }),
-    );
+      status: JOB_STATUS.pending,
+      stage: "",
+      progress: 0,
+    });
+    requeuedCount += 1;
   }
-  if (toRequeue.length) {
-    state.downloadQueue = [...toRequeue, ...(state.downloadQueue || [])];
-  }
-  return toRequeue.length;
+  return requeuedCount;
 };
 
 function normalizeSelection(selection) {
@@ -1286,18 +1342,22 @@ function pumpDownloadPool(reason = "auto") {
     return;
   }
   let started = 0;
-  const activeCount = Array.isArray(state.activeDownloads)
-    ? state.activeDownloads.length
-    : 0;
+  const activeCount = getActiveDownloadJobs(state).length;
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   while (
-    Array.isArray(state.activeDownloads) &&
-    state.activeDownloads.length < maxActive &&
-    state.downloadQueue.length > 0
+    getActiveDownloadJobs(state).length < maxActive &&
+    getPendingDownloadJobs(state).length > 0
   ) {
-    const next = state.downloadQueue.shift();
+    const next = getPendingDownloadJobs(state)[0];
     if (!next) break;
+    removeDownloadJob(
+      state,
+      (item) =>
+        item.status !== JOB_STATUS.running &&
+        getQueueSignature(item.url, item.quality) ===
+          getQueueSignature(next.url, next.quality),
+    );
     started += 1;
     initiateDownload(next.url, next.quality, {
       fromQueue: true,
@@ -1326,15 +1386,19 @@ const initiateDownload = async (url, quality, options = {}) => {
 
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
-  if (state.activeDownloads.length >= maxActive) {
+  if (getActiveDownloadJobs(state).length >= maxActive) {
     if (!fromQueue) {
       const queueItem = normalizeQueueItem({ url, quality, status: "pending" });
-      state.downloadQueue.push(queueItem);
+      upsertDownloadJob(state, {
+        ...queueItem,
+        status: JOB_STATUS.pending,
+      });
       void ensureQueueTitle(url, {
         signature,
         onResolved: (title) => {
-          if (!title || queueItem.title === title) return;
-          queueItem.title = title;
+          const pendingJob = findDownloadJob(state, signature);
+          if (!title || !pendingJob || pendingJob.title === title) return;
+          patchDownloadJob(state, signature, { title });
           persistQueue();
           updateQueueDisplay();
         },
@@ -1381,37 +1445,48 @@ const initiateDownload = async (url, quality, options = {}) => {
     if (result?.error) {
       const failedSignatures = getFailedSignatures();
       if (!failedSignatures.has(signature)) {
-        state.failedDownloads.push(
-          normalizeQueueItem({
-            id: jobId,
-            title: resolvedTitle,
-            url,
-            quality,
-            status: "error",
-            progress: 0,
-            size: "",
-            reason: result.message || "",
-            failedAt: Date.now(),
-          }),
-        );
+        upsertDownloadJob(state, {
+          id: jobId,
+          jobId,
+          title: resolvedTitle,
+          url,
+          quality,
+          status: JOB_STATUS.failed,
+          stage: "",
+          progress: 0,
+          size: "",
+          signature,
+          reason: result.message || "",
+          failedAt: Date.now(),
+        });
         persistFailedQueue();
       }
     } else if (result?.ok) {
-      const completed = normalizeQueueItem({
+      upsertDownloadJob(state, {
         id: jobId,
+        jobId,
         title: resolvedTitle,
         url,
         quality,
-        status: "done",
+        status: JOB_STATUS.done,
+        stage: "finalize",
         progress: 100,
+        signature,
       });
-      state.completedDownloads = Array.isArray(state.completedDownloads)
-        ? [completed, ...state.completedDownloads].slice(0, QUEUE_DONE_MAX)
-        : [completed];
+    } else {
+      removeDownloadJob(
+        state,
+        (item) => item.jobId === jobId && item.status === JOB_STATUS.running,
+      );
     }
-    removeActiveDownload(jobId);
+    if (result?.error || result?.ok) {
+      removeDownloadJob(
+        state,
+        (item) => item.jobId === jobId && item.status === JOB_STATUS.running,
+      );
+    }
 
-    if (state.activeDownloads.length === 0) {
+    if (getActiveDownloadJobs(state).length === 0) {
       buttonText.textContent = t("actions.download");
       downloadButton.removeAttribute("title");
       downloadButton.removeAttribute("data-bs-original-title");
@@ -1441,7 +1516,7 @@ const handleDownloadButtonClick = async (options = {}) => {
   const raw = urlInput.value.trim();
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
-  const isPoolFull = state.activeDownloads.length >= maxActive;
+  const isPoolFull = getActiveDownloadJobs(state).length >= maxActive;
 
   // Извлекаем URL из произвольного текста
   const validUrls = extractUrls(raw).filter(
@@ -1553,12 +1628,12 @@ const handleDownloadButtonClick = async (options = {}) => {
       return;
     }
     if (
-      state.downloadQueue.some((item) => isSameQueueTask(item, candidateTask))
+      getPendingDownloadJobs(state).some((item) => isSameQueueTask(item, candidateTask))
     ) {
       showToast(t("download.url.queued"), "info");
       return;
     }
-    if (state.downloadQueue.length >= QUEUE_MAX) {
+    if (getPendingDownloadJobs(state).length >= QUEUE_MAX) {
       showToast(
         t("queue.summary.toast", {
           summary: summarizeEnqueueResult({
@@ -1574,20 +1649,26 @@ const handleDownloadButtonClick = async (options = {}) => {
       );
       return;
     }
-    state.downloadQueue.push(
-      normalizeQueueItem({ url, quality: payload, status: "pending" }),
-    );
-    const queuedItem = state.downloadQueue[state.downloadQueue.length - 1];
-    const queuedSignature = getQueueSignature(url, payload);
-    void ensureQueueTitle(url, {
-      signature: queuedSignature,
-      onResolved: (title) => {
-        if (!title || !queuedItem || queuedItem.title === title) return;
-        queuedItem.title = title;
-        persistQueue();
-        updateQueueDisplay();
-      },
-    });
+      const queuedItem = normalizeQueueItem({
+        url,
+        quality: payload,
+        status: "pending",
+      });
+      upsertDownloadJob(state, {
+        ...queuedItem,
+        status: JOB_STATUS.pending,
+      });
+      const queuedSignature = getQueueSignature(url, payload);
+      void ensureQueueTitle(url, {
+        signature: queuedSignature,
+        onResolved: (title) => {
+          const pendingJob = findDownloadJob(state, queuedSignature);
+          if (!title || !pendingJob || pendingJob.title === title) return;
+          patchDownloadJob(state, queuedSignature, { title });
+          persistQueue();
+          updateQueueDisplay();
+        },
+      });
     persistQueue();
     console.log(QUEUE_LOG_TAG, "enqueueOne", { url, from: "modal/button" });
     showToast(t("queue.added"), "info");
@@ -1621,9 +1702,9 @@ function initDownloadButton() {
   if (queueClearButton) {
     queueClearButton.addEventListener("click", async () => {
       if (
-        !state.downloadQueue.length &&
-        !state.failedDownloads.length &&
-        !(state.completedDownloads || []).length
+        !getPendingDownloadJobs(state).length &&
+        !getFailedDownloadJobs(state).length &&
+        !getCompletedDownloadJobs(state).length
       )
         return;
       const confirmed = await showConfirmationDialog({
@@ -1635,9 +1716,7 @@ function initDownloadButton() {
         tone: "danger",
       });
       if (!confirmed) return;
-      state.downloadQueue = [];
-      state.failedDownloads = [];
-      state.completedDownloads = [];
+      state.downloadJobs = [...getActiveDownloadJobs(state)];
       persistQueue();
       persistFailedQueue();
       updateQueueDisplay();
@@ -1648,12 +1727,8 @@ function initDownloadButton() {
 
   if (queuePauseButton) {
     queuePauseButton.addEventListener("click", async () => {
-      const activeCount = Array.isArray(state.activeDownloads)
-        ? state.activeDownloads.length
-        : 0;
-      const pendingCount = Array.isArray(state.downloadQueue)
-        ? state.downloadQueue.length
-        : 0;
+      const activeCount = getActiveDownloadJobs(state).length;
+      const pendingCount = getPendingDownloadJobs(state).length;
       if (activeCount <= 0 && pendingCount <= 0) return;
       if (state.suppressAutoPump) return;
       state.suppressAutoPump = true;
@@ -1697,14 +1772,14 @@ function initDownloadButton() {
       if (retryFailedBtn) {
         const idx = Number(retryFailedBtn.dataset.index);
         if (!Number.isFinite(idx)) return;
-        const task = state.failedDownloads[idx];
+        const task = getFailedDownloadJobs(state)[idx];
         if (!task) return;
         const signature = getQueueSignature(task.url, task.quality);
         if (getCurrentDownloadSignatures().has(signature)) {
           showToast(t("download.url.active"), "warning");
           return;
         }
-        state.failedDownloads.splice(idx, 1);
+        removeDownloadJob(state, task.signature || signature);
         persistFailedQueue();
         initiateDownload(task.url, task.quality, { fromQueue: false });
         pumpDownloadPool("auto");
@@ -1718,9 +1793,16 @@ function initDownloadButton() {
         const idx = Number(moveBtn.dataset.index);
         const direction = moveBtn.dataset.queueMove;
         if (!Number.isFinite(idx)) return;
+        const pendingJobs = [...getPendingDownloadJobs(state)];
         if (direction === "up" && idx > 0) {
-          const [item] = state.downloadQueue.splice(idx, 1);
-          state.downloadQueue.splice(idx - 1, 0, item);
+          const [item] = pendingJobs.splice(idx, 1);
+          pendingJobs.splice(idx - 1, 0, item);
+          state.downloadJobs = [
+            ...getActiveDownloadJobs(state),
+            ...pendingJobs,
+            ...getFailedDownloadJobs(state),
+            ...getCompletedDownloadJobs(state),
+          ];
           persistQueue();
           updateQueueDisplay();
           console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx - 1 });
@@ -1728,10 +1810,16 @@ function initDownloadButton() {
         } else if (
           direction === "down" &&
           idx >= 0 &&
-          idx < state.downloadQueue.length - 1
+          idx < pendingJobs.length - 1
         ) {
-          const [item] = state.downloadQueue.splice(idx, 1);
-          state.downloadQueue.splice(idx + 1, 0, item);
+          const [item] = pendingJobs.splice(idx, 1);
+          pendingJobs.splice(idx + 1, 0, item);
+          state.downloadJobs = [
+            ...getActiveDownloadJobs(state),
+            ...pendingJobs,
+            ...getFailedDownloadJobs(state),
+            ...getCompletedDownloadJobs(state),
+          ];
           persistQueue();
           updateQueueDisplay();
           console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx + 1 });
@@ -1746,7 +1834,9 @@ function initDownloadButton() {
       if (doneRemoveBtn) {
         const idx = Number(doneRemoveBtn.dataset.index);
         if (!Number.isFinite(idx)) return;
-        state.completedDownloads.splice(idx, 1);
+        const task = getCompletedDownloadJobs(state)[idx];
+        if (!task) return;
+        removeDownloadJob(state, task.signature || task.jobId || task.id);
         updateQueueDisplay();
         showToast(t("queue.item.removed"), "info");
         return;
@@ -1754,7 +1844,9 @@ function initDownloadButton() {
       if (failedRemoveBtn) {
         const idx = Number(failedRemoveBtn.dataset.index);
         if (!Number.isFinite(idx)) return;
-        state.failedDownloads.splice(idx, 1);
+        const task = getFailedDownloadJobs(state)[idx];
+        if (!task) return;
+        removeDownloadJob(state, task.signature || task.jobId || task.id);
         persistFailedQueue();
         updateQueueDisplay();
         showToast(t("queue.item.removed"), "info");
@@ -1763,8 +1855,12 @@ function initDownloadButton() {
       if (!btn) return;
       const idx = Number(btn.dataset.index);
       if (!Number.isFinite(idx)) return;
-      const removed = state.downloadQueue[idx];
-      state.downloadQueue.splice(idx, 1);
+      const removed = getPendingDownloadJobs(state)[idx];
+      if (!removed) return;
+      removeDownloadJob(
+        state,
+        removed.signature || getQueueSignature(removed.url, removed.quality),
+      );
       persistQueue();
       updateQueueDisplay();
       console.log(QUEUE_LOG_TAG, "remove-item", {
@@ -1778,7 +1874,10 @@ function initDownloadButton() {
 
   if (queueStartButton) {
     queueStartButton.addEventListener("click", () => {
-      if (state.downloadQueue.length === 0 || state.activeDownloads.length > 0)
+      if (
+        getPendingDownloadJobs(state).length === 0 ||
+        getActiveDownloadJobs(state).length > 0
+      )
         return;
       state.suppressAutoPump = false;
       state.queuePaused = false;
@@ -1790,12 +1889,14 @@ function initDownloadButton() {
 
   if (queueRetryFailedButton) {
     queueRetryFailedButton.addEventListener("click", () => {
-      if (!state.failedDownloads.length) return;
-      const tasks = [...state.failedDownloads];
-      state.failedDownloads = [];
+      const tasks = [...getFailedDownloadJobs(state)];
+      if (!tasks.length) return;
+      state.downloadJobs = state.downloadJobs.filter(
+        (item) => item.status !== JOB_STATUS.failed,
+      );
       persistFailedQueue();
       const existing = new Set(
-        state.downloadQueue.map((item) =>
+        getPendingDownloadJobs(state).map((item) =>
           getQueueSignature(item.url, item.quality),
         ),
       );
@@ -1805,16 +1906,20 @@ function initDownloadButton() {
         const signature = getQueueSignature(task.url, task.quality);
         if (existing.has(signature) || active.has(signature)) continue;
         existing.add(signature);
-        state.downloadQueue.push(
-          normalizeQueueItem({
+        upsertDownloadJob(state, {
+          ...normalizeQueueItem({
             id: task.id,
+            jobId: task.jobId,
             title: task.title,
             url: task.url,
             quality: task.quality,
             type: task.type,
             status: "pending",
+            signature,
           }),
-        );
+          status: JOB_STATUS.pending,
+          stage: "",
+        });
         added += 1;
       }
       persistQueue();
@@ -1824,16 +1929,20 @@ function initDownloadButton() {
     });
   }
 
-  if (state.downloadQueue.length === 0) {
+  if (getPendingDownloadJobs(state).length === 0) {
     state.downloadQueue = loadQueueFromStorage();
   }
-  if (state.failedDownloads.length === 0) {
+  if (getFailedDownloadJobs(state).length === 0) {
     state.failedDownloads = loadFailedQueueFromStorage();
   }
   state.queueCollapsed = readQueueCollapsedState();
-  if (state.activeDownloads.length === 0 && state.downloadQueue.length > 0) {
+  ensureDownloadJobsState(state);
+  if (
+    getActiveDownloadJobs(state).length === 0 &&
+    getPendingDownloadJobs(state).length > 0
+  ) {
     console.log(QUEUE_LOG_TAG, "restore-wait", {
-      count: state.downloadQueue.length,
+      count: getPendingDownloadJobs(state).length,
     });
   }
   updateQueueDisplay();
@@ -1870,10 +1979,13 @@ function initDownloadButton() {
   window.addEventListener("download:progress-item", (event) => {
     const jobId = event?.detail?.jobId;
     const progress = Number(event?.detail?.progress);
+    const phase = String(event?.detail?.phase || "").trim().toLowerCase();
     if (!jobId || !Number.isFinite(progress)) return;
     const active = findActiveDownload(jobId);
     if (!active) return;
     active.progress = Math.max(0, Math.min(100, progress));
+    if (phase === "download") active.stage = "download";
+    if (phase === "merge" || phase === "finalize") active.stage = "finalize";
     const now = Date.now();
     if (now - lastProgressRenderTs < PROGRESS_RENDER_THROTTLE_MS) return;
     lastProgressRenderTs = now;

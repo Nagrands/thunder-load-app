@@ -2,17 +2,15 @@
 
 import { state } from "./state.js";
 import { buttonText, progressBarContainer } from "./domElements.js";
+import { getActiveDownloadJobs } from "./downloadJobs.js";
 import { t } from "./i18n.js";
 
 function initDownloadProgress() {
   let startedAt = null;
   let displayedProgress = 0;
   const progressByJob = new Map();
-  let activeCount = Array.isArray(state.activeDownloads)
-    ? state.activeDownloads.length
-    : state.isDownloading
-      ? 1
-      : 0;
+  let activeCount =
+    getActiveDownloadJobs(state).length || (state.isDownloading ? 1 : 0);
   let prevActiveCount = activeCount;
   const topProgress = document.getElementById("top-download-progress");
   const topProgressFill = document.getElementById("top-download-progress-fill");
@@ -52,9 +50,7 @@ function initDownloadProgress() {
 
   window.electron.onProgress((progressValue) => {
     const isBusy =
-      (Array.isArray(state.activeDownloads) &&
-        state.activeDownloads.length > 0) ||
-      state.isDownloading;
+      getActiveDownloadJobs(state).length > 0 || state.isDownloading;
     if (!isBusy && activeCount <= 0) return;
 
     let normalizedProgress = 0;
@@ -80,13 +76,17 @@ function initDownloadProgress() {
       try {
         window.dispatchEvent(
           new CustomEvent("download:progress-item", {
-            detail: { jobId, progress: normalizedProgress },
+            detail: {
+              jobId,
+              progress: normalizedProgress,
+              phase: String(progressValue.phase || ""),
+            },
           }),
         );
       } catch {}
-      const activeIds = Array.isArray(state.activeDownloads)
-        ? state.activeDownloads.map((item) => item.jobId).filter(Boolean)
-        : [];
+      const activeIds = getActiveDownloadJobs(state)
+        .map((item) => item.jobId)
+        .filter(Boolean);
       const sourceValues =
         activeIds.length > 0
           ? activeIds.map((id) => progressByJob.get(id) || 0)
