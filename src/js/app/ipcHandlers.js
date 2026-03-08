@@ -488,9 +488,14 @@ function setupIpcHandlers(dependencies) {
       }
       // плейлист
       let playlistCount = 0;
+      let playlistDuration = 0;
       let entries = [];
       if (Array.isArray(info?.entries) && info.entries.length) {
         playlistCount = info.entries.length;
+        playlistDuration = info.entries.reduce(
+          (acc, entry) => acc + Math.max(0, Number(entry?.duration) || 0),
+          0,
+        );
         entries = info.entries
           .map((e) => e?.webpage_url || e?.url)
           .filter((u) => typeof u === "string" && u.length > 0);
@@ -503,6 +508,7 @@ function setupIpcHandlers(dependencies) {
         duration,
         thumbnail: thumb,
         playlistCount,
+        playlistDuration,
         entries,
         uploader: info?.uploader || info?.channel || "",
         channel: info?.channel || "",

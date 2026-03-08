@@ -103,6 +103,9 @@ describe("urlInputHandler", () => {
           if (key === "input.url.helper.valid") {
             return "Ссылка распознана. Выберите режим ниже или нажмите Enter для обычной загрузки.";
           }
+          if (key === "input.url.helper.playlistChoice") {
+            return "Это плейлист. Можно скачать текущий ролик или добавить весь плейлист в очередь.";
+          }
           if (key === "input.url.helper.drag") {
             return "Отпустите ссылку, чтобы вставить её в поле";
           }
@@ -147,6 +150,18 @@ describe("urlInputHandler", () => {
           }
           if (key === "input.url.preview.addAllTitle") {
             return "Добавить все элементы плейлиста в очередь";
+          }
+          if (key === "input.url.preview.currentOnly") {
+            return "Текущий ролик";
+          }
+          if (key === "input.url.preview.currentOnlyTitle") {
+            return "Скачать или добавить в очередь только текущий ролик по выбранному режиму";
+          }
+          if (key === "input.url.preview.playlistCount") {
+            return `${vars.count} элементов`;
+          }
+          if (key === "input.url.preview.playlistDuration") {
+            return `Всего: ${vars.duration}`;
           }
           if (key === "input.url.preview.close") {
             return "Закрыть предпросмотр";
@@ -379,6 +394,83 @@ describe("urlInputHandler", () => {
     expect(previewCard.style.display).not.toBe("none");
     expect(wrapper.classList.contains("has-preview")).toBe(true);
     expect(container.classList.contains("has-preview")).toBe(true);
+  });
+
+  test("renders playlist summary and add-all action inside preview", async () => {
+    const { input, previewCard, helperText } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Playlist demo",
+      duration: 90,
+      playlistCount: 3,
+      playlistDuration: 420,
+      entries: [
+        "https://example.com/a",
+        "https://example.com/b",
+        "https://example.com/c",
+      ],
+    });
+
+    input.value = "https://example.com/playlist";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(previewCard.textContent).toContain("3 элементов");
+    expect(previewCard.textContent).toContain("Всего: 7:00");
+    expect(previewCard.textContent).toContain("Текущий ролик");
+    expect(previewCard.textContent).toContain("Добавить все (3)");
+    expect(helperText.textContent).toContain("Это плейлист");
+  });
+
+  test("playlist current-item action reuses the normal download flow", async () => {
+    const { input, downloadBtn } = getState();
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    downloadBtn.disabled = false;
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Playlist demo",
+      duration: 90,
+      playlistCount: 2,
+      playlistDuration: 180,
+      entries: ["https://example.com/a", "https://example.com/b"],
+    });
+
+    input.value = "https://example.com/playlist";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    document.getElementById("preview-current-only").click();
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("playlist add-all action dispatches queue:addMany with entries", async () => {
+    const { input } = getState();
+    const listener = jest.fn();
+    window.addEventListener("queue:addMany", listener);
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Playlist demo",
+      duration: 90,
+      playlistCount: 2,
+      playlistDuration: 180,
+      entries: ["https://example.com/a", "https://example.com/b"],
+    });
+
+    input.value = "https://example.com/playlist";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    document.getElementById("preview-enqueue-all").click();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0].detail.urls).toEqual([
+      "https://example.com/a",
+      "https://example.com/b",
+    ]);
   });
 
   test("opens current source URL when clicking the source icon button", async () => {

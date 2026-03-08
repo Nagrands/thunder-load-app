@@ -21,6 +21,9 @@ import {
   queuePauseButton,
   queueToggleButton,
   queueClearButton,
+  queueRetryTransientButton,
+  queueClearFailedButton,
+  queueClearDoneButton,
   queueRetryFailedButton,
 } from "./domElements.js";
 import { openDownloadQualityModal } from "./downloadQualityModal.js";
@@ -474,6 +477,10 @@ function getFailedSignatures() {
       getQueueSignature(item.url, item.quality),
     ),
   );
+}
+
+function getRetryableFailedJobs() {
+  return getFailedDownloadJobs(state).filter((item) => item.retryable !== false);
 }
 
 function removeFailedBySignature(signature) {
@@ -947,8 +954,26 @@ function updateQueueDisplay() {
       queueClearButton.disabled = totalVisible <= 0;
     }
     if (queueRetryFailedButton) {
-      queueRetryFailedButton.classList.add("hidden");
-      queueRetryFailedButton.disabled = true;
+      const failedCount = errorItems.length;
+      queueRetryFailedButton.classList.toggle("hidden", failedCount <= 0);
+      queueRetryFailedButton.disabled = failedCount <= 0;
+    }
+    if (queueRetryTransientButton) {
+      const retryableFailedCount = getRetryableFailedJobs().length;
+      queueRetryTransientButton.classList.toggle(
+        "hidden",
+        retryableFailedCount <= 0,
+      );
+      queueRetryTransientButton.disabled = retryableFailedCount <= 0;
+    }
+    if (queueClearFailedButton) {
+      const failedCount = errorItems.length;
+      queueClearFailedButton.classList.toggle("hidden", failedCount <= 0);
+      queueClearFailedButton.disabled = failedCount <= 0;
+    }
+    if (queueClearDoneButton) {
+      queueClearDoneButton.classList.toggle("hidden", doneCount <= 0);
+      queueClearDoneButton.disabled = doneCount <= 0;
     }
   }
 
@@ -1038,12 +1063,14 @@ function updateQueueDisplay() {
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
           <div class="queue-item-title">${escapeQueueHtml(titleLabel)}</div>
-          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}${etaLabel ? ` · ${escapeQueueHtml(etaLabel)}` : ""}${reasonLabel ? ` · ${escapeQueueHtml(reasonLabel)}` : ""}${retryStateLabel ? ` · ${escapeQueueHtml(retryStateLabel)}` : ""}</div>
+          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}${etaLabel ? ` · ${escapeQueueHtml(etaLabel)}` : ""}</div>
         </div>
         <div class="queue-item-right">
           <span class="queue-status-chip ${isDownloading ? "is-spinning" : ""}" style="${meta.style}">
             <i data-lucide="${meta.icon}"></i><span>${escapeQueueHtml(meta.label)}</span>
           </span>
+          ${reasonLabel ? `<span class="queue-reason-chip">${escapeQueueHtml(reasonLabel)}</span>` : ""}
+          ${retryStateLabel ? `<span class="queue-retry-chip ${item.retryable === false ? "is-manual" : "is-retryable"}">${escapeQueueHtml(retryStateLabel)}</span>` : ""}
           ${stageLabel ? `<span class="queue-stage-chip">${escapeQueueHtml(stageLabel)}</span>` : ""}
           ${kindLabel ? `<span class="queue-kind-chip">${escapeQueueHtml(kindLabel)}</span>` : ""}
           <span class="queue-quality-chip">${escapeQueueHtml(qualityLabel)}</span>
@@ -1871,6 +1898,73 @@ function initDownloadButton() {
       } else {
         showToast(t("queue.status.paused"), "info");
       }
+    });
+  }
+
+  if (queueRetryTransientButton) {
+    queueRetryTransientButton.addEventListener("click", () => {
+      const tasks = [...getRetryableFailedJobs()];
+      if (!tasks.length) return;
+      const retryableSignatures = new Set(
+        tasks.map((task) => getQueueSignature(task.url, task.quality)),
+      );
+      removeDownloadJob(
+        state,
+        (item) =>
+          item.status === JOB_STATUS.failed &&
+          retryableSignatures.has(getQueueSignature(item.url, item.quality)),
+      );
+      persistFailedQueue();
+      const existing = new Set(
+        getPendingDownloadJobs(state).map((item) =>
+          getQueueSignature(item.url, item.quality),
+        ),
+      );
+      const active = getCurrentDownloadSignatures();
+      let added = 0;
+      for (const task of tasks) {
+        const signature = getQueueSignature(task.url, task.quality);
+        if (existing.has(signature) || active.has(signature)) continue;
+        existing.add(signature);
+        upsertDownloadJob(state, {
+          ...normalizeQueueItem({
+            id: task.id,
+            jobId: task.jobId,
+            title: task.title,
+            url: task.url,
+            quality: task.quality,
+            type: task.type,
+            status: "pending",
+            signature,
+          }),
+          status: JOB_STATUS.pending,
+          stage: "",
+        });
+        added += 1;
+      }
+      persistQueue();
+      updateQueueDisplay();
+      pumpDownloadPool("manual");
+      showToast(t("queue.retryTransient.toast", { count: added }), "info");
+    });
+  }
+
+  if (queueClearFailedButton) {
+    queueClearFailedButton.addEventListener("click", () => {
+      if (getFailedDownloadJobs(state).length <= 0) return;
+      clearDownloadJobsByStatus(state, JOB_STATUS.failed);
+      persistFailedQueue();
+      updateQueueDisplay();
+      showToast(t("queue.clearFailed.toast"), "info");
+    });
+  }
+
+  if (queueClearDoneButton) {
+    queueClearDoneButton.addEventListener("click", () => {
+      if (getCompletedDownloadJobs(state).length <= 0) return;
+      clearDownloadJobsByStatus(state, JOB_STATUS.done);
+      updateQueueDisplay();
+      showToast(t("queue.clearDone.toast"), "info");
     });
   }
 

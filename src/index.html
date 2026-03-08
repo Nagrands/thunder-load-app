@@ -868,6 +868,46 @@
         </button>
         <span class="queue-actions-divider" aria-hidden="true"></span>
         <button
+          id="queue-retry-failed-button"
+          class="queue-action-button queue-action-button--ghost hidden"
+          aria-label="Повторить все ошибки"
+          title="Повторить все ошибки"
+          data-i18n-title="queue.retryFailed.title"
+          data-i18n-aria="queue.retryFailed.title"
+        >
+          <i data-lucide="refresh-cw"></i>
+        </button>
+        <button
+          id="queue-retry-transient-button"
+          class="queue-action-button queue-action-button--ghost hidden"
+          aria-label="Повторить временные ошибки"
+          title="Повторить временные ошибки"
+          data-i18n-title="queue.retryTransient.title"
+          data-i18n-aria="queue.retryTransient.title"
+        >
+          <i data-lucide="rotate-cw"></i>
+        </button>
+        <button
+          id="queue-clear-failed-button"
+          class="queue-action-button queue-action-button--ghost hidden"
+          aria-label="Очистить ошибки"
+          title="Очистить ошибки"
+          data-i18n-title="queue.clearFailed.title"
+          data-i18n-aria="queue.clearFailed.title"
+        >
+          <i data-lucide="badge-x"></i>
+        </button>
+        <button
+          id="queue-clear-done-button"
+          class="queue-action-button queue-action-button--ghost hidden"
+          aria-label="Очистить готовые"
+          title="Очистить готовые"
+          data-i18n-title="queue.clearDone.title"
+          data-i18n-aria="queue.clearDone.title"
+        >
+          <i data-lucide="archive-x"></i>
+        </button>
+        <button
           id="queue-clear-button"
           class="queue-action-button queue-action-button--clear"
           aria-label="Очистить очередь"

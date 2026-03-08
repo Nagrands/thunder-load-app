@@ -65,3 +65,8 @@
 | The URL field now has quick download modes | You can now choose normal download, audio only, queue, or the best quality preset directly without relying on hidden key combos |
 | Download mode and current stage are more visible | Quick modes now highlight more clearly, and the downloader better shows whether it is preparing, downloading, or finalizing a file |
 | The download queue is more informative now | Active items now make the current stage, estimated remaining time, and audio-only mode easier to spot |
+| The queue now has faster bulk actions | You can now retry transient failures separately and clear completed or failed items more quickly |
+| Queue failures are easier to scan now | The failure reason and whether manual action is needed now appear as separate badges directly in each job row |
+| Retrying all failed jobs is easier now | There is now a dedicated bulk retry button separate from the safer transient-failures retry action |
+| Playlist previews are clearer now | Before adding a playlist, you can now see the item count and total duration directly in the preview card |
+| Playlist previews make the next step clearer now | The preview card now lets you choose whether to download the current item or queue the entire playlist before you start |

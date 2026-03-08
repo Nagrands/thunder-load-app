@@ -12918,6 +12918,65 @@ body.is-mac .window-controls .btn-minimize {
   opacity: 0.85;
   font-size: 11px;
 }
+#preview-card .preview-playlist-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+#preview-card .preview-playlist-meta.hidden {
+  display: none;
+}
+#preview-card .preview-playlist-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(222, 232, 247, 0.82);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+#preview-card .preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+#preview-card .preview-action-button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.16);
+  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
+  color: rgba(242, 247, 255, 0.95);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+}
+#preview-card .preview-action-button:hover {
+  border-color: rgba(var(--color-accent-rgb), 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(7, 16, 30, 0.14);
+}
+#preview-card .preview-action-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.18);
+}
+#preview-card .preview-action-button--secondary {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
+  color: rgba(228, 236, 248, 0.9);
+}
+#preview-card .preview-action-button--secondary:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
 @media (max-width: 720px) {
   #preview-card {
     grid-template-columns: 1fr;
@@ -19796,6 +19855,12 @@ hr {
   border-color: rgba(245, 196, 66, 0.34);
   color: #f5c442;
 }
+.download-queue-info .queue-action-button--ghost {
+  min-width: 36px;
+  justify-content: center;
+  color: rgba(229, 237, 250, 0.78);
+  background: rgba(255, 255, 255, 0.05);
+}
 .download-queue-info .queue-action-button--clear {
   min-width: 36px;
   justify-content: center;
@@ -19907,7 +19972,9 @@ hr {
 .download-queue-info .queue-status-chip,
 .download-queue-info .queue-quality-chip,
 .download-queue-info .queue-stage-chip,
-.download-queue-info .queue-kind-chip {
+.download-queue-info .queue-kind-chip,
+.download-queue-info .queue-reason-chip,
+.download-queue-info .queue-retry-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -19922,7 +19989,9 @@ hr {
 .download-queue-info .queue-status-chip svg,
 .download-queue-info .queue-quality-chip svg,
 .download-queue-info .queue-stage-chip svg,
-.download-queue-info .queue-kind-chip svg {
+.download-queue-info .queue-kind-chip svg,
+.download-queue-info .queue-reason-chip svg,
+.download-queue-info .queue-retry-chip svg {
   width: 12px;
   height: 12px;
 }
@@ -19940,6 +20009,21 @@ hr {
   color: rgba(246, 223, 176, 0.95);
   border-color: rgba(255, 191, 96, 0.26);
   background: rgba(255, 191, 96, 0.1);
+}
+.download-queue-info .queue-reason-chip {
+  color: rgba(255, 214, 214, 0.94);
+  border-color: rgba(255, 132, 132, 0.24);
+  background: rgba(255, 106, 106, 0.1);
+}
+.download-queue-info .queue-retry-chip {
+  color: rgba(212, 236, 220, 0.95);
+  border-color: rgba(120, 208, 156, 0.24);
+  background: rgba(74, 174, 120, 0.1);
+}
+.download-queue-info .queue-retry-chip.is-manual {
+  color: rgba(255, 218, 181, 0.95);
+  border-color: rgba(255, 179, 96, 0.24);
+  background: rgba(255, 179, 96, 0.1);
 }
 .download-queue-info .queue-status-chip.is-spinning svg {
   animation: queueSpin 0.8s linear infinite;
@@ -20058,7 +20142,9 @@ hr {
   }
   .download-queue-info .queue-quality-chip,
   .download-queue-info .queue-stage-chip,
-  .download-queue-info .queue-kind-chip {
+  .download-queue-info .queue-kind-chip,
+  .download-queue-info .queue-reason-chip,
+  .download-queue-info .queue-retry-chip {
     order: 2;
   }
   .download-queue-info .queue-item-actions {

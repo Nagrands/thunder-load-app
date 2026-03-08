@@ -22,6 +22,9 @@ const buildDom = () => {
     <button id="queue-pause-button"></button>
     <button id="queue-toggle-button"></button>
     <button id="queue-clear-button"></button>
+    <button id="queue-retry-transient-button"></button>
+    <button id="queue-clear-failed-button"></button>
+    <button id="queue-clear-done-button"></button>
     <div id="queue-list"></div>
     <span id="download-cancel-count" class="hidden"></span>
   `;
@@ -554,6 +557,119 @@ describe("downloadManager job summary", () => {
     });
     jest.useRealTimers();
   });
+
+  it("renders explicit reason and retry state chips for failed jobs", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryTransientButton: document.getElementById(
+          "queue-retry-transient-button",
+        ),
+        queueClearFailedButton: document.getElementById(
+          "queue-clear-failed-button",
+        ),
+        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+        addNewEntryToHistory: jest.fn(),
+        updateDownloadCount: jest.fn(),
+      }));
+
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+
+      state.failedDownloads = [
+        {
+          jobId: "fail-1",
+          title: "Restricted video",
+          url: "https://example.com/private",
+          quality: "Source",
+          errorCode: "AUTH_REQUIRED",
+          retryable: false,
+        },
+      ];
+
+      updateQueueDisplay();
+
+      const queueText =
+        document.getElementById("queue-list").textContent || "";
+      expect(queueText).toContain("Нужна авторизация");
+      expect(queueText).toContain("Нужен ручной шаг");
+    });
+  });
+
+  it("shows retry-all bulk action when failed jobs exist", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryTransientButton: document.getElementById(
+          "queue-retry-transient-button",
+        ),
+        queueClearFailedButton: document.getElementById(
+          "queue-clear-failed-button",
+        ),
+        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+        addNewEntryToHistory: jest.fn(),
+        updateDownloadCount: jest.fn(),
+      }));
+
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+
+      state.failedDownloads = [
+        {
+          jobId: "fail-2",
+          title: "Retry all",
+          url: "https://example.com/fail",
+          quality: "Source",
+          errorCode: "NETWORK_TIMEOUT",
+          retryable: true,
+        },
+      ];
+
+      updateQueueDisplay();
+
+      expect(
+        document
+          .getElementById("queue-retry-failed-button")
+          .classList.contains("hidden"),
+      ).toBe(false);
+    });
+  });
 });
 
 describe("downloadManager queue smart logic", () => {
@@ -567,6 +683,125 @@ describe("downloadManager queue smart logic", () => {
       ipcRenderer: { invoke: jest.fn() },
       on: jest.fn(),
     };
+  });
+
+  it("retries only retryable failed jobs via bulk action", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryTransientButton: document.getElementById(
+          "queue-retry-transient-button",
+        ),
+        queueClearFailedButton: document.getElementById(
+          "queue-clear-failed-button",
+        ),
+        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+        addNewEntryToHistory: jest.fn(),
+        updateDownloadCount: jest.fn(),
+      }));
+
+      const { state } = require("../state");
+      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+
+      state.failedDownloads = [
+        {
+          jobId: "f1",
+          title: "Retryable",
+          url: "https://example.com/a",
+          quality: "Source",
+          retryable: true,
+          errorCode: "NETWORK_TIMEOUT",
+        },
+        {
+          jobId: "f2",
+          title: "Manual",
+          url: "https://example.com/b",
+          quality: "Source",
+          retryable: false,
+          errorCode: "AUTH_REQUIRED",
+        },
+      ];
+
+      initDownloadButton();
+      updateQueueDisplay();
+      document.getElementById("queue-retry-transient-button").click();
+
+      expect(state.activeDownloads).toHaveLength(1);
+      expect(state.activeDownloads[0].url).toBe("https://example.com/a");
+      expect(state.failedDownloads).toHaveLength(1);
+      expect(state.failedDownloads[0].url).toBe("https://example.com/b");
+    });
+  });
+
+  it("clears completed jobs via bulk action", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryTransientButton: document.getElementById(
+          "queue-retry-transient-button",
+        ),
+        queueClearFailedButton: document.getElementById(
+          "queue-clear-failed-button",
+        ),
+        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+        addNewEntryToHistory: jest.fn(),
+        updateDownloadCount: jest.fn(),
+      }));
+
+      const { state } = require("../state");
+      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+
+      state.completedDownloads = [
+        {
+          jobId: "d1",
+          title: "Done",
+          url: "https://example.com/done",
+          quality: "Source",
+        },
+      ];
+
+      initDownloadButton();
+      updateQueueDisplay();
+      document.getElementById("queue-clear-done-button").click();
+
+      expect(state.completedDownloads).toHaveLength(0);
+    });
   });
 
   it("allows same URL with different quality labels in queue", async () => {

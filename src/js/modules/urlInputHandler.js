@@ -31,6 +31,15 @@ function initUrlInputHandler() {
     inputContainer?.classList.toggle(className, enabled);
   };
 
+  const getIdleHelperKey = () => {
+    const currentOnlyBtn = document.getElementById("preview-current-only");
+    const isPlaylistPreviewVisible =
+      currentOnlyBtn && currentOnlyBtn.style.display !== "none";
+    if (isPlaylistPreviewVisible) return "input.url.helper.playlistChoice";
+    const validation = getValidationState();
+    return validation.isValid ? "input.url.helper.valid" : "input.url.helper";
+  };
+
   const setHelperText = (messageKey = "input.url.helper", vars = {}) => {
     if (!helperTextEl) return;
     helperTextEl.textContent = t(messageKey, vars);
@@ -97,8 +106,7 @@ function initUrlInputHandler() {
     if (isLoading) {
       setHelperText("input.url.helper.loading");
     } else if (!urlErrorEl || urlErrorEl.classList.contains("hidden")) {
-      const validation = getValidationState();
-      setHelperText(validation.isValid ? "input.url.helper.valid" : "input.url.helper");
+      setHelperText(getIdleHelperKey());
     }
   };
 
@@ -176,11 +184,7 @@ function initUrlInputHandler() {
       hideInlineError();
     }
     if (!showError || validation.isValid || !hasInteracted) {
-      setHelperText(
-        validation.hasValue && validation.isValid
-          ? "input.url.helper.valid"
-          : "input.url.helper",
-      );
+      setHelperText(getIdleHelperKey());
     }
     updateButtonState();
     return validation;
@@ -201,8 +205,9 @@ function initUrlInputHandler() {
     const previewTitleEl = document.getElementById("preview-title");
     const previewDurationEl = document.getElementById("preview-duration");
     const img = document.getElementById("preview-thumb");
-    // ensure visible class for fade-in
-    // кнопка "Добавить всё"
+    let playlistMetaEl = document.getElementById("preview-playlist-meta");
+    let previewActionsEl = document.getElementById("preview-actions");
+    let currentOnlyBtn = document.getElementById("preview-current-only");
     let addAllBtn = document.getElementById("preview-enqueue-all");
     if (!card || !previewTitleEl || !previewDurationEl || !img) return;
     if (!data || !data.success) {
@@ -252,18 +257,61 @@ function initUrlInputHandler() {
     } catch (_) {}
 
     const count = Number(data.playlistCount || data.entries?.length || 0) || 0;
+    const playlistDuration = Number(data.playlistDuration || 0) || 0;
+    if (!playlistMetaEl) {
+      playlistMetaEl = document.createElement("div");
+      playlistMetaEl.id = "preview-playlist-meta";
+      playlistMetaEl.className = "preview-playlist-meta hidden";
+      previewDurationEl.insertAdjacentElement("afterend", playlistMetaEl);
+    }
+    if (!previewActionsEl) {
+      previewActionsEl = document.createElement("div");
+      previewActionsEl.id = "preview-actions";
+      previewActionsEl.className = "preview-actions";
+      const previewMeta = card.querySelector(".preview-meta");
+      previewMeta?.appendChild(previewActionsEl);
+    }
     if (count > 1 && Array.isArray(data.entries) && data.entries.length) {
+      setHelperText("input.url.helper.playlistChoice");
+      playlistMetaEl.innerHTML = `
+        <span class="preview-playlist-chip">${t("input.url.preview.playlistCount", { count })}</span>
+        ${
+          playlistDuration > 0
+            ? `<span class="preview-playlist-chip">${t("input.url.preview.playlistDuration", {
+                duration: durationToStr(playlistDuration),
+              })}</span>`
+            : ""
+        }
+      `;
+      playlistMetaEl.classList.remove("hidden");
+      if (!currentOnlyBtn) {
+        currentOnlyBtn = document.createElement("button");
+        currentOnlyBtn.id = "preview-current-only";
+        currentOnlyBtn.className = "preview-action-button preview-action-button--secondary";
+        currentOnlyBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> ${t("input.url.preview.currentOnly")}`;
+        currentOnlyBtn.setAttribute("data-bs-toggle", "tooltip");
+        currentOnlyBtn.setAttribute("data-bs-placement", "top");
+        currentOnlyBtn.setAttribute(
+          "title",
+          t("input.url.preview.currentOnlyTitle"),
+        );
+        previewActionsEl?.appendChild(currentOnlyBtn);
+        try {
+          initTooltips();
+        } catch (_) {}
+      } else {
+        currentOnlyBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> ${t("input.url.preview.currentOnly")}`;
+        currentOnlyBtn.style.display = "";
+      }
       if (!addAllBtn) {
         addAllBtn = document.createElement("button");
         addAllBtn.id = "preview-enqueue-all";
-        addAllBtn.className = "btn btn-small";
-        addAllBtn.style.marginLeft = "12px";
-        addAllBtn.style.whiteSpace = "nowrap";
+        addAllBtn.className = "preview-action-button";
         addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: data.entries.length })}`;
         addAllBtn.setAttribute("data-bs-toggle", "tooltip");
         addAllBtn.setAttribute("data-bs-placement", "top");
         addAllBtn.setAttribute("title", t("input.url.preview.addAllTitle"));
-        card.appendChild(addAllBtn);
+        previewActionsEl?.appendChild(addAllBtn);
         try {
           initTooltips();
         } catch (_) {}
@@ -282,8 +330,17 @@ function initUrlInputHandler() {
           window.dispatchEvent(ev);
         } catch (_) {}
       };
+      currentOnlyBtn.onclick = () => {
+        triggerPresetDownload(currentPreset || "video");
+      };
     } else if (addAllBtn) {
       addAllBtn.style.display = "none";
+      if (currentOnlyBtn) currentOnlyBtn.style.display = "none";
+      playlistMetaEl?.classList.add("hidden");
+      if (playlistMetaEl) playlistMetaEl.innerHTML = "";
+      setHelperText("input.url.helper.valid");
+    } else {
+      setHelperText("input.url.helper.valid");
     }
 
     let closeBtn = card.querySelector(".preview-close");

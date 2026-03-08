@@ -269,6 +269,13 @@
     color: #f5c442;
   }
 
+  .queue-action-button--ghost {
+    min-width: 36px;
+    justify-content: center;
+    color: rgba(229, 237, 250, 0.78);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
   .queue-action-button--clear {
     min-width: 36px;
     justify-content: center;
@@ -400,7 +407,9 @@
   .queue-status-chip,
   .queue-quality-chip,
   .queue-stage-chip,
-  .queue-kind-chip {
+  .queue-kind-chip,
+  .queue-reason-chip,
+  .queue-retry-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -434,6 +443,24 @@
     color: rgba(246, 223, 176, 0.95);
     border-color: rgba(255, 191, 96, 0.26);
     background: rgba(255, 191, 96, 0.1);
+  }
+
+  .queue-reason-chip {
+    color: rgba(255, 214, 214, 0.94);
+    border-color: rgba(255, 132, 132, 0.24);
+    background: rgba(255, 106, 106, 0.1);
+  }
+
+  .queue-retry-chip {
+    color: rgba(212, 236, 220, 0.95);
+    border-color: rgba(120, 208, 156, 0.24);
+    background: rgba(74, 174, 120, 0.1);
+
+    &.is-manual {
+      color: rgba(255, 218, 181, 0.95);
+      border-color: rgba(255, 179, 96, 0.24);
+      background: rgba(255, 179, 96, 0.1);
+    }
   }
 
   .queue-status-chip.is-spinning svg {
@@ -578,7 +605,9 @@
 
     .queue-quality-chip,
     .queue-stage-chip,
-    .queue-kind-chip {
+    .queue-kind-chip,
+    .queue-reason-chip,
+    .queue-retry-chip {
       order: 2;
     }
 
