@@ -15,6 +15,8 @@ const buildDom = () => {
         <button
           id="download-quality-action-enqueue"
           type="button"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
           title="Добавить в очередь"
           aria-label="Добавить в очередь"
         >
@@ -618,7 +620,9 @@ describe("downloadQualityModal close behavior", () => {
 
   it("keeps enqueue action accessible when shown as icon button", async () => {
     await jest.isolateModulesAsync(async () => {
+      const initTooltips = jest.fn();
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../tooltipInitializer.js", () => ({ initTooltips }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
       const resultPromise = openDownloadQualityModal(
@@ -630,9 +634,12 @@ describe("downloadQualityModal close behavior", () => {
       const enqueueBtn = document.getElementById(
         "download-quality-action-enqueue",
       );
+      await Promise.resolve();
 
       expect(enqueueBtn.getAttribute("title")).toMatch(/очеред/i);
       expect(enqueueBtn.getAttribute("aria-label")).toMatch(/очеред/i);
+      expect(enqueueBtn.getAttribute("data-bs-toggle")).toBe("tooltip");
+      expect(initTooltips).toHaveBeenCalled();
 
       document.getElementById("download-quality-cancel").click();
       await resultPromise;

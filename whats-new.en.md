@@ -83,3 +83,4 @@
 | The primary action in the quality dialog stands out more now | “Download selected” and “Add to queue” now feel more distinct in priority and state |
 | The quality dialog is quieter about expected failures now | Expected issues such as authorization requirements no longer add extra noisy internal error logs |
 | Queueing from the quality dialog is more compact now | The footer now uses an icon with a tooltip instead of a long queue button, so the modal feels cleaner |
+| The queue icon tooltip works again now | Hovering the add-to-queue icon in the quality dialog now shows the tooltip as expected |

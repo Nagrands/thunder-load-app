@@ -3,6 +3,7 @@
 import { showToast } from "./toast.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
 import { t } from "./i18n.js";
+import { initTooltips } from "./tooltipInitializer.js";
 import {
   formatDownloadErrorToast,
   getDownloadErrorDetails,
@@ -933,6 +934,7 @@ function selectOption(option, { remember = true } = {}) {
   } else {
     optionsContainer.removeAttribute("aria-activedescendant");
   }
+  queueMicrotask(() => initTooltips(modal));
   updateSelectionSummary(option);
 }
 
