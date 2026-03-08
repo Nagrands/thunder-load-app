@@ -38,29 +38,33 @@ export default function renderDownloader(wrapper) {
     const hdr = document.createElement("header");
     hdr.className = "downloader-shell-header";
     hdr.innerHTML = `
-      <div class="title">
-        <i class="fa-solid fa-download"></i>
-        <div class="title-content">
-          <h1 class="wg-text-gradient" data-i18n="downloader.title">${t("downloader.title")}</h1>
-          <p class="subtitle" data-i18n="downloader.subtitle">
-            ${t("downloader.subtitle")}
-          </p>
+      <div class="downloader-shell-header__hero">
+        <div class="title">
+          <i class="fa-solid fa-download"></i>
+          <div class="title-content">
+            <h1 class="wg-text-gradient" data-i18n="downloader.title">${t("downloader.title")}</h1>
+            <p class="subtitle" data-i18n="downloader.subtitle">
+              ${t("downloader.subtitle")}
+            </p>
+          </div>
         </div>
       </div>
-      <div
-        id="downloader-job-summary"
-        class="downloader-job-summary hidden"
-        role="status"
-        aria-live="polite"
-      >
-        <span
-          id="downloader-job-summary-badge"
-          class="downloader-job-summary__badge"
-          data-i18n="downloader.jobSummary.badge"
-        >${t("downloader.jobSummary.badge")}</span>
-        <div class="downloader-job-summary__content">
-          <strong id="downloader-job-summary-title">${t("downloader.jobSummary.idle")}</strong>
-          <span id="downloader-job-summary-meta">${t("downloader.jobSummary.idleMeta")}</span>
+      <div class="downloader-shell-header__meta">
+        <div
+          id="downloader-job-summary"
+          class="downloader-job-summary hidden"
+          role="status"
+          aria-live="polite"
+        >
+          <span
+            id="downloader-job-summary-badge"
+            class="downloader-job-summary__badge"
+            data-i18n="downloader.jobSummary.badge"
+          >${t("downloader.jobSummary.badge")}</span>
+          <div class="downloader-job-summary__content">
+            <strong id="downloader-job-summary-title">${t("downloader.jobSummary.idle")}</strong>
+            <span id="downloader-job-summary-meta">${t("downloader.jobSummary.idleMeta")}</span>
+          </div>
         </div>
       </div>
     `;
@@ -116,7 +120,7 @@ export default function renderDownloader(wrapper) {
       </button>
     `;
 
-    hdr.appendChild(toolsStatus);
+    hdr.querySelector(".downloader-shell-header__meta")?.appendChild(toolsStatus);
     shell.appendChild(hdr);
     glass.appendChild(shell);
 

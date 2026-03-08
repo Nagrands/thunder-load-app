@@ -1312,6 +1312,82 @@ describe("ipcHandlers download pool", () => {
     expect(result.message).toContain("участникам");
   });
 
+  test("DOWNLOAD_VIDEO does not emit duplicate renderer toast for classified failures", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const { getToolsVersions } = require("../toolsVersions");
+    const { setupIpcHandlers } = require("../ipcHandlers");
+    const send = jest.fn();
+
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
+    });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Disk issue",
+      formats: [{ format_id: "best" }],
+      thumbnail: "",
+      duration: 0,
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia.mockRejectedValueOnce(
+      new Error("ERR_DOWNLOAD_PERMISSION_DENIED: permission denied"),
+    );
+
+    setupIpcHandlers({
+      mainWindow: {
+        webContents: {
+          send,
+          isDestroyed: () => false,
+          on: jest.fn(),
+        },
+      },
+      store: {
+        get: jest.fn((key, fallback) => fallback),
+        set: jest.fn(),
+        delete: jest.fn(),
+      },
+      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
+      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
+      setDownloadPath: jest.fn(),
+      historyFilePath: path.join(os.tmpdir(), "history.json"),
+      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
+      iconCache: new Map(),
+      clipboardMonitor: {},
+      setupGlobalShortcuts: jest.fn(),
+      notifyDownloadError: jest.fn(),
+      sendDownloadCompletionNotification: jest.fn(),
+      showTrayNotification: jest.fn(),
+      setReloadMenuEnabled: jest.fn(),
+      dispatchPendingWhatsNew: jest.fn(),
+      clearPendingWhatsNewVersion: jest.fn(),
+    });
+
+    const result = await handlers[CHANNELS.DOWNLOAD_VIDEO](
+      { sender: { send: jest.fn() } },
+      "https://www.youtube.com/watch?v=permission-problem",
+      "Source",
+      "job-permission",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "PERMISSION_DENIED",
+    });
+    expect(send).not.toHaveBeenCalledWith(
+      "toast",
+      expect.any(String),
+      "error",
+    );
+  });
+
   test("STOP_DOWNLOAD cancels all active tokens", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");

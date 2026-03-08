@@ -1024,7 +1024,7 @@ function updateQueueDisplay() {
             }
             ${
               group === "error"
-                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
+                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.manual.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.manual.title")}"><i data-lucide="rotate-cw"></i></button>`
                 : ""
             }
             <button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-index="${group === "pending" ? pendingIndex : actionIndex}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>
@@ -1306,46 +1306,54 @@ const downloadVideo = async (url, quality, options = {}) => {
     const currentDateTime = new Date().toLocaleString("ru-RU", {
       hour12: false,
     });
-    const iconUrl = await window.electron.invoke("get-icon-path", url);
     const entryId = Date.now();
-    let thumbnail = resolvedThumbnail;
-    let thumbnailCacheFile = "";
-    if (thumbnail) {
-      try {
-        const cacheResult = await window.electron.invoke(
-          "cache-history-preview",
-          {
-            url: thumbnail,
-            entryId,
-            fileName,
-          },
-        );
-        if (cacheResult?.success && cacheResult.filePath) {
-          thumbnailCacheFile = cacheResult.filePath;
+    try {
+      const iconUrl = await window.electron.invoke("get-icon-path", url);
+      let thumbnail = resolvedThumbnail;
+      let thumbnailCacheFile = "";
+      if (thumbnail) {
+        try {
+          const cacheResult = await window.electron.invoke(
+            "cache-history-preview",
+            {
+              url: thumbnail,
+              entryId,
+              fileName,
+            },
+          );
+          if (cacheResult?.success && cacheResult.filePath) {
+            thumbnailCacheFile = cacheResult.filePath;
+          }
+        } catch (err) {
+          console.warn("Failed to cache preview thumbnail:", err);
         }
-      } catch (err) {
-        console.warn("Failed to cache preview thumbnail:", err);
       }
+
+      const newLogEntry = {
+        id: entryId,
+        fileName,
+        filePath,
+        quality: actualQuality,
+        downloadKind: requestedDownloadKind,
+        dateTime: currentDateTime,
+        iconUrl,
+        thumbnail,
+        thumbnailCacheFile,
+        sourceUrl,
+      };
+
+      await addNewEntryToHistory(newLogEntry);
+      markAsDownloaded(sourceUrl || url, requestedDownloadKind);
+      await updateDownloadCount();
+
+      if (historyContainer) historyContainer.scrollTop = 0;
+    } catch (postProcessError) {
+      console.warn(
+        "Post-download history bookkeeping failed, but file is already saved:",
+        postProcessError,
+      );
     }
 
-    const newLogEntry = {
-      id: entryId,
-      fileName,
-      filePath,
-      quality: actualQuality,
-      downloadKind: requestedDownloadKind,
-      dateTime: currentDateTime,
-      iconUrl,
-      thumbnail,
-      thumbnailCacheFile,
-      sourceUrl,
-    };
-
-    await addNewEntryToHistory(newLogEntry);
-    markAsDownloaded(sourceUrl || url, requestedDownloadKind);
-    await updateDownloadCount();
-
-    if (historyContainer) historyContainer.scrollTop = 0;
     window.localStorage.setItem("lastDownloadedFile", filePath);
     openLastVideoButton.disabled = false;
     return { ok: true };
@@ -1552,6 +1560,8 @@ const initiateDownload = async (url, quality, options = {}) => {
         (item) => item.jobId === jobId && item.status === JOB_STATUS.running,
       );
     }
+
+    syncDownloadState();
 
     if (getActiveDownloadJobs(state).length === 0) {
       buttonText.textContent = t("actions.download");
@@ -1847,10 +1857,6 @@ function initDownloadButton() {
         const task = getFailedDownloadJobs(state)[idx];
         if (!task) return;
         const signature = getQueueSignature(task.url, task.quality);
-        if (task.retryable === false) {
-          showToast(t("queue.item.retry.disabled"), "warning");
-          return;
-        }
         if (getCurrentDownloadSignatures().has(signature)) {
           showToast(t("download.url.active"), "warning");
           return;

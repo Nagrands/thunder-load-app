@@ -12,18 +12,33 @@
 
 .downloader-shell-header {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
   gap: 14px;
+  align-items: stretch;
+
+  .downloader-shell-header__hero {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .downloader-shell-header__meta {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 12px;
+  }
 
   .title {
     @include header-style;
+    width: 100%;
+    min-width: 0;
     gap: 20px;
     align-items: center;
     justify-content: flex-start;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 
     i {
       font-size: 2.3rem;
@@ -55,8 +70,9 @@
 }
 
 .downloader-job-summary {
+  flex: 1 1 320px;
   min-width: 260px;
-  max-width: 420px;
+  max-width: none;
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -113,12 +129,19 @@
 }
 
 .downloader-tools-status {
+  flex: 1 1 320px;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
   min-height: 26px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(10, 16, 28, 0.18)),
+    rgba(255, 255, 255, 0.015);
 
   &.hidden {
     display: none;
@@ -275,14 +298,8 @@
 
 .downloader-view {
   @media (max-width: 768px) {
-    .downloader-shell-header {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
     .downloader-shell-header .title {
       gap: 12px;
-      margin-bottom: 12px;
 
       i {
         width: 52px;
@@ -297,8 +314,11 @@
     }
 
     .downloader-shell-header .downloader-tools-status {
-      padding-left: 0;
       margin-top: 0;
+    }
+
+    .downloader-shell-header .downloader-shell-header__meta {
+      flex-direction: column;
     }
 
     .downloader-job-summary {

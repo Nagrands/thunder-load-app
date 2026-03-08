@@ -21042,11 +21042,22 @@ video {
 
 .downloader-shell-header {
   position: relative;
+  display: grid;
+  gap: 14px;
+  align-items: stretch;
+}
+.downloader-shell-header .downloader-shell-header__hero {
+  width: 100%;
+  min-width: 0;
+}
+.downloader-shell-header .downloader-shell-header__meta {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 .downloader-shell-header .title {
   display: flex;
@@ -21057,10 +21068,12 @@ video {
   padding: 12px 20px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  min-width: 0;
   gap: 20px;
   align-items: center;
   justify-content: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 .downloader-shell-header .title i {
   font-size: 2.3rem;
@@ -21087,8 +21100,9 @@ video {
 }
 
 .downloader-job-summary {
+  flex: 1 1 320px;
   min-width: 260px;
-  max-width: 420px;
+  max-width: none;
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -21138,12 +21152,17 @@ video {
 }
 
 .downloader-tools-status {
+  flex: 1 1 320px;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
   min-height: 26px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(10, 16, 28, 0.18)), rgba(255, 255, 255, 0.015);
 }
 .downloader-tools-status.hidden {
   display: none;
@@ -21271,13 +21290,8 @@ video {
 }
 
 @media (max-width: 768px) {
-  .downloader-view .downloader-shell-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
   .downloader-view .downloader-shell-header .title {
     gap: 12px;
-    margin-bottom: 12px;
   }
   .downloader-view .downloader-shell-header .title i {
     width: 52px;
@@ -21289,8 +21303,10 @@ video {
     margin-bottom: 4px;
   }
   .downloader-view .downloader-shell-header .downloader-tools-status {
-    padding-left: 0;
     margin-top: 0;
+  }
+  .downloader-view .downloader-shell-header .downloader-shell-header__meta {
+    flex-direction: column;
   }
   .downloader-view .downloader-job-summary {
     min-width: 0;

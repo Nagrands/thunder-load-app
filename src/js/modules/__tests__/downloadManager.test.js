@@ -65,6 +65,8 @@ describe("downloadManager queue persistence", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
       }));
       const { state } = require("../state");
@@ -92,6 +94,8 @@ describe("downloadManager queue persistence", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
       }));
       const { state } = require("../state");
@@ -121,6 +125,8 @@ describe("downloadManager queue persistence", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
       }));
       const { state } = require("../state");
@@ -174,6 +180,8 @@ describe("downloadManager queue persistence", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
       }));
 
@@ -849,8 +857,8 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("disables retry for non-retryable failed jobs and mirrors it in summary", () => {
-    jest.isolateModules(() => {
+  it("keeps manual retry available for non-retryable failed jobs and mirrors status in summary", async () => {
+    await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
         downloadButton: document.getElementById("download-button"),
@@ -868,8 +876,34 @@ describe("downloadManager queue smart logic", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
       }));
+      window.electron = {
+        invoke: jest.fn(async (channel, url) => {
+          if (channel === "download-video") {
+            return {
+              fileName: "private.mp4",
+              filePath: "/tmp/private.mp4",
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: url,
+              cancelled: false,
+            };
+          }
+          if (channel === "get-icon-path") return "";
+          if (channel === "cache-history-preview") return { success: false };
+          return {};
+        }),
+        ipcRenderer: {
+          invoke: jest.fn(async (_channel, url) => ({
+            success: true,
+            title: `Title ${url}`,
+          })),
+        },
+        on: jest.fn(),
+      };
       jest.doMock("../i18n", () => ({
         getLanguage: jest.fn(() => "ru"),
         t: jest.fn((key) => {
@@ -877,17 +911,22 @@ describe("downloadManager queue smart logic", () => {
             "queue.status.error": "Ошибка",
             "queue.reason.authRequired": "Нужна авторизация",
             "queue.retryState.needsAction": "Нужен ручной шаг",
-            "queue.item.retry.disabled.title":
-              "Для этой ошибки нужен ручной шаг",
+            "queue.item.retry.manual.title":
+              "Повторить после исправления причины",
             "downloader.jobSummary.badgeError": "Ошибка",
             "queue.pill.active": "0 активно",
           };
           return dict[key] || key;
         }),
       }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
 
       const { state } = require("../state");
-      const { updateQueueDisplay } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
       state.downloadJobs = [
         {
           jobId: "failed-1",
@@ -901,17 +940,29 @@ describe("downloadManager queue smart logic", () => {
         },
       ];
 
+      initDownloadButton();
       updateQueueDisplay();
 
       const retryBtn = document.querySelector("[data-queue-retry-failed]");
       expect(retryBtn).toBeTruthy();
-      expect(retryBtn.disabled).toBe(true);
+      expect(retryBtn.disabled).toBe(false);
+      expect(retryBtn.getAttribute("title")).toBe(
+        "Повторить после исправления причины",
+      );
       expect(
         document.getElementById("downloader-job-summary-title").textContent,
       ).toBe("Private video");
       expect(
         document.getElementById("downloader-job-summary-meta").textContent,
       ).toContain("Нужна авторизация");
+      retryBtn.click();
+      await Promise.resolve();
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "download-video",
+        "https://example.com/private",
+        "Source",
+        expect.stringMatching(/^job-/),
+      );
     });
   });
 
@@ -1627,6 +1678,168 @@ describe("downloadManager progress activity class", () => {
         }),
       );
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  it("treats renderer-side history bookkeeping failures as non-fatal after file is downloaded", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const consoleWarnSpy = jest
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "download-video") {
+            return {
+              fileName: "done.mp4",
+              filePath: "/tmp/done.mp4",
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: "https://example.com/done",
+              cancelled: false,
+            };
+          }
+          if (channel === "get-icon-path") return "";
+          if (channel === "cache-history-preview") return { success: false };
+          return {};
+        }),
+        ipcRenderer: {
+          invoke: jest.fn(async (_channel, url) => ({
+            success: true,
+            title: `Title ${url}`,
+          })),
+        },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {
+          throw new Error("history write failed");
+        }),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../validation", () => ({
+        isValidUrl: jest.fn(() => true),
+        isSupportedUrl: jest.fn(() => true),
+      }));
+      jest.doMock("../tooltipInitializer", () => ({
+        initTooltips: jest.fn(),
+      }));
+      const showToast = jest.fn();
+      jest.doMock("../toast", () => ({ showToast }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "ru"),
+        t: jest.fn((key) => key),
+      }));
+      jest.doMock("../urlInputHandler", () => ({
+        hideUrlActionButtons: jest.fn(),
+      }));
+
+      const { initiateDownload } = require("../downloadManager");
+      const { state } = require("../state");
+
+      const result = await initiateDownload("https://example.com/done", "Source");
+
+      expect(result).toBeUndefined();
+      expect(state.activeDownloads).toHaveLength(0);
+      expect(state.downloadJobs.some((job) => job.status === "running")).toBe(
+        false,
+      );
+      expect(showToast).not.toHaveBeenCalledWith(
+        "download.error.retry",
+        "error",
+      );
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "Post-download history bookkeeping failed, but file is already saved:",
+        expect.any(Error),
+      );
+      consoleWarnSpy.mockRestore();
+    });
+  });
+
+  it("moves successful downloads out of running state immediately after completion", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "download-video") {
+            return {
+              fileName: "done.mp4",
+              filePath: "/tmp/done.mp4",
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: "https://example.com/done",
+              cancelled: false,
+            };
+          }
+          if (channel === "get-icon-path") return "";
+          if (channel === "cache-history-preview") return { success: false };
+          return {};
+        }),
+        ipcRenderer: {
+          invoke: jest.fn(async (_channel, url) => ({
+            success: true,
+            title: `Title ${url}`,
+          })),
+        },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../validation", () => ({
+        isValidUrl: jest.fn(() => true),
+        isSupportedUrl: jest.fn(() => true),
+      }));
+      jest.doMock("../tooltipInitializer", () => ({
+        initTooltips: jest.fn(),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "ru"),
+        t: jest.fn((key) => key),
+      }));
+      jest.doMock("../urlInputHandler", () => ({
+        hideUrlActionButtons: jest.fn(),
+      }));
+
+      const { initiateDownload } = require("../downloadManager");
+      const { state } = require("../state");
+
+      await initiateDownload("https://example.com/done", "Source");
+
+      expect(state.downloadJobs.some((job) => job.status === "running")).toBe(
+        false,
+      );
+      expect(state.completedDownloads).toHaveLength(1);
+      expect(state.completedDownloads[0].status).toBe("done");
+      expect(state.isDownloading).toBe(false);
     });
   });
 });

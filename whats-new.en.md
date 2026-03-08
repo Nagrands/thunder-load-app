@@ -51,3 +51,6 @@
 | History deletion toast looks correct again | The toast shown after deleting a history entry no longer displays raw HTML tags instead of formatted text |
 | Duplicate downloader error toasts are gone | The downloader now shows one error toast for the same failure instead of stacking two identical notifications |
 | Formatted Settings toasts render correctly again | Toast messages with emphasized HTML text now pass through IPC correctly instead of showing raw tags |
+| Failed queue items can be retried manually again | If a download needs manual action, the retry button now stays available after you fix the underlying issue |
+| Completed downloads no longer get stuck in the queue | Once the file is already saved, the job now switches to done right away instead of staying in downloading |
+| The Downloader header is full-width again | The main title now spans the full top block, with status widgets moved into a cleaner secondary row |
