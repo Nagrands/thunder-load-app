@@ -79,3 +79,7 @@
 | The preview card is denser and more polished now | Link previews now fit more naturally with the URL field and action controls at the top of the Downloader |
 | The top of the Downloader is more even now | The URL field, preview, and action controls now sit closer together and feel more like one coordinated block |
 | Quick modes now live in the quality dialog | The top of the Downloader is cleaner, and video, audio, and queue actions are now available directly inside the quality modal |
+| The quality dialog actions are clearer now | It is now easier to see the difference between downloading immediately and sending the selected format to the queue |
+| The primary action in the quality dialog stands out more now | “Download selected” and “Add to queue” now feel more distinct in priority and state |
+| The quality dialog is quieter about expected failures now | Expected issues such as authorization requirements no longer add extra noisy internal error logs |
+| Queueing from the quality dialog is more compact now | The footer now uses an icon with a tooltip instead of a long queue button, so the modal feels cleaner |

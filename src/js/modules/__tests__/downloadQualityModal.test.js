@@ -12,7 +12,15 @@ const buildDom = () => {
       <button id="download-quality-retry" type="button"></button>
       <button id="download-quality-cancel" type="button"></button>
       <div class="quality-split-actions">
-        <button id="download-quality-action-enqueue" type="button"></button>
+        <button
+          id="download-quality-action-enqueue"
+          type="button"
+          title="Добавить в очередь"
+          aria-label="Добавить в очередь"
+        >
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <span class="quality-split-secondary-label">Добавить в очередь</span>
+        </button>
         <button id="download-quality-primary" type="button"></button>
       </div>
       <div
@@ -190,6 +198,12 @@ describe("downloadQualityModal close behavior", () => {
   it("shows specific auth-required error in quality modal", async () => {
     await jest.isolateModulesAsync(async () => {
       const showToast = jest.fn();
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      const consoleWarnSpy = jest
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
       window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
         success: false,
         errorCode: "AUTH_REQUIRED",
@@ -209,9 +223,46 @@ describe("downloadQualityModal close behavior", () => {
       expect(errorBox.classList.contains("hidden")).toBe(false);
       expect(errorText.textContent).toMatch(/авторизац|authorization/i);
       expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/авторизац|authorization/i), "error");
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
 
       document.getElementById("download-quality-cancel").click();
       await resultPromise;
+      consoleErrorSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
+    });
+  });
+
+  it("logs unexpected quality fetch failures as warnings", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const showToast = jest.fn();
+      const consoleWarnSpy = jest
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+      window.electron.ipcRenderer.invoke = jest
+        .fn()
+        .mockRejectedValue(new Error("socket exploded"));
+
+      jest.doMock("../toast", () => ({ showToast }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+
+      const errorBox = document.getElementById("download-quality-error");
+      expect(errorBox.classList.contains("hidden")).toBe(false);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "Неожиданная ошибка получения форматов:",
+        expect.any(Error),
+      );
+      expect(showToast).toHaveBeenCalledWith(expect.any(String), "error");
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+      consoleWarnSpy.mockRestore();
     });
   });
 
@@ -562,6 +613,29 @@ describe("downloadQualityModal close behavior", () => {
       expect(result).toBeTruthy();
       expect(result?.enqueue).toBe(true);
       expect(result?.payload).toBeTruthy();
+    });
+  });
+
+  it("keeps enqueue action accessible when shown as icon button", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const enqueueBtn = document.getElementById(
+        "download-quality-action-enqueue",
+      );
+
+      expect(enqueueBtn.getAttribute("title")).toMatch(/очеред/i);
+      expect(enqueueBtn.getAttribute("aria-label")).toMatch(/очеред/i);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
     });
   });
 

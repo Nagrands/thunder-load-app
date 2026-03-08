@@ -3,7 +3,10 @@
 import { showToast } from "./toast.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
 import { t } from "./i18n.js";
-import { formatDownloadErrorToast } from "./downloadErrorUi.js";
+import {
+  formatDownloadErrorToast,
+  getDownloadErrorDetails,
+} from "./downloadErrorUi.js";
 
 const INFO_REQUEST_TIMEOUT = 15000;
 
@@ -21,8 +24,6 @@ const errorEl = document.getElementById("download-quality-error");
 const errorTextEl = errorEl?.querySelector(".quality-error-text");
 const retryBtn = document.getElementById("download-quality-retry");
 const primaryBtn = document.getElementById("download-quality-primary");
-const menuToggleBtn = document.getElementById("download-quality-menu-toggle");
-const actionMenu = document.getElementById("download-quality-menu");
 const actionEnqueueBtn = document.getElementById(
   "download-quality-action-enqueue",
 );
@@ -104,8 +105,6 @@ const state = {
   expandedOptions: new Set(),
   loadingStartedAt: 0,
   loadingTickTimer: null,
-  isActionMenuOpen: false,
-  lastFocusedBeforeMenu: null,
 };
 
 const extractHeight = (fmt) => {
@@ -215,18 +214,11 @@ function resetModalState() {
   state.optionMap.clear();
   state.selectedByTab.clear();
   state.expandedOptions.clear();
-  state.isActionMenuOpen = false;
-  state.lastFocusedBeforeMenu = null;
   optionsContainer.innerHTML = "";
   if (primaryBtn) {
     primaryBtn.disabled = true;
     primaryBtn.textContent = t("quality.split.primaryDisabledHint");
   }
-  if (menuToggleBtn) {
-    menuToggleBtn.disabled = true;
-    menuToggleBtn.setAttribute("aria-expanded", "false");
-  }
-  if (actionMenu) actionMenu.classList.add("hidden");
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
@@ -283,11 +275,7 @@ function syncLoadingUi(isLoading) {
   const hasOption = !!state.selectedOption;
   const disableActions = isLoading || !hasOption;
   if (primaryBtn) primaryBtn.disabled = disableActions;
-  if (menuToggleBtn) menuToggleBtn.disabled = disableActions;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = disableActions;
-  if (disableActions && state.isActionMenuOpen) {
-    closeActionMenu({ restoreFocus: false });
-  }
 }
 
 function setLoading(flag) {
@@ -308,45 +296,12 @@ function setLoading(flag) {
   syncLoadingUi(flag);
 }
 
-function getMenuItems() {
-  return [actionEnqueueBtn].filter(Boolean);
-}
-
-function closeActionMenu({ restoreFocus = false } = {}) {
-  if (!state.isActionMenuOpen) return;
-  state.isActionMenuOpen = false;
-  actionMenu?.classList.add("hidden");
-  menuToggleBtn?.setAttribute("aria-expanded", "false");
-  if (restoreFocus && state.lastFocusedBeforeMenu?.focus) {
-    state.lastFocusedBeforeMenu.focus();
-  }
-  state.lastFocusedBeforeMenu = null;
-}
-
-function openActionMenu() {
-  if (!actionMenu || !menuToggleBtn || menuToggleBtn.disabled) return;
-  state.isActionMenuOpen = true;
-  state.lastFocusedBeforeMenu = menuToggleBtn;
-  actionMenu.classList.remove("hidden");
-  menuToggleBtn.setAttribute("aria-expanded", "true");
-  getMenuItems()[0]?.focus();
-}
-
-function toggleActionMenu() {
-  if (state.isActionMenuOpen) {
-    closeActionMenu({ restoreFocus: true });
-    return;
-  }
-  openActionMenu();
-}
-
 function beginFetchView() {
   setLoading(true);
   errorEl?.classList.add("hidden");
   emptyEl?.classList.add("hidden");
   optionsContainer.innerHTML = "";
   if (primaryBtn) primaryBtn.disabled = true;
-  if (menuToggleBtn) menuToggleBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   updateTabCounts();
@@ -361,7 +316,6 @@ function showError(message) {
   emptyEl?.classList.add("hidden");
   optionsPlaceholderEl?.classList.add("hidden");
   if (primaryBtn) primaryBtn.disabled = true;
-  if (menuToggleBtn) menuToggleBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   if (errorTextEl) {
@@ -375,7 +329,6 @@ function showEmpty() {
   optionsPlaceholderEl?.classList.add("hidden");
   optionsContainer.innerHTML = "";
   if (primaryBtn) primaryBtn.disabled = true;
-  if (menuToggleBtn) menuToggleBtn.disabled = true;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   if (bestCurrentBtn) bestCurrentBtn.disabled = true;
   updateSelectionSummary(null);
@@ -954,7 +907,6 @@ function selectOption(option, { remember = true } = {}) {
   }
   const hasOption = !!option;
   if (primaryBtn) primaryBtn.disabled = !hasOption;
-  if (menuToggleBtn) menuToggleBtn.disabled = !hasOption;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = !hasOption;
   if (option) {
     if (primaryBtn) {
@@ -966,7 +918,6 @@ function selectOption(option, { remember = true } = {}) {
     if (primaryBtn) {
       primaryBtn.textContent = t("quality.split.primaryDisabledHint");
     }
-    closeActionMenu({ restoreFocus: false });
   }
   Array.from(optionsContainer.children).forEach((el) => {
     const isActive = el.dataset.optionId === option?.id;
@@ -1089,7 +1040,10 @@ async function loadFormatsWithRetry(
     return true;
   } catch (error) {
     if (state.currentFetchToken !== token) return false;
-    console.error("Ошибка получения форматов:", error);
+    const errorDetails = getDownloadErrorDetails(error);
+    if (errorDetails.code === "UNKNOWN") {
+      console.warn("Неожиданная ошибка получения форматов:", error);
+    }
     const message = formatDownloadErrorToast(error);
     showError(message);
     showToast(message, "error");
@@ -1169,7 +1123,6 @@ function moveSelection(step) {
 }
 
 function closeModal(result = null) {
-  closeActionMenu({ restoreFocus: false });
   setModalOpen(false);
   resetModalState();
   tabButtons.forEach((btn) => btn.classList.remove("active"));
@@ -1200,7 +1153,6 @@ function confirmSelection() {
 
 function confirmEnqueue() {
   if (!state.selectedOption) return;
-  closeActionMenu({ restoreFocus: false });
   console.log("[quality]", "confirm-enqueue", {
     label: state.selectedOption?.payload?.label || "",
   });
@@ -1236,50 +1188,10 @@ function bindEvents() {
         nextBtn.focus();
       }),
     );
-    menuToggleBtn?.addEventListener("click", (event) => {
-      event.preventDefault();
-      toggleActionMenu();
-    });
     actionEnqueueBtn?.addEventListener("click", () => {
-      closeActionMenu({ restoreFocus: false });
       confirmEnqueue();
     });
-    actionMenu?.addEventListener("keydown", (event) => {
-      if (!state.isActionMenuOpen) return;
-      const items = getMenuItems();
-      const currentIndex = items.indexOf(document.activeElement);
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-        event.preventDefault();
-        if (!items.length) return;
-        const step = event.key === "ArrowDown" ? 1 : -1;
-        const nextIndex =
-          currentIndex < 0
-            ? 0
-            : (currentIndex + step + items.length) % items.length;
-        items[nextIndex]?.focus();
-        return;
-      }
-      if (event.key === "Tab") {
-        closeActionMenu({ restoreFocus: false });
-        return;
-      }
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeActionMenu({ restoreFocus: true });
-        return;
-      }
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        document.activeElement?.click?.();
-      }
-    });
     modal.addEventListener("click", (event) => {
-      if (
-        state.isActionMenuOpen &&
-        !event.target?.closest?.(".quality-split-actions")
-      ) {
-        closeActionMenu({ restoreFocus: false });
-      }
       if (event.target?.closest?.("[data-quality-close]")) {
         event.preventDefault();
         closeModal(null);
@@ -1298,10 +1210,6 @@ function bindEvents() {
         targetTag === "select";
       if (event.key === "Escape") {
         event.preventDefault();
-        if (state.isActionMenuOpen) {
-          closeActionMenu({ restoreFocus: true });
-          return;
-        }
         closeModal(null);
         return;
       }
@@ -1317,8 +1225,7 @@ function bindEvents() {
       }
       if (
         event.key === "Enter" &&
-        state.selectedOption &&
-        !state.isActionMenuOpen
+        state.selectedOption
       ) {
         event.preventDefault();
         confirmSelection();
@@ -1334,7 +1241,6 @@ function bindEvents() {
         !actionEnqueueBtn?.disabled
       ) {
         event.preventDefault();
-        closeActionMenu({ restoreFocus: false });
         confirmEnqueue();
       }
     });

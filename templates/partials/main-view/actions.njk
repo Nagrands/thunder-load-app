@@ -266,7 +266,7 @@
       <div class="quality-hint">
         <div class="quality-hint-texts">
           <span id="download-quality-hint-text" data-i18n="quality.hint"
-            >Двойной клик по варианту сразу начнёт загрузку.</span
+            >Выберите вариант выше, затем скачайте его сразу или добавьте в очередь.</span
           >
           <div class="quality-hotkeys" aria-label="Горячие клавиши выбора качества">
             <div class="quality-hotkeys-main">
@@ -300,10 +300,16 @@
             type="button"
             id="download-quality-action-enqueue"
             class="btn-ghost quality-split-secondary"
-            data-i18n="quality.split.action.enqueue"
+            title="Добавить в очередь"
+            data-i18n-title="quality.enqueueHint"
+            aria-label="Добавить в очередь"
+            data-i18n-aria="quality.enqueueHint"
             disabled
           >
-            В очередь
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+            <span class="quality-split-secondary-label" data-i18n="quality.split.action.enqueue"
+              >Добавить в очередь</span
+            >
           </button>
           <button
             type="button"
