@@ -458,8 +458,13 @@ async function handleDeleteEntry(logEntry) {
       await updateDownloadCount();
       sortHistory(state.currentSortOrder);
       showToast(
-        `Запись успешно удалена<br><strong>${formattedName}</strong>.`,
+        `Запись успешно удалена<br><strong>${safeFormattedName}</strong>.`,
         "success",
+        5500,
+        null,
+        null,
+        false,
+        { allowHtml: true },
       );
     } else {
       console.warn("No entry was removed. Possible ID mismatch.");

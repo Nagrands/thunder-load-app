@@ -303,4 +303,38 @@ describe("context menu UI", () => {
     expect(url.selectionEnd).toBe(url.value.length);
     jest.useRealTimers();
   });
+
+  test("uses html-enabled toast after entry deletion", async () => {
+    mockShowConfirmationDialog.mockResolvedValue(true);
+    window.electron.invoke.mockImplementation(async (channel) => {
+      if (channel === "check-file-exists") return true;
+      if (channel === "load-history") {
+        return [
+          {
+            id: 42,
+            fileName: "Test file",
+            filePath: "/tmp/test.mp4",
+            sourceUrl: "https://example.com/video",
+          },
+        ];
+      }
+      if (channel === "save-history") return true;
+      return null;
+    });
+
+    const { handleDeleteEntry } = await import("../contextMenu.js");
+    const entry = document.querySelector(".log-entry");
+
+    await handleDeleteEntry(entry);
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.stringContaining("Запись успешно удалена<br><strong>Test file</strong>."),
+      "success",
+      5500,
+      null,
+      null,
+      false,
+      { allowHtml: true },
+    );
+  });
 });

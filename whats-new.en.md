@@ -48,3 +48,4 @@
 | Preview and quality selection now understand failures better | The URL preview card and quality picker now show the same precise failure reason more consistently as the downloader itself |
 | Error messaging is more consistent inside the Downloader tab | The queue, URL preview, and quality picker now use the same internal path to explain why a failure happened |
 | History now uses the same failure language | Failed downloads in history now derive their reason through the same path as the queue and the rest of the downloader UI |
+| History deletion toast looks correct again | The toast shown after deleting a history entry no longer displays raw HTML tags instead of formatted text |
