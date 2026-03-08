@@ -43,6 +43,21 @@ describe("settings html toasts", () => {
         if (key === "settings.theme.reset") {
           return `<strong>Тема</strong> сброшена на <strong>${vars.theme}</strong>`;
         }
+        if (key === "settings.appearance.theme.dark") {
+          return "Dark";
+        }
+        if (key === "settings.appearance.theme.light") {
+          return "Light";
+        }
+        if (key === "settings.appearance.theme.midnight") {
+          return "Midnight";
+        }
+        if (key === "settings.appearance.theme.sunset") {
+          return "Sunset";
+        }
+        if (key === "settings.appearance.theme.violet") {
+          return "Violet";
+        }
         return key;
       },
     };
@@ -115,7 +130,6 @@ describe("settings html toasts", () => {
         <ul id="theme-dropdown-menu">
           <li data-value="dark">Dark</li>
           <li data-value="light">Light</li>
-          <li data-value="system">System</li>
         </ul>
         <span id="theme-selected-label"></span>
         <button id="reset-theme" type="button"></button>
@@ -142,10 +156,21 @@ describe("settings html toasts", () => {
     await Promise.resolve();
     await Promise.resolve();
 
+    expect(document.getElementById("theme-selected-label")?.textContent).toBe("Dark");
+    expect(
+      document
+        .querySelector('#theme-dropdown-menu li[data-value="dark"]')
+        ?.classList.contains("active"),
+    ).toBe(true);
+    expect(document.getElementById("theme-dropdown-btn")?.dataset.currentTheme).toBe(
+      "dark",
+    );
+
     expect(
       showToast.mock.calls.some(
         (args) =>
           String(args[0] || "").includes("<strong>") &&
+          String(args[0] || "").includes("Dark") &&
           args[1] === "success" &&
           args[6]?.allowHtml === true,
       ),

@@ -627,7 +627,9 @@ async function initSettings() {
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
   const themeLabel = document.getElementById("theme-selected-label");
+  const normalizeTheme = (theme) => (theme === "system" || !theme ? "dark" : theme);
   const formatThemeLabel = (theme) => {
+    const normalizedTheme = normalizeTheme(theme);
     const map = {
       dark: t("settings.appearance.theme.dark"),
       midnight: t("settings.appearance.theme.midnight"),
@@ -635,21 +637,26 @@ async function initSettings() {
       violet: t("settings.appearance.theme.violet"),
       light: t("settings.appearance.theme.light"),
     };
-    return map[theme] || theme;
+    return map[normalizedTheme] || normalizedTheme;
+  };
+  const syncThemeDropdownState = (theme) => {
+    const normalizedTheme = normalizeTheme(theme);
+
+    themeLabel.textContent = formatThemeLabel(normalizedTheme);
+    themeDropdownMenu.querySelectorAll("li").forEach((item) => {
+      item.classList.toggle(
+        "active",
+        item.getAttribute("data-value") === normalizedTheme,
+      );
+    });
+    themeDropdownBtn.setAttribute("data-current-theme", normalizedTheme);
   };
 
   console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
     const savedTheme = await getTheme();
     document.documentElement.setAttribute("data-theme", savedTheme);
-    themeLabel.textContent = formatThemeLabel(savedTheme);
-    // Highlight selected theme in dropdown on init
-    themeDropdownMenu.querySelectorAll("li").forEach((item) => {
-      item.classList.remove("active");
-      if (item.getAttribute("data-value") === savedTheme) {
-        item.classList.add("active");
-      }
-    });
+    syncThemeDropdownState(savedTheme);
 
     // Новый, более надёжный обработчик открытия dropdown для темы
     themeDropdownBtn.addEventListener("click", (e) => {
@@ -674,11 +681,7 @@ async function initSettings() {
         const selectedTheme = item.getAttribute("data-value");
         document.documentElement.classList.add("theme-transition");
         await setTheme(selectedTheme);
-        themeLabel.textContent = formatThemeLabel(selectedTheme);
-        themeDropdownMenu
-          .querySelectorAll("li")
-          .forEach((li) => li.classList.remove("active"));
-        item.classList.add("active");
+        syncThemeDropdownState(selectedTheme);
         themeDropdownMenu.classList.remove("show");
         setTimeout(
           () => document.documentElement.classList.remove("theme-transition"),
@@ -698,7 +701,7 @@ async function initSettings() {
 
     window.addEventListener("i18n:changed", async () => {
       const currentTheme = await getTheme();
-      themeLabel.textContent = formatThemeLabel(currentTheme);
+      syncThemeDropdownState(currentTheme);
     });
 
     // Глобальный обработчик клика вне меню только для темы
@@ -728,13 +731,7 @@ async function initSettings() {
       const defaultTheme = "system";
       document.documentElement.classList.add("theme-transition");
       await setTheme(defaultTheme);
-      themeLabel.textContent = formatThemeLabel(defaultTheme);
-      themeDropdownMenu.querySelectorAll("li").forEach((li) => {
-        li.classList.remove("active");
-        if (li.getAttribute("data-value") === defaultTheme) {
-          li.classList.add("active");
-        }
-      });
+      syncThemeDropdownState(defaultTheme);
       themeDropdownMenu.classList.remove("show");
       setTimeout(
         () => document.documentElement.classList.remove("theme-transition"),
