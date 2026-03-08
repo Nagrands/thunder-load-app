@@ -54,3 +54,7 @@
 | Failed queue items can be retried manually again | If a download needs manual action, the retry button now stays available after you fix the underlying issue |
 | Completed downloads no longer get stuck in the queue | Once the file is already saved, the job now switches to done right away instead of staying in downloading |
 | The Downloader header is full-width again | The main title now spans the full top block, with status widgets moved into a cleaner secondary row |
+| The Downloader URL field has been fully redesigned | The URL area is now clearer, easier to paste into, and visually tied to the preview block |
+| The Downloader top area now feels unified | The URL field, preview, and action buttons now read as one coordinated surface |
+| The source icon in the URL field is aligned again | The site icon inside the URL field no longer slips outside its chip |
+| URL field shortcut hints are clearer now | The Enter, Shift+Enter, and Alt+Enter hints now explain the action instead of showing only the key combo |

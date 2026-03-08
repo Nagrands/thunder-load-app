@@ -11,23 +11,38 @@ import { formatDownloadErrorToast } from "./downloadErrorUi.js";
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
 const selectFolderButton = document.getElementById("select-folder");
+const sourceLinkButton = document.getElementById("url-source-link");
 const urlErrorEl = document.getElementById("url-inline-error");
 const previewSpinner = document.getElementById("url-preview-spinner");
+const helperTextEl = document.getElementById("url-helper-text");
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
 
   const inputContainer = document.querySelector(".input-container");
   const wrapperEl = document.querySelector(".url-input-wrapper");
-  const syncIconPosition = () => {
-    try {
-      if (!inputContainer || !wrapperEl) return;
-      const cRect = inputContainer.getBoundingClientRect();
-      const wRect = wrapperEl.getBoundingClientRect();
-      const center = wRect.top - cRect.top + wRect.height / 2;
-      inputContainer.style.setProperty("--icon-top", `${center}px`);
-    } catch (_) {}
+
+  const setStateClass = (className, enabled) => {
+    wrapperEl?.classList.toggle(className, enabled);
+    inputContainer?.classList.toggle(className, enabled);
   };
+
+  const setHelperText = (messageKey = "input.url.helper", vars = {}) => {
+    if (!helperTextEl) return;
+    helperTextEl.textContent = t(messageKey, vars);
+  };
+
+  const syncShellState = (value = urlInput.value) => {
+    const normalized = normalizeUrlInput(value).trim();
+    setStateClass("is-empty", normalized === "");
+    setStateClass("has-value", normalized !== "");
+    if (sourceLinkButton) {
+      sourceLinkButton.disabled = !(
+        normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
+      );
+    }
+  };
+
   const toggleButtons = () => {
     const isEmpty = urlInput.value.trim() === "";
     clearButton.classList.toggle("hidden", isEmpty);
@@ -46,9 +61,16 @@ function initUrlInputHandler() {
 
   const setPreviewLoading = (isLoading) => {
     wrapperEl?.classList.toggle("is-preview-loading", isLoading);
+    setStateClass("is-preview-loading", isLoading);
     if (previewSpinner) {
       previewSpinner.classList.toggle("hidden", !isLoading);
       previewSpinner.setAttribute("aria-hidden", isLoading ? "false" : "true");
+    }
+    if (isLoading) {
+      setHelperText("input.url.helper.loading");
+    } else if (!urlErrorEl || urlErrorEl.classList.contains("hidden")) {
+      const validation = getValidationState();
+      setHelperText(validation.isValid ? "input.url.helper.valid" : "input.url.helper");
     }
   };
 
@@ -65,6 +87,8 @@ function initUrlInputHandler() {
   ) => {
     wrapperEl?.classList.add("is-invalid");
     wrapperEl?.classList.remove("is-valid");
+    setStateClass("is-invalid", true);
+    setStateClass("is-valid", false);
     if (!urlErrorEl) return;
     urlErrorEl.textContent = t(messageKey);
     urlErrorEl.classList.remove("hidden");
@@ -73,6 +97,8 @@ function initUrlInputHandler() {
   const showInlineErrorText = (message) => {
     wrapperEl?.classList.add("is-invalid");
     wrapperEl?.classList.remove("is-valid");
+    setStateClass("is-invalid", true);
+    setStateClass("is-valid", false);
     if (!urlErrorEl) return;
     urlErrorEl.textContent = String(message || "");
     urlErrorEl.classList.remove("hidden");
@@ -80,6 +106,7 @@ function initUrlInputHandler() {
 
   const hideInlineError = () => {
     wrapperEl?.classList.remove("is-invalid");
+    setStateClass("is-invalid", false);
     if (!urlErrorEl) return;
     urlErrorEl.textContent = "";
     urlErrorEl.classList.add("hidden");
@@ -101,6 +128,8 @@ function initUrlInputHandler() {
       "is-valid",
       validation.hasValue && validation.isValid,
     );
+    setStateClass("is-valid", validation.hasValue && validation.isValid);
+    syncShellState(validation.normalized);
     if (showError && !validation.isValid) {
       if (!validation.hasValue) {
         if (errorOnEmpty) {
@@ -118,6 +147,13 @@ function initUrlInputHandler() {
     } else if (!showError || validation.isValid || !hasInteracted) {
       hideInlineError();
     }
+    if (!showError || validation.isValid || !hasInteracted) {
+      setHelperText(
+        validation.hasValue && validation.isValid
+          ? "input.url.helper.valid"
+          : "input.url.helper",
+      );
+    }
     updateButtonState();
     return validation;
   };
@@ -134,16 +170,17 @@ function initUrlInputHandler() {
 
   const renderPreview = (data) => {
     const card = document.getElementById("preview-card");
-    const t = document.getElementById("preview-title");
-    const d = document.getElementById("preview-duration");
+    const previewTitleEl = document.getElementById("preview-title");
+    const previewDurationEl = document.getElementById("preview-duration");
     const img = document.getElementById("preview-thumb");
     // ensure visible class for fade-in
     // кнопка "Добавить всё"
     let addAllBtn = document.getElementById("preview-enqueue-all");
-    if (!card || !t || !d || !img) return;
+    if (!card || !previewTitleEl || !previewDurationEl || !img) return;
     if (!data || !data.success) {
       card.style.display = "none";
       card.classList.remove("pos-top");
+      setStateClass("has-preview", false);
       if (addAllBtn) addAllBtn.style.display = "none";
       return;
     }
@@ -154,11 +191,11 @@ function initUrlInputHandler() {
       );
     } catch (_) {}
     hideInlineError();
-    t.textContent = data.title || "";
-    d.textContent = data.duration
+    previewTitleEl.textContent = data.title || "";
+    previewDurationEl.textContent = data.duration
       ? t("input.url.preview.duration", { duration: durationToStr(data.duration) })
       : "";
-    t.setAttribute("title", data.title || "");
+    previewTitleEl.setAttribute("title", data.title || "");
     if (data.thumbnail) {
       img.src = data.thumbnail;
       img.style.display = "";
@@ -168,13 +205,12 @@ function initUrlInputHandler() {
     }
     card.style.display = data.title || data.thumbnail ? "" : "none";
     card.classList.add("visible");
+    setStateClass("has-preview", card.style.display !== "none");
 
-    // ——— Умное размещение: по умолчанию снизу в потоке; если снизу мало места — переносим наверх (absolute) ———
     try {
       const container = document.querySelector(".input-container");
       const wrap = document.querySelector(".url-input-wrapper");
       if (container && wrap) {
-        // дождёмся отрисовки и измерим высоту карточки
         requestAnimationFrame(() => {
           const vH = window.innerHeight;
           const wRect = wrap.getBoundingClientRect();
@@ -187,7 +223,6 @@ function initUrlInputHandler() {
       }
     } catch (_) {}
 
-    // плейлист → показать кнопку и повесить обработчик
     const count = Number(data.playlistCount || data.entries?.length || 0) || 0;
     if (count > 1 && Array.isArray(data.entries) && data.entries.length) {
       if (!addAllBtn) {
@@ -223,7 +258,6 @@ function initUrlInputHandler() {
       addAllBtn.style.display = "none";
     }
 
-    // Кнопка закрытия предпросмотра
     let closeBtn = card.querySelector(".preview-close");
     if (!closeBtn) {
       closeBtn = document.createElement("button");
@@ -238,7 +272,6 @@ function initUrlInputHandler() {
       card.appendChild(closeBtn);
     }
 
-    // Обертка для картинки (для позиционирования кнопок)
     let wrap = img?.closest(".preview-thumb-wrap");
     if (!wrap && img) {
       wrap = document.createElement("div");
@@ -247,7 +280,6 @@ function initUrlInputHandler() {
       wrap.appendChild(img);
     }
 
-    // Кнопка «Сохранить превью» поверх картинки
     let saveBtn = wrap ? wrap.querySelector(".preview-save") : null;
     const sanitizeFilename = (s) => {
       try {
@@ -286,7 +318,9 @@ function initUrlInputHandler() {
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          const safe = sanitizeFilename(title || t.textContent || "preview");
+          const safe = sanitizeFilename(
+            title || previewTitleEl.textContent || "preview",
+          );
           const ext = pickExt(blob, useSrc);
           a.download = `${safe}.${ext}`;
           document.body.appendChild(a);
@@ -308,7 +342,6 @@ function initUrlInputHandler() {
           '<i class="fa-solid fa-download" aria-hidden="true"></i>';
         wrap.appendChild(saveBtn);
       }
-      // Обновляем актуальный src и тултип при каждом новом предпросмотре
       saveBtn.dataset.src = data.thumbnail;
       const ttl = (data.title || "").trim();
       saveBtn.title = ttl
@@ -316,7 +349,6 @@ function initUrlInputHandler() {
         : t("input.url.preview.save");
       ensureSaveHandler(saveBtn, data.thumbnail, ttl);
     } else if (saveBtn) {
-      // Если превью нет — скрываем кнопку
       saveBtn.remove();
     }
   };
@@ -328,7 +360,6 @@ function initUrlInputHandler() {
       renderPreview(null);
       return;
     }
-    syncIconPosition();
     if (url === lastPreviewUrl) {
       setPreviewLoading(false);
       return; // не повторяем
@@ -397,7 +428,8 @@ function initUrlInputHandler() {
       lastPreviewUrl = "";
       setPreviewLoading(false);
       renderPreview(null);
-      requestAnimationFrame(syncIconPosition);
+      syncShellState("");
+      setHelperText("input.url.helper");
       return;
     }
     if (previewTimer) clearTimeout(previewTimer);
@@ -409,7 +441,7 @@ function initUrlInputHandler() {
   });
   urlInput.addEventListener("focus", () => {
     toggleButtons();
-    // Автовыделение текста, если поле непустое
+    syncShellState();
     try {
       if (urlInput.value && urlInput.value.length > 0) urlInput.select();
     } catch (_) {}
@@ -433,7 +465,8 @@ function initUrlInputHandler() {
       hideInlineError();
       toggleButtons();
       updateButtonState();
-      requestAnimationFrame(syncIconPosition);
+      syncShellState("");
+      setHelperText("input.url.helper");
       return;
     }
 
@@ -477,6 +510,8 @@ function initUrlInputHandler() {
     renderPreview(null);
     hideInlineError();
     updateButtonState();
+    syncShellState("");
+    setHelperText("input.url.helper");
     urlInput.focus();
   });
 
@@ -487,10 +522,22 @@ function initUrlInputHandler() {
     toggleButtons();
     hideInlineError();
     urlInput.dispatchEvent(new Event("input", { bubbles: true })); // запускаем реакцию
-    // Также запрашиваем предпросмотр
     urlInput.dispatchEvent(new Event("force-preview"));
     urlInput.focus();
-    requestAnimationFrame(syncIconPosition);
+  });
+
+  sourceLinkButton?.addEventListener("click", async () => {
+    const normalized = normalizeUrlInput(urlInput.value).trim();
+    if (!normalized || !isValidUrl(normalized) || !isSupportedUrl(normalized)) {
+      hasInteracted = true;
+      syncUrlUiState({ showError: true, errorOnEmpty: true });
+      return;
+    }
+    try {
+      await window.electron?.invoke?.("open-external-link", normalized);
+    } catch (error) {
+      console.error("Failed to open source link from URL input:", error);
+    }
   });
 
   // Drag & Drop ссылок в область ввода URL
@@ -506,19 +553,25 @@ function initUrlInputHandler() {
     wrapper.addEventListener("dragenter", () => {
       dragDepth += 1;
       wrapper.classList.add("drag-over");
+      setStateClass("drag-over", true);
+      setHelperText("input.url.helper.drag");
     });
     wrapper.addEventListener("dragover", () => {
       wrapper.classList.add("drag-over");
+      setStateClass("drag-over", true);
     });
     wrapper.addEventListener("dragleave", () => {
       dragDepth = Math.max(0, dragDepth - 1);
       if (dragDepth === 0) {
         wrapper.classList.remove("drag-over");
+        setStateClass("drag-over", false);
+        syncUrlUiState({ showError: false });
       }
     });
     wrapper.addEventListener("drop", () => {
       dragDepth = 0;
       wrapper.classList.remove("drag-over");
+      setStateClass("drag-over", false);
     });
     wrapper.addEventListener("drop", (e) => {
       try {
@@ -533,21 +586,15 @@ function initUrlInputHandler() {
           hideInlineError();
           urlInput.dispatchEvent(new Event("input", { bubbles: true }));
           urlInput.focus();
-          requestAnimationFrame(syncIconPosition);
         }
       } catch (_) {}
     });
   }
 
-  // Изначально выставим позицию иконки/прогресса
-  requestAnimationFrame(syncIconPosition);
   setPreviewLoading(false);
+  syncShellState();
+  setHelperText("input.url.helper");
   syncUrlUiState({ showError: false });
-
-  // Пересчёт при ресайзе окна
-  window.addEventListener("resize", () =>
-    requestAnimationFrame(syncIconPosition),
-  );
 
   window.addEventListener("download:url-submitted", () => {
     try {

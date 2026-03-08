@@ -2,77 +2,118 @@
 <header>
   <!-- Input Container -->
   <div class="input-container">
-    <div class="url-input-wrapper">
-      <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
-      <span
-        id="url-preview-spinner"
-        class="url-preview-spinner hidden"
-        aria-hidden="true"
-        title="Загрузка превью"
-        data-i18n-title="input.url.preview.loading"
-      >
-        <i class="fa-solid fa-spinner fa-spin"></i>
-      </span>
-      <input
-        type="text"
-        id="url"
-        placeholder="Введите URL видео или аудио"
-        aria-label="Введите URL видео или аудио"
-        data-i18n-placeholder="input.url.placeholder"
-        data-i18n-aria="input.url.aria"
-      />
-      <div class="button-grid">
-        <button
-          id="paste-url"
-          type="button"
-          class="paste-button hidden"
-          aria-label="Вставить из буфера"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Вставить из буфера"
-          data-i18n-title="input.paste"
-        >
-          <i class="fas fa-paste"></i>
-        </button>
-        <button
-          id="clear-url"
-          type="button"
-          class="clear-button hidden"
-          aria-label="Очистить поле URL"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Очистить"
-          data-i18n-title="input.clear"
-        >
-          &times;
-        </button>
-        <button
-          id="select-folder"
-          type="button"
-          class="folder-button"
-          aria-label="Выбор папки"
-          data-i18n-aria="input.folder"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Выбор папки"
-          data-i18n-title="input.folder"
-        >
-          <i class="fas fa-folder-open"></i>
-        </button>
+    <div class="url-entry-shell">
+      <div class="url-input-wrapper">
+        <div class="url-input-main">
+          <div class="url-input-leading">
+            <button
+              type="button"
+              class="url-input-leading__icon url-source-link"
+              id="url-source-link"
+              aria-label="Открыть источник"
+              data-i18n-aria="input.url.openSource"
+              title="Открыть источник"
+              data-i18n-title="input.url.openSource"
+            >
+              <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
+            </button>
+            <span class="url-input-leading__label" data-i18n="input.url.label">URL</span>
+          </div>
+
+          <div class="url-input-field">
+            <input
+              type="text"
+              id="url"
+              placeholder="Введите URL видео или аудио"
+              aria-label="Введите URL видео или аудио"
+              data-i18n-placeholder="input.url.placeholder"
+              data-i18n-aria="input.url.aria"
+            />
+            <span
+              id="url-preview-spinner"
+              class="url-preview-spinner hidden"
+              aria-hidden="true"
+              title="Загрузка превью"
+              data-i18n-title="input.url.preview.loading"
+            >
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            </span>
+          </div>
+
+          <div class="button-grid" aria-label="Действия поля URL" data-i18n-aria="input.url.actions">
+            <button
+              id="paste-url"
+              type="button"
+              class="paste-button hidden"
+              aria-label="Вставить из буфера"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Вставить из буфера"
+              data-i18n-title="input.paste"
+            >
+              <i class="fas fa-paste"></i>
+              <span data-i18n="input.url.action.paste">Вставить</span>
+            </button>
+            <button
+              id="clear-url"
+              type="button"
+              class="clear-button hidden"
+              aria-label="Очистить поле URL"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Очистить"
+              data-i18n-title="input.clear"
+            >
+              <i class="fa-solid fa-xmark"></i>
+              <span data-i18n="input.url.action.clear">Очистить</span>
+            </button>
+            <button
+              id="select-folder"
+              type="button"
+              class="folder-button"
+              aria-label="Выбор папки"
+              data-i18n-aria="input.folder"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Выбор папки"
+              data-i18n-title="input.folder"
+            >
+              <i class="fas fa-folder-open"></i>
+              <span data-i18n="input.url.action.folder">Папка</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="url-input-service-row">
+          <div class="url-input-statusline">
+            <span class="url-input-statusline__dot" aria-hidden="true"></span>
+            <span id="url-helper-text" class="url-helper-text" data-i18n="input.url.helper">
+              Вставьте ссылку или перетащите её сюда
+            </span>
+          </div>
+          <div class="url-input-shortcuts" aria-hidden="true">
+            <span class="url-shortcut-chip" data-i18n="input.url.shortcut.enter">Enter</span>
+            <span class="url-shortcut-chip" data-i18n="input.url.shortcut.queue">Shift+Enter</span>
+            <span class="url-shortcut-chip" data-i18n="input.url.shortcut.audio">Alt+Enter</span>
+          </div>
+        </div>
       </div>
+      <div id="url-inline-error" class="url-inline-error hidden" role="status" aria-live="polite"></div>
     </div>
-    <div id="url-inline-error" class="url-inline-error hidden" role="status" aria-live="polite"></div>
     <!-- Preview -->
     <div id="preview-card" class="preview-card" style="display: none">
-      <img
-        id="preview-thumb"
-        alt="Превью"
-        data-i18n-alt="preview.alt"
-        loading="lazy"
-        style="display: none; max-height: 80px; border-radius: 6px; margin-right: 8px"
-      />
+      <div class="preview-media">
+        <img
+          id="preview-thumb"
+          alt="Превью"
+          data-i18n-alt="preview.alt"
+          loading="lazy"
+          style="display: none"
+        />
+      </div>
       <div class="preview-meta">
-        <div id="preview-title" class="preview-title" style="font-weight: 600"></div>
+        <div class="preview-kicker" data-i18n="input.url.preview.kicker">Предпросмотр</div>
+        <div id="preview-title" class="preview-title"></div>
         <small id="preview-duration" class="muted"></small>
       </div>
     </div>

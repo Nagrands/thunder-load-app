@@ -3,21 +3,44 @@
 const buildDom = () => {
   document.body.innerHTML = `
     <div class="input-container">
-      <div class="url-input-wrapper">
-        <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
-        <span id="url-preview-spinner" class="url-preview-spinner hidden"></span>
-        <input id="url" type="text" />
-        <div class="button-grid">
-          <button id="paste-url" class="paste-button hidden"></button>
-          <button id="clear-url" class="clear-button hidden"></button>
-          <button id="select-folder" class="folder-button"></button>
+      <div class="url-entry-shell">
+        <div class="url-input-wrapper">
+          <div class="url-input-main">
+            <div class="url-input-leading">
+              <button id="url-source-link" class="url-input-leading__icon" type="button">
+                <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
+              </button>
+              <span class="url-input-leading__label">URL</span>
+            </div>
+            <div class="url-input-field">
+              <input id="url" type="text" />
+              <span id="url-preview-spinner" class="url-preview-spinner hidden"></span>
+            </div>
+            <div class="button-grid">
+              <button id="paste-url" class="paste-button hidden"></button>
+              <button id="clear-url" class="clear-button hidden"></button>
+              <button id="select-folder" class="folder-button"></button>
+            </div>
+          </div>
+          <div class="url-input-service-row">
+            <div class="url-input-statusline">
+              <span class="url-input-statusline__dot"></span>
+              <span id="url-helper-text" class="url-helper-text"></span>
+            </div>
+            <div class="url-input-shortcuts"></div>
+          </div>
         </div>
+        <div id="url-inline-error" class="url-inline-error hidden"></div>
       </div>
-      <div id="url-inline-error" class="url-inline-error hidden"></div>
       <div id="preview-card" style="display:none;">
-        <img id="preview-thumb" style="display:none;" />
-        <div id="preview-title"></div>
-        <small id="preview-duration"></small>
+        <div class="preview-media">
+          <img id="preview-thumb" style="display:none;" />
+        </div>
+        <div class="preview-meta">
+          <div class="preview-kicker"></div>
+          <div id="preview-title"></div>
+          <small id="preview-duration"></small>
+        </div>
       </div>
     </div>
     <button id="download-button"></button>
@@ -38,6 +61,9 @@ const getState = () => ({
   previewCard: document.getElementById("preview-card"),
   spinner: document.getElementById("url-preview-spinner"),
   downloadBtn: document.getElementById("download-button"),
+  helperText: document.getElementById("url-helper-text"),
+  container: document.querySelector(".input-container"),
+  sourceLink: document.getElementById("url-source-link"),
 });
 
 describe("urlInputHandler", () => {
@@ -61,6 +87,18 @@ describe("urlInputHandler", () => {
       }));
       jest.doMock("../i18n", () => ({
         t: (key, vars = {}) => {
+          if (key === "input.url.helper") {
+            return "Вставьте ссылку или перетащите её сюда";
+          }
+          if (key === "input.url.helper.loading") {
+            return "Получаем превью и проверяем ссылку…";
+          }
+          if (key === "input.url.helper.valid") {
+            return "Ссылка распознана. Нажмите Enter для загрузки.";
+          }
+          if (key === "input.url.helper.drag") {
+            return "Отпустите ссылку, чтобы вставить её в поле";
+          }
           if (key === "input.url.error.invalidOrUnsupported") {
             return "Проверьте ссылку: нужен корректный URL поддерживаемого источника.";
           }
@@ -94,6 +132,9 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.duration") {
             return `Длительность: ${vars.duration}`;
           }
+          if (key === "input.url.preview.kicker") {
+            return "Предпросмотр";
+          }
           if (key === "input.url.preview.addAll") {
             return `Добавить все (${vars.count})`;
           }
@@ -123,6 +164,7 @@ describe("urlInputHandler", () => {
     updateButtonStateMock = jest.fn();
     getVideoInfoMock = jest.fn().mockResolvedValue({ success: true });
     window.electron = {
+      invoke: jest.fn(),
       ipcRenderer: { invoke: getVideoInfoMock },
     };
     Object.defineProperty(navigator, "clipboard", {
@@ -227,18 +269,21 @@ describe("urlInputHandler", () => {
   });
 
   test("shows preview spinner while waiting and fetching preview", async () => {
-    const { input, spinner, wrapper } = getState();
+    const { input, spinner, wrapper, helperText, container } = getState();
     input.value = "https://example.com/video";
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
     expect(wrapper.classList.contains("is-preview-loading")).toBe(true);
+    expect(container.classList.contains("is-preview-loading")).toBe(true);
     expect(spinner.classList.contains("hidden")).toBe(false);
+    expect(helperText.textContent).toContain("Получаем превью");
 
     jest.advanceTimersByTime(600);
     await flushPromises();
 
     expect(getVideoInfoMock).toHaveBeenCalled();
     expect(wrapper.classList.contains("is-preview-loading")).toBe(false);
+    expect(container.classList.contains("is-preview-loading")).toBe(false);
     expect(spinner.classList.contains("hidden")).toBe(true);
   });
 
@@ -276,25 +321,64 @@ describe("urlInputHandler", () => {
     expect(wrapper.classList.contains("is-invalid")).toBe(false);
   });
 
-  test("keeps current paste/clear visibility behavior", () => {
-    const { input, clearBtn, pasteBtn } = getState();
+  test("keeps current paste/clear visibility behavior and shell states", () => {
+    const { input, clearBtn, pasteBtn, wrapper, container, helperText } = getState();
 
     input.value = "https://example.com";
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(clearBtn.classList.contains("hidden")).toBe(false);
     expect(pasteBtn.classList.contains("hidden")).toBe(true);
+    expect(wrapper.classList.contains("has-value")).toBe(true);
+    expect(container.classList.contains("has-value")).toBe(true);
+    expect(helperText.textContent).toContain("Получаем превью");
 
     clearBtn.click();
     expect(input.value).toBe("");
     expect(clearBtn.classList.contains("hidden")).toBe(true);
     expect(pasteBtn.classList.contains("hidden")).toBe(false);
+    expect(wrapper.classList.contains("is-empty")).toBe(true);
+    expect(container.classList.contains("is-empty")).toBe(true);
   });
 
   test("adds and removes drag-over class for drag events", () => {
-    const { wrapper } = getState();
+    const { wrapper, container, helperText } = getState();
     wrapper.dispatchEvent(new Event("dragenter", { bubbles: true }));
     expect(wrapper.classList.contains("drag-over")).toBe(true);
+    expect(container.classList.contains("drag-over")).toBe(true);
+    expect(helperText.textContent).toContain("Отпустите ссылку");
     wrapper.dispatchEvent(new Event("dragleave", { bubbles: true }));
     expect(wrapper.classList.contains("drag-over")).toBe(false);
+    expect(container.classList.contains("drag-over")).toBe(false);
+  });
+
+  test("marks shell as having preview when preview data is rendered", async () => {
+    const { input, wrapper, container, previewCard } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    input.value = "https://example.com/video";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(previewCard.style.display).not.toBe("none");
+    expect(wrapper.classList.contains("has-preview")).toBe(true);
+    expect(container.classList.contains("has-preview")).toBe(true);
+  });
+
+  test("opens current source URL when clicking the source icon button", async () => {
+    const { input, sourceLink } = getState();
+    input.value = "youtube.com/watch?v=test";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    sourceLink.click();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-external-link",
+      "https://youtube.com/watch?v=test",
+    );
   });
 });
