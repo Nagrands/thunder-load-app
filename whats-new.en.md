@@ -74,3 +74,4 @@
 | The hint below the URL field is calmer now | The top of the Downloader takes less vertical space and draws less attention away from the selected mode |
 | The quick modes block is simpler now | The Downloader now keeps only the clearest quick actions in the URL area: video, audio only, and queue |
 | Quick modes now appear only for recognized links | When the URL is empty or invalid, extra mode buttons stay hidden until the source is recognized |
+| The download button is more compact and easier to notice | The main action at the top of the Downloader now feels more deliberate and stands out more clearly from the side buttons |
