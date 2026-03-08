@@ -33,3 +33,5 @@
 | Downloader tools status is more consistent | Status and fallback messages in the dependency panel now behave more predictably |
 | Tools screen is more polished | Launcher labels now follow the selected language more reliably, and the File Sorter how-to modal behaves more consistently |
 | Tools UI is more consistent | Card labels, helper modals, and in-screen hints now mix languages less often when the Tools screen opens |
+| Downloader UI is more consistent | The Downloader header and dependency status panel now show fewer English fallback labels before the chosen language is applied |
+| Backup UI is more consistent | The Backup header, controls, and profile management modal now follow the selected language more reliably from the first render |

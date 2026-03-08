@@ -109,20 +109,20 @@ export default function renderBackup() {
         <div class="title">
           <i class="fa-solid fa-database"></i>
           <div class="title-content">
-            <h1 class="wg-text-gradient" data-i18n="backup.title">Backup Manager</h1>
-            <p class="subtitle" data-i18n="backup.subtitle">Резервное копирование файлов и папок</p>
+            <h1 class="wg-text-gradient" data-i18n="backup.title">${tb("title")}</h1>
+            <p class="subtitle" data-i18n="backup.subtitle">${tb("subtitle")}</p>
           </div>
         </div>
         <div class="backup-header-right" id="backup-header-right"></div>
       </header>
       <div class="wg-glass">
 
-      <div id="bk-toolbar" class="wg-block" aria-label="Управление профилями" data-i18n-aria="backup.toolbar.aria">
+      <div id="bk-toolbar" class="wg-block" aria-label="${tb("toolbar.aria")}" data-i18n-aria="backup.toolbar.aria">
         <div id="bk-progress-container" class="bk-progress-container">
           <div class="bk-progress">
             <div class="bk-progress-bar" style="width: 0%"></div>
             <div class="bk-progress-content">
-              <span class="bk-progress-text primary" data-i18n="backup.progress.running">Выполнение резервного копирования...</span>
+              <span class="bk-progress-text primary" data-i18n="backup.progress.running">${tb("progress.running")}</span>
               <div class="bk-progress-stats">
                 <span class="stat">
                   <i class="fa-solid fa-play-circle"></i>
@@ -150,7 +150,7 @@ export default function renderBackup() {
 
         <h1 class="section-heading">
           <div class="bk-heading-control">
-            <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Управление профилями" data-i18n-title="backup.manage.title">
+            <button id="bk-open-delete-modal" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("manage.title")}" data-i18n-title="backup.manage.title">
               <i class="fa-solid fa-list-check"></i>
             </button>
           </div>
@@ -158,8 +158,8 @@ export default function renderBackup() {
           <div class="bk-heading-search">
             <div class="bk-search-container">
               <i class="fa-solid fa-magnifying-glass bk-search-icon"></i>
-              <input type="text" id="bk-filter" placeholder="Поиск профиля, тега, пути..." class="input" data-i18n-placeholder="backup.search.placeholder" />
-              <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить поиск" data-i18n-title="backup.search.clear">
+              <input type="text" id="bk-filter" placeholder="${tb("search.placeholder")}" class="input" data-i18n-placeholder="backup.search.placeholder" />
+              <button type="button" id="bk-clear-filter" class="history-action-button" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("search.clear")}" data-i18n-title="backup.search.clear">
                 <i class="fa-solid fa-times"></i>
               </button>
             </div>
@@ -167,37 +167,37 @@ export default function renderBackup() {
           </div>
 
           <div class="bk-actions">
-            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать профиль" data-i18n-title="backup.action.create">
+            <button id="bk-add" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.create")}" data-i18n-title="backup.action.create">
               <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Запустить для выбранных" data-i18n-title="backup.action.runSelected" disabled style="display:none;">
+            <button id="bk-run-selected" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.runSelected")}" data-i18n-title="backup.action.runSelected" disabled style="display:none;">
               <i class="fa-solid fa-play"></i>
               <span class="bk-badge" id="bk-run-count" style="display:none">0</span>
             </button>
-            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить выбранные" data-i18n-title="backup.action.deleteSelected" disabled>
+            <button id="bk-del" class="btn btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("action.deleteSelected")}" data-i18n-title="backup.action.deleteSelected" disabled>
               <i class="fa-solid fa-trash"></i>
               <span class="bk-badge" id="bk-del-count" style="display:none">0</span>
             </button>
           </div>
 
-          <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="Отфильтровано / всего" data-i18n-title="backup.count.title">0/0</span>
+          <span id="bk-count" class="bk-count" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("count.title")}" data-i18n-title="backup.count.title">0/0</span>
         </h1>
 
         <div class="bk-filters-advanced">
           <label class="bk-filter-control">
-            <span class="label" data-i18n="backup.filter.archive.label">Тип архива</span>
+            <span class="label" data-i18n="backup.filter.archive.label">${tb("filter.archive.label")}</span>
             <select id="bk-filter-archive" class="input input-sm">
-              <option value="all" data-i18n="backup.filter.archive.all">Все</option>
+              <option value="all" data-i18n="backup.filter.archive.all">${tb("filter.archive.all")}</option>
               <option value="zip">ZIP</option>
               <option value="tar.gz">TAR.GZ</option>
             </select>
           </label>
           <div class="bk-pagination">
-            <button id="bk-page-prev" class="history-action-button" title="Предыдущая страница" data-i18n-title="backup.pagination.prev">
+            <button id="bk-page-prev" class="history-action-button" title="${tb("pagination.prev")}" data-i18n-title="backup.pagination.prev">
               <i class="fa-solid fa-chevron-left"></i>
             </button>
             <span id="bk-page-info" class="text-xs muted">1 / 1</span>
-            <button id="bk-page-next" class="history-action-button" title="Следующая страница" data-i18n-title="backup.pagination.next">
+            <button id="bk-page-next" class="history-action-button" title="${tb("pagination.next")}" data-i18n-title="backup.pagination.next">
               <i class="fa-solid fa-chevron-right"></i>
             </button>
             <select id="bk-page-size" class="input input-sm bk-page-size">
@@ -214,16 +214,16 @@ export default function renderBackup() {
         <details class="wg-log-block">
           <summary>
             <i class="fa-solid fa-terminal"></i>
-            <span data-i18n="backup.log.title">Лог активности</span>
+            <span data-i18n="backup.log.title">${tb("log.title")}</span>
           </summary>
-          <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="backup.log.actions.aria">
-            <button id="bk-log-copy" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог" data-i18n-title="backup.log.copy">
+          <div class="log-actions" aria-label="${tb("log.actions.aria")}" data-i18n-aria="backup.log.actions.aria">
+            <button id="bk-log-copy" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("log.copy")}" data-i18n-title="backup.log.copy">
               <i class="fa-solid fa-copy"></i>
             </button>
-            <button id="bk-log-export" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="backup.log.export">
+            <button id="bk-log-export" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("log.export")}" data-i18n-title="backup.log.export">
               <i class="fa-solid fa-download"></i>
             </button>
-            <button id="bk-log-clear" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="backup.log.clear">
+            <button id="bk-log-clear" type="button" class="log-action-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="${tb("log.clear")}" data-i18n-title="backup.log.clear">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -317,16 +317,16 @@ export default function renderBackup() {
     <div class="modal-content bk-modal bk-manage-modal">
       <div class="modal-header">
         <div>
-          <h2><i class="fa-solid fa-list-check"></i> <span data-i18n="backup.manage.title">Управление профилями</span></h2>
-          <p class="modal-subtitle" data-i18n="backup.manage.subtitle">Переключайте профили, чтобы удалить или запустить несколько за раз.</p>
+          <h2><i class="fa-solid fa-list-check"></i> <span data-i18n="backup.manage.title">${tb("manage.title")}</span></h2>
+          <p class="modal-subtitle" data-i18n="backup.manage.subtitle">${tb("manage.subtitle")}</p>
         </div>
-        <button class="close-modal bk-close" aria-label="Закрыть" data-i18n-aria="backup.common.close">&times;</button>
+        <button class="close-modal bk-close" aria-label="${tb("common.close")}" data-i18n-aria="backup.common.close">&times;</button>
       </div>
       <div class="modal-body">
         <div class="bk-manage-toolbar">
           <label class="checkbox-label" style="gap:.5rem">
             <input type="checkbox" id="bk-del-select-all">
-            <span data-i18n="backup.manage.selectAll">Выбрать все</span>
+            <span data-i18n="backup.manage.selectAll">${tb("manage.selectAll")}</span>
           </label>
           <span id="bk-manage-counter" class="muted">0 выбрано</span>
         </div>
@@ -335,10 +335,10 @@ export default function renderBackup() {
       <div class="modal-footer">
         <div class="modal-footer-actions">
           <button type="button" id="bk-confirm-run" class="btn btn-primary" disabled>
-            <i class="fa-solid fa-play"></i> <span data-i18n="backup.manage.runSelected">Запустить выбранные</span>
+            <i class="fa-solid fa-play"></i> <span data-i18n="backup.manage.runSelected">${tb("manage.runSelected")}</span>
           </button>
           <button type="button" id="bk-confirm-delete" class="btn btn-danger" disabled>
-            <i class="fa-solid fa-trash"></i> <span data-i18n="backup.manage.deleteSelected">Удалить выбранные</span>
+            <i class="fa-solid fa-trash"></i> <span data-i18n="backup.manage.deleteSelected">${tb("manage.deleteSelected")}</span>
           </button>
         </div>
       </div>

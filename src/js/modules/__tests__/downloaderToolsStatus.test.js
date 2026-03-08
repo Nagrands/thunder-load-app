@@ -20,6 +20,12 @@ jest.mock("../i18n.js", () => ({
       "tools.status.error": "Tools check failed",
       "tools.summary.ok": "All dependencies are installed",
       "tools.summary.missingList": "Missing: {items}",
+      "downloader.tools.checking": "Checking tools…",
+      "downloader.tools.hideTitle": "Hide status",
+      "downloader.tools.hideAria": "Hide tools status",
+      "downloader.tools.reinstallTitle":
+        "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
+      "downloader.tools.reinstall": "Reinstall",
     };
     let text = map[key] || key;
     Object.entries(vars).forEach(([name, value]) => {
@@ -34,7 +40,7 @@ const buildDom = () => {
     <div class="downloader-tools-status">
       <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
         <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
-        <span id="dl-tools-text">Checking tools…</span>
+        <span id="dl-tools-text" data-i18n="downloader.tools.checking">Checking tools…</span>
         <div class="tool-badges" id="dl-tools-badges"></div>
       </div>
       <button
@@ -42,7 +48,9 @@ const buildDom = () => {
         id="dl-tools-toggle"
         title="Hide status"
         data-bs-toggle="tooltip"
+        data-i18n-title="downloader.tools.hideTitle"
         aria-label="Hide tools status"
+        data-i18n-aria="downloader.tools.hideAria"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
@@ -51,9 +59,10 @@ const buildDom = () => {
         id="dl-tools-reinstall"
         title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)"
         data-bs-toggle="tooltip"
+        data-i18n-title="downloader.tools.reinstallTitle"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span>Reinstall</span>
+        <span data-i18n="downloader.tools.reinstall">Reinstall</span>
       </button>
     </div>
   `;
@@ -107,15 +116,15 @@ describe("downloaderToolsStatus", () => {
      "<div class="downloader-tools-status">
            <div class="status-line is-ok" id="dl-tools-status" role="status" aria-live="polite">
              <i class="fa-solid fa-check" id="dl-tools-icon" aria-hidden="true"></i>
-             <span id="dl-tools-text">Tools are ready</span>
+             <span id="dl-tools-text" data-i18n="downloader.tools.checking">Tools are ready</span>
              <div class="tool-badges" id="dl-tools-badges"><span class="tool-badge ok" data-tool="yt"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">yt-dlp</span> <span class="tool-badge__version">2024.01.01</span></span><span class="tool-badge ok" data-tool="ff"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">ffmpeg</span> <span class="tool-badge__version">7.1</span></span><span class="tool-badge ok" data-tool="deno"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">Deno</span> <span class="tool-badge__version">2.0.0</span></span></div>
            </div>
-           <button type="button" id="dl-tools-toggle" title="Hide status" data-bs-toggle="tooltip" aria-label="Hide tools status">
+           <button type="button" id="dl-tools-toggle" title="Hide status" data-bs-toggle="tooltip" data-i18n-title="downloader.tools.hideTitle" aria-label="Hide tools status" data-i18n-aria="downloader.tools.hideAria">
              <i class="fa-solid fa-xmark"></i>
            </button>
-           <button type="button" id="dl-tools-reinstall" title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)" data-bs-toggle="tooltip" class="hidden">
+           <button type="button" id="dl-tools-reinstall" title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)" data-bs-toggle="tooltip" data-i18n-title="downloader.tools.reinstallTitle" class="hidden">
              <i class="fa-solid fa-arrow-rotate-right"></i>
-             <span>Reinstall</span>
+             <span data-i18n="downloader.tools.reinstall">Reinstall</span>
            </button>
          </div>"
     `);

@@ -140,6 +140,33 @@ describe("backupView performance behaviors", () => {
     expect(headerRight?.contains(hints)).toBe(true);
   });
 
+  test("uses localized backup header and toolbar strings in initial markup", async () => {
+    setupBootstrapTooltipMock();
+    setupWindowElectronMock();
+    const view = renderBackup();
+    document.body.appendChild(view);
+    await flush();
+
+    expect(view.querySelector("[data-i18n='backup.title']")?.textContent).toBe(
+      "backup.title",
+    );
+    expect(
+      view.querySelector("[data-i18n='backup.subtitle']")?.textContent,
+    ).toBe("backup.subtitle");
+    expect(view.querySelector("#bk-toolbar")?.getAttribute("aria-label")).toBe(
+      "backup.toolbar.aria",
+    );
+    expect(
+      view.querySelector("#bk-open-delete-modal")?.getAttribute("title"),
+    ).toBe("backup.manage.title");
+    expect(view.querySelector("#bk-filter")?.getAttribute("placeholder")).toBe(
+      "backup.search.placeholder",
+    );
+    expect(view.querySelector("#bk-log-copy")?.getAttribute("title")).toBe(
+      "backup.log.copy",
+    );
+  });
+
   test("large backup list uses no-animation mode on rerenders", async () => {
     setupBootstrapTooltipMock();
     setupWindowElectronMock(makePrograms(30));

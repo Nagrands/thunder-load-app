@@ -1,5 +1,7 @@
 // src/js/modules/views/downloaderView.js
 
+import { t } from "../i18n.js";
+
 /**
  * Build a glassy layout for the Загрузчик tab using the existing
  * UI elements and IDs (so all current logic keeps working).
@@ -39,9 +41,9 @@ export default function renderDownloader(wrapper) {
       <div class="title">
         <i class="fa-solid fa-download"></i>
         <div class="title-content">
-          <h1 class="wg-text-gradient" data-i18n="downloader.title">Downloader</h1>
+          <h1 class="wg-text-gradient" data-i18n="downloader.title">${t("downloader.title")}</h1>
           <p class="subtitle" data-i18n="downloader.subtitle">
-            Download video and audio from various sources
+            ${t("downloader.subtitle")}
           </p>
         </div>
       </div>
@@ -66,7 +68,7 @@ export default function renderDownloader(wrapper) {
           class="downloader-tools-status__text"
           data-i18n="downloader.tools.checking"
         >
-          Checking tools…
+          ${t("downloader.tools.checking")}
         </span>
         <div
           class="tool-badges downloader-tools-status__badges"
@@ -77,10 +79,10 @@ export default function renderDownloader(wrapper) {
         type="button"
         class="downloader-tools-status__toggle"
         id="dl-tools-toggle"
-        title="Hide status"
+        title="${t("downloader.tools.hideTitle")}"
         data-bs-toggle="tooltip"
         data-i18n-title="downloader.tools.hideTitle"
-        aria-label="Hide tools status"
+        aria-label="${t("downloader.tools.hideAria")}"
         data-i18n-aria="downloader.tools.hideAria"
       >
         <i class="fa-solid fa-xmark"></i>
@@ -89,12 +91,12 @@ export default function renderDownloader(wrapper) {
         type="button"
         class="downloader-tools-status__reinstall"
         id="dl-tools-reinstall"
-        title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)"
+        title="${t("downloader.tools.reinstallTitle")}"
         data-bs-toggle="tooltip"
         data-i18n-title="downloader.tools.reinstallTitle"
       >
         <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span data-i18n="downloader.tools.reinstall">Reinstall</span>
+        <span data-i18n="downloader.tools.reinstall">${t("downloader.tools.reinstall")}</span>
       </button>
     `;
 
