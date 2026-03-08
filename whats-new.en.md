@@ -70,3 +70,7 @@
 | Retrying all failed jobs is easier now | There is now a dedicated bulk retry button separate from the safer transient-failures retry action |
 | Playlist previews are clearer now | Before adding a playlist, you can now see the item count and total duration directly in the preview card |
 | Playlist previews make the next step clearer now | The preview card now lets you choose whether to download the current item or queue the entire playlist before you start |
+| Quick download modes now sit inside the URL block | The top of the Downloader feels more unified, without a separate presets strip below the link field |
+| The hint below the URL field is calmer now | The top of the Downloader takes less vertical space and draws less attention away from the selected mode |
+| The quick modes block is simpler now | The Downloader now keeps only the clearest quick actions in the URL area: video, audio only, and queue |
+| Quick modes now appear only for recognized links | When the URL is empty or invalid, extra mode buttons stay hidden until the source is recognized |

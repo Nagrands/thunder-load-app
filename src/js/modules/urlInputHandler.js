@@ -15,6 +15,7 @@ const sourceLinkButton = document.getElementById("url-source-link");
 const urlErrorEl = document.getElementById("url-inline-error");
 const previewSpinner = document.getElementById("url-preview-spinner");
 const helperTextEl = document.getElementById("url-helper-text");
+const presetContainer = document.querySelector(".url-input-presets");
 const presetButtons = Array.from(
   document.querySelectorAll("[data-url-preset]"),
 );
@@ -45,6 +46,13 @@ function initUrlInputHandler() {
     helperTextEl.textContent = t(messageKey, vars);
   };
 
+  const syncPresetVisibility = (validation = getValidationState()) => {
+    if (!presetContainer) return;
+    const visible = validation.hasValue && validation.isValid;
+    presetContainer.classList.toggle("is-hidden", !visible);
+    presetContainer.setAttribute("aria-hidden", visible ? "false" : "true");
+  };
+
   const syncPresetState = (preset = currentPreset) => {
     currentPreset = preset || "video";
     presetButtons.forEach((button) => {
@@ -58,6 +66,7 @@ function initUrlInputHandler() {
     const normalized = normalizeUrlInput(value).trim();
     setStateClass("is-empty", normalized === "");
     setStateClass("has-value", normalized !== "");
+    syncPresetVisibility(getValidationState(normalized));
     if (sourceLinkButton) {
       sourceLinkButton.disabled = !(
         normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
@@ -186,6 +195,7 @@ function initUrlInputHandler() {
     if (!showError || validation.isValid || !hasInteracted) {
       setHelperText(getIdleHelperKey());
     }
+    syncPresetVisibility(validation);
     updateButtonState();
     return validation;
   };
