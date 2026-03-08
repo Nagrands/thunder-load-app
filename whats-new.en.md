@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Improved parallel download stability | The queue now reacts more reliably to concurrent download limit changes and is less likely to try starting the same task twice |
 | Simplified downloader hotkeys | The top URL field no longer has a separate `Alt+Enter` action, while `Shift+Enter` still queues the selected option through the quality dialog |
 | Fixed the default theme reset label | Settings now show the normal theme name again instead of `system` after reset |
 | Fixed toast formatting in Settings | Notification text now renders correctly without visible HTML tags |

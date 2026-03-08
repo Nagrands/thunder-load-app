@@ -509,8 +509,8 @@
 }
 
 .history-filter-pill {
-  background: rgba(8, 14, 27, 0.65);
-  padding: 12px;
+  background: transparent;
+  padding: 4px 12px;
   margin: 2px;
   min-height: 40px;
   min-width: 0;
@@ -640,7 +640,7 @@
     .bk-select-label {
       min-width: 0;
       font-size: 13px;
-      font-weight: 640;
+      font-weight: 500;
       letter-spacing: 0.01em;
       color: rgba(233, 242, 255, 0.94);
     }
@@ -959,8 +959,7 @@
 
 .history-row__name {
   font-size: 0.98rem;
-  font-weight: 650;
-  line-height: 1.25;
+  // font-weight: 650;
   color: var(--color-highlight);
   min-width: 120px;
   flex: 1 1 auto;
@@ -1707,7 +1706,7 @@
 
 .history-area {
   margin: 20px auto;
-  background: var(--color-bg-main);
+  background-color: var(--color-url-bg);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
 }
@@ -1737,7 +1736,7 @@
   width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  background: #1a2030;
+  background: var(--color-url-bg);
   overflow: visible;
 }
 
@@ -1808,7 +1807,7 @@
 }
 
 .history-count-pill #total-downloads {
-  color: #47a3ff;
+  color: var(--color-accent);
 }
 
 .history-action-segment--more .history-action-button {
@@ -1946,8 +1945,6 @@
 
 .history-filter-pill {
   border-radius: 8px;
-  background: transparent;
-  border: 0;
 }
 
 .history-filter-pill:last-child {
@@ -2065,7 +2062,6 @@
 
 .history-row__name {
   font-size: 1.01rem;
-  font-weight: 700;
   line-height: 1.2;
   color: #e2e8f0;
 }

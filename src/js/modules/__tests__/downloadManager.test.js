@@ -2407,7 +2407,18 @@ describe("downloadManager parallel pool", () => {
       window.electron = {
         invoke: jest.fn((channel, url) => {
           if (channel === "download-video") {
-            return map.get(url).promise.then((filePath) => ({
+            const entry = map.get(url);
+            if (!entry) {
+              return Promise.resolve({
+                fileName: "file.mp4",
+                filePath: "/tmp/fallback.mp4",
+                quality: "Source",
+                actualQuality: "Source",
+                sourceUrl: url,
+                cancelled: false,
+              });
+            }
+            return entry.promise.then((filePath) => ({
               fileName: "file.mp4",
               filePath,
               quality: "Source",
@@ -2483,6 +2494,240 @@ describe("downloadManager parallel pool", () => {
       second.resolve("/tmp/b.mp4");
       third.resolve("/tmp/c.mp4");
       await p2;
+      await Promise.resolve();
+    });
+  });
+
+  it("starts an extra pending task when parallel limit increases", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const activeUrl = "https://example.com/parallel-limit-active";
+      const pendingUrl = "https://example.com/parallel-limit-pending";
+      const first = deferred();
+      const second = deferred();
+      const map = new Map([
+        [activeUrl, first],
+        [pendingUrl, second],
+      ]);
+
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            const entry = map.get(url);
+            if (!entry) {
+              return Promise.resolve({
+                fileName: "file.mp4",
+                filePath: "/tmp/fallback.mp4",
+                quality: "Source",
+                actualQuality: "Source",
+                sourceUrl: url,
+                cancelled: false,
+              });
+            }
+            return entry.promise.then((filePath) => ({
+              fileName: "file.mp4",
+              filePath,
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: url,
+              cancelled: false,
+            }));
+          }
+          if (channel === "get-icon-path") return Promise.resolve("");
+          if (channel === "cache-history-preview") {
+            return Promise.resolve({ success: false });
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: {
+          invoke: jest.fn(async (_channel, url) => ({
+            success: true,
+            title: `Title ${url}`,
+          })),
+        },
+        on: jest.fn(),
+      };
+
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+
+      const { state } = require("../state");
+      const { initDownloadButton, initiateDownload } = require("../downloadManager");
+
+      initDownloadButton();
+      state.maxParallelDownloads = 1;
+      state.downloadQueue = [{ url: pendingUrl, quality: "Source" }];
+
+      const firstPromise = initiateDownload(activeUrl, "Source");
+      await Promise.resolve();
+
+      let downloadCalls = window.electron.invoke.mock.calls.filter(
+        ([channel, url]) => channel === "download-video" && url === activeUrl,
+      );
+      expect(downloadCalls).toHaveLength(1);
+
+      window.dispatchEvent(
+        new CustomEvent("download:parallel-limit-changed", {
+          detail: { limit: 2 },
+        }),
+      );
+      window.dispatchEvent(
+        new CustomEvent("download:parallel-limit-changed", {
+          detail: { limit: 2 },
+        }),
+      );
+      await Promise.resolve();
+
+      downloadCalls = window.electron.invoke.mock.calls.filter(
+        ([channel, url]) => channel === "download-video" && url === pendingUrl,
+      );
+      expect(downloadCalls).toHaveLength(1);
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "download-video",
+        pendingUrl,
+        "Source",
+        expect.stringMatching(/^job-/),
+      );
+
+      first.resolve("/tmp/a.mp4");
+      second.resolve("/tmp/b.mp4");
+      await firstPromise;
+      await Promise.resolve();
+    });
+  });
+
+  it("waits for active jobs to drain after parallel limit decreases", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const activeUrlA = "https://example.com/parallel-down-a";
+      const activeUrlB = "https://example.com/parallel-down-b";
+      const pendingUrl = "https://example.com/parallel-down-pending";
+      const first = deferred();
+      const second = deferred();
+      const third = deferred();
+      const map = new Map([
+        [activeUrlA, first],
+        [activeUrlB, second],
+        [pendingUrl, third],
+      ]);
+
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            const entry = map.get(url);
+            if (!entry) {
+              return Promise.resolve({
+                fileName: "file.mp4",
+                filePath: "/tmp/fallback.mp4",
+                quality: "Source",
+                actualQuality: "Source",
+                sourceUrl: url,
+                cancelled: false,
+              });
+            }
+            return entry.promise.then((filePath) => ({
+              fileName: "file.mp4",
+              filePath,
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: url,
+              cancelled: false,
+            }));
+          }
+          if (channel === "get-icon-path") return Promise.resolve("");
+          if (channel === "cache-history-preview") {
+            return Promise.resolve({ success: false });
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: {
+          invoke: jest.fn(async (_channel, url) => ({
+            success: true,
+            title: `Title ${url}`,
+          })),
+        },
+        on: jest.fn(),
+      };
+
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+
+      const { state } = require("../state");
+      const { initDownloadButton, initiateDownload } = require("../downloadManager");
+
+      initDownloadButton();
+      state.maxParallelDownloads = 2;
+      state.downloadQueue = [{ url: pendingUrl, quality: "Source" }];
+
+      const promiseA = initiateDownload(activeUrlA, "Source");
+      const promiseB = initiateDownload(activeUrlB, "Source");
+      await Promise.resolve();
+
+      window.dispatchEvent(
+        new CustomEvent("download:parallel-limit-changed", {
+          detail: { limit: 1 },
+        }),
+      );
+      await Promise.resolve();
+
+      let pendingCalls = window.electron.invoke.mock.calls.filter(
+        ([channel, url]) => channel === "download-video" && url === pendingUrl,
+      );
+      expect(pendingCalls).toHaveLength(0);
+
+      first.resolve("/tmp/a.mp4");
+      await promiseA;
+      await Promise.resolve();
+
+      pendingCalls = window.electron.invoke.mock.calls.filter(
+        ([channel, url]) => channel === "download-video" && url === pendingUrl,
+      );
+      expect(pendingCalls).toHaveLength(0);
+
+      second.resolve("/tmp/b.mp4");
+      await promiseB;
+      await Promise.resolve();
+
+      pendingCalls = window.electron.invoke.mock.calls.filter(
+        ([channel, url]) => channel === "download-video" && url === pendingUrl,
+      );
+      expect(pendingCalls).toHaveLength(1);
+
+      third.resolve("/tmp/c.mp4");
       await Promise.resolve();
     });
   });

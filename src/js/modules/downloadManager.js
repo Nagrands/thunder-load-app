@@ -114,6 +114,7 @@ let lastProgressRenderTs = 0;
 let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
+const queuePumpReservations = new Set();
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -1458,23 +1459,30 @@ function pumpDownloadPool(reason = "auto") {
   const activeCount = getActiveDownloadJobs(state).length;
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
+  const reservedSignatures = new Set([
+    ...getCurrentDownloadSignatures(),
+    ...queuePumpReservations,
+  ]);
   while (
     getActiveDownloadJobs(state).length < maxActive &&
     getPendingDownloadJobs(state).length > 0
   ) {
-    const next = getPendingDownloadJobs(state)[0];
+    const next = getPendingDownloadJobs(state).find((item) => {
+      const signature = getQueueSignature(item.url, item.quality);
+      return !reservedSignatures.has(signature);
+    });
     if (!next) break;
-    removeDownloadJob(
-      state,
-      (item) =>
-        item.status !== JOB_STATUS.running &&
-        getQueueSignature(item.url, item.quality) ===
-          getQueueSignature(next.url, next.quality),
-    );
+    const signature = getQueueSignature(next.url, next.quality);
+    reservedSignatures.add(signature);
+    queuePumpReservations.add(signature);
     started += 1;
-    initiateDownload(next.url, next.quality, {
-      fromQueue: true,
-      initialTitle: next.title || "",
+    Promise.resolve(
+      initiateDownload(next.url, next.quality, {
+        fromQueue: true,
+        initialTitle: next.title || "",
+      }),
+    ).finally(() => {
+      queuePumpReservations.delete(signature);
     });
   }
   if (started > 0) {
