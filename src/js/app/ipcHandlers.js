@@ -2671,14 +2671,26 @@ function setupIpcHandlers(dependencies) {
           quality,
           jobId,
         );
-        return { ...result, sourceUrl: normalizedUrl, jobId };
+        return { success: true, ...result, sourceUrl: normalizedUrl, jobId };
       } catch (error) {
         if (error.message === "Download cancelled") {
           return { cancelled: true, jobId };
-        } else {
-          notifyDownloadError(error);
-          throw error;
         }
+        const classified = classifyDownloadError(error);
+        if (classified.code !== "UNKNOWN") {
+          notifyDownloadError(error);
+          return {
+            success: false,
+            jobId,
+            sourceUrl: normalizedUrl,
+            message: classified.message,
+            errorCode: classified.code,
+            retryable: classified.retryable,
+            retryAfterMinutes: classified.retryAfterMinutes ?? null,
+          };
+        }
+        notifyDownloadError(error);
+        throw error;
       } finally {
         downloadState.activeDownloads.delete(jobId);
         downloadState.downloadInProgress =

@@ -1339,7 +1339,49 @@ function classifyYtDlpErrorMessage(message = "") {
     };
   }
   if (
-    /Sign in to confirm your age|Use --cookies-from-browser|cookies\.txt|login required|This video is private|Private video|members-only|Join this channel|Failed to parse JSON/i.test(
+    /ENOSPC|No space left on device|disk full|not enough space/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: "ERR_DOWNLOAD_DISK_FULL",
+      detail: "Недостаточно свободного места в папке загрузки.",
+    };
+  }
+  if (
+    /EACCES|EPERM|permission denied|access denied|operation not permitted/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: "ERR_DOWNLOAD_PERMISSION_DENIED",
+      detail: "Нет доступа к папке загрузки или целевому файлу.",
+    };
+  }
+  if (
+    /Sign in to confirm you.?re not a bot|captcha|verify you are human|human verification/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}CAPTCHA_REQUIRED`,
+      detail:
+        "Источник запросил проверку или подтверждение входа. Обновите cookies и повторите попытку.",
+    };
+  }
+  if (
+    /This video is private|Private video|members-only|Join this channel|channel members only/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}PRIVATE_CONTENT`,
+      detail:
+        "Видео доступно только владельцу, подписчикам или участникам канала.",
+    };
+  }
+  if (
+    /Sign in to confirm your age|Use --cookies-from-browser|cookies\.txt|login required|authentication required|Failed to parse JSON/i.test(
       normalized,
     )
   ) {

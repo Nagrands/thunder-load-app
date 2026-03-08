@@ -1543,6 +1543,92 @@ describe("downloadManager progress activity class", () => {
       consoleErrorSpy.mockRestore();
     });
   });
+
+  it("handles structured DOWNLOAD_VIDEO failures without relying on thrown Error", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "download-video") {
+            return {
+              success: false,
+              errorCode: "PRIVATE_CONTENT",
+              retryable: false,
+              message:
+                "Видео доступно только владельцу, подписчикам или участникам канала.",
+            };
+          }
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      const addNewEntryToHistory = jest.fn(async () => {});
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory,
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../validation", () => ({
+        isValidUrl: jest.fn(() => true),
+        isSupportedUrl: jest.fn(() => true),
+      }));
+      jest.doMock("../tooltipInitializer", () => ({
+        initTooltips: jest.fn(),
+      }));
+      const showToast = jest.fn();
+      jest.doMock("../toast", () => ({ showToast }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "ru"),
+        t: jest.fn((key) => {
+          const dict = {
+            "download.error.privateContent":
+              "Видео доступно только владельцу, подписчикам или участникам канала.",
+            "quality.custom": "Выбранный формат",
+          };
+          return dict[key] || key;
+        }),
+      }));
+      jest.doMock("../urlInputHandler", () => ({
+        hideUrlActionButtons: jest.fn(),
+      }));
+
+      const { initiateDownload } = require("../downloadManager");
+
+      await initiateDownload(
+        "https://www.youtube.com/watch?v=private-video",
+        "Source",
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        "Видео доступно только владельцу, подписчикам или участникам канала.",
+        "error",
+      );
+      expect(addNewEntryToHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          downloadStatus: "failed",
+          errorCode: "PRIVATE_CONTENT",
+          retryable: false,
+        }),
+      );
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });
 
 describe("downloadManager parallel pool", () => {

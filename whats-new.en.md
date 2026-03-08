@@ -43,3 +43,5 @@
 | Queue errors are easier to understand | Failed downloads now show the likely reason and whether the job can be retried automatically |
 | Download history now explains failures better | Failed attempts can now appear in history with the likely reason and whether manual action is needed before retrying |
 | Downloader error detection is more precise | The app now better distinguishes restricted access, bot verification, disk space issues, and folder permission errors |
+| Failure reasons are detected earlier | Access, disk space, private video, and bot-check issues are now recognized more accurately at the download stage itself |
+| Download failures are passed through more reliably | Internal handoff between the downloader and the UI now keeps the failure code and type more accurately instead of relying on message text alone |

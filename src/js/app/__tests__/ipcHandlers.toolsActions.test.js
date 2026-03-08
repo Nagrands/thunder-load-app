@@ -339,6 +339,86 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result.error).toContain("YouTube");
   });
 
+  test("get-video-info maps private content errors to PRIVATE_CONTENT", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_PRIVATE_CONTENT: members-only"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "PRIVATE_CONTENT",
+    });
+    expect(result.error).toContain("участникам");
+  });
+
+  test("get-video-info maps captcha errors to CAPTCHA_REQUIRED", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_CAPTCHA_REQUIRED: verify you are human"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "CAPTCHA_REQUIRED",
+    });
+    expect(result.error).toContain("проверку");
+  });
+
+  test("get-video-info maps disk errors to DISK_FULL", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_DOWNLOAD_DISK_FULL: no space left"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "DISK_FULL",
+    });
+    expect(result.error).toContain("свободного места");
+  });
+
+  test("get-video-info maps permission errors to PERMISSION_DENIED", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_DOWNLOAD_PERMISSION_DENIED: permission denied"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "PERMISSION_DENIED",
+    });
+    expect(result.error).toContain("Нет доступа");
+  });
+
   test("get-video-info maps rate limits with retryAfterMinutes", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");
@@ -1182,6 +1262,51 @@ describe("ipcHandlers download pool", () => {
       expect.stringContaining("Не найден ffmpeg"),
       "warning",
     );
+  });
+
+  test("DOWNLOAD_VIDEO returns structured classified error for known download failures", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const { getToolsVersions } = require("../toolsVersions");
+
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
+    });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Private video",
+      formats: [{ format_id: "best" }],
+      thumbnail: "",
+      duration: 0,
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_PRIVATE_CONTENT: members-only"),
+    );
+
+    initHandlers();
+    const result = await handlers[CHANNELS.DOWNLOAD_VIDEO](
+      { sender: { send: jest.fn() } },
+      "https://www.youtube.com/watch?v=private-video",
+      "Source",
+      "job-private",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "PRIVATE_CONTENT",
+      retryable: false,
+      jobId: "job-private",
+      sourceUrl: "https://www.youtube.com/watch?v=private-video",
+    });
+    expect(result.message).toContain("участникам");
   });
 
   test("STOP_DOWNLOAD cancels all active tokens", async () => {

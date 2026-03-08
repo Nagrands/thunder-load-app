@@ -133,6 +133,15 @@ const makeQueueUrlLabel = (url) => {
 };
 
 function getDownloadErrorDetails(error) {
+  if (error?.errorCode && typeof getDownloadErrorMetaByCode === "function") {
+    const meta = getDownloadErrorMetaByCode(error.errorCode);
+    return {
+      ...meta,
+      message: error?.message || meta.defaultMessage,
+      rawMessage: String(error?.message || ""),
+      retryAfterMinutes: error?.retryAfterMinutes ?? null,
+    };
+  }
   if (typeof classifyDownloadError === "function") {
     return classifyDownloadError(error);
   }
@@ -1256,6 +1265,40 @@ const downloadVideo = async (url, quality, options = {}) => {
   });
   const requestedDownloadKind = resolveDownloadKind(quality);
   try {
+    const response = await window.electron.invoke(
+      "download-video",
+      url,
+      quality,
+      jobId,
+    );
+
+    if (response?.cancelled) {
+      console.log("Загрузка отменена.", { jobId });
+      return { cancelled: true };
+    }
+
+    if (response?.success === false || response?.errorCode) {
+      const errorDetails = getDownloadErrorDetails(
+        response?.errorCode
+          ? {
+              message: `${response.errorCode}: ${response?.message || ""}`,
+              errorCode: response.errorCode,
+              retryable: response.retryable,
+            }
+          : response,
+      );
+      showToast(t(errorDetails.toastKey), "error");
+      return {
+        error: true,
+        message: response?.message || errorDetails.message || "",
+        errorCode: response?.errorCode || errorDetails.code || "UNKNOWN",
+        retryable:
+          typeof response?.retryable === "boolean"
+            ? response.retryable
+            : errorDetails.retryable,
+      };
+    }
+
     const {
       fileName,
       filePath,
@@ -1264,7 +1307,7 @@ const downloadVideo = async (url, quality, options = {}) => {
       sourceUrl,
       thumbnail: resolvedThumbnail = "",
       cancelled,
-    } = await window.electron.invoke("download-video", url, quality, jobId);
+    } = response || {};
 
     if (cancelled) {
       console.log("Загрузка отменена.", { jobId });
