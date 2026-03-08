@@ -212,6 +212,9 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector("#tools-back-btn")?.getAttribute("title"),
     ).toBe("tools.nav.back");
+    expect(
+      el.querySelector(".tools-breadcrumbs")?.getAttribute("aria-label"),
+    ).toBe("tools.launcher.breadcrumbs.aria");
   });
 
   test("shows total tools counter for macos", async () => {
@@ -689,6 +692,10 @@ describe("toolsView quick actions", () => {
     await nextTick();
     expect(nextBtn?.disabled).toBe(true);
     expect(track?.style.transform).toBe("translateX(-300%)");
+    expect(openBtn?.getAttribute("title")).toBe("hashCheck.howto.open");
+    expect(el.querySelector("#hash-howto-close")?.getAttribute("aria-label")).toBe(
+      "hashCheck.howto.close",
+    );
   });
 
   test("hash how-to modal closes by Escape and returns focus", async () => {
@@ -762,6 +769,10 @@ describe("toolsView quick actions", () => {
     await nextTick();
     expect(nextBtn?.disabled).toBe(true);
     expect(track?.style.transform).toBe("translateX(-300%)");
+    expect(openBtn?.getAttribute("title")).toBe("tools.wg.howto.open");
+    expect(el.querySelector("#wg-howto-close")?.getAttribute("aria-label")).toBe(
+      "tools.wg.howto.close",
+    );
   });
 
   test("wg how-to modal closes by Escape and returns focus", async () => {
@@ -835,6 +846,9 @@ describe("toolsView quick actions", () => {
     await nextTick();
     expect(nextBtn?.disabled).toBe(true);
     expect(track?.style.transform).toBe("translateX(-300%)");
+    expect(openBtn?.getAttribute("title")).toBe(
+      "quickActions.power.howto.open",
+    );
   });
 
   test("power how-to modal closes by Escape and returns focus", async () => {
@@ -899,6 +913,10 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(track?.style.transform).toBe("translateX(-100%)");
+    expect(openBtn?.getAttribute("title")).toBe("tools.sorter.howto.open");
+    expect(
+      el.querySelector("#sorter-howto-close")?.getAttribute("aria-label"),
+    ).toBe("tools.sorter.howto.close");
 
     closeBtn?.click();
     await nextTick();
@@ -920,12 +938,18 @@ describe("toolsView quick actions", () => {
     );
 
     expect(primarySend).not.toBeNull();
-    expect(secondaryLabel?.textContent).toBe("More actions");
+    expect(secondaryLabel?.textContent).toBe("wg.actions.more");
     expect(secondaryActions?.querySelector("#wg-reset")).not.toBeNull();
     expect(
       secondaryActions?.querySelector("#wg-open-config-file"),
     ).not.toBeNull();
     expect(secondaryActions?.querySelector("#wg-help")).toBeNull();
+    expect(el.querySelector("#wg-log-filter-errors")?.getAttribute("title")).toBe(
+      "wg.log.filter.errorsOff",
+    );
+    expect(el.querySelector("#wg-log-autoscroll")?.getAttribute("title")).toBe(
+      "wg.log.autoscroll.on",
+    );
   });
 
   test("keeps WG advanced collapsed by default", async () => {

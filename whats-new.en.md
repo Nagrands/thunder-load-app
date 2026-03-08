@@ -32,3 +32,4 @@
 | Dependency hints are clearer | If yt-dlp or ffmpeg is missing, the app now more reliably explains what needs to be installed before downloading |
 | Downloader tools status is more consistent | Status and fallback messages in the dependency panel now behave more predictably |
 | Tools screen is more polished | Launcher labels now follow the selected language more reliably, and the File Sorter how-to modal behaves more consistently |
+| Tools UI is more consistent | Card labels, helper modals, and in-screen hints now mix languages less often when the Tools screen opens |

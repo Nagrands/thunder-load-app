@@ -536,22 +536,22 @@ export default function renderToolsView() {
         <div class="title">
           <i class="fa-solid fa-screwdriver-wrench"></i>
           <div class="title-content">
-            <h1 class="wg-text-gradient" data-i18n="wg.title">Tools</h1>
-            <p class="subtitle" data-i18n="wg.subtitle">Quick actions for file and network tasks.</p>
+            <h1 class="wg-text-gradient" data-i18n="wg.title">${t("wg.title")}</h1>
+            <p class="subtitle" data-i18n="wg.subtitle">${t("wg.subtitle")}</p>
           </div>
         </div>
       </header>
 
-      <div class="tools-breadcrumbs" aria-label="Навигация" data-i18n-aria="tools.launcher.breadcrumbs.aria">
+      <div class="tools-breadcrumbs" aria-label="${t("tools.launcher.breadcrumbs.aria")}" data-i18n-aria="tools.launcher.breadcrumbs.aria">
         <button
           id="tools-breadcrumb-home"
           type="button"
           class="tools-breadcrumbs__item tools-breadcrumbs__link"
           data-i18n-aria="tools.launcher.breadcrumbs.home"
-          aria-label="Tools"
+          aria-label="${t("tools.launcher.breadcrumbs.home")}"
         >
           <i class="fa-solid fa-screwdriver-wrench"></i>
-          <span data-i18n="tools.launcher.breadcrumbs.home">Tools</span>
+          <span data-i18n="tools.launcher.breadcrumbs.home">${t("tools.launcher.breadcrumbs.home")}</span>
         </button>
         <i class="fa-solid fa-chevron-right tools-breadcrumbs__sep" aria-hidden="true"></i>
         <button
@@ -559,9 +559,9 @@ export default function renderToolsView() {
           type="button"
           class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
           data-i18n-aria="tools.launcher.breadcrumbs.tools"
-          aria-label="Tools"
+          aria-label="${t("tools.launcher.breadcrumbs.tools")}"
         >
-          <span data-i18n="tools.launcher.breadcrumbs.tools">Tools</span>
+          <span data-i18n="tools.launcher.breadcrumbs.tools">${t("tools.launcher.breadcrumbs.tools")}</span>
         </button>
         <i
           id="tools-breadcrumb-current-sep"
@@ -596,7 +596,7 @@ export default function renderToolsView() {
         <span id="tools-launcher-tools-count" class="tools-launcher-tools-count" data-i18n="tools.launcher.totalLabel">${t("tools.launcher.totalLabel")}</span>
       </div>
 
-      <section id="tools-launcher" class="tools-launcher" aria-label="Tools Launcher">
+      <section id="tools-launcher" class="tools-launcher" aria-label="${t("tools.launcher.title")}">
         <div class="tools-launcher-inner">
           <div class="tools-launcher-grid">
             <button id="tools-open-wg" type="button" class="tools-launcher-button">
@@ -650,10 +650,10 @@ export default function renderToolsView() {
       </section>
 
       <section id="tools-views" class="tools-views">
-        <section class="tools-view hidden" data-tool-view="wg" aria-label="WG Tool View">
+        <section class="tools-view hidden" data-tool-view="wg" aria-label="${t("tools.nav.current.wg")}">
           <article class="tools-card tools-card-wg-quick tools-detail-card">
             <div class="tools-card__header">
-              <h2 data-i18n="tools.wg.quick.title">WG Quick</h2>
+              <h2 data-i18n="tools.wg.quick.title">${t("tools.wg.quick.title")}</h2>
               <div class="tools-card__header-actions">
                 <button
                   id="wg-open-howto"
@@ -663,8 +663,8 @@ export default function renderToolsView() {
                   data-bs-placement="top"
                   data-i18n-title="tools.wg.howto.open"
                   data-i18n-aria="tools.wg.howto.open"
-                  title="Как это работает"
-                  aria-label="Как это работает"
+                  title="${t("tools.wg.howto.open")}"
+                  aria-label="${t("tools.wg.howto.open")}"
                 >
                   <i class="fa-regular fa-circle-question"></i>
                 </button>
@@ -676,37 +676,37 @@ export default function renderToolsView() {
                   aria-expanded="false"
                   data-i18n="tools.wg.advanced.toggle.open"
                 >
-                  Advanced
+                  ${t("tools.wg.advanced.toggle.open")}
                 </button>
               </div>
             </div>
-            <p class="tools-card__hint" data-i18n="tools.wg.quick.hint">Quick recovery actions for WireGuard.</p>
+            <p class="tools-card__hint" data-i18n="tools.wg.quick.hint">${t("tools.wg.quick.hint")}</p>
             <div class="tools-card__meta">
               <div>
-                <span data-i18n="wg.lastSend.title">Последняя отправка</span>
-                <strong id="wg-last-send-time" data-i18n="wg.lastSend.never">Никогда</strong>
+                <span data-i18n="wg.lastSend.title">${t("wg.lastSend.title")}</span>
+                <strong id="wg-last-send-time" data-i18n="wg.lastSend.never">${t("wg.lastSend.never")}</strong>
               </div>
               <div>
-                <span data-i18n="wg.status.title">Статус</span>
-                <strong id="wg-connection-status" data-i18n="wg.status.inactive">Неактивно</strong>
+                <span data-i18n="wg.status.title">${t("wg.status.title")}</span>
+                <strong id="wg-connection-status" data-i18n="wg.status.inactive">${t("wg.status.inactive")}</strong>
               </div>
             </div>
             <div class="tools-card__actions buttons">
               <button id="wg-send" class="large-button">
                 <i class="fa-solid fa-paper-plane"></i>
-                <span data-i18n="wg.action.send">Отправить</span>
+                <span data-i18n="wg.action.send">${t("wg.action.send")}</span>
               </button>
             </div>
             <div class="tools-card__secondary">
-              <span class="tools-card__secondary-label" data-i18n="wg.actions.more">More actions</span>
+              <span class="tools-card__secondary-label" data-i18n="wg.actions.more">${t("wg.actions.more")}</span>
               <div class="tools-card__secondary-actions">
-              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Сброс" data-i18n-title="wg.action.reset.title">
+              <button id="wg-reset" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.action.reset.title")}" data-i18n-title="wg.action.reset.title">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
-              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать конфигурацию" data-i18n-title="wg.action.editConfig.title">
+              <button id="wg-open-config-file" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.action.editConfig.title")}" data-i18n-title="wg.action.editConfig.title">
                 <i class="fa-solid fa-file-edit"></i>
               </button>
-              <button id="wg-open-network-settings" class="small-button hidden" data-bs-toggle="tooltip" data-bs-placement="top" title="Открыть сетевые настройки системы" data-i18n-title="wg.action.openNetworkSettings.title">
+              <button id="wg-open-network-settings" class="small-button hidden" data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.action.openNetworkSettings.title")}" data-i18n-title="wg.action.openNetworkSettings.title">
                 <i class="fa-solid fa-network-wired"></i>
               </button>
               </div>
@@ -723,8 +723,8 @@ export default function renderToolsView() {
                 tabindex="-1"
               >
                 <div class="wg-howto-header">
-                  <h3 id="wg-howto-title" data-i18n="tools.wg.howto.title">Как работает WG Unlock</h3>
-                  <button id="wg-howto-close" type="button" class="small-button" data-i18n-aria="tools.wg.howto.close" aria-label="Закрыть">
+                  <h3 id="wg-howto-title" data-i18n="tools.wg.howto.title">${t("tools.wg.howto.title")}</h3>
+                  <button id="wg-howto-close" type="button" class="small-button" data-i18n-aria="tools.wg.howto.close" aria-label="${t("tools.wg.howto.close")}">
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
@@ -733,39 +733,39 @@ export default function renderToolsView() {
                   <div id="wg-howto-track" class="wg-howto-track">
                     <article class="wg-howto-slide" data-howto-slide="0">
                       <div class="wg-howto-slide__icon"><i class="fa-solid fa-pen-to-square"></i></div>
-                      <h4 data-i18n="tools.wg.howto.slide1.title">Проверьте параметры</h4>
-                      <p data-i18n="tools.wg.howto.slide1.desc">Укажите IP и порты, по которым нужно отправить пакет для восстановления связи.</p>
+                      <h4 data-i18n="tools.wg.howto.slide1.title">${t("tools.wg.howto.slide1.title")}</h4>
+                      <p data-i18n="tools.wg.howto.slide1.desc">${t("tools.wg.howto.slide1.desc")}</p>
                     </article>
                     <article class="wg-howto-slide" data-howto-slide="1">
                       <div class="wg-howto-slide__icon"><i class="fa-solid fa-paper-plane"></i></div>
-                      <h4 data-i18n="tools.wg.howto.slide2.title">Отправьте запрос</h4>
-                      <p data-i18n="tools.wg.howto.slide2.desc">Нажмите «Отправить», чтобы инструмент отправил UDP-пакет на указанный адрес.</p>
+                      <h4 data-i18n="tools.wg.howto.slide2.title">${t("tools.wg.howto.slide2.title")}</h4>
+                      <p data-i18n="tools.wg.howto.slide2.desc">${t("tools.wg.howto.slide2.desc")}</p>
                     </article>
                     <article class="wg-howto-slide" data-howto-slide="2">
                       <div class="wg-howto-slide__icon"><i class="fa-solid fa-chart-line"></i></div>
-                      <h4 data-i18n="tools.wg.howto.slide3.title">Проверьте статус</h4>
-                      <p data-i18n="tools.wg.howto.slide3.desc">Статус покажет, удалось ли отправить запрос и есть ли ошибки в параметрах.</p>
+                      <h4 data-i18n="tools.wg.howto.slide3.title">${t("tools.wg.howto.slide3.title")}</h4>
+                      <p data-i18n="tools.wg.howto.slide3.desc">${t("tools.wg.howto.slide3.desc")}</p>
                     </article>
                     <article class="wg-howto-slide" data-howto-slide="3">
                       <div class="wg-howto-slide__icon"><i class="fa-regular fa-file-lines"></i></div>
-                      <h4 data-i18n="tools.wg.howto.slide4.title">Используйте лог</h4>
-                      <p data-i18n="tools.wg.howto.slide4.desc">В расширенном блоке можно открыть лог, чтобы посмотреть детали и при необходимости экспортировать его.</p>
+                      <h4 data-i18n="tools.wg.howto.slide4.title">${t("tools.wg.howto.slide4.title")}</h4>
+                      <p data-i18n="tools.wg.howto.slide4.desc">${t("tools.wg.howto.slide4.desc")}</p>
                     </article>
                   </div>
                 </div>
-                <div id="wg-howto-dots" class="wg-howto-dots" role="tablist" data-i18n-aria="tools.wg.howto.title" aria-label="How-to steps">
-                  <button type="button" class="wg-howto-dot" data-index="0" aria-label="Step 1"></button>
-                  <button type="button" class="wg-howto-dot" data-index="1" aria-label="Step 2"></button>
-                  <button type="button" class="wg-howto-dot" data-index="2" aria-label="Step 3"></button>
-                  <button type="button" class="wg-howto-dot" data-index="3" aria-label="Step 4"></button>
+                <div id="wg-howto-dots" class="wg-howto-dots" role="tablist" data-i18n-aria="tools.wg.howto.title" aria-label="${t("tools.wg.howto.title")}">
+                  <button type="button" class="wg-howto-dot" data-index="0" aria-label="${t("tools.wg.howto.step", { current: 1, total: 4 })}"></button>
+                  <button type="button" class="wg-howto-dot" data-index="1" aria-label="${t("tools.wg.howto.step", { current: 2, total: 4 })}"></button>
+                  <button type="button" class="wg-howto-dot" data-index="2" aria-label="${t("tools.wg.howto.step", { current: 3, total: 4 })}"></button>
+                  <button type="button" class="wg-howto-dot" data-index="3" aria-label="${t("tools.wg.howto.step", { current: 4, total: 4 })}"></button>
                 </div>
                 <div class="wg-howto-actions">
                   <button id="wg-howto-prev" type="button" class="small-button">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <span data-i18n="tools.wg.howto.prev">Назад</span>
+                    <span data-i18n="tools.wg.howto.prev">${t("tools.wg.howto.prev")}</span>
                   </button>
                   <button id="wg-howto-next" type="button" class="small-button">
-                    <span data-i18n="tools.wg.howto.next">Далее</span>
+                    <span data-i18n="tools.wg.howto.next">${t("tools.wg.howto.next")}</span>
                     <i class="fa-solid fa-arrow-right"></i>
                   </button>
                 </div>
@@ -777,14 +777,14 @@ export default function renderToolsView() {
             <div class="tools-wg-advanced-grid">
               <div class="wg-glass">
                 <div class="wg-header wg-header-advanced">
-                  <h2 class="section-heading" data-i18n="tools.wg.advanced.title">WG Advanced</h2>
+                  <h2 class="section-heading" data-i18n="tools.wg.advanced.title">${t("tools.wg.advanced.title")}</h2>
                   <div class="debug-toggle" id="debug-toggle">
                     <div class="toggle-track"></div>
-                    <span class="toggle-label" data-i18n="wg.debug.label">Лог активности</span>
+                    <span class="toggle-label" data-i18n="wg.debug.label">${t("wg.debug.label")}</span>
                   </div>
                 </div>
                 <div class="wg-section">
-                  <h3 class="section-heading" data-i18n="wg.section.network">Сетевые параметры</h3>
+                  <h3 class="section-heading" data-i18n="wg.section.network">${t("wg.section.network")}</h3>
                   <div class="wg-grid">
                     ${fieldsHtml}
                   </div>
@@ -793,23 +793,21 @@ export default function renderToolsView() {
 
               <div class="wg-side-panel">
                 <div class="info-card">
-                  <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">Информация</span></h3>
-                  <p data-i18n="wg.info.body">Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.</p>
+                  <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">${t("wg.info.title")}</span></h3>
+                  <p data-i18n="wg.info.body">${t("wg.info.body")}</p>
                 </div>
                 <div class="info-card wg-meta-card">
                   <div class="meta-row wg-meta-tips">
-                    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">Советы</span></h3>
-                    <p id="wg-tips-text" data-i18n-html="wg.tips.body">• Используйте режим отладки для подробного лога<br>
-                    • Проверьте настройки брандмауэра<br>
-                    • Убедитесь, что удаленный хост доступен</p>
+                    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">${t("wg.tips.title")}</span></h3>
+                    <p id="wg-tips-text" data-i18n-html="wg.tips.body">${t("wg.tips.body")}</p>
                     <div class="wg-tips-controls">
-                      <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="Предыдущий совет">
+                      <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="${t("wg.tips.prev")}">
                         <i class="fa-solid fa-chevron-left"></i>
                       </button>
-                      <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="Пауза">
+                      <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="${t("wg.tips.pause")}">
                         <i class="fa-solid fa-pause"></i>
                       </button>
-                      <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="Следующий совет">
+                      <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="${t("wg.tips.next")}">
                         <i class="fa-solid fa-chevron-right"></i>
                       </button>
                       <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
@@ -820,27 +818,27 @@ export default function renderToolsView() {
                   <details class="wg-log-block">
                     <summary>
                       <i class="fa-solid fa-terminal"></i>
-                      <span data-i18n="wg.log.title">Лог активности</span>
+                      <span data-i18n="wg.log.title">${t("wg.log.title")}</span>
                     </summary>
-                    <div class="log-actions" aria-label="Действия с логом" data-i18n-aria="wg.log.actions.aria">
+                    <div class="log-actions" aria-label="${t("wg.log.actions.aria")}" data-i18n-aria="wg.log.actions.aria">
                       <button id="wg-log-copy" type="button" class="log-action-btn"
-                        data-bs-toggle="tooltip" data-bs-placement="top" title="Скопировать лог в буфер обмена" data-i18n-title="wg.log.copy.title">
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.log.copy.title")}" data-i18n-title="wg.log.copy.title">
                         <i class="fa-solid fa-copy"></i>
                       </button>
                       <button id="wg-log-export" type="button" class="log-action-btn"
-                        data-bs-toggle="tooltip" data-bs-placement="top" title="Экспортировать лог в файл" data-i18n-title="wg.log.export.title">
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.log.export.title")}" data-i18n-title="wg.log.export.title">
                         <i class="fa-solid fa-download"></i>
                       </button>
                       <button id="wg-log-clear" type="button" class="log-action-btn"
-                        data-bs-toggle="tooltip" data-bs-placement="top" title="Очистить лог" data-i18n-title="wg.log.clear.title">
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.log.clear.title")}" data-i18n-title="wg.log.clear.title">
                         <i class="fa-solid fa-trash"></i>
                       </button>
                       <button id="wg-log-filter-errors" type="button" class="log-action-btn"
-                        data-bs-toggle="tooltip" data-bs-placement="top" title="Показывать только ошибки">
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.log.filter.errorsOff")}">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                       </button>
                       <button id="wg-log-autoscroll" type="button" class="log-action-btn is-active"
-                        data-bs-toggle="tooltip" data-bs-placement="top" title="Автопрокрутка включена">
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="${t("wg.log.autoscroll.on")}">
                         <i class="fa-solid fa-arrow-down-wide-short"></i>
                       </button>
                     </div>
@@ -852,10 +850,10 @@ export default function renderToolsView() {
           </section>
         </section>
 
-        <section class="tools-view hidden" data-tool-view="hash" aria-label="Hash Tool View">
+        <section class="tools-view hidden" data-tool-view="hash" aria-label="${t("tools.nav.current.hash")}">
           <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
-              <h2 data-i18n="hashCheck.title">Проверка хеша</h2>
+              <h2 data-i18n="hashCheck.title">${t("hashCheck.title")}</h2>
               <button
                 id="hash-open-howto"
                 type="button"
@@ -864,27 +862,27 @@ export default function renderToolsView() {
                 data-bs-placement="top"
                 data-i18n-title="hashCheck.howto.open"
                 data-i18n-aria="hashCheck.howto.open"
-                title="Как это работает"
-                aria-label="Как это работает"
+                title="${t("hashCheck.howto.open")}"
+                aria-label="${t("hashCheck.howto.open")}"
               >
                 <i class="fa-regular fa-circle-question"></i>
               </button>
             </div>
-            <p class="tools-card__hint" data-i18n="hashCheck.subtitle">Проверьте целостность файла по контрольной сумме.</p>
+            <p class="tools-card__hint" data-i18n="hashCheck.subtitle">${t("hashCheck.subtitle")}</p>
             <div class="hash-check-grid">
               <div class="hash-row hash-row--top">
                 <div class="hash-file-control">
-                  <span class="muted hash-file-label" data-i18n="hashCheck.file1">Файл 1</span>
+                  <span class="muted hash-file-label" data-i18n="hashCheck.file1">${t("hashCheck.file1")}</span>
                   <div class="hash-actions-inline">
                     <button id="hash-pick-file" type="button" class="small-button">
                       <i class="fa-regular fa-file"></i>
-                      <span data-i18n="hashCheck.pickFile">Выбрать файл</span>
+                      <span data-i18n="hashCheck.pickFile">${t("hashCheck.pickFile")}</span>
                     </button>
-                    <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">Файл не выбран</span>
+                    <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">${t("hashCheck.noFile")}</span>
                   </div>
                 </div>
                 <div class="hash-algorithm-wrap">
-                  <label for="hash-algorithm" class="muted" data-i18n="hashCheck.algorithm">Алгоритм</label>
+                  <label for="hash-algorithm" class="muted" data-i18n="hashCheck.algorithm">${t("hashCheck.algorithm")}</label>
                   <select id="hash-algorithm" class="wg-input">
                     <option value="MD5">MD5</option>
                     <option value="SHA-1">SHA-1</option>
@@ -895,13 +893,13 @@ export default function renderToolsView() {
               </div>
               <div class="hash-row">
                 <div class="hash-file-control">
-                  <span class="muted hash-file-label" data-i18n="hashCheck.file2">Файл 2</span>
+                  <span class="muted hash-file-label" data-i18n="hashCheck.file2">${t("hashCheck.file2")}</span>
                   <div class="hash-actions-inline">
                     <button id="hash-pick-file-2" type="button" class="small-button">
                       <i class="fa-regular fa-file"></i>
-                      <span data-i18n="hashCheck.pickFileSecond">Выбрать файл</span>
+                      <span data-i18n="hashCheck.pickFileSecond">${t("hashCheck.pickFileSecond")}</span>
                     </button>
-                    <span id="hash-file-name-2" class="hash-file-pill muted" data-i18n="hashCheck.noFileSecond">Второй файл не выбран</span>
+                    <span id="hash-file-name-2" class="hash-file-pill muted" data-i18n="hashCheck.noFileSecond">${t("hashCheck.noFileSecond")}</span>
                     <button
                       id="hash-clear-file-2"
                       type="button"
@@ -910,8 +908,8 @@ export default function renderToolsView() {
                       data-bs-placement="top"
                       data-i18n-title="hashCheck.clearSecond"
                       data-i18n-aria="hashCheck.clearSecond"
-                      title="Очистить файл 2"
-                      aria-label="Очистить файл 2"
+                      title="${t("hashCheck.clearSecond")}"
+                      aria-label="${t("hashCheck.clearSecond")}"
                       disabled
                     >
                       <i class="fa-solid fa-xmark"></i>
@@ -922,34 +920,34 @@ export default function renderToolsView() {
 
               <div class="hash-row hash-row--bottom">
                 <div class="hash-expected-wrap">
-                  <label for="hash-expected" class="muted" data-i18n="hashCheck.expected">Ожидаемый хеш</label>
+                  <label for="hash-expected" class="muted" data-i18n="hashCheck.expected">${t("hashCheck.expected")}</label>
                   <input
                     id="hash-expected"
                     type="text"
                     class="wg-input"
                     data-i18n-placeholder="hashCheck.expectedPlaceholder"
-                    placeholder="Вставьте хеш для сравнения (опционально)"
+                    placeholder="${t("hashCheck.expectedPlaceholder")}"
                   />
                 </div>
                 <button id="hash-run" type="button" class="large-button">
                   <i class="fa-solid fa-play"></i>
-                  <span data-i18n="hashCheck.run">Проверить</span>
+                  <span data-i18n="hashCheck.run">${t("hashCheck.run")}</span>
                 </button>
               </div>
               <div class="hash-row">
                 <span class="muted hash-expected-hint" data-i18n="hashCheck.expectedHint">
-                  Если выбран второй файл, ожидаемый хеш сравнивается с каждым файлом отдельно.
+                  ${t("hashCheck.expectedHint")}
                 </span>
               </div>
             </div>
 
             <div id="hash-result-panel" class="hash-result-panel is-idle">
               <div class="hash-result-panel__top">
-                <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">Ожидание</span>
+                <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">${t("hashCheck.status.idle")}</span>
               </div>
               <div class="hash-actual-box">
                 <div class="hash-actual-box__top">
-                  <span id="hash-actual-label" class="muted">Вычисленный хеш (SHA-256)</span>
+                  <span id="hash-actual-label" class="muted">${t("hashCheck.actualLabelWithAlgorithm", { algorithm: "SHA-256" })}</span>
                   <div class="hash-copy-wrap">
                     <span id="hash-copy-feedback-1" class="hash-copy-feedback muted" aria-live="polite"></span>
                     <button
@@ -960,8 +958,8 @@ export default function renderToolsView() {
                       data-bs-placement="top"
                       data-i18n-title="hashCheck.copyActual"
                       data-i18n-aria="hashCheck.copyActual"
-                      title="Копировать хеш"
-                      aria-label="Копировать хеш"
+                      title="${t("hashCheck.copyActual")}"
+                      aria-label="${t("hashCheck.copyActual")}"
                       disabled
                     >
                       <i class="fa-regular fa-copy"></i>
@@ -972,7 +970,7 @@ export default function renderToolsView() {
               </div>
               <div id="hash-actual-box-2" class="hash-actual-box hidden">
                 <div class="hash-actual-box__top">
-                  <span id="hash-actual-label-2" class="muted">Вычисленный хеш (файл 2, SHA-256)</span>
+                  <span id="hash-actual-label-2" class="muted">${t("hashCheck.secondActualLabelWithAlgorithm", { algorithm: "SHA-256" })}</span>
                   <div class="hash-copy-wrap">
                     <span id="hash-copy-feedback-2" class="hash-copy-feedback muted" aria-live="polite"></span>
                     <button
@@ -983,8 +981,8 @@ export default function renderToolsView() {
                       data-bs-placement="top"
                       data-i18n-title="hashCheck.copyActualSecond"
                       data-i18n-aria="hashCheck.copyActualSecond"
-                      title="Копировать хеш файла 2"
-                      aria-label="Копировать хеш файла 2"
+                      title="${t("hashCheck.copyActualSecond")}"
+                      aria-label="${t("hashCheck.copyActualSecond")}"
                       disabled
                     >
                       <i class="fa-regular fa-copy"></i>
@@ -995,15 +993,15 @@ export default function renderToolsView() {
               </div>
               <div id="hash-compare-details" class="hash-compare-details hidden">
                 <div class="hash-compare-row">
-                  <span id="hash-compare-name-1" class="muted">Файл 1</span>
+                  <span id="hash-compare-name-1" class="muted">${t("hashCheck.file1")}</span>
                   <span id="hash-compare-state-1" class="hash-compare-state muted">-</span>
                 </div>
                 <div class="hash-compare-row">
-                  <span id="hash-compare-name-2" class="muted">Файл 2</span>
+                  <span id="hash-compare-name-2" class="muted">${t("hashCheck.file2")}</span>
                   <span id="hash-compare-state-2" class="hash-compare-state muted">-</span>
                 </div>
               </div>
-              <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">Результат появится после проверки.</div>
+              <div id="hash-result" class="quick-action-result muted" data-i18n="hashCheck.resultIdle">${t("hashCheck.resultIdle")}</div>
             </div>
             <div id="hash-howto-modal" class="hash-howto-overlay hidden" aria-hidden="true">
               <div
@@ -1016,8 +1014,8 @@ export default function renderToolsView() {
                 tabindex="-1"
               >
                 <div class="hash-howto-header">
-                  <h3 id="hash-howto-title" data-i18n="hashCheck.howto.title">Как работает Проверка хеша</h3>
-                  <button id="hash-howto-close" type="button" class="small-button" data-i18n-aria="hashCheck.howto.close" aria-label="Закрыть">
+                  <h3 id="hash-howto-title" data-i18n="hashCheck.howto.title">${t("hashCheck.howto.title")}</h3>
+                  <button id="hash-howto-close" type="button" class="small-button" data-i18n-aria="hashCheck.howto.close" aria-label="${t("hashCheck.howto.close")}">
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
@@ -1026,39 +1024,39 @@ export default function renderToolsView() {
                   <div id="hash-howto-track" class="hash-howto-track">
                     <article class="hash-howto-slide" data-howto-slide="0">
                       <div class="hash-howto-slide__icon"><i class="fa-regular fa-file"></i></div>
-                      <h4 data-i18n="hashCheck.howto.slide1.title">Выберите файл</h4>
-                      <p data-i18n="hashCheck.howto.slide1.desc">Укажите файл, для которого нужно посчитать контрольную сумму.</p>
+                      <h4 data-i18n="hashCheck.howto.slide1.title">${t("hashCheck.howto.slide1.title")}</h4>
+                      <p data-i18n="hashCheck.howto.slide1.desc">${t("hashCheck.howto.slide1.desc")}</p>
                     </article>
                     <article class="hash-howto-slide" data-howto-slide="1">
                       <div class="hash-howto-slide__icon"><i class="fa-solid fa-hashtag"></i></div>
-                      <h4 data-i18n="hashCheck.howto.slide2.title">Выберите алгоритм</h4>
-                      <p data-i18n="hashCheck.howto.slide2.desc">Выберите MD5, SHA-1, SHA-256 или SHA-512 в зависимости от того, с чем сравниваете.</p>
+                      <h4 data-i18n="hashCheck.howto.slide2.title">${t("hashCheck.howto.slide2.title")}</h4>
+                      <p data-i18n="hashCheck.howto.slide2.desc">${t("hashCheck.howto.slide2.desc")}</p>
                     </article>
                     <article class="hash-howto-slide" data-howto-slide="2">
                       <div class="hash-howto-slide__icon"><i class="fa-solid fa-scale-balanced"></i></div>
-                      <h4 data-i18n="hashCheck.howto.slide3.title">Сравните результат</h4>
-                      <p data-i18n="hashCheck.howto.slide3.desc">Можно вставить ожидаемый хеш или выбрать второй файл, чтобы проверить совпадение.</p>
+                      <h4 data-i18n="hashCheck.howto.slide3.title">${t("hashCheck.howto.slide3.title")}</h4>
+                      <p data-i18n="hashCheck.howto.slide3.desc">${t("hashCheck.howto.slide3.desc")}</p>
                     </article>
                     <article class="hash-howto-slide" data-howto-slide="3">
                       <div class="hash-howto-slide__icon"><i class="fa-regular fa-copy"></i></div>
-                      <h4 data-i18n="hashCheck.howto.slide4.title">Используйте итог</h4>
-                      <p data-i18n="hashCheck.howto.slide4.desc">После проверки вы увидите статус совпадения и сможете скопировать вычисленный хеш.</p>
+                      <h4 data-i18n="hashCheck.howto.slide4.title">${t("hashCheck.howto.slide4.title")}</h4>
+                      <p data-i18n="hashCheck.howto.slide4.desc">${t("hashCheck.howto.slide4.desc")}</p>
                     </article>
                   </div>
                 </div>
-                <div id="hash-howto-dots" class="hash-howto-dots" role="tablist" data-i18n-aria="hashCheck.howto.title" aria-label="How-to steps">
-                  <button type="button" class="hash-howto-dot" data-index="0" aria-label="Step 1"></button>
-                  <button type="button" class="hash-howto-dot" data-index="1" aria-label="Step 2"></button>
-                  <button type="button" class="hash-howto-dot" data-index="2" aria-label="Step 3"></button>
-                  <button type="button" class="hash-howto-dot" data-index="3" aria-label="Step 4"></button>
+                <div id="hash-howto-dots" class="hash-howto-dots" role="tablist" data-i18n-aria="hashCheck.howto.title" aria-label="${t("hashCheck.howto.title")}">
+                  <button type="button" class="hash-howto-dot" data-index="0" aria-label="${t("hashCheck.howto.step", { current: 1, total: 4 })}"></button>
+                  <button type="button" class="hash-howto-dot" data-index="1" aria-label="${t("hashCheck.howto.step", { current: 2, total: 4 })}"></button>
+                  <button type="button" class="hash-howto-dot" data-index="2" aria-label="${t("hashCheck.howto.step", { current: 3, total: 4 })}"></button>
+                  <button type="button" class="hash-howto-dot" data-index="3" aria-label="${t("hashCheck.howto.step", { current: 4, total: 4 })}"></button>
                 </div>
                 <div class="hash-howto-actions">
                   <button id="hash-howto-prev" type="button" class="small-button">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <span data-i18n="hashCheck.howto.prev">Назад</span>
+                    <span data-i18n="hashCheck.howto.prev">${t("hashCheck.howto.prev")}</span>
                   </button>
                   <button id="hash-howto-next" type="button" class="small-button">
-                    <span data-i18n="hashCheck.howto.next">Далее</span>
+                    <span data-i18n="hashCheck.howto.next">${t("hashCheck.howto.next")}</span>
                     <i class="fa-solid fa-arrow-right"></i>
                   </button>
                 </div>
@@ -1067,14 +1065,14 @@ export default function renderToolsView() {
           </article>
         </section>
 
-        <section class="tools-view hidden" data-tool-view="power" aria-label="Power Tool View">
+        <section class="tools-view hidden" data-tool-view="power" aria-label="${t("tools.nav.current.power")}">
           <article id="tools-restart-card" class="tools-card tools-detail-card">
             <div class="power-shortcuts-header">
               <div class="power-shortcuts-header__top">
                 <div class="power-shortcuts-header__title-wrap">
-                  <h2 data-i18n="quickActions.power.title">Ярлыки питания Windows</h2>
+                  <h2 data-i18n="quickActions.power.title">${t("quickActions.power.title")}</h2>
                   <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
-                    Создаёт ярлыки питания на рабочем столе Windows.
+                    ${t("quickActions.power.hint")}
                   </p>
                 </div>
                 <div class="power-shortcuts-header__actions">
@@ -1086,8 +1084,8 @@ export default function renderToolsView() {
                     data-bs-placement="top"
                     data-i18n-title="quickActions.power.howto.open"
                     data-i18n-aria="quickActions.power.howto.open"
-                    title="Как это работает"
-                    aria-label="Как это работает"
+                    title="${t("quickActions.power.howto.open")}"
+                    aria-label="${t("quickActions.power.howto.open")}"
                   >
                     <i class="fa-regular fa-circle-question"></i>
                   </button>
@@ -1102,9 +1100,9 @@ export default function renderToolsView() {
             >
               <i class="fa-solid fa-circle-info"></i>
               <div class="power-platform-banner__content">
-                <strong data-i18n="quickActions.power.banner.title">Ограничение платформы</strong>
+                <strong data-i18n="quickActions.power.banner.title">${t("quickActions.power.banner.title")}</strong>
                 <span id="power-platform-banner-text" data-i18n="quickActions.power.banner.windowsOnly">
-                  Доступно только в Windows. На этой платформе действия отключены.
+                  ${t("quickActions.power.banner.windowsOnly")}
                 </span>
               </div>
             </div>
@@ -1112,14 +1110,14 @@ export default function renderToolsView() {
               <section class="power-action-row power-action-row--restart">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-rotate-right"></i>
-                  <span data-i18n="quickActions.restart.cardTitle">Перезагрузка</span>
+                  <span data-i18n="quickActions.restart.cardTitle">${t("quickActions.restart.cardTitle")}</span>
                 </h3>
                 <p class="power-action-row__hint" data-i18n="quickActions.restart.cardHint">
-                  Мгновенная перезагрузка системы.
+                  ${t("quickActions.restart.cardHint")}
                 </p>
                 <button id="create-restart-shortcut" type="button" class="large-button">
                   <i class="fa-solid fa-plug-circle-bolt"></i>
-                  <span data-i18n="quickActions.restart.action">Создать ярлык перезагрузки</span>
+                  <span data-i18n="quickActions.restart.action">${t("quickActions.restart.action")}</span>
                 </button>
                 <div
                   id="restart-shortcut-result"
@@ -1129,14 +1127,14 @@ export default function renderToolsView() {
               <section class="power-action-row power-action-row--uefi">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-microchip"></i>
-                  <span data-i18n="quickActions.uefi.cardTitle">Перезагрузка в BIOS/UEFI</span>
+                  <span data-i18n="quickActions.uefi.cardTitle">${t("quickActions.uefi.cardTitle")}</span>
                 </h3>
                 <p class="power-action-row__hint" data-i18n="quickActions.uefi.cardHint">
-                  Перезапускает систему в настройки прошивки.
+                  ${t("quickActions.uefi.cardHint")}
                 </p>
                 <button id="create-uefi-shortcut" type="button" class="large-button">
                   <i class="fa-solid fa-microchip"></i>
-                  <span data-i18n="quickActions.uefi.action">Создать ярлык BIOS/UEFI</span>
+                  <span data-i18n="quickActions.uefi.action">${t("quickActions.uefi.action")}</span>
                 </button>
                 <div
                   id="uefi-shortcut-result"
@@ -1146,14 +1144,14 @@ export default function renderToolsView() {
               <section class="power-action-row power-action-row--advanced-boot">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-screwdriver-wrench"></i>
-                  <span data-i18n="quickActions.advancedBoot.cardTitle">Расширенная загрузка</span>
+                  <span data-i18n="quickActions.advancedBoot.cardTitle">${t("quickActions.advancedBoot.cardTitle")}</span>
                 </h3>
                 <p class="power-action-row__hint" data-i18n="quickActions.advancedBoot.cardHint">
-                  Открывает дополнительные параметры восстановления при старте.
+                  ${t("quickActions.advancedBoot.cardHint")}
                 </p>
                 <button id="create-advanced-boot-shortcut" type="button" class="large-button">
                   <i class="fa-solid fa-screwdriver-wrench"></i>
-                  <span data-i18n="quickActions.advancedBoot.action">Создать ярлык расширенной загрузки</span>
+                  <span data-i18n="quickActions.advancedBoot.action">${t("quickActions.advancedBoot.action")}</span>
                 </button>
                 <div
                   id="advanced-boot-shortcut-result"
@@ -1163,14 +1161,14 @@ export default function renderToolsView() {
               <section class="power-action-row power-action-row--shutdown">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-power-off"></i>
-                  <span data-i18n="quickActions.shutdown.cardTitle">Выключение</span>
+                  <span data-i18n="quickActions.shutdown.cardTitle">${t("quickActions.shutdown.cardTitle")}</span>
                 </h3>
                 <p class="power-action-row__hint" data-i18n="quickActions.shutdown.cardHint">
-                  Мгновенное выключение системы.
+                  ${t("quickActions.shutdown.cardHint")}
                 </p>
                 <button id="create-shutdown-shortcut" type="button" class="large-button">
                   <i class="fa-solid fa-power-off"></i>
-                  <span data-i18n="quickActions.shutdown.action">Создать ярлык выключения</span>
+                  <span data-i18n="quickActions.shutdown.action">${t("quickActions.shutdown.action")}</span>
                 </button>
                 <div
                   id="shutdown-shortcut-result"
@@ -1180,14 +1178,14 @@ export default function renderToolsView() {
               <section class="power-action-row power-action-row--device-manager">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-microchip"></i>
-                  <span data-i18n="quickActions.deviceManager.cardTitle">Диспетчер устройств</span>
+                  <span data-i18n="quickActions.deviceManager.cardTitle">${t("quickActions.deviceManager.cardTitle")}</span>
                 </h3>
                 <p class="power-action-row__hint" data-i18n="quickActions.deviceManager.cardHint">
-                  Быстрый доступ к управлению драйверами и устройствами.
+                  ${t("quickActions.deviceManager.cardHint")}
                 </p>
                 <button id="create-device-manager-shortcut" type="button" class="large-button">
                   <i class="fa-solid fa-microchip"></i>
-                  <span data-i18n="quickActions.deviceManager.action">Создать ярлык диспетчера устройств</span>
+                  <span data-i18n="quickActions.deviceManager.action">${t("quickActions.deviceManager.action")}</span>
                 </button>
                 <div
                   id="device-manager-shortcut-result"
@@ -1197,14 +1195,14 @@ export default function renderToolsView() {
               <section class="power-action-row power-action-row--network-settings">
                 <h3 class="power-action-row__title">
                   <i class="fa-solid fa-network-wired"></i>
-                  <span data-i18n="quickActions.networkSettings.cardTitle">Параметры сети</span>
+                  <span data-i18n="quickActions.networkSettings.cardTitle">${t("quickActions.networkSettings.cardTitle")}</span>
                 </h3>
                 <p class="power-action-row__hint" data-i18n="quickActions.networkSettings.cardHint">
-                  Открывает современное окно сетевых параметров Windows.
+                  ${t("quickActions.networkSettings.cardHint")}
                 </p>
                 <button id="create-network-settings-shortcut" type="button" class="large-button">
                   <i class="fa-solid fa-network-wired"></i>
-                  <span data-i18n="quickActions.networkSettings.action">Создать ярлык параметров сети</span>
+                  <span data-i18n="quickActions.networkSettings.action">${t("quickActions.networkSettings.action")}</span>
                 </button>
                 <div
                   id="network-settings-shortcut-result"
@@ -1223,8 +1221,8 @@ export default function renderToolsView() {
                 tabindex="-1"
               >
                 <div class="power-howto-header">
-                  <h3 id="power-howto-title" data-i18n="quickActions.power.howto.title">Как работают Ярлыки питания</h3>
-                  <button id="power-howto-close" type="button" class="small-button" data-i18n-aria="quickActions.power.howto.close" aria-label="Закрыть">
+                  <h3 id="power-howto-title" data-i18n="quickActions.power.howto.title">${t("quickActions.power.howto.title")}</h3>
+                  <button id="power-howto-close" type="button" class="small-button" data-i18n-aria="quickActions.power.howto.close" aria-label="${t("quickActions.power.howto.close")}">
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
@@ -1233,39 +1231,39 @@ export default function renderToolsView() {
                   <div id="power-howto-track" class="power-howto-track">
                     <article class="power-howto-slide" data-howto-slide="0">
                       <div class="power-howto-slide__icon"><i class="fa-brands fa-windows"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide1.title">Проверьте платформу</h4>
-                      <p data-i18n="quickActions.power.howto.slide1.desc">Инструмент активен в Windows. На других платформах действия показаны, но недоступны.</p>
+                      <h4 data-i18n="quickActions.power.howto.slide1.title">${t("quickActions.power.howto.slide1.title")}</h4>
+                      <p data-i18n="quickActions.power.howto.slide1.desc">${t("quickActions.power.howto.slide1.desc")}</p>
                     </article>
                     <article class="power-howto-slide" data-howto-slide="1">
                       <div class="power-howto-slide__icon"><i class="fa-solid fa-list-check"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide2.title">Выберите нужный ярлык</h4>
-                      <p data-i18n="quickActions.power.howto.slide2.desc">Выберите действие: перезагрузка, UEFI, расширенная загрузка, выключение и другие.</p>
+                      <h4 data-i18n="quickActions.power.howto.slide2.title">${t("quickActions.power.howto.slide2.title")}</h4>
+                      <p data-i18n="quickActions.power.howto.slide2.desc">${t("quickActions.power.howto.slide2.desc")}</p>
                     </article>
                     <article class="power-howto-slide" data-howto-slide="2">
                       <div class="power-howto-slide__icon"><i class="fa-solid fa-desktop"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide3.title">Подтвердите создание</h4>
-                      <p data-i18n="quickActions.power.howto.slide3.desc">После подтверждения ярлык будет создан на рабочем столе для быстрого запуска.</p>
+                      <h4 data-i18n="quickActions.power.howto.slide3.title">${t("quickActions.power.howto.slide3.title")}</h4>
+                      <p data-i18n="quickActions.power.howto.slide3.desc">${t("quickActions.power.howto.slide3.desc")}</p>
                     </article>
                     <article class="power-howto-slide" data-howto-slide="3">
                       <div class="power-howto-slide__icon"><i class="fa-regular fa-circle-check"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide4.title">Проверьте результат</h4>
-                      <p data-i18n="quickActions.power.howto.slide4.desc">Под каждой кнопкой появится итог: успешно создан ярлык или сообщение об ошибке.</p>
+                      <h4 data-i18n="quickActions.power.howto.slide4.title">${t("quickActions.power.howto.slide4.title")}</h4>
+                      <p data-i18n="quickActions.power.howto.slide4.desc">${t("quickActions.power.howto.slide4.desc")}</p>
                     </article>
                   </div>
                 </div>
-                <div id="power-howto-dots" class="power-howto-dots" role="tablist" data-i18n-aria="quickActions.power.howto.title" aria-label="How-to steps">
-                  <button type="button" class="power-howto-dot" data-index="0" aria-label="Step 1"></button>
-                  <button type="button" class="power-howto-dot" data-index="1" aria-label="Step 2"></button>
-                  <button type="button" class="power-howto-dot" data-index="2" aria-label="Step 3"></button>
-                  <button type="button" class="power-howto-dot" data-index="3" aria-label="Step 4"></button>
+                <div id="power-howto-dots" class="power-howto-dots" role="tablist" data-i18n-aria="quickActions.power.howto.title" aria-label="${t("quickActions.power.howto.title")}">
+                  <button type="button" class="power-howto-dot" data-index="0" aria-label="${t("quickActions.power.howto.step", { current: 1, total: 4 })}"></button>
+                  <button type="button" class="power-howto-dot" data-index="1" aria-label="${t("quickActions.power.howto.step", { current: 2, total: 4 })}"></button>
+                  <button type="button" class="power-howto-dot" data-index="2" aria-label="${t("quickActions.power.howto.step", { current: 3, total: 4 })}"></button>
+                  <button type="button" class="power-howto-dot" data-index="3" aria-label="${t("quickActions.power.howto.step", { current: 4, total: 4 })}"></button>
                 </div>
                 <div class="power-howto-actions">
                   <button id="power-howto-prev" type="button" class="small-button">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <span data-i18n="quickActions.power.howto.prev">Назад</span>
+                    <span data-i18n="quickActions.power.howto.prev">${t("quickActions.power.howto.prev")}</span>
                   </button>
                   <button id="power-howto-next" type="button" class="small-button">
-                    <span data-i18n="quickActions.power.howto.next">Далее</span>
+                    <span data-i18n="quickActions.power.howto.next">${t("quickActions.power.howto.next")}</span>
                     <i class="fa-solid fa-arrow-right"></i>
                   </button>
                 </div>
@@ -1274,10 +1272,10 @@ export default function renderToolsView() {
           </article>
         </section>
 
-        <section class="tools-view hidden" data-tool-view="sorter" aria-label="File Sorter Tool View">
+        <section class="tools-view hidden" data-tool-view="sorter" aria-label="${t("tools.nav.current.sorter")}">
           <article class="tools-card tools-detail-card">
             <div class="tools-card__header">
-              <h2 data-i18n="tools.sorter.title">File Sorter</h2>
+              <h2 data-i18n="tools.sorter.title">${t("tools.sorter.title")}</h2>
               <button
                 id="sorter-open-howto"
                 type="button"
@@ -1286,98 +1284,98 @@ export default function renderToolsView() {
                 data-bs-placement="top"
                 data-i18n-title="tools.sorter.howto.open"
                 data-i18n-aria="tools.sorter.howto.open"
-                title="Как это работает"
-                aria-label="Как это работает"
+                title="${t("tools.sorter.howto.open")}"
+                aria-label="${t("tools.sorter.howto.open")}"
               >
                 <i class="fa-regular fa-circle-question"></i>
               </button>
             </div>
             <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
-              Сортирует файлы в выбранной папке по категориям расширений.
+              ${t("tools.sorter.subtitle")}
             </p>
-            <section class="sorter-workspace-panel" aria-label="File Sorter workspace">
+            <section class="sorter-workspace-panel" aria-label="${t("tools.sorter.workspace.title")}">
               <div class="sorter-workspace-panel__header">
                 <div>
-                  <h3 data-i18n="tools.sorter.workspace.title">Рабочая область</h3>
+                  <h3 data-i18n="tools.sorter.workspace.title">${t("tools.sorter.workspace.title")}</h3>
                   <p class="muted" data-i18n="tools.sorter.workspace.subtitle">
-                    Выберите папку, при необходимости укажите лог и затем запустите предпросмотр или сортировку.
+                    ${t("tools.sorter.workspace.subtitle")}
                   </p>
                 </div>
                 <div class="sorter-actions">
                   <button id="sorter-preview-run" type="button" class="large-button secondary">
                     <i class="fa-regular fa-eye"></i>
-                    <span data-i18n="tools.sorter.previewAction">Показать предпросмотр</span>
+                    <span data-i18n="tools.sorter.previewAction">${t("tools.sorter.previewAction")}</span>
                   </button>
                   <button id="sorter-apply-run" type="button" class="large-button">
                     <i class="fa-solid fa-play"></i>
-                    <span data-i18n="tools.sorter.applyAction">Применить сортировку</span>
+                    <span data-i18n="tools.sorter.applyAction">${t("tools.sorter.applyAction")}</span>
                   </button>
                 </div>
               </div>
               <div class="sorter-workspace-grid">
                 <div class="sorter-workspace-field sorter-workspace-field--folder">
-                  <span class="muted hash-file-label" data-i18n="tools.sorter.folder">Папка для сортировки</span>
+                  <span class="muted hash-file-label" data-i18n="tools.sorter.folder">${t("tools.sorter.folder")}</span>
                   <div class="hash-actions-inline sorter-folder-actions">
                     <button id="sorter-pick-folder" type="button" class="small-button">
                       <i class="fa-regular fa-folder-open"></i>
-                      <span data-i18n="tools.sorter.pickFolder">Выбрать папку</span>
+                      <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
                     </button>
-                    <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">Папка не выбрана</span>
+                    <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">${t("tools.sorter.noFolder")}</span>
                     <button id="sorter-open-folder" type="button" class="small-button" disabled>
                       <i class="fa-solid fa-up-right-from-square"></i>
-                      <span data-i18n="tools.sorter.openFolder">Открыть папку</span>
+                      <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
                     </button>
                   </div>
                 </div>
                 <div class="sorter-workspace-field sorter-workspace-field--log">
-                  <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">Лог-файл (опционально)</label>
+                  <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">${t("tools.sorter.logLabel")}</label>
                   <input
                     id="sorter-log-path"
                     type="text"
                     class="wg-input"
                     data-i18n-placeholder="tools.sorter.logPlaceholder"
-                    placeholder="Например: ~/sorter.log"
+                    placeholder="${t("tools.sorter.logPlaceholder")}"
                   />
                 </div>
               </div>
             </section>
             <div class="sorter-setup-grid">
-              <section class="sorter-rules-panel" aria-label="File Sorter rules">
+              <section class="sorter-rules-panel" aria-label="${t("tools.sorter.rules.title")}">
                 <div class="sorter-rules-panel__header">
-                  <h3 data-i18n="tools.sorter.rules.title">Категории сортировки</h3>
+                  <h3 data-i18n="tools.sorter.rules.title">${t("tools.sorter.rules.title")}</h3>
                   <p class="muted" data-i18n="tools.sorter.rules.subtitle">
-                    Перед запуском проверьте, в какие папки попадут файлы.
+                    ${t("tools.sorter.rules.subtitle")}
                   </p>
                 </div>
                 <div id="sorter-rules-list" class="sorter-rules-list"></div>
               </section>
-              <section class="sorter-options-panel" aria-label="File Sorter options">
+              <section class="sorter-options-panel" aria-label="${t("tools.sorter.options.title")}">
                 <div class="sorter-options-panel__header">
-                  <h3 data-i18n="tools.sorter.options.title">Параметры сортировки</h3>
+                  <h3 data-i18n="tools.sorter.options.title">${t("tools.sorter.options.title")}</h3>
                   <p class="muted" data-i18n="tools.sorter.options.subtitle">
-                    Настройте, как обрабатывать вложенные папки, конфликты имен и исключения.
+                    ${t("tools.sorter.options.subtitle")}
                   </p>
                 </div>
                 <div class="sorter-options-grid">
                   <div class="sorter-option-field">
-                    <label for="sorter-conflict-mode" class="muted" data-i18n="tools.sorter.conflicts.label">Конфликт имен</label>
+                    <label for="sorter-conflict-mode" class="muted" data-i18n="tools.sorter.conflicts.label">${t("tools.sorter.conflicts.label")}</label>
                     <select id="sorter-conflict-mode" class="wg-input">
-                      <option value="rename" data-i18n="tools.sorter.conflicts.rename">Переименовать</option>
-                      <option value="skip" data-i18n="tools.sorter.conflicts.skip">Пропустить файл</option>
-                      <option value="replace" data-i18n="tools.sorter.conflicts.replace">Заменить существующий</option>
+                      <option value="rename" data-i18n="tools.sorter.conflicts.rename">${t("tools.sorter.conflicts.rename")}</option>
+                      <option value="skip" data-i18n="tools.sorter.conflicts.skip">${t("tools.sorter.conflicts.skip")}</option>
+                      <option value="replace" data-i18n="tools.sorter.conflicts.replace">${t("tools.sorter.conflicts.replace")}</option>
                     </select>
                   </div>
                   <label class="sorter-option-toggle" for="sorter-recursive">
                     <input id="sorter-recursive" type="checkbox" />
                     <span>
-                      <strong data-i18n="tools.sorter.recursive.label">Включить подпапки</strong>
+                      <strong data-i18n="tools.sorter.recursive.label">${t("tools.sorter.recursive.label")}</strong>
                       <small class="muted" data-i18n="tools.sorter.recursive.hint">
-                        Сканирует вложенные папки, кроме уже созданных категорий сортировщика.
+                        ${t("tools.sorter.recursive.hint")}
                       </small>
                     </span>
                   </label>
                   <div class="sorter-option-field">
-                    <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">Игнорировать расширения</label>
+                    <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">${t("tools.sorter.ignoreExtensions.label")}</label>
                     <input
                       id="sorter-ignore-extensions"
                       type="text"
@@ -1387,7 +1385,7 @@ export default function renderToolsView() {
                     />
                   </div>
                   <div class="sorter-option-field">
-                    <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">Игнорировать папки</label>
+                    <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">${t("tools.sorter.ignoreFolders.label")}</label>
                     <input
                       id="sorter-ignore-folders"
                       type="text"
@@ -1400,17 +1398,17 @@ export default function renderToolsView() {
               </section>
             </div>
             <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
-              Результат появится после запуска.
+              ${t("tools.sorter.resultIdle")}
             </div>
             <section id="sorter-preview-panel" class="sorter-preview-panel hidden" aria-live="polite">
               <div class="sorter-preview-header">
-                <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">Предпросмотр dry-run</h3>
+                <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">${t("tools.sorter.preview.title")}</h3>
                 <span
                   id="sorter-preview-badge"
                   class="sorter-preview-badge"
                   data-i18n="tools.sorter.preview.badge"
                 >
-                  Предпросмотр
+                  ${t("tools.sorter.preview.badge")}
                 </span>
               </div>
               <div class="sorter-preview-toolbar">
@@ -1420,17 +1418,17 @@ export default function renderToolsView() {
                     type="text"
                     class="wg-input"
                     data-i18n-placeholder="tools.sorter.preview.searchPlaceholder"
-                    placeholder="Поиск по имени файла или цели"
+                    placeholder="${t("tools.sorter.preview.searchPlaceholder")}"
                   />
                   <select id="sorter-preview-category-filter" class="wg-input">
-                    <option value="all" data-i18n="tools.sorter.preview.filter.all">Все категории</option>
+                    <option value="all" data-i18n="tools.sorter.preview.filter.all">${t("tools.sorter.preview.filter.all")}</option>
                   </select>
                   <select id="sorter-preview-status-filter" class="wg-input">
-                    <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">Все статусы</option>
-                    <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">Только запланированные</option>
-                    <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">Только перемещённые</option>
-                    <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">Только пропущенные</option>
-                    <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">Только ошибки</option>
+                    <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">${t("tools.sorter.preview.statusFilter.all")}</option>
+                    <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">${t("tools.sorter.preview.statusFilter.planned")}</option>
+                    <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">${t("tools.sorter.preview.statusFilter.moved")}</option>
+                    <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">${t("tools.sorter.preview.statusFilter.skipped")}</option>
+                    <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">${t("tools.sorter.preview.statusFilter.error")}</option>
                   </select>
                 </div>
                 <div class="sorter-preview-toolbar__actions">
@@ -1441,29 +1439,29 @@ export default function renderToolsView() {
                   </select>
                   <button id="sorter-copy-result" type="button" class="small-button">
                     <i class="fa-regular fa-copy"></i>
-                    <span data-i18n="tools.sorter.copy">Копировать</span>
+                    <span data-i18n="tools.sorter.copy">${t("tools.sorter.copy")}</span>
                   </button>
                   <button id="sorter-export-result" type="button" class="small-button">
                     <i class="fa-regular fa-file-export"></i>
-                    <span data-i18n="tools.sorter.export">Экспорт</span>
+                    <span data-i18n="tools.sorter.export">${t("tools.sorter.export")}</span>
                   </button>
                 </div>
               </div>
               <div id="sorter-preview-stats" class="sorter-preview-stats">
                 <div class="sorter-preview-stat sorter-preview-stat--primary">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.moved">Обработано</span>
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.moved">${t("tools.sorter.preview.stats.moved")}</span>
                   <strong id="sorter-preview-stat-moved">0</strong>
                 </div>
                 <div class="sorter-preview-stat">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.total">Всего файлов</span>
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.total">${t("tools.sorter.preview.stats.total")}</span>
                   <strong id="sorter-preview-stat-total">0</strong>
                 </div>
                 <div class="sorter-preview-stat sorter-preview-stat--warning">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.skipped">Пропущено</span>
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.skipped">${t("tools.sorter.preview.stats.skipped")}</span>
                   <strong id="sorter-preview-stat-skipped">0</strong>
                 </div>
                 <div class="sorter-preview-stat sorter-preview-stat--danger">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.errors">Ошибок</span>
+                  <span class="muted" data-i18n="tools.sorter.preview.stats.errors">${t("tools.sorter.preview.stats.errors")}</span>
                   <strong id="sorter-preview-stat-errors">0</strong>
                 </div>
               </div>
@@ -1471,12 +1469,12 @@ export default function renderToolsView() {
                 <div class="sorter-preview-main">
                   <div class="sorter-preview-list-panel">
                     <div class="sorter-preview-list-panel__header">
-                      <h4 data-i18n="tools.sorter.preview.list.title">Операции</h4>
+                      <h4 data-i18n="tools.sorter.preview.list.title">${t("tools.sorter.preview.list.title")}</h4>
                       <span id="sorter-preview-list-count" class="sorter-section-count muted">0</span>
                     </div>
                     <div id="sorter-preview-list" class="sorter-preview-list"></div>
                     <p id="sorter-preview-filter-empty" class="sorter-preview-list__empty muted hidden" data-i18n="tools.sorter.preview.filterEmpty">
-                      По текущему фильтру ничего не найдено.
+                      ${t("tools.sorter.preview.filterEmpty")}
                     </p>
                     <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
                   </div>
@@ -1484,14 +1482,14 @@ export default function renderToolsView() {
                 <aside class="sorter-preview-sidebar">
                   <div class="sorter-breakdown">
                     <div class="sorter-breakdown__header">
-                      <h4 data-i18n="tools.sorter.breakdown.title">По категориям</h4>
+                      <h4 data-i18n="tools.sorter.breakdown.title">${t("tools.sorter.breakdown.title")}</h4>
                       <span id="sorter-breakdown-count" class="sorter-section-count muted">0</span>
                     </div>
                     <div id="sorter-breakdown-list" class="sorter-breakdown-list"></div>
                   </div>
                   <div id="sorter-errors-panel" class="sorter-errors-panel hidden">
                     <div class="sorter-errors-panel__header">
-                      <h4 data-i18n="tools.sorter.errorsPanel.title">Ошибки и пропуски</h4>
+                      <h4 data-i18n="tools.sorter.errorsPanel.title">${t("tools.sorter.errorsPanel.title")}</h4>
                       <span id="sorter-errors-count" class="sorter-section-count muted">0</span>
                     </div>
                     <div id="sorter-errors-list" class="sorter-errors-list"></div>
@@ -1510,8 +1508,8 @@ export default function renderToolsView() {
                 tabindex="-1"
               >
                 <div class="sorter-howto-header">
-                  <h3 id="sorter-howto-title" data-i18n="tools.sorter.howto.title">Как работает File Sorter</h3>
-                  <button id="sorter-howto-close" type="button" class="small-button" data-i18n-aria="tools.sorter.howto.close" aria-label="Закрыть">
+                  <h3 id="sorter-howto-title" data-i18n="tools.sorter.howto.title">${t("tools.sorter.howto.title")}</h3>
+                  <button id="sorter-howto-close" type="button" class="small-button" data-i18n-aria="tools.sorter.howto.close" aria-label="${t("tools.sorter.howto.close")}">
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
@@ -1520,39 +1518,39 @@ export default function renderToolsView() {
                   <div id="sorter-howto-track" class="sorter-howto-track">
                     <article class="sorter-howto-slide" data-howto-slide="0">
                       <div class="sorter-howto-slide__icon"><i class="fa-regular fa-folder-open"></i></div>
-                      <h4 data-i18n="tools.sorter.howto.slide1.title">Выберите папку</h4>
-                      <p data-i18n="tools.sorter.howto.slide1.desc">Нажмите «Выбрать папку» и укажите место, где лежат файлы для сортировки.</p>
+                      <h4 data-i18n="tools.sorter.howto.slide1.title">${t("tools.sorter.howto.slide1.title")}</h4>
+                      <p data-i18n="tools.sorter.howto.slide1.desc">${t("tools.sorter.howto.slide1.desc")}</p>
                     </article>
                     <article class="sorter-howto-slide" data-howto-slide="1">
                       <div class="sorter-howto-slide__icon"><i class="fa-regular fa-eye"></i></div>
-                      <h4 data-i18n="tools.sorter.howto.slide2.title">Проверьте результат в dry-run</h4>
-                      <p data-i18n="tools.sorter.howto.slide2.desc">Включите предпросмотр, чтобы увидеть, как будут разложены файлы, без изменений на диске.</p>
+                      <h4 data-i18n="tools.sorter.howto.slide2.title">${t("tools.sorter.howto.slide2.title")}</h4>
+                      <p data-i18n="tools.sorter.howto.slide2.desc">${t("tools.sorter.howto.slide2.desc")}</p>
                     </article>
                     <article class="sorter-howto-slide" data-howto-slide="2">
                       <div class="sorter-howto-slide__icon"><i class="fa-solid fa-list-check"></i></div>
-                      <h4 data-i18n="tools.sorter.howto.slide3.title">Запустите сортировку</h4>
-                      <p data-i18n="tools.sorter.howto.slide3.desc">Инструмент создаст папки категорий и перенесёт файлы по типам. Одинаковые имена не перезаписываются.</p>
+                      <h4 data-i18n="tools.sorter.howto.slide3.title">${t("tools.sorter.howto.slide3.title")}</h4>
+                      <p data-i18n="tools.sorter.howto.slide3.desc">${t("tools.sorter.howto.slide3.desc")}</p>
                     </article>
                     <article class="sorter-howto-slide" data-howto-slide="3">
                       <div class="sorter-howto-slide__icon"><i class="fa-regular fa-file-lines"></i></div>
-                      <h4 data-i18n="tools.sorter.howto.slide4.title">Смотрите итог и лог</h4>
-                      <p data-i18n="tools.sorter.howto.slide4.desc">После запуска вы увидите статистику. При желании можно сохранить лог-файл со всеми действиями.</p>
+                      <h4 data-i18n="tools.sorter.howto.slide4.title">${t("tools.sorter.howto.slide4.title")}</h4>
+                      <p data-i18n="tools.sorter.howto.slide4.desc">${t("tools.sorter.howto.slide4.desc")}</p>
                     </article>
                   </div>
                 </div>
-                <div id="sorter-howto-dots" class="sorter-howto-dots" role="tablist" data-i18n-aria="tools.sorter.howto.title" aria-label="How-to steps">
-                  <button type="button" class="sorter-howto-dot" data-index="0" aria-label="Step 1"></button>
-                  <button type="button" class="sorter-howto-dot" data-index="1" aria-label="Step 2"></button>
-                  <button type="button" class="sorter-howto-dot" data-index="2" aria-label="Step 3"></button>
-                  <button type="button" class="sorter-howto-dot" data-index="3" aria-label="Step 4"></button>
+                <div id="sorter-howto-dots" class="sorter-howto-dots" role="tablist" data-i18n-aria="tools.sorter.howto.title" aria-label="${t("tools.sorter.howto.title")}">
+                  <button type="button" class="sorter-howto-dot" data-index="0" aria-label="${t("tools.sorter.howto.step", { current: 1, total: 4 })}"></button>
+                  <button type="button" class="sorter-howto-dot" data-index="1" aria-label="${t("tools.sorter.howto.step", { current: 2, total: 4 })}"></button>
+                  <button type="button" class="sorter-howto-dot" data-index="2" aria-label="${t("tools.sorter.howto.step", { current: 3, total: 4 })}"></button>
+                  <button type="button" class="sorter-howto-dot" data-index="3" aria-label="${t("tools.sorter.howto.step", { current: 4, total: 4 })}"></button>
                 </div>
                 <div class="sorter-howto-actions">
                   <button id="sorter-howto-prev" type="button" class="small-button">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <span data-i18n="tools.sorter.howto.prev">Назад</span>
+                    <span data-i18n="tools.sorter.howto.prev">${t("tools.sorter.howto.prev")}</span>
                   </button>
                   <button id="sorter-howto-next" type="button" class="small-button">
-                    <span data-i18n="tools.sorter.howto.next">Далее</span>
+                    <span data-i18n="tools.sorter.howto.next">${t("tools.sorter.howto.next")}</span>
                     <i class="fa-solid fa-arrow-right"></i>
                   </button>
                 </div>
