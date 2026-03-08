@@ -140,7 +140,7 @@
 .url-entry-shell {
   width: 100%;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .url-input-main {
@@ -395,7 +395,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 4px 12px;
-  padding: 6px 6px 0;
+  padding: 5px 6px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   transition:
     border-color 0.2s ease,
@@ -469,7 +469,7 @@
 }
 
 .url-inline-error {
-  margin-top: 2px;
+  margin-top: 0;
   padding: 0 14px 2px;
   width: 100%;
   font-size: 12px;
@@ -571,23 +571,23 @@
 #preview-card {
   display: none;
   position: relative;
-  margin-top: 10px;
+  margin-top: 6px;
   z-index: auto;
   width: 100%;
-  padding: 14px 48px 14px 14px;
-  border-radius: 22px;
+  padding: 12px 44px 12px 12px;
+  border-radius: 20px;
   background:
-    linear-gradient(160deg, rgba(10, 30, 59, 0.94), rgba(11, 20, 38, 0.9)),
+    linear-gradient(160deg, rgba(9, 28, 54, 0.92), rgba(10, 19, 35, 0.88)),
     rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(170, 206, 255, 0.12);
+  border: 1px solid rgba(170, 206, 255, 0.1);
   overflow: hidden;
   color: var(--color-text-main);
-  gap: 14px;
+  gap: 10px;
   align-items: center;
   display: grid;
-  grid-template-columns: minmax(148px, 196px) minmax(0, 1fr);
-  min-height: 112px;
-  box-shadow: 0 16px 34px rgba(4, 10, 24, 0.22);
+  grid-template-columns: minmax(156px, 208px) minmax(0, 1fr);
+  min-height: 104px;
+  box-shadow: 0 14px 28px rgba(4, 10, 24, 0.18);
 
   .preview-media {
     position: relative;
@@ -597,11 +597,11 @@
 
   img {
     width: 100%;
-    height: 90px;
+    height: 96px;
     border-radius: 14px;
     object-fit: cover;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
   }
 
   .preview-thumb-wrap {
@@ -615,24 +615,24 @@
       position: absolute;
       right: 0;
       top: 0;
-      width: 76px;
-      height: 52px;
+      width: 64px;
+      height: 44px;
       pointer-events: none;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent);
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.22), transparent);
     }
   }
 
   .preview-save {
     position: absolute;
-    right: 10px;
-    top: 10px;
-    width: 32px;
-    height: 32px;
+    right: 8px;
+    top: 8px;
+    width: 30px;
+    height: 30px;
     padding: 0;
     font-size: 0;
-    border-radius: 11px;
-    background: rgba(10, 18, 30, 0.56);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(9, 16, 28, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--color-text-main);
     display: inline-flex;
     align-items: center;
@@ -643,12 +643,12 @@
       transform 0.1s ease,
       box-shadow 0.2s ease;
     i {
-      font-size: 14px;
+      font-size: 13px;
     }
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       transform: scale(1.04);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
     }
     &:active {
       transform: scale(0.97);
@@ -657,14 +657,14 @@
 
   .preview-close {
     position: absolute;
-    right: 12px;
-    top: 12px;
-    width: 30px;
-    height: 30px;
-    font-size: 12px;
-    background-color: rgba(10, 18, 30, 0.56);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 11px;
+    right: 10px;
+    top: 10px;
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+    background-color: rgba(9, 16, 28, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
     color: var(--color-text-main);
     display: inline-flex;
     align-items: center;
@@ -676,9 +676,9 @@
       transform 0.1s ease,
       box-shadow 0.2s ease;
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       transform: scale(1.04);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
     }
     &:active {
       transform: scale(0.97);
@@ -693,16 +693,17 @@
     min-width: 0;
     display: grid;
     align-content: center;
-    gap: 6px;
-    min-height: 78px;
-    justify-content: center;
+    gap: 5px;
+    min-height: 80px;
+    justify-content: start;
+    padding-right: 6px;
   }
 
   .preview-kicker {
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgba(var(--color-accent-rgb), 0.82);
+    color: rgba(var(--color-accent-rgb), 0.76);
     font-weight: 700;
   }
 
@@ -711,10 +712,10 @@
     padding: 0;
     background: transparent;
     border-radius: 0;
-    font-size: clamp(1rem, 1.8vw, 1.18rem);
+    font-size: clamp(1.02rem, 1.75vw, 1.16rem);
     font-weight: 700;
     color: rgba(244, 248, 255, 0.96);
-    line-height: 1.35;
+    line-height: 1.28;
     max-width: 100%;
   }
 
@@ -728,12 +729,12 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: 2px;
-    padding: 5px 11px;
+    margin-top: 1px;
+    padding: 4px 10px;
     font-weight: 600;
     border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     width: fit-content;
     max-width: 100%;
     white-space: nowrap;
@@ -748,8 +749,8 @@
   .preview-playlist-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 2px;
+    gap: 6px;
+    margin-top: 1px;
 
     &.hidden {
       display: none;
@@ -772,8 +773,8 @@
   .preview-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 2px;
+    gap: 6px;
+    margin-top: 3px;
   }
 
   .preview-action-button {
@@ -835,9 +836,9 @@
   }
 
   @media (max-width: 480px) {
-    padding: 12px 42px 12px 12px;
+    padding: 11px 40px 11px 11px;
     img {
-      height: 88px;
+      height: 92px;
     }
   }
 

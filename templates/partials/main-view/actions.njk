@@ -298,6 +298,15 @@
         <div class="quality-split-actions">
           <button
             type="button"
+            id="download-quality-action-enqueue"
+            class="btn-ghost quality-split-secondary"
+            data-i18n="quality.split.action.enqueue"
+            disabled
+          >
+            В очередь
+          </button>
+          <button
+            type="button"
             id="download-quality-primary"
             class="btn-primary quality-split-primary"
             disabled
@@ -305,37 +314,6 @@
           >
             Скачать
           </button>
-          <button
-            type="button"
-            id="download-quality-menu-toggle"
-            class="btn-primary quality-split-toggle"
-            aria-label="Выбрать действие загрузки"
-            data-i18n-aria="quality.split.menuToggle"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            aria-controls="download-quality-menu"
-            disabled
-          >
-            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-          </button>
-          <div
-            id="download-quality-menu"
-            class="quality-action-menu hidden"
-            role="menu"
-            aria-label="Действия с выбранным качеством"
-            data-i18n-aria="quality.split.menuLabel"
-          >
-            <button
-              type="button"
-              id="download-quality-action-enqueue"
-              class="quality-action-menu-item"
-              role="menuitem"
-              data-i18n="quality.split.action.enqueue"
-              disabled
-            >
-              В очередь
-            </button>
-          </div>
         </div>
       </div>
     </div>

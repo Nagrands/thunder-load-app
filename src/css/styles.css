@@ -12403,7 +12403,7 @@ body.is-mac .window-controls .btn-minimize {
 .url-entry-shell {
   width: 100%;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .url-input-main {
@@ -12632,7 +12632,7 @@ body.is-mac .window-controls .btn-minimize {
   align-items: center;
   justify-content: space-between;
   gap: 4px 12px;
-  padding: 6px 6px 0;
+  padding: 5px 6px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
@@ -12700,7 +12700,7 @@ body.is-mac .window-controls .btn-minimize {
 }
 
 .url-inline-error {
-  margin-top: 2px;
+  margin-top: 0;
   padding: 0 14px 2px;
   width: 100%;
   font-size: 12px;
@@ -12776,21 +12776,21 @@ body.is-mac .window-controls .btn-minimize {
 #preview-card {
   display: none;
   position: relative;
-  margin-top: 10px;
+  margin-top: 6px;
   z-index: auto;
   width: 100%;
-  padding: 14px 48px 14px 14px;
-  border-radius: 22px;
-  background: linear-gradient(160deg, rgba(10, 30, 59, 0.94), rgba(11, 20, 38, 0.9)), rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(170, 206, 255, 0.12);
+  padding: 12px 44px 12px 12px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(9, 28, 54, 0.92), rgba(10, 19, 35, 0.88)), rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(170, 206, 255, 0.1);
   overflow: hidden;
   color: var(--color-text-main);
-  gap: 14px;
+  gap: 10px;
   align-items: center;
   display: grid;
-  grid-template-columns: minmax(148px, 196px) minmax(0, 1fr);
-  min-height: 112px;
-  box-shadow: 0 16px 34px rgba(4, 10, 24, 0.22);
+  grid-template-columns: minmax(156px, 208px) minmax(0, 1fr);
+  min-height: 104px;
+  box-shadow: 0 14px 28px rgba(4, 10, 24, 0.18);
 }
 #preview-card .preview-media {
   position: relative;
@@ -12799,11 +12799,11 @@ body.is-mac .window-controls .btn-minimize {
 }
 #preview-card img {
   width: 100%;
-  height: 90px;
+  height: 96px;
   border-radius: 14px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
 }
 #preview-card .preview-thumb-wrap {
   position: relative;
@@ -12816,22 +12816,22 @@ body.is-mac .window-controls .btn-minimize {
   position: absolute;
   right: 0;
   top: 0;
-  width: 76px;
-  height: 52px;
+  width: 64px;
+  height: 44px;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.22), transparent);
 }
 #preview-card .preview-save {
   position: absolute;
-  right: 10px;
-  top: 10px;
-  width: 32px;
-  height: 32px;
+  right: 8px;
+  top: 8px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   font-size: 0;
-  border-radius: 11px;
-  background: rgba(10, 18, 30, 0.56);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(9, 16, 28, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--color-text-main);
   display: inline-flex;
   align-items: center;
@@ -12840,26 +12840,26 @@ body.is-mac .window-controls .btn-minimize {
   transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 #preview-card .preview-save i {
-  font-size: 14px;
+  font-size: 13px;
 }
 #preview-card .preview-save:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   transform: scale(1.04);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
 }
 #preview-card .preview-save:active {
   transform: scale(0.97);
 }
 #preview-card .preview-close {
   position: absolute;
-  right: 12px;
-  top: 12px;
-  width: 30px;
-  height: 30px;
-  font-size: 12px;
-  background-color: rgba(10, 18, 30, 0.56);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 11px;
+  right: 10px;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  background-color: rgba(9, 16, 28, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   color: var(--color-text-main);
   display: inline-flex;
   align-items: center;
@@ -12869,9 +12869,9 @@ body.is-mac .window-controls .btn-minimize {
   transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 #preview-card .preview-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   transform: scale(1.04);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
 }
 #preview-card .preview-close:active {
   transform: scale(0.97);
@@ -12884,15 +12884,16 @@ body.is-mac .window-controls .btn-minimize {
   min-width: 0;
   display: grid;
   align-content: center;
-  gap: 6px;
-  min-height: 78px;
-  justify-content: center;
+  gap: 5px;
+  min-height: 80px;
+  justify-content: start;
+  padding-right: 6px;
 }
 #preview-card .preview-kicker {
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(var(--color-accent-rgb), 0.82);
+  color: rgba(var(--color-accent-rgb), 0.76);
   font-weight: 700;
 }
 #preview-card .preview-title {
@@ -12900,10 +12901,10 @@ body.is-mac .window-controls .btn-minimize {
   padding: 0;
   background: transparent;
   border-radius: 0;
-  font-size: clamp(1rem, 1.8vw, 1.18rem);
+  font-size: clamp(1.02rem, 1.75vw, 1.16rem);
   font-weight: 700;
   color: rgba(244, 248, 255, 0.96);
-  line-height: 1.35;
+  line-height: 1.28;
   max-width: 100%;
 }
 #preview-card .muted,
@@ -12915,12 +12916,12 @@ body.is-mac .window-controls .btn-minimize {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 2px;
-  padding: 5px 11px;
+  margin-top: 1px;
+  padding: 4px 10px;
   font-weight: 600;
   border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   width: fit-content;
   max-width: 100%;
   white-space: nowrap;
@@ -12933,8 +12934,8 @@ body.is-mac .window-controls .btn-minimize {
 #preview-card .preview-playlist-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: 1px;
 }
 #preview-card .preview-playlist-meta.hidden {
   display: none;
@@ -12954,8 +12955,8 @@ body.is-mac .window-controls .btn-minimize {
 #preview-card .preview-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: 3px;
 }
 #preview-card .preview-action-button {
   min-height: 34px;
@@ -13003,10 +13004,10 @@ body.is-mac .window-controls .btn-minimize {
 }
 @media (max-width: 480px) {
   #preview-card {
-    padding: 12px 42px 12px 12px;
+    padding: 11px 40px 11px 11px;
   }
   #preview-card img {
-    height: 88px;
+    height: 92px;
   }
 }
 #preview-card.pos-top {
@@ -21402,13 +21403,13 @@ video {
 }
 
 .downloader-shell {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .downloader-shell-header {
   position: relative;
   display: grid;
-  gap: 14px;
+  gap: 10px;
   align-items: stretch;
 }
 .downloader-shell-header .downloader-shell-header__hero {
@@ -21435,33 +21436,40 @@ video {
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: 100%;
   min-width: 0;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 0;
+  padding: 18px 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(170, 206, 255, 0.1);
+  background: linear-gradient(165deg, rgba(6, 21, 45, 0.9), rgba(7, 17, 32, 0.78)), rgba(255, 255, 255, 0.01);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(4, 10, 22, 0.14);
 }
 .downloader-shell-header .title i {
-  font-size: 2.3rem;
+  font-size: 2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--color-accent);
   transition: all 0.25s ease;
+  opacity: 0.92;
 }
 .downloader-shell-header .title:hover i {
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 .downloader-shell-header .title-content h1 {
-  margin: 0 0 8px;
-  font-size: 1.5rem;
+  margin: 0 0 5px;
+  font-size: 1.42rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .downloader-shell-header .title-content .subtitle {
   margin: 0;
-  max-width: 680px;
-  color: var(--color-quality);
-  font-size: 0.9rem;
-  font-style: italic;
+  max-width: 620px;
+  color: rgba(203, 217, 238, 0.68);
+  font-size: 0.84rem;
+  font-style: normal;
 }
 
 .downloader-job-summary {
@@ -21657,7 +21665,7 @@ video {
 }
 
 .downloader-view .input-container {
-  gap: 12px;
+  gap: 10px;
   padding: 0;
 }
 .downloader-view .downloader-action-row {
@@ -21666,7 +21674,7 @@ video {
   justify-content: center;
   gap: 6px;
   margin: 0;
-  padding: 8px;
+  padding: 7px;
   border-radius: 22px;
   border: 1px solid rgba(170, 206, 255, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(7, 12, 22, 0.06)), rgba(255, 255, 255, 0.01);
@@ -21780,16 +21788,17 @@ video {
 
 @media (max-width: 768px) {
   .downloader-view .downloader-shell-header .title {
-    gap: 12px;
+    gap: 10px;
+    padding: 16px 18px;
   }
   .downloader-view .downloader-shell-header .title i {
-    width: 52px;
-    height: 46px;
-    font-size: 1.15rem;
+    width: auto;
+    height: auto;
+    font-size: 1.08rem;
   }
   .downloader-view .downloader-shell-header .title-content h1 {
-    font-size: 1.55rem;
-    margin-bottom: 4px;
+    font-size: 1.38rem;
+    margin-bottom: 3px;
   }
   .downloader-view .downloader-shell-header .downloader-tools-status {
     margin-top: 0;
@@ -21799,7 +21808,7 @@ video {
   }
   .downloader-view .downloader-action-row {
     grid-template-columns: 1fr;
-    padding: 8px;
+    padding: 7px;
     justify-content: stretch;
   }
   .downloader-view .downloader-action-row__primary {
@@ -22473,65 +22482,39 @@ video {
   cursor: not-allowed;
 }
 .download-quality-modal .quality-split-actions {
-  position: relative;
   display: inline-flex;
   align-items: stretch;
+  gap: 8px;
   min-height: 38px;
 }
 .download-quality-modal .quality-split-primary,
-.download-quality-modal .quality-split-toggle {
+.download-quality-modal .quality-split-secondary {
   min-height: 38px;
 }
 .download-quality-modal .quality-split-primary {
-  border-radius: 12px 0 0 12px !important;
-  border-right: none !important;
+  border-radius: 12px !important;
   min-width: 176px;
   justify-content: center;
 }
-.download-quality-modal .quality-split-toggle {
-  border-radius: 0 12px 12px 0 !important;
-  width: 42px;
-  padding: 0 !important;
+.download-quality-modal .quality-split-secondary {
+  border-radius: 12px !important;
+  min-width: 124px;
+  padding: 0 14px !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(233, 240, 251, 0.92);
 }
-.download-quality-modal .quality-action-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  min-width: 210px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(18, 26, 40, 0.96);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 5;
-}
-.download-quality-modal .quality-action-menu.hidden {
-  display: none;
-}
-.download-quality-modal .quality-action-menu-item {
-  border: 1px solid transparent;
-  border-radius: 10px;
-  min-height: 36px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: left;
-  padding: 8px 10px;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-.download-quality-modal .quality-action-menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-.download-quality-modal .quality-action-menu-item:disabled {
+.download-quality-modal .quality-split-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.download-quality-modal .quality-split-secondary:not(:disabled):hover {
+  border-color: rgba(var(--color-accent-rgb), 0.2);
+  background: rgba(var(--color-accent-rgb), 0.08);
+  color: rgba(247, 250, 255, 0.98);
 }
 .download-quality-modal .quality-option:focus-visible,
 .download-quality-modal .quality-tab:focus-visible,
@@ -22539,7 +22522,7 @@ video {
 .download-quality-modal .quality-actions button:focus-visible,
 .download-quality-modal .quality-info .btn-link:focus-visible,
 .download-quality-modal .quality-option-toggle:focus-visible,
-.download-quality-modal .quality-action-menu-item:focus-visible {
+.download-quality-modal .quality-split-secondary:focus-visible {
   outline: 2px solid rgba(var(--color-accent-rgb), 0.85);
   outline-offset: 2px;
 }

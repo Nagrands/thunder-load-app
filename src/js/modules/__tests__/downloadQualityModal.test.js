@@ -12,11 +12,8 @@ const buildDom = () => {
       <button id="download-quality-retry" type="button"></button>
       <button id="download-quality-cancel" type="button"></button>
       <div class="quality-split-actions">
+        <button id="download-quality-action-enqueue" type="button"></button>
         <button id="download-quality-primary" type="button"></button>
-        <button id="download-quality-menu-toggle" type="button" aria-expanded="false"></button>
-        <div id="download-quality-menu" class="hidden" role="menu">
-          <button id="download-quality-action-enqueue" type="button" role="menuitem"></button>
-        </div>
       </div>
       <div
         id="download-quality-options-panel"
@@ -548,43 +545,7 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
-  it("opens and closes split action menu via toggle and Escape", async () => {
-    await jest.isolateModulesAsync(async () => {
-      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const modal = document.getElementById("download-quality-modal");
-
-      const resultPromise = openDownloadQualityModal(
-        "https://example.com/video",
-      );
-      await Promise.resolve();
-      await Promise.resolve();
-
-      const toggle = document.getElementById("download-quality-menu-toggle");
-      const menu = document.getElementById("download-quality-menu");
-
-      toggle.click();
-      expect(menu.classList.contains("hidden")).toBe(false);
-      expect(toggle.getAttribute("aria-expanded")).toBe("true");
-
-      document.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-      );
-      expect(menu.classList.contains("hidden")).toBe(true);
-      expect(toggle.getAttribute("aria-expanded")).toBe("false");
-      expect(modal.classList.contains("is-open")).toBe(true);
-
-      document.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-      );
-      const result = await resultPromise;
-
-      expect(result).toBeNull();
-      expect(modal.classList.contains("is-open")).toBe(false);
-    });
-  });
-
-  it("runs enqueue action from split menu item", async () => {
+  it("runs enqueue action from visible secondary button", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
@@ -595,7 +556,6 @@ describe("downloadQualityModal close behavior", () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      document.getElementById("download-quality-menu-toggle").click();
       document.getElementById("download-quality-action-enqueue").click();
       const result = await resultPromise;
 
@@ -720,9 +680,6 @@ describe("downloadQualityModal close behavior", () => {
         "download-quality-options-placeholder",
       );
       const primaryBtn = document.getElementById("download-quality-primary");
-      const menuToggleBtn = document.getElementById(
-        "download-quality-menu-toggle",
-      );
       const actionEnqueueBtn = document.getElementById(
         "download-quality-action-enqueue",
       );
@@ -733,7 +690,6 @@ describe("downloadQualityModal close behavior", () => {
       expect(copyBtn.classList.contains("hidden")).toBe(true);
       expect(placeholder.classList.contains("hidden")).toBe(false);
       expect(primaryBtn.disabled).toBe(true);
-      expect(menuToggleBtn.disabled).toBe(true);
       expect(actionEnqueueBtn.disabled).toBe(true);
       expect(primaryBtn.textContent).toContain("Выберите");
 
@@ -763,7 +719,6 @@ describe("downloadQualityModal close behavior", () => {
       expect(copyBtn.classList.contains("hidden")).toBe(false);
       expect(placeholder.classList.contains("hidden")).toBe(true);
       expect(primaryBtn.disabled).toBe(false);
-      expect(menuToggleBtn.disabled).toBe(false);
       expect(actionEnqueueBtn.disabled).toBe(false);
       expect(primaryBtn.textContent).toContain("Скачать");
 

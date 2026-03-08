@@ -75,3 +75,7 @@
 | The quick modes block is simpler now | The Downloader now keeps only the clearest quick actions in the URL area: video, audio only, and queue |
 | Quick modes now appear only for recognized links | When the URL is empty or invalid, extra mode buttons stay hidden until the source is recognized |
 | The download button is more compact and easier to notice | The main action at the top of the Downloader now feels more deliberate and stands out more clearly from the side buttons |
+| The Downloader header is calmer now | The main title draws less attention away from the URL field, preview, and queue controls |
+| The preview card is denser and more polished now | Link previews now fit more naturally with the URL field and action controls at the top of the Downloader |
+| The top of the Downloader is more even now | The URL field, preview, and action controls now sit closer together and feel more like one coordinated block |
+| Quick modes now live in the quality dialog | The top of the Downloader is cleaner, and video, audio, and queue actions are now available directly inside the quality modal |

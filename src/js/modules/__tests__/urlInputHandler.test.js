@@ -29,11 +29,6 @@ const buildDom = () => {
             </div>
             <div class="url-input-shortcuts"></div>
           </div>
-          <div class="url-input-presets">
-            <button type="button" data-url-preset="video"></button>
-            <button type="button" data-url-preset="audio"></button>
-            <button type="button" data-url-preset="queue"></button>
-          </div>
         </div>
         <div id="url-inline-error" class="url-inline-error hidden"></div>
       </div>
@@ -69,8 +64,6 @@ const getState = () => ({
   helperText: document.getElementById("url-helper-text"),
   container: document.querySelector(".input-container"),
   sourceLink: document.getElementById("url-source-link"),
-  presetContainer: document.querySelector(".url-input-presets"),
-  presetButtons: Array.from(document.querySelectorAll("[data-url-preset]")),
 });
 
 describe("urlInputHandler", () => {
@@ -101,7 +94,7 @@ describe("urlInputHandler", () => {
             return "Получаем превью и проверяем ссылку…";
           }
           if (key === "input.url.helper.valid") {
-            return "Ссылка распознана. Выберите режим ниже или нажмите Enter для обычной загрузки.";
+            return "Ссылка распознана. Нажмите Enter или выберите режим в окне качества.";
           }
           if (key === "input.url.helper.playlistChoice") {
             return "Это плейлист. Можно скачать текущий ролик или добавить весь плейлист в очередь.";
@@ -172,9 +165,6 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.saveWithTitle") {
             return `Сохранить: "${vars.title}"`;
           }
-          if (key === "input.url.presets.video") return "Видео";
-          if (key === "input.url.presets.audio") return "Только аудио";
-          if (key === "input.url.presets.queue") return "В очередь";
           return key;
         },
       }));
@@ -365,22 +355,6 @@ describe("urlInputHandler", () => {
     expect(container.classList.contains("is-empty")).toBe(true);
   });
 
-  test("hides presets when URL is empty or invalid and shows them for valid links", () => {
-    const { input, presetContainer } = getState();
-
-    expect(presetContainer.classList.contains("is-hidden")).toBe(true);
-    expect(presetContainer.getAttribute("aria-hidden")).toBe("true");
-
-    input.value = "http://";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(presetContainer.classList.contains("is-hidden")).toBe(true);
-
-    input.value = "https://example.com/video";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(presetContainer.classList.contains("is-hidden")).toBe(false);
-    expect(presetContainer.getAttribute("aria-hidden")).toBe("false");
-  });
-
   test("adds and removes drag-over class for drag events", () => {
     const { wrapper, container, helperText } = getState();
     wrapper.dispatchEvent(new Event("dragenter", { bubbles: true }));
@@ -500,49 +474,4 @@ describe("urlInputHandler", () => {
     );
   });
 
-  test("queue preset reuses download flow with enqueueOnly flag", () => {
-    const { input, downloadBtn, presetButtons } = getState();
-    let captured = null;
-    input.value = "https://example.com/video";
-    downloadBtn.disabled = false;
-    jest.spyOn(downloadBtn, "click").mockImplementation(() => {
-      captured = downloadBtn.dataset.enqueueOnly;
-    });
-
-    presetButtons.find((button) => button.dataset.urlPreset === "queue").click();
-
-    expect(captured).toBe("1");
-  });
-
-  test("audio preset reuses download flow with forceAudioOnly flag", () => {
-    const { input, downloadBtn, presetButtons } = getState();
-    let captured = null;
-    input.value = "https://example.com/video";
-    downloadBtn.disabled = false;
-    jest.spyOn(downloadBtn, "click").mockImplementation(() => {
-      captured = downloadBtn.dataset.forceAudioOnly;
-    });
-
-    presetButtons.find((button) => button.dataset.urlPreset === "audio").click();
-
-    expect(captured).toBe("1");
-  });
-
-  test("preset buttons reflect the active mode", () => {
-    const { input, presetButtons } = getState();
-    input.value = "https://example.com/video";
-
-    const videoPreset = presetButtons.find(
-      (button) => button.dataset.urlPreset === "video",
-    );
-    const audioPreset = presetButtons.find(
-      (button) => button.dataset.urlPreset === "audio",
-    );
-
-    expect(videoPreset.classList.contains("is-active")).toBe(true);
-    audioPreset.click();
-
-    expect(audioPreset.classList.contains("is-active")).toBe(true);
-    expect(videoPreset.classList.contains("is-active")).toBe(false);
-  });
 });
