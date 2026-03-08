@@ -1676,6 +1676,7 @@ const handleDownloadButtonClick = async (options = {}) => {
           ? lastChosenQualityLabel || readLastQuality()
           : null,
       forceAudioOnly: options.forceAudioOnly,
+      enqueueOnly: options.enqueueOnly,
     });
     if (!selectionRaw) return;
     const selection = normalizeSelection(selectionRaw);
@@ -1737,6 +1738,7 @@ const handleDownloadButtonClick = async (options = {}) => {
         ? lastChosenQualityLabel || readLastQuality()
         : null,
     forceAudioOnly: options.forceAudioOnly,
+    enqueueOnly: options.enqueueOnly,
   });
   if (!selectionRaw) return;
   const selection = normalizeSelection(selectionRaw);

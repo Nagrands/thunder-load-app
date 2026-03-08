@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Simplified downloader hotkeys | The top URL field no longer has a separate `Alt+Enter` action, while `Shift+Enter` still queues the selected option through the quality dialog |
 | Fixed the default theme reset label | Settings now show the normal theme name again instead of `system` after reset |
 | Fixed toast formatting in Settings | Notification text now renders correctly without visible HTML tags |
 | Moved the “More” block in Tools to a separate section | Additional actions and settings are now visible immediately |

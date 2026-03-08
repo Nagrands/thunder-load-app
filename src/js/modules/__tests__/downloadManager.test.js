@@ -239,9 +239,16 @@ describe("downloadManager enqueueOnly behavior", () => {
       }));
       const { state } = require("../state");
       const { handleDownloadButtonClick } = require("../downloadManager");
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
+      expect(openDownloadQualityModal).toHaveBeenCalledWith(
+        "https://example.com/a",
+        expect.objectContaining({
+          enqueueOnly: true,
+        }),
+      );
       expect(state.downloadQueue).toHaveLength(1);
       expect(state.isDownloading).toBe(false);
     });
@@ -343,6 +350,47 @@ describe("downloadManager enqueueOnly behavior", () => {
       await handleDownloadButtonClick({ enqueueOnly: true });
       expect(state.downloadQueue).toHaveLength(1);
       expect(state.downloadQueue[0].quality.type).toBe("audio-only");
+    });
+  });
+
+  it("passes forceAudioOnly to quality modal for audio-only flow", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue({
+          type: "audio-only",
+          label: "Audio",
+        }),
+      }));
+
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const urlInput = document.getElementById("url");
+
+      urlInput.value = "https://example.com/audio";
+      await handleDownloadButtonClick({ forceAudioOnly: true });
+
+      expect(openDownloadQualityModal).toHaveBeenCalledWith(
+        "https://example.com/audio",
+        expect.objectContaining({
+          forceAudioOnly: true,
+          enqueueOnly: undefined,
+        }),
+      );
     });
   });
 

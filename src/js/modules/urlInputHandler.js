@@ -518,6 +518,9 @@ function initUrlInputHandler() {
 
   // Старт загрузки по Enter (без модификаторов)
   urlInput.addEventListener("keydown", (e) => {
+    const qualityModal = document.getElementById("download-quality-modal");
+    if (qualityModal?.classList.contains("is-open")) return;
+
     if (e.key === "Escape") {
       e.preventDefault();
       hasInteracted = false;
@@ -546,20 +549,21 @@ function initUrlInputHandler() {
 
     const btn = document.getElementById("download-button");
     if (!btn || btn.disabled) return;
-    e.preventDefault();
     // Shift+Enter → только в очередь
     if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
       btn.dataset.enqueueOnly = "1";
       btn.click();
       return;
     }
-    // Alt+Enter → Audio Only
-    if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-      btn.dataset.forceAudioOnly = "1";
-      btn.click();
+
+    // Любые прочие модификаторы не имеют отдельнего действия
+    if (e.altKey || e.ctrlKey || e.metaKey) {
       return;
     }
+
     // Обычный Enter → как прежде
+    e.preventDefault();
     btn.click();
   });
 

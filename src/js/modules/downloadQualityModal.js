@@ -69,6 +69,10 @@ const selectionOutputEl = document.getElementById(
 const selectionSummaryEl = document.getElementById(
   "download-quality-selection-summary",
 );
+const hintTextEl = document.getElementById("download-quality-hint-text");
+const hotkeyConfirmLabelEl = document.getElementById(
+  "download-quality-hotkey-confirm-label",
+);
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
@@ -98,12 +102,14 @@ const state = {
   optionMap: new Map(),
   info: null,
   forceAudio: false,
+  enqueueOnly: false,
   defaultQualityProfile: "remember",
   defaultQuality: "Source",
   currentUrl: "",
   currentFetchToken: 0,
   selectedByTab: new Map(),
   expandedOptions: new Set(),
+  shouldFocusSelection: false,
   loadingStartedAt: 0,
   loadingTickTimer: null,
 };
@@ -210,15 +216,57 @@ function restoreSelectionForTab(tab) {
   return true;
 }
 
+function isQueueConfirmMode() {
+  return !!state.enqueueOnly;
+}
+
+function syncConfirmUi() {
+  if (hintTextEl) {
+    hintTextEl.textContent = t(
+      isQueueConfirmMode() ? "quality.hint.queue" : "quality.hint",
+    );
+  }
+  if (hotkeyConfirmLabelEl) {
+    hotkeyConfirmLabelEl.textContent = t(
+      isQueueConfirmMode()
+        ? "quality.hotkey.confirmQueue"
+        : "quality.hotkey.confirm",
+    );
+  }
+  const option = state.selectedOption;
+  if (primaryBtn) {
+    primaryBtn.textContent = option
+      ? t(
+          isQueueConfirmMode()
+            ? "quality.enqueueWithLabel"
+            : "quality.confirmWithLabel",
+          {
+            label: option.payload.label,
+          },
+        )
+      : t(
+          isQueueConfirmMode()
+            ? "quality.split.primaryDisabledHintQueue"
+            : "quality.split.primaryDisabledHint",
+        );
+  }
+}
+
+function focusSelectedOption() {
+  if (!modal?.classList.contains("is-open")) return;
+  const activeOption = optionsContainer.querySelector(".quality-option.active");
+  activeOption?.focus?.();
+}
+
 function resetModalState() {
   state.selectedOption = null;
   state.optionMap.clear();
   state.selectedByTab.clear();
   state.expandedOptions.clear();
+  state.shouldFocusSelection = false;
   optionsContainer.innerHTML = "";
   if (primaryBtn) {
     primaryBtn.disabled = true;
-    primaryBtn.textContent = t("quality.split.primaryDisabledHint");
   }
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   emptyEl?.classList.add("hidden");
@@ -248,6 +296,7 @@ function resetModalState() {
   thumbFallbackEl?.classList.add("hidden");
   updateTabCounts();
   updateSelectionSummary(null);
+  syncConfirmUi();
 }
 
 function clearLoadingTimer() {
@@ -909,17 +958,6 @@ function selectOption(option, { remember = true } = {}) {
   const hasOption = !!option;
   if (primaryBtn) primaryBtn.disabled = !hasOption;
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = !hasOption;
-  if (option) {
-    if (primaryBtn) {
-      primaryBtn.textContent = t("quality.confirmWithLabel", {
-        label: option.payload.label,
-      });
-    }
-  } else {
-    if (primaryBtn) {
-      primaryBtn.textContent = t("quality.split.primaryDisabledHint");
-    }
-  }
   Array.from(optionsContainer.children).forEach((el) => {
     const isActive = el.dataset.optionId === option?.id;
     el.classList.toggle("active", isActive);
@@ -936,6 +974,11 @@ function selectOption(option, { remember = true } = {}) {
   }
   queueMicrotask(() => initTooltips(modal));
   updateSelectionSummary(option);
+  syncConfirmUi();
+  if (option && state.shouldFocusSelection) {
+    state.shouldFocusSelection = false;
+    queueMicrotask(focusSelectedOption);
+  }
 }
 
 function handleOptionClick(event) {
@@ -1017,7 +1060,7 @@ async function loadFormatsWithRetry(
     const targetTab = state.forceAudio ? "audio" : "video";
     setActiveTab(targetTab);
     let picked = false;
-    if (preferredLabel) {
+    if (preferredLabel && !state.forceAudio) {
       picked = selectByPreferredLabel(preferredLabel);
     }
 
@@ -1030,8 +1073,6 @@ async function loadFormatsWithRetry(
         if (!audioSelected) {
           showToast(t("quality.audioUnavailable"), "warning");
           selectBestVideoOption();
-        } else if (state.forceAudio) {
-          confirmSelection();
         }
       } else {
         if (!selectBestVideoOption() && !selectBestFromTab("video-only")) {
@@ -1230,7 +1271,11 @@ function bindEvents() {
         state.selectedOption
       ) {
         event.preventDefault();
-        confirmSelection();
+        if (isQueueConfirmMode()) {
+          confirmEnqueue();
+        } else {
+          confirmSelection();
+        }
         return;
       }
       if (
@@ -1246,7 +1291,13 @@ function bindEvents() {
         confirmEnqueue();
       }
     });
-    primaryBtn?.addEventListener("click", confirmSelection);
+    primaryBtn?.addEventListener("click", () => {
+      if (isQueueConfirmMode()) {
+        confirmEnqueue();
+      } else {
+        confirmSelection();
+      }
+    });
     bestCurrentBtn?.addEventListener("click", () => {
       if (bestCurrentBtn.disabled) return;
       selectBestFromTab(state.currentTab);
@@ -1266,6 +1317,8 @@ async function openDownloadQualityModal(url, opts = {}) {
   }
   bindEvents();
   state.forceAudio = !!opts.forceAudioOnly;
+  state.enqueueOnly = !!opts.enqueueOnly;
+  state.shouldFocusSelection = true;
   state.defaultQualityProfile =
     opts.defaultQualityProfile === "audio" ? "audio" : "remember";
   state.defaultQuality = opts.presetQuality || "Source";

@@ -25,6 +25,16 @@ const buildDom = () => {
         </button>
         <button id="download-quality-primary" type="button"></button>
       </div>
+      <div class="quality-hint">
+        <div class="quality-hint-texts">
+          <span id="download-quality-hint-text">Выберите вариант выше, затем скачайте его сразу или добавьте в очередь.</span>
+          <div class="quality-hotkeys">
+            <div class="quality-hotkeys-main">
+              <span class="hotkey-chip"><kbd>Enter</kbd> <span id="download-quality-hotkey-confirm-label">скачать</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div
         id="download-quality-options-panel"
         role="tabpanel"
@@ -664,6 +674,151 @@ describe("downloadQualityModal close behavior", () => {
       expect(result).toBeTruthy();
       expect(result?.enqueue).toBeUndefined();
       expect(result?.type).toBeTruthy();
+    });
+  });
+
+  it("confirms enqueue on Enter hotkey when modal is opened in queue mode", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+        { enqueueOnly: true },
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        document.getElementById("download-quality-primary")?.textContent,
+      ).toContain("В очередь");
+      expect(
+        document.getElementById("download-quality-hint-text")?.textContent,
+      ).toContain("добавить его в очередь");
+      expect(
+        document.getElementById("download-quality-hotkey-confirm-label")
+          ?.textContent,
+      ).toBe("в очередь");
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+      const result = await resultPromise;
+      expect(result).toBeTruthy();
+      expect(result?.enqueue).toBe(true);
+      expect(result?.payload).toBeTruthy();
+    });
+  });
+
+  it("opens audio preset and keeps Enter as normal confirm for forceAudioOnly flow", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "140",
+            vcodec: "none",
+            acodec: "mp4a.40.2",
+            abr: 128,
+            ext: "m4a",
+          },
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+        { forceAudioOnly: true },
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const modal = document.getElementById("download-quality-modal");
+      const tabAudio = document.getElementById("download-quality-tab-audio");
+      const tabVideo = document.getElementById("download-quality-tab-video");
+
+      expect(modal.classList.contains("is-open")).toBe(true);
+      expect(tabAudio.getAttribute("aria-selected")).toBe("true");
+      expect(tabVideo.getAttribute("aria-selected")).toBe("false");
+      expect(
+        document.getElementById("download-quality-hotkey-confirm-label")
+          ?.textContent,
+      ).toBe("скачать");
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+      const result = await resultPromise;
+
+      expect(result).toBeTruthy();
+      expect(result?.enqueue).toBeUndefined();
+      expect(result?.type).toBe("audio-only");
+    });
+  });
+
+  it("keeps forceAudioOnly priority over remembered video label", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "140",
+            vcodec: "none",
+            acodec: "mp4a.40.2",
+            abr: 128,
+            ext: "m4a",
+          },
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+        { forceAudioOnly: true, preferredLabel: "360p" },
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        document.getElementById("download-quality-tab-audio")?.getAttribute(
+          "aria-selected",
+        ),
+      ).toBe("true");
+      expect(
+        document.getElementById("download-quality-primary")?.textContent,
+      ).toMatch(/Аудио|Audio/);
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+      const result = await resultPromise;
+
+      expect(result?.type).toBe("audio-only");
+      expect(result?.label).toMatch(/Аудио|Audio/);
     });
   });
 

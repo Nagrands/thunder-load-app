@@ -53,6 +53,7 @@ const buildDom = () => {
         </div>
       </div>
     </div>
+    <div id="download-quality-modal" class="modal-overlay" aria-hidden="true"></div>
   `;
 };
 
@@ -259,6 +260,44 @@ describe("urlInputHandler", () => {
     expect(error.classList.contains("hidden")).toBe(false);
   });
 
+  test("Shift+Enter triggers queue-only mode", () => {
+    const { input, downloadBtn } = getState();
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    downloadBtn.disabled = false;
+    input.value = "https://example.com/video";
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        shiftKey: true,
+        bubbles: true,
+      }),
+    );
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(downloadBtn.dataset.enqueueOnly).toBe("1");
+    expect(downloadBtn.dataset.forceAudioOnly).toBeUndefined();
+  });
+
+  test("Alt+Enter does not trigger a dedicated action", () => {
+    const { input, downloadBtn } = getState();
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    downloadBtn.disabled = false;
+    input.value = "https://example.com/video";
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        altKey: true,
+        bubbles: true,
+      }),
+    );
+
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(downloadBtn.dataset.forceAudioOnly).toBeUndefined();
+    expect(downloadBtn.dataset.enqueueOnly).toBeUndefined();
+  });
+
   test("hides error and invalid style when URL becomes valid", () => {
     const { input, error, wrapper } = getState();
     input.value = "http://";
@@ -364,6 +403,27 @@ describe("urlInputHandler", () => {
     expect(previewCard.style.display).toBe("none");
     expect(error.classList.contains("hidden")).toBe(true);
     expect(wrapper.classList.contains("is-invalid")).toBe(false);
+  });
+
+  test("does not handle Enter or Escape from URL input while quality modal is open", () => {
+    const { input, downloadBtn, previewCard } = getState();
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    const qualityModal = document.getElementById("download-quality-modal");
+
+    input.value = "https://example.com/video";
+    previewCard.style.display = "block";
+    qualityModal.classList.add("is-open");
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(input.value).toBe("https://example.com/video");
+    expect(previewCard.style.display).toBe("block");
   });
 
   test("keeps current paste/clear visibility behavior and shell states", () => {
