@@ -46,8 +46,8 @@ function initElectronEvents() {
     window.notificationHandlerRegistered = true;
   }
 
-  window.electron.onToast((message, type) => {
-    showToast(message, type || "info");
+  window.electron.onToast((message, type, options) => {
+    showToast(message, type || "info", undefined, null, null, false, options);
   });
 
   // Обработчик события 'open-settings'

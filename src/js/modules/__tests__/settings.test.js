@@ -615,6 +615,7 @@ describe("downloader behavior toggles", () => {
       "toast",
       expect.any(String),
       "success",
+      { allowHtml: true },
     );
   });
 });

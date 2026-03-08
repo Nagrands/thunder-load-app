@@ -955,7 +955,9 @@ async function initSettings() {
           const message = enable
             ? t("settings.downloadCompleteModal.disabled")
             : t("settings.downloadCompleteModal.enabled");
-          window.electron.invoke("toast", message, "success");
+          window.electron.invoke("toast", message, "success", {
+            allowHtml: true,
+          });
           console.log(
             `Отключение модального окна завершения загрузки ${enable ? "включено" : "отключено"}`,
           );
@@ -1097,6 +1099,7 @@ async function initSettings() {
           ? t("settings.module.wg.disabled")
           : t("settings.module.wg.enabled"),
         val ? "info" : "success",
+        { allowHtml: true },
       );
       updateModuleBadge("wg", val);
     };
@@ -1316,6 +1319,7 @@ async function initSettings() {
           ? t("settings.module.backup.disabled")
           : t("settings.module.backup.enabled"),
         val ? "info" : "success",
+        { allowHtml: true },
       );
     };
 

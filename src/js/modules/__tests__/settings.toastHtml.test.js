@@ -152,4 +152,5 @@ describe("settings html toasts", () => {
     ).toBe(true);
     expect(showToast).toHaveBeenCalledTimes(2);
   });
+
 });

@@ -14,7 +14,6 @@ const { CHANNELS } = require("../ipc/channels");
 const { getToolsVersions } = require("./toolsVersions");
 const {
   classifyDownloadError,
-  formatDownloadErrorMessage,
   formatMissingDownloadToolsMessage,
 } = require("./notifications");
 const fs = require("fs");
@@ -1977,11 +1976,14 @@ function setupIpcHandlers(dependencies) {
     return { success: true };
   });
 
-  ipcMain.handle(CHANNELS.TOAST, (event, message, type = "success") => {
+  ipcMain.handle(
+    CHANNELS.TOAST,
+    (event, message, type = "success", options = {}) => {
     if (mainWindow && mainWindow.webContents) {
-      mainWindow.webContents.send("toast", message, type);
+        mainWindow.webContents.send("toast", message, type, options);
     }
-  });
+    },
+  );
 
   // Обработчики IPC для размера шрифта
   ipcMain.handle(CHANNELS.GET_FONT_SIZE, () => {
@@ -2188,13 +2190,6 @@ function setupIpcHandlers(dependencies) {
           jobId,
         );
       } catch (error) {
-        if (mainWindow && mainWindow.webContents) {
-          mainWindow.webContents.send(
-            "toast",
-            formatDownloadErrorMessage(error),
-            "error",
-          );
-        }
         throw error;
       }
 

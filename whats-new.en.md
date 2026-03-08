@@ -49,3 +49,5 @@
 | Error messaging is more consistent inside the Downloader tab | The queue, URL preview, and quality picker now use the same internal path to explain why a failure happened |
 | History now uses the same failure language | Failed downloads in history now derive their reason through the same path as the queue and the rest of the downloader UI |
 | History deletion toast looks correct again | The toast shown after deleting a history entry no longer displays raw HTML tags instead of formatted text |
+| Duplicate downloader error toasts are gone | The downloader now shows one error toast for the same failure instead of stacking two identical notifications |
+| Formatted Settings toasts render correctly again | Toast messages with emphasized HTML text now pass through IPC correctly instead of showing raw tags |
