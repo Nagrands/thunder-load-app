@@ -28,6 +28,7 @@ import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
+import "../shared/downloadErrorClassifier.shared.js";
 import {
   clearDownloadJobsByStatus,
   JOB_STATUS,
@@ -106,10 +107,8 @@ let lastProgressRenderTs = 0;
 let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
-const YTDLP_NETWORK_TIMEOUT_PREFIX = "ERR_YTDLP_NETWORK_TIMEOUT:";
-const YTDLP_AUTH_REQUIRED_PREFIX = "ERR_YTDLP_AUTH_REQUIRED:";
-const YTDLP_GEO_BLOCKED_PREFIX = "ERR_YTDLP_GEO_BLOCKED:";
-const YTDLP_UNAVAILABLE_PREFIX = "ERR_YTDLP_UNAVAILABLE:";
+const { classifyDownloadError, getDownloadErrorMetaByCode } =
+  globalThis.__thunderDownloadErrorClassifier || {};
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -133,83 +132,29 @@ const makeQueueUrlLabel = (url) => {
   }
 };
 
-function getDownloadErrorToastKey(error) {
-  return getDownloadErrorDetails(error).toastKey;
-}
-
-function getDownloadErrorMessage(error) {
-  return getDownloadErrorDetails(error).message;
-}
-
 function getDownloadErrorDetails(error) {
+  if (typeof classifyDownloadError === "function") {
+    return classifyDownloadError(error);
+  }
   const message = String(error?.message || error || "");
-  const definitions = [
-    {
-      prefix: YTDLP_NETWORK_TIMEOUT_PREFIX,
-      code: "NETWORK_TIMEOUT",
-      toastKey: "download.error.networkTimeout",
-      queueReasonKey: "queue.reason.networkTimeout",
-      retryable: true,
-    },
-    {
-      prefix: YTDLP_AUTH_REQUIRED_PREFIX,
-      code: "AUTH_REQUIRED",
-      toastKey: "download.error.authRequired",
-      queueReasonKey: "queue.reason.authRequired",
-      retryable: false,
-    },
-    {
-      prefix: YTDLP_GEO_BLOCKED_PREFIX,
-      code: "GEO_BLOCKED",
-      toastKey: "download.error.geoBlocked",
-      queueReasonKey: "queue.reason.geoBlocked",
-      retryable: false,
-    },
-    {
-      prefix: YTDLP_UNAVAILABLE_PREFIX,
-      code: "UNAVAILABLE",
-      toastKey: "download.error.unavailable",
-      queueReasonKey: "queue.reason.unavailable",
-      retryable: false,
-    },
-  ];
-  for (const definition of definitions) {
-    if (message.startsWith(definition.prefix)) {
-      return {
-        ...definition,
-        message: message.slice(definition.prefix.length).trim(),
-      };
-    }
-  }
-  if (/YouTube temporarily rate-limited requests/i.test(message)) {
-    return {
-      code: "YOUTUBE_RATE_LIMIT",
-      toastKey: "download.error.youtubeRateLimit",
-      queueReasonKey: "queue.reason.youtubeRateLimit",
-      retryable: true,
-      message,
-    };
-  }
   return {
     code: "UNKNOWN",
     toastKey: "download.error.retry",
     queueReasonKey: "queue.reason.unknown",
+    historyReasonKey: "history.failed.reason.unknown",
     retryable: true,
     message,
+    rawMessage: message,
+    retryAfterMinutes: null,
   };
 }
 
 function getQueueReasonLabel(item) {
-  const code = String(item?.errorCode || "").trim().toUpperCase();
-  const reasonByCode = {
-    NETWORK_TIMEOUT: "queue.reason.networkTimeout",
-    AUTH_REQUIRED: "queue.reason.authRequired",
-    GEO_BLOCKED: "queue.reason.geoBlocked",
-    UNAVAILABLE: "queue.reason.unavailable",
-    YOUTUBE_RATE_LIMIT: "queue.reason.youtubeRateLimit",
-    UNKNOWN: "queue.reason.unknown",
-  };
-  return t(reasonByCode[code] || "queue.reason.unknown");
+  const meta =
+    item?.errorCode && typeof getDownloadErrorMetaByCode === "function"
+      ? getDownloadErrorMetaByCode(item.errorCode)
+      : getDownloadErrorDetails(item?.reason || "");
+  return t(meta.queueReasonKey);
 }
 
 function getQueueRetryStateLabel(item) {
@@ -1393,10 +1338,13 @@ const downloadVideo = async (url, quality, options = {}) => {
       return { poolFull: true };
     } else {
       console.error("Ошибка при загрузке видео:", error);
-      showToast(t(getDownloadErrorToastKey(error)), "error");
+      const errorDetails = getDownloadErrorDetails(error);
+      showToast(t(errorDetails.toastKey), "error");
       return {
         error: true,
-        message: getDownloadErrorMessage(error),
+        message: errorDetails.message,
+        errorCode: errorDetails.code,
+        retryable: errorDetails.retryable,
       };
     }
   }
@@ -1520,7 +1468,25 @@ const initiateDownload = async (url, quality, options = {}) => {
     if (result?.error) {
       const failedSignatures = getFailedSignatures();
       if (!failedSignatures.has(signature)) {
-        const errorDetails = getDownloadErrorDetails(result.message || "");
+        const errorDetails = {
+          code: result.errorCode || "UNKNOWN",
+          retryable:
+            typeof result.retryable === "boolean" ? result.retryable : true,
+          message: result.message || "",
+        };
+        await addNewEntryToHistory({
+          id: `${jobId}-failed`,
+          fileName: resolvedTitle || makeQueueTitle(url) || makeQueueUrlLabel(url),
+          filePath: "",
+          quality:
+            typeof quality === "string" ? quality : quality?.label || t("quality.custom"),
+          sourceUrl: url,
+          dateTime: new Date().toLocaleString("ru-RU", { hour12: false }),
+          downloadStatus: "failed",
+          errorCode: errorDetails.code,
+          errorMessage: errorDetails.message,
+          retryable: errorDetails.retryable,
+        });
         upsertDownloadJob(state, {
           id: jobId,
           jobId,

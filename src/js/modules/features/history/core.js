@@ -32,6 +32,7 @@ import { handleDeleteEntry } from "../../contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
 import { focusUrlInputAfterRetry } from "../../retryFocus.js";
+import "../../../shared/downloadErrorClassifier.shared.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
@@ -1725,6 +1726,19 @@ const isAudioEntry = (entry) => {
   return /audio/i.test(quality) || /audio only/i.test(quality);
 };
 
+const { getDownloadErrorMetaByCode } =
+  globalThis.__thunderDownloadErrorClassifier || {};
+
+const getHistoryErrorReasonKey = (entry) =>
+  typeof getDownloadErrorMetaByCode === "function"
+    ? getDownloadErrorMetaByCode(entry?.errorCode).historyReasonKey
+    : "history.failed.reason.unknown";
+
+const getHistoryRetryStateKey = (entry) =>
+  entry?.retryable === false
+    ? "history.failed.retryState.needsAction"
+    : "history.failed.retryState.retryable";
+
 const isCacheableThumbnailUrl = (url) =>
   typeof url === "string" &&
   (url.startsWith("http://") ||
@@ -2261,7 +2275,7 @@ function renderHistoryCards(entries = []) {
     openBtn.setAttribute("data-i18n-title", "history.action.openFile");
     openBtn.setAttribute("data-bs-toggle", "tooltip");
     openBtn.setAttribute("data-bs-placement", "top");
-    openBtn.disabled = entry.isMissing;
+    openBtn.disabled = entry.isMissing || !entry.filePath;
     openBtn.addEventListener("click", () => openHistoryCardFile(entry));
 
     const openFolderBtn = document.createElement("button");
@@ -2275,7 +2289,7 @@ function renderHistoryCards(entries = []) {
     openFolderBtn.setAttribute("data-i18n-title", "history.action.openFolder");
     openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
     openFolderBtn.setAttribute("data-bs-placement", "top");
-    openFolderBtn.disabled = entry.isMissing;
+    openFolderBtn.disabled = entry.isMissing || !entry.filePath;
     openFolderBtn.addEventListener("click", () => openHistoryCardFolder(entry));
 
     const retryBtn = document.createElement("button");
@@ -2468,6 +2482,12 @@ function createLogEntry(entry, groupKey = "unknown") {
     badges.appendChild(missingBadge);
     el.classList.add("history-row--deleted");
   }
+  if (entry.downloadStatus === "failed") {
+    const failedBadge = document.createElement("span");
+    failedBadge.className = "history-badge history-badge--missing";
+    failedBadge.textContent = t("history.failed.badge");
+    badges.appendChild(failedBadge);
+  }
 
   titleRow.append(name);
 
@@ -2496,7 +2516,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   openBtn.title = t("history.action.openFile");
   openBtn.setAttribute("data-i18n-title", "history.action.openFile");
   openBtn.innerHTML = '<i data-lucide="play"></i>';
-  openBtn.disabled = entry.isMissing;
+  openBtn.disabled = entry.isMissing || !entry.filePath;
   openBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFile(entry);
@@ -2513,7 +2533,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     "history.action.openFolderShort",
   );
   openFolderBtn.innerHTML = '<i data-lucide="folder-open"></i>';
-  openFolderBtn.disabled = entry.isMissing;
+  openFolderBtn.disabled = entry.isMissing || !entry.filePath;
   openFolderBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFolder(entry);
@@ -2750,6 +2770,17 @@ function createLogEntry(entry, groupKey = "unknown") {
     copyable: true,
     copyValue: entry.filePath || "",
   });
+  if (entry.downloadStatus === "failed") {
+    addDetail(t("history.detail.status"), t("history.failed.badge"));
+    addDetail(
+      t("history.detail.failureReason"),
+      t(getHistoryErrorReasonKey(entry)),
+    );
+    addDetail(
+      t("history.detail.retryState"),
+      t(getHistoryRetryStateKey(entry)),
+    );
+  }
   addDetail(t("history.detail.quality"), entry.quality || "");
   addDetail(t("history.detail.resolution"), entry.resolution || "");
   addDetail(t("history.detail.size"), formatSizeLabel(entry));
@@ -3419,9 +3450,11 @@ const addNewEntryToHistory = async (newEntryRaw) => {
     normalized._highlight = true;
 
     const existingHistory = getHistoryData();
-    const existingIndex = existingHistory.findIndex(
-      (entry) => entry.filePath === normalized.filePath,
-    );
+    const existingIndex = normalized.filePath
+      ? existingHistory.findIndex(
+          (entry) => entry.filePath === normalized.filePath,
+        )
+      : -1;
 
     let removedPreviews = [];
     if (existingIndex !== -1) {

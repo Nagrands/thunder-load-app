@@ -119,6 +119,9 @@ const createEntry = (overrides = {}) => ({
   resolution: overrides.resolution ?? "1920x1080",
   formattedSize: overrides.formattedSize ?? "10 MB",
   filePath: overrides.filePath ?? "/tmp/video.mp4",
+  downloadStatus: overrides.downloadStatus ?? "done",
+  errorCode: overrides.errorCode ?? "",
+  retryable: overrides.retryable,
   isMissing: overrides.isMissing ?? false,
   thumbnail:
     overrides.thumbnail ??
@@ -231,6 +234,32 @@ describe("Downloader history list", () => {
     expect(badges.querySelector(".history-badge--host")).not.toBeNull();
     expect(badges.querySelector(".history-badge--media")).not.toBeNull();
     expect(badges.querySelector(".history-row__size")).not.toBeNull();
+  });
+
+  test("renders failed history entry with failure badge and disabled file actions", async () => {
+    const { renderHistory } = await import("../history.js");
+    renderHistory([
+      createEntry({
+        filePath: "",
+        formattedSize: "",
+        downloadStatus: "failed",
+        errorCode: "AUTH_REQUIRED",
+        retryable: false,
+      }),
+    ]);
+
+    const row = document.querySelector(".history-row");
+    expect(row.textContent).toContain("Ошибка");
+    expect(
+      row.querySelector('.history-row__action[title="Открыть файл"]')?.disabled,
+    ).toBe(true);
+    expect(
+      row.querySelector('.history-row__action[title="Открыть папку"]')?.disabled,
+    ).toBe(true);
+
+    const toggle = row.querySelector(".history-row__toggle");
+    toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(row.textContent).toContain("Нужна авторизация");
   });
 
   test("retry from row menu scrolls to URL input and focuses it", async () => {

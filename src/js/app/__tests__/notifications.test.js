@@ -24,7 +24,23 @@ describe("notifications", () => {
       ),
     ).toMatchObject({
       code: "YOUTUBE_RATE_LIMIT",
+      retryable: true,
       retryAfterMinutes: 7,
+    });
+  });
+
+  test("marks auth-required downloader errors as non-retryable", () => {
+    const { classifyDownloadError } = require("../notifications.js");
+
+    expect(
+      classifyDownloadError(
+        new Error(
+          "ERR_YTDLP_AUTH_REQUIRED: This video requires authorization.",
+        ),
+      ),
+    ).toMatchObject({
+      code: "AUTH_REQUIRED",
+      retryable: false,
     });
   });
 
@@ -62,6 +78,23 @@ describe("notifications", () => {
         ),
       ),
     ).toContain("7 мин");
+  });
+
+  test("formats disk-full errors into user-friendly text", () => {
+    const { formatDownloadErrorMessage, classifyDownloadError } =
+      require("../notifications.js");
+
+    expect(
+      classifyDownloadError(new Error("ENOSPC: no space left on device")),
+    ).toMatchObject({
+      code: "DISK_FULL",
+      retryable: false,
+    });
+    expect(
+      formatDownloadErrorMessage(
+        new Error("ENOSPC: no space left on device"),
+      ),
+    ).toContain("места");
   });
 
   test("formats missing tools message when both dependencies are unavailable", () => {

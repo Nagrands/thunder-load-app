@@ -1522,6 +1522,7 @@ describe("downloadManager progress activity class", () => {
 
       const { initiateDownload } = require("../downloadManager");
       const { showToast } = require("../toast");
+      const { addNewEntryToHistory } = require("../history");
 
       await initiateDownload(
         "https://www.youtube.com/watch?v=private-video",
@@ -1530,6 +1531,14 @@ describe("downloadManager progress activity class", () => {
       expect(showToast).toHaveBeenCalledWith(
         "download.error.authRequired",
         "error",
+      );
+      expect(addNewEntryToHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          downloadStatus: "failed",
+          errorCode: "AUTH_REQUIRED",
+          retryable: false,
+          sourceUrl: "https://www.youtube.com/watch?v=private-video",
+        }),
       );
       consoleErrorSpy.mockRestore();
     });

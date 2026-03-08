@@ -20,6 +20,11 @@ export async function normalizeEntry(entry) {
     filePath: entry.filePath || "",
     sourceUrl: entry.sourceUrl || "",
     quality: entry.quality || "",
+    downloadStatus: entry.downloadStatus || "done",
+    errorCode: entry.errorCode || "",
+    errorMessage: entry.errorMessage || "",
+    retryable:
+      typeof entry.retryable === "boolean" ? entry.retryable : undefined,
     iconUrl: entry.iconUrl || "",
     thumbnail: entry.thumbnail || "",
     thumbnailCacheFile: entry.thumbnailCacheFile || "",
@@ -72,20 +77,22 @@ export async function normalizeEntry(entry) {
 
   // Размер файла и проверка наличия
   try {
-    const exists = await window.electron.invoke(
-      "check-file-exists",
-      normalized.filePath,
-    );
-    if (exists) {
-      const size = await window.electron.invoke(
-        "get-file-size",
+    if (normalized.filePath) {
+      const exists = await window.electron.invoke(
+        "check-file-exists",
         normalized.filePath,
       );
-      if (!isNaN(size)) {
-        normalized.formattedSize = `${(size / 1024 / 1024).toFixed(1)} MB`;
+      if (exists) {
+        const size = await window.electron.invoke(
+          "get-file-size",
+          normalized.filePath,
+        );
+        if (!isNaN(size)) {
+          normalized.formattedSize = `${(size / 1024 / 1024).toFixed(1)} MB`;
+        }
+      } else {
+        normalized.isMissing = true;
       }
-    } else {
-      normalized.isMissing = true;
     }
   } catch (e) {
     console.warn("Ошибка получения размера файла:", e);
