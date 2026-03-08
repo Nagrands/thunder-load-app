@@ -32,6 +32,9 @@ const samePayload = (a = {}, b = {}) =>
   String(a.url || "").trim() === String(b.url || "").trim() &&
   JSON.stringify(a.quality ?? null) === JSON.stringify(b.quality ?? null);
 
+const getDerivedSignature = (job = {}) =>
+  `${String(job.url || "").trim()}::${JSON.stringify(job.quality ?? null)}`;
+
 const normalizeDownloadJob = (job = {}) => {
   const status = Object.values(JOB_STATUS).includes(job.status)
     ? job.status
@@ -48,8 +51,13 @@ const normalizeDownloadJob = (job = {}) => {
     stage: normalizeJobStage(job.stage, status),
     progress: Number(job.progress) || 0,
     size: job.size ? String(job.size) : "",
-    signature: job.signature || "",
+    signature: job.signature || getDerivedSignature(job),
     reason: job.reason ? String(job.reason) : "",
+    errorCode: job.errorCode ? String(job.errorCode) : "",
+    retryable:
+      typeof job.retryable === "boolean"
+        ? job.retryable
+        : status === JOB_STATUS.failed,
     failedAt: Number(job.failedAt) || 0,
     createdAt: Number(job.createdAt) || now,
     updatedAt: Number(job.updatedAt) || now,
@@ -67,12 +75,16 @@ const toLegacyQueueItem = (job) => ({
   size: job.size,
   signature: job.signature,
   reason: job.reason,
+  errorCode: job.errorCode,
+  retryable: job.retryable,
   failedAt: job.failedAt,
   stage: job.stage,
   status: LEGACY_STATUS_BY_JOB_STATUS[job.status] || "pending",
 });
 
 const sortJobs = (jobs = []) => [...jobs];
+
+const normalizeJobsList = (jobs = []) => jobs.map((job) => normalizeDownloadJob(job));
 
 function syncLegacyDownloadCollections(state) {
   const jobs = Array.isArray(state.downloadJobs) ? sortJobs(state.downloadJobs) : [];
@@ -167,6 +179,28 @@ function getCompletedDownloadJobs(state) {
   return getDownloadJobsByStatus(state, JOB_STATUS.done);
 }
 
+function setDownloadJobs(state, jobs) {
+  state.downloadJobs = sortJobs(normalizeJobsList(jobs));
+  syncLegacyDownloadCollections(state);
+  return state.downloadJobs;
+}
+
+function clearDownloadJobsByStatus(state, statuses) {
+  const jobs = ensureDownloadJobsState(state);
+  const list = Array.isArray(statuses) ? statuses : [statuses];
+  return setDownloadJobs(
+    state,
+    jobs.filter((job) => !list.includes(job.status)),
+  );
+}
+
+function replaceDownloadJobsByStatus(state, statuses, nextJobs) {
+  const jobs = ensureDownloadJobsState(state);
+  const list = Array.isArray(statuses) ? statuses : [statuses];
+  const preserved = jobs.filter((job) => !list.includes(job.status));
+  return setDownloadJobs(state, [...preserved, ...normalizeJobsList(nextJobs)]);
+}
+
 function upsertDownloadJob(state, job) {
   const jobs = ensureDownloadJobsState(state);
   const normalized = normalizeDownloadJob(job);
@@ -219,6 +253,7 @@ function removeDownloadJob(state, matcher) {
 }
 
 export {
+  clearDownloadJobsByStatus,
   JOB_STATUS,
   ensureDownloadJobsState,
   findDownloadJob,
@@ -230,6 +265,8 @@ export {
   hydrateDownloadJobsFromLegacyState,
   patchDownloadJob,
   removeDownloadJob,
+  replaceDownloadJobsByStatus,
+  setDownloadJobs,
   syncLegacyDownloadCollections,
   upsertDownloadJob,
 };

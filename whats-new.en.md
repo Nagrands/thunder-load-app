@@ -40,3 +40,4 @@
 | Future translation updates will be easier to maintain | The internal localization dictionary is now organized more cleanly, which should make future text and translation fixes more reliable |
 | The active download is easier to track | The top of the Downloader tab now shows the current job, its stage, and progress without needing to inspect the queue list |
 | Download queue state handling is more reliable internally | Active, pending, completed, and failed jobs now move between states more consistently behind the scenes |
+| Queue errors are easier to understand | Failed downloads now show the likely reason and whether the job can be retried automatically |

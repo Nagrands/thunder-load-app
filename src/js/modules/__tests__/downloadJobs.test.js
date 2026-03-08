@@ -1,10 +1,12 @@
 import {
+  clearDownloadJobsByStatus,
   JOB_STATUS,
   getActiveDownloadJobs,
   getCompletedDownloadJobs,
   getFailedDownloadJobs,
   getPendingDownloadJobs,
   removeDownloadJob,
+  replaceDownloadJobsByStatus,
   upsertDownloadJob,
 } from "../downloadJobs.js";
 
@@ -67,5 +69,59 @@ describe("downloadJobs selectors", () => {
 
     expect(getFailedDownloadJobs(state)).toHaveLength(0);
     expect(state.failedDownloads).toHaveLength(0);
+  });
+
+  test("replaces and clears jobs by status without touching other groups", () => {
+    const state = {
+      downloadJobs: [],
+      activeDownloads: [],
+      downloadQueue: [],
+      failedDownloads: [],
+      completedDownloads: [],
+      queuePaused: false,
+    };
+
+    upsertDownloadJob(state, {
+      jobId: "running-1",
+      url: "https://example.com/running",
+      quality: "Source",
+      signature: "running-1",
+      status: JOB_STATUS.running,
+    });
+    upsertDownloadJob(state, {
+      jobId: "pending-1",
+      url: "https://example.com/pending-1",
+      quality: "Source",
+      signature: "pending-1",
+      status: JOB_STATUS.pending,
+    });
+    upsertDownloadJob(state, {
+      jobId: "failed-1",
+      url: "https://example.com/failed-1",
+      quality: "Source",
+      signature: "failed-1",
+      status: JOB_STATUS.failed,
+    });
+
+    replaceDownloadJobsByStatus(state, [JOB_STATUS.pending, JOB_STATUS.paused], [
+      {
+        jobId: "pending-2",
+        url: "https://example.com/pending-2",
+        quality: "Source",
+        signature: "pending-2",
+        status: JOB_STATUS.pending,
+      },
+    ]);
+
+    expect(getPendingDownloadJobs(state)).toHaveLength(1);
+    expect(getPendingDownloadJobs(state)[0].jobId).toBe("pending-2");
+    expect(getActiveDownloadJobs(state)).toHaveLength(1);
+    expect(getFailedDownloadJobs(state)).toHaveLength(1);
+
+    clearDownloadJobsByStatus(state, JOB_STATUS.failed);
+
+    expect(getFailedDownloadJobs(state)).toHaveLength(0);
+    expect(getActiveDownloadJobs(state)).toHaveLength(1);
+    expect(getPendingDownloadJobs(state)).toHaveLength(1);
   });
 });

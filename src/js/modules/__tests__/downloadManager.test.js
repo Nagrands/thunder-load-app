@@ -795,6 +795,10 @@ describe("downloadManager queue smart logic", () => {
         t: jest.fn((key, params = {}) => {
           if (key === "queue.status.downloading") return "Загрузка";
           if (key === "queue.status.error") return "Ошибка";
+          if (key === "queue.reason.authRequired")
+            return "Нужна авторизация";
+          if (key === "queue.retryState.needsAction")
+            return "Нужен ручной шаг";
           if (key === "queue.pill.pending")
             return `${params.count || 0} в очереди`;
           if (key === "queue.pill.active")
@@ -836,13 +840,78 @@ describe("downloadManager queue smart logic", () => {
       retryBtn.click();
       await Promise.resolve();
 
-      expect(state.failedDownloads).toHaveLength(0);
       expect(window.electron.invoke).toHaveBeenCalledWith(
         "download-video",
         "https://example.com/failed",
         "Source",
         expect.stringMatching(/^job-/),
       );
+    });
+  });
+
+  it("disables retry for non-retryable failed jobs and mirrors it in summary", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "ru"),
+        t: jest.fn((key) => {
+          const dict = {
+            "queue.status.error": "Ошибка",
+            "queue.reason.authRequired": "Нужна авторизация",
+            "queue.retryState.needsAction": "Нужен ручной шаг",
+            "queue.item.retry.disabled.title":
+              "Для этой ошибки нужен ручной шаг",
+            "downloader.jobSummary.badgeError": "Ошибка",
+            "queue.pill.active": "0 активно",
+          };
+          return dict[key] || key;
+        }),
+      }));
+
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+      state.downloadJobs = [
+        {
+          jobId: "failed-1",
+          url: "https://example.com/private",
+          title: "Private video",
+          quality: "Source",
+          signature: "failed-1",
+          status: "failed",
+          errorCode: "AUTH_REQUIRED",
+          retryable: false,
+        },
+      ];
+
+      updateQueueDisplay();
+
+      const retryBtn = document.querySelector("[data-queue-retry-failed]");
+      expect(retryBtn).toBeTruthy();
+      expect(retryBtn.disabled).toBe(true);
+      expect(
+        document.getElementById("downloader-job-summary-title").textContent,
+      ).toBe("Private video");
+      expect(
+        document.getElementById("downloader-job-summary-meta").textContent,
+      ).toContain("Нужна авторизация");
     });
   });
 

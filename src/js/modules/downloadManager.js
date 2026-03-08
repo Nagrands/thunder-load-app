@@ -29,6 +29,7 @@ import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
 import {
+  clearDownloadJobsByStatus,
   JOB_STATUS,
   ensureDownloadJobsState,
   findDownloadJob,
@@ -38,6 +39,7 @@ import {
   getPendingDownloadJobs,
   patchDownloadJob,
   removeDownloadJob,
+  replaceDownloadJobsByStatus,
   syncLegacyDownloadCollections,
   upsertDownloadJob,
 } from "./downloadJobs.js";
@@ -132,38 +134,88 @@ const makeQueueUrlLabel = (url) => {
 };
 
 function getDownloadErrorToastKey(error) {
-  const message = String(error?.message || error || "");
-  if (message.startsWith(YTDLP_NETWORK_TIMEOUT_PREFIX)) {
-    return "download.error.networkTimeout";
-  }
-  if (message.startsWith(YTDLP_AUTH_REQUIRED_PREFIX)) {
-    return "download.error.authRequired";
-  }
-  if (message.startsWith(YTDLP_GEO_BLOCKED_PREFIX)) {
-    return "download.error.geoBlocked";
-  }
-  if (message.startsWith(YTDLP_UNAVAILABLE_PREFIX)) {
-    return "download.error.unavailable";
-  }
-  if (/YouTube temporarily rate-limited requests/i.test(message)) {
-    return "download.error.youtubeRateLimit";
-  }
-  return "download.error.retry";
+  return getDownloadErrorDetails(error).toastKey;
 }
 
 function getDownloadErrorMessage(error) {
+  return getDownloadErrorDetails(error).message;
+}
+
+function getDownloadErrorDetails(error) {
   const message = String(error?.message || error || "");
-  for (const prefix of [
-    YTDLP_NETWORK_TIMEOUT_PREFIX,
-    YTDLP_AUTH_REQUIRED_PREFIX,
-    YTDLP_GEO_BLOCKED_PREFIX,
-    YTDLP_UNAVAILABLE_PREFIX,
-  ]) {
-    if (message.startsWith(prefix)) {
-      return message.slice(prefix.length).trim();
+  const definitions = [
+    {
+      prefix: YTDLP_NETWORK_TIMEOUT_PREFIX,
+      code: "NETWORK_TIMEOUT",
+      toastKey: "download.error.networkTimeout",
+      queueReasonKey: "queue.reason.networkTimeout",
+      retryable: true,
+    },
+    {
+      prefix: YTDLP_AUTH_REQUIRED_PREFIX,
+      code: "AUTH_REQUIRED",
+      toastKey: "download.error.authRequired",
+      queueReasonKey: "queue.reason.authRequired",
+      retryable: false,
+    },
+    {
+      prefix: YTDLP_GEO_BLOCKED_PREFIX,
+      code: "GEO_BLOCKED",
+      toastKey: "download.error.geoBlocked",
+      queueReasonKey: "queue.reason.geoBlocked",
+      retryable: false,
+    },
+    {
+      prefix: YTDLP_UNAVAILABLE_PREFIX,
+      code: "UNAVAILABLE",
+      toastKey: "download.error.unavailable",
+      queueReasonKey: "queue.reason.unavailable",
+      retryable: false,
+    },
+  ];
+  for (const definition of definitions) {
+    if (message.startsWith(definition.prefix)) {
+      return {
+        ...definition,
+        message: message.slice(definition.prefix.length).trim(),
+      };
     }
   }
-  return message;
+  if (/YouTube temporarily rate-limited requests/i.test(message)) {
+    return {
+      code: "YOUTUBE_RATE_LIMIT",
+      toastKey: "download.error.youtubeRateLimit",
+      queueReasonKey: "queue.reason.youtubeRateLimit",
+      retryable: true,
+      message,
+    };
+  }
+  return {
+    code: "UNKNOWN",
+    toastKey: "download.error.retry",
+    queueReasonKey: "queue.reason.unknown",
+    retryable: true,
+    message,
+  };
+}
+
+function getQueueReasonLabel(item) {
+  const code = String(item?.errorCode || "").trim().toUpperCase();
+  const reasonByCode = {
+    NETWORK_TIMEOUT: "queue.reason.networkTimeout",
+    AUTH_REQUIRED: "queue.reason.authRequired",
+    GEO_BLOCKED: "queue.reason.geoBlocked",
+    UNAVAILABLE: "queue.reason.unavailable",
+    YOUTUBE_RATE_LIMIT: "queue.reason.youtubeRateLimit",
+    UNKNOWN: "queue.reason.unknown",
+  };
+  return t(reasonByCode[code] || "queue.reason.unknown");
+}
+
+function getQueueRetryStateLabel(item) {
+  return item?.retryable
+    ? t("queue.retryState.retryable")
+    : t("queue.retryState.needsAction");
 }
 
 const makeQueueTitle = (url) => {
@@ -347,6 +399,9 @@ function normalizeQueueItem(item) {
     stage: item?.stage ? String(item.stage) : "",
     signature: item?.signature || getQueueSignature(url, quality),
     reason: item?.reason ? String(item.reason) : "",
+    errorCode: item?.errorCode ? String(item.errorCode) : "",
+    retryable:
+      typeof item?.retryable === "boolean" ? item.retryable : undefined,
     failedAt: Number(item?.failedAt) || 0,
   };
 }
@@ -390,10 +445,28 @@ function updateDownloadJobSummary() {
   const activeItems = getActiveDownloadJobs(state);
   const activeCount = activeItems.length;
   const current = activeItems[0];
+  const latestFailed = getFailedDownloadJobs(state)[0];
   if (!current) {
-    jobSummary.classList.add("hidden");
-    jobSummaryTitle.textContent = t("downloader.jobSummary.idle");
-    jobSummaryMeta.textContent = t("downloader.jobSummary.idleMeta");
+    if (!latestFailed) {
+      jobSummary.classList.add("hidden");
+      jobSummaryTitle.textContent = t("downloader.jobSummary.idle");
+      jobSummaryMeta.textContent = t("downloader.jobSummary.idleMeta");
+      const badge = document.getElementById("downloader-job-summary-badge");
+      if (badge) badge.textContent = t("downloader.jobSummary.badge");
+      return;
+    }
+    const failedTitle =
+      String(latestFailed.title || "").trim() ||
+      makeQueueTitle(latestFailed.url) ||
+      makeQueueUrlLabel(latestFailed.url);
+    const badge = document.getElementById("downloader-job-summary-badge");
+    if (badge) badge.textContent = t("downloader.jobSummary.badgeError");
+    jobSummary.classList.remove("hidden");
+    jobSummaryTitle.textContent = failedTitle || t("downloader.jobSummary.idle");
+    jobSummaryMeta.textContent = [
+      getQueueReasonLabel(latestFailed),
+      getQueueRetryStateLabel(latestFailed),
+    ].join(" · ");
     return;
   }
   const title =
@@ -411,6 +484,8 @@ function updateDownloadJobSummary() {
     metaParts.push(`${Math.max(0, Math.min(100, Number(current.progress))).toFixed(0)}%`);
   }
   metaParts.push(t("queue.pill.active", { count: activeCount }));
+  const badge = document.getElementById("downloader-job-summary-badge");
+  if (badge) badge.textContent = t("downloader.jobSummary.badge");
   jobSummary.classList.remove("hidden");
   jobSummaryTitle.textContent = title || t("downloader.jobSummary.idle");
   jobSummaryMeta.textContent = metaParts.join(" · ");
@@ -980,6 +1055,9 @@ function updateQueueDisplay() {
       item.status === "downloading" && item.stage
         ? t(`queue.stage.${item.stage}`)
         : "";
+    const reasonLabel = item.status === "error" ? getQueueReasonLabel(item) : "";
+    const retryStateLabel =
+      item.status === "error" ? getQueueRetryStateLabel(item) : "";
     const qualityLabel = getQueueQualityLabel(item.quality);
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);
@@ -996,7 +1074,7 @@ function updateQueueDisplay() {
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
           <div class="queue-item-title">${escapeQueueHtml(titleLabel)}</div>
-          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}</div>
+          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}${reasonLabel ? ` · ${escapeQueueHtml(reasonLabel)}` : ""}${retryStateLabel ? ` · ${escapeQueueHtml(retryStateLabel)}` : ""}</div>
         </div>
         <div class="queue-item-right">
           <span class="queue-status-chip ${isDownloading ? "is-spinning" : ""}" style="${meta.style}">
@@ -1012,7 +1090,7 @@ function updateQueueDisplay() {
             }
             ${
               group === "error"
-                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t("queue.item.retry.title")}" aria-label="${t("queue.item.retry.title")}"><i data-lucide="rotate-cw"></i></button>`
+                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
                 : ""
             }
             <button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-index="${group === "pending" ? pendingIndex : actionIndex}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>
@@ -1104,10 +1182,7 @@ function resetDownloadUiState(options = {}) {
   clearProgressResetTimer();
   state.suppressAutoPump = suppressAutoPump;
   if (resetActiveDownloads) {
-    state.downloadJobs = state.downloadJobs.filter(
-      (item) => item.status !== JOB_STATUS.running,
-    );
-    state.activeDownloads = [];
+    clearDownloadJobsByStatus(state, JOB_STATUS.running);
   }
   state.isDownloading = false;
   if (downloadButton) {
@@ -1445,6 +1520,7 @@ const initiateDownload = async (url, quality, options = {}) => {
     if (result?.error) {
       const failedSignatures = getFailedSignatures();
       if (!failedSignatures.has(signature)) {
+        const errorDetails = getDownloadErrorDetails(result.message || "");
         upsertDownloadJob(state, {
           id: jobId,
           jobId,
@@ -1457,6 +1533,8 @@ const initiateDownload = async (url, quality, options = {}) => {
           size: "",
           signature,
           reason: result.message || "",
+          errorCode: errorDetails.code,
+          retryable: errorDetails.retryable,
           failedAt: Date.now(),
         });
         persistFailedQueue();
@@ -1716,7 +1794,12 @@ function initDownloadButton() {
         tone: "danger",
       });
       if (!confirmed) return;
-      state.downloadJobs = [...getActiveDownloadJobs(state)];
+      replaceDownloadJobsByStatus(state, [
+        JOB_STATUS.pending,
+        JOB_STATUS.paused,
+        JOB_STATUS.failed,
+        JOB_STATUS.done,
+      ], []);
       persistQueue();
       persistFailedQueue();
       updateQueueDisplay();
@@ -1775,11 +1858,20 @@ function initDownloadButton() {
         const task = getFailedDownloadJobs(state)[idx];
         if (!task) return;
         const signature = getQueueSignature(task.url, task.quality);
+        if (task.retryable === false) {
+          showToast(t("queue.item.retry.disabled"), "warning");
+          return;
+        }
         if (getCurrentDownloadSignatures().has(signature)) {
           showToast(t("download.url.active"), "warning");
           return;
         }
-        removeDownloadJob(state, task.signature || signature);
+        removeDownloadJob(
+          state,
+          (item) =>
+            item.status === JOB_STATUS.failed &&
+            getQueueSignature(item.url, item.quality) === signature,
+        );
         persistFailedQueue();
         initiateDownload(task.url, task.quality, { fromQueue: false });
         pumpDownloadPool("auto");
@@ -1797,12 +1889,11 @@ function initDownloadButton() {
         if (direction === "up" && idx > 0) {
           const [item] = pendingJobs.splice(idx, 1);
           pendingJobs.splice(idx - 1, 0, item);
-          state.downloadJobs = [
-            ...getActiveDownloadJobs(state),
-            ...pendingJobs,
-            ...getFailedDownloadJobs(state),
-            ...getCompletedDownloadJobs(state),
-          ];
+          replaceDownloadJobsByStatus(
+            state,
+            [JOB_STATUS.pending, JOB_STATUS.paused],
+            pendingJobs,
+          );
           persistQueue();
           updateQueueDisplay();
           console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx - 1 });
@@ -1814,12 +1905,11 @@ function initDownloadButton() {
         ) {
           const [item] = pendingJobs.splice(idx, 1);
           pendingJobs.splice(idx + 1, 0, item);
-          state.downloadJobs = [
-            ...getActiveDownloadJobs(state),
-            ...pendingJobs,
-            ...getFailedDownloadJobs(state),
-            ...getCompletedDownloadJobs(state),
-          ];
+          replaceDownloadJobsByStatus(
+            state,
+            [JOB_STATUS.pending, JOB_STATUS.paused],
+            pendingJobs,
+          );
           persistQueue();
           updateQueueDisplay();
           console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx + 1 });
@@ -1846,7 +1936,13 @@ function initDownloadButton() {
         if (!Number.isFinite(idx)) return;
         const task = getFailedDownloadJobs(state)[idx];
         if (!task) return;
-        removeDownloadJob(state, task.signature || task.jobId || task.id);
+        removeDownloadJob(
+          state,
+          (item) =>
+            item.status === JOB_STATUS.failed &&
+            getQueueSignature(item.url, item.quality) ===
+              getQueueSignature(task.url, task.quality),
+        );
         persistFailedQueue();
         updateQueueDisplay();
         showToast(t("queue.item.removed"), "info");
@@ -1891,9 +1987,7 @@ function initDownloadButton() {
     queueRetryFailedButton.addEventListener("click", () => {
       const tasks = [...getFailedDownloadJobs(state)];
       if (!tasks.length) return;
-      state.downloadJobs = state.downloadJobs.filter(
-        (item) => item.status !== JOB_STATUS.failed,
-      );
+      clearDownloadJobsByStatus(state, JOB_STATUS.failed);
       persistFailedQueue();
       const existing = new Set(
         getPendingDownloadJobs(state).map((item) =>
@@ -1930,10 +2024,24 @@ function initDownloadButton() {
   }
 
   if (getPendingDownloadJobs(state).length === 0) {
-    state.downloadQueue = loadQueueFromStorage();
+    replaceDownloadJobsByStatus(
+      state,
+      [JOB_STATUS.pending, JOB_STATUS.paused],
+      loadQueueFromStorage().map((item) => ({
+        ...item,
+        status: JOB_STATUS.pending,
+      })),
+    );
   }
   if (getFailedDownloadJobs(state).length === 0) {
-    state.failedDownloads = loadFailedQueueFromStorage();
+    replaceDownloadJobsByStatus(
+      state,
+      JOB_STATUS.failed,
+      loadFailedQueueFromStorage().map((item) => ({
+        ...item,
+        status: JOB_STATUS.failed,
+      })),
+    );
   }
   state.queueCollapsed = readQueueCollapsedState();
   ensureDownloadJobsState(state);
