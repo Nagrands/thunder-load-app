@@ -15,6 +15,10 @@ jest.mock("../i18n.js", () => ({
   t: (key) => key,
 }));
 
+jest.mock("../firstRunModal.js", () => ({
+  initFirstRunModal: jest.fn(),
+}));
+
 jest.mock("../domElements.js", () => ({
   get settingsModal() {
     return global.document.getElementById("settings-modal");
@@ -30,6 +34,7 @@ describe("settingsModal mobile sections navigation", () => {
       <button id="settings-button" type="button">open</button>
       <div id="settings-modal" style="display:none">
         <button id="settings-sections-toggle" aria-expanded="false" aria-controls="settings-tabs-panel"></button>
+        <button id="first-run-reset-button" type="button"></button>
         <span id="settings-active-section-label"></span>
         <div id="settings-tabs-panel" class="settings-tabs-wrapper" data-open="false">
           <div class="settings-tabs">
@@ -136,5 +141,22 @@ describe("settingsModal mobile sections navigation", () => {
     expect(wrapper.classList.contains("settings-tabs--open")).toBe(false);
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(label.textContent).toBe("Общие");
+  });
+
+  test("opens first-run modal from settings without reload", () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      const { initFirstRunModal } = require("../firstRunModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+
+      document.getElementById("first-run-reset-button").click();
+
+      expect(localStorage.getItem("firstRunCompleted")).toBe("0");
+      expect(document.getElementById("settings-modal").style.display).toBe(
+        "none",
+      );
+      expect(initFirstRunModal).toHaveBeenCalled();
+    });
   });
 });

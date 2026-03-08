@@ -84,3 +84,4 @@
 | The quality dialog is quieter about expected failures now | Expected issues such as authorization requirements no longer add extra noisy internal error logs |
 | Queueing from the quality dialog is more compact now | The footer now uses an icon with a tooltip instead of a long queue button, so the modal feels cleaner |
 | The queue icon tooltip works again now | Hovering the add-to-queue icon in the quality dialog now shows the tooltip as expected |
+| First-run setup opens from Settings again | The button in Settings now opens the first-run setup wizard directly instead of forcing an extra reload |

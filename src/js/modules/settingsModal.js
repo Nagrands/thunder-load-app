@@ -10,6 +10,7 @@ import {
 } from "./settings.js";
 import { settingsModal, settingsButton } from "./domElements.js";
 import { t } from "./i18n.js";
+import { initFirstRunModal } from "./firstRunModal.js";
 
 let previousFocus = null;
 let trapHandler = null;
@@ -266,7 +267,8 @@ export function initSettingsModal() {
       try {
         localStorage.setItem("firstRunCompleted", "0");
       } catch {}
-      location.reload();
+      closeSettings();
+      initFirstRunModal();
     });
   }
 

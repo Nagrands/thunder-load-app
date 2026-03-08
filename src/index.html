@@ -2187,6 +2187,7 @@
   <div class="modal-content first-run-modal-content">
     <div class="first-run-header">
       <div class="first-run-title-block">
+        <div class="first-run-eyebrow" data-i18n="firstRun.eyebrow">Первый запуск</div>
         <h2 id="first-run-title" data-i18n="firstRun.title">
           Добро пожаловать в Thunder Load
         </h2>
@@ -2194,32 +2195,100 @@
           Настройте язык, вкладки и тему перед началом работы.
         </p>
       </div>
+
+      <div class="first-run-progress">
+        <div class="first-run-progress__meta">
+          <span id="first-run-step-counter" data-i18n="firstRun.stepCounter">Шаг 1 из 4</span>
+          <strong id="first-run-step-label" data-i18n="firstRun.steps.language">Язык</strong>
+        </div>
+
+        <div class="first-run-stepper" role="list" aria-label="First run steps">
+          <button
+            type="button"
+            class="first-run-step is-active"
+            data-step-index="0"
+            data-step-label-key="firstRun.steps.language"
+            aria-current="step"
+          >
+            <span class="first-run-step__index">1</span>
+            <span class="first-run-step__label" data-i18n="firstRun.steps.language">Язык</span>
+          </button>
+          <button
+            type="button"
+            class="first-run-step"
+            data-step-index="1"
+            data-step-label-key="firstRun.steps.modules"
+            disabled
+          >
+            <span class="first-run-step__index">2</span>
+            <span class="first-run-step__label" data-i18n="firstRun.steps.modules">Модули</span>
+          </button>
+          <button
+            type="button"
+            class="first-run-step"
+            data-step-index="2"
+            data-step-label-key="firstRun.steps.theme"
+            disabled
+          >
+            <span class="first-run-step__index">3</span>
+            <span class="first-run-step__label" data-i18n="firstRun.steps.theme">Тема</span>
+          </button>
+          <button
+            type="button"
+            class="first-run-step"
+            data-step-index="3"
+            data-step-label-key="firstRun.steps.summary"
+            disabled
+          >
+            <span class="first-run-step__index">4</span>
+            <span class="first-run-step__label" data-i18n="firstRun.steps.summary">Итог</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="first-run-body">
-      <section class="first-run-section">
-        <h3 data-i18n="firstRun.language">Язык интерфейса</h3>
-        <div class="first-run-options">
-          <label class="first-run-option">
-            <input
-              type="radio"
-              name="first-run-language"
-              value="ru"
-              checked
-            />
-            <span data-i18n="language.ru">Русский</span>
+      <section class="first-run-section is-active" data-first-run-panel="0">
+        <div class="first-run-section__header">
+          <h3 data-i18n="firstRun.language">Язык интерфейса</h3>
+          <p data-i18n="firstRun.languageSubtitle">
+            Выберите язык интерфейса. Изменение сразу отобразится в окне настройки.
+          </p>
+        </div>
+
+        <div class="first-run-options first-run-options--language">
+          <label class="first-run-option is-selected">
+            <input type="radio" name="first-run-language" value="ru" checked />
+            <div class="first-run-option__content">
+              <strong data-i18n="language.ru">Русский</strong>
+              <small data-i18n="firstRun.languageRuHint">
+                Основной интерфейс и подсказки на русском языке
+              </small>
+            </div>
           </label>
+
           <label class="first-run-option">
             <input type="radio" name="first-run-language" value="en" />
-            <span data-i18n="language.en">English</span>
+            <div class="first-run-option__content">
+              <strong data-i18n="language.en">English</strong>
+              <small data-i18n="firstRun.languageEnHint">
+                English interface for menus, tips, and dialogs
+              </small>
+            </div>
           </label>
         </div>
       </section>
 
-      <section class="first-run-section">
-        <h3 data-i18n="firstRun.tabs">Вкладки для работы</h3>
-        <div class="first-run-options">
-          <label class="first-run-option">
+      <section class="first-run-section" data-first-run-panel="1" hidden>
+        <div class="first-run-section__header">
+          <h3 data-i18n="firstRun.tabs">Вкладки для работы</h3>
+          <p data-i18n="firstRun.tabsSubtitle">
+            Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.
+          </p>
+        </div>
+
+        <div class="first-run-options first-run-options--modules">
+          <label class="first-run-option is-selected is-disabled">
             <input
               type="checkbox"
               name="first-run-tab"
@@ -2227,76 +2296,136 @@
               checked
               disabled
             />
-            <span data-i18n="tabs.download">Downloader</span>
-            <i
-              class="fa-solid fa-circle-info first-run-hint"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Загрузка видео и аудио"
-              data-i18n-title="firstRun.tabs.downloadHint"
-            ></i>
+            <div class="first-run-option__content">
+              <strong data-i18n="tabs.download">Downloader</strong>
+              <small data-i18n="firstRun.tabs.downloadHint">Загрузка видео и аудио</small>
+            </div>
+            <span class="first-run-option__badge" data-i18n="firstRun.required">Обязательно</span>
           </label>
+
           <label class="first-run-option">
             <input type="checkbox" name="first-run-tab" value="wireguard" />
-            <span data-i18n="tabs.tools">Tools</span>
-            <i
-              class="fa-solid fa-circle-info first-run-hint"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Команды WireGuard и авто‑отправка"
-              data-i18n-title="firstRun.tabs.wgHint"
-            ></i>
+            <div class="first-run-option__content">
+              <strong data-i18n="tabs.tools">Tools</strong>
+              <small data-i18n="firstRun.tabs.wgHint">
+                WG Unlock, Hash Check и быстрые инструменты
+              </small>
+            </div>
           </label>
+
           <label class="first-run-option">
             <input type="checkbox" name="first-run-tab" value="backup" />
-            <span data-i18n="tabs.backup">Backup</span>
-            <i
-              class="fa-solid fa-circle-info first-run-hint"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Резервные копии и профили"
-              data-i18n-title="firstRun.tabs.backupHint"
-            ></i>
+            <div class="first-run-option__content">
+              <strong data-i18n="tabs.backup">Backup</strong>
+              <small data-i18n="firstRun.tabs.backupHint">Резервные копии и профили</small>
+            </div>
           </label>
         </div>
       </section>
 
-      <section class="first-run-section">
-        <h3 data-i18n="firstRun.theme">Цветовая тема</h3>
-        <div class="first-run-options">
-          <label class="first-run-option">
+      <section class="first-run-section" data-first-run-panel="2" hidden>
+        <div class="first-run-section__header">
+          <h3 data-i18n="firstRun.theme">Цветовая тема</h3>
+          <p data-i18n="firstRun.themeSubtitle">
+            Выберите внешний вид приложения. Предпросмотр темы применяется сразу.
+          </p>
+        </div>
+
+        <div class="first-run-options first-run-options--themes">
+          <label class="first-run-option first-run-theme-card first-run-theme-card--dark is-selected">
             <input type="radio" name="first-run-theme" value="dark" checked />
-            <span data-i18n="settings.appearance.theme.dark">Dark</span>
+            <div class="first-run-option__content">
+              <strong data-i18n="settings.appearance.theme.dark">Dark</strong>
+              <small data-i18n="firstRun.theme.darkHint">
+                Классическая темная тема для повседневной работы
+              </small>
+            </div>
           </label>
-          <label class="first-run-option">
+
+          <label class="first-run-option first-run-theme-card first-run-theme-card--midnight">
             <input type="radio" name="first-run-theme" value="midnight" />
-            <span data-i18n="settings.appearance.theme.midnight">Midnight</span>
+            <div class="first-run-option__content">
+              <strong data-i18n="settings.appearance.theme.midnight">Midnight</strong>
+              <small data-i18n="firstRun.theme.midnightHint">
+                Более глубокая темная палитра с холодным акцентом
+              </small>
+            </div>
           </label>
-          <label class="first-run-option">
+
+          <label class="first-run-option first-run-theme-card first-run-theme-card--sunset">
             <input type="radio" name="first-run-theme" value="sunset" />
-            <span data-i18n="settings.appearance.theme.sunset">Sunset</span>
+            <div class="first-run-option__content">
+              <strong data-i18n="settings.appearance.theme.sunset">Sunset</strong>
+              <small data-i18n="firstRun.theme.sunsetHint">
+                Теплый контрастный вариант с мягкими оранжевыми акцентами
+              </small>
+            </div>
           </label>
-          <label class="first-run-option">
+
+          <label class="first-run-option first-run-theme-card first-run-theme-card--violet">
             <input type="radio" name="first-run-theme" value="violet" />
-            <span data-i18n="settings.appearance.theme.violet">Violet</span>
+            <div class="first-run-option__content">
+              <strong data-i18n="settings.appearance.theme.violet">Violet</strong>
+              <small data-i18n="firstRun.theme.violetHint">
+                Выразительная тёмная тема с ярким акцентным цветом
+              </small>
+            </div>
           </label>
-          <label class="first-run-option">
+
+          <label class="first-run-option first-run-theme-card first-run-theme-card--light">
             <input type="radio" name="first-run-theme" value="light" />
-            <span data-i18n="settings.appearance.theme.light">Light</span>
+            <div class="first-run-option__content">
+              <strong data-i18n="settings.appearance.theme.light">Light</strong>
+              <small data-i18n="firstRun.theme.lightHint">
+                Светлая тема для дневного и офисного режима
+              </small>
+            </div>
           </label>
+        </div>
+      </section>
+
+      <section class="first-run-section" data-first-run-panel="3" hidden>
+        <div class="first-run-section__header">
+          <h3 data-i18n="firstRun.summary">Проверьте настройки</h3>
+          <p data-i18n="firstRun.summarySubtitle">
+            Всё готово. Примените настройки и перезапустите интерфейс с выбранными параметрами.
+          </p>
+        </div>
+
+        <div class="first-run-summary">
+          <div class="first-run-summary-card">
+            <span class="first-run-summary-card__label" data-i18n="firstRun.language">
+              Язык интерфейса
+            </span>
+            <strong id="first-run-summary-language"></strong>
+          </div>
+
+          <div class="first-run-summary-card">
+            <span class="first-run-summary-card__label" data-i18n="firstRun.tabs">
+              Вкладки для работы
+            </span>
+            <strong id="first-run-summary-tabs"></strong>
+          </div>
+
+          <div class="first-run-summary-card">
+            <span class="first-run-summary-card__label" data-i18n="firstRun.theme">
+              Цветовая тема
+            </span>
+            <strong id="first-run-summary-theme"></strong>
+          </div>
         </div>
       </section>
     </div>
 
     <div class="first-run-footer">
-      <button
-        id="first-run-apply"
-        class="btn btn-primary"
-        type="button"
-        data-i18n="firstRun.apply"
-      >
-        Применить
-      </button>
+      <div class="first-run-footer__actions">
+        <button id="first-run-back" class="btn btn-secondary" type="button" data-i18n="firstRun.back">
+          Назад
+        </button>
+        <button id="first-run-primary" class="btn btn-secondary" type="button" data-i18n="firstRun.next">
+          Далее
+        </button>
+      </div>
     </div>
   </div>
 </div>
