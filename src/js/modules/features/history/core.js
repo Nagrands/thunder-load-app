@@ -32,7 +32,7 @@ import { handleDeleteEntry } from "../../contextMenu.js";
 import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
 import { focusUrlInputAfterRetry } from "../../retryFocus.js";
-import "../../../shared/downloadErrorClassifier.shared.js";
+import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
@@ -1726,14 +1726,6 @@ const isAudioEntry = (entry) => {
   return /audio/i.test(quality) || /audio only/i.test(quality);
 };
 
-const { getDownloadErrorMetaByCode } =
-  globalThis.__thunderDownloadErrorClassifier || {};
-
-const getHistoryErrorReasonKey = (entry) =>
-  typeof getDownloadErrorMetaByCode === "function"
-    ? getDownloadErrorMetaByCode(entry?.errorCode).historyReasonKey
-    : "history.failed.reason.unknown";
-
 const getHistoryRetryStateKey = (entry) =>
   entry?.retryable === false
     ? "history.failed.retryState.needsAction"
@@ -2774,7 +2766,11 @@ function createLogEntry(entry, groupKey = "unknown") {
     addDetail(t("history.detail.status"), t("history.failed.badge"));
     addDetail(
       t("history.detail.failureReason"),
-      t(getHistoryErrorReasonKey(entry)),
+      formatDownloadHistoryReason({
+        errorCode: entry?.errorCode,
+        message: entry?.errorMessage || "",
+        retryable: entry?.retryable,
+      }),
     );
     addDetail(
       t("history.detail.retryState"),

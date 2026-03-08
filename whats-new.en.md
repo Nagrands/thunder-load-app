@@ -45,3 +45,6 @@
 | Downloader error detection is more precise | The app now better distinguishes restricted access, bot verification, disk space issues, and folder permission errors |
 | Failure reasons are detected earlier | Access, disk space, private video, and bot-check issues are now recognized more accurately at the download stage itself |
 | Download failures are passed through more reliably | Internal handoff between the downloader and the UI now keeps the failure code and type more accurately instead of relying on message text alone |
+| Preview and quality selection now understand failures better | The URL preview card and quality picker now show the same precise failure reason more consistently as the downloader itself |
+| Error messaging is more consistent inside the Downloader tab | The queue, URL preview, and quality picker now use the same internal path to explain why a failure happened |
+| History now uses the same failure language | Failed downloads in history now derive their reason through the same path as the queue and the rest of the downloader UI |

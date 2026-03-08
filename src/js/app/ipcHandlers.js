@@ -521,7 +521,9 @@ function setupIpcHandlers(dependencies) {
         return {
           success: false,
           errorCode: classified.code,
-          retryAfterMinutes: classified.retryAfterMinutes,
+          retryable: classified.retryable,
+          retryAfterMinutes: classified.retryAfterMinutes ?? null,
+          message: classified.message,
           error: classified.message,
         };
       }

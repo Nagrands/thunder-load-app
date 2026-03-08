@@ -275,8 +275,10 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result).toMatchObject({
       success: false,
       errorCode: "AUTH_REQUIRED",
+      retryable: false,
     });
     expect(result.error).toContain("авторизации");
+    expect(result.message).toContain("авторизации");
   });
 
   test("get-video-info maps geo errors to GEO_BLOCKED", async () => {
@@ -437,6 +439,7 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result).toMatchObject({
       success: false,
       errorCode: "YOUTUBE_RATE_LIMIT",
+      retryable: true,
       retryAfterMinutes: 7,
     });
     expect(result.error).toContain("7 мин");

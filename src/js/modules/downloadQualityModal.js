@@ -3,6 +3,7 @@
 import { showToast } from "./toast.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
 import { t } from "./i18n.js";
+import { formatDownloadErrorToast } from "./downloadErrorUi.js";
 
 const INFO_REQUEST_TIMEOUT = 15000;
 
@@ -66,28 +67,6 @@ const selectionOutputEl = document.getElementById(
 const selectionSummaryEl = document.getElementById(
   "download-quality-selection-summary",
 );
-
-function formatVideoInfoError(errorLike) {
-  const message = String(errorLike?.message || errorLike?.error || errorLike || "");
-  const code = String(errorLike?.code || errorLike?.errorCode || "");
-  if (code === "YOUTUBE_RATE_LIMIT") {
-    const mins = Number(errorLike?.retryAfterMinutes || 0);
-    if (mins > 0) {
-      return t("download.error.youtubeRateLimitTimed", { minutes: mins });
-    }
-    return t("download.error.youtubeRateLimit");
-  }
-  if (code === "AUTH_REQUIRED") return t("download.error.authRequired");
-  if (code === "GEO_BLOCKED") return t("download.error.geoBlocked");
-  if (code === "UNAVAILABLE") return t("download.error.unavailable");
-  if (code === "NETWORK_TIMEOUT") return t("download.error.networkTimeout");
-  if (message.toLowerCase().includes("timeout")) {
-    return t("quality.error.timeout");
-  }
-  return t("quality.error.formats", {
-    message: errorLike?.message || errorLike?.error || "error",
-  });
-}
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
@@ -1055,13 +1034,12 @@ async function loadFormatsWithRetry(
       INFO_REQUEST_TIMEOUT,
     );
     if (!info || info.success === false) {
-      const reason = String(info?.error || "").trim();
-      const err = new Error(reason || t("quality.error"));
-      if (info?.errorCode) err.code = info.errorCode;
-      if (typeof info?.retryAfterMinutes === "number") {
-        err.retryAfterMinutes = info.retryAfterMinutes;
-      }
-      throw err;
+      throw (
+        info || {
+          success: false,
+          error: t("quality.error"),
+        }
+      );
     }
     if (state.currentFetchToken !== token) return false;
 
@@ -1112,7 +1090,7 @@ async function loadFormatsWithRetry(
   } catch (error) {
     if (state.currentFetchToken !== token) return false;
     console.error("Ошибка получения форматов:", error);
-    const message = formatVideoInfoError(error);
+    const message = formatDownloadErrorToast(error);
     showError(message);
     showToast(message, "error");
     return false;

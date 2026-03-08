@@ -6,6 +6,7 @@ import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
 import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
+import { formatDownloadErrorToast } from "./downloadErrorUi.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -129,22 +130,6 @@ function initUrlInputHandler() {
     return h > 0
       ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`
       : `${m}:${String(r).padStart(2, "0")}`;
-  };
-
-  const formatPreviewFetchError = (payload) => {
-    const code = String(payload?.errorCode || payload?.code || "");
-    if (code === "YOUTUBE_RATE_LIMIT") {
-      const mins = Number(payload?.retryAfterMinutes || 0);
-      if (mins > 0) {
-        return t("download.error.youtubeRateLimitTimed", { minutes: mins });
-      }
-      return t("download.error.youtubeRateLimit");
-    }
-    if (code === "AUTH_REQUIRED") return t("download.error.authRequired");
-    if (code === "GEO_BLOCKED") return t("download.error.geoBlocked");
-    if (code === "UNAVAILABLE") return t("download.error.unavailable");
-    if (code === "NETWORK_TIMEOUT") return t("download.error.networkTimeout");
-    return "";
   };
 
   const renderPreview = (data) => {
@@ -355,7 +340,7 @@ function initUrlInputHandler() {
       .invoke("get-video-info", url)
       .then((data) => {
         if (currentRequest !== previewRequestId) return;
-        const fetchError = !data?.success ? formatPreviewFetchError(data) : "";
+        const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
         if (fetchError) {
           showInlineErrorText(fetchError);
           renderPreview(null);
@@ -389,7 +374,7 @@ function initUrlInputHandler() {
     window.electron.ipcRenderer
       .invoke("get-video-info", url)
       .then((data) => {
-        const fetchError = !data?.success ? formatPreviewFetchError(data) : "";
+        const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
         if (fetchError) {
           showInlineErrorText(fetchError);
           renderPreview(null);

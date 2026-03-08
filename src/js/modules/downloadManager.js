@@ -28,7 +28,11 @@ import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
-import "../shared/downloadErrorClassifier.shared.js";
+import {
+  formatDownloadErrorToast,
+  formatDownloadQueueReason,
+  getDownloadErrorDetails,
+} from "./downloadErrorUi.js";
 import {
   clearDownloadJobsByStatus,
   JOB_STATUS,
@@ -107,8 +111,6 @@ let lastProgressRenderTs = 0;
 let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
-const { classifyDownloadError, getDownloadErrorMetaByCode } =
-  globalThis.__thunderDownloadErrorClassifier || {};
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -132,38 +134,16 @@ const makeQueueUrlLabel = (url) => {
   }
 };
 
-function getDownloadErrorDetails(error) {
-  if (error?.errorCode && typeof getDownloadErrorMetaByCode === "function") {
-    const meta = getDownloadErrorMetaByCode(error.errorCode);
-    return {
-      ...meta,
-      message: error?.message || meta.defaultMessage,
-      rawMessage: String(error?.message || ""),
-      retryAfterMinutes: error?.retryAfterMinutes ?? null,
-    };
-  }
-  if (typeof classifyDownloadError === "function") {
-    return classifyDownloadError(error);
-  }
-  const message = String(error?.message || error || "");
-  return {
-    code: "UNKNOWN",
-    toastKey: "download.error.retry",
-    queueReasonKey: "queue.reason.unknown",
-    historyReasonKey: "history.failed.reason.unknown",
-    retryable: true,
-    message,
-    rawMessage: message,
-    retryAfterMinutes: null,
-  };
-}
-
 function getQueueReasonLabel(item) {
-  const meta =
-    item?.errorCode && typeof getDownloadErrorMetaByCode === "function"
-      ? getDownloadErrorMetaByCode(item.errorCode)
-      : getDownloadErrorDetails(item?.reason || "");
-  return t(meta.queueReasonKey);
+  return formatDownloadQueueReason(
+    item?.errorCode
+      ? {
+          errorCode: item.errorCode,
+          message: item.reason || "",
+          retryable: item.retryable,
+        }
+      : item?.reason || "",
+  );
 }
 
 function getQueueRetryStateLabel(item) {
@@ -1287,7 +1267,7 @@ const downloadVideo = async (url, quality, options = {}) => {
             }
           : response,
       );
-      showToast(t(errorDetails.toastKey), "error");
+      showToast(formatDownloadErrorToast(response), "error");
       return {
         error: true,
         message: response?.message || errorDetails.message || "",
@@ -1382,7 +1362,7 @@ const downloadVideo = async (url, quality, options = {}) => {
     } else {
       console.error("Ошибка при загрузке видео:", error);
       const errorDetails = getDownloadErrorDetails(error);
-      showToast(t(errorDetails.toastKey), "error");
+      showToast(formatDownloadErrorToast(error), "error");
       return {
         error: true,
         message: errorDetails.message,
