@@ -18,7 +18,9 @@ const LEGACY_STATUS_BY_JOB_STATUS = {
 };
 
 const normalizeJobStage = (stage = "", status = JOB_STATUS.pending) => {
-  const normalized = String(stage || "").trim().toLowerCase();
+  const normalized = String(stage || "")
+    .trim()
+    .toLowerCase();
   if (normalized === "prepare" || normalized === "download") return normalized;
   if (normalized === "finalize" || normalized === "merge") return "finalize";
   if (status === JOB_STATUS.running) return "prepare";
@@ -26,7 +28,10 @@ const normalizeJobStage = (stage = "", status = JOB_STATUS.pending) => {
 };
 
 const getJobIdentity = (job = {}) =>
-  job.jobId || job.id || job.signature || `${job.url || ""}::${job.status || ""}`;
+  job.jobId ||
+  job.id ||
+  job.signature ||
+  `${job.url || ""}::${job.status || ""}`;
 
 const samePayload = (a = {}, b = {}) =>
   String(a.url || "").trim() === String(b.url || "").trim() &&
@@ -84,10 +89,13 @@ const toLegacyQueueItem = (job) => ({
 
 const sortJobs = (jobs = []) => [...jobs];
 
-const normalizeJobsList = (jobs = []) => jobs.map((job) => normalizeDownloadJob(job));
+const normalizeJobsList = (jobs = []) =>
+  jobs.map((job) => normalizeDownloadJob(job));
 
 function syncLegacyDownloadCollections(state) {
-  const jobs = Array.isArray(state.downloadJobs) ? sortJobs(state.downloadJobs) : [];
+  const jobs = Array.isArray(state.downloadJobs)
+    ? sortJobs(state.downloadJobs)
+    : [];
   state.activeDownloads = jobs
     .filter((job) => job.status === JOB_STATUS.running)
     .map(toLegacyQueueItem);
@@ -122,7 +130,10 @@ function hydrateDownloadJobsFromLegacyState(state) {
     }
   };
   append(state.activeDownloads, JOB_STATUS.running);
-  append(state.downloadQueue, state.queuePaused ? JOB_STATUS.paused : JOB_STATUS.pending);
+  append(
+    state.downloadQueue,
+    state.queuePaused ? JOB_STATUS.paused : JOB_STATUS.pending,
+  );
   append(state.failedDownloads, JOB_STATUS.failed);
   append(state.completedDownloads, JOB_STATUS.done);
   state.downloadJobs = sortJobs(merged);
@@ -168,7 +179,10 @@ function getActiveDownloadJobs(state) {
 }
 
 function getPendingDownloadJobs(state) {
-  return getDownloadJobsByStatus(state, [JOB_STATUS.pending, JOB_STATUS.paused]);
+  return getDownloadJobsByStatus(state, [
+    JOB_STATUS.pending,
+    JOB_STATUS.paused,
+  ]);
 }
 
 function getFailedDownloadJobs(state) {

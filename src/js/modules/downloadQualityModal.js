@@ -509,7 +509,9 @@ function renderPreview(info, url) {
   titleEl.textContent = info.title || t("quality.previewUnavailable");
   uploaderEl.textContent = info.uploader || info.channel || "";
   durationEl.textContent = info.duration
-    ? t("input.url.preview.duration", { duration: secondsToTime(info.duration) })
+    ? t("input.url.preview.duration", {
+        duration: secondsToTime(info.duration),
+      })
     : "";
   const preview = getPreviewData(info);
   const previewResolution =
@@ -1266,10 +1268,7 @@ function bindEvents() {
         moveSelection(-1);
         return;
       }
-      if (
-        event.key === "Enter" &&
-        state.selectedOption
-      ) {
+      if (event.key === "Enter" && state.selectedOption) {
         event.preventDefault();
         if (isQueueConfirmMode()) {
           confirmEnqueue();

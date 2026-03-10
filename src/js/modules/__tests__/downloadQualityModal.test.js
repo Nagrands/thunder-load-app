@@ -225,7 +225,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       await Promise.resolve();
       await Promise.resolve();
 
@@ -234,7 +236,10 @@ describe("downloadQualityModal close behavior", () => {
 
       expect(errorBox.classList.contains("hidden")).toBe(false);
       expect(errorText.textContent).toMatch(/авторизац|authorization/i);
-      expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/авторизац|authorization/i), "error");
+      expect(showToast).toHaveBeenCalledWith(
+        expect.stringMatching(/авторизац|authorization/i),
+        "error",
+      );
       expect(consoleErrorSpy).not.toHaveBeenCalled();
       expect(consoleWarnSpy).not.toHaveBeenCalled();
 
@@ -258,7 +263,9 @@ describe("downloadQualityModal close behavior", () => {
       jest.doMock("../toast", () => ({ showToast }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
 
-      const resultPromise = openDownloadQualityModal("https://example.com/video");
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
       for (let i = 0; i < 5; i++) {
         await Promise.resolve();
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -804,9 +811,9 @@ describe("downloadQualityModal close behavior", () => {
       await Promise.resolve();
 
       expect(
-        document.getElementById("download-quality-tab-audio")?.getAttribute(
-          "aria-selected",
-        ),
+        document
+          .getElementById("download-quality-tab-audio")
+          ?.getAttribute("aria-selected"),
       ).toBe("true");
       expect(
         document.getElementById("download-quality-primary")?.textContent,

@@ -103,15 +103,19 @@ describe("downloadJobs selectors", () => {
       status: JOB_STATUS.failed,
     });
 
-    replaceDownloadJobsByStatus(state, [JOB_STATUS.pending, JOB_STATUS.paused], [
-      {
-        jobId: "pending-2",
-        url: "https://example.com/pending-2",
-        quality: "Source",
-        signature: "pending-2",
-        status: JOB_STATUS.pending,
-      },
-    ]);
+    replaceDownloadJobsByStatus(
+      state,
+      [JOB_STATUS.pending, JOB_STATUS.paused],
+      [
+        {
+          jobId: "pending-2",
+          url: "https://example.com/pending-2",
+          quality: "Source",
+          signature: "pending-2",
+          status: JOB_STATUS.pending,
+        },
+      ],
+    );
 
     expect(getPendingDownloadJobs(state)).toHaveLength(1);
     expect(getPendingDownloadJobs(state)[0].jobId).toBe("pending-2");

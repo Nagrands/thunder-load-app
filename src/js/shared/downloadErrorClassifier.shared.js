@@ -65,8 +65,7 @@
       queueReasonKey: "queue.reason.diskFull",
       historyReasonKey: "history.failed.reason.diskFull",
       retryable: false,
-      defaultMessage:
-        "Недостаточно свободного места в папке загрузки.",
+      defaultMessage: "Недостаточно свободного места в папке загрузки.",
     },
     {
       prefix: "ERR_DOWNLOAD_PERMISSION_DENIED:",
@@ -75,8 +74,7 @@
       queueReasonKey: "queue.reason.permissionDenied",
       historyReasonKey: "history.failed.reason.permissionDenied",
       retryable: false,
-      defaultMessage:
-        "Нет доступа к папке загрузки или целевому файлу.",
+      defaultMessage: "Нет доступа к папке загрузки или целевому файлу.",
     },
   ];
 
@@ -92,7 +90,9 @@
     /EACCES|EPERM|permission denied|access denied|operation not permitted/i;
 
   function getDownloadErrorMetaByCode(code) {
-    const normalized = String(code || "").trim().toUpperCase();
+    const normalized = String(code || "")
+      .trim()
+      .toUpperCase();
     const found = DEFINITIONS.find((item) => item.code === normalized);
     if (found) return found;
     if (normalized === "YOUTUBE_RATE_LIMIT") {
@@ -119,13 +119,13 @@
   function classifyDownloadError(errorLike) {
     const rawMessage = String(errorLike?.message || errorLike || "").trim();
     if (!rawMessage) {
-    const fallback = getDownloadErrorMetaByCode("UNKNOWN");
-    return {
-      ...fallback,
-      message: fallback.defaultMessage,
-      rawMessage,
-      retryAfterMinutes: null,
-    };
+      const fallback = getDownloadErrorMetaByCode("UNKNOWN");
+      return {
+        ...fallback,
+        message: fallback.defaultMessage,
+        rawMessage,
+        retryAfterMinutes: null,
+      };
     }
 
     for (const definition of DEFINITIONS) {

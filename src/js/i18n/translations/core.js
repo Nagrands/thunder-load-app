@@ -1,5 +1,5 @@
 export const coreTranslations = {
-  "ru": {
+  ru: {
     "app.title": "Thunder Load",
     "topbar.nav": "Навигация по разделам",
     "topbar.appVersion": "Версия приложения",
@@ -27,8 +27,10 @@ export const coreTranslations = {
     "input.url.openSource": "Открыть источник",
     "input.url.helper": "Вставьте ссылку или перетащите её сюда",
     "input.url.helper.loading": "Получаем превью и проверяем ссылку…",
-    "input.url.helper.valid": "Ссылка распознана. Нажмите Enter или выберите режим в окне качества.",
-    "input.url.helper.playlistChoice": "Это плейлист. Выберите текущий ролик или весь плейлист.",
+    "input.url.helper.valid":
+      "Ссылка распознана. Нажмите Enter или выберите режим в окне качества.",
+    "input.url.helper.playlistChoice":
+      "Это плейлист. Выберите текущий ролик или весь плейлист.",
     "input.url.helper.drag": "Отпустите ссылку, чтобы вставить её в поле",
     "input.url.presets.aria": "Режимы загрузки",
     "input.url.presets.video": "Видео",
@@ -47,18 +49,22 @@ export const coreTranslations = {
     "input.url.preview.kicker": "Предпросмотр",
     "input.url.preview.loading": "Загрузка превью",
     "input.url.error.empty": "Вставьте ссылку, чтобы начать загрузку.",
-    "input.url.error.invalid": "Ссылка введена некорректно. Проверьте формат URL.",
+    "input.url.error.invalid":
+      "Ссылка введена некорректно. Проверьте формат URL.",
     "input.url.error.unsupported": "Этот источник пока не поддерживается.",
-    "input.url.error.invalidOrUnsupported": "Проверьте ссылку: нужен корректный URL поддерживаемого источника.",
+    "input.url.error.invalidOrUnsupported":
+      "Проверьте ссылку: нужен корректный URL поддерживаемого источника.",
     "input.url.preview.addAll": "Добавить все ({count})",
-    "input.url.preview.addAllTitle": "Добавить все элементы плейлиста в очередь",
+    "input.url.preview.addAllTitle":
+      "Добавить все элементы плейлиста в очередь",
     "input.url.preview.currentOnly": "Текущий ролик",
-    "input.url.preview.currentOnlyTitle": "Скачать или добавить в очередь только текущий ролик по выбранному режиму",
+    "input.url.preview.currentOnlyTitle":
+      "Скачать или добавить в очередь только текущий ролик по выбранному режиму",
     "input.url.preview.playlistCount": "{count} элементов",
     "input.url.preview.playlistDuration": "Всего: {duration}",
     "input.url.preview.close": "Закрыть предпросмотр",
     "input.url.preview.save": "Сохранить превью",
-    "input.url.preview.saveWithTitle": "Сохранить: \"{title}\"",
+    "input.url.preview.saveWithTitle": 'Сохранить: "{title}"',
     "input.url.preview.duration": "Длительность: {duration}",
     "input.paste": "Вставить из буфера",
     "input.clear": "Очистить",
@@ -100,24 +106,33 @@ export const coreTranslations = {
     "firstRun.steps.theme": "Тема",
     "firstRun.steps.summary": "Итог",
     "firstRun.language": "Язык интерфейса",
-    "firstRun.languageSubtitle": "Выберите язык интерфейса. Изменение сразу отобразится в окне настройки.",
-    "firstRun.languageRuHint": "Основной интерфейс и подсказки на русском языке",
+    "firstRun.languageSubtitle":
+      "Выберите язык интерфейса. Изменение сразу отобразится в окне настройки.",
+    "firstRun.languageRuHint":
+      "Основной интерфейс и подсказки на русском языке",
     "firstRun.languageEnHint": "English interface for menus, tips, and dialogs",
     "firstRun.tabs": "Вкладки для работы",
-    "firstRun.tabsSubtitle": "Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.",
+    "firstRun.tabsSubtitle":
+      "Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.",
     "firstRun.tabs.downloadHint": "Загрузка видео и аудио",
     "firstRun.tabs.wgHint": "WG Unlock, Hash Check и быстрые инструменты",
     "firstRun.tabs.backupHint": "Резервные копии и профили",
     "firstRun.required": "Обязательно",
     "firstRun.theme": "Цветовая тема",
-    "firstRun.themeSubtitle": "Выберите внешний вид приложения. Предпросмотр темы применяется сразу.",
-    "firstRun.theme.darkHint": "Классическая темная тема для повседневной работы",
-    "firstRun.theme.midnightHint": "Более глубокая темная палитра с холодным акцентом",
-    "firstRun.theme.sunsetHint": "Теплый контрастный вариант с мягкими оранжевыми акцентами",
-    "firstRun.theme.violetHint": "Выразительная тёмная тема с ярким акцентным цветом",
+    "firstRun.themeSubtitle":
+      "Выберите внешний вид приложения. Предпросмотр темы применяется сразу.",
+    "firstRun.theme.darkHint":
+      "Классическая темная тема для повседневной работы",
+    "firstRun.theme.midnightHint":
+      "Более глубокая темная палитра с холодным акцентом",
+    "firstRun.theme.sunsetHint":
+      "Теплый контрастный вариант с мягкими оранжевыми акцентами",
+    "firstRun.theme.violetHint":
+      "Выразительная тёмная тема с ярким акцентным цветом",
     "firstRun.theme.lightHint": "Светлая тема для дневного и офисного режима",
     "firstRun.summary": "Проверьте настройки",
-    "firstRun.summarySubtitle": "Всё готово. Примените настройки и перезапустите интерфейс с выбранными параметрами.",
+    "firstRun.summarySubtitle":
+      "Всё готово. Примените настройки и перезапустите интерфейс с выбранными параметрами.",
     "firstRun.back": "Назад",
     "firstRun.next": "Далее",
     "firstRun.apply": "Применить",
@@ -166,9 +181,9 @@ export const coreTranslations = {
     "toast.title.info": "Информация",
     "toast.title.done": "Действие выполнено",
     "toast.loading.message": "Загрузка...",
-    "toast.loading.title": "Пожалуйста, подождите"
+    "toast.loading.title": "Пожалуйста, подождите",
   },
-  "en": {
+  en: {
     "app.title": "Thunder Load",
     "topbar.nav": "Section navigation",
     "topbar.appVersion": "App version",
@@ -196,8 +211,10 @@ export const coreTranslations = {
     "input.url.openSource": "Open source",
     "input.url.helper": "Paste a link or drop it here",
     "input.url.helper.loading": "Fetching preview and validating the link...",
-    "input.url.helper.valid": "Link recognized. Press Enter or choose a mode in the quality dialog.",
-    "input.url.helper.playlistChoice": "This is a playlist. Choose the current item or the whole playlist.",
+    "input.url.helper.valid":
+      "Link recognized. Press Enter or choose a mode in the quality dialog.",
+    "input.url.helper.playlistChoice":
+      "This is a playlist. Choose the current item or the whole playlist.",
     "input.url.helper.drag": "Drop the link to insert it into the field",
     "input.url.presets.aria": "Download modes",
     "input.url.presets.video": "Video",
@@ -218,16 +235,18 @@ export const coreTranslations = {
     "input.url.error.empty": "Paste a link to start downloading.",
     "input.url.error.invalid": "The link format is invalid. Check the URL.",
     "input.url.error.unsupported": "This source is not supported yet.",
-    "input.url.error.invalidOrUnsupported": "Check the link: enter a valid URL from a supported source.",
+    "input.url.error.invalidOrUnsupported":
+      "Check the link: enter a valid URL from a supported source.",
     "input.url.preview.addAll": "Add all ({count})",
     "input.url.preview.addAllTitle": "Add all playlist items to the queue",
     "input.url.preview.currentOnly": "Current item",
-    "input.url.preview.currentOnlyTitle": "Download or queue only the current item using the selected mode",
+    "input.url.preview.currentOnlyTitle":
+      "Download or queue only the current item using the selected mode",
     "input.url.preview.playlistCount": "{count} items",
     "input.url.preview.playlistDuration": "Total: {duration}",
     "input.url.preview.close": "Close preview",
     "input.url.preview.save": "Save preview",
-    "input.url.preview.saveWithTitle": "Save: \"{title}\"",
+    "input.url.preview.saveWithTitle": 'Save: "{title}"',
     "input.url.preview.duration": "Duration: {duration}",
     "input.paste": "Paste from clipboard",
     "input.clear": "Clear",
@@ -262,31 +281,38 @@ export const coreTranslations = {
     "language.en": "English",
     "firstRun.eyebrow": "First launch",
     "firstRun.title": "Welcome to Thunder Load",
-    "firstRun.subtitle": "Choose language, tabs, and theme before getting started.",
+    "firstRun.subtitle":
+      "Choose language, tabs, and theme before getting started.",
     "firstRun.stepCounter": "Step {current} of {total}",
     "firstRun.steps.language": "Language",
     "firstRun.steps.modules": "Modules",
     "firstRun.steps.theme": "Theme",
     "firstRun.steps.summary": "Summary",
     "firstRun.language": "Interface language",
-    "firstRun.languageSubtitle": "Choose the interface language. The change is previewed immediately in this setup window.",
-    "firstRun.languageRuHint": "Russian interface for the main app and guidance text",
+    "firstRun.languageSubtitle":
+      "Choose the interface language. The change is previewed immediately in this setup window.",
+    "firstRun.languageRuHint":
+      "Russian interface for the main app and guidance text",
     "firstRun.languageEnHint": "English interface for menus, tips, and dialogs",
     "firstRun.tabs": "Tabs for your workflow",
-    "firstRun.tabsSubtitle": "Keep only the sections you plan to use regularly. Downloader stays enabled.",
+    "firstRun.tabsSubtitle":
+      "Keep only the sections you plan to use regularly. Downloader stays enabled.",
     "firstRun.tabs.downloadHint": "Video and audio downloads",
     "firstRun.tabs.wgHint": "WG Unlock, hash check, and quick tools",
     "firstRun.tabs.backupHint": "Backups and profiles",
     "firstRun.required": "Required",
     "firstRun.theme": "Color theme",
-    "firstRun.themeSubtitle": "Choose how the app looks. Theme preview is applied immediately.",
+    "firstRun.themeSubtitle":
+      "Choose how the app looks. Theme preview is applied immediately.",
     "firstRun.theme.darkHint": "Classic dark theme for everyday work",
     "firstRun.theme.midnightHint": "A deeper dark palette with a colder accent",
     "firstRun.theme.sunsetHint": "Warm contrast with softer orange highlights",
-    "firstRun.theme.violetHint": "A more expressive dark theme with a vivid accent",
+    "firstRun.theme.violetHint":
+      "A more expressive dark theme with a vivid accent",
     "firstRun.theme.lightHint": "Light theme for daytime and office use",
     "firstRun.summary": "Review your setup",
-    "firstRun.summarySubtitle": "Everything is ready. Apply the settings and restart the interface with your chosen options.",
+    "firstRun.summarySubtitle":
+      "Everything is ready. Apply the settings and restart the interface with your chosen options.",
     "firstRun.back": "Back",
     "firstRun.next": "Next",
     "firstRun.apply": "Apply",
@@ -335,6 +361,6 @@ export const coreTranslations = {
     "toast.title.info": "Info",
     "toast.title.done": "Action completed",
     "toast.loading.message": "Loading...",
-    "toast.loading.title": "Please wait"
-  }
+    "toast.loading.title": "Please wait",
+  },
 };

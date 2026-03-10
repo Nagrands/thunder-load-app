@@ -1381,11 +1381,7 @@ describe("ipcHandlers download pool", () => {
       success: false,
       errorCode: "PERMISSION_DENIED",
     });
-    expect(send).not.toHaveBeenCalledWith(
-      "toast",
-      expect.any(String),
-      "error",
-    );
+    expect(send).not.toHaveBeenCalledWith("toast", expect.any(String), "error");
   });
 
   test("STOP_DOWNLOAD cancels all active tokens", async () => {

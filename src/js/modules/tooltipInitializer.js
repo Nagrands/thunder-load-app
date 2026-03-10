@@ -209,14 +209,6 @@ function createTooltip(el) {
   return tooltip;
 }
 
-function hideTooltipForElement(el) {
-  const tooltip = tooltipInstances.get(el);
-  if (!tooltip) return;
-  try {
-    tooltip.hide();
-  } catch {}
-}
-
 function hideAllTooltips() {
   tooltipInstances.forEach((tooltip, el) => {
     if (!(tooltip && el?.isConnected)) {
@@ -239,22 +231,18 @@ function hideAllTooltips() {
 
   // Fallback for instances that were created outside our map.
   if (window.bootstrap?.Tooltip) {
-    document
-      .querySelectorAll('[data-bs-toggle="tooltip"]')
-      .forEach((el) => {
-        try {
-          window.bootstrap.Tooltip.getInstance(el)?.hide?.();
-        } catch {}
-      });
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+      try {
+        window.bootstrap.Tooltip.getInstance(el)?.hide?.();
+      } catch {}
+    });
   }
   if (window.bootstrap?.Popover) {
-    document
-      .querySelectorAll('[data-bs-toggle="popover"]')
-      .forEach((el) => {
-        try {
-          window.bootstrap.Popover.getInstance(el)?.hide?.();
-        } catch {}
-      });
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
+      try {
+        window.bootstrap.Popover.getInstance(el)?.hide?.();
+      } catch {}
+    });
   }
 }
 

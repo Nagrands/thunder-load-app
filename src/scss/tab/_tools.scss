@@ -1676,7 +1676,11 @@ $wg-max-width: 1200px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.02)
+    ),
     rgba(255, 255, 255, 0.02);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16);
 }
@@ -1728,7 +1732,11 @@ $wg-max-width: 1200px;
 
 .sorter-workspace-field--folder {
   background:
-    radial-gradient(circle at top left, rgba(var(--color-accent-rgb), 0.18), transparent 52%),
+    radial-gradient(
+      circle at top left,
+      rgba(var(--color-accent-rgb), 0.18),
+      transparent 52%
+    ),
     rgba(0, 0, 0, 0.14);
 }
 

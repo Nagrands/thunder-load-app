@@ -1,5 +1,5 @@
 export const toolsTranslations = {
-  "ru": {
+  ru: {
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
     "wg.autoShutdown.toast.cancel": "Отменить закрытие",
@@ -10,13 +10,17 @@ export const toolsTranslations = {
     "quickActions.title": "Quick Actions",
     "quickActions.soon": "Скоро",
     "quickActions.converter.title": "Конвертер форматов",
-    "quickActions.converter.subtitle": "Преобразование аудио и видео после загрузки.",
+    "quickActions.converter.subtitle":
+      "Преобразование аудио и видео после загрузки.",
     "quickActions.power.title": "Ярлыки Windows",
     "quickActions.power.hint": "Создаёт ярлыки на рабочем столе Windows.",
-    "quickActions.power.windowsOnly": "Доступно только в Windows. На этой платформе действия отключены.",
-    "quickActions.power.windowsReady": "Создаёт ярлыки перезагрузки и выключения на рабочем столе Windows.",
+    "quickActions.power.windowsOnly":
+      "Доступно только в Windows. На этой платформе действия отключены.",
+    "quickActions.power.windowsReady":
+      "Создаёт ярлыки перезагрузки и выключения на рабочем столе Windows.",
     "quickActions.power.banner.title": "Ограничение платформы",
-    "quickActions.power.banner.windowsOnly": "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
+    "quickActions.power.banner.windowsOnly":
+      "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
     "quickActions.power.howto.open": "Как это работает",
     "quickActions.power.howto.title": "Как работают Ярлыки питания",
     "quickActions.power.howto.close": "Закрыть",
@@ -24,55 +28,71 @@ export const toolsTranslations = {
     "quickActions.power.howto.next": "Далее",
     "quickActions.power.howto.step": "Шаг {current} из {total}",
     "quickActions.power.howto.slide1.title": "Проверьте платформу",
-    "quickActions.power.howto.slide1.desc": "Инструмент активен в Windows. На других платформах действия показаны, но недоступны.",
+    "quickActions.power.howto.slide1.desc":
+      "Инструмент активен в Windows. На других платформах действия показаны, но недоступны.",
     "quickActions.power.howto.slide2.title": "Выберите нужный ярлык",
-    "quickActions.power.howto.slide2.desc": "Выберите действие: перезагрузка, UEFI, расширенная загрузка, выключение и другие.",
+    "quickActions.power.howto.slide2.desc":
+      "Выберите действие: перезагрузка, UEFI, расширенная загрузка, выключение и другие.",
     "quickActions.power.howto.slide3.title": "Подтвердите создание",
-    "quickActions.power.howto.slide3.desc": "После подтверждения ярлык будет создан на рабочем столе для быстрого запуска.",
+    "quickActions.power.howto.slide3.desc":
+      "После подтверждения ярлык будет создан на рабочем столе для быстрого запуска.",
     "quickActions.power.howto.slide4.title": "Проверьте результат",
-    "quickActions.power.howto.slide4.desc": "Под каждой кнопкой появится итог: успешно создан ярлык или сообщение об ошибке.",
+    "quickActions.power.howto.slide4.desc":
+      "Под каждой кнопкой появится итог: успешно создан ярлык или сообщение об ошибке.",
     "quickActions.restart.title": "Создание ярлыка перезагрузки",
     "quickActions.restart.cardTitle": "Перезагрузка",
-    "quickActions.restart.cardHint": "Перезапускает Windows сразу после запуска ярлыка.",
+    "quickActions.restart.cardHint":
+      "Перезапускает Windows сразу после запуска ярлыка.",
     "quickActions.restart.action": "Создать ярлык перезагрузки",
     "quickActions.restart.confirm": "Создать ярлык перезагрузки?",
     "quickActions.restart.error": "Не удалось создать ярлык перезагрузки",
     "quickActions.restart.created": "Ярлык перезагрузки создан: Рабочий стол",
     "quickActions.uefi.title": "Создание ярлыка BIOS/UEFI",
     "quickActions.uefi.cardTitle": "BIOS/UEFI",
-    "quickActions.uefi.cardHint": "Перезапускает систему в настройки прошивки UEFI.",
+    "quickActions.uefi.cardHint":
+      "Перезапускает систему в настройки прошивки UEFI.",
     "quickActions.uefi.action": "Создать ярлык BIOS/UEFI",
     "quickActions.uefi.confirm": "Создать ярлык перезагрузки в BIOS/UEFI?",
     "quickActions.uefi.error": "Не удалось создать ярлык BIOS/UEFI",
     "quickActions.uefi.created": "Ярлык BIOS/UEFI создан: Рабочий стол",
     "quickActions.advancedBoot.title": "Создание ярлыка расширенной загрузки",
     "quickActions.advancedBoot.cardTitle": "Расширенная загрузка",
-    "quickActions.advancedBoot.cardHint": "Открывает параметры восстановления Windows.",
+    "quickActions.advancedBoot.cardHint":
+      "Открывает параметры восстановления Windows.",
     "quickActions.advancedBoot.action": "Создать ярлык расширенной загрузки",
     "quickActions.advancedBoot.confirm": "Создать ярлык расширенной загрузки?",
-    "quickActions.advancedBoot.error": "Не удалось создать ярлык расширенной загрузки",
-    "quickActions.advancedBoot.created": "Ярлык расширенной загрузки создан: Рабочий стол",
+    "quickActions.advancedBoot.error":
+      "Не удалось создать ярлык расширенной загрузки",
+    "quickActions.advancedBoot.created":
+      "Ярлык расширенной загрузки создан: Рабочий стол",
     "quickActions.shutdown.title": "Создание ярлыка выключения",
     "quickActions.shutdown.cardTitle": "Выключение",
-    "quickActions.shutdown.cardHint": "Выключает Windows сразу после запуска ярлыка.",
+    "quickActions.shutdown.cardHint":
+      "Выключает Windows сразу после запуска ярлыка.",
     "quickActions.shutdown.action": "Создать ярлык выключения",
     "quickActions.shutdown.confirm": "Создать ярлык выключения?",
     "quickActions.shutdown.error": "Не удалось создать ярлык выключения",
     "quickActions.shutdown.created": "Ярлык выключения создан: Рабочий стол",
     "quickActions.deviceManager.title": "Создание ярлыка диспетчера устройств",
     "quickActions.deviceManager.cardTitle": "Диспетчер устройств",
-    "quickActions.deviceManager.cardHint": "Быстрый доступ к управлению устройствами и драйверами.",
+    "quickActions.deviceManager.cardHint":
+      "Быстрый доступ к управлению устройствами и драйверами.",
     "quickActions.deviceManager.action": "Создать ярлык диспетчера устройств",
     "quickActions.deviceManager.confirm": "Создать ярлык диспетчера устройств?",
-    "quickActions.deviceManager.error": "Не удалось создать ярлык диспетчера устройств",
-    "quickActions.deviceManager.created": "Ярлык диспетчера устройств создан: Рабочий стол",
+    "quickActions.deviceManager.error":
+      "Не удалось создать ярлык диспетчера устройств",
+    "quickActions.deviceManager.created":
+      "Ярлык диспетчера устройств создан: Рабочий стол",
     "quickActions.networkSettings.title": "Создание ярлыка параметров сети",
     "quickActions.networkSettings.cardTitle": "Параметры сети",
-    "quickActions.networkSettings.cardHint": "Открывает современное окно сетевых параметров Windows.",
+    "quickActions.networkSettings.cardHint":
+      "Открывает современное окно сетевых параметров Windows.",
     "quickActions.networkSettings.action": "Создать ярлык параметров сети",
     "quickActions.networkSettings.confirm": "Создать ярлык параметров сети?",
-    "quickActions.networkSettings.error": "Не удалось создать ярлык параметров сети",
-    "quickActions.networkSettings.created": "Ярлык параметров сети создан: Рабочий стол",
+    "quickActions.networkSettings.error":
+      "Не удалось создать ярлык параметров сети",
+    "quickActions.networkSettings.created":
+      "Ярлык параметров сети создан: Рабочий стол",
     "tools.dashboard.title": "Панель инструментов",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Быстрые действия для восстановления WireGuard.",
@@ -83,13 +103,17 @@ export const toolsTranslations = {
     "tools.wg.howto.next": "Далее",
     "tools.wg.howto.step": "Шаг {current} из {total}",
     "tools.wg.howto.slide1.title": "Проверьте параметры",
-    "tools.wg.howto.slide1.desc": "Укажите IP и порты, по которым нужно отправить пакет для восстановления связи.",
+    "tools.wg.howto.slide1.desc":
+      "Укажите IP и порты, по которым нужно отправить пакет для восстановления связи.",
     "tools.wg.howto.slide2.title": "Отправьте запрос",
-    "tools.wg.howto.slide2.desc": "Нажмите «Отправить», чтобы инструмент отправил UDP-пакет на указанный адрес.",
+    "tools.wg.howto.slide2.desc":
+      "Нажмите «Отправить», чтобы инструмент отправил UDP-пакет на указанный адрес.",
     "tools.wg.howto.slide3.title": "Проверьте статус",
-    "tools.wg.howto.slide3.desc": "Статус покажет, удалось ли отправить запрос и есть ли ошибки в параметрах.",
+    "tools.wg.howto.slide3.desc":
+      "Статус покажет, удалось ли отправить запрос и есть ли ошибки в параметрах.",
     "tools.wg.howto.slide4.title": "Используйте лог",
-    "tools.wg.howto.slide4.desc": "В расширенном блоке можно открыть лог, чтобы посмотреть детали и при необходимости экспортировать его.",
+    "tools.wg.howto.slide4.desc":
+      "В расширенном блоке можно открыть лог, чтобы посмотреть детали и при необходимости экспортировать его.",
     "tools.wg.advanced.title": "WG Advanced",
     "tools.wg.advanced.toggle.open": "Advanced",
     "tools.wg.advanced.toggle.close": "Скрыть Advanced",
@@ -118,7 +142,8 @@ export const toolsTranslations = {
     "tools.launcher.shortcut.hash.mac": "⌥2",
     "tools.launcher.shortcut.power.mac": "⌥3",
     "tools.launcher.shortcut.sorter.mac": "⌥4",
-    "tools.launcher.hotkeysHint": "Горячие клавиши: Alt+1, Alt+2, Alt+3, Alt+4, Esc",
+    "tools.launcher.hotkeysHint":
+      "Горячие клавиши: Alt+1, Alt+2, Alt+3, Alt+4, Esc",
     "tools.launcher.hotkeysHint.mac": "Горячие клавиши: ⌥1, ⌥2, ⌥3, ⌥4, Esc",
     "tools.nav.back": "Назад к инструментам",
     "tools.nav.current.wg": "WG Unlock",
@@ -126,9 +151,11 @@ export const toolsTranslations = {
     "tools.nav.current.power": "Ярлыки питания",
     "tools.nav.current.sorter": "File Sorter",
     "tools.sorter.title": "File Sorter",
-    "tools.sorter.subtitle": "Сортирует файлы в выбранной папке по категориям расширений.",
+    "tools.sorter.subtitle":
+      "Сортирует файлы в выбранной папке по категориям расширений.",
     "tools.sorter.workspace.title": "Рабочая область",
-    "tools.sorter.workspace.subtitle": "Выберите папку, при необходимости укажите лог и затем запустите предпросмотр или сортировку.",
+    "tools.sorter.workspace.subtitle":
+      "Выберите папку, при необходимости укажите лог и затем запустите предпросмотр или сортировку.",
     "tools.sorter.folder": "Папка для сортировки",
     "tools.sorter.pickFolder": "Выбрать папку",
     "tools.sorter.openFolder": "Открыть папку",
@@ -164,29 +191,36 @@ export const toolsTranslations = {
     "tools.sorter.preview.statusFilter.moved": "Только перемещённые",
     "tools.sorter.preview.statusFilter.skipped": "Только пропущенные",
     "tools.sorter.preview.statusFilter.error": "Только ошибки",
-    "tools.sorter.preview.filterEmpty": "По текущему фильтру ничего не найдено.",
+    "tools.sorter.preview.filterEmpty":
+      "По текущему фильтру ничего не найдено.",
     "tools.sorter.breakdown.title": "По категориям",
-    "tools.sorter.breakdown.empty": "После предпросмотра здесь появится разбивка по категориям.",
+    "tools.sorter.breakdown.empty":
+      "После предпросмотра здесь появится разбивка по категориям.",
     "tools.sorter.preview.list.title": "Операции",
     "tools.sorter.preview.list.empty": "Нет операций для предпросмотра.",
     "tools.sorter.preview.more": "И еще {count}…",
     "tools.sorter.export": "Экспорт",
     "tools.sorter.copy": "Копировать",
-    "tools.sorter.copyDone": "Отфильтрованный результат скопирован в буфер обмена.",
+    "tools.sorter.copyDone":
+      "Отфильтрованный результат скопирован в буфер обмена.",
     "tools.sorter.copyError": "Не удалось скопировать результат.",
     "tools.sorter.exportDone": "Результат экспортирован: {filePath}",
-    "tools.sorter.exportError": "Не удалось экспортировать результат сортировки.",
+    "tools.sorter.exportError":
+      "Не удалось экспортировать результат сортировки.",
     "tools.sorter.rules.title": "Категории сортировки",
-    "tools.sorter.rules.subtitle": "Сначала посмотрите, в какие папки попадут файлы по расширениям.",
+    "tools.sorter.rules.subtitle":
+      "Сначала посмотрите, в какие папки попадут файлы по расширениям.",
     "tools.sorter.rules.other": "Все остальные расширения",
     "tools.sorter.options.title": "Параметры сортировки",
-    "tools.sorter.options.subtitle": "Управляйте конфликтами имен, вложенными папками и исключениями.",
+    "tools.sorter.options.subtitle":
+      "Управляйте конфликтами имен, вложенными папками и исключениями.",
     "tools.sorter.conflicts.label": "Конфликт имен",
     "tools.sorter.conflicts.rename": "Переименовать",
     "tools.sorter.conflicts.skip": "Пропустить файл",
     "tools.sorter.conflicts.replace": "Заменить существующий",
     "tools.sorter.recursive.label": "Включить подпапки",
-    "tools.sorter.recursive.hint": "Обходит вложенные папки, но не трогает уже созданные папки категорий.",
+    "tools.sorter.recursive.hint":
+      "Обходит вложенные папки, но не трогает уже созданные папки категорий.",
     "tools.sorter.ignoreExtensions.label": "Игнорировать расширения",
     "tools.sorter.ignoreExtensions.placeholder": ".tmp, .part, .crdownload",
     "tools.sorter.ignoreFolders.label": "Игнорировать папки",
@@ -205,9 +239,11 @@ export const toolsTranslations = {
     "tools.sorter.status.skipped": "пропущен",
     "tools.sorter.status.skipExisting": "Пропущен: файл уже существует",
     "tools.sorter.status.ignoredHidden": "Пропущен: скрытый файл",
-    "tools.sorter.status.ignoredExtension": "Пропущен: расширение в списке исключений",
+    "tools.sorter.status.ignoredExtension":
+      "Пропущен: расширение в списке исключений",
     "tools.sorter.status.ignoredFolder": "Пропущен: папка в списке исключений",
-    "tools.sorter.status.managedCategory": "Пропущен: уже находится в папке категории",
+    "tools.sorter.status.managedCategory":
+      "Пропущен: уже находится в папке категории",
     "tools.sorter.status.logFile": "Пропущен: это файл лога сортировки",
     "tools.sorter.status.error": "ошибка",
     "tools.sorter.howto.open": "Как это работает",
@@ -217,13 +253,17 @@ export const toolsTranslations = {
     "tools.sorter.howto.next": "Далее",
     "tools.sorter.howto.step": "Шаг {current} из {total}",
     "tools.sorter.howto.slide1.title": "Выберите папку",
-    "tools.sorter.howto.slide1.desc": "Нажмите «Выбрать папку» и укажите место, где лежат файлы для сортировки.",
+    "tools.sorter.howto.slide1.desc":
+      "Нажмите «Выбрать папку» и укажите место, где лежат файлы для сортировки.",
     "tools.sorter.howto.slide2.title": "Проверьте результат в dry-run",
-    "tools.sorter.howto.slide2.desc": "Включите предпросмотр, чтобы увидеть, как будут разложены файлы, без изменений на диске.",
+    "tools.sorter.howto.slide2.desc":
+      "Включите предпросмотр, чтобы увидеть, как будут разложены файлы, без изменений на диске.",
     "tools.sorter.howto.slide3.title": "Запустите сортировку",
-    "tools.sorter.howto.slide3.desc": "Инструмент создаст папки категорий и перенесёт файлы по типам. Одинаковые имена не перезаписываются.",
+    "tools.sorter.howto.slide3.desc":
+      "Инструмент создаст папки категорий и перенесёт файлы по типам. Одинаковые имена не перезаписываются.",
     "tools.sorter.howto.slide4.title": "Смотрите итог и лог",
-    "tools.sorter.howto.slide4.desc": "После запуска вы увидите статистику. При желании можно сохранить лог-файл со всеми действиями.",
+    "tools.sorter.howto.slide4.desc":
+      "После запуска вы увидите статистику. При желании можно сохранить лог-файл со всеми действиями.",
     "hashCheck.title": "Проверка хеша",
     "hashCheck.subtitle": "Проверьте целостность файла по контрольной сумме.",
     "hashCheck.file1": "Файл 1",
@@ -236,7 +276,8 @@ export const toolsTranslations = {
     "hashCheck.algorithm": "Алгоритм",
     "hashCheck.expected": "Ожидаемый хеш",
     "hashCheck.expectedPlaceholder": "Вставьте хеш для сравнения (опционально)",
-    "hashCheck.expectedHint": "Если выбран второй файл, ожидаемый хеш сравнивается с каждым файлом отдельно.",
+    "hashCheck.expectedHint":
+      "Если выбран второй файл, ожидаемый хеш сравнивается с каждым файлом отдельно.",
     "hashCheck.run": "Проверить",
     "hashCheck.resultIdle": "Результат появится после проверки.",
     "hashCheck.needFile": "Сначала выберите файл",
@@ -264,7 +305,8 @@ export const toolsTranslations = {
     "hashCheck.actualLabel": "Вычисленный хеш",
     "hashCheck.secondActualLabel": "Вычисленный хеш (файл 2)",
     "hashCheck.actualLabelWithAlgorithm": "Вычисленный хеш ({algorithm})",
-    "hashCheck.secondActualLabelWithAlgorithm": "Вычисленный хеш (файл 2, {algorithm})",
+    "hashCheck.secondActualLabelWithAlgorithm":
+      "Вычисленный хеш (файл 2, {algorithm})",
     "hashCheck.copyActual": "Копировать хеш",
     "hashCheck.copyActualSecond": "Копировать хеш файла 2",
     "hashCheck.copySuccess": "Скопировано",
@@ -278,13 +320,17 @@ export const toolsTranslations = {
     "hashCheck.howto.next": "Далее",
     "hashCheck.howto.step": "Шаг {current} из {total}",
     "hashCheck.howto.slide1.title": "Выберите файл",
-    "hashCheck.howto.slide1.desc": "Укажите файл, для которого нужно посчитать контрольную сумму.",
+    "hashCheck.howto.slide1.desc":
+      "Укажите файл, для которого нужно посчитать контрольную сумму.",
     "hashCheck.howto.slide2.title": "Выберите алгоритм",
-    "hashCheck.howto.slide2.desc": "Выберите MD5, SHA-1, SHA-256 или SHA-512 в зависимости от того, с чем сравниваете.",
+    "hashCheck.howto.slide2.desc":
+      "Выберите MD5, SHA-1, SHA-256 или SHA-512 в зависимости от того, с чем сравниваете.",
     "hashCheck.howto.slide3.title": "Сравните результат",
-    "hashCheck.howto.slide3.desc": "Можно вставить ожидаемый хеш или выбрать второй файл, чтобы проверить совпадение.",
+    "hashCheck.howto.slide3.desc":
+      "Можно вставить ожидаемый хеш или выбрать второй файл, чтобы проверить совпадение.",
     "hashCheck.howto.slide4.title": "Используйте итог",
-    "hashCheck.howto.slide4.desc": "После проверки вы увидите статус совпадения и сможете скопировать вычисленный хеш.",
+    "hashCheck.howto.slide4.desc":
+      "После проверки вы увидите статус совпадения и сможете скопировать вычисленный хеш.",
     "wg.debug.label": "Лог активности",
     "wg.section.network": "Сетевые параметры",
     "wg.section.control": "Управление",
@@ -292,11 +338,13 @@ export const toolsTranslations = {
     "wg.actions.more": "Доп. действия",
     "wg.action.reset.title": "Сбросить значения полей",
     "wg.action.editConfig.title": "Открыть конфигурацию WireGuard",
-    "wg.action.openNetworkSettings.title": "Открыть системные сетевые настройки",
+    "wg.action.openNetworkSettings.title":
+      "Открыть системные сетевые настройки",
     "wg.action.openNetworkSettings.mac": "Открыть настройки сети (macOS)",
     "wg.action.openNetworkSettings.windows": "Открыть параметры сети (Windows)",
     "wg.info.title": "Информация",
-    "wg.info.body": "Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.",
+    "wg.info.body":
+      "Эта функция отправляет UDP-пакет с указанными параметрами для разблокировки WireGuard.",
     "wg.lastSend.title": "Последняя отправка",
     "wg.lastSend.never": "Никогда",
     "wg.status.title": "Статус",
@@ -331,18 +379,21 @@ export const toolsTranslations = {
     "wg.log.autoscroll.off": "Автопрокрутка выключена",
     "wg.log.filter.errorsOn": "Показываются только ошибки",
     "wg.log.filter.errorsOff": "Показывать только ошибки",
-    "wg.log.placeholder": "Лог активности. Включите режим отладки для подробного вывода.",
+    "wg.log.placeholder":
+      "Лог активности. Включите режим отладки для подробного вывода.",
     "wg.log.ui.copied": "Скопировано",
     "wg.log.ui.exporting": "Экспорт...",
     "wg.tips.title": "Советы",
-    "wg.tips.body": "• Используйте режим отладки для подробного лога<br>• Проверьте настройки брандмауэра<br>• Убедитесь, что удаленный хост доступен",
+    "wg.tips.body":
+      "• Используйте режим отладки для подробного лога<br>• Проверьте настройки брандмауэра<br>• Убедитесь, что удаленный хост доступен",
     "wg.tips.prev": "Предыдущий совет",
     "wg.tips.next": "Следующий совет",
     "wg.tips.pause": "Пауза",
     "wg.tips.play": "Продолжить",
     "wg.tips.counter": "{current}/{total}",
     "wg.confirm.send": "Отправить запрос на {target}?",
-    "wg.confirm.resetAll": "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
+    "wg.confirm.resetAll":
+      "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
     "wg.validation.ipInvalid": "Некорректный IP‑адрес",
     "wg.validation.portRange": "Порт должен быть от 1 до 65535",
     "wg.toast.loadConfigError": "Не удалось загрузить настройки",
@@ -358,22 +409,33 @@ export const toolsTranslations = {
     "wg.error.electronUnavailable": "Electron API недоступен",
     "wg.error.timeoutWaiting": "Таймаут ожидания ответа",
     "wg.error.unknown": "Неизвестная ошибка",
-    "wg.error.portInUse": "Порт уже используется. Выберите другой локальный порт.",
-    "wg.error.networkUnreachable": "Сеть недоступна. Проверьте подключение к интернету.",
+    "wg.error.portInUse":
+      "Порт уже используется. Выберите другой локальный порт.",
+    "wg.error.networkUnreachable":
+      "Сеть недоступна. Проверьте подключение к интернету.",
     "wg.error.connectionRefused": "Соединение отклонено удалённой стороной.",
     "wg.error.timeout": "Время ожидания истекло.",
     "wg.log.autoShutdown.timerStopped": "[Авто-закрытие] Таймер остановлен",
-    "wg.log.autoShutdown.timerStartedUntil": "[Авто-закрытие] Таймер запущен до {time}",
+    "wg.log.autoShutdown.timerStartedUntil":
+      "[Авто-закрытие] Таймер запущен до {time}",
     "wg.log.autoShutdown.remaining": "[Авто-закрытие] Осталось: {seconds} с",
-    "wg.log.autoShutdown.loaded.enabledWithEta": "[Авто-закрытие] Загружено: включено, завершение в {time}",
-    "wg.log.autoShutdown.loaded.enabledWithSeconds": "[Авто-закрытие] Загружено: включено, {seconds} с",
-    "wg.log.autoShutdown.loaded.disabled": "[Авто-закрытие] Загружено: выключено, {seconds} с",
-    "wg.log.autoShutdown.initError": "[Авто-закрытие] Ошибка инициализации: {message}",
-    "wg.log.autoShutdown.enabledWithEta": "[Авто-закрытие] Включено; завершение в {time}",
-    "wg.log.autoShutdown.enabledWithSeconds": "[Авто-закрытие] Включено; {seconds} с",
-    "wg.log.autoShutdown.disabledStopped": "[Авто-закрытие] Выключено; обратный отсчёт остановлен",
+    "wg.log.autoShutdown.loaded.enabledWithEta":
+      "[Авто-закрытие] Загружено: включено, завершение в {time}",
+    "wg.log.autoShutdown.loaded.enabledWithSeconds":
+      "[Авто-закрытие] Загружено: включено, {seconds} с",
+    "wg.log.autoShutdown.loaded.disabled":
+      "[Авто-закрытие] Загружено: выключено, {seconds} с",
+    "wg.log.autoShutdown.initError":
+      "[Авто-закрытие] Ошибка инициализации: {message}",
+    "wg.log.autoShutdown.enabledWithEta":
+      "[Авто-закрытие] Включено; завершение в {time}",
+    "wg.log.autoShutdown.enabledWithSeconds":
+      "[Авто-закрытие] Включено; {seconds} с",
+    "wg.log.autoShutdown.disabledStopped":
+      "[Авто-закрытие] Выключено; обратный отсчёт остановлен",
     "wg.log.settings.loaded": "[Настройки] Конфигурация загружена",
-    "wg.log.settings.fieldsRestored": "[Настройки] Поля восстановлены ({count})",
+    "wg.log.settings.fieldsRestored":
+      "[Настройки] Поля восстановлены ({count})",
     "wg.log.send.scheduleAuto": "[Отправка] Планирую автоотправку через 50 мс",
     "wg.log.error.loadConfig": "[Ошибка] Загрузка конфигурации: {message}",
     "wg.log.log.clearedByUser": "[Лог] Очищен пользователем",
@@ -385,10 +447,14 @@ export const toolsTranslations = {
     "wg.log.action.openConfigFile": "[Действие] Открыть файл конфигурации",
     "wg.log.send.payloadPrepared": "[Отправка] Подготовка payload: {payload}",
     "wg.log.validation.ipInvalid": "[Валидация] Некорректный IP-адрес",
-    "wg.log.validation.remotePortInvalid": "[Валидация] Некорректный удалённый порт",
-    "wg.log.validation.localPortInvalid": "[Валидация] Некорректный локальный порт",
-    "wg.log.send.abortedValidation": "[Отправка] Прервана из-за ошибок валидации",
-    "wg.log.send.ipcRequest": "[Отправка] Запрос IPC: wg-send-udp (таймаут 5000 мс)",
+    "wg.log.validation.remotePortInvalid":
+      "[Валидация] Некорректный удалённый порт",
+    "wg.log.validation.localPortInvalid":
+      "[Валидация] Некорректный локальный порт",
+    "wg.log.send.abortedValidation":
+      "[Отправка] Прервана из-за ошибок валидации",
+    "wg.log.send.ipcRequest":
+      "[Отправка] Запрос IPC: wg-send-udp (таймаут 5000 мс)",
     "wg.log.send.successResponse": "[Отправка] Успех: ответ получен от main",
     "wg.log.send.sentSuccess": "Запрос отправлен успешно на {target}",
     "wg.log.send.specialSent": "Запрос (kvn) отправлен успешно на {target}",
@@ -396,14 +462,19 @@ export const toolsTranslations = {
     "wg.log.error.resetSettings": "[Ошибка] Сброс настроек: {message}",
     "wg.log.debug.enabled": "[Режим отладки] Включён - начата запись событий",
     "wg.log.debug.currentStatus": "[Текущий статус] {status}",
-    "wg.log.debug.disabled": "[Режим отладки] Выключен - запись событий приостановлена",
+    "wg.log.debug.disabled":
+      "[Режим отладки] Выключен - запись событий приостановлена",
     "wg.log.ui.tooltipsReady": "[UI] Тултипы инициализированы",
-    "wg.log.init.renderReady": "[Инициализация] Разметка и подготовка за {ms} мс",
+    "wg.log.init.renderReady":
+      "[Инициализация] Разметка и подготовка за {ms} мс",
     "wg.log.env.ua": "[Среда] UA: {ua}",
-    "wg.log.debug.active": "[Лог] Режим отладки активен - все события будут записываться",
+    "wg.log.debug.active":
+      "[Лог] Режим отладки активен - все события будут записываться",
     "wg.log.error.init": "[Ошибка] Инициализация: {message}",
-    "wg.log.error.autoShutdownUpdate": "[Ошибка] Обновление авто-закрытия: {message}",
-    "wg.log.system.debugInit": "[Система] WireGuard Unlock инициализирован с включенной отладкой",
+    "wg.log.error.autoShutdownUpdate":
+      "[Ошибка] Обновление авто-закрытия: {message}",
+    "wg.log.system.debugInit":
+      "[Система] WireGuard Unlock инициализирован с включенной отладкой",
     "tools.status.ready": "Инструменты готовы",
     "tools.status.unavailable": "Инструменты недоступны",
     "tools.status.checking": "Проверяем инструменты…",
@@ -420,14 +491,17 @@ export const toolsTranslations = {
     "tools.summary.missingList": "Не найдено: {items}",
     "tools.summary.readyText": "Все инструменты готовы",
     "tools.summary.problemText": "Есть проблемы с инструментами",
-    "tools.hint.missing": "Некоторые инструменты (Deno, yt-dlp, ffmpeg) не найдены. Установите их или нажмите «Скачать зависимости».",
+    "tools.hint.missing":
+      "Некоторые инструменты (Deno, yt-dlp, ffmpeg) не найдены. Установите их или нажмите «Скачать зависимости».",
     "tools.wizard.title": "Установка инструментов",
     "tools.wizard.step1.title": "Выберите папку",
-    "tools.wizard.step1.desc": "Укажите, где хранить инструменты. Можно оставить путь по умолчанию.",
+    "tools.wizard.step1.desc":
+      "Укажите, где хранить инструменты. Можно оставить путь по умолчанию.",
     "tools.wizard.step2.title": "Скачайте зависимости",
     "tools.wizard.step2.desc": "Скачаем и настроим yt-dlp, ffmpeg и Deno.",
     "tools.wizard.step3.title": "Проверка и готовность",
-    "tools.wizard.step3.desc": "После установки мы проверим версии и обновим статус.",
+    "tools.wizard.step3.desc":
+      "После установки мы проверим версии и обновим статус.",
     "tools.button.install": "Скачать зависимости",
     "tools.button.check": "Проверить обновления",
     "tools.button.update": "Обновить инструменты",
@@ -439,13 +513,15 @@ export const toolsTranslations = {
     "tools.location.open": "Открыть папку",
     "tools.location.reset": "Сбросить по умолчанию",
     "tools.location.migrate": "Мигрировать из старого места",
-    "tools.location.defaultTitle": "Сейчас используется путь по умолчанию{path}",
+    "tools.location.defaultTitle":
+      "Сейчас используется путь по умолчанию{path}",
     "tools.location.resetTitle": "Сбросить на путь по умолчанию{path}",
     "tools.location.setError": "Не удалось установить папку инструментов",
     "tools.location.updated": "Папка инструментов обновлена",
     "tools.location.openError": "Не удалось открыть папку инструментов",
     "tools.location.resetError": "Не удалось сбросить путь инструментов",
-    "tools.location.resetSuccess": "Путь инструментов сброшен на значение по умолчанию",
+    "tools.location.resetSuccess":
+      "Путь инструментов сброшен на значение по умолчанию",
     "tools.location.copied": "Путь скопирован в буфер обмена",
     "tools.status.noNetwork": "Нет сети: проверьте подключение",
     "tools.status.checkingUpdates": "Проверяю обновления",
@@ -456,7 +532,8 @@ export const toolsTranslations = {
     "tools.quick.openLocation": "Папка",
     "tools.error.getVersions": "Не удалось получить версии инструментов.",
     "tools.error.install": "Ошибка при установке инструментов.",
-    "tools.error.installUnavailable": "Установка инструментов недоступна в этой сборке.",
+    "tools.error.installUnavailable":
+      "Установка инструментов недоступна в этой сборке.",
     "tools.error.update": "Ошибка при проверке/обновлении.",
     "tools.toast.installSuccess": "Зависимости установлены.",
     "tools.toast.installError": "Не удалось установить зависимости.",
@@ -466,22 +543,25 @@ export const toolsTranslations = {
     "tools.deno.missing": "Deno не найден",
     "tools.confirm.force.title": "Переустановить инструменты?",
     "tools.confirm.force.subtitle": "Переустановка",
-    "tools.confirm.force.message": "Существующие файлы Deno, yt-dlp и ffmpeg будут заменены.",
+    "tools.confirm.force.message":
+      "Существующие файлы Deno, yt-dlp и ffmpeg будут заменены.",
     "tools.confirm.force.confirm": "Да, переустановить",
     "tools.confirm.force.cancel": "Отмена",
     "tools.migrate.detectError": "Не удалось проверить старые установки",
     "tools.migrate.none": "Старые установки не найдены",
     "tools.migrate.confirm.title": "Перезаписать существующие файлы?",
     "tools.migrate.confirm.subtitle": "Миграция инструментов",
-    "tools.migrate.confirm.message": "Найдены старые установки. Перезаписать существующие версии инструментов в выбранной папке?",
+    "tools.migrate.confirm.message":
+      "Найдены старые установки. Перезаписать существующие версии инструментов в выбранной папке?",
     "tools.migrate.confirm.confirm": "Да, заменить",
     "tools.migrate.confirm.cancel": "Оставить текущие",
-    "tools.migrate.success": "Миграция завершена ({mode}): скопировано {copied}, пропущено {skipped}",
+    "tools.migrate.success":
+      "Миграция завершена ({mode}): скопировано {copied}, пропущено {skipped}",
     "tools.migrate.error": "Не удалось выполнить миграцию",
     "tools.migrate.mode.overwrite": "с заменой",
-    "tools.migrate.mode.keep": "без замены"
+    "tools.migrate.mode.keep": "без замены",
   },
-  "en": {
+  en: {
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",
     "wg.autoShutdown.toast.cancel": "Cancel shutdown",
@@ -492,13 +572,18 @@ export const toolsTranslations = {
     "quickActions.title": "Quick Actions",
     "quickActions.soon": "Soon",
     "quickActions.converter.title": "Format Converter",
-    "quickActions.converter.subtitle": "Convert audio and video files after download.",
+    "quickActions.converter.subtitle":
+      "Convert audio and video files after download.",
     "quickActions.power.title": "Windows Power Shortcuts",
-    "quickActions.power.hint": "Creates power shortcuts on your Windows desktop.",
-    "quickActions.power.windowsOnly": "Available only on Windows. Actions are disabled on this platform.",
-    "quickActions.power.windowsReady": "Creates restart and shutdown shortcuts on your Windows desktop.",
+    "quickActions.power.hint":
+      "Creates power shortcuts on your Windows desktop.",
+    "quickActions.power.windowsOnly":
+      "Available only on Windows. Actions are disabled on this platform.",
+    "quickActions.power.windowsReady":
+      "Creates restart and shutdown shortcuts on your Windows desktop.",
     "quickActions.power.banner.title": "Platform limitation",
-    "quickActions.power.banner.windowsOnly": "Shortcut creation is available only on Windows. Actions are disabled on this platform.",
+    "quickActions.power.banner.windowsOnly":
+      "Shortcut creation is available only on Windows. Actions are disabled on this platform.",
     "quickActions.power.howto.open": "How it works",
     "quickActions.power.howto.title": "How Power Shortcuts works",
     "quickActions.power.howto.close": "Close",
@@ -506,55 +591,72 @@ export const toolsTranslations = {
     "quickActions.power.howto.next": "Next",
     "quickActions.power.howto.step": "Step {current} of {total}",
     "quickActions.power.howto.slide1.title": "Check platform",
-    "quickActions.power.howto.slide1.desc": "The tool is active on Windows. On other platforms the actions are shown but disabled.",
+    "quickActions.power.howto.slide1.desc":
+      "The tool is active on Windows. On other platforms the actions are shown but disabled.",
     "quickActions.power.howto.slide2.title": "Choose shortcut type",
-    "quickActions.power.howto.slide2.desc": "Pick an action like restart, UEFI, advanced startup, shutdown, and more.",
+    "quickActions.power.howto.slide2.desc":
+      "Pick an action like restart, UEFI, advanced startup, shutdown, and more.",
     "quickActions.power.howto.slide3.title": "Confirm creation",
-    "quickActions.power.howto.slide3.desc": "After confirmation, the shortcut is created on your desktop for quick access.",
+    "quickActions.power.howto.slide3.desc":
+      "After confirmation, the shortcut is created on your desktop for quick access.",
     "quickActions.power.howto.slide4.title": "Review result",
-    "quickActions.power.howto.slide4.desc": "Each action row shows whether shortcut creation succeeded or failed.",
+    "quickActions.power.howto.slide4.desc":
+      "Each action row shows whether shortcut creation succeeded or failed.",
     "quickActions.restart.title": "Create restart shortcut",
     "quickActions.restart.cardTitle": "Restart",
-    "quickActions.restart.cardHint": "Restarts Windows immediately when the shortcut is launched.",
+    "quickActions.restart.cardHint":
+      "Restarts Windows immediately when the shortcut is launched.",
     "quickActions.restart.action": "Create restart shortcut",
     "quickActions.restart.confirm": "Create a restart shortcut?",
     "quickActions.restart.error": "Failed to create restart shortcut",
     "quickActions.restart.created": "Restart shortcut created: Desktop",
     "quickActions.uefi.title": "Create BIOS/UEFI shortcut",
     "quickActions.uefi.cardTitle": "BIOS/UEFI",
-    "quickActions.uefi.cardHint": "Restarts Windows directly into UEFI firmware settings.",
+    "quickActions.uefi.cardHint":
+      "Restarts Windows directly into UEFI firmware settings.",
     "quickActions.uefi.action": "Create BIOS/UEFI shortcut",
     "quickActions.uefi.confirm": "Create a BIOS/UEFI reboot shortcut?",
     "quickActions.uefi.error": "Failed to create BIOS/UEFI shortcut",
     "quickActions.uefi.created": "BIOS/UEFI shortcut created: Desktop",
     "quickActions.advancedBoot.title": "Create advanced startup shortcut",
     "quickActions.advancedBoot.cardTitle": "Advanced startup",
-    "quickActions.advancedBoot.cardHint": "Opens Windows advanced recovery options on reboot.",
+    "quickActions.advancedBoot.cardHint":
+      "Opens Windows advanced recovery options on reboot.",
     "quickActions.advancedBoot.action": "Create advanced startup shortcut",
     "quickActions.advancedBoot.confirm": "Create an advanced startup shortcut?",
-    "quickActions.advancedBoot.error": "Failed to create advanced startup shortcut",
-    "quickActions.advancedBoot.created": "Advanced startup shortcut created: Desktop",
+    "quickActions.advancedBoot.error":
+      "Failed to create advanced startup shortcut",
+    "quickActions.advancedBoot.created":
+      "Advanced startup shortcut created: Desktop",
     "quickActions.shutdown.title": "Create shutdown shortcut",
     "quickActions.shutdown.cardTitle": "Shutdown",
-    "quickActions.shutdown.cardHint": "Shuts down Windows immediately when the shortcut is launched.",
+    "quickActions.shutdown.cardHint":
+      "Shuts down Windows immediately when the shortcut is launched.",
     "quickActions.shutdown.action": "Create shutdown shortcut",
     "quickActions.shutdown.confirm": "Create a shutdown shortcut?",
     "quickActions.shutdown.error": "Failed to create shutdown shortcut",
     "quickActions.shutdown.created": "Shutdown shortcut created: Desktop",
     "quickActions.deviceManager.title": "Create Device Manager shortcut",
     "quickActions.deviceManager.cardTitle": "Device Manager",
-    "quickActions.deviceManager.cardHint": "Quick access to hardware devices and driver management.",
+    "quickActions.deviceManager.cardHint":
+      "Quick access to hardware devices and driver management.",
     "quickActions.deviceManager.action": "Create Device Manager shortcut",
     "quickActions.deviceManager.confirm": "Create a Device Manager shortcut?",
-    "quickActions.deviceManager.error": "Failed to create Device Manager shortcut",
-    "quickActions.deviceManager.created": "Device Manager shortcut created: Desktop",
+    "quickActions.deviceManager.error":
+      "Failed to create Device Manager shortcut",
+    "quickActions.deviceManager.created":
+      "Device Manager shortcut created: Desktop",
     "quickActions.networkSettings.title": "Create Network Settings shortcut",
     "quickActions.networkSettings.cardTitle": "Network Settings",
-    "quickActions.networkSettings.cardHint": "Opens the modern Windows network settings page.",
+    "quickActions.networkSettings.cardHint":
+      "Opens the modern Windows network settings page.",
     "quickActions.networkSettings.action": "Create Network Settings shortcut",
-    "quickActions.networkSettings.confirm": "Create a Network Settings shortcut?",
-    "quickActions.networkSettings.error": "Failed to create Network Settings shortcut",
-    "quickActions.networkSettings.created": "Network Settings shortcut created: Desktop",
+    "quickActions.networkSettings.confirm":
+      "Create a Network Settings shortcut?",
+    "quickActions.networkSettings.error":
+      "Failed to create Network Settings shortcut",
+    "quickActions.networkSettings.created":
+      "Network Settings shortcut created: Desktop",
     "tools.dashboard.title": "Tools dashboard",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Fast recovery actions for WireGuard.",
@@ -565,13 +667,17 @@ export const toolsTranslations = {
     "tools.wg.howto.next": "Next",
     "tools.wg.howto.step": "Step {current} of {total}",
     "tools.wg.howto.slide1.title": "Check parameters",
-    "tools.wg.howto.slide1.desc": "Set the IP and ports where the recovery packet should be sent.",
+    "tools.wg.howto.slide1.desc":
+      "Set the IP and ports where the recovery packet should be sent.",
     "tools.wg.howto.slide2.title": "Send request",
-    "tools.wg.howto.slide2.desc": "Click Send to let the tool send a UDP packet to the target address.",
+    "tools.wg.howto.slide2.desc":
+      "Click Send to let the tool send a UDP packet to the target address.",
     "tools.wg.howto.slide3.title": "Check status",
-    "tools.wg.howto.slide3.desc": "Status shows whether the request was sent and if there are input errors.",
+    "tools.wg.howto.slide3.desc":
+      "Status shows whether the request was sent and if there are input errors.",
     "tools.wg.howto.slide4.title": "Use activity log",
-    "tools.wg.howto.slide4.desc": "Open the advanced log block to review details and export the log when needed.",
+    "tools.wg.howto.slide4.desc":
+      "Open the advanced log block to review details and export the log when needed.",
     "tools.wg.advanced.title": "WG Advanced",
     "tools.wg.advanced.toggle.open": "Advanced",
     "tools.wg.advanced.toggle.close": "Hide Advanced",
@@ -608,9 +714,11 @@ export const toolsTranslations = {
     "tools.nav.current.power": "Power Shortcuts",
     "tools.nav.current.sorter": "File Sorter",
     "tools.sorter.title": "File Sorter",
-    "tools.sorter.subtitle": "Sort files in a selected folder into extension-based categories.",
+    "tools.sorter.subtitle":
+      "Sort files in a selected folder into extension-based categories.",
     "tools.sorter.workspace.title": "Workspace",
-    "tools.sorter.workspace.subtitle": "Choose a folder, add an optional log file, then start a preview or the actual sort.",
+    "tools.sorter.workspace.subtitle":
+      "Choose a folder, add an optional log file, then start a preview or the actual sort.",
     "tools.sorter.folder": "Folder to sort",
     "tools.sorter.pickFolder": "Choose folder",
     "tools.sorter.openFolder": "Open folder",
@@ -648,7 +756,8 @@ export const toolsTranslations = {
     "tools.sorter.preview.statusFilter.error": "Errors only",
     "tools.sorter.preview.filterEmpty": "Nothing matches the current filter.",
     "tools.sorter.breakdown.title": "By category",
-    "tools.sorter.breakdown.empty": "Run a preview to see how files will be split by category.",
+    "tools.sorter.breakdown.empty":
+      "Run a preview to see how files will be split by category.",
     "tools.sorter.preview.list.title": "Operations",
     "tools.sorter.preview.list.empty": "No operations to preview.",
     "tools.sorter.preview.more": "And {count} more…",
@@ -659,16 +768,19 @@ export const toolsTranslations = {
     "tools.sorter.exportDone": "Result exported: {filePath}",
     "tools.sorter.exportError": "Failed to export sorting result.",
     "tools.sorter.rules.title": "Sorting categories",
-    "tools.sorter.rules.subtitle": "Review which folders will be used for each file extension before you run it.",
+    "tools.sorter.rules.subtitle":
+      "Review which folders will be used for each file extension before you run it.",
     "tools.sorter.rules.other": "All other extensions",
     "tools.sorter.options.title": "Sorting options",
-    "tools.sorter.options.subtitle": "Control naming conflicts, nested folders, and exclusions.",
+    "tools.sorter.options.subtitle":
+      "Control naming conflicts, nested folders, and exclusions.",
     "tools.sorter.conflicts.label": "Name conflicts",
     "tools.sorter.conflicts.rename": "Rename file",
     "tools.sorter.conflicts.skip": "Skip file",
     "tools.sorter.conflicts.replace": "Replace existing",
     "tools.sorter.recursive.label": "Include subfolders",
-    "tools.sorter.recursive.hint": "Scans nested folders but skips sorter category folders that already exist.",
+    "tools.sorter.recursive.hint":
+      "Scans nested folders but skips sorter category folders that already exist.",
     "tools.sorter.ignoreExtensions.label": "Ignore extensions",
     "tools.sorter.ignoreExtensions.placeholder": ".tmp, .part, .crdownload",
     "tools.sorter.ignoreFolders.label": "Ignore folders",
@@ -689,7 +801,8 @@ export const toolsTranslations = {
     "tools.sorter.status.ignoredHidden": "Skipped: hidden file",
     "tools.sorter.status.ignoredExtension": "Skipped: extension is ignored",
     "tools.sorter.status.ignoredFolder": "Skipped: folder is ignored",
-    "tools.sorter.status.managedCategory": "Skipped: already inside a category folder",
+    "tools.sorter.status.managedCategory":
+      "Skipped: already inside a category folder",
     "tools.sorter.status.logFile": "Skipped: sorter log file",
     "tools.sorter.status.error": "error",
     "tools.sorter.howto.open": "How it works",
@@ -699,13 +812,17 @@ export const toolsTranslations = {
     "tools.sorter.howto.next": "Next",
     "tools.sorter.howto.step": "Step {current} of {total}",
     "tools.sorter.howto.slide1.title": "Choose a folder",
-    "tools.sorter.howto.slide1.desc": "Click “Choose folder” and select where the files are located.",
+    "tools.sorter.howto.slide1.desc":
+      "Click “Choose folder” and select where the files are located.",
     "tools.sorter.howto.slide2.title": "Preview with dry-run",
-    "tools.sorter.howto.slide2.desc": "Enable preview to see the sorting result before any files are moved.",
+    "tools.sorter.howto.slide2.desc":
+      "Enable preview to see the sorting result before any files are moved.",
     "tools.sorter.howto.slide3.title": "Run sorting",
-    "tools.sorter.howto.slide3.desc": "The tool creates category folders and moves files by type. Duplicate names are handled safely.",
+    "tools.sorter.howto.slide3.desc":
+      "The tool creates category folders and moves files by type. Duplicate names are handled safely.",
     "tools.sorter.howto.slide4.title": "Review result and log",
-    "tools.sorter.howto.slide4.desc": "After running, check the summary. You can also save a log file with all actions.",
+    "tools.sorter.howto.slide4.desc":
+      "After running, check the summary. You can also save a log file with all actions.",
     "hashCheck.title": "Hash Check",
     "hashCheck.subtitle": "Verify file integrity with checksums.",
     "hashCheck.file1": "File 1",
@@ -718,7 +835,8 @@ export const toolsTranslations = {
     "hashCheck.algorithm": "Algorithm",
     "hashCheck.expected": "Expected hash",
     "hashCheck.expectedPlaceholder": "Paste hash to compare (optional)",
-    "hashCheck.expectedHint": "When the second file is selected, expected hash is checked against each file.",
+    "hashCheck.expectedHint":
+      "When the second file is selected, expected hash is checked against each file.",
     "hashCheck.run": "Verify",
     "hashCheck.resultIdle": "Result will appear after verification.",
     "hashCheck.needFile": "Select a file first",
@@ -746,7 +864,8 @@ export const toolsTranslations = {
     "hashCheck.actualLabel": "Calculated hash",
     "hashCheck.secondActualLabel": "Calculated hash (file 2)",
     "hashCheck.actualLabelWithAlgorithm": "Calculated hash ({algorithm})",
-    "hashCheck.secondActualLabelWithAlgorithm": "Calculated hash (file 2, {algorithm})",
+    "hashCheck.secondActualLabelWithAlgorithm":
+      "Calculated hash (file 2, {algorithm})",
     "hashCheck.copyActual": "Copy hash",
     "hashCheck.copyActualSecond": "Copy hash for file 2",
     "hashCheck.copySuccess": "Copied",
@@ -760,13 +879,17 @@ export const toolsTranslations = {
     "hashCheck.howto.next": "Next",
     "hashCheck.howto.step": "Step {current} of {total}",
     "hashCheck.howto.slide1.title": "Choose a file",
-    "hashCheck.howto.slide1.desc": "Select the file you want to verify with a checksum.",
+    "hashCheck.howto.slide1.desc":
+      "Select the file you want to verify with a checksum.",
     "hashCheck.howto.slide2.title": "Pick an algorithm",
-    "hashCheck.howto.slide2.desc": "Use MD5, SHA-1, SHA-256, or SHA-512 depending on the checksum source.",
+    "hashCheck.howto.slide2.desc":
+      "Use MD5, SHA-1, SHA-256, or SHA-512 depending on the checksum source.",
     "hashCheck.howto.slide3.title": "Compare the result",
-    "hashCheck.howto.slide3.desc": "You can paste an expected hash or pick a second file to compare both values.",
+    "hashCheck.howto.slide3.desc":
+      "You can paste an expected hash or pick a second file to compare both values.",
     "hashCheck.howto.slide4.title": "Use the output",
-    "hashCheck.howto.slide4.desc": "After verification, review the status and copy the calculated hash if needed.",
+    "hashCheck.howto.slide4.desc":
+      "After verification, review the status and copy the calculated hash if needed.",
     "wg.debug.label": "Activity log",
     "wg.section.network": "Network settings",
     "wg.section.control": "Controls",
@@ -778,7 +901,8 @@ export const toolsTranslations = {
     "wg.action.openNetworkSettings.mac": "Open network settings (macOS)",
     "wg.action.openNetworkSettings.windows": "Open network settings (Windows)",
     "wg.info.title": "Info",
-    "wg.info.body": "This function sends a UDP packet with the specified parameters to unlock WireGuard.",
+    "wg.info.body":
+      "This function sends a UDP packet with the specified parameters to unlock WireGuard.",
     "wg.lastSend.title": "Last sent",
     "wg.lastSend.never": "Never",
     "wg.status.title": "Status",
@@ -813,18 +937,21 @@ export const toolsTranslations = {
     "wg.log.autoscroll.off": "Auto-scroll off",
     "wg.log.filter.errorsOn": "Showing errors only",
     "wg.log.filter.errorsOff": "Show errors only",
-    "wg.log.placeholder": "Activity log. Enable debug mode for detailed output.",
+    "wg.log.placeholder":
+      "Activity log. Enable debug mode for detailed output.",
     "wg.log.ui.copied": "Copied",
     "wg.log.ui.exporting": "Exporting...",
     "wg.tips.title": "Tips",
-    "wg.tips.body": "• Use debug mode for detailed logging<br>• Check firewall settings<br>• Make sure the remote host is reachable",
+    "wg.tips.body":
+      "• Use debug mode for detailed logging<br>• Check firewall settings<br>• Make sure the remote host is reachable",
     "wg.tips.prev": "Previous tip",
     "wg.tips.next": "Next tip",
     "wg.tips.pause": "Pause",
     "wg.tips.play": "Resume",
     "wg.tips.counter": "{current}/{total}",
     "wg.confirm.send": "Send request to {target}?",
-    "wg.confirm.resetAll": "Are you sure you want to reset all field settings to defaults?",
+    "wg.confirm.resetAll":
+      "Are you sure you want to reset all field settings to defaults?",
     "wg.validation.ipInvalid": "Invalid IP address",
     "wg.validation.portRange": "Port must be between 1 and 65535",
     "wg.toast.loadConfigError": "Failed to load settings",
@@ -840,20 +967,29 @@ export const toolsTranslations = {
     "wg.error.electronUnavailable": "Electron API is unavailable",
     "wg.error.timeoutWaiting": "Response timeout",
     "wg.error.unknown": "Unknown error",
-    "wg.error.portInUse": "Port is already in use. Choose a different local port.",
-    "wg.error.networkUnreachable": "Network unreachable. Check your internet connection.",
+    "wg.error.portInUse":
+      "Port is already in use. Choose a different local port.",
+    "wg.error.networkUnreachable":
+      "Network unreachable. Check your internet connection.",
     "wg.error.connectionRefused": "Connection refused by remote host.",
     "wg.error.timeout": "Request timed out.",
     "wg.log.autoShutdown.timerStopped": "[Auto-close] Timer stopped",
-    "wg.log.autoShutdown.timerStartedUntil": "[Auto-close] Timer started until {time}",
+    "wg.log.autoShutdown.timerStartedUntil":
+      "[Auto-close] Timer started until {time}",
     "wg.log.autoShutdown.remaining": "[Auto-close] Remaining: {seconds} s",
-    "wg.log.autoShutdown.loaded.enabledWithEta": "[Auto-close] Loaded: enabled, ends at {time}",
-    "wg.log.autoShutdown.loaded.enabledWithSeconds": "[Auto-close] Loaded: enabled, {seconds} s",
-    "wg.log.autoShutdown.loaded.disabled": "[Auto-close] Loaded: disabled, {seconds} s",
+    "wg.log.autoShutdown.loaded.enabledWithEta":
+      "[Auto-close] Loaded: enabled, ends at {time}",
+    "wg.log.autoShutdown.loaded.enabledWithSeconds":
+      "[Auto-close] Loaded: enabled, {seconds} s",
+    "wg.log.autoShutdown.loaded.disabled":
+      "[Auto-close] Loaded: disabled, {seconds} s",
     "wg.log.autoShutdown.initError": "[Auto-close] Init error: {message}",
-    "wg.log.autoShutdown.enabledWithEta": "[Auto-close] Enabled; ends at {time}",
-    "wg.log.autoShutdown.enabledWithSeconds": "[Auto-close] Enabled; {seconds} s",
-    "wg.log.autoShutdown.disabledStopped": "[Auto-close] Disabled; countdown stopped",
+    "wg.log.autoShutdown.enabledWithEta":
+      "[Auto-close] Enabled; ends at {time}",
+    "wg.log.autoShutdown.enabledWithSeconds":
+      "[Auto-close] Enabled; {seconds} s",
+    "wg.log.autoShutdown.disabledStopped":
+      "[Auto-close] Disabled; countdown stopped",
     "wg.log.settings.loaded": "[Settings] Config loaded",
     "wg.log.settings.fieldsRestored": "[Settings] Fields restored ({count})",
     "wg.log.send.scheduleAuto": "[Send] Scheduling auto-send in 50 ms",
@@ -870,8 +1006,10 @@ export const toolsTranslations = {
     "wg.log.validation.remotePortInvalid": "[Validation] Invalid remote port",
     "wg.log.validation.localPortInvalid": "[Validation] Invalid local port",
     "wg.log.send.abortedValidation": "[Send] Aborted due to validation errors",
-    "wg.log.send.ipcRequest": "[Send] IPC request: wg-send-udp (timeout 5000 ms)",
-    "wg.log.send.successResponse": "[Send] Success: response received from main",
+    "wg.log.send.ipcRequest":
+      "[Send] IPC request: wg-send-udp (timeout 5000 ms)",
+    "wg.log.send.successResponse":
+      "[Send] Success: response received from main",
     "wg.log.send.sentSuccess": "Request sent successfully to {target}",
     "wg.log.send.specialSent": "Special request sent successfully to {target}",
     "wg.log.send.ipcError": "[Send] IPC error: {message}",
@@ -882,10 +1020,12 @@ export const toolsTranslations = {
     "wg.log.ui.tooltipsReady": "[UI] Tooltips initialized",
     "wg.log.init.renderReady": "[Init] Markup prepared in {ms} ms",
     "wg.log.env.ua": "[Env] UA: {ua}",
-    "wg.log.debug.active": "[Log] Debug mode active - all events will be recorded",
+    "wg.log.debug.active":
+      "[Log] Debug mode active - all events will be recorded",
     "wg.log.error.init": "[Error] Initialization: {message}",
     "wg.log.error.autoShutdownUpdate": "[Error] Auto-close update: {message}",
-    "wg.log.system.debugInit": "[System] WireGuard Unlock initialized with debug enabled",
+    "wg.log.system.debugInit":
+      "[System] WireGuard Unlock initialized with debug enabled",
     "tools.status.ready": "Tools are ready",
     "tools.status.unavailable": "Tools are unavailable",
     "tools.status.checking": "Checking tools…",
@@ -902,14 +1042,18 @@ export const toolsTranslations = {
     "tools.summary.missingList": "Missing: {items}",
     "tools.summary.readyText": "All tools are ready",
     "tools.summary.problemText": "Tools need attention",
-    "tools.hint.missing": "Some tools (Deno, yt-dlp, ffmpeg) are missing. Install them or click “Download dependencies”.",
+    "tools.hint.missing":
+      "Some tools (Deno, yt-dlp, ffmpeg) are missing. Install them or click “Download dependencies”.",
     "tools.wizard.title": "Install tools",
     "tools.wizard.step1.title": "Choose a folder",
-    "tools.wizard.step1.desc": "Pick where tools should be stored. You can keep the default path.",
+    "tools.wizard.step1.desc":
+      "Pick where tools should be stored. You can keep the default path.",
     "tools.wizard.step2.title": "Download dependencies",
-    "tools.wizard.step2.desc": "We will download and set up yt-dlp, ffmpeg, and Deno.",
+    "tools.wizard.step2.desc":
+      "We will download and set up yt-dlp, ffmpeg, and Deno.",
     "tools.wizard.step3.title": "Verification",
-    "tools.wizard.step3.desc": "After installation we will check versions and update the status.",
+    "tools.wizard.step3.desc":
+      "After installation we will check versions and update the status.",
     "tools.button.install": "Download dependencies",
     "tools.button.check": "Check for updates",
     "tools.button.update": "Update tools",
@@ -938,7 +1082,8 @@ export const toolsTranslations = {
     "tools.quick.openLocation": "Folder",
     "tools.error.getVersions": "Failed to get tools versions.",
     "tools.error.install": "Failed to install tools.",
-    "tools.error.installUnavailable": "Tool installation is unavailable in this build.",
+    "tools.error.installUnavailable":
+      "Tool installation is unavailable in this build.",
     "tools.error.update": "Update check failed.",
     "tools.toast.installSuccess": "Dependencies installed.",
     "tools.toast.installError": "Failed to install dependencies.",
@@ -948,19 +1093,22 @@ export const toolsTranslations = {
     "tools.deno.missing": "Deno not found",
     "tools.confirm.force.title": "Reinstall tools?",
     "tools.confirm.force.subtitle": "Reinstall",
-    "tools.confirm.force.message": "Existing Deno, yt-dlp, and ffmpeg files will be replaced.",
+    "tools.confirm.force.message":
+      "Existing Deno, yt-dlp, and ffmpeg files will be replaced.",
     "tools.confirm.force.confirm": "Yes, reinstall",
     "tools.confirm.force.cancel": "Cancel",
     "tools.migrate.detectError": "Failed to check old installs",
     "tools.migrate.none": "No legacy installs found",
     "tools.migrate.confirm.title": "Overwrite existing files?",
     "tools.migrate.confirm.subtitle": "Tools migration",
-    "tools.migrate.confirm.message": "Legacy installs found. Overwrite existing tool versions in the chosen folder?",
+    "tools.migrate.confirm.message":
+      "Legacy installs found. Overwrite existing tool versions in the chosen folder?",
     "tools.migrate.confirm.confirm": "Yes, overwrite",
     "tools.migrate.confirm.cancel": "Keep current",
-    "tools.migrate.success": "Migration complete ({mode}): copied {copied}, skipped {skipped}",
+    "tools.migrate.success":
+      "Migration complete ({mode}): copied {copied}, skipped {skipped}",
     "tools.migrate.error": "Migration failed",
     "tools.migrate.mode.overwrite": "overwrite",
-    "tools.migrate.mode.keep": "keep"
-  }
+    "tools.migrate.mode.keep": "keep",
+  },
 };

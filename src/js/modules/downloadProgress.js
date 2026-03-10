@@ -74,7 +74,9 @@ function initDownloadProgress() {
         ? Math.max(0, Math.min(100, parsedProgress))
         : 0;
       const jobId = progressValue.jobId || "__unknown";
-      const phase = String(progressValue.phase || "").trim().toLowerCase();
+      const phase = String(progressValue.phase || "")
+        .trim()
+        .toLowerCase();
       progressByJob.set(jobId, normalizedProgress);
       if (phase) phaseByJob.set(jobId, phase);
       try {

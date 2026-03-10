@@ -1,0 +1,4 @@
+Modifies the game's Advisor layout to hide the new tachometer but include the useful information it has, like the fuel level, headlight info, turn signal info, selected gear, and cruise control info, and put them into a bar along the bottom of the screen. Moves the map to the bottom center. Other things like the running line bar that tells you company info has also been moved into the bottom bar. The mirrors have been made smaller and moved up and out as much as possible.
+
+[h1] This mod is only for ETS2 1.58.* [/h1]
+

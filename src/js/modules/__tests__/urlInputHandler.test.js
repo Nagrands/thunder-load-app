@@ -427,7 +427,8 @@ describe("urlInputHandler", () => {
   });
 
   test("keeps current paste/clear visibility behavior and shell states", () => {
-    const { input, clearBtn, pasteBtn, wrapper, container, helperText } = getState();
+    const { input, clearBtn, pasteBtn, wrapper, container, helperText } =
+      getState();
 
     input.value = "https://example.com";
     input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -563,5 +564,4 @@ describe("urlInputHandler", () => {
       "https://youtube.com/watch?v=test",
     );
   });
-
 });

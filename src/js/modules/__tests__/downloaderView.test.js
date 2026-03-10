@@ -50,7 +50,9 @@ describe("downloaderView hero", () => {
     expect(
       wrapper.querySelector("#downloader-job-summary-title")?.textContent,
     ).toBeTruthy();
-    expect(wrapper.querySelector("#downloader-job-summary-meta")).not.toBeNull();
+    expect(
+      wrapper.querySelector("#downloader-job-summary-meta"),
+    ).not.toBeNull();
     expect(wrapper.querySelector("#dl-tools-icon")).not.toBeNull();
     expect(wrapper.querySelector("#dl-tools-text")).not.toBeNull();
     expect(wrapper.querySelector("#dl-tools-badges")).not.toBeNull();

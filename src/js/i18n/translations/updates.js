@@ -1,11 +1,13 @@
 export const updatesTranslations = {
-  "ru": {
+  ru: {
     "update.available.title": "Новое обновление",
-    "update.available.body": "Доступно новое обновление. Хотите загрузить сейчас?",
+    "update.available.body":
+      "Доступно новое обновление. Хотите загрузить сейчас?",
     "update.available.download": "Загрузить",
     "update.available.later": "Позже",
     "update.downloaded.title": "Загрузка обновления завершена",
-    "update.downloaded.body": "Обновление успешно загружено. Перезапустить приложение для установки?",
+    "update.downloaded.body":
+      "Обновление успешно загружено. Перезапустить приложение для установки?",
     "update.downloaded.restart": "Перезапустить",
     "update.downloaded.later": "Позже",
     "update.error.title": "Ошибка обновления",
@@ -15,7 +17,8 @@ export const updatesTranslations = {
     "confirm.default.subtitle": "Подтверждение",
     "confirm.default.confirm": "Да",
     "confirm.default.cancel": "Нет",
-    "confirm.error.missing": "Элементы модального окна подтверждения отсутствуют.",
+    "confirm.error.missing":
+      "Элементы модального окна подтверждения отсутствуют.",
     "update.progress.percent": "Загрузка обновления... {percent}%",
     "update.progress.loading": "Загрузка обновления...",
     "update.error.withDetail": "Ошибка обновления: {error}",
@@ -29,15 +32,16 @@ export const updatesTranslations = {
     "update.flyover.done.body": "Перезапустите приложение для установки.",
     "update.flyover.done.action": "Перезапуск",
     "update.flyover.error.title": "Ошибка обновления",
-    "update.flyover.error.body": "Произошла ошибка"
+    "update.flyover.error.body": "Произошла ошибка",
   },
-  "en": {
+  en: {
     "update.available.title": "Update available",
     "update.available.body": "A new update is available. Download now?",
     "update.available.download": "Download",
     "update.available.later": "Later",
     "update.downloaded.title": "Update downloaded",
-    "update.downloaded.body": "The update has been downloaded. Restart to install?",
+    "update.downloaded.body":
+      "The update has been downloaded. Restart to install?",
     "update.downloaded.restart": "Restart",
     "update.downloaded.later": "Later",
     "update.error.title": "Update error",
@@ -61,6 +65,6 @@ export const updatesTranslations = {
     "update.flyover.done.body": "Restart the app to install.",
     "update.flyover.done.action": "Restart",
     "update.flyover.error.title": "Update error",
-    "update.flyover.error.body": "An error occurred"
-  }
+    "update.flyover.error.body": "An error occurred",
+  },
 };

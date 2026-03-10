@@ -1,0 +1,1078 @@
+SiiNunit
+{
+ui::window : _nameless.wnd {
+ window_handler: _nameless.29d.c3d0
+ clip_children: false
+ keep_aspect: none
+ user_string_data: ""
+ first_direction_focus_id: 0
+ fitting: false
+ my_children: 3
+ my_children[0]: _nameless._.standard.position
+ my_children[1]: _nameless._.uk.position
+ my_children[2]: _nameless.293.3460
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 0
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: null
+}
+
+adviser_hud_dispatch_hdl : _nameless.29d.c3d0 {
+ window_link: _nameless.wnd
+}
+
+ui::group : _nameless._.standard.position {
+ fitting: false
+ my_children: 0
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 50
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::group : _nameless._.uk.position {
+ fitting: false
+ my_children: 0
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 60
+ layer: 13
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::group : _nameless.293.3460 {
+ fitting: false
+ my_children: 3
+ my_children[0]: _nameless._.chat.portal
+ my_children[1]: _nameless.346.9ef0
+ my_children[2]: _nameless._.tachometer.widget
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 200
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::portal : _nameless._.chat.portal {
+ child_path: "/ui/adviser_chat.sii"
+ hslider_id: -1
+ vslider_id: -1
+ fitting: false
+ my_children: 0
+ coords_l: 15
+ coords_r: 280
+ coords_t: 285
+ coords_b: 166
+ area_l: 15
+ area_r: 280
+ area_t: 285
+ area_b: 166
+ id: 3000
+ layer: 10
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.293.3460
+}
+
+ui::linear_layout : _nameless.346.9ef0 {
+ sizing_mode: basic
+ background_padding_bottom: 0
+ background_padding_top: 0
+ background_padding_right: 0
+ background_padding_left: 0
+ background_size_computation_depth: 1
+ background_id: 0
+ outer_padding_y: 0
+ outer_padding_x: 0
+ inner_padding: 10
+ reverse_order: false
+ alignment_y: top
+ alignment_x: left
+ dimension: y
+ fitting: false
+ my_children: 1
+ my_children[0]: _nameless.1a4.0371
+ coords_l: -60
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 875
+ area_l: -60
+ area_r: 1440
+ area_t: 900
+ area_b: 875
+ id: 110
+ layer: 1
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.293.3460
+}
+
+ui::linear_layout : _nameless.1a4.0371 {
+ sizing_mode: basic
+ background_padding_bottom: 0
+ background_padding_top: 0
+ background_padding_right: 0
+ background_padding_left: 0
+ background_size_computation_depth: 1
+ background_id: 0
+ outer_padding_y: 0
+ outer_padding_x: 0
+ inner_padding: 6
+ reverse_order: false
+ alignment_y: top
+ alignment_x: left
+ dimension: x
+ fitting: false
+ my_children: 1
+ my_children[0]: _nameless._.indicator.widget
+ coords_l: -60
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 875
+ area_l: -60
+ area_r: 1440
+ area_t: 900
+ area_b: 875
+ id: 100
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.346.9ef0
+}
+
+ui::group : _nameless._.tachometer.widget {
+ fitting: false
+ my_children: 5
+ my_children[0]: _nameless._.tachometer.bg
+ my_children[1]: _nameless._.fuel.tachometer
+ my_children[2]: _nameless._.electric
+ my_children[3]: _nameless._.static.indicators
+ my_children[4]: _nameless._.basic.indicators
+ coords_l: 508
+ coords_r: 862
+ coords_t: 900
+ coords_b: 875
+ area_l: 346
+ area_r: 700
+ area_t: 900
+ area_b: 875
+ id: 2000
+ layer: 15
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.293.3460
+}
+
+ui::text_common : _nameless._.tachometer.bg {
+ value: FF1E1E1E
+ look_template: txt.adv_tach_bg
+ text: ""
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2001
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.tachometer.widget
+}
+
+ui::group : _nameless._.fuel.tachometer {
+ fitting: false
+ my_children: 4
+ my_children[0]: _nameless._.gauge
+ my_children[1]: _nameless._.fuel.needle
+ my_children[2]: _nameless._.gauge.dials
+ my_children[3]: _nameless._.gauge.texts
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2100
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.tachometer.widget
+}
+
+ui::text : _nameless._.gauge {
+ text: "<img src=/material/ui/adviser/gauge_diesel.mat >"
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 0
+ layer: 1
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.fuel.tachometer
+}
+
+ui_gauge : _nameless._.fuel.needle {
+ min: 70
+ max: 291
+ value_min: 0
+ value_max: 100
+ value: 90
+ material: "/material/ui/adviser/gauge_needle_diesel.mat"
+ xref_pos: 6
+ yref_pos: -44
+ off_x: 0
+ off_y: 0
+ smooth_move: true
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2101
+ layer: 50
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.fuel.tachometer
+}
+
+ui::group : _nameless._.gauge.dials {
+ fitting: false
+ my_children: 1
+ my_children[0]: _nameless.5f.ac70
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 0
+ layer: 35
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.fuel.tachometer
+}
+
+ui_gauge : _nameless.5f.ac70 {
+ min: 70
+ max: 291
+ value_min: 0
+ value_max: 100
+ value: 0
+ material: "/material/ui/adviser/tick_mark.mat"
+ xref_pos: 3
+ yref_pos: -65
+ off_x: 0
+ off_y: 0
+ smooth_move: false
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2110
+ layer: 34
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.gauge.dials
+}
+
+ui::group : _nameless._.gauge.texts {
+ fitting: false
+ my_children: 1
+ my_children[0]: _nameless.346.d090
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 0
+ layer: 36
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.fuel.tachometer
+}
+
+ui::text_common : _nameless.346.d090 {
+ value: 25
+ look_template: txt.small.center
+ text: ""
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2180
+ layer: 37
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.gauge.texts
+}
+
+ui::group : _nameless._.electric {
+ fitting: false
+ my_children: 2
+ my_children[0]: _nameless.261.af10
+ my_children[1]: _nameless.196.70f0
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2200
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.tachometer.widget
+}
+
+ui::text : _nameless.261.af10 {
+ text: "<img src=/material/ui/adviser/gauge_electric.mat>"
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 0
+ layer: 1
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.electric
+}
+
+ui_gauge : _nameless.196.70f0 {
+ min: 60
+ max: 300
+ value_min: -1
+ value_max: 1
+ value: 0
+ material: "/material/ui/adviser/gauge_needle_electric.mat"
+ xref_pos: 6
+ yref_pos: -44
+ off_x: 0
+ off_y: 0
+ smooth_move: true
+ coords_l: -500
+ coords_r: -400
+ coords_t: -400
+ coords_b: -500
+ area_l: -500
+ area_r: -400
+ area_t: -400
+ area_b: -500
+ id: 2201
+ layer: 13
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.electric
+}
+
+ui::group : _nameless._.static.indicators {
+ fitting: false
+ my_children: 4
+ my_children[0]: _nameless._.speed.bg
+ my_children[1]: _nameless._.speed
+ my_children[2]: _nameless._.gear.group
+ my_children[3]: _nameless._.cruise.control.group
+ coords_l: 643
+ coords_r: 695
+ coords_t: 900
+ coords_b: 875
+ area_l: 582
+ area_r: 690
+ area_t: 900
+ area_b: 875
+ id: 0
+ layer: 22
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.tachometer.widget
+}
+
+ui::text : _nameless._.speed.bg {
+ text: "<img src=/material/ui/adviser/tachometer_speed_gear_bg.mat color=66595959>"
+ coords_l: 0
+ coords_r: 1
+ coords_t: 1
+ coords_b: 0
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 0
+ layer: 9
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.static.indicators
+}
+
+ui::text_common : _nameless._.speed {
+ value: "3|@@kph@@|@@clr_white@@"
+ look_template: txt.adv_tach_spd
+ text: ""
+ coords_l: 0
+ coords_r: 1
+ coords_t: 1
+ coords_b: 0
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2301
+ layer: 30
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.static.indicators
+}
+
+ui::group : _nameless._.gear.group {
+ fitting: true
+ my_children: 2
+ my_children[0]: _nameless._.gear.bg
+ my_children[1]: _nameless._.gear
+ coords_l: 648
+ coords_r: 682
+ coords_t: 900
+ coords_b: 875
+ area_l: 584
+ area_r: 618
+ area_t: 900
+ area_b: 875
+ id: 0
+ layer: 26
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.static.indicators
+}
+
+ui::text_common : _nameless._.gear.bg {
+ value: 001E1E1E
+ look_template: txt.background.flat
+ text: ""
+ coords_l: 668
+ coords_r: 702
+ coords_t: 900
+ coords_b: 875
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 0
+ layer: 23
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.gear.group
+}
+
+ui::text_common : _nameless._.gear {
+ value: DR12
+ look_template: txt.normal.center
+ text: ""
+ coords_l: 642
+ coords_r: 676
+ coords_t: 900
+ coords_b: 875
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2302
+ layer: 27
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.gear.group
+}
+
+ui::group : _nameless._.cruise.control.group {
+ fitting: true
+ my_children: 3
+ my_children[0]: _nameless._.cruise.control
+ my_children[1]: _nameless.3d2.f600
+ my_children[2]: _nameless.25f.caa0
+ coords_l: 581
+ coords_r: 641
+ coords_t: 900
+ coords_b: 875
+ area_l: 575
+ area_r: 635
+ area_t: 900
+ area_b: 875
+ id: 2310
+ layer: 28
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.static.indicators
+}
+
+ui::text_common : _nameless._.cruise.control {
+ value: 90
+ look_template: txt.small.left
+ text: ""
+ coords_l: 627
+ coords_r: 653
+ coords_t: 900
+ coords_b: 875
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2311
+ layer: 24
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.cruise.control.group
+}
+
+ui::text : _nameless.3d2.f600 {
+ text: "<align hstyle=right vstyle=center><img src=/material/ui/adviser/cruise_control.mat width=20 height=20 color=@@clr_green@@></align>"
+ coords_l: 595
+ coords_r: 625
+ coords_t: 900
+ coords_b: 875
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2312
+ layer: 33
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.cruise.control.group
+}
+
+ui::text_common : _nameless.25f.caa0 {
+ value: normal
+ look_template: txt.adv.acc
+ text: ""
+ coords_l: 0
+ coords_r: 1
+ coords_t: 1
+ coords_b: 0
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2313
+ layer: 32
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.cruise.control.group
+}
+
+ui::group : _nameless._.basic.indicators {
+ fitting: true
+ my_children: 6
+ my_children[0]: _nameless._.fuel
+ my_children[1]: _nameless._.fuel.warning
+ my_children[2]: _nameless._.left.turn.indicator
+ my_children[3]: _nameless._.low.beam
+ my_children[4]: _nameless._.high.beam
+ my_children[5]: _nameless._.right.turn.indicator
+ coords_l: 301
+ coords_r: 439
+ coords_t: 898
+ coords_b: 877
+ area_l: 301
+ area_r: 439
+ area_t: 898
+ area_b: 877
+ id: 0
+ layer: 25
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.tachometer.widget
+}
+
+ui::text_common : _nameless._.fuel {
+ value: "0.7|"
+ look_template: txt.adv_fuel
+ text: ""
+ coords_l: 359
+ coords_r: 399
+ coords_t: 895
+ coords_b: 880
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2403
+ layer: 21
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.basic.indicators
+}
+
+ui::text : _nameless._.fuel.warning {
+ text: "<align hstyle=center vstyle=center><img src=/material/ui/adviser/fuel_warning.mat color=@@clr_red@@ width=12 height=12></align>"
+ coords_l: 341
+ coords_r: 355
+ coords_t: 895
+ coords_b: 880
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2406
+ layer: 26
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.basic.indicators
+}
+
+ui::button_common : _nameless._.left.turn.indicator {
+ value: ""
+ value2: ""
+ look_template: btn.adv_left
+ n_pml: ""
+ s_pml: ""
+ s2_pml: ""
+ d_pml: ""
+ p_pml: ""
+ button_type: normal
+ coords_l: 301
+ coords_r: 315
+ coords_t: 898
+ coords_b: 877
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2401
+ layer: 27
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.basic.indicators
+}
+
+ui::button_common : _nameless._.low.beam {
+ value: ""
+ value2: ""
+ look_template: btn.adv_lowbeam
+ n_pml: ""
+ s_pml: ""
+ s2_pml: ""
+ d_pml: ""
+ p_pml: ""
+ button_type: normal
+ coords_l: 320
+ coords_r: 336
+ coords_t: 898
+ coords_b: 877
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2402
+ layer: 27
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.basic.indicators
+}
+
+ui::button_common : _nameless._.high.beam {
+ value: ""
+ value2: ""
+ look_template: btn.adv_highbeam
+ n_pml: ""
+ s_pml: ""
+ s2_pml: ""
+ d_pml: ""
+ p_pml: ""
+ button_type: normal
+ coords_l: 404
+ coords_r: 420
+ coords_t: 898
+ coords_b: 877
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2404
+ layer: 27
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.basic.indicators
+}
+
+ui::button_common : _nameless._.right.turn.indicator {
+ value: ""
+ value2: ""
+ look_template: btn.adv_right
+ n_pml: ""
+ s_pml: ""
+ s2_pml: ""
+ d_pml: ""
+ p_pml: ""
+ button_type: normal
+ coords_l: 425
+ coords_r: 439
+ coords_t: 898
+ coords_b: 877
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2405
+ layer: 27
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.basic.indicators
+}
+
+ui::linear_layout : _nameless._.indicator.widget {
+ sizing_mode: basic
+ background_padding_bottom: 3
+ background_padding_top: 3
+ background_padding_right: 7
+ background_padding_left: 7
+ background_size_computation_depth: 1
+ background_size_only_desired_depth: true
+ background_id: 1001
+ outer_padding_y: 0
+ outer_padding_x: 0
+ inner_padding: 3
+ reverse_order: false
+ alignment_y: center
+ alignment_x: left
+ dimension: x
+ fitting: false
+ my_children: 14
+ my_children[0]: _nameless.34d.b370
+ my_children[1]: _nameless._.active.lane.assist
+ my_children[2]: _nameless._.passive.lane.assist
+ my_children[3]: _nameless._.engine.brake
+ my_children[4]: _nameless._.parking.brake
+ my_children[5]: _nameless._.trailer.brake
+ my_children[6]: _nameless._.retarders
+ my_children[7]: _nameless._.engine
+ my_children[8]: _nameless._.transmission
+ my_children[9]: _nameless._.hazard
+ my_children[10]: _nameless._.beacon
+ my_children[11]: _nameless._.lock.differential
+ my_children[12]: _nameless._.air.brake.pressure
+ my_children[13]: _nameless._.wipers
+ coords_l: 0
+ coords_r: 340
+ coords_t: 900
+ coords_b: 875
+ area_l: 0
+ area_r: 340
+ area_t: 900
+ area_b: 875
+ id: 1000
+ layer: 15
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.1a4.0371
+}
+
+ui::text_common : _nameless.34d.b370 {
+ value: ff1E1E1E
+ look_template: txt.window.bcg_rect4
+ text: ""
+ coords_l: 0
+ coords_r: 340
+ coords_t: 900
+ coords_b: 875
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1001
+ layer: 14
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.active.lane.assist {
+ text: "<align v=style=center><img src=/material/ui/adviser/lane_assist.mat left=p1 right=p63 width=30 height=18 color=@@clr_green@@></align>"
+ coords_l: 179
+ coords_r: 209
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1110
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.passive.lane.assist {
+ text: "<align v=style=center><img src=/material/ui/adviser/lane_assist.mat left=p1 right=p63 width=30 height=18></align>"
+ coords_l: 212
+ coords_r: 242
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1010
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text_common : _nameless._.engine.brake {
+ value: 5
+ look_template: txt.adv.eng_brake
+ text: ""
+ coords_l: 245
+ coords_r: 279
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1020
+ layer: 17
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.parking.brake {
+ text: "<align v=style=center><img src=/material/ui/adviser/parking_brake.mat color=@@clr_red@@ width=24 height=18></align>"
+ coords_l: 282
+ coords_r: 306
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1030
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.trailer.brake {
+ text: "<align v=style=center><img src=/material/ui/adviser/trailer_brake.mat width=24 height=18></align>"
+ coords_l: 309
+ coords_r: 333
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1040
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text_common : _nameless._.retarders {
+ value: 5
+ look_template: txt.adv_retarder
+ text: ""
+ coords_l: 336
+ coords_r: 370
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1050
+ layer: 17
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.engine {
+ text: "<align v=style=center><img src=/material/ui/adviser/engine.mat width=23 height=18 color=@@clr_sel@@></align>"
+ coords_l: 373
+ coords_r: 396
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1060
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.transmission {
+ text: "<align v=style=center><img src=/material/ui/adviser/transmission.mat width=19 height=18 color=@@clr_sel@@></align>"
+ coords_l: 399
+ coords_r: 418
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1070
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.hazard {
+ text: "<align v=style=center><img src=/material/ui/adviser/hazard.mat color=@@clr_red@@ width=20 height=18></align>"
+ coords_l: 421
+ coords_r: 441
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1080
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.beacon {
+ text: "<align v=style=center><img src=/material/ui/adviser/beacon.mat color=@@clr_sel@@ width=28 height=18></align>"
+ coords_l: 444
+ coords_r: 472
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1090
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.lock.differential {
+ text: "<align v=style=center><img src=/material/ui/adviser/lock_differential.mat width=18 height=18></align>"
+ coords_l: 475
+ coords_r: 493
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1100
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text : _nameless._.air.brake.pressure {
+ text: "<align v=style=center><img src=/material/ui/adviser/air_pressure.mat color=@@clr_red@@ width=20 height=18></align>"
+ coords_l: 496
+ coords_r: 516
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1120
+ layer: 16
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+ui::text_common : _nameless._.wipers {
+ value: 0
+ look_template: txt.adv_wipers
+ text: ""
+ coords_l: 519
+ coords_r: 553
+ coords_t: 36
+ coords_b: 18
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1130
+ layer: 17
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.indicator.widget
+}
+
+}

@@ -97,7 +97,9 @@ describe("settings html toasts", () => {
     });
 
     await mod.initSettings?.();
-    const item14 = document.querySelector('#font-size-dropdown-menu li[data-value="14"]');
+    const item14 = document.querySelector(
+      '#font-size-dropdown-menu li[data-value="14"]',
+    );
     item14?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const resetBtn = document.getElementById("reset-font-size");
     resetBtn?.click();
@@ -149,22 +151,26 @@ describe("settings html toasts", () => {
     });
 
     await mod.initSettings?.();
-    const darkTheme = document.querySelector('#theme-dropdown-menu li[data-value="dark"]');
+    const darkTheme = document.querySelector(
+      '#theme-dropdown-menu li[data-value="dark"]',
+    );
     darkTheme?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const resetBtn = document.getElementById("reset-theme");
     resetBtn?.click();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(document.getElementById("theme-selected-label")?.textContent).toBe("Dark");
+    expect(document.getElementById("theme-selected-label")?.textContent).toBe(
+      "Dark",
+    );
     expect(
       document
         .querySelector('#theme-dropdown-menu li[data-value="dark"]')
         ?.classList.contains("active"),
     ).toBe(true);
-    expect(document.getElementById("theme-dropdown-btn")?.dataset.currentTheme).toBe(
-      "dark",
-    );
+    expect(
+      document.getElementById("theme-dropdown-btn")?.dataset.currentTheme,
+    ).toBe("dark");
 
     expect(
       showToast.mock.calls.some(
@@ -177,5 +183,4 @@ describe("settings html toasts", () => {
     ).toBe(true);
     expect(showToast).toHaveBeenCalledTimes(2);
   });
-
 });

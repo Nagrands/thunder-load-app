@@ -3,7 +3,15 @@
 import { toastContainer } from "./domElements.js";
 import { t } from "./i18n.js";
 
-const TOAST_HTML_ALLOWED_TAGS = ["strong", "em", "b", "i", "br", "code", "span"];
+const TOAST_HTML_ALLOWED_TAGS = [
+  "strong",
+  "em",
+  "b",
+  "i",
+  "br",
+  "code",
+  "span",
+];
 const TOAST_HTML_ALLOWED_ATTR = {
   span: ["class"],
   code: ["class"],
@@ -274,6 +282,7 @@ function closeAllToasts() {
 function showLoading(
   message = t("toast.loading.message"),
   title = t("toast.loading.title"),
+  options = {},
 ) {
   const toast = document.createElement("div");
   toast.className = "toast toast-info toast-loading";
@@ -288,7 +297,7 @@ function showLoading(
   titleEl.textContent = String(title || "");
   const messageEl = document.createElement("div");
   messageEl.className = "toast-message";
-  messageEl.textContent = String(message || "");
+  renderToastMessage(messageEl, message, options);
   content.append(titleEl, messageEl);
 
   const closeButton = document.createElement("button");

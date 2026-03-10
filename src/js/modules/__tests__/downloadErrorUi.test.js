@@ -36,8 +36,10 @@ describe("downloadErrorUi", () => {
         ),
       }));
 
-      const { formatDownloadQueueReason, getDownloadErrorDetails } =
-        require("../downloadErrorUi");
+      const {
+        formatDownloadQueueReason,
+        getDownloadErrorDetails,
+      } = require("../downloadErrorUi");
 
       expect(
         formatDownloadQueueReason({
@@ -84,30 +86,30 @@ describe("downloadErrorUi", () => {
 
       const { formatDownloadErrorToast } = require("../downloadErrorUi");
 
-      expect(
-        formatDownloadErrorToast({ errorCode: "NETWORK_TIMEOUT" }),
-      ).toBe("Сбой сети");
-      expect(
-        formatDownloadErrorToast({ errorCode: "AUTH_REQUIRED" }),
-      ).toBe("Нужна авторизация");
-      expect(
-        formatDownloadErrorToast({ errorCode: "GEO_BLOCKED" }),
-      ).toBe("Недоступно в регионе");
+      expect(formatDownloadErrorToast({ errorCode: "NETWORK_TIMEOUT" })).toBe(
+        "Сбой сети",
+      );
+      expect(formatDownloadErrorToast({ errorCode: "AUTH_REQUIRED" })).toBe(
+        "Нужна авторизация",
+      );
+      expect(formatDownloadErrorToast({ errorCode: "GEO_BLOCKED" })).toBe(
+        "Недоступно в регионе",
+      );
       expect(formatDownloadErrorToast({ errorCode: "UNAVAILABLE" })).toBe(
         "Видео недоступно",
       );
-      expect(
-        formatDownloadErrorToast({ errorCode: "PRIVATE_CONTENT" }),
-      ).toBe("Закрытый доступ");
-      expect(
-        formatDownloadErrorToast({ errorCode: "CAPTCHA_REQUIRED" }),
-      ).toBe("Нужна проверка");
+      expect(formatDownloadErrorToast({ errorCode: "PRIVATE_CONTENT" })).toBe(
+        "Закрытый доступ",
+      );
+      expect(formatDownloadErrorToast({ errorCode: "CAPTCHA_REQUIRED" })).toBe(
+        "Нужна проверка",
+      );
       expect(formatDownloadErrorToast({ errorCode: "DISK_FULL" })).toBe(
         "Недостаточно места",
       );
-      expect(
-        formatDownloadErrorToast({ errorCode: "PERMISSION_DENIED" }),
-      ).toBe("Нет доступа");
+      expect(formatDownloadErrorToast({ errorCode: "PERMISSION_DENIED" })).toBe(
+        "Нет доступа",
+      );
     });
   });
 
@@ -164,21 +166,23 @@ describe("downloadErrorUi", () => {
         t: jest.fn((key) => key),
       }));
 
-      const { getDownloadErrorDetails, formatDownloadErrorToast } =
-        require("../downloadErrorUi");
+      const {
+        getDownloadErrorDetails,
+        formatDownloadErrorToast,
+      } = require("../downloadErrorUi");
 
-      expect(getDownloadErrorDetails({ errorCode: "AUTH_REQUIRED" })).toMatchObject(
-        {
-          code: "AUTH_REQUIRED",
-          retryable: false,
-        },
-      );
-      expect(getDownloadErrorDetails({ errorCode: "NETWORK_TIMEOUT" })).toMatchObject(
-        {
-          code: "NETWORK_TIMEOUT",
-          retryable: true,
-        },
-      );
+      expect(
+        getDownloadErrorDetails({ errorCode: "AUTH_REQUIRED" }),
+      ).toMatchObject({
+        code: "AUTH_REQUIRED",
+        retryable: false,
+      });
+      expect(
+        getDownloadErrorDetails({ errorCode: "NETWORK_TIMEOUT" }),
+      ).toMatchObject({
+        code: "NETWORK_TIMEOUT",
+        retryable: true,
+      });
       expect(
         getDownloadErrorDetails(new Error("something unexpected happened")),
       ).toMatchObject({

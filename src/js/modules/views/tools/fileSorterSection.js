@@ -124,7 +124,8 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     if (sorterLogPathEl) sorterLogPathEl.disabled = sorterBusy;
     if (sorterConflictModeEl) sorterConflictModeEl.disabled = sorterBusy;
     if (sorterRecursiveEl) sorterRecursiveEl.disabled = sorterBusy;
-    if (sorterIgnoreExtensionsEl) sorterIgnoreExtensionsEl.disabled = sorterBusy;
+    if (sorterIgnoreExtensionsEl)
+      sorterIgnoreExtensionsEl.disabled = sorterBusy;
     if (sorterIgnoreFoldersEl) sorterIgnoreFoldersEl.disabled = sorterBusy;
     if (sorterPreviewSearchEl) sorterPreviewSearchEl.disabled = sorterBusy;
     if (sorterPreviewCategoryFilterEl) {
@@ -348,7 +349,11 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     });
   };
 
-  const buildSorterExportContent = (res = {}, operations = [], format = "txt") => {
+  const buildSorterExportContent = (
+    res = {},
+    operations = [],
+    format = "txt",
+  ) => {
     if (format === "json") {
       return JSON.stringify(
         {
@@ -587,7 +592,9 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
 
         const targetEl = document.createElement("span");
         targetEl.className = "sorter-preview-row__target muted";
-        const sourcePrefix = rowData.relativeDir ? `${rowData.relativeDir} -> ` : "";
+        const sourcePrefix = rowData.relativeDir
+          ? `${rowData.relativeDir} -> `
+          : "";
         const actionLabel =
           rowData.action === "replace"
             ? ` (${t("tools.sorter.status.replaced")})`
@@ -755,9 +762,8 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
   sorterOpenFolderBtn?.addEventListener("click", async () => {
     if (sorterBusy || !sorterSelectedFolder) return;
     try {
-      const res = await window.electron?.tools?.openSorterFolder?.(
-        sorterSelectedFolder,
-      );
+      const res =
+        await window.electron?.tools?.openSorterFolder?.(sorterSelectedFolder);
       if (!res?.success) {
         setSorterResult(
           res?.error || t("tools.sorter.openFolderError"),
@@ -780,13 +786,16 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
   sorterIgnoreExtensionsEl?.addEventListener("change", persistSorterOptions);
   sorterIgnoreFoldersEl?.addEventListener("change", persistSorterOptions);
   sorterPreviewSearchEl?.addEventListener("input", () => {
-    if (sorterLatestResult) renderSorterPreview(sorterLatestResult, sorterLatestMode);
+    if (sorterLatestResult)
+      renderSorterPreview(sorterLatestResult, sorterLatestMode);
   });
   sorterPreviewCategoryFilterEl?.addEventListener("change", () => {
-    if (sorterLatestResult) renderSorterPreview(sorterLatestResult, sorterLatestMode);
+    if (sorterLatestResult)
+      renderSorterPreview(sorterLatestResult, sorterLatestMode);
   });
   sorterPreviewStatusFilterEl?.addEventListener("change", () => {
-    if (sorterLatestResult) renderSorterPreview(sorterLatestResult, sorterLatestMode);
+    if (sorterLatestResult)
+      renderSorterPreview(sorterLatestResult, sorterLatestMode);
   });
   sorterCopyResultBtn?.addEventListener("click", async () => {
     if (!sorterLatestResult) return;

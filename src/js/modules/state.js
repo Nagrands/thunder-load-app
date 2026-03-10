@@ -117,8 +117,7 @@ const updateButtonState = () => {
     enqueueButton.setAttribute("aria-disabled", !isValid);
   }
 
-  const isBusy =
-    getActiveDownloadJobs(state).length > 0 || state.isDownloading;
+  const isBusy = getActiveDownloadJobs(state).length > 0 || state.isDownloading;
   state.isDownloading = isBusy;
 
   // Кнопка "Отмена загрузки" активна только когда есть активные задачи

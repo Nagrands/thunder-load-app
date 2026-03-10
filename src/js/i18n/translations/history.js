@@ -1,5 +1,5 @@
 export const historyTranslations = {
-  "ru": {
+  ru: {
     "history.subtitle": "Недавние загрузки",
     "history.title": "История",
     "history.search.placeholder": "Поиск по истории",
@@ -106,7 +106,8 @@ export const historyTranslations = {
     "history.toast.fileOpenError": "Не удалось открыть файл.",
     "history.toast.folderMissing": "Папка не найдена на диске.",
     "history.toast.folderOpenError": "Не удалось открыть папку.",
-    "history.toast.retryUnavailable": "Ссылка для повторной загрузки недоступна.",
+    "history.toast.retryUnavailable":
+      "Ссылка для повторной загрузки недоступна.",
     "history.toast.retryStart": "Повторная загрузка: {name}.",
     "history.toast.deletedEntries": "Удалено {count} записей.",
     "history.toast.deleteCancelled": "Удаление отменено.",
@@ -123,7 +124,8 @@ export const historyTranslations = {
     "history.toast.addError": "Ошибка при добавлении в историю",
     "history.clear.title": "Очистить историю?",
     "history.clear.subtitle": "История загрузок",
-    "history.clear.message": "Вы уверены, что хотите удалить всю историю загрузок?",
+    "history.clear.message":
+      "Вы уверены, что хотите удалить всю историю загрузок?",
     "history.clear.confirm": "Очистить",
     "history.clear.cancel": "Отмена",
     "history.delete.title": "Удалить запись?",
@@ -148,9 +150,9 @@ export const historyTranslations = {
     "history.sort.mode.label": "Тип",
     "history.sort.mode.video": "Видео",
     "history.sort.mode.audio": "Аудио",
-    "history.sort.mode.mixed": "Смешано"
+    "history.sort.mode.mixed": "Смешано",
   },
-  "en": {
+  en: {
     "history.subtitle": "Recent downloads",
     "history.title": "History",
     "history.search.placeholder": "Search history",
@@ -274,7 +276,8 @@ export const historyTranslations = {
     "history.toast.addError": "Failed to add entry to history",
     "history.clear.title": "Clear history?",
     "history.clear.subtitle": "Download history",
-    "history.clear.message": "Are you sure you want to delete the entire download history?",
+    "history.clear.message":
+      "Are you sure you want to delete the entire download history?",
     "history.clear.confirm": "Clear",
     "history.clear.cancel": "Cancel",
     "history.delete.title": "Delete entry?",
@@ -299,6 +302,6 @@ export const historyTranslations = {
     "history.sort.mode.label": "Type",
     "history.sort.mode.video": "Video",
     "history.sort.mode.audio": "Audio",
-    "history.sort.mode.mixed": "Mixed"
-  }
+    "history.sort.mode.mixed": "Mixed",
+  },
 };

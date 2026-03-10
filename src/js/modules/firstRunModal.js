@@ -82,19 +82,15 @@ const setCheckboxValue = (name, value, checked) => {
 };
 
 const getSelectedTabs = () =>
-  Array.from(document.querySelectorAll('input[name="first-run-tab"]:checked')).map(
-    (el) => el.value,
-  );
+  Array.from(
+    document.querySelectorAll('input[name="first-run-tab"]:checked'),
+  ).map((el) => el.value);
 
 export function initFirstRunModal() {
   const modal = document.getElementById("first-run-modal");
   if (!modal) return;
-  const panels = Array.from(
-    modal.querySelectorAll("[data-first-run-panel]"),
-  );
-  const stepButtons = Array.from(
-    modal.querySelectorAll(".first-run-step"),
-  );
+  const panels = Array.from(modal.querySelectorAll("[data-first-run-panel]"));
+  const stepButtons = Array.from(modal.querySelectorAll(".first-run-step"));
   const stepLabel = document.getElementById("first-run-step-label");
   const stepCounter = document.getElementById("first-run-step-counter");
   const backButton = document.getElementById("first-run-back");
@@ -160,12 +156,14 @@ export function initFirstRunModal() {
   );
 
   const syncSelectedCards = () => {
-    Array.from(modal.querySelectorAll(".first-run-option")).forEach((option) => {
-      const input = option.querySelector("input");
-      if (!input) return;
-      option.classList.toggle("is-selected", !!input.checked);
-      option.classList.toggle("is-disabled", !!input.disabled);
-    });
+    Array.from(modal.querySelectorAll(".first-run-option")).forEach(
+      (option) => {
+        const input = option.querySelector("input");
+        if (!input) return;
+        option.classList.toggle("is-selected", !!input.checked);
+        option.classList.toggle("is-disabled", !!input.disabled);
+      },
+    );
   };
 
   const updateSummary = () => {
@@ -234,7 +232,9 @@ export function initFirstRunModal() {
   };
 
   Array.from(
-    modal.querySelectorAll('input[name="first-run-tab"], input[name="first-run-language"], input[name="first-run-theme"]'),
+    modal.querySelectorAll(
+      'input[name="first-run-tab"], input[name="first-run-language"], input[name="first-run-theme"]',
+    ),
   ).forEach((input) => {
     input.addEventListener("change", () => {
       syncSelectedCards();

@@ -207,11 +207,13 @@ describe("toolsView quick actions", () => {
       el.querySelector(".tools-launcher-section-title")?.textContent?.trim(),
     ).toBe("tools.launcher.availableTitle");
     expect(
-      el.querySelector(".tools-launcher-unavailable-title")?.textContent?.trim(),
+      el
+        .querySelector(".tools-launcher-unavailable-title")
+        ?.textContent?.trim(),
     ).toBe("tools.launcher.unavailableTitle");
-    expect(
-      el.querySelector("#tools-back-btn")?.getAttribute("title"),
-    ).toBe("tools.nav.back");
+    expect(el.querySelector("#tools-back-btn")?.getAttribute("title")).toBe(
+      "tools.nav.back",
+    );
     expect(
       el.querySelector(".tools-breadcrumbs")?.getAttribute("aria-label"),
     ).toBe("tools.launcher.breadcrumbs.aria");
@@ -248,7 +250,9 @@ describe("toolsView quick actions", () => {
       el.querySelector("#tools-launcher-unavailable-section"),
     ).not.toBeNull();
     expect(
-      el.querySelector("#tools-launcher-unavailable-section")?.classList.contains("hidden"),
+      el
+        .querySelector("#tools-launcher-unavailable-section")
+        ?.classList.contains("hidden"),
     ).toBe(true);
   });
 
@@ -313,9 +317,7 @@ describe("toolsView quick actions", () => {
   test("shows File Sorter as available tool and opens it", async () => {
     const el = await renderView();
     const sorterBtn = el.querySelector("#tools-open-sorter");
-    expect(
-      sorterBtn?.closest(".tools-launcher-grid"),
-    ).not.toBeNull();
+    expect(sorterBtn?.closest(".tools-launcher-grid")).not.toBeNull();
     expect(sorterBtn?.disabled).toBe(false);
 
     sorterBtn?.click();
@@ -409,7 +411,9 @@ describe("toolsView quick actions", () => {
       el.querySelectorAll("#sorter-breakdown-list .sorter-breakdown-item")
         .length,
     ).toBe(2);
-    expect(el.querySelector("#sorter-preview-list-count")?.textContent).toBe("2");
+    expect(el.querySelector("#sorter-preview-list-count")?.textContent).toBe(
+      "2",
+    );
     expect(el.querySelector("#sorter-breakdown-count")?.textContent).toBe("2");
     el.querySelector("#sorter-preview-search").value = "second";
     el.querySelector("#sorter-preview-search")?.dispatchEvent(
@@ -499,7 +503,9 @@ describe("toolsView quick actions", () => {
       "tools.sorter.results.title",
     );
     expect(
-      el.querySelector("#sorter-preview-panel")?.classList.contains("is-results"),
+      el
+        .querySelector("#sorter-preview-panel")
+        ?.classList.contains("is-results"),
     ).toBe(true);
     expect(
       el.querySelectorAll("#sorter-errors-list .sorter-errors-row").length,
@@ -693,9 +699,9 @@ describe("toolsView quick actions", () => {
     expect(nextBtn?.disabled).toBe(true);
     expect(track?.style.transform).toBe("translateX(-300%)");
     expect(openBtn?.getAttribute("title")).toBe("hashCheck.howto.open");
-    expect(el.querySelector("#hash-howto-close")?.getAttribute("aria-label")).toBe(
-      "hashCheck.howto.close",
-    );
+    expect(
+      el.querySelector("#hash-howto-close")?.getAttribute("aria-label"),
+    ).toBe("hashCheck.howto.close");
   });
 
   test("hash how-to modal closes by Escape and returns focus", async () => {
@@ -770,9 +776,9 @@ describe("toolsView quick actions", () => {
     expect(nextBtn?.disabled).toBe(true);
     expect(track?.style.transform).toBe("translateX(-300%)");
     expect(openBtn?.getAttribute("title")).toBe("tools.wg.howto.open");
-    expect(el.querySelector("#wg-howto-close")?.getAttribute("aria-label")).toBe(
-      "tools.wg.howto.close",
-    );
+    expect(
+      el.querySelector("#wg-howto-close")?.getAttribute("aria-label"),
+    ).toBe("tools.wg.howto.close");
   });
 
   test("wg how-to modal closes by Escape and returns focus", async () => {
@@ -944,9 +950,9 @@ describe("toolsView quick actions", () => {
       secondaryActions?.querySelector("#wg-open-config-file"),
     ).not.toBeNull();
     expect(secondaryActions?.querySelector("#wg-help")).toBeNull();
-    expect(el.querySelector("#wg-log-filter-errors")?.getAttribute("title")).toBe(
-      "wg.log.filter.errorsOff",
-    );
+    expect(
+      el.querySelector("#wg-log-filter-errors")?.getAttribute("title"),
+    ).toBe("wg.log.filter.errorsOff");
     expect(el.querySelector("#wg-log-autoscroll")?.getAttribute("title")).toBe(
       "wg.log.autoscroll.on",
     );

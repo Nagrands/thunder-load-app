@@ -328,7 +328,9 @@ describe("context menu UI", () => {
     await handleDeleteEntry(entry);
 
     expect(mockShowToast).toHaveBeenCalledWith(
-      expect.stringContaining("Запись успешно удалена<br><strong>Test file</strong>."),
+      expect.stringContaining(
+        "Запись успешно удалена<br><strong>Test file</strong>.",
+      ),
       "success",
       5500,
       null,

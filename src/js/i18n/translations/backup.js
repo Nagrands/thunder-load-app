@@ -1,11 +1,12 @@
 export const backupTranslations = {
-  "ru": {
+  ru: {
     "backup.title": "Backup Manager",
     "backup.subtitle": "Резервное копирование файлов и папок",
     "backup.toolbar.aria": "Управление профилями",
     "backup.progress.running": "Выполнение резервного копирования...",
     "backup.manage.title": "Управление профилями",
-    "backup.manage.subtitle": "Переключайте профили, чтобы удалить или запустить несколько за раз.",
+    "backup.manage.subtitle":
+      "Переключайте профили, чтобы удалить или запустить несколько за раз.",
     "backup.manage.selectAll": "Выбрать все",
     "backup.manage.runSelected": "Запустить выбранные",
     "backup.manage.deleteSelected": "Удалить выбранные",
@@ -46,13 +47,17 @@ export const backupTranslations = {
     "backup.log.profileUpdated": "Профиль обновлён: {name}",
     "backup.log.noProfilesToRun": "⚠ Нет доступных профилей для запуска",
     "backup.log.preflightFailed": "✖ Префлайт не выполнен: {reason}",
-    "backup.log.preflightFixHints": "✖ Префлайт не пройдён: проверьте пути, права и инструменты zip/tar.",
+    "backup.log.preflightFixHints":
+      "✖ Префлайт не пройдён: проверьте пути, права и инструменты zip/tar.",
     "backup.log.error": "Ошибка: {reason}",
-    "backup.log.runStart": "Запуск резервного копирования для {count} выбранного(ых) профиля(ей)…",
-    "backup.log.runSuccess": "✔ {name}: {size} за {duration} ({speed}) → {path}",
+    "backup.log.runStart":
+      "Запуск резервного копирования для {count} выбранного(ых) профиля(ей)…",
+    "backup.log.runSuccess":
+      "✔ {name}: {size} за {duration} ({speed}) → {path}",
     "backup.log.runFailed": "✖ {name}: {error}",
     "backup.log.archiveSaved": "архив сохранён",
-    "backup.log.summary": "Итог: {size} за {duration} (средняя скорость {speed})",
+    "backup.log.summary":
+      "Итог: {size} за {duration} (средняя скорость {speed})",
     "backup.log.profilesDeleted": "Профили удалены: {names}",
     "backup.log.empty": "Лог пуст",
     "backup.log.copied": "Лог скопирован",
@@ -60,17 +65,23 @@ export const backupTranslations = {
     "backup.log.fileSaved": "Файл лога сохранён",
     "backup.log.fileSaveError": "Не удалось сохранить файл",
     "backup.hints.title": "Советы",
-    "backup.hints.1": "💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.",
-    "backup.hints.2": "👆 Выделяйте профили одним кликом по карточке — чекбоксы больше не нужны.",
-    "backup.hints.3": "⚙️ Используйте кнопку «Запустить для выбранных», чтобы копировать несколько профилей сразу.",
-    "backup.hints.4": "📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.",
-    "backup.hints.5": "🕒 Последнее время успешного копирования видно под именем каждого профиля.",
+    "backup.hints.1":
+      "💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.",
+    "backup.hints.2":
+      "👆 Выделяйте профили одним кликом по карточке — чекбоксы больше не нужны.",
+    "backup.hints.3":
+      "⚙️ Используйте кнопку «Запустить для выбранных», чтобы копировать несколько профилей сразу.",
+    "backup.hints.4":
+      "📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.",
+    "backup.hints.5":
+      "🕒 Последнее время успешного копирования видно под именем каждого профиля.",
     "backup.tags.aria": "Теги",
     "backup.lastCopy.label": "Последняя копия:",
     "backup.profile.fallbackName": "Профиль {index}",
     "backup.profile.locked": "В процессе",
     "backup.profile.unnamed": "Без имени",
-    "backup.profile.busy": "Профиль занят выполняющимся резервным копированием.",
+    "backup.profile.busy":
+      "Профиль занят выполняющимся резервным копированием.",
     "backup.load.errorWithReason": "Не удалось загрузить профили: {reason}",
     "backup.load.error": "Не удалось загрузить профили",
     "backup.empty.filtered": "Нет профилей по текущим фильтрам.",
@@ -85,25 +96,32 @@ export const backupTranslations = {
     "backup.time.msShort": "{count} мс",
     "backup.time.secShort": "{count} с",
     "backup.time.minSec": "{minutes} мин {seconds} с",
-    "backup.preflight.summary.errors": "Префлайт: {errors} ошибок, {warnings} предупреждений",
-    "backup.preflight.summary.warnings": "Префлайт: предупреждения ({warnings})",
+    "backup.preflight.summary.errors":
+      "Префлайт: {errors} ошибок, {warnings} предупреждений",
+    "backup.preflight.summary.warnings":
+      "Префлайт: предупреждения ({warnings})",
     "backup.preflight.summary.ok": "Префлайт: готово ({count})",
     "backup.preflight.checkPassed": "Проверка пройдена для {count} профиля(ей)",
     "backup.preflight.runError": "Не удалось выполнить префлайт-проверку",
     "backup.preflight.error": "Ошибка префлайта",
-    "backup.preflight.failed": "Префлайт не пройдён — исправьте ошибки и повторите",
-    "backup.preflight.warnings": "Есть предупреждения префлайта — проверьте блок выше",
+    "backup.preflight.failed":
+      "Префлайт не пройдён — исправьте ошибки и повторите",
+    "backup.preflight.warnings":
+      "Есть предупреждения префлайта — проверьте блок выше",
     "backup.preflight.passed": "Префлайт пройден для {count} профилей",
     "backup.run.start": "Запуск Backup для {count} профилей...",
     "backup.run.startError": "Ошибка запуска backup",
     "backup.run.startErrorGeneric": "Ошибка запуска",
     "backup.run.executeError": "Ошибка при выполнении backup",
-    "backup.run.completedAll": "Backup успешно завершен для всех {count} профилей",
-    "backup.run.completedWithErrors": "Backup завершен: {success} успешно, {failed} с ошибками",
+    "backup.run.completedAll":
+      "Backup успешно завершен для всех {count} профилей",
+    "backup.run.completedWithErrors":
+      "Backup завершен: {success} успешно, {failed} с ошибками",
     "backup.toast.noneSelected": "Не выбрано ни одного профиля",
     "backup.toast.noProfilesToRun": "Нет доступных профилей для запуска",
     "backup.toast.deleted": "Удалено",
-    "backup.confirm.deleteProfile": "Вы уверены, что хотите удалить профиль: <b>{names}</b>?",
+    "backup.confirm.deleteProfile":
+      "Вы уверены, что хотите удалить профиль: <b>{names}</b>?",
     "backup.validation.fillRequired": "Заполните обязательные поля",
     "backup.validation.required": "Поле обязательно",
     "backup.validation.pathNotFound": "Путь не найден",
@@ -111,14 +129,16 @@ export const backupTranslations = {
     "backup.validation.sourceRequired": "Укажите исходный путь",
     "backup.validation.destinationRequired": "Укажите папку бэкапа",
     "backup.validation.nameExists": "Профиль с таким именем уже существует",
-    "backup.validation.nameExistsToast": "Нельзя создать профиль с одинаковым именем",
+    "backup.validation.nameExistsToast":
+      "Нельзя создать профиль с одинаковым именем",
     "backup.field.name.label": "Название *",
     "backup.field.name.hint": "Имя профиля и создаваемого архива",
     "backup.field.name.suggested": "Автопредложение имени: {name}",
     "backup.field.source.label": "Исходная папка *",
     "backup.field.source.hint": "Укажите путь к папке резервного копирования",
     "backup.field.destination.label": "Папка бэкапа *",
-    "backup.field.destination.hint": "Путь, где будет храниться резервная копия",
+    "backup.field.destination.hint":
+      "Путь, где будет храниться резервная копия",
     "backup.field.archiveType.label": "Тип архива",
     "backup.field.filters.label": "Фильтры файлов",
     "backup.field.filters.hint": "Поддерживаются * и ? (по имени файла)",
@@ -145,15 +165,16 @@ export const backupTranslations = {
     "backup.filters.category.docs": "Документы",
     "backup.filters.category.images": "Изображения",
     "backup.filters.category.media": "Аудио и видео",
-    "backup.filters.category.other": "Прочее"
+    "backup.filters.category.other": "Прочее",
   },
-  "en": {
+  en: {
     "backup.title": "Backup Manager",
     "backup.subtitle": "Backup files and folders",
     "backup.toolbar.aria": "Profile controls",
     "backup.progress.running": "Running backup...",
     "backup.manage.title": "Manage profiles",
-    "backup.manage.subtitle": "Toggle profiles to delete or run multiple at once.",
+    "backup.manage.subtitle":
+      "Toggle profiles to delete or run multiple at once.",
     "backup.manage.selectAll": "Select all",
     "backup.manage.runSelected": "Run selected",
     "backup.manage.deleteSelected": "Delete selected",
@@ -194,10 +215,12 @@ export const backupTranslations = {
     "backup.log.profileUpdated": "Profile updated: {name}",
     "backup.log.noProfilesToRun": "⚠ No profiles available to run",
     "backup.log.preflightFailed": "✖ Preflight failed: {reason}",
-    "backup.log.preflightFixHints": "✖ Preflight failed: check paths, permissions, and zip/tar tools.",
+    "backup.log.preflightFixHints":
+      "✖ Preflight failed: check paths, permissions, and zip/tar tools.",
     "backup.log.error": "Error: {reason}",
     "backup.log.runStart": "Starting backup for {count} selected profile(s)…",
-    "backup.log.runSuccess": "✔ {name}: {size} in {duration} ({speed}) → {path}",
+    "backup.log.runSuccess":
+      "✔ {name}: {size} in {duration} ({speed}) → {path}",
     "backup.log.runFailed": "✖ {name}: {error}",
     "backup.log.archiveSaved": "archive saved",
     "backup.log.summary": "Total: {size} in {duration} (avg speed {speed})",
@@ -208,11 +231,16 @@ export const backupTranslations = {
     "backup.log.fileSaved": "Log file saved",
     "backup.log.fileSaveError": "Failed to save file",
     "backup.hints.title": "Tips",
-    "backup.hints.1": "💾 Double-click a profile to quickly edit paths and settings.",
-    "backup.hints.2": "👆 Select profiles with a single click — no checkboxes needed.",
-    "backup.hints.3": "⚙️ Use “Run selected” to back up multiple profiles at once.",
-    "backup.hints.4": "📁 Click the destination path to open it in Finder or Explorer.",
-    "backup.hints.5": "🕒 The last successful backup time appears under each profile name.",
+    "backup.hints.1":
+      "💾 Double-click a profile to quickly edit paths and settings.",
+    "backup.hints.2":
+      "👆 Select profiles with a single click — no checkboxes needed.",
+    "backup.hints.3":
+      "⚙️ Use “Run selected” to back up multiple profiles at once.",
+    "backup.hints.4":
+      "📁 Click the destination path to open it in Finder or Explorer.",
+    "backup.hints.5":
+      "🕒 The last successful backup time appears under each profile name.",
     "backup.tags.aria": "Tags",
     "backup.lastCopy.label": "Last backup:",
     "backup.profile.fallbackName": "Profile {index}",
@@ -233,7 +261,8 @@ export const backupTranslations = {
     "backup.time.msShort": "{count} ms",
     "backup.time.secShort": "{count} s",
     "backup.time.minSec": "{minutes} min {seconds} s",
-    "backup.preflight.summary.errors": "Preflight: {errors} errors, {warnings} warnings",
+    "backup.preflight.summary.errors":
+      "Preflight: {errors} errors, {warnings} warnings",
     "backup.preflight.summary.warnings": "Preflight: warnings ({warnings})",
     "backup.preflight.summary.ok": "Preflight: ready ({count})",
     "backup.preflight.checkPassed": "Checks passed for {count} profile(s)",
@@ -246,12 +275,15 @@ export const backupTranslations = {
     "backup.run.startError": "Backup start error",
     "backup.run.startErrorGeneric": "Start error",
     "backup.run.executeError": "Backup execution error",
-    "backup.run.completedAll": "Backup completed successfully for all {count} profiles",
-    "backup.run.completedWithErrors": "Backup completed: {success} succeeded, {failed} failed",
+    "backup.run.completedAll":
+      "Backup completed successfully for all {count} profiles",
+    "backup.run.completedWithErrors":
+      "Backup completed: {success} succeeded, {failed} failed",
     "backup.toast.noneSelected": "No profiles selected",
     "backup.toast.noProfilesToRun": "No profiles available to run",
     "backup.toast.deleted": "Deleted",
-    "backup.confirm.deleteProfile": "Are you sure you want to delete profile: <b>{names}</b>?",
+    "backup.confirm.deleteProfile":
+      "Are you sure you want to delete profile: <b>{names}</b>?",
     "backup.validation.fillRequired": "Fill in required fields",
     "backup.validation.required": "Field is required",
     "backup.validation.pathNotFound": "Path not found",
@@ -259,7 +291,8 @@ export const backupTranslations = {
     "backup.validation.sourceRequired": "Enter source path",
     "backup.validation.destinationRequired": "Enter backup folder",
     "backup.validation.nameExists": "A profile with this name already exists",
-    "backup.validation.nameExistsToast": "Cannot create profiles with the same name",
+    "backup.validation.nameExistsToast":
+      "Cannot create profiles with the same name",
     "backup.field.name.label": "Name *",
     "backup.field.name.hint": "Profile name and archive name",
     "backup.field.name.suggested": "Suggested name: {name}",
@@ -293,6 +326,6 @@ export const backupTranslations = {
     "backup.filters.category.docs": "Documents",
     "backup.filters.category.images": "Images",
     "backup.filters.category.media": "Audio & video",
-    "backup.filters.category.other": "Other"
-  }
+    "backup.filters.category.other": "Other",
+  },
 };

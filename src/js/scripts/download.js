@@ -1487,7 +1487,8 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
           }
           if (code !== 0) {
             if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
-              youtubeRateLimitUntilTs = Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
+              youtubeRateLimitUntilTs =
+                Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
               log.warn(
                 `[download] YouTube rate-limit detected; enabling getVideoInfo cooldown for ${Math.ceil(YOUTUBE_RATE_LIMIT_COOLDOWN_MS / 60000)} minutes.`,
               );
@@ -1519,7 +1520,9 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
       if (
         isCancelled(token) ||
         !isYouTubeUrl(url) ||
-        !String(error?.message || "").startsWith("ERR_YTDLP_NETWORK_TIMEOUT:") ||
+        !String(error?.message || "").startsWith(
+          "ERR_YTDLP_NETWORK_TIMEOUT:",
+        ) ||
         attempt >= YTDLP_NETWORK_RETRY_MAX_ATTEMPTS
       ) {
         throw error;
@@ -1681,7 +1684,11 @@ function spawnDownloadProcess(
 
   const runWithRetries = async () => {
     let lastError = null;
-    for (let attempt = 1; attempt <= YTDLP_DOWNLOAD_RETRY_MAX_ATTEMPTS; attempt += 1) {
+    for (
+      let attempt = 1;
+      attempt <= YTDLP_DOWNLOAD_RETRY_MAX_ATTEMPTS;
+      attempt += 1
+    ) {
       try {
         await runOnce();
         return;

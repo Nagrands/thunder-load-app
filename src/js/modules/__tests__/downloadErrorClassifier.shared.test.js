@@ -29,7 +29,8 @@ describe("downloadErrorClassifier shared helper", () => {
 
   test("classifies private content, captcha, disk full and permission errors", async () => {
     await import("../../shared/downloadErrorClassifier.shared.js");
-    const { classifyDownloadError } = globalThis.__thunderDownloadErrorClassifier;
+    const { classifyDownloadError } =
+      globalThis.__thunderDownloadErrorClassifier;
 
     expect(
       classifyDownloadError(new Error("Private video. Join this channel.")),
@@ -56,7 +57,9 @@ describe("downloadErrorClassifier shared helper", () => {
     });
 
     expect(
-      classifyDownloadError(new Error("EACCES: permission denied, open '/tmp/file'")),
+      classifyDownloadError(
+        new Error("EACCES: permission denied, open '/tmp/file'"),
+      ),
     ).toMatchObject({
       code: "PERMISSION_DENIED",
       retryable: false,

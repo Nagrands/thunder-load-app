@@ -53,7 +53,9 @@ function initUrlInputHandler() {
     }
     if (sourceLinkButton) {
       sourceLinkButton.disabled = !(
-        normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
+        normalized &&
+        isValidUrl(normalized) &&
+        isSupportedUrl(normalized)
       );
     }
   };
@@ -204,7 +206,9 @@ function initUrlInputHandler() {
     hideInlineError();
     previewTitleEl.textContent = data.title || "";
     previewDurationEl.textContent = data.duration
-      ? t("input.url.preview.duration", { duration: durationToStr(data.duration) })
+      ? t("input.url.preview.duration", {
+          duration: durationToStr(data.duration),
+        })
       : "";
     previewTitleEl.setAttribute("title", data.title || "");
     if (data.thumbnail) {
@@ -255,9 +259,12 @@ function initUrlInputHandler() {
         <span class="preview-playlist-chip">${t("input.url.preview.playlistCount", { count })}</span>
         ${
           playlistDuration > 0
-            ? `<span class="preview-playlist-chip">${t("input.url.preview.playlistDuration", {
-                duration: durationToStr(playlistDuration),
-              })}</span>`
+            ? `<span class="preview-playlist-chip">${t(
+                "input.url.preview.playlistDuration",
+                {
+                  duration: durationToStr(playlistDuration),
+                },
+              )}</span>`
             : ""
         }
       `;
@@ -265,7 +272,8 @@ function initUrlInputHandler() {
       if (!currentOnlyBtn) {
         currentOnlyBtn = document.createElement("button");
         currentOnlyBtn.id = "preview-current-only";
-        currentOnlyBtn.className = "preview-action-button preview-action-button--secondary";
+        currentOnlyBtn.className =
+          "preview-action-button preview-action-button--secondary";
         currentOnlyBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> ${t("input.url.preview.currentOnly")}`;
         currentOnlyBtn.setAttribute("data-bs-toggle", "tooltip");
         currentOnlyBtn.setAttribute("data-bs-placement", "top");

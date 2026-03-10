@@ -120,7 +120,9 @@ export default function renderDownloader(wrapper) {
       </button>
     `;
 
-    hdr.querySelector(".downloader-shell-header__meta")?.appendChild(toolsStatus);
+    hdr
+      .querySelector(".downloader-shell-header__meta")
+      ?.appendChild(toolsStatus);
     shell.appendChild(hdr);
     glass.appendChild(shell);
 

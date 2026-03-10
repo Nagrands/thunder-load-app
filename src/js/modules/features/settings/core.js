@@ -627,7 +627,8 @@ async function initSettings() {
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
   const themeLabel = document.getElementById("theme-selected-label");
-  const normalizeTheme = (theme) => (theme === "system" || !theme ? "dark" : theme);
+  const normalizeTheme = (theme) =>
+    theme === "system" || !theme ? "dark" : theme;
   const formatThemeLabel = (theme) => {
     const normalizedTheme = normalizeTheme(theme);
     const map = {

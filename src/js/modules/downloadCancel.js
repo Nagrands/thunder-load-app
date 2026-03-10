@@ -1,8 +1,6 @@
 // src/js/modules/downloadCancel.js
 
-import {
-  downloadCancelButton,
-} from "./domElements.js";
+import { downloadCancelButton } from "./domElements.js";
 import { updateButtonState } from "./state.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { showToast } from "./toast.js";

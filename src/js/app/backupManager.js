@@ -373,7 +373,12 @@ async function zipFolder(
             `[backup] .NET ZipFile fallback failed, trying tar.gz fallback: ${dotNetErr?.message || dotNetErr}`,
           );
           const tgz = zipPathLong.replace(/\.zip$/i, ".tar.gz");
-          return await zipFolder(folderPathLong, tgz, "tar.gz", compressionLevel);
+          return await zipFolder(
+            folderPathLong,
+            tgz,
+            "tar.gz",
+            compressionLevel,
+          );
         }
       }
     } else {
@@ -417,7 +422,8 @@ async function zipFolder(
 }
 
 function isArchiveModuleLoadError(error) {
-  const details = `${error?.message || ""}\n${error?.stdout || ""}\n${error?.stderr || ""}`.toLowerCase();
+  const details =
+    `${error?.message || ""}\n${error?.stdout || ""}\n${error?.stderr || ""}`.toLowerCase();
   return (
     details.includes("compress-archive") &&
     (details.includes("couldnotautoloadmatchingmodule") ||

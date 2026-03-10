@@ -47,9 +47,8 @@ describe("wgAutoShutdownNotifier", () => {
   });
 
   test("renders localized auto-shutdown toast content", async () => {
-    const { initWgAutoShutdownNotifier } = await import(
-      "../wgAutoShutdownNotifier.js"
-    );
+    const { initWgAutoShutdownNotifier } =
+      await import("../wgAutoShutdownNotifier.js");
 
     initWgAutoShutdownNotifier({ autosend: true });
     await flush();
@@ -65,16 +64,15 @@ describe("wgAutoShutdownNotifier", () => {
     expect(toast?.querySelector(".toast-action-btn")?.textContent.trim()).toBe(
       "wg.autoShutdown.toast.cancel",
     );
-    expect(toast?.querySelector(".toast-close")?.getAttribute("aria-label")).toBe(
-      "toast.close",
-    );
+    expect(
+      toast?.querySelector(".toast-close")?.getAttribute("aria-label"),
+    ).toBe("toast.close");
   });
 
   test("uses localized success toast after cancel", async () => {
     const { showToast } = require("../toast.js");
-    const { initWgAutoShutdownNotifier } = await import(
-      "../wgAutoShutdownNotifier.js"
-    );
+    const { initWgAutoShutdownNotifier } =
+      await import("../wgAutoShutdownNotifier.js");
 
     initWgAutoShutdownNotifier({ autosend: true });
     await flush();

@@ -710,7 +710,9 @@ function setupIpcHandlers(dependencies) {
   }
 
   function normalizeSorterConflictMode(value) {
-    const mode = String(value || "").trim().toLowerCase();
+    const mode = String(value || "")
+      .trim()
+      .toLowerCase();
     if (mode === "skip" || mode === "replace") return mode;
     return "rename";
   }
@@ -725,13 +727,13 @@ function setupIpcHandlers(dependencies) {
   }
 
   function normalizeSorterIgnoreFolders(value) {
-    return new Set(
-      parseSorterCsvList(value).map((item) => item.toLowerCase()),
-    );
+    return new Set(parseSorterCsvList(value).map((item) => item.toLowerCase()));
   }
 
   function isSorterManagedDirectoryName(name) {
-    const normalized = String(name || "").trim().toLowerCase();
+    const normalized = String(name || "")
+      .trim()
+      .toLowerCase();
     return (
       normalized === "other" ||
       sorterCategoryKeys.some((key) => key.toLowerCase() === normalized)
@@ -783,7 +785,9 @@ function setupIpcHandlers(dependencies) {
     const skippedItems = [];
 
     async function walk(currentDir, depth = 0) {
-      const entries = await fsPromises.readdir(currentDir, { withFileTypes: true });
+      const entries = await fsPromises.readdir(currentDir, {
+        withFileTypes: true,
+      });
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
         const normalizedName = String(entry.name || "").toLowerCase();
@@ -826,10 +830,7 @@ function setupIpcHandlers(dependencies) {
           });
           continue;
         }
-        if (
-          resolvedLogPath &&
-          path.resolve(fullPath) === resolvedLogPath
-        ) {
+        if (resolvedLogPath && path.resolve(fullPath) === resolvedLogPath) {
           skippedItems.push({
             fileName: entry.name,
             category: getSorterCategory(path.extname(entry.name)),
@@ -1015,15 +1016,12 @@ function setupIpcHandlers(dependencies) {
       }
 
       let moved = 0;
-      const { files, skippedItems } = await collectSorterFiles(
-        resolvedFolder,
-        {
-          recursive,
-          resolvedLogPath,
-          ignoreExtensions,
-          ignoreFolders,
-        },
-      );
+      const { files, skippedItems } = await collectSorterFiles(resolvedFolder, {
+        recursive,
+        resolvedLogPath,
+        ignoreExtensions,
+        ignoreFolders,
+      });
       operations.push(...skippedItems);
       let skipped = skippedItems.length;
 
@@ -1155,7 +1153,9 @@ function setupIpcHandlers(dependencies) {
       if (!content.trim()) {
         return { success: false, error: "Export content is empty" };
       }
-      const format = String(payload?.format || "txt").trim().toLowerCase();
+      const format = String(payload?.format || "txt")
+        .trim()
+        .toLowerCase();
       const normalizedFormat =
         format === "csv" || format === "json" ? format : "txt";
       const suggestedName =
@@ -1985,9 +1985,9 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(
     CHANNELS.TOAST,
     (event, message, type = "success", options = {}) => {
-    if (mainWindow && mainWindow.webContents) {
+      if (mainWindow && mainWindow.webContents) {
         mainWindow.webContents.send("toast", message, type, options);
-    }
+      }
     },
   );
 

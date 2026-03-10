@@ -1,0 +1,15 @@
+SiiNunit
+{
+mod_package : .package_name
+{
+    package_version: "1.00"
+    author: "PicSoul"
+	icon: "ETS2_TIB_mod_icon.jpg" 
+    description_file: "description.txt"
+    mp_mod_optional: true
+	category[]: "ui"
+}
+}
+
+
+

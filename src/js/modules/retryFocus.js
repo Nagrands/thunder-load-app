@@ -34,10 +34,16 @@ function focusUrlInputAfterRetry() {
   try {
     const topbarOffset = resolveTopbarOffset();
     const padding = 12;
-    if (scrollTarget && typeof scrollTarget.getBoundingClientRect === "function") {
+    if (
+      scrollTarget &&
+      typeof scrollTarget.getBoundingClientRect === "function"
+    ) {
       const rect = scrollTarget.getBoundingClientRect();
       const currentY = window.scrollY || window.pageYOffset || 0;
-      const targetTop = Math.max(0, rect.top + currentY - topbarOffset - padding);
+      const targetTop = Math.max(
+        0,
+        rect.top + currentY - topbarOffset - padding,
+      );
       window.scrollTo({ top: targetTop, behavior: "smooth" });
     } else if (typeof window.scrollTo === "function") {
       window.scrollTo({ top: 0, behavior: "smooth" });

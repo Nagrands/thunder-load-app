@@ -57,9 +57,9 @@ describe("updateHandler", () => {
       flyover?.querySelector("[data-i18n='update.flyover.available.action']")
         ?.textContent,
     ).toBe("update.flyover.available.action");
-    expect(flyover?.querySelector("#upd-close")?.getAttribute("aria-label")).toBe(
-      "modal.close",
-    );
+    expect(
+      flyover?.querySelector("#upd-close")?.getAttribute("aria-label"),
+    ).toBe("modal.close");
   });
 
   test("renders localized downloaded state content", async () => {

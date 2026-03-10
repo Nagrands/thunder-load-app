@@ -1,5 +1,5 @@
 export const downloaderTranslations = {
-  "ru": {
+  ru: {
     "quality.title": "Выбор качества",
     "quality.subtitle": "Загрузка",
     "quality.close": "Закрыть окно",
@@ -27,18 +27,24 @@ export const downloaderTranslations = {
     "quality.error": "Не удалось получить информацию о видео.",
     "quality.error.urlUnavailable": "Ссылка недоступна. Повторите ещё раз.",
     "quality.error.timeout": "Превышено время ожидания. Попробуйте ещё раз.",
-    "quality.error.formats": "Не удалось получить доступные качества: {message}",
+    "quality.error.formats":
+      "Не удалось получить доступные качества: {message}",
     "quality.retry": "Повторить",
     "quality.empty": "Нет вариантов для выбранного режима.",
-    "quality.empty.help": "Попробуйте переключить вкладку или нажать «Повторить».",
-    "quality.hint": "Выберите вариант выше, затем скачайте его сразу или добавьте в очередь.",
-    "quality.hint.queue": "Выберите вариант выше, затем нажмите Enter, чтобы добавить его в очередь.",
+    "quality.empty.help":
+      "Попробуйте переключить вкладку или нажать «Повторить».",
+    "quality.hint":
+      "Выберите вариант выше, затем скачайте его сразу или добавьте в очередь.",
+    "quality.hint.queue":
+      "Выберите вариант выше, затем нажмите Enter, чтобы добавить его в очередь.",
     "quality.hint.more": "Дополнительно: A — в очередь, Tab — фокус",
     "quality.selected": "Выбранный вариант",
     "quality.notSelected": "Вариант не выбран",
     "quality.selectHint": "Выберите качество в списке выше.",
-    "quality.resultPlaceholder": "Итог загрузки появится после выбора варианта.",
-    "quality.resultSummary": "Итог: {quality} • Контейнер: {container} • Размер: {size}",
+    "quality.resultPlaceholder":
+      "Итог загрузки появится после выбора варианта.",
+    "quality.resultSummary":
+      "Итог: {quality} • Контейнер: {container} • Размер: {size}",
     "quality.metric.resolution": "Разрешение",
     "quality.metric.fps": "FPS",
     "quality.metric.codec": "Кодек",
@@ -83,11 +89,13 @@ export const downloaderTranslations = {
     "downloader.jobSummary.badge": "Сейчас",
     "downloader.jobSummary.badgeError": "Ошибка",
     "downloader.jobSummary.idle": "Нет активных загрузок",
-    "downloader.jobSummary.idleMeta": "Очередь появится здесь, когда начнётся загрузка.",
+    "downloader.jobSummary.idleMeta":
+      "Очередь появится здесь, когда начнётся загрузка.",
     "downloader.tools.checking": "Проверяем инструменты…",
     "downloader.tools.hideTitle": "Скрыть статус",
     "downloader.tools.hideAria": "Скрыть статус инструментов",
-    "downloader.tools.reinstallTitle": "Переустановить зависимости (yt-dlp, ffmpeg, Deno)",
+    "downloader.tools.reinstallTitle":
+      "Переустановить зависимости (yt-dlp, ffmpeg, Deno)",
     "downloader.tools.reinstall": "Переустановить",
     "queue.label": "В очереди:",
     "queue.active.label": "Активно:",
@@ -112,28 +120,39 @@ export const downloaderTranslations = {
     "download.inProgress": "Загрузка в процессе — {summary}.",
     "download.pool.full": "Лимит одновременных загрузок достигнут.",
     "download.error.retry": "Не удалось загрузить. Повторите попытку.",
-    "download.error.networkTimeout": "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
-    "download.error.authRequired": "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.",
+    "download.error.networkTimeout":
+      "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
+    "download.error.authRequired":
+      "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.",
     "download.error.geoBlocked": "Видео недоступно в вашем регионе.",
     "download.error.unavailable": "Видео недоступно или было удалено.",
-    "download.error.privateContent": "Видео доступно только владельцу, подписчикам или участникам канала.",
-    "download.error.captchaRequired": "Источник запросил проверку или подтверждение входа. Обновите cookies и повторите попытку.",
-    "download.error.diskFull": "Недостаточно свободного места в папке загрузки.",
-    "download.error.permissionDenied": "Нет доступа к папке загрузки или целевому файлу.",
-    "download.error.youtubeRateLimit": "YouTube временно ограничил запросы. Повторите попытку позже.",
-    "download.error.youtubeRateLimitTimed": "YouTube временно ограничил запросы. Повторите примерно через {minutes} мин.",
+    "download.error.privateContent":
+      "Видео доступно только владельцу, подписчикам или участникам канала.",
+    "download.error.captchaRequired":
+      "Источник запросил проверку или подтверждение входа. Обновите cookies и повторите попытку.",
+    "download.error.diskFull":
+      "Недостаточно свободного места в папке загрузки.",
+    "download.error.permissionDenied":
+      "Нет доступа к папке загрузки или целевому файлу.",
+    "download.error.youtubeRateLimit":
+      "YouTube временно ограничил запросы. Повторите попытку позже.",
+    "download.error.youtubeRateLimitTimed":
+      "YouTube временно ограничил запросы. Повторите примерно через {minutes} мин.",
     "download.url.invalid": "Введите корректный URL.",
     "download.url.active": "URL уже загружается.",
     "download.url.queued": "URL уже есть в очереди.",
-    "download.url.downloaded": "Этот URL уже есть в истории для выбранного режима.",
+    "download.url.downloaded":
+      "Этот URL уже есть в истории для выбранного режима.",
     "download.complete.title": "Загрузка завершена!",
     "download.complete.savedAt": "Файл сохранен по пути:",
     "download.complete.openPrompt": "Открыть файл?",
     "download.complete.openError": "Не удалось открыть последнее видео.",
     "download.folder.resolveError": "Не удалось определить папку загрузок.",
-    "download.folder.lastMissing": "Последний файл не найден. Откройте текущую папку загрузок.",
+    "download.folder.lastMissing":
+      "Последний файл не найден. Откройте текущую папку загрузок.",
     "download.folder.openError": "Ошибка открытия папки загрузок.",
-    "download.lastFile.missing": "Не найден путь к последнему скачанному файлу.",
+    "download.lastFile.missing":
+      "Не найден путь к последнему скачанному файлу.",
     "download.folder.selectCancelled": "Выбор папки отменён.",
     "download.folder.selectError": "Не удалось выбрать папку.",
     "download.folder.changed": "Папка для загрузки изменена на: {path}",
@@ -151,7 +170,8 @@ export const downloaderTranslations = {
     "queue.clear.title": "Очистить очередь",
     "queue.clear.confirm.title": "Очистить очередь?",
     "queue.clear.confirm.subtitle": "Подтверждение",
-    "queue.clear.confirm.message": "Будут очищены все записи из очереди загрузки. Это действие нельзя отменить.",
+    "queue.clear.confirm.message":
+      "Будут очищены все записи из очереди загрузки. Это действие нельзя отменить.",
     "queue.clear.confirm.confirm": "Очистить всё",
     "queue.clear.confirm.cancel": "Отмена",
     "queue.cleared": "Очередь очищена.",
@@ -167,7 +187,8 @@ export const downloaderTranslations = {
     "queue.item.retry.title": "Повторить загрузку",
     "queue.item.retry.manual.title": "Повторить после исправления причины",
     "queue.item.retry.disabled.title": "Для этой ошибки нужен ручной шаг",
-    "queue.item.retry.disabled": "Эту задачу нельзя повторить автоматически. Сначала устраните причину ошибки.",
+    "queue.item.retry.disabled":
+      "Эту задачу нельзя повторить автоматически. Сначала устраните причину ошибки.",
     "queue.item.retrying": "Повторная загрузка запущена.",
     "queue.retryFailed.title": "Повторить неуспешные",
     "queue.retryFailed.toast": "Повтор: {count} задач",
@@ -184,7 +205,8 @@ export const downloaderTranslations = {
     "queue.start.title": "Запустить",
     "queue.pause": "Пауза",
     "queue.pause.title": "Пауза очереди",
-    "queue.pause.stoppedAndQueued": "Загрузка остановлена и возвращена в очередь.",
+    "queue.pause.stoppedAndQueued":
+      "Загрузка остановлена и возвращена в очередь.",
     "queue.toggle.collapse.title": "Свернуть очередь",
     "queue.toggle.expand.title": "Развернуть очередь",
     "queue.status.downloading": "Загрузка",
@@ -213,9 +235,9 @@ export const downloaderTranslations = {
     "queue.links.many": "ссылок",
     "quality.source": "Source",
     "quality.custom": "Custom",
-    "quality.audioOnly": "Audio Only"
+    "quality.audioOnly": "Audio Only",
   },
-  "en": {
+  en: {
     "quality.title": "Quality selection",
     "quality.subtitle": "Download",
     "quality.close": "Close dialog",
@@ -241,20 +263,25 @@ export const downloaderTranslations = {
     "quality.loading.detail": "This usually takes up to 15 seconds.",
     "quality.loading.detailTimed": "Finding formats… {seconds}s",
     "quality.error": "Failed to load video information.",
-    "quality.error.urlUnavailable": "The link is unavailable. Please try again.",
+    "quality.error.urlUnavailable":
+      "The link is unavailable. Please try again.",
     "quality.error.timeout": "The request timed out. Please try again.",
     "quality.error.formats": "Could not load available qualities: {message}",
     "quality.retry": "Retry",
     "quality.empty": "No options for this mode.",
     "quality.empty.help": "Try switching tabs or press Retry.",
-    "quality.hint": "Choose an option above, then download it now or add it to the queue.",
-    "quality.hint.queue": "Choose an option above, then press Enter to add it to the queue.",
+    "quality.hint":
+      "Choose an option above, then download it now or add it to the queue.",
+    "quality.hint.queue":
+      "Choose an option above, then press Enter to add it to the queue.",
     "quality.hint.more": "More: A to queue, Tab to focus",
     "quality.selected": "Selected option",
     "quality.notSelected": "No option selected",
     "quality.selectHint": "Pick a quality option from the list above.",
-    "quality.resultPlaceholder": "Final download output appears after selection.",
-    "quality.resultSummary": "Output: {quality} • Container: {container} • Size: {size}",
+    "quality.resultPlaceholder":
+      "Final download output appears after selection.",
+    "quality.resultSummary":
+      "Output: {quality} • Container: {container} • Size: {size}",
     "quality.metric.resolution": "Resolution",
     "quality.metric.fps": "FPS",
     "quality.metric.codec": "Codec",
@@ -299,11 +326,13 @@ export const downloaderTranslations = {
     "downloader.jobSummary.badge": "Now",
     "downloader.jobSummary.badgeError": "Failed",
     "downloader.jobSummary.idle": "No active downloads",
-    "downloader.jobSummary.idleMeta": "The current job appears here once a download starts.",
+    "downloader.jobSummary.idleMeta":
+      "The current job appears here once a download starts.",
     "downloader.tools.checking": "Checking tools…",
     "downloader.tools.hideTitle": "Hide status",
     "downloader.tools.hideAria": "Hide tools status",
-    "downloader.tools.reinstallTitle": "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
+    "downloader.tools.reinstallTitle":
+      "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
     "downloader.tools.reinstall": "Reinstall",
     "queue.label": "In queue:",
     "queue.active.label": "Active:",
@@ -328,28 +357,39 @@ export const downloaderTranslations = {
     "download.inProgress": "Download in progress — {summary}.",
     "download.pool.full": "Parallel download limit reached.",
     "download.error.retry": "Download failed. Please try again.",
-    "download.error.networkTimeout": "Could not reach YouTube. Check your connection and try again.",
-    "download.error.authRequired": "This video requires authorization. Add browser cookies and try again.",
+    "download.error.networkTimeout":
+      "Could not reach YouTube. Check your connection and try again.",
+    "download.error.authRequired":
+      "This video requires authorization. Add browser cookies and try again.",
     "download.error.geoBlocked": "This video is unavailable in your region.",
     "download.error.unavailable": "This video is unavailable or was removed.",
-    "download.error.privateContent": "This video is only available to the owner, subscribers, or channel members.",
-    "download.error.captchaRequired": "The source requested verification or sign-in confirmation. Refresh your cookies and try again.",
-    "download.error.diskFull": "There is not enough free space in the download folder.",
-    "download.error.permissionDenied": "The app cannot write to the download folder or target file.",
-    "download.error.youtubeRateLimit": "YouTube temporarily limited requests. Please try again later.",
-    "download.error.youtubeRateLimitTimed": "YouTube temporarily limited requests. Try again in about {minutes} minute(s).",
+    "download.error.privateContent":
+      "This video is only available to the owner, subscribers, or channel members.",
+    "download.error.captchaRequired":
+      "The source requested verification or sign-in confirmation. Refresh your cookies and try again.",
+    "download.error.diskFull":
+      "There is not enough free space in the download folder.",
+    "download.error.permissionDenied":
+      "The app cannot write to the download folder or target file.",
+    "download.error.youtubeRateLimit":
+      "YouTube temporarily limited requests. Please try again later.",
+    "download.error.youtubeRateLimitTimed":
+      "YouTube temporarily limited requests. Try again in about {minutes} minute(s).",
     "download.url.invalid": "Enter a valid URL.",
     "download.url.active": "This URL is already downloading.",
     "download.url.queued": "This URL is already queued.",
-    "download.url.downloaded": "This URL already exists in history for the selected mode.",
+    "download.url.downloaded":
+      "This URL already exists in history for the selected mode.",
     "download.complete.title": "Download complete!",
     "download.complete.savedAt": "File saved at:",
     "download.complete.openPrompt": "Open file?",
     "download.complete.openError": "Failed to open the last video.",
     "download.folder.resolveError": "Could not determine the downloads folder.",
-    "download.folder.lastMissing": "The last file was not found. Open the current downloads folder instead.",
+    "download.folder.lastMissing":
+      "The last file was not found. Open the current downloads folder instead.",
     "download.folder.openError": "Failed to open the downloads folder.",
-    "download.lastFile.missing": "The path to the last downloaded file was not found.",
+    "download.lastFile.missing":
+      "The path to the last downloaded file was not found.",
     "download.folder.selectCancelled": "Folder selection was canceled.",
     "download.folder.selectError": "Failed to choose a folder.",
     "download.folder.changed": "Downloads folder changed to: {path}",
@@ -367,7 +407,8 @@ export const downloaderTranslations = {
     "queue.clear.title": "Clear queue",
     "queue.clear.confirm.title": "Clear queue?",
     "queue.clear.confirm.subtitle": "Confirmation",
-    "queue.clear.confirm.message": "All download queue entries will be removed. This action cannot be undone.",
+    "queue.clear.confirm.message":
+      "All download queue entries will be removed. This action cannot be undone.",
     "queue.clear.confirm.confirm": "Clear all",
     "queue.clear.confirm.cancel": "Cancel",
     "queue.cleared": "Queue cleared.",
@@ -383,7 +424,8 @@ export const downloaderTranslations = {
     "queue.item.retry.title": "Retry download",
     "queue.item.retry.manual.title": "Retry after fixing the issue",
     "queue.item.retry.disabled.title": "This error needs manual action",
-    "queue.item.retry.disabled": "This job cannot be retried automatically yet. Resolve the issue first.",
+    "queue.item.retry.disabled":
+      "This job cannot be retried automatically yet. Resolve the issue first.",
     "queue.item.retrying": "Retry started.",
     "queue.retryFailed.title": "Retry failed",
     "queue.retryFailed.toast": "Retry: {count} task(s)",
@@ -400,7 +442,8 @@ export const downloaderTranslations = {
     "queue.start.title": "Start",
     "queue.pause": "Pause",
     "queue.pause.title": "Pause queue",
-    "queue.pause.stoppedAndQueued": "Download was stopped and returned to queue.",
+    "queue.pause.stoppedAndQueued":
+      "Download was stopped and returned to queue.",
     "queue.toggle.collapse.title": "Collapse queue",
     "queue.toggle.expand.title": "Expand queue",
     "queue.status.downloading": "Downloading",
@@ -429,6 +472,6 @@ export const downloaderTranslations = {
     "queue.links.many": "links",
     "quality.source": "Source",
     "quality.custom": "Custom",
-    "quality.audioOnly": "Audio Only"
-  }
+    "quality.audioOnly": "Audio Only",
+  },
 };

@@ -1,0 +1,93 @@
+SiiNunit
+{
+ui::window : _nameless.wnd {
+ window_handler: _nameless.18f.c430
+ clip_children: false
+ keep_aspect: none
+ user_string_data: ""
+ first_direction_focus_id: 0
+ fitting: false
+ my_children: 0
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 0
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: null
+}
+
+adviser_hud_widget_hdl : _nameless.18f.c430 {
+ hud_configs: 2
+ hud_configs[0]: .adv_hud_r
+ hud_configs[1]: .adv_hud_l
+ manage_chat_placement: true
+ window_link: _nameless.wnd
+}
+
+adviser_hud_configuration : .adv_hud_r
+{
+ hud_script_path: "/ui/adviser_gps.sii"
+ window_class: "adviser_hud_right"
+ window_keep_aspect_standard: center
+ window_keep_aspect_uk: center
+ ui_components: 1
+ ui_components[0]: 100
+ standard_positions: 1
+ standard_positions[0]: 50
+ uk_positions: 1
+ uk_positions[0]: 60
+ linear_layouts: 0
+ standard_layout_setup_command: 0
+ uk_layout_setup_command: 0
+ widget_ids: 3
+ widget_ids[0]: 1000
+ widget_ids[1]: 2000
+ widget_ids[2]: 3000
+ widget_types: 3
+ widget_types[0]: minimap
+ widget_types[1]: running_line
+ widget_types[2]: autoparking
+}
+
+adviser_hud_configuration : .adv_hud_l
+{
+ hud_script_path: "/ui/adviser_tachometer.sii"
+ window_class: "adviser_hud_left"
+ window_keep_aspect_standard: center
+ window_keep_aspect_uk: center
+ ui_components: 1
+ ui_components[0]: 200
+ standard_positions: 1
+ standard_positions[0]: 50
+ uk_positions: 1
+ uk_positions[0]: 60
+ linear_layouts: 3
+ linear_layouts[0]: 1000
+ linear_layouts[1]: 100
+ linear_layouts[2]: 110
+ standard_layout_setup_command: 3
+ standard_layout_setup_command[0]: "align_x=left, align_y=center, reverse=false"
+ standard_layout_setup_command[1]: "align_x=left, align_y=top, reverse=false"
+ standard_layout_setup_command[2]: "align_x=left, align_y=top, reverse=false"
+ uk_layout_setup_command: 3
+ uk_layout_setup_command[0]: "align_x=left, align_y=center, reverse=false"
+ uk_layout_setup_command[1]: "align_x=left, align_y=top, reverse=false"
+ uk_layout_setup_command[2]: "align_x=left, align_y=top, reverse=false"
+ widget_ids: 3
+ widget_ids[0]: 1000
+ widget_ids[1]: 2000
+ widget_ids[2]: 3000
+ widget_types: 3
+ widget_types[0]: indicators
+ widget_types[1]: tachometer
+ widget_types[2]: chat
+}
+
+}

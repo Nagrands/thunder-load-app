@@ -5,7 +5,10 @@ const { classifyDownloadError, getDownloadErrorMetaByCode } =
   globalThis.__thunderDownloadErrorClassifier || {};
 
 export function getDownloadErrorDetails(errorLike) {
-  if (errorLike?.errorCode && typeof getDownloadErrorMetaByCode === "function") {
+  if (
+    errorLike?.errorCode &&
+    typeof getDownloadErrorMetaByCode === "function"
+  ) {
     const meta = getDownloadErrorMetaByCode(errorLike.errorCode);
     return {
       ...meta,

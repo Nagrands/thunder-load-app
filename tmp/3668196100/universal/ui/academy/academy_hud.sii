@@ -1,0 +1,129 @@
+SiiNunit
+{
+ui_blend_window : _nameless.wnd {
+ blend_x_shift: 0
+ blend_y_shift: 0
+ window_handler: _nameless.1d6.c5c0
+ clip_children: true
+ keep_aspect: left
+ user_string_data: ""
+ first_direction_focus_id: 0
+ fitting: false
+ my_children: 3
+ my_children[0]: _nameless.281.3730
+ my_children[1]: _nameless._.non_uk_var
+ my_children[2]: _nameless._.uk_var
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 0
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: null
+}
+
+academy_hud_hdl : _nameless.1d6.c5c0 {
+ window_link: _nameless.wnd
+}
+
+ui::group : _nameless.281.3730 {
+ fitting: true
+ my_children: 1
+ my_children[0]: _nameless.27e.c220
+ coords_l: 160
+ coords_r: 288
+ coords_t: 514
+ coords_b: 386
+ area_l: 160
+ area_r: 288
+ area_t: 514
+ area_b: 386
+ id: 411
+ layer: 2
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::text : _nameless.27e.c220 {
+ text: "<img src=/material/ui/academy/instructions/pointing_arrow_left.mat>"
+ coords_l: 160
+ coords_r: 288
+ coords_t: 514
+ coords_b: 386
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 401
+ layer: -1
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.281.3730
+}
+
+ui::group : _nameless._.non_uk_var {
+ fitting: false
+ my_children: 1
+ my_children[0]: _nameless.144.2b50
+ coords_l: 160
+ coords_r: 560
+ coords_t: 900
+ coords_b: 596
+ area_l: 160
+ area_r: 560
+ area_t: 900
+ area_b: 596
+ id: 800
+ layer: 2
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::portal : _nameless.144.2b50 {
+ child_path: "/ui/academy/academy_hud_message.sii"
+ hslider_id: -1
+ vslider_id: -1
+ fitting: false
+ my_children: 0
+ coords_l: 160
+ coords_r: 560
+ coords_t: 900
+ coords_b: 596
+ area_l: 160
+ area_r: 560
+ area_t: 900
+ area_b: 596
+ id: 222
+ layer: 1
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.non_uk_var
+}
+
+ui::group : _nameless._.uk_var {
+ fitting: false
+ my_children: 0
+ coords_l: 160
+ coords_r: 298
+ coords_t: 890
+ coords_b: 522
+ area_l: 160
+ area_r: 298
+ area_t: 890
+ area_b: 522
+ id: 801
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+}

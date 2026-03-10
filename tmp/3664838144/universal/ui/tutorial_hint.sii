@@ -1,0 +1,247 @@
+SiiNunit
+{
+ui_blend_window : _nameless.wnd {
+ blend_x_shift: 0
+ blend_y_shift: 0
+ window_handler: _nameless.2d6.bd50
+ clip_children: true
+ keep_aspect: left
+ user_string_data: ""
+ first_direction_focus_id: 0
+ fitting: false
+ my_children: 3
+ my_children[0]: _nameless._.window.group
+ my_children[1]: _nameless._.normal.position
+ my_children[2]: _nameless._.uk.position
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 0
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: null
+}
+
+tutorial_hint_hdl : _nameless.2d6.bd50 {
+ window_link: _nameless.wnd
+}
+
+ui::group : _nameless._.window.group {
+ fitting: false
+ my_children: 3
+ my_children[0]: _nameless._.title.group
+ my_children[1]: _nameless._.text.group
+ my_children[2]: _nameless._.progress.bar
+ coords_l: 220
+ coords_r: 596
+ coords_t: 860
+ coords_b: 680
+ area_l: 220
+ area_r: 596
+ area_t: 860
+ area_b: 680
+ id: 200
+ layer: 13
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::group : _nameless._.title.group {
+ fitting: true
+ my_children: 3
+ my_children[0]: _nameless._.title.bg
+ my_children[1]: _nameless._.title.icon
+ my_children[2]: _nameless._.title.text
+ coords_l: 220
+ coords_r: 596
+ coords_t: 860
+ coords_b: 794
+ area_l: 220
+ area_r: 596
+ area_t: 860
+ area_b: 794
+ id: 100
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.window.group
+}
+
+ui::text_common : _nameless._.title.bg {
+ value: "@@clr_bg_main@@"
+ look_template: txt.tut_hint.title_bg
+ text: ""
+ coords_l: 220
+ coords_r: 596
+ coords_t: 860
+ coords_b: 794
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1000
+ layer: 1
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.title.group
+}
+
+ui::text_common : _nameless._.title.icon {
+ value: "@@clr_txt@@"
+ look_template: txt.tut_hint.icon
+ text: ""
+ coords_l: 240
+ coords_r: 276
+ coords_t: 845
+ coords_b: 809
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 3000
+ layer: 10
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.title.group
+}
+
+ui::text_common : _nameless._.title.text {
+ value: Title
+ look_template: txt.title.left
+ text: ""
+ coords_l: 286
+ coords_r: 576
+ coords_t: 836
+ coords_b: 818
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2000
+ layer: 10
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.title.group
+}
+
+ui::group : _nameless._.text.group {
+ fitting: true
+ my_children: 2
+ my_children[0]: _nameless._.text.bg
+ my_children[1]: _nameless._.text.text
+ coords_l: 220
+ coords_r: 596
+ coords_t: 794
+ coords_b: 680
+ area_l: 220
+ area_r: 596
+ area_t: 794
+ area_b: 680
+ id: 101
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.window.group
+}
+
+ui::text_common : _nameless._.text.bg {
+ value: "@@clr_bg_dark_transparent@@"
+ look_template: txt.tut_hint.text_bg
+ text: ""
+ coords_l: 220
+ coords_r: 596
+ coords_t: 794
+ coords_b: 680
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 1001
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.text.group
+}
+
+ui::text_common : _nameless._.text.text {
+ value: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+ look_template: txt.normal.left.top
+ text: ""
+ coords_l: 240
+ coords_r: 576
+ coords_t: 784
+ coords_b: 690
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 2001
+ layer: 10
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.text.group
+}
+
+ui::text_common : _nameless._.progress.bar {
+ value: "@@clr_white@@|0"
+ look_template: txt.progress_bar
+ text: ""
+ coords_l: 220
+ coords_r: 596
+ coords_t: 795
+ coords_b: 793
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 4000
+ layer: 5
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.window.group
+}
+
+ui::group : _nameless._.normal.position {
+ fitting: false
+ my_children: 0
+ coords_l: 220
+ coords_r: 596
+ coords_t: 860
+ coords_b: 680
+ area_l: 213
+ area_r: 341
+ area_t: 900
+ area_b: 772
+ id: 201
+ layer: 11
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+ui::group : _nameless._.uk.position {
+ fitting: false
+ my_children: 0
+ coords_l: 1057
+ coords_r: 1433
+ coords_t: 860
+ coords_b: 680
+ area_l: 0
+ area_r: 128
+ area_t: 900
+ area_b: 772
+ id: 202
+ layer: 12
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.wnd
+}
+
+}

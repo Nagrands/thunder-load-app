@@ -1,0 +1,85 @@
+SiiNunit
+{
+ui_blend_only_window : _nameless._.window {
+ blend_x_shift: 0
+ blend_y_shift: 0
+ window_handler: null
+ clip_children: true
+ keep_aspect: right
+ user_string_data: ""
+ first_direction_focus_id: 0
+ fitting: false
+ my_children: 1
+ my_children[0]: _nameless.00c30ded1
+ coords_l: 0
+ coords_r: 1440
+ coords_t: 900
+ coords_b: 0
+ area_l: 0
+ area_r: 1440
+ area_t: 900
+ area_b: 0
+ id: 0
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: null
+}
+
+ui::group : _nameless.00c30ded1 {
+ fitting: false
+ my_children: 2
+ my_children[0]: _nameless._.overlay
+ my_children[1]: _nameless._.rightmirror
+ coords_l: 1222
+ coords_r: 1426
+ coords_t: 903
+ coords_b: 638
+ area_l: 1226
+ area_r: 1426
+ area_t: 903
+ area_b: 637
+ id: 400
+ layer: 0
+ tab: -1
+ pointer: -1
+ my_parent: _nameless._.window
+}
+
+ui::text : _nameless._.overlay {
+ text: "<img src=/material/ui/white.mat color=@@clr_mirror_frame@@ xscale=stretch yscale=stretch>"
+ coords_l: 1224
+ coords_r: 1424
+ coords_t: 900
+ coords_b: 637
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 0
+ layer: 2
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.00c30ded1
+}
+
+ui::text_common : _nameless._.rightmirror {
+ value: far
+ look_template: txt.mirrors
+ text: ""
+ coords_l: 1228
+ coords_r: 1420
+ coords_t: 896
+ coords_b: 641
+ area_l: 1
+ area_r: 0
+ area_t: 0
+ area_b: 1
+ id: 10
+ layer: 3
+ tab: -1
+ pointer: -1
+ my_parent: _nameless.00c30ded1
+}
+
+}

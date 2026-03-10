@@ -254,7 +254,8 @@ describe("Downloader history list", () => {
       row.querySelector('.history-row__action[title="Открыть файл"]')?.disabled,
     ).toBe(true);
     expect(
-      row.querySelector('.history-row__action[title="Открыть папку"]')?.disabled,
+      row.querySelector('.history-row__action[title="Открыть папку"]')
+        ?.disabled,
     ).toBe(true);
 
     const toggle = row.querySelector(".history-row__toggle");

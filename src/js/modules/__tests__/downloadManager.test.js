@@ -597,8 +597,7 @@ describe("downloadManager job summary", () => {
 
       updateQueueDisplay();
 
-      const queueText =
-        document.getElementById("queue-list").textContent || "";
+      const queueText = document.getElementById("queue-list").textContent || "";
       expect(queueText).toContain("Скачивание данных");
       expect(queueText).toContain("ETA");
       expect(queueText).toContain("Аудио");
@@ -627,7 +626,9 @@ describe("downloadManager job summary", () => {
         queueClearFailedButton: document.getElementById(
           "queue-clear-failed-button",
         ),
-        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueClearDoneButton: document.getElementById(
+          "queue-clear-done-button",
+        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -655,8 +656,7 @@ describe("downloadManager job summary", () => {
 
       updateQueueDisplay();
 
-      const queueText =
-        document.getElementById("queue-list").textContent || "";
+      const queueText = document.getElementById("queue-list").textContent || "";
       expect(queueText).toContain("Нужна авторизация");
       expect(queueText).toContain("Нужен ручной шаг");
     });
@@ -683,7 +683,9 @@ describe("downloadManager job summary", () => {
         queueClearFailedButton: document.getElementById(
           "queue-clear-failed-button",
         ),
-        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueClearDoneButton: document.getElementById(
+          "queue-clear-done-button",
+        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -754,7 +756,9 @@ describe("downloadManager queue smart logic", () => {
         queueClearFailedButton: document.getElementById(
           "queue-clear-failed-button",
         ),
-        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueClearDoneButton: document.getElementById(
+          "queue-clear-done-button",
+        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -767,7 +771,10 @@ describe("downloadManager queue smart logic", () => {
       }));
 
       const { state } = require("../state");
-      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
 
       state.failedDownloads = [
         {
@@ -820,7 +827,9 @@ describe("downloadManager queue smart logic", () => {
         queueClearFailedButton: document.getElementById(
           "queue-clear-failed-button",
         ),
-        queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+        queueClearDoneButton: document.getElementById(
+          "queue-clear-done-button",
+        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -833,7 +842,10 @@ describe("downloadManager queue smart logic", () => {
       }));
 
       const { state } = require("../state");
-      const { initDownloadButton, updateQueueDisplay } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
 
       state.completedDownloads = [
         {
@@ -1184,10 +1196,8 @@ describe("downloadManager queue smart logic", () => {
         t: jest.fn((key, params = {}) => {
           if (key === "queue.status.downloading") return "Загрузка";
           if (key === "queue.status.error") return "Ошибка";
-          if (key === "queue.reason.authRequired")
-            return "Нужна авторизация";
-          if (key === "queue.retryState.needsAction")
-            return "Нужен ручной шаг";
+          if (key === "queue.reason.authRequired") return "Нужна авторизация";
+          if (key === "queue.retryState.needsAction") return "Нужен ручной шаг";
           if (key === "queue.pill.pending")
             return `${params.count || 0} в очереди`;
           if (key === "queue.pill.active")
@@ -1744,7 +1754,9 @@ describe("downloadManager progress activity class", () => {
         window.electron.ipcRenderer.invoke.mock.calls.filter(
           ([channel]) => channel === "get-video-info",
         ).length;
-      expect(previewInfoCallCountAfterAwait).toBe(previewInfoCallCountBeforeAwait);
+      expect(previewInfoCallCountAfterAwait).toBe(
+        previewInfoCallCountBeforeAwait,
+      );
       expect(progressBarContainer.classList.contains("is-active")).toBe(false);
       expect(
         progressBarContainer.style.getPropertyValue("--progress-ratio"),
@@ -2131,7 +2143,10 @@ describe("downloadManager progress activity class", () => {
       const { initiateDownload } = require("../downloadManager");
       const { state } = require("../state");
 
-      const result = await initiateDownload("https://example.com/done", "Source");
+      const result = await initiateDownload(
+        "https://example.com/done",
+        "Source",
+      );
 
       expect(result).toBeUndefined();
       expect(state.activeDownloads).toHaveLength(0);
@@ -2569,7 +2584,10 @@ describe("downloadManager parallel pool", () => {
       jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
 
       const { state } = require("../state");
-      const { initDownloadButton, initiateDownload } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        initiateDownload,
+      } = require("../downloadManager");
 
       initDownloadButton();
       state.maxParallelDownloads = 1;
@@ -2687,7 +2705,10 @@ describe("downloadManager parallel pool", () => {
       jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
 
       const { state } = require("../state");
-      const { initDownloadButton, initiateDownload } = require("../downloadManager");
+      const {
+        initDownloadButton,
+        initiateDownload,
+      } = require("../downloadManager");
 
       initDownloadButton();
       state.maxParallelDownloads = 2;

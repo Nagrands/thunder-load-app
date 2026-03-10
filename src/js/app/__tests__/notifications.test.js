@@ -81,8 +81,10 @@ describe("notifications", () => {
   });
 
   test("formats disk-full errors into user-friendly text", () => {
-    const { formatDownloadErrorMessage, classifyDownloadError } =
-      require("../notifications.js");
+    const {
+      formatDownloadErrorMessage,
+      classifyDownloadError,
+    } = require("../notifications.js");
 
     expect(
       classifyDownloadError(new Error("ENOSPC: no space left on device")),
@@ -91,14 +93,14 @@ describe("notifications", () => {
       retryable: false,
     });
     expect(
-      formatDownloadErrorMessage(
-        new Error("ENOSPC: no space left on device"),
-      ),
+      formatDownloadErrorMessage(new Error("ENOSPC: no space left on device")),
     ).toContain("места");
   });
 
   test("formats missing tools message when both dependencies are unavailable", () => {
-    const { formatMissingDownloadToolsMessage } = require("../notifications.js");
+    const {
+      formatMissingDownloadToolsMessage,
+    } = require("../notifications.js");
 
     expect(
       formatMissingDownloadToolsMessage({
@@ -109,7 +111,9 @@ describe("notifications", () => {
   });
 
   test("formats missing tools message when yt-dlp is unavailable", () => {
-    const { formatMissingDownloadToolsMessage } = require("../notifications.js");
+    const {
+      formatMissingDownloadToolsMessage,
+    } = require("../notifications.js");
 
     expect(
       formatMissingDownloadToolsMessage({

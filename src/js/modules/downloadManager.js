@@ -77,7 +77,11 @@ function updateDownloaderTabLabel() {
     const activeCount = getActiveDownloadJobs(state).length;
     const failedCount = getFailedDownloadJobs(state).length;
     const doneCount = getCompletedDownloadJobs(state).length;
-    const count = activeCount + getPendingDownloadJobs(state).length + failedCount + doneCount;
+    const count =
+      activeCount +
+      getPendingDownloadJobs(state).length +
+      failedCount +
+      doneCount;
     const base = t("tabs.download");
     label.textContent = base;
     if (badge) {
@@ -225,7 +229,8 @@ function refreshPendingQueueTitles() {
       signature,
       onResolved: (title) => {
         const pendingJob = findDownloadJob(state, signature);
-        if (!title || pendingJob?.title === title || item.title === title) return;
+        if (!title || pendingJob?.title === title || item.title === title)
+          return;
         patchDownloadJob(state, signature, { title });
         item.title = title;
         persistQueue();
@@ -420,7 +425,8 @@ function updateDownloadJobSummary() {
     const badge = document.getElementById("downloader-job-summary-badge");
     if (badge) badge.textContent = t("downloader.jobSummary.badgeError");
     jobSummary.classList.remove("hidden");
-    jobSummaryTitle.textContent = failedTitle || t("downloader.jobSummary.idle");
+    jobSummaryTitle.textContent =
+      failedTitle || t("downloader.jobSummary.idle");
     jobSummaryMeta.textContent = [
       getQueueReasonLabel(latestFailed),
       getQueueRetryStateLabel(latestFailed),
@@ -439,7 +445,9 @@ function updateDownloadJobSummary() {
     metaParts.push(t(stageKey));
   }
   if (Number.isFinite(Number(current.progress))) {
-    metaParts.push(`${Math.max(0, Math.min(100, Number(current.progress))).toFixed(0)}%`);
+    metaParts.push(
+      `${Math.max(0, Math.min(100, Number(current.progress))).toFixed(0)}%`,
+    );
   }
   const etaLabel = formatEtaEstimate(current.createdAt, current.progress);
   if (etaLabel) {
@@ -454,7 +462,9 @@ function updateDownloadJobSummary() {
 }
 
 function findActiveDownload(jobId) {
-  return getActiveDownloadJobs(state).find((item) => item.jobId === jobId) || null;
+  return (
+    getActiveDownloadJobs(state).find((item) => item.jobId === jobId) || null
+  );
 }
 
 function addActiveDownload(entry) {
@@ -468,7 +478,9 @@ function addActiveDownload(entry) {
 
 function getCurrentDownloadSignatures() {
   return new Set(
-    getActiveDownloadJobs(state).map((item) => item.signature).filter(Boolean),
+    getActiveDownloadJobs(state)
+      .map((item) => item.signature)
+      .filter(Boolean),
   );
 }
 
@@ -481,7 +493,9 @@ function getFailedSignatures() {
 }
 
 function getRetryableFailedJobs() {
-  return getFailedDownloadJobs(state).filter((item) => item.retryable !== false);
+  return getFailedDownloadJobs(state).filter(
+    (item) => item.retryable !== false,
+  );
 }
 
 function removeFailedBySignature(signature) {
@@ -1044,7 +1058,8 @@ function updateQueueDisplay() {
       item.status === "downloading"
         ? formatEtaEstimate(item.createdAt, item.progress)
         : "";
-    const reasonLabel = item.status === "error" ? getQueueReasonLabel(item) : "";
+    const reasonLabel =
+      item.status === "error" ? getQueueReasonLabel(item) : "";
     const retryStateLabel =
       item.status === "error" ? getQueueRetryStateLabel(item) : "";
     const qualityLabel = getQueueQualityLabel(item.quality);
@@ -1188,7 +1203,10 @@ function resetDownloadUiState(options = {}) {
   if (downloadCancelButton) {
     downloadCancelButton.disabled = true;
     downloadCancelButton.setAttribute("title", t("actions.cancelDownload"));
-    downloadCancelButton.setAttribute("aria-label", t("actions.cancelDownload"));
+    downloadCancelButton.setAttribute(
+      "aria-label",
+      t("actions.cancelDownload"),
+    );
     downloadCancelButton.setAttribute(
       "data-bs-original-title",
       t("actions.cancelDownload"),
@@ -1574,10 +1592,13 @@ const initiateDownload = async (url, quality, options = {}) => {
         };
         await addNewEntryToHistory({
           id: `${jobId}-failed`,
-          fileName: resolvedTitle || makeQueueTitle(url) || makeQueueUrlLabel(url),
+          fileName:
+            resolvedTitle || makeQueueTitle(url) || makeQueueUrlLabel(url),
           filePath: "",
           quality:
-            typeof quality === "string" ? quality : quality?.label || t("quality.custom"),
+            typeof quality === "string"
+              ? quality
+              : quality?.label || t("quality.custom"),
           sourceUrl: url,
           dateTime: new Date().toLocaleString("ru-RU", { hour12: false }),
           downloadStatus: "failed",
@@ -1774,7 +1795,9 @@ const handleDownloadButtonClick = async (options = {}) => {
       return;
     }
     if (
-      getPendingDownloadJobs(state).some((item) => isSameQueueTask(item, candidateTask))
+      getPendingDownloadJobs(state).some((item) =>
+        isSameQueueTask(item, candidateTask),
+      )
     ) {
       showToast(t("download.url.queued"), "info");
       return;
@@ -1795,26 +1818,26 @@ const handleDownloadButtonClick = async (options = {}) => {
       );
       return;
     }
-      const queuedItem = normalizeQueueItem({
-        url,
-        quality: payload,
-        status: "pending",
-      });
-      upsertDownloadJob(state, {
-        ...queuedItem,
-        status: JOB_STATUS.pending,
-      });
-      const queuedSignature = getQueueSignature(url, payload);
-      void ensureQueueTitle(url, {
-        signature: queuedSignature,
-        onResolved: (title) => {
-          const pendingJob = findDownloadJob(state, queuedSignature);
-          if (!title || !pendingJob || pendingJob.title === title) return;
-          patchDownloadJob(state, queuedSignature, { title });
-          persistQueue();
-          updateQueueDisplay();
-        },
-      });
+    const queuedItem = normalizeQueueItem({
+      url,
+      quality: payload,
+      status: "pending",
+    });
+    upsertDownloadJob(state, {
+      ...queuedItem,
+      status: JOB_STATUS.pending,
+    });
+    const queuedSignature = getQueueSignature(url, payload);
+    void ensureQueueTitle(url, {
+      signature: queuedSignature,
+      onResolved: (title) => {
+        const pendingJob = findDownloadJob(state, queuedSignature);
+        if (!title || !pendingJob || pendingJob.title === title) return;
+        patchDownloadJob(state, queuedSignature, { title });
+        persistQueue();
+        updateQueueDisplay();
+      },
+    });
     persistQueue();
     console.log(QUEUE_LOG_TAG, "enqueueOne", { url, from: "modal/button" });
     showToast(t("queue.added"), "info");
@@ -1864,12 +1887,16 @@ function initDownloadButton() {
         tone: "danger",
       });
       if (!confirmed) return;
-      replaceDownloadJobsByStatus(state, [
-        JOB_STATUS.pending,
-        JOB_STATUS.paused,
-        JOB_STATUS.failed,
-        JOB_STATUS.done,
-      ], []);
+      replaceDownloadJobsByStatus(
+        state,
+        [
+          JOB_STATUS.pending,
+          JOB_STATUS.paused,
+          JOB_STATUS.failed,
+          JOB_STATUS.done,
+        ],
+        [],
+      );
       persistQueue();
       persistFailedQueue();
       updateQueueDisplay();
@@ -2220,7 +2247,9 @@ function initDownloadButton() {
   window.addEventListener("download:progress-item", (event) => {
     const jobId = event?.detail?.jobId;
     const progress = Number(event?.detail?.progress);
-    const phase = String(event?.detail?.phase || "").trim().toLowerCase();
+    const phase = String(event?.detail?.phase || "")
+      .trim()
+      .toLowerCase();
     if (!jobId || !Number.isFinite(progress)) return;
     const active = findActiveDownload(jobId);
     if (!active) return;

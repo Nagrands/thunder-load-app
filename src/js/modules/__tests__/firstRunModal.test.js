@@ -100,12 +100,12 @@ describe("firstRunModal", () => {
     expect(document.getElementById("first-run-primary")?.textContent).toBe(
       "firstRun.apply",
     );
-    expect(document.getElementById("first-run-summary-language")?.textContent).toBe(
-      "language.en",
-    );
-    expect(document.getElementById("first-run-summary-theme")?.textContent).toBe(
-      "settings.appearance.theme.midnight",
-    );
+    expect(
+      document.getElementById("first-run-summary-language")?.textContent,
+    ).toBe("language.en");
+    expect(
+      document.getElementById("first-run-summary-theme")?.textContent,
+    ).toBe("settings.appearance.theme.midnight");
     expect(document.getElementById("first-run-summary-tabs")?.textContent).toBe(
       "tabs.download, tabs.tools",
     );

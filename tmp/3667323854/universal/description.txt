@@ -1,0 +1,6 @@
+Modifies the game's UI layout to hide the new tachometer [u]AND the map[/u] but includes all the useful information they have, like the fuel level, headlight info, turn signal info, selected gear, cruise control info, Game time, speed, speed limit, and cruise control and puts the info all in a bar along the top of the screen just above the mirrors that have been resized a bit smaller. Other things like the running line bar that tells you company info has also been moved into the top bar. 
+
+[b][u]NOTE: I have hidden the Map and Tachometer but am using the info from them so you need to keep them shown in the F6 menu in order to show them in the top bar.[/u][/b]
+
+[h1] This mod is only for ETS2 1.58.* [/h1]
+
