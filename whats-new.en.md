@@ -11,3 +11,4 @@
 | Updated development rules | Clearer architecture, build, UI, and IPC guidance for stable changes |
 | Updated documentation | Consistent, up-to-date development and scripts guidance |
 | Fixed first-run step counter | The label no longer shows `{current}` and `{total}` placeholders |
+| Improved download cancel button | The X icon is now centered |

@@ -417,9 +417,20 @@
 
   .downloader-action-row__cancel {
     position: relative;
+    display: inline-grid;
+    place-items: center;
+    gap: 0;
+    line-height: 0;
     border-color: rgba(255, 126, 126, 0.14);
     color: rgba(255, 182, 182, 0.78);
     background: transparent;
+
+    i {
+      margin: 0;
+      display: block;
+      line-height: 1;
+      transform: translateY(0.5px);
+    }
 
     &:hover:not(:disabled) {
       border-color: rgba(255, 126, 126, 0.22);
