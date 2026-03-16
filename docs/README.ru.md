@@ -4,7 +4,7 @@
 
 ## Загрузка
 
-- Готовые сборки для macOS, Windows — на вкладке [Releases](https://github.com/Nagrands/thunder-load-app/releases).
+- Готовые сборки для macOS, Windows, Linux — на вкладке [Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Установка на macOS (см. ниже).
 
 ## Возможности
@@ -31,11 +31,17 @@
 | ------------------------------------------- | ------------------------------------------------- |
 | `npm start`                                 | Запуск приложения (сборка шаблонов перед стартом) |
 | `npm run dev`                               | Dev-режим с `--dev`                               |
+| `npm run dev:watch`                         | Dev-режим + автосборка whats-new                  |
 | `npm run build`                             | Сборка дистрибутива                               |
 | `npm run build-mac` / `npm run build-linux` | Сборки под конкретную ОС                          |
 | `npm test`                                  | Тесты Jest                                        |
+| `npm run check`                             | Линт + тесты                                      |
+| `npm run css:build`                         | Сборка CSS из SCSS                                |
+| `npm run css:watch`                         | Автосборка SCSS                                   |
 | `npm run templates:build`                   | Регенерация HTML из Nunjucks                      |
 | `npm run templates:watch`                   | Автосборка шаблонов при изменениях                |
+| `npm run whats-new:build`                   | Сборка релизных заметок                           |
+| `npm run whats-new:watch`                   | Автосборка релизных заметок                       |
 | `npm run format`                            | Prettier форматирование                           |
 
 ## Установка на macOS

@@ -61,11 +61,17 @@
 | ------------------------------------------- | -------------------------------------------------- |
 | `npm start`                                 | Run the Electron app (builds templates beforehand) |
 | `npm run dev`                               | Run in dev mode with `--dev` flag                  |
+| `npm run dev:watch`                         | Dev mode + rebuild `whats-new` on edits            |
 | `npm run build`                             | Package the app for your platform                  |
 | `npm run build-mac` / `npm run build-linux` | Platform-specific builds                           |
 | `npm test`                                  | Run Jest tests                                     |
+| `npm run check`                             | Lint + tests                                       |
+| `npm run css:build`                         | Build CSS from SCSS                                |
+| `npm run css:watch`                         | Watch & rebuild SCSS                               |
 | `npm run templates:build`                   | Rebuild HTML from Nunjucks templates               |
 | `npm run templates:watch`                   | Watch & rebuild templates on change                |
+| `npm run whats-new:build`                   | Build release notes from `whats-new*.md`           |
+| `npm run whats-new:watch`                   | Watch & rebuild release notes                      |
 | `npm run format`                            | Format sources with Prettier                       |
 
 ---
@@ -83,8 +89,11 @@ npm install
 Run the app in development mode:
 
 ```bash
-npm start
+npm run dev
 ```
+
+If you edit templates, styles, or release notes, run the matching build scripts
+or use the `*:watch` commands.
 
 ## Installation
 

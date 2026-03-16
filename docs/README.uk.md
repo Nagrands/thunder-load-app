@@ -31,11 +31,17 @@
 | ------------------------------------------- | --------------------------------------------------- |
 | `npm start`                                 | Запуск застосунку (збирання шаблонів перед стартом) |
 | `npm run dev`                               | Dev-режим з `--dev`                                 |
+| `npm run dev:watch`                         | Dev-режим + автозбирання whats-new                  |
 | `npm run build`                             | Збирання дистрибутива                               |
 | `npm run build-mac` / `npm run build-linux` | Збирання під конкретну ОС                           |
 | `npm test`                                  | Тести Jest                                          |
+| `npm run check`                             | Лінт + тести                                        |
+| `npm run css:build`                         | Збирання CSS зі SCSS                                |
+| `npm run css:watch`                         | Автозбирання SCSS                                   |
 | `npm run templates:build`                   | Регенерація HTML із Nunjucks                        |
 | `npm run templates:watch`                   | Автозбирання шаблонів при змінах                    |
+| `npm run whats-new:build`                   | Збирання релізних нотаток                           |
+| `npm run whats-new:watch`                   | Автозбирання релізних нотаток                       |
 | `npm run format`                            | Форматування Prettier                               |
 
 ## Встановлення на macOS
