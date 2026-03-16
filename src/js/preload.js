@@ -44,6 +44,12 @@ try {
     "delete-file",
     "download-update",
     "download-video",
+    // main -> renderer events (subscribed via window.electron.on)
+    "download-complete",
+    "download-path-changed",
+    "open-settings",
+    "open-site",
+    "wg-auto-shutdown-updated",
     "get-auto-launch-status",
     "get-auto-shutdown-deadline",
     "get-auto-shutdown-seconds",

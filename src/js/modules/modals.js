@@ -10,6 +10,32 @@ import {
 import { t } from "./i18n.js";
 import { hideAllTooltips } from "./tooltipInitializer.js";
 
+const CONFIRMATION_HTML_ALLOWED_TAGS = [
+  "strong",
+  "em",
+  "b",
+  "i",
+  "br",
+  "code",
+  "span",
+  "div",
+  "p",
+  "h4",
+  "hr",
+];
+
+function sanitizeConfirmationHtml(html) {
+  const purifier = window?.DOMPurify;
+  if (!purifier || typeof purifier.sanitize !== "function") {
+    return null;
+  }
+  return purifier.sanitize(html, {
+    ALLOWED_TAGS: CONFIRMATION_HTML_ALLOWED_TAGS,
+    // DOMPurify expects a flat list of attributes, not per-tag maps.
+    ALLOWED_ATTR: ["class"],
+  });
+}
+
 /**
  * Закрывает все модальные окна.
  */
@@ -78,10 +104,17 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     return Promise.resolve(false);
   }
 
-  if (allowHtml) {
-    confirmationMessage.innerHTML = String(message || "");
+  const msgText = String(message || "");
+  if (!allowHtml) {
+    confirmationMessage.textContent = msgText;
   } else {
-    confirmationMessage.textContent = String(message || "");
+    const safeHtml = sanitizeConfirmationHtml(msgText);
+    if (typeof safeHtml === "string") {
+      confirmationMessage.innerHTML = safeHtml;
+    } else {
+      // Fallback: avoid rendering raw HTML when DOMPurify is unavailable.
+      confirmationMessage.textContent = msgText;
+    }
   }
   titleEl.textContent = title;
   subtitleEl.textContent = subtitle;

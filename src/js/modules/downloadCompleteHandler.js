@@ -16,26 +16,29 @@ function initDownloadCompleteHandler() {
 
     if (!isDisabled) {
       showConfirmationDialog(
-        `
-        <h4 class="toast-success">${t("download.complete.title")}</h4>
-        <br>
-        <div class="info-entry">
-            <p class="info-complete">
-                <i class="fa-solid fa-film"></i>
-                ${title}
-            </p>
-        </div>
-        <hr>
-        <h4 class="toast-info">${t("download.complete.savedAt")}</h4>
-        <br>
-        <div class="info-entry">
-            <span class="quality">
-                <i class="fa-solid fa-folder-tree"></i>
-                ${filePath}
-            </span>
-        </div>
-        <hr>
-        <h4 class="toast-warning">${t("download.complete.openPrompt")}</h4>`,
+        {
+          allowHtml: true,
+          message: `
+          <h4 class="toast-success">${t("download.complete.title")}</h4>
+          <br>
+          <div class="info-entry">
+              <p class="info-complete">
+                  <i class="fa-solid fa-film"></i>
+                  ${title}
+              </p>
+          </div>
+          <hr>
+          <h4 class="toast-info">${t("download.complete.savedAt")}</h4>
+          <br>
+          <div class="info-entry">
+              <span class="quality">
+                  <i class="fa-solid fa-folder-tree"></i>
+                  ${filePath}
+              </span>
+          </div>
+          <hr>
+          <h4 class="toast-warning">${t("download.complete.openPrompt")}</h4>`,
+        },
         async () => {
           try {
             await window.electron.invoke("open-last-video", filePath);

@@ -50,13 +50,13 @@
 }
 
 .history-area {
-  margin: 20px 0;
-  padding: 20px;
+  margin: 20px 10px;
+  padding: 10px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.075);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  background: rgba(10, 12, 22, 0.28);
+  background: var(--color-hover);
   position: relative;
   z-index: 0;
 }
@@ -1705,10 +1705,7 @@
 }
 
 .history-area {
-  margin: 20px auto;
   background-color: var(--color-url-bg);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
 }
 
 .history-panel-shell {
@@ -1735,8 +1732,6 @@
 .history-search-filters-card {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: var(--color-url-bg);
   overflow: visible;
 }
 
@@ -1747,6 +1742,8 @@
 .history-toolbar {
   justify-content: space-between;
   gap: 12px;
+  padding: 0 12px;
+  margin: 10px 0;
 }
 
 .history-actions-card {

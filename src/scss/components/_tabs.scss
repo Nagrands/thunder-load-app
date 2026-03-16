@@ -103,10 +103,9 @@
   gap: 12px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 16px;
-  padding: 14px;
-  margin: 10px 0;
-  backdrop-filter: blur(3px);
+  border-radius: var(--border-radius);
+  padding: 8px;
+  margin: 10px;
 
   &.hidden {
     display: none;
@@ -181,13 +180,12 @@
   .queue-count-pill {
     display: inline-flex;
     align-items: center;
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.93);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    height: 25px;
+    padding: 0 15px;
+    border-radius: var(--border-radius);
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-highlight);
   }
 
   .queue-count-pill--active {
@@ -224,14 +222,13 @@
   }
 
   .queue-action-button {
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     min-height: 36px;
     padding: 0 11px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--color-highlight);
     background: rgba(255, 255, 255, 0.07);
     transition:
       opacity 0.2s ease,
@@ -254,9 +251,7 @@
   }
 
   .queue-action-button--start {
-    background: rgba(74, 158, 255, 0.2);
-    border-color: rgba(74, 158, 255, 0.45);
-    color: #8fc1ff;
+    color: var(--color-accent);
   }
 
   .queue-action-button--pause {
@@ -413,12 +408,11 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 0 9px;
+    padding: 0 12px;
     border-radius: var(--border-radius);
     min-height: 24px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.08);
 
     svg {
@@ -485,18 +479,15 @@
   }
 
   .queue-item-actions button {
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.76);
-    width: 30px;
-    height: 30px;
+    color: var(--color-highlight);
+    width: 25px;
+    height: 25px;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition:
-      background-color 150ms ease,
       color 150ms ease,
       opacity 150ms ease;
 
@@ -506,8 +497,8 @@
     }
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
+      background: var(--color-hover);
+      color: var(--color-accent);
     }
 
     &:active:not(:disabled) {

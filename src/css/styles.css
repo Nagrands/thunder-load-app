@@ -12347,12 +12347,12 @@ body.is-mac .window-controls .btn-minimize {
   position: relative;
   width: 100%;
   display: grid;
-  gap: 11px;
+  gap: 15px;
   padding: 18px;
-  border-radius: 24px;
+  border-radius: var(--border-radius);
   z-index: 1;
   border: 1px solid rgba(170, 206, 255, 0.18);
-  background-color: var(--color-url-bg);
+  background-color: var(--color-hover);
   transition: border-color 0.22s ease, transform 0.22s ease;
 }
 .url-input-wrapper:hover {
@@ -13850,13 +13850,13 @@ hr {
 }
 
 .history-area {
-  margin: 20px 0;
-  padding: 20px;
+  margin: 20px 10px;
+  padding: 10px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.075);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  background: rgba(10, 12, 22, 0.28);
+  background: var(--color-hover);
   position: relative;
   z-index: 0;
 }
@@ -15327,10 +15327,7 @@ hr {
 }
 
 .history-area {
-  margin: 20px auto;
   background-color: var(--color-url-bg);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
 }
 
 .history-panel-shell {
@@ -15357,8 +15354,6 @@ hr {
 .history-search-filters-card {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: var(--color-url-bg);
   overflow: visible;
 }
 
@@ -15369,6 +15364,8 @@ hr {
 .history-toolbar {
   justify-content: space-between;
   gap: 12px;
+  padding: 0 12px;
+  margin: 10px 0;
 }
 
 .history-actions-card {
@@ -19659,10 +19656,9 @@ hr {
   gap: 12px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 16px;
-  padding: 14px;
-  margin: 10px 0;
-  backdrop-filter: blur(3px);
+  border-radius: var(--border-radius);
+  padding: 8px;
+  margin: 10px;
 }
 .download-queue-info.hidden {
   display: none;
@@ -19724,13 +19720,12 @@ hr {
 .download-queue-info .queue-count-pill {
   display: inline-flex;
   align-items: center;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.93);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  height: 25px;
+  padding: 0 15px;
+  border-radius: var(--border-radius);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-highlight);
 }
 .download-queue-info .queue-count-pill--active {
   background: rgba(74, 158, 255, 0.18);
@@ -19760,14 +19755,13 @@ hr {
   background: rgba(255, 255, 255, 0.14);
 }
 .download-queue-info .queue-action-button {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
+  border-radius: var(--border-radius);
   min-height: 36px;
   padding: 0 11px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-highlight);
   background: rgba(255, 255, 255, 0.07);
   transition: opacity 0.2s ease, transform 0.15s ease, border-color 0.15s ease;
 }
@@ -19783,9 +19777,7 @@ hr {
   cursor: default;
 }
 .download-queue-info .queue-action-button--start {
-  background: rgba(74, 158, 255, 0.2);
-  border-color: rgba(74, 158, 255, 0.45);
-  color: #8fc1ff;
+  color: var(--color-accent);
 }
 .download-queue-info .queue-action-button--pause {
   background: rgba(255, 255, 255, 0.08);
@@ -19918,12 +19910,11 @@ hr {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 9px;
+  padding: 0 12px;
   border-radius: var(--border-radius);
   min-height: 24px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
 }
 .download-queue-info .queue-status-chip svg,
@@ -19983,25 +19974,23 @@ hr {
   pointer-events: auto;
 }
 .download-queue-info .queue-item-actions button {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.76);
-  width: 30px;
-  height: 30px;
+  color: var(--color-highlight);
+  width: 25px;
+  height: 25px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+  transition: color 150ms ease, opacity 150ms ease;
 }
 .download-queue-info .queue-item-actions button svg {
   width: 13px;
   height: 13px;
 }
 .download-queue-info .queue-item-actions button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: var(--color-hover);
+  color: var(--color-accent);
 }
 .download-queue-info .queue-item-actions button:active:not(:disabled) {
   transform: translateY(0.5px);
@@ -21336,7 +21325,7 @@ video {
 .downloader-shell-header {
   position: relative;
   display: grid;
-  gap: 10px;
+  gap: 15px;
   align-items: stretch;
 }
 .downloader-shell-header .downloader-shell-header__hero {
@@ -21458,7 +21447,7 @@ video {
   gap: 10px;
   min-height: 26px;
   padding: 8px 10px;
-  border-radius: 14px;
+  border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(10, 16, 28, 0.12)), rgba(255, 255, 255, 0.01);
   box-shadow: none;
@@ -23552,8 +23541,7 @@ video {
   width: min(860px, 94vw);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: var(--color-bg-main);
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.52);
+  background: var(--color-hover);
   padding: 18px;
   display: grid;
   gap: 12px;

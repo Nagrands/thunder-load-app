@@ -48,12 +48,12 @@
   position: relative;
   width: 100%;
   display: grid;
-  gap: 11px;
+  gap: 15px;
   padding: 18px;
-  border-radius: 24px;
+  border-radius: var(--border-radius);
   z-index: 1;
   border: 1px solid rgba(170, 206, 255, 0.18);
-  background-color: var(--color-url-bg);
+  background-color: var(--color-hover);
   transition:
     border-color 0.22s ease,
     transform 0.22s ease;

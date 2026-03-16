@@ -72,5 +72,11 @@ describe("downloadCompleteHandler", () => {
 
     expect(mockShowUrlActionButtons).toHaveBeenCalledTimes(1);
     expect(mockShowConfirmationDialog).toHaveBeenCalledTimes(1);
+    const [opts] = mockShowConfirmationDialog.mock.calls[0];
+    expect(opts).toEqual(
+      expect.objectContaining({
+        allowHtml: true,
+      }),
+    );
   });
 });
