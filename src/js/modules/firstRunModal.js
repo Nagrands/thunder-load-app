@@ -287,4 +287,9 @@ export function initFirstRunModal() {
   syncSelectedCards();
   updateSummary();
   renderStep();
+
+  window.addEventListener("i18n:changed", () => {
+    updateSummary();
+    renderStep();
+  });
 }
