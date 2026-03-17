@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Improved Power Shortcuts | Shortcut actions are grouped by task, each card shows a clearer state, and the last successful creation stays visible |
 | Simplified Backup settings | Settings no longer expose a separate disable toggle for Backup and keep only its display options |
 | Improved startup responsiveness | The main screen reaches ready state faster while non-critical modules initialize later |
 | Simplified Settings and Tools | Large modules are split into smaller internal parts, so reopening screens and switching views is more stable |

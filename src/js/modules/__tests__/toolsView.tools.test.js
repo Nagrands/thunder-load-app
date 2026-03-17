@@ -1319,7 +1319,7 @@ describe("toolsView quick actions", () => {
     await openTool(el, "power");
     const restartCard = el.querySelector("#tools-restart-card");
     const banner = el.querySelector("#power-platform-banner");
-    const actionsWrap = el.querySelector(".power-shortcuts-actions");
+    const actionsWrap = el.querySelector(".power-shortcuts-groups");
     const restartBtn = el.querySelector("#create-restart-shortcut");
     const uefiBtn = el.querySelector("#create-uefi-shortcut");
     const advancedBootBtn = el.querySelector("#create-advanced-boot-shortcut");
@@ -1333,6 +1333,9 @@ describe("toolsView quick actions", () => {
     expect(restartCard.classList.contains("hidden")).toBe(false);
     expect(actionsWrap).not.toBeNull();
     expect(banner?.classList.contains("hidden")).toBe(false);
+    expect(el.querySelector("#power-summary-platform")?.textContent).toBe(
+      "quickActions.power.summary.platform.preview",
+    );
     expect(restartBtn?.hasAttribute("disabled")).toBe(true);
     expect(uefiBtn?.hasAttribute("disabled")).toBe(true);
     expect(advancedBootBtn?.hasAttribute("disabled")).toBe(true);
@@ -1378,6 +1381,10 @@ describe("toolsView quick actions", () => {
     await openTool(el, "power");
     const banner = el.querySelector("#power-platform-banner");
     const restartBtn = el.querySelector("#create-restart-shortcut");
+    const sessionSummary = el.querySelector("#power-session-summary");
+    const summaryText = el.querySelector("#power-session-summary-text");
+    const summaryDetail = el.querySelector("#power-session-summary-detail");
+    const restartState = el.querySelector("#restart-shortcut-state");
 
     expect(banner?.classList.contains("hidden")).toBe(true);
     expect(restartBtn?.hasAttribute("disabled")).toBe(false);
@@ -1388,8 +1395,14 @@ describe("toolsView quick actions", () => {
     expect(
       window.electron.tools.createWindowsRestartShortcut,
     ).toHaveBeenCalledTimes(1);
+    expect(restartState?.textContent).toBe("quickActions.power.status.success");
     expect(el.querySelector("#restart-shortcut-result")?.textContent).toBe(
-      "quickActions.restart.created",
+      "quickActions.power.result.created",
+    );
+    expect(sessionSummary?.classList.contains("hidden")).toBe(false);
+    expect(summaryText?.textContent).toBe("quickActions.power.session.success");
+    expect(summaryDetail?.textContent).toBe(
+      "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
     );
   });
 
@@ -1436,8 +1449,108 @@ describe("toolsView quick actions", () => {
     expect(
       window.electron.tools.createWindowsUefiRebootShortcut,
     ).toHaveBeenCalledTimes(1);
-    expect(el.querySelector("#uefi-shortcut-result")?.textContent).toBe(
-      "quickActions.uefi.created",
+    expect(el.querySelector("#uefi-shortcut-state")?.textContent).toBe(
+      "quickActions.power.status.success",
     );
+    expect(el.querySelector("#uefi-shortcut-result")?.textContent).toBe(
+      "quickActions.power.result.created",
+    );
+  });
+
+  test("renders grouped power layout and session actions", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    const el = await renderView();
+    await openTool(el, "power");
+
+    expect(
+      el.querySelectorAll(".power-shortcuts-group").length,
+    ).toBe(3);
+    expect(
+      el.querySelector('[data-power-group="power"] .power-shortcuts-group__title')
+        ?.textContent?.trim(),
+    ).toBe("quickActions.power.group.power.title");
+    expect(
+      el.querySelector('[data-power-group="recovery"] .power-shortcuts-group__title')
+        ?.textContent?.trim(),
+    ).toBe("quickActions.power.group.recovery.title");
+    expect(
+      el.querySelector('[data-power-group="system"] .power-shortcuts-group__title')
+        ?.textContent?.trim(),
+    ).toBe("quickActions.power.group.system.title");
+    expect(el.querySelector("#power-session-summary")?.classList.contains("hidden")).toBe(
+      true,
+    );
+  });
+
+  test("shows creating state and allows clearing last power status", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    let resolveCreate;
+    window.electron.tools.createWindowsRestartShortcut.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        }),
+    );
+    const el = await renderView();
+    await openTool(el, "power");
+
+    const restartBtn = el.querySelector("#create-restart-shortcut");
+    const restartState = el.querySelector("#restart-shortcut-state");
+    const restartResult = el.querySelector("#restart-shortcut-result");
+    restartBtn.click();
+    await nextTick();
+
+    expect(restartState?.textContent).toBe("quickActions.power.status.creating");
+    expect(restartResult?.textContent).toBe("quickActions.power.result.creating");
+    expect(el.querySelector("#create-shutdown-shortcut")?.hasAttribute("disabled")).toBe(
+      true,
+    );
+
+    resolveCreate({
+      success: true,
+      path: "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
+    });
+    await nextTick();
+
+    el.querySelector("#power-clear-status")?.click();
+    await nextTick();
+
+    expect(restartState?.textContent).toBe("quickActions.power.status.idle");
+    expect(restartResult?.textContent).toBe("");
+    expect(el.querySelector("#power-session-summary")?.classList.contains("hidden")).toBe(
+      true,
+    );
+  });
+
+  test("create another clears current power status and returns focus to the last action", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.createWindowsRestartShortcut.mockResolvedValueOnce({
+      success: true,
+      path: "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
+    });
+    const el = await renderView();
+    await openTool(el, "power");
+
+    const restartBtn = el.querySelector("#create-restart-shortcut");
+    restartBtn.click();
+    await nextTick();
+
+    const createAnotherBtn = el.querySelector("#power-repeat-last-action");
+    createAnotherBtn?.click();
+    await nextTick();
+
+    expect(el.querySelector("#restart-shortcut-state")?.textContent).toBe(
+      "quickActions.power.status.idle",
+    );
+    expect(document.activeElement).toBe(restartBtn);
   });
 });

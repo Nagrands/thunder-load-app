@@ -2429,6 +2429,73 @@ $wg-max-width: 1200px;
   max-width: 72ch;
 }
 
+.power-shortcuts-dashboard {
+  display: grid;
+  gap: 16px;
+}
+
+.power-shortcuts-summary,
+.power-session-summary {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background:
+    linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.09), transparent 72%),
+    rgba(255, 255, 255, 0.03);
+}
+
+.power-shortcuts-summary__intro,
+.power-session-summary__copy {
+  display: grid;
+  gap: 6px;
+
+  p,
+  span,
+  small,
+  strong {
+    margin: 0;
+  }
+}
+
+.power-shortcuts-summary__grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.power-shortcuts-summary__item {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.power-shortcuts-summary__label {
+  font-size: 0.78rem;
+  color: var(--color-quality);
+}
+
+.power-session-summary {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.power-session-summary__detail {
+  color: var(--color-quality);
+}
+
+.power-session-summary__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .power-platform-banner {
   border: 1px solid rgba(251, 191, 36, 0.34);
   border-radius: 12px;
@@ -2455,7 +2522,40 @@ $wg-max-width: 1200px;
   margin-top: 2px;
 }
 
-.power-action-row {
+.power-shortcuts-groups {
+  display: grid;
+  gap: 16px;
+}
+
+.power-shortcuts-group {
+  display: grid;
+  gap: 12px;
+}
+
+.power-shortcuts-group__header {
+  display: grid;
+  gap: 4px;
+}
+
+.power-shortcuts-group__title {
+  margin: 0;
+  color: var(--color-highlight);
+  font-size: 0.95rem;
+}
+
+.power-shortcuts-group__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-quality);
+}
+
+.power-shortcuts-group__grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.power-shortcut-card {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
   background: rgba(255, 255, 255, 0.015);
@@ -2463,9 +2563,35 @@ $wg-max-width: 1200px;
   display: grid;
   gap: 12px;
   align-content: start;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.power-action-row__title {
+.power-shortcut-card.is-busy {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.power-shortcut-card.is-success {
+  border-color: rgba(52, 211, 153, 0.28);
+  background: rgba(52, 211, 153, 0.07);
+}
+
+.power-shortcut-card.is-error {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.07);
+}
+
+.power-shortcut-card__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.power-shortcut-card__title {
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -2478,18 +2604,58 @@ $wg-max-width: 1200px;
   }
 }
 
-.power-action-row__hint {
+.power-shortcut-card__state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--color-quality);
+  background: rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+}
+
+.power-shortcut-card__state.is-creating {
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.power-shortcut-card__state.is-success {
+  color: #a7f3d0;
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.power-shortcut-card__state.is-error {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.12);
+}
+
+.power-shortcut-card__hint {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.32;
   color: var(--color-quality);
 }
 
-.power-action-row__result {
-  min-height: 1.2rem;
-  margin-top: 2px;
-  font-size: 0.78rem;
-  color: var(--color-toast-success);
+.power-shortcut-card__actions {
+  display: flex;
+}
+
+.power-shortcut-card__result {
+  display: grid;
+  gap: 4px;
+}
+
+.power-shortcut-card__detail {
+  color: var(--color-quality);
+  font-size: 0.76rem;
+  line-height: 1.3;
 }
 
 .tools-shell {
@@ -2582,23 +2748,23 @@ $wg-max-width: 1200px;
     color: #111;
   }
 
-  .power-shortcuts-actions .large-button {
+  .power-shortcut-card .large-button {
     width: 100%;
     color: var(--color-highlight);
     justify-content: center;
   }
 
-  .power-action-row--shutdown .power-action-row__title i {
+  .power-shortcut-card--shutdown .power-shortcut-card__title i {
     color: rgba(248, 113, 113, 0.95);
   }
 
-  .power-action-row--shutdown .large-button i,
-  .power-action-row--shutdown .large-button span {
+  .power-shortcut-card--shutdown .large-button i,
+  .power-shortcut-card--shutdown .large-button span {
     color: rgba(255, 173, 173, 0.95);
   }
 
-  .power-shortcuts-actions .large-button:disabled i,
-  .power-shortcuts-actions .large-button:disabled span {
+  .power-shortcut-card .large-button:disabled i,
+  .power-shortcut-card .large-button:disabled span {
     color: inherit;
   }
 
@@ -2838,12 +3004,18 @@ $wg-max-width: 1200px;
     justify-content: space-between;
   }
 
-  .power-actions-grid {
+  .power-shortcuts-summary__grid,
+  .power-shortcuts-group__grid,
+  .power-session-summary {
     grid-template-columns: 1fr;
   }
 
   .power-shortcuts-header__top {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 1fr;
+  }
+
+  .power-session-summary__actions {
+    justify-content: flex-start;
   }
 
   .sorter-howto-overlay,
