@@ -121,7 +121,7 @@ export const toolsTranslations = {
     "tools.launcher.subtitle": "Выберите инструмент",
     "tools.launcher.breadcrumbs.aria": "Навигационная цепочка",
     "tools.launcher.breadcrumbs.home": "Thunder App",
-    "tools.launcher.breadcrumbs.tools": "Tools",
+    "tools.launcher.breadcrumbs.tools": "Инструменты",
     "tools.launcher.availableTitle": "Доступные инструменты",
     "tools.launcher.totalLabel": "Всего",
     "tools.launcher.unavailableTitle": "Недоступно",

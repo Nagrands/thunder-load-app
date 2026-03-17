@@ -33,9 +33,6 @@ describe("updateModuleBadge", () => {
         <button class="tab-link" data-tab="wgunlock-settings" id="btn-wg">
           <span class="tab-badge tab-badge-off" id="tab-badge-wg">Выкл</span>
         </button>
-        <button class="tab-link" data-tab="backup-settings" id="btn-backup">
-          <span class="tab-badge" id="tab-badge-backup" hidden>Вкл</span>
-        </button>
         <span id="settings-wg-status-badge"></span>
         <p id="settings-wg-status-text"></p>
         <span id="settings-backup-status-badge"></span>
@@ -63,7 +60,7 @@ describe("updateModuleBadge", () => {
       ),
     ).toBe(true);
     expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
-      "Вкладка <strong>Tools</strong> отключена",
+      "Вкладка <strong>Инструменты</strong> отключена",
     );
   });
 
@@ -86,47 +83,70 @@ describe("updateModuleBadge", () => {
       ),
     ).toBe(false);
     expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
-      "Вкладка <strong>Tools</strong> включена",
+      "Вкладка <strong>Инструменты</strong> включена",
     );
   });
 
-  it.each([
-    ["wg", "btn-wg", "tab-badge-wg"],
-    ["backup", "btn-backup", "tab-badge-backup"],
-  ])("sets accessibility attrs for %s badge", (moduleKey, btnId, badgeId) => {
-    settingsModule.__test_updateModuleBadge(moduleKey, true);
-    const btn = document.getElementById(btnId);
-    const badge = document.getElementById(badgeId);
+  it("sets accessibility attrs for wg sidebar badge", () => {
+    settingsModule.__test_updateModuleBadge("wg", true);
+    const btn = document.getElementById("btn-wg");
+    const badge = document.getElementById("tab-badge-wg");
     expect(btn?.dataset.disabled).toBe("1");
     expect(badge?.getAttribute("aria-label")).toBe("Вкладка отключена");
     expect(badge?.getAttribute("aria-hidden")).toBe("false");
-    const statusBadge = document.getElementById(
-      moduleKey === "wg"
-        ? "settings-wg-status-badge"
-        : "settings-backup-status-badge",
+    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
+      "Выкл",
     );
-    expect(statusBadge?.textContent).toBe("Выкл");
-    expect(statusBadge?.classList.contains("is-disabled")).toBe(true);
+    expect(
+      document.getElementById("settings-wg-status-badge")?.classList.contains(
+        "is-disabled",
+      ),
+    ).toBe(true);
 
-    settingsModule.__test_updateModuleBadge(moduleKey, false);
+    settingsModule.__test_updateModuleBadge("wg", false);
     expect(btn?.dataset.disabled).toBe("0");
     expect(badge?.getAttribute("aria-label")).toBe("Вкладка включена");
     expect(badge?.getAttribute("aria-hidden")).toBe("true");
     expect(badge?.style.display).toBe("none");
-    expect(statusBadge?.textContent).toBe("Вкл");
-    expect(statusBadge?.classList.contains("is-disabled")).toBe(false);
-
-    const statusText = document.getElementById(
-      moduleKey === "wg"
-        ? "settings-wg-status-text"
-        : "settings-backup-status-text",
+    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
+      "Вкл",
     );
-    if (moduleKey === "backup") {
-      expect(statusText?.innerHTML).toContain("Backup");
-      expect(statusText?.innerHTML).not.toContain("Вкладка");
-    } else {
-      expect(statusText?.innerHTML).toBe("Вкладка <strong>Tools</strong> включена");
-    }
+    expect(
+      document.getElementById("settings-wg-status-badge")?.classList.contains(
+        "is-disabled",
+      ),
+    ).toBe(false);
+    expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
+      "Вкладка <strong>Инструменты</strong> включена",
+    );
+  });
+
+  it("updates backup status card without requiring a sidebar tab", () => {
+    settingsModule.__test_updateModuleBadge("backup", true);
+    expect(document.getElementById("settings-backup-status-badge")?.textContent).toBe(
+      "Выкл",
+    );
+    expect(
+      document.getElementById("settings-backup-status-badge")?.classList.contains(
+        "is-disabled",
+      ),
+    ).toBe(true);
+    expect(document.getElementById("settings-backup-status-text")?.innerHTML).toContain(
+      "Backup",
+    );
+    expect(
+      document.getElementById("settings-backup-status-text")?.innerHTML,
+    ).not.toContain("Вкладка");
+
+    settingsModule.__test_updateModuleBadge("backup", false);
+    expect(document.getElementById("settings-backup-status-badge")?.textContent).toBe(
+      "Вкл",
+    );
+    expect(
+      document.getElementById("settings-backup-status-badge")?.classList.contains(
+        "is-disabled",
+      ),
+    ).toBe(false);
   });
 
   it("silently ignores unknown module keys", () => {
@@ -205,6 +225,48 @@ describe("tools remember last tool setting", () => {
     rememberInput.checked = true;
     rememberInput.dispatchEvent(new Event("change"));
     expect(localStorage.getItem("toolsRememberLastView")).toBe("true");
+  });
+});
+
+describe("backup settings inside tools section", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue(false),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("reads and applies backup toggles inside wgunlock-settings", async () => {
+    localStorage.setItem("backupDisabled", "true");
+    localStorage.setItem("bk_view_mode", JSON.stringify("compact"));
+    localStorage.setItem("bk_log_visible", "false");
+    document.body.innerHTML = `
+      <div id="settings-modal">
+        <button class="tab-link" data-tab="wgunlock-settings" id="btn-wg">
+          <span class="tab-badge" id="tab-badge-wg" hidden>Вкл</span>
+        </button>
+        <div id="wgunlock-settings">
+          <input id="wg-disable-toggle" type="checkbox" />
+          <input id="backup-compact-toggle" type="checkbox" />
+          <input id="backup-log-toggle" type="checkbox" />
+        </div>
+        <span id="settings-wg-status-badge"></span>
+        <p id="settings-wg-status-text"></p>
+        <span id="settings-backup-status-badge"></span>
+        <p id="settings-backup-status-text"></p>
+      </div>`;
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    expect(document.getElementById("backup-compact-toggle")?.checked).toBe(true);
+    expect(document.getElementById("backup-log-toggle")?.checked).toBe(false);
+    expect(document.getElementById("settings-backup-status-badge")?.textContent).toBe(
+      "Выкл",
+    );
   });
 });
 

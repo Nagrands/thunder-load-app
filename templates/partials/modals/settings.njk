@@ -63,19 +63,8 @@
               </button>
               <button class="tab-link" data-tab="wgunlock-settings">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
-                <span data-i18n="settings.tabs.wg">Tools</span>
+                <span data-i18n="settings.tabs.wg">Инструменты</span>
                 <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
-                  <span data-i18n="settings.tab.disabled">Выкл</span>
-                </span>
-              </button>
-              <button class="tab-link" data-tab="backup-settings">
-                <i class="fa-solid fa-box-archive"></i>
-                <span data-i18n="settings.tabs.backup">Backup tool</span>
-                <span
-                  class="tab-badge tab-badge-off"
-                  id="tab-badge-backup"
-                  hidden
-                >
                   <span data-i18n="settings.tab.disabled">Выкл</span>
                 </span>
               </button>
@@ -193,7 +182,7 @@
                           />
                           <label for="settings-tab-wgsend">
                             <i class="fa-solid fa-unlock-keyhole"></i>
-                            <strong data-i18n="tabs.tools">Tools</strong>
+                            <strong data-i18n="tabs.tools">Инструменты</strong>
                           </label>
                         </li>
                       </ul>
@@ -462,9 +451,9 @@
               <div id="wgunlock-settings" class="tab-pane">
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
-                    <h2 data-i18n="settings.wg.title">Вкладка «Tools»</h2>
+                    <h2 data-i18n="settings.wg.title">Вкладка «Инструменты»</h2>
                     <p data-i18n="settings.wg.disable.hint">
-                      Скрывает вкладку Tools и отключает её запуск. При отключении связанные параметры становятся недоступны.
+                      Скрывает вкладку Инструменты и отключает её запуск. При отключении связанные параметры становятся недоступны.
                     </p>
                   </div>
                 </div>
@@ -472,7 +461,7 @@
                   <section class="settings-card">
                     <div class="settings-card__intro">
                       <div class="settings-card__heading">
-                        <h3 class="settings-card__title" data-i18n="settings.tabs.wg">Tools</h3>
+                        <h3 class="settings-card__title" data-i18n="settings.tabs.wg">Инструменты</h3>
                         <span
                           id="settings-wg-status-badge"
                           class="settings-state-badge"
@@ -585,19 +574,6 @@
                       </ul>
                     </div>
                   </section>
-                </div>
-              </div>
-
-              <div id="backup-settings" class="tab-pane">
-                <div class="settings-pane-header">
-                  <div class="settings-pane-header__copy">
-                    <h2 data-i18n="settings.backup.title">Инструмент Backup в Tools</h2>
-                    <p data-i18n="settings.backup.disable.hint">
-                      Скрывает инструмент Backup в разделе Tools и отключает его инициализацию.
-                    </p>
-                  </div>
-                </div>
-                <div class="settings-grid">
                   <section class="settings-card">
                     <div class="settings-card__intro">
                       <div class="settings-card__heading">
@@ -615,24 +591,11 @@
                         class="settings-card__desc"
                         data-i18n="settings.backup.disable.hint"
                       >
-                        Скрывает инструмент Backup в разделе Tools и отключает его инициализацию.
+                        Управление отображением профилей и журнала инструмента Backup в разделе Инструменты.
                       </p>
                     </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
-                        <li class="custom-theme-select settings-control">
-                          <input type="checkbox" id="backup-disable-toggle" />
-                          <label
-                            for="backup-disable-toggle"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="Скрывает вкладку и отключает её инициализацию."
-                            data-i18n-title="settings.backup.disable.hint"
-                          >
-                            <i class="fa-solid fa-box-archive"></i>
-                            <strong data-i18n="settings.disableTab">Отключить вкладку</strong>
-                          </label>
-                        </li>
                         <li class="custom-theme-select settings-control">
                           <input type="checkbox" id="backup-compact-toggle" />
                           <label

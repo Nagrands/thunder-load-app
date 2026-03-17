@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Simplified Backup settings | Settings no longer expose a separate disable toggle for Backup and keep only its display options |
 | Improved startup responsiveness | The main screen reaches ready state faster while non-critical modules initialize later |
 | Simplified Settings and Tools | Large modules are split into smaller internal parts, so reopening screens and switching views is more stable |
 | Moved Backup into Tools | Backups are now presented as a tool inside Tools instead of a separate tab |

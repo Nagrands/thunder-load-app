@@ -2,7 +2,7 @@ export const settingsTranslations = {
   ru: {
     "settings.tabs.general": "Общие",
     "settings.tabs.downloader": "Загрузчик",
-    "settings.tabs.wg": "Tools",
+    "settings.tabs.wg": "Инструменты",
     "settings.tabs.backup": "Инструмент Backup",
     "settings.tabs.appearance": "Внешний вид",
     "settings.tabs.other": "Другое",
@@ -74,22 +74,22 @@ export const settingsTranslations = {
     "settings.tools.modal.subtitle":
       "Проверка статуса, переустановка и смена папки зависимостей.",
     "settings.disableTab": "Отключить вкладку",
-    "settings.wg.title": "Вкладка «Tools»",
+    "settings.wg.title": "Вкладка «Инструменты»",
     "settings.wg.disable.hint":
-      "Скрывает вкладку Tools и отключает её запуск. При отключении связанные параметры становятся недоступны.",
+      "Скрывает вкладку Инструменты и отключает её запуск. При отключении связанные параметры становятся недоступны.",
     "settings.wg.autosend": "Авто‑отправка при запуске приложения",
     "settings.wg.rememberLastTool": "Запоминать последний открытый инструмент",
     "settings.wg.rememberLastTool.hint":
-      "При следующем открытии вкладки Tools сразу показывает инструмент, который был открыт последним.",
+      "При следующем открытии вкладки Инструменты сразу показывает инструмент, который был открыт последним.",
     "settings.wg.autoclose.hint":
       "Автоматически закрывает приложение через выбранное время.",
     "settings.wg.autoclose": "Авто‑закрытие приложения",
     "settings.wg.autoclose.after": "Закрытие приложения через:",
     "settings.wg.autoclose.seconds": "сек.",
     "settings.wg.autoclose.aria": "Время до авто‑закрытия в секундах",
-    "settings.backup.title": "Инструмент Backup в Tools",
+    "settings.backup.title": "Инструмент Backup в Инструментах",
     "settings.backup.disable.hint":
-      "Скрывает инструмент Backup в разделе Tools и отключает его инициализацию.",
+      "Управление отображением профилей и журнала инструмента Backup в разделе Инструменты.",
     "settings.backup.compact.hint":
       "Переключает отображение профилей между подробным и компактным режимом.",
     "settings.backup.compact": "Компактный список профилей",
@@ -145,8 +145,10 @@ export const settingsTranslations = {
     "settings.theme.set": "Выбрана тема: <strong>{theme}</strong>",
     "settings.theme.reset":
       "<strong>Тема</strong> сброшена на <strong>{theme}</strong>",
-    "settings.module.wg.disabled": "Вкладка <strong>Tools</strong> отключена",
-    "settings.module.wg.enabled": "Вкладка <strong>Tools</strong> включена",
+    "settings.module.wg.disabled":
+      "Вкладка <strong>Инструменты</strong> отключена",
+    "settings.module.wg.enabled":
+      "Вкладка <strong>Инструменты</strong> включена",
     "settings.module.backup.disabled":
       "Инструмент <strong>Backup</strong> отключен",
     "settings.module.backup.enabled":
@@ -256,7 +258,7 @@ export const settingsTranslations = {
     "settings.wg.autoclose.aria": "Time until auto‑close in seconds",
     "settings.backup.title": "Backup tool inside Tools",
     "settings.backup.disable.hint":
-      "Hides the Backup tool inside Tools and disables its initialization.",
+      "Controls profile display and the operations log for the Backup tool inside Tools.",
     "settings.backup.compact.hint":
       "Switches profile display between detailed and compact mode.",
     "settings.backup.compact": "Compact profile list",

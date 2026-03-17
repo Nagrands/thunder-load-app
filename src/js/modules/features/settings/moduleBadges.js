@@ -10,8 +10,6 @@ export const MODULE_BADGE_MAP = {
     disabledTextKey: "settings.module.wg.disabled",
   },
   backup: {
-    tab: "backup-settings",
-    badgeId: "tab-badge-backup",
     statusBadgeId: "settings-backup-status-badge",
     statusTextId: "settings-backup-status-text",
     enabledTextKey: "settings.module.backup.enabled",
@@ -46,25 +44,33 @@ export function updateModuleBadge(moduleKey, disabled) {
   const map = MODULE_BADGE_MAP[moduleKey];
   if (!map) return;
 
-  const btn = document.querySelector(`.tab-link[data-tab="${map.tab}"]`);
+  const btn = map.tab
+    ? document.querySelector(`.tab-link[data-tab="${map.tab}"]`)
+    : null;
   const badge =
     (map.badgeId && document.getElementById(map.badgeId)) ||
-    btn?.querySelector(".tab-badge");
-  if (!btn || !badge) return;
-
+    btn?.querySelector(".tab-badge") ||
+    null;
   const isDisabled = !!disabled;
-  badge.hidden = false;
-  badge.removeAttribute("hidden");
-  badge.classList.toggle("tab-badge-off", isDisabled);
-  btn.classList.toggle("tab-disabled", isDisabled);
-  btn.dataset.disabled = isDisabled ? "1" : "0";
-  badge.textContent = isDisabled ? t("settings.tab.disabled") : t("settings.tab.enabled");
-  badge.setAttribute(
-    "aria-label",
-    isDisabled ? t("settings.tab.disabled.aria") : t("settings.tab.enabled.aria"),
-  );
-  badge.setAttribute("aria-hidden", isDisabled ? "false" : "true");
-  badge.style.display = isDisabled ? "" : "none";
+
+  if (btn && badge) {
+    badge.hidden = false;
+    badge.removeAttribute("hidden");
+    badge.classList.toggle("tab-badge-off", isDisabled);
+    btn.classList.toggle("tab-disabled", isDisabled);
+    btn.dataset.disabled = isDisabled ? "1" : "0";
+    badge.textContent = isDisabled
+      ? t("settings.tab.disabled")
+      : t("settings.tab.enabled");
+    badge.setAttribute(
+      "aria-label",
+      isDisabled
+        ? t("settings.tab.disabled.aria")
+        : t("settings.tab.enabled.aria"),
+    );
+    badge.setAttribute("aria-hidden", isDisabled ? "false" : "true");
+    badge.style.display = isDisabled ? "" : "none";
+  }
 
   const statusBadge = map.statusBadgeId
     ? document.getElementById(map.statusBadgeId)
