@@ -28,14 +28,14 @@ import { initTooltips } from "../tooltipInitializer.js";
  */
 
 /**
- * Render Backup tab view.
+ * Render Backup tool view.
  * Creates the full UI for managing backup presets, including search, list, modal editor, and log.
  * The function is idempotent and returns a detached DOM subtree (wrapper) ready to be inserted.
- * @returns {HTMLDivElement} Root element of the Backup tab.
+ * @returns {HTMLDivElement} Root element of the Backup tool.
  */
 export default function renderBackup() {
   /**
-   * Detects whether the Backup tab is disabled via localStorage flag.
+   * Detects whether the Backup tool is disabled via localStorage flag.
    * @returns {boolean}
    */
   const _isBackupDisabled = () => {

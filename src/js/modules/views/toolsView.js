@@ -4,7 +4,13 @@ import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import { applyI18n, getLanguage, t } from "../i18n.js";
+import { consumeRequestedToolsView } from "../toolsNavigation.js";
+import renderBackup from "./backupView.js";
 import { initFileSorterSection } from "./tools/fileSorterSection.js";
+import { createCleanupRegistry } from "./tools/cleanupRegistry.js";
+import { TOOLS_STORAGE_KEYS } from "./tools/storage.js";
+import { createLogController } from "./tools/logController.js";
+import { createToolViewState } from "./tools/toolViewState.js";
 
 export default function renderToolsView() {
   // Guard: если вкладка WG Unlock отключена — не инициализируем UI
@@ -83,14 +89,23 @@ export default function renderToolsView() {
   view.id = "wireguard-view";
   view.className = "wireguard-view";
 
+  const cleanup = createCleanupRegistry();
+  const toolState = createToolViewState();
+  const logController = createLogController({ view, getEl, t });
+  const log = logController.log;
+  const clearLog = logController.clearLog;
+  const loadLog = logController.loadLog;
+  const loadLastSendTime = logController.loadLastSendTime;
+  const updateLastSendTime = logController.updateLastSendTime;
+  const updateLogControls = logController.updateLogControls;
+  const setLogErrorOnly = logController.setErrorOnly;
+  const setLogAutoScroll = logController.setAutoScroll;
+  const getLogText = logController.getLogText;
+
   let currentMsg = ")";
-  let lastSendTime = null;
   let shutdownTicker = null;
   let shutdownDeadlineTs = null;
   let lastLoggedRemaining = null;
-  let logEntries = [];
-  let logAutoScroll = true;
-  let logErrorOnly = false;
   let tipsIntervalId = null;
   let tipsSwapTimer = null;
   let tipsFadeTimer = null;
@@ -101,35 +116,10 @@ export default function renderToolsView() {
   let hashSelectedFileSecond = "";
   let hashCopyFeedbackTimerFirst = null;
   let hashCopyFeedbackTimerSecond = null;
-  let isWindowsPlatform = false;
-  const WG_ADVANCED_STATE_KEY = "toolsWgAdvancedOpen";
-  const LAST_TOOL_KEY = "toolsLastView";
-  const REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
-  const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
-  let currentToolView = "launcher";
-  let toolsPlatformInfo = { isWindows: false, platform: "" };
-  let developerToolsUnlocked = false;
   let wgHowtoPrevOverflow = null;
   let powerHowtoPrevOverflow = null;
   let hashHowtoPrevOverflow = null;
   let sorterHowtoPrevOverflow = null;
-  const cleanupFns = [];
-
-  const addCleanup = (fn) => {
-    if (typeof fn === "function") cleanupFns.push(fn);
-  };
-
-  const onWindowEvent = (type, handler, options) => {
-    window.addEventListener(type, handler, options);
-    addCleanup(() => window.removeEventListener(type, handler, options));
-  };
-
-  const onIpcEvent = (channel, handler) => {
-    window.electron.ipcRenderer.on(channel, handler);
-    addCleanup(() =>
-      window.electron.ipcRenderer.removeListener(channel, handler),
-    );
-  };
 
   const disposeView = () => {
     if (wgHowtoPrevOverflow !== null) {
@@ -149,166 +139,17 @@ export default function renderToolsView() {
       sorterHowtoPrevOverflow = null;
     }
     stopCountdown();
-    if (tipsIntervalId) {
-      clearInterval(tipsIntervalId);
-      tipsIntervalId = null;
-    }
-    if (tipsSwapTimer) {
-      clearTimeout(tipsSwapTimer);
-      tipsSwapTimer = null;
-    }
-    if (tipsFadeTimer) {
-      clearTimeout(tipsFadeTimer);
-      tipsFadeTimer = null;
-    }
-    if (hashCopyFeedbackTimerFirst) {
-      clearTimeout(hashCopyFeedbackTimerFirst);
-      hashCopyFeedbackTimerFirst = null;
-    }
-    if (hashCopyFeedbackTimerSecond) {
-      clearTimeout(hashCopyFeedbackTimerSecond);
-      hashCopyFeedbackTimerSecond = null;
-    }
-    const finalizers = cleanupFns.splice(0);
-    finalizers.forEach((fn) => {
-      try {
-        fn();
-      } catch {}
-    });
+    tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
+    tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
+    tipsFadeTimer = cleanup.clearTimeout(tipsFadeTimer);
+    hashCopyFeedbackTimerFirst = cleanup.clearTimeout(
+      hashCopyFeedbackTimerFirst,
+    );
+    hashCopyFeedbackTimerSecond = cleanup.clearTimeout(
+      hashCopyFeedbackTimerSecond,
+    );
+    cleanup.dispose();
   };
-
-  // =============================================
-  // ЛОКАЛЬНОЕ СОХРАНЕНИЕ ЛОГА И ВРЕМЕНИ ОТПРАВКИ
-  // =============================================
-
-  const WG_LOG_V2_KEY = "wg-log-v2";
-  const WG_LOG_LEGACY_KEY = "wg-log";
-  const WG_LOG_MAX_ENTRIES = 300;
-
-  const formatLogEntry = (entry) => {
-    const dt = new Date(entry.ts || Date.now());
-    const pad = (n) => String(n).padStart(2, "0");
-    const time = `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
-    const level = (entry.level || "info").toUpperCase().padEnd(5, " ");
-    return `${time} | ${level} | ${entry.text || ""}`;
-  };
-
-  const getVisibleLogEntries = () =>
-    logErrorOnly
-      ? logEntries.filter((entry) => entry.level === "error")
-      : logEntries;
-
-  const saveLog = () => {
-    try {
-      window.localStorage.setItem(
-        WG_LOG_V2_KEY,
-        JSON.stringify({
-          autoScroll: !!logAutoScroll,
-          entries: logEntries.slice(-WG_LOG_MAX_ENTRIES),
-        }),
-      );
-    } catch {}
-  };
-
-  const renderLog = () => {
-    const pre = getEl("wg-log", view);
-    if (!pre) return;
-    const visible = getVisibleLogEntries();
-    pre.textContent = visible.length
-      ? visible.map(formatLogEntry).join("\n")
-      : t("wg.log.placeholder");
-    if (logErrorOnly) {
-      pre.classList.add("error-log");
-    } else {
-      pre.classList.remove("error-log");
-    }
-    if (logAutoScroll) {
-      pre.scrollTop = pre.scrollHeight;
-    }
-  };
-
-  const updateLogControls = () => {
-    const autoBtn = getEl("wg-log-autoscroll", view);
-    const filterBtn = getEl("wg-log-filter-errors", view);
-    if (autoBtn) {
-      autoBtn.classList.toggle("is-active", logAutoScroll);
-      autoBtn.title = logAutoScroll
-        ? t("wg.log.autoscroll.on")
-        : t("wg.log.autoscroll.off");
-    }
-    if (filterBtn) {
-      filterBtn.classList.toggle("is-active", logErrorOnly);
-      filterBtn.title = logErrorOnly
-        ? t("wg.log.filter.errorsOn")
-        : t("wg.log.filter.errorsOff");
-    }
-  };
-
-  const appendLogEntry = (text, level = "info") => {
-    logEntries.push({
-      level,
-      text: String(text || ""),
-      ts: Date.now(),
-    });
-    if (logEntries.length > WG_LOG_MAX_ENTRIES) {
-      logEntries = logEntries.slice(-WG_LOG_MAX_ENTRIES);
-    }
-    renderLog();
-    saveLog();
-  };
-
-  const loadLog = () => {
-    try {
-      const raw = window.localStorage.getItem(WG_LOG_V2_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        logEntries = Array.isArray(parsed?.entries) ? parsed.entries : [];
-        logAutoScroll = parsed?.autoScroll !== false;
-        renderLog();
-        return;
-      }
-    } catch {}
-
-    const legacy = window.localStorage.getItem(WG_LOG_LEGACY_KEY);
-    if (legacy) {
-      logEntries = String(legacy)
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => ({
-          level: /\berror|ошибка|err\b/i.test(line) ? "error" : "info",
-          text: line,
-          ts: Date.now(),
-        }))
-        .slice(-WG_LOG_MAX_ENTRIES);
-      renderLog();
-      saveLog();
-      return;
-    }
-
-    renderLog();
-  };
-
-  const saveLastSendTime = (time = new Date()) => {
-    window.localStorage.setItem("wg-last-send-time", time.toISOString());
-  };
-
-  const loadLastSendTime = () => {
-    const el = getEl("wg-last-send-time", view);
-    const saved = window.localStorage.getItem("wg-last-send-time");
-    if (el && saved) {
-      const dt = new Date(saved);
-      if (!isNaN(dt)) {
-        const pad = (n) => String(n).padStart(2, "0");
-        const atLabel = t("wg.time.at");
-        el.textContent = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${atLabel} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
-      }
-    }
-  };
-
-  // =============================================
-  // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-  // =============================================
 
   const getPayload = () => {
     const payload = fields.reduce((acc, f) => {
@@ -361,16 +202,6 @@ export default function renderToolsView() {
   `;
   }
 
-  const updateLastSendTime = () => {
-    const timeEl = getEl("wg-last-send-time", view);
-    if (timeEl) {
-      lastSendTime = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      timeEl.textContent = `${pad(lastSendTime.getHours())}:${pad(lastSendTime.getMinutes())}:${pad(lastSendTime.getSeconds())}`;
-      saveLastSendTime(lastSendTime);
-    }
-  };
-
   const updateConnectionStatus = (status, isError = false) => {
     const statusEl = getEl("wg-connection-status", view);
     if (statusEl) {
@@ -388,42 +219,17 @@ export default function renderToolsView() {
     if (hasError) el.focus();
   };
 
-  // Флаг для отслеживания новой сессии приложения (инициализации)
-  let isNewSession = false;
-  const log = (text, error = false) => {
-    // Всегда показывать ошибки, независимо от режима отладки
-    const debugToggle = getEl("debug-toggle", view);
-    const debugEnabled = debugToggle
-      ? debugToggle.classList.contains("is-active")
-      : false;
-
-    if (!debugEnabled && !error) return;
-
-    // Добавляем маркер новой сессии
-    if (isNewSession) {
-      appendLogEntry("────────────────────────", "info");
-      isNewSession = false;
-    }
-
-    appendLogEntry(text, error ? "error" : "info");
-
-    // Автоматически раскрывать details при новых сообщениях
-    const pre = getEl("wg-log", view);
-    const details = pre?.closest("details");
-    if (details && !details.open) details.open = true;
-  };
-
   const withTimeout = (promise, ms = 5000) => {
     let timer;
     return Promise.race([
       promise,
       new Promise((_, reject) => {
-        timer = setTimeout(
+        timer = cleanup.setTimeout(
           () => reject(new Error(t("wg.error.timeoutWaiting"))),
           ms,
         );
       }),
-    ]).finally(() => clearTimeout(timer));
+    ]).finally(() => cleanup.clearTimeout(timer));
   };
 
   const humanizeError = (msg) => {
@@ -441,10 +247,7 @@ export default function renderToolsView() {
 
   const stopCountdown = () => {
     log(t("wg.log.autoShutdown.timerStopped"));
-    if (shutdownTicker) {
-      clearInterval(shutdownTicker);
-      shutdownTicker = null;
-    }
+    shutdownTicker = cleanup.clearInterval(shutdownTicker);
     shutdownDeadlineTs = null;
     lastLoggedRemaining = null;
   };
@@ -474,7 +277,7 @@ export default function renderToolsView() {
     };
 
     tick();
-    shutdownTicker = setInterval(tick, 1000);
+    shutdownTicker = cleanup.setInterval(tick, 1000);
   };
 
   const startCountdownFromSeconds = (secs) => {
@@ -618,6 +421,13 @@ export default function renderToolsView() {
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
                 ${t("tools.launcher.desc.power")}
+              </small>
+            </button>
+            <button id="tools-open-backup" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-box-archive"></i>
+              <span data-i18n="tools.launcher.open.backup">Backup</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.backup">
+                ${t("tools.launcher.desc.backup")}
               </small>
             </button>
           </div>
@@ -1558,6 +1368,11 @@ export default function renderToolsView() {
             </div>
           </article>
         </section>
+        <section
+          class="tools-view hidden"
+          data-tool-view="backup"
+          aria-label="${t("tools.nav.current.backup")}"
+        ></section>
       </section>
     </div>
   `;
@@ -1565,70 +1380,33 @@ export default function renderToolsView() {
   container.appendChild(view);
   applyI18n(view);
 
-  const isPowerToolSupportedPlatform = (info = toolsPlatformInfo) => {
-    const platform = String(info?.platform || "");
-    return !!info?.isWindows || platform === "darwin";
-  };
+  const isPowerToolSupportedPlatform = (info = toolState.toolsPlatformInfo) =>
+    toolState.isPowerToolSupportedPlatform(info);
 
-  const isPowerToolAvailable = (info = toolsPlatformInfo) => {
-    const platform = String(info?.platform || "");
-    if (info?.isWindows) return true;
-    if (platform === "darwin") return developerToolsUnlocked;
-    return false;
-  };
-
-  const readDeveloperToolsUnlocked = () => {
-    try {
-      return window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] === true;
-    } catch {
-      return false;
-    }
-  };
-
-  const isToolAvailable = (toolView, info = toolsPlatformInfo) => {
-    if (toolView === "power") return isPowerToolAvailable(info);
-    if (toolView === "sorter") return true;
-    return toolView === "launcher" || toolView === "wg" || toolView === "hash";
-  };
+  const isToolAvailable = (toolView, info = toolState.toolsPlatformInfo) =>
+    toolState.isToolAvailable(toolView, info);
 
   const isSorterHowtoOpen = () => {
     const modal = getEl("sorter-howto-modal", view);
     return !!modal && !modal.classList.contains("hidden");
   };
 
-  const readLastToolView = () => {
-    try {
-      const value = window.localStorage.getItem(LAST_TOOL_KEY);
-      return value || "launcher";
-    } catch {
-      return "launcher";
-    }
-  };
-
-  const shouldRememberLastToolView = () => {
-    try {
-      const raw = window.localStorage.getItem(REMEMBER_LAST_TOOL_KEY);
-      if (raw === null) return false;
-      return JSON.parse(raw) === true;
-    } catch {
-      return false;
-    }
-  };
-
-  const resolveInitialToolView = () => {
-    if (!shouldRememberLastToolView()) return "launcher";
-    const remembered = readLastToolView();
-    return isToolAvailable(remembered) ? remembered : "launcher";
-  };
-
   const updateLauncherToolsCount = () => {
     const countEl = getEl("tools-launcher-tools-count", view);
     if (!countEl) return;
-    const availableCount = ["wg", "hash", "power", "sorter"].filter(
+    const availableCount = ["wg", "hash", "power", "backup", "sorter"].filter(
       (toolView) => isToolAvailable(toolView),
     ).length;
     const label = t("tools.launcher.totalLabel");
     countEl.textContent = `${label}: ${availableCount}`;
+  };
+
+  const ensureBackupToolView = () => {
+    const backupSection = view.querySelector(
+      '.tools-view[data-tool-view="backup"]',
+    );
+    if (!backupSection || backupSection.childNodes.length > 0) return;
+    backupSection.appendChild(renderBackup());
   };
 
   const setToolView = (
@@ -1645,7 +1423,7 @@ export default function renderToolsView() {
     const title = getEl("tools-view-title", view);
     const requested = String(nextView || "launcher");
     const targetView = isToolAvailable(requested) ? requested : "launcher";
-    currentToolView = targetView;
+    toolState.setCurrentToolView(targetView);
 
     const showLauncher = targetView === "launcher";
     shell?.classList.toggle("is-launcher", showLauncher);
@@ -1671,17 +1449,17 @@ export default function renderToolsView() {
           ? "tools.nav.current.hash"
           : targetView === "power"
             ? "tools.nav.current.power"
-            : "tools.nav.current.sorter";
+            : targetView === "backup"
+              ? "tools.nav.current.backup"
+              : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
     breadcrumbCurrent?.classList.toggle("hidden", showLauncher);
     breadcrumbCurrentSep?.classList.toggle("hidden", showLauncher);
 
-    if (persist && targetView !== "launcher" && shouldRememberLastToolView()) {
-      try {
-        window.localStorage.setItem(LAST_TOOL_KEY, targetView);
-      } catch {}
+    if (persist && targetView !== "launcher") {
+      toolState.persistCurrentToolView(targetView);
     }
 
     if (showLauncher && focusLauncher) {
@@ -1708,7 +1486,7 @@ export default function renderToolsView() {
       log(t("wg.log.settings.fieldsRestored", { count: fields.length }));
 
       // Инициализация кнопок очистки после загрузки данных
-      setTimeout(() => {
+      cleanup.setTimeout(() => {
         fields.forEach((f) => {
           const input = getEl(f.id, view);
           const btn = view.querySelector(
@@ -1725,7 +1503,7 @@ export default function renderToolsView() {
         });
       }, 100);
 
-      if (currentToolView === "wg") {
+      if (toolState.currentToolView === "wg") {
         getEl(fields[0].id, view)?.focus();
       }
 
@@ -1734,14 +1512,14 @@ export default function renderToolsView() {
       if (debugToggle && cfg.debug) {
         debugToggle.classList.add("is-active");
         // Принудительно добавить сообщение при загрузке с включенной отладкой
-        setTimeout(() => {
+        cleanup.setTimeout(() => {
           log(t("wg.log.system.debugInit"));
         }, 100);
       }
 
       if (cfg.autosend) {
         log(t("wg.log.send.scheduleAuto"));
-        setTimeout(() => getEl("wg-send", view)?.click(), 50);
+        cleanup.setTimeout(() => getEl("wg-send", view)?.click(), 50);
       }
     } catch (err) {
       toast(t("wg.toast.loadConfigError"), false);
@@ -1832,7 +1610,7 @@ export default function renderToolsView() {
               status.className = "loading";
 
               const hideLater = () =>
-                setTimeout(() => status.classList.add("hidden"), 500);
+                cleanup.setTimeout(() => status.classList.add("hidden"), 500);
 
               window.electron.ipcRenderer
                 .invoke("wg-send-udp", payload)
@@ -1883,15 +1661,17 @@ export default function renderToolsView() {
     const openWgBtn = getEl("tools-open-wg", view);
     const openHashBtn = getEl("tools-open-hash", view);
     const openPowerBtn = getEl("tools-open-power", view);
+    const openBackupBtn = getEl("tools-open-backup", view);
     const openSorterBtn = getEl("tools-open-sorter", view);
     const backBtn = getEl("tools-back-btn", view);
     const breadcrumbHomeBtn = getEl("tools-breadcrumb-home", view);
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
 
     const applyDeveloperToolsAvailability = () => {
-      developerToolsUnlocked = readDeveloperToolsUnlocked();
+      toolState.setDeveloperToolsUnlocked(toolState.readDeveloperToolsUnlocked());
       if (
         !openPowerBtn ||
+        !openBackupBtn ||
         !openSorterBtn ||
         !launcherAvailableGrid ||
         !launcherUnavailableGrid ||
@@ -1900,7 +1680,7 @@ export default function renderToolsView() {
         return;
       }
 
-      const powerSupported = isPowerToolSupportedPlatform(toolsPlatformInfo);
+      const powerSupported = isPowerToolSupportedPlatform(toolState.toolsPlatformInfo);
       const powerAvailable = isToolAvailable("power");
       if (!powerSupported) {
         openPowerBtn.classList.add("hidden");
@@ -1927,9 +1707,16 @@ export default function renderToolsView() {
       if (openSorterBtn.parentElement !== launcherAvailableGrid) {
         launcherAvailableGrid.appendChild(openSorterBtn);
       }
+      if (openBackupBtn.parentElement !== launcherAvailableGrid) {
+        launcherAvailableGrid.appendChild(openBackupBtn);
+      }
       openSorterBtn.disabled = false;
       openSorterBtn.removeAttribute("aria-disabled");
       openSorterBtn.classList.remove("is-unavailable");
+      openBackupBtn.disabled = false;
+      openBackupBtn.removeAttribute("aria-disabled");
+      openBackupBtn.classList.remove("is-unavailable");
+      openBackupBtn.classList.toggle("hidden", !isToolAvailable("backup"));
       launcherUnavailableSection.classList.toggle(
         "hidden",
         launcherUnavailableGrid.children.length === 0,
@@ -1940,6 +1727,10 @@ export default function renderToolsView() {
     openWgBtn?.addEventListener("click", () => setToolView("wg"));
     openHashBtn?.addEventListener("click", () => setToolView("hash"));
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
+    openBackupBtn?.addEventListener("click", () => {
+      ensureBackupToolView();
+      setToolView("backup");
+    });
     openSorterBtn?.addEventListener("click", () => {
       if (!isToolAvailable("sorter")) return;
       setToolView("sorter");
@@ -1954,17 +1745,36 @@ export default function renderToolsView() {
       setToolView("launcher", { persist: false, focusLauncher: true }),
     );
 
-    onWindowEvent("tools:developer-unlock-changed", (event) => {
+    const isWgHowtoOpen = () => {
+      const modal = getEl("wg-howto-modal", view);
+      return !!modal && !modal.classList.contains("hidden");
+    };
+
+    const isHashHowtoOpen = () => {
+      const modal = getEl("hash-howto-modal", view);
+      return !!modal && !modal.classList.contains("hidden");
+    };
+
+    const isPowerHowtoOpen = () => {
+      const modal = getEl("power-howto-modal", view);
+      return !!modal && !modal.classList.contains("hidden");
+    };
+
+    cleanup.onWindowEvent("tools:developer-unlock-changed", (event) => {
       const enabled = !!event?.detail?.enabled;
-      try {
-        window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] = enabled;
-      } catch {}
-      developerToolsUnlocked = enabled;
+      toolState.setDeveloperToolsUnlocked(enabled);
       applyDeveloperToolsAvailability();
-      if (!isToolAvailable(currentToolView)) {
+      if (!isToolAvailable(toolState.currentToolView)) {
         setToolView("launcher", { persist: false, focusLauncher: true });
-      } else if (currentToolView === "launcher") {
+      } else if (toolState.currentToolView === "launcher") {
         setToolView("launcher", { persist: false });
+      }
+    });
+
+    cleanup.onWindowEvent("backup:toggleDisabled", () => {
+      applyDeveloperToolsAvailability();
+      if (!isToolAvailable(toolState.currentToolView)) {
+        setToolView("launcher", { persist: false, focusLauncher: true });
       }
     });
 
@@ -2052,13 +1862,13 @@ export default function renderToolsView() {
       const isEscapePressed =
         key === "Escape" || key === "Esc" || code === "Escape";
 
-      if (isEscapePressed && currentToolView !== "launcher") {
+      if (isEscapePressed && toolState.currentToolView !== "launcher") {
         e.preventDefault();
         setToolView("launcher", { persist: false, focusLauncher: true });
         return;
       }
 
-      if (!isEditableTarget && currentToolView === "launcher") {
+      if (!isEditableTarget && toolState.currentToolView === "launcher") {
         const isArrowKey =
           e.key === "ArrowLeft" ||
           e.key === "ArrowRight" ||
@@ -2069,6 +1879,7 @@ export default function renderToolsView() {
             openWgBtn,
             openHashBtn,
             openPowerBtn,
+            openBackupBtn,
             openSorterBtn,
           ].filter(
             (btn) =>
@@ -2119,26 +1930,19 @@ export default function renderToolsView() {
     // Очистка лога
     const clearLogBtn = getEl("wg-log-clear", view);
     clearLogBtn?.addEventListener("click", () => {
-      logEntries = [];
-      renderLog();
-      saveLog();
+      clearLog();
       log(t("wg.log.log.clearedByUser"));
     });
 
     const filterErrorsBtn = getEl("wg-log-filter-errors", view);
     filterErrorsBtn?.addEventListener("click", () => {
-      logErrorOnly = !logErrorOnly;
-      updateLogControls();
-      renderLog();
+      setLogErrorOnly(!logController.errorOnly);
       initTooltips();
     });
 
     const autoScrollBtn = getEl("wg-log-autoscroll", view);
     autoScrollBtn?.addEventListener("click", () => {
-      logAutoScroll = !logAutoScroll;
-      updateLogControls();
-      renderLog();
-      saveLog();
+      setLogAutoScroll(!logController.autoScroll);
       initTooltips();
     });
 
@@ -2152,10 +1956,10 @@ export default function renderToolsView() {
     // Копирование лога в буфер обмена
     const copyLogBtn = getEl("wg-log-copy", view);
     copyLogBtn?.addEventListener("click", async () => {
-      const pre = getEl("wg-log", view);
-      if (pre && pre.textContent) {
+      const logText = getLogText();
+      if (logText) {
         try {
-          await navigator.clipboard.writeText(pre.textContent);
+          await navigator.clipboard.writeText(logText);
           toast(t("wg.toast.logCopied"));
           log(t("wg.log.log.copied"));
 
@@ -2167,7 +1971,7 @@ export default function renderToolsView() {
           copyLogBtn.style.borderColor = "var(--color-success)";
           copyLogBtn.style.color = "var(--color-success)";
 
-          setTimeout(() => {
+          cleanup.setTimeout(() => {
             copyLogBtn.innerHTML = '<i class="fa-solid fa-copy"></i>';
             copyLogBtn.style.background = "";
             copyLogBtn.style.borderColor = "";
@@ -2186,10 +1990,10 @@ export default function renderToolsView() {
     // Экспорт лога в файл
     const exportLogBtn = getEl("wg-log-export", view);
     exportLogBtn?.addEventListener("click", () => {
-      const pre = getEl("wg-log", view);
-      if (pre && pre.textContent) {
+      const logText = getLogText();
+      if (logText) {
         log(t("wg.log.log.exportStarted"));
-        window.electron.ipcRenderer.send("wg-export-log", pre.textContent);
+        window.electron.ipcRenderer.send("wg-export-log", logText);
 
         // Визуальная обратная связь
         exportLogBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t(
@@ -2197,7 +2001,7 @@ export default function renderToolsView() {
         )}</span>`;
         exportLogBtn.disabled = true;
 
-        setTimeout(() => {
+        cleanup.setTimeout(() => {
           exportLogBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
           exportLogBtn.disabled = false;
         }, 3000);
@@ -2215,8 +2019,16 @@ export default function renderToolsView() {
       toast(t("wg.toast.logExportFailed"), false);
       log(t("wg.log.error.exportLog", { message: error }), true);
     };
-    onIpcEvent("wg-log-export-success", onLogExportSuccess);
-    onIpcEvent("wg-log-export-error", onLogExportError);
+    cleanup.onIpcEvent(
+      window.electron.ipcRenderer,
+      "wg-log-export-success",
+      onLogExportSuccess,
+    );
+    cleanup.onIpcEvent(
+      window.electron.ipcRenderer,
+      "wg-log-export-error",
+      onLogExportError,
+    );
 
     // Открыть файл конфигурации
     const openConfigBtn = getEl("wg-open-config-file", view);
@@ -2256,13 +2068,19 @@ export default function renderToolsView() {
         }
       }
       try {
-        window.localStorage.setItem(WG_ADVANCED_STATE_KEY, isOpen ? "1" : "0");
+        window.localStorage.setItem(
+          TOOLS_STORAGE_KEYS.WG_ADVANCED_STATE,
+          isOpen ? "1" : "0",
+        );
       } catch {}
     };
 
     const readAdvancedState = () => {
       try {
-        return window.localStorage.getItem(WG_ADVANCED_STATE_KEY) === "1";
+        return (
+          window.localStorage.getItem(TOOLS_STORAGE_KEYS.WG_ADVANCED_STATE) ===
+          "1"
+        );
       } catch {
         return false;
       }
@@ -2274,12 +2092,12 @@ export default function renderToolsView() {
       setAdvancedOpen(!currentlyOpen, { manageFocus: true });
       initTooltips();
     });
-    onWindowEvent("i18n:changed", () => {
+    cleanup.onWindowEvent("i18n:changed", () => {
       setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
-      setToolView(currentToolView, { persist: false });
+      setToolView(toolState.currentToolView, { persist: false });
       setPowerAvailabilityUi({
-        isWindows: isWindowsPlatform,
-        showTool: isPowerToolSupportedPlatform(toolsPlatformInfo),
+        isWindows: toolState.isWindowsPlatform,
+        showTool: isPowerToolSupportedPlatform(toolState.toolsPlatformInfo),
       });
     });
 
@@ -2298,9 +2116,6 @@ export default function renderToolsView() {
     const wgHowtoSlideCount = 4;
     let wgHowtoIndex = 0;
     let wgHowtoReturnFocusEl = null;
-
-    const isWgHowtoOpen = () =>
-      !!wgHowtoModalEl && !wgHowtoModalEl.classList.contains("hidden");
 
     const updateWgHowtoUi = () => {
       if (!wgHowtoTrackEl) return;
@@ -2342,7 +2157,7 @@ export default function renderToolsView() {
       wgHowtoModalEl.setAttribute("aria-hidden", "false");
       wgHowtoDialogEl.setAttribute("aria-hidden", "false");
       setWgHowtoSlide(0);
-      setTimeout(() => wgHowtoCloseBtn?.focus(), 0);
+      cleanup.setTimeout(() => wgHowtoCloseBtn?.focus(), 0);
     };
 
     const closeWgHowtoModal = ({ returnFocus = true } = {}) => {
@@ -2427,9 +2242,6 @@ export default function renderToolsView() {
       hashClearFileSecondBtn.disabled = hashBusy || !hashSelectedFileSecond;
     };
 
-    const isHashHowtoOpen = () =>
-      !!hashHowtoModalEl && !hashHowtoModalEl.classList.contains("hidden");
-
     const updateHashHowtoUi = () => {
       if (!hashHowtoTrackEl) return;
       hashHowtoTrackEl.style.transform = `translateX(-${hashHowtoIndex * 100}%)`;
@@ -2470,7 +2282,7 @@ export default function renderToolsView() {
       hashHowtoModalEl.setAttribute("aria-hidden", "false");
       hashHowtoDialogEl.setAttribute("aria-hidden", "false");
       setHashHowtoSlide(0);
-      setTimeout(() => hashHowtoCloseBtn?.focus(), 0);
+      cleanup.setTimeout(() => hashHowtoCloseBtn?.focus(), 0);
     };
 
     const closeHashHowtoModal = ({ returnFocus = true } = {}) => {
@@ -2934,12 +2746,14 @@ export default function renderToolsView() {
         const value = getValue();
         if (!value || hashBusy) return;
         if (timerKey === "first" && hashCopyFeedbackTimerFirst) {
-          clearTimeout(hashCopyFeedbackTimerFirst);
-          hashCopyFeedbackTimerFirst = null;
+          hashCopyFeedbackTimerFirst = cleanup.clearTimeout(
+            hashCopyFeedbackTimerFirst,
+          );
         }
         if (timerKey === "second" && hashCopyFeedbackTimerSecond) {
-          clearTimeout(hashCopyFeedbackTimerSecond);
-          hashCopyFeedbackTimerSecond = null;
+          hashCopyFeedbackTimerSecond = cleanup.clearTimeout(
+            hashCopyFeedbackTimerSecond,
+          );
         }
 
         try {
@@ -2952,7 +2766,7 @@ export default function renderToolsView() {
           hashResultEl.className = "quick-action-result error";
           setCopyFeedback(feedbackEl, "hashCheck.copyError");
         } finally {
-          const resetTimer = setTimeout(() => {
+          const resetTimer = cleanup.setTimeout(() => {
             const icon = button.querySelector("i");
             if (icon) icon.className = "fa-regular fa-copy";
             setCopyFeedback(feedbackEl);
@@ -3065,7 +2879,7 @@ export default function renderToolsView() {
       sorterHowtoModalEl.setAttribute("aria-hidden", "false");
       sorterHowtoDialogEl.setAttribute("aria-hidden", "false");
       setSorterHowtoSlide(0);
-      setTimeout(() => sorterHowtoCloseBtn?.focus(), 0);
+      cleanup.setTimeout(() => sorterHowtoCloseBtn?.focus(), 0);
     };
 
     const closeSorterHowtoModal = ({ returnFocus = true } = {}) => {
@@ -3107,7 +2921,7 @@ export default function renderToolsView() {
       view,
       getEl,
       t,
-      registerCleanup: addCleanup,
+      registerCleanup: cleanup.addCleanup,
     });
 
     const restartCard = getEl("tools-restart-card", view);
@@ -3160,9 +2974,6 @@ export default function renderToolsView() {
       view,
     );
 
-    const isPowerHowtoOpen = () =>
-      !!powerHowtoModalEl && !powerHowtoModalEl.classList.contains("hidden");
-
     const updatePowerHowtoUi = () => {
       if (!powerHowtoTrackEl) return;
       powerHowtoTrackEl.style.transform = `translateX(-${powerHowtoIndex * 100}%)`;
@@ -3204,7 +3015,7 @@ export default function renderToolsView() {
       powerHowtoModalEl.setAttribute("aria-hidden", "false");
       powerHowtoDialogEl.setAttribute("aria-hidden", "false");
       setPowerHowtoSlide(0);
-      setTimeout(() => powerHowtoCloseBtn?.focus(), 0);
+      cleanup.setTimeout(() => powerHowtoCloseBtn?.focus(), 0);
     };
 
     const closePowerHowtoModal = ({ returnFocus = true } = {}) => {
@@ -3378,10 +3189,9 @@ export default function renderToolsView() {
     });
     updatePowerHowtoUi();
 
-    isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
-    const showPowerTool = isPowerToolSupportedPlatform(toolsPlatformInfo);
+    const showPowerTool = isPowerToolSupportedPlatform(toolState.toolsPlatformInfo);
     setPowerAvailabilityUi({
-      isWindows: isWindowsPlatform,
+      isWindows: toolState.isWindowsPlatform,
       showTool: showPowerTool,
     });
     applyDeveloperToolsAvailability();
@@ -3428,13 +3238,13 @@ export default function renderToolsView() {
       log(t("wg.log.send.abortedValidation"), true);
       status.textContent = t("wg.statusIndicator.validationErrors");
       status.className = "error";
-      setTimeout(() => status.classList.add("hidden"), 3000);
+      cleanup.setTimeout(() => status.classList.add("hidden"), 3000);
       return;
     }
 
     const sendBtn = getEl("wg-send", view);
     const hideLater = () =>
-      setTimeout(() => status.classList.add("hidden"), 500);
+      cleanup.setTimeout(() => status.classList.add("hidden"), 500);
 
     sendBtn.disabled = true;
     sendBtn.classList.add("is-loading");
@@ -3460,7 +3270,7 @@ export default function renderToolsView() {
         status.className = "success";
 
         view.classList.add("wg-success-pulse");
-        setTimeout(() => view.classList.remove("wg-success-pulse"), 2000);
+        cleanup.setTimeout(() => view.classList.remove("wg-success-pulse"), 2000);
 
         sendBtn.disabled = false;
         sendBtn.classList.remove("is-loading");
@@ -3487,7 +3297,7 @@ export default function renderToolsView() {
 
         sendBtn.disabled = false;
         sendBtn.classList.remove("is-loading");
-        setTimeout(() => status.classList.add("hidden"), 5000);
+        cleanup.setTimeout(() => status.classList.add("hidden"), 5000);
       });
   };
 
@@ -3535,7 +3345,7 @@ export default function renderToolsView() {
 
     if (enabled) {
       debugToggle.classList.add("is-active", "pulse");
-      setTimeout(() => debugToggle.classList.remove("pulse"), 600);
+      cleanup.setTimeout(() => debugToggle.classList.remove("pulse"), 600);
 
       // При включении отладки добавляем информационное сообщение
       log(t("wg.log.debug.enabled"));
@@ -3562,23 +3372,26 @@ export default function renderToolsView() {
 
   const initialize = async () => {
     try {
-      // При инициализации устанавливаем флаг новой сессии
-      isNewSession = true;
+      logController.startSession();
       // Сначала устанавливаем начальное сообщение в лог
       const pre = getEl("wg-log", view);
       if (pre && !pre.textContent.trim()) {
         pre.textContent = t("wg.log.placeholder");
       }
 
-      toolsPlatformInfo = (await window.electron
+      toolState.setPlatformInfo((await window.electron
         .getPlatformInfo?.()
         .catch(() => null)) || {
         isWindows: false,
         platform: "",
-      };
-      isWindowsPlatform = !!toolsPlatformInfo?.isWindows;
-      developerToolsUnlocked = readDeveloperToolsUnlocked();
-      setToolView(resolveInitialToolView(), { persist: false });
+      });
+      toolState.setDeveloperToolsUnlocked(toolState.readDeveloperToolsUnlocked());
+      const requestedToolView =
+        consumeRequestedToolsView() || toolState.resolveInitialToolView();
+      if (requestedToolView === "backup") {
+        ensureBackupToolView();
+      }
+      setToolView(requestedToolView, { persist: false });
 
       await loadConfiguration();
       loadLog();
@@ -3613,19 +3426,16 @@ export default function renderToolsView() {
 
           const clearTipsTimers = () => {
             if (tipsIntervalId) {
-              clearInterval(tipsIntervalId);
-              tipsIntervalId = null;
+              tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
             }
           };
 
           const clearTipsAnimationTimers = () => {
             if (tipsSwapTimer) {
-              clearTimeout(tipsSwapTimer);
-              tipsSwapTimer = null;
+              tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
             }
             if (tipsFadeTimer) {
-              clearTimeout(tipsFadeTimer);
-              tipsFadeTimer = null;
+              tipsFadeTimer = cleanup.clearTimeout(tipsFadeTimer);
             }
           };
 
@@ -3665,11 +3475,11 @@ export default function renderToolsView() {
             }
             p.classList.add("fade-out");
             clearTipsAnimationTimers();
-            tipsSwapTimer = setTimeout(() => {
+            tipsSwapTimer = cleanup.setTimeout(() => {
               p.textContent = text;
               p.classList.remove("fade-out");
               p.classList.add("fade-in");
-              tipsFadeTimer = setTimeout(
+              tipsFadeTimer = cleanup.setTimeout(
                 () => p.classList.remove("fade-in"),
                 800,
               );
@@ -3680,7 +3490,7 @@ export default function renderToolsView() {
           const scheduleRotation = () => {
             clearTipsTimers();
             if (tipsPaused || tipsItems.length <= 1) return;
-            tipsIntervalId = setInterval(() => {
+            tipsIntervalId = cleanup.setInterval(() => {
               renderTip(tipsIndex + 1);
             }, 8000);
           };
@@ -3713,13 +3523,21 @@ export default function renderToolsView() {
         }
       };
       await initTipsRotation(getLanguage());
-      onWindowEvent("i18n:changed", (e) => {
+      cleanup.onWindowEvent("i18n:changed", (e) => {
         const next = e?.detail?.lang || getLanguage();
         initTipsRotation(next);
       });
+      cleanup.onWindowEvent("tools:navigate", (event) => {
+        const requestedTool = String(event?.detail?.toolView || "").trim();
+        if (!requestedTool) return;
+        if (requestedTool === "backup") {
+          ensureBackupToolView();
+        }
+        setToolView(requestedTool, { persist: false });
+      });
 
       const initNetworkSettingsButton = async () => {
-        const platform = toolsPlatformInfo?.platform || "";
+        const platform = toolState.toolsPlatformInfo?.platform || "";
         const btn = view.querySelector("#wg-open-network-settings");
         if (!btn) return;
         const supportedPlatform = platform === "darwin" || platform === "win32";
@@ -3807,7 +3625,11 @@ export default function renderToolsView() {
       log(t("wg.log.error.autoShutdownUpdate", { message: err.message }), true);
     }
   };
-  onIpcEvent("wg-auto-shutdown-updated", onAutoShutdownUpdated);
+    cleanup.onIpcEvent(
+      window.electron.ipcRenderer,
+      "wg-auto-shutdown-updated",
+      onAutoShutdownUpdated,
+    );
 
   const disconnectObserver = new MutationObserver(() => {
     if (!container.isConnected) {
@@ -3820,8 +3642,10 @@ export default function renderToolsView() {
       childList: true,
       subtree: true,
     });
-    addCleanup(() => disconnectObserver.disconnect());
+    cleanup.addCleanup(() => disconnectObserver.disconnect());
   }
+
+  container.addEventListener("tools:view-hidden", disposeView, { once: true });
 
   // Запускаем инициализацию
   initialize();

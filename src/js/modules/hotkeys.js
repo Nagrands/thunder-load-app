@@ -39,6 +39,7 @@ import {
 import { setTheme } from "./settingsStore.js";
 import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
+import { requestToolsView } from "./toolsNavigation.js";
 import { closeAllModals } from "./modalManager.js"; // Импортируем функцию закрытия всех модалов
 
 // Список всех модальных окон
@@ -117,8 +118,9 @@ const localHotkeys = new Map([
     "Ctrl+3",
     () => {
       if (tabSystemReference) {
-        tabSystemReference.activateTab("backup");
-        console.log("Переключено на вкладку Backup (Ctrl+3)");
+        requestToolsView("backup");
+        tabSystemReference.activateTab("wireguard");
+        console.log("Переключено на инструмент Backup в Tools (Ctrl+3)");
       }
     },
   ],
@@ -126,8 +128,9 @@ const localHotkeys = new Map([
     "Meta+3",
     () => {
       if (tabSystemReference) {
-        tabSystemReference.activateTab("backup");
-        console.log("Переключено на вкладку Backup (Meta+3)");
+        requestToolsView("backup");
+        tabSystemReference.activateTab("wireguard");
+        console.log("Переключено на инструмент Backup в Tools (Meta+3)");
       }
     },
   ],

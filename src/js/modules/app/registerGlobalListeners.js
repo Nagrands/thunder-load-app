@@ -6,7 +6,6 @@ export function registerI18nListeners(tabs) {
     document.title = t("app.title");
     tabs.setTabLabel("download", t("tabs.download"));
     tabs.setTabLabel("wireguard", t("tabs.tools"));
-    tabs.setTabLabel("backup", t("tabs.backup"));
   });
 }
 

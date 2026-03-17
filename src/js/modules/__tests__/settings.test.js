@@ -115,6 +115,18 @@ describe("updateModuleBadge", () => {
     expect(badge?.style.display).toBe("none");
     expect(statusBadge?.textContent).toBe("Вкл");
     expect(statusBadge?.classList.contains("is-disabled")).toBe(false);
+
+    const statusText = document.getElementById(
+      moduleKey === "wg"
+        ? "settings-wg-status-text"
+        : "settings-backup-status-text",
+    );
+    if (moduleKey === "backup") {
+      expect(statusText?.innerHTML).toContain("Backup");
+      expect(statusText?.innerHTML).not.toContain("Вкладка");
+    } else {
+      expect(statusText?.innerHTML).toBe("Вкладка <strong>Tools</strong> включена");
+    }
   });
 
   it("silently ignores unknown module keys", () => {
@@ -688,15 +700,13 @@ describe("tools settings modal", () => {
       </div>`;
 
     let mod;
-    let toolsInfo;
+    let toolsInfoController;
     jest.isolateModules(() => {
-      jest.doMock("../toolsInfo.js", () => ({
-        renderToolsInfo: jest.fn().mockResolvedValue(undefined),
-        refreshToolsInfoState: jest.fn().mockResolvedValue(undefined),
-        isToolsInfoStale: jest.fn(() => true),
+      jest.doMock("../features/settings/toolsInfoController.js", () => ({
+        ensureToolsInfo: jest.fn().mockResolvedValue(undefined),
       }));
       mod = require("../settings");
-      toolsInfo = require("../toolsInfo.js");
+      toolsInfoController = require("../features/settings/toolsInfoController.js");
     });
 
     await mod.initSettings?.();
@@ -707,7 +717,7 @@ describe("tools settings modal", () => {
     openBtn?.click();
     await Promise.resolve();
 
-    expect(toolsInfo.renderToolsInfo).toHaveBeenCalled();
+    expect(toolsInfoController.ensureToolsInfo).toHaveBeenCalledWith(false);
     expect(modal?.style.display).toBe("flex");
     expect(modal?.getAttribute("aria-hidden")).toBe("false");
 

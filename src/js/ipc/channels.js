@@ -128,7 +128,7 @@ const CHANNELS = Object.freeze({
   UPDATE_DEV_DOWNLOADED: "update:dev-downloaded",
   UPDATE_DEV_ERROR: "update:dev-error",
 
-  // Backup tab
+  // Backup tool
   BACKUP_GET_PROGRAMS: "backup:getPrograms",
   BACKUP_SAVE_PROGRAMS: "backup:savePrograms",
   BACKUP_RUN: "backup:run",

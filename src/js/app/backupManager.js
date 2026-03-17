@@ -1,5 +1,5 @@
 // src/js/app/backupManager.js
-// Main-process helper for Backup tab logic
+// Main-process helper for Backup tool logic
 const fs = require("fs");
 const fsp = fs.promises;
 const path = require("path");

@@ -35,6 +35,78 @@ import {
   registerWgControls,
 } from "./registerGlobalListeners.js";
 
+const DEFERRED_INIT_FALLBACK_DELAY_MS = 0;
+
+function scheduleDeferredInitialization(task) {
+  if (typeof task !== "function") return;
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => {
+      void task();
+    });
+    return;
+  }
+
+  window.setTimeout(() => {
+    void task();
+  }, DEFERRED_INIT_FALLBACK_DELAY_MS);
+}
+
+async function runCriticalInitialization(mainView) {
+  console.time("[Startup] Critical init");
+
+  const { tabs } = await registerTabs(mainView);
+
+  registerI18nListeners(tabs);
+
+  initUrlInputHandler();
+  initHistory();
+  await initHistoryState();
+  initTopBarResponsive();
+  initFirstRunModal();
+  registerStatusMessageListener();
+
+  console.timeEnd("[Startup] Critical init");
+  return { tabs };
+}
+
+async function runDeferredInitialization({ tabs }) {
+  console.time("[Startup] Deferred init");
+
+  try {
+    initHotkeys(tabs);
+    initWhatsNewModal();
+    initNetworkListeners();
+    initSettings();
+    initContextMenu();
+    initSort();
+    initHistoryFilter();
+    initHistoryActions();
+    initDownloadActions();
+    initDownloadCancel();
+    initDownloadCompleteHandler();
+    initIconUpdater();
+    initExternalLinksHandler();
+    initModalHandlers();
+    initElectronEvents();
+    initDownloadProgress();
+    initClipboardHandler();
+    initInterfaceHandlers();
+    initSettingsModal();
+    initTopBarThemeToggle();
+
+    registerWgControls();
+
+    initUpdateHandler();
+    initTooltips();
+    console.log("All modules initialized with TabSystem v1.0");
+  } catch (error) {
+    console.error("[Startup] Deferred init failed:", error);
+  } finally {
+    console.timeEnd("[Startup] Deferred init");
+  }
+}
+
 function cleanupLegacyRandomizerStorage() {
   const MIGRATION_KEY = "migration.randomizerRemoved.v1";
   try {
@@ -80,43 +152,7 @@ export async function startRenderer() {
     const mainView = document.getElementById("main-view");
     if (!mainView) throw new Error("#main-view not found");
 
-    const { tabs } = await registerTabs(mainView);
-
-    registerI18nListeners(tabs);
-
-    initHotkeys(tabs);
-    initWhatsNewModal();
-    initNetworkListeners();
-    initSettings();
-    initUrlInputHandler();
-    initContextMenu();
-    initSort();
-    initHistory();
-    await initHistoryState();
-    initHistoryFilter();
-    initHistoryActions();
-    initDownloadActions();
-    initDownloadCancel();
-    initDownloadCompleteHandler();
-    initIconUpdater();
-    initExternalLinksHandler();
-    initModalHandlers();
-    initElectronEvents();
-    initDownloadProgress();
-    initClipboardHandler();
-    initInterfaceHandlers();
-    initSettingsModal();
-    initTopBarThemeToggle();
-    initTopBarResponsive();
-    initFirstRunModal();
-
-    registerWgControls();
-
-    initUpdateHandler();
-    initTooltips();
-
-    console.timeEnd("Renderer → Initialization");
-    console.log("All modules initialized with TabSystem v1.0");
+    const runtime = await runCriticalInitialization(mainView);
 
     document.body.classList.add("ready");
 
@@ -131,7 +167,10 @@ export async function startRenderer() {
       );
     }
 
-    registerStatusMessageListener();
+    console.timeEnd("Renderer → Initialization");
+    scheduleDeferredInitialization(async () => {
+      await runDeferredInitialization(runtime);
+    });
   } catch (error) {
     console.error("Ошибка при инициализации приложения:", error);
   }

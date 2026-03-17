@@ -6,6 +6,9 @@
 
 | What changed | What you get |
 |---|---|
+| Improved startup responsiveness | The main screen reaches ready state faster while non-critical modules initialize later |
+| Simplified Settings and Tools | Large modules are split into smaller internal parts, so reopening screens and switching views is more stable |
+| Moved Backup into Tools | Backups are now presented as a tool inside Tools instead of a separate tab |
 | Fixed the post-download file-open prompt setting | The file-open prompt shown after a download now correctly follows this toggle |
 | Fixed formatting in the post-download dialog | The completion dialog no longer shows raw HTML tags and renders as a normal formatted message |
 | Updated development rules | Clearer architecture, build, UI, and IPC guidance for stable changes |

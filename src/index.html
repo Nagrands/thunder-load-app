@@ -1345,7 +1345,7 @@
               </button>
               <button class="tab-link" data-tab="backup-settings">
                 <i class="fa-solid fa-box-archive"></i>
-                <span data-i18n="settings.tabs.backup">Backup</span>
+                <span data-i18n="settings.tabs.backup">Backup tool</span>
                 <span
                   class="tab-badge tab-badge-off"
                   id="tab-badge-backup"
@@ -1469,18 +1469,6 @@
                           <label for="settings-tab-wgsend">
                             <i class="fa-solid fa-unlock-keyhole"></i>
                             <strong data-i18n="tabs.tools">Tools</strong>
-                          </label>
-                        </li>
-                        <li class="custom-theme-select settings-control">
-                          <input
-                            type="radio"
-                            id="settings-tab-backup"
-                            name="defaultTab"
-                            value="backup"
-                          />
-                          <label for="settings-tab-backup">
-                            <i class="fa-solid fa-box-archive"></i>
-                            <strong data-i18n="tabs.backup">Backup</strong>
                           </label>
                         </li>
                       </ul>
@@ -1878,9 +1866,9 @@
               <div id="backup-settings" class="tab-pane">
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
-                    <h2 data-i18n="settings.backup.title">Вкладка «Backup»</h2>
+                    <h2 data-i18n="settings.backup.title">Инструмент Backup в Tools</h2>
                     <p data-i18n="settings.backup.disable.hint">
-                      Скрывает вкладку и отключает её инициализацию.
+                      Скрывает инструмент Backup в разделе Tools и отключает его инициализацию.
                     </p>
                   </div>
                 </div>
@@ -1888,7 +1876,7 @@
                   <section class="settings-card">
                     <div class="settings-card__intro">
                       <div class="settings-card__heading">
-                        <h3 class="settings-card__title" data-i18n="settings.tabs.backup">Backup</h3>
+                        <h3 class="settings-card__title" data-i18n="settings.tabs.backup">Backup tool</h3>
                         <span
                           id="settings-backup-status-badge"
                           class="settings-state-badge"
@@ -1902,7 +1890,7 @@
                         class="settings-card__desc"
                         data-i18n="settings.backup.disable.hint"
                       >
-                        Скрывает вкладку и отключает её инициализацию.
+                        Скрывает инструмент Backup в разделе Tools и отключает его инициализацию.
                       </p>
                     </div>
                     <div class="settings-card__body">
@@ -2418,8 +2406,10 @@
           <label class="first-run-option">
             <input type="checkbox" name="first-run-tab" value="backup" />
             <div class="first-run-option__content">
-              <strong data-i18n="tabs.backup">Backup</strong>
-              <small data-i18n="firstRun.tabs.backupHint">Резервные копии и профили</small>
+              <strong data-i18n="tabs.backup">Backup tool</strong>
+              <small data-i18n="firstRun.tabs.backupHint">
+                Резервные копии и профили внутри Tools
+              </small>
             </div>
           </label>
         </div>
@@ -2711,9 +2701,9 @@
                 <strong>Ctrl + 3</strong>
                 <p>
                   <i class="fa-solid fa-box-archive"></i>
-                  <span data-i18n="shortcuts.tab.backup"
-                    >Вкладка «Backup»</span
-                  >
+                  <span data-i18n="shortcuts.tab.backup">
+                    Инструмент Backup в Tools
+                  </span>
                 </p>
               </li>
             <hr />

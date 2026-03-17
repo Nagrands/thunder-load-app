@@ -8,6 +8,59 @@ function isElementVisible(el) {
   return rect.width > 0 || rect.height > 0 || style.position === "fixed";
 }
 
+function setOverflowMenuState(topBar, toggle, menu, isOpen) {
+  menu.hidden = !isOpen;
+  toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  topBar.classList.toggle("is-overflow-open", isOpen);
+}
+
+function getProxyTarget(item) {
+  const selector = item.getAttribute("data-proxy-target");
+  return selector ? document.querySelector(selector) : null;
+}
+
+function syncOverflowItem(item) {
+  const target = getProxyTarget(item);
+  if (!target) {
+    item.hidden = true;
+    item.disabled = true;
+    return 0;
+  }
+
+  const shouldSurfaceInOverflow = !isElementVisible(target);
+  item.hidden = !shouldSurfaceInOverflow;
+  item.disabled = !!target.disabled;
+  return shouldSurfaceInOverflow ? 1 : 0;
+}
+
+function syncOverflowItems(menu, toggle, closeMenu) {
+  const items = menu.querySelectorAll("[data-proxy-target]");
+  let visibleCount = 0;
+
+  items.forEach((item) => {
+    visibleCount += syncOverflowItem(item);
+  });
+
+  const hasVisibleItems = visibleCount > 0;
+  toggle.hidden = !hasVisibleItems;
+  toggle.disabled = !hasVisibleItems;
+  if (!hasVisibleItems) closeMenu();
+}
+
+function createCloseMenu(topBar, toggle, menu) {
+  return () => {
+    if (menu.hidden) return;
+    setOverflowMenuState(topBar, toggle, menu, false);
+  };
+}
+
+function createOpenMenu(topBar, toggle, menu) {
+  return () => {
+    if (!menu.hidden) return;
+    setOverflowMenuState(topBar, toggle, menu, true);
+  };
+}
+
 function initTopBarResponsive() {
   const topBar = document.querySelector(".top-bar");
   const toggle = document.getElementById("topbar-more-toggle");
@@ -15,41 +68,10 @@ function initTopBarResponsive() {
   const root = document.documentElement;
   if (!topBar || !toggle || !menu) return;
 
-  const closeMenu = () => {
-    if (menu.hidden) return;
-    menu.hidden = true;
-    toggle.setAttribute("aria-expanded", "false");
-    topBar.classList.remove("is-overflow-open");
-  };
-
-  const openMenu = () => {
-    if (!menu.hidden) return;
-    menu.hidden = false;
-    toggle.setAttribute("aria-expanded", "true");
-    topBar.classList.add("is-overflow-open");
-  };
-
-  const syncOverflowItems = () => {
-    const items = menu.querySelectorAll("[data-proxy-target]");
-    let visibleCount = 0;
-    items.forEach((item) => {
-      const selector = item.getAttribute("data-proxy-target");
-      const target = selector ? document.querySelector(selector) : null;
-      if (!target) {
-        item.hidden = true;
-        item.disabled = true;
-        return;
-      }
-      const shouldSurfaceInOverflow = !isElementVisible(target);
-      item.hidden = !shouldSurfaceInOverflow;
-      item.disabled = !!target.disabled;
-      if (shouldSurfaceInOverflow) visibleCount += 1;
-    });
-
-    toggle.hidden = visibleCount === 0;
-    toggle.disabled = visibleCount === 0;
-    if (visibleCount === 0) closeMenu();
-  };
+  const closeMenu = createCloseMenu(topBar, toggle, menu);
+  const openMenu = createOpenMenu(topBar, toggle, menu);
+  const syncOverflowItemsWithState = () =>
+    syncOverflowItems(menu, toggle, closeMenu);
 
   const setCurrentHeight = () => {
     const next = Math.ceil(topBar.getBoundingClientRect().height);
@@ -59,7 +81,7 @@ function initTopBarResponsive() {
   toggle.addEventListener("click", (event) => {
     event.stopPropagation();
     if (menu.hidden) {
-      syncOverflowItems();
+      syncOverflowItemsWithState();
       openMenu();
     } else {
       closeMenu();
@@ -69,8 +91,7 @@ function initTopBarResponsive() {
   menu.addEventListener("click", (event) => {
     const item = event.target.closest("[data-proxy-target]");
     if (!item || item.disabled) return;
-    const selector = item.getAttribute("data-proxy-target");
-    const target = selector ? document.querySelector(selector) : null;
+    const target = getProxyTarget(item);
     if (target) target.click();
     closeMenu();
   });
@@ -86,26 +107,27 @@ function initTopBarResponsive() {
   });
 
   window.addEventListener("resize", () => {
-    syncOverflowItems();
+    syncOverflowItemsWithState();
     setCurrentHeight();
   });
-  window.addEventListener("i18n:changed", syncOverflowItems);
-  window.addEventListener("tabs:activated", syncOverflowItems);
+  window.addEventListener("i18n:changed", syncOverflowItemsWithState);
+  window.addEventListener("tabs:activated", syncOverflowItemsWithState);
 
   if (typeof window.ResizeObserver === "function") {
     const observer = new window.ResizeObserver(() => {
       setCurrentHeight();
-      syncOverflowItems();
+      syncOverflowItemsWithState();
     });
     observer.observe(topBar);
   }
 
   if (typeof window.MutationObserver === "function") {
     const targets = menu.querySelectorAll("[data-proxy-target]");
-    const mutationObserver = new window.MutationObserver(syncOverflowItems);
+    const mutationObserver = new window.MutationObserver(
+      syncOverflowItemsWithState,
+    );
     targets.forEach((item) => {
-      const selector = item.getAttribute("data-proxy-target");
-      const target = selector ? document.querySelector(selector) : null;
+      const target = getProxyTarget(item);
       if (!target) return;
       mutationObserver.observe(target, {
         attributes: true,
@@ -114,7 +136,7 @@ function initTopBarResponsive() {
     });
   }
 
-  syncOverflowItems();
+  syncOverflowItemsWithState();
   setCurrentHeight();
 }
 

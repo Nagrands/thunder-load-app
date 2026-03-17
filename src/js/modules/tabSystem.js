@@ -102,7 +102,7 @@ export default class TabSystem {
         typeof next.render === "function"
       ) {
         const content = next.render();
-        if (content instanceof HTMLElement) {
+        if (content instanceof HTMLElement && content !== next.element) {
           next.element.appendChild(content);
         }
       }

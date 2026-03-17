@@ -19,152 +19,30 @@ import {
   setFontSize,
   setTheme,
 } from "../../settingsStore.js";
-import {
-  renderToolsInfo,
-  refreshToolsInfoState,
-  isToolsInfoStale,
-} from "../../toolsInfo.js";
 import { showToast } from "../../toast.js";
 import { showConfirmationDialog } from "../../modals.js";
 import { getLowEffects, setLowEffects } from "../../effectsMode.js";
-import { applyI18n, getLanguage, setLanguage, t } from "../../i18n.js";
+import { applyI18n, t } from "../../i18n.js";
 import {
   DEFAULT_CONFIG,
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./defaults.js";
+import { clearOpenSettingsHandlers, onOpenSettings } from "./openSettingsBus.js";
+import {
+  bindModuleBadgesI18nSync,
+  syncModuleBadges,
+  updateModuleBadge,
+} from "./moduleBadges.js";
+import { initDeveloperToolsGate } from "./developerToolsGate.js";
+import { initLanguageDropdown } from "./languageDropdown.js";
+import { ensureToolsInfo } from "./toolsInfoController.js";
 
-// Lazy-render guards
-let toolsInfoRendered = false;
-let toolsRenderPromise = null;
-const TOOLS_INFO_REFRESH_TTL_MS = 20_000;
-
-async function ensureToolsInfo(force = false) {
-  if (toolsRenderPromise) return toolsRenderPromise;
-  const shouldRefresh =
-    toolsInfoRendered && (force || isToolsInfoStale(TOOLS_INFO_REFRESH_TTL_MS));
-  if (toolsInfoRendered && !shouldRefresh) return null;
-  toolsRenderPromise = (
-    toolsInfoRendered
-      ? refreshToolsInfoState({ force: true })
-      : renderToolsInfo()
-  )
-    .then(() => {
-      toolsInfoRendered = true;
-    })
-    .catch((e) => {
-      console.error("[settings] renderToolsInfo failed:", e);
-    })
-    .finally(() => {
-      toolsRenderPromise = null;
-    });
-  return toolsRenderPromise;
+function normalizeDefaultTabId(tabId) {
+  return tabId === "backup" ? "wireguard" : tabId;
 }
 
-const moduleBadgeMap = {
-  wg: {
-    tab: "wgunlock-settings",
-    badgeId: "tab-badge-wg",
-    statusBadgeId: "settings-wg-status-badge",
-    statusTextId: "settings-wg-status-text",
-    enabledTextKey: "settings.module.wg.enabled",
-    disabledTextKey: "settings.module.wg.disabled",
-  },
-  backup: {
-    tab: "backup-settings",
-    badgeId: "tab-badge-backup",
-    statusBadgeId: "settings-backup-status-badge",
-    statusTextId: "settings-backup-status-text",
-    enabledTextKey: "settings.module.backup.enabled",
-    disabledTextKey: "settings.module.backup.disabled",
-  },
-};
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
-const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
-const DEVELOPER_SECRET_WORD = "thunder-dev";
-const OPEN_SETTINGS_HANDLERS_KEY = "__thunder_open_settings_handlers__";
-const OPEN_SETTINGS_DISPATCH_READY_KEY =
-  "__thunder_open_settings_dispatch_ready__";
-
-function onOpenSettings(listenerKey, handler) {
-  const subscribe = window?.electron?.on;
-  if (typeof subscribe !== "function" || typeof handler !== "function") return;
-  const handlers =
-    window[OPEN_SETTINGS_HANDLERS_KEY] ||
-    (window[OPEN_SETTINGS_HANDLERS_KEY] = new Map());
-  handlers.set(listenerKey, handler);
-
-  if (window[OPEN_SETTINGS_DISPATCH_READY_KEY]) return;
-
-  subscribe("open-settings", (...args) => {
-    for (const [key, listener] of handlers.entries()) {
-      try {
-        listener(...args);
-      } catch (e) {
-        console.error(`[settings] open-settings handler error (${key}):`, e);
-      }
-    }
-  });
-  window[OPEN_SETTINGS_DISPATCH_READY_KEY] = true;
-}
-
-function clearOpenSettingsHandlers() {
-  const handlers = window?.[OPEN_SETTINGS_HANDLERS_KEY];
-  if (handlers && typeof handlers.clear === "function") {
-    handlers.clear();
-  }
-}
-
-function updateModuleBadge(moduleKey, disabled) {
-  const map = moduleBadgeMap[moduleKey];
-  if (!map) return;
-  const btn = document.querySelector(`.tab-link[data-tab="${map.tab}"]`);
-  const badge =
-    (map.badgeId && document.getElementById(map.badgeId)) ||
-    btn?.querySelector(".tab-badge");
-  if (!btn || !badge) return;
-  const isDisabled = !!disabled;
-  badge.hidden = false;
-  badge.removeAttribute("hidden");
-  badge.classList.toggle("tab-badge-off", isDisabled);
-  btn.classList.toggle("tab-disabled", isDisabled);
-  btn.dataset.disabled = isDisabled ? "1" : "0";
-  badge.textContent = isDisabled
-    ? t("settings.tab.disabled")
-    : t("settings.tab.enabled");
-  badge.setAttribute(
-    "aria-label",
-    isDisabled
-      ? t("settings.tab.disabled.aria")
-      : t("settings.tab.enabled.aria"),
-  );
-  badge.setAttribute("aria-hidden", isDisabled ? "false" : "true");
-  if (!isDisabled) {
-    badge.style.display = "none";
-  } else {
-    badge.style.display = "";
-  }
-
-  const statusBadge = map.statusBadgeId
-    ? document.getElementById(map.statusBadgeId)
-    : null;
-  if (statusBadge) {
-    statusBadge.textContent = isDisabled
-      ? t("settings.tab.disabled")
-      : t("settings.tab.enabled");
-    statusBadge.classList.toggle("is-disabled", isDisabled);
-  }
-
-  const statusText = map.statusTextId
-    ? document.getElementById(map.statusTextId)
-    : null;
-  if (statusText) {
-    const textKey = isDisabled ? map.disabledTextKey : map.enabledTextKey;
-    if (textKey) {
-      statusText.innerHTML = t(textKey);
-    }
-  }
-}
 
 /**
  * Функция для инициализации настроек
@@ -186,171 +64,12 @@ async function initSettings() {
   }
 
   // UI language dropdown (custom)
-  (function initLanguageDropdown() {
-    const languageDropdownBtn = document.getElementById(
-      "language-dropdown-btn",
-    );
-    const languageDropdownMenu = document.getElementById(
-      "language-dropdown-menu",
-    );
-    const languageLabel = document.getElementById("language-selected-label");
-    const formatLanguageLabel = (lang) => {
-      const map = {
-        ru: t("language.ru"),
-        en: t("language.en"),
-      };
-      return map[lang] || lang;
-    };
+  initLanguageDropdown();
 
-    if (!languageDropdownBtn || !languageDropdownMenu || !languageLabel) return;
+  bindModuleBadgesI18nSync();
+  syncModuleBadges();
 
-    const currentLang = getLanguage();
-    languageLabel.textContent = formatLanguageLabel(currentLang);
-    languageDropdownMenu.querySelectorAll("li").forEach((item) => {
-      item.classList.remove("active");
-      if (item.getAttribute("data-value") === currentLang) {
-        item.classList.add("active");
-      }
-    });
-
-    languageDropdownBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isOpen = languageDropdownMenu.classList.contains("show");
-      document
-        .querySelectorAll(".dropdown-menu")
-        .forEach((menu) => menu.classList.remove("show"));
-      if (!isOpen) languageDropdownMenu.classList.add("show");
-    });
-
-    languageDropdownMenu.querySelectorAll("li").forEach((item) => {
-      item.addEventListener("click", () => {
-        const nextLang = item.getAttribute("data-value");
-        setLanguage(nextLang);
-        languageLabel.textContent = formatLanguageLabel(nextLang);
-        languageDropdownMenu
-          .querySelectorAll("li")
-          .forEach((li) => li.classList.remove("active"));
-        item.classList.add("active");
-        languageDropdownMenu.classList.remove("show");
-      });
-    });
-
-    window.addEventListener("i18n:changed", (e) => {
-      const next = e?.detail?.lang;
-      if (!next) return;
-      languageLabel.textContent = formatLanguageLabel(next);
-      languageDropdownMenu.querySelectorAll("li").forEach((item) => {
-        item.classList.toggle(
-          "active",
-          item.getAttribute("data-value") === next,
-        );
-      });
-    });
-  })();
-
-  const readBool = (key, defaultValue) => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw === null) return defaultValue;
-      return JSON.parse(raw) === true;
-    } catch {
-      return defaultValue;
-    }
-  };
-
-  window.addEventListener("i18n:changed", () => {
-    updateModuleBadge("wg", readBool("wgUnlockDisabled", true));
-    updateModuleBadge("backup", readBool("backupDisabled", false));
-  });
-
-  (function initDeveloperGate() {
-    const input = document.getElementById("settings-developer-secret-input");
-    const button = document.getElementById(
-      "settings-developer-activate-button",
-    );
-    const status = document.getElementById("settings-developer-status");
-    if (!input || !button || !status) return;
-
-    const readUnlocked = () => {
-      try {
-        return window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] === true;
-      } catch {
-        return false;
-      }
-    };
-
-    const writeUnlocked = (enabled) => {
-      try {
-        window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] = !!enabled;
-      } catch {}
-      window.dispatchEvent(
-        new CustomEvent("tools:developer-unlock-changed", {
-          detail: { enabled: !!enabled },
-        }),
-      );
-    };
-
-    const applyStatus = (enabled) => {
-      const statusKey = enabled
-        ? "settings.developer.status.enabled"
-        : "settings.developer.status.disabled";
-      const buttonKey = enabled
-        ? "settings.developer.deactivate"
-        : "settings.developer.activate";
-      status.setAttribute("data-i18n", statusKey);
-      status.textContent = t(statusKey);
-      button.setAttribute("data-i18n", buttonKey);
-      button.textContent = t(buttonKey);
-      status.classList.toggle("success", !!enabled);
-      status.classList.toggle("muted", !enabled);
-    };
-
-    const sync = () => {
-      try {
-        localStorage.removeItem("developerToolsUnlocked");
-      } catch {}
-      applyStatus(readUnlocked());
-      input.value = "";
-    };
-
-    const tryUnlock = () => {
-      if (readUnlocked()) {
-        writeUnlocked(false);
-        applyStatus(false);
-        window.electron
-          ?.invoke?.("toast", t("settings.developer.lock.success"), "success")
-          .catch(() => {});
-        input.value = "";
-        return;
-      }
-      const value = String(input.value || "")
-        .trim()
-        .toLowerCase();
-      if (value === DEVELOPER_SECRET_WORD) {
-        writeUnlocked(true);
-        applyStatus(true);
-        window.electron
-          ?.invoke?.("toast", t("settings.developer.unlock.success"), "success")
-          .catch(() => {});
-      } else {
-        window.electron
-          ?.invoke?.("toast", t("settings.developer.unlock.error"), "error")
-          .catch(() => {});
-      }
-      input.value = "";
-    };
-
-    button.addEventListener("click", tryUnlock);
-    input.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      tryUnlock();
-    });
-
-    sync();
-    onOpenSettings("developer-gate", sync);
-  })();
+  initDeveloperToolsGate();
 
   // Загрузчик: профиль качества по умолчанию
   (function initDownloadQualityProfile() {
@@ -1896,7 +1615,7 @@ async function applyConfig(config, options = {}) {
       "set-minimize-instead-of-close",
       !!cfg.general.minimizeInsteadOfClose,
     ),
-    window.electron.invoke("set-default-tab", cfg.window.defaultTab),
+    setDefaultTab(cfg.window.defaultTab),
     window.electron.invoke(
       "set-disable-complete-modal-status",
       !!cfg.window.disableCompleteModal,
@@ -2042,7 +1761,7 @@ export async function resetConfigToDefaults() {
 
 export const getDefaultTab = () => window.electron.invoke("get-default-tab");
 export const setDefaultTab = (tabId) =>
-  window.electron.invoke("set-default-tab", tabId);
+  window.electron.invoke("set-default-tab", normalizeDefaultTabId(tabId));
 
 // Тестовая прокладка для unit-тестов
 export const __test_updateModuleBadge = updateModuleBadge;

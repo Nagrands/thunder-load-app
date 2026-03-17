@@ -3,7 +3,7 @@ export const settingsTranslations = {
     "settings.tabs.general": "Общие",
     "settings.tabs.downloader": "Загрузчик",
     "settings.tabs.wg": "Tools",
-    "settings.tabs.backup": "Backup",
+    "settings.tabs.backup": "Инструмент Backup",
     "settings.tabs.appearance": "Внешний вид",
     "settings.tabs.other": "Другое",
     "settings.sections.menu": "Разделы",
@@ -87,9 +87,9 @@ export const settingsTranslations = {
     "settings.wg.autoclose.after": "Закрытие приложения через:",
     "settings.wg.autoclose.seconds": "сек.",
     "settings.wg.autoclose.aria": "Время до авто‑закрытия в секундах",
-    "settings.backup.title": "Вкладка «Backup»",
+    "settings.backup.title": "Инструмент Backup в Tools",
     "settings.backup.disable.hint":
-      "Скрывает вкладку и отключает её инициализацию.",
+      "Скрывает инструмент Backup в разделе Tools и отключает его инициализацию.",
     "settings.backup.compact.hint":
       "Переключает отображение профилей между подробным и компактным режимом.",
     "settings.backup.compact": "Компактный список профилей",
@@ -148,9 +148,9 @@ export const settingsTranslations = {
     "settings.module.wg.disabled": "Вкладка <strong>Tools</strong> отключена",
     "settings.module.wg.enabled": "Вкладка <strong>Tools</strong> включена",
     "settings.module.backup.disabled":
-      "Вкладка <strong>Backup</strong> отключена",
+      "Инструмент <strong>Backup</strong> отключен",
     "settings.module.backup.enabled":
-      "Вкладка <strong>Backup</strong> включена",
+      "Инструмент <strong>Backup</strong> включен",
     "settings.wg.disable.note":
       "Применяется сразу. Можно включить обратно в любое время.",
     "settings.downloadCompleteModal.disabled":
@@ -174,7 +174,7 @@ export const settingsTranslations = {
     "settings.tabs.general": "General",
     "settings.tabs.downloader": "Downloader",
     "settings.tabs.wg": "Tools",
-    "settings.tabs.backup": "Backup",
+    "settings.tabs.backup": "Backup tool",
     "settings.tabs.appearance": "Appearance",
     "settings.tabs.other": "Other",
     "settings.sections.menu": "Sections",
@@ -254,9 +254,9 @@ export const settingsTranslations = {
     "settings.wg.autoclose.after": "Close the app after:",
     "settings.wg.autoclose.seconds": "sec.",
     "settings.wg.autoclose.aria": "Time until auto‑close in seconds",
-    "settings.backup.title": "Tab “Backup”",
+    "settings.backup.title": "Backup tool inside Tools",
     "settings.backup.disable.hint":
-      "Hides the tab and disables its initialization.",
+      "Hides the Backup tool inside Tools and disables its initialization.",
     "settings.backup.compact.hint":
       "Switches profile display between detailed and compact mode.",
     "settings.backup.compact": "Compact profile list",
@@ -311,8 +311,8 @@ export const settingsTranslations = {
       "<strong>Theme</strong> reset to <strong>{theme}</strong>",
     "settings.module.wg.disabled": "Tab <strong>Tools</strong> disabled",
     "settings.module.wg.enabled": "Tab <strong>Tools</strong> enabled",
-    "settings.module.backup.disabled": "Tab <strong>Backup</strong> disabled",
-    "settings.module.backup.enabled": "Tab <strong>Backup</strong> enabled",
+    "settings.module.backup.disabled": "Backup <strong>tool</strong> disabled",
+    "settings.module.backup.enabled": "Backup <strong>tool</strong> enabled",
     "settings.wg.disable.note":
       "Applies immediately. You can re‑enable it anytime.",
     "settings.downloadCompleteModal.disabled":

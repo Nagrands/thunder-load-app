@@ -29,6 +29,16 @@ const TAB_LABEL_KEYS = {
   backup: "tabs.backup",
 };
 
+const normalizeSelectedTabs = (tabs) => {
+  const nextTabs = Array.isArray(tabs) ? [...tabs] : [];
+  const hasBackup = nextTabs.includes("backup");
+  const filtered = nextTabs.filter((tab) => tab !== "backup");
+  if (hasBackup && !filtered.includes("wireguard")) {
+    filtered.push("wireguard");
+  }
+  return filtered;
+};
+
 const getFlag = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);
@@ -46,7 +56,11 @@ const setFlag = (key, value) => {
 };
 
 const applyTabFlags = (flags) => {
-  const wgDisabled = !flags.wireguard;
+  const nextFlags = {
+    ...flags,
+    wireguard: flags.wireguard || flags.backup,
+  };
+  const wgDisabled = !nextFlags.wireguard;
   const backupDisabled = !flags.backup;
   setFlag("wgUnlockDisabled", wgDisabled);
   setFlag("backupDisabled", backupDisabled);
@@ -169,7 +183,7 @@ export function initFirstRunModal() {
   const updateSummary = () => {
     const lang = getSelectedRadio("first-run-language") || "ru";
     const theme = getSelectedRadio("first-run-theme") || "dark";
-    const selectedTabs = getSelectedTabs();
+    const selectedTabs = normalizeSelectedTabs(getSelectedTabs());
     summaryLanguage.textContent = t(LANGUAGE_LABEL_KEYS[lang] || "language.ru");
     summaryTheme.textContent = t(
       THEME_LABEL_KEYS[theme] || "settings.appearance.theme.dark",
@@ -237,6 +251,9 @@ export function initFirstRunModal() {
     ),
   ).forEach((input) => {
     input.addEventListener("change", () => {
+      if (input.name === "first-run-tab" && input.value === "backup" && input.checked) {
+        setCheckboxValue("first-run-tab", "wireguard", true);
+      }
       syncSelectedCards();
       updateSummary();
     });
@@ -258,11 +275,12 @@ export function initFirstRunModal() {
 
     const lang = getSelectedRadio("first-run-language") || "ru";
     const theme = getSelectedRadio("first-run-theme") || "dark";
-    const selectedTabs = getSelectedTabs();
-    const flags = {
-      wireguard: selectedTabs.includes("wireguard"),
-      backup: selectedTabs.includes("backup"),
-    };
+      const selectedTabs = getSelectedTabs();
+      const flags = {
+        wireguard:
+          selectedTabs.includes("wireguard") || selectedTabs.includes("backup"),
+        backup: selectedTabs.includes("backup"),
+      };
 
     await setTheme(theme);
     applyTabFlags(flags);

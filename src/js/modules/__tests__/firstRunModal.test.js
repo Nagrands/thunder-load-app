@@ -132,6 +132,38 @@ describe("firstRunModal", () => {
     expect(localStorage.getItem("backupDisabled")).toBe("true");
   });
 
+  test("treats Backup as a tool inside Tools in the summary", async () => {
+    const { initFirstRunModal } = require("../firstRunModal.js");
+    initFirstRunModal();
+
+    const backupCheckbox = document.querySelector(
+      'input[name="first-run-tab"][value="backup"]',
+    );
+    const wgCheckbox = document.querySelector(
+      'input[name="first-run-tab"][value="wireguard"]',
+    );
+    const nextBtn = document.getElementById("first-run-primary");
+
+    wgCheckbox.checked = true;
+    wgCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+    backupCheckbox.checked = true;
+    backupCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+
+    nextBtn.dispatchEvent(new Event("click"));
+    nextBtn.dispatchEvent(new Event("click"));
+    nextBtn.dispatchEvent(new Event("click"));
+    nextBtn.dispatchEvent(new Event("click"));
+    await Promise.resolve();
+
+    expect(document.getElementById("first-run-summary-tabs")?.textContent).toBe(
+      "tabs.download, tabs.tools",
+    );
+    expect(
+      document.getElementById("first-run-summary-tabs")?.textContent,
+    ).not.toContain("tabs.backup");
+    expect(localStorage.getItem("backupDisabled")).toBe("false");
+  });
+
   test("does not show modal when already completed", async () => {
     localStorage.setItem("firstRunCompleted", "1");
     const { initFirstRunModal } = require("../firstRunModal.js");

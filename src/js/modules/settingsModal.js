@@ -173,8 +173,10 @@ export function initSettingsModal() {
   const initDefaultTabSetting = async () => {
     const radios = document.querySelectorAll('input[name="defaultTab"]');
     const currentDefaultTab = await getDefaultTab();
+    const resolvedDefaultTab =
+      currentDefaultTab === "backup" ? "wireguard" : currentDefaultTab;
     radios.forEach((radio) => {
-      radio.checked = radio.value === currentDefaultTab;
+      radio.checked = radio.value === resolvedDefaultTab;
       radio.addEventListener("change", (e) => setDefaultTab(e.target.value));
     });
   };

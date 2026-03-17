@@ -16324,11 +16324,11 @@ hr {
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  margin-bottom: 12px;
   border: 1px solid rgba(var(--color-accent-rgb), 0.3);
   background: rgba(var(--color-accent-rgb), 0.12);
-  color: var(--color-highlight);
   font-size: 0.76rem;
+  margin-bottom: 12px;
+  color: var(--color-highlight);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -16418,12 +16418,12 @@ hr {
   min-height: 360px;
 }
 .first-run-modal .first-run-section {
+  display: none;
+  gap: 18px;
   padding: 20px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
-  display: none;
-  gap: 18px;
 }
 .first-run-modal .first-run-section.is-active {
   display: grid;
@@ -16507,10 +16507,10 @@ hr {
   min-height: 24px;
   padding: 0 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--color-highlight);
+  background: rgba(255, 255, 255, 0.08);
   font-size: 0.72rem;
+  color: var(--color-highlight);
   white-space: nowrap;
 }
 .first-run-modal .first-run-theme-card {

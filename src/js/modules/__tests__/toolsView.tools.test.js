@@ -36,6 +36,8 @@ async function openTool(el, tool) {
         ? "#tools-open-hash"
         : tool === "power"
           ? "#tools-open-power"
+          : tool === "backup"
+            ? "#tools-open-backup"
           : "#tools-open-sorter";
   el.querySelector(id)?.click();
   await nextTick();
@@ -222,7 +224,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 3",
+      "tools.launcher.totalLabel: 4",
     );
   });
 
@@ -232,6 +234,21 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#tools-launcher-shortcut-wg")).toBeNull();
     expect(el.querySelector("#tools-launcher-shortcut-hash")).toBeNull();
     expect(el.querySelector("#tools-launcher-shortcut-power")).toBeNull();
+  });
+
+  test("shows Backup as a launcher tool when enabled", async () => {
+    const el = await renderView();
+    const backupBtn = el.querySelector("#tools-open-backup");
+    expect(backupBtn).not.toBeNull();
+    expect(backupBtn?.disabled).toBe(false);
+  });
+
+  test("hides Backup from launcher when it is disabled", async () => {
+    localStorage.setItem("backupDisabled", "true");
+    const el = await renderView();
+    expect(
+      el.querySelector("#tools-open-backup")?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("renders available and unavailable sections on windows", async () => {
@@ -245,7 +262,7 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(4);
+    ).toBe(5);
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
     ).not.toBeNull();
@@ -254,6 +271,15 @@ describe("toolsView quick actions", () => {
         .querySelector("#tools-launcher-unavailable-section")
         ?.classList.contains("hidden"),
     ).toBe(true);
+  });
+
+  test("cleans up ipc listeners when the tools view is hidden", async () => {
+    const el = await renderView();
+    expect(window.electron.ipcRenderer.removeListener).not.toHaveBeenCalled();
+
+    el.dispatchEvent(new Event("tools:view-hidden"));
+
+    expect(window.electron.ipcRenderer.removeListener).toHaveBeenCalled();
   });
 
   test("opens launcher by default even if last tool is stored", async () => {
@@ -299,7 +325,7 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 3",
+      "tools.launcher.totalLabel: 4",
     );
   });
 
@@ -340,7 +366,7 @@ describe("toolsView quick actions", () => {
     expect(powerBtn?.disabled).toBe(false);
     expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 4",
+      "tools.launcher.totalLabel: 5",
     );
 
     sorterBtn?.click();
