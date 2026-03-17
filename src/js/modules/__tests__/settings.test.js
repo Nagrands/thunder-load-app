@@ -36,6 +36,10 @@ describe("updateModuleBadge", () => {
         <button class="tab-link" data-tab="backup-settings" id="btn-backup">
           <span class="tab-badge" id="tab-badge-backup" hidden>Вкл</span>
         </button>
+        <span id="settings-wg-status-badge"></span>
+        <p id="settings-wg-status-text"></p>
+        <span id="settings-backup-status-badge"></span>
+        <p id="settings-backup-status-text"></p>
       </div>`;
     settingsModule = require("../settings");
   });
@@ -50,6 +54,17 @@ describe("updateModuleBadge", () => {
     expect(btn?.classList.contains("tab-disabled")).toBe(true);
     expect(badge?.textContent).toBe("Выкл");
     expect(badge?.hasAttribute("hidden")).toBe(false);
+    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
+      "Выкл",
+    );
+    expect(
+      document.getElementById("settings-wg-status-badge")?.classList.contains(
+        "is-disabled",
+      ),
+    ).toBe(true);
+    expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
+      "Вкладка <strong>Tools</strong> отключена",
+    );
   });
 
   it("hides badge and removes disabled class when disabled = false", () => {
@@ -62,6 +77,17 @@ describe("updateModuleBadge", () => {
     expect(btn?.classList.contains("tab-disabled")).toBe(false);
     expect(badge?.textContent).toBe("Вкл");
     expect(badge?.style.display).toBe("none");
+    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
+      "Вкл",
+    );
+    expect(
+      document.getElementById("settings-wg-status-badge")?.classList.contains(
+        "is-disabled",
+      ),
+    ).toBe(false);
+    expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
+      "Вкладка <strong>Tools</strong> включена",
+    );
   });
 
   it.each([
@@ -74,12 +100,21 @@ describe("updateModuleBadge", () => {
     expect(btn?.dataset.disabled).toBe("1");
     expect(badge?.getAttribute("aria-label")).toBe("Вкладка отключена");
     expect(badge?.getAttribute("aria-hidden")).toBe("false");
+    const statusBadge = document.getElementById(
+      moduleKey === "wg"
+        ? "settings-wg-status-badge"
+        : "settings-backup-status-badge",
+    );
+    expect(statusBadge?.textContent).toBe("Выкл");
+    expect(statusBadge?.classList.contains("is-disabled")).toBe(true);
 
     settingsModule.__test_updateModuleBadge(moduleKey, false);
     expect(btn?.dataset.disabled).toBe("0");
     expect(badge?.getAttribute("aria-label")).toBe("Вкладка включена");
     expect(badge?.getAttribute("aria-hidden")).toBe("true");
     expect(badge?.style.display).toBe("none");
+    expect(statusBadge?.textContent).toBe("Вкл");
+    expect(statusBadge?.classList.contains("is-disabled")).toBe(false);
   });
 
   it("silently ignores unknown module keys", () => {
@@ -108,6 +143,8 @@ describe("wg disable toggle initializes badge state", () => {
         <button class="tab-link" data-tab="wgunlock-settings" id="btn-wg">
           <span class="tab-badge" id="tab-badge-wg" hidden>Вкл</span>
         </button>
+        <span id="settings-wg-status-badge"></span>
+        <p id="settings-wg-status-text"></p>
         <div id="wgunlock-settings">
           <input id="wg-disable-toggle" type="checkbox" />
         </div>
@@ -120,6 +157,9 @@ describe("wg disable toggle initializes badge state", () => {
     expect(badge?.style.display).toBe("");
     expect(badge?.textContent).toBe("Выкл");
     expect(btn?.classList.contains("tab-disabled")).toBe(true);
+    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
+      "Выкл",
+    );
   });
 });
 

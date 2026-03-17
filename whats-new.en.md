@@ -12,3 +12,4 @@
 | Updated documentation | Consistent, up-to-date development and scripts guidance |
 | Fixed first-run step counter | The label no longer shows `{current}` and `{total}` placeholders |
 | Improved download cancel button | The X icon is now centered |
+| Redesigned the Settings screen | Sections are easier to scan, module states are clearer, and the layout works better in narrow windows |

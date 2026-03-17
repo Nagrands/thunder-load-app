@@ -18329,7 +18329,7 @@ hr {
 }
 .settings-layout {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   overflow: visible;
   position: relative;
   align-items: stretch;
@@ -18338,9 +18338,9 @@ hr {
 .settings-tabs {
   display: flex;
   flex-direction: column;
-  min-width: 240px;
+  min-width: 228px;
   min-height: 430px;
-  padding: 12px;
+  padding: 10px;
   position: relative;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -18363,10 +18363,10 @@ hr {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   margin: 2px 0;
   text-align: left;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.02rem;
   color: var(--color-highlight);
@@ -18396,7 +18396,7 @@ hr {
   border: 1px solid rgba(var(--color-accent-rgb), 0.45);
   color: var(--color-text-main);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(var(--color-accent-rgb), 0.12);
-  transform: translateX(3px);
+  transform: translateX(2px);
 }
 .settings-tabs .tab-link.active i {
   color: var(--color-accent);
@@ -18500,40 +18500,50 @@ hr {
 }
 
 .settings-modal .settings-pane-header {
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   display: grid;
-  gap: 4px;
+  gap: 8px;
+}
+.settings-modal .settings-pane-header__copy {
+  display: grid;
+  gap: 6px;
+  max-width: 640px;
 }
 .settings-modal .settings-pane-header h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text-main);
 }
 .settings-modal .settings-pane-header p {
   margin: 0;
   padding: 0;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--color-quality);
   opacity: 0.9;
   font-style: normal;
 }
 .settings-modal .settings-grid {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .settings-modal .settings-card {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025)), rgba(255, 255, 255, 0.02);
+  padding: 14px;
   display: grid;
-  gap: 8px;
+  gap: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .settings-modal .settings-card--stacked {
   grid-column: 1/-1;
+}
+.settings-modal .settings-card--danger {
+  border-color: rgba(255, 122, 122, 0.18);
+  background: linear-gradient(180deg, rgba(255, 122, 122, 0.08), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
 }
 .settings-modal #window-settings .settings-grid {
   grid-template-columns: 1fr;
@@ -18598,34 +18608,66 @@ hr {
 .settings-modal .settings-card__title {
   margin: 0;
   font-size: 16px;
-  font-weight: 500;
-  color: var(--color-accent);
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  color: var(--color-text-main);
+  letter-spacing: 0.02em;
 }
 .settings-modal .settings-card__desc {
   margin: 0;
   font-size: 12px;
   color: var(--color-quality);
-  line-height: 1.35;
+  line-height: 1.45;
 }
 .settings-modal .settings-card__body {
   min-width: 0;
+}
+.settings-modal .settings-card__intro {
+  display: grid;
+  gap: 6px;
+}
+.settings-modal .settings-card__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.settings-modal .settings-state-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.26);
+  background: rgba(var(--color-accent-rgb), 0.12);
+  color: var(--color-highlight);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.settings-modal .settings-state-badge.is-disabled {
+  border-color: rgba(255, 122, 122, 0.28);
+  background: rgba(255, 122, 122, 0.12);
+  color: #ffb9b9;
 }
 .settings-modal .settings-control-list {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   list-style: none;
 }
 .settings-modal .settings-control {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  min-width: 0;
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
 }
 .settings-modal .settings-control:hover {
   border-color: rgba(255, 255, 255, 0.14);
@@ -18635,12 +18677,29 @@ hr {
   flex-direction: column;
   align-items: stretch;
 }
+.settings-modal .settings-control--split {
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
 .settings-modal .settings-control label {
   width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
+  line-height: 1.4;
+}
+.settings-modal .settings-control__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.settings-modal .settings-control__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 .settings-modal .settings-parallel-item {
   width: 100%;
@@ -18712,6 +18771,9 @@ hr {
 .settings-modal .settings-control .dropdown {
   margin-left: auto;
 }
+.settings-modal .settings-control--split .dropdown {
+  margin-left: 0;
+}
 .settings-modal .settings-developer-gate {
   display: grid;
   gap: 8px;
@@ -18781,8 +18843,8 @@ hr {
 }
 .settings-modal .settings-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 14px;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
   align-items: stretch;
 }
 .settings-modal .settings-sections-toolbar {
@@ -18830,7 +18892,7 @@ hr {
 .settings-modal .settings-tabs {
   min-height: 0;
   padding: 8px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.03);
   box-shadow: none;
@@ -18840,11 +18902,11 @@ hr {
 }
 .settings-modal .settings-tabs .tab-link {
   margin: 2px;
-  border-radius: var(--border-radius);
+  border-radius: 12px;
   border: 1px solid transparent;
   box-shadow: none;
   transform: none;
-  padding: 10px 12px;
+  padding: 11px 12px;
   letter-spacing: 0.01rem;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
@@ -18867,7 +18929,7 @@ hr {
 }
 .settings-modal .tabs-footer {
   margin-top: 10px;
-  padding: 10px;
+  padding: 12px;
   gap: 8px;
   border-radius: 10px;
   font-size: 11px;
@@ -18876,6 +18938,41 @@ hr {
 }
 .settings-modal .tab-content {
   min-height: 560px;
+}
+.settings-modal .settings-action-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.settings-modal .settings-action-group button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+.settings-modal .settings-action-group button:hover {
+  border-color: rgba(var(--color-accent-rgb), 0.3);
+  background: rgba(var(--color-accent-rgb), 0.12);
+  transform: translateY(-1px);
+}
+.settings-modal .settings-action-group--danger {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.settings-modal .settings-action-group--danger button {
+  border-color: rgba(255, 122, 122, 0.18);
+  background: rgba(255, 122, 122, 0.08);
+}
+.settings-modal .settings-action-group--danger button:hover {
+  border-color: rgba(255, 122, 122, 0.28);
+  background: rgba(255, 122, 122, 0.16);
 }
 
 @media (max-width: 960px) {
@@ -18899,11 +18996,12 @@ hr {
     grid-template-columns: 1fr;
   }
   .settings-modal .settings-card {
-    padding: 8px;
-    border-radius: 10px;
+    padding: 12px;
+    border-radius: 14px;
   }
   .settings-modal .settings-control {
-    padding: 8px;
+    padding: 12px;
+    border-radius: 12px;
   }
   .settings-modal .settings-developer-gate__controls {
     flex-direction: column;
@@ -18911,6 +19009,22 @@ hr {
   }
   .settings-modal .settings-control label {
     gap: 6px;
+  }
+  .settings-modal .settings-control--split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .settings-modal .settings-control__actions {
+    width: 100%;
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+  .settings-modal .settings-control__actions .dropdown {
+    width: 100%;
+  }
+  .settings-modal .settings-control__actions .dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
   }
   .settings-modal .settings-parallel-item {
     align-items: flex-start;
@@ -18945,6 +19059,10 @@ hr {
   }
   .settings-modal .tab-content {
     min-height: 0;
+  }
+  .settings-modal .settings-action-group,
+  .settings-modal .settings-action-group--danger {
+    grid-template-columns: 1fr;
   }
 }
 .dropdown-menu {

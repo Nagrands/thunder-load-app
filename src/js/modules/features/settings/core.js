@@ -62,8 +62,22 @@ async function ensureToolsInfo(force = false) {
 }
 
 const moduleBadgeMap = {
-  wg: { tab: "wgunlock-settings", badgeId: "tab-badge-wg" },
-  backup: { tab: "backup-settings", badgeId: "tab-badge-backup" },
+  wg: {
+    tab: "wgunlock-settings",
+    badgeId: "tab-badge-wg",
+    statusBadgeId: "settings-wg-status-badge",
+    statusTextId: "settings-wg-status-text",
+    enabledTextKey: "settings.module.wg.enabled",
+    disabledTextKey: "settings.module.wg.disabled",
+  },
+  backup: {
+    tab: "backup-settings",
+    badgeId: "tab-badge-backup",
+    statusBadgeId: "settings-backup-status-badge",
+    statusTextId: "settings-backup-status-text",
+    enabledTextKey: "settings.module.backup.enabled",
+    disabledTextKey: "settings.module.backup.disabled",
+  },
 };
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
@@ -129,6 +143,26 @@ function updateModuleBadge(moduleKey, disabled) {
     badge.style.display = "none";
   } else {
     badge.style.display = "";
+  }
+
+  const statusBadge = map.statusBadgeId
+    ? document.getElementById(map.statusBadgeId)
+    : null;
+  if (statusBadge) {
+    statusBadge.textContent = isDisabled
+      ? t("settings.tab.disabled")
+      : t("settings.tab.enabled");
+    statusBadge.classList.toggle("is-disabled", isDisabled);
+  }
+
+  const statusText = map.statusTextId
+    ? document.getElementById(map.statusTextId)
+    : null;
+  if (statusText) {
+    const textKey = isDisabled ? map.disabledTextKey : map.enabledTextKey;
+    if (textKey) {
+      statusText.innerHTML = t(textKey);
+    }
   }
 }
 

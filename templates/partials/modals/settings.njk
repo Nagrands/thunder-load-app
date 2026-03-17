@@ -114,16 +114,23 @@
               <!-- General Settings Tab -->
               <div id="general-settings" class="tab-pane active">
                 <div class="settings-pane-header">
-                  <h2 data-i18n="settings.tabs.general">Общие</h2>
-                  <p data-i18n="settings.startup.hint">
-                    Настройте параметры запуска для удобного использования.
-                  </p>
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.tabs.general">Общие</h2>
+                    <p data-i18n="settings.startup.hint">
+                      Настройте параметры запуска для удобного использования.
+                    </p>
+                  </div>
                 </div>
                 <div class="settings-grid">
                   <section class="settings-card">
-                    <h3 class="settings-card__title" data-i18n="settings.startup.title">
-                      Настройки запуска
-                    </h3>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.startup.title">
+                        Настройки запуска
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.startup.hint">
+                        Настройте параметры запуска для удобного использования.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="settings-control">
@@ -154,12 +161,14 @@
                   </section>
 
                   <section class="settings-card">
-                    <h3 class="settings-card__title" data-i18n="settings.startup.openTab">
-                      При запуске открывать
-                    </h3>
-                    <p class="settings-card__desc" data-i18n="settings.startup.openTabHint">
-                      Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.
-                    </p>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.startup.openTab">
+                        При запуске открывать
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.startup.openTabHint">
+                        Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module default-tab-group settings-control-list">
                         <li class="custom-theme-select settings-control">
@@ -172,8 +181,8 @@
                           />
                           <label for="settings-tab-downloader">
                             <i class="fa-solid fa-download"></i>
-                            <strong data-i18n="tabs.download">Downloader</strong></label
-                          >
+                            <strong data-i18n="tabs.download">Downloader</strong>
+                          </label>
                         </li>
                         <li class="custom-theme-select settings-control">
                           <input
@@ -184,8 +193,8 @@
                           />
                           <label for="settings-tab-wgsend">
                             <i class="fa-solid fa-unlock-keyhole"></i>
-                            <strong data-i18n="tabs.tools">Tools</strong></label
-                          >
+                            <strong data-i18n="tabs.tools">Tools</strong>
+                          </label>
                         </li>
                         <li class="custom-theme-select settings-control">
                           <input
@@ -203,13 +212,15 @@
                     </div>
                   </section>
 
-                  <section class="settings-card">
-                    <h3 class="settings-card__title" data-i18n="settings.close.title">
-                      Закрытие приложения
-                    </h3>
-                    <p class="settings-card__desc" data-i18n="settings.close.hint">
-                      Выберите, как приложение должно вести себя при закрытии.
-                    </p>
+                  <section class="settings-card settings-card--stacked">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.close.title">
+                        Закрытие приложения
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.close.hint">
+                        Выберите, как приложение должно вести себя при закрытии.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="settings-control">
@@ -462,11 +473,34 @@
 
               <div id="wgunlock-settings" class="tab-pane">
                 <div class="settings-pane-header">
-                  <h2 data-i18n="settings.wg.title">Вкладка «Tools»</h2>
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.wg.title">Вкладка «Tools»</h2>
+                    <p data-i18n="settings.wg.disable.hint">
+                      Скрывает вкладку Tools и отключает её запуск. При отключении связанные параметры становятся недоступны.
+                    </p>
+                  </div>
                 </div>
                 <div class="settings-grid">
                   <section class="settings-card">
-                    <h3 class="settings-card__title" data-i18n="settings.tabs.wg">Tools</h3>
+                    <div class="settings-card__intro">
+                      <div class="settings-card__heading">
+                        <h3 class="settings-card__title" data-i18n="settings.tabs.wg">Tools</h3>
+                        <span
+                          id="settings-wg-status-badge"
+                          class="settings-state-badge"
+                          aria-live="polite"
+                        >
+                          Выкл
+                        </span>
+                      </div>
+                      <p
+                        id="settings-wg-status-text"
+                        class="settings-card__desc"
+                        data-i18n="settings.wg.disable.hint"
+                      >
+                        Скрывает вкладку Tools и отключает её запуск. При отключении связанные параметры становятся недоступны.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="custom-theme-select settings-control">
@@ -510,9 +544,14 @@
                     </div>
                   </section>
                   <section class="settings-card settings-card--stacked">
-                    <h3 class="settings-card__title" data-i18n="settings.wg.autoclose">
-                      Авто‑закрытие приложения
-                    </h3>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.wg.autoclose">
+                        Авто‑закрытие приложения
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.wg.autoclose.hint">
+                        Автоматически закрывает приложение через выбранное время.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="settings-control">
@@ -563,11 +602,34 @@
 
               <div id="backup-settings" class="tab-pane">
                 <div class="settings-pane-header">
-                  <h2 data-i18n="settings.backup.title">Вкладка «Backup»</h2>
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.backup.title">Вкладка «Backup»</h2>
+                    <p data-i18n="settings.backup.disable.hint">
+                      Скрывает вкладку и отключает её инициализацию.
+                    </p>
+                  </div>
                 </div>
                 <div class="settings-grid">
                   <section class="settings-card">
-                    <h3 class="settings-card__title" data-i18n="settings.tabs.backup">Backup</h3>
+                    <div class="settings-card__intro">
+                      <div class="settings-card__heading">
+                        <h3 class="settings-card__title" data-i18n="settings.tabs.backup">Backup</h3>
+                        <span
+                          id="settings-backup-status-badge"
+                          class="settings-state-badge"
+                          aria-live="polite"
+                        >
+                          Вкл
+                        </span>
+                      </div>
+                      <p
+                        id="settings-backup-status-text"
+                        class="settings-card__desc"
+                        data-i18n="settings.backup.disable.hint"
+                      >
+                        Скрывает вкладку и отключает её инициализацию.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="custom-theme-select settings-control">
@@ -622,120 +684,148 @@
               <!-- Appearance Settings Tab -->
               <div id="appearance-settings" class="tab-pane">
                 <div class="settings-pane-header">
-                  <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
+                    <p data-i18n="settings.appearance.theme">
+                      Цветовая тема
+                    </p>
+                  </div>
                 </div>
                 <div class="settings-grid">
                   <section class="settings-card settings-card--stacked">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.appearance.title">
+                        Внешний вид приложения
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.appearance.lowEffects.hint">
+                        Отключает анимации и эффекты размытия
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
-                  <li class="custom-theme-select">
-                    <label for="settings-language-select">
-                      <i class="fa-solid fa-language"></i>
-                      <span data-i18n="language.label">Язык интерфейса</span>
-                    </label>
-                    <div class="dropdown">
-                      <button class="dropdown-toggle" id="language-dropdown-btn">
-                        <span id="language-selected-label" data-i18n="language.ru">
-                          Русский
-                        </span>
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </button>
-                      <ul class="dropdown-menu" id="language-dropdown-menu">
-                        <li data-value="ru" data-i18n="language.ru">Русский</li>
-                        <li data-value="en" data-i18n="language.en">English</li>
-                      </ul>
-                    </div>
-                  </li>
-
-                  <li class="custom-theme-select">
-                    <label for="theme-dropdown-btn">
-                      <i class="fa-solid fa-brush"></i>
-                      <span data-i18n="settings.appearance.theme">Цветовая тема</span>
-                    </label>
-
-                    <div class="dropdown">
-                      <button class="dropdown-toggle" id="theme-dropdown-btn">
-                        <span id="theme-selected-label" data-i18n="settings.appearance.theme.dark">
-                          Dark
-                        </span>
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </button>
-                      <ul class="dropdown-menu" id="theme-dropdown-menu">
-                        <li data-value="dark" data-i18n="settings.appearance.theme.dark">
-                          Dark
+                        <li class="custom-theme-select settings-control settings-control--split">
+                          <div class="settings-control__copy">
+                            <label for="language-dropdown-btn">
+                              <i class="fa-solid fa-language"></i>
+                              <span data-i18n="language.label">Язык интерфейса</span>
+                            </label>
+                          </div>
+                          <div class="settings-control__actions">
+                            <div class="dropdown">
+                              <button class="dropdown-toggle" id="language-dropdown-btn" type="button">
+                                <span id="language-selected-label" data-i18n="language.ru">
+                                  Русский
+                                </span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                              </button>
+                              <ul class="dropdown-menu" id="language-dropdown-menu">
+                                <li data-value="ru" data-i18n="language.ru">Русский</li>
+                                <li data-value="en" data-i18n="language.en">English</li>
+                              </ul>
+                            </div>
+                          </div>
                         </li>
-                        <li data-value="midnight" data-i18n="settings.appearance.theme.midnight">
-                          Midnight
-                        </li>
-                        <li data-value="sunset" data-i18n="settings.appearance.theme.sunset">
-                          Sunset
-                        </li>
-                        <li data-value="violet" data-i18n="settings.appearance.theme.violet">
-                          Violet
-                        </li>
-                        <li data-value="light" data-i18n="settings.appearance.theme.light">
-                          Light
-                        </li>
-                      </ul>
-                    </div>
-                    <button
-                      id="reset-theme"
-                      class="dropdown-reset"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Сбросить тему по умолчанию"
-                      data-i18n-title="settings.appearance.theme.reset"
-                    >
-                      <i class="fa-solid fa-rotate-left"></i>
-                    </button>
-                  </li>
 
-                  <li class="custom-theme-select">
-                    <label for="font-size-dropdown-btn">
-                      <i class="fa-solid fa-text-height"></i>
-                      <span data-i18n="settings.appearance.fontSize">Размер текста</span>
-                    </label>
+                        <li class="custom-theme-select settings-control settings-control--split">
+                          <div class="settings-control__copy">
+                            <label for="theme-dropdown-btn">
+                              <i class="fa-solid fa-brush"></i>
+                              <span data-i18n="settings.appearance.theme">Цветовая тема</span>
+                            </label>
+                          </div>
+                          <div class="settings-control__actions">
+                            <div class="dropdown">
+                              <button class="dropdown-toggle" id="theme-dropdown-btn" type="button">
+                                <span id="theme-selected-label" data-i18n="settings.appearance.theme.dark">
+                                  Dark
+                                </span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                              </button>
+                              <ul class="dropdown-menu" id="theme-dropdown-menu">
+                                <li data-value="dark" data-i18n="settings.appearance.theme.dark">
+                                  Dark
+                                </li>
+                                <li data-value="midnight" data-i18n="settings.appearance.theme.midnight">
+                                  Midnight
+                                </li>
+                                <li data-value="sunset" data-i18n="settings.appearance.theme.sunset">
+                                  Sunset
+                                </li>
+                                <li data-value="violet" data-i18n="settings.appearance.theme.violet">
+                                  Violet
+                                </li>
+                                <li data-value="light" data-i18n="settings.appearance.theme.light">
+                                  Light
+                                </li>
+                              </ul>
+                            </div>
+                            <button
+                              id="reset-theme"
+                              class="dropdown-reset"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="Сбросить тему по умолчанию"
+                              data-i18n-title="settings.appearance.theme.reset"
+                              type="button"
+                            >
+                              <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                          </div>
+                        </li>
 
-                    <div class="dropdown">
-                      <button
-                        class="dropdown-toggle"
-                        id="font-size-dropdown-btn"
-                      >
-                        <span id="font-size-selected-label">16 px</span>
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </button>
-                      <ul class="dropdown-menu" id="font-size-dropdown-menu">
-                        <li data-value="14">14 px</li>
-                        <li data-value="16">16 px</li>
-                        <li data-value="18">18 px</li>
-                        <li data-value="20">20 px</li>
-                      </ul>
-                    </div>
+                        <li class="custom-theme-select settings-control settings-control--split">
+                          <div class="settings-control__copy">
+                            <label for="font-size-dropdown-btn">
+                              <i class="fa-solid fa-text-height"></i>
+                              <span data-i18n="settings.appearance.fontSize">Размер текста</span>
+                            </label>
+                          </div>
+                          <div class="settings-control__actions">
+                            <div class="dropdown">
+                              <button
+                                class="dropdown-toggle"
+                                id="font-size-dropdown-btn"
+                                type="button"
+                              >
+                                <span id="font-size-selected-label">16 px</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                              </button>
+                              <ul class="dropdown-menu" id="font-size-dropdown-menu">
+                                <li data-value="14">14 px</li>
+                                <li data-value="16">16 px</li>
+                                <li data-value="18">18 px</li>
+                                <li data-value="20">20 px</li>
+                              </ul>
+                            </div>
+                            <button
+                              id="reset-font-size"
+                              class="dropdown-reset"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="Сбросить размер шрифта по умолчанию"
+                              data-i18n-title="settings.appearance.fontSize.reset"
+                              type="button"
+                            >
+                              <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                          </div>
+                        </li>
 
-                    <button
-                      id="reset-font-size"
-                      class="dropdown-reset"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Сбросить размер шрифта по умолчанию"
-                      data-i18n-title="settings.appearance.fontSize.reset"
-                    >
-                      <i class="fa-solid fa-rotate-left"></i>
-                    </button>
-                  </li>
-
-                  <li>
-                    <input type="checkbox" id="settings-low-effects-toggle" />
-                    <label for="settings-low-effects-toggle" data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Отключает анимации и эффекты размытия"
-                      data-i18n-title="settings.appearance.lowEffects.hint">
-                      <i class="fa-solid fa-leaf"></i>
-                      <span data-i18n-html="settings.appearance.lowEffects">
-                        Режим <strong>экономии эффектов</strong>
-                      </span>
-                    </label>
-                  </li>
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-low-effects-toggle" />
+                          <label
+                            for="settings-low-effects-toggle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Отключает анимации и эффекты размытия"
+                            data-i18n-title="settings.appearance.lowEffects.hint"
+                          >
+                            <i class="fa-solid fa-leaf"></i>
+                            <span data-i18n-html="settings.appearance.lowEffects">
+                              Режим <strong>экономии эффектов</strong>
+                            </span>
+                          </label>
+                        </li>
                       </ul>
                     </div>
                   </section>
@@ -745,14 +835,18 @@
               <!-- Other Settings Tab -->
               <div id="other-settings" class="tab-pane">
                 <div class="settings-pane-header">
-                  <h2 data-i18n="settings.other.title">Другие настройки</h2>
-                  <p data-i18n="settings.other.hint">
-                    Дополнительные параметры для детальной настройки поведения приложения.
-                  </p>
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.other.title">Другие настройки</h2>
+                    <p data-i18n="settings.other.hint">
+                      Дополнительные параметры для детальной настройки поведения приложения.
+                    </p>
+                  </div>
                 </div>
                 <div class="settings-grid">
                   <section class="settings-card">
-                    <h3 class="settings-card__title">Горячие клавиши</h3>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title">Горячие клавиши</h3>
+                    </div>
                     <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="settings-control">
@@ -772,12 +866,14 @@
                   </section>
 
                   <section class="settings-card">
-                    <h3 class="settings-card__title" data-i18n="settings.developer.title">
-                      Для разработчика
-                    </h3>
-                    <p class="settings-card__desc" data-i18n="settings.developer.hint">
-                      Введите секретное слово, чтобы активировать скрытые функции.
-                    </p>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.developer.title">
+                        Для разработчика
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.developer.hint">
+                        Введите секретное слово, чтобы активировать скрытые функции.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
                       <div class="settings-developer-gate">
                         <label
@@ -817,18 +913,20 @@
                   </section>
 
                   <section class="settings-card settings-card--stacked">
-                    <h3 class="settings-card__title" data-i18n="settings.other.appConfig">Настройки приложения</h3>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.other.appConfig">Настройки приложения</h3>
+                    </div>
                     <div class="settings-card__body">
-                      <div class="module export-import-section">
-                        <button id="export-config-button">
+                      <div class="module settings-action-group">
+                        <button id="export-config-button" type="button">
                           <i class="fa-solid fa-download"></i>
                           <span data-i18n="settings.other.export">Сохранить</span>
                         </button>
-                        <button id="import-config-button">
+                        <button id="import-config-button" type="button">
                           <i class="fa-solid fa-upload"></i>
                           <span data-i18n="settings.other.import">Загрузить</span>
                         </button>
-                        <button id="open-config-folder-button">
+                        <button id="open-config-folder-button" type="button">
                           <i class="fa-solid fa-folder-open"></i>
                           <span data-i18n="settings.other.openFolder">Папка настроек</span>
                         </button>
@@ -842,15 +940,20 @@
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--stacked">
-                    <h3 class="settings-card__title" data-i18n="settings.other.resetTitle">Сброс настроек</h3>
+                  <section class="settings-card settings-card--stacked settings-card--danger">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.other.resetTitle">Сброс настроек</h3>
+                      <p class="settings-card__desc" data-i18n="settings.other.hint">
+                        Дополнительные параметры для детальной настройки поведения приложения.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
-                      <div class="module reset-settings-section">
-                        <button id="reset-config-button">
+                      <div class="module settings-action-group settings-action-group--danger">
+                        <button id="reset-config-button" type="button">
                           <i class="fa-solid fa-rotate-left"></i>
                           <span data-i18n="settings.other.reset">Настройки по умолчанию</span>
                         </button>
-                        <button id="first-run-reset-button">
+                        <button id="first-run-reset-button" type="button">
                           <i class="fa-solid fa-wand-magic-sparkles"></i>
                           <span data-i18n="settings.other.firstRun">Первичная настройка</span>
                         </button>
