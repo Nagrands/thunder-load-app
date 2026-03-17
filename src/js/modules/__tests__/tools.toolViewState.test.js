@@ -46,4 +46,15 @@ describe("createToolViewState", () => {
     expect(state.isPowerToolAvailable()).toBe(true);
     expect(window.__thunder_dev_tools_unlocked__).toBe(true);
   });
+
+  test("remembers media-inspector as a valid last tool view", () => {
+    const state = createToolViewState();
+
+    localStorage.setItem("toolsRememberLastView", "true");
+    localStorage.setItem("toolsLastView", "media-inspector");
+    state.setPlatformInfo({ isWindows: false, platform: "darwin" });
+
+    expect(state.isToolAvailable("media-inspector")).toBe(true);
+    expect(state.resolveInitialToolView()).toBe("media-inspector");
+  });
 });

@@ -44,6 +44,11 @@ const {
   ensureToolsDir,
   resolveToolPath,
 } = require("../app/toolsPaths");
+const {
+  getRuntimeFfprobePath,
+  resolveRuntimeBinaryPath,
+  resolveRuntimeFfmpegDir: resolveRuntimeFfmpegDirHelper,
+} = require("../app/runtimeTools");
 
 // Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
 
@@ -66,68 +71,25 @@ function getYtDlpPath() {
 function getFfmpegPath() {
   return resolveToolPath("ffmpeg", getToolsDir());
 }
-function getFfprobePath() {
-  const dir = getToolsDir();
+function getLocalFfprobePath() {
   return path.join(
-    dir,
+    getToolsDir(),
     process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
   );
+}
+function getFfprobePath() {
+  return getRuntimeFfprobePath(getStore());
 }
 function getDenoPath() {
   return resolveToolPath("deno", getToolsDir());
 }
 
-function isExecutableFile(filePath) {
-  try {
-    fs.accessSync(filePath, fs.constants.F_OK);
-    if (process.platform !== "win32") {
-      fs.accessSync(filePath, fs.constants.X_OK);
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function resolveRuntimeToolPath(tool) {
-  const preferredDir = getToolsDir();
-  const preferredPath = resolveToolPath(tool, preferredDir);
-  if (isExecutableFile(preferredPath)) return preferredPath;
-
-  const fallbackDir = getDefaultToolsDir();
-  const fallbackPath = resolveToolPath(tool, fallbackDir);
-  if (fallbackDir !== preferredDir && isExecutableFile(fallbackPath)) {
-    return fallbackPath;
-  }
-  return preferredPath;
+  return resolveRuntimeBinaryPath(tool, getStore());
 }
 
 function resolveRuntimeFfmpegDir() {
-  const preferredDir = getToolsDir();
-  const preferredFfmpeg = resolveToolPath("ffmpeg", preferredDir);
-  const preferredFfprobe = path.join(
-    preferredDir,
-    process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
-  );
-  if (isExecutableFile(preferredFfmpeg) && isExecutableFile(preferredFfprobe)) {
-    return preferredDir;
-  }
-
-  const fallbackDir = getDefaultToolsDir();
-  const fallbackFfmpeg = resolveToolPath("ffmpeg", fallbackDir);
-  const fallbackFfprobe = path.join(
-    fallbackDir,
-    process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
-  );
-  if (
-    fallbackDir !== preferredDir &&
-    isExecutableFile(fallbackFfmpeg) &&
-    isExecutableFile(fallbackFfprobe)
-  ) {
-    return fallbackDir;
-  }
-
-  return preferredDir;
+  return resolveRuntimeFfmpegDirHelper(getStore());
 }
 
 function ensureDenoCacheDir() {
@@ -1053,13 +1015,21 @@ async function getFfmpegVersion(token = null) {
 async function installFfmpeg(token = null) {
   try {
     const version = await getFfmpegVersion(token);
-    if (version) {
+    const ffprobeTargetPath = getLocalFfprobePath();
+    const hasLocalFfprobe = fs.existsSync(ffprobeTargetPath);
+    if (version && hasLocalFfprobe) {
       log.info(
         `ffmpeg version ${version.split("\n")[0]} is already installed.`,
       );
       return;
     }
-    log.info("ffmpeg not found, starting installation...");
+    if (version && !hasLocalFfprobe) {
+      log.info(
+        `ffmpeg version ${version.split("\n")[0]} is installed, but ffprobe is missing. Continuing installation...`,
+      );
+    } else {
+      log.info("ffmpeg not found, starting installation...");
+    }
     let ffmpegUrl, ffmpegZipPath, ffmpegExtractPath;
     if (process.platform === "win32") {
       ffmpegUrl =
@@ -1134,8 +1104,80 @@ async function installFfmpeg(token = null) {
     } else if (process.platform === "darwin") {
       const dir = getToolsDir();
       const ffmpegPath = getFfmpegPath();
-      const ffprobePath = getFfprobePath();
+      const ffprobePath = getLocalFfprobePath();
       await ensureToolsDir(dir);
+      const isArm64 = process.arch === "arm64";
+
+      async function extractSingleBinary(zipPath, targetPath, binaryName, tmpDir) {
+        const extractTo = path.join(tmpDir, binaryName);
+        await fs.promises.mkdir(extractTo, { recursive: true });
+        await new Promise((resolve, reject) => {
+          fs.createReadStream(zipPath)
+            .pipe(unzipper.Extract({ path: extractTo }))
+            .on("close", resolve)
+            .on("error", reject);
+        });
+        const extractedBinary = path.join(extractTo, binaryName);
+        if (!fs.existsSync(extractedBinary)) {
+          throw new Error(
+            `Binary ${binaryName} not found in archive ${zipPath}`,
+          );
+        }
+        fs.copyFileSync(extractedBinary, targetPath);
+        fs.chmodSync(targetPath, 0o755);
+      }
+
+      const installFromZipUrls = async ({
+        ffmpegZipUrl,
+        ffprobeZipUrl,
+        sourceLabel,
+      }) => {
+        const tmpDir = path.join(os.tmpdir(), `ffmpeg-bootstrap-${Date.now()}`);
+        const ffmpegZipPath = path.join(tmpDir, "ffmpeg.zip");
+        const ffprobeZipPath = path.join(tmpDir, "ffprobe.zip");
+        await fs.promises.mkdir(tmpDir, { recursive: true });
+
+        try {
+          if (!version) {
+            log.info(`[ffmpeg] Downloading ffmpeg from ${sourceLabel}…`);
+            await downloadFile(ffmpegZipUrl, ffmpegZipPath, 0, 1, {
+              ...TOOL_DOWNLOAD_OPTIONS,
+              token,
+            });
+            await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg", tmpDir);
+            log.info(`[ffmpeg] ffmpeg installed from ${sourceLabel}`);
+          }
+
+          if (!hasLocalFfprobe) {
+            log.info(`[ffmpeg] Downloading ffprobe from ${sourceLabel}…`);
+            await downloadFile(ffprobeZipUrl, ffprobeZipPath, 0, 1, {
+              ...TOOL_DOWNLOAD_OPTIONS,
+              token,
+            });
+            await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe", tmpDir);
+            log.info(`[ffmpeg] ffprobe installed from ${sourceLabel}`);
+          }
+        } finally {
+          try {
+            await fs.promises.rm(tmpDir, { recursive: true, force: true });
+          } catch {}
+        }
+      };
+
+      if (isArm64) {
+        try {
+          await installFromZipUrls({
+            ffmpegZipUrl: "https://www.osxexperts.net/ffmpeg80arm.zip",
+            ffprobeZipUrl: "https://www.osxexperts.net/ffprobe80arm.zip",
+            sourceLabel: "osxexperts.net",
+          });
+          return;
+        } catch (err) {
+          log.warn(
+            `osxexperts installation failed (${err.message}). Falling back to previous strategy…`,
+          );
+        }
+      }
 
       const downloadReleaseList = async () => {
         const endpoint =
@@ -1158,46 +1200,31 @@ async function installFfmpeg(token = null) {
         const ffprobeZipPath = path.join(tmpDir, "ffprobe.zip");
         await fs.promises.mkdir(tmpDir, { recursive: true });
 
-        async function extractSingleBinary(zipPath, targetPath, binaryName) {
-          const extractTo = path.join(tmpDir, binaryName);
-          await fs.promises.mkdir(extractTo, { recursive: true });
-          await new Promise((resolve, reject) => {
-            fs.createReadStream(zipPath)
-              .pipe(unzipper.Extract({ path: extractTo }))
-              .on("close", resolve)
-              .on("error", reject);
-          });
-          const extractedBinary = path.join(extractTo, binaryName);
-          if (!fs.existsSync(extractedBinary)) {
-            throw new Error(
-              `Binary ${binaryName} not found in archive ${zipPath}`,
-            );
-          }
-          fs.copyFileSync(extractedBinary, targetPath);
-          fs.chmodSync(targetPath, 0o755);
-        }
-
         try {
-          log.info(
-            `[ffmpeg] Downloading macOS build ${version} (${archKey}) from evermeet.cx…`,
-          );
-          await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, {
-            ...TOOL_DOWNLOAD_OPTIONS,
-            token,
-          });
-          await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg");
-          log.info("[ffmpeg] ffmpeg installed from evermeet.cx");
+          if (!version) {
+            log.info(
+              `[ffmpeg] Downloading macOS build ${version} (${archKey}) from evermeet.cx…`,
+            );
+            await downloadFile(ffmpegUrl, ffmpegZipPath, 0, 1, {
+              ...TOOL_DOWNLOAD_OPTIONS,
+              token,
+            });
+            await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg", tmpDir);
+            log.info("[ffmpeg] ffmpeg installed from evermeet.cx");
+          }
         } catch (err) {
           throw new Error(`Failed to install ffmpeg from evermeet: ${err}`);
         }
 
         try {
-          await downloadFile(ffprobeUrl, ffprobeZipPath, 0, 1, {
-            ...TOOL_DOWNLOAD_OPTIONS,
-            token,
-          });
-          await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe");
-          log.info("[ffmpeg] ffprobe installed from evermeet.cx");
+          if (!hasLocalFfprobe) {
+            await downloadFile(ffprobeUrl, ffprobeZipPath, 0, 1, {
+              ...TOOL_DOWNLOAD_OPTIONS,
+              token,
+            });
+            await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe", tmpDir);
+            log.info("[ffmpeg] ffprobe installed from evermeet.cx");
+          }
         } catch (err) {
           log.warn(
             `Failed to install ffprobe from evermeet (optional): ${err.message}`,
@@ -1218,39 +1245,39 @@ async function installFfmpeg(token = null) {
         );
       }
 
-      const isArm64 = process.arch === "arm64";
       ffmpegUrl = isArm64
         ? "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-arm64"
         : "https://github.com/eugeneware/ffmpeg-static/releases/latest/download/ffmpeg-darwin-x64";
 
-      try {
-        await downloadFile(ffmpegUrl, ffmpegPath, 0, 1, {
-          ...TOOL_DOWNLOAD_OPTIONS,
-          token,
-        });
-        fs.chmodSync(ffmpegPath, 0o755);
-        log.info(
-          "ffmpeg binary downloaded and chmod applied (macOS fallback).",
-        );
-      } catch (_err) {
-        log.warn("Failed to download ffmpeg. Trying fallback from Homebrew...");
-        const brewPath = "/opt/homebrew/bin/ffmpeg";
-        if (fs.existsSync(brewPath)) {
-          fs.copyFileSync(brewPath, ffmpegPath);
+      if (!version) {
+        try {
+          await downloadFile(ffmpegUrl, ffmpegPath, 0, 1, {
+            ...TOOL_DOWNLOAD_OPTIONS,
+            token,
+          });
           fs.chmodSync(ffmpegPath, 0o755);
-          log.info("ffmpeg copied from Homebrew path.");
-          return;
-        } else {
-          throw new Error("Failed to download ffmpeg and no fallback found.");
+          log.info(
+            "ffmpeg binary downloaded and chmod applied (macOS fallback).",
+          );
+        } catch (_err) {
+          log.warn("Failed to download ffmpeg. Trying fallback from Homebrew...");
+          const brewPath = "/opt/homebrew/bin/ffmpeg";
+          if (fs.existsSync(brewPath)) {
+            fs.copyFileSync(brewPath, ffmpegPath);
+            fs.chmodSync(ffmpegPath, 0o755);
+            log.info("ffmpeg copied from Homebrew path.");
+          } else {
+            throw new Error("Failed to download ffmpeg and no fallback found.");
+          }
         }
       }
       // Попытка скопировать ffprobe из Homebrew, если он там есть
       const ffprobeBrewPath = "/opt/homebrew/bin/ffprobe";
-      if (fs.existsSync(ffprobeBrewPath)) {
+      if (!hasLocalFfprobe && fs.existsSync(ffprobeBrewPath)) {
         fs.copyFileSync(ffprobeBrewPath, ffprobePath);
         fs.chmodSync(ffprobePath, 0o755);
         log.info("ffprobe copied from Homebrew path.");
-      } else {
+      } else if (!hasLocalFfprobe) {
         log.warn(
           "ffprobe не установлен автоматически. Установите его вручную или используйте 'brew install ffmpeg'.",
         );
@@ -1264,7 +1291,7 @@ async function installFfmpeg(token = null) {
       throw new Error("Unsupported platform for ffmpeg installation.");
     }
     // --- LOGGING FFPROBE STATE ---
-    const ffprobePath = getFfprobePath();
+    const ffprobePath = getLocalFfprobePath();
     if (fs.existsSync(ffprobePath)) {
       log.info("[ffprobe] successfully installed to:", ffprobePath);
     } else {

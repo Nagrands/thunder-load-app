@@ -87,6 +87,8 @@ const CHANNELS = Object.freeze({
   TOOLS_RESET_LOCATION: "tools:resetLocation",
   TOOLS_HASH_PICK_FILE: "tools:hashPickFile",
   TOOLS_HASH_CALCULATE: "tools:hashCalculate",
+  TOOLS_MEDIA_INSPECTOR_PICK_FILE: "tools:mediaInspectorPickFile",
+  TOOLS_MEDIA_INSPECTOR_ANALYZE: "tools:mediaInspectorAnalyze",
   TOOLS_SORTER_PICK_FOLDER: "tools:sorterPickFolder",
   TOOLS_SORTER_OPEN_FOLDER: "tools:sorterOpenFolder",
   TOOLS_SORTER_RUN: "tools:sorterRun",

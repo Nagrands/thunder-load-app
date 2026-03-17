@@ -34,6 +34,8 @@ async function openTool(el, tool) {
       ? "#tools-open-wg"
       : tool === "hash"
         ? "#tools-open-hash"
+        : tool === "media-inspector"
+          ? "#tools-open-media-inspector"
         : tool === "power"
           ? "#tools-open-power"
           : tool === "backup"
@@ -103,6 +105,74 @@ describe("toolsView quick actions", () => {
           success: true,
           actualHash: "abcd",
           matches: null,
+        }),
+        pickMediaInspectorFile: jest.fn().mockResolvedValue({
+          success: true,
+          filePath: "/tmp/sample-video.mp4",
+        }),
+        analyzeMediaFile: jest.fn().mockResolvedValue({
+          success: true,
+          report: {
+            file: {
+              path: "/tmp/sample-video.mp4",
+              name: "sample-video.mp4",
+              extension: ".mp4",
+              sizeBytes: 10485760,
+            },
+            format: {
+              container: "mov,mp4,m4a,3gp,3g2,mj2",
+              durationSec: 95.2,
+              bitrate: 4250000,
+              probeScore: 100,
+            },
+            summary: {
+              videoCount: 1,
+              audioCount: 1,
+              subtitleCount: 1,
+              hasAudio: true,
+              hasVideo: true,
+            },
+            videoStreams: [
+              {
+                codec: "h264",
+                profile: "High",
+                width: 1920,
+                height: 1080,
+                fps: 29.97,
+                bitrate: 3900000,
+                hdr: false,
+                colorSpace: "bt709",
+              },
+            ],
+            audioStreams: [
+              {
+                codec: "aac",
+                channels: 2,
+                channelLayout: "stereo",
+                sampleRate: 48000,
+                bitrate: 192000,
+                language: "eng",
+              },
+            ],
+            subtitleStreams: [
+              {
+                codec: "mov_text",
+                language: "eng",
+                title: "English",
+              },
+            ],
+            warnings: [
+              {
+                code: "subtitles-present",
+                severity: "info",
+                messageKey: "tools.mediaInspector.warning.subtitlesPresent",
+              },
+            ],
+            rawAvailable: true,
+          },
+        }),
+        showInFolder: jest.fn().mockResolvedValue({
+          success: true,
         }),
         createWindowsRestartShortcut: jest.fn().mockResolvedValue({
           success: false,
@@ -224,7 +294,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 4",
+      "tools.launcher.totalLabel: 5",
     );
   });
 
@@ -262,7 +332,8 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(5);
+    ).toBe(6);
+    expect(el.querySelector("#tools-open-media-inspector")).not.toBeNull();
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
     ).not.toBeNull();
@@ -325,7 +396,7 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 4",
+      "tools.launcher.totalLabel: 5",
     );
   });
 
@@ -366,7 +437,7 @@ describe("toolsView quick actions", () => {
     expect(powerBtn?.disabled).toBe(false);
     expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 5",
+      "tools.launcher.totalLabel: 6",
     );
 
     sorterBtn?.click();
@@ -542,6 +613,299 @@ describe("toolsView quick actions", () => {
     );
     expect(el.querySelector("#sorter-errors-list")?.textContent).toContain(
       "Ignored by extension rule (.tmp)",
+    );
+  });
+
+  test("shows Media Inspector as available tool and opens it", async () => {
+    const el = await renderView();
+    const mediaBtn = el.querySelector("#tools-open-media-inspector");
+
+    expect(mediaBtn).not.toBeNull();
+    expect(mediaBtn?.closest(".tools-launcher-grid")).not.toBeNull();
+
+    mediaBtn?.click();
+    await nextTick();
+
+    expect(
+      el
+        .querySelector('[data-tool-view="media-inspector"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(el.querySelector("#media-inspector-pick-file")).not.toBeNull();
+  });
+
+  test("auto-analyzes a selected file and renders media report", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.pickMediaInspectorFile).toHaveBeenCalledTimes(1);
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
+      filePath: "/tmp/sample-video.mp4",
+    });
+    expect(el.querySelector("#media-inspector-summary-container")?.textContent).toContain(
+      "mov,mp4",
+    );
+    expect(el.querySelector("#media-inspector-video-count")?.textContent).toBe("1");
+    expect(el.querySelector("#media-inspector-audio-count")?.textContent).toBe("1");
+    expect(el.querySelector("#media-inspector-subtitle-count")?.textContent).toBe("1");
+    expect(el.querySelectorAll(".media-inspector-warning").length).toBe(1);
+    expect(el.querySelector("#media-inspector-status")?.classList.contains("is-warning")).toBe(
+      false,
+    );
+    expect(el.querySelector("#media-inspector-copy-report")?.hasAttribute("disabled")).toBe(false);
+    expect(el.querySelector("#media-inspector-open-folder")?.hasAttribute("disabled")).toBe(false);
+  });
+
+  test("shows warning status when report contains warning-severity signals", async () => {
+    window.electron.tools.analyzeMediaFile.mockResolvedValueOnce({
+      success: true,
+      report: {
+        file: {
+          path: "/tmp/warn-video.mp4",
+          name: "warn-video.mp4",
+          extension: ".mp4",
+          sizeBytes: 1024,
+        },
+        format: {
+          container: "mp4",
+          durationSec: 12,
+          bitrate: 80000000,
+          probeScore: 100,
+        },
+        summary: {
+          videoCount: 1,
+          audioCount: 1,
+          subtitleCount: 0,
+          hasAudio: true,
+          hasVideo: true,
+        },
+        videoStreams: [
+          {
+            codec: "h264",
+            profile: "High",
+            width: 1920,
+            height: 1080,
+            fps: 29.97,
+            bitrate: 78000000,
+            hdr: true,
+            colorSpace: "bt2020",
+          },
+        ],
+        audioStreams: [
+          {
+            codec: "aac",
+            channels: 2,
+            channelLayout: "stereo",
+            sampleRate: 48000,
+            bitrate: 192000,
+            language: "en",
+          },
+        ],
+        subtitleStreams: [],
+        warnings: [
+          {
+            code: "high-bitrate",
+            severity: "warning",
+            messageKey: "tools.mediaInspector.warning.highBitrate",
+          },
+        ],
+        rawAvailable: true,
+      },
+    });
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-status")?.classList.contains("is-warning")).toBe(
+      true,
+    );
+  });
+
+  test("blocks repeat analysis while media inspection is in flight", async () => {
+    let resolveAnalyze;
+    window.electron.tools.analyzeMediaFile.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveAnalyze = resolve;
+        }),
+    );
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-analyze")?.hasAttribute("disabled")).toBe(true);
+    el.querySelector("#media-inspector-analyze")?.click();
+    await nextTick();
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledTimes(1);
+
+    resolveAnalyze({
+      success: true,
+      report: {
+        file: {
+          path: "/tmp/sample-video.mp4",
+          name: "sample-video.mp4",
+          extension: ".mp4",
+          sizeBytes: 1024,
+        },
+        format: {
+          container: "mp4",
+          durationSec: 12,
+          bitrate: 500000,
+          probeScore: 100,
+        },
+        summary: {
+          videoCount: 1,
+          audioCount: 0,
+          subtitleCount: 0,
+          hasAudio: false,
+          hasVideo: true,
+        },
+        videoStreams: [{ codec: "h264", width: 1280, height: 720, fps: 30 }],
+        audioStreams: [],
+        subtitleStreams: [],
+        warnings: [],
+        rawAvailable: true,
+      },
+    });
+    await nextTick();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-analyze")?.hasAttribute("disabled")).toBe(false);
+  });
+
+  test("renders compact loading state while media inspection is in flight", async () => {
+    let resolveAnalyze;
+    window.electron.tools.analyzeMediaFile.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveAnalyze = resolve;
+        }),
+    );
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-state")?.classList.contains("media-inspector-state--loading")).toBe(true);
+    expect(el.querySelector("#media-inspector-state-meta")?.classList.contains("hidden")).toBe(
+      false,
+    );
+    expect(el.querySelector("#media-inspector-state-title")?.textContent).toBe(
+      "tools.mediaInspector.loading.title",
+    );
+    expect(el.querySelector("#media-inspector-state-body")?.textContent).toBe(
+      "tools.mediaInspector.loading.body",
+    );
+
+    resolveAnalyze({
+      success: true,
+      report: {
+        file: {
+          path: "/tmp/sample-video.mp4",
+          name: "sample-video.mp4",
+          extension: ".mp4",
+          sizeBytes: 1024,
+        },
+        format: {
+          container: "mp4",
+          durationSec: 12,
+          bitrate: 500000,
+          probeScore: 100,
+        },
+        summary: {
+          videoCount: 1,
+          audioCount: 0,
+          subtitleCount: 0,
+          hasAudio: false,
+          hasVideo: true,
+        },
+        videoStreams: [{ codec: "h264", width: 1280, height: 720, fps: 30 }],
+        audioStreams: [],
+        subtitleStreams: [],
+        warnings: [],
+        rawAvailable: true,
+      },
+    });
+    await nextTick();
+    await nextTick();
+  });
+
+  test("keeps loading meta hidden for empty and error states", async () => {
+    window.electron.tools.analyzeMediaFile.mockResolvedValueOnce({
+      success: false,
+      code: "missingDependency",
+    });
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    expect(el.querySelector("#media-inspector-state-meta")?.classList.contains("hidden")).toBe(
+      true,
+    );
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-state")?.classList.contains("media-inspector-state--error")).toBe(true);
+    expect(el.querySelector("#media-inspector-state-meta")?.classList.contains("hidden")).toBe(
+      true,
+    );
+  });
+
+  test("keeps open-folder action available after analyze failure", async () => {
+    window.electron.tools.analyzeMediaFile.mockResolvedValueOnce({
+      success: false,
+      code: "analyzeFailed",
+      error: "Probe failed",
+    });
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-open-folder")?.hasAttribute("disabled")).toBe(
+      false,
+    );
+    expect(el.querySelector("#media-inspector-report")?.classList.contains("hidden")).toBe(
+      true,
+    );
+  });
+
+  test("open-folder failure does not hide a rendered report", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    window.electron.tools.showInFolder.mockResolvedValueOnce({
+      success: false,
+      error: "Cannot open folder",
+    });
+    el.querySelector("#media-inspector-open-folder")?.click();
+    await nextTick();
+
+    expect(el.querySelector("#media-inspector-report")?.classList.contains("hidden")).toBe(
+      false,
+    );
+    expect(el.querySelector("#media-inspector-state")?.classList.contains("hidden")).toBe(
+      true,
+    );
+    expect(el.querySelector("#media-inspector-copy-feedback")?.textContent).toBe(
+      "tools.mediaInspector.openFolderFailed",
     );
   });
 
@@ -1553,4 +1917,5 @@ describe("toolsView quick actions", () => {
     );
     expect(document.activeElement).toBe(restartBtn);
   });
+
 });

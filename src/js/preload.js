@@ -120,6 +120,8 @@ try {
     "tools:resetLocation",
     "tools:hashPickFile",
     "tools:hashCalculate",
+    "tools:mediaInspectorPickFile",
+    "tools:mediaInspectorAnalyze",
     "tools:sorterPickFolder",
     "tools:sorterOpenFolder",
     "tools:sorterRun",
@@ -316,6 +318,8 @@ try {
    *   checkUpdates: (opts?: any) => Promise<any>,
    *   updateYtDlp: () => Promise<any>,
    *   updateFfmpeg: () => Promise<any>,
+   *   pickMediaInspectorFile: () => Promise<any>,
+   *   analyzeMediaFile: (payload: any) => Promise<any>,
    *   // Tools location management
    *   getLocation: () => Promise<{ success: boolean, path?: string, isDefault?: boolean, error?: string }>,
    *   setLocation: (dir: string) => Promise<{ success: boolean, path?: string, error?: string }>,
@@ -371,6 +375,10 @@ try {
       resetLocation: () => safeInvoke("tools:resetLocation"),
       pickFileForHash: () => safeInvoke("tools:hashPickFile"),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
+      pickMediaInspectorFile: () =>
+        safeInvoke("tools:mediaInspectorPickFile"),
+      analyzeMediaFile: (payload) =>
+        safeInvoke("tools:mediaInspectorAnalyze", payload),
       pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
       openSorterFolder: (folderPath) =>
         safeInvoke("tools:sorterOpenFolder", folderPath),

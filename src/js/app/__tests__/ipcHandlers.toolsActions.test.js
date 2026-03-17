@@ -4,6 +4,17 @@ const os = require("os");
 
 const handlers = {};
 
+jest.mock("child_process", () => ({
+  execFile: (() => {
+    const { promisify } = require("util");
+    const fn = jest.fn();
+    fn[promisify.custom] = jest.fn(() =>
+      Promise.resolve({ stdout: "", stderr: "" }),
+    );
+    return fn;
+  })(),
+}));
+
 jest.mock("electron", () => ({
   ipcMain: {
     handle: jest.fn((channel, cb) => {
@@ -98,15 +109,18 @@ jest.mock("electron-log", () => ({
 
 describe("ipcHandlers tools quick actions", () => {
   const originalPlatform = process.platform;
+  const toolsDir = "/tmp/tools";
 
   beforeEach(() => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);
     jest.clearAllMocks();
+    require("child_process").execFile.mockReset();
+    fs.mkdirSync(toolsDir, { recursive: true });
     const toolsPaths = require("../toolsPaths");
-    toolsPaths.getDefaultToolsDir.mockImplementation(() => "/tmp/tools");
-    toolsPaths.getEffectiveToolsDir.mockImplementation(() => "/tmp/tools");
+    toolsPaths.getDefaultToolsDir.mockImplementation(() => toolsDir);
+    toolsPaths.getEffectiveToolsDir.mockImplementation(() => toolsDir);
     toolsPaths.ensureToolsDir.mockImplementation(
-      async (v) => v || "/tmp/tools",
+      async (v) => v || toolsDir,
     );
     toolsPaths.detectLegacyLocations.mockImplementation(async () => []);
     toolsPaths.migrateLegacy.mockImplementation(async () => ({
@@ -116,6 +130,11 @@ describe("ipcHandlers tools quick actions", () => {
   });
 
   afterEach(() => {
+    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobePath = path.join(toolsDir, ffprobeName);
+    if (fs.existsSync(ffprobePath)) {
+      fs.unlinkSync(ffprobePath);
+    }
     Object.defineProperty(process, "platform", {
       value: originalPlatform,
       configurable: true,
@@ -191,6 +210,285 @@ describe("ipcHandlers tools quick actions", () => {
     const result = await handlers[CHANNELS.TOOLS_HASH_PICK_FILE]();
 
     expect(result).toEqual({ success: true, filePath: "/tmp/sample.bin" });
+  });
+
+  test("mediaInspectorPickFile returns selected path", async () => {
+    const { dialog } = require("electron");
+    const { CHANNELS } = require("../../ipc/channels");
+    dialog.showOpenDialog.mockResolvedValue({
+      canceled: false,
+      filePaths: ["/tmp/movie.webm"],
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_PICK_FILE]();
+
+    expect(result).toEqual({ success: true, filePath: "/tmp/movie.webm" });
+  });
+
+  test("mediaInspectorAnalyze returns structured report for a local file", async () => {
+    const { execFile } = require("child_process");
+    const { promisify } = require("util");
+    const { CHANNELS } = require("../../ipc/channels");
+    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobePath = path.join("/tmp/tools", ffprobeName);
+    const mediaPath = path.join(
+      os.tmpdir(),
+      `media-inspector-${Date.now()}.webm`,
+    );
+    const execFilePromisified = execFile[promisify.custom];
+
+    fs.writeFileSync(ffprobePath, "#!/bin/sh\nexit 0\n", "utf8");
+    fs.writeFileSync(mediaPath, "demo", "utf8");
+
+    execFilePromisified.mockResolvedValueOnce({
+      stdout: JSON.stringify({
+        format: {
+          format_name: "matroska,webm",
+          duration: "12.5",
+          bit_rate: "1200000",
+          probe_score: "100",
+        },
+        streams: [
+          {
+            codec_type: "video",
+            codec_name: "vp9",
+            profile: "Profile 0",
+            pix_fmt: "yuv420p",
+            width: 1920,
+            height: 1080,
+            avg_frame_rate: "30000/1001",
+            r_frame_rate: "30000/1001",
+            bit_rate: "900000",
+            color_space: "bt709",
+            color_primaries: "bt709",
+            color_transfer: "bt709",
+          },
+          {
+            codec_type: "audio",
+            codec_name: "opus",
+            channels: 2,
+            channel_layout: "stereo",
+            sample_rate: "48000",
+            bit_rate: "96000",
+            tags: { language: "en" },
+          },
+        ],
+      }),
+      stderr: "",
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_ANALYZE](
+      null,
+      { filePath: mediaPath },
+    );
+
+    expect(execFilePromisified).toHaveBeenCalledWith(
+      ffprobePath,
+      [
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_format",
+        "-show_streams",
+        mediaPath,
+      ],
+      expect.objectContaining({
+        windowsHide: true,
+        maxBuffer: 10 * 1024 * 1024,
+        timeout: 15000,
+      }),
+    );
+    expect(result.success).toBe(true);
+    expect(result.report).toMatchObject({
+      file: {
+        path: mediaPath,
+        name: path.basename(mediaPath),
+        extension: ".webm",
+        sizeBytes: 4,
+      },
+      format: {
+        container: "matroska,webm",
+        durationSec: 12.5,
+        bitrate: 1200000,
+        probeScore: 100,
+      },
+      summary: {
+        videoCount: 1,
+        audioCount: 1,
+        subtitleCount: 0,
+        hasAudio: true,
+        hasVideo: true,
+      },
+      rawAvailable: true,
+    });
+    expect(result.report.videoStreams[0]).toMatchObject({
+      codec: "vp9",
+      profile: "Profile 0",
+      pixelFormat: "yuv420p",
+      width: 1920,
+      height: 1080,
+      bitrate: 900000,
+      hdr: false,
+      colorSpace: "bt709",
+    });
+    expect(result.report.audioStreams[0]).toMatchObject({
+      codec: "opus",
+      channels: 2,
+      channelLayout: "stereo",
+      sampleRate: 48000,
+      bitrate: 96000,
+      language: "en",
+    });
+    expect(result.report.warnings).toEqual([]);
+
+    fs.unlinkSync(mediaPath);
+  });
+
+  test("mediaInspectorAnalyze returns missingDependency when ffprobe is absent", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const mediaPath = path.join(
+      os.tmpdir(),
+      `media-inspector-missing-${Date.now()}.mp4`,
+    );
+    fs.writeFileSync(mediaPath, "demo", "utf8");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_ANALYZE](
+      null,
+      { filePath: mediaPath },
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: false,
+        code: "missingDependency",
+      }),
+    );
+
+    fs.unlinkSync(mediaPath);
+  });
+
+  test("mediaInspectorAnalyze uses ffprobe from PATH when local tool is absent", async () => {
+    const { execFile } = require("child_process");
+    const { promisify } = require("util");
+    const { CHANNELS } = require("../../ipc/channels");
+    const pathDir = path.join(os.tmpdir(), `media-inspector-path-${Date.now()}`);
+    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobePath = path.join(pathDir, ffprobeName);
+    const mediaPath = path.join(
+      os.tmpdir(),
+      `media-inspector-system-${Date.now()}.mp4`,
+    );
+    const execFilePromisified = execFile[promisify.custom];
+    const originalPath = process.env.PATH;
+
+    fs.mkdirSync(pathDir, { recursive: true });
+    fs.writeFileSync(ffprobePath, "#!/bin/sh\nexit 0\n", "utf8");
+    fs.chmodSync(ffprobePath, 0o755);
+    fs.writeFileSync(mediaPath, "demo", "utf8");
+    process.env.PATH = `${pathDir}${path.delimiter}${originalPath || ""}`;
+
+    execFilePromisified.mockResolvedValueOnce({
+      stdout: JSON.stringify({
+        format: {
+          format_name: "mov,mp4,m4a,3gp,3g2,mj2",
+          duration: "3.2",
+          bit_rate: "640000",
+          probe_score: "100",
+        },
+        streams: [],
+      }),
+      stderr: "",
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_ANALYZE](
+      null,
+      { filePath: mediaPath },
+    );
+
+    expect(execFilePromisified).toHaveBeenCalledWith(
+      ffprobePath,
+      expect.any(Array),
+      expect.objectContaining({
+        windowsHide: true,
+      }),
+    );
+    expect(result.success).toBe(true);
+
+    process.env.PATH = originalPath;
+    fs.unlinkSync(mediaPath);
+    fs.unlinkSync(ffprobePath);
+    fs.rmdirSync(pathDir);
+  });
+
+  test("mediaInspectorAnalyze installs ffmpeg tools when ffprobe is missing", async () => {
+    const { execFile } = require("child_process");
+    const { promisify } = require("util");
+    const download = require("../../scripts/download.js");
+    const { CHANNELS } = require("../../ipc/channels");
+    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobePath = path.join(toolsDir, ffprobeName);
+    const mediaPath = path.join(
+      os.tmpdir(),
+      `media-inspector-bootstrap-${Date.now()}.mp4`,
+    );
+    const execFilePromisified = execFile[promisify.custom];
+
+    fs.writeFileSync(mediaPath, "demo", "utf8");
+    download.installFfmpeg.mockImplementationOnce(async () => {
+      fs.writeFileSync(ffprobePath, "#!/bin/sh\nexit 0\n", "utf8");
+      fs.chmodSync(ffprobePath, 0o755);
+    });
+    execFilePromisified.mockResolvedValueOnce({
+      stdout: JSON.stringify({
+        format: {
+          format_name: "mov,mp4,m4a,3gp,3g2,mj2",
+          duration: "1.0",
+          bit_rate: "128000",
+          probe_score: "100",
+        },
+        streams: [],
+      }),
+      stderr: "",
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_ANALYZE](
+      null,
+      { filePath: mediaPath },
+    );
+
+    expect(download.installFfmpeg).toHaveBeenCalledTimes(1);
+    expect(execFilePromisified).toHaveBeenCalledWith(
+      ffprobePath,
+      expect.any(Array),
+      expect.objectContaining({
+        windowsHide: true,
+      }),
+    );
+    expect(result.success).toBe(true);
+
+    fs.unlinkSync(mediaPath);
+  });
+
+  test("mediaInspectorAnalyze returns fileNotFound for a missing file", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_ANALYZE](
+      null,
+      { filePath: path.join(os.tmpdir(), `missing-${Date.now()}.mp4`) },
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: false,
+        code: "fileNotFound",
+      }),
+    );
   });
 
   test("delete-file uses shell.trashItem when available", async () => {
@@ -976,6 +1274,7 @@ describe("ipcHandlers tools quick actions", () => {
       }),
     );
   });
+
 });
 
 describe("ipcHandlers download pool", () => {

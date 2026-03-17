@@ -53,6 +53,10 @@ const {
   detectLegacyLocations,
   migrateLegacy,
 } = require("./toolsPaths");
+const {
+  getRuntimeFfprobePath,
+  prepareBinaryForExecution,
+} = require("./runtimeTools");
 console.log("ipcHandlers loaded");
 
 function parseWhatsNewVersion(markdown = "") {
@@ -110,6 +114,312 @@ function hasValidHttpHost(url) {
   } catch {
     return false;
   }
+}
+
+const MEDIA_INSPECTOR_WARNING_KEYS = Object.freeze({
+  NO_AUDIO: "tools.mediaInspector.warning.noAudio",
+  NO_VIDEO: "tools.mediaInspector.warning.noVideo",
+  UNKNOWN_CODEC: "tools.mediaInspector.warning.unknownCodec",
+  VARIABLE_FRAME_RATE: "tools.mediaInspector.warning.vfr",
+  HIGH_BITRATE: "tools.mediaInspector.warning.highBitrate",
+  SUBTITLES_PRESENT: "tools.mediaInspector.warning.subtitlesPresent",
+});
+
+const COMMON_VIDEO_CODECS = new Set([
+  "h264",
+  "hevc",
+  "h265",
+  "vp8",
+  "vp9",
+  "av1",
+  "mpeg4",
+  "mpeg2video",
+  "mjpeg",
+  "prores",
+  "theora",
+  "vc1",
+  "wmv3",
+  "dnxhd",
+  "dirac",
+]);
+
+const COMMON_AUDIO_CODECS = new Set([
+  "aac",
+  "mp3",
+  "opus",
+  "vorbis",
+  "flac",
+  "alac",
+  "pcm_s16le",
+  "pcm_s24le",
+  "pcm_s32le",
+  "ac3",
+  "eac3",
+  "dts",
+  "truehd",
+  "wavpack",
+  "speex",
+  "mp2",
+]);
+
+const MEDIA_INSPECTOR_HIGH_BITRATE_THRESHOLD = 50 * 1000 * 1000;
+
+function normalizeMediaInspectorText(value) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+function toFiniteNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function parseFraction(value) {
+  const text = String(value ?? "").trim();
+  if (!text || text === "0/0") return null;
+  const parts = text.split("/");
+  if (parts.length !== 2) return null;
+  const numerator = Number(parts[0]);
+  const denominator = Number(parts[1]);
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
+    return null;
+  }
+  return numerator / denominator;
+}
+
+function isHdrStream(stream = {}) {
+  const transfer = String(stream.color_transfer || "").toLowerCase();
+  const primaries = String(stream.color_primaries || "").toLowerCase();
+  const colorspace = String(stream.color_space || "").toLowerCase();
+  const sideData = Array.isArray(stream.side_data_list)
+    ? stream.side_data_list
+    : [];
+
+  return (
+    transfer.includes("2084") ||
+    transfer.includes("hlg") ||
+    transfer.includes("smpte") ||
+    primaries.includes("bt2020") ||
+    colorspace.includes("bt2020") ||
+    sideData.some((entry) => {
+      const label = String(
+        entry?.side_data_type || entry?.type || entry?.name || "",
+      ).toLowerCase();
+      return (
+        label.includes("mastering display") ||
+        label.includes("content light level") ||
+        label.includes("hdr")
+      );
+    })
+  );
+}
+
+function isVariableFrameRateStream(stream = {}) {
+  const avgRate = parseFraction(stream.avg_frame_rate);
+  const realRate = parseFraction(stream.r_frame_rate);
+  if (!avgRate || !realRate) return false;
+  const maxRate = Math.max(avgRate, realRate, 1);
+  return Math.abs(avgRate - realRate) / maxRate > 0.01;
+}
+
+function normalizeMediaInspectorStream(stream = {}) {
+  const codec = normalizeMediaInspectorText(stream.codec_name);
+  const bitrate = toFiniteNumber(stream.bit_rate);
+  const language = normalizeMediaInspectorText(stream.tags?.language);
+  const title = normalizeMediaInspectorText(stream.tags?.title);
+
+  return {
+    codec,
+    profile: normalizeMediaInspectorText(stream.profile),
+    pixelFormat: normalizeMediaInspectorText(stream.pix_fmt),
+    width: toFiniteNumber(stream.width),
+    height: toFiniteNumber(stream.height),
+    fps: parseFraction(stream.avg_frame_rate) || parseFraction(stream.r_frame_rate),
+    variableFrameRate: isVariableFrameRateStream(stream),
+    bitrate,
+    hdr: isHdrStream(stream),
+    colorSpace:
+      normalizeMediaInspectorText(stream.color_space) ||
+      normalizeMediaInspectorText(stream.color_primaries),
+    channels: toFiniteNumber(stream.channels),
+    channelLayout: normalizeMediaInspectorText(stream.channel_layout),
+    sampleRate: toFiniteNumber(stream.sample_rate),
+    language,
+    title,
+  };
+}
+
+function isCommonCodec(codec, streamType) {
+  const normalized = String(codec || "").toLowerCase();
+  if (!normalized || normalized === "unknown") return false;
+  if (streamType === "audio") return COMMON_AUDIO_CODECS.has(normalized);
+  if (streamType === "video") return COMMON_VIDEO_CODECS.has(normalized);
+  return true;
+}
+
+function buildMediaInspectorWarnings({ format, videoStreams, audioStreams, subtitleStreams }) {
+  const warnings = [];
+  const hasVideo = videoStreams.length > 0;
+  const hasAudio = audioStreams.length > 0;
+
+  if (!hasAudio) {
+    warnings.push({
+      code: "no-audio",
+      severity: "warning",
+      messageKey: MEDIA_INSPECTOR_WARNING_KEYS.NO_AUDIO,
+    });
+  }
+
+  if (!hasVideo) {
+    warnings.push({
+      code: "no-video",
+      severity: "warning",
+      messageKey: MEDIA_INSPECTOR_WARNING_KEYS.NO_VIDEO,
+    });
+  }
+
+  const hasUnknownCodec = [
+    ...videoStreams.map((stream) => ({ stream, type: "video" })),
+    ...audioStreams.map((stream) => ({ stream, type: "audio" })),
+  ].some(({ stream, type }) => !isCommonCodec(stream.codec, type));
+
+  if (hasUnknownCodec) {
+    warnings.push({
+      code: "unknown-codec",
+      severity: "warning",
+      messageKey: MEDIA_INSPECTOR_WARNING_KEYS.UNKNOWN_CODEC,
+    });
+  }
+
+  if (videoStreams.some((stream) => stream.variableFrameRate)) {
+    warnings.push({
+      code: "variable-frame-rate",
+      severity: "warning",
+      messageKey: MEDIA_INSPECTOR_WARNING_KEYS.VARIABLE_FRAME_RATE,
+    });
+  }
+
+  const formatBitrate = toFiniteNumber(format?.bitrate);
+  if (
+    formatBitrate &&
+    formatBitrate >= MEDIA_INSPECTOR_HIGH_BITRATE_THRESHOLD
+  ) {
+    warnings.push({
+      code: "high-bitrate",
+      severity: "warning",
+      messageKey: MEDIA_INSPECTOR_WARNING_KEYS.HIGH_BITRATE,
+    });
+  }
+
+  if (subtitleStreams.length > 0) {
+    warnings.push({
+      code: "subtitles-present",
+      severity: "info",
+      messageKey: MEDIA_INSPECTOR_WARNING_KEYS.SUBTITLES_PRESENT,
+    });
+  }
+
+  return warnings;
+}
+
+function buildMediaInspectorReport({ filePath, fileStat, probeData = {} }) {
+  const resolvedPath = path.resolve(filePath);
+  const format = probeData?.format || {};
+  const streams = Array.isArray(probeData?.streams) ? probeData.streams : [];
+  const videoStreams = streams
+    .filter((stream) => String(stream?.codec_type || "").toLowerCase() === "video")
+    .map(normalizeMediaInspectorStream);
+  const audioStreams = streams
+    .filter((stream) => String(stream?.codec_type || "").toLowerCase() === "audio")
+    .map(normalizeMediaInspectorStream);
+  const subtitleStreams = streams
+    .filter((stream) => String(stream?.codec_type || "").toLowerCase() === "subtitle")
+    .map(normalizeMediaInspectorStream);
+
+  const report = {
+    file: {
+      path: resolvedPath,
+      name: path.basename(resolvedPath),
+      extension: path.extname(resolvedPath).toLowerCase() || "",
+      sizeBytes: Number(fileStat?.size) || 0,
+    },
+    format: {
+      container: normalizeMediaInspectorText(format.format_name),
+      durationSec: toFiniteNumber(format.duration),
+      bitrate: toFiniteNumber(format.bit_rate),
+      probeScore: toFiniteNumber(format.probe_score),
+    },
+    summary: {
+      videoCount: videoStreams.length,
+      audioCount: audioStreams.length,
+      subtitleCount: subtitleStreams.length,
+      hasAudio: audioStreams.length > 0,
+      hasVideo: videoStreams.length > 0,
+    },
+    videoStreams,
+    audioStreams,
+    subtitleStreams,
+    warnings: [],
+    rawAvailable: true,
+  };
+
+  report.warnings = buildMediaInspectorWarnings({
+    format: report.format,
+    videoStreams,
+    audioStreams,
+    subtitleStreams,
+  });
+
+  return report;
+}
+
+function normalizeMediaInspectorFailure(error, fallbackCode = "analyzeFailed") {
+  const message = error?.message || String(error || "Unknown error");
+  const allowedCodes = new Set([
+    "invalidPayload",
+    "missingDependency",
+    "fileNotFound",
+    "accessDenied",
+    "analyzeFailed",
+  ]);
+  const codeValue = String(error?.code || "");
+  const code = allowedCodes.has(codeValue) ? codeValue : fallbackCode;
+  return {
+    success: false,
+    code,
+    error: message,
+  };
+}
+
+function classifyMediaInspectorFsCode(error) {
+  const code = String(error?.code || "");
+  if (code === "ENOENT") return "fileNotFound";
+  if (code === "EACCES" || code === "EPERM") return "accessDenied";
+  return null;
+}
+
+async function resolveMediaInspectorProbePath(store) {
+  let ffprobePath = getRuntimeFfprobePath(store);
+  await prepareBinaryForExecution(ffprobePath);
+  if (ffprobePath && fs.existsSync(ffprobePath)) {
+    return ffprobePath;
+  }
+
+  try {
+    log.info(
+      "[tools:mediaInspectorAnalyze] ffprobe missing, attempting ffmpeg install",
+    );
+    await installFfmpeg();
+  } catch (error) {
+    log.warn(
+      "[tools:mediaInspectorAnalyze] ffmpeg install failed:",
+      error?.message || error,
+    );
+  }
+
+  ffprobePath = getRuntimeFfprobePath(store);
+  await prepareBinaryForExecution(ffprobePath);
+  return ffprobePath;
 }
 
 function setupIpcHandlers(dependencies) {
@@ -548,6 +858,143 @@ function setupIpcHandlers(dependencies) {
       return { success: false, error: e.message };
     }
   });
+
+  ipcMain.handle(CHANNELS.TOOLS_MEDIA_INSPECTOR_PICK_FILE, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openFile"],
+      });
+      if (result.canceled || !result.filePaths?.length) {
+        return { success: false, canceled: true };
+      }
+      return { success: true, filePath: result.filePaths[0] };
+    } catch (error) {
+      log.error("tools:mediaInspectorPickFile error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(
+    CHANNELS.TOOLS_MEDIA_INSPECTOR_ANALYZE,
+    async (_evt, payload = {}) => {
+      let ffprobePath = "";
+      try {
+        const rawFilePath =
+          typeof payload?.filePath === "string" ? payload.filePath.trim() : "";
+        if (!rawFilePath) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "File path is required",
+          };
+        }
+        if (!path.isAbsolute(rawFilePath)) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "File path must be absolute",
+          };
+        }
+
+        const resolvedFilePath = path.resolve(rawFilePath);
+        const fileStat = await fsPromises.stat(resolvedFilePath);
+        if (!fileStat.isFile()) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Selected path is not a file",
+          };
+        }
+
+        await fsPromises.access(resolvedFilePath, fs.constants.R_OK);
+
+        ffprobePath = await resolveMediaInspectorProbePath(store);
+        if (!ffprobePath || !fs.existsSync(ffprobePath)) {
+          return {
+            success: false,
+            code: "missingDependency",
+            error: "ffprobe is not available",
+          };
+        }
+
+        const { stdout } = await execFileAsync(
+          ffprobePath,
+          [
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_format",
+            "-show_streams",
+            resolvedFilePath,
+          ],
+          {
+            windowsHide: true,
+            maxBuffer: 10 * 1024 * 1024,
+            timeout: 15000,
+          },
+        );
+
+        const rawOutput = String(stdout || "").trim();
+        if (!rawOutput) {
+          return {
+            success: false,
+            code: "analyzeFailed",
+            error: "ffprobe returned no output",
+          };
+        }
+
+        let probeData;
+        try {
+          probeData = JSON.parse(rawOutput);
+        } catch {
+          return {
+            success: false,
+            code: "analyzeFailed",
+            error: "Failed to parse ffprobe output",
+          };
+        }
+
+        const report = buildMediaInspectorReport({
+          filePath: resolvedFilePath,
+          fileStat,
+          probeData,
+        });
+        return { success: true, report };
+      } catch (error) {
+        if (String(error?.code || "") === "ENOENT") {
+          const fsCode = classifyMediaInspectorFsCode(error);
+          if (fsCode) {
+            return {
+              success: false,
+              code: fsCode,
+              error: error.message || String(error),
+            };
+          }
+          if (
+            ffprobePath &&
+            String(error?.path || "") === String(ffprobePath || "")
+          ) {
+            return {
+              success: false,
+              code: "missingDependency",
+              error: "ffprobe is not available",
+            };
+          }
+        }
+        const fsCode = classifyMediaInspectorFsCode(error);
+        if (fsCode) {
+          return {
+            success: false,
+            code: fsCode,
+            error: error.message || String(error),
+          };
+        }
+        log.error("tools:mediaInspectorAnalyze error:", error);
+        return normalizeMediaInspectorFailure(error, "analyzeFailed");
+      }
+    },
+  );
 
   ipcMain.handle(CHANNELS.TOOLS_HASH_PICK_FILE, async () => {
     try {

@@ -6,6 +6,7 @@ import { initTooltips } from "../tooltipInitializer.js";
 import { applyI18n, getLanguage, t } from "../i18n.js";
 import { consumeRequestedToolsView } from "../toolsNavigation.js";
 import renderBackup from "./backupView.js";
+import { initMediaInspectorSection } from "./tools/mediaInspectorSection.js";
 import { initFileSorterSection } from "./tools/fileSorterSection.js";
 import { createCleanupRegistry } from "./tools/cleanupRegistry.js";
 import { TOOLS_STORAGE_KEYS } from "./tools/storage.js";
@@ -489,6 +490,13 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.hash")}
               </small>
             </button>
+            <button id="tools-open-media-inspector" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-film"></i>
+              <span data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaInspector">
+                ${t("tools.launcher.desc.mediaInspector")}
+              </small>
+            </button>
             <button id="tools-open-power" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-power-off"></i>
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
@@ -947,6 +955,8 @@ export default function renderToolsView() {
             </div>
           </article>
         </section>
+
+        <section class="tools-view hidden" data-tool-view="media-inspector" aria-label="${t("tools.nav.current.mediaInspector")}"></section>
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="${t("tools.nav.current.power")}">
           <article id="tools-restart-card" class="tools-card tools-detail-card">
@@ -1407,8 +1417,16 @@ export default function renderToolsView() {
   const updateLauncherToolsCount = () => {
     const countEl = getEl("tools-launcher-tools-count", view);
     if (!countEl) return;
-    const availableCount = ["wg", "hash", "power", "backup", "sorter"].filter(
-      (toolView) => isToolAvailable(toolView),
+    const availableToolViews = [
+      "wg",
+      "hash",
+      "media-inspector",
+      "power",
+      "backup",
+      "sorter",
+    ];
+    const availableCount = availableToolViews.filter((toolView) =>
+      isToolAvailable(toolView),
     ).length;
     const label = t("tools.launcher.totalLabel");
     countEl.textContent = `${label}: ${availableCount}`;
@@ -1460,6 +1478,8 @@ export default function renderToolsView() {
         ? "tools.nav.current.wg"
         : targetView === "hash"
           ? "tools.nav.current.hash"
+          : targetView === "media-inspector"
+            ? "tools.nav.current.mediaInspector"
           : targetView === "power"
             ? "tools.nav.current.power"
             : targetView === "backup"
@@ -1673,6 +1693,7 @@ export default function renderToolsView() {
     );
     const openWgBtn = getEl("tools-open-wg", view);
     const openHashBtn = getEl("tools-open-hash", view);
+    const openMediaInspectorBtn = getEl("tools-open-media-inspector", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
     const openSorterBtn = getEl("tools-open-sorter", view);
@@ -1739,6 +1760,9 @@ export default function renderToolsView() {
 
     openWgBtn?.addEventListener("click", () => setToolView("wg"));
     openHashBtn?.addEventListener("click", () => setToolView("hash"));
+    openMediaInspectorBtn?.addEventListener("click", () =>
+      setToolView("media-inspector"),
+    );
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
     openBackupBtn?.addEventListener("click", () => {
       ensureBackupToolView();
@@ -2931,6 +2955,12 @@ export default function renderToolsView() {
     updateSorterHowtoUi();
 
     initFileSorterSection({
+      view,
+      getEl,
+      t,
+      registerCleanup: cleanup.addCleanup,
+    });
+    initMediaInspectorSection({
       view,
       getEl,
       t,

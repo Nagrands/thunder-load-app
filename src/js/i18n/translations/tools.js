@@ -168,11 +168,14 @@ export const toolsTranslations = {
     "tools.launcher.open.hash": "Проверка хеша",
     "tools.launcher.open.power": "Быстрые ярлыки",
     "tools.launcher.open.backup": "Backup",
+    "tools.launcher.open.mediaInspector": "Media Inspector",
     "tools.launcher.open.sorter": "File Sorter",
     "tools.launcher.desc.wg": "Быстрое восстановление WireGuard.",
     "tools.launcher.desc.hash": "Сравнение контрольных сумм файлов.",
     "tools.launcher.desc.power": "Системные ярлыки и быстрые действия для Windows.",
     "tools.launcher.desc.backup": "Профили резервного копирования и журнал операций.",
+    "tools.launcher.desc.mediaInspector":
+      "Проверка контейнера, дорожек и техпараметров локального медиафайла.",
     "tools.launcher.desc.sorter": "Сортировка файлов по категориям расширений.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",
@@ -188,9 +191,112 @@ export const toolsTranslations = {
     "tools.nav.back": "Назад к инструментам",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Проверка хеша",
+    "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.power": "Быстрые ярлыки",
     "tools.nav.current.backup": "Backup",
     "tools.nav.current.sorter": "File Sorter",
+    "tools.mediaInspector.title": "Media Inspector",
+    "tools.mediaInspector.subtitle":
+      "Анализирует локальный медиафайл через ffprobe и показывает практические предупреждения.",
+    "tools.mediaInspector.pickFile": "Выбрать файл",
+    "tools.mediaInspector.analyze": "Анализировать",
+    "tools.mediaInspector.reAnalyze": "Повторить анализ",
+    "tools.mediaInspector.analyzing": "Анализируем...",
+    "tools.mediaInspector.copyReport": "Копировать отчет",
+    "tools.mediaInspector.openFolder": "Открыть папку",
+    "tools.mediaInspector.selectedFileLabel": "Выбранный файл",
+    "tools.mediaInspector.selectedFile": "Выбран: {fileName}",
+    "tools.mediaInspector.noFile": "Файл не выбран",
+    "tools.mediaInspector.pathPanel.aria": "Выбранный файл и действия",
+    "tools.mediaInspector.empty.title": "Файл не выбран",
+    "tools.mediaInspector.empty.body":
+      "Выберите локальный медиафайл, чтобы получить отчет по контейнеру, дорожкам и предупреждениям.",
+    "tools.mediaInspector.loading.title": "Анализируем медиафайл",
+    "tools.mediaInspector.loading.body":
+      "ffprobe читает файл и формирует отчет.",
+    "tools.mediaInspector.loading.meta":
+      "Проверяем контейнер, дорожки и технические атрибуты",
+    "tools.mediaInspector.error.title": "Не удалось выполнить анализ",
+    "tools.mediaInspector.error.bridgeMissing":
+      "Media Inspector недоступен в этой сборке.",
+    "tools.mediaInspector.error.missingDependency":
+      "ffprobe недоступен.",
+    "tools.mediaInspector.error.fileNotFound":
+      "Выбранный файл не найден.",
+    "tools.mediaInspector.error.accessDenied":
+      "Нет доступа к выбранному файлу.",
+    "tools.mediaInspector.error.invalidPayload":
+      "Выберите корректный локальный файл.",
+    "tools.mediaInspector.error.analyzeFailed":
+      "Не удалось проанализировать медиафайл.",
+    "tools.mediaInspector.report.title": "Отчет об инспекции",
+    "tools.mediaInspector.report.subtitle":
+      "Сводка, дорожки и практические предупреждения.",
+    "tools.mediaInspector.report.copyHeading": "Отчет Media Inspector",
+    "tools.mediaInspector.report.fileName": "Имя файла",
+    "tools.mediaInspector.report.filePath": "Путь к файлу",
+    "tools.mediaInspector.report.fileExtension": "Расширение",
+    "tools.mediaInspector.summary.container": "Контейнер",
+    "tools.mediaInspector.summary.duration": "Длительность",
+    "tools.mediaInspector.summary.size": "Размер файла",
+    "tools.mediaInspector.summary.bitrate": "Общий bitrate",
+    "tools.mediaInspector.summary.score": "Оценка ffprobe",
+    "tools.mediaInspector.streams.video": "Видео дорожки",
+    "tools.mediaInspector.streams.audio": "Аудио дорожки",
+    "tools.mediaInspector.streams.subtitle": "Субтитры",
+    "tools.mediaInspector.streams.empty.video": "Видео дорожки не найдены.",
+    "tools.mediaInspector.streams.empty.audio": "Аудио дорожки не найдены.",
+    "tools.mediaInspector.streams.empty.subtitle":
+      "Субтитры не найдены.",
+    "tools.mediaInspector.streamLabels.video": "Видео",
+    "tools.mediaInspector.streamLabels.audio": "Аудио",
+    "tools.mediaInspector.streamLabels.subtitle": "Субтитры",
+    "tools.mediaInspector.fields.codec": "Кодек",
+    "tools.mediaInspector.fields.profile": "Профиль",
+    "tools.mediaInspector.fields.resolution": "Разрешение",
+    "tools.mediaInspector.fields.fps": "FPS",
+    "tools.mediaInspector.fields.bitrate": "Bitrate",
+    "tools.mediaInspector.fields.hdr": "HDR",
+    "tools.mediaInspector.fields.colorSpace": "Цветовое пространство",
+    "tools.mediaInspector.value.yes": "Да",
+    "tools.mediaInspector.value.no": "Нет",
+    "tools.mediaInspector.fields.channels": "Каналы",
+    "tools.mediaInspector.fields.channelLayout": "Схема каналов",
+    "tools.mediaInspector.fields.sampleRate": "Sample rate",
+    "tools.mediaInspector.fields.language": "Язык",
+    "tools.mediaInspector.fields.title": "Название",
+    "tools.mediaInspector.warnings.title": "Предупреждения",
+    "tools.mediaInspector.warnings.none":
+      "Практических предупреждений нет.",
+    "tools.mediaInspector.warnings.unknown": "Предупреждение",
+    "tools.mediaInspector.warning.item": "Предупреждение",
+    "tools.mediaInspector.warning.noAudio":
+      "Аудиодорожки не найдены.",
+    "tools.mediaInspector.warning.noVideo":
+      "Видеодорожки не найдены.",
+    "tools.mediaInspector.warning.unknownCodec":
+      "В файле используется необычный или неподдерживаемый кодек.",
+    "tools.mediaInspector.warning.vfr":
+      "Обнаружена переменная частота кадров.",
+    "tools.mediaInspector.warning.highBitrate":
+      "Bitrate выглядит необычно высоким.",
+    "tools.mediaInspector.warning.subtitlesPresent":
+      "В файле есть дорожки субтитров.",
+    "tools.mediaInspector.copyDone": "Отчет скопирован",
+    "tools.mediaInspector.copyFailed": "Не удалось скопировать отчет.",
+    "tools.mediaInspector.openFolderDone": "Папка открыта",
+    "tools.mediaInspector.openFolderFailed":
+      "Не удалось открыть папку с файлом.",
+    "tools.mediaInspector.status.idle":
+      "Выберите файл для инспекции.",
+    "tools.mediaInspector.status.fileSelected":
+      "Файл выбран.",
+    "tools.mediaInspector.status.loading":
+      "Читаем метаданные медиафайла...",
+    "tools.mediaInspector.status.ready":
+      "Анализ завершен.",
+    "tools.mediaInspector.status.error":
+      "Анализ завершился с ошибкой.",
     "tools.sorter.title": "File Sorter",
     "tools.sorter.subtitle":
       "Сортирует файлы в выбранной папке по категориям расширений.",
@@ -774,12 +880,15 @@ export const toolsTranslations = {
     "tools.launcher.open.hash": "Hash Check",
     "tools.launcher.open.power": "Shortcuts",
     "tools.launcher.open.backup": "Backup",
+    "tools.launcher.open.mediaInspector": "Media Inspector",
     "tools.launcher.open.sorter": "File Sorter",
     "tools.launcher.desc.wg": "Quick WireGuard recovery actions.",
     "tools.launcher.desc.hash": "Compare file checksums.",
     "tools.launcher.desc.power":
       "Windows system shortcuts and quick access actions.",
     "tools.launcher.desc.backup": "Backup profiles and operations log.",
+    "tools.launcher.desc.mediaInspector":
+      "Inspect the container, tracks, and technical metadata of a local media file.",
     "tools.launcher.desc.sorter": "Sort files by extension categories.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",
@@ -794,9 +903,103 @@ export const toolsTranslations = {
     "tools.nav.back": "Back to tools",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Hash Check",
+    "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.power": "Power Shortcuts",
     "tools.nav.current.backup": "Backup",
     "tools.nav.current.sorter": "File Sorter",
+    "tools.mediaInspector.title": "Media Inspector",
+    "tools.mediaInspector.subtitle":
+      "Inspect a local media file with ffprobe and review practical warnings.",
+    "tools.mediaInspector.pickFile": "Choose file",
+    "tools.mediaInspector.analyze": "Analyze",
+    "tools.mediaInspector.reAnalyze": "Re-analyze",
+    "tools.mediaInspector.analyzing": "Analyzing...",
+    "tools.mediaInspector.copyReport": "Copy report",
+    "tools.mediaInspector.openFolder": "Open folder",
+    "tools.mediaInspector.selectedFileLabel": "Selected file",
+    "tools.mediaInspector.selectedFile": "Selected: {fileName}",
+    "tools.mediaInspector.noFile": "No file selected",
+    "tools.mediaInspector.pathPanel.aria": "Selected file and actions",
+    "tools.mediaInspector.empty.title": "No file selected",
+    "tools.mediaInspector.empty.body":
+      "Choose a local media file to get a report about its container, tracks, and warnings.",
+    "tools.mediaInspector.loading.title": "Analyzing media file",
+    "tools.mediaInspector.loading.body":
+      "ffprobe is reading the file and building the report.",
+    "tools.mediaInspector.loading.meta":
+      "Checking the container, streams, and technical attributes",
+    "tools.mediaInspector.error.title": "Unable to inspect file",
+    "tools.mediaInspector.error.bridgeMissing":
+      "Media Inspector is not available in this build.",
+    "tools.mediaInspector.error.missingDependency":
+      "ffprobe is not available.",
+    "tools.mediaInspector.error.fileNotFound":
+      "The selected file was not found.",
+    "tools.mediaInspector.error.accessDenied":
+      "The selected file cannot be read.",
+    "tools.mediaInspector.error.invalidPayload":
+      "Choose a valid local file.",
+    "tools.mediaInspector.error.analyzeFailed":
+      "Media inspection failed.",
+    "tools.mediaInspector.report.title": "Inspection report",
+    "tools.mediaInspector.report.subtitle":
+      "Summary, stream details, and practical warnings.",
+    "tools.mediaInspector.report.copyHeading": "Media Inspector report",
+    "tools.mediaInspector.report.fileName": "File name",
+    "tools.mediaInspector.report.filePath": "File path",
+    "tools.mediaInspector.report.fileExtension": "Extension",
+    "tools.mediaInspector.summary.container": "Container",
+    "tools.mediaInspector.summary.duration": "Duration",
+    "tools.mediaInspector.summary.size": "File size",
+    "tools.mediaInspector.summary.bitrate": "Overall bitrate",
+    "tools.mediaInspector.summary.score": "Probe score",
+    "tools.mediaInspector.streams.video": "Video streams",
+    "tools.mediaInspector.streams.audio": "Audio streams",
+    "tools.mediaInspector.streams.subtitle": "Subtitle streams",
+    "tools.mediaInspector.streams.empty.video": "No video streams found.",
+    "tools.mediaInspector.streams.empty.audio": "No audio streams found.",
+    "tools.mediaInspector.streams.empty.subtitle":
+      "No subtitle streams found.",
+    "tools.mediaInspector.streamLabels.video": "Video",
+    "tools.mediaInspector.streamLabels.audio": "Audio",
+    "tools.mediaInspector.streamLabels.subtitle": "Subtitle",
+    "tools.mediaInspector.fields.codec": "Codec",
+    "tools.mediaInspector.fields.profile": "Profile",
+    "tools.mediaInspector.fields.resolution": "Resolution",
+    "tools.mediaInspector.fields.fps": "Frame rate",
+    "tools.mediaInspector.fields.bitrate": "Bitrate",
+    "tools.mediaInspector.fields.hdr": "HDR",
+    "tools.mediaInspector.fields.colorSpace": "Color space",
+    "tools.mediaInspector.value.yes": "Yes",
+    "tools.mediaInspector.value.no": "No",
+    "tools.mediaInspector.fields.channels": "Channels",
+    "tools.mediaInspector.fields.channelLayout": "Channel layout",
+    "tools.mediaInspector.fields.sampleRate": "Sample rate",
+    "tools.mediaInspector.fields.language": "Language",
+    "tools.mediaInspector.fields.title": "Title",
+    "tools.mediaInspector.warnings.title": "Warnings",
+    "tools.mediaInspector.warnings.none": "No practical warnings.",
+    "tools.mediaInspector.warnings.unknown": "Warning",
+    "tools.mediaInspector.warning.item": "Warning",
+    "tools.mediaInspector.warning.noAudio": "No audio streams were found.",
+    "tools.mediaInspector.warning.noVideo": "No video streams were found.",
+    "tools.mediaInspector.warning.unknownCodec":
+      "The file contains an uncommon or unsupported codec.",
+    "tools.mediaInspector.warning.vfr":
+      "Variable frame rate was detected.",
+    "tools.mediaInspector.warning.highBitrate":
+      "The bitrate looks unusually high.",
+    "tools.mediaInspector.warning.subtitlesPresent":
+      "Subtitle tracks are present.",
+    "tools.mediaInspector.copyDone": "Report copied",
+    "tools.mediaInspector.copyFailed": "Could not copy the report.",
+    "tools.mediaInspector.openFolderDone": "Opened in folder",
+    "tools.mediaInspector.openFolderFailed": "Could not open the folder.",
+    "tools.mediaInspector.status.idle": "Choose a file to inspect.",
+    "tools.mediaInspector.status.fileSelected": "File selected.",
+    "tools.mediaInspector.status.loading": "Reading media metadata...",
+    "tools.mediaInspector.status.ready": "Inspection complete.",
+    "tools.mediaInspector.status.error": "Inspection failed.",
     "tools.sorter.title": "File Sorter",
     "tools.sorter.subtitle":
       "Sort files in a selected folder into extension-based categories.",
