@@ -17,7 +17,9 @@ export async function ensureToolsInfo(force = false) {
   if (toolsInfoRendered && !shouldRefresh) return null;
 
   toolsRenderPromise = (
-    toolsInfoRendered ? refreshToolsInfoState({ force: true }) : renderToolsInfo()
+    toolsInfoRendered
+      ? refreshToolsInfoState({ force: true })
+      : renderToolsInfo()
   )
     .then(() => {
       toolsInfoRendered = true;

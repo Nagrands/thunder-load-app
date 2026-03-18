@@ -19,8 +19,7 @@ export const MODULE_BADGE_MAP = {
 
 const MODULE_BADGES_I18N_BOUND_KEY =
   "__thunder_settings_module_badges_i18n_bound__";
-const MODULE_BADGES_STATE_KEY =
-  "__thunder_settings_module_badges_state__";
+const MODULE_BADGES_STATE_KEY = "__thunder_settings_module_badges_state__";
 
 function readBoolFlag(key, defaultValue) {
   try {

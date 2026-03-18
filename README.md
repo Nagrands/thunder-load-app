@@ -39,11 +39,11 @@
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/app_main.png" alt="Download Tab" width="45%" />
-  <img src="assets/screenshots/app_settings.png" alt="Settings" width="45%" />
+  <img src="assets/screenshots/thunder-downloader.png" alt="Download Tab" width="45%" />
+  <img src="assets/screenshots/thunder-history.png" alt="Settings" width="45%" />
 </p>
 <p align="center">
-  <img src="assets/screenshots/app_history.png" alt="Download History" width="45%" />
+  <img src="assets/screenshots/thunder-tools.png" alt="Download History" width="45%" />
 </p>
 
 ---

@@ -5,7 +5,7 @@ export const toolsTranslations = {
     "wg.autoShutdown.toast.cancel": "Отменить закрытие",
     "wg.autoShutdown.toast.cancelled": "Авто‑закрытие отменено",
     "wg.autoShutdown.toast.cancelError": "Не удалось отменить авто‑закрытие",
-    "wg.title": "Tools",
+    "wg.title": "Инструменты",
     "wg.subtitle": "Быстрые действия для задач с файлами и сетью.",
     "quickActions.title": "Quick Actions",
     "quickActions.soon": "Скоро",
@@ -158,7 +158,7 @@ export const toolsTranslations = {
     "tools.launcher.title": "Инструменты",
     "tools.launcher.subtitle": "Выберите инструмент",
     "tools.launcher.breadcrumbs.aria": "Навигационная цепочка",
-    "tools.launcher.breadcrumbs.home": "Thunder App",
+    "tools.launcher.breadcrumbs.home": "Thunder",
     "tools.launcher.breadcrumbs.tools": "Инструменты",
     "tools.launcher.availableTitle": "Доступные инструменты",
     "tools.launcher.totalLabel": "Всего",
@@ -172,8 +172,10 @@ export const toolsTranslations = {
     "tools.launcher.open.sorter": "File Sorter",
     "tools.launcher.desc.wg": "Быстрое восстановление WireGuard.",
     "tools.launcher.desc.hash": "Сравнение контрольных сумм файлов.",
-    "tools.launcher.desc.power": "Системные ярлыки и быстрые действия для Windows.",
-    "tools.launcher.desc.backup": "Профили резервного копирования и журнал операций.",
+    "tools.launcher.desc.power":
+      "Системные ярлыки и быстрые действия для Windows.",
+    "tools.launcher.desc.backup":
+      "Профили резервного копирования и журнал операций.",
     "tools.launcher.desc.mediaInspector":
       "Проверка контейнера, дорожек и техпараметров локального медиафайла.",
     "tools.launcher.desc.sorter": "Сортировка файлов по категориям расширений.",
@@ -219,10 +221,8 @@ export const toolsTranslations = {
     "tools.mediaInspector.error.title": "Не удалось выполнить анализ",
     "tools.mediaInspector.error.bridgeMissing":
       "Media Inspector недоступен в этой сборке.",
-    "tools.mediaInspector.error.missingDependency":
-      "ffprobe недоступен.",
-    "tools.mediaInspector.error.fileNotFound":
-      "Выбранный файл не найден.",
+    "tools.mediaInspector.error.missingDependency": "ffprobe недоступен.",
+    "tools.mediaInspector.error.fileNotFound": "Выбранный файл не найден.",
     "tools.mediaInspector.error.accessDenied":
       "Нет доступа к выбранному файлу.",
     "tools.mediaInspector.error.invalidPayload":
@@ -246,8 +246,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.streams.subtitle": "Субтитры",
     "tools.mediaInspector.streams.empty.video": "Видео дорожки не найдены.",
     "tools.mediaInspector.streams.empty.audio": "Аудио дорожки не найдены.",
-    "tools.mediaInspector.streams.empty.subtitle":
-      "Субтитры не найдены.",
+    "tools.mediaInspector.streams.empty.subtitle": "Субтитры не найдены.",
     "tools.mediaInspector.streamLabels.video": "Видео",
     "tools.mediaInspector.streamLabels.audio": "Аудио",
     "tools.mediaInspector.streamLabels.subtitle": "Субтитры",
@@ -266,18 +265,14 @@ export const toolsTranslations = {
     "tools.mediaInspector.fields.language": "Язык",
     "tools.mediaInspector.fields.title": "Название",
     "tools.mediaInspector.warnings.title": "Предупреждения",
-    "tools.mediaInspector.warnings.none":
-      "Практических предупреждений нет.",
+    "tools.mediaInspector.warnings.none": "Практических предупреждений нет.",
     "tools.mediaInspector.warnings.unknown": "Предупреждение",
     "tools.mediaInspector.warning.item": "Предупреждение",
-    "tools.mediaInspector.warning.noAudio":
-      "Аудиодорожки не найдены.",
-    "tools.mediaInspector.warning.noVideo":
-      "Видеодорожки не найдены.",
+    "tools.mediaInspector.warning.noAudio": "Аудиодорожки не найдены.",
+    "tools.mediaInspector.warning.noVideo": "Видеодорожки не найдены.",
     "tools.mediaInspector.warning.unknownCodec":
       "В файле используется необычный или неподдерживаемый кодек.",
-    "tools.mediaInspector.warning.vfr":
-      "Обнаружена переменная частота кадров.",
+    "tools.mediaInspector.warning.vfr": "Обнаружена переменная частота кадров.",
     "tools.mediaInspector.warning.highBitrate":
       "Bitrate выглядит необычно высоким.",
     "tools.mediaInspector.warning.subtitlesPresent":
@@ -287,16 +282,11 @@ export const toolsTranslations = {
     "tools.mediaInspector.openFolderDone": "Папка открыта",
     "tools.mediaInspector.openFolderFailed":
       "Не удалось открыть папку с файлом.",
-    "tools.mediaInspector.status.idle":
-      "Выберите файл для инспекции.",
-    "tools.mediaInspector.status.fileSelected":
-      "Файл выбран.",
-    "tools.mediaInspector.status.loading":
-      "Читаем метаданные медиафайла...",
-    "tools.mediaInspector.status.ready":
-      "Анализ завершен.",
-    "tools.mediaInspector.status.error":
-      "Анализ завершился с ошибкой.",
+    "tools.mediaInspector.status.idle": "Выберите файл для инспекции.",
+    "tools.mediaInspector.status.fileSelected": "Файл выбран.",
+    "tools.mediaInspector.status.loading": "Читаем метаданные медиафайла...",
+    "tools.mediaInspector.status.ready": "Анализ завершен.",
+    "tools.mediaInspector.status.error": "Анализ завершился с ошибкой.",
     "tools.sorter.title": "File Sorter",
     "tools.sorter.subtitle":
       "Сортирует файлы в выбранной папке по категориям расширений.",
@@ -870,7 +860,7 @@ export const toolsTranslations = {
     "tools.launcher.title": "Tools",
     "tools.launcher.subtitle": "Select a tool",
     "tools.launcher.breadcrumbs.aria": "Breadcrumb navigation",
-    "tools.launcher.breadcrumbs.home": "Thunder App",
+    "tools.launcher.breadcrumbs.home": "Thunder",
     "tools.launcher.breadcrumbs.tools": "Tools",
     "tools.launcher.availableTitle": "Available tools",
     "tools.launcher.totalLabel": "Total",
@@ -931,16 +921,13 @@ export const toolsTranslations = {
     "tools.mediaInspector.error.title": "Unable to inspect file",
     "tools.mediaInspector.error.bridgeMissing":
       "Media Inspector is not available in this build.",
-    "tools.mediaInspector.error.missingDependency":
-      "ffprobe is not available.",
+    "tools.mediaInspector.error.missingDependency": "ffprobe is not available.",
     "tools.mediaInspector.error.fileNotFound":
       "The selected file was not found.",
     "tools.mediaInspector.error.accessDenied":
       "The selected file cannot be read.",
-    "tools.mediaInspector.error.invalidPayload":
-      "Choose a valid local file.",
-    "tools.mediaInspector.error.analyzeFailed":
-      "Media inspection failed.",
+    "tools.mediaInspector.error.invalidPayload": "Choose a valid local file.",
+    "tools.mediaInspector.error.analyzeFailed": "Media inspection failed.",
     "tools.mediaInspector.report.title": "Inspection report",
     "tools.mediaInspector.report.subtitle":
       "Summary, stream details, and practical warnings.",
@@ -958,8 +945,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.streams.subtitle": "Subtitle streams",
     "tools.mediaInspector.streams.empty.video": "No video streams found.",
     "tools.mediaInspector.streams.empty.audio": "No audio streams found.",
-    "tools.mediaInspector.streams.empty.subtitle":
-      "No subtitle streams found.",
+    "tools.mediaInspector.streams.empty.subtitle": "No subtitle streams found.",
     "tools.mediaInspector.streamLabels.video": "Video",
     "tools.mediaInspector.streamLabels.audio": "Audio",
     "tools.mediaInspector.streamLabels.subtitle": "Subtitle",
@@ -985,8 +971,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.warning.noVideo": "No video streams were found.",
     "tools.mediaInspector.warning.unknownCodec":
       "The file contains an uncommon or unsupported codec.",
-    "tools.mediaInspector.warning.vfr":
-      "Variable frame rate was detected.",
+    "tools.mediaInspector.warning.vfr": "Variable frame rate was detected.",
     "tools.mediaInspector.warning.highBitrate":
       "The bitrate looks unusually high.",
     "tools.mediaInspector.warning.subtitlesPresent":

@@ -1108,7 +1108,12 @@ async function installFfmpeg(token = null) {
       await ensureToolsDir(dir);
       const isArm64 = process.arch === "arm64";
 
-      async function extractSingleBinary(zipPath, targetPath, binaryName, tmpDir) {
+      async function extractSingleBinary(
+        zipPath,
+        targetPath,
+        binaryName,
+        tmpDir,
+      ) {
         const extractTo = path.join(tmpDir, binaryName);
         await fs.promises.mkdir(extractTo, { recursive: true });
         await new Promise((resolve, reject) => {
@@ -1144,7 +1149,12 @@ async function installFfmpeg(token = null) {
               ...TOOL_DOWNLOAD_OPTIONS,
               token,
             });
-            await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg", tmpDir);
+            await extractSingleBinary(
+              ffmpegZipPath,
+              ffmpegPath,
+              "ffmpeg",
+              tmpDir,
+            );
             log.info(`[ffmpeg] ffmpeg installed from ${sourceLabel}`);
           }
 
@@ -1154,7 +1164,12 @@ async function installFfmpeg(token = null) {
               ...TOOL_DOWNLOAD_OPTIONS,
               token,
             });
-            await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe", tmpDir);
+            await extractSingleBinary(
+              ffprobeZipPath,
+              ffprobePath,
+              "ffprobe",
+              tmpDir,
+            );
             log.info(`[ffmpeg] ffprobe installed from ${sourceLabel}`);
           }
         } finally {
@@ -1209,7 +1224,12 @@ async function installFfmpeg(token = null) {
               ...TOOL_DOWNLOAD_OPTIONS,
               token,
             });
-            await extractSingleBinary(ffmpegZipPath, ffmpegPath, "ffmpeg", tmpDir);
+            await extractSingleBinary(
+              ffmpegZipPath,
+              ffmpegPath,
+              "ffmpeg",
+              tmpDir,
+            );
             log.info("[ffmpeg] ffmpeg installed from evermeet.cx");
           }
         } catch (err) {
@@ -1222,7 +1242,12 @@ async function installFfmpeg(token = null) {
               ...TOOL_DOWNLOAD_OPTIONS,
               token,
             });
-            await extractSingleBinary(ffprobeZipPath, ffprobePath, "ffprobe", tmpDir);
+            await extractSingleBinary(
+              ffprobeZipPath,
+              ffprobePath,
+              "ffprobe",
+              tmpDir,
+            );
             log.info("[ffmpeg] ffprobe installed from evermeet.cx");
           }
         } catch (err) {
@@ -1260,7 +1285,9 @@ async function installFfmpeg(token = null) {
             "ffmpeg binary downloaded and chmod applied (macOS fallback).",
           );
         } catch (_err) {
-          log.warn("Failed to download ffmpeg. Trying fallback from Homebrew...");
+          log.warn(
+            "Failed to download ffmpeg. Trying fallback from Homebrew...",
+          );
           const brewPath = "/opt/homebrew/bin/ffmpeg";
           if (fs.existsSync(brewPath)) {
             fs.copyFileSync(brewPath, ffmpegPath);

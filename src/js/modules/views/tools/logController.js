@@ -172,7 +172,10 @@ function createLogController({ view, getEl, t }) {
     const nextTime = time instanceof Date ? time : new Date(time);
     const pad = (n) => String(n).padStart(2, "0");
     el.textContent = `${pad(nextTime.getHours())}:${pad(nextTime.getMinutes())}:${pad(nextTime.getSeconds())}`;
-    writeStorageValue(TOOLS_STORAGE_KEYS.WG_LAST_SEND_TIME, nextTime.toISOString());
+    writeStorageValue(
+      TOOLS_STORAGE_KEYS.WG_LAST_SEND_TIME,
+      nextTime.toISOString(),
+    );
   };
 
   const getLogText = () => getEl("wg-log", view)?.textContent || "";

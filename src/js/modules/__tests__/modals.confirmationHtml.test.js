@@ -93,4 +93,3 @@ describe("showConfirmationDialog (allowHtml)", () => {
     await expect(resultPromise).resolves.toBe(false);
   });
 });
-

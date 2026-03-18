@@ -272,7 +272,8 @@ function formatBytes(value) {
 function formatBitrate(value) {
   const bitrate = Number(value);
   if (!Number.isFinite(bitrate) || bitrate <= 0) return "-";
-  if (bitrate >= 1000 * 1000) return `${(bitrate / (1000 * 1000)).toFixed(1)} Mbps`;
+  if (bitrate >= 1000 * 1000)
+    return `${(bitrate / (1000 * 1000)).toFixed(1)} Mbps`;
   if (bitrate >= 1000) return `${Math.round(bitrate / 1000)} kbps`;
   return `${bitrate} bps`;
 }
@@ -341,7 +342,9 @@ function buildReportText(t, report) {
     (stream) =>
       [
         stream.codec || "-",
-        stream.width && stream.height ? `${stream.width}x${stream.height}` : "-",
+        stream.width && stream.height
+          ? `${stream.width}x${stream.height}`
+          : "-",
         `${formatFps(stream.fps)} fps`,
         formatBitrate(stream.bitrate),
         stream.hdr ? "HDR" : "SDR",
@@ -372,7 +375,9 @@ function buildReportText(t, report) {
         .join(" • ") || "-",
   );
 
-  lines.push(`${t("tools.mediaInspector.warnings.title")}: ${(report.warnings || []).length}`);
+  lines.push(
+    `${t("tools.mediaInspector.warnings.title")}: ${(report.warnings || []).length}`,
+  );
   (report.warnings || []).forEach((warning) => {
     lines.push(`- ${t(warning.messageKey)}`);
   });
@@ -446,7 +451,12 @@ export function initMediaInspectorPanel({
     statusEl.textContent = t(messageKey);
   };
 
-  const showState = (mode, titleKey, bodyKeyOrText, { isText = false } = {}) => {
+  const showState = (
+    mode,
+    titleKey,
+    bodyKeyOrText,
+    { isText = false } = {},
+  ) => {
     if (
       !stateEl ||
       !stateTitleEl ||
@@ -504,10 +514,7 @@ export function initMediaInspectorPanel({
   const renderEmptyLists = () => {
     if (warningsEl) {
       warningsEl.replaceChildren(
-        createEmptyState(
-          t("tools.mediaInspector.warnings.none"),
-          "warning",
-        ),
+        createEmptyState(t("tools.mediaInspector.warnings.none"), "warning"),
       );
     }
     if (videoListEl) {
@@ -579,7 +586,9 @@ export function initMediaInspectorPanel({
     title.textContent = t("tools.mediaInspector.warning.item");
 
     const text = document.createElement("span");
-    text.textContent = t(warning.messageKey || "tools.mediaInspector.warnings.unknown");
+    text.textContent = t(
+      warning.messageKey || "tools.mediaInspector.warnings.unknown",
+    );
 
     item.append(title, text);
     return item;
@@ -603,39 +612,80 @@ export function initMediaInspectorPanel({
 
     if (type === "video") {
       fields.append(
-        createField(t("tools.mediaInspector.fields.codec"), stream.codec || "-"),
-        createField(t("tools.mediaInspector.fields.profile"), stream.profile || "-"),
+        createField(
+          t("tools.mediaInspector.fields.codec"),
+          stream.codec || "-",
+        ),
+        createField(
+          t("tools.mediaInspector.fields.profile"),
+          stream.profile || "-",
+        ),
         createField(
           t("tools.mediaInspector.fields.resolution"),
-          stream.width && stream.height ? `${stream.width}x${stream.height}` : "-",
+          stream.width && stream.height
+            ? `${stream.width}x${stream.height}`
+            : "-",
         ),
-        createField(t("tools.mediaInspector.fields.fps"), formatFps(stream.fps)),
-        createField(t("tools.mediaInspector.fields.bitrate"), formatBitrate(stream.bitrate)),
+        createField(
+          t("tools.mediaInspector.fields.fps"),
+          formatFps(stream.fps),
+        ),
+        createField(
+          t("tools.mediaInspector.fields.bitrate"),
+          formatBitrate(stream.bitrate),
+        ),
         createField(
           t("tools.mediaInspector.fields.hdr"),
           stream.hdr
             ? t("tools.mediaInspector.value.yes")
             : t("tools.mediaInspector.value.no"),
         ),
-        createField(t("tools.mediaInspector.fields.colorSpace"), stream.colorSpace || "-"),
+        createField(
+          t("tools.mediaInspector.fields.colorSpace"),
+          stream.colorSpace || "-",
+        ),
       );
     } else if (type === "audio") {
       fields.append(
-        createField(t("tools.mediaInspector.fields.codec"), stream.codec || "-"),
-        createField(t("tools.mediaInspector.fields.channels"), stream.channels ? String(stream.channels) : "-"),
-        createField(t("tools.mediaInspector.fields.channelLayout"), stream.channelLayout || "-"),
+        createField(
+          t("tools.mediaInspector.fields.codec"),
+          stream.codec || "-",
+        ),
+        createField(
+          t("tools.mediaInspector.fields.channels"),
+          stream.channels ? String(stream.channels) : "-",
+        ),
+        createField(
+          t("tools.mediaInspector.fields.channelLayout"),
+          stream.channelLayout || "-",
+        ),
         createField(
           t("tools.mediaInspector.fields.sampleRate"),
           stream.sampleRate ? `${stream.sampleRate} Hz` : "-",
         ),
-        createField(t("tools.mediaInspector.fields.bitrate"), formatBitrate(stream.bitrate)),
-        createField(t("tools.mediaInspector.fields.language"), stream.language || "-"),
+        createField(
+          t("tools.mediaInspector.fields.bitrate"),
+          formatBitrate(stream.bitrate),
+        ),
+        createField(
+          t("tools.mediaInspector.fields.language"),
+          stream.language || "-",
+        ),
       );
     } else {
       fields.append(
-        createField(t("tools.mediaInspector.fields.codec"), stream.codec || "-"),
-        createField(t("tools.mediaInspector.fields.language"), stream.language || "-"),
-        createField(t("tools.mediaInspector.fields.title"), stream.title || "-"),
+        createField(
+          t("tools.mediaInspector.fields.codec"),
+          stream.codec || "-",
+        ),
+        createField(
+          t("tools.mediaInspector.fields.language"),
+          stream.language || "-",
+        ),
+        createField(
+          t("tools.mediaInspector.fields.title"),
+          stream.title || "-",
+        ),
       );
     }
 
@@ -645,15 +695,22 @@ export function initMediaInspectorPanel({
 
   const renderReport = (report) => {
     latestReport = report;
-    if (summaryContainerEl) summaryContainerEl.textContent = report.format?.container || "-";
-    if (summaryDurationEl) summaryDurationEl.textContent = formatDuration(report.format?.durationSec);
-    if (summarySizeEl) summarySizeEl.textContent = formatBytes(report.file?.sizeBytes);
-    if (summaryBitrateEl) summaryBitrateEl.textContent = formatBitrate(report.format?.bitrate);
+    if (summaryContainerEl)
+      summaryContainerEl.textContent = report.format?.container || "-";
+    if (summaryDurationEl)
+      summaryDurationEl.textContent = formatDuration(
+        report.format?.durationSec,
+      );
+    if (summarySizeEl)
+      summarySizeEl.textContent = formatBytes(report.file?.sizeBytes);
+    if (summaryBitrateEl)
+      summaryBitrateEl.textContent = formatBitrate(report.format?.bitrate);
     if (summaryScoreEl) {
-      summaryScoreEl.textContent =
-        Number.isFinite(Number(report.format?.probeScore))
-          ? String(report.format.probeScore)
-          : "-";
+      summaryScoreEl.textContent = Number.isFinite(
+        Number(report.format?.probeScore),
+      )
+        ? String(report.format.probeScore)
+        : "-";
     }
 
     const warnings = Array.isArray(report.warnings) ? report.warnings : [];
@@ -662,13 +719,12 @@ export function initMediaInspectorPanel({
       warningsEl.replaceChildren();
       if (!warnings.length) {
         warningsEl.appendChild(
-          createEmptyState(
-            t("tools.mediaInspector.warnings.none"),
-            "warning",
-          ),
+          createEmptyState(t("tools.mediaInspector.warnings.none"), "warning"),
         );
       } else {
-        warnings.forEach((warning) => warningsEl.appendChild(createWarningItem(warning)));
+        warnings.forEach((warning) =>
+          warningsEl.appendChild(createWarningItem(warning)),
+        );
       }
     }
     setSectionState(warningsSectionEl, warnings.length > 0);
@@ -727,10 +783,14 @@ export function initMediaInspectorPanel({
 
   const mapErrorMessageKey = (response = {}) => {
     const code = String(response.code || "");
-    if (code === "missingDependency") return "tools.mediaInspector.error.missingDependency";
-    if (code === "fileNotFound") return "tools.mediaInspector.error.fileNotFound";
-    if (code === "accessDenied") return "tools.mediaInspector.error.accessDenied";
-    if (code === "invalidPayload") return "tools.mediaInspector.error.invalidPayload";
+    if (code === "missingDependency")
+      return "tools.mediaInspector.error.missingDependency";
+    if (code === "fileNotFound")
+      return "tools.mediaInspector.error.fileNotFound";
+    if (code === "accessDenied")
+      return "tools.mediaInspector.error.accessDenied";
+    if (code === "invalidPayload")
+      return "tools.mediaInspector.error.invalidPayload";
     return "";
   };
 
@@ -749,7 +809,11 @@ export function initMediaInspectorPanel({
     clearReport();
     setBusy(true);
     setStatus("loading", "tools.mediaInspector.status.loading");
-    showState("loading", "tools.mediaInspector.loading.title", "tools.mediaInspector.loading.body");
+    showState(
+      "loading",
+      "tools.mediaInspector.loading.title",
+      "tools.mediaInspector.loading.body",
+    );
 
     try {
       const response = await window.electron?.tools?.analyzeMediaFile?.({
@@ -761,7 +825,9 @@ export function initMediaInspectorPanel({
         showState(
           "error",
           "tools.mediaInspector.error.title",
-          key ? key : response?.error || t("tools.mediaInspector.error.analyzeFailed"),
+          key
+            ? key
+            : response?.error || t("tools.mediaInspector.error.analyzeFailed"),
           { isText: !key },
         );
         setBusy(false);
@@ -804,7 +870,8 @@ export function initMediaInspectorPanel({
 
   openFolderBtn?.addEventListener("click", async () => {
     if (!selectedFilePath || busy) return;
-    const response = await window.electron?.tools?.showInFolder?.(selectedFilePath);
+    const response =
+      await window.electron?.tools?.showInFolder?.(selectedFilePath);
     if (response?.success) {
       showCopyFeedback("tools.mediaInspector.openFolderDone");
       return;
@@ -828,7 +895,11 @@ export function initMediaInspectorPanel({
 
   clearReport();
   setSelectedFile("");
-  showState("empty", "tools.mediaInspector.empty.title", "tools.mediaInspector.empty.body");
+  showState(
+    "empty",
+    "tools.mediaInspector.empty.title",
+    "tools.mediaInspector.empty.body",
+  );
 
   const inspectFile = async (filePath, { autoAnalyze = true } = {}) => {
     setSelectedFile(filePath);
@@ -846,7 +917,11 @@ export function initMediaInspectorPanel({
     clear() {
       clearReport();
       setSelectedFile("");
-      showState("empty", "tools.mediaInspector.empty.title", "tools.mediaInspector.empty.body");
+      showState(
+        "empty",
+        "tools.mediaInspector.empty.title",
+        "tools.mediaInspector.empty.body",
+      );
     },
   };
 }

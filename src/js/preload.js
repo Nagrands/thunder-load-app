@@ -375,8 +375,7 @@ try {
       resetLocation: () => safeInvoke("tools:resetLocation"),
       pickFileForHash: () => safeInvoke("tools:hashPickFile"),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
-      pickMediaInspectorFile: () =>
-        safeInvoke("tools:mediaInspectorPickFile"),
+      pickMediaInspectorFile: () => safeInvoke("tools:mediaInspectorPickFile"),
       analyzeMediaFile: (payload) =>
         safeInvoke("tools:mediaInspectorAnalyze", payload),
       pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),

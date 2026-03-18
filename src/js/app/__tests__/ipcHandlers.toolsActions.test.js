@@ -119,9 +119,7 @@ describe("ipcHandlers tools quick actions", () => {
     const toolsPaths = require("../toolsPaths");
     toolsPaths.getDefaultToolsDir.mockImplementation(() => toolsDir);
     toolsPaths.getEffectiveToolsDir.mockImplementation(() => toolsDir);
-    toolsPaths.ensureToolsDir.mockImplementation(
-      async (v) => v || toolsDir,
-    );
+    toolsPaths.ensureToolsDir.mockImplementation(async (v) => v || toolsDir);
     toolsPaths.detectLegacyLocations.mockImplementation(async () => []);
     toolsPaths.migrateLegacy.mockImplementation(async () => ({
       copied: [],
@@ -130,7 +128,8 @@ describe("ipcHandlers tools quick actions", () => {
   });
 
   afterEach(() => {
-    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobeName =
+      process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
     const ffprobePath = path.join(toolsDir, ffprobeName);
     if (fs.existsSync(ffprobePath)) {
       fs.unlinkSync(ffprobePath);
@@ -230,7 +229,8 @@ describe("ipcHandlers tools quick actions", () => {
     const { execFile } = require("child_process");
     const { promisify } = require("util");
     const { CHANNELS } = require("../../ipc/channels");
-    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobeName =
+      process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
     const ffprobePath = path.join("/tmp/tools", ffprobeName);
     const mediaPath = path.join(
       os.tmpdir(),
@@ -375,8 +375,12 @@ describe("ipcHandlers tools quick actions", () => {
     const { execFile } = require("child_process");
     const { promisify } = require("util");
     const { CHANNELS } = require("../../ipc/channels");
-    const pathDir = path.join(os.tmpdir(), `media-inspector-path-${Date.now()}`);
-    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const pathDir = path.join(
+      os.tmpdir(),
+      `media-inspector-path-${Date.now()}`,
+    );
+    const ffprobeName =
+      process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
     const ffprobePath = path.join(pathDir, ffprobeName);
     const mediaPath = path.join(
       os.tmpdir(),
@@ -430,7 +434,8 @@ describe("ipcHandlers tools quick actions", () => {
     const { promisify } = require("util");
     const download = require("../../scripts/download.js");
     const { CHANNELS } = require("../../ipc/channels");
-    const ffprobeName = process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffprobeName =
+      process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
     const ffprobePath = path.join(toolsDir, ffprobeName);
     const mediaPath = path.join(
       os.tmpdir(),
@@ -1274,7 +1279,6 @@ describe("ipcHandlers tools quick actions", () => {
       }),
     );
   });
-
 });
 
 describe("ipcHandlers download pool", () => {

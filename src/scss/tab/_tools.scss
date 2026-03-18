@@ -1980,7 +1980,11 @@ $wg-max-width: 1200px;
   .large-button.secondary {
     border: 1px solid rgba(255, 255, 255, 0.12);
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(8, 14, 24, 0.08)),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.045),
+        rgba(8, 14, 24, 0.08)
+      ),
       rgba(255, 255, 255, 0.02);
     color: var(--color-highlight);
     box-shadow: none;
@@ -2942,7 +2946,11 @@ $wg-max-width: 1200px;
 
   &.is-populated {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(8, 14, 24, 0.18)),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.025),
+        rgba(8, 14, 24, 0.18)
+      ),
       rgba(0, 0, 0, 0.12);
   }
 }
@@ -3184,7 +3192,11 @@ $wg-max-width: 1200px;
   border-radius: 14px;
   padding: 14px 16px;
   background:
-    linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.09), transparent 72%),
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.09),
+      transparent 72%
+    ),
     rgba(255, 255, 255, 0.03);
 }
 

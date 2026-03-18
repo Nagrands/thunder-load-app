@@ -1496,11 +1496,11 @@ export default function renderToolsView() {
           ? "tools.nav.current.hash"
           : targetView === "media-inspector"
             ? "tools.nav.current.mediaInspector"
-          : targetView === "power"
-            ? "tools.nav.current.power"
-            : targetView === "backup"
-              ? "tools.nav.current.backup"
-              : "tools.nav.current.sorter";
+            : targetView === "power"
+              ? "tools.nav.current.power"
+              : targetView === "backup"
+                ? "tools.nav.current.backup"
+                : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
@@ -1718,7 +1718,9 @@ export default function renderToolsView() {
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
 
     const applyDeveloperToolsAvailability = () => {
-      toolState.setDeveloperToolsUnlocked(toolState.readDeveloperToolsUnlocked());
+      toolState.setDeveloperToolsUnlocked(
+        toolState.readDeveloperToolsUnlocked(),
+      );
       if (
         !openPowerBtn ||
         !openBackupBtn ||
@@ -1730,7 +1732,9 @@ export default function renderToolsView() {
         return;
       }
 
-      const powerSupported = isPowerToolSupportedPlatform(toolState.toolsPlatformInfo);
+      const powerSupported = isPowerToolSupportedPlatform(
+        toolState.toolsPlatformInfo,
+      );
       const powerAvailable = isToolAvailable("power");
       if (!powerSupported) {
         openPowerBtn.classList.add("hidden");
@@ -3006,7 +3010,10 @@ export default function renderToolsView() {
     const powerSummaryRequirements = getEl("power-summary-requirements", view);
     const powerSessionSummary = getEl("power-session-summary", view);
     const powerSessionSummaryText = getEl("power-session-summary-text", view);
-    const powerSessionSummaryDetail = getEl("power-session-summary-detail", view);
+    const powerSessionSummaryDetail = getEl(
+      "power-session-summary-detail",
+      view,
+    );
     const powerRepeatLastActionBtn = getEl("power-repeat-last-action", view);
     const powerClearStatusBtn = getEl("power-clear-status", view);
     const powerShortcutActions = POWER_SHORTCUT_ACTIONS.map((action) => ({
@@ -3115,7 +3122,9 @@ export default function renderToolsView() {
       powerLastSuccessfulActionId = "";
       powerSessionSummary?.classList.add("hidden");
       if (powerSessionSummaryText) {
-        powerSessionSummaryText.textContent = t("quickActions.power.session.empty");
+        powerSessionSummaryText.textContent = t(
+          "quickActions.power.session.empty",
+        );
       }
       if (powerSessionSummaryDetail) {
         powerSessionSummaryDetail.textContent = "";
@@ -3290,7 +3299,9 @@ export default function renderToolsView() {
     });
     updatePowerHowtoUi();
 
-    const showPowerTool = isPowerToolSupportedPlatform(toolState.toolsPlatformInfo);
+    const showPowerTool = isPowerToolSupportedPlatform(
+      toolState.toolsPlatformInfo,
+    );
     setPowerAvailabilityUi({
       isWindows: toolState.isWindowsPlatform,
       showTool: showPowerTool,
@@ -3371,7 +3382,10 @@ export default function renderToolsView() {
         status.className = "success";
 
         view.classList.add("wg-success-pulse");
-        cleanup.setTimeout(() => view.classList.remove("wg-success-pulse"), 2000);
+        cleanup.setTimeout(
+          () => view.classList.remove("wg-success-pulse"),
+          2000,
+        );
 
         sendBtn.disabled = false;
         sendBtn.classList.remove("is-loading");
@@ -3480,13 +3494,15 @@ export default function renderToolsView() {
         pre.textContent = t("wg.log.placeholder");
       }
 
-      toolState.setPlatformInfo((await window.electron
-        .getPlatformInfo?.()
-        .catch(() => null)) || {
-        isWindows: false,
-        platform: "",
-      });
-      toolState.setDeveloperToolsUnlocked(toolState.readDeveloperToolsUnlocked());
+      toolState.setPlatformInfo(
+        (await window.electron.getPlatformInfo?.().catch(() => null)) || {
+          isWindows: false,
+          platform: "",
+        },
+      );
+      toolState.setDeveloperToolsUnlocked(
+        toolState.readDeveloperToolsUnlocked(),
+      );
       const requestedToolView =
         consumeRequestedToolsView() || toolState.resolveInitialToolView();
       if (requestedToolView === "backup") {
@@ -3726,11 +3742,11 @@ export default function renderToolsView() {
       log(t("wg.log.error.autoShutdownUpdate", { message: err.message }), true);
     }
   };
-    cleanup.onIpcEvent(
-      window.electron.ipcRenderer,
-      "wg-auto-shutdown-updated",
-      onAutoShutdownUpdated,
-    );
+  cleanup.onIpcEvent(
+    window.electron.ipcRenderer,
+    "wg-auto-shutdown-updated",
+    onAutoShutdownUpdated,
+  );
 
   const disconnectObserver = new MutationObserver(() => {
     if (!container.isConnected) {

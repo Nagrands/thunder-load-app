@@ -34,9 +34,7 @@ function resolveBinaryFromPath(name) {
   const candidates =
     process.platform === "win32"
       ? (() => {
-          const extList = String(
-            process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM",
-          )
+          const extList = String(process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM")
             .split(";")
             .filter(Boolean);
           const hasKnownExt = /\.[^./\\]+$/.test(name);
@@ -80,10 +78,7 @@ function resolveRuntimeFfmpegDir(storeOrGetter) {
   const preferredDir = getEffectiveToolsDir(storeOrGetter);
   const preferredFfmpeg = path.join(preferredDir, getBinaryName("ffmpeg"));
   const preferredFfprobe = path.join(preferredDir, getBinaryName("ffprobe"));
-  if (
-    isExecutableFile(preferredFfmpeg) &&
-    isExecutableFile(preferredFfprobe)
-  ) {
+  if (isExecutableFile(preferredFfmpeg) && isExecutableFile(preferredFfprobe)) {
     return preferredDir;
   }
 

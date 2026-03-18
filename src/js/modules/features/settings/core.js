@@ -28,7 +28,10 @@ import {
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./defaults.js";
-import { clearOpenSettingsHandlers, onOpenSettings } from "./openSettingsBus.js";
+import {
+  clearOpenSettingsHandlers,
+  onOpenSettings,
+} from "./openSettingsBus.js";
 import {
   bindModuleBadgesI18nSync,
   syncModuleBadges,

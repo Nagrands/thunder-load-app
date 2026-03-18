@@ -67,7 +67,9 @@ export function initDeveloperToolsGate() {
       return;
     }
 
-    const value = String(input.value || "").trim().toLowerCase();
+    const value = String(input.value || "")
+      .trim()
+      .toLowerCase();
     if (value === DEVELOPER_SECRET_WORD) {
       writeUnlocked(true);
       applyStatus(status, button, true);

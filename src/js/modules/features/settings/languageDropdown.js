@@ -29,7 +29,9 @@ function getLanguageDropdownState() {
 
 export function initLanguageDropdown() {
   const languageDropdownBtn = document.getElementById("language-dropdown-btn");
-  const languageDropdownMenu = document.getElementById("language-dropdown-menu");
+  const languageDropdownMenu = document.getElementById(
+    "language-dropdown-menu",
+  );
   const languageLabel = document.getElementById("language-selected-label");
 
   if (!languageDropdownBtn || !languageDropdownMenu || !languageLabel) return;

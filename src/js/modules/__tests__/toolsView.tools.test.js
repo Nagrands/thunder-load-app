@@ -36,11 +36,11 @@ async function openTool(el, tool) {
         ? "#tools-open-hash"
         : tool === "media-inspector"
           ? "#tools-open-media-inspector"
-        : tool === "power"
-          ? "#tools-open-power"
-          : tool === "backup"
-            ? "#tools-open-backup"
-          : "#tools-open-sorter";
+          : tool === "power"
+            ? "#tools-open-power"
+            : tool === "backup"
+              ? "#tools-open-backup"
+              : "#tools-open-sorter";
   el.querySelector(id)?.click();
   await nextTick();
 }
@@ -648,35 +648,63 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
-    expect(window.electron.tools.pickMediaInspectorFile).toHaveBeenCalledTimes(1);
+    expect(window.electron.tools.pickMediaInspectorFile).toHaveBeenCalledTimes(
+      1,
+    );
     expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
       filePath: "/tmp/sample-video.mp4",
     });
-    expect(el.querySelector("#media-inspector-summary-container")?.textContent).toContain(
-      "mov,mp4",
+    expect(
+      el.querySelector("#media-inspector-summary-container")?.textContent,
+    ).toContain("mov,mp4");
+    expect(el.querySelector("#media-inspector-video-count")?.textContent).toBe(
+      "1",
     );
-    expect(el.querySelector("#media-inspector-video-count")?.textContent).toBe("1");
-    expect(el.querySelector("#media-inspector-audio-count")?.textContent).toBe("1");
-    expect(el.querySelector("#media-inspector-subtitle-count")?.textContent).toBe("1");
+    expect(el.querySelector("#media-inspector-audio-count")?.textContent).toBe(
+      "1",
+    );
+    expect(
+      el.querySelector("#media-inspector-subtitle-count")?.textContent,
+    ).toBe("1");
     expect(el.querySelectorAll(".media-inspector-warning").length).toBe(1);
     expect(
-      el.querySelector("#media-inspector-warnings-section")?.classList.contains("is-populated"),
+      el
+        .querySelector("#media-inspector-warnings-section")
+        ?.classList.contains("is-populated"),
     ).toBe(true);
     expect(
-      el.querySelector("#media-inspector-video-section")?.classList.contains("is-populated"),
+      el
+        .querySelector("#media-inspector-video-section")
+        ?.classList.contains("is-populated"),
     ).toBe(true);
     expect(
-      el.querySelector("#media-inspector-audio-section")?.classList.contains("is-populated"),
+      el
+        .querySelector("#media-inspector-audio-section")
+        ?.classList.contains("is-populated"),
     ).toBe(true);
     expect(
-      el.querySelector("#media-inspector-subtitle-section")?.classList.contains("is-populated"),
+      el
+        .querySelector("#media-inspector-subtitle-section")
+        ?.classList.contains("is-populated"),
     ).toBe(true);
-    expect(el.querySelector(".media-inspector-stream-card__index")?.textContent).toBe("#1");
-    expect(el.querySelector("#media-inspector-status")?.classList.contains("is-warning")).toBe(
-      false,
-    );
-    expect(el.querySelector("#media-inspector-copy-report")?.hasAttribute("disabled")).toBe(false);
-    expect(el.querySelector("#media-inspector-open-folder")?.hasAttribute("disabled")).toBe(false);
+    expect(
+      el.querySelector(".media-inspector-stream-card__index")?.textContent,
+    ).toBe("#1");
+    expect(
+      el
+        .querySelector("#media-inspector-status")
+        ?.classList.contains("is-warning"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector("#media-inspector-copy-report")
+        ?.hasAttribute("disabled"),
+    ).toBe(false);
+    expect(
+      el
+        .querySelector("#media-inspector-open-folder")
+        ?.hasAttribute("disabled"),
+    ).toBe(false);
   });
 
   test("renders compact empty states for sections without streams", async () => {
@@ -726,25 +754,39 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(
-      el.querySelector("#media-inspector-warnings-section")?.classList.contains("is-empty"),
+      el
+        .querySelector("#media-inspector-warnings-section")
+        ?.classList.contains("is-empty"),
     ).toBe(true);
     expect(
-      el.querySelector("#media-inspector-video-section")?.classList.contains("is-empty"),
+      el
+        .querySelector("#media-inspector-video-section")
+        ?.classList.contains("is-empty"),
     ).toBe(true);
     expect(
-      el.querySelector("#media-inspector-audio-section")?.classList.contains("is-populated"),
+      el
+        .querySelector("#media-inspector-audio-section")
+        ?.classList.contains("is-populated"),
     ).toBe(true);
     expect(
-      el.querySelector("#media-inspector-subtitle-section")?.classList.contains("is-empty"),
+      el
+        .querySelector("#media-inspector-subtitle-section")
+        ?.classList.contains("is-empty"),
     ).toBe(true);
     expect(
-      el.querySelectorAll("#media-inspector-video-section .media-inspector-empty-state").length,
+      el.querySelectorAll(
+        "#media-inspector-video-section .media-inspector-empty-state",
+      ).length,
     ).toBe(1);
     expect(
-      el.querySelectorAll("#media-inspector-subtitle-section .media-inspector-empty-state").length,
+      el.querySelectorAll(
+        "#media-inspector-subtitle-section .media-inspector-empty-state",
+      ).length,
     ).toBe(1);
     expect(
-      el.querySelectorAll("#media-inspector-warnings-section .media-inspector-empty-state").length,
+      el.querySelectorAll(
+        "#media-inspector-warnings-section .media-inspector-empty-state",
+      ).length,
     ).toBe(1);
   });
 
@@ -812,11 +854,15 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(
-      el.querySelector("#media-inspector-warnings-section")?.classList.contains("is-populated"),
+      el
+        .querySelector("#media-inspector-warnings-section")
+        ?.classList.contains("is-populated"),
     ).toBe(true);
-    expect(el.querySelector("#media-inspector-status")?.classList.contains("is-warning")).toBe(
-      true,
-    );
+    expect(
+      el
+        .querySelector("#media-inspector-status")
+        ?.classList.contains("is-warning"),
+    ).toBe(true);
   });
 
   test("blocks repeat analysis while media inspection is in flight", async () => {
@@ -833,7 +879,9 @@ describe("toolsView quick actions", () => {
     el.querySelector("#media-inspector-pick-file")?.click();
     await nextTick();
 
-    expect(el.querySelector("#media-inspector-analyze")?.hasAttribute("disabled")).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-analyze")?.hasAttribute("disabled"),
+    ).toBe(true);
     el.querySelector("#media-inspector-analyze")?.click();
     await nextTick();
     expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledTimes(1);
@@ -870,7 +918,9 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
-    expect(el.querySelector("#media-inspector-analyze")?.hasAttribute("disabled")).toBe(false);
+    expect(
+      el.querySelector("#media-inspector-analyze")?.hasAttribute("disabled"),
+    ).toBe(false);
   });
 
   test("renders compact loading state while media inspection is in flight", async () => {
@@ -887,10 +937,16 @@ describe("toolsView quick actions", () => {
     el.querySelector("#media-inspector-pick-file")?.click();
     await nextTick();
 
-    expect(el.querySelector("#media-inspector-state")?.classList.contains("media-inspector-state--loading")).toBe(true);
-    expect(el.querySelector("#media-inspector-state-meta")?.classList.contains("hidden")).toBe(
-      false,
-    );
+    expect(
+      el
+        .querySelector("#media-inspector-state")
+        ?.classList.contains("media-inspector-state--loading"),
+    ).toBe(true);
+    expect(
+      el
+        .querySelector("#media-inspector-state-meta")
+        ?.classList.contains("hidden"),
+    ).toBe(false);
     expect(el.querySelector("#media-inspector-state-title")?.textContent).toBe(
       "tools.mediaInspector.loading.title",
     );
@@ -939,18 +995,26 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "media-inspector");
 
-    expect(el.querySelector("#media-inspector-state-meta")?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el
+        .querySelector("#media-inspector-state-meta")
+        ?.classList.contains("hidden"),
+    ).toBe(true);
 
     el.querySelector("#media-inspector-pick-file")?.click();
     await nextTick();
     await nextTick();
 
-    expect(el.querySelector("#media-inspector-state")?.classList.contains("media-inspector-state--error")).toBe(true);
-    expect(el.querySelector("#media-inspector-state-meta")?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el
+        .querySelector("#media-inspector-state")
+        ?.classList.contains("media-inspector-state--error"),
+    ).toBe(true);
+    expect(
+      el
+        .querySelector("#media-inspector-state-meta")
+        ?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("keeps open-folder action available after analyze failure", async () => {
@@ -966,12 +1030,14 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
-    expect(el.querySelector("#media-inspector-open-folder")?.hasAttribute("disabled")).toBe(
-      false,
-    );
-    expect(el.querySelector("#media-inspector-report")?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el
+        .querySelector("#media-inspector-open-folder")
+        ?.hasAttribute("disabled"),
+    ).toBe(false);
+    expect(
+      el.querySelector("#media-inspector-report")?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("open-folder failure does not hide a rendered report", async () => {
@@ -989,15 +1055,15 @@ describe("toolsView quick actions", () => {
     el.querySelector("#media-inspector-open-folder")?.click();
     await nextTick();
 
-    expect(el.querySelector("#media-inspector-report")?.classList.contains("hidden")).toBe(
-      false,
-    );
-    expect(el.querySelector("#media-inspector-state")?.classList.contains("hidden")).toBe(
-      true,
-    );
-    expect(el.querySelector("#media-inspector-copy-feedback")?.textContent).toBe(
-      "tools.mediaInspector.openFolderFailed",
-    );
+    expect(
+      el.querySelector("#media-inspector-report")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el.querySelector("#media-inspector-state")?.classList.contains("hidden"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-copy-feedback")?.textContent,
+    ).toBe("tools.mediaInspector.openFolderFailed");
   });
 
   test("does not render converter placeholder card", async () => {
@@ -1920,24 +1986,31 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "power");
 
+    expect(el.querySelectorAll(".power-shortcuts-group").length).toBe(3);
     expect(
-      el.querySelectorAll(".power-shortcuts-group").length,
-    ).toBe(3);
-    expect(
-      el.querySelector('[data-power-group="power"] .power-shortcuts-group__title')
+      el
+        .querySelector(
+          '[data-power-group="power"] .power-shortcuts-group__title',
+        )
         ?.textContent?.trim(),
     ).toBe("quickActions.power.group.power.title");
     expect(
-      el.querySelector('[data-power-group="recovery"] .power-shortcuts-group__title')
+      el
+        .querySelector(
+          '[data-power-group="recovery"] .power-shortcuts-group__title',
+        )
         ?.textContent?.trim(),
     ).toBe("quickActions.power.group.recovery.title");
     expect(
-      el.querySelector('[data-power-group="system"] .power-shortcuts-group__title')
+      el
+        .querySelector(
+          '[data-power-group="system"] .power-shortcuts-group__title',
+        )
         ?.textContent?.trim(),
     ).toBe("quickActions.power.group.system.title");
-    expect(el.querySelector("#power-session-summary")?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el.querySelector("#power-session-summary")?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("shows creating state and allows clearing last power status", async () => {
@@ -1961,11 +2034,15 @@ describe("toolsView quick actions", () => {
     restartBtn.click();
     await nextTick();
 
-    expect(restartState?.textContent).toBe("quickActions.power.status.creating");
-    expect(restartResult?.textContent).toBe("quickActions.power.result.creating");
-    expect(el.querySelector("#create-shutdown-shortcut")?.hasAttribute("disabled")).toBe(
-      true,
+    expect(restartState?.textContent).toBe(
+      "quickActions.power.status.creating",
     );
+    expect(restartResult?.textContent).toBe(
+      "quickActions.power.result.creating",
+    );
+    expect(
+      el.querySelector("#create-shutdown-shortcut")?.hasAttribute("disabled"),
+    ).toBe(true);
 
     resolveCreate({
       success: true,
@@ -1978,9 +2055,9 @@ describe("toolsView quick actions", () => {
 
     expect(restartState?.textContent).toBe("quickActions.power.status.idle");
     expect(restartResult?.textContent).toBe("");
-    expect(el.querySelector("#power-session-summary")?.classList.contains("hidden")).toBe(
-      true,
-    );
+    expect(
+      el.querySelector("#power-session-summary")?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("create another clears current power status and returns focus to the last action", async () => {
@@ -2008,5 +2085,4 @@ describe("toolsView quick actions", () => {
     );
     expect(document.activeElement).toBe(restartBtn);
   });
-
 });

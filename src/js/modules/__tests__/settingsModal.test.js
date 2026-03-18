@@ -138,9 +138,25 @@ describe("settingsModal mobile sections navigation", () => {
     const modal = document.getElementById("settings-modal");
 
     expect(modal.style.display).toBe("flex");
+    expect(modal.getAttribute("aria-hidden")).toBe("false");
+    expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
     expect(wrapper.classList.contains("settings-tabs--open")).toBe(false);
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(label.textContent).toBe("Общие");
+  });
+
+  test("closeSettings removes modal scroll lock", () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+      mod.closeSettings();
+    });
+
+    const modal = document.getElementById("settings-modal");
+    expect(modal.style.display).toBe("none");
+    expect(modal.getAttribute("aria-hidden")).toBe("true");
+    expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
   });
 
   test("opens first-run modal from settings without reload", () => {

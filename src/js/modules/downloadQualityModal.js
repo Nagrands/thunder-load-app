@@ -114,6 +114,16 @@ const state = {
   loadingTickTimer: null,
 };
 
+function isSettingsModalOpen() {
+  return document.getElementById("settings-modal")?.style.display === "flex";
+}
+
+function syncBodyScrollLock() {
+  const shouldLock =
+    !!modal?.classList.contains("is-open") || isSettingsModalOpen();
+  document.body.classList.toggle("modal-scroll-lock", shouldLock);
+}
+
 const extractHeight = (fmt) => {
   if (fmt?.height) return Number(fmt.height) || 0;
   const res =
@@ -153,7 +163,7 @@ function setModalOpen(flag) {
   if (!modal) return;
   modal.classList.toggle("is-open", flag);
   modal.setAttribute("aria-hidden", flag ? "false" : "true");
-  document.body.classList.toggle("modal-scroll-lock", flag);
+  syncBodyScrollLock();
 }
 
 function escapeHTML(value) {
@@ -1289,6 +1299,12 @@ function bindEvents() {
         event.preventDefault();
         confirmEnqueue();
       }
+    });
+    window.addEventListener("focus", () => {
+      syncBodyScrollLock();
+    });
+    document.addEventListener("visibilitychange", () => {
+      syncBodyScrollLock();
     });
     primaryBtn?.addEventListener("click", () => {
       if (isQueueConfirmMode()) {

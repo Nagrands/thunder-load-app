@@ -116,8 +116,7 @@ export const coreTranslations = {
       "Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.",
     "firstRun.tabs.downloadHint": "Загрузка видео и аудио",
     "firstRun.tabs.wgHint": "WG Unlock, Hash Check и быстрые инструменты",
-    "firstRun.tabs.backupHint":
-      "Резервные копии и профили внутри Инструментов",
+    "firstRun.tabs.backupHint": "Резервные копии и профили внутри Инструментов",
     "firstRun.required": "Обязательно",
     "firstRun.theme": "Цветовая тема",
     "firstRun.themeSubtitle":

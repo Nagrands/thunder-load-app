@@ -10,7 +10,9 @@ describe("settings template backup placement", () => {
     expect(html).not.toContain('data-tab="backup-settings"');
     expect(html).not.toContain('<div id="backup-settings" class="tab-pane">');
 
-    const toolsPaneStart = html.indexOf('<div id="wgunlock-settings" class="tab-pane">');
+    const toolsPaneStart = html.indexOf(
+      '<div id="wgunlock-settings" class="tab-pane">',
+    );
     const appearancePaneStart = html.indexOf(
       '<div id="appearance-settings" class="tab-pane">',
     );

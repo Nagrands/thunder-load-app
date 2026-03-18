@@ -18,7 +18,10 @@ export function onOpenSettings(listenerKey, handler) {
       try {
         listener(...args);
       } catch (error) {
-        console.error(`[settings] open-settings handler error (${key}):`, error);
+        console.error(
+          `[settings] open-settings handler error (${key}):`,
+          error,
+        );
       }
     }
   });

@@ -915,6 +915,10 @@
 
 // Стили для модального окна "Настройки"
 .settings-modal {
+  align-items: flex-start;
+  padding: 18px 16px;
+  box-sizing: border-box;
+
   // === Переменные ===
   $transition-time: 0.3s;
   $input-size: 20px;
@@ -1992,6 +1996,14 @@
       }
     }
   }
+}
+
+.settings-modal-content {
+  width: min(1120px, calc(100vw - 32px));
+  max-height: calc(100vh - 36px);
+  margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 // Заголовок модального окна

@@ -147,6 +147,31 @@ describe("downloadQualityModal close behavior", () => {
       expect(result).toBeNull();
       expect(modal.classList.contains("is-open")).toBe(false);
       expect(modal.getAttribute("aria-hidden")).toBe("true");
+      expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+    });
+  });
+
+  it("clears stale body scroll lock on refocus when modal is no longer open", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const modal = document.getElementById("download-quality-modal");
+      modal.classList.remove("is-open");
+      document.body.classList.add("modal-scroll-lock");
+
+      window.dispatchEvent(new Event("focus"));
+
+      expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
     });
   });
 

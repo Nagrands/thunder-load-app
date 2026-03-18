@@ -108,7 +108,6 @@ let historyFiltersCollapsed = false;
 let historySearchClearBound = false;
 let activeHistoryInspectorEntryId = "";
 let activeHistoryInspectorRoot = null;
-let activeHistoryInspectorPanel = null;
 let activeHistoryInspectorTrigger = null;
 
 const HISTORY_FILTERS_COLLAPSED_KEY = "historyFiltersCollapsed";
@@ -2128,7 +2127,6 @@ function hideActiveHistoryInspector() {
   }
   activeHistoryInspectorEntryId = "";
   activeHistoryInspectorRoot = null;
-  activeHistoryInspectorPanel = null;
   activeHistoryInspectorTrigger = null;
   historyVirtualList?.requestRender?.();
 }
@@ -2179,8 +2177,8 @@ async function inspectHistoryCardFile(
 
     activeHistoryInspectorEntryId = entryId;
     activeHistoryInspectorRoot = root;
-    activeHistoryInspectorPanel = panel;
-    activeHistoryInspectorTrigger = trigger instanceof HTMLElement ? trigger : null;
+    activeHistoryInspectorTrigger =
+      trigger instanceof HTMLElement ? trigger : null;
     activeHistoryInspectorTrigger?.classList.add("is-active");
 
     await panel.inspectFile(entry.filePath, { autoAnalyze: true });

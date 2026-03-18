@@ -62,7 +62,9 @@ describe("downloaderView hero", () => {
     expect(wrapper.querySelector("#dl-tools-toggle")).not.toBeNull();
     expect(wrapper.querySelector("#dl-tools-reinstall")).not.toBeNull();
     expect(wrapper.querySelector("#inspect-last-video")).toBeNull();
-    expect(wrapper.querySelector("#downloader-media-inspector-slot")).toBeNull();
+    expect(
+      wrapper.querySelector("#downloader-media-inspector-slot"),
+    ).toBeNull();
     expect(
       wrapper.querySelector("header .url-input-wrapper nav.button-group"),
     ).not.toBeNull();

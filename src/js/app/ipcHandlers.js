@@ -181,7 +181,11 @@ function parseFraction(value) {
   if (parts.length !== 2) return null;
   const numerator = Number(parts[0]);
   const denominator = Number(parts[1]);
-  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
+  if (
+    !Number.isFinite(numerator) ||
+    !Number.isFinite(denominator) ||
+    denominator === 0
+  ) {
     return null;
   }
   return numerator / denominator;
@@ -234,7 +238,9 @@ function normalizeMediaInspectorStream(stream = {}) {
     pixelFormat: normalizeMediaInspectorText(stream.pix_fmt),
     width: toFiniteNumber(stream.width),
     height: toFiniteNumber(stream.height),
-    fps: parseFraction(stream.avg_frame_rate) || parseFraction(stream.r_frame_rate),
+    fps:
+      parseFraction(stream.avg_frame_rate) ||
+      parseFraction(stream.r_frame_rate),
     variableFrameRate: isVariableFrameRateStream(stream),
     bitrate,
     hdr: isHdrStream(stream),
@@ -257,7 +263,12 @@ function isCommonCodec(codec, streamType) {
   return true;
 }
 
-function buildMediaInspectorWarnings({ format, videoStreams, audioStreams, subtitleStreams }) {
+function buildMediaInspectorWarnings({
+  format,
+  videoStreams,
+  audioStreams,
+  subtitleStreams,
+}) {
   const warnings = [];
   const hasVideo = videoStreams.length > 0;
   const hasAudio = audioStreams.length > 0;
@@ -327,13 +338,19 @@ function buildMediaInspectorReport({ filePath, fileStat, probeData = {} }) {
   const format = probeData?.format || {};
   const streams = Array.isArray(probeData?.streams) ? probeData.streams : [];
   const videoStreams = streams
-    .filter((stream) => String(stream?.codec_type || "").toLowerCase() === "video")
+    .filter(
+      (stream) => String(stream?.codec_type || "").toLowerCase() === "video",
+    )
     .map(normalizeMediaInspectorStream);
   const audioStreams = streams
-    .filter((stream) => String(stream?.codec_type || "").toLowerCase() === "audio")
+    .filter(
+      (stream) => String(stream?.codec_type || "").toLowerCase() === "audio",
+    )
     .map(normalizeMediaInspectorStream);
   const subtitleStreams = streams
-    .filter((stream) => String(stream?.codec_type || "").toLowerCase() === "subtitle")
+    .filter(
+      (stream) => String(stream?.codec_type || "").toLowerCase() === "subtitle",
+    )
     .map(normalizeMediaInspectorStream);
 
   const report = {

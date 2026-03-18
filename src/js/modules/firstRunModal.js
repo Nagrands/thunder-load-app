@@ -251,7 +251,11 @@ export function initFirstRunModal() {
     ),
   ).forEach((input) => {
     input.addEventListener("change", () => {
-      if (input.name === "first-run-tab" && input.value === "backup" && input.checked) {
+      if (
+        input.name === "first-run-tab" &&
+        input.value === "backup" &&
+        input.checked
+      ) {
         setCheckboxValue("first-run-tab", "wireguard", true);
       }
       syncSelectedCards();
@@ -275,12 +279,12 @@ export function initFirstRunModal() {
 
     const lang = getSelectedRadio("first-run-language") || "ru";
     const theme = getSelectedRadio("first-run-theme") || "dark";
-      const selectedTabs = getSelectedTabs();
-      const flags = {
-        wireguard:
-          selectedTabs.includes("wireguard") || selectedTabs.includes("backup"),
-        backup: selectedTabs.includes("backup"),
-      };
+    const selectedTabs = getSelectedTabs();
+    const flags = {
+      wireguard:
+        selectedTabs.includes("wireguard") || selectedTabs.includes("backup"),
+      backup: selectedTabs.includes("backup"),
+    };
 
     await setTheme(theme);
     applyTabFlags(flags);

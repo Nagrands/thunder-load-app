@@ -15,6 +15,18 @@ import { initFirstRunModal } from "./firstRunModal.js";
 let previousFocus = null;
 let trapHandler = null;
 
+function isDownloadQualityModalOpen() {
+  return !!document
+    .getElementById("download-quality-modal")
+    ?.classList.contains("is-open");
+}
+
+function syncModalScrollLock() {
+  const shouldLock =
+    settingsModal?.style.display === "flex" || isDownloadQualityModalOpen();
+  document.body.classList.toggle("modal-scroll-lock", shouldLock);
+}
+
 function getSettingsTabsWrapper() {
   return document.getElementById("settings-tabs-panel");
 }
@@ -79,8 +91,10 @@ export function openSettings() {
   if (!settingsModal) return;
   settingsModal.style.display = "flex";
   settingsModal.style.justifyContent = "center";
-  settingsModal.style.alignItems = "center";
+  settingsModal.style.alignItems = "flex-start";
+  settingsModal.setAttribute("aria-hidden", "false");
   previousFocus = document.activeElement;
+  syncModalScrollLock();
 
   try {
     window.dispatchEvent(new Event("settings:opened"));
@@ -134,11 +148,13 @@ export function openSettingsWithTab(tabId) {
 export function closeSettings() {
   if (!settingsModal) return;
   settingsModal.style.display = "none";
+  settingsModal.setAttribute("aria-hidden", "true");
   if (trapHandler) {
     window.removeEventListener("keydown", trapHandler, true);
     trapHandler = null;
   }
   closeSettingsSectionsPanel();
+  syncModalScrollLock();
   try {
     (settingsButton || previousFocus)?.focus?.();
   } catch {}

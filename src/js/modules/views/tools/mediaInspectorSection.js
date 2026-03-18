@@ -1,11 +1,6 @@
 import { initMediaInspectorPanel } from "./mediaInspectorPanel.js";
 
-export function initMediaInspectorSection({
-  view,
-  getEl,
-  t,
-  registerCleanup,
-}) {
+export function initMediaInspectorSection({ view, getEl, t, registerCleanup }) {
   const root = view.querySelector('[data-tool-view="media-inspector"]');
   if (!root) return null;
 

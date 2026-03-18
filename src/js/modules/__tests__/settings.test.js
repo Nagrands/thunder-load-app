@@ -51,13 +51,13 @@ describe("updateModuleBadge", () => {
     expect(btn?.classList.contains("tab-disabled")).toBe(true);
     expect(badge?.textContent).toBe("Выкл");
     expect(badge?.hasAttribute("hidden")).toBe(false);
-    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
-      "Выкл",
-    );
     expect(
-      document.getElementById("settings-wg-status-badge")?.classList.contains(
-        "is-disabled",
-      ),
+      document.getElementById("settings-wg-status-badge")?.textContent,
+    ).toBe("Выкл");
+    expect(
+      document
+        .getElementById("settings-wg-status-badge")
+        ?.classList.contains("is-disabled"),
     ).toBe(true);
     expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
       "Вкладка <strong>Инструменты</strong> отключена",
@@ -74,13 +74,13 @@ describe("updateModuleBadge", () => {
     expect(btn?.classList.contains("tab-disabled")).toBe(false);
     expect(badge?.textContent).toBe("Вкл");
     expect(badge?.style.display).toBe("none");
-    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
-      "Вкл",
-    );
     expect(
-      document.getElementById("settings-wg-status-badge")?.classList.contains(
-        "is-disabled",
-      ),
+      document.getElementById("settings-wg-status-badge")?.textContent,
+    ).toBe("Вкл");
+    expect(
+      document
+        .getElementById("settings-wg-status-badge")
+        ?.classList.contains("is-disabled"),
     ).toBe(false);
     expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
       "Вкладка <strong>Инструменты</strong> включена",
@@ -94,13 +94,13 @@ describe("updateModuleBadge", () => {
     expect(btn?.dataset.disabled).toBe("1");
     expect(badge?.getAttribute("aria-label")).toBe("Вкладка отключена");
     expect(badge?.getAttribute("aria-hidden")).toBe("false");
-    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
-      "Выкл",
-    );
     expect(
-      document.getElementById("settings-wg-status-badge")?.classList.contains(
-        "is-disabled",
-      ),
+      document.getElementById("settings-wg-status-badge")?.textContent,
+    ).toBe("Выкл");
+    expect(
+      document
+        .getElementById("settings-wg-status-badge")
+        ?.classList.contains("is-disabled"),
     ).toBe(true);
 
     settingsModule.__test_updateModuleBadge("wg", false);
@@ -108,13 +108,13 @@ describe("updateModuleBadge", () => {
     expect(badge?.getAttribute("aria-label")).toBe("Вкладка включена");
     expect(badge?.getAttribute("aria-hidden")).toBe("true");
     expect(badge?.style.display).toBe("none");
-    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
-      "Вкл",
-    );
     expect(
-      document.getElementById("settings-wg-status-badge")?.classList.contains(
-        "is-disabled",
-      ),
+      document.getElementById("settings-wg-status-badge")?.textContent,
+    ).toBe("Вкл");
+    expect(
+      document
+        .getElementById("settings-wg-status-badge")
+        ?.classList.contains("is-disabled"),
     ).toBe(false);
     expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
       "Вкладка <strong>Инструменты</strong> включена",
@@ -123,29 +123,29 @@ describe("updateModuleBadge", () => {
 
   it("updates backup status card without requiring a sidebar tab", () => {
     settingsModule.__test_updateModuleBadge("backup", true);
-    expect(document.getElementById("settings-backup-status-badge")?.textContent).toBe(
-      "Выкл",
-    );
     expect(
-      document.getElementById("settings-backup-status-badge")?.classList.contains(
-        "is-disabled",
-      ),
+      document.getElementById("settings-backup-status-badge")?.textContent,
+    ).toBe("Выкл");
+    expect(
+      document
+        .getElementById("settings-backup-status-badge")
+        ?.classList.contains("is-disabled"),
     ).toBe(true);
-    expect(document.getElementById("settings-backup-status-text")?.innerHTML).toContain(
-      "Backup",
-    );
+    expect(
+      document.getElementById("settings-backup-status-text")?.innerHTML,
+    ).toContain("Backup");
     expect(
       document.getElementById("settings-backup-status-text")?.innerHTML,
     ).not.toContain("Вкладка");
 
     settingsModule.__test_updateModuleBadge("backup", false);
-    expect(document.getElementById("settings-backup-status-badge")?.textContent).toBe(
-      "Вкл",
-    );
     expect(
-      document.getElementById("settings-backup-status-badge")?.classList.contains(
-        "is-disabled",
-      ),
+      document.getElementById("settings-backup-status-badge")?.textContent,
+    ).toBe("Вкл");
+    expect(
+      document
+        .getElementById("settings-backup-status-badge")
+        ?.classList.contains("is-disabled"),
     ).toBe(false);
   });
 
@@ -189,9 +189,9 @@ describe("wg disable toggle initializes badge state", () => {
     expect(badge?.style.display).toBe("");
     expect(badge?.textContent).toBe("Выкл");
     expect(btn?.classList.contains("tab-disabled")).toBe(true);
-    expect(document.getElementById("settings-wg-status-badge")?.textContent).toBe(
-      "Выкл",
-    );
+    expect(
+      document.getElementById("settings-wg-status-badge")?.textContent,
+    ).toBe("Выкл");
   });
 });
 
@@ -262,11 +262,13 @@ describe("backup settings inside tools section", () => {
     const mod = require("../settings");
     await mod.initSettings?.();
 
-    expect(document.getElementById("backup-compact-toggle")?.checked).toBe(true);
-    expect(document.getElementById("backup-log-toggle")?.checked).toBe(false);
-    expect(document.getElementById("settings-backup-status-badge")?.textContent).toBe(
-      "Выкл",
+    expect(document.getElementById("backup-compact-toggle")?.checked).toBe(
+      true,
     );
+    expect(document.getElementById("backup-log-toggle")?.checked).toBe(false);
+    expect(
+      document.getElementById("settings-backup-status-badge")?.textContent,
+    ).toBe("Выкл");
   });
 });
 

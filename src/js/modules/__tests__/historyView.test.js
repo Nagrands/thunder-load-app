@@ -260,7 +260,9 @@ describe("Downloader history list", () => {
     const inspectButton = document.querySelector(
       '.history-card-btn[data-action="inspect"]',
     );
-    const inspectorSlot = document.querySelector(".history-card-inspector-slot");
+    const inspectorSlot = document.querySelector(
+      ".history-card-inspector-slot",
+    );
 
     inspectButton.click();
     await Promise.resolve();
@@ -274,7 +276,9 @@ describe("Downloader history list", () => {
       filePath: "/tmp/video.mp4",
     });
     expect(inspectorSlot.classList.contains("hidden")).toBe(false);
-    expect(inspectorSlot.querySelector(".media-inspector-card--history")).not.toBeNull();
+    expect(
+      inspectorSlot.querySelector(".media-inspector-card--history"),
+    ).not.toBeNull();
 
     inspectButton.click();
     await Promise.resolve();
@@ -298,20 +302,28 @@ describe("Downloader history list", () => {
     await Promise.resolve();
 
     const rows = document.querySelectorAll(".history-row");
-    expect(rows[0].querySelector(".history-row__details")?.classList.contains("is-open")).toBe(
-      true,
-    );
-    expect(rows[0].querySelector(".history-row-inspector-slot.hidden")).toBeNull();
+    expect(
+      rows[0]
+        .querySelector(".history-row__details")
+        ?.classList.contains("is-open"),
+    ).toBe(true);
+    expect(
+      rows[0].querySelector(".history-row-inspector-slot.hidden"),
+    ).toBeNull();
 
     menuButtons[1].click();
     rows[1].querySelectorAll(".history-row__menu-item")[2].click();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(rows[0].querySelector(".history-row-inspector-slot")?.classList.contains("hidden")).toBe(
-      true,
-    );
-    expect(rows[1].querySelector(".history-row-inspector-slot.hidden")).toBeNull();
+    expect(
+      rows[0]
+        .querySelector(".history-row-inspector-slot")
+        ?.classList.contains("hidden"),
+    ).toBe(true);
+    expect(
+      rows[1].querySelector(".history-row-inspector-slot.hidden"),
+    ).toBeNull();
     expect(window.electron.tools.analyzeMediaFile).toHaveBeenLastCalledWith({
       filePath: "/tmp/second.mp4",
     });
