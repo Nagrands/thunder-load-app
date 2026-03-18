@@ -453,6 +453,9 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "sorter");
 
+    expect(el.querySelector(".sorter-shell")).not.toBeNull();
+    expect(el.querySelector(".sorter-workspace-strip")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-hero")).not.toBeNull();
     expect(el.querySelector(".sorter-workspace-panel")).not.toBeNull();
     expect(el.querySelector(".sorter-setup-grid")).not.toBeNull();
     expect(el.querySelector(".sorter-preview-layout")).not.toBeNull();
@@ -519,6 +522,9 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelectorAll("#sorter-preview-list .sorter-preview-row").length,
     ).toBe(1);
+    expect(
+      el.querySelector("#sorter-preview-list .sorter-preview-row__target-wrap"),
+    ).not.toBeNull();
     el.querySelector("#sorter-export-format").value = "json";
     el.querySelector("#sorter-copy-result")?.click();
     await nextTick();

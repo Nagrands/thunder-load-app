@@ -1106,7 +1106,7 @@ export default function renderToolsView() {
         </section>
 
         <section class="tools-view hidden" data-tool-view="sorter" aria-label="${t("tools.nav.current.sorter")}">
-          <article class="tools-card tools-detail-card">
+          <article class="tools-card tools-detail-card sorter-shell">
             <div class="tools-card__header">
               <h2 data-i18n="tools.sorter.title">${t("tools.sorter.title")}</h2>
               <button
@@ -1126,183 +1126,199 @@ export default function renderToolsView() {
             <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
               ${t("tools.sorter.subtitle")}
             </p>
-            <section class="sorter-workspace-panel" aria-label="${t("tools.sorter.workspace.title")}">
-              <div class="sorter-workspace-panel__header">
-                <div>
-                  <h3 data-i18n="tools.sorter.workspace.title">${t("tools.sorter.workspace.title")}</h3>
-                  <p class="muted" data-i18n="tools.sorter.workspace.subtitle">
-                    ${t("tools.sorter.workspace.subtitle")}
-                  </p>
-                </div>
-                <div class="sorter-actions">
-                  <button id="sorter-preview-run" type="button" class="large-button secondary">
-                    <i class="fa-regular fa-eye"></i>
-                    <span data-i18n="tools.sorter.previewAction">${t("tools.sorter.previewAction")}</span>
-                  </button>
-                  <button id="sorter-apply-run" type="button" class="large-button">
-                    <i class="fa-solid fa-play"></i>
-                    <span data-i18n="tools.sorter.applyAction">${t("tools.sorter.applyAction")}</span>
-                  </button>
-                </div>
-              </div>
-              <div class="sorter-workspace-grid">
-                <div class="sorter-workspace-field sorter-workspace-field--folder">
-                  <span class="muted hash-file-label" data-i18n="tools.sorter.folder">${t("tools.sorter.folder")}</span>
-                  <div class="hash-actions-inline sorter-folder-actions">
-                    <button id="sorter-pick-folder" type="button" class="small-button">
-                      <i class="fa-regular fa-folder-open"></i>
-                      <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
+            <div class="sorter-surfaces">
+              <section class="sorter-workspace-panel sorter-surface sorter-surface--workspace" aria-label="${t("tools.sorter.workspace.title")}">
+                <div class="sorter-workspace-panel__header">
+                  <div class="sorter-section-intro">
+                    <h3 data-i18n="tools.sorter.workspace.title">${t("tools.sorter.workspace.title")}</h3>
+                    <p class="muted" data-i18n="tools.sorter.workspace.subtitle">
+                      ${t("tools.sorter.workspace.subtitle")}
+                    </p>
+                  </div>
+                  <div class="sorter-actions">
+                    <button id="sorter-preview-run" type="button" class="large-button secondary">
+                      <i class="fa-regular fa-eye"></i>
+                      <span data-i18n="tools.sorter.previewAction">${t("tools.sorter.previewAction")}</span>
                     </button>
-                    <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">${t("tools.sorter.noFolder")}</span>
-                    <button id="sorter-open-folder" type="button" class="small-button" disabled>
-                      <i class="fa-solid fa-up-right-from-square"></i>
-                      <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
+                    <button id="sorter-apply-run" type="button" class="large-button">
+                      <i class="fa-solid fa-play"></i>
+                      <span data-i18n="tools.sorter.applyAction">${t("tools.sorter.applyAction")}</span>
                     </button>
                   </div>
                 </div>
-                <div class="sorter-workspace-field sorter-workspace-field--log">
-                  <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">${t("tools.sorter.logLabel")}</label>
-                  <input
-                    id="sorter-log-path"
-                    type="text"
-                    class="wg-input"
-                    data-i18n-placeholder="tools.sorter.logPlaceholder"
-                    placeholder="${t("tools.sorter.logPlaceholder")}"
-                  />
+                <div class="sorter-workspace-grid">
+                  <div class="sorter-workspace-field sorter-workspace-field--folder">
+                    <span class="muted hash-file-label" data-i18n="tools.sorter.folder">${t("tools.sorter.folder")}</span>
+                    <div class="sorter-workspace-strip">
+                      <div class="hash-actions-inline sorter-folder-actions">
+                        <button id="sorter-pick-folder" type="button" class="small-button">
+                          <i class="fa-regular fa-folder-open"></i>
+                          <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
+                        </button>
+                        <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">${t("tools.sorter.noFolder")}</span>
+                        <button id="sorter-open-folder" type="button" class="small-button" disabled>
+                          <i class="fa-solid fa-up-right-from-square"></i>
+                          <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sorter-workspace-field sorter-workspace-field--log">
+                    <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">${t("tools.sorter.logLabel")}</label>
+                    <div class="sorter-log-shell">
+                      <input
+                        id="sorter-log-path"
+                        type="text"
+                        class="wg-input"
+                        data-i18n-placeholder="tools.sorter.logPlaceholder"
+                        placeholder="${t("tools.sorter.logPlaceholder")}"
+                      />
+                    </div>
+                  </div>
                 </div>
+              </section>
+              <div class="sorter-setup-grid">
+                <section class="sorter-rules-panel sorter-surface sorter-surface--rules" aria-label="${t("tools.sorter.rules.title")}">
+                  <div class="sorter-rules-panel__header">
+                    <div class="sorter-section-intro">
+                      <h3 data-i18n="tools.sorter.rules.title">${t("tools.sorter.rules.title")}</h3>
+                      <p class="muted" data-i18n="tools.sorter.rules.subtitle">
+                        ${t("tools.sorter.rules.subtitle")}
+                      </p>
+                    </div>
+                  </div>
+                  <div id="sorter-rules-list" class="sorter-rules-list"></div>
+                </section>
+                <section class="sorter-options-panel sorter-surface sorter-surface--options" aria-label="${t("tools.sorter.options.title")}">
+                  <div class="sorter-options-panel__header">
+                    <div class="sorter-section-intro">
+                      <h3 data-i18n="tools.sorter.options.title">${t("tools.sorter.options.title")}</h3>
+                      <p class="muted" data-i18n="tools.sorter.options.subtitle">
+                        ${t("tools.sorter.options.subtitle")}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="sorter-options-grid">
+                    <div class="sorter-option-field">
+                      <label for="sorter-conflict-mode" class="muted" data-i18n="tools.sorter.conflicts.label">${t("tools.sorter.conflicts.label")}</label>
+                      <select id="sorter-conflict-mode" class="wg-input">
+                        <option value="rename" data-i18n="tools.sorter.conflicts.rename">${t("tools.sorter.conflicts.rename")}</option>
+                        <option value="skip" data-i18n="tools.sorter.conflicts.skip">${t("tools.sorter.conflicts.skip")}</option>
+                        <option value="replace" data-i18n="tools.sorter.conflicts.replace">${t("tools.sorter.conflicts.replace")}</option>
+                      </select>
+                    </div>
+                    <label class="sorter-option-toggle" for="sorter-recursive">
+                      <input id="sorter-recursive" type="checkbox" />
+                      <span>
+                        <strong data-i18n="tools.sorter.recursive.label">${t("tools.sorter.recursive.label")}</strong>
+                        <small class="muted" data-i18n="tools.sorter.recursive.hint">
+                          ${t("tools.sorter.recursive.hint")}
+                        </small>
+                      </span>
+                    </label>
+                    <div class="sorter-option-field">
+                      <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">${t("tools.sorter.ignoreExtensions.label")}</label>
+                      <input
+                        id="sorter-ignore-extensions"
+                        type="text"
+                        class="wg-input"
+                        data-i18n-placeholder="tools.sorter.ignoreExtensions.placeholder"
+                        placeholder=".tmp, .part, .crdownload"
+                      />
+                    </div>
+                    <div class="sorter-option-field">
+                      <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">${t("tools.sorter.ignoreFolders.label")}</label>
+                      <input
+                        id="sorter-ignore-folders"
+                        type="text"
+                        class="wg-input"
+                        data-i18n-placeholder="tools.sorter.ignoreFolders.placeholder"
+                        placeholder="temp, cache"
+                      />
+                    </div>
+                  </div>
+                </section>
               </div>
-            </section>
-            <div class="sorter-setup-grid">
-              <section class="sorter-rules-panel" aria-label="${t("tools.sorter.rules.title")}">
-                <div class="sorter-rules-panel__header">
-                  <h3 data-i18n="tools.sorter.rules.title">${t("tools.sorter.rules.title")}</h3>
-                  <p class="muted" data-i18n="tools.sorter.rules.subtitle">
-                    ${t("tools.sorter.rules.subtitle")}
-                  </p>
-                </div>
-                <div id="sorter-rules-list" class="sorter-rules-list"></div>
-              </section>
-              <section class="sorter-options-panel" aria-label="${t("tools.sorter.options.title")}">
-                <div class="sorter-options-panel__header">
-                  <h3 data-i18n="tools.sorter.options.title">${t("tools.sorter.options.title")}</h3>
-                  <p class="muted" data-i18n="tools.sorter.options.subtitle">
-                    ${t("tools.sorter.options.subtitle")}
-                  </p>
-                </div>
-                <div class="sorter-options-grid">
-                  <div class="sorter-option-field">
-                    <label for="sorter-conflict-mode" class="muted" data-i18n="tools.sorter.conflicts.label">${t("tools.sorter.conflicts.label")}</label>
-                    <select id="sorter-conflict-mode" class="wg-input">
-                      <option value="rename" data-i18n="tools.sorter.conflicts.rename">${t("tools.sorter.conflicts.rename")}</option>
-                      <option value="skip" data-i18n="tools.sorter.conflicts.skip">${t("tools.sorter.conflicts.skip")}</option>
-                      <option value="replace" data-i18n="tools.sorter.conflicts.replace">${t("tools.sorter.conflicts.replace")}</option>
-                    </select>
-                  </div>
-                  <label class="sorter-option-toggle" for="sorter-recursive">
-                    <input id="sorter-recursive" type="checkbox" />
-                    <span>
-                      <strong data-i18n="tools.sorter.recursive.label">${t("tools.sorter.recursive.label")}</strong>
-                      <small class="muted" data-i18n="tools.sorter.recursive.hint">
-                        ${t("tools.sorter.recursive.hint")}
-                      </small>
-                    </span>
-                  </label>
-                  <div class="sorter-option-field">
-                    <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">${t("tools.sorter.ignoreExtensions.label")}</label>
-                    <input
-                      id="sorter-ignore-extensions"
-                      type="text"
-                      class="wg-input"
-                      data-i18n-placeholder="tools.sorter.ignoreExtensions.placeholder"
-                      placeholder=".tmp, .part, .crdownload"
-                    />
-                  </div>
-                  <div class="sorter-option-field">
-                    <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">${t("tools.sorter.ignoreFolders.label")}</label>
-                    <input
-                      id="sorter-ignore-folders"
-                      type="text"
-                      class="wg-input"
-                      data-i18n-placeholder="tools.sorter.ignoreFolders.placeholder"
-                      placeholder="temp, cache"
-                    />
-                  </div>
-                </div>
-              </section>
             </div>
             <div id="sorter-result" class="quick-action-result muted" data-i18n="tools.sorter.resultIdle">
               ${t("tools.sorter.resultIdle")}
             </div>
-            <section id="sorter-preview-panel" class="sorter-preview-panel hidden" aria-live="polite">
-              <div class="sorter-preview-header">
-                <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">${t("tools.sorter.preview.title")}</h3>
-                <span
-                  id="sorter-preview-badge"
-                  class="sorter-preview-badge"
-                  data-i18n="tools.sorter.preview.badge"
-                >
-                  ${t("tools.sorter.preview.badge")}
-                </span>
-              </div>
-              <div class="sorter-preview-toolbar">
-                <div class="sorter-preview-toolbar__filters">
-                  <input
-                    id="sorter-preview-search"
-                    type="text"
-                    class="wg-input"
-                    data-i18n-placeholder="tools.sorter.preview.searchPlaceholder"
-                    placeholder="${t("tools.sorter.preview.searchPlaceholder")}"
-                  />
-                  <select id="sorter-preview-category-filter" class="wg-input">
-                    <option value="all" data-i18n="tools.sorter.preview.filter.all">${t("tools.sorter.preview.filter.all")}</option>
-                  </select>
-                  <select id="sorter-preview-status-filter" class="wg-input">
-                    <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">${t("tools.sorter.preview.statusFilter.all")}</option>
-                    <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">${t("tools.sorter.preview.statusFilter.planned")}</option>
-                    <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">${t("tools.sorter.preview.statusFilter.moved")}</option>
-                    <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">${t("tools.sorter.preview.statusFilter.skipped")}</option>
-                    <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">${t("tools.sorter.preview.statusFilter.error")}</option>
-                  </select>
+            <section id="sorter-preview-panel" class="sorter-preview-panel sorter-surface sorter-surface--preview hidden" aria-live="polite">
+              <div class="sorter-preview-hero">
+                <div class="sorter-preview-header">
+                  <div class="sorter-section-intro">
+                    <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">${t("tools.sorter.preview.title")}</h3>
+                  </div>
+                  <span
+                    id="sorter-preview-badge"
+                    class="sorter-preview-badge"
+                    data-i18n="tools.sorter.preview.badge"
+                  >
+                    ${t("tools.sorter.preview.badge")}
+                  </span>
                 </div>
-                <div class="sorter-preview-toolbar__actions">
-                  <select id="sorter-export-format" class="wg-input sorter-export-format">
-                    <option value="txt">TXT</option>
-                    <option value="csv">CSV</option>
-                    <option value="json">JSON</option>
-                  </select>
-                  <button id="sorter-copy-result" type="button" class="small-button">
-                    <i class="fa-regular fa-copy"></i>
-                    <span data-i18n="tools.sorter.copy">${t("tools.sorter.copy")}</span>
-                  </button>
-                  <button id="sorter-export-result" type="button" class="small-button">
-                    <i class="fa-regular fa-file-export"></i>
-                    <span data-i18n="tools.sorter.export">${t("tools.sorter.export")}</span>
-                  </button>
+                <div class="sorter-preview-toolbar">
+                  <div class="sorter-preview-toolbar__filters">
+                    <input
+                      id="sorter-preview-search"
+                      type="text"
+                      class="wg-input"
+                      data-i18n-placeholder="tools.sorter.preview.searchPlaceholder"
+                      placeholder="${t("tools.sorter.preview.searchPlaceholder")}"
+                    />
+                    <select id="sorter-preview-category-filter" class="wg-input">
+                      <option value="all" data-i18n="tools.sorter.preview.filter.all">${t("tools.sorter.preview.filter.all")}</option>
+                    </select>
+                    <select id="sorter-preview-status-filter" class="wg-input">
+                      <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">${t("tools.sorter.preview.statusFilter.all")}</option>
+                      <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">${t("tools.sorter.preview.statusFilter.planned")}</option>
+                      <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">${t("tools.sorter.preview.statusFilter.moved")}</option>
+                      <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">${t("tools.sorter.preview.statusFilter.skipped")}</option>
+                      <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">${t("tools.sorter.preview.statusFilter.error")}</option>
+                    </select>
+                  </div>
+                  <div class="sorter-preview-toolbar__actions">
+                    <select id="sorter-export-format" class="wg-input sorter-export-format">
+                      <option value="txt">TXT</option>
+                      <option value="csv">CSV</option>
+                      <option value="json">JSON</option>
+                    </select>
+                    <button id="sorter-copy-result" type="button" class="small-button">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="tools.sorter.copy">${t("tools.sorter.copy")}</span>
+                    </button>
+                    <button id="sorter-export-result" type="button" class="small-button">
+                      <i class="fa-regular fa-file-export"></i>
+                      <span data-i18n="tools.sorter.export">${t("tools.sorter.export")}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div id="sorter-preview-stats" class="sorter-preview-stats">
-                <div class="sorter-preview-stat sorter-preview-stat--primary">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.moved">${t("tools.sorter.preview.stats.moved")}</span>
-                  <strong id="sorter-preview-stat-moved">0</strong>
-                </div>
-                <div class="sorter-preview-stat">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.total">${t("tools.sorter.preview.stats.total")}</span>
-                  <strong id="sorter-preview-stat-total">0</strong>
-                </div>
-                <div class="sorter-preview-stat sorter-preview-stat--warning">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.skipped">${t("tools.sorter.preview.stats.skipped")}</span>
-                  <strong id="sorter-preview-stat-skipped">0</strong>
-                </div>
-                <div class="sorter-preview-stat sorter-preview-stat--danger">
-                  <span class="muted" data-i18n="tools.sorter.preview.stats.errors">${t("tools.sorter.preview.stats.errors")}</span>
-                  <strong id="sorter-preview-stat-errors">0</strong>
+                <div id="sorter-preview-stats" class="sorter-preview-stats">
+                  <div class="sorter-preview-stat sorter-preview-stat--primary">
+                    <span class="muted" data-i18n="tools.sorter.preview.stats.moved">${t("tools.sorter.preview.stats.moved")}</span>
+                    <strong id="sorter-preview-stat-moved">0</strong>
+                  </div>
+                  <div class="sorter-preview-stat">
+                    <span class="muted" data-i18n="tools.sorter.preview.stats.total">${t("tools.sorter.preview.stats.total")}</span>
+                    <strong id="sorter-preview-stat-total">0</strong>
+                  </div>
+                  <div class="sorter-preview-stat sorter-preview-stat--warning">
+                    <span class="muted" data-i18n="tools.sorter.preview.stats.skipped">${t("tools.sorter.preview.stats.skipped")}</span>
+                    <strong id="sorter-preview-stat-skipped">0</strong>
+                  </div>
+                  <div class="sorter-preview-stat sorter-preview-stat--danger">
+                    <span class="muted" data-i18n="tools.sorter.preview.stats.errors">${t("tools.sorter.preview.stats.errors")}</span>
+                    <strong id="sorter-preview-stat-errors">0</strong>
+                  </div>
                 </div>
               </div>
               <div class="sorter-preview-layout">
                 <div class="sorter-preview-main">
                   <div class="sorter-preview-list-panel">
                     <div class="sorter-preview-list-panel__header">
-                      <h4 data-i18n="tools.sorter.preview.list.title">${t("tools.sorter.preview.list.title")}</h4>
+                      <div class="sorter-preview-list-panel__header-copy">
+                        <h4 data-i18n="tools.sorter.preview.list.title">${t("tools.sorter.preview.list.title")}</h4>
+                      </div>
                       <span id="sorter-preview-list-count" class="sorter-section-count muted">0</span>
                     </div>
                     <div id="sorter-preview-list" class="sorter-preview-list"></div>

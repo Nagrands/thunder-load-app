@@ -6,13 +6,5 @@
 
 | What changed | What you get |
 |---|---|
-| Added Media Inspector | You can quickly inspect a local media file by tracks, codecs, and basic warnings before sharing or reviewing it |
-| Improved Power Shortcuts | Shortcut actions are grouped by task, each card shows a clearer state, and the last successful creation stays visible |
-| Improved startup responsiveness | The main screen reaches ready state faster while non-critical modules initialize later |
-| Simplified Settings and Tools | Large modules are split into smaller internal parts, so reopening screens and switching views is more stable |
-| Moved Backup into Tools | Backups are now presented as a tool inside Tools instead of a separate tab |
-| Fixed the post-download file-open prompt setting | The file-open prompt shown after a download now correctly follows this toggle |
-| Fixed formatting in the post-download dialog | The completion dialog no longer shows raw HTML tags and renders as a normal formatted message |
-| Updated development rules | Clearer architecture, build, UI, and IPC guidance for stable changes |
-| Fixed first-run step counter | The label no longer shows `{current}` and `{total}` placeholders |
-| Redesigned the Settings screen | Sections are easier to scan, module states are clearer, and the layout works better in narrow windows |
+| Redesigned the File Sorter interface | The top controls, rules, and especially the preview area are now cleaner, more contrasty, and easier to scan after each run |
+| Tightened the File Sorter layout | The top controls, setup area, and preview now take less space and are easier to scan on a single screen |

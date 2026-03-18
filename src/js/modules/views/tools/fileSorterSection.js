@@ -197,7 +197,7 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     sorterRulesListEl.replaceChildren();
     SORTER_CATEGORY_ORDER.forEach((category) => {
       const item = document.createElement("article");
-      item.className = "sorter-rule-card";
+      item.className = `sorter-rule-card sorter-rule-card--${category.toLowerCase()}`;
 
       const title = document.createElement("strong");
       title.textContent = t(`tools.sorter.category.${category}`);
@@ -583,7 +583,7 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
       shownOperations.forEach((operation) => {
         const rowData = formatSorterOperationRow(operation);
         const row = document.createElement("div");
-        row.className = "sorter-preview-row";
+        row.className = `sorter-preview-row sorter-preview-row--${rowData.status}`;
 
         const fileEl = document.createElement("span");
         fileEl.className = "sorter-preview-row__file";
@@ -612,7 +612,12 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
         categoryEl.className = "sorter-preview-row__category";
         categoryEl.textContent = rowData.category;
 
+        const targetWrapEl = document.createElement("div");
+        targetWrapEl.className = "sorter-preview-row__target-wrap";
+        targetWrapEl.append(targetEl, categoryEl);
+
         row.append(fileEl, targetEl, categoryEl);
+        row.replaceChildren(fileEl, targetWrapEl);
         sorterPreviewListEl.appendChild(row);
       });
     }
