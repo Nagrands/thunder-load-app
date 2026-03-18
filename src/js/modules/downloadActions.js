@@ -111,6 +111,11 @@ function initDownloadActions() {
     showToast(t("download.folder.changed", { path: newPath }), "success");
     // при необходимости обновляем UI здесь
   });
+  window.electron.on("download-complete", ({ filePath }) => {
+    if (!filePath) return;
+    window.localStorage.setItem("lastDownloadedFile", filePath);
+    if (openLastVideoButton) openLastVideoButton.disabled = false;
+  });
   initDownloadButton();
   // Обработчик открытия папки загрузок
   openFolderButton.addEventListener("click", handleOpenFolder);

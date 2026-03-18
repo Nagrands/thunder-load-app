@@ -653,11 +653,93 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#media-inspector-audio-count")?.textContent).toBe("1");
     expect(el.querySelector("#media-inspector-subtitle-count")?.textContent).toBe("1");
     expect(el.querySelectorAll(".media-inspector-warning").length).toBe(1);
+    expect(
+      el.querySelector("#media-inspector-warnings-section")?.classList.contains("is-populated"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-video-section")?.classList.contains("is-populated"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-audio-section")?.classList.contains("is-populated"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-subtitle-section")?.classList.contains("is-populated"),
+    ).toBe(true);
+    expect(el.querySelector(".media-inspector-stream-card__index")?.textContent).toBe("#1");
     expect(el.querySelector("#media-inspector-status")?.classList.contains("is-warning")).toBe(
       false,
     );
     expect(el.querySelector("#media-inspector-copy-report")?.hasAttribute("disabled")).toBe(false);
     expect(el.querySelector("#media-inspector-open-folder")?.hasAttribute("disabled")).toBe(false);
+  });
+
+  test("renders compact empty states for sections without streams", async () => {
+    window.electron.tools.analyzeMediaFile.mockResolvedValueOnce({
+      success: true,
+      report: {
+        file: {
+          path: "/tmp/audio-only.m4a",
+          name: "audio-only.m4a",
+          extension: ".m4a",
+          sizeBytes: 2048,
+        },
+        format: {
+          container: "m4a",
+          durationSec: 31,
+          bitrate: 262000,
+          probeScore: 100,
+        },
+        summary: {
+          videoCount: 0,
+          audioCount: 1,
+          subtitleCount: 0,
+          hasAudio: true,
+          hasVideo: false,
+        },
+        videoStreams: [],
+        audioStreams: [
+          {
+            codec: "aac",
+            channels: 2,
+            channelLayout: "stereo",
+            sampleRate: 44100,
+            bitrate: 262000,
+            language: "und",
+          },
+        ],
+        subtitleStreams: [],
+        warnings: [],
+        rawAvailable: true,
+      },
+    });
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(
+      el.querySelector("#media-inspector-warnings-section")?.classList.contains("is-empty"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-video-section")?.classList.contains("is-empty"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-audio-section")?.classList.contains("is-populated"),
+    ).toBe(true);
+    expect(
+      el.querySelector("#media-inspector-subtitle-section")?.classList.contains("is-empty"),
+    ).toBe(true);
+    expect(
+      el.querySelectorAll("#media-inspector-video-section .media-inspector-empty-state").length,
+    ).toBe(1);
+    expect(
+      el.querySelectorAll("#media-inspector-subtitle-section .media-inspector-empty-state").length,
+    ).toBe(1);
+    expect(
+      el.querySelectorAll("#media-inspector-warnings-section .media-inspector-empty-state").length,
+    ).toBe(1);
   });
 
   test("shows warning status when report contains warning-severity signals", async () => {
@@ -723,6 +805,9 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
+    expect(
+      el.querySelector("#media-inspector-warnings-section")?.classList.contains("is-populated"),
+    ).toBe(true);
     expect(el.querySelector("#media-inspector-status")?.classList.contains("is-warning")).toBe(
       true,
     );

@@ -79,6 +79,8 @@ const setupDom = () => {
       <select id="history-source-filter"></select>
       <select id="history-sort-key"></select>
       <select id="history-sort-mode"></select>
+      <div id="history-cards"></div>
+      <div id="history-cards-empty"></div>
       <div id="history-bulk-bar" class="history-bulk-bar hidden"></div>
       <span id="history-selected-count"></span>
       <button id="history-clear-selection"></button>
@@ -89,6 +91,31 @@ const setupDom = () => {
 
   global.window.electron = {
     invoke: jest.fn(),
+    tools: {
+      analyzeMediaFile: jest.fn().mockResolvedValue({
+        success: true,
+        report: {
+          file: {
+            path: "/tmp/video.mp4",
+            name: "video.mp4",
+            extension: ".mp4",
+            sizeBytes: 1048576,
+          },
+          format: {
+            container: "mp4",
+            durationSec: 12,
+            bitrate: 500000,
+            probeScore: 100,
+          },
+          videoStreams: [{ codec: "h264", width: 1280, height: 720, fps: 30 }],
+          audioStreams: [],
+          subtitleStreams: [],
+          warnings: [],
+          rawAvailable: true,
+        },
+      }),
+      showInFolder: jest.fn().mockResolvedValue({ success: true }),
+    },
   };
   global.window.scrollTo = jest.fn();
   global.window.lucide = {
@@ -97,6 +124,12 @@ const setupDom = () => {
   };
 
   global.requestAnimationFrame = (cb) => cb();
+  Object.defineProperty(navigator, "clipboard", {
+    value: {
+      writeText: jest.fn().mockResolvedValue(undefined),
+    },
+    configurable: true,
+  });
 
   const retryTarget = document.getElementById("url-input-wrapper");
   retryTarget.getBoundingClientRect = jest.fn(() => ({
@@ -211,10 +244,77 @@ describe("Downloader history list", () => {
     expect(menu).not.toBeNull();
     expect(menuButton).not.toBeNull();
     expect(menuList).not.toBeNull();
+    expect(menuList.textContent).toContain("Проверить");
     expect(menu.classList.contains("is-open")).toBe(false);
 
     menuButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(menu.classList.contains("is-open")).toBe(true);
+  });
+
+  test("opens inline media inspector inside a history card and toggles it closed", async () => {
+    window.electron.invoke.mockResolvedValue(true);
+    const { renderHistoryCards } = await import("../features/history/core.js");
+
+    renderHistoryCards([createEntry()]);
+
+    const inspectButton = document.querySelector(
+      '.history-card-btn[data-action="inspect"]',
+    );
+    const inspectorSlot = document.querySelector(".history-card-inspector-slot");
+
+    inspectButton.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "check-file-exists",
+      "/tmp/video.mp4",
+    );
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
+      filePath: "/tmp/video.mp4",
+    });
+    expect(inspectorSlot.classList.contains("hidden")).toBe(false);
+    expect(inspectorSlot.querySelector(".media-inspector-card--history")).not.toBeNull();
+
+    inspectButton.click();
+    await Promise.resolve();
+
+    expect(inspectorSlot.classList.contains("hidden")).toBe(true);
+  });
+
+  test("opens inline media inspector inside row details and keeps only one open", async () => {
+    window.electron.invoke.mockResolvedValue(true);
+    const { renderHistory } = await import("../history.js");
+
+    renderHistory([
+      createEntry({ id: "1", fileName: "First" }),
+      createEntry({ id: "2", fileName: "Second", filePath: "/tmp/second.mp4" }),
+    ]);
+
+    const menuButtons = document.querySelectorAll(".history-row__menu-button");
+    menuButtons[0].click();
+    document.querySelectorAll(".history-row__menu-item")[2].click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const rows = document.querySelectorAll(".history-row");
+    expect(rows[0].querySelector(".history-row__details")?.classList.contains("is-open")).toBe(
+      true,
+    );
+    expect(rows[0].querySelector(".history-row-inspector-slot.hidden")).toBeNull();
+
+    menuButtons[1].click();
+    rows[1].querySelectorAll(".history-row__menu-item")[2].click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(rows[0].querySelector(".history-row-inspector-slot")?.classList.contains("hidden")).toBe(
+      true,
+    );
+    expect(rows[1].querySelector(".history-row-inspector-slot.hidden")).toBeNull();
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenLastCalledWith({
+      filePath: "/tmp/second.mp4",
+    });
   });
 
   test("renders compact row badge line with source and size", async () => {

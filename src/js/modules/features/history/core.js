@@ -33,6 +33,7 @@ import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
 import { focusUrlInputAfterRetry } from "../../retryFocus.js";
 import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
+import { initMediaInspectorPanel } from "../../views/tools/mediaInspectorPanel.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
@@ -105,6 +106,10 @@ let historyFiltersToggleButton = null;
 let historyFiltersBody = null;
 let historyFiltersCollapsed = false;
 let historySearchClearBound = false;
+let activeHistoryInspectorEntryId = "";
+let activeHistoryInspectorRoot = null;
+let activeHistoryInspectorPanel = null;
+let activeHistoryInspectorTrigger = null;
 
 const HISTORY_FILTERS_COLLAPSED_KEY = "historyFiltersCollapsed";
 
@@ -2112,6 +2117,80 @@ async function openHistoryCardFolder(entry) {
   }
 }
 
+function hideActiveHistoryInspector() {
+  if (activeHistoryInspectorRoot) {
+    activeHistoryInspectorRoot.innerHTML = "";
+    activeHistoryInspectorRoot.classList.add("hidden");
+    activeHistoryInspectorRoot.classList.remove("is-open");
+  }
+  if (activeHistoryInspectorTrigger) {
+    activeHistoryInspectorTrigger.classList.remove("is-active");
+  }
+  activeHistoryInspectorEntryId = "";
+  activeHistoryInspectorRoot = null;
+  activeHistoryInspectorPanel = null;
+  activeHistoryInspectorTrigger = null;
+  historyVirtualList?.requestRender?.();
+}
+
+async function inspectHistoryCardFile(
+  entry,
+  { root = null, trigger = null, ensureVisible = null } = {},
+) {
+  if (!entry?.filePath) return;
+  try {
+    const exists = await window.electron.invoke(
+      "check-file-exists",
+      entry.filePath,
+    );
+    if (!exists) {
+      entry.isMissing = true;
+      markEntryMissing(entry);
+      return showToast(t("history.toast.fileMissing"), "error");
+    }
+
+    const entryId = entry.id?.toString?.() || "";
+    const isSameEntryOpen =
+      activeHistoryInspectorEntryId &&
+      activeHistoryInspectorEntryId === entryId &&
+      activeHistoryInspectorRoot === root;
+
+    if (isSameEntryOpen) {
+      hideActiveHistoryInspector();
+      return;
+    }
+
+    hideActiveHistoryInspector();
+
+    if (!(root instanceof HTMLElement)) return;
+
+    ensureVisible?.();
+    root.classList.remove("hidden");
+    root.classList.add("is-open");
+
+    const panel = initMediaInspectorPanel({
+      root,
+      t,
+      allowPickFile: false,
+      autoAnalyzeInitial: false,
+      variant: "history",
+    });
+    if (!panel) return;
+
+    activeHistoryInspectorEntryId = entryId;
+    activeHistoryInspectorRoot = root;
+    activeHistoryInspectorPanel = panel;
+    activeHistoryInspectorTrigger = trigger instanceof HTMLElement ? trigger : null;
+    activeHistoryInspectorTrigger?.classList.add("is-active");
+
+    await panel.inspectFile(entry.filePath, { autoAnalyze: true });
+    historyVirtualList?.requestRender?.();
+  } catch (error) {
+    console.error("Ошибка при анализе файла истории:", error);
+    showToast(t("history.toast.fileOpenError"), "error");
+  }
+}
+
 function retryHistoryCardDownload(entry) {
   if (!entry?.sourceUrl || !urlInput || !downloadButton) {
     showToast(t("history.toast.retryUnavailable"), "warning");
@@ -2284,6 +2363,19 @@ function renderHistoryCards(entries = []) {
     openFolderBtn.disabled = entry.isMissing || !entry.filePath;
     openFolderBtn.addEventListener("click", () => openHistoryCardFolder(entry));
 
+    const inspectBtn = document.createElement("button");
+    inspectBtn.type = "button";
+    inspectBtn.className = "history-card-btn ghost";
+    inspectBtn.dataset.action = "inspect";
+    inspectBtn.innerHTML = `<i data-lucide="activity"></i><span>${t(
+      "history.action.inspect",
+    )}</span>`;
+    inspectBtn.title = t("history.action.inspectFile");
+    inspectBtn.setAttribute("data-i18n-title", "history.action.inspectFile");
+    inspectBtn.setAttribute("data-bs-toggle", "tooltip");
+    inspectBtn.setAttribute("data-bs-placement", "top");
+    inspectBtn.disabled = entry.isMissing || !entry.filePath;
+
     const retryBtn = document.createElement("button");
     retryBtn.type = "button";
     retryBtn.className = "history-card-btn ghost";
@@ -2300,8 +2392,19 @@ function renderHistoryCards(entries = []) {
       retryBtn.addEventListener("click", () => retryHistoryCardDownload(entry));
     }
 
-    actions.append(openBtn, openFolderBtn, retryBtn);
+    actions.append(openBtn, openFolderBtn, inspectBtn, retryBtn);
     body.appendChild(actions);
+
+    const inspectorSlot = document.createElement("section");
+    inspectorSlot.className = "history-card-inspector-slot hidden";
+    body.appendChild(inspectorSlot);
+
+    inspectBtn.addEventListener("click", () =>
+      inspectHistoryCardFile(entry, {
+        root: inspectorSlot,
+        trigger: inspectBtn,
+      }),
+    );
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
@@ -2581,6 +2684,11 @@ function createLogEntry(entry, groupKey = "unknown") {
     onClick: () => retryHistoryCardDownload(entry),
   });
 
+  const inspectItem = menuItem(t("history.action.inspect"), "activity", {
+    disabled: entry.isMissing || !entry.filePath,
+    onClick: () => openInspectorFromRow(),
+  });
+
   const deleteItem = menuItem(
     t("history.action.deleteFromHistory"),
     "trash-2",
@@ -2589,7 +2697,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     },
   );
 
-  menuList.append(openSourceItem, retryItem, deleteItem);
+  menuList.append(openSourceItem, retryItem, inspectItem, deleteItem);
   menu.append(menuButton, menuList);
 
   menuButton.addEventListener("click", (event) => {
@@ -2703,6 +2811,8 @@ function createLogEntry(entry, groupKey = "unknown") {
 
   const detailsMeta = document.createElement("div");
   detailsMeta.className = "history-row__details-meta";
+  const inspectorSlot = document.createElement("section");
+  inspectorSlot.className = "history-row-inspector-slot hidden";
 
   const addDetail = (label, value, options = {}) => {
     if (!value) return;
@@ -2782,7 +2892,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   addDetail(t("history.detail.size"), formatSizeLabel(entry));
   addDetail(t("history.detail.date"), entry.dateText || "");
 
-  details.append(preview, detailsMeta);
+  details.append(preview, detailsMeta, inspectorSlot);
 
   checkbox.addEventListener("change", (e) => {
     const isChecked = e.target.checked;
@@ -2801,9 +2911,12 @@ function createLogEntry(entry, groupKey = "unknown") {
     updateDeleteSelectedButton();
   });
 
-  const toggleDetails = (event = null) => {
+  const setDetailsOpen = (nextOpen, event = null) => {
     event?.stopPropagation?.();
-    const isOpen = !details.classList.contains("is-open");
+    const isOpen = !!nextOpen;
+    if (!isOpen && activeHistoryInspectorRoot === inspectorSlot) {
+      hideActiveHistoryInspector();
+    }
     details.classList.toggle("is-open", isOpen);
     el.classList.toggle("is-open", isOpen);
     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -2816,6 +2929,9 @@ function createLogEntry(entry, groupKey = "unknown") {
     historyVirtualList?.requestRender?.();
   };
 
+  const toggleDetails = (event = null) =>
+    setDetailsOpen(!details.classList.contains("is-open"), event);
+
   toggle.addEventListener("click", (event) => toggleDetails(event));
 
   el.addEventListener("click", (event) => {
@@ -2827,6 +2943,17 @@ function createLogEntry(entry, groupKey = "unknown") {
     }
     toggleDetails();
   });
+
+  const openInspectorFromRow = () =>
+    inspectHistoryCardFile(entry, {
+      root: inspectorSlot,
+      trigger: menuButton,
+      ensureVisible: () => {
+        if (!details.classList.contains("is-open")) {
+          setDetailsOpen(true);
+        }
+      },
+    });
 
   if (entry._highlight) {
     el.classList.add("new-entry");
@@ -3131,6 +3258,7 @@ function renderHistory(entries, meta = {}) {
   applyHistoryDensity();
   bindHistoryMenuClose();
   closeHistoryMoreMenu();
+  hideActiveHistoryInspector();
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
   destroyHistoryVirtualList();
@@ -3485,6 +3613,7 @@ export {
   initHistoryState,
   getHistoryData,
   renderHistory,
+  renderHistoryCards,
   sortHistory,
   updateDownloadCount,
   loadHistory,
