@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The Hash Check interface was redesigned | The primary verification flow is easier to follow, and second-file comparison now appears only when it is actually needed |
 | Hash Check now includes a file drop zone | You can drag one or two files straight into the app window to verify or compare them immediately |
 | The settings modal now opens centered within the app window | Settings feel more stable and no longer stick to the top edge of the interface |
 | Reduced noise in startup logs | It is easier to spot important startup events because routine service details no longer dominate the log |

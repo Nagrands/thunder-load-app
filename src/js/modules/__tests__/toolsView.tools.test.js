@@ -44,6 +44,33 @@ function dispatchFileDrop(target, filePaths) {
   target.dispatchEvent(event);
 }
 
+function dispatchFileDropFromMixedSources(
+  target,
+  {
+    files = [],
+    items = [],
+    textUriList = "",
+    textPlain = "",
+  } = {},
+) {
+  const event = new Event("drop", { bubbles: true });
+  Object.defineProperty(event, "dataTransfer", {
+    configurable: true,
+    value: {
+      files: files.map((filePath) => makeDroppedFile(filePath)),
+      items: items.map((filePath) => ({
+        getAsFile: () => makeDroppedFile(filePath),
+      })),
+      getData: (type) => {
+        if (type === "text/uri-list") return textUriList;
+        if (type === "text/plain") return textPlain;
+        return "";
+      },
+    },
+  });
+  target.dispatchEvent(event);
+}
+
 async function renderView() {
   const el = renderToolsView();
   document.body.appendChild(el);
@@ -65,6 +92,11 @@ async function openTool(el, tool) {
               ? "#tools-open-backup"
               : "#tools-open-sorter";
   el.querySelector(id)?.click();
+  await nextTick();
+}
+
+async function openHashCompare(el) {
+  el.querySelector("#hash-toggle-compare")?.click();
   await nextTick();
 }
 
@@ -1664,6 +1696,7 @@ describe("toolsView quick actions", () => {
 
     const el = await renderView();
     await openTool(el, "hash");
+    await openHashCompare(el);
 
     const pickFirstBtn = el.querySelector("#hash-pick-file");
     const pickSecondBtn = el.querySelector("#hash-pick-file-2");
@@ -1719,7 +1752,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(filePill?.textContent).toBe("dropped.bin");
-    expect(target?.textContent).toBe("hashCheck.dropTargetSecond");
+    expect(target?.textContent).toBe("hashCheck.dropTargetCompare");
   });
 
   test("accepts two dropped files and fills both hash slots", async () => {
@@ -1729,6 +1762,7 @@ describe("toolsView quick actions", () => {
     const dropZone = el.querySelector("#hash-drop-zone");
     const firstFilePill = el.querySelector("#hash-file-name");
     const secondFilePill = el.querySelector("#hash-file-name-2");
+    const comparePanel = el.querySelector("#hash-compare-panel");
     const target = el.querySelector("#hash-drop-target");
 
     dispatchFileDrop(dropZone, ["/tmp/first.iso", "/tmp/second.iso"]);
@@ -1736,7 +1770,30 @@ describe("toolsView quick actions", () => {
 
     expect(firstFilePill?.textContent).toBe("first.iso");
     expect(secondFilePill?.textContent).toBe("second.iso");
+    expect(comparePanel?.classList.contains("hidden")).toBe(false);
     expect(target?.textContent).toBe("hashCheck.dropTargetReplaceSecond");
+  });
+
+  test("combines dropped file paths from mixed dataTransfer sources", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const firstFilePill = el.querySelector("#hash-file-name");
+    const secondFilePill = el.querySelector("#hash-file-name-2");
+    const comparePanel = el.querySelector("#hash-compare-panel");
+
+    dispatchFileDropFromMixedSources(dropZone, {
+      files: ["/tmp/first-from-files.iso"],
+      items: ["/tmp/second-from-items.iso"],
+      textUriList:
+        "file:///tmp/first-from-files.iso\nfile:///tmp/second-from-items.iso",
+    });
+    await nextTick();
+
+    expect(firstFilePill?.textContent).toBe("first-from-files.iso");
+    expect(secondFilePill?.textContent).toBe("second-from-items.iso");
+    expect(comparePanel?.classList.contains("hidden")).toBe(false);
   });
 
   test("highlights hash drop zone during drag operations", async () => {
@@ -1765,6 +1822,7 @@ describe("toolsView quick actions", () => {
 
     const el = await renderView();
     await openTool(el, "hash");
+    await openHashCompare(el);
 
     const pickFirstBtn = el.querySelector("#hash-pick-file");
     const pickSecondBtn = el.querySelector("#hash-pick-file-2");
@@ -1837,6 +1895,7 @@ describe("toolsView quick actions", () => {
 
     const el = await renderView();
     await openTool(el, "hash");
+    await openHashCompare(el);
 
     const pickFirstBtn = el.querySelector("#hash-pick-file");
     const pickSecondBtn = el.querySelector("#hash-pick-file-2");
@@ -1871,6 +1930,7 @@ describe("toolsView quick actions", () => {
     );
     const el = await renderView();
     await openTool(el, "hash");
+    await openHashCompare(el);
 
     const pickBtn = el.querySelector("#hash-pick-file");
     const pickSecondBtn = el.querySelector("#hash-pick-file-2");
@@ -1900,6 +1960,23 @@ describe("toolsView quick actions", () => {
     expect(algo.disabled).toBe(false);
     expect(expected.disabled).toBe(false);
     expect(panel.getAttribute("aria-busy")).toBe("false");
+  });
+
+  test("keeps compare section hidden until user asks for it", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const toggle = el.querySelector("#hash-toggle-compare");
+    const comparePanel = el.querySelector("#hash-compare-panel");
+
+    expect(comparePanel?.classList.contains("hidden")).toBe(true);
+    expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+
+    toggle.click();
+    await nextTick();
+
+    expect(comparePanel?.classList.contains("hidden")).toBe(false);
+    expect(toggle?.getAttribute("aria-expanded")).toBe("true");
   });
 
   test("shows power tool on macos in developer mode but keeps windows actions disabled", async () => {

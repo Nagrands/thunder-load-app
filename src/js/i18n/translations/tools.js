@@ -405,6 +405,20 @@ export const toolsTranslations = {
     "hashCheck.subtitle": "Проверьте целостность файла по контрольной сумме.",
     "hashCheck.file1": "Файл 1",
     "hashCheck.file2": "Файл 2",
+    "hashCheck.primaryFile": "Основной файл",
+    "hashCheck.compareFile": "Файл для сравнения",
+    "hashCheck.compareTitle": "Сравнение",
+    "hashCheck.compareHint":
+      "Добавьте второй файл только если хотите сравнить две контрольные суммы.",
+    "hashCheck.compareToggle.open": "Сравнить с другим файлом",
+    "hashCheck.compareToggle.close": "Скрыть сравнение",
+    "hashCheck.stage.source": "Источник файла",
+    "hashCheck.stage.sourceHint":
+      "Сначала выберите основной файл или перетащите его в область ниже.",
+    "hashCheck.stage.options": "Параметры проверки",
+    "hashCheck.stage.optionsHint":
+      "Выберите алгоритм и при необходимости вставьте ожидаемый хеш.",
+    "hashCheck.resultTitle": "Результат проверки",
     "hashCheck.pickFile": "Выбрать файл",
     "hashCheck.noFile": "Файл не выбран",
     "hashCheck.pickFileSecond": "Выбрать файл",
@@ -473,10 +487,13 @@ export const toolsTranslations = {
       "Бросьте один файл для проверки или сразу два файла для сравнения.",
     "hashCheck.dropHintSecond":
       "Первый файл уже выбран. Бросьте второй файл для сравнения.",
+    "hashCheck.dropHintCompare":
+      "Основной файл уже выбран. Можно открыть сравнение или сразу бросить второй файл.",
     "hashCheck.dropHintReplaceSecond":
       "Оба файла выбраны. Новый файл заменит файл 2.",
     "hashCheck.dropHintBusy": "Дождитесь завершения вычисления хеша.",
     "hashCheck.dropTargetFirst": "Следующий файл: файл 1",
+    "hashCheck.dropTargetCompare": "Следующее действие: открыть сравнение или файл 2",
     "hashCheck.dropTargetSecond": "Следующий файл: файл 2",
     "hashCheck.dropTargetReplaceSecond": "Следующий файл: заменить файл 2",
     "hashCheck.dropError": "Не удалось получить путь к перетащенному файлу.",
@@ -1111,6 +1128,20 @@ export const toolsTranslations = {
     "hashCheck.subtitle": "Verify file integrity with checksums.",
     "hashCheck.file1": "File 1",
     "hashCheck.file2": "File 2",
+    "hashCheck.primaryFile": "Primary file",
+    "hashCheck.compareFile": "Compare file",
+    "hashCheck.compareTitle": "Comparison",
+    "hashCheck.compareHint":
+      "Add a second file only when you want to compare two checksums.",
+    "hashCheck.compareToggle.open": "Compare with another file",
+    "hashCheck.compareToggle.close": "Hide comparison",
+    "hashCheck.stage.source": "File source",
+    "hashCheck.stage.sourceHint":
+      "Choose the primary file first or drop it into the area below.",
+    "hashCheck.stage.options": "Verification settings",
+    "hashCheck.stage.optionsHint":
+      "Pick an algorithm and paste an expected hash if needed.",
+    "hashCheck.resultTitle": "Verification result",
     "hashCheck.pickFile": "Pick file",
     "hashCheck.noFile": "No file selected",
     "hashCheck.pickFileSecond": "Pick file",
@@ -1179,10 +1210,13 @@ export const toolsTranslations = {
       "Drop one file to verify it, or drop two files at once to compare them.",
     "hashCheck.dropHintSecond":
       "The first file is already selected. Drop a second file to compare.",
+    "hashCheck.dropHintCompare":
+      "The primary file is ready. Open comparison or drop a second file right away.",
     "hashCheck.dropHintReplaceSecond":
       "Both files are selected. A new drop will replace file 2.",
     "hashCheck.dropHintBusy": "Wait until hash calculation is finished.",
     "hashCheck.dropTargetFirst": "Next file: file 1",
+    "hashCheck.dropTargetCompare": "Next action: open comparison or file 2",
     "hashCheck.dropTargetSecond": "Next file: file 2",
     "hashCheck.dropTargetReplaceSecond": "Next file: replace file 2",
     "hashCheck.dropError": "Could not read the dropped file path.",

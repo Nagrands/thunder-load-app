@@ -24384,9 +24384,59 @@ video {
   margin: 0;
 }
 
+.hash-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.hash-stage {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(8, 14, 24, 0.08)), rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.hash-stage__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.hash-stage__step {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(var(--color-accent-rgb), 0.18);
+  color: var(--color-highlight);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.hash-stage__copy {
+  display: grid;
+  gap: 4px;
+}
+.hash-stage__copy h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+.hash-stage__copy p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 .hash-check-grid {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .hash-drop-zone {
@@ -24458,6 +24508,58 @@ video {
   white-space: nowrap;
 }
 
+.hash-file-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr);
+  gap: 14px;
+}
+
+.hash-file-card,
+.hash-compare-panel {
+  min-width: 0;
+}
+
+.hash-file-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(8, 14, 24, 0.05)), rgba(255, 255, 255, 0.015);
+}
+
+.hash-file-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hash-file-card__body {
+  display: grid;
+  gap: 10px;
+}
+
+.hash-file-card__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.hash-compare-toggle {
+  align-self: start;
+}
+.hash-compare-toggle.is-active {
+  border-color: rgba(var(--color-accent-rgb), 0.36);
+  background: rgba(var(--color-accent-rgb), 0.12);
+}
+
+.hash-compare-panel {
+  display: grid;
+  gap: 12px;
+}
+
 .hash-row {
   display: grid;
   gap: 12px;
@@ -24474,13 +24576,13 @@ video {
 }
 
 .hash-row--top {
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  align-items: end;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  align-items: start;
 }
 
 .hash-row--bottom {
-  grid-template-columns: minmax(0, 1fr) minmax(120px, 170px);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
+  align-items: center;
 }
 
 .hash-actions-inline {
@@ -25103,16 +25205,17 @@ video {
 }
 
 .hash-file-pill {
-  display: inline-block;
-  min-height: 38px;
-  line-height: 38px;
-  padding: 0 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-accent);
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  line-height: 1.3;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.18);
+  background: rgba(var(--color-accent-rgb), 0.07);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-highlight);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -25132,9 +25235,9 @@ video {
 .hash-result-panel {
   margin-top: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius);
-  background: var(--color-hover);
-  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(8, 14, 24, 0.1)), rgba(255, 255, 255, 0.02);
+  padding: 18px;
   display: grid;
   gap: 15px;
 }
@@ -25153,13 +25256,26 @@ video {
 
 .hash-result-panel__top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 .hash-result-panel__top > * {
   min-width: 0;
+}
+
+.hash-result-panel__headline {
+  display: grid;
+  gap: 6px;
+}
+
+.hash-result-panel__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-quality);
 }
 
 .hash-status-badge {
@@ -25196,18 +25312,18 @@ video {
 
 .hash-actual-box {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.14);
+  padding: 12px;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 .hash-actual-box code {
   display: block;
   margin: 0;
   color: var(--color-highlight);
-  font-size: 0.8rem;
-  line-height: 1.25;
+  font-size: 0.84rem;
+  line-height: 1.35;
   font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   white-space: nowrap;
   overflow-x: auto;
@@ -25254,24 +25370,37 @@ video {
 }
 
 .hash-result-panel .quick-action-result {
+  margin: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.96rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .hash-compare-details {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 8px 10px;
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .hash-compare-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.hash-compare-row__label {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .hash-compare-state {
@@ -26311,6 +26440,18 @@ video {
   .hash-actions-inline {
     grid-template-columns: 1fr;
   }
+  .hash-stage {
+    padding: 14px;
+  }
+  .hash-stage__header,
+  .hash-file-grid,
+  .hash-compare-details {
+    grid-template-columns: 1fr;
+  }
+  .hash-file-card__top {
+    align-items: stretch;
+    flex-direction: column;
+  }
   .hash-drop-zone {
     grid-template-columns: 1fr;
     align-items: start;
@@ -26318,6 +26459,9 @@ video {
   .hash-drop-zone__target {
     justify-self: start;
     white-space: normal;
+  }
+  .hash-result-panel__top {
+    flex-direction: column;
   }
   .sorter-folder-actions {
     grid-template-columns: 1fr;
