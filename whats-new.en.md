@@ -6,6 +6,8 @@
 
 | What changed | What you get |
 |---|---|
+| The settings window now uses a flatter visual style | The interface feels quieter and more compact, with fewer heavy effects, less visual noise, and a more predictable section structure |
+| The settings sections were tightened up | Decorative blocks were removed and spacing/min heights were reduced, so the window reaches scroll states less often |
 | The Hash Check interface was redesigned | The primary verification flow is easier to follow, and second-file comparison now appears only when it is actually needed |
 | Hash Check now includes a file drop zone | You can drag one or two files straight into the app window to verify or compare them immediately |
 | The settings modal now opens centered within the app window | Settings feel more stable and no longer stick to the top edge of the interface |

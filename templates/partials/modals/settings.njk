@@ -15,103 +15,103 @@
           >
             &times;
           </button>
-          <h1 id="settings-title">
-            <i class="fa-solid fa-gear"></i>
-            <span data-i18n="modal.settings">Настройки</span>
-          </h1>
+          <div class="settings-modal-heading">
+            <h1 id="settings-title">
+              <i class="fa-solid fa-gear"></i>
+              <span data-i18n="modal.settings">Настройки</span>
+            </h1>
+          </div>
 
           <div class="settings-layout">
-            <div class="settings-sections-toolbar">
-              <button
-                id="settings-sections-toggle"
-                class="settings-sections-toggle"
-                type="button"
-                aria-label="Показать разделы настроек"
-                data-i18n-aria="settings.sections.toggle"
-                aria-expanded="false"
-                aria-controls="settings-tabs-panel"
-              >
-                <i class="fa-solid fa-bars" aria-hidden="true"></i>
-                <span data-i18n="settings.sections.menu">Разделы</span>
-              </button>
-              <span
-                id="settings-active-section-label"
-                class="settings-active-section-label"
-              >
-                Общие
-              </span>
-            </div>
-
-            <!-- Tab Navigation -->
-            <div
-              id="settings-tabs-panel"
-              class="settings-tabs-wrapper"
-              data-open="false"
-            >
-              <div class="settings-tabs">
-              <!-- <div class="tab-navigation"> -->
-              <button
-                class="tab-link active"
-                data-tab="general-settings"
-              >
-                <i class="fa-solid fa-house"></i>
-                <span data-i18n="settings.tabs.general">Общие</span>
-              </button>
-              <button class="tab-link" data-tab="window-settings">
-                <i class="fa-solid fa-download"></i>
-                <span data-i18n="settings.tabs.downloader">Downloader</span>
-              </button>
-              <button class="tab-link" data-tab="wgunlock-settings">
-                <i class="fa-solid fa-screwdriver-wrench"></i>
-                <span data-i18n="settings.tabs.wg">Инструменты</span>
-                <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
-                  <span data-i18n="settings.tab.disabled">Выкл</span>
+            <aside class="settings-shell-sidebar">
+              <div class="settings-sections-toolbar">
+                <button
+                  id="settings-sections-toggle"
+                  class="settings-sections-toggle"
+                  type="button"
+                  aria-label="Показать разделы настроек"
+                  data-i18n-aria="settings.sections.toggle"
+                  aria-expanded="false"
+                  aria-controls="settings-tabs-panel"
+                >
+                  <i class="fa-solid fa-bars" aria-hidden="true"></i>
+                  <span data-i18n="settings.sections.menu">Разделы</span>
+                </button>
+                <span
+                  id="settings-active-section-label"
+                  class="settings-active-section-label"
+                >
+                  Общие
                 </span>
-              </button>
-              <button class="tab-link" data-tab="appearance-settings">
-                <i class="fa-solid fa-palette"></i>
-                <span data-i18n="settings.tabs.appearance">Внешний вид</span>
-              </button>
-              <button class="tab-link" data-tab="other-settings">
-                <i class="fa-solid fa-wrench"></i>
-                <span data-i18n="settings.tabs.other">Другое</span>
-              </button>
-              <!-- </div> -->
-              <div class="tabs-footer">
-                <div class="tabs-footer-row">
-                  <span class="muted">
-                    <i class="fa-solid fa-bolt"></i>
-                    Thunderload
+              </div>
+
+              <!-- Tab Navigation -->
+              <div
+                id="settings-tabs-panel"
+                class="settings-tabs-wrapper"
+                data-open="false"
+              >
+                <div class="settings-tabs">
+                <button
+                  class="tab-link active"
+                  data-tab="general-settings"
+                >
+                  <i class="fa-solid fa-house"></i>
+                  <span data-i18n="settings.tabs.general">Общие</span>
+                </button>
+                <button class="tab-link" data-tab="window-settings">
+                  <i class="fa-solid fa-download"></i>
+                  <span data-i18n="settings.tabs.downloader">Downloader</span>
+                </button>
+                <button class="tab-link" data-tab="wgunlock-settings">
+                  <i class="fa-solid fa-screwdriver-wrench"></i>
+                  <span data-i18n="settings.tabs.wg">Инструменты</span>
+                  <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
+                    <span data-i18n="settings.tab.disabled">Выкл</span>
                   </span>
-                  <strong id="settings-tabs-version" class="muted">—</strong>
-                </div>
-                <div class="tabs-footer-row">
-                  <span class="muted">
-                    <i class="fa-solid fa-microchip"></i>
-                    Electron
-                  </span>
-                  <strong id="settings-tabs-electron-version" class="muted"
-                    >—</strong
-                  >
+                </button>
+                <button class="tab-link" data-tab="appearance-settings">
+                  <i class="fa-solid fa-palette"></i>
+                  <span data-i18n="settings.tabs.appearance">Внешний вид</span>
+                </button>
+                <button class="tab-link" data-tab="other-settings">
+                  <i class="fa-solid fa-wrench"></i>
+                  <span data-i18n="settings.tabs.other">Другое</span>
+                </button>
+                <div class="tabs-footer">
+                  <div class="tabs-footer-row">
+                    <span class="muted">
+                      <i class="fa-solid fa-bolt"></i>
+                      Thunderload
+                    </span>
+                    <strong id="settings-tabs-version" class="muted">—</strong>
+                  </div>
+                  <div class="tabs-footer-row">
+                    <span class="muted">
+                      <i class="fa-solid fa-microchip"></i>
+                      Electron
+                    </span>
+                    <strong id="settings-tabs-electron-version" class="muted"
+                      >—</strong
+                    >
+                  </div>
                 </div>
               </div>
               </div>
-            </div>
+            </aside>
 
             <!-- Tab Content -->
+            <div class="settings-shell-main">
             <div class="tab-content">
               <!-- General Settings Tab -->
               <div id="general-settings" class="tab-pane active">
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.tabs.general">Общие</h2>
-                    <p data-i18n="settings.startup.hint">
-                      Настройте параметры запуска для удобного использования.
-                    </p>
                   </div>
                 </div>
-                <div class="settings-grid">
-                  <section class="settings-card">
+                <div class="settings-pane-stack settings-pane-stack--general">
+                  <section class="settings-card settings-card--section">
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.startup.title">
                         Настройки запуска
@@ -121,8 +121,8 @@
                       </p>
                     </div>
                     <div class="settings-card__body">
-                      <ul class="module settings-control-list">
-                        <li class="settings-control">
+                      <ul class="module settings-control-list settings-control-list--flat">
+                        <li class="settings-control settings-control--flat">
                           <input type="checkbox" id="settings-auto-launch-toggle" />
                           <label for="settings-auto-launch-toggle">
                             <i class="fa-brands fa-windows"></i>
@@ -132,7 +132,7 @@
                             >
                           </label>
                         </li>
-                        <li class="settings-control">
+                        <li class="settings-control settings-control--flat">
                           <input
                             type="checkbox"
                             id="settings-minimize-on-launch-toggle"
@@ -149,18 +149,15 @@
                     </div>
                   </section>
 
-                  <section class="settings-card">
+                  <section class="settings-card settings-card--section">
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.startup.openTab">
                         При запуске открывать
                       </h3>
-                      <p class="settings-card__desc" data-i18n="settings.startup.openTabHint">
-                        Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.
-                      </p>
                     </div>
                     <div class="settings-card__body">
-                      <ul class="module default-tab-group settings-control-list">
-                        <li class="custom-theme-select settings-control">
+                      <ul class="module default-tab-group settings-control-list settings-control-list--flat settings-control-list--choice settings-control-list--startup-choice">
+                        <li class="custom-theme-select settings-control settings-control--flat">
                           <input
                             type="radio"
                             id="settings-tab-downloader"
@@ -170,10 +167,12 @@
                           />
                           <label for="settings-tab-downloader">
                             <i class="fa-solid fa-download"></i>
-                            <strong data-i18n="tabs.download">Downloader</strong>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="tabs.download">Downloader</strong>
+                            </span>
                           </label>
                         </li>
-                        <li class="custom-theme-select settings-control">
+                        <li class="custom-theme-select settings-control settings-control--flat">
                           <input
                             type="radio"
                             id="settings-tab-wgsend"
@@ -182,14 +181,16 @@
                           />
                           <label for="settings-tab-wgsend">
                             <i class="fa-solid fa-unlock-keyhole"></i>
-                            <strong data-i18n="tabs.tools">Инструменты</strong>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="tabs.tools">Инструменты</strong>
+                            </span>
                           </label>
                         </li>
                       </ul>
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--stacked">
+                  <section class="settings-card settings-card--section">
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.close.title">
                         Закрытие приложения
@@ -199,8 +200,8 @@
                       </p>
                     </div>
                     <div class="settings-card__body">
-                      <ul class="module settings-control-list">
-                        <li class="settings-control">
+                      <ul class="module settings-control-list settings-control-list--flat">
+                        <li class="settings-control settings-control--flat">
                           <input
                             type="radio"
                             id="settings-close-to-tray"
@@ -213,7 +214,7 @@
                             >
                           </label>
                         </li>
-                        <li class="submenu settings-control">
+                        <li class="submenu settings-control settings-control--flat">
                           <input
                             type="checkbox"
                             id="settings-close-notification-toggle"
@@ -225,7 +226,7 @@
                             >
                           </label>
                         </li>
-                        <li class="settings-control">
+                        <li class="settings-control settings-control--flat">
                           <input
                             type="radio"
                             id="settings-close-app-radio"
@@ -452,9 +453,6 @@
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.wg.title">Вкладка «Инструменты»</h2>
-                    <p data-i18n="settings.wg.disable.hint">
-                      Скрывает вкладку Инструменты и отключает её запуск. При отключении связанные параметры становятся недоступны.
-                    </p>
                   </div>
                 </div>
                 <div class="settings-grid">
@@ -637,9 +635,6 @@
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
-                    <p data-i18n="settings.appearance.theme">
-                      Цветовая тема
-                    </p>
                   </div>
                 </div>
                 <div class="settings-grid">
@@ -788,9 +783,6 @@
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.other.title">Другие настройки</h2>
-                    <p data-i18n="settings.other.hint">
-                      Дополнительные параметры для детальной настройки поведения приложения.
-                    </p>
                   </div>
                 </div>
                 <div class="settings-grid">
@@ -894,9 +886,6 @@
                   <section class="settings-card settings-card--stacked settings-card--danger">
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.other.resetTitle">Сброс настроек</h3>
-                      <p class="settings-card__desc" data-i18n="settings.other.hint">
-                        Дополнительные параметры для детальной настройки поведения приложения.
-                      </p>
                     </div>
                     <div class="settings-card__body">
                       <div class="module settings-action-group settings-action-group--danger">
@@ -949,6 +938,7 @@
                   </section>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
