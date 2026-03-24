@@ -304,7 +304,7 @@ function patchToolCards(container, items = []) {
 
 function renderToolsInfoSkeleton(section) {
   section.innerHTML = `
-    <details class="tools-panel" id="tools-panel" data-tools-state="compact">
+    <details class="tools-panel tools-panel--static" id="tools-panel" data-tools-state="compact" open>
       <summary class="tools-panel__summary" id="tools-panel-summary" aria-controls="tools-panel-body" aria-expanded="false">
         <div class="tools-panel__summary-left">
           <span class="tools-panel__dot tools-panel__dot--neutral" id="tools-summary-dot" aria-hidden="true"></span>
@@ -315,77 +315,48 @@ function renderToolsInfoSkeleton(section) {
         </div>
         <div class="tools-panel__summary-right">
           <span class="tools-panel__badge tools-panel__badge--neutral" id="tools-summary-badge">${t("tools.summary.checking")}</span>
-          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
         </div>
       </summary>
 
       <div class="tools-panel__body" id="tools-panel-body" aria-live="polite">
-        <div class="tools-panel-quick">
-          <small id="tools-status" class="muted"></small>
-          <div class="tools-panel-quick-actions">
-            <button id="tools-check-btn" type="button" title="${t("tools.button.check")}" data-i18n-title="tools.button.check">
-              <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
-              <span id="tools-check-label" data-i18n="tools.button.check">${t("tools.button.check")}</span>
-            </button>
-            <button id="tools-update-btn" type="button" title="${t("tools.button.update")}" data-i18n-title="tools.button.update" style="display:none;">
-              <i class="fa-solid fa-download" id="tools-update-icon"></i>
-              <span id="tools-update-label" data-i18n="tools.button.update">${t("tools.button.update")}</span>
-            </button>
-            <button id="tools-quick-retry-btn" type="button" title="${t("tools.quick.retry")}" data-i18n-title="tools.quick.retry" style="display:none;">
-              <i class="fa-solid fa-rotate-right"></i>
-              <span data-i18n="tools.quick.retry">${t("tools.quick.retry")}</span>
-            </button>
-            <button id="tools-quick-open-location-btn" type="button" title="${t("tools.quick.openLocation")}" data-i18n-title="tools.quick.openLocation" style="display:none;">
-              <i class="fa-solid fa-folder-open"></i>
-              <span data-i18n="tools.quick.openLocation">${t("tools.quick.openLocation")}</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
-
-        <section class="tools-advanced-section" id="tools-advanced-section" role="region" aria-labelledby="tools-advanced-title">
-          <h3 id="tools-advanced-title" class="tools-advanced-section__title" data-i18n="tools.more">${t("tools.more")}</h3>
-          <div class="tools-advanced-section__body">
-            <div class="tools-wizard" id="tools-wizard" role="region" aria-label="${t("tools.wizard.title")}" data-i18n-aria="tools.wizard.title">
-              <div class="tools-wizard__header">
-                <h3 data-i18n="tools.wizard.title">${t("tools.wizard.title")}</h3>
-              </div>
-              <div class="tools-wizard__steps" id="tools-wizard-steps">
-                <div class="tools-wizard__step">
-                  <div class="tools-wizard__step-index">1</div>
-                  <div class="tools-wizard__step-body">
-                    <h4 data-i18n="tools.wizard.step1.title">${t("tools.wizard.step1.title")}</h4>
-                    <p class="muted" data-i18n="tools.wizard.step1.desc">${t("tools.wizard.step1.desc")}</p>
-                    <div id="tools-wizard-location"></div>
-                  </div>
-                </div>
-                <div class="tools-wizard__step">
-                  <div class="tools-wizard__step-index">2</div>
-                  <div class="tools-wizard__step-body">
-                    <h4 data-i18n="tools.wizard.step2.title">${t("tools.wizard.step2.title")}</h4>
-                    <p class="muted" data-i18n="tools.wizard.step2.desc">${t("tools.wizard.step2.desc")}</p>
-                    <button id="tools-install-btn" type="button">
-                      <i class="fa-solid fa-download"></i>
-                      <span data-i18n="tools.button.install">${t("tools.button.install")}</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="tools-wizard__step">
-                  <div class="tools-wizard__step-index">3</div>
-                  <div class="tools-wizard__step-body">
-                    <h4 data-i18n="tools.wizard.step3.title">${t("tools.wizard.step3.title")}</h4>
-                    <p class="muted" data-i18n="tools.wizard.step3.desc">${t("tools.wizard.step3.desc")}</p>
-                    <small id="tools-wizard-status" class="muted"></small>
-                  </div>
-                </div>
-              </div>
+        <div class="tools-dashboard">
+          <section class="tools-panel-quick">
+            <div class="tools-panel-quick__status">
+              <small id="tools-status" class="muted"></small>
             </div>
+            <div class="tools-panel-quick-actions">
+              <button id="tools-check-btn" type="button" title="${t("tools.button.check")}" data-i18n-title="tools.button.check">
+                <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
+                <span id="tools-check-label" data-i18n="tools.button.check">${t("tools.button.check")}</span>
+              </button>
+              <button id="tools-update-btn" type="button" title="${t("tools.button.update")}" data-i18n-title="tools.button.update" style="display:none;">
+                <i class="fa-solid fa-download" id="tools-update-icon"></i>
+                <span id="tools-update-label" data-i18n="tools.button.update">${t("tools.button.update")}</span>
+              </button>
+              <button id="tools-install-btn" type="button" style="display:none;">
+                <i class="fa-solid fa-download"></i>
+                <span data-i18n="tools.button.install">${t("tools.button.install")}</span>
+              </button>
+              <button id="tools-quick-open-location-btn" type="button" title="${t("tools.quick.openLocation")}" data-i18n-title="tools.quick.openLocation" style="display:none;" aria-hidden="true" tabindex="-1">
+                <i class="fa-solid fa-folder-open"></i>
+                <span data-i18n="tools.quick.openLocation">${t("tools.quick.openLocation")}</span>
+              </button>
+              <button id="tools-quick-retry-btn" type="button" title="${t("tools.quick.retry")}" data-i18n-title="tools.quick.retry" style="display:none;">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span data-i18n="tools.quick.retry">${t("tools.quick.retry")}</span>
+              </button>
+            </div>
+          </section>
 
+          <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
+
+          <section class="tools-location-block" aria-live="polite">
+            <div class="tools-location-block__header">
+              <h3 data-i18n="tools.location.title">${t("tools.location.title")}</h3>
+            </div>
             <div id="tools-location-host">
               <div class="tools-location module">
-                <label for="ti-tools-location-path">
-                  <i class="fa-solid fa-folder"></i>
+                <label for="ti-tools-location-path" class="tools-sr-only">
                   <span data-i18n="tools.location.title">${t("tools.location.title")}</span>
                 </label>
                 <div class="tools-location-row">
@@ -396,26 +367,63 @@ function renderToolsInfoSkeleton(section) {
                 </div>
               </div>
             </div>
+            <div class="tools-location-block__meta">
+              <small id="ti-tools-location-info" class="muted"></small>
+              <small id="tools-hint" class="muted"></small>
+            </div>
+          </section>
 
-            <small id="tools-hint" class="muted"></small>
-            <small id="ti-tools-location-info" class="muted"></small>
+          <section class="tools-advanced-section" id="tools-advanced-section" role="region" aria-labelledby="tools-advanced-title">
+            <h3 id="tools-advanced-title" class="tools-advanced-section__title" data-i18n="tools.more">${t("tools.more")}</h3>
+            <div class="tools-advanced-section__body">
+              <div class="tools-wizard" id="tools-wizard" role="region" aria-label="${t("tools.wizard.title")}" data-i18n-aria="tools.wizard.title">
+                <div class="tools-wizard__header">
+                  <h3 data-i18n="tools.wizard.title">${t("tools.wizard.title")}</h3>
+                </div>
+                <div class="tools-wizard__steps" id="tools-wizard-steps">
+                  <div class="tools-wizard__step">
+                    <div class="tools-wizard__step-index">1</div>
+                    <div class="tools-wizard__step-body">
+                      <h4 data-i18n="tools.wizard.step1.title">${t("tools.wizard.step1.title")}</h4>
+                      <p class="muted" data-i18n="tools.wizard.step1.desc">${t("tools.wizard.step1.desc")}</p>
+                      <div id="tools-wizard-location"></div>
+                    </div>
+                  </div>
+                  <div class="tools-wizard__step">
+                    <div class="tools-wizard__step-index">2</div>
+                    <div class="tools-wizard__step-body">
+                      <h4 data-i18n="tools.wizard.step2.title">${t("tools.wizard.step2.title")}</h4>
+                      <p class="muted" data-i18n="tools.wizard.step2.desc">${t("tools.wizard.step2.desc")}</p>
+                    </div>
+                  </div>
+                  <div class="tools-wizard__step">
+                    <div class="tools-wizard__step-index">3</div>
+                    <div class="tools-wizard__step-body">
+                      <h4 data-i18n="tools.wizard.step3.title">${t("tools.wizard.step3.title")}</h4>
+                      <p class="muted" data-i18n="tools.wizard.step3.desc">${t("tools.wizard.step3.desc")}</p>
+                      <small id="tools-wizard-status" class="muted"></small>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            <div class="tools-footer">
-              <div class="tools-actions" id="tools-actions"></div>
-              <div id="tools-more" class="tools-more">
-                <button id="tools-more-btn" class="tools-more-btn" title="${t("tools.more")}" aria-label="${t("tools.more")}" data-i18n-title="tools.more" data-i18n-aria="tools.more">
-                  <i class="fa-solid fa-ellipsis"></i>
-                </button>
-                <div id="tools-more-menu" class="tools-more-menu" role="menu" aria-label="${t("tools.moreMenu")}" data-i18n-aria="tools.moreMenu">
-                  <button id="tools-force-btn" type="button" title="${t("tools.button.force")}" data-bs-toggle="tooltip" data-i18n-title="tools.button.force">
-                    <i class="fa-solid fa-arrow-rotate-right"></i>
-                    <span data-i18n="tools.button.force">${t("tools.button.force")}</span>
+              <div class="tools-footer">
+                <div class="tools-actions" id="tools-actions"></div>
+                <div id="tools-more" class="tools-more">
+                  <button id="tools-more-btn" class="tools-more-btn" title="${t("tools.more")}" aria-label="${t("tools.more")}" data-i18n-title="tools.more" data-i18n-aria="tools.more">
+                    <i class="fa-solid fa-ellipsis"></i>
                   </button>
+                  <div id="tools-more-menu" class="tools-more-menu" role="menu" aria-label="${t("tools.moreMenu")}" data-i18n-aria="tools.moreMenu">
+                    <button id="tools-force-btn" type="button" title="${t("tools.button.force")}" data-bs-toggle="tooltip" data-i18n-title="tools.button.force">
+                      <i class="fa-solid fa-arrow-rotate-right"></i>
+                      <span data-i18n="tools.button.force">${t("tools.button.force")}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </details>
   `;
@@ -513,7 +521,7 @@ function initContext(section) {
     return false;
   };
 
-  const setQuickActionsVisibility = ({
+    const setQuickActionsVisibility = ({
     showRetry = false,
     showOpenLocation = false,
   } = {}) => {
@@ -521,7 +529,7 @@ function initContext(section) {
       el.quickRetryBtn.style.display = showRetry ? "" : "none";
     }
     if (el.quickOpenLocationBtn) {
-      el.quickOpenLocationBtn.style.display = showOpenLocation ? "" : "none";
+      el.quickOpenLocationBtn.style.display = "none";
     }
   };
 

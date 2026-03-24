@@ -751,15 +751,14 @@ describe("tools settings modal", () => {
     };
   });
 
-  it("opens and closes tools modal from downloader settings card", async () => {
+  it("renders embedded tools info when downloader settings tab is active", async () => {
     document.body.innerHTML = `
-      <div id="window-settings">
-        <button id="settings-tools-open" type="button">Open tools</button>
-        <div id="settings-tools-modal" style="display:none" aria-hidden="true">
-          <div class="settings-tools-modal__content">
-            <button id="settings-tools-close" type="button">x</button>
-            <section id="tools-info"></section>
-          </div>
+      <div id="settings-modal">
+        <button class="tab-link active" data-tab="window-settings" type="button">
+          <span>Downloader</span>
+        </button>
+        <div id="window-settings" class="tab-pane active">
+          <section id="tools-info"></section>
         </div>
       </div>`;
 
@@ -774,20 +773,10 @@ describe("tools settings modal", () => {
     });
 
     await mod.initSettings?.();
-    const openBtn = document.getElementById("settings-tools-open");
-    const closeBtn = document.getElementById("settings-tools-close");
-    const modal = document.getElementById("settings-tools-modal");
-
-    openBtn?.click();
+    window.dispatchEvent(new Event("settings:opened"));
     await Promise.resolve();
 
     expect(toolsInfoController.ensureToolsInfo).toHaveBeenCalledWith(false);
-    expect(modal?.style.display).toBe("flex");
-    expect(modal?.getAttribute("aria-hidden")).toBe("false");
-
-    closeBtn?.click();
-    expect(modal?.style.display).toBe("none");
-    expect(modal?.getAttribute("aria-hidden")).toBe("true");
   });
 });
 

@@ -6,6 +6,10 @@
 
 | What changed | What you get |
 |---|---|
+| The Appearance settings tab was redesigned | Language, theme, font size, and low-effects controls are now grouped more clearly and aligned better with the rest of Settings |
+| The embedded Downloader tools block was simplified | The interface is now more compact and coherent, with duplicate actions removed and the main statuses and tools path easier to scan |
+| The Downloader settings tab now matches the rest of Settings visually | Cards, inner groups, and parameter blocks are now visually aligned with the other settings tabs |
+| The Downloader tools block is now embedded directly into Settings | Tool status, actions, and the tools folder are now available in the current window without opening a separate modal |
 | The settings window now uses a flatter visual style | The interface feels quieter and more compact, with fewer heavy effects, less visual noise, and a more predictable section structure |
 | The settings sections were tightened up | Decorative blocks were removed and spacing/min heights were reduced, so the window reaches scroll states less often |
 | The Hash Check interface was redesigned | The primary verification flow is easier to follow, and second-file comparison now appears only when it is actually needed |

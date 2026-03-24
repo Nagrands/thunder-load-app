@@ -293,7 +293,7 @@ describe("renderToolsInfo", () => {
     expect(panel?.getAttribute("data-summary-state")).toBe("offline");
     expect(badge?.textContent).toMatch(/Офлайн|Offline/i);
     expect(retryBtn?.style.display).toBe("");
-    expect(openBtn?.style.display).toBe("");
+    expect(openBtn?.style.display).toBe("none");
   });
 
   it("throws localized error when installAll bridge is unavailable", async () => {

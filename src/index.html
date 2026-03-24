@@ -1527,29 +1527,30 @@
                 </div>
                 <div class="settings-grid">
                   <section class="settings-card settings-card--tools-top settings-card--tools-compact">
-                    <h3 class="settings-card__title" data-i18n="settings.tools.title">Инструменты</h3>
-                    <p class="settings-card__desc" data-i18n="settings.downloader.tools.hint">
-                      Проверка статуса и обновление зависимостей загрузчика.
-                    </p>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.tools.title">Инструменты</h3>
+                      <p class="settings-card__desc" data-i18n="settings.downloader.tools.hint">
+                        Проверка статуса и обновление зависимостей загрузчика.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
-                      <button
-                        type="button"
-                        id="settings-tools-open"
-                        class="settings-tools-open"
-                        data-i18n="settings.tools.openModal"
-                      >
-                        Открыть инструменты
-                      </button>
+                      <section id="tools-info" class="settings-section">
+                        <p class="muted" data-i18n="settings.tools.loading">
+                          Загружаем сведения о зависимостях…
+                        </p>
+                      </section>
                     </div>
                   </section>
 
                   <section class="settings-card settings-card--downloader">
-                    <h3 class="settings-card__title" data-i18n="settings.tabs.downloader">Downloader</h3>
-                    <p class="settings-card__desc" data-i18n="settings.downloader.layout.hint">
-                      Основные параметры загрузки и поведения окна.
-                    </p>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.tabs.downloader">Downloader</h3>
+                      <p class="settings-card__desc" data-i18n="settings.downloader.layout.hint">
+                        Основные параметры загрузки и поведения окна.
+                      </p>
+                    </div>
                     <div class="settings-card__body">
-                      <div class="settings-control-group settings-control-group--quality">
+                      <div class="settings-control-group settings-control-group--section settings-control-group--quality">
                         <h4 class="settings-control-group__title" data-i18n="settings.downloader.profile.title">
                           Выбор качества загрузки
                         </h4>
@@ -1610,7 +1611,7 @@
                         </div>
                       </div>
 
-                      <div class="settings-control-group">
+                      <div class="settings-control-group settings-control-group--section">
                         <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.parallel">
                           Параллельность и запуск
                         </h4>
@@ -1665,7 +1666,7 @@
                         </ul>
                       </div>
 
-                      <div class="settings-control-group">
+                      <div class="settings-control-group settings-control-group--section">
                         <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.behavior">
                           Поведение окна и завершения
                         </h4>
@@ -1913,13 +1914,13 @@
                   </div>
                 </div>
                 <div class="settings-grid">
-                  <section class="settings-card settings-card--stacked">
+                  <section class="settings-card settings-card--appearance-main">
                     <div class="settings-card__intro">
-                      <h3 class="settings-card__title" data-i18n="settings.appearance.title">
-                        Внешний вид приложения
+                      <h3 class="settings-card__title" data-i18n="language.label">
+                        Язык интерфейса
                       </h3>
-                      <p class="settings-card__desc" data-i18n="settings.appearance.lowEffects.hint">
-                        Отключает анимации и эффекты размытия
+                      <p class="settings-card__desc">
+                        Язык интерфейса и базовая читаемость.
                       </p>
                     </div>
                     <div class="settings-card__body">
@@ -1947,6 +1948,58 @@
                           </div>
                         </li>
 
+                        <li class="custom-theme-select settings-control settings-control--split">
+                          <div class="settings-control__copy">
+                            <label for="font-size-dropdown-btn">
+                              <i class="fa-solid fa-text-height"></i>
+                              <span data-i18n="settings.appearance.fontSize">Размер текста</span>
+                            </label>
+                          </div>
+                          <div class="settings-control__actions">
+                            <div class="dropdown">
+                              <button
+                                class="dropdown-toggle"
+                                id="font-size-dropdown-btn"
+                                type="button"
+                              >
+                                <span id="font-size-selected-label">16 px</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                              </button>
+                              <ul class="dropdown-menu" id="font-size-dropdown-menu">
+                                <li data-value="14">14 px</li>
+                                <li data-value="16">16 px</li>
+                                <li data-value="18">18 px</li>
+                                <li data-value="20">20 px</li>
+                              </ul>
+                            </div>
+                            <button
+                              id="reset-font-size"
+                              class="dropdown-reset"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="Сбросить размер шрифта по умолчанию"
+                              data-i18n-title="settings.appearance.fontSize.reset"
+                              type="button"
+                            >
+                              <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="settings-card settings-card--appearance-secondary">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.appearance.theme">
+                        Цветовая тема
+                      </h3>
+                      <p class="settings-card__desc">
+                        Выбор темы и снижение визуальной нагрузки.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
                         <li class="custom-theme-select settings-control settings-control--split">
                           <div class="settings-control__copy">
                             <label for="theme-dropdown-btn">
@@ -1987,44 +2040,6 @@
                               data-bs-placement="top"
                               title="Сбросить тему по умолчанию"
                               data-i18n-title="settings.appearance.theme.reset"
-                              type="button"
-                            >
-                              <i class="fa-solid fa-rotate-left"></i>
-                            </button>
-                          </div>
-                        </li>
-
-                        <li class="custom-theme-select settings-control settings-control--split">
-                          <div class="settings-control__copy">
-                            <label for="font-size-dropdown-btn">
-                              <i class="fa-solid fa-text-height"></i>
-                              <span data-i18n="settings.appearance.fontSize">Размер текста</span>
-                            </label>
-                          </div>
-                          <div class="settings-control__actions">
-                            <div class="dropdown">
-                              <button
-                                class="dropdown-toggle"
-                                id="font-size-dropdown-btn"
-                                type="button"
-                              >
-                                <span id="font-size-selected-label">16 px</span>
-                                <i class="fa-solid fa-chevron-down"></i>
-                              </button>
-                              <ul class="dropdown-menu" id="font-size-dropdown-menu">
-                                <li data-value="14">14 px</li>
-                                <li data-value="16">16 px</li>
-                                <li data-value="18">18 px</li>
-                                <li data-value="20">20 px</li>
-                              </ul>
-                            </div>
-                            <button
-                              id="reset-font-size"
-                              class="dropdown-reset"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              title="Сбросить размер шрифта по умолчанию"
-                              data-i18n-title="settings.appearance.fontSize.reset"
                               type="button"
                             >
                               <i class="fa-solid fa-rotate-left"></i>
@@ -2179,41 +2194,6 @@
               </div>
             </div>
 
-            <div
-              id="settings-tools-modal"
-              class="settings-tools-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="settings-tools-modal-title"
-              style="display: none"
-            >
-              <div class="settings-tools-modal__content" role="document">
-                <button
-                  type="button"
-                  id="settings-tools-close"
-                  class="settings-tools-modal__close"
-                  aria-label="Закрыть инструменты"
-                  data-i18n-aria="modal.close"
-                >
-                  &times;
-                </button>
-                <header class="settings-tools-modal__header">
-                  <h2 id="settings-tools-modal-title" data-i18n="settings.tools.modal.title">
-                    Инструменты
-                  </h2>
-                  <p data-i18n="settings.tools.modal.subtitle">
-                    Проверка статуса, переустановка и смена папки зависимостей.
-                  </p>
-                </header>
-                <div class="settings-tools-shell">
-                  <section id="tools-info" class="settings-section">
-                    <p class="muted" data-i18n="settings.tools.loading">
-                      Загружаем сведения о зависимостях…
-                    </p>
-                  </section>
-                </div>
-              </div>
-            </div>
             </div>
           </div>
         </div>

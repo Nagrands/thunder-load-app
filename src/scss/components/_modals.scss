@@ -2758,9 +2758,6 @@
   #window-settings {
     .settings-grid {
       grid-template-columns: 1fr;
-      grid-template-areas:
-        "tools tools"
-        "downloader downloader";
       align-items: start;
       gap: 12px;
     }
@@ -2776,7 +2773,7 @@
     }
 
     .settings-card--tools-top {
-      grid-area: tools;
+      gap: 10px;
     }
 
     .settings-card--tools-compact {
@@ -2801,6 +2798,13 @@
       display: grid;
       gap: 8px;
       margin-bottom: 10px;
+    }
+
+    .settings-control-group--section {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.025);
     }
 
     .settings-control-group:last-child {
@@ -2829,6 +2833,63 @@
     .settings-card--downloader .settings-control {
       border-color: rgba(255, 255, 255, 0.12);
       background: rgba(255, 255, 255, 0.025);
+    }
+
+    .quality-profile-shell {
+      gap: 6px;
+    }
+
+    .quality-profile-segment {
+      padding: 3px;
+      border-radius: 9px;
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .quality-profile-segment__btn {
+      min-height: 32px;
+      border-radius: 7px;
+      color: rgba(255, 255, 255, 0.62);
+      letter-spacing: 0;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      &.is-active {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: #fff;
+      }
+    }
+
+    .quality-profile-summary {
+      min-height: 0;
+      padding: 9px 10px;
+      border-radius: 9px;
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      gap: 8px;
+    }
+
+    .quality-profile-summary__icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .quality-profile-summary__title {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .quality-profile-summary__hint {
+      color: rgba(255, 255, 255, 0.46);
     }
   }
 
@@ -3896,6 +3957,69 @@
   .settings-control-group__title {
     font-size: 11px;
     color: rgba(255, 255, 255, 0.52);
+  }
+
+  #appearance-settings .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  #appearance-settings .settings-card {
+    min-height: 100%;
+  }
+
+  #appearance-settings .settings-card__body {
+    display: grid;
+    gap: 8px;
+  }
+
+  #appearance-settings .settings-control {
+    min-height: 46px;
+  }
+
+  #appearance-settings .settings-control__copy label {
+    align-items: center;
+  }
+
+  #appearance-settings .settings-control__copy label span {
+    display: block;
+    line-height: 1.35;
+  }
+
+  #appearance-settings .dropdown {
+    width: min(100%, 220px);
+  }
+
+  #appearance-settings .dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
+    height: 34px;
+    border-radius: 8px;
+    padding: 0 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+
+    &::before {
+      right: 33px;
+      width: 24px;
+      height: 10px;
+    }
+  }
+
+  #appearance-settings .dropdown-reset {
+    margin-left: 0;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  #appearance-settings #settings-low-effects-toggle + label {
+    align-items: center;
   }
 
   .settings-parallel-hint {
