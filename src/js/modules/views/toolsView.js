@@ -760,6 +760,34 @@ export default function renderToolsView() {
               </button>
             </div>
             <p class="tools-card__hint" data-i18n="hashCheck.subtitle">${t("hashCheck.subtitle")}</p>
+            <div
+              id="hash-drop-zone"
+              class="hash-drop-zone"
+              role="button"
+              tabindex="0"
+              aria-describedby="hash-drop-hint hash-drop-target"
+            >
+              <div class="hash-drop-zone__icon" aria-hidden="true">
+                <i class="fa-solid fa-file-arrow-up"></i>
+              </div>
+              <div class="hash-drop-zone__body">
+                <strong
+                  id="hash-drop-title"
+                  class="hash-drop-zone__title"
+                  data-i18n="hashCheck.dropTitle"
+                >${t("hashCheck.dropTitle")}</strong>
+                <span
+                  id="hash-drop-hint"
+                  class="hash-drop-zone__hint muted"
+                  data-i18n="hashCheck.dropHintInitial"
+                >${t("hashCheck.dropHintInitial")}</span>
+              </div>
+              <span
+                id="hash-drop-target"
+                class="hash-drop-zone__target muted"
+                data-i18n="hashCheck.dropTargetFirst"
+              >${t("hashCheck.dropTargetFirst")}</span>
+            </div>
             <div class="hash-check-grid">
               <div class="hash-row hash-row--top">
                 <div class="hash-file-control">
@@ -2275,6 +2303,10 @@ export default function renderToolsView() {
     const hashCopyActualSecondBtn = getEl("hash-copy-actual-2", view);
     const hashCopyFeedbackFirstEl = getEl("hash-copy-feedback-1", view);
     const hashCopyFeedbackSecondEl = getEl("hash-copy-feedback-2", view);
+    const hashDropZoneEl = getEl("hash-drop-zone", view);
+    const hashDropTitleEl = getEl("hash-drop-title", view);
+    const hashDropHintEl = getEl("hash-drop-hint", view);
+    const hashDropTargetEl = getEl("hash-drop-target", view);
     const hashOpenHowtoBtn = getEl("hash-open-howto", view);
     const hashHowtoModalEl = getEl("hash-howto-modal", view);
     const hashHowtoDialogEl = getEl("hash-howto-dialog", view);
@@ -2293,6 +2325,7 @@ export default function renderToolsView() {
     let hashActualValueFirst = "";
     let hashActualValueSecond = "";
     let hashBusy = false;
+    let hashDropDepth = 0;
 
     const syncSecondFileControls = () => {
       if (!hashClearFileSecondBtn) return;
@@ -2371,6 +2404,7 @@ export default function renderToolsView() {
         );
       }
       syncSecondFileControls();
+      updateHashDropZone();
     };
 
     const setHashUiState = ({
@@ -2484,6 +2518,46 @@ export default function renderToolsView() {
       el.textContent = key ? t(key) : "";
     };
 
+    const resetHashDragState = () => {
+      hashDropDepth = 0;
+      hashDropZoneEl?.classList.remove("is-drag-over");
+    };
+
+    const updateHashDropZone = () => {
+      if (!hashDropZoneEl) return;
+      const hasFirstFile = !!hashSelectedFile;
+      const hasSecondFile = !!hashSelectedFileSecond;
+      let hintKey = "hashCheck.dropHintInitial";
+      let targetKey = "hashCheck.dropTargetFirst";
+
+      if (hashBusy) {
+        hintKey = "hashCheck.dropHintBusy";
+        targetKey = hasSecondFile
+          ? "hashCheck.dropTargetReplaceSecond"
+          : hasFirstFile
+            ? "hashCheck.dropTargetSecond"
+            : "hashCheck.dropTargetFirst";
+      } else if (hasSecondFile) {
+        hintKey = "hashCheck.dropHintReplaceSecond";
+        targetKey = "hashCheck.dropTargetReplaceSecond";
+      } else if (hasFirstFile) {
+        hintKey = "hashCheck.dropHintSecond";
+        targetKey = "hashCheck.dropTargetSecond";
+      }
+
+      hashDropZoneEl.classList.toggle("is-busy", hashBusy);
+      hashDropZoneEl.setAttribute("aria-disabled", hashBusy ? "true" : "false");
+      if (hashDropTitleEl) {
+        hashDropTitleEl.textContent = t("hashCheck.dropTitle");
+      }
+      if (hashDropHintEl) {
+        hashDropHintEl.textContent = t(hintKey);
+      }
+      if (hashDropTargetEl) {
+        hashDropTargetEl.textContent = t(targetKey);
+      }
+    };
+
     const setHashFilePill = (element, filePath, emptyKey) => {
       if (!element) return;
       if (!filePath) {
@@ -2500,6 +2574,133 @@ export default function renderToolsView() {
       if (!filePath) return t(fallbackKey);
       const fileName = String(filePath).split(/[\\/]/).pop();
       return fileName || String(filePath);
+    };
+
+    const resetHashResultState = () => {
+      setHashUiState({
+        tone: "muted",
+        statusKey: "hashCheck.status.idle",
+        messageKey: "hashCheck.resultIdle",
+        canCopyFirst: false,
+        canCopySecond: false,
+        showCompareDetails: false,
+      });
+    };
+
+    const applyHashFileSelection = ({
+      firstFilePath = hashSelectedFile,
+      secondFilePath = hashSelectedFileSecond,
+    } = {}) => {
+      hashSelectedFile = firstFilePath || "";
+      hashSelectedFileSecond = secondFilePath || "";
+      setHashFilePill(hashFileNameEl, hashSelectedFile, "hashCheck.noFile");
+      setHashFilePill(
+        hashFileNameSecondEl,
+        hashSelectedFileSecond,
+        "hashCheck.noFileSecond",
+      );
+      syncSecondFileControls();
+      updateHashDropZone();
+      resetHashResultState();
+    };
+
+    const getDroppedFilePath = (entry) => {
+      if (typeof entry?.getAsFile === "function") {
+        const viaBridge = window.electron?.tools?.getDroppedFilePath?.(
+          entry.getAsFile(),
+        );
+        if (typeof viaBridge === "string" && viaBridge.trim()) {
+          return viaBridge;
+        }
+      }
+      const viaBridge = window.electron?.tools?.getDroppedFilePath?.(entry);
+      if (typeof viaBridge === "string" && viaBridge.trim()) {
+        return viaBridge;
+      }
+      if (entry && typeof entry.path === "string" && entry.path.trim()) {
+        return entry.path;
+      }
+      if (typeof entry?.getAsFile === "function") {
+        const file = entry.getAsFile();
+        if (file && typeof file.path === "string" && file.path.trim()) {
+          return file.path;
+        }
+      }
+      return "";
+    };
+
+    const parseDroppedUriList = (rawValue = "") =>
+      String(rawValue || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#"))
+        .map((line) => {
+          if (!line.startsWith("file://")) return "";
+          try {
+            return decodeURIComponent(new URL(line).pathname);
+          } catch {
+            return "";
+          }
+        })
+        .filter(Boolean);
+
+    const getHashDropFilePaths = (event) => {
+      const dataTransfer = event?.dataTransfer;
+      const fromFiles = Array.from(dataTransfer?.files || [])
+        .map((file) => getDroppedFilePath(file))
+        .filter(Boolean);
+      if (fromFiles.length) return fromFiles;
+
+      const fromItems = Array.from(dataTransfer?.items || [])
+        .map((item) => getDroppedFilePath(item))
+        .filter(Boolean);
+      if (fromItems.length) return fromItems;
+
+      const fromUriList = parseDroppedUriList(
+        dataTransfer?.getData?.("text/uri-list"),
+      );
+      if (fromUriList.length) return fromUriList;
+
+      const fromPlainText = parseDroppedUriList(
+        dataTransfer?.getData?.("text/plain"),
+      );
+      return fromPlainText;
+    };
+
+    const handleHashDrop = (event) => {
+      if (hashBusy) return;
+      const filePaths = getHashDropFilePaths(event);
+      if (!filePaths.length) {
+        setHashUiState({
+          tone: "error",
+          statusKey: "hashCheck.status.error",
+          messageKey: "hashCheck.dropError",
+          canCopyFirst: false,
+          canCopySecond: false,
+          showCompareDetails: false,
+        });
+        return;
+      }
+
+      if (filePaths.length >= 2) {
+        applyHashFileSelection({
+          firstFilePath: filePaths[0],
+          secondFilePath: filePaths[1],
+        });
+        return;
+      }
+
+      if (!hashSelectedFile) {
+        applyHashFileSelection({
+          firstFilePath: filePaths[0],
+        });
+        return;
+      }
+
+      applyHashFileSelection({
+        firstFilePath: hashSelectedFile,
+        secondFilePath: filePaths[0],
+      });
     };
 
     const normalizeHashValue = (value) =>
@@ -2542,15 +2743,9 @@ export default function renderToolsView() {
         }
         return;
       }
-      hashSelectedFile = res.filePath;
-      setHashFilePill(hashFileNameEl, hashSelectedFile, "hashCheck.noFile");
-      setHashUiState({
-        tone: "muted",
-        statusKey: "hashCheck.status.idle",
-        messageKey: "hashCheck.resultIdle",
-        canCopyFirst: false,
-        canCopySecond: false,
-        showCompareDetails: false,
+      applyHashFileSelection({
+        firstFilePath: res.filePath,
+        secondFilePath: hashSelectedFileSecond,
       });
     });
 
@@ -2570,36 +2765,53 @@ export default function renderToolsView() {
         }
         return;
       }
-      hashSelectedFileSecond = res.filePath;
-      setHashFilePill(
-        hashFileNameSecondEl,
-        hashSelectedFileSecond,
-        "hashCheck.noFileSecond",
-      );
-      syncSecondFileControls();
-      setHashUiState({
-        tone: "muted",
-        statusKey: "hashCheck.status.idle",
-        messageKey: "hashCheck.resultIdle",
-        canCopyFirst: false,
-        canCopySecond: false,
-        showCompareDetails: false,
+      applyHashFileSelection({
+        firstFilePath: hashSelectedFile,
+        secondFilePath: res.filePath,
       });
     });
 
     hashClearFileSecondBtn?.addEventListener("click", () => {
       if (hashBusy || !hashSelectedFileSecond) return;
-      hashSelectedFileSecond = "";
-      setHashFilePill(hashFileNameSecondEl, "", "hashCheck.noFileSecond");
-      syncSecondFileControls();
-      setHashUiState({
-        tone: "muted",
-        statusKey: "hashCheck.status.idle",
-        messageKey: "hashCheck.resultIdle",
-        canCopyFirst: false,
-        canCopySecond: false,
-        showCompareDetails: false,
+      applyHashFileSelection({
+        firstFilePath: hashSelectedFile,
+        secondFilePath: "",
       });
+    });
+
+    hashDropZoneEl?.addEventListener("keydown", (event) => {
+      if (hashBusy) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      hashPickFileBtn?.click();
+    });
+
+    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+      hashDropZoneEl?.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+    });
+
+    hashDropZoneEl?.addEventListener("dragenter", () => {
+      if (hashBusy) return;
+      hashDropDepth += 1;
+      hashDropZoneEl.classList.add("is-drag-over");
+    });
+    hashDropZoneEl?.addEventListener("dragover", () => {
+      if (hashBusy) return;
+      hashDropZoneEl.classList.add("is-drag-over");
+    });
+    hashDropZoneEl?.addEventListener("dragleave", () => {
+      if (hashBusy) return;
+      hashDropDepth = Math.max(0, hashDropDepth - 1);
+      if (hashDropDepth === 0) {
+        hashDropZoneEl.classList.remove("is-drag-over");
+      }
+    });
+    hashDropZoneEl?.addEventListener("drop", (event) => {
+      resetHashDragState();
+      handleHashDrop(event);
     });
 
     hashRunBtn?.addEventListener("click", async () => {
@@ -2847,17 +3059,11 @@ export default function renderToolsView() {
       "second",
     );
 
-    setHashUiState({
-      tone: "muted",
-      statusKey: "hashCheck.status.idle",
-      messageKey: "hashCheck.resultIdle",
-      canCopyFirst: false,
-      canCopySecond: false,
-      showCompareDetails: false,
-    });
+    resetHashResultState();
     setHashActualLabels();
     setHashBusy(false);
     syncSecondFileControls();
+    updateHashDropZone();
     hashAlgorithmEl?.addEventListener("change", () => setHashActualLabels());
     hashOpenHowtoBtn?.addEventListener("click", () => openHashHowtoModal());
     hashHowtoCloseBtn?.addEventListener("click", () => closeHashHowtoModal());

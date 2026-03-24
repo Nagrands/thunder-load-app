@@ -468,6 +468,18 @@ export const toolsTranslations = {
     "hashCheck.howto.slide4.title": "Используйте итог",
     "hashCheck.howto.slide4.desc":
       "После проверки вы увидите статус совпадения и сможете скопировать вычисленный хеш.",
+    "hashCheck.dropTitle": "Перетащите файлы сюда",
+    "hashCheck.dropHintInitial":
+      "Бросьте один файл для проверки или сразу два файла для сравнения.",
+    "hashCheck.dropHintSecond":
+      "Первый файл уже выбран. Бросьте второй файл для сравнения.",
+    "hashCheck.dropHintReplaceSecond":
+      "Оба файла выбраны. Новый файл заменит файл 2.",
+    "hashCheck.dropHintBusy": "Дождитесь завершения вычисления хеша.",
+    "hashCheck.dropTargetFirst": "Следующий файл: файл 1",
+    "hashCheck.dropTargetSecond": "Следующий файл: файл 2",
+    "hashCheck.dropTargetReplaceSecond": "Следующий файл: заменить файл 2",
+    "hashCheck.dropError": "Не удалось получить путь к перетащенному файлу.",
     "wg.debug.label": "Лог активности",
     "wg.section.network": "Сетевые параметры",
     "wg.section.control": "Управление",
@@ -1162,6 +1174,18 @@ export const toolsTranslations = {
     "hashCheck.howto.slide4.title": "Use the output",
     "hashCheck.howto.slide4.desc":
       "After verification, review the status and copy the calculated hash if needed.",
+    "hashCheck.dropTitle": "Drop files here",
+    "hashCheck.dropHintInitial":
+      "Drop one file to verify it, or drop two files at once to compare them.",
+    "hashCheck.dropHintSecond":
+      "The first file is already selected. Drop a second file to compare.",
+    "hashCheck.dropHintReplaceSecond":
+      "Both files are selected. A new drop will replace file 2.",
+    "hashCheck.dropHintBusy": "Wait until hash calculation is finished.",
+    "hashCheck.dropTargetFirst": "Next file: file 1",
+    "hashCheck.dropTargetSecond": "Next file: file 2",
+    "hashCheck.dropTargetReplaceSecond": "Next file: replace file 2",
+    "hashCheck.dropError": "Could not read the dropped file path.",
     "wg.debug.label": "Activity log",
     "wg.section.network": "Network settings",
     "wg.section.control": "Controls",

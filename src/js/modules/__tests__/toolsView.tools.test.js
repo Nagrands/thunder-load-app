@@ -21,6 +21,29 @@ import { showConfirmationDialog } from "../modals";
 
 const nextTick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+function makeDroppedFile(filePath) {
+  const fileName = String(filePath).split("/").pop();
+  const file = new File(["demo"], fileName || "demo.bin", {
+    type: "application/octet-stream",
+  });
+  Object.defineProperty(file, "path", {
+    configurable: true,
+    value: filePath,
+  });
+  return file;
+}
+
+function dispatchFileDrop(target, filePaths) {
+  const event = new Event("drop", { bubbles: true });
+  Object.defineProperty(event, "dataTransfer", {
+    configurable: true,
+    value: {
+      files: filePaths.map((filePath) => makeDroppedFile(filePath)),
+    },
+  });
+  target.dispatchEvent(event);
+}
+
 async function renderView() {
   const el = renderToolsView();
   document.body.appendChild(el);
@@ -1682,6 +1705,51 @@ describe("toolsView quick actions", () => {
     copySecondBtn.click();
     await nextTick();
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("ffff");
+  });
+
+  test("accepts a dropped file for hash verification", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const filePill = el.querySelector("#hash-file-name");
+    const target = el.querySelector("#hash-drop-target");
+
+    dispatchFileDrop(dropZone, ["/tmp/dropped.bin"]);
+    await nextTick();
+
+    expect(filePill?.textContent).toBe("dropped.bin");
+    expect(target?.textContent).toBe("hashCheck.dropTargetSecond");
+  });
+
+  test("accepts two dropped files and fills both hash slots", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const firstFilePill = el.querySelector("#hash-file-name");
+    const secondFilePill = el.querySelector("#hash-file-name-2");
+    const target = el.querySelector("#hash-drop-target");
+
+    dispatchFileDrop(dropZone, ["/tmp/first.iso", "/tmp/second.iso"]);
+    await nextTick();
+
+    expect(firstFilePill?.textContent).toBe("first.iso");
+    expect(secondFilePill?.textContent).toBe("second.iso");
+    expect(target?.textContent).toBe("hashCheck.dropTargetReplaceSecond");
+  });
+
+  test("highlights hash drop zone during drag operations", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+
+    dropZone.dispatchEvent(new Event("dragenter", { bubbles: true }));
+    expect(dropZone?.classList.contains("is-drag-over")).toBe(true);
+
+    dropZone.dispatchEvent(new Event("dragleave", { bubbles: true }));
+    expect(dropZone?.classList.contains("is-drag-over")).toBe(false);
   });
 
   test("clears second file selection and falls back to single-file verify", async () => {

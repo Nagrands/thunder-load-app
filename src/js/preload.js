@@ -25,7 +25,7 @@
 "use strict";
 
 try {
-  const { contextBridge, ipcRenderer } = require("electron");
+  const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
   /**
    * Аварийный режим: разрешить любые каналы только при явном флаге.
@@ -375,6 +375,13 @@ try {
       resetLocation: () => safeInvoke("tools:resetLocation"),
       pickFileForHash: () => safeInvoke("tools:hashPickFile"),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
+      getDroppedFilePath: (file) => {
+        try {
+          return webUtils.getPathForFile(file);
+        } catch {
+          return "";
+        }
+      },
       pickMediaInspectorFile: () => safeInvoke("tools:mediaInspectorPickFile"),
       analyzeMediaFile: (payload) =>
         safeInvoke("tools:mediaInspectorAnalyze", payload),
