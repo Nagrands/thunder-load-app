@@ -138,6 +138,8 @@ describe("settingsModal mobile sections navigation", () => {
     const modal = document.getElementById("settings-modal");
 
     expect(modal.style.display).toBe("flex");
+    expect(modal.style.justifyContent).toBe("center");
+    expect(modal.style.alignItems).toBe("center");
     expect(modal.getAttribute("aria-hidden")).toBe("false");
     expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
     expect(wrapper.classList.contains("settings-tabs--open")).toBe(false);

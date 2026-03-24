@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The settings modal now opens centered within the app window | Settings feel more stable and no longer stick to the top edge of the interface |
 | Reduced noise in startup logs | It is easier to spot important startup events because routine service details no longer dominate the log |
 | The settings-folder button now opens the folder itself without selecting `wireguard.conf` | Navigation from settings is more predictable and no longer looks like a file-opening action |
 | Reduced duplicate startup logging when restoring the download folder | Startup logs are less noisy while keeping the same initialization flow |

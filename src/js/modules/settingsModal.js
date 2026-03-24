@@ -91,7 +91,7 @@ export function openSettings() {
   if (!settingsModal) return;
   settingsModal.style.display = "flex";
   settingsModal.style.justifyContent = "center";
-  settingsModal.style.alignItems = "flex-start";
+  settingsModal.style.alignItems = "center";
   settingsModal.setAttribute("aria-hidden", "false");
   previousFocus = document.activeElement;
   syncModalScrollLock();
