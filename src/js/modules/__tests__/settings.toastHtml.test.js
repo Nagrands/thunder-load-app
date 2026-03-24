@@ -46,11 +46,11 @@ describe("settings html toasts", () => {
         if (key === "settings.appearance.theme.dark") {
           return "Dark";
         }
-        if (key === "settings.appearance.theme.light") {
-          return "Light";
-        }
         if (key === "settings.appearance.theme.midnight") {
           return "Midnight";
+        }
+        if (key === "settings.appearance.theme.emerald") {
+          return "Emerald";
         }
         if (key === "settings.appearance.theme.sunset") {
           return "Sunset";
@@ -131,7 +131,7 @@ describe("settings html toasts", () => {
         <button id="theme-dropdown-btn" type="button"></button>
         <ul id="theme-dropdown-menu">
           <li data-value="dark">Dark</li>
-          <li data-value="light">Light</li>
+          <li data-value="emerald">Emerald</li>
         </ul>
         <span id="theme-selected-label"></span>
         <button id="reset-theme" type="button"></button>
@@ -142,7 +142,7 @@ describe("settings html toasts", () => {
       jest.doMock("../toast.js", () => ({ showToast }));
       jest.doMock("../i18n", () => createI18nMock());
       jest.doMock("../settingsStore.js", () => ({
-        getTheme: jest.fn().mockResolvedValue("light"),
+        getTheme: jest.fn().mockResolvedValue("emerald"),
         getFontSize: jest.fn().mockResolvedValue("16"),
         setFontSize: jest.fn().mockResolvedValue({ success: true }),
         setTheme: jest.fn().mockResolvedValue({ success: true }),

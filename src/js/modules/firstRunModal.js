@@ -18,9 +18,9 @@ const LANGUAGE_LABEL_KEYS = {
 const THEME_LABEL_KEYS = {
   dark: "settings.appearance.theme.dark",
   midnight: "settings.appearance.theme.midnight",
+  emerald: "settings.appearance.theme.emerald",
   sunset: "settings.appearance.theme.sunset",
   violet: "settings.appearance.theme.violet",
-  light: "settings.appearance.theme.light",
 };
 
 const TAB_LABEL_KEYS = {

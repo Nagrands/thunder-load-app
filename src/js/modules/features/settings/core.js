@@ -383,16 +383,19 @@ async function initSettings() {
   const themeDropdownBtn = document.getElementById("theme-dropdown-btn");
   const themeDropdownMenu = document.getElementById("theme-dropdown-menu");
   const themeLabel = document.getElementById("theme-selected-label");
+  const themeOptions = ["dark", "midnight", "emerald", "sunset", "violet"];
   const normalizeTheme = (theme) =>
-    theme === "system" || !theme ? "dark" : theme;
+    theme === "system" || !theme || !themeOptions.includes(theme)
+      ? "dark"
+      : theme;
   const formatThemeLabel = (theme) => {
     const normalizedTheme = normalizeTheme(theme);
     const map = {
       dark: t("settings.appearance.theme.dark"),
       midnight: t("settings.appearance.theme.midnight"),
+      emerald: t("settings.appearance.theme.emerald"),
       sunset: t("settings.appearance.theme.sunset"),
       violet: t("settings.appearance.theme.violet"),
-      light: t("settings.appearance.theme.light"),
     };
     return map[normalizedTheme] || normalizedTheme;
   };

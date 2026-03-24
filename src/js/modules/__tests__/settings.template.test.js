@@ -24,4 +24,14 @@ describe("settings template backup placement", () => {
     expect(toolsPaneHtml).toContain('id="settings-backup-status-badge"');
     expect(toolsPaneHtml).toContain('id="settings-backup-status-text"');
   });
+
+  test("includes the emerald theme in settings and first-run templates", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('data-value="emerald"');
+    expect(html).toContain('name="first-run-theme" value="emerald"');
+    expect(html).not.toContain('data-value="light"');
+    expect(html).not.toContain('name="first-run-theme" value="light"');
+  });
 });

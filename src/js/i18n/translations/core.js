@@ -125,11 +125,12 @@ export const coreTranslations = {
       "Классическая темная тема для повседневной работы",
     "firstRun.theme.midnightHint":
       "Более глубокая темная палитра с холодным акцентом",
+    "firstRun.theme.emeraldHint":
+      "Спокойная тёмная тема с зелёно-бирюзовым акцентом",
     "firstRun.theme.sunsetHint":
       "Теплый контрастный вариант с мягкими оранжевыми акцентами",
     "firstRun.theme.violetHint":
       "Выразительная тёмная тема с ярким акцентным цветом",
-    "firstRun.theme.lightHint": "Светлая тема для дневного и офисного режима",
     "firstRun.summary": "Проверьте настройки",
     "firstRun.summarySubtitle":
       "Всё готово. Примените настройки и перезапустите интерфейс с выбранными параметрами.",
@@ -306,10 +307,11 @@ export const coreTranslations = {
       "Choose how the app looks. Theme preview is applied immediately.",
     "firstRun.theme.darkHint": "Classic dark theme for everyday work",
     "firstRun.theme.midnightHint": "A deeper dark palette with a colder accent",
+    "firstRun.theme.emeraldHint":
+      "A calm dark theme with an emerald and teal accent",
     "firstRun.theme.sunsetHint": "Warm contrast with softer orange highlights",
     "firstRun.theme.violetHint":
       "A more expressive dark theme with a vivid accent",
-    "firstRun.theme.lightHint": "Light theme for daytime and office use",
     "firstRun.summary": "Review your setup",
     "firstRun.summarySubtitle":
       "Everything is ready. Apply the settings and restart the interface with your chosen options.",

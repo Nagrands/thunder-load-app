@@ -10973,76 +10973,73 @@
     255;
 }
 
-[data-theme=light] {
-  --color-accent: #b8c0ff;
-  --color-bg-log: #aeaeae;
-  --color-bg-main: rgba(110, 114, 123, 0.3607843137);
-  --color-bg-secondary: #dfdfdf;
-  --color-border: #c5c5c5;
-  --menu-item-active: linear-gradient(180deg, #f97316, #be185d);
-  --menu-item-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08));
-  --color-disabled: #5a5a5a;
-  --color-highlight: #e0f4f8;
-  --color-history-scroll: rgba(168, 168, 168, 0.18);
-  --color-hover: rgba(137, 137, 137, 0.18);
-  --color-icon-links: #f472b6;
-  --color-progress-bar: #858483;
-  --color-progress-bg: rgba(15, 10, 18, 0.7);
-  --color-quality: rgba(221, 221, 221, 0.8823529412);
-  --color-toast-bg: #727071;
-  --color-toast-error: #ff5d5d;
-  --color-toast-success: #34d399;
-  --color-toast-text: #ffe9df;
-  --color-toast-warning: #fbbf24;
-  --color-url-bg: rgba(130, 130, 130, 0.1882352941);
-  --color-url-border: #79797a;
-  --color-url-link: #252525;
-  --color-url-text: #ffe7da;
-  --topbar-bg: #3a3a3a;
-  --topbar-border: rgba(0, 0, 0, 0.08);
-  --topbar-shadow: 0 10px 24px rgba(10, 6, 14, 0.45);
+[data-theme=emerald] {
+  --color-accent: #3ddc97;
+  --color-bg-log: #071712;
+  --color-bg-main: #0a1c17;
+  --color-bg-secondary: rgba(14, 35, 29, 0.8980392157);
+  --color-border: #17372f;
+  --menu-item-active: linear-gradient(180deg, #2dcf88, #147d5a);
+  --menu-item-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.08));
+  --color-disabled: #5f8578;
+  --color-highlight: #e4fff4;
+  --color-history-scroll: rgba(61, 220, 151, 0.24);
+  --color-hover: rgba(61, 220, 151, 0.1);
+  --color-icon-links: #4fd1c5;
+  --color-progress-bar: #2fd68f;
+  --color-progress-bg: rgba(8, 24, 20, 0.72);
+  --color-quality: rgba(190, 245, 223, 0.58);
+  --color-toast-bg: #10231d;
+  --color-toast-error: #ff5c62;
+  --color-toast-success: #3ddc97;
+  --color-toast-text: #ebfff7;
+  --color-toast-warning: #f7c948;
+  --color-url-bg: rgba(10, 28, 23, 0.78);
+  --color-url-border: #215648;
+  --color-url-link: #5de3bd;
+  --color-url-text: #dffaf0;
+  --topbar-bg: rgb(8, 23, 18);
+  --topbar-border: rgba(255, 255, 255, 0.07);
+  --topbar-shadow: 0 10px 24px rgba(4, 14, 11, 0.48);
   --topbar-height: 54px;
   --topbar-padding-x: 18px;
   --topbar-padding-y: 10px;
-  --topbar-chip-bg: rgba(255, 255, 255, 0.04);
-  --topbar-chip-border: rgba(255, 255, 255, 0.1);
-  --topbar-tab-bg: rgba(255, 255, 255, 0.04);
-  --topbar-tab-border: rgba(255, 255, 255, 0.12);
-  --topbar-tab-active: rgba(215, 215, 215, 0.2);
-  --button-cancel: linear-gradient(180deg, #ff5d5d, #6d1f36);
-  --button-color: #ffe9df;
-  --button-default: linear-gradient(180deg, rgba(249, 115, 22, 0.5), #231125);
-  --button-disabled-bg: rgba(124, 104, 117, 0.4);
-  --button-disabled: #f5c6b3;
-  --button-download: linear-gradient(180deg, #f97316, #be185d);
-  --button-enabled: #ffe9df;
-  --button-open-folder: linear-gradient(180deg, #fb923c, #7c2d12);
-  --button-open-history: linear-gradient(180deg, #f472b6, #6d1f36);
-  --button-openlast-video: linear-gradient(180deg, #facc15, #9d174d);
-  --sidebar-background: rgba(26, 13, 24, 0.8);
-  --sidebar-color: #ffe9df;
-  --sidebar-list-color: rgba(255, 255, 255, 0.12);
-  --color-text-main: #dbd8d6;
-  --app-bg-gradient: radial-gradient(120% 90% at 16% 8%, rgba(185, 202, 230, 0.16) 0%, rgba(185, 202, 230, 0) 64%), radial-gradient(95% 78% at 82% 16%, rgba(160, 176, 208, 0.11) 0%, rgba(160, 176, 208, 0) 68%);
-  --app-bg-pattern: linear-gradient(180deg, rgba(56, 72, 102, 0.012) 0%, rgba(56, 72, 102, 0) 100%);
-  --app-bg-vignette: radial-gradient(138% 116% at 50% 96%, rgba(90, 98, 116, 0.11) 0%, rgba(92, 100, 118, 0.2) 76%, rgba(88, 96, 114, 0.24) 100%);
+  --topbar-chip-bg: rgba(255, 255, 255, 0.035);
+  --topbar-chip-border: rgba(255, 255, 255, 0.08);
+  --topbar-tab-bg: rgba(255, 255, 255, 0.03);
+  --topbar-tab-border: rgba(255, 255, 255, 0.1);
+  --topbar-tab-active: rgba(61, 220, 151, 0.18);
+  --button-cancel: linear-gradient(180deg, #d65c6a, #12342b);
+  --button-color: #ecfff8;
+  --button-default: linear-gradient(180deg, rgba(61, 220, 151, 0.56), #103229);
+  --button-disabled-bg: rgba(89, 124, 111, 0.48);
+  --button-disabled: #d9f6ea;
+  --button-download: linear-gradient(180deg, #2dcf88, #147d5a);
+  --button-enabled: #f2fff9;
+  --button-open-folder: linear-gradient(180deg, #4fd1c5, #13423b);
+  --button-open-history: linear-gradient(180deg, #35c7a2, #12342b);
+  --button-openlast-video: linear-gradient(180deg, #2fcf8f, #12342b);
+  --sidebar-background: rgba(11, 29, 24, 0.8);
+  --sidebar-color: #e8fff5;
+  --sidebar-list-color: rgba(255, 255, 255, 0.1);
+  --color-text-main: #e4fff4;
+  --app-bg-gradient: radial-gradient(112% 86% at 14% 9%, rgba(61, 220, 151, 0.16) 0%, rgba(61, 220, 151, 0) 62%), radial-gradient(92% 72% at 84% 18%, rgba(79, 209, 197, 0.1) 0%, rgba(79, 209, 197, 0) 66%);
+  --app-bg-pattern: linear-gradient(180deg, rgba(227, 255, 243, 0.014) 0%, rgba(227, 255, 243, 0) 100%);
+  --app-bg-vignette: radial-gradient(136% 115% at 50% 96%, rgba(5, 14, 11, 0.2) 0%, rgba(5, 14, 11, 0.4) 74%, rgba(5, 14, 11, 0.5) 100%);
   --app-bg-blend: normal;
-  --app-bg-size: 44px 44px;
-  --app-bg-opacity: 0.62;
-  --color-youtube: #ff6b6b;
-  --color-twitch: #c084fc;
-  --color-vkvideo: #fb923c;
-  --color-coub: #f472b6;
-  --badge-size-bg: rgba(255, 233, 223, 0.08);
-  --badge-size-border: rgba(255, 233, 223, 0.24);
-  --color-delete: rgba(255, 93, 93, 0.16);
+  --app-bg-size: 40px 40px;
+  --app-bg-opacity: 0.74;
+  --color-youtube: #ff6b72;
+  --color-twitch: #8b7bff;
+  --color-vkvideo: #2dcf88;
+  --color-coub: #4fd1c5;
+  --badge-size-bg: rgba(232, 255, 245, 0.08);
+  --badge-size-border: rgba(232, 255, 245, 0.22);
+  --color-delete: rgba(255, 92, 98, 0.14);
   --color-accent-rgb:
-    184,
-    192,
-    255;
-  --tooltip-bg-color: rgba(255, 255, 255, 0.96);
-  --tooltip-text-color: #0f172a;
-  --tooltip-border-color: rgba(15, 23, 42, 0.16);
+    61,
+    220,
+    151;
 }
 
 [data-theme=sunset] {
@@ -16772,18 +16769,14 @@ hr {
 .first-run-modal .first-run-theme-card--midnight {
   background: linear-gradient(135deg, rgba(2, 6, 23, 0.95), rgba(30, 41, 59, 0.72)), rgba(255, 255, 255, 0.03);
 }
+.first-run-modal .first-run-theme-card--emerald {
+  background: linear-gradient(135deg, rgba(7, 23, 18, 0.95), rgba(24, 82, 67, 0.74)), rgba(255, 255, 255, 0.03);
+}
 .first-run-modal .first-run-theme-card--sunset {
   background: linear-gradient(135deg, rgba(120, 53, 15, 0.9), rgba(127, 29, 29, 0.72)), rgba(255, 255, 255, 0.03);
 }
 .first-run-modal .first-run-theme-card--violet {
   background: linear-gradient(135deg, rgba(67, 56, 202, 0.86), rgba(88, 28, 135, 0.74)), rgba(255, 255, 255, 0.03);
-}
-.first-run-modal .first-run-theme-card--light {
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(226, 232, 240, 0.88)), rgba(255, 255, 255, 0.08);
-}
-.first-run-modal .first-run-theme-card--light .first-run-option__content strong,
-.first-run-modal .first-run-theme-card--light .first-run-option__content small {
-  color: rgba(15, 23, 42, 0.9);
 }
 .first-run-modal .first-run-summary {
   display: grid;
@@ -17424,6 +17417,9 @@ hr {
 .settings-modal .dropdown-toggle[data-current-theme=midnight]::before {
   background: radial-gradient(circle at 20% 50%, #163a6b 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #0a84ff 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #0b1220 0 3px, transparent 4px);
 }
+.settings-modal .dropdown-toggle[data-current-theme=emerald]::before {
+  background: radial-gradient(circle at 20% 50%, #4fd1c5 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #2fd68f 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #0b1d18 0 3px, transparent 4px);
+}
 .settings-modal .dropdown-toggle[data-current-theme=sunset]::before {
   background: radial-gradient(circle at 20% 50%, #fb923c 0 3px, transparent 4px), radial-gradient(circle at 50% 50%, #f472b6 0 3px, transparent 4px), radial-gradient(circle at 80% 50%, #2a162d 0 3px, transparent 4px);
 }
@@ -17512,6 +17508,9 @@ hr {
 }
 .settings-modal .dropdown-menu.show li:nth-child(5) {
   animation-delay: 0.1s;
+}
+.settings-modal .dropdown-menu.show li:nth-child(6) {
+  animation-delay: 0.12s;
 }
 .settings-modal .dropdown-reset {
   position: relative;
@@ -17768,6 +17767,14 @@ hr {
 .settings-modal #other-settings .dropdown-menu li[data-value=midnight]::before {
   background: radial-gradient(circle at 30% 30%, #163a6b, #0b1220 70%);
   box-shadow: inset 0 0 0 2px rgba(90, 200, 250, 0.25);
+}
+.settings-modal #general-settings .dropdown-menu li[data-value=emerald]::before,
+.settings-modal #window-settings .dropdown-menu li[data-value=emerald]::before,
+.settings-modal #wgunlock-settings .dropdown-menu li[data-value=emerald]::before,
+.settings-modal #appearance-settings .dropdown-menu li[data-value=emerald]::before,
+.settings-modal #other-settings .dropdown-menu li[data-value=emerald]::before {
+  background: radial-gradient(circle at 30% 30%, #4fd1c5, #0b1d18 70%);
+  box-shadow: inset 0 0 0 2px rgba(61, 220, 151, 0.35);
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=sunset]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=sunset]::before,
