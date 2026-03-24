@@ -2268,17 +2268,10 @@ async function stopDownload(tokenOrTokens = activeDownloadToken) {
   return tokens.length;
 }
 
-log.info(
-  "[download.js] tools dir:",
-  getToolsDir(),
-  "(default:",
-  getDefaultToolsDir(),
-  ")",
-);
-log.info("[download.js] yt-dlp path:", getYtDlpPath());
-log.info("[download.js] ffmpeg path:", getFfmpegPath());
-log.info("[download.js] ffprobe path:", getFfprobePath());
-log.info("[download.js] deno path:", getDenoPath());
+log.info("[download.js] tool paths initialized", {
+  toolsDir: getToolsDir(),
+  usesDefaultToolsDir: getToolsDir() === getDefaultToolsDir(),
+});
 
 module.exports = {
   installYtDlp,

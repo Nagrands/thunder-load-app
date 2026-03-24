@@ -225,6 +225,22 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result).toEqual({ success: true, filePath: "/tmp/movie.webm" });
   });
 
+  test("open-config-folder opens settings directory without selecting file", async () => {
+    const { shell, app } = require("electron");
+    const { CHANNELS } = require("../../ipc/channels");
+    const userDataPath = app.getPath("userData");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.OPEN_CONFIG_FOLDER]();
+
+    expect(result).toEqual({ success: true });
+    expect(shell.openPath).toHaveBeenCalledWith(userDataPath);
+    expect(shell.showItemInFolder).not.toHaveBeenCalled();
+    expect(
+      fs.existsSync(path.join(userDataPath, "wireguard.conf")),
+    ).toBeTruthy();
+  });
+
   test("mediaInspectorAnalyze returns structured report for a local file", async () => {
     const { execFile } = require("child_process");
     const { promisify } = require("util");

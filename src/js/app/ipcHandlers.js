@@ -762,22 +762,10 @@ function setupIpcHandlers(dependencies) {
         tools.ffmpeg.skipUpdates = true;
       }
 
-      // Детальное логирование для диагностики
-      log.info("Загрузчик → Результат проверки версий инструментов:", {
-        ytDlp: {
-          ok: tools?.ytDlp?.ok,
-          path: tools?.ytDlp?.path,
-          version: tools?.ytDlp?.version,
-          exists: tools?.ytDlp?.path ? fs.existsSync(tools.ytDlp.path) : false,
-        },
-        ffmpeg: {
-          ok: tools?.ffmpeg?.ok,
-          path: tools?.ffmpeg?.path,
-          version: tools?.ffmpeg?.version,
-          exists: tools?.ffmpeg?.path
-            ? fs.existsSync(tools.ffmpeg.path)
-            : false,
-        },
+      log.info("Загрузчик → Проверка версий инструментов завершена", {
+        ytDlpOk: tools?.ytDlp?.ok === true,
+        ffmpegOk: tools?.ffmpeg?.ok === true,
+        ffmpegVersion: tools?.ffmpeg?.version || null,
       });
 
       return tools;
@@ -2905,7 +2893,7 @@ function setupIpcHandlers(dependencies) {
       if (!fs.existsSync(filePath)) {
         fs.writeFileSync(filePath, "", "utf8");
       }
-      shell.showItemInFolder(filePath);
+      shell.openPath(folderPath);
       return { success: true };
     } catch (e) {
       log.error("open-config-folder error:", e);

@@ -233,8 +233,6 @@ if (!app.requestSingleInstanceLock()) {
       const lastRecordedVersion = store.get("appVersion", null);
       const pendingVersion = getPendingWhatsNewVersion();
 
-      log.info(`The current version of the application: ${currentVersion}`);
-
       if (lastRecordedVersion !== currentVersion) {
         log.info(
           "The application version has been updated. Queuing the 'What's New' modal.",
@@ -244,8 +242,6 @@ if (!app.requestSingleInstanceLock()) {
       } else if (pendingVersion && pendingVersion !== currentVersion) {
         // Зафиксирована устаревшая отложенная версия → обновляем её на актуальную
         setPendingWhatsNewVersion(currentVersion);
-      } else if (!pendingVersion) {
-        log.info("No pending 'What's New' modal to display.");
       }
 
       dispatchPendingWhatsNew();
@@ -279,13 +275,11 @@ if (!app.requestSingleInstanceLock()) {
    */
   async function restoreDownloadPath() {
     try {
-      // 1) Prefer value from electron-store
-      const savedStorePath = store.get("downloadPath", "");
-      if (typeof savedStorePath === "string" && savedStorePath.trim() !== "") {
-        downloadPath = savedStorePath;
-        dependencies.downloadState.downloadPath = savedStorePath;
-      } else if (mainWindow && mainWindow.webContents) {
-        // 2) (One-time) migrate from localStorage if present
+      const hasDownloadPath =
+        typeof downloadPath === "string" && downloadPath.trim() !== "";
+
+      if (!hasDownloadPath && mainWindow && mainWindow.webContents) {
+        // One-time migrate from localStorage when store didn't provide a value.
         const savedLSPath = await mainWindow.webContents.executeJavaScript(
           `window.localStorage.getItem('downloadPath')`,
         );
@@ -340,9 +334,6 @@ if (!app.requestSingleInstanceLock()) {
       ) {
         downloadPath = savedStorePathAtStartup;
         dependencies.downloadState.downloadPath = savedStorePathAtStartup;
-        log.info(
-          `Startup download path from store: ${savedStorePathAtStartup}`,
-        );
       }
     } catch (e) {
       log.error("Failed to preload download path from store:", e);

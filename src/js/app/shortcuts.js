@@ -92,7 +92,6 @@ function setupGlobalShortcuts(mainWindow) {
 
   const disableGlobalShortcuts = store.get("disableGlobalShortcuts", false);
   if (disableGlobalShortcuts) {
-    log.info("[shortcuts.js]: Global hotkeys are disabled by user settings.");
     return;
   }
 
