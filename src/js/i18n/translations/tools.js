@@ -6,8 +6,12 @@ export const toolsTranslations = {
     "productsFormatter.inputLabel": "Исходный список",
     "productsFormatter.inputPlaceholder":
       "Вставьте неструктурированный список продуктов с разделами и позициями.",
-    "productsFormatter.summaryToggle": "Добавить Итого",
-    "productsFormatter.greensToggle": "Добавить зелень",
+    "productsFormatter.summaryToggle": "Итого",
+    "productsFormatter.greensToggle": "Зелень",
+    "productsFormatter.summaryToggleHint":
+      "Добавляет итоговый блок «Итого» в конец результата.",
+    "productsFormatter.greensToggleHint":
+      "Добавляет только отдельный блок «Зелень».",
     "productsFormatter.format": "Форматировать",
     "productsFormatter.paste": "Вставить",
     "productsFormatter.clear": "Очистить",
@@ -800,8 +804,12 @@ export const toolsTranslations = {
     "productsFormatter.inputLabel": "Source list",
     "productsFormatter.inputPlaceholder":
       "Paste an unstructured product list with section headers and items.",
-    "productsFormatter.summaryToggle": "Include summary",
-    "productsFormatter.greensToggle": "Include greens",
+    "productsFormatter.summaryToggle": "Summary",
+    "productsFormatter.greensToggle": "Greens",
+    "productsFormatter.summaryToggleHint":
+      "Adds the final Summary block at the end of the result.",
+    "productsFormatter.greensToggleHint":
+      "Adds only the separate Greens block.",
     "productsFormatter.format": "Format",
     "productsFormatter.paste": "Paste",
     "productsFormatter.clear": "Clear",

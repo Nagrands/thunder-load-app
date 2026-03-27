@@ -27,6 +27,30 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-greens-toggle")?.checked).toBe(
       false,
     );
+    expect(
+      wrapper
+        .querySelector("#products-summary-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.textContent?.trim(),
+    ).toBe("Итого");
+    expect(
+      wrapper
+        .querySelector("#products-greens-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.textContent?.trim(),
+    ).toBe("Зелень");
+    expect(
+      wrapper
+        .querySelector("#products-summary-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.getAttribute("title"),
+    ).toBe('Добавляет итоговый блок «Итого» в конец результата.');
+    expect(
+      wrapper
+        .querySelector("#products-greens-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.getAttribute("title"),
+    ).toBe("Добавляет только отдельный блок «Зелень».");
     expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
       true,
     );
@@ -276,12 +300,33 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelector('[data-ui="products-diff-panel"]')?.textContent,
     ).toContain("ПетрушкаЦ 2 пуч");
+    expect(wrapper.querySelector("#products-diff-list")?.hidden).toBe(true);
     expect(
       wrapper.querySelectorAll(".products-preview__item--uncertain").length,
     ).toBeGreaterThan(0);
     expect(wrapper.querySelector(".products-preview__badge")?.textContent).toBe(
       "Проверить",
     );
+  });
+
+  test("keeps normalization collapsed by default and expands on click", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 5`;
+    wrapper.querySelector("#products-format").click();
+
+    const diffToggle = wrapper.querySelector("#products-diff-toggle");
+    const diffList = wrapper.querySelector("#products-diff-list");
+
+    expect(diffToggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(diffList?.hidden).toBe(true);
+
+    diffToggle.click();
+
+    expect(diffToggle?.getAttribute("aria-expanded")).toBe("true");
+    expect(diffList?.hidden).toBe(false);
   });
 
   test("allows dismissing warnings from the diagnostics panel", () => {
@@ -329,10 +374,14 @@ describe("productFormatterView", () => {
     );
 
     const firstToggle = wrapper.querySelector(".products-preview__heading-button");
-    const firstList = wrapper.querySelector(".products-preview__list");
-    expect(firstList?.hidden).toBe(false);
+    const firstSection = wrapper.querySelector(".products-preview__section");
+    expect(firstSection?.classList.contains("products-preview__section--collapsed")).toBe(
+      false,
+    );
     firstToggle.click();
-    expect(firstList?.hidden).toBe(true);
+    expect(firstSection?.classList.contains("products-preview__section--collapsed")).toBe(
+      true,
+    );
   });
 
   test("supports custom dev dictionary and shows comparison after a rerun", () => {

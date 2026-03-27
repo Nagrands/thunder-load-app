@@ -19,7 +19,7 @@
 }
 
 .products-formatter-shell {
-  width: min(1180px, 100%);
+  width: min(1380px, 100%);
   height: 100%;
   min-height: 100%;
   display: grid;
@@ -90,7 +90,7 @@
   min-height: 0;
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+  grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.12fr);
   gap: 18px;
   align-items: stretch;
   overflow: hidden;
@@ -159,8 +159,9 @@
 
 .products-pane__toggles {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  align-items: center;
 }
 
 .products-pane__body {
@@ -182,23 +183,32 @@
 .products-pane__footer {
   display: flex;
   justify-content: stretch;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  margin-top: auto;
+  padding-top: 0;
+  border-top: 0;
+  margin-top: 0;
+}
+
+.products-pane__footer--action {
+  padding-top: 6px;
+  position: relative;
+  z-index: 1;
 }
 
 .products-formatter-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 8px 11px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.025);
   color: var(--color-text-main);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
+  font-weight: 600;
   line-height: 1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+  cursor: pointer;
 
   input {
     width: 16px;
@@ -344,6 +354,7 @@
   font-size: 0.98rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  margin-top: 2px;
 
   i {
     font-size: 1rem;
@@ -548,10 +559,39 @@
 }
 
 .products-diagnostics__title {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--color-highlight);
+}
+
+.products-diagnostics__toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.products-diagnostics__toggle-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  i {
+    color: var(--color-quality);
+    font-size: 0.76rem;
+  }
+}
+
+.products-diagnostics__panel--collapsed {
+  padding-bottom: 12px;
 }
 
 .products-comparison-summary {
@@ -610,38 +650,48 @@
 }
 
 .products-issue {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255, 184, 77, 0.08);
-  border: 1px solid rgba(255, 184, 77, 0.14);
+  position: relative;
+  display: block;
+  padding: 8px 28px 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 184, 77, 0.04);
+  border: 1px solid rgba(255, 184, 77, 0.1);
   color: var(--color-text-main);
-  font-size: 0.85rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .products-issue__text {
-  flex: 1 1 auto;
+  display: block;
   min-width: 0;
+  color: var(--color-highlight);
+  font-weight: 700;
+  text-wrap: pretty;
 }
 
 .products-issue__close {
-  flex: 0 0 auto;
-  width: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  border-radius: 10px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--color-quality);
+  opacity: 0.8;
 
   i {
-    font-size: 0.82rem;
+    font-size: 0.68rem;
   }
 
   &:hover {
     color: var(--color-highlight);
+    background: transparent;
+    transform: none;
+    opacity: 1;
   }
 }
 
@@ -708,6 +758,16 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+.products-preview__section--collapsed {
+  .products-preview__list {
+    display: none;
+  }
+
+  .products-preview__header {
+    margin-bottom: 0;
+  }
+}
+
 .products-preview__section--summary {
   border-color: rgba(var(--color-accent-rgb), 0.22);
   background:
@@ -731,11 +791,13 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   color: inherit;
   text-align: left;
+  cursor: pointer;
 
   i {
     color: var(--color-quality);
@@ -852,6 +914,10 @@
 
   .products-pane__body--result {
     min-height: 300px;
+  }
+
+  .products-pane__toggles {
+    flex-wrap: wrap;
   }
 
   .products-dictionary {

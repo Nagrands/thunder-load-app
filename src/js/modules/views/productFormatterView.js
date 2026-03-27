@@ -75,7 +75,15 @@ function buildMarkup() {
               <div class="products-pane__title products-pane__title--stack">
                 <h2 data-i18n="productsFormatter.inputLabel">${t("productsFormatter.inputLabel")}</h2>
                 <div class="products-pane__toggles">
-                  <label class="products-formatter-toggle">
+                  <label
+                    class="products-formatter-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="${t("productsFormatter.summaryToggleHint")}"
+                    data-i18n-title="productsFormatter.summaryToggleHint"
+                    aria-label="${t("productsFormatter.summaryToggleHint")}"
+                    data-i18n-aria="productsFormatter.summaryToggleHint"
+                  >
                     <input
                       id="products-summary-toggle"
                       type="checkbox"
@@ -83,7 +91,15 @@ function buildMarkup() {
                     />
                     <span data-i18n="productsFormatter.summaryToggle">${t("productsFormatter.summaryToggle")}</span>
                   </label>
-                  <label class="products-formatter-toggle">
+                  <label
+                    class="products-formatter-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="${t("productsFormatter.greensToggleHint")}"
+                    data-i18n-title="productsFormatter.greensToggleHint"
+                    aria-label="${t("productsFormatter.greensToggleHint")}"
+                    data-i18n-aria="productsFormatter.greensToggleHint"
+                  >
                     <input
                       id="products-greens-toggle"
                       type="checkbox"
@@ -206,7 +222,7 @@ function buildMarkup() {
               ></textarea>
             </div>
 
-            <footer class="products-pane__footer">
+            <footer class="products-pane__footer products-pane__footer--action">
               <button
                 id="products-format"
                 type="button"
@@ -312,8 +328,21 @@ function buildMarkup() {
                     data-ui="products-diff-panel"
                     hidden
                   >
-                    <h3 class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.diff">${t("productsFormatter.diagnostics.diff")}</h3>
-                    <div id="products-diff-list" class="products-diff-list"></div>
+                    <button
+                      id="products-diff-toggle"
+                      type="button"
+                      class="products-diagnostics__toggle"
+                      aria-expanded="false"
+                    >
+                      <span class="products-diagnostics__toggle-copy">
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        <span
+                          class="products-diagnostics__title"
+                          data-i18n="productsFormatter.diagnostics.diff"
+                        >${t("productsFormatter.diagnostics.diff")}</span>
+                      </span>
+                    </button>
+                    <div id="products-diff-list" class="products-diff-list" hidden></div>
                   </section>
 
                   <section
@@ -392,10 +421,12 @@ function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
 
   const issues = Array.isArray(result.issues) ? result.issues : [];
   const diffEntries = Array.isArray(result.diffEntries) ? result.diffEntries : [];
+  const diffPanel = diffEl.closest('[data-ui="products-diff-panel"]');
+  const diffToggle = diffPanel?.querySelector("#products-diff-toggle");
+  const diffChevron = diffToggle?.querySelector("i");
 
   const syncDiagnosticsVisibility = () => {
     const issuesPanel = issuesEl.closest('[data-ui="products-issues-panel"]');
-    const diffPanel = diffEl.closest('[data-ui="products-diff-panel"]');
     const comparisonPanel = diagnosticsEl.querySelector(
       '[data-ui="products-comparison-panel"]',
     );
@@ -463,6 +494,38 @@ function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
 
     diffEl.appendChild(row);
   });
+
+  if (diffToggle && !diffToggle.dataset.bound) {
+    diffToggle.addEventListener("click", () => {
+      const expanded = diffToggle.getAttribute("aria-expanded") === "true";
+      const nextExpanded = !expanded;
+      diffToggle.setAttribute("aria-expanded", String(nextExpanded));
+      diffEl.hidden = !nextExpanded;
+      if (diffPanel) {
+        diffPanel.classList.toggle(
+          "products-diagnostics__panel--collapsed",
+          !nextExpanded,
+        );
+      }
+      if (diffChevron) {
+        diffChevron.className = nextExpanded
+          ? "fa-solid fa-chevron-down"
+          : "fa-solid fa-chevron-right";
+      }
+    });
+    diffToggle.dataset.bound = "true";
+  }
+
+  if (diffToggle) {
+    diffToggle.setAttribute("aria-expanded", "false");
+  }
+  diffEl.hidden = true;
+  if (diffPanel) {
+    diffPanel.classList.add("products-diagnostics__panel--collapsed");
+  }
+  if (diffChevron) {
+    diffChevron.className = "fa-solid fa-chevron-right";
+  }
 
   syncDiagnosticsVisibility();
 }
@@ -614,6 +677,9 @@ function createSectionBlock(
     type === "summary"
       ? "products-preview__section products-preview__section--summary"
       : "products-preview__section";
+  if (collapsed) {
+    section.classList.add("products-preview__section--collapsed");
+  }
   section.dataset.previewType = type;
 
   const header = document.createElement("div");
@@ -656,7 +722,6 @@ function createSectionBlock(
 
   const list = document.createElement("ul");
   list.className = "products-preview__list";
-  list.hidden = collapsed;
 
   items.forEach((entry) => {
     const item = document.createElement("li");
@@ -678,8 +743,10 @@ function createSectionBlock(
   });
 
   headingButton.addEventListener("click", () => {
-    const nextCollapsed = !list.hidden;
-    list.hidden = nextCollapsed;
+    const nextCollapsed = !section.classList.contains(
+      "products-preview__section--collapsed",
+    );
+    section.classList.toggle("products-preview__section--collapsed", nextCollapsed);
     chevron.className = nextCollapsed
       ? "fa-solid fa-chevron-right"
       : "fa-solid fa-chevron-down";
