@@ -17,6 +17,7 @@ export function bindViewEvents({
   emptyPasteButton,
   emptyDemoButton,
   copyButton,
+  searchInput,
   applyInputButton,
   collapseAllButton,
   expandAllButton,
@@ -192,6 +193,12 @@ export function bindViewEvents({
     }
     clearPreview({ resetComparison: true });
     setStatus("", "");
+  });
+
+  searchInput?.addEventListener("input", () => {
+    state.resultSearchQuery = String(searchInput.value || "").trim();
+    if (!state.currentResult) return;
+    showResult(state.currentResult);
   });
 
   const handleToggleReformat = () => {

@@ -241,3 +241,15 @@
 .products-diff-row__output {
   color: var(--color-highlight);
 }
+
+.products-diff-row__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.products-diff-row__apply {
+  min-height: 32px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+}

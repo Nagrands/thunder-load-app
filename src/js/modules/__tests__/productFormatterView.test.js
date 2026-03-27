@@ -81,6 +81,7 @@ describe("productFormatterView", () => {
     );
     expect(wrapper.querySelector("#products-collapse-all")).not.toBeNull();
     expect(wrapper.querySelector("#products-expand-all")).not.toBeNull();
+    expect(wrapper.querySelector("#products-search")).not.toBeNull();
     expect(wrapper.querySelector("#products-apply-input")).not.toBeNull();
     expect(wrapper.querySelector("#products-filter-uncertain")).not.toBeNull();
     expect(wrapper.querySelectorAll(".products-diagnostics__filter").length).toBe(4);
@@ -599,6 +600,60 @@ describe("productFormatterView", () => {
     ).toBe(true);
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Нормализованный текст подставлен во вход.",
+    );
+  });
+
+  test("applies a normalized diff row back to the input", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Тесто
+ПетрушкаЦ 2 пуч.
+Лук 1`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    wrapper.querySelector(".products-diff-row__apply").click();
+
+    expect(textarea.value).toContain("Петрушка 2п");
+    expect(textarea.value).not.toContain("ПетрушкаЦ 2 пуч.");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исправленная строка подставлена во вход.",
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden,
+    ).toBe(false);
+  });
+
+  test("filters the result preview by search query", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 1
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    const search = wrapper.querySelector("#products-search");
+    search.value = "чеснок";
+    search.dispatchEvent(new Event("input"));
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Чеснок",
+    );
+    expect(wrapper.querySelector("#products-preview")?.textContent).not.toContain(
+      "Петрушка",
+    );
+
+    search.value = "банан";
+    search.dispatchEvent(new Event("input"));
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "По запросу «банан» ничего не найдено.",
     );
   });
 

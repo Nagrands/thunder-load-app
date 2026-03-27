@@ -39,8 +39,11 @@ export const toolsTranslations = {
     "productsFormatter.resultActions.applyInput": "Подставить во вход",
     "productsFormatter.resultActions.onlyUncertain": "Только спорные",
     "productsFormatter.resultActions.showAll": "Показать всё",
+    "productsFormatter.resultActions.searchPlaceholder": "Поиск по результату",
     "productsFormatter.resultActions.noUncertain":
       "Спорных позиций в текущем результате нет.",
+    "productsFormatter.resultActions.noSearchMatches":
+      "По запросу «{query}» ничего не найдено.",
     "productsFormatter.staleBanner":
       "Результат устарел после изменений во входе или словаре.",
     "productsFormatter.emptyTitle": "Результат появится здесь",
@@ -60,6 +63,7 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.filter.review": "Проверить",
     "productsFormatter.diagnostics.filter.typos": "Опечатки",
     "productsFormatter.diagnostics.filter.duplicates": "Дубли",
+    "productsFormatter.diagnostics.applyLine": "Подставить строку",
     "productsFormatter.diagnostics.emptyFiltered":
       "Для фильтра «{filter}» совпадений нет.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
@@ -103,6 +107,10 @@ export const toolsTranslations = {
       "Исходник изменён. Переформатируйте результат.",
     "productsFormatter.status.appliedToInput":
       "Нормализованный текст подставлен во вход.",
+    "productsFormatter.status.lineApplied":
+      "Исправленная строка подставлена во вход.",
+    "productsFormatter.status.applyLineError":
+      "Не удалось найти исходную строку для подстановки.",
     "productsFormatter.status.copyError": "Не удалось скопировать результат.",
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
@@ -871,8 +879,11 @@ export const toolsTranslations = {
     "productsFormatter.resultActions.applyInput": "Apply to input",
     "productsFormatter.resultActions.onlyUncertain": "Only uncertain",
     "productsFormatter.resultActions.showAll": "Show all",
+    "productsFormatter.resultActions.searchPlaceholder": "Search in result",
     "productsFormatter.resultActions.noUncertain":
       "There are no uncertain entries in the current result.",
+    "productsFormatter.resultActions.noSearchMatches":
+      "No matches found for “{query}”.",
     "productsFormatter.staleBanner":
       "The result is stale after changes in the source or dictionary.",
     "productsFormatter.emptyTitle": "The result will appear here",
@@ -892,6 +903,7 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.filter.review": "Review",
     "productsFormatter.diagnostics.filter.typos": "Typos",
     "productsFormatter.diagnostics.filter.duplicates": "Duplicates",
+    "productsFormatter.diagnostics.applyLine": "Apply line",
     "productsFormatter.diagnostics.emptyFiltered":
       "No matches for the “{filter}” filter.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
@@ -935,6 +947,10 @@ export const toolsTranslations = {
       "The source changed. Reformat the result.",
     "productsFormatter.status.appliedToInput":
       "Normalized text was applied to the input.",
+    "productsFormatter.status.lineApplied":
+      "The corrected line was applied to the input.",
+    "productsFormatter.status.applyLineError":
+      "Could not find the source line to replace.",
     "productsFormatter.status.copyError": "Could not copy the result.",
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",

@@ -168,6 +168,23 @@ export function renderDiagnostics(
     output.textContent = entry.output;
     row.appendChild(output);
 
+    if (entry.source && entry.output && entry.source !== entry.output) {
+      const actions = document.createElement("div");
+      actions.className = "products-diff-row__actions";
+
+      const applyButton = document.createElement("button");
+      applyButton.type = "button";
+      applyButton.className =
+        "small-button products-diff-row__apply products-utility-button";
+      applyButton.textContent = t("productsFormatter.diagnostics.applyLine");
+      applyButton.addEventListener("click", () => {
+        options.onApplyDiff?.(entry);
+      });
+      actions.appendChild(applyButton);
+
+      row.appendChild(actions);
+    }
+
     diffEl.appendChild(row);
   });
 
@@ -401,6 +418,21 @@ export function renderPreview(
 ) {
   if (!previewEl || !summaryCardEl) return;
   const showOnlyUncertain = options.showOnlyUncertain === true;
+  const searchQuery = String(options.searchQuery || "").trim().toLowerCase();
+  const matchesSearch = (sectionTitle, entry) => {
+    if (!searchQuery) return true;
+    const haystack = [
+      sectionTitle,
+      entry?.line,
+      entry?.text,
+      entry?.displayName,
+      entry?.name,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(searchQuery);
+  };
 
   previewEl.replaceChildren();
   summaryCardEl.replaceChildren();
@@ -411,12 +443,15 @@ export function renderPreview(
     const visibleItems = showOnlyUncertain
       ? section.items.filter((item) => item.uncertain)
       : section.items;
-    if (!visibleItems.length) return;
+    const matchedItems = searchQuery
+      ? visibleItems.filter((item) => matchesSearch(section.title, item))
+      : visibleItems;
+    if (!matchedItems.length) return;
     const key = buildSectionStateKey("section", section.title);
     previewEl.appendChild(
       createSectionBlock(
         section.title,
-        visibleItems,
+        matchedItems,
         "section",
         section.text,
         onCopySection,
@@ -431,12 +466,15 @@ export function renderPreview(
     const visibleItems = showOnlyUncertain
       ? result.summary.items.filter((item) => item.uncertain)
       : result.summary.items;
-    if (visibleItems.length || !showOnlyUncertain) {
+    const matchedItems = searchQuery
+      ? visibleItems.filter((item) => matchesSearch(result.summary.title, item))
+      : visibleItems;
+    if ((matchedItems.length || !showOnlyUncertain) && (!searchQuery || matchedItems.length)) {
       const key = buildSectionStateKey("summary", result.summary.title);
       previewEl.appendChild(
         createSectionBlock(
           result.summary.title,
-          visibleItems,
+          matchedItems,
           "summary",
           result.summary.text,
           onCopySection,
@@ -452,12 +490,17 @@ export function renderPreview(
     const visibleItems = showOnlyUncertain
       ? result.greensSummary.items.filter((item) => item.uncertain)
       : result.greensSummary.items;
-    if (visibleItems.length || !showOnlyUncertain) {
+    const matchedItems = searchQuery
+      ? visibleItems.filter((item) =>
+          matchesSearch(result.greensSummary.title, item),
+        )
+      : visibleItems;
+    if ((matchedItems.length || !showOnlyUncertain) && (!searchQuery || matchedItems.length)) {
       const key = buildSectionStateKey("greens", result.greensSummary.title);
       previewEl.appendChild(
         createSectionBlock(
           result.greensSummary.title,
-          visibleItems,
+          matchedItems,
           "summary",
           result.greensSummary.text,
           onCopySection,
@@ -474,6 +517,17 @@ export function renderPreview(
     filteredEmpty.className = "products-preview__filtered-empty";
     filteredEmpty.textContent = t(
       "productsFormatter.resultActions.noUncertain",
+    );
+    previewEl.appendChild(filteredEmpty);
+    return;
+  }
+
+  if (searchQuery && renderedBlocks === 0) {
+    const filteredEmpty = document.createElement("div");
+    filteredEmpty.className = "products-preview__filtered-empty";
+    filteredEmpty.textContent = t(
+      "productsFormatter.resultActions.noSearchMatches",
+      { query: searchQuery },
     );
     previewEl.appendChild(filteredEmpty);
   }

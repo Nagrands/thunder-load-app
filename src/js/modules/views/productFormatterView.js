@@ -5,6 +5,7 @@ import {
   parseProductFormatterDictionary,
   saveProductFormatterDictionary,
 } from "../formatters/productFormatterDictionary.js";
+import { cleanupEntryText } from "../formatters/productListFormatterParsing.js";
 import { applyI18n, t } from "../i18n.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import {
@@ -91,6 +92,7 @@ export default function renderProductFormatterView(wrapper) {
   const emptyPasteButton = wrapper.querySelector("#products-empty-paste");
   const emptyDemoButton = wrapper.querySelector("#products-empty-demo");
   const copyButton = wrapper.querySelector("#products-copy");
+  const searchInput = wrapper.querySelector("#products-search");
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
   const resultContent = wrapper.querySelector("#products-result-content");
@@ -131,6 +133,7 @@ export default function renderProductFormatterView(wrapper) {
       sectionCopyFeedbackTimer: null,
       isDirty: false,
       showOnlyUncertain: false,
+      resultSearchQuery: "",
       diagnosticsFilter: "all",
       lastFormattedSource: "",
       lastFormattedDictionary: "",
@@ -176,11 +179,31 @@ export default function renderProductFormatterView(wrapper) {
       (key, collapsed) => {
         state.collapsedSections[key] = collapsed;
       },
-      { showOnlyUncertain: state.showOnlyUncertain },
+      {
+        showOnlyUncertain: state.showOnlyUncertain,
+        searchQuery: state.resultSearchQuery,
+      },
     );
     renderDiagnostics(issuesList, diffList, diagnostics, result, {
       activeFilter: state.diagnosticsFilter,
       filterButtons: diagnosticsFilters,
+      onApplyDiff: (entry) => {
+        const lines = String(input?.value || "").split("\n");
+        const sourceKey = cleanupEntryText(entry.source);
+        const nextLines = [...lines];
+        const lineIndex = nextLines.findIndex(
+          (line) => cleanupEntryText(line) === sourceKey,
+        );
+        if (lineIndex === -1) {
+          setStatus(t("productsFormatter.status.applyLineError"), "error");
+          return;
+        }
+        nextLines[lineIndex] = entry.output;
+        input.value = nextLines.join("\n");
+        input.focus();
+        syncDirtyFromInputs();
+        setStatus(t("productsFormatter.status.lineApplied"), "success");
+      },
     });
     renderNormalizationStats(normalizationStats, result);
     renderComparison(
@@ -294,6 +317,7 @@ export default function renderProductFormatterView(wrapper) {
     emptyPasteButton,
     emptyDemoButton,
     copyButton,
+    searchInput,
     applyInputButton,
     collapseAllButton,
     expandAllButton,

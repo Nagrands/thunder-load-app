@@ -277,6 +277,17 @@ export function buildMarkup() {
                 >
                   <span data-i18n="productsFormatter.resultActions.expandAll">${t("productsFormatter.resultActions.expandAll")}</span>
                 </button>
+                <label class="products-result-search">
+                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                  <input
+                    id="products-search"
+                    type="search"
+                    data-i18n-placeholder="productsFormatter.resultActions.searchPlaceholder"
+                    placeholder="${t("productsFormatter.resultActions.searchPlaceholder")}"
+                    aria-label="${t("productsFormatter.resultActions.searchPlaceholder")}"
+                    data-i18n-aria="productsFormatter.resultActions.searchPlaceholder"
+                  />
+                </label>
                 <button
                   id="products-apply-input"
                   type="button"

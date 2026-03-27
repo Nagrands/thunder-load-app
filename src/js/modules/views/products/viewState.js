@@ -31,6 +31,7 @@ export function createViewStateHandlers({
   filterUncertainToggle,
   dirtyState,
   empty,
+  searchInput,
   formatButton,
   setStatus,
   showResult,
@@ -153,7 +154,9 @@ export function createViewStateHandlers({
     }
     state.isDirty = false;
     state.showOnlyUncertain = false;
+    state.resultSearchQuery = "";
     if (filterUncertainToggle) filterUncertainToggle.checked = false;
+    if (searchInput) searchInput.value = "";
     updateDirtyState();
   };
 
