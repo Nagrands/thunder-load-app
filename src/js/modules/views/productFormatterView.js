@@ -108,7 +108,11 @@ export default function renderProductFormatterView(wrapper) {
   const metaGreens = wrapper.querySelector("#products-meta-greens");
   const collapseAllButton = wrapper.querySelector("#products-collapse-all");
   const expandAllButton = wrapper.querySelector("#products-expand-all");
+  const applyInputButton = wrapper.querySelector("#products-apply-input");
   const filterUncertainToggle = wrapper.querySelector("#products-filter-uncertain");
+  const diagnosticsFilters = Array.from(
+    wrapper.querySelectorAll(".products-diagnostics__filter"),
+  );
   const dirtyState = wrapper.querySelector("#products-dirty-state");
   const empty = wrapper.querySelector("#products-output-empty");
   const status = wrapper.querySelector("#products-status");
@@ -127,6 +131,7 @@ export default function renderProductFormatterView(wrapper) {
       sectionCopyFeedbackTimer: null,
       isDirty: false,
       showOnlyUncertain: false,
+      diagnosticsFilter: "all",
       lastFormattedSource: "",
       lastFormattedDictionary: "",
     });
@@ -173,7 +178,10 @@ export default function renderProductFormatterView(wrapper) {
       },
       { showOnlyUncertain: state.showOnlyUncertain },
     );
-    renderDiagnostics(issuesList, diffList, diagnostics, result);
+    renderDiagnostics(issuesList, diffList, diagnostics, result, {
+      activeFilter: state.diagnosticsFilter,
+      filterButtons: diagnosticsFilters,
+    });
     renderNormalizationStats(normalizationStats, result);
     renderComparison(
       comparisonSummary,
@@ -286,9 +294,11 @@ export default function renderProductFormatterView(wrapper) {
     emptyPasteButton,
     emptyDemoButton,
     copyButton,
+    applyInputButton,
     collapseAllButton,
     expandAllButton,
     filterUncertainToggle,
+    diagnosticsFilters,
     includeSummary,
     includeGreensSummary,
     demoInput: DEMO_INPUT,

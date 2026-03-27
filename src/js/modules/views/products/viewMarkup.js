@@ -277,6 +277,13 @@ export function buildMarkup() {
                 >
                   <span data-i18n="productsFormatter.resultActions.expandAll">${t("productsFormatter.resultActions.expandAll")}</span>
                 </button>
+                <button
+                  id="products-apply-input"
+                  type="button"
+                  class="small-button products-utility-button"
+                >
+                  <span data-i18n="productsFormatter.resultActions.applyInput">${t("productsFormatter.resultActions.applyInput")}</span>
+                </button>
                 <label class="products-filter-toggle">
                   <input id="products-filter-uncertain" type="checkbox" />
                   <span data-i18n="productsFormatter.resultActions.onlyUncertain">${t("productsFormatter.resultActions.onlyUncertain")}</span>
@@ -346,6 +353,36 @@ export function buildMarkup() {
                   data-ui="products-diagnostics"
                   hidden
                 >
+                  <div
+                    id="products-diagnostics-filters"
+                    class="products-diagnostics__filters"
+                    data-ui="products-diagnostics-filters"
+                  >
+                    <button
+                      type="button"
+                      class="small-button products-diagnostics__filter"
+                      data-filter="all"
+                      data-i18n="productsFormatter.diagnostics.filter.all"
+                    >${t("productsFormatter.diagnostics.filter.all")}</button>
+                    <button
+                      type="button"
+                      class="small-button products-diagnostics__filter"
+                      data-filter="review"
+                      data-i18n="productsFormatter.diagnostics.filter.review"
+                    >${t("productsFormatter.diagnostics.filter.review")}</button>
+                    <button
+                      type="button"
+                      class="small-button products-diagnostics__filter"
+                      data-filter="typos"
+                      data-i18n="productsFormatter.diagnostics.filter.typos"
+                    >${t("productsFormatter.diagnostics.filter.typos")}</button>
+                    <button
+                      type="button"
+                      class="small-button products-diagnostics__filter"
+                      data-filter="duplicates"
+                      data-i18n="productsFormatter.diagnostics.filter.duplicates"
+                    >${t("productsFormatter.diagnostics.filter.duplicates")}</button>
+                  </div>
                   <section
                     id="products-issues-panel"
                     class="products-diagnostics__panel"

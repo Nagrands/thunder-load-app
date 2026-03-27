@@ -33,14 +33,70 @@ function formatIssue(issue) {
   }
 }
 
-export function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
+function issueMatchesFilter(issue, activeFilter) {
+  switch (activeFilter) {
+    case "review":
+      return [
+        "ambiguousUnitAssumedKg",
+        "storeQuantityIgnored",
+        "typoCorrected",
+      ].includes(issue?.code);
+    case "typos":
+      return issue?.code === "typoCorrected";
+    case "duplicates":
+      return issue?.code === "duplicateMerged";
+    default:
+      return true;
+  }
+}
+
+function diffMatchesFilter(entry, activeFilter) {
+  switch (activeFilter) {
+    case "review":
+      return entry?.uncertain === true;
+    case "typos":
+      return entry?.issueCodes?.includes("typoCorrected") === true;
+    case "duplicates":
+      return entry?.issueCodes?.includes("duplicateMerged") === true;
+    default:
+      return true;
+  }
+}
+
+function appendEmptyDiagnosticsState(container, activeFilter) {
+  const empty = document.createElement("div");
+  empty.className = "products-diagnostics__empty";
+  empty.textContent = t("productsFormatter.diagnostics.emptyFiltered", {
+    filter: t(`productsFormatter.diagnostics.filter.${activeFilter}`),
+  });
+  container.appendChild(empty);
+}
+
+export function renderDiagnostics(
+  issuesEl,
+  diffEl,
+  diagnosticsEl,
+  result,
+  options = {},
+) {
   if (!issuesEl || !diffEl || !diagnosticsEl) return;
 
   issuesEl.replaceChildren();
   diffEl.replaceChildren();
 
+  const activeFilter = options.activeFilter || "all";
+  options.filterButtons?.forEach((button) => {
+    button.dataset.active = String((button.dataset.filter || "all") === activeFilter);
+  });
+
   const issues = Array.isArray(result.issues) ? result.issues : [];
   const diffEntries = Array.isArray(result.diffEntries) ? result.diffEntries : [];
+  const filteredIssues = issues.filter((issue) =>
+    issueMatchesFilter(issue, activeFilter),
+  );
+  const filteredDiffEntries = diffEntries.filter((entry) =>
+    diffMatchesFilter(entry, activeFilter),
+  );
   const diffPanel = diffEl.closest('[data-ui="products-diff-panel"]');
   const diffToggle = diffPanel?.querySelector("#products-diff-toggle");
   const diffChevron = diffToggle?.querySelector("i");
@@ -61,7 +117,7 @@ export function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
       !hasVisibleIssues && !hasVisibleDiff && !hasVisibleComparison;
   };
 
-  issues.forEach((issue) => {
+  filteredIssues.forEach((issue) => {
     const item = document.createElement("div");
     item.className = "products-issue";
     const text = document.createElement("div");
@@ -91,7 +147,7 @@ export function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
     issuesEl.appendChild(item);
   });
 
-  diffEntries.forEach((entry) => {
+  filteredDiffEntries.forEach((entry) => {
     const row = document.createElement("div");
     row.className = entry.uncertain
       ? "products-diff-row products-diff-row--uncertain"
@@ -114,6 +170,13 @@ export function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
 
     diffEl.appendChild(row);
   });
+
+  if (!filteredIssues.length && issues.length && activeFilter !== "all") {
+    appendEmptyDiagnosticsState(issuesEl, activeFilter);
+  }
+  if (!filteredDiffEntries.length && diffEntries.length && activeFilter !== "all") {
+    appendEmptyDiagnosticsState(diffEl, activeFilter);
+  }
 
   if (diffToggle && !diffToggle.dataset.bound) {
     diffToggle.addEventListener("click", () => {

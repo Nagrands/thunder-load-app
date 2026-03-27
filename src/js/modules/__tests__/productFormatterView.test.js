@@ -81,7 +81,9 @@ describe("productFormatterView", () => {
     );
     expect(wrapper.querySelector("#products-collapse-all")).not.toBeNull();
     expect(wrapper.querySelector("#products-expand-all")).not.toBeNull();
+    expect(wrapper.querySelector("#products-apply-input")).not.toBeNull();
     expect(wrapper.querySelector("#products-filter-uncertain")).not.toBeNull();
+    expect(wrapper.querySelectorAll(".products-diagnostics__filter").length).toBe(4);
   });
 
   test("formats into a single preview flow with summary at the end and result stats", () => {
@@ -536,6 +538,68 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelectorAll(".products-preview__item--uncertain").length,
     ).toBeGreaterThan(0);
+  });
+
+  test("filters diagnostics by category", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    const typoFilter = wrapper.querySelector(
+      '.products-diagnostics__filter[data-filter="typos"]',
+    );
+    typoFilter.click();
+
+    expect(typoFilter.getAttribute("data-active")).toBe("true");
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).toContain("нормализовано как");
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).not.toContain("объединены дубли");
+    expect(wrapper.querySelector("#products-diff-list")?.textContent).toContain(
+      "ПетрушкаЦ 2 пуч",
+    );
+
+    wrapper.querySelector('.products-diagnostics__filter[data-filter="duplicates"]').click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).toContain("объединены дубли");
+    expect(wrapper.querySelector("#products-diff-list")?.textContent).toContain(
+      "Для фильтра «Дубли» совпадений нет.",
+    );
+  });
+
+  test("applies normalized text back to the input", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Тесто
+ПетрушкаЦ 2 пуч.
+Лук 1 кг`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-apply-input").click();
+
+    expect(textarea.value).toBe(`Тесто
+Лук 1
+Петрушка 2п`);
+    expect(
+      wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Нормализованный текст подставлен во вход.",
+    );
   });
 
   test("supports custom dev dictionary and shows comparison after a rerun", () => {

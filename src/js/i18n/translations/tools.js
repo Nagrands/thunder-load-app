@@ -36,6 +36,7 @@ export const toolsTranslations = {
     "productsFormatter.reformat": "Переформатировать",
     "productsFormatter.resultActions.collapseAll": "Свернуть всё",
     "productsFormatter.resultActions.expandAll": "Развернуть всё",
+    "productsFormatter.resultActions.applyInput": "Подставить во вход",
     "productsFormatter.resultActions.onlyUncertain": "Только спорные",
     "productsFormatter.resultActions.showAll": "Показать всё",
     "productsFormatter.resultActions.noUncertain":
@@ -55,6 +56,12 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.issues": "Предупреждения",
     "productsFormatter.diagnostics.diff": "Нормализация",
     "productsFormatter.diagnostics.comparison": "Сравнение запусков",
+    "productsFormatter.diagnostics.filter.all": "Все",
+    "productsFormatter.diagnostics.filter.review": "Проверить",
+    "productsFormatter.diagnostics.filter.typos": "Опечатки",
+    "productsFormatter.diagnostics.filter.duplicates": "Дубли",
+    "productsFormatter.diagnostics.emptyFiltered":
+      "Для фильтра «{filter}» совпадений нет.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
       "«{source}» интерпретировано как «{output}».",
     "productsFormatter.issue.duplicateMerged":
@@ -94,6 +101,8 @@ export const toolsTranslations = {
       "Правила словаря изменены. Обновите результат.",
     "productsFormatter.status.stale":
       "Исходник изменён. Переформатируйте результат.",
+    "productsFormatter.status.appliedToInput":
+      "Нормализованный текст подставлен во вход.",
     "productsFormatter.status.copyError": "Не удалось скопировать результат.",
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
@@ -859,6 +868,7 @@ export const toolsTranslations = {
     "productsFormatter.reformat": "Reformat",
     "productsFormatter.resultActions.collapseAll": "Collapse all",
     "productsFormatter.resultActions.expandAll": "Expand all",
+    "productsFormatter.resultActions.applyInput": "Apply to input",
     "productsFormatter.resultActions.onlyUncertain": "Only uncertain",
     "productsFormatter.resultActions.showAll": "Show all",
     "productsFormatter.resultActions.noUncertain":
@@ -878,6 +888,12 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.issues": "Warnings",
     "productsFormatter.diagnostics.diff": "Normalization",
     "productsFormatter.diagnostics.comparison": "Run comparison",
+    "productsFormatter.diagnostics.filter.all": "All",
+    "productsFormatter.diagnostics.filter.review": "Review",
+    "productsFormatter.diagnostics.filter.typos": "Typos",
+    "productsFormatter.diagnostics.filter.duplicates": "Duplicates",
+    "productsFormatter.diagnostics.emptyFiltered":
+      "No matches for the “{filter}” filter.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
       "\"{source}\" was interpreted as \"{output}\".",
     "productsFormatter.issue.duplicateMerged":
@@ -917,6 +933,8 @@ export const toolsTranslations = {
       "Dictionary rules changed. Refresh the result.",
     "productsFormatter.status.stale":
       "The source changed. Reformat the result.",
+    "productsFormatter.status.appliedToInput":
+      "Normalized text was applied to the input.",
     "productsFormatter.status.copyError": "Could not copy the result.",
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",

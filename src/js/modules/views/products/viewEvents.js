@@ -17,9 +17,11 @@ export function bindViewEvents({
   emptyPasteButton,
   emptyDemoButton,
   copyButton,
+  applyInputButton,
   collapseAllButton,
   expandAllButton,
   filterUncertainToggle,
+  diagnosticsFilters,
   includeSummary,
   includeGreensSummary,
   demoInput,
@@ -152,6 +154,14 @@ export function bindViewEvents({
     demoButton?.click();
   });
 
+  applyInputButton?.addEventListener("click", () => {
+    if (!state.currentResult?.formattedSectionsText) return;
+    input.value = state.currentResult.formattedSectionsText;
+    input.focus();
+    clearPreview({ resetComparison: true });
+    setStatus(t("productsFormatter.status.appliedToInput"), "success");
+  });
+
   copyButton?.addEventListener("click", async () => {
     if (!state.copiedText || state.isDirty) {
       if (state.isDirty) {
@@ -207,6 +217,15 @@ export function bindViewEvents({
     state.showOnlyUncertain = filterUncertainToggle.checked;
     if (!state.currentResult) return;
     showResult(state.currentResult);
+  });
+  diagnosticsFilters?.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextFilter = button.dataset.filter || "all";
+      if (state.diagnosticsFilter === nextFilter) return;
+      state.diagnosticsFilter = nextFilter;
+      if (!state.currentResult) return;
+      showResult(state.currentResult);
+    });
   });
   collapseAllButton?.addEventListener("click", () => {
     applyCollapsedStateToAll(true);
