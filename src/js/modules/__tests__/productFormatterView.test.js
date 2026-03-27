@@ -22,9 +22,13 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-paste")).not.toBeNull();
     expect(wrapper.querySelector("#products-clear")).not.toBeNull();
     expect(wrapper.querySelector("#products-demo")).not.toBeNull();
+    expect(wrapper.querySelector("#products-dictionary-toggle")).not.toBeNull();
     expect(wrapper.querySelector("#products-summary-toggle")?.checked).toBe(true);
     expect(wrapper.querySelector("#products-greens-toggle")?.checked).toBe(
       false,
+    );
+    expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
+      true,
     );
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
     expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
@@ -335,6 +339,10 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
+      false,
+    );
     wrapper.querySelector("#products-dictionary-input").value =
       "батат = Картофель сладкий";
     wrapper.querySelector("#products-dictionary-input").dispatchEvent(
@@ -358,6 +366,10 @@ describe("productFormatterView", () => {
     ).toBe(false);
     expect(wrapper.querySelector("#products-comparison-list")?.textContent).toContain(
       "Картофель сладкий 3",
+    );
+    wrapper.querySelector("#products-dictionary-close").click();
+    expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
+      true,
     );
   });
 });

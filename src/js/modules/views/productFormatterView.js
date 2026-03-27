@@ -134,12 +134,46 @@ function buildMarkup() {
               >
                 <i class="fa-solid fa-flask"></i>
               </button>
+              <button
+                id="products-dictionary-toggle"
+                type="button"
+                class="small-button products-utility-button products-utility-button--icon"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="${t("productsFormatter.dictionaryTitle")}"
+                data-i18n-title="productsFormatter.dictionaryTitle"
+                aria-label="${t("productsFormatter.dictionaryTitle")}"
+                data-i18n-aria="productsFormatter.dictionaryTitle"
+              >
+                <i class="fa-solid fa-book-bookmark"></i>
+              </button>
             </div>
 
-            <details class="products-dictionary" data-ui="products-dictionary">
-              <summary class="products-dictionary__summary">
-                <span data-i18n="productsFormatter.dictionaryTitle">${t("productsFormatter.dictionaryTitle")}</span>
-              </summary>
+            <div
+              id="products-dictionary-panel"
+              class="products-dictionary"
+              data-ui="products-dictionary"
+              hidden
+            >
+              <div class="products-dictionary__header">
+                <span
+                  class="products-dictionary__title"
+                  data-i18n="productsFormatter.dictionaryTitle"
+                >${t("productsFormatter.dictionaryTitle")}</span>
+                <button
+                  id="products-dictionary-close"
+                  type="button"
+                  class="small-button products-icon-button products-dictionary__close"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="${t("productsFormatter.closeDictionary")}"
+                  data-i18n-title="productsFormatter.closeDictionary"
+                  aria-label="${t("productsFormatter.closeDictionary")}"
+                  data-i18n-aria="productsFormatter.closeDictionary"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
               <div class="products-dictionary__body">
                 <textarea
                   id="products-dictionary-input"
@@ -158,7 +192,7 @@ function buildMarkup() {
                   </button>
                 </div>
               </div>
-            </details>
+            </div>
 
             <div class="products-pane__body products-pane__body--editor">
               <textarea
@@ -765,8 +799,13 @@ export default function renderProductFormatterView(wrapper) {
   const pasteButton = wrapper.querySelector("#products-paste");
   const clearButton = wrapper.querySelector("#products-clear");
   const demoButton = wrapper.querySelector("#products-demo");
+  const dictionaryToggleButton = wrapper.querySelector(
+    "#products-dictionary-toggle",
+  );
+  const dictionaryPanel = wrapper.querySelector("#products-dictionary-panel");
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
   const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
+  const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
   const copyButton = wrapper.querySelector("#products-copy");
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
@@ -795,6 +834,7 @@ export default function renderProductFormatterView(wrapper) {
       previousResult: null,
       currentResult: null,
       collapsedSections: {},
+      dictionaryOpen: false,
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -802,6 +842,20 @@ export default function renderProductFormatterView(wrapper) {
     status.textContent = message;
     if (tone) status.dataset.tone = tone;
     else delete status.dataset.tone;
+  };
+
+  const syncDictionaryPanel = () => {
+    if (!dictionaryPanel) return;
+    dictionaryPanel.hidden = !state.dictionaryOpen;
+    if (dictionaryToggleButton) {
+      dictionaryToggleButton.setAttribute(
+        "aria-expanded",
+        String(state.dictionaryOpen),
+      );
+    }
+    if (state.dictionaryOpen) {
+      initTooltips(wrapper);
+    }
   };
 
   const clearCopyFeedbackTimer = () => {
@@ -908,6 +962,16 @@ export default function renderProductFormatterView(wrapper) {
       });
     }
 
+    dictionaryToggleButton?.addEventListener("click", () => {
+      state.dictionaryOpen = !state.dictionaryOpen;
+      syncDictionaryPanel();
+    });
+
+    dictionaryCloseButton?.addEventListener("click", () => {
+      state.dictionaryOpen = false;
+      syncDictionaryPanel();
+    });
+
     formatButton?.addEventListener("click", () => {
       const source = String(input?.value || "").trim();
       if (!source) {
@@ -1010,6 +1074,7 @@ export default function renderProductFormatterView(wrapper) {
   }
 
   applyI18n(wrapper);
+  syncDictionaryPanel();
   initTooltips(wrapper);
   return wrapper;
 }

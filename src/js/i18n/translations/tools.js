@@ -13,6 +13,7 @@ export const toolsTranslations = {
     "productsFormatter.clear": "Очистить",
     "productsFormatter.demo": "Демо",
     "productsFormatter.dictionaryTitle": "Dev-словарь замен",
+    "productsFormatter.closeDictionary": "Закрыть словарь",
     "productsFormatter.dictionaryPlaceholder":
       "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
     "productsFormatter.dictionaryReset": "Сбросить словарь",
@@ -806,6 +807,7 @@ export const toolsTranslations = {
     "productsFormatter.clear": "Clear",
     "productsFormatter.demo": "Demo",
     "productsFormatter.dictionaryTitle": "Dev replacement dictionary",
+    "productsFormatter.closeDictionary": "Close dictionary",
     "productsFormatter.dictionaryPlaceholder":
       "One rule per line: source = replacement\nExample:\nsweet potato = Sweet potato",
     "productsFormatter.dictionaryReset": "Reset dictionary",
