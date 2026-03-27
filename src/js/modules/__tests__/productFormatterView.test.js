@@ -76,6 +76,12 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector('[data-ui="products-result-meta"]')?.hidden).toBe(
       true,
     );
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+    expect(wrapper.querySelector("#products-collapse-all")).not.toBeNull();
+    expect(wrapper.querySelector("#products-expand-all")).not.toBeNull();
+    expect(wrapper.querySelector("#products-filter-uncertain")).not.toBeNull();
   });
 
   test("formats into a single preview flow with summary at the end and result stats", () => {
@@ -287,6 +293,27 @@ describe("productFormatterView", () => {
     ).toBe(true);
   });
 
+  test("marks the result as stale after editing the source and clears it on rerun", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+    const dirtyState = wrapper.querySelector('[data-ui="products-dirty-state"]');
+
+    input.value = "Тесто\nЛук 1";
+    formatButton.click();
+    expect(dirtyState?.hidden).toBe(true);
+
+    input.value = "Тесто\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+    expect(dirtyState?.hidden).toBe(false);
+    expect(dirtyState?.textContent).toContain("Результат устарел");
+
+    formatButton.click();
+    expect(dirtyState?.hidden).toBe(true);
+  });
+
   test("supports empty-state quick actions for paste and demo", async () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
@@ -470,6 +497,47 @@ describe("productFormatterView", () => {
     );
   });
 
+  test("supports quick actions for collapsing, expanding, and filtering uncertain items", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-collapse-all").click();
+    expect(
+      Array.from(wrapper.querySelectorAll(".products-preview__section")).every(
+        (section) =>
+          section.classList.contains("products-preview__section--collapsed"),
+      ),
+    ).toBe(true);
+
+    wrapper.querySelector("#products-expand-all").click();
+    expect(
+      Array.from(wrapper.querySelectorAll(".products-preview__section")).every(
+        (section) =>
+          !section.classList.contains("products-preview__section--collapsed"),
+      ),
+    ).toBe(true);
+
+    const filterToggle = wrapper.querySelector("#products-filter-uncertain");
+    filterToggle.checked = true;
+    filterToggle.dispatchEvent(new Event("change"));
+
+    expect(
+      wrapper.querySelectorAll(".products-preview__item:not(.products-preview__item--uncertain)").length,
+    ).toBe(0);
+    expect(
+      wrapper.querySelectorAll(".products-preview__item--uncertain").length,
+    ).toBeGreaterThan(0);
+  });
+
   test("supports custom dev dictionary and shows comparison after a rerun", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
@@ -488,6 +556,9 @@ describe("productFormatterView", () => {
       "батат = Картофель сладкий";
     wrapper.querySelector("#products-dictionary-input").dispatchEvent(
       new Event("input"),
+    );
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 1",
     );
 
     wrapper.querySelector("#products-input").value = `Тесто
@@ -515,6 +586,24 @@ describe("productFormatterView", () => {
       true,
     );
     expect(document.activeElement).toBe(dictionaryToggle);
+  });
+
+  test("shows dictionary validation when malformed rules are entered", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    dictionaryInput.value = "батат\nморковь =\nлук = Лук";
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(
+      dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 1, строк с ошибкой: 1, 2",
+    );
   });
 
   test("closes the dictionary via escape and backdrop and traps focus while open", () => {

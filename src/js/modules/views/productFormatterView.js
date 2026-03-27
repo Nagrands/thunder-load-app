@@ -64,6 +64,37 @@ async function copyText(value = "") {
   fallbackCopyText(text);
 }
 
+function inspectDictionaryText(text = "") {
+  const lines = String(text || "").split("\n");
+  let validCount = 0;
+  const invalidLines = [];
+
+  lines.forEach((rawLine, index) => {
+    const line = String(rawLine || "").replace(/\r/g, "").trim();
+    if (!line) return;
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) {
+      invalidLines.push(index + 1);
+      return;
+    }
+
+    const source = line.slice(0, separatorIndex).trim();
+    const target = line.slice(separatorIndex + 1).trim();
+    if (!source || !target) {
+      invalidLines.push(index + 1);
+      return;
+    }
+
+    validCount += 1;
+  });
+
+  return {
+    validCount,
+    invalidLines,
+  };
+}
+
 function buildMarkup() {
   return `
     <div class="products-center">
@@ -219,7 +250,17 @@ function buildMarkup() {
                     placeholder="${t("productsFormatter.dictionaryPlaceholder")}"
                     spellcheck="false"
                   ></textarea>
+                  <div
+                    class="products-dictionary__hint"
+                    data-i18n="productsFormatter.dictionaryHint"
+                  >${t("productsFormatter.dictionaryHint")}</div>
                   <div class="products-dictionary__actions">
+                    <div
+                      id="products-dictionary-meta"
+                      class="products-dictionary__meta"
+                      role="status"
+                      aria-live="polite"
+                    ></div>
                     <button
                       id="products-dictionary-reset"
                       type="button"
@@ -245,6 +286,18 @@ function buildMarkup() {
             </div>
 
             <footer class="products-pane__footer products-pane__footer--action">
+              <div
+                id="products-dirty-state"
+                class="products-dirty-state"
+                data-ui="products-dirty-state"
+                hidden
+              >
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span
+                  id="products-dirty-text"
+                  data-i18n="productsFormatter.staleBanner"
+                >${t("productsFormatter.staleBanner")}</span>
+              </div>
               <button
                 id="products-format"
                 type="button"
@@ -299,6 +352,30 @@ function buildMarkup() {
               >
                 <span id="products-meta-summary" class="products-result-meta__pill products-result-meta__pill--accent"></span>
                 <span id="products-meta-greens" class="products-result-meta__pill products-result-meta__pill--accent"></span>
+              </div>
+              <div
+                id="products-result-actions"
+                class="products-result-actions"
+                data-ui="products-result-actions"
+              >
+                <button
+                  id="products-collapse-all"
+                  type="button"
+                  class="small-button products-utility-button"
+                >
+                  <span data-i18n="productsFormatter.resultActions.collapseAll">${t("productsFormatter.resultActions.collapseAll")}</span>
+                </button>
+                <button
+                  id="products-expand-all"
+                  type="button"
+                  class="small-button products-utility-button"
+                >
+                  <span data-i18n="productsFormatter.resultActions.expandAll">${t("productsFormatter.resultActions.expandAll")}</span>
+                </button>
+                <label class="products-filter-toggle">
+                  <input id="products-filter-uncertain" type="checkbox" />
+                  <span data-i18n="productsFormatter.resultActions.onlyUncertain">${t("productsFormatter.resultActions.onlyUncertain")}</span>
+                </label>
               </div>
             </div>
 
@@ -816,19 +893,26 @@ function renderPreview(
   onCopySection,
   collapsedSections,
   onToggleCollapse,
+  options = {},
 ) {
   if (!previewEl || !summaryCardEl) return;
+  const showOnlyUncertain = options.showOnlyUncertain === true;
 
   previewEl.replaceChildren();
   summaryCardEl.replaceChildren();
   summaryCardEl.hidden = true;
+  let renderedBlocks = 0;
 
   result.sections.forEach((section) => {
+    const visibleItems = showOnlyUncertain
+      ? section.items.filter((item) => item.uncertain)
+      : section.items;
+    if (!visibleItems.length) return;
     const key = buildSectionStateKey("section", section.title);
     previewEl.appendChild(
       createSectionBlock(
         section.title,
-        section.items,
+        visibleItems,
         "section",
         section.text,
         onCopySection,
@@ -836,36 +920,58 @@ function renderPreview(
         (collapsed) => onToggleCollapse?.(key, collapsed),
       ),
     );
+    renderedBlocks += 1;
   });
 
   if (result.summary) {
-    const key = buildSectionStateKey("summary", result.summary.title);
-    previewEl.appendChild(
-      createSectionBlock(
-        result.summary.title,
-        result.summary.items,
-        "summary",
-        result.summary.text,
-        onCopySection,
-        collapsedSections?.[key] === true,
-        (collapsed) => onToggleCollapse?.(key, collapsed),
-      ),
-    );
+    const visibleItems = showOnlyUncertain
+      ? result.summary.items.filter((item) => item.uncertain)
+      : result.summary.items;
+    if (visibleItems.length || !showOnlyUncertain) {
+      const key = buildSectionStateKey("summary", result.summary.title);
+      previewEl.appendChild(
+        createSectionBlock(
+          result.summary.title,
+          visibleItems,
+          "summary",
+          result.summary.text,
+          onCopySection,
+          collapsedSections?.[key] === true,
+          (collapsed) => onToggleCollapse?.(key, collapsed),
+        ),
+      );
+      renderedBlocks += 1;
+    }
   }
 
   if (result.greensSummary) {
-    const key = buildSectionStateKey("greens", result.greensSummary.title);
-    previewEl.appendChild(
-      createSectionBlock(
-        result.greensSummary.title,
-        result.greensSummary.items,
-        "summary",
-        result.greensSummary.text,
-        onCopySection,
-        collapsedSections?.[key] === true,
-        (collapsed) => onToggleCollapse?.(key, collapsed),
-      ),
+    const visibleItems = showOnlyUncertain
+      ? result.greensSummary.items.filter((item) => item.uncertain)
+      : result.greensSummary.items;
+    if (visibleItems.length || !showOnlyUncertain) {
+      const key = buildSectionStateKey("greens", result.greensSummary.title);
+      previewEl.appendChild(
+        createSectionBlock(
+          result.greensSummary.title,
+          visibleItems,
+          "summary",
+          result.greensSummary.text,
+          onCopySection,
+          collapsedSections?.[key] === true,
+          (collapsed) => onToggleCollapse?.(key, collapsed),
+        ),
+      );
+      renderedBlocks += 1;
+    }
+  }
+
+  if (showOnlyUncertain && renderedBlocks === 0) {
+    const filteredEmpty = document.createElement("div");
+    filteredEmpty.className = "products-preview__filtered-empty";
+    filteredEmpty.textContent = t(
+      "productsFormatter.resultActions.noUncertain",
     );
+    previewEl.appendChild(filteredEmpty);
   }
 }
 
@@ -966,6 +1072,7 @@ export default function renderProductFormatterView(wrapper) {
     '[data-ui="products-dictionary-backdrop"]',
   );
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+  const dictionaryMeta = wrapper.querySelector("#products-dictionary-meta");
   const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
   const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
   const emptyPasteButton = wrapper.querySelector("#products-empty-paste");
@@ -986,6 +1093,10 @@ export default function renderProductFormatterView(wrapper) {
   const metaItems = wrapper.querySelector("#products-meta-items");
   const metaSummary = wrapper.querySelector("#products-meta-summary");
   const metaGreens = wrapper.querySelector("#products-meta-greens");
+  const collapseAllButton = wrapper.querySelector("#products-collapse-all");
+  const expandAllButton = wrapper.querySelector("#products-expand-all");
+  const filterUncertainToggle = wrapper.querySelector("#products-filter-uncertain");
+  const dirtyState = wrapper.querySelector("#products-dirty-state");
   const empty = wrapper.querySelector("#products-output-empty");
   const status = wrapper.querySelector("#products-status");
 
@@ -1001,6 +1112,10 @@ export default function renderProductFormatterView(wrapper) {
       dictionaryOpen: false,
       dictionaryReturnFocus: null,
       sectionCopyFeedbackTimer: null,
+      isDirty: false,
+      showOnlyUncertain: false,
+      lastFormattedSource: "",
+      lastFormattedDictionary: "",
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -1011,6 +1126,62 @@ export default function renderProductFormatterView(wrapper) {
   };
 
   const getCurrentSource = () => String(input?.value || "").trim();
+
+  const updateDirtyState = () => {
+    if (dirtyState) {
+      dirtyState.hidden = !state.isDirty;
+    }
+    if (copyButton) {
+      copyButton.disabled = !state.hasResult || state.isDirty;
+      setCopyButtonState(copyButton, state.hasResult ? "ready" : "idle");
+    }
+    wrapper.querySelectorAll(".products-section-copy").forEach((button) => {
+      button.disabled = state.isDirty;
+    });
+    if (formatButton) {
+      formatButton.dataset.dirty = state.isDirty ? "true" : "false";
+    }
+  };
+
+  const updateDictionaryMeta = () => {
+    if (!dictionaryInput || !dictionaryMeta) return;
+    const validation = inspectDictionaryText(dictionaryInput.value);
+    dictionaryInput.classList.toggle(
+      "products-dictionary__textarea--invalid",
+      validation.invalidLines.length > 0,
+    );
+    dictionaryMeta.dataset.tone =
+      validation.invalidLines.length > 0 ? "warning" : "default";
+    if (!validation.validCount && validation.invalidLines.length) {
+      dictionaryMeta.textContent = t("productsFormatter.dictionaryStatsInvalid", {
+        invalid: validation.invalidLines.join(", "),
+      });
+      return;
+    }
+    dictionaryMeta.textContent = validation.invalidLines.length
+      ? t("productsFormatter.dictionaryStatsMixed", {
+          count: validation.validCount,
+          invalid: validation.invalidLines.join(", "),
+        })
+      : t("productsFormatter.dictionaryStatsValid", {
+          count: validation.validCount,
+        });
+  };
+
+  const syncDirtyFromInputs = (statusKey = "productsFormatter.status.stale") => {
+    if (!state.currentResult) {
+      state.isDirty = false;
+      updateDirtyState();
+      return;
+    }
+    state.isDirty =
+      String(input?.value || "") !== state.lastFormattedSource ||
+      String(dictionaryInput?.value || "") !== state.lastFormattedDictionary;
+    updateDirtyState();
+    if (state.isDirty) {
+      setStatus(t(statusKey), "warning");
+    }
+  };
 
   const syncDictionaryPanel = () => {
     if (!dictionaryLayer || !dictionaryPanel) return;
@@ -1069,7 +1240,13 @@ export default function renderProductFormatterView(wrapper) {
       state.previousResult = null;
       state.currentResult = null;
       state.collapsedSections = {};
+      state.lastFormattedSource = "";
+      state.lastFormattedDictionary = "";
     }
+    state.isDirty = false;
+    state.showOnlyUncertain = false;
+    if (filterUncertainToggle) filterUncertainToggle.checked = false;
+    updateDirtyState();
   };
 
   const closeDictionaryPanel = ({ restoreFocus = true } = {}) => {
@@ -1149,6 +1326,7 @@ export default function renderProductFormatterView(wrapper) {
       (key, collapsed) => {
         state.collapsedSections[key] = collapsed;
       },
+      { showOnlyUncertain: state.showOnlyUncertain },
     );
     renderDiagnostics(issuesList, diffList, diagnostics, result);
     renderNormalizationStats(normalizationStats, result);
@@ -1165,11 +1343,35 @@ export default function renderProductFormatterView(wrapper) {
     if (resultMeta) resultMeta.hidden = false;
     if (resultContent) resultContent.hidden = false;
     if (empty) empty.hidden = true;
-    if (copyButton) {
-      copyButton.disabled = !state.hasResult;
-      setCopyButtonState(copyButton, state.hasResult ? "ready" : "idle");
-    }
+    state.isDirty = false;
+    updateDirtyState();
     initTooltips(wrapper);
+  };
+
+  const applyCollapsedStateToAll = (collapsed) => {
+    if (!state.currentResult) return;
+    if (!collapsed) {
+      state.collapsedSections = {};
+      showResult(state.currentResult);
+      return;
+    }
+
+    const nextState = {};
+    state.currentResult.sections.forEach((section) => {
+      nextState[buildSectionStateKey("section", section.title)] = true;
+    });
+    if (state.currentResult.summary) {
+      nextState[
+        buildSectionStateKey("summary", state.currentResult.summary.title)
+      ] = true;
+    }
+    if (state.currentResult.greensSummary) {
+      nextState[
+        buildSectionStateKey("greens", state.currentResult.greensSummary.title)
+      ] = true;
+    }
+    state.collapsedSections = nextState;
+    showResult(state.currentResult);
   };
 
   const formatSource = ({
@@ -1194,6 +1396,8 @@ export default function renderProductFormatterView(wrapper) {
 
     state.previousResult = comparisonBase;
     state.currentResult = result;
+    state.lastFormattedSource = String(input?.value || "");
+    state.lastFormattedDictionary = String(dictionaryInput?.value || "");
     showResult(result);
     if (statusMessage) {
       setStatus(statusMessage, "success");
@@ -1204,8 +1408,11 @@ export default function renderProductFormatterView(wrapper) {
   if (!wrapper.__productsFormatterBound) {
     if (dictionaryInput) {
       dictionaryInput.value = loadProductFormatterDictionary();
+      updateDictionaryMeta();
       dictionaryInput.addEventListener("input", () => {
         saveProductFormatterDictionary(dictionaryInput.value);
+        updateDictionaryMeta();
+        syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
       });
     }
 
@@ -1288,7 +1495,11 @@ export default function renderProductFormatterView(wrapper) {
     dictionaryResetButton?.addEventListener("click", () => {
       if (dictionaryInput) dictionaryInput.value = "";
       clearProductFormatterDictionary();
-      setStatus(t("productsFormatter.status.dictionaryReset"));
+      updateDictionaryMeta();
+      syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
+      if (!state.isDirty) {
+        setStatus(t("productsFormatter.status.dictionaryReset"));
+      }
     });
 
     emptyPasteButton?.addEventListener("click", () => {
@@ -1300,7 +1511,12 @@ export default function renderProductFormatterView(wrapper) {
     });
 
     copyButton?.addEventListener("click", async () => {
-      if (!state.copiedText) return;
+      if (!state.copiedText || state.isDirty) {
+        if (state.isDirty) {
+          setStatus(t("productsFormatter.status.stale"), "warning");
+        }
+        return;
+      }
       try {
         await copyText(state.copiedText);
         clearCopyFeedbackTimer();
@@ -1318,7 +1534,10 @@ export default function renderProductFormatterView(wrapper) {
     });
 
     input?.addEventListener("input", () => {
-      if (String(input.value || "").trim()) return;
+      if (String(input.value || "").trim()) {
+        syncDirtyFromInputs();
+        return;
+      }
       resetPreview({ resetComparison: true });
       setStatus("", "");
     });
@@ -1335,11 +1554,24 @@ export default function renderProductFormatterView(wrapper) {
         ),
       );
       state.currentResult = result;
+      state.lastFormattedSource = String(input?.value || "");
+      state.lastFormattedDictionary = String(dictionaryInput?.value || "");
       showResult(result);
     };
 
     includeSummary?.addEventListener("change", handleToggleReformat);
     includeGreensSummary?.addEventListener("change", handleToggleReformat);
+    filterUncertainToggle?.addEventListener("change", () => {
+      state.showOnlyUncertain = filterUncertainToggle.checked;
+      if (!state.currentResult) return;
+      showResult(state.currentResult);
+    });
+    collapseAllButton?.addEventListener("click", () => {
+      applyCollapsedStateToAll(true);
+    });
+    expandAllButton?.addEventListener("click", () => {
+      applyCollapsedStateToAll(false);
+    });
 
     input?.addEventListener("keydown", (event) => {
       if (event.key !== "Enter") return;
@@ -1352,6 +1584,8 @@ export default function renderProductFormatterView(wrapper) {
   }
 
   applyI18n(wrapper);
+  updateDictionaryMeta();
+  updateDirtyState();
   syncDictionaryPanel();
   initTooltips(wrapper);
   return wrapper;

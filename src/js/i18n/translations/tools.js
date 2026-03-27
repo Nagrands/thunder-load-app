@@ -20,11 +20,28 @@ export const toolsTranslations = {
     "productsFormatter.closeDictionary": "Закрыть словарь",
     "productsFormatter.dictionaryPlaceholder":
       "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
+    "productsFormatter.dictionaryHint":
+      "Поддерживается формат `исходное = замена`. Пустые и битые строки не применяются.",
     "productsFormatter.dictionaryReset": "Сбросить словарь",
+    "productsFormatter.dictionaryStatsValid": "Правил: {count}",
+    "productsFormatter.dictionaryStatsMixed":
+      "Правил: {count}, строк с ошибкой: {invalid}",
+    "productsFormatter.dictionaryStatsInvalid":
+      "Нет валидных правил. Ошибочных строк: {invalid}",
+    "productsFormatter.dictionaryInvalidLine": "Строка {line}: {value}",
     "productsFormatter.copy": "Копировать",
     "productsFormatter.copyDone": "Скопировано",
     "productsFormatter.dismissWarning": "Скрыть предупреждение",
     "productsFormatter.outputLabel": "Результат",
+    "productsFormatter.reformat": "Переформатировать",
+    "productsFormatter.resultActions.collapseAll": "Свернуть всё",
+    "productsFormatter.resultActions.expandAll": "Развернуть всё",
+    "productsFormatter.resultActions.onlyUncertain": "Только спорные",
+    "productsFormatter.resultActions.showAll": "Показать всё",
+    "productsFormatter.resultActions.noUncertain":
+      "Спорных позиций в текущем результате нет.",
+    "productsFormatter.staleBanner":
+      "Результат устарел после изменений во входе или словаре.",
     "productsFormatter.emptyTitle": "Результат появится здесь",
     "productsFormatter.emptyHint":
       "Вставьте список из буфера или загрузите демо-пример, чтобы сразу проверить форматирование.",
@@ -73,6 +90,10 @@ export const toolsTranslations = {
     "productsFormatter.status.cleared": "Поле очищено.",
     "productsFormatter.status.demoLoaded": "Демо-список загружен.",
     "productsFormatter.status.dictionaryReset": "Dev-словарь очищен.",
+    "productsFormatter.status.dictionaryChanged":
+      "Правила словаря изменены. Обновите результат.",
+    "productsFormatter.status.stale":
+      "Исходник изменён. Переформатируйте результат.",
     "productsFormatter.status.copyError": "Не удалось скопировать результат.",
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
@@ -822,11 +843,28 @@ export const toolsTranslations = {
     "productsFormatter.closeDictionary": "Close dictionary",
     "productsFormatter.dictionaryPlaceholder":
       "One rule per line: source = replacement\nExample:\nsweet potato = Sweet potato",
+    "productsFormatter.dictionaryHint":
+      "Use the `source = replacement` format. Empty and broken lines are ignored.",
     "productsFormatter.dictionaryReset": "Reset dictionary",
+    "productsFormatter.dictionaryStatsValid": "Rules: {count}",
+    "productsFormatter.dictionaryStatsMixed":
+      "Rules: {count}, invalid lines: {invalid}",
+    "productsFormatter.dictionaryStatsInvalid":
+      "No valid rules. Invalid lines: {invalid}",
+    "productsFormatter.dictionaryInvalidLine": "Line {line}: {value}",
     "productsFormatter.copy": "Copy",
     "productsFormatter.copyDone": "Copied",
     "productsFormatter.dismissWarning": "Dismiss warning",
     "productsFormatter.outputLabel": "Result",
+    "productsFormatter.reformat": "Reformat",
+    "productsFormatter.resultActions.collapseAll": "Collapse all",
+    "productsFormatter.resultActions.expandAll": "Expand all",
+    "productsFormatter.resultActions.onlyUncertain": "Only uncertain",
+    "productsFormatter.resultActions.showAll": "Show all",
+    "productsFormatter.resultActions.noUncertain":
+      "There are no uncertain entries in the current result.",
+    "productsFormatter.staleBanner":
+      "The result is stale after changes in the source or dictionary.",
     "productsFormatter.emptyTitle": "The result will appear here",
     "productsFormatter.emptyHint":
       "Paste a list from the clipboard or load the demo sample to preview formatting right away.",
@@ -875,6 +913,10 @@ export const toolsTranslations = {
     "productsFormatter.status.cleared": "The field was cleared.",
     "productsFormatter.status.demoLoaded": "Demo list loaded.",
     "productsFormatter.status.dictionaryReset": "Dev dictionary cleared.",
+    "productsFormatter.status.dictionaryChanged":
+      "Dictionary rules changed. Refresh the result.",
+    "productsFormatter.status.stale":
+      "The source changed. Reformat the result.",
     "productsFormatter.status.copyError": "Could not copy the result.",
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",
