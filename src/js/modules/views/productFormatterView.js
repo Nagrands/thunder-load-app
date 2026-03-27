@@ -16,7 +16,6 @@ import {
 import {
   renderComparison,
   renderDiagnostics,
-  renderNormalizationStats,
   renderPreview,
   setCopyButtonState,
   setResultMenuState,
@@ -98,7 +97,6 @@ export default function renderProductFormatterView(wrapper) {
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
   const resultContent = wrapper.querySelector("#products-result-content");
-  const normalizationStats = wrapper.querySelector("#products-normalization-stats");
   const diagnostics = wrapper.querySelector("#products-diagnostics");
   const issuesList = wrapper.querySelector("#products-issues-list");
   const diffList = wrapper.querySelector("#products-diff-list");
@@ -210,7 +208,6 @@ export default function renderProductFormatterView(wrapper) {
         setStatus(t("productsFormatter.status.lineApplied"), "success");
       },
     });
-    renderNormalizationStats(normalizationStats, result);
     renderComparison(
       comparisonSummary,
       comparisonList,
@@ -253,7 +250,6 @@ export default function renderProductFormatterView(wrapper) {
     preview,
     summaryCard,
     resultContent,
-    normalizationStats,
     diagnostics,
     issuesList,
     diffList,

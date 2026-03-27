@@ -281,35 +281,6 @@ export function renderComparison(summaryEl, listEl, panelEl, comparison) {
   panelEl.hidden = false;
 }
 
-export function renderNormalizationStats(container, result) {
-  if (!container) return;
-  const duplicates = container.querySelector("#products-stat-duplicates");
-  const typos = container.querySelector("#products-stat-typos");
-  const review = container.querySelector("#products-stat-review");
-  const stats = result.normalizationStats || {
-    duplicatesMerged: 0,
-    typosCorrected: 0,
-    reviewRequired: 0,
-  };
-
-  if (duplicates) {
-    duplicates.textContent = t("productsFormatter.stats.duplicates", {
-      count: stats.duplicatesMerged,
-    });
-  }
-  if (typos) {
-    typos.textContent = t("productsFormatter.stats.typos", {
-      count: stats.typosCorrected,
-    });
-  }
-  if (review) {
-    review.textContent = t("productsFormatter.stats.review", {
-      count: stats.reviewRequired,
-    });
-  }
-  container.hidden = false;
-}
-
 export function setResultMenuState(toggle, panel, open) {
   if (toggle) {
     toggle.setAttribute("aria-expanded", String(open));

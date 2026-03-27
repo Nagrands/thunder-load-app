@@ -355,16 +355,6 @@ export function buildMarkup() {
                 hidden
               >
                 <div
-                  id="products-normalization-stats"
-                  class="products-normalization-stats"
-                  data-ui="products-normalization-stats"
-                  hidden
-                >
-                  <span id="products-stat-duplicates" class="products-normalization-stats__pill"></span>
-                  <span id="products-stat-typos" class="products-normalization-stats__pill"></span>
-                  <span id="products-stat-review" class="products-normalization-stats__pill products-normalization-stats__pill--accent"></span>
-                </div>
-                <div
                   id="products-diagnostics"
                   class="products-diagnostics"
                   data-ui="products-diagnostics"

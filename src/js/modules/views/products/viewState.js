@@ -17,7 +17,6 @@ export function createViewStateHandlers({
   preview,
   summaryCard,
   resultContent,
-  normalizationStats,
   diagnostics,
   issuesList,
   diffList,
@@ -150,7 +149,6 @@ export function createViewStateHandlers({
     if (summaryCard) summaryCard.hidden = true;
     if (resultToolbar) resultToolbar.hidden = true;
     if (resultContent) resultContent.hidden = true;
-    if (normalizationStats) normalizationStats.hidden = true;
     if (diagnostics) diagnostics.hidden = true;
     issuesList?.replaceChildren();
     diffList?.replaceChildren();

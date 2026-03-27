@@ -487,7 +487,7 @@ describe("productFormatterView", () => {
     );
   });
 
-  test("supports collapsible sections and keeps normalization stats visible", () => {
+  test("supports collapsible sections without a separate normalization stats block", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -497,11 +497,8 @@ describe("productFormatterView", () => {
     wrapper.querySelector("#products-format").click();
 
     expect(
-      wrapper.querySelector('[data-ui="products-normalization-stats"]')?.hidden,
-    ).toBe(false);
-    expect(wrapper.querySelector("#products-stat-duplicates")?.textContent).toBe(
-      "Дубли: 1",
-    );
+      wrapper.querySelector('[data-ui="products-normalization-stats"]'),
+    ).toBeNull();
 
     const firstToggle = wrapper.querySelector(".products-preview__heading-button");
     const firstSection = wrapper.querySelector(".products-preview__section");

@@ -53,6 +53,16 @@
     min-width: 0;
   }
 
+  .products-diagnostics__filters {
+    gap: 6px;
+  }
+
+  .products-diagnostics__filter {
+    flex: 0 1 auto;
+    min-height: 30px;
+    padding-inline: 10px;
+  }
+
   .products-pane__toggles {
     flex-wrap: wrap;
   }
