@@ -1,5 +1,8 @@
 import { t } from "../../i18n.js";
-import { getCurrentTextareaLineNumber } from "./viewHelpers.js";
+import {
+  getCurrentTextareaLineNumber,
+  getTextareaSelectionForLine,
+} from "./viewHelpers.js";
 
 export function bindViewEvents({
   wrapper,
@@ -13,6 +16,8 @@ export function bindViewEvents({
   dictionaryPanel,
   dictionaryBackdrop,
   dictionaryInput,
+  dictionarySummary,
+  dictionaryCleanInvalidButton,
   dictionaryResetButton,
   dictionaryCloseButton,
   emptyPasteButton,
@@ -40,6 +45,7 @@ export function bindViewEvents({
   getFocusableElements,
   loadProductFormatterDictionary,
   openDictionaryPanel,
+  removeInvalidProductFormatterDictionaryLines,
   saveProductFormatterDictionary,
   setCopyButtonState,
   buildFormatterOptions,
@@ -94,6 +100,22 @@ export function bindViewEvents({
       });
     });
   }
+
+  dictionarySummary?.addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement
+      ? event.target.closest("[data-dictionary-jump]")
+      : null;
+    if (!(button instanceof HTMLElement) || !dictionaryInput) return;
+    const lineNumber = Number(button.dataset.line) || 1;
+    const { selectionStart, selectionEnd } = getTextareaSelectionForLine(
+      dictionaryInput.value,
+      lineNumber,
+    );
+    dictionaryInput.focus();
+    dictionaryInput.setSelectionRange(selectionStart, selectionEnd);
+    state.activeDictionaryLine = lineNumber;
+    syncDictionaryMeta();
+  });
 
   dictionaryToggleButton?.addEventListener("click", () => {
     if (state.dictionaryOpen) {
@@ -178,6 +200,28 @@ export function bindViewEvents({
     syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
     if (!state.isDirty) {
       setStatus(t("productsFormatter.status.dictionaryReset"));
+    }
+  });
+
+  dictionaryCleanInvalidButton?.addEventListener("click", () => {
+    if (!dictionaryInput) return;
+    const nextValue = removeInvalidProductFormatterDictionaryLines(
+      dictionaryInput.value,
+    );
+    if (nextValue === dictionaryInput.value) {
+      return;
+    }
+    dictionaryInput.value = nextValue;
+    saveProductFormatterDictionary(dictionaryInput.value);
+    state.activeDictionaryLine = getCurrentTextareaLineNumber(
+      dictionaryInput.value,
+      dictionaryInput.selectionStart,
+    );
+    syncDictionaryMeta();
+    syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
+    dictionaryInput.focus();
+    if (!state.isDirty) {
+      setStatus(t("productsFormatter.status.dictionaryCleaned"), "success");
     }
   });
 

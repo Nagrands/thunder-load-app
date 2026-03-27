@@ -3,6 +3,7 @@ import {
   clearProductFormatterDictionary,
   loadProductFormatterDictionary,
   parseProductFormatterDictionary,
+  removeInvalidProductFormatterDictionaryLines,
   saveProductFormatterDictionary,
 } from "../formatters/productFormatterDictionary.js";
 import { cleanupEntryText } from "../formatters/productListFormatterParsing.js";
@@ -89,6 +90,10 @@ export default function renderProductFormatterView(wrapper) {
   const dictionaryMeta = wrapper.querySelector("#products-dictionary-meta");
   const dictionaryPreview = wrapper.querySelector("#products-dictionary-preview");
   const dictionaryPreviewBody = wrapper.querySelector("#products-dictionary-preview-body");
+  const dictionarySummary = wrapper.querySelector("#products-dictionary-summary");
+  const dictionaryCleanInvalidButton = wrapper.querySelector(
+    "#products-dictionary-clean-invalid",
+  );
   const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
   const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
   const emptyPasteButton = wrapper.querySelector("#products-empty-paste");
@@ -247,6 +252,8 @@ export default function renderProductFormatterView(wrapper) {
     dictionaryMeta,
     dictionaryPreview,
     dictionaryPreviewBody,
+    dictionarySummary,
+    dictionaryCleanInvalidButton,
     dictionaryLayer,
     dictionaryPanel,
     dictionaryToggleButton,
@@ -319,6 +326,8 @@ export default function renderProductFormatterView(wrapper) {
     dictionaryPanel,
     dictionaryBackdrop,
     dictionaryInput,
+    dictionarySummary,
+    dictionaryCleanInvalidButton,
     dictionaryResetButton,
     dictionaryCloseButton,
     emptyPasteButton,
@@ -346,6 +355,7 @@ export default function renderProductFormatterView(wrapper) {
     getFocusableElements,
     loadProductFormatterDictionary,
     openDictionaryPanel,
+    removeInvalidProductFormatterDictionaryLines,
     saveProductFormatterDictionary,
     setCopyButtonState,
     buildFormatterOptions,

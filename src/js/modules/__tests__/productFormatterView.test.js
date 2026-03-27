@@ -789,6 +789,11 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
       "Правил: 2, конфликты: 1, без эффекта: 0, переопределения: 1, ошибки: 0. Строки: 2",
     );
+    expect(
+      Array.from(
+        wrapper.querySelectorAll("#products-dictionary-summary .products-dictionary__chip"),
+      ).map((node) => node.textContent),
+    ).toEqual(["Конфликты: 1", "Переопределения: 1"]);
   });
 
   test("keeps dictionary preview tied to the active textarea line", () => {
@@ -849,6 +854,88 @@ describe("productFormatterView", () => {
     expect(previewBody?.textContent).toBe(
       "Ключ: черри -> замена: Томаты черри. Переопределяет встроенную замену: Помидор черри.",
     );
+  });
+
+  test("jumps from dictionary summary chips to the first problem line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+битая строка
+лук = лук`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    const invalidChip = wrapper.querySelector(
+      '#products-dictionary-summary [data-dictionary-jump="invalid"]',
+    );
+    invalidChip.click();
+    expect(document.activeElement).toBe(dictionaryInput);
+    expect(dictionaryInput.selectionStart).toBe(dictionaryInput.value.indexOf("битая строка"));
+    expect(dictionaryInput.selectionEnd).toBe(
+      dictionaryInput.value.indexOf("битая строка") + "битая строка".length,
+    );
+    expect(previewBody?.textContent).toBe(
+      "Строка 2 пока не распознана как правило `исходное = замена`.",
+    );
+
+    const noopChip = wrapper.querySelector(
+      '#products-dictionary-summary [data-dictionary-jump="noop"]',
+    );
+    noopChip.click();
+    expect(previewBody?.textContent).toBe(
+      "Ключ «лук» не изменится после такого правила.",
+    );
+  });
+
+  test("shows override chips without marking the dictionary textarea invalid", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    dictionaryInput.value = "черри = Томаты черри";
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(
+      dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
+    ).toBe(false);
+    expect(
+      Array.from(
+        wrapper.querySelectorAll("#products-dictionary-summary .products-dictionary__chip"),
+      ).map((node) => node.textContent),
+    ).toEqual(["Переопределения: 1"]);
+  });
+
+  test("cleans only invalid dictionary lines from the panel", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const cleanInvalidButton = wrapper.querySelector(
+      "#products-dictionary-clean-invalid",
+    );
+
+    dictionaryInput.value = `батат
+батат = Картофель сладкий
+морковь =
+черри = Томаты черри`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(cleanInvalidButton.hidden).toBe(false);
+    cleanInvalidButton.click();
+
+    expect(dictionaryInput.value).toBe(`батат = Картофель сладкий
+черри = Томаты черри`);
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 2, конфликты: 0, без эффекта: 0, переопределения: 1, ошибки: 0.",
+    );
+    expect(cleanInvalidButton.disabled).toBe(true);
   });
 
   test("closes the dictionary via escape and backdrop and traps focus while open", () => {

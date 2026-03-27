@@ -178,6 +178,12 @@ export function buildMarkup() {
                     <div class="products-dictionary__preview-title" data-i18n="productsFormatter.dictionaryPreviewTitle">${t("productsFormatter.dictionaryPreviewTitle")}</div>
                     <div id="products-dictionary-preview-body" class="products-dictionary__preview-body"></div>
                   </div>
+                  <div
+                    id="products-dictionary-summary"
+                    class="products-dictionary__summary"
+                    data-ui="products-dictionary-summary"
+                    hidden
+                  ></div>
                   <div class="products-dictionary__actions">
                     <div
                       id="products-dictionary-meta"
@@ -185,13 +191,22 @@ export function buildMarkup() {
                       role="status"
                       aria-live="polite"
                     ></div>
-                    <button
-                      id="products-dictionary-reset"
-                      type="button"
-                      class="small-button products-dictionary__reset"
-                    >
-                      <span data-i18n="productsFormatter.dictionaryReset">${t("productsFormatter.dictionaryReset")}</span>
-                    </button>
+                    <div class="products-dictionary__buttons">
+                      <button
+                        id="products-dictionary-clean-invalid"
+                        type="button"
+                        class="small-button products-dictionary__reset"
+                      >
+                        <span data-i18n="productsFormatter.dictionaryCleanInvalid">${t("productsFormatter.dictionaryCleanInvalid")}</span>
+                      </button>
+                      <button
+                        id="products-dictionary-reset"
+                        type="button"
+                        class="small-button products-dictionary__reset"
+                      >
+                        <span data-i18n="productsFormatter.dictionaryReset">${t("productsFormatter.dictionaryReset")}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

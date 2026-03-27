@@ -30,6 +30,12 @@ export const toolsTranslations = {
     "productsFormatter.dictionaryPreviewValue": "Ключ: {source} -> замена: {target}.",
     "productsFormatter.dictionaryPreviewOverride": "Переопределяет встроенную замену: {target}.",
     "productsFormatter.dictionaryPreviewDuplicate": "Перекрывает более раннее правило с тем же ключом.",
+    "productsFormatter.dictionaryCategoryInvalid": "Ошибки",
+    "productsFormatter.dictionaryCategoryDuplicate": "Конфликты",
+    "productsFormatter.dictionaryCategoryNoop": "Без эффекта",
+    "productsFormatter.dictionaryCategoryOverride": "Переопределения",
+    "productsFormatter.dictionaryJumpToLine": "{label}: перейти к строке {line}",
+    "productsFormatter.dictionaryCleanInvalid": "Очистить ошибки",
     "productsFormatter.dictionaryReset": "Сбросить словарь",
     "productsFormatter.dictionaryStatsValid": "Правил: {count}",
     "productsFormatter.dictionaryStatsMixed":
@@ -111,6 +117,7 @@ export const toolsTranslations = {
     "productsFormatter.status.cleared": "Поле очищено.",
     "productsFormatter.status.demoLoaded": "Демо-список загружен.",
     "productsFormatter.status.dictionaryReset": "Dev-словарь очищен.",
+    "productsFormatter.status.dictionaryCleaned": "Битые строки удалены из dev-словаря.",
     "productsFormatter.status.dictionaryChanged":
       "Правила словаря изменены. Обновите результат.",
     "productsFormatter.status.stale":
@@ -880,6 +887,12 @@ export const toolsTranslations = {
     "productsFormatter.dictionaryPreviewValue": "Key: {source} -> replacement: {target}.",
     "productsFormatter.dictionaryPreviewOverride": "Overrides the built-in replacement: {target}.",
     "productsFormatter.dictionaryPreviewDuplicate": "Overrides an earlier rule with the same key.",
+    "productsFormatter.dictionaryCategoryInvalid": "Errors",
+    "productsFormatter.dictionaryCategoryDuplicate": "Conflicts",
+    "productsFormatter.dictionaryCategoryNoop": "No-op",
+    "productsFormatter.dictionaryCategoryOverride": "Overrides",
+    "productsFormatter.dictionaryJumpToLine": "{label}: jump to line {line}",
+    "productsFormatter.dictionaryCleanInvalid": "Clear errors",
     "productsFormatter.dictionaryReset": "Reset dictionary",
     "productsFormatter.dictionaryStatsValid": "Rules: {count}",
     "productsFormatter.dictionaryStatsMixed":
@@ -961,6 +974,7 @@ export const toolsTranslations = {
     "productsFormatter.status.cleared": "The field was cleared.",
     "productsFormatter.status.demoLoaded": "Demo list loaded.",
     "productsFormatter.status.dictionaryReset": "Dev dictionary cleared.",
+    "productsFormatter.status.dictionaryCleaned": "Broken lines removed from the dev dictionary.",
     "productsFormatter.status.dictionaryChanged":
       "Dictionary rules changed. Refresh the result.",
     "productsFormatter.status.stale":

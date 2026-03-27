@@ -30463,6 +30463,40 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 6px;
 }
 
+.products-dictionary__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.products-dictionary__summary[hidden] {
+  display: none !important;
+}
+
+.products-dictionary__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--color-quality);
+  font-size: 0.76rem;
+  line-height: 1;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.products-dictionary__chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--color-accent-rgb), 0.24);
+  background: rgba(var(--color-accent-rgb), 0.1);
+  color: var(--color-highlight);
+}
+.products-dictionary__chip:focus-visible {
+  border-color: rgba(var(--color-accent-rgb), 0.36);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.14);
+}
+
 .products-dictionary__example,
 .products-dictionary__preview-body {
   color: var(--color-quality);
@@ -30506,6 +30540,13 @@ h1.section-heading .bk-heading-search #bk-search-info {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.products-dictionary__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .products-dictionary__meta {

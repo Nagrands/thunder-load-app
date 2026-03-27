@@ -11,6 +11,8 @@ export function createViewStateHandlers({
   dictionaryMeta,
   dictionaryPreview,
   dictionaryPreviewBody,
+  dictionarySummary,
+  dictionaryCleanInvalidButton,
   dictionaryLayer,
   dictionaryPanel,
   dictionaryToggleButton,
@@ -113,6 +115,59 @@ export function createViewStateHandlers({
           lines: problemLines.join(", "),
         })}`
       : countsText;
+
+    if (dictionarySummary) {
+      const summaryItems = [
+        {
+          key: "invalid",
+          label: t("productsFormatter.dictionaryCategoryInvalid"),
+          count: validation.invalidLines.length,
+          line: validation.invalidLines[0],
+        },
+        {
+          key: "duplicate",
+          label: t("productsFormatter.dictionaryCategoryDuplicate"),
+          count: validation.duplicateLines.length,
+          line: validation.duplicateLines[0],
+        },
+        {
+          key: "noop",
+          label: t("productsFormatter.dictionaryCategoryNoop"),
+          count: validation.noopLines.length,
+          line: validation.noopLines[0],
+        },
+        {
+          key: "override",
+          label: t("productsFormatter.dictionaryCategoryOverride"),
+          count: validation.overrideLines.length,
+          line: validation.overrideLines[0],
+        },
+      ].filter((item) => item.count > 0);
+
+      dictionarySummary.replaceChildren();
+      dictionarySummary.hidden = summaryItems.length === 0;
+
+      summaryItems.forEach((item) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "products-dictionary__chip";
+        button.dataset.dictionaryJump = item.key;
+        button.dataset.line = String(item.line || 1);
+        button.textContent = `${item.label}: ${item.count}`;
+        button.setAttribute(
+          "aria-label",
+          t("productsFormatter.dictionaryJumpToLine", {
+            label: item.label,
+            line: item.line || 1,
+          }),
+        );
+        dictionarySummary.append(button);
+      });
+    }
+
+    if (dictionaryCleanInvalidButton) {
+      dictionaryCleanInvalidButton.disabled = validation.invalidLines.length === 0;
+    }
 
     if (dictionaryPreview && dictionaryPreviewBody) {
       const preview = validation.previewEntry;

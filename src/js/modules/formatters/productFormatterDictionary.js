@@ -126,6 +126,17 @@ export function parseProductFormatterDictionary(text = "") {
   return inspectProductFormatterDictionary(text).dictionary;
 }
 
+export function removeInvalidProductFormatterDictionaryLines(text = "") {
+  const lines = String(text || "").replace(/\r/g, "").split("\n");
+  const invalidLines = new Set(inspectProductFormatterDictionary(text).invalidLines);
+  if (!invalidLines.size) {
+    return String(text || "");
+  }
+  return lines
+    .filter((_, index) => !invalidLines.has(index + 1))
+    .join("\n");
+}
+
 export function loadProductFormatterDictionary() {
   try {
     return window.localStorage?.getItem(STORAGE_KEY) || "";

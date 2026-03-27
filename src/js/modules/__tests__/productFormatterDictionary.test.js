@@ -1,6 +1,7 @@
 import {
   inspectProductFormatterDictionary,
   parseProductFormatterDictionary,
+  removeInvalidProductFormatterDictionaryLines,
 } from "../formatters/productFormatterDictionary.js";
 
 describe("productFormatterDictionary", () => {
@@ -33,5 +34,17 @@ describe("productFormatterDictionary", () => {
       батат: "Батат новый",
       черри: "Томаты черри",
     });
+  });
+
+  test("removes only invalid dictionary lines", () => {
+    const result = removeInvalidProductFormatterDictionaryLines(`батат
+батат = Картофель сладкий
+морковь =
+лук = лук
+черри = Томаты черри`);
+
+    expect(result).toBe(`батат = Картофель сладкий
+лук = лук
+черри = Томаты черри`);
   });
 });

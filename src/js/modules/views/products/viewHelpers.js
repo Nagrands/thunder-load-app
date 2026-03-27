@@ -42,6 +42,21 @@ export function getCurrentTextareaLineNumber(text = "", selectionStart = 0) {
   return normalizedText.slice(0, safeSelectionStart).split("\n").length;
 }
 
+export function getTextareaSelectionForLine(text = "", lineNumber = 1) {
+  const normalizedText = String(text || "").replace(/\r/g, "");
+  const lines = normalizedText.split("\n");
+  const safeLineNumber = Math.max(
+    1,
+    Math.min(Number(lineNumber) || 1, lines.length || 1),
+  );
+  let selectionStart = 0;
+  for (let index = 0; index < safeLineNumber - 1; index += 1) {
+    selectionStart += (lines[index] || "").length + 1;
+  }
+  const selectionEnd = selectionStart + (lines[safeLineNumber - 1] || "").length;
+  return { selectionStart, selectionEnd };
+}
+
 export function inspectDictionaryText(text = "", options = {}) {
   const inspection = inspectProductFormatterDictionary(text);
   const requestedLine = Number(options.lineNumber) || 0;
