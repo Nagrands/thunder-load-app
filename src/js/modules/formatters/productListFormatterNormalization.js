@@ -1,4 +1,4 @@
-export function createEntryParser({
+export function createEntryNormalizer({
   defaultReplacements,
   cleanupEntryText,
   createItem,

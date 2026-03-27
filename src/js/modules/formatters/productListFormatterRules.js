@@ -1,4 +1,4 @@
-import { normalizeLookupKey } from "./productListParsing.js";
+import { normalizeLookupKey } from "./productListFormatterParsing.js";
 
 export const DEFAULT_LABELS = Object.freeze({
   summary: "Итого",

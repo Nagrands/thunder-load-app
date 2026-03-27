@@ -4,7 +4,7 @@ import {
   buildSummaryContract,
   formatSectionLine,
   sortByRuAlpha,
-} from "./productListContracts.js";
+} from "./productListFormatterOutput.js";
 import {
   cleanupEntryText,
   isLikelySectionHeading,
@@ -15,8 +15,8 @@ import {
   parseQuantity,
   sentenceCase,
   splitEntryCandidates,
-} from "./productListParsing.js";
-import { createEntryParser } from "./productListEntries.js";
+} from "./productListFormatterParsing.js";
+import { createEntryNormalizer } from "./productListFormatterNormalization.js";
 import {
   addUnit,
   createItem,
@@ -25,9 +25,9 @@ import {
   fixKnownTypos,
   hasGreeneryMarker,
   isStoreBagName,
-} from "./productListRules.js";
+} from "./productListFormatterRules.js";
 
-const { addParsedEntry, createDiagnosticsBucket } = createEntryParser({
+const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
   defaultReplacements: DEFAULT_REPLACEMENTS,
   cleanupEntryText,
   createItem,
