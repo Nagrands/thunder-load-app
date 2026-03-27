@@ -22,6 +22,9 @@ export function bindViewEvents({
   collapseAllButton,
   expandAllButton,
   filterUncertainToggle,
+  resultMenu,
+  resultMenuToggle,
+  resultMenuPanel,
   diagnosticsFilters,
   includeSummary,
   includeGreensSummary,
@@ -46,10 +49,24 @@ export function bindViewEvents({
   showResult,
   setStatus,
   initTooltips,
+  setResultMenuState,
 }) {
   if (wrapper.__productsFormatterBound) {
     return;
   }
+
+  const closeResultMenu = ({ focusToggle = false } = {}) => {
+    state.resultMenuOpen = false;
+    setResultMenuState(resultMenuToggle, resultMenuPanel, false);
+    if (focusToggle && resultMenuToggle instanceof HTMLElement) {
+      resultMenuToggle.focus();
+    }
+  };
+
+  const toggleResultMenu = () => {
+    state.resultMenuOpen = !state.resultMenuOpen;
+    setResultMenuState(resultMenuToggle, resultMenuPanel, state.resultMenuOpen);
+  };
 
   if (dictionaryInput) {
     dictionaryInput.value = loadProductFormatterDictionary();
@@ -161,6 +178,7 @@ export function bindViewEvents({
     input.focus();
     clearPreview({ resetComparison: true });
     setStatus(t("productsFormatter.status.appliedToInput"), "success");
+    closeResultMenu();
   });
 
   copyButton?.addEventListener("click", async () => {
@@ -201,6 +219,23 @@ export function bindViewEvents({
     showResult(state.currentResult);
   });
 
+  resultMenuToggle?.addEventListener("click", () => {
+    toggleResultMenu();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!state.resultMenuOpen || !resultMenu) return;
+    if (resultMenu.contains(event.target)) return;
+    closeResultMenu();
+  });
+
+  wrapper.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!state.resultMenuOpen) return;
+    event.preventDefault();
+    closeResultMenu({ focusToggle: true });
+  });
+
   const handleToggleReformat = () => {
     const source = getCurrentSource();
     if (!source || !state.currentResult) return;
@@ -222,8 +257,12 @@ export function bindViewEvents({
   includeGreensSummary?.addEventListener("change", handleToggleReformat);
   filterUncertainToggle?.addEventListener("change", () => {
     state.showOnlyUncertain = filterUncertainToggle.checked;
+    filterUncertainToggle
+      ?.closest('[role="menuitemcheckbox"]')
+      ?.setAttribute("aria-checked", String(filterUncertainToggle.checked));
     if (!state.currentResult) return;
     showResult(state.currentResult);
+    closeResultMenu();
   });
   diagnosticsFilters?.forEach((button) => {
     button.addEventListener("click", () => {
@@ -236,9 +275,11 @@ export function bindViewEvents({
   });
   collapseAllButton?.addEventListener("click", () => {
     applyCollapsedStateToAll(true);
+    closeResultMenu();
   });
   expandAllButton?.addEventListener("click", () => {
     applyCollapsedStateToAll(false);
+    closeResultMenu();
   });
 
   input?.addEventListener("keydown", (event) => {

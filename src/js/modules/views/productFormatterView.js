@@ -19,6 +19,7 @@ import {
   renderNormalizationStats,
   renderPreview,
   setCopyButtonState,
+  setResultMenuState,
   setSectionCopyButtonState,
 } from "./products/viewRenderers.js";
 import { bindViewEvents } from "./products/viewEvents.js";
@@ -93,10 +94,10 @@ export default function renderProductFormatterView(wrapper) {
   const emptyDemoButton = wrapper.querySelector("#products-empty-demo");
   const copyButton = wrapper.querySelector("#products-copy");
   const searchInput = wrapper.querySelector("#products-search");
+  const resultToolbar = wrapper.querySelector('[data-ui="products-result-toolbar"]');
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
   const resultContent = wrapper.querySelector("#products-result-content");
-  const resultMeta = wrapper.querySelector("#products-result-meta");
   const normalizationStats = wrapper.querySelector("#products-normalization-stats");
   const diagnostics = wrapper.querySelector("#products-diagnostics");
   const issuesList = wrapper.querySelector("#products-issues-list");
@@ -104,14 +105,15 @@ export default function renderProductFormatterView(wrapper) {
   const comparisonPanel = wrapper.querySelector("#products-comparison-panel");
   const comparisonSummary = wrapper.querySelector("#products-comparison-summary");
   const comparisonList = wrapper.querySelector("#products-comparison-list");
-  const metaSections = wrapper.querySelector("#products-meta-sections");
-  const metaItems = wrapper.querySelector("#products-meta-items");
-  const metaSummary = wrapper.querySelector("#products-meta-summary");
-  const metaGreens = wrapper.querySelector("#products-meta-greens");
   const collapseAllButton = wrapper.querySelector("#products-collapse-all");
   const expandAllButton = wrapper.querySelector("#products-expand-all");
   const applyInputButton = wrapper.querySelector("#products-apply-input");
   const filterUncertainToggle = wrapper.querySelector("#products-filter-uncertain");
+  const resultMenu = wrapper.querySelector('[data-ui="products-result-menu"]');
+  const resultMenuToggle = wrapper.querySelector("#products-result-menu-toggle");
+  const resultMenuPanel = wrapper.querySelector(
+    '[data-ui="products-result-menu-panel"]',
+  );
   const diagnosticsFilters = Array.from(
     wrapper.querySelectorAll(".products-diagnostics__filter"),
   );
@@ -137,6 +139,7 @@ export default function renderProductFormatterView(wrapper) {
       diagnosticsFilter: "all",
       lastFormattedSource: "",
       lastFormattedDictionary: "",
+      resultMenuOpen: false,
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -151,6 +154,8 @@ export default function renderProductFormatterView(wrapper) {
   const showResult = (result) => {
     state.copiedText = result.fullOutputText;
     state.hasResult = !!result.fullOutputText;
+    state.resultMenuOpen = false;
+    setResultMenuState(resultMenuToggle, resultMenuPanel, false);
     clearCopyFeedbackTimer();
     renderPreview(
       preview,
@@ -215,8 +220,7 @@ export default function renderProductFormatterView(wrapper) {
     if (comparisonPanel?.hidden === false && diagnostics) {
       diagnostics.hidden = false;
     }
-    updateMetrics(result);
-    if (resultMeta) resultMeta.hidden = false;
+    if (resultToolbar) resultToolbar.hidden = false;
     if (resultContent) resultContent.hidden = false;
     if (empty) empty.hidden = true;
     state.isDirty = false;
@@ -235,7 +239,6 @@ export default function renderProductFormatterView(wrapper) {
     syncDirtyFromInputs,
     updateDictionaryMeta: syncDictionaryMeta,
     updateDirtyState,
-    updateMetrics,
   } = createViewStateHandlers({
     wrapper,
     state,
@@ -246,10 +249,10 @@ export default function renderProductFormatterView(wrapper) {
     dictionaryPanel,
     dictionaryToggleButton,
     copyButton,
+    resultToolbar,
     preview,
     summaryCard,
     resultContent,
-    resultMeta,
     normalizationStats,
     diagnostics,
     issuesList,
@@ -257,17 +260,20 @@ export default function renderProductFormatterView(wrapper) {
     comparisonPanel,
     comparisonSummary,
     comparisonList,
-    metaSections,
-    metaItems,
-    metaSummary,
-    metaGreens,
     filterUncertainToggle,
     dirtyState,
     empty,
+    searchInput,
+    resultMenuToggle,
+    resultMenuPanel,
     formatButton,
     setStatus,
     showResult,
   });
+
+  if (searchInput) searchInput.disabled = true;
+  if (resultMenuToggle) resultMenuToggle.disabled = true;
+  setResultMenuState(resultMenuToggle, resultMenuPanel, false);
 
   const formatSource = ({
     source = getCurrentSource(),
@@ -322,6 +328,9 @@ export default function renderProductFormatterView(wrapper) {
     collapseAllButton,
     expandAllButton,
     filterUncertainToggle,
+    resultMenu,
+    resultMenuToggle,
+    resultMenuPanel,
     diagnosticsFilters,
     includeSummary,
     includeGreensSummary,
@@ -346,6 +355,7 @@ export default function renderProductFormatterView(wrapper) {
     showResult,
     setStatus,
     initTooltips,
+    setResultMenuState,
   });
 
   applyI18n(wrapper);

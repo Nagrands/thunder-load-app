@@ -11,6 +11,8 @@ export function createEntryNormalizer({
   normalizeUnit,
   parseQuantity,
   sentenceCase,
+  shouldConvertSmallGreeneryKgToBunch,
+  shouldTreatPackAsPieces,
   addUnit,
 }) {
   function createDiagnosticsBucket() {
@@ -90,20 +92,34 @@ export function createEntryNormalizer({
     if (!Number.isFinite(quantity)) {
       item.hasNameOnly = true;
     } else if (normalizedUnit === "g") {
-      addUnit(item, "kg", quantity / 1000);
+      const normalizedQuantity = quantity < 1 ? quantity : quantity / 1000;
+      addUnit(item, "kg", normalizedQuantity);
     } else if (normalizedUnit) {
-      addUnit(item, normalizedUnit, quantity);
+      if (normalizedUnit === "pack" && shouldTreatPackAsPieces(displayName)) {
+        addUnit(item, "pcs", quantity);
+      } else if (
+        normalizedUnit === "kg" &&
+        shouldConvertSmallGreeneryKgToBunch(displayName, quantity)
+      ) {
+        addUnit(item, "bunch", Math.round(quantity / 0.05));
+      } else {
+        addUnit(item, normalizedUnit, quantity);
+      }
     } else if (!inStore) {
-      addUnit(item, "kg", quantity);
-      item.uncertain = true;
-      item.uncertainReasons.add("ambiguousUnitAssumedKg");
-      issues.push({
-        code: "ambiguousUnitAssumedKg",
-        sectionTitle,
-        displayName,
-        source,
-        output: formatSectionLine(item),
-      });
+      if (shouldConvertSmallGreeneryKgToBunch(displayName, quantity)) {
+        addUnit(item, "bunch", Math.round(quantity / 0.05));
+      } else {
+        addUnit(item, "kg", quantity);
+        item.uncertain = true;
+        item.uncertainReasons.add("ambiguousUnitAssumedKg");
+        issues.push({
+          code: "ambiguousUnitAssumedKg",
+          sectionTitle,
+          displayName,
+          source,
+          output: formatSectionLine(item),
+        });
+      }
     } else if (item.starred) {
       addUnit(item, "bunch", quantity);
     } else if (isStoreBagName(displayName)) {

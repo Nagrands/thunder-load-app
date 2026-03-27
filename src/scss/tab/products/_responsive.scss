@@ -34,8 +34,46 @@
     min-height: 300px;
   }
 
+  .products-result-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .products-result-menu {
+    justify-content: stretch;
+  }
+
+  .products-result-menu__toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .products-result-menu__panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+
   .products-pane__toggles {
     flex-wrap: wrap;
+  }
+
+  .products-result-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .products-result-menu {
+    justify-content: stretch;
+  }
+
+  .products-result-menu__toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .products-result-menu__panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
   }
 
   .products-dictionary {

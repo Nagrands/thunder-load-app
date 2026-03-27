@@ -1,7 +1,7 @@
 import { t } from "../../i18n.js";
 import { initTooltips } from "../../tooltipInitializer.js";
 import { buildSectionStateKey, inspectDictionaryText } from "./viewHelpers.js";
-import { getMetrics, setCopyButtonState } from "./viewRenderers.js";
+import { setCopyButtonState, setResultMenuState } from "./viewRenderers.js";
 
 export function createViewStateHandlers({
   wrapper,
@@ -13,10 +13,10 @@ export function createViewStateHandlers({
   dictionaryPanel,
   dictionaryToggleButton,
   copyButton,
+  resultToolbar,
   preview,
   summaryCard,
   resultContent,
-  resultMeta,
   normalizationStats,
   diagnostics,
   issuesList,
@@ -24,14 +24,12 @@ export function createViewStateHandlers({
   comparisonPanel,
   comparisonSummary,
   comparisonList,
-  metaSections,
-  metaItems,
-  metaSummary,
-  metaGreens,
   filterUncertainToggle,
   dirtyState,
   empty,
   searchInput,
+  resultMenuToggle,
+  resultMenuPanel,
   formatButton,
   setStatus,
   showResult,
@@ -49,6 +47,12 @@ export function createViewStateHandlers({
     });
     if (formatButton) {
       formatButton.dataset.dirty = state.isDirty ? "true" : "false";
+    }
+    if (searchInput) {
+      searchInput.disabled = !state.hasResult;
+    }
+    if (resultMenuToggle) {
+      resultMenuToggle.disabled = !state.hasResult;
     }
   };
 
@@ -131,8 +135,8 @@ export function createViewStateHandlers({
     preview?.replaceChildren();
     summaryCard?.replaceChildren();
     if (summaryCard) summaryCard.hidden = true;
+    if (resultToolbar) resultToolbar.hidden = true;
     if (resultContent) resultContent.hidden = true;
-    if (resultMeta) resultMeta.hidden = true;
     if (normalizationStats) normalizationStats.hidden = true;
     if (diagnostics) diagnostics.hidden = true;
     issuesList?.replaceChildren();
@@ -155,8 +159,13 @@ export function createViewStateHandlers({
     state.isDirty = false;
     state.showOnlyUncertain = false;
     state.resultSearchQuery = "";
+    state.resultMenuOpen = false;
     if (filterUncertainToggle) filterUncertainToggle.checked = false;
+    filterUncertainToggle
+      ?.closest('[role="menuitemcheckbox"]')
+      ?.setAttribute("aria-checked", "false");
     if (searchInput) searchInput.value = "";
+    setResultMenuState(resultMenuToggle, resultMenuPanel, false);
     updateDirtyState();
   };
 
@@ -180,30 +189,6 @@ export function createViewStateHandlers({
         : dictionaryToggleButton;
     state.dictionaryOpen = true;
     syncDictionaryPanel();
-  };
-
-  const updateMetrics = (result) => {
-    const metrics = getMetrics(result);
-    if (metaSections) {
-      metaSections.textContent = t("productsFormatter.meta.sections", {
-        count: metrics.sectionCount,
-      });
-    }
-    if (metaItems) {
-      metaItems.textContent = t("productsFormatter.meta.items", {
-        count: metrics.itemCount,
-      });
-    }
-    if (metaSummary) {
-      metaSummary.textContent = metrics.hasSummary
-        ? t("productsFormatter.meta.summaryOn")
-        : t("productsFormatter.meta.summaryOff");
-    }
-    if (metaGreens) {
-      metaGreens.textContent = metrics.hasGreensSummary
-        ? t("productsFormatter.meta.greensOn")
-        : t("productsFormatter.meta.greensOff");
-    }
   };
 
   const applyCollapsedStateToAll = (collapsed) => {
@@ -243,6 +228,5 @@ export function createViewStateHandlers({
     syncDirtyFromInputs,
     updateDictionaryMeta,
     updateDirtyState,
-    updateMetrics,
   };
 }

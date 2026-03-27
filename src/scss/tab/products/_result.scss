@@ -1,29 +1,15 @@
-.products-result-meta {
+.products-result-toolbar {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-}
-
-.products-result-meta__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.products-result-meta__row--options {
-  align-items: flex-start;
-}
-
-.products-result-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  align-items: center;
+  padding: 2px 0 4px;
 }
 
 .products-result-search {
-  min-width: min(240px, 100%);
-  display: inline-flex;
+  min-width: 0;
+  width: 100%;
+  display: flex;
   align-items: center;
   gap: 8px;
   min-height: 38px;
@@ -61,19 +47,72 @@
   }
 }
 
-.products-filter-toggle {
+.products-result-menu {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.products-result-menu__toggle {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 38px;
-  padding: 8px 12px;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+.products-result-menu__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 3;
+  min-width: 220px;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.025);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(18, 18, 34, 0.96);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.products-result-menu__panel[hidden] {
+  display: none !important;
+}
+
+.products-result-menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
   color: var(--color-highlight);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.06);
+    outline: none;
+  }
+}
+
+.products-result-menu__item--toggle {
+  justify-content: flex-start;
 
   input {
     width: 16px;
@@ -83,39 +122,18 @@
   }
 
   &:focus-within {
-    border-color: rgba(var(--color-accent-rgb), 0.32);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
+    background: rgba(255, 255, 255, 0.06);
+    outline: none;
   }
 }
 
-.products-result-meta[hidden],
+.products-result-toolbar[hidden],
 .products-formatter-empty[hidden],
 .products-result-content[hidden],
 .products-summary-card[hidden],
 .products-diagnostics[hidden],
 .products-diagnostics__panel[hidden] {
   display: none !important;
-}
-
-.products-result-meta__pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: var(--color-hover);
-  color: var(--color-quality);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.products-result-meta__pill--accent {
-  color: var(--color-highlight);
-  border-color: rgba(var(--color-accent-rgb), 0.22);
-  background:
-    linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.14), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.03);
 }
 
 .products-formatter-empty {

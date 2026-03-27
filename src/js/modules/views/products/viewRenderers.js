@@ -1,9 +1,6 @@
 import { t } from "../../i18n.js";
 import { initTooltips } from "../../tooltipInitializer.js";
-import {
-  buildSectionStateKey,
-  getMetrics,
-} from "./viewHelpers.js";
+import { buildSectionStateKey } from "./viewHelpers.js";
 
 function formatIssue(issue) {
   if (!issue?.code) return "";
@@ -313,6 +310,16 @@ export function renderNormalizationStats(container, result) {
   container.hidden = false;
 }
 
+export function setResultMenuState(toggle, panel, open) {
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.dataset.active = open ? "true" : "false";
+  }
+  if (panel) {
+    panel.hidden = !open;
+  }
+}
+
 function createSectionBlock(
   title,
   items = [],
@@ -565,5 +572,3 @@ export function setSectionCopyButtonState(copyButton, mode = "idle") {
   copyButton.setAttribute("title", t("productsFormatter.copy"));
   copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
 }
-
-export { getMetrics };

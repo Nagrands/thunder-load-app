@@ -6,6 +6,8 @@
 
 | What changed | What you get |
 |---|---|
+| The Products tab now has a lighter result header | The result area no longer stacks a dense row of pills and always-visible secondary buttons above the output: search stays visible, while actions like `Collapse all`, `Expand all`, `Apply to input`, and `Only uncertain` move into a compact overflow menu |
+| The Products tab now has stronger list normalization and section handling | The formatter now handles noisy entries like `-1,5kg` and `0,100gr` more reliably, normalizes a broader set of produce and greens names, shows the `⁕` marker directly in output lines, builds grouped sections like `Mint (bar)` / `Mint (kitchen)`, and brings the final list closer to the intended working format |
 | The Products tab started the second diagnostics improvement pass | Diagnostics now add quick `All` / `Review` / `Typos` / `Duplicates` filters, the normalized list can now be pushed back into the input in one step for manual cleanup and reruns, the result area now includes search across the formatted list, and normalization rows now offer a direct one-line apply action back into the source |
 | The Products tab received the first UX polish pass | The result is now marked as stale after source or dev dictionary edits, the dictionary now shows rule counts and malformed-line feedback, and the result area adds `Collapse all`, `Expand all`, and `Only uncertain` quick actions |
 | Added the new Emerald color theme | The app now includes another calm dark option with emerald and teal accents, available in both Settings and the first-run flow |

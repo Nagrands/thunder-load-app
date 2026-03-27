@@ -242,63 +242,69 @@ export function buildMarkup() {
             </header>
 
             <div
-              id="products-result-meta"
-              class="products-result-meta"
-              data-ui="products-result-meta"
+              class="products-result-toolbar"
+              data-ui="products-result-toolbar"
               hidden
             >
-              <div class="products-result-meta__row" data-ui="products-result-meta-stats">
-                <span id="products-meta-sections" class="products-result-meta__pill"></span>
-                <span id="products-meta-items" class="products-result-meta__pill"></span>
-              </div>
+              <label class="products-result-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input
+                  id="products-search"
+                  type="search"
+                  data-i18n-placeholder="productsFormatter.resultActions.searchPlaceholder"
+                  placeholder="${t("productsFormatter.resultActions.searchPlaceholder")}"
+                  aria-label="${t("productsFormatter.resultActions.searchPlaceholder")}"
+                  data-i18n-aria="productsFormatter.resultActions.searchPlaceholder"
+                />
+              </label>
+
               <div
-                class="products-result-meta__row products-result-meta__row--options"
-                data-ui="products-result-meta-options"
-              >
-                <span id="products-meta-summary" class="products-result-meta__pill products-result-meta__pill--accent"></span>
-                <span id="products-meta-greens" class="products-result-meta__pill products-result-meta__pill--accent"></span>
-              </div>
-              <div
-                id="products-result-actions"
-                class="products-result-actions"
-                data-ui="products-result-actions"
+                class="products-result-menu"
+                data-ui="products-result-menu"
               >
                 <button
-                  id="products-collapse-all"
+                  id="products-result-menu-toggle"
                   type="button"
-                  class="small-button products-utility-button"
+                  class="small-button products-utility-button products-result-menu__toggle"
+                  aria-expanded="false"
+                  aria-controls="products-result-menu-panel"
                 >
-                  <span data-i18n="productsFormatter.resultActions.collapseAll">${t("productsFormatter.resultActions.collapseAll")}</span>
+                  <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                  <span data-i18n="productsFormatter.resultActions.more">${t("productsFormatter.resultActions.more")}</span>
                 </button>
-                <button
-                  id="products-expand-all"
-                  type="button"
-                  class="small-button products-utility-button"
+
+                <div
+                  id="products-result-menu-panel"
+                  class="products-result-menu__panel"
+                  data-ui="products-result-menu-panel"
+                  hidden
                 >
-                  <span data-i18n="productsFormatter.resultActions.expandAll">${t("productsFormatter.resultActions.expandAll")}</span>
-                </button>
-                <label class="products-result-search">
-                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                  <input
-                    id="products-search"
-                    type="search"
-                    data-i18n-placeholder="productsFormatter.resultActions.searchPlaceholder"
-                    placeholder="${t("productsFormatter.resultActions.searchPlaceholder")}"
-                    aria-label="${t("productsFormatter.resultActions.searchPlaceholder")}"
-                    data-i18n-aria="productsFormatter.resultActions.searchPlaceholder"
-                  />
-                </label>
-                <button
-                  id="products-apply-input"
-                  type="button"
-                  class="small-button products-utility-button"
-                >
-                  <span data-i18n="productsFormatter.resultActions.applyInput">${t("productsFormatter.resultActions.applyInput")}</span>
-                </button>
-                <label class="products-filter-toggle">
-                  <input id="products-filter-uncertain" type="checkbox" />
-                  <span data-i18n="productsFormatter.resultActions.onlyUncertain">${t("productsFormatter.resultActions.onlyUncertain")}</span>
-                </label>
+                  <button
+                    id="products-collapse-all"
+                    type="button"
+                    class="products-result-menu__item"
+                  >
+                    <span data-i18n="productsFormatter.resultActions.collapseAll">${t("productsFormatter.resultActions.collapseAll")}</span>
+                  </button>
+                  <button
+                    id="products-expand-all"
+                    type="button"
+                    class="products-result-menu__item"
+                  >
+                    <span data-i18n="productsFormatter.resultActions.expandAll">${t("productsFormatter.resultActions.expandAll")}</span>
+                  </button>
+                  <button
+                    id="products-apply-input"
+                    type="button"
+                    class="products-result-menu__item"
+                  >
+                    <span data-i18n="productsFormatter.resultActions.applyInput">${t("productsFormatter.resultActions.applyInput")}</span>
+                  </button>
+                  <label class="products-result-menu__item products-result-menu__item--toggle">
+                    <input id="products-filter-uncertain" type="checkbox" />
+                    <span data-i18n="productsFormatter.resultActions.onlyUncertain">${t("productsFormatter.resultActions.onlyUncertain")}</span>
+                  </label>
+                </div>
               </div>
             </div>
 

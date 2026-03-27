@@ -38,6 +38,7 @@ export const toolsTranslations = {
     "productsFormatter.resultActions.expandAll": "Развернуть всё",
     "productsFormatter.resultActions.applyInput": "Подставить во вход",
     "productsFormatter.resultActions.onlyUncertain": "Только спорные",
+    "productsFormatter.resultActions.more": "Ещё",
     "productsFormatter.resultActions.showAll": "Показать всё",
     "productsFormatter.resultActions.searchPlaceholder": "Поиск по результату",
     "productsFormatter.resultActions.noUncertain":
@@ -878,6 +879,7 @@ export const toolsTranslations = {
     "productsFormatter.resultActions.expandAll": "Expand all",
     "productsFormatter.resultActions.applyInput": "Apply to input",
     "productsFormatter.resultActions.onlyUncertain": "Only uncertain",
+    "productsFormatter.resultActions.more": "More",
     "productsFormatter.resultActions.showAll": "Show all",
     "productsFormatter.resultActions.searchPlaceholder": "Search in result",
     "productsFormatter.resultActions.noUncertain":

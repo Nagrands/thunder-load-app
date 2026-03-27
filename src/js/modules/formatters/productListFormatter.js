@@ -1,6 +1,7 @@
 import {
   DEFAULT_LABELS,
   DEFAULT_REPLACEMENTS,
+  SECTION_GROUP_CHILD_TITLES,
 } from "./productListFormatterData.js";
 import {
   buildAggregateSummary,
@@ -27,6 +28,8 @@ import {
   fixKnownTypos,
   hasGreeneryMarker,
   isStoreBagName,
+  shouldConvertSmallGreeneryKgToBunch,
+  shouldTreatPackAsPieces,
 } from "./productListFormatterRules.js";
 
 const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
@@ -43,7 +46,27 @@ const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
   parseQuantity,
   sentenceCase,
   addUnit,
+  shouldConvertSmallGreeneryKgToBunch,
+  shouldTreatPackAsPieces,
 });
+
+function isGroupedChildSection(title = "") {
+  const lookup = normalizeLookupKey(title);
+  return SECTION_GROUP_CHILD_TITLES.includes(lookup);
+}
+
+function getMeaningfulLine(rawLines, startIndex) {
+  for (let index = startIndex; index < rawLines.length; index += 1) {
+    const line = cleanupEntryText(rawLines[index]);
+    if (line) {
+      return {
+        index,
+        line,
+      };
+    }
+  }
+  return null;
+}
 
 function buildProductListContract(input = "", options = {}) {
   const labels = {
@@ -132,6 +155,7 @@ function collectSections(
   const sections = [];
   let currentSection = null;
   let previousBlank = true;
+  let groupedSectionPrefix = "";
 
   rawLines.forEach((rawLine, index) => {
     const line = cleanupEntryText(rawLine);
@@ -140,22 +164,50 @@ function collectSections(
       return;
     }
 
-    const nextLine = rawLines
-      .slice(index + 1)
-      .map((item) => cleanupEntryText(item))
-      .find(Boolean);
+    const nextMeaningful = getMeaningfulLine(rawLines, index + 1);
+    const nextLine = nextMeaningful?.line || "";
+    const lineAfterNext = nextMeaningful
+      ? getMeaningfulLine(rawLines, nextMeaningful.index + 1)?.line || ""
+      : "";
     const atStart = sections.length === 0 && !currentSection;
     const isHeading = isLikelySectionHeading(line, nextLine, {
       afterBlank: previousBlank,
       atStart,
     });
+    const nextLineIsHeading = nextLine
+      ? isLikelySectionHeading(nextLine, lineAfterNext, {
+          afterBlank: true,
+          atStart: false,
+        })
+      : false;
+    const isGroupedHeading =
+      previousBlank &&
+      nextLineIsHeading &&
+      !/[\d]/.test(line) &&
+      !/[,;:]/.test(line) &&
+      line.split(/\s+/).length <= 4;
+
+    if (isGroupedHeading) {
+      groupedSectionPrefix = normalizeSectionTitle(line);
+      currentSection = null;
+      previousBlank = false;
+      return;
+    }
 
     if (isHeading) {
+      const normalizedTitle = normalizeSectionTitle(line);
+      const title =
+        groupedSectionPrefix && isGroupedChildSection(normalizedTitle)
+          ? `${groupedSectionPrefix} (${normalizeLookupKey(normalizedTitle)})`
+          : normalizedTitle;
       currentSection = {
-        title: normalizeSectionTitle(line),
+        title,
         itemsMap: new Map(),
       };
       sections.push(currentSection);
+      if (!isGroupedChildSection(normalizedTitle)) {
+        groupedSectionPrefix = "";
+      }
       previousBlank = false;
       return;
     }

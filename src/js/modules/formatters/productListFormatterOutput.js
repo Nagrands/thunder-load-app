@@ -18,7 +18,7 @@ export function sortByRuAlpha(a, b) {
 export function formatUnitsForSection(item) {
   const parts = [];
   if (item.units.kg > 0) parts.push(formatNumber(item.units.kg));
-  if (item.units.pcs > 0) parts.push(`${formatNumber(item.units.pcs)} шт`);
+  if (item.units.pcs > 0) parts.push(`${formatNumber(item.units.pcs)}шт`);
   if (item.units.bunch > 0) parts.push(`${formatNumber(item.units.bunch)}п`);
   if (item.units.head > 0) parts.push(`${formatNumber(item.units.head)} гол`);
   if (item.units.pack > 0) parts.push(`${formatNumber(item.units.pack)} пака`);
@@ -40,12 +40,15 @@ export function formatUnitsForSummary(item) {
 
 export function formatSectionLine(item) {
   const suffix = formatUnitsForSection(item);
-  return suffix ? `${item.displayName} ${suffix}` : item.displayName;
+  const displayName = item.starred ? `${item.displayName}⁕` : item.displayName;
+  return suffix ? `${displayName} ${suffix}` : displayName;
 }
 
 export function formatSummaryLine(item) {
   const suffix = formatUnitsForSummary(item);
-  const sources = Array.from(item.sources);
+  const sources = Array.from(item.sources).map((source) =>
+    String(source).replace(/\s*\(([^)]+)\)\s*$/, " $1"),
+  );
   const sourceText = sources.length ? ` (${sources.join(", ")})` : "";
   if (!suffix) return `${item.displayName}${sourceText}`;
   return `${item.displayName} ${suffix}${sourceText}`;

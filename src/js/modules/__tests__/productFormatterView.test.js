@@ -73,21 +73,23 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
     ).toBe(true);
-    expect(wrapper.querySelector('[data-ui="products-result-meta"]')?.hidden).toBe(
-      true,
-    );
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
     expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
       true,
     );
-    expect(wrapper.querySelector("#products-collapse-all")).not.toBeNull();
-    expect(wrapper.querySelector("#products-expand-all")).not.toBeNull();
     expect(wrapper.querySelector("#products-search")).not.toBeNull();
-    expect(wrapper.querySelector("#products-apply-input")).not.toBeNull();
-    expect(wrapper.querySelector("#products-filter-uncertain")).not.toBeNull();
+    expect(wrapper.querySelector("#products-search")?.disabled).toBe(true);
+    expect(wrapper.querySelector("#products-result-menu-toggle")).not.toBeNull();
+    expect(wrapper.querySelector("#products-result-menu-toggle")?.disabled).toBe(
+      true,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-result-menu-panel"]')?.hidden,
+    ).toBe(true);
     expect(wrapper.querySelectorAll(".products-diagnostics__filter").length).toBe(4);
   });
 
-  test("formats into a single preview flow with summary at the end and result stats", () => {
+  test("formats into a single preview flow with summary at the end and enables the compact result controls", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -115,17 +117,9 @@ describe("productFormatterView", () => {
         (el) => el.textContent,
       ),
     ).toEqual(["Тесто", "Магазин", "Итого"]);
-    expect(
-      wrapper.querySelector("#products-meta-sections")?.textContent,
-    ).toBe("Разделов: 2");
-    expect(wrapper.querySelector("#products-meta-items")?.textContent).toBe(
-      "Позиций: 2",
-    );
-    expect(wrapper.querySelector("#products-meta-summary")?.textContent).toBe(
-      "Итого включено",
-    );
-    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
-      "Зелень скрыта",
+    expect(wrapper.querySelector("#products-search")?.disabled).toBe(false);
+    expect(wrapper.querySelector("#products-result-menu-toggle")?.disabled).toBe(
+      false,
     );
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(false);
     expect(preview.querySelectorAll(".products-section-copy").length).toBe(3);
@@ -148,19 +142,7 @@ describe("productFormatterView", () => {
     greensToggle.checked = true;
     wrapper.querySelector("#products-format").click();
 
-    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
-      "Зелень включена",
-    );
-    expect(
-      Array.from(
-        wrapper.querySelectorAll('[data-ui="products-result-meta-stats"] .products-result-meta__pill'),
-      ).map((el) => el.id),
-    ).toEqual(["products-meta-sections", "products-meta-items"]);
-    expect(
-      Array.from(
-        wrapper.querySelectorAll('[data-ui="products-result-meta-options"] .products-result-meta__pill'),
-      ).map((el) => el.id),
-    ).toEqual(["products-meta-summary", "products-meta-greens"]);
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
     expect(
       Array.from(
         wrapper.querySelector("#products-preview")?.querySelectorAll(
@@ -197,12 +179,7 @@ describe("productFormatterView", () => {
     summaryToggle.checked = false;
     summaryToggle.dispatchEvent(new Event("change"));
     expect(previewTitles()).toEqual(["Тесто", "Магазин", "Зелень"]);
-    expect(wrapper.querySelector("#products-meta-summary")?.textContent).toBe(
-      "Итого скрыто",
-    );
-    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
-      "Зелень включена",
-    );
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
   });
 
   test("omits summary from the preview flow when the checkbox is disabled and copies raw output", async () => {
@@ -227,12 +204,7 @@ describe("productFormatterView", () => {
         (el) => el.textContent,
       ),
     ).toEqual(["Тесто"]);
-    expect(wrapper.querySelector("#products-meta-summary")?.textContent).toBe(
-      "Итого скрыто",
-    );
-    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
-      "Зелень скрыта",
-    );
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
 
     copyButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -286,9 +258,7 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
     ).toBe(true);
-    expect(wrapper.querySelector('[data-ui="products-result-meta"]')?.hidden).toBe(
-      true,
-    );
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
     expect(status.textContent).toBe("Поле очищено.");
     expect(
@@ -500,7 +470,7 @@ describe("productFormatterView", () => {
     );
   });
 
-  test("supports quick actions for collapsing, expanding, and filtering uncertain items", () => {
+  test("supports result actions from the compact overflow menu", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -509,9 +479,14 @@ describe("productFormatterView", () => {
 Лук 1 кг
 ПетрушкаЦ 2 пуч.
 
-Магазин
-Чеснок 3`;
+    Магазин
+    Чеснок 3`;
     wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-result-menu-toggle").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-result-menu-panel"]')?.hidden,
+    ).toBe(false);
 
     wrapper.querySelector("#products-collapse-all").click();
     expect(
@@ -520,7 +495,11 @@ describe("productFormatterView", () => {
           section.classList.contains("products-preview__section--collapsed"),
       ),
     ).toBe(true);
+    expect(
+      wrapper.querySelector('[data-ui="products-result-menu-panel"]')?.hidden,
+    ).toBe(true);
 
+    wrapper.querySelector("#products-result-menu-toggle").click();
     wrapper.querySelector("#products-expand-all").click();
     expect(
       Array.from(wrapper.querySelectorAll(".products-preview__section")).every(
@@ -539,6 +518,31 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelectorAll(".products-preview__item--uncertain").length,
     ).toBeGreaterThan(0);
+  });
+
+  test("closes the result menu on escape and outside click", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 1`;
+    wrapper.querySelector("#products-format").click();
+
+    const toggle = wrapper.querySelector("#products-result-menu-toggle");
+    const panel = wrapper.querySelector('[data-ui="products-result-menu-panel"]');
+
+    toggle.click();
+    expect(panel?.hidden).toBe(false);
+
+    wrapper.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    expect(panel?.hidden).toBe(true);
+    expect(document.activeElement).toBe(toggle);
+
+    toggle.click();
+    document.body.click();
+    expect(panel?.hidden).toBe(true);
   });
 
   test("filters diagnostics by category", () => {
@@ -590,11 +594,12 @@ describe("productFormatterView", () => {
 Лук 1 кг`;
     wrapper.querySelector("#products-format").click();
 
+    wrapper.querySelector("#products-result-menu-toggle").click();
     wrapper.querySelector("#products-apply-input").click();
 
     expect(textarea.value).toBe(`Тесто
 Лук 1
-Петрушка 2п`);
+Петрушка⁕ 2п`);
     expect(
       wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
     ).toBe(true);
@@ -616,7 +621,7 @@ describe("productFormatterView", () => {
     wrapper.querySelector("#products-diff-toggle").click();
     wrapper.querySelector(".products-diff-row__apply").click();
 
-    expect(textarea.value).toContain("Петрушка 2п");
+    expect(textarea.value).toContain("Петрушка⁕ 2п");
     expect(textarea.value).not.toContain("ПетрушкаЦ 2 пуч.");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Исправленная строка подставлена во вход.",

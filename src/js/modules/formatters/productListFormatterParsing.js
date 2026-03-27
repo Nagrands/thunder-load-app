@@ -1,5 +1,5 @@
 export const QUANTITY_RE =
-  "(\\d+(?:\\.\\d+)?)\\s*(кг|килограмм(?:а|ов)?|к|гр|грамм(?:а|ов)?|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|головка|головки|пака)?";
+  "(\\d+(?:\\.\\d+)?)\\s*(кг|килограмм(?:а|ов)?|к|гр|грамм(?:а|ов)?|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|головка|головки|пака|пач|пачка|пачки)?";
 
 const PREFIX_QUANTITY_RE = new RegExp(`^${QUANTITY_RE}\\s+(.+)$`, "i");
 const SUFFIX_QUANTITY_RE = new RegExp(`^(.+?)\\s+${QUANTITY_RE}$`, "i");
@@ -17,8 +17,10 @@ export function cleanupEntryText(value = "") {
   return normalizeWhitespace(
     String(value || "")
       .replace(/(\d),(\d)/g, "$1.$2")
+      .replace(/([A-Za-zА-Яа-яЁё⁕])\s*-\s*(?=\d)/g, "$1 ")
+      .replace(/(^|\s)-\s*(?=\d)/g, "$1")
       .replace(/(^|\s)пол\s+пака(?=\s|$)/gi, "$10.5 пака")
-      .replace(/\b(кг|гр|г|шт|пуч|гол|пака)\./gi, "$1")
+      .replace(/\b(кг|гр|г|шт|пуч|гол|пака|пач|пачка|пачки)\./gi, "$1")
       .replace(/(\d)([A-Za-zА-Яа-яЁё⁕]+)/g, "$1 $2")
       .replace(/([A-Za-zА-Яа-яЁё⁕])(\d)/g, "$1 $2")
       .replace(/[,:;]+$/g, "")
@@ -32,6 +34,7 @@ export function normalizeLookupKey(value = "") {
       .toLowerCase()
       .replace(/ё/g, "е")
       .replace(/⁕/g, "")
+      .replace(/-+/g, " ")
       .replace(/[.,:;]+/g, " "),
   );
 }
@@ -59,7 +62,7 @@ export function looksLikeIngredient(value = "") {
   return (
     /[\d]/.test(line) ||
     /[,;]/.test(line) ||
-    /\b(пол\s+пака|кг|килограмм|гр|грамм|шт|штук|штуки|пуч|пучок|гол|головка|пака)\b/i.test(
+    /\b(пол\s+пака|кг|килограмм|гр|грамм|шт|штук|штуки|пуч|пучок|гол|головка|пака|пач|пачка)\b/i.test(
       line,
     ) ||
     line.split(/\s+/).length > 1
@@ -118,6 +121,6 @@ export function normalizeUnit(unit = "") {
   if (["шт", "штук", "штуки"].includes(value)) return "pcs";
   if (["пуч", "пучок", "пучка", "п"].includes(value)) return "bunch";
   if (["гол", "головка", "головки"].includes(value)) return "head";
-  if (value === "пака") return "pack";
+  if (["пака", "пач", "пачка", "пачки"].includes(value)) return "pack";
   return "";
 }

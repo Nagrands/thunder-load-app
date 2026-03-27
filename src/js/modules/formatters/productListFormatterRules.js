@@ -34,6 +34,16 @@ export function isStoreBagName(name = "") {
   );
 }
 
+export function shouldConvertSmallGreeneryKgToBunch(name = "", quantity = 0) {
+  const lookupKey = normalizeLookupKey(name);
+  if (!hasGreeneryMarker(lookupKey)) return false;
+  return Math.abs(quantity - 0.05) < 0.0001;
+}
+
+export function shouldTreatPackAsPieces(name = "") {
+  return hasGreeneryMarker(name);
+}
+
 export function createItem(displayName = "", starred = false) {
   return {
     key: normalizeLookupKey(displayName),
