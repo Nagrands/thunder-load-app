@@ -30205,8 +30205,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-radius: 16px;
   color: var(--color-highlight);
   background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.28), rgba(255, 255, 255, 0.08));
-  border: 1px solid rgba(var(--color-accent-rgb), 0.24);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(var(--color-accent-rgb), 0.14);
 }
 .products-workbench-header__icon i {
   font-size: 1.1rem;
@@ -30217,16 +30215,15 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 .products-workbench-header__copy h1 {
   margin: 0 0 4px;
-  font-size: 1.24rem;
-  font-weight: 700;
+  font-size: 1.7rem;
+  font-weight: 600;
   color: var(--color-highlight);
 }
 .products-workbench-header__copy p {
   margin: 0;
   max-width: 780px;
   color: var(--color-quality);
-  font-size: 0.93rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
 }
 
 .products-workbench {
@@ -30288,7 +30285,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 
 .products-pane__title--stack {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .products-pane__toggles {
@@ -30334,12 +30331,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 8px;
   padding: 8px 11px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.025);
-  color: var(--color-text-main);
+  color: var(--color-highlight);
   font-size: 0.84rem;
   font-weight: 600;
-  line-height: 1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   white-space: nowrap;
   cursor: pointer;
@@ -30449,14 +30444,14 @@ h1.section-heading .bk-heading-search #bk-search-info {
   padding-inline: 14px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
-  color: var(--color-text-main);
+  background: transparent;
+  color: var(--color-accent);
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 .products-utility-button:hover {
   transform: translateY(-1px);
-  border-color: rgba(var(--color-accent-rgb), 0.26);
-  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.03);
+  background: var(--color-hover);
+  color: var(--color-highlight);
 }
 .products-utility-button:focus-visible {
   border-color: rgba(var(--color-accent-rgb), 0.32);
@@ -30497,7 +30492,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.26), rgba(var(--color-accent-rgb), 0.12)), linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 14px 28px rgba(var(--color-accent-rgb), 0.14);
   font-size: 0.98rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.01em;
   margin-top: 2px;
 }

@@ -27,6 +27,7 @@ import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
 import { initLowEffectsFromStore } from "../effectsMode.js";
+import { initDeveloperModeFooterVisibility } from "../developerModeFooter.js";
 import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
 import { syncDeveloperModeState } from "../developerMode.js";
 import { initI18n, t } from "../i18n.js";
@@ -61,6 +62,7 @@ async function runCriticalInitialization(mainView) {
 
   registerI18nListeners(tabs);
 
+  initDeveloperModeFooterVisibility();
   initDeveloperModeTopBarVisibility();
   initUrlInputHandler();
   initHistory();
