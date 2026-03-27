@@ -30644,6 +30644,38 @@ h1.section-heading .bk-heading-search #bk-search-info {
   line-height: 1.5;
 }
 
+.products-formatter-empty__content {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.products-formatter-empty__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-highlight);
+}
+
+.products-formatter-empty__hint {
+  color: var(--color-quality);
+  font-size: 0.9rem;
+}
+
+.products-formatter-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.products-formatter-empty__shortcut {
+  color: var(--color-quality);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .products-result-content {
   min-height: 0;
   height: auto;

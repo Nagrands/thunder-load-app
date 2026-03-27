@@ -25,6 +25,10 @@ export const toolsTranslations = {
     "productsFormatter.copyDone": "Скопировано",
     "productsFormatter.dismissWarning": "Скрыть предупреждение",
     "productsFormatter.outputLabel": "Результат",
+    "productsFormatter.emptyTitle": "Результат появится здесь",
+    "productsFormatter.emptyHint":
+      "Вставьте список из буфера или загрузите демо-пример, чтобы сразу проверить форматирование.",
+    "productsFormatter.shortcutHint": "Быстрое действие: Ctrl/Cmd + Enter",
     "productsFormatter.empty":
       "Здесь появится готовый список по разделам и сводный блок «Итого».",
     "productsFormatter.unsorted": "Без раздела",
@@ -823,6 +827,10 @@ export const toolsTranslations = {
     "productsFormatter.copyDone": "Copied",
     "productsFormatter.dismissWarning": "Dismiss warning",
     "productsFormatter.outputLabel": "Result",
+    "productsFormatter.emptyTitle": "The result will appear here",
+    "productsFormatter.emptyHint":
+      "Paste a list from the clipboard or load the demo sample to preview formatting right away.",
+    "productsFormatter.shortcutHint": "Quick action: Ctrl/Cmd + Enter",
     "productsFormatter.empty":
       "The formatted sections and optional summary will appear here.",
     "productsFormatter.unsorted": "Unsorted",

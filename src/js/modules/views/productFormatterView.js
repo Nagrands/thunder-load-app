@@ -306,10 +306,40 @@ function buildMarkup() {
               <div
                 id="products-output-empty"
                 class="products-formatter-empty"
-                data-i18n="productsFormatter.empty"
                 data-ui="products-empty"
               >
-                ${t("productsFormatter.empty")}
+                <div class="products-formatter-empty__content">
+                  <div
+                    class="products-formatter-empty__title"
+                    data-i18n="productsFormatter.emptyTitle"
+                  >${t("productsFormatter.emptyTitle")}</div>
+                  <div
+                    class="products-formatter-empty__hint"
+                    data-i18n="productsFormatter.emptyHint"
+                  >${t("productsFormatter.emptyHint")}</div>
+                  <div class="products-formatter-empty__actions">
+                    <button
+                      id="products-empty-paste"
+                      type="button"
+                      class="small-button products-utility-button"
+                    >
+                      <i class="fa-regular fa-paste" aria-hidden="true"></i>
+                      <span data-i18n="productsFormatter.paste">${t("productsFormatter.paste")}</span>
+                    </button>
+                    <button
+                      id="products-empty-demo"
+                      type="button"
+                      class="small-button products-utility-button"
+                    >
+                      <i class="fa-solid fa-flask" aria-hidden="true"></i>
+                      <span data-i18n="productsFormatter.demo">${t("productsFormatter.demo")}</span>
+                    </button>
+                  </div>
+                  <div
+                    class="products-formatter-empty__shortcut"
+                    data-i18n="productsFormatter.shortcutHint"
+                  >${t("productsFormatter.shortcutHint")}</div>
+                </div>
               </div>
 
               <div
@@ -735,7 +765,7 @@ function createSectionBlock(
     copyButton.setAttribute("title", t("productsFormatter.copy"));
     copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
     copyButton.innerHTML = `<i class="fa-regular fa-copy" aria-hidden="true"></i>`;
-    copyButton.addEventListener("click", () => onCopy(text));
+    copyButton.addEventListener("click", () => onCopy(text, copyButton));
     header.appendChild(copyButton);
   }
 
@@ -871,6 +901,21 @@ function setCopyButtonState(copyButton, mode = "idle") {
   copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
 }
 
+function setSectionCopyButtonState(copyButton, mode = "idle") {
+  if (!copyButton) return;
+  const icon = copyButton.querySelector("i");
+  if (mode === "success") {
+    if (icon) icon.className = "fa-solid fa-check";
+    copyButton.setAttribute("title", t("productsFormatter.copyDone"));
+    copyButton.setAttribute("aria-label", t("productsFormatter.copyDone"));
+    return;
+  }
+
+  if (icon) icon.className = "fa-regular fa-copy";
+  copyButton.setAttribute("title", t("productsFormatter.copy"));
+  copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
+}
+
 function getFocusableElements(container) {
   if (!container) return [];
   return Array.from(
@@ -923,6 +968,8 @@ export default function renderProductFormatterView(wrapper) {
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
   const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
   const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
+  const emptyPasteButton = wrapper.querySelector("#products-empty-paste");
+  const emptyDemoButton = wrapper.querySelector("#products-empty-demo");
   const copyButton = wrapper.querySelector("#products-copy");
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
@@ -953,6 +1000,7 @@ export default function renderProductFormatterView(wrapper) {
       collapsedSections: {},
       dictionaryOpen: false,
       dictionaryReturnFocus: null,
+      sectionCopyFeedbackTimer: null,
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -989,10 +1037,17 @@ export default function renderProductFormatterView(wrapper) {
     state.copyFeedbackTimer = null;
   };
 
+  const clearSectionCopyFeedbackTimer = () => {
+    if (!state.sectionCopyFeedbackTimer) return;
+    clearTimeout(state.sectionCopyFeedbackTimer);
+    state.sectionCopyFeedbackTimer = null;
+  };
+
   const resetPreview = ({ resetComparison = false } = {}) => {
     state.copiedText = "";
     state.hasResult = false;
     clearCopyFeedbackTimer();
+    clearSectionCopyFeedbackTimer();
     preview?.replaceChildren();
     summaryCard?.replaceChildren();
     if (summaryCard) summaryCard.hidden = true;
@@ -1071,9 +1126,19 @@ export default function renderProductFormatterView(wrapper) {
       preview,
       summaryCard,
       result,
-      async (sectionText) => {
+      async (sectionText, sourceButton) => {
         try {
           await copyText(sectionText);
+          if (sourceButton) {
+            clearSectionCopyFeedbackTimer();
+            setSectionCopyButtonState(sourceButton, "success");
+            initTooltips(wrapper);
+            state.sectionCopyFeedbackTimer = setTimeout(() => {
+              setSectionCopyButtonState(sourceButton, "idle");
+              initTooltips(wrapper);
+              state.sectionCopyFeedbackTimer = null;
+            }, 1200);
+          }
           clearCopyFeedbackTimer();
           setStatus(t("productsFormatter.status.sectionCopied"), "success");
         } catch {
@@ -1224,6 +1289,14 @@ export default function renderProductFormatterView(wrapper) {
       if (dictionaryInput) dictionaryInput.value = "";
       clearProductFormatterDictionary();
       setStatus(t("productsFormatter.status.dictionaryReset"));
+    });
+
+    emptyPasteButton?.addEventListener("click", () => {
+      pasteButton?.click();
+    });
+
+    emptyDemoButton?.addEventListener("click", () => {
+      demoButton?.click();
     });
 
     copyButton?.addEventListener("click", async () => {

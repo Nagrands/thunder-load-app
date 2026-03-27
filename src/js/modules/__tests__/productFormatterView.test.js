@@ -66,6 +66,11 @@ describe("productFormatterView", () => {
       false,
     );
     expect(
+      wrapper.querySelector(".products-formatter-empty__title")?.textContent,
+    ).toBe("Результат появится здесь");
+    expect(wrapper.querySelector("#products-empty-paste")).not.toBeNull();
+    expect(wrapper.querySelector("#products-empty-demo")).not.toBeNull();
+    expect(
       wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
     ).toBe(true);
     expect(wrapper.querySelector('[data-ui="products-result-meta"]')?.hidden).toBe(
@@ -282,6 +287,26 @@ describe("productFormatterView", () => {
     ).toBe(true);
   });
 
+  test("supports empty-state quick actions for paste and demo", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    navigator.clipboard.readText.mockResolvedValueOnce("Тесто\nЛук 1");
+    wrapper.querySelector("#products-empty-paste").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.querySelector("#products-input")?.value).toBe("Тесто\nЛук 1");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Текст вставлен из буфера обмена.",
+    );
+
+    wrapper.querySelector("#products-empty-demo").click();
+    expect(wrapper.querySelector("#products-input")?.value).toContain("Витамин");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Демо-список загружен.",
+    );
+  });
+
   test("surfaces clipboard errors through the inline status channel", async () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
@@ -328,6 +353,7 @@ describe("productFormatterView", () => {
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
 Лук 1`);
+    expect(firstSectionCopy.getAttribute("title")).toBe("Скопировано");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Раздел скопирован.",
     );
