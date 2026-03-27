@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The Products tab now makes the dev dictionary easier to edit | The dictionary panel now includes short rule examples and a live preview tied to the current cursor line, so you can immediately see how the key is normalized, which replacement will apply, and whether a rule is broken, no-op, conflicting, or overriding a built-in mapping |
 | The Products tab now has stronger dev dictionary diagnostics | The dictionary now distinguishes broken lines, conflicting keys, no-op rules, and overrides of built-in replacements, while the panel shows more useful counts and the exact problematic line numbers |
 | The Products tab now has a lighter diagnostics and rerun-comparison area | The separate `Duplicates / Typos / Review` stats strip is gone, diagnostics filters are quieter and more compact, and comparison/diff cards now read as lighter secondary tooling instead of competing with the formatted result |
 | The Products tab now has a lighter result header | The result area no longer stacks a dense row of pills and always-visible secondary buttons above the output: search stays visible, while actions like `Collapse all`, `Expand all`, `Apply to input`, and `Only uncertain` move into a compact overflow menu |

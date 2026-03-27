@@ -87,6 +87,8 @@ export default function renderProductFormatterView(wrapper) {
   );
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
   const dictionaryMeta = wrapper.querySelector("#products-dictionary-meta");
+  const dictionaryPreview = wrapper.querySelector("#products-dictionary-preview");
+  const dictionaryPreviewBody = wrapper.querySelector("#products-dictionary-preview-body");
   const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
   const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
   const emptyPasteButton = wrapper.querySelector("#products-empty-paste");
@@ -138,6 +140,7 @@ export default function renderProductFormatterView(wrapper) {
       lastFormattedSource: "",
       lastFormattedDictionary: "",
       resultMenuOpen: false,
+      activeDictionaryLine: 1,
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -242,6 +245,8 @@ export default function renderProductFormatterView(wrapper) {
     input,
     dictionaryInput,
     dictionaryMeta,
+    dictionaryPreview,
+    dictionaryPreviewBody,
     dictionaryLayer,
     dictionaryPanel,
     dictionaryToggleButton,

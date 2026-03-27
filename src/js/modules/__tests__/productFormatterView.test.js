@@ -791,6 +791,66 @@ describe("productFormatterView", () => {
     );
   });
 
+  test("keeps dictionary preview tied to the active textarea line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+битая строка
+лук = лук`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    dictionaryInput.setSelectionRange(5, 5);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ: батат -> замена: Картофель сладкий.",
+    );
+
+    dictionaryInput.setSelectionRange(30, 30);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Строка 2 пока не распознана как правило `исходное = замена`.",
+    );
+
+    dictionaryInput.setSelectionRange(dictionaryInput.value.length, dictionaryInput.value.length);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ «лук» не изменится после такого правила.",
+    );
+  });
+
+  test("shows duplicate and built-in override hints for the active dictionary line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+Батат = Батат новый
+черри = Томаты черри`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    const duplicateIndex = dictionaryInput.value.indexOf("Батат");
+    dictionaryInput.setSelectionRange(duplicateIndex, duplicateIndex);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ: батат -> замена: Батат новый. Перекрывает более раннее правило с тем же ключом.",
+    );
+
+    const overrideIndex = dictionaryInput.value.indexOf("черри");
+    dictionaryInput.setSelectionRange(overrideIndex, overrideIndex);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ: черри -> замена: Томаты черри. Переопределяет встроенную замену: Помидор черри.",
+    );
+  });
+
   test("closes the dictionary via escape and backdrop and traps focus while open", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);

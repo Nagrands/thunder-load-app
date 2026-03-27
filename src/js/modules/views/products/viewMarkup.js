@@ -159,6 +159,25 @@ export function buildMarkup() {
                     class="products-dictionary__hint"
                     data-i18n="productsFormatter.dictionaryHint"
                   >${t("productsFormatter.dictionaryHint")}</div>
+                  <div
+                    class="products-dictionary__examples"
+                    data-ui="products-dictionary-examples"
+                  >
+                    <div class="products-dictionary__examples-title" data-i18n="productsFormatter.dictionaryExamplesTitle">${t("productsFormatter.dictionaryExamplesTitle")}</div>
+                    <div class="products-dictionary__examples-list">
+                      <span class="products-dictionary__example">батат = Картофель сладкий</span>
+                      <span class="products-dictionary__example">лук зел = Лук зеленый</span>
+                      <span class="products-dictionary__example">черри = Помидор Черри</span>
+                    </div>
+                  </div>
+                  <div
+                    id="products-dictionary-preview"
+                    class="products-dictionary__preview"
+                    data-ui="products-dictionary-preview"
+                  >
+                    <div class="products-dictionary__preview-title" data-i18n="productsFormatter.dictionaryPreviewTitle">${t("productsFormatter.dictionaryPreviewTitle")}</div>
+                    <div id="products-dictionary-preview-body" class="products-dictionary__preview-body"></div>
+                  </div>
                   <div class="products-dictionary__actions">
                     <div
                       id="products-dictionary-meta"

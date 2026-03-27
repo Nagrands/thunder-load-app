@@ -194,34 +194,3 @@
 .products-summary-card {
   flex: 0 0 auto;
 }
-
-.products-normalization-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  background-color: var(--color-hover);
-  padding: 6px;
-  border-radius: var(--border-radius);
-}
-
-.products-normalization-stats[hidden] {
-  display: none !important;
-}
-
-.products-normalization-stats__pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: var(--border-radius);
-  color: var(--color-quality);
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.products-normalization-stats__pill--accent {
-  color: var(--color-highlight);
-  border-color: rgba(255, 184, 77, 0.18);
-  background: rgba(255, 184, 77, 0.08);
-}

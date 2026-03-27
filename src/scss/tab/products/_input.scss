@@ -51,6 +51,41 @@
   line-height: 1.4;
 }
 
+.products-dictionary__examples,
+.products-dictionary__preview {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.products-dictionary__examples-title,
+.products-dictionary__preview-title {
+  color: var(--color-highlight);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.products-dictionary__examples-list {
+  display: grid;
+  gap: 6px;
+}
+
+.products-dictionary__example,
+.products-dictionary__preview-body {
+  color: var(--color-quality);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.products-dictionary__preview[data-tone="warning"] {
+  border-color: rgba(255, 184, 77, 0.18);
+  background: rgba(255, 184, 77, 0.06);
+}
+
 .products-dictionary__textarea {
   width: 100%;
   min-height: 0;

@@ -15,6 +15,7 @@ function createInspectionBucket() {
     duplicateLines: [],
     noopLines: [],
     overrideLines: [],
+    entries: [],
   };
 }
 
@@ -31,6 +32,19 @@ export function inspectProductFormatterDictionary(text = "") {
     const separatorIndex = line.indexOf("=");
     if (separatorIndex === -1) {
       inspection.invalidLines.push(lineNumber);
+      inspection.entries.push({
+        lineNumber,
+        raw: line,
+        source: "",
+        target: "",
+        normalizedSource: "",
+        normalizedTarget: "",
+        invalid: true,
+        duplicate: false,
+        noop: false,
+        override: false,
+        applied: false,
+      });
       return;
     }
 
@@ -41,25 +55,67 @@ export function inspectProductFormatterDictionary(text = "") {
 
     if (!normalizedSource || !target) {
       inspection.invalidLines.push(lineNumber);
+      inspection.entries.push({
+        lineNumber,
+        raw: line,
+        source,
+        target,
+        normalizedSource,
+        normalizedTarget,
+        invalid: true,
+        duplicate: false,
+        noop: false,
+        override: false,
+        applied: false,
+      });
       return;
     }
 
     if (normalizedSource === normalizedTarget) {
       inspection.noopLines.push(lineNumber);
+      inspection.entries.push({
+        lineNumber,
+        raw: line,
+        source,
+        target,
+        normalizedSource,
+        normalizedTarget,
+        invalid: false,
+        duplicate: false,
+        noop: true,
+        override: false,
+        applied: false,
+      });
       return;
     }
 
-    if (seenSources.has(normalizedSource)) {
+    const duplicate = seenSources.has(normalizedSource);
+    if (duplicate) {
       inspection.duplicateLines.push(lineNumber);
     }
 
     const builtInTarget = DEFAULT_REPLACEMENTS[normalizedSource];
-    if (builtInTarget && builtInTarget !== target) {
+    const override = !!(builtInTarget && builtInTarget !== target);
+    if (override) {
       inspection.overrideLines.push(lineNumber);
     }
 
     seenSources.set(normalizedSource, lineNumber);
     inspection.dictionary[normalizedSource] = target;
+    inspection.entries.push({
+      lineNumber,
+      raw: line,
+      source,
+      target,
+      normalizedSource,
+      normalizedTarget,
+      invalid: false,
+      duplicate,
+      noop: false,
+      override,
+      builtInTarget: builtInTarget || "",
+      applied: true,
+    });
   });
 
   inspection.appliedCount = Object.keys(inspection.dictionary).length;

@@ -1,4 +1,5 @@
 import { t } from "../../i18n.js";
+import { getCurrentTextareaLineNumber } from "./viewHelpers.js";
 
 export function bindViewEvents({
   wrapper,
@@ -70,11 +71,27 @@ export function bindViewEvents({
 
   if (dictionaryInput) {
     dictionaryInput.value = loadProductFormatterDictionary();
+    state.activeDictionaryLine = getCurrentTextareaLineNumber(
+      dictionaryInput.value,
+      dictionaryInput.selectionStart,
+    );
     syncDictionaryMeta();
+    const syncDictionaryPreviewLine = () => {
+      state.activeDictionaryLine = getCurrentTextareaLineNumber(
+        dictionaryInput.value,
+        dictionaryInput.selectionStart,
+      );
+      syncDictionaryMeta();
+    };
     dictionaryInput.addEventListener("input", () => {
       saveProductFormatterDictionary(dictionaryInput.value);
-      syncDictionaryMeta();
+      syncDictionaryPreviewLine();
       syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
+    });
+    ["click", "keyup", "select", "focus"].forEach((eventName) => {
+      dictionaryInput.addEventListener(eventName, () => {
+        syncDictionaryPreviewLine();
+      });
     });
   }
 

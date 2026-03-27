@@ -9,6 +9,8 @@ export function createViewStateHandlers({
   input,
   dictionaryInput,
   dictionaryMeta,
+  dictionaryPreview,
+  dictionaryPreviewBody,
   dictionaryLayer,
   dictionaryPanel,
   dictionaryToggleButton,
@@ -67,7 +69,9 @@ export function createViewStateHandlers({
 
   const updateDictionaryMeta = () => {
     if (!dictionaryInput || !dictionaryMeta) return;
-    const validation = inspectDictionaryText(dictionaryInput.value);
+    const validation = inspectDictionaryText(dictionaryInput.value, {
+      lineNumber: state.activeDictionaryLine,
+    });
     const problemLines = [
       ...validation.invalidLines,
       ...validation.duplicateLines,
@@ -109,6 +113,36 @@ export function createViewStateHandlers({
           lines: problemLines.join(", "),
         })}`
       : countsText;
+
+    if (dictionaryPreview && dictionaryPreviewBody) {
+      const preview = validation.previewEntry;
+      dictionaryPreview.dataset.tone = "default";
+      if (!preview) {
+        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewEmpty");
+      } else if (preview.invalid) {
+        dictionaryPreview.dataset.tone = "warning";
+        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewInvalid", {
+          line: preview.lineNumber,
+        });
+      } else if (preview.noop) {
+        dictionaryPreview.dataset.tone = "warning";
+        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewNoop", {
+          source: preview.normalizedSource || preview.source,
+        });
+      } else {
+        const extra = preview.override
+          ? ` ${t("productsFormatter.dictionaryPreviewOverride", {
+              target: preview.builtInTarget,
+            })}`
+          : preview.duplicate
+            ? ` ${t("productsFormatter.dictionaryPreviewDuplicate")}`
+            : "";
+        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewValue", {
+          source: preview.normalizedSource,
+          target: preview.target,
+        }) + extra;
+      }
+    }
   };
 
   const syncDirtyFromInputs = (statusKey = "productsFormatter.status.stale") => {

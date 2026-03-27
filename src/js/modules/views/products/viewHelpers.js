@@ -33,14 +33,28 @@ export async function copyText(value = "") {
   fallbackCopyText(text);
 }
 
-export function inspectDictionaryText(text = "") {
+export function getCurrentTextareaLineNumber(text = "", selectionStart = 0) {
+  const normalizedText = String(text || "").replace(/\r/g, "");
+  const safeSelectionStart = Math.max(
+    0,
+    Math.min(Number(selectionStart) || 0, normalizedText.length),
+  );
+  return normalizedText.slice(0, safeSelectionStart).split("\n").length;
+}
+
+export function inspectDictionaryText(text = "", options = {}) {
   const inspection = inspectProductFormatterDictionary(text);
+  const requestedLine = Number(options.lineNumber) || 0;
+  const previewEntry = requestedLine
+    ? inspection.entries.find((entry) => entry.lineNumber === requestedLine) || null
+    : [...inspection.entries].reverse().find((entry) => entry.raw) || null;
   return {
     validCount: inspection.appliedCount,
     invalidLines: inspection.invalidLines,
     duplicateLines: inspection.duplicateLines,
     noopLines: inspection.noopLines,
     overrideLines: inspection.overrideLines,
+    previewEntry,
   };
 }
 

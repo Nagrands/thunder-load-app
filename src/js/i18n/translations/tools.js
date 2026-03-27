@@ -22,6 +22,14 @@ export const toolsTranslations = {
       "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
     "productsFormatter.dictionaryHint":
       "Поддерживается формат `исходное = замена`. Повторяющиеся ключи, битые строки и правила без эффекта подсвечиваются.",
+    "productsFormatter.dictionaryExamplesTitle": "Примеры",
+    "productsFormatter.dictionaryPreviewTitle": "Что применится",
+    "productsFormatter.dictionaryPreviewEmpty": "Введите правило, чтобы увидеть нормализованный ключ и итоговую замену.",
+    "productsFormatter.dictionaryPreviewInvalid": "Строка {line} пока не распознана как правило `исходное = замена`.",
+    "productsFormatter.dictionaryPreviewNoop": "Ключ «{source}» не изменится после такого правила.",
+    "productsFormatter.dictionaryPreviewValue": "Ключ: {source} -> замена: {target}.",
+    "productsFormatter.dictionaryPreviewOverride": "Переопределяет встроенную замену: {target}.",
+    "productsFormatter.dictionaryPreviewDuplicate": "Перекрывает более раннее правило с тем же ключом.",
     "productsFormatter.dictionaryReset": "Сбросить словарь",
     "productsFormatter.dictionaryStatsValid": "Правил: {count}",
     "productsFormatter.dictionaryStatsMixed":
@@ -864,6 +872,14 @@ export const toolsTranslations = {
       "One rule per line: source = replacement\nExample:\nsweet potato = Sweet potato",
     "productsFormatter.dictionaryHint":
       "Use the `source = replacement` format. Duplicate keys, broken lines, and no-op rules are highlighted.",
+    "productsFormatter.dictionaryExamplesTitle": "Examples",
+    "productsFormatter.dictionaryPreviewTitle": "What will apply",
+    "productsFormatter.dictionaryPreviewEmpty": "Enter a rule to preview the normalized key and final replacement.",
+    "productsFormatter.dictionaryPreviewInvalid": "Line {line} is not recognized as a `source = replacement` rule yet.",
+    "productsFormatter.dictionaryPreviewNoop": "The key “{source}” would stay unchanged with this rule.",
+    "productsFormatter.dictionaryPreviewValue": "Key: {source} -> replacement: {target}.",
+    "productsFormatter.dictionaryPreviewOverride": "Overrides the built-in replacement: {target}.",
+    "productsFormatter.dictionaryPreviewDuplicate": "Overrides an earlier rule with the same key.",
     "productsFormatter.dictionaryReset": "Reset dictionary",
     "productsFormatter.dictionaryStatsValid": "Rules: {count}",
     "productsFormatter.dictionaryStatsMixed":
