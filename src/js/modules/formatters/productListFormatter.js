@@ -1,4 +1,8 @@
 import {
+  DEFAULT_LABELS,
+  DEFAULT_REPLACEMENTS,
+} from "./productListFormatterData.js";
+import {
   buildAggregateSummary,
   buildSectionContract,
   buildSummaryContract,
@@ -20,8 +24,6 @@ import { createEntryNormalizer } from "./productListFormatterNormalization.js";
 import {
   addUnit,
   createItem,
-  DEFAULT_LABELS,
-  DEFAULT_REPLACEMENTS,
   fixKnownTypos,
   hasGreeneryMarker,
   isStoreBagName,

@@ -1,0 +1,48 @@
+@media (max-width: 980px) {
+  .products-view {
+    height: auto;
+    overflow: visible;
+  }
+
+  .products-center {
+    height: auto;
+    min-height: auto;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .products-formatter-shell {
+    height: auto;
+    min-height: auto;
+    grid-template-rows: auto auto;
+  }
+
+  .products-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .products-pane--input,
+  .products-pane--result {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .products-pane__body--editor {
+    min-height: 280px;
+  }
+
+  .products-pane__body--result {
+    min-height: 300px;
+  }
+
+  .products-pane__toggles {
+    flex-wrap: wrap;
+  }
+
+  .products-dictionary {
+    inset: 122px 18px 92px 18px;
+  }
+
+  .products-formatter-empty {
+    min-height: 220px;
+  }
+}
