@@ -68,26 +68,47 @@ export function createViewStateHandlers({
   const updateDictionaryMeta = () => {
     if (!dictionaryInput || !dictionaryMeta) return;
     const validation = inspectDictionaryText(dictionaryInput.value);
+    const problemLines = [
+      ...validation.invalidLines,
+      ...validation.duplicateLines,
+      ...validation.noopLines,
+    ].sort((left, right) => left - right);
+    const hasProblems = problemLines.length > 0;
     dictionaryInput.classList.toggle(
       "products-dictionary__textarea--invalid",
-      validation.invalidLines.length > 0,
+      hasProblems,
     );
     dictionaryMeta.dataset.tone =
-      validation.invalidLines.length > 0 ? "warning" : "default";
-    if (!validation.validCount && validation.invalidLines.length) {
-      dictionaryMeta.textContent = t("productsFormatter.dictionaryStatsInvalid", {
-        invalid: validation.invalidLines.join(", "),
-      });
+      hasProblems ? "warning" : "default";
+    const countsText = !validation.validCount && hasProblems
+      ? t("productsFormatter.dictionaryStatsInvalid", {
+          duplicates: validation.duplicateLines.length,
+          noop: validation.noopLines.length,
+          overrides: validation.overrideLines.length,
+          invalid: validation.invalidLines.length,
+        })
+      : hasProblems || validation.overrideLines.length
+        ? t("productsFormatter.dictionaryStatsMixed", {
+            count: validation.validCount,
+            duplicates: validation.duplicateLines.length,
+            noop: validation.noopLines.length,
+            overrides: validation.overrideLines.length,
+            invalid: validation.invalidLines.length,
+          })
+        : t("productsFormatter.dictionaryStatsValid", {
+            count: validation.validCount,
+          });
+    if (!validation.validCount && hasProblems) {
+      dictionaryMeta.textContent = `${countsText} ${t("productsFormatter.dictionaryProblemLines", {
+        lines: problemLines.join(", "),
+      })}`;
       return;
     }
-    dictionaryMeta.textContent = validation.invalidLines.length
-      ? t("productsFormatter.dictionaryStatsMixed", {
-          count: validation.validCount,
-          invalid: validation.invalidLines.join(", "),
-        })
-      : t("productsFormatter.dictionaryStatsValid", {
-          count: validation.validCount,
-        });
+    dictionaryMeta.textContent = hasProblems
+      ? `${countsText} ${t("productsFormatter.dictionaryProblemLines", {
+          lines: problemLines.join(", "),
+        })}`
+      : countsText;
   };
 
   const syncDirtyFromInputs = (statusKey = "productsFormatter.status.stale") => {

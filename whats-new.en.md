@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The Products tab now has stronger dev dictionary diagnostics | The dictionary now distinguishes broken lines, conflicting keys, no-op rules, and overrides of built-in replacements, while the panel shows more useful counts and the exact problematic line numbers |
 | The Products tab now has a lighter diagnostics and rerun-comparison area | The separate `Duplicates / Typos / Review` stats strip is gone, diagnostics filters are quieter and more compact, and comparison/diff cards now read as lighter secondary tooling instead of competing with the formatted result |
 | The Products tab now has a lighter result header | The result area no longer stacks a dense row of pills and always-visible secondary buttons above the output: search stays visible, while actions like `Collapse all`, `Expand all`, `Apply to input`, and `Only uncertain` move into a compact overflow menu |
 | The Products tab now has stronger list normalization and section handling | The formatter now handles noisy entries like `-1,5kg` and `0,100gr` more reliably, normalizes a broader set of produce and greens names, shows the `⁕` marker directly in output lines, builds grouped sections like `Mint (bar)` / `Mint (kitchen)`, and brings the final list closer to the intended working format |

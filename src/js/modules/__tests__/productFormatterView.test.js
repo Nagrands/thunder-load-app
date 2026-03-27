@@ -767,7 +767,27 @@ describe("productFormatterView", () => {
       dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
     ).toBe(true);
     expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
-      "Правил: 1, строк с ошибкой: 1, 2",
+      "Нет применимых правил. Конфликты: 0, без эффекта: 1, переопределения: 0, ошибки: 2. Строки: 1, 2, 3",
+    );
+  });
+
+  test("shows duplicate keys and built-in overrides in dictionary meta", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+Батат = Батат новый
+черри = Томаты черри`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(
+      dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 2, конфликты: 1, без эффекта: 0, переопределения: 1, ошибки: 0. Строки: 2",
     );
   });
 

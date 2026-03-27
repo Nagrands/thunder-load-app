@@ -1,3 +1,5 @@
+import { inspectProductFormatterDictionary } from "../../formatters/productFormatterDictionary.js";
+
 const FOCUSABLE_SELECTOR = [
   'button:not([disabled])',
   '[href]',
@@ -32,33 +34,13 @@ export async function copyText(value = "") {
 }
 
 export function inspectDictionaryText(text = "") {
-  const lines = String(text || "").split("\n");
-  let validCount = 0;
-  const invalidLines = [];
-
-  lines.forEach((rawLine, index) => {
-    const line = String(rawLine || "").replace(/\r/g, "").trim();
-    if (!line) return;
-
-    const separatorIndex = line.indexOf("=");
-    if (separatorIndex === -1) {
-      invalidLines.push(index + 1);
-      return;
-    }
-
-    const source = line.slice(0, separatorIndex).trim();
-    const target = line.slice(separatorIndex + 1).trim();
-    if (!source || !target) {
-      invalidLines.push(index + 1);
-      return;
-    }
-
-    validCount += 1;
-  });
-
+  const inspection = inspectProductFormatterDictionary(text);
   return {
-    validCount,
-    invalidLines,
+    validCount: inspection.appliedCount,
+    invalidLines: inspection.invalidLines,
+    duplicateLines: inspection.duplicateLines,
+    noopLines: inspection.noopLines,
+    overrideLines: inspection.overrideLines,
   };
 }
 

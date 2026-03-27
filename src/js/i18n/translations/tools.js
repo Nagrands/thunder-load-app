@@ -21,13 +21,14 @@ export const toolsTranslations = {
     "productsFormatter.dictionaryPlaceholder":
       "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
     "productsFormatter.dictionaryHint":
-      "Поддерживается формат `исходное = замена`. Пустые и битые строки не применяются.",
+      "Поддерживается формат `исходное = замена`. Повторяющиеся ключи, битые строки и правила без эффекта подсвечиваются.",
     "productsFormatter.dictionaryReset": "Сбросить словарь",
     "productsFormatter.dictionaryStatsValid": "Правил: {count}",
     "productsFormatter.dictionaryStatsMixed":
-      "Правил: {count}, строк с ошибкой: {invalid}",
+      "Правил: {count}, конфликты: {duplicates}, без эффекта: {noop}, переопределения: {overrides}, ошибки: {invalid}.",
     "productsFormatter.dictionaryStatsInvalid":
-      "Нет валидных правил. Ошибочных строк: {invalid}",
+      "Нет применимых правил. Конфликты: {duplicates}, без эффекта: {noop}, переопределения: {overrides}, ошибки: {invalid}.",
+    "productsFormatter.dictionaryProblemLines": "Строки: {lines}",
     "productsFormatter.dictionaryInvalidLine": "Строка {line}: {value}",
     "productsFormatter.copy": "Копировать",
     "productsFormatter.copyDone": "Скопировано",
@@ -862,13 +863,14 @@ export const toolsTranslations = {
     "productsFormatter.dictionaryPlaceholder":
       "One rule per line: source = replacement\nExample:\nsweet potato = Sweet potato",
     "productsFormatter.dictionaryHint":
-      "Use the `source = replacement` format. Empty and broken lines are ignored.",
+      "Use the `source = replacement` format. Duplicate keys, broken lines, and no-op rules are highlighted.",
     "productsFormatter.dictionaryReset": "Reset dictionary",
     "productsFormatter.dictionaryStatsValid": "Rules: {count}",
     "productsFormatter.dictionaryStatsMixed":
-      "Rules: {count}, invalid lines: {invalid}",
+      "Rules: {count}, conflicts: {duplicates}, no-op: {noop}, overrides: {overrides}, invalid: {invalid}.",
     "productsFormatter.dictionaryStatsInvalid":
-      "No valid rules. Invalid lines: {invalid}",
+      "No applicable rules. Conflicts: {duplicates}, no-op: {noop}, overrides: {overrides}, invalid: {invalid}.",
+    "productsFormatter.dictionaryProblemLines": "Lines: {lines}",
     "productsFormatter.dictionaryInvalidLine": "Line {line}: {value}",
     "productsFormatter.copy": "Copy",
     "productsFormatter.copyDone": "Copied",
