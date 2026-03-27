@@ -30344,6 +30344,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   color: var(--color-toast-warning);
 }
 
+.products-dirty-state[hidden] {
+  display: none !important;
+}
+
 .products-formatter-toggle {
   display: inline-flex;
   align-items: center;

@@ -287,6 +287,50 @@ describe("productFormatterView", () => {
     expect(dirtyState?.hidden).toBe(true);
   });
 
+  test("does not keep the stale banner after rerender when source and dictionary did not change", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    input.value = "Тесто\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+
+    renderProductFormatterView(wrapper);
+
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+  });
+
+  test("clears stale status text after rerender when result is no longer dirty", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+
+    input.value = "Тесто\nЛук 1";
+    formatButton.click();
+
+    input.value = "Тесто\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исходник изменён. Переформатируйте результат.",
+    );
+
+    input.value = "Тесто\nЛук 1";
+    renderProductFormatterView(wrapper);
+
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe("");
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+  });
+
   test("supports empty-state quick actions for paste and demo", async () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);

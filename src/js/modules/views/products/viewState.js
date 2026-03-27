@@ -34,6 +34,16 @@ export function createViewStateHandlers({
   setStatus,
   showResult,
 }) {
+  const clearDirtyStatusIfNeeded = () => {
+    const statusEl = wrapper.querySelector("#products-status");
+    const currentText = String(statusEl?.textContent || "").trim();
+    const staleMessage = t("productsFormatter.status.stale");
+    const dictionaryChangedMessage = t("productsFormatter.status.dictionaryChanged");
+    if (currentText === staleMessage || currentText === dictionaryChangedMessage) {
+      setStatus("", "");
+    }
+  };
+
   const updateDirtyState = () => {
     if (dirtyState) {
       dirtyState.hidden = !state.isDirty;
@@ -85,6 +95,7 @@ export function createViewStateHandlers({
     if (!state.currentResult) {
       state.isDirty = false;
       updateDirtyState();
+      clearDirtyStatusIfNeeded();
       return;
     }
     state.isDirty =
@@ -93,7 +104,9 @@ export function createViewStateHandlers({
     updateDirtyState();
     if (state.isDirty) {
       setStatus(t(statusKey), "warning");
+      return;
     }
+    clearDirtyStatusIfNeeded();
   };
 
   const syncDictionaryPanel = () => {

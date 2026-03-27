@@ -204,6 +204,10 @@
   }
 }
 
+.products-dirty-state[hidden] {
+  display: none !important;
+}
+
 .products-formatter-toggle {
   display: inline-flex;
   align-items: center;

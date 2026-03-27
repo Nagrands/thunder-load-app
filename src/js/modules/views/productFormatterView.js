@@ -360,7 +360,7 @@ export default function renderProductFormatterView(wrapper) {
 
   applyI18n(wrapper);
   syncDictionaryMeta();
-  updateDirtyState();
+  syncDirtyFromInputs();
   syncDictionaryUI();
   initTooltips(wrapper);
   return wrapper;
