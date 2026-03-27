@@ -649,6 +649,10 @@
   gap: 8px;
 }
 
+.products-diff-list[hidden] {
+  display: none !important;
+}
+
 .products-issue {
   position: relative;
   display: block;
@@ -814,23 +818,26 @@
 
 .products-section-copy {
   flex: 0 0 auto;
-  width: 34px;
-  min-width: 34px;
-  min-height: 34px;
+  width: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.02);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--color-quality);
+  opacity: 0.82;
 
   i {
-    font-size: 0.82rem;
+    font-size: 0.72rem;
   }
 
   &:hover {
     color: var(--color-highlight);
+    background: transparent;
+    transform: none;
+    opacity: 1;
   }
 }
 

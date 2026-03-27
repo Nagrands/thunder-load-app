@@ -30740,6 +30740,10 @@ h1.section-heading .bk-heading-search #bk-search-info {
   gap: 8px;
 }
 
+.products-diff-list[hidden] {
+  display: none !important;
+}
+
 .products-issue {
   position: relative;
   display: block;
@@ -30890,20 +30894,25 @@ h1.section-heading .bk-heading-search #bk-search-info {
 
 .products-section-copy {
   flex: 0 0 auto;
-  width: 34px;
-  min-width: 34px;
-  min-height: 34px;
+  width: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.02);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--color-quality);
+  opacity: 0.82;
 }
 .products-section-copy i {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
 }
 .products-section-copy:hover {
   color: var(--color-highlight);
+  background: transparent;
+  transform: none;
+  opacity: 1;
 }
 
 .products-preview__list {

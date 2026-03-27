@@ -268,6 +268,10 @@ describe("productFormatterView", () => {
     wrapper.querySelector("#products-format").click();
 
     const firstSectionCopy = wrapper.querySelector(".products-section-copy");
+    expect(firstSectionCopy?.classList.contains("small-button")).toBe(false);
+    expect(firstSectionCopy?.classList.contains("products-icon-button")).toBe(
+      false,
+    );
     firstSectionCopy.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -322,6 +326,11 @@ describe("productFormatterView", () => {
 
     expect(diffToggle?.getAttribute("aria-expanded")).toBe("false");
     expect(diffList?.hidden).toBe(true);
+    expect(
+      wrapper.querySelector('[data-ui="products-diff-panel"]')?.classList.contains(
+        "products-diagnostics__panel--collapsed",
+      ),
+    ).toBe(true);
 
     diffToggle.click();
 

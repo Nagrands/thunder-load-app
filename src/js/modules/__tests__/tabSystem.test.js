@@ -139,4 +139,63 @@ describe("TabSystem", () => {
       ),
     ).toBe(true);
   });
+
+  test("keeps downloader hidden and falls back to products when tools is disabled", () => {
+    localStorage.setItem("developerToolsUnlocked", "true");
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+    localStorage.setItem("wgUnlockDisabled", "true");
+
+    const tabs = new TabSystem(".group-menu", "#main-view");
+    tabs.addTab("download", "Download", "fa-solid fa-download", () => {
+      const el = document.createElement("div");
+      el.textContent = "download";
+      return el;
+    });
+    tabs.addTab("wireguard", "Tools", "fa-solid fa-toolbox", () => {
+      const el = document.createElement("div");
+      el.textContent = "tools";
+      return el;
+    });
+    tabs.addTab("products", "Products", "fa-solid fa-list", () => {
+      const el = document.createElement("div");
+      el.textContent = "products";
+      return el;
+    });
+
+    tabs.activateTab("download");
+    window.dispatchEvent(new CustomEvent("wg:toggleDisabled"));
+
+    expect(
+      document.querySelector('[data-menu="download"]')?.style.display,
+    ).toBe("none");
+    expect(
+      document.querySelector('[data-menu="wireguard"]')?.style.display,
+    ).toBe("none");
+    expect(
+      document.querySelector('[data-menu="products"]')?.classList.contains(
+        "active",
+      ),
+    ).toBe(true);
+  });
+
+  test("clears active tab when no visible tabs remain", () => {
+    localStorage.setItem("developerToolsUnlocked", "true");
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+
+    const tabs = new TabSystem(".group-menu", "#main-view");
+    tabs.addTab("download", "Download", "fa-solid fa-download", () => {
+      const el = document.createElement("div");
+      el.textContent = "download";
+      return el;
+    });
+
+    tabs.activateTab("download");
+
+    expect(tabs.activeTabId).toBeNull();
+    expect(
+      document.querySelector('[data-menu="download"]')?.classList.contains(
+        "active",
+      ),
+    ).toBe(false);
+  });
 });

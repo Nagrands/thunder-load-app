@@ -706,8 +706,7 @@ function createSectionBlock(
   if (text && typeof onCopy === "function") {
     const copyButton = document.createElement("button");
     copyButton.type = "button";
-    copyButton.className =
-      "small-button products-section-copy products-icon-button";
+    copyButton.className = "products-section-copy";
     copyButton.dataset.copyText = text;
     copyButton.setAttribute("data-bs-toggle", "tooltip");
     copyButton.setAttribute("data-bs-placement", "top");
