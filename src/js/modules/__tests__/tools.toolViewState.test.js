@@ -47,6 +47,16 @@ describe("createToolViewState", () => {
     expect(window.__thunder_dev_tools_unlocked__).toBe(true);
   });
 
+  test("reads persisted developer unlock state from storage", () => {
+    const state = createToolViewState();
+    localStorage.setItem("developerToolsUnlocked", "true");
+
+    state.setPlatformInfo({ isWindows: false, platform: "darwin" });
+
+    expect(state.readDeveloperToolsUnlocked()).toBe(true);
+    expect(state.isPowerToolAvailable()).toBe(true);
+  });
+
   test("remembers media-inspector as a valid last tool view", () => {
     const state = createToolViewState();
 

@@ -4,8 +4,10 @@ import {
   readStorageValue,
   writeStorageValue,
 } from "./storage.js";
-
-const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
+import {
+  DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY,
+  readDeveloperModeEnabled,
+} from "../../developerMode.js";
 const BACKUP_DISABLED_STORAGE_KEY = "backupDisabled";
 
 function createToolViewState() {
@@ -16,13 +18,7 @@ function createToolViewState() {
     isWindowsPlatform: false,
   };
 
-  const readDeveloperToolsUnlocked = () => {
-    try {
-      return window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] === true;
-    } catch {
-      return false;
-    }
-  };
+  const readDeveloperToolsUnlocked = () => readDeveloperModeEnabled();
 
   const setPlatformInfo = (info = {}) => {
     state.toolsPlatformInfo = {

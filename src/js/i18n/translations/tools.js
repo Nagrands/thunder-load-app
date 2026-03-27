@@ -177,7 +177,7 @@ export const toolsTranslations = {
     "tools.launcher.desc.backup":
       "Профили резервного копирования и журнал операций.",
     "tools.launcher.desc.mediaInspector":
-      "Проверка контейнера, дорожек и техпараметров локального медиафайла.",
+      "Проверка контейнера, дорожек локального медиафайла.",
     "tools.launcher.desc.sorter": "Сортировка файлов по категориям расширений.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",

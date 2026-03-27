@@ -2127,7 +2127,6 @@
 .history-card-preview-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 8, 16, 0.85);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -2147,18 +2146,15 @@
 .history-card-preview-dialog {
   position: relative;
   width: min(92vw, 1200px);
-  height: min(86vh, 820px);
+  // height: min(86vh, 820px);
   min-width: 0;
   min-height: 0;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgb(0 0 0 / 85%);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
   display: grid;
   grid-template-rows: 1fr auto;
   align-items: stretch;
-  gap: 12px;
-  padding: 18px;
   overflow: hidden;
   animation: historyPreviewZoom 0.6s ease-out;
 }
@@ -2181,10 +2177,21 @@
 }
 
 .history-card-preview-caption {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.9rem;
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
   text-align: center;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  color: var(--color-highlight);
+  background: rgba(8, 10, 20, 0.7);
+  backdrop-filter: blur(6px);
+  // color: rgba(255, 255, 255, 0.75);
+  // font-size: 0.9rem;
+  // text-align: center;
 }
 
 .history-card-preview-close {
@@ -2197,6 +2204,7 @@
   position: absolute;
   left: 50%;
   top: 12px;
+  text-align: center;
   transform: translateX(-50%);
   padding: 4px 10px;
   border-radius: 999px;
@@ -2204,7 +2212,7 @@
   letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.8);
   background: rgba(8, 10, 20, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px);
 }
 
 .history-card-preview-nav {
@@ -2213,10 +2221,10 @@
   transform: translateY(-50%);
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(8, 10, 20, 0.65);
+  border-radius: 50%;
+  // background: rgba(8, 10, 20, 0.65);
   color: var(--color-highlight);
+  backdrop-filter: blur(6px);
   display: grid;
   place-items: center;
   transition:
@@ -2225,7 +2233,7 @@
 
   &:hover:not(:disabled) {
     border-color: rgba(var(--color-accent-rgb), 0.6);
-    background: rgba(var(--color-accent-rgb), 0.2);
+    background: var(--color-hover);
   }
 
   &:disabled {

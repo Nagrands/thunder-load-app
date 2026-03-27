@@ -27,6 +27,8 @@ import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
 import { initLowEffectsFromStore } from "../effectsMode.js";
+import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
+import { syncDeveloperModeState } from "../developerMode.js";
 import { initI18n, t } from "../i18n.js";
 import { registerTabs } from "./registerTabs.js";
 import {
@@ -59,6 +61,7 @@ async function runCriticalInitialization(mainView) {
 
   registerI18nListeners(tabs);
 
+  initDeveloperModeTopBarVisibility();
   initUrlInputHandler();
   initHistory();
   await initHistoryState();
@@ -144,6 +147,7 @@ export async function startRenderer() {
     initLowEffectsFromStore();
     applyPlatformClass();
     cleanupLegacyRandomizerStorage();
+    syncDeveloperModeState();
     initI18n();
     document.title = t("app.title");
     await initializeTheme();

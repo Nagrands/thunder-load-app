@@ -1,29 +1,14 @@
 import { onOpenSettings } from "./openSettingsBus.js";
 import { t } from "../../i18n.js";
+import {
+  readDeveloperDisableDownloaderTab,
+  readDeveloperModeEnabled,
+  setDeveloperDisableDownloaderTab,
+  setDeveloperModeEnabled,
+} from "../../developerMode.js";
 
-const DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY = "__thunder_dev_tools_unlocked__";
 const DEVELOPER_SECRET_WORD = "thunder-dev";
 const BOUND_KEY = "settingsDeveloperGateBound";
-
-function readUnlocked() {
-  try {
-    return window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] === true;
-  } catch {
-    return false;
-  }
-}
-
-function writeUnlocked(enabled) {
-  try {
-    window[DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY] = !!enabled;
-  } catch {}
-
-  window.dispatchEvent(
-    new CustomEvent("tools:developer-unlock-changed", {
-      detail: { enabled: !!enabled },
-    }),
-  );
-}
 
 function applyStatus(status, button, enabled) {
   const statusKey = enabled
@@ -45,21 +30,28 @@ export function initDeveloperToolsGate() {
   const input = document.getElementById("settings-developer-secret-input");
   const button = document.getElementById("settings-developer-activate-button");
   const status = document.getElementById("settings-developer-status");
+  const options = document.getElementById("settings-developer-options");
+  const disableDownloaderTabToggle = document.getElementById(
+    "settings-developer-disable-downloader-tab",
+  );
 
   if (!input || !button || !status) return;
 
   const sync = () => {
-    try {
-      localStorage.removeItem("developerToolsUnlocked");
-    } catch {}
-    applyStatus(status, button, readUnlocked());
+    const enabled = readDeveloperModeEnabled();
+    applyStatus(status, button, enabled);
+    if (options) options.hidden = !enabled;
+    if (disableDownloaderTabToggle) {
+      disableDownloaderTabToggle.checked = readDeveloperDisableDownloaderTab();
+    }
     input.value = "";
   };
 
   const tryUnlock = () => {
-    if (readUnlocked()) {
-      writeUnlocked(false);
+    if (readDeveloperModeEnabled()) {
+      setDeveloperModeEnabled(false);
       applyStatus(status, button, false);
+      if (options) options.hidden = true;
       window.electron
         ?.invoke?.("toast", t("settings.developer.lock.success"), "success")
         .catch(() => {});
@@ -71,8 +63,12 @@ export function initDeveloperToolsGate() {
       .trim()
       .toLowerCase();
     if (value === DEVELOPER_SECRET_WORD) {
-      writeUnlocked(true);
+      setDeveloperModeEnabled(true);
       applyStatus(status, button, true);
+      if (options) options.hidden = false;
+      if (disableDownloaderTabToggle) {
+        disableDownloaderTabToggle.checked = readDeveloperDisableDownloaderTab();
+      }
       window.electron
         ?.invoke?.("toast", t("settings.developer.unlock.success"), "success")
         .catch(() => {});
@@ -91,6 +87,21 @@ export function initDeveloperToolsGate() {
       if (event.key !== "Enter") return;
       event.preventDefault();
       tryUnlock();
+    });
+    disableDownloaderTabToggle?.addEventListener("change", () => {
+      const disabled = setDeveloperDisableDownloaderTab(
+        disableDownloaderTabToggle.checked,
+      );
+      window.electron
+        ?.invoke?.(
+          "toast",
+          disabled
+            ? t("settings.module.download.disabled")
+            : t("settings.module.download.enabled"),
+          disabled ? "info" : "success",
+          { allowHtml: true },
+        )
+        .catch(() => {});
     });
   }
 

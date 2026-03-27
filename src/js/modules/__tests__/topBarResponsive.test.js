@@ -101,4 +101,22 @@ describe("topBarResponsive", () => {
       ),
     ).toBe("88px");
   });
+
+  test("does not surface suppressed actions in overflow", () => {
+    const target = document.getElementById("settings-button");
+    target.hidden = true;
+    target.dataset.topbarSuppressed = "1";
+
+    jest.isolateModules(() => {
+      const { initTopBarResponsive } = require("../topBarResponsive.js");
+      initTopBarResponsive();
+    });
+
+    const proxy = document.querySelector(
+      '#topbar-overflow-menu [data-proxy-target="#settings-button"]',
+    );
+
+    expect(proxy.hidden).toBe(true);
+    expect(proxy.disabled).toBe(true);
+  });
 });

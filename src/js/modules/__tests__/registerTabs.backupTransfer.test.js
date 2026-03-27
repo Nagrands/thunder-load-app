@@ -93,4 +93,15 @@ describe("registerTabs backup transfer", () => {
       autosend: false,
     });
   });
+
+  test("falls back to Tools when Downloader tab is disabled in developer mode", async () => {
+    localStorage.setItem("developerToolsUnlocked", "true");
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+    localStorage.setItem("wgUnlockDisabled", "false");
+    getDefaultTabMock.mockResolvedValueOnce("download");
+
+    await registerTabs(document.getElementById("main-view"));
+
+    expect(activateTabMock).toHaveBeenCalledWith("wireguard");
+  });
 });

@@ -1,5 +1,7 @@
 // src/js/modules/tabSystem.js
 
+import { isDownloaderTabEffectivelyDisabled } from "./developerMode.js";
+
 export default class TabSystem {
   constructor(menuSel, viewSel) {
     this.menu = document.querySelector(menuSel);
@@ -14,19 +16,27 @@ export default class TabSystem {
     this._WG_ID = "wireguard";
     // Backup visibility wiring
     this._BK_ID = "backup";
+    // Downloader visibility wiring
+    this._DL_ID = "download";
     this._applyWgVisibility =
       this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
     this._applyBackupVisibility =
       this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
+    this._applyDownloadVisibility =
+      this._applyDownloadVisibility?.bind(this) || this._applyDownloadVisibility;
     window.addEventListener("wg:toggleDisabled", () =>
-      this._applyWgVisibility(),
+      (this._applyWgVisibility(), this._applyDownloadVisibility()),
     );
     window.addEventListener("backup:toggleDisabled", () =>
       this._applyBackupVisibility(),
     );
+    window.addEventListener("download:toggleDisabled", () =>
+      this._applyDownloadVisibility(),
+    );
     // применить сразу (если вкладка уже есть)
     this._applyWgVisibility();
     this._applyBackupVisibility();
+    this._applyDownloadVisibility();
   }
 
   addTab(id, label, iconCls, renderCb, hooks = {}) {
@@ -50,6 +60,7 @@ export default class TabSystem {
     anchor ? this.menu.insertBefore(btn, anchor) : this.menu.appendChild(btn);
 
     this.tabs.set(id, { button: btn, labelEl, render: renderCb, ...hooks });
+    if (id === this._DL_ID) this._applyDownloadVisibility();
     if (id === this._WG_ID) this._applyWgVisibility();
     if (id === this._BK_ID) this._applyBackupVisibility();
   }
@@ -61,6 +72,15 @@ export default class TabSystem {
   }
 
   activateTab(id) {
+    if (id === this._DL_ID && this._isDownloadDisabled()) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) return this.activateTab(firstVisible);
+      return;
+    }
     // Guard: не позволяем активировать WG Unlock, если вкладка отключена
     if (id === this._WG_ID && this._isWgDisabled()) {
       const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
@@ -143,6 +163,36 @@ export default class TabSystem {
       return JSON.parse(raw) === true;
     } catch {
       return true;
+    }
+  }
+
+  _isDownloadDisabled() {
+    return isDownloaderTabEffectivelyDisabled() && !this._isWgDisabled();
+  }
+
+  _applyDownloadVisibility() {
+    const id = this._DL_ID;
+    if (!id || !this.tabs?.has(id)) return;
+    const rec = this.tabs.get(id);
+    const disabled = this._isDownloadDisabled();
+
+    if (rec.button) rec.button.style.display = disabled ? "none" : "";
+
+    if (disabled && this.activeTabId === id) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) this.activateTab(firstVisible);
+      else this.activeTabId = null;
+    }
+
+    if (rec.element && disabled) {
+      rec.element.classList.remove("tab-show");
+      rec.element.classList.add("tab-hide");
+      rec.element.style.display = "none";
+      rec.onHide?.();
     }
   }
 

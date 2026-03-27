@@ -27,6 +27,12 @@ function syncOverflowItem(item) {
     return 0;
   }
 
+  if (target.dataset.topbarSuppressed === "1") {
+    item.hidden = true;
+    item.disabled = true;
+    return 0;
+  }
+
   const shouldSurfaceInOverflow = !isElementVisible(target);
   item.hidden = !shouldSurfaceInOverflow;
   item.disabled = !!target.disabled;
@@ -112,6 +118,10 @@ function initTopBarResponsive() {
   });
   window.addEventListener("i18n:changed", syncOverflowItemsWithState);
   window.addEventListener("tabs:activated", syncOverflowItemsWithState);
+  window.addEventListener(
+    "topbar:actions-visibility-changed",
+    syncOverflowItemsWithState,
+  );
 
   if (typeof window.ResizeObserver === "function") {
     const observer = new window.ResizeObserver(() => {

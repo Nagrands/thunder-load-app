@@ -449,6 +449,12 @@ describe("developer tools gate", () => {
         <input id="settings-developer-secret-input" />
         <button id="settings-developer-activate-button" type="button"></button>
         <small id="settings-developer-status"></small>
+        <div id="settings-developer-options" hidden>
+          <input
+            id="settings-developer-disable-downloader-tab"
+            type="checkbox"
+          />
+        </div>
       </div>`;
   };
 
@@ -471,6 +477,7 @@ describe("developer tools gate", () => {
     button?.click();
 
     expect(window.__thunder_dev_tools_unlocked__).toBe(true);
+    expect(localStorage.getItem("developerToolsUnlocked")).toBe("true");
     expect(button?.textContent).toBe("settings.developer.deactivate");
     expect(status?.textContent).toBe("settings.developer.status.enabled");
     expect(events).toEqual(expect.arrayContaining([{ enabled: true }]));
@@ -480,6 +487,60 @@ describe("developer tools gate", () => {
           args[0] === "toast" &&
           args[1] === "settings.developer.unlock.success" &&
           args[2] === "success",
+      ),
+    ).toBe(true);
+  });
+
+  it("restores persisted developer state and downloader toggle on init", async () => {
+    renderDevGateDom();
+    localStorage.setItem("developerToolsUnlocked", "true");
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    expect(window.__thunder_dev_tools_unlocked__).toBe(true);
+    expect(
+      document.getElementById("settings-developer-activate-button")
+        ?.textContent,
+    ).toBe("settings.developer.deactivate");
+    expect(document.getElementById("settings-developer-status")?.textContent).toBe(
+      "settings.developer.status.enabled",
+    );
+    expect(
+      document.getElementById("settings-developer-options")?.hidden,
+    ).toBe(false);
+    expect(
+      document.getElementById("settings-developer-disable-downloader-tab")
+        ?.checked,
+    ).toBe(true);
+  });
+
+  it("toggles downloader tab from developer options", async () => {
+    renderDevGateDom();
+    localStorage.setItem("developerToolsUnlocked", "true");
+    const events = [];
+    window.addEventListener("download:toggleDisabled", (event) => {
+      events.push(event.detail);
+    });
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const checkbox = document.getElementById(
+      "settings-developer-disable-downloader-tab",
+    );
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(localStorage.getItem("developerDisableDownloaderTab")).toBe("true");
+    expect(events).toEqual(expect.arrayContaining([{ disabled: true }]));
+    expect(
+      window.electron.invoke.mock.calls.some(
+        (args) =>
+          args[0] === "toast" &&
+          args[1] === "settings.module.download.disabled" &&
+          args[2] === "info",
       ),
     ).toBe(true);
   });

@@ -801,17 +801,6 @@
           <i data-lucide="pause"></i>
         </button>
         <button
-          id="queue-toggle-button"
-          class="queue-toggle-button"
-          aria-label="Свернуть очередь"
-          title="Свернуть очередь"
-          data-i18n-title="queue.toggle.collapse.title"
-          data-i18n-aria="queue.toggle.collapse.title"
-        >
-          <i data-lucide="chevron-up"></i>
-        </button>
-        <span class="queue-actions-divider" aria-hidden="true"></span>
-        <button
           id="queue-retry-failed-button"
           class="queue-action-button queue-action-button--ghost hidden"
           aria-label="Повторить все ошибки"
@@ -860,6 +849,17 @@
           data-i18n-aria="queue.clear.title"
         >
           <i data-lucide="trash-2"></i>
+        </button>
+        <span class="queue-actions-divider" aria-hidden="true"></span>
+        <button
+          id="queue-toggle-button"
+          class="queue-toggle-button"
+          aria-label="Свернуть очередь"
+          title="Свернуть очередь"
+          data-i18n-title="queue.toggle.collapse.title"
+          data-i18n-aria="queue.toggle.collapse.title"
+        >
+          <i data-lucide="chevron-up"></i>
         </button>
       </div>
     </div>
@@ -2141,6 +2141,26 @@
                         >
                           Функции разработчика выключены
                         </small>
+                        <div id="settings-developer-options" class="settings-control-list" hidden>
+                          <label
+                            class="settings-control"
+                            for="settings-developer-disable-downloader-tab"
+                          >
+                            <input
+                              type="checkbox"
+                              id="settings-developer-disable-downloader-tab"
+                            />
+                            <span data-i18n="settings.developer.disableDownloader">
+                              Отключить вкладку «Загрузчик»
+                            </span>
+                          </label>
+                          <small
+                            class="settings-developer-gate__status muted"
+                            data-i18n="settings.developer.disableDownloader.hint"
+                          >
+                            Скрывает вкладку «Загрузчик», пока активен режим разработчика.
+                          </small>
+                        </div>
                       </div>
                     </div>
                   </section>
