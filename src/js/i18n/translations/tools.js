@@ -1,5 +1,38 @@
 export const toolsTranslations = {
   ru: {
+    "productsFormatter.title": "Форматтер списков продуктов",
+    "productsFormatter.subtitle":
+      "Приводит сырой список к разделам, нормализует единицы и при необходимости собирает общий список закупки.",
+    "productsFormatter.inputLabel": "Исходный список",
+    "productsFormatter.inputPlaceholder":
+      "Вставьте неструктурированный список продуктов с разделами и позициями.",
+    "productsFormatter.summaryToggle": "Добавить Итого",
+    "productsFormatter.format": "Форматировать",
+    "productsFormatter.paste": "Вставить",
+    "productsFormatter.clear": "Очистить",
+    "productsFormatter.demo": "Демо",
+    "productsFormatter.copy": "Копировать",
+    "productsFormatter.copyDone": "Скопировано",
+    "productsFormatter.outputLabel": "Результат",
+    "productsFormatter.empty":
+      "Здесь появится готовый список по разделам и сводный блок «Итого».",
+    "productsFormatter.unsorted": "Без раздела",
+    "productsFormatter.summaryTitle": "Итого",
+    "productsFormatter.meta.sections": "Разделов: {count}",
+    "productsFormatter.meta.items": "Позиций: {count}",
+    "productsFormatter.meta.summaryOn": "Итого включено",
+    "productsFormatter.meta.summaryOff": "Итого скрыто",
+    "productsFormatter.status.empty":
+      "Вставьте список продуктов перед форматированием.",
+    "productsFormatter.status.formatted": "Список подготовлен.",
+    "productsFormatter.status.copied": "Результат скопирован.",
+    "productsFormatter.status.pasted": "Текст вставлен из буфера обмена.",
+    "productsFormatter.status.pasteEmpty": "Буфер обмена пуст.",
+    "productsFormatter.status.pasteError":
+      "Не удалось прочитать буфер обмена.",
+    "productsFormatter.status.cleared": "Поле очищено.",
+    "productsFormatter.status.demoLoaded": "Демо-список загружен.",
+    "productsFormatter.status.copyError": "Не удалось скопировать результат.",
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
     "wg.autoShutdown.toast.cancel": "Отменить закрытие",
@@ -728,6 +761,39 @@ export const toolsTranslations = {
     "tools.migrate.mode.keep": "без замены",
   },
   en: {
+    "productsFormatter.title": "Product List Formatter",
+    "productsFormatter.subtitle":
+      "Turns raw product notes into normalized sections and can append a consolidated shopping summary.",
+    "productsFormatter.inputLabel": "Source list",
+    "productsFormatter.inputPlaceholder":
+      "Paste an unstructured product list with section headers and items.",
+    "productsFormatter.summaryToggle": "Include summary",
+    "productsFormatter.format": "Format",
+    "productsFormatter.paste": "Paste",
+    "productsFormatter.clear": "Clear",
+    "productsFormatter.demo": "Demo",
+    "productsFormatter.copy": "Copy",
+    "productsFormatter.copyDone": "Copied",
+    "productsFormatter.outputLabel": "Result",
+    "productsFormatter.empty":
+      "The formatted sections and optional summary will appear here.",
+    "productsFormatter.unsorted": "Unsorted",
+    "productsFormatter.summaryTitle": "Summary",
+    "productsFormatter.meta.sections": "Sections: {count}",
+    "productsFormatter.meta.items": "Items: {count}",
+    "productsFormatter.meta.summaryOn": "Summary on",
+    "productsFormatter.meta.summaryOff": "Summary off",
+    "productsFormatter.status.empty":
+      "Paste a product list before formatting.",
+    "productsFormatter.status.formatted": "The list is ready.",
+    "productsFormatter.status.copied": "The result was copied.",
+    "productsFormatter.status.pasted": "Text was pasted from the clipboard.",
+    "productsFormatter.status.pasteEmpty": "The clipboard is empty.",
+    "productsFormatter.status.pasteError":
+      "Could not read the clipboard.",
+    "productsFormatter.status.cleared": "The field was cleared.",
+    "productsFormatter.status.demoLoaded": "Demo list loaded.",
+    "productsFormatter.status.copyError": "Could not copy the result.",
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",
     "wg.autoShutdown.toast.cancel": "Cancel shutdown",

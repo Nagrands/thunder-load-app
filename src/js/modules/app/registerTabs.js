@@ -1,6 +1,7 @@
 import TabSystem from "../tabSystem.js";
 import renderToolsView from "../views/toolsView.js";
 import renderDownloaderView from "../views/downloaderView.js";
+import renderProductFormatterView from "../views/productFormatterView.js";
 import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
 import { initWgAutoShutdownNotifier } from "../wgAutoShutdownNotifier.js";
 import { getDefaultTab } from "../settings.js";
@@ -30,6 +31,11 @@ function createWrappers(mainView) {
   wireguardWrapper.className = "view-wrapper tab-view";
   wireguardWrapper.style.display = "none";
 
+  const productsWrapper = document.createElement("div");
+  productsWrapper.id = "products-view-wrapper";
+  productsWrapper.className = "view-wrapper tab-view";
+  productsWrapper.style.display = "none";
+
   Array.from(mainView.children).forEach((child) => {
     if (!child.matches(GLOBAL_SELECTOR)) {
       downloaderWrapper.appendChild(child);
@@ -38,10 +44,12 @@ function createWrappers(mainView) {
 
   mainView.prepend(downloaderWrapper);
   mainView.appendChild(wireguardWrapper);
+  mainView.appendChild(productsWrapper);
 
   return {
     downloaderWrapper,
     wireguardWrapper,
+    productsWrapper,
   };
 }
 
@@ -92,6 +100,21 @@ export async function registerTabs(mainView) {
         disposeToolsWrapperContent(wrappers.wireguardWrapper);
         showHistory(true);
       },
+    },
+  );
+
+  tabs.addTab(
+    "products",
+    t("tabs.products"),
+    "fa-solid fa-list-check",
+    () => {
+      renderProductFormatterView(wrappers.productsWrapper);
+      applyI18n(wrappers.productsWrapper);
+      return wrappers.productsWrapper;
+    },
+    {
+      onShow: () => showHistory(false),
+      onHide: () => showHistory(true),
     },
   );
 

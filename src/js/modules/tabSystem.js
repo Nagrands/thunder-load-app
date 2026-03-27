@@ -1,6 +1,9 @@
 // src/js/modules/tabSystem.js
 
-import { isDownloaderTabEffectivelyDisabled } from "./developerMode.js";
+import {
+  isDownloaderTabEffectivelyDisabled,
+  readDeveloperModeEnabled,
+} from "./developerMode.js";
 
 export default class TabSystem {
   constructor(menuSel, viewSel) {
@@ -18,12 +21,16 @@ export default class TabSystem {
     this._BK_ID = "backup";
     // Downloader visibility wiring
     this._DL_ID = "download";
+    // Developer-only products tab
+    this._PRD_ID = "products";
     this._applyWgVisibility =
       this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
     this._applyBackupVisibility =
       this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
     this._applyDownloadVisibility =
       this._applyDownloadVisibility?.bind(this) || this._applyDownloadVisibility;
+    this._applyProductsVisibility =
+      this._applyProductsVisibility?.bind(this) || this._applyProductsVisibility;
     window.addEventListener("wg:toggleDisabled", () =>
       (this._applyWgVisibility(), this._applyDownloadVisibility()),
     );
@@ -33,10 +40,14 @@ export default class TabSystem {
     window.addEventListener("download:toggleDisabled", () =>
       this._applyDownloadVisibility(),
     );
+    window.addEventListener("tools:developer-unlock-changed", () =>
+      this._applyProductsVisibility(),
+    );
     // применить сразу (если вкладка уже есть)
     this._applyWgVisibility();
     this._applyBackupVisibility();
     this._applyDownloadVisibility();
+    this._applyProductsVisibility();
   }
 
   addTab(id, label, iconCls, renderCb, hooks = {}) {
@@ -61,6 +72,7 @@ export default class TabSystem {
 
     this.tabs.set(id, { button: btn, labelEl, render: renderCb, ...hooks });
     if (id === this._DL_ID) this._applyDownloadVisibility();
+    if (id === this._PRD_ID) this._applyProductsVisibility();
     if (id === this._WG_ID) this._applyWgVisibility();
     if (id === this._BK_ID) this._applyBackupVisibility();
   }
@@ -73,6 +85,15 @@ export default class TabSystem {
 
   activateTab(id) {
     if (id === this._DL_ID && this._isDownloadDisabled()) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) return this.activateTab(firstVisible);
+      return;
+    }
+    if (id === this._PRD_ID && this._isProductsDisabled()) {
       const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
         if (tid === id) return false;
         const r = this.tabs.get(tid);
@@ -170,11 +191,41 @@ export default class TabSystem {
     return isDownloaderTabEffectivelyDisabled() && !this._isWgDisabled();
   }
 
+  _isProductsDisabled() {
+    return !readDeveloperModeEnabled();
+  }
+
   _applyDownloadVisibility() {
     const id = this._DL_ID;
     if (!id || !this.tabs?.has(id)) return;
     const rec = this.tabs.get(id);
     const disabled = this._isDownloadDisabled();
+
+    if (rec.button) rec.button.style.display = disabled ? "none" : "";
+
+    if (disabled && this.activeTabId === id) {
+      const firstVisible = Array.from(this.tabs.keys()).find((tid) => {
+        if (tid === id) return false;
+        const r = this.tabs.get(tid);
+        return r?.button && r.button.style.display !== "none";
+      });
+      if (firstVisible) this.activateTab(firstVisible);
+      else this.activeTabId = null;
+    }
+
+    if (rec.element && disabled) {
+      rec.element.classList.remove("tab-show");
+      rec.element.classList.add("tab-hide");
+      rec.element.style.display = "none";
+      rec.onHide?.();
+    }
+  }
+
+  _applyProductsVisibility() {
+    const id = this._PRD_ID;
+    if (!id || !this.tabs?.has(id)) return;
+    const rec = this.tabs.get(id);
+    const disabled = this._isProductsDisabled();
 
     if (rec.button) rec.button.style.display = disabled ? "none" : "";
 
