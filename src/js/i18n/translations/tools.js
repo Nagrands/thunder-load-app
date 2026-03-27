@@ -12,8 +12,13 @@ export const toolsTranslations = {
     "productsFormatter.paste": "Вставить",
     "productsFormatter.clear": "Очистить",
     "productsFormatter.demo": "Демо",
+    "productsFormatter.dictionaryTitle": "Dev-словарь замен",
+    "productsFormatter.dictionaryPlaceholder":
+      "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
+    "productsFormatter.dictionaryReset": "Сбросить словарь",
     "productsFormatter.copy": "Копировать",
     "productsFormatter.copyDone": "Скопировано",
+    "productsFormatter.dismissWarning": "Скрыть предупреждение",
     "productsFormatter.outputLabel": "Результат",
     "productsFormatter.empty":
       "Здесь появится готовый список по разделам и сводный блок «Итого».",
@@ -23,6 +28,7 @@ export const toolsTranslations = {
     "productsFormatter.uncertain": "Проверить",
     "productsFormatter.diagnostics.issues": "Предупреждения",
     "productsFormatter.diagnostics.diff": "Нормализация",
+    "productsFormatter.diagnostics.comparison": "Сравнение запусков",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
       "«{source}» интерпретировано как «{output}».",
     "productsFormatter.issue.duplicateMerged":
@@ -37,6 +43,15 @@ export const toolsTranslations = {
     "productsFormatter.meta.summaryOff": "Итого скрыто",
     "productsFormatter.meta.greensOn": "Зелень включена",
     "productsFormatter.meta.greensOff": "Зелень скрыта",
+    "productsFormatter.stats.duplicates": "Дубли: {count}",
+    "productsFormatter.stats.typos": "Опечатки: {count}",
+    "productsFormatter.stats.review": "Проверить: {count}",
+    "productsFormatter.comparison.summary":
+      "Добавлено: {added}, удалено: {removed}, разделов изменено: {sections}",
+    "productsFormatter.comparison.noChanges":
+      "После повторного запуска изменений нет.",
+    "productsFormatter.comparison.added": "Добавлено",
+    "productsFormatter.comparison.removed": "Удалено",
     "productsFormatter.status.empty":
       "Вставьте список продуктов перед форматированием.",
     "productsFormatter.status.formatted": "Список подготовлен.",
@@ -48,6 +63,7 @@ export const toolsTranslations = {
       "Не удалось прочитать буфер обмена.",
     "productsFormatter.status.cleared": "Поле очищено.",
     "productsFormatter.status.demoLoaded": "Демо-список загружен.",
+    "productsFormatter.status.dictionaryReset": "Dev-словарь очищен.",
     "productsFormatter.status.copyError": "Не удалось скопировать результат.",
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
@@ -789,8 +805,13 @@ export const toolsTranslations = {
     "productsFormatter.paste": "Paste",
     "productsFormatter.clear": "Clear",
     "productsFormatter.demo": "Demo",
+    "productsFormatter.dictionaryTitle": "Dev replacement dictionary",
+    "productsFormatter.dictionaryPlaceholder":
+      "One rule per line: source = replacement\nExample:\nsweet potato = Sweet potato",
+    "productsFormatter.dictionaryReset": "Reset dictionary",
     "productsFormatter.copy": "Copy",
     "productsFormatter.copyDone": "Copied",
+    "productsFormatter.dismissWarning": "Dismiss warning",
     "productsFormatter.outputLabel": "Result",
     "productsFormatter.empty":
       "The formatted sections and optional summary will appear here.",
@@ -800,6 +821,7 @@ export const toolsTranslations = {
     "productsFormatter.uncertain": "Check",
     "productsFormatter.diagnostics.issues": "Warnings",
     "productsFormatter.diagnostics.diff": "Normalization",
+    "productsFormatter.diagnostics.comparison": "Run comparison",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
       "\"{source}\" was interpreted as \"{output}\".",
     "productsFormatter.issue.duplicateMerged":
@@ -814,6 +836,15 @@ export const toolsTranslations = {
     "productsFormatter.meta.summaryOff": "Summary off",
     "productsFormatter.meta.greensOn": "Greens on",
     "productsFormatter.meta.greensOff": "Greens off",
+    "productsFormatter.stats.duplicates": "Duplicates: {count}",
+    "productsFormatter.stats.typos": "Typos: {count}",
+    "productsFormatter.stats.review": "Review: {count}",
+    "productsFormatter.comparison.summary":
+      "Added: {added}, removed: {removed}, sections changed: {sections}",
+    "productsFormatter.comparison.noChanges":
+      "There are no result changes after the rerun.",
+    "productsFormatter.comparison.added": "Added",
+    "productsFormatter.comparison.removed": "Removed",
     "productsFormatter.status.empty":
       "Paste a product list before formatting.",
     "productsFormatter.status.formatted": "The list is ready.",
@@ -825,6 +856,7 @@ export const toolsTranslations = {
       "Could not read the clipboard.",
     "productsFormatter.status.cleared": "The field was cleared.",
     "productsFormatter.status.demoLoaded": "Demo list loaded.",
+    "productsFormatter.status.dictionaryReset": "Dev dictionary cleared.",
     "productsFormatter.status.copyError": "Could not copy the result.",
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",

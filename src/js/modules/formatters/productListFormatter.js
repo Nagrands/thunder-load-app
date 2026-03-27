@@ -4,7 +4,7 @@ const DEFAULT_LABELS = Object.freeze({
   unsorted: "Без раздела",
 });
 
-const REPLACEMENTS = Object.freeze({
+const DEFAULT_REPLACEMENTS = Object.freeze({
   "грэй": "Грейпфрут",
   "грей": "Грейпфрут",
   "памела": "Помело",
@@ -205,8 +205,12 @@ function normalizeUnit(unit = "") {
 function fixKnownTypos(lookupKey = "") {
   if (!lookupKey) return "";
   for (const [stem, display] of Object.entries(TYPO_STEMS)) {
-    if (lookupKey === stem) return display;
-    if (lookupKey.startsWith(stem) && lookupKey.length - stem.length <= 2) {
+    const suffixLength = lookupKey.length - stem.length;
+    if (
+      lookupKey.startsWith(stem) &&
+      suffixLength > 0 &&
+      suffixLength <= 2
+    ) {
       return display;
     }
   }
@@ -278,7 +282,7 @@ function pushIssue(diagnostics, issue) {
   diagnostics.issues.push(issue);
 }
 
-function analyzeDisplayName(name = "") {
+function analyzeDisplayName(name = "", replacements = DEFAULT_REPLACEMENTS) {
   const lookupKey = normalizeLookupKey(name);
   if (!lookupKey) {
     return {
@@ -294,9 +298,9 @@ function analyzeDisplayName(name = "") {
     };
   }
 
-  if (REPLACEMENTS[lookupKey]) {
+  if (replacements[lookupKey]) {
     return {
-      displayName: REPLACEMENTS[lookupKey],
+      displayName: replacements[lookupKey],
       typoCorrected: false,
     };
   }
@@ -315,10 +319,10 @@ function analyzeDisplayName(name = "") {
   };
 }
 
-function resolveParsedEntry(rawEntry, sectionTitle) {
+function resolveParsedEntry(rawEntry, sectionTitle, replacements) {
   const source = cleanupEntryText(rawEntry);
   const parsed = parseQuantity(source);
-  const nameMeta = analyzeDisplayName(parsed.name);
+  const nameMeta = analyzeDisplayName(parsed.name, replacements);
   const displayName = nameMeta.displayName;
   if (!displayName) return;
 
@@ -383,6 +387,16 @@ function resolveParsedEntry(rawEntry, sectionTitle) {
   }
 
   const output = formatSectionLine(item);
+  if (
+    item.uncertainReasons.has("ambiguousUnitAssumedKg") &&
+    normalizeLookupKey(source) === normalizeLookupKey(output) &&
+    issues.every((issue) => issue.code === "ambiguousUnitAssumedKg")
+  ) {
+    item.uncertain = false;
+    item.uncertainReasons.delete("ambiguousUnitAssumedKg");
+    issues.length = 0;
+  }
+
   return {
     key: item.key,
     item,
@@ -393,8 +407,8 @@ function resolveParsedEntry(rawEntry, sectionTitle) {
   };
 }
 
-function addParsedEntry(targetMap, rawEntry, sectionTitle, diagnostics) {
-  const resolved = resolveParsedEntry(rawEntry, sectionTitle);
+function addParsedEntry(targetMap, rawEntry, sectionTitle, diagnostics, replacements) {
+  const resolved = resolveParsedEntry(rawEntry, sectionTitle, replacements);
   if (!resolved) return;
 
   const current = targetMap.get(resolved.key) || createItem(resolved.item.displayName, resolved.item.starred);
@@ -428,7 +442,10 @@ function addParsedEntry(targetMap, rawEntry, sectionTitle, diagnostics) {
     pushIssue(diagnostics, issue);
   });
 
-  if (diagnostics && (resolved.changed || resolved.item.uncertain)) {
+  const hasMeaningfulDiff =
+    normalizeLookupKey(resolved.source) !== normalizeLookupKey(resolved.output);
+
+  if (diagnostics && (hasMeaningfulDiff || resolved.item.uncertain)) {
     diagnostics.diffEntries.push({
       sectionTitle,
       source: resolved.source,
@@ -465,9 +482,8 @@ function formatUnitsForSummary(item) {
 }
 
 function formatSectionLine(item) {
-  const name = item.starred ? `${item.displayName}⁕` : item.displayName;
   const suffix = formatUnitsForSection(item);
-  return suffix ? `${name} ${suffix}` : name;
+  return suffix ? `${item.displayName} ${suffix}` : item.displayName;
 }
 
 function formatSummaryLine(item) {
@@ -606,10 +622,14 @@ function buildProductListContract(input = "", options = {}) {
     ...DEFAULT_LABELS,
     ...(options.labels || {}),
   };
+  const replacements = {
+    ...DEFAULT_REPLACEMENTS,
+    ...(options.replacements || {}),
+  };
   const includeSummary = options.includeSummary !== false;
   const includeGreensSummary = options.includeGreensSummary === true;
   const diagnostics = createDiagnosticsBucket();
-  const internalSections = collectSections(input, labels, diagnostics);
+  const internalSections = collectSections(input, labels, diagnostics, replacements);
   const sections = internalSections.map(buildSectionContract);
   const internalSummary = includeSummary
     ? buildAggregateSummary(internalSections, labels, {
@@ -644,6 +664,20 @@ function buildProductListContract(input = "", options = {}) {
     .join("\n\n")
     .trim();
 
+  const normalizationStats = {
+    duplicatesMerged: diagnostics.issues.filter(
+      (issue) => issue.code === "duplicateMerged",
+    ).length,
+    typosCorrected: diagnostics.issues.filter(
+      (issue) => issue.code === "typoCorrected",
+    ).length,
+    reviewRequired: sections.reduce(
+      (total, section) =>
+        total + section.items.filter((item) => item.uncertain).length,
+      0,
+    ),
+  };
+
   return {
     sections,
     summary,
@@ -654,6 +688,7 @@ function buildProductListContract(input = "", options = {}) {
     fullOutputText,
     issues: diagnostics.issues,
     diffEntries: diagnostics.diffEntries,
+    normalizationStats,
   };
 }
 
@@ -661,7 +696,12 @@ function sortByRuAlpha(a, b) {
   return String(a).localeCompare(String(b), "ru", { sensitivity: "base" });
 }
 
-function collectSections(input = "", labels = DEFAULT_LABELS, diagnostics) {
+function collectSections(
+  input = "",
+  labels = DEFAULT_LABELS,
+  diagnostics,
+  replacements,
+) {
   const rawLines = String(input || "").split("\n");
   const sections = [];
   let currentSection = null;
@@ -708,6 +748,7 @@ function collectSections(input = "", labels = DEFAULT_LABELS, diagnostics) {
         entry,
         currentSection.title,
         diagnostics,
+        replacements,
       ),
     );
     previousBlank = false;

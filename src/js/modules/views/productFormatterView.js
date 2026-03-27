@@ -1,4 +1,10 @@
 import { formatProductLists } from "../formatters/productListFormatter.js";
+import {
+  clearProductFormatterDictionary,
+  loadProductFormatterDictionary,
+  parseProductFormatterDictionary,
+  saveProductFormatterDictionary,
+} from "../formatters/productFormatterDictionary.js";
 import { applyI18n, t } from "../i18n.js";
 import { initTooltips } from "../tooltipInitializer.js";
 
@@ -126,9 +132,33 @@ function buildMarkup() {
                 aria-label="${t("productsFormatter.demo")}"
                 data-i18n-aria="productsFormatter.demo"
               >
-                <i class="fa-solid fa-sparkles"></i>
+                <i class="fa-solid fa-flask"></i>
               </button>
             </div>
+
+            <details class="products-dictionary" data-ui="products-dictionary">
+              <summary class="products-dictionary__summary">
+                <span data-i18n="productsFormatter.dictionaryTitle">${t("productsFormatter.dictionaryTitle")}</span>
+              </summary>
+              <div class="products-dictionary__body">
+                <textarea
+                  id="products-dictionary-input"
+                  class="products-dictionary__textarea"
+                  data-i18n-placeholder="productsFormatter.dictionaryPlaceholder"
+                  placeholder="${t("productsFormatter.dictionaryPlaceholder")}"
+                  spellcheck="false"
+                ></textarea>
+                <div class="products-dictionary__actions">
+                  <button
+                    id="products-dictionary-reset"
+                    type="button"
+                    class="small-button products-dictionary__reset"
+                  >
+                    <span data-i18n="productsFormatter.dictionaryReset">${t("productsFormatter.dictionaryReset")}</span>
+                  </button>
+                </div>
+              </div>
+            </details>
 
             <div class="products-pane__body products-pane__body--editor">
               <textarea
@@ -187,10 +217,17 @@ function buildMarkup() {
               data-ui="products-result-meta"
               hidden
             >
-              <span id="products-meta-sections" class="products-result-meta__pill"></span>
-              <span id="products-meta-items" class="products-result-meta__pill"></span>
-              <span id="products-meta-summary" class="products-result-meta__pill products-result-meta__pill--accent"></span>
-              <span id="products-meta-greens" class="products-result-meta__pill products-result-meta__pill--accent"></span>
+              <div class="products-result-meta__row" data-ui="products-result-meta-stats">
+                <span id="products-meta-sections" class="products-result-meta__pill"></span>
+                <span id="products-meta-items" class="products-result-meta__pill"></span>
+              </div>
+              <div
+                class="products-result-meta__row products-result-meta__row--options"
+                data-ui="products-result-meta-options"
+              >
+                <span id="products-meta-summary" class="products-result-meta__pill products-result-meta__pill--accent"></span>
+                <span id="products-meta-greens" class="products-result-meta__pill products-result-meta__pill--accent"></span>
+              </div>
             </div>
 
             <div class="products-pane__body products-pane__body--result">
@@ -209,6 +246,16 @@ function buildMarkup() {
                 data-ui="products-result-content"
                 hidden
               >
+                <div
+                  id="products-normalization-stats"
+                  class="products-normalization-stats"
+                  data-ui="products-normalization-stats"
+                  hidden
+                >
+                  <span id="products-stat-duplicates" class="products-normalization-stats__pill"></span>
+                  <span id="products-stat-typos" class="products-normalization-stats__pill"></span>
+                  <span id="products-stat-review" class="products-normalization-stats__pill products-normalization-stats__pill--accent"></span>
+                </div>
                 <div
                   id="products-diagnostics"
                   class="products-diagnostics"
@@ -233,6 +280,20 @@ function buildMarkup() {
                   >
                     <h3 class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.diff">${t("productsFormatter.diagnostics.diff")}</h3>
                     <div id="products-diff-list" class="products-diff-list"></div>
+                  </section>
+
+                  <section
+                    id="products-comparison-panel"
+                    class="products-diagnostics__panel"
+                    data-ui="products-comparison-panel"
+                    hidden
+                  >
+                    <h3 class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.comparison">${t("productsFormatter.diagnostics.comparison")}</h3>
+                    <div
+                      id="products-comparison-summary"
+                      class="products-comparison-summary"
+                    ></div>
+                    <div id="products-comparison-list" class="products-comparison-list"></div>
                   </section>
                 </div>
                 <div
@@ -259,65 +320,6 @@ function buildMarkup() {
       </div>
     </div>
   `;
-}
-
-function createSectionBlock(title, items = [], type = "section", text = "", onCopy) {
-  const section = document.createElement("section");
-  section.className =
-    type === "summary"
-      ? "products-preview__section products-preview__section--summary"
-      : "products-preview__section";
-  section.dataset.previewType = type;
-
-  const header = document.createElement("div");
-  header.className = "products-preview__header";
-
-  const heading = document.createElement("h3");
-  heading.className = "products-preview__title";
-  heading.textContent = title;
-  header.appendChild(heading);
-
-  if (text && typeof onCopy === "function") {
-    const copyButton = document.createElement("button");
-    copyButton.type = "button";
-    copyButton.className =
-      "small-button products-section-copy products-icon-button";
-    copyButton.dataset.copyText = text;
-    copyButton.setAttribute("data-bs-toggle", "tooltip");
-    copyButton.setAttribute("data-bs-placement", "top");
-    copyButton.setAttribute("title", t("productsFormatter.copy"));
-    copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
-    copyButton.innerHTML = `<i class="fa-regular fa-copy" aria-hidden="true"></i>`;
-    copyButton.addEventListener("click", () => onCopy(text));
-    header.appendChild(copyButton);
-  }
-
-  section.appendChild(header);
-
-  const list = document.createElement("ul");
-  list.className = "products-preview__list";
-
-  items.forEach((entry) => {
-    const item = document.createElement("li");
-    item.className = entry.uncertain
-      ? "products-preview__item products-preview__item--uncertain"
-      : "products-preview__item";
-    const textNode = document.createElement("span");
-    textNode.className = "products-preview__item-text";
-    textNode.textContent = entry.line || entry.text || "";
-    item.appendChild(textNode);
-
-    if (entry.uncertain) {
-      const badge = document.createElement("span");
-      badge.className = "products-preview__badge";
-      badge.textContent = t("productsFormatter.uncertain");
-      item.appendChild(badge);
-    }
-    list.appendChild(item);
-  });
-
-  section.appendChild(list);
-  return section;
 }
 
 function formatIssue(issue) {
@@ -357,10 +359,50 @@ function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
   const issues = Array.isArray(result.issues) ? result.issues : [];
   const diffEntries = Array.isArray(result.diffEntries) ? result.diffEntries : [];
 
+  const syncDiagnosticsVisibility = () => {
+    const issuesPanel = issuesEl.closest('[data-ui="products-issues-panel"]');
+    const diffPanel = diffEl.closest('[data-ui="products-diff-panel"]');
+    const comparisonPanel = diagnosticsEl.querySelector(
+      '[data-ui="products-comparison-panel"]',
+    );
+    const hasVisibleIssues = issuesEl.childElementCount > 0;
+    const hasVisibleDiff = diffEl.childElementCount > 0;
+    const hasVisibleComparison = comparisonPanel
+      ? comparisonPanel.hidden === false
+      : false;
+    if (issuesPanel) issuesPanel.hidden = !hasVisibleIssues;
+    if (diffPanel) diffPanel.hidden = !hasVisibleDiff;
+    diagnosticsEl.hidden =
+      !hasVisibleIssues && !hasVisibleDiff && !hasVisibleComparison;
+  };
+
   issues.forEach((issue) => {
     const item = document.createElement("div");
     item.className = "products-issue";
-    item.textContent = formatIssue(issue);
+    const text = document.createElement("div");
+    text.className = "products-issue__text";
+    text.textContent = formatIssue(issue);
+    item.appendChild(text);
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className =
+      "small-button products-issue__close products-icon-button";
+    closeButton.setAttribute("data-bs-toggle", "tooltip");
+    closeButton.setAttribute("data-bs-placement", "top");
+    closeButton.setAttribute("title", t("productsFormatter.dismissWarning"));
+    closeButton.setAttribute(
+      "aria-label",
+      t("productsFormatter.dismissWarning"),
+    );
+    closeButton.innerHTML = `<i class="fa-solid fa-xmark" aria-hidden="true"></i>`;
+    closeButton.addEventListener("click", () => {
+      item.remove();
+      syncDiagnosticsVisibility();
+      initTooltips(diagnosticsEl);
+    });
+    item.appendChild(closeButton);
+
     issuesEl.appendChild(item);
   });
 
@@ -388,14 +430,241 @@ function renderDiagnostics(issuesEl, diffEl, diagnosticsEl, result) {
     diffEl.appendChild(row);
   });
 
-  const issuesPanel = issuesEl.closest('[data-ui="products-issues-panel"]');
-  const diffPanel = diffEl.closest('[data-ui="products-diff-panel"]');
-  if (issuesPanel) issuesPanel.hidden = issues.length === 0;
-  if (diffPanel) diffPanel.hidden = diffEntries.length === 0;
-  diagnosticsEl.hidden = issues.length === 0 && diffEntries.length === 0;
+  syncDiagnosticsVisibility();
 }
 
-function renderPreview(previewEl, summaryCardEl, result, onCopySection) {
+function buildSectionStateKey(type = "section", title = "") {
+  return `${type}:${title}`;
+}
+
+function buildComparison(previousResult, nextResult) {
+  if (!previousResult?.sections?.length || !nextResult?.sections?.length) return null;
+
+  const previousMap = new Map(
+    previousResult.sections.map((section) => [section.title, new Set(section.lines)]),
+  );
+  const nextMap = new Map(
+    nextResult.sections.map((section) => [section.title, new Set(section.lines)]),
+  );
+  const titles = Array.from(new Set([...previousMap.keys(), ...nextMap.keys()]));
+  const entries = [];
+
+  titles.forEach((title) => {
+    const previousLines = previousMap.get(title) || new Set();
+    const nextLines = nextMap.get(title) || new Set();
+
+    nextLines.forEach((line) => {
+      if (!previousLines.has(line)) {
+        entries.push({ sectionTitle: title, type: "added", line });
+      }
+    });
+
+    previousLines.forEach((line) => {
+      if (!nextLines.has(line)) {
+        entries.push({ sectionTitle: title, type: "removed", line });
+      }
+    });
+  });
+
+  if (!entries.length) {
+    return {
+      added: 0,
+      removed: 0,
+      changedSections: 0,
+      entries: [],
+    };
+  }
+
+  return {
+    added: entries.filter((entry) => entry.type === "added").length,
+    removed: entries.filter((entry) => entry.type === "removed").length,
+    changedSections: new Set(entries.map((entry) => entry.sectionTitle)).size,
+    entries,
+  };
+}
+
+function renderComparison(summaryEl, listEl, panelEl, comparison) {
+  if (!summaryEl || !listEl || !panelEl) return;
+
+  summaryEl.replaceChildren();
+  listEl.replaceChildren();
+
+  if (!comparison) {
+    panelEl.hidden = true;
+    return;
+  }
+
+  const summary = document.createElement("div");
+  summary.className = "products-comparison-summary__text";
+  if (!comparison.entries.length) {
+    summary.textContent = t("productsFormatter.comparison.noChanges");
+    summaryEl.appendChild(summary);
+    panelEl.hidden = false;
+    return;
+  }
+
+  summary.textContent = t("productsFormatter.comparison.summary", {
+    added: comparison.added,
+    removed: comparison.removed,
+    sections: comparison.changedSections,
+  });
+  summaryEl.appendChild(summary);
+
+  comparison.entries.forEach((entry) => {
+    const row = document.createElement("div");
+    row.className =
+      entry.type === "added"
+        ? "products-comparison-row products-comparison-row--added"
+        : "products-comparison-row products-comparison-row--removed";
+
+    const meta = document.createElement("div");
+    meta.className = "products-comparison-row__meta";
+    meta.textContent = entry.sectionTitle;
+    row.appendChild(meta);
+
+    const text = document.createElement("div");
+    text.className = "products-comparison-row__text";
+    text.textContent = `${
+      entry.type === "added"
+        ? t("productsFormatter.comparison.added")
+        : t("productsFormatter.comparison.removed")
+    }: ${entry.line}`;
+    row.appendChild(text);
+
+    listEl.appendChild(row);
+  });
+
+  panelEl.hidden = false;
+}
+
+function renderNormalizationStats(container, result) {
+  if (!container) return;
+  const duplicates = container.querySelector("#products-stat-duplicates");
+  const typos = container.querySelector("#products-stat-typos");
+  const review = container.querySelector("#products-stat-review");
+  const stats = result.normalizationStats || {
+    duplicatesMerged: 0,
+    typosCorrected: 0,
+    reviewRequired: 0,
+  };
+
+  if (duplicates) {
+    duplicates.textContent = t("productsFormatter.stats.duplicates", {
+      count: stats.duplicatesMerged,
+    });
+  }
+  if (typos) {
+    typos.textContent = t("productsFormatter.stats.typos", {
+      count: stats.typosCorrected,
+    });
+  }
+  if (review) {
+    review.textContent = t("productsFormatter.stats.review", {
+      count: stats.reviewRequired,
+    });
+  }
+  container.hidden = false;
+}
+
+function createSectionBlock(
+  title,
+  items = [],
+  type = "section",
+  text = "",
+  onCopy,
+  collapsed = false,
+  onToggleCollapse,
+) {
+  const section = document.createElement("section");
+  section.className =
+    type === "summary"
+      ? "products-preview__section products-preview__section--summary"
+      : "products-preview__section";
+  section.dataset.previewType = type;
+
+  const header = document.createElement("div");
+  header.className = "products-preview__header";
+
+  const headingButton = document.createElement("button");
+  headingButton.type = "button";
+  headingButton.className = "products-preview__heading-button";
+  headingButton.setAttribute("aria-expanded", String(!collapsed));
+
+  const chevron = document.createElement("i");
+  chevron.className = collapsed
+    ? "fa-solid fa-chevron-right"
+    : "fa-solid fa-chevron-down";
+  chevron.setAttribute("aria-hidden", "true");
+  headingButton.appendChild(chevron);
+
+  const heading = document.createElement("h3");
+  heading.className = "products-preview__title";
+  heading.textContent = title;
+  headingButton.appendChild(heading);
+  header.appendChild(headingButton);
+
+  if (text && typeof onCopy === "function") {
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.className =
+      "small-button products-section-copy products-icon-button";
+    copyButton.dataset.copyText = text;
+    copyButton.setAttribute("data-bs-toggle", "tooltip");
+    copyButton.setAttribute("data-bs-placement", "top");
+    copyButton.setAttribute("title", t("productsFormatter.copy"));
+    copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
+    copyButton.innerHTML = `<i class="fa-regular fa-copy" aria-hidden="true"></i>`;
+    copyButton.addEventListener("click", () => onCopy(text));
+    header.appendChild(copyButton);
+  }
+
+  section.appendChild(header);
+
+  const list = document.createElement("ul");
+  list.className = "products-preview__list";
+  list.hidden = collapsed;
+
+  items.forEach((entry) => {
+    const item = document.createElement("li");
+    item.className = entry.uncertain
+      ? "products-preview__item products-preview__item--uncertain"
+      : "products-preview__item";
+    const textNode = document.createElement("span");
+    textNode.className = "products-preview__item-text";
+    textNode.textContent = entry.line || entry.text || "";
+    item.appendChild(textNode);
+
+    if (entry.uncertain) {
+      const badge = document.createElement("span");
+      badge.className = "products-preview__badge";
+      badge.textContent = t("productsFormatter.uncertain");
+      item.appendChild(badge);
+    }
+    list.appendChild(item);
+  });
+
+  headingButton.addEventListener("click", () => {
+    const nextCollapsed = !list.hidden;
+    list.hidden = nextCollapsed;
+    chevron.className = nextCollapsed
+      ? "fa-solid fa-chevron-right"
+      : "fa-solid fa-chevron-down";
+    headingButton.setAttribute("aria-expanded", String(!nextCollapsed));
+    onToggleCollapse?.(nextCollapsed);
+  });
+
+  section.appendChild(list);
+  return section;
+}
+
+function renderPreview(
+  previewEl,
+  summaryCardEl,
+  result,
+  onCopySection,
+  collapsedSections,
+  onToggleCollapse,
+) {
   if (!previewEl || !summaryCardEl) return;
 
   previewEl.replaceChildren();
@@ -403,6 +672,7 @@ function renderPreview(previewEl, summaryCardEl, result, onCopySection) {
   summaryCardEl.hidden = true;
 
   result.sections.forEach((section) => {
+    const key = buildSectionStateKey("section", section.title);
     previewEl.appendChild(
       createSectionBlock(
         section.title,
@@ -410,11 +680,14 @@ function renderPreview(previewEl, summaryCardEl, result, onCopySection) {
         "section",
         section.text,
         onCopySection,
+        collapsedSections?.[key] === true,
+        (collapsed) => onToggleCollapse?.(key, collapsed),
       ),
     );
   });
 
   if (result.summary) {
+    const key = buildSectionStateKey("summary", result.summary.title);
     previewEl.appendChild(
       createSectionBlock(
         result.summary.title,
@@ -422,11 +695,14 @@ function renderPreview(previewEl, summaryCardEl, result, onCopySection) {
         "summary",
         result.summary.text,
         onCopySection,
+        collapsedSections?.[key] === true,
+        (collapsed) => onToggleCollapse?.(key, collapsed),
       ),
     );
   }
 
   if (result.greensSummary) {
+    const key = buildSectionStateKey("greens", result.greensSummary.title);
     previewEl.appendChild(
       createSectionBlock(
         result.greensSummary.title,
@@ -434,6 +710,8 @@ function renderPreview(previewEl, summaryCardEl, result, onCopySection) {
         "summary",
         result.greensSummary.text,
         onCopySection,
+        collapsedSections?.[key] === true,
+        (collapsed) => onToggleCollapse?.(key, collapsed),
       ),
     );
   }
@@ -487,14 +765,20 @@ export default function renderProductFormatterView(wrapper) {
   const pasteButton = wrapper.querySelector("#products-paste");
   const clearButton = wrapper.querySelector("#products-clear");
   const demoButton = wrapper.querySelector("#products-demo");
+  const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+  const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
   const copyButton = wrapper.querySelector("#products-copy");
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
   const resultContent = wrapper.querySelector("#products-result-content");
   const resultMeta = wrapper.querySelector("#products-result-meta");
+  const normalizationStats = wrapper.querySelector("#products-normalization-stats");
   const diagnostics = wrapper.querySelector("#products-diagnostics");
   const issuesList = wrapper.querySelector("#products-issues-list");
   const diffList = wrapper.querySelector("#products-diff-list");
+  const comparisonPanel = wrapper.querySelector("#products-comparison-panel");
+  const comparisonSummary = wrapper.querySelector("#products-comparison-summary");
+  const comparisonList = wrapper.querySelector("#products-comparison-list");
   const metaSections = wrapper.querySelector("#products-meta-sections");
   const metaItems = wrapper.querySelector("#products-meta-items");
   const metaSummary = wrapper.querySelector("#products-meta-summary");
@@ -508,6 +792,9 @@ export default function renderProductFormatterView(wrapper) {
       copiedText: "",
       hasResult: false,
       copyFeedbackTimer: null,
+      previousResult: null,
+      currentResult: null,
+      collapsedSections: {},
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -532,9 +819,13 @@ export default function renderProductFormatterView(wrapper) {
     if (summaryCard) summaryCard.hidden = true;
     if (resultContent) resultContent.hidden = true;
     if (resultMeta) resultMeta.hidden = true;
+    if (normalizationStats) normalizationStats.hidden = true;
     if (diagnostics) diagnostics.hidden = true;
     issuesList?.replaceChildren();
     diffList?.replaceChildren();
+    comparisonSummary?.replaceChildren();
+    comparisonList?.replaceChildren();
+    if (comparisonPanel) comparisonPanel.hidden = true;
     if (empty) empty.hidden = false;
     if (copyButton) {
       copyButton.disabled = true;
@@ -570,16 +861,35 @@ export default function renderProductFormatterView(wrapper) {
     state.copiedText = result.fullOutputText;
     state.hasResult = !!result.fullOutputText;
     clearCopyFeedbackTimer();
-    renderPreview(preview, summaryCard, result, async (sectionText) => {
-      try {
-        await copyText(sectionText);
-        clearCopyFeedbackTimer();
-        setStatus(t("productsFormatter.status.sectionCopied"), "success");
-      } catch {
-        setStatus(t("productsFormatter.status.copyError"), "error");
-      }
-    });
+    renderPreview(
+      preview,
+      summaryCard,
+      result,
+      async (sectionText) => {
+        try {
+          await copyText(sectionText);
+          clearCopyFeedbackTimer();
+          setStatus(t("productsFormatter.status.sectionCopied"), "success");
+        } catch {
+          setStatus(t("productsFormatter.status.copyError"), "error");
+        }
+      },
+      state.collapsedSections,
+      (key, collapsed) => {
+        state.collapsedSections[key] = collapsed;
+      },
+    );
     renderDiagnostics(issuesList, diffList, diagnostics, result);
+    renderNormalizationStats(normalizationStats, result);
+    renderComparison(
+      comparisonSummary,
+      comparisonList,
+      comparisonPanel,
+      buildComparison(state.previousResult, result),
+    );
+    if (comparisonPanel?.hidden === false && diagnostics) {
+      diagnostics.hidden = false;
+    }
     updateMetrics(result);
     if (resultMeta) resultMeta.hidden = false;
     if (resultContent) resultContent.hidden = false;
@@ -591,6 +901,13 @@ export default function renderProductFormatterView(wrapper) {
   };
 
   if (!wrapper.__productsFormatterBound) {
+    if (dictionaryInput) {
+      dictionaryInput.value = loadProductFormatterDictionary();
+      dictionaryInput.addEventListener("input", () => {
+        saveProductFormatterDictionary(dictionaryInput.value);
+      });
+    }
+
     formatButton?.addEventListener("click", () => {
       const source = String(input?.value || "").trim();
       if (!source) {
@@ -599,9 +916,13 @@ export default function renderProductFormatterView(wrapper) {
         return;
       }
 
+      const currentResult = state.currentResult;
       const result = formatProductLists(source, {
         includeSummary: includeSummary?.checked !== false,
         includeGreensSummary: includeGreensSummary?.checked === true,
+        replacements: parseProductFormatterDictionary(
+          dictionaryInput?.value || "",
+        ),
         labels: {
           summary: t("productsFormatter.summaryTitle"),
           greens: t("productsFormatter.greensTitle"),
@@ -609,6 +930,8 @@ export default function renderProductFormatterView(wrapper) {
         },
       });
 
+      state.previousResult = currentResult;
+      state.currentResult = result;
       showResult(result);
       setStatus(t("productsFormatter.status.formatted"), "success");
     });
@@ -644,6 +967,12 @@ export default function renderProductFormatterView(wrapper) {
       input.focus();
       resetPreview();
       setStatus(t("productsFormatter.status.demoLoaded"), "success");
+    });
+
+    dictionaryResetButton?.addEventListener("click", () => {
+      if (dictionaryInput) dictionaryInput.value = "";
+      clearProductFormatterDictionary();
+      setStatus(t("productsFormatter.status.dictionaryReset"));
     });
 
     copyButton?.addEventListener("click", async () => {

@@ -38,9 +38,9 @@ describe("productListFormatter", () => {
 Лимон 4 шт
 Огурец 1
 Перец микс 5 шт
-Петрушка⁕ 2п
+Петрушка 2п
 Помидор 0.5
-Укроп⁕ 2п
+Укроп 2п
 Чеснок 0.5
 
 Магазин
@@ -48,8 +48,8 @@ describe("productListFormatter", () => {
 Картофель белый 2м
 Киви
 Лук Марс
-Петрушка⁕ 15п
-Укроп⁕ 20п`,
+Петрушка 15п
+Укроп 20п`,
     );
 
     expect(result.formattedSummaryText).toBe(
@@ -102,8 +102,8 @@ describe("productListFormatter", () => {
       `Тесто
 Гриб Шампиньон 0.1
 Лимон 4 шт
-Петрушка⁕ 1 гол
-Укроп⁕ 2п
+Петрушка 1 гол
+Укроп 2п
 Чеснок 0.5`,
     );
     expect(result.formattedSummaryText).toBe("");
@@ -126,9 +126,9 @@ describe("productListFormatter", () => {
       `Магазин
 Картофель белый 5м
 Лук Марс
-Петрушка⁕ 15п
-Салат Айсберг⁕
-Укроп⁕ 20п`,
+Петрушка 15п
+Салат Айсберг
+Укроп 20п`,
     );
     expect(result.formattedSummaryText).toBe(
       `Итого
@@ -207,7 +207,6 @@ describe("productListFormatter", () => {
 
     expect(result.issues.map((issue) => issue.code)).toEqual(
       expect.arrayContaining([
-        "ambiguousUnitAssumedKg",
         "duplicateMerged",
         "typoCorrected",
         "storeQuantityIgnored",
@@ -217,13 +216,8 @@ describe("productListFormatter", () => {
     expect(result.diffEntries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: "Лук 5",
-          output: "Лук 5",
-          uncertain: true,
-        }),
-        expect.objectContaining({
           source: "ПетрушкаЦ 2 пуч",
-          output: "Петрушка⁕ 2п",
+          output: "Петрушка 2п",
           uncertain: true,
         }),
       ]),
@@ -236,5 +230,76 @@ describe("productListFormatter", () => {
       uncertain: true,
     });
     expect(parsley.uncertainReasons).toContain("typoCorrected");
+  });
+
+  test("does not drop greenery bunch quantities in sections or store rules", () => {
+    const result = formatProductLists(`Тесто
+укроп 2 пуч.
+петрушка 2 Пуч.
+
+Магазин
+Укроп 20
+ПетрушкаЦ 15`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Тесто
+Петрушка 2п
+Укроп 2п
+
+Магазин
+Петрушка 15п
+Укроп 20п`);
+    expect(result.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "typoCorrected",
+          source: "ПетрушкаЦ 15",
+          output: "Петрушка 15п",
+        }),
+      ]),
+    );
+    expect(
+      result.issues.some((issue) => issue.source === "укроп 2 пуч"),
+    ).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.source === "петрушка 2 Пуч"),
+    ).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.source === "Укроп 20"),
+    ).toBe(false);
+  });
+
+  test("does not warn for lines that are already in valid normalized form", () => {
+    const result = formatProductLists(`Тесто
+Гриб Шампиньон 4
+Картофель 10
+Огурец 1
+Помидор 0.5
+Чеснок 0.5`);
+
+    expect(result.issues).toEqual([]);
+    expect(result.diffEntries).toEqual([]);
+    expect(
+      result.sections[0].items.some((item) => item.uncertain === true),
+    ).toBe(false);
+  });
+
+  test("applies custom replacement rules and exposes normalization stats", () => {
+    const result = formatProductLists(`Тесто
+батат 2
+батат 1
+ПетрушкаЦ 2 пуч.`, {
+      replacements: {
+        батат: "Картофель сладкий",
+      },
+    });
+
+    expect(result.sections[0].lines).toContain("Картофель сладкий 3");
+    expect(result.normalizationStats).toMatchObject({
+      duplicatesMerged: 1,
+      typosCorrected: 1,
+      reviewRequired: 2,
+    });
   });
 });

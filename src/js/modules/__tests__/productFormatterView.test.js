@@ -104,6 +104,16 @@ describe("productFormatterView", () => {
     );
     expect(
       Array.from(
+        wrapper.querySelectorAll('[data-ui="products-result-meta-stats"] .products-result-meta__pill'),
+      ).map((el) => el.id),
+    ).toEqual(["products-meta-sections", "products-meta-items"]);
+    expect(
+      Array.from(
+        wrapper.querySelectorAll('[data-ui="products-result-meta-options"] .products-result-meta__pill'),
+      ).map((el) => el.id),
+    ).toEqual(["products-meta-summary", "products-meta-greens"]);
+    expect(
+      Array.from(
         wrapper.querySelector("#products-preview")?.querySelectorAll(
           ".products-preview__title",
         ) || [],
@@ -267,6 +277,87 @@ describe("productFormatterView", () => {
     ).toBeGreaterThan(0);
     expect(wrapper.querySelector(".products-preview__badge")?.textContent).toBe(
       "Проверить",
+    );
+  });
+
+  test("allows dismissing warnings from the diagnostics panel", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 5
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    const diagnostics = wrapper.querySelector('[data-ui="products-diagnostics"]');
+    const issuesPanel = wrapper.querySelector('[data-ui="products-issues-panel"]');
+    const closeButtons = wrapper.querySelectorAll(".products-issue__close");
+
+    expect(diagnostics?.hidden).toBe(false);
+    expect(issuesPanel?.hidden).toBe(false);
+    expect(closeButtons.length).toBeGreaterThan(0);
+
+    closeButtons.forEach((button) => button.click());
+
+    expect(issuesPanel?.hidden).toBe(true);
+    expect(diagnostics?.hidden).toBe(false);
+    expect(wrapper.querySelector('[data-ui="products-diff-panel"]')?.hidden).toBe(
+      false,
+    );
+  });
+
+  test("supports collapsible sections and keeps normalization stats visible", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 5
+Лук 1 кг`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-normalization-stats"]')?.hidden,
+    ).toBe(false);
+    expect(wrapper.querySelector("#products-stat-duplicates")?.textContent).toBe(
+      "Дубли: 1",
+    );
+
+    const firstToggle = wrapper.querySelector(".products-preview__heading-button");
+    const firstList = wrapper.querySelector(".products-preview__list");
+    expect(firstList?.hidden).toBe(false);
+    firstToggle.click();
+    expect(firstList?.hidden).toBe(true);
+  });
+
+  test("supports custom dev dictionary and shows comparison after a rerun", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-input").value =
+      "батат = Картофель сладкий";
+    wrapper.querySelector("#products-dictionary-input").dispatchEvent(
+      new Event("input"),
+    );
+
+    wrapper.querySelector("#products-input").value = `Тесто
+батат 2`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Картофель сладкий 2",
+    );
+
+    wrapper.querySelector("#products-input").value = `Тесто
+батат 3`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+    expect(wrapper.querySelector("#products-comparison-list")?.textContent).toContain(
+      "Картофель сладкий 3",
     );
   });
 });
