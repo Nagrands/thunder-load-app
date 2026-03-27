@@ -165,4 +165,76 @@ describe("productListFormatter", () => {
     expect(parsed.formattedSummaryText).toBe("");
     expect(parsed.fullOutputText).toBe("Витамин\nБанан 1\n\nМагазин\nБанан");
   });
+
+  test("appends a greens summary block when the optional toggle is enabled", () => {
+    const result = formatProductLists(
+      `Тесто
+Укроп 2 пуч.
+ПетрушкаЦ 1 пуч.
+
+Магазин
+Укроп 20
+Банан`,
+      {
+        includeSummary: true,
+        includeGreensSummary: true,
+      },
+    );
+
+    expect(result.formattedGreensSummaryText).toBe(
+      `Зелень
+Петрушка 1п (Тесто)
+Укроп 22п (Тесто, Магазин)`,
+    );
+    expect(result.greensSummary?.text).toBe(result.formattedGreensSummaryText);
+    expect(result.fullOutputText).toBe(
+      `${result.formattedSectionsText}\n\n${result.formattedSummaryText}\n\n${result.formattedGreensSummaryText}`,
+    );
+    expect(result.greensSummary?.items[0]).toMatchObject({
+      name: "Петрушка",
+      line: "Петрушка 1п (Тесто)",
+    });
+  });
+
+  test("returns diagnostics for ambiguous units, duplicates, typo fixes, and ignored store quantities", () => {
+    const result = formatProductLists(`Тесто
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`);
+
+    expect(result.issues.map((issue) => issue.code)).toEqual(
+      expect.arrayContaining([
+        "ambiguousUnitAssumedKg",
+        "duplicateMerged",
+        "typoCorrected",
+        "storeQuantityIgnored",
+      ]),
+    );
+
+    expect(result.diffEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: "Лук 5",
+          output: "Лук 5",
+          uncertain: true,
+        }),
+        expect.objectContaining({
+          source: "ПетрушкаЦ 2 пуч",
+          output: "Петрушка⁕ 2п",
+          uncertain: true,
+        }),
+      ]),
+    );
+
+    const parsley = result.sections[0].items.find(
+      (item) => item.name === "Петрушка",
+    );
+    expect(parsley).toMatchObject({
+      uncertain: true,
+    });
+    expect(parsley.uncertainReasons).toContain("typoCorrected");
+  });
 });

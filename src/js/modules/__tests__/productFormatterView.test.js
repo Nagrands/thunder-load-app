@@ -23,6 +23,9 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-clear")).not.toBeNull();
     expect(wrapper.querySelector("#products-demo")).not.toBeNull();
     expect(wrapper.querySelector("#products-summary-toggle")?.checked).toBe(true);
+    expect(wrapper.querySelector("#products-greens-toggle")?.checked).toBe(
+      false,
+    );
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
     expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
       false,
@@ -35,7 +38,7 @@ describe("productFormatterView", () => {
     );
   });
 
-  test("formats into a summary card and section preview with result stats", () => {
+  test("formats into a single preview flow with summary at the end and result stats", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -57,15 +60,12 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
     ).toBe(false);
-    expect(summaryCard.hidden).toBe(false);
-    expect(summaryCard.querySelector(".products-preview__title")?.textContent).toBe(
-      "Итого",
-    );
+    expect(summaryCard.hidden).toBe(true);
     expect(
       Array.from(preview.querySelectorAll(".products-preview__title")).map(
         (el) => el.textContent,
       ),
-    ).toEqual(["Тесто", "Магазин"]);
+    ).toEqual(["Тесто", "Магазин", "Итого"]);
     expect(
       wrapper.querySelector("#products-meta-sections")?.textContent,
     ).toBe("Разделов: 2");
@@ -75,10 +75,43 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-meta-summary")?.textContent).toBe(
       "Итого включено",
     );
+    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
+      "Зелень скрыта",
+    );
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(false);
+    expect(preview.querySelectorAll(".products-section-copy").length).toBe(3);
   });
 
-  test("hides the summary card when the checkbox is disabled and copies raw output", async () => {
+  test("appends the greens summary block when the optional toggle is enabled", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    const greensToggle = wrapper.querySelector("#products-greens-toggle");
+
+    textarea.value = `Тесто
+Укроп 2 пуч.
+ПетрушкаЦ 1 пуч.
+
+Магазин
+Укроп 20
+Банан`;
+    greensToggle.checked = true;
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
+      "Зелень включена",
+    );
+    expect(
+      Array.from(
+        wrapper.querySelector("#products-preview")?.querySelectorAll(
+          ".products-preview__title",
+        ) || [],
+      ).map((el) => el.textContent),
+    ).toEqual(["Тесто", "Магазин", "Итого", "Зелень"]);
+  });
+
+  test("omits summary from the preview flow when the checkbox is disabled and copies raw output", async () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -103,13 +136,16 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-meta-summary")?.textContent).toBe(
       "Итого скрыто",
     );
+    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
+      "Зелень скрыта",
+    );
 
     copyButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
 Лук 1`);
-    expect(copyButton.textContent).toContain("Скопировано");
+    expect(copyButton.getAttribute("title")).toBe("Скопировано");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Результат скопирован.",
     );
@@ -178,6 +214,59 @@ describe("productFormatterView", () => {
 
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Не удалось скопировать результат.",
+    );
+  });
+
+  test("copies an individual section from its local action", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Тесто
+Лук 1
+
+Магазин
+Банан`;
+    wrapper.querySelector("#products-format").click();
+
+    const firstSectionCopy = wrapper.querySelector(".products-section-copy");
+    firstSectionCopy.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
+Лук 1`);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Раздел скопирован.",
+    );
+  });
+
+  test("renders diagnostics and highlights uncertain normalized lines", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector('[data-ui="products-diagnostics"]')?.hidden).toBe(
+      false,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).toContain("объединены дубли");
+    expect(
+      wrapper.querySelector('[data-ui="products-diff-panel"]')?.textContent,
+    ).toContain("ПетрушкаЦ 2 пуч");
+    expect(
+      wrapper.querySelectorAll(".products-preview__item--uncertain").length,
+    ).toBeGreaterThan(0);
+    expect(wrapper.querySelector(".products-preview__badge")?.textContent).toBe(
+      "Проверить",
     );
   });
 });

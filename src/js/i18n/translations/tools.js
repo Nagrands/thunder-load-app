@@ -7,6 +7,7 @@ export const toolsTranslations = {
     "productsFormatter.inputPlaceholder":
       "Вставьте неструктурированный список продуктов с разделами и позициями.",
     "productsFormatter.summaryToggle": "Добавить Итого",
+    "productsFormatter.greensToggle": "Добавить зелень",
     "productsFormatter.format": "Форматировать",
     "productsFormatter.paste": "Вставить",
     "productsFormatter.clear": "Очистить",
@@ -18,14 +19,29 @@ export const toolsTranslations = {
       "Здесь появится готовый список по разделам и сводный блок «Итого».",
     "productsFormatter.unsorted": "Без раздела",
     "productsFormatter.summaryTitle": "Итого",
+    "productsFormatter.greensTitle": "Зелень",
+    "productsFormatter.uncertain": "Проверить",
+    "productsFormatter.diagnostics.issues": "Предупреждения",
+    "productsFormatter.diagnostics.diff": "Нормализация",
+    "productsFormatter.issue.ambiguousUnitAssumedKg":
+      "«{source}» интерпретировано как «{output}».",
+    "productsFormatter.issue.duplicateMerged":
+      "В разделе «{section}» объединены дубли: {name}.",
+    "productsFormatter.issue.storeQuantityIgnored":
+      "В разделе «{section}» число в строке «{source}» проигнорировано.",
+    "productsFormatter.issue.typoCorrected":
+      "«{source}» нормализовано как «{name}».",
     "productsFormatter.meta.sections": "Разделов: {count}",
     "productsFormatter.meta.items": "Позиций: {count}",
     "productsFormatter.meta.summaryOn": "Итого включено",
     "productsFormatter.meta.summaryOff": "Итого скрыто",
+    "productsFormatter.meta.greensOn": "Зелень включена",
+    "productsFormatter.meta.greensOff": "Зелень скрыта",
     "productsFormatter.status.empty":
       "Вставьте список продуктов перед форматированием.",
     "productsFormatter.status.formatted": "Список подготовлен.",
     "productsFormatter.status.copied": "Результат скопирован.",
+    "productsFormatter.status.sectionCopied": "Раздел скопирован.",
     "productsFormatter.status.pasted": "Текст вставлен из буфера обмена.",
     "productsFormatter.status.pasteEmpty": "Буфер обмена пуст.",
     "productsFormatter.status.pasteError":
@@ -768,6 +784,7 @@ export const toolsTranslations = {
     "productsFormatter.inputPlaceholder":
       "Paste an unstructured product list with section headers and items.",
     "productsFormatter.summaryToggle": "Include summary",
+    "productsFormatter.greensToggle": "Include greens",
     "productsFormatter.format": "Format",
     "productsFormatter.paste": "Paste",
     "productsFormatter.clear": "Clear",
@@ -779,14 +796,29 @@ export const toolsTranslations = {
       "The formatted sections and optional summary will appear here.",
     "productsFormatter.unsorted": "Unsorted",
     "productsFormatter.summaryTitle": "Summary",
+    "productsFormatter.greensTitle": "Greens",
+    "productsFormatter.uncertain": "Check",
+    "productsFormatter.diagnostics.issues": "Warnings",
+    "productsFormatter.diagnostics.diff": "Normalization",
+    "productsFormatter.issue.ambiguousUnitAssumedKg":
+      "\"{source}\" was interpreted as \"{output}\".",
+    "productsFormatter.issue.duplicateMerged":
+      "Duplicates were merged in \"{section}\": {name}.",
+    "productsFormatter.issue.storeQuantityIgnored":
+      "The number in \"{source}\" was ignored in \"{section}\".",
+    "productsFormatter.issue.typoCorrected":
+      "\"{source}\" was normalized as \"{name}\".",
     "productsFormatter.meta.sections": "Sections: {count}",
     "productsFormatter.meta.items": "Items: {count}",
     "productsFormatter.meta.summaryOn": "Summary on",
     "productsFormatter.meta.summaryOff": "Summary off",
+    "productsFormatter.meta.greensOn": "Greens on",
+    "productsFormatter.meta.greensOff": "Greens off",
     "productsFormatter.status.empty":
       "Paste a product list before formatting.",
     "productsFormatter.status.formatted": "The list is ready.",
     "productsFormatter.status.copied": "The result was copied.",
+    "productsFormatter.status.sectionCopied": "Section copied.",
     "productsFormatter.status.pasted": "Text was pasted from the clipboard.",
     "productsFormatter.status.pasteEmpty": "The clipboard is empty.",
     "productsFormatter.status.pasteError":

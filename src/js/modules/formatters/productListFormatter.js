@@ -1,5 +1,6 @@
 const DEFAULT_LABELS = Object.freeze({
   summary: "Итого",
+  greens: "Зелень",
   unsorted: "Без раздела",
 });
 
@@ -212,16 +213,6 @@ function fixKnownTypos(lookupKey = "") {
   return "";
 }
 
-function canonicalizeDisplayName(name = "") {
-  const lookupKey = normalizeLookupKey(name);
-  if (!lookupKey) return "";
-  if (lookupKey.includes("черри")) return "Помидор черри";
-  if (REPLACEMENTS[lookupKey]) return REPLACEMENTS[lookupKey];
-  const typoFixed = fixKnownTypos(lookupKey);
-  if (typoFixed) return typoFixed;
-  return sentenceCase(lookupKey);
-}
-
 function hasGreeneryMarker(name = "") {
   const lookupKey = normalizeLookupKey(name);
   return GREENERY_PATTERNS.some((pattern) =>
@@ -251,6 +242,9 @@ function createItem(displayName = "", starred = false) {
       crate: 0,
     },
     hasNameOnly: false,
+    uncertain: false,
+    uncertainReasons: new Set(),
+    rawEntries: [],
   };
 }
 
@@ -263,65 +257,188 @@ function addUnit(item, unitKey, quantity) {
   item.units[unitKey] += quantity;
 }
 
-function addParsedEntry(targetMap, rawEntry, sectionTitle) {
-  const parsed = parseQuantity(rawEntry);
-  const displayName = canonicalizeDisplayName(parsed.name);
+function createDiagnosticsBucket() {
+  return {
+    issues: [],
+    diffEntries: [],
+    issueKeys: new Set(),
+  };
+}
+
+function pushIssue(diagnostics, issue) {
+  if (!diagnostics || !issue?.code) return;
+  const key = [
+    issue.code,
+    issue.sectionTitle || "",
+    issue.displayName || "",
+    issue.source || "",
+  ].join("::");
+  if (diagnostics.issueKeys.has(key)) return;
+  diagnostics.issueKeys.add(key);
+  diagnostics.issues.push(issue);
+}
+
+function analyzeDisplayName(name = "") {
+  const lookupKey = normalizeLookupKey(name);
+  if (!lookupKey) {
+    return {
+      displayName: "",
+      typoCorrected: false,
+    };
+  }
+
+  if (lookupKey.includes("черри")) {
+    return {
+      displayName: "Помидор черри",
+      typoCorrected: false,
+    };
+  }
+
+  if (REPLACEMENTS[lookupKey]) {
+    return {
+      displayName: REPLACEMENTS[lookupKey],
+      typoCorrected: false,
+    };
+  }
+
+  const typoFixed = fixKnownTypos(lookupKey);
+  if (typoFixed) {
+    return {
+      displayName: typoFixed,
+      typoCorrected: true,
+    };
+  }
+
+  return {
+    displayName: sentenceCase(lookupKey),
+    typoCorrected: false,
+  };
+}
+
+function resolveParsedEntry(rawEntry, sectionTitle) {
+  const source = cleanupEntryText(rawEntry);
+  const parsed = parseQuantity(source);
+  const nameMeta = analyzeDisplayName(parsed.name);
+  const displayName = nameMeta.displayName;
   if (!displayName) return;
 
   const starred =
     String(rawEntry || "").includes("⁕") || hasGreeneryMarker(displayName);
-  const key = normalizeLookupKey(displayName);
-  const current = targetMap.get(key) || createItem(displayName, starred);
-  current.displayName = displayName;
-  current.starred = current.starred || starred;
+  const item = createItem(displayName, starred);
+  const issues = [];
 
   const normalizedUnit = normalizeUnit(parsed.unit);
   const inStore = isStoreSection(sectionTitle);
   const quantity = parsed.quantity;
 
   if (!Number.isFinite(quantity)) {
-    current.hasNameOnly = true;
-    targetMap.set(key, current);
-    return;
-  }
-
-  if (normalizedUnit === "g") {
-    addUnit(current, "kg", quantity / 1000);
-    targetMap.set(key, current);
-    return;
-  }
-
-  if (normalizedUnit) {
-    addUnit(current, normalizedUnit, quantity);
-    targetMap.set(key, current);
-    return;
-  }
-
-  if (!inStore) {
-    addUnit(current, "kg", quantity);
-    targetMap.set(key, current);
-    return;
-  }
-
-  if (current.starred) {
-    addUnit(current, "bunch", quantity);
-    targetMap.set(key, current);
-    return;
-  }
-
-  if (isStoreBagName(displayName)) {
+    item.hasNameOnly = true;
+  } else if (normalizedUnit === "g") {
+    addUnit(item, "kg", quantity / 1000);
+  } else if (normalizedUnit) {
+    addUnit(item, normalizedUnit, quantity);
+  } else if (!inStore) {
+    addUnit(item, "kg", quantity);
+    item.uncertain = true;
+    item.uncertainReasons.add("ambiguousUnitAssumedKg");
+    issues.push({
+      code: "ambiguousUnitAssumedKg",
+      sectionTitle,
+      displayName,
+      source,
+      output: formatSectionLine(item),
+    });
+  } else if (item.starred) {
+    addUnit(item, "bunch", quantity);
+  } else if (isStoreBagName(displayName)) {
     const isWholeNumber = Number.isInteger(quantity);
     if (isWholeNumber && quantity >= 1 && quantity <= 10) {
-      addUnit(current, "bag", quantity);
+      addUnit(item, "bag", quantity);
     } else {
-      addUnit(current, "kg", quantity);
+      addUnit(item, "kg", quantity);
     }
-    targetMap.set(key, current);
-    return;
+  } else {
+    item.hasNameOnly = true;
+    item.uncertain = true;
+    item.uncertainReasons.add("storeQuantityIgnored");
+    issues.push({
+      code: "storeQuantityIgnored",
+      sectionTitle,
+      displayName,
+      source,
+      output: formatSectionLine(item),
+    });
   }
 
-  current.hasNameOnly = true;
-  targetMap.set(key, current);
+  if (nameMeta.typoCorrected) {
+    item.uncertain = true;
+    item.uncertainReasons.add("typoCorrected");
+    issues.push({
+      code: "typoCorrected",
+      sectionTitle,
+      displayName,
+      source,
+      output: formatSectionLine(item),
+    });
+  }
+
+  const output = formatSectionLine(item);
+  return {
+    key: item.key,
+    item,
+    source,
+    output,
+    changed: source !== output,
+    issues,
+  };
+}
+
+function addParsedEntry(targetMap, rawEntry, sectionTitle, diagnostics) {
+  const resolved = resolveParsedEntry(rawEntry, sectionTitle);
+  if (!resolved) return;
+
+  const current = targetMap.get(resolved.key) || createItem(resolved.item.displayName, resolved.item.starred);
+  const existed = targetMap.has(resolved.key);
+  current.displayName = resolved.item.displayName;
+  current.starred = current.starred || resolved.item.starred;
+  current.hasNameOnly = current.hasNameOnly || resolved.item.hasNameOnly;
+  current.uncertain = current.uncertain || resolved.item.uncertain;
+  resolved.item.rawEntries.forEach((entry) => current.rawEntries.push(entry));
+  current.rawEntries.push(resolved.source);
+  resolved.item.uncertainReasons.forEach((reason) =>
+    current.uncertainReasons.add(reason),
+  );
+  Object.keys(current.units).forEach((unitKey) => {
+    current.units[unitKey] += resolved.item.units[unitKey] || 0;
+  });
+
+  if (existed) {
+    current.uncertain = true;
+    current.uncertainReasons.add("duplicateMerged");
+    pushIssue(diagnostics, {
+      code: "duplicateMerged",
+      sectionTitle,
+      displayName: current.displayName,
+      source: resolved.source,
+      output: formatSectionLine(current),
+    });
+  }
+
+  resolved.issues.forEach((issue) => {
+    pushIssue(diagnostics, issue);
+  });
+
+  if (diagnostics && (resolved.changed || resolved.item.uncertain)) {
+    diagnostics.diffEntries.push({
+      sectionTitle,
+      source: resolved.source,
+      output: resolved.output,
+      uncertain: resolved.item.uncertain,
+      issueCodes: resolved.issues.map((issue) => issue.code),
+    });
+  }
+
+  targetMap.set(resolved.key, current);
 }
 
 function formatUnitsForSection(item) {
@@ -383,6 +500,9 @@ function buildSectionContract(section) {
       starred: item.starred,
       hasNameOnly: item.hasNameOnly,
       units: cloneUnits(item.units),
+      uncertain: item.uncertain,
+      uncertainReasons: Array.from(item.uncertainReasons),
+      sourceEntries: item.rawEntries.slice(),
       line,
       text: line,
     };
@@ -429,26 +549,97 @@ function buildSummaryContract(summary) {
   };
 }
 
+function buildAggregateSummary(sections, labels, options = {}) {
+  const { includeItem = () => true, summaryKey = "summary" } = options;
+  const summaryMap = new Map();
+
+  sections.forEach((section) => {
+    section.items.forEach((item) => {
+      if (!includeItem(item, section)) return;
+      const key = item.key;
+      const summaryItem = summaryMap.get(key) || {
+        key,
+        displayName: item.displayName,
+        units: {
+          kg: 0,
+          pcs: 0,
+          bunch: 0,
+          head: 0,
+          pack: 0,
+          bag: 0,
+          crate: 0,
+        },
+        hasNameOnly: false,
+        sources: new Set(),
+      };
+
+      summaryItem.sources.add(section.title);
+      summaryItem.hasNameOnly = summaryItem.hasNameOnly || item.hasNameOnly;
+      Object.keys(summaryItem.units).forEach((unitKey) => {
+        summaryItem.units[unitKey] += item.units[unitKey] || 0;
+      });
+
+      if (isStoreSection(section.title) && !hasMeasuredUnits(item)) {
+        summaryItem.units.crate += 1;
+      }
+
+      summaryMap.set(key, summaryItem);
+    });
+  });
+
+  const items = Array.from(summaryMap.values()).sort((left, right) =>
+    sortByRuAlpha(left.displayName, right.displayName),
+  );
+  if (!items.length) return null;
+  const lines = items.map(formatSummaryLine);
+
+  return {
+    name: labels[summaryKey],
+    title: labels[summaryKey],
+    items,
+    lines,
+  };
+}
+
 function buildProductListContract(input = "", options = {}) {
   const labels = {
     ...DEFAULT_LABELS,
     ...(options.labels || {}),
   };
   const includeSummary = options.includeSummary !== false;
-  const internalSections = collectSections(input, labels);
+  const includeGreensSummary = options.includeGreensSummary === true;
+  const diagnostics = createDiagnosticsBucket();
+  const internalSections = collectSections(input, labels, diagnostics);
   const sections = internalSections.map(buildSectionContract);
   const internalSummary = includeSummary
-    ? buildSummary(internalSections, labels)
+    ? buildAggregateSummary(internalSections, labels, {
+        includeItem: (item) => !item.starred,
+        summaryKey: "summary",
+      })
     : null;
   const summary = internalSummary
     ? buildSummaryContract(internalSummary)
+    : null;
+  const internalGreensSummary = includeGreensSummary
+    ? buildAggregateSummary(internalSections, labels, {
+        includeItem: (item) => item.starred,
+        summaryKey: "greens",
+      })
+    : null;
+  const greensSummary = internalGreensSummary
+    ? buildSummaryContract(internalGreensSummary)
     : null;
   const formattedSectionsText = sections
     .map((section) => section.text)
     .join("\n\n")
     .trim();
   const formattedSummaryText = summary ? summary.text : "";
-  const fullOutputText = [formattedSectionsText, formattedSummaryText]
+  const formattedGreensSummaryText = greensSummary ? greensSummary.text : "";
+  const fullOutputText = [
+    formattedSectionsText,
+    formattedSummaryText,
+    formattedGreensSummaryText,
+  ]
     .filter(Boolean)
     .join("\n\n")
     .trim();
@@ -456,10 +647,13 @@ function buildProductListContract(input = "", options = {}) {
   return {
     sections,
     summary,
+    greensSummary,
     formattedSectionsText,
     formattedSummaryText,
+    formattedGreensSummaryText,
     fullOutputText,
-    issues: [],
+    issues: diagnostics.issues,
+    diffEntries: diagnostics.diffEntries,
   };
 }
 
@@ -467,7 +661,7 @@ function sortByRuAlpha(a, b) {
   return String(a).localeCompare(String(b), "ru", { sensitivity: "base" });
 }
 
-function collectSections(input = "", labels = DEFAULT_LABELS) {
+function collectSections(input = "", labels = DEFAULT_LABELS, diagnostics) {
   const rawLines = String(input || "").split("\n");
   const sections = [];
   let currentSection = null;
@@ -509,7 +703,12 @@ function collectSections(input = "", labels = DEFAULT_LABELS) {
     }
 
     splitEntryCandidates(line).forEach((entry) =>
-      addParsedEntry(currentSection.itemsMap, entry, currentSection.title),
+      addParsedEntry(
+        currentSection.itemsMap,
+        entry,
+        currentSection.title,
+        diagnostics,
+      ),
     );
     previousBlank = false;
   });
@@ -526,56 +725,6 @@ function collectSections(input = "", labels = DEFAULT_LABELS) {
       lines,
     };
   });
-}
-
-function buildSummary(sections, labels = DEFAULT_LABELS) {
-  const summaryMap = new Map();
-
-  sections.forEach((section) => {
-    section.items.forEach((item) => {
-      if (item.starred) return;
-      const key = item.key;
-      const summaryItem = summaryMap.get(key) || {
-        key,
-        displayName: item.displayName,
-        units: {
-          kg: 0,
-          pcs: 0,
-          bunch: 0,
-          head: 0,
-          pack: 0,
-          bag: 0,
-          crate: 0,
-        },
-        hasNameOnly: false,
-        sources: new Set(),
-      };
-
-      summaryItem.sources.add(section.title);
-      summaryItem.hasNameOnly = summaryItem.hasNameOnly || item.hasNameOnly;
-      Object.keys(summaryItem.units).forEach((unitKey) => {
-        summaryItem.units[unitKey] += item.units[unitKey] || 0;
-      });
-
-      if (isStoreSection(section.title) && !hasMeasuredUnits(item)) {
-        summaryItem.units.crate += 1;
-      }
-
-      summaryMap.set(key, summaryItem);
-    });
-  });
-
-  const items = Array.from(summaryMap.values()).sort((left, right) =>
-    sortByRuAlpha(left.displayName, right.displayName),
-  );
-  const lines = items.map(formatSummaryLine);
-
-  return {
-    name: labels.summary,
-    title: labels.summary,
-    items,
-    lines,
-  };
 }
 
 export function parseProductList(input = "", options = {}) {
