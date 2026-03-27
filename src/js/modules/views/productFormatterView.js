@@ -31,6 +31,15 @@ const DEMO_INPUT = `Витамин
 Лук Марс
 ПетрушкаЦ 15`;
 
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  '[href]',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
 function fallbackCopyText(value = "") {
   const textarea = document.createElement("textarea");
   textarea.value = String(value || "");
@@ -154,6 +163,8 @@ function buildMarkup() {
                 id="products-dictionary-toggle"
                 type="button"
                 class="small-button products-utility-button products-utility-button--icon"
+                aria-expanded="false"
+                aria-controls="products-dictionary-layer"
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
                 title="${t("productsFormatter.dictionaryTitle")}"
@@ -166,46 +177,57 @@ function buildMarkup() {
             </div>
 
             <div
-              id="products-dictionary-panel"
-              class="products-dictionary"
+              id="products-dictionary-layer"
+              class="products-dictionary-layer"
               data-ui="products-dictionary"
               hidden
             >
-              <div class="products-dictionary__header">
-                <span
-                  class="products-dictionary__title"
-                  data-i18n="productsFormatter.dictionaryTitle"
-                >${t("productsFormatter.dictionaryTitle")}</span>
-                <button
-                  id="products-dictionary-close"
-                  type="button"
-                  class="small-button products-icon-button products-dictionary__close"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="top"
-                  title="${t("productsFormatter.closeDictionary")}"
-                  data-i18n-title="productsFormatter.closeDictionary"
-                  aria-label="${t("productsFormatter.closeDictionary")}"
-                  data-i18n-aria="productsFormatter.closeDictionary"
-                >
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </div>
-              <div class="products-dictionary__body">
-                <textarea
-                  id="products-dictionary-input"
-                  class="products-dictionary__textarea"
-                  data-i18n-placeholder="productsFormatter.dictionaryPlaceholder"
-                  placeholder="${t("productsFormatter.dictionaryPlaceholder")}"
-                  spellcheck="false"
-                ></textarea>
-                <div class="products-dictionary__actions">
+              <div class="products-dictionary__backdrop" data-ui="products-dictionary-backdrop"></div>
+              <div
+                id="products-dictionary-panel"
+                class="products-dictionary"
+                data-ui="products-dictionary-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="products-dictionary-title"
+              >
+                <div class="products-dictionary__header">
+                  <span
+                    id="products-dictionary-title"
+                    class="products-dictionary__title"
+                    data-i18n="productsFormatter.dictionaryTitle"
+                  >${t("productsFormatter.dictionaryTitle")}</span>
                   <button
-                    id="products-dictionary-reset"
+                    id="products-dictionary-close"
                     type="button"
-                    class="small-button products-dictionary__reset"
+                    class="small-button products-icon-button products-dictionary__close"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="${t("productsFormatter.closeDictionary")}"
+                    data-i18n-title="productsFormatter.closeDictionary"
+                    aria-label="${t("productsFormatter.closeDictionary")}"
+                    data-i18n-aria="productsFormatter.closeDictionary"
                   >
-                    <span data-i18n="productsFormatter.dictionaryReset">${t("productsFormatter.dictionaryReset")}</span>
+                    <i class="fa-solid fa-xmark"></i>
                   </button>
+                </div>
+                <div class="products-dictionary__body">
+                  <textarea
+                    id="products-dictionary-input"
+                    class="products-dictionary__textarea"
+                    data-i18n-placeholder="productsFormatter.dictionaryPlaceholder"
+                    placeholder="${t("productsFormatter.dictionaryPlaceholder")}"
+                    spellcheck="false"
+                  ></textarea>
+                  <div class="products-dictionary__actions">
+                    <button
+                      id="products-dictionary-reset"
+                      type="button"
+                      class="small-button products-dictionary__reset"
+                    >
+                      <span data-i18n="productsFormatter.dictionaryReset">${t("productsFormatter.dictionaryReset")}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -849,6 +871,31 @@ function setCopyButtonState(copyButton, mode = "idle") {
   copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
 }
 
+function getFocusableElements(container) {
+  if (!container) return [];
+  return Array.from(
+    container.querySelectorAll(FOCUSABLE_SELECTOR),
+  ).filter(
+    (element) =>
+      element instanceof HTMLElement &&
+      !element.hidden &&
+      !element.closest("[hidden]"),
+  );
+}
+
+function buildFormatterOptions(includeSummary, includeGreensSummary, dictionaryInput) {
+  return {
+    includeSummary: includeSummary?.checked !== false,
+    includeGreensSummary: includeGreensSummary?.checked === true,
+    replacements: parseProductFormatterDictionary(dictionaryInput?.value || ""),
+    labels: {
+      summary: t("productsFormatter.summaryTitle"),
+      greens: t("productsFormatter.greensTitle"),
+      unsorted: t("productsFormatter.unsorted"),
+    },
+  };
+}
+
 export default function renderProductFormatterView(wrapper) {
   if (!wrapper) return wrapper;
 
@@ -868,7 +915,11 @@ export default function renderProductFormatterView(wrapper) {
   const dictionaryToggleButton = wrapper.querySelector(
     "#products-dictionary-toggle",
   );
+  const dictionaryLayer = wrapper.querySelector("#products-dictionary-layer");
   const dictionaryPanel = wrapper.querySelector("#products-dictionary-panel");
+  const dictionaryBackdrop = wrapper.querySelector(
+    '[data-ui="products-dictionary-backdrop"]',
+  );
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
   const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
   const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
@@ -901,6 +952,7 @@ export default function renderProductFormatterView(wrapper) {
       currentResult: null,
       collapsedSections: {},
       dictionaryOpen: false,
+      dictionaryReturnFocus: null,
     });
 
   const setStatus = (message = "", tone = "") => {
@@ -910,9 +962,15 @@ export default function renderProductFormatterView(wrapper) {
     else delete status.dataset.tone;
   };
 
+  const getCurrentSource = () => String(input?.value || "").trim();
+
   const syncDictionaryPanel = () => {
-    if (!dictionaryPanel) return;
-    dictionaryPanel.hidden = !state.dictionaryOpen;
+    if (!dictionaryLayer || !dictionaryPanel) return;
+    dictionaryLayer.hidden = !state.dictionaryOpen;
+    dictionaryPanel.setAttribute(
+      "aria-hidden",
+      state.dictionaryOpen ? "false" : "true",
+    );
     if (dictionaryToggleButton) {
       dictionaryToggleButton.setAttribute(
         "aria-expanded",
@@ -921,6 +979,7 @@ export default function renderProductFormatterView(wrapper) {
     }
     if (state.dictionaryOpen) {
       initTooltips(wrapper);
+      dictionaryInput?.focus();
     }
   };
 
@@ -930,7 +989,7 @@ export default function renderProductFormatterView(wrapper) {
     state.copyFeedbackTimer = null;
   };
 
-  const resetPreview = () => {
+  const resetPreview = ({ resetComparison = false } = {}) => {
     state.copiedText = "";
     state.hasResult = false;
     clearCopyFeedbackTimer();
@@ -951,6 +1010,33 @@ export default function renderProductFormatterView(wrapper) {
       copyButton.disabled = true;
       setCopyButtonState(copyButton, "idle");
     }
+    if (resetComparison) {
+      state.previousResult = null;
+      state.currentResult = null;
+      state.collapsedSections = {};
+    }
+  };
+
+  const closeDictionaryPanel = ({ restoreFocus = true } = {}) => {
+    if (!state.dictionaryOpen) return;
+    state.dictionaryOpen = false;
+    syncDictionaryPanel();
+    if (restoreFocus) {
+      const focusTarget = state.dictionaryReturnFocus || dictionaryToggleButton;
+      if (focusTarget instanceof HTMLElement) {
+        focusTarget.focus();
+      }
+    }
+    state.dictionaryReturnFocus = null;
+  };
+
+  const openDictionaryPanel = () => {
+    state.dictionaryReturnFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : dictionaryToggleButton;
+    state.dictionaryOpen = true;
+    syncDictionaryPanel();
   };
 
   const updateMetrics = (result) => {
@@ -1018,6 +1104,36 @@ export default function renderProductFormatterView(wrapper) {
       copyButton.disabled = !state.hasResult;
       setCopyButtonState(copyButton, state.hasResult ? "ready" : "idle");
     }
+    initTooltips(wrapper);
+  };
+
+  const formatSource = ({
+    source = getCurrentSource(),
+    statusMessage = t("productsFormatter.status.formatted"),
+    comparisonBase = state.currentResult,
+  } = {}) => {
+    if (!source) {
+      resetPreview();
+      setStatus(t("productsFormatter.status.empty"), "warning");
+      return null;
+    }
+
+    const result = formatProductLists(
+      source,
+      buildFormatterOptions(
+        includeSummary,
+        includeGreensSummary,
+        dictionaryInput,
+      ),
+    );
+
+    state.previousResult = comparisonBase;
+    state.currentResult = result;
+    showResult(result);
+    if (statusMessage) {
+      setStatus(statusMessage, "success");
+    }
+    return result;
   };
 
   if (!wrapper.__productsFormatterBound) {
@@ -1029,48 +1145,53 @@ export default function renderProductFormatterView(wrapper) {
     }
 
     dictionaryToggleButton?.addEventListener("click", () => {
-      state.dictionaryOpen = !state.dictionaryOpen;
-      syncDictionaryPanel();
+      if (state.dictionaryOpen) {
+        closeDictionaryPanel();
+        return;
+      }
+      openDictionaryPanel();
     });
 
     dictionaryCloseButton?.addEventListener("click", () => {
-      state.dictionaryOpen = false;
-      syncDictionaryPanel();
+      closeDictionaryPanel();
     });
 
-    formatButton?.addEventListener("click", () => {
-      const source = String(input?.value || "").trim();
-      if (!source) {
-        resetPreview();
-        setStatus(t("productsFormatter.status.empty"), "warning");
+    dictionaryBackdrop?.addEventListener("click", () => {
+      closeDictionaryPanel();
+    });
+
+    dictionaryPanel?.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDictionaryPanel();
         return;
       }
 
-      const currentResult = state.currentResult;
-      const result = formatProductLists(source, {
-        includeSummary: includeSummary?.checked !== false,
-        includeGreensSummary: includeGreensSummary?.checked === true,
-        replacements: parseProductFormatterDictionary(
-          dictionaryInput?.value || "",
-        ),
-        labels: {
-          summary: t("productsFormatter.summaryTitle"),
-          greens: t("productsFormatter.greensTitle"),
-          unsorted: t("productsFormatter.unsorted"),
-        },
-      });
+      if (event.key !== "Tab") return;
 
-      state.previousResult = currentResult;
-      state.currentResult = result;
-      showResult(result);
-      setStatus(t("productsFormatter.status.formatted"), "success");
+      const focusable = getFocusableElements(dictionaryPanel);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    formatButton?.addEventListener("click", () => {
+      formatSource();
     });
 
     pasteButton?.addEventListener("click", async () => {
       try {
         const text = await navigator.clipboard?.readText?.();
         if (!text) {
-          resetPreview();
+          resetPreview({ resetComparison: true });
           input.value = "";
           input.focus();
           setStatus(t("productsFormatter.status.pasteEmpty"), "warning");
@@ -1078,7 +1199,7 @@ export default function renderProductFormatterView(wrapper) {
         }
         input.value = text;
         input.focus();
-        resetPreview();
+        resetPreview({ resetComparison: true });
         setStatus(t("productsFormatter.status.pasted"), "success");
       } catch {
         setStatus(t("productsFormatter.status.pasteError"), "error");
@@ -1088,14 +1209,14 @@ export default function renderProductFormatterView(wrapper) {
     clearButton?.addEventListener("click", () => {
       input.value = "";
       input.focus();
-      resetPreview();
+      resetPreview({ resetComparison: true });
       setStatus(t("productsFormatter.status.cleared"));
     });
 
     demoButton?.addEventListener("click", () => {
       input.value = DEMO_INPUT;
       input.focus();
-      resetPreview();
+      resetPreview({ resetComparison: true });
       setStatus(t("productsFormatter.status.demoLoaded"), "success");
     });
 
@@ -1125,9 +1246,27 @@ export default function renderProductFormatterView(wrapper) {
 
     input?.addEventListener("input", () => {
       if (String(input.value || "").trim()) return;
-      resetPreview();
+      resetPreview({ resetComparison: true });
       setStatus("", "");
     });
+
+    const handleToggleReformat = () => {
+      const source = getCurrentSource();
+      if (!source || !state.currentResult) return;
+      const result = formatProductLists(
+        source,
+        buildFormatterOptions(
+          includeSummary,
+          includeGreensSummary,
+          dictionaryInput,
+        ),
+      );
+      state.currentResult = result;
+      showResult(result);
+    };
+
+    includeSummary?.addEventListener("change", handleToggleReformat);
+    includeGreensSummary?.addEventListener("change", handleToggleReformat);
 
     input?.addEventListener("keydown", (event) => {
       if (event.key !== "Enter") return;

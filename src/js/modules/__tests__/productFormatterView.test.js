@@ -51,9 +51,16 @@ describe("productFormatterView", () => {
         ?.closest(".products-formatter-toggle")
         ?.getAttribute("title"),
     ).toBe("Добавляет только отдельный блок «Зелень».");
-    expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
+    expect(
+      wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
+    ).toBe(
       true,
     );
+    expect(
+      wrapper.querySelector("#products-dictionary-toggle")?.getAttribute(
+        "aria-expanded",
+      ),
+    ).toBe("false");
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
     expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
       false,
@@ -149,6 +156,41 @@ describe("productFormatterView", () => {
     ).toEqual(["Тесто", "Магазин", "Итого", "Зелень"]);
   });
 
+  test("reformats the preview immediately when toggles change after formatting", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Тесто
+Укроп 2 пуч.
+
+Магазин
+Банан`;
+    wrapper.querySelector("#products-format").click();
+
+    const summaryToggle = wrapper.querySelector("#products-summary-toggle");
+    const greensToggle = wrapper.querySelector("#products-greens-toggle");
+    const previewTitles = () =>
+      Array.from(wrapper.querySelectorAll(".products-preview__title")).map(
+        (el) => el.textContent,
+      );
+
+    expect(previewTitles()).toEqual(["Тесто", "Магазин", "Итого"]);
+
+    greensToggle.checked = true;
+    greensToggle.dispatchEvent(new Event("change"));
+    expect(previewTitles()).toEqual(["Тесто", "Магазин", "Итого", "Зелень"]);
+
+    summaryToggle.checked = false;
+    summaryToggle.dispatchEvent(new Event("change"));
+    expect(previewTitles()).toEqual(["Тесто", "Магазин", "Зелень"]);
+    expect(wrapper.querySelector("#products-meta-summary")?.textContent).toBe(
+      "Итого скрыто",
+    );
+    expect(wrapper.querySelector("#products-meta-greens")?.textContent).toBe(
+      "Зелень включена",
+    );
+  });
+
   test("omits summary from the preview flow when the checkbox is disabled and copies raw output", async () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
@@ -216,6 +258,12 @@ describe("productFormatterView", () => {
       false,
     );
 
+    input.value = "Тесто\nЛук 2";
+    formatButton.click();
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+
     clearButton.click();
     expect(input.value).toBe("");
     expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
@@ -229,6 +277,9 @@ describe("productFormatterView", () => {
     );
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
     expect(status.textContent).toBe("Поле очищено.");
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(true);
   });
 
   test("surfaces clipboard errors through the inline status channel", async () => {
@@ -397,9 +448,15 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-dictionary-toggle").click();
-    expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
-      false,
+    const dictionaryToggle = wrapper.querySelector("#products-dictionary-toggle");
+    dictionaryToggle.focus();
+    dictionaryToggle.click();
+    expect(
+      wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
+    ).toBe(false);
+    expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(document.activeElement).toBe(
+      wrapper.querySelector("#products-dictionary-input"),
     );
     wrapper.querySelector("#products-dictionary-input").value =
       "батат = Картофель сладкий";
@@ -426,8 +483,83 @@ describe("productFormatterView", () => {
       "Картофель сладкий 3",
     );
     wrapper.querySelector("#products-dictionary-close").click();
-    expect(wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden).toBe(
+    expect(
+      wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
+    ).toBe(
       true,
     );
+    expect(document.activeElement).toBe(dictionaryToggle);
+  });
+
+  test("closes the dictionary via escape and backdrop and traps focus while open", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const dictionaryToggle = wrapper.querySelector("#products-dictionary-toggle");
+    const dictionaryLayer = wrapper.querySelector('[data-ui="products-dictionary"]');
+    const dictionaryPanel = wrapper.querySelector("#products-dictionary-panel");
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const dictionaryClose = wrapper.querySelector("#products-dictionary-close");
+    const dictionaryReset = wrapper.querySelector("#products-dictionary-reset");
+    const backdrop = wrapper.querySelector('[data-ui="products-dictionary-backdrop"]');
+
+    dictionaryToggle.focus();
+    dictionaryToggle.click();
+    expect(dictionaryLayer?.hidden).toBe(false);
+    expect(document.activeElement).toBe(dictionaryInput);
+
+    dictionaryReset.focus();
+    dictionaryPanel.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(dictionaryClose);
+
+    dictionaryClose.focus();
+    dictionaryPanel.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        shiftKey: true,
+        bubbles: true,
+      }),
+    );
+    expect(document.activeElement).toBe(dictionaryReset);
+
+    dictionaryPanel.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    expect(dictionaryLayer?.hidden).toBe(true);
+    expect(document.activeElement).toBe(dictionaryToggle);
+
+    dictionaryToggle.click();
+    backdrop.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(dictionaryLayer?.hidden).toBe(true);
+  });
+
+  test("resets comparison history after paste and demo actions", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = "Тесто\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+    wrapper.querySelector("#products-input").value = "Тесто\nЛук 2";
+    wrapper.querySelector("#products-format").click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+
+    navigator.clipboard.readText.mockResolvedValueOnce("Тесто\nЛук 4");
+    wrapper.querySelector("#products-paste").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    wrapper.querySelector("#products-format").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(true);
+
+    wrapper.querySelector("#products-demo").click();
+    wrapper.querySelector("#products-format").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(true);
   });
 });
