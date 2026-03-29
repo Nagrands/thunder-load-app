@@ -11,8 +11,12 @@ export function createEntryNormalizer({
   normalizeUnit,
   parseQuantity,
   sentenceCase,
+  shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
+  shouldHidePiecesUnitInSection,
+  shouldTreatPackAsCrate,
   shouldTreatPackAsPieces,
+  shouldTreatUnitlessQuantityAsPieces,
   addUnit,
 }) {
   function createDiagnosticsBucket() {
@@ -59,6 +63,13 @@ export function createEntryNormalizer({
       };
     }
 
+    if (lookupKey.startsWith("капуста мол")) {
+      return {
+        displayName: "Капуста молодая",
+        typoCorrected: false,
+      };
+    }
+
     const typoFixed = fixKnownTypos(lookupKey);
     if (typoFixed) {
       return {
@@ -94,8 +105,15 @@ export function createEntryNormalizer({
     } else if (normalizedUnit === "g") {
       const normalizedQuantity = quantity < 1 ? quantity : quantity / 1000;
       addUnit(item, "kg", normalizedQuantity);
+    } else if (
+      normalizedUnit === "head" &&
+      shouldConvertHeadToPieces(displayName)
+    ) {
+      addUnit(item, "pcs", quantity);
     } else if (normalizedUnit) {
-      if (normalizedUnit === "pack" && shouldTreatPackAsPieces(displayName)) {
+      if (normalizedUnit === "pack" && shouldTreatPackAsCrate(displayName)) {
+        addUnit(item, "crate", quantity);
+      } else if (normalizedUnit === "pack" && shouldTreatPackAsPieces(displayName)) {
         addUnit(item, "pcs", quantity);
       } else if (
         normalizedUnit === "kg" &&
@@ -104,9 +122,15 @@ export function createEntryNormalizer({
         addUnit(item, "bunch", Math.round(quantity / 0.05));
       } else {
         addUnit(item, normalizedUnit, quantity);
+        if (normalizedUnit === "pcs" && shouldHidePiecesUnitInSection(displayName)) {
+          item.hidePcsUnitInSection = true;
+        }
       }
     } else if (!inStore) {
-      if (shouldConvertSmallGreeneryKgToBunch(displayName, quantity)) {
+      if (shouldTreatUnitlessQuantityAsPieces(displayName)) {
+        addUnit(item, "pcs", quantity);
+        item.hidePcsUnitInSection = shouldHidePiecesUnitInSection(displayName);
+      } else if (shouldConvertSmallGreeneryKgToBunch(displayName, quantity)) {
         addUnit(item, "bunch", Math.round(quantity / 0.05));
       } else {
         addUnit(item, "kg", quantity);
@@ -120,6 +144,9 @@ export function createEntryNormalizer({
           output: formatSectionLine(item),
         });
       }
+    } else if (shouldTreatUnitlessQuantityAsPieces(displayName)) {
+      addUnit(item, "pcs", quantity);
+      item.hidePcsUnitInSection = shouldHidePiecesUnitInSection(displayName);
     } else if (item.starred) {
       addUnit(item, "bunch", quantity);
     } else if (isStoreBagName(displayName)) {
@@ -193,6 +220,8 @@ export function createEntryNormalizer({
     current.starred = current.starred || resolved.item.starred;
     current.hasNameOnly = current.hasNameOnly || resolved.item.hasNameOnly;
     current.uncertain = current.uncertain || resolved.item.uncertain;
+    current.hidePcsUnitInSection =
+      current.hidePcsUnitInSection || resolved.item.hidePcsUnitInSection;
     resolved.item.rawEntries.forEach((entry) => current.rawEntries.push(entry));
     current.rawEntries.push(resolved.source);
     resolved.item.uncertainReasons.forEach((reason) =>

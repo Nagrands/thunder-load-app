@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The Products tab formatter now parses noisy procurement lists more accurately | It now recognizes headings like `Рыба бар в 10`, messy quantities and units such as `0,500-гр`, `3-кг`, `2ящ`, and `1 ведро`, adds broader produce, greens, and store aliases, and brings the final formatted list much closer to the intended working output on complex mixed examples |
 | The Products tab now lets the dev dictionary clear broken lines on its own | The dictionary panel now adds a `Clear errors` action that removes only obviously invalid rules while leaving conflicts, overrides, and no-op rules in place for deliberate manual review |
 | The Products tab now adds quick jumps for problematic dev dictionary rules | The dictionary panel now shows compact `Errors`, `Conflicts`, `No-op`, and `Overrides` chips only when needed, and each one jumps the cursor straight to the first matching line so you no longer have to hunt through the textarea manually |
 | The Products tab now makes the dev dictionary easier to edit | The dictionary panel now includes short rule examples and a live preview tied to the current cursor line, so you can immediately see how the key is normalized, which replacement will apply, and whether a rule is broken, no-op, conflicting, or overriding a built-in mapping |

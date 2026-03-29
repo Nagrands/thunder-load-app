@@ -210,7 +210,7 @@ describe("productFormatterView", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
-Лук 1`);
+Лук репчатый 1`);
     expect(copyButton.getAttribute("title")).toBe("Скопировано");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Результат скопирован.",
@@ -396,7 +396,7 @@ describe("productFormatterView", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
-Лук 1`);
+Лук репчатый 1`);
     expect(firstSectionCopy.getAttribute("title")).toBe("Скопировано");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Раздел скопирован.",
@@ -639,7 +639,7 @@ describe("productFormatterView", () => {
     wrapper.querySelector("#products-apply-input").click();
 
     expect(textarea.value).toBe(`Тесто
-Лук 1
+Лук репчатый 1
 Петрушка⁕ 2п`);
     expect(
       wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,

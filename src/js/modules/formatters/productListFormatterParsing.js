@@ -1,8 +1,12 @@
 export const QUANTITY_RE =
-  "(\\d+(?:\\.\\d+)?)\\s*(кг|килограмм(?:а|ов)?|к|гр|грамм(?:а|ов)?|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|головка|головки|пака|пач|пачка|пачки)?";
+  "(\\d+(?:\\.\\d+)?)\\s*(кг|килограмм(?:а|ов)?|к|гр|грамм(?:а|ов)?|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|голова|головы|голов|головка|головки|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)?";
 
 const PREFIX_QUANTITY_RE = new RegExp(`^${QUANTITY_RE}\\s+(.+)$`, "i");
 const SUFFIX_QUANTITY_RE = new RegExp(`^(.+?)\\s+${QUANTITY_RE}$`, "i");
+const INFIX_QUANTITY_RE = new RegExp(
+  `^(.+?)\\s+${QUANTITY_RE}(?:\\s+(.+))?$`,
+  "i",
+);
 
 export function normalizeWhitespace(value = "") {
   return String(value || "")
@@ -16,11 +20,17 @@ export function normalizeWhitespace(value = "") {
 export function cleanupEntryText(value = "") {
   return normalizeWhitespace(
     String(value || "")
+      .replace(/(^|[\s-])[оО](?=[.,]\d)/g, "$10")
       .replace(/(\d),(\d)/g, "$1.$2")
+      .replace(/(\d)\s+(\d{3})(?=\s*(кг|гр|г)\b)/gi, "$1.$2")
       .replace(/([A-Za-zА-Яа-яЁё⁕])\s*-\s*(?=\d)/g, "$1 ")
       .replace(/(^|\s)-\s*(?=\d)/g, "$1")
+      .replace(/(\d)\s*-\s*(?=[A-Za-zА-Яа-яЁё⁕]+)/g, "$1 ")
+      .replace(/(\d)\s*-\s*(?=(кг|гр|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|головы|голов|головка|головки|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\b)/gi, "$1 ")
       .replace(/(^|\s)пол\s+пака(?=\s|$)/gi, "$10.5 пака")
-      .replace(/\b(кг|гр|г|шт|пуч|гол|пака|пач|пачка|пачки)\./gi, "$1")
+      .replace(/\bмед\s+(\d+(?:[.,]\d+)?)\s*бан(?:ка|ки)?\b/gi, "мед $1")
+      .replace(/\bсред\s+на\s+голубцы\b/gi, "")
+      .replace(/\b(кг|гр|г|шт|пуч|гол|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\./gi, "$1")
       .replace(/(\d)([A-Za-zА-Яа-яЁё⁕]+)/g, "$1 $2")
       .replace(/([A-Za-zА-Яа-яЁё⁕])(\d)/g, "$1 $2")
       .replace(/[,:;]+$/g, "")
@@ -70,8 +80,9 @@ export function looksLikeIngredient(value = "") {
 }
 
 export function normalizeSectionTitle(value = "") {
-  const normalized = normalizeLookupKey(value);
+  const normalized = normalizeLookupKey(value).replace(/\s+в\s+\d{1,2}\s*$/, "");
   if (!normalized) return "";
+  if (normalized === "рыба горького") return "Рыба Горького";
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
@@ -80,9 +91,12 @@ export function isLikelySectionHeading(line, nextLine, context = {}) {
   if (!normalized) return false;
   if (!(context.afterBlank || context.atStart)) return false;
   if (!nextLine) return false;
-  const lookup = normalizeLookupKey(normalized);
+  const lookup = normalizeLookupKey(normalized).replace(/\s+в\s+\d{1,2}\s*$/, "");
   if (lookup === "магазин") return true;
-  if (/[\d]/.test(normalized) || /[,;:]/.test(normalized)) return false;
+  if (/[,;:]/.test(normalized)) return false;
+  if (/[\d]/.test(normalized) && !/\s+в\s+\d{1,2}\s*$/i.test(normalized)) {
+    return false;
+  }
   if (normalized.split(/\s+/).length > 4) return false;
   return looksLikeIngredient(nextLine);
 }
@@ -109,6 +123,17 @@ export function parseQuantity(line = "") {
     };
   }
 
+  match = cleaned.match(INFIX_QUANTITY_RE);
+  if (match) {
+    const before = cleanupEntryText(match[1]);
+    const after = cleanupEntryText(match[4] || "");
+    return {
+      name: cleanupEntryText([before, after].filter(Boolean).join(" ")),
+      quantity: Number(match[2]),
+      unit: cleanupEntryText(match[3] || ""),
+    };
+  }
+
   return { name: cleaned, quantity: null, unit: "" };
 }
 
@@ -120,7 +145,11 @@ export function normalizeUnit(unit = "") {
   if (["гр", "грамм", "грамма", "граммов", "г"].includes(value)) return "g";
   if (["шт", "штук", "штуки"].includes(value)) return "pcs";
   if (["пуч", "пучок", "пучка", "п"].includes(value)) return "bunch";
-  if (["гол", "головка", "головки"].includes(value)) return "head";
-  if (["пака", "пач", "пачка", "пачки"].includes(value)) return "pack";
+  if (["гол", "голова", "головы", "голов", "головка", "головки"].includes(value))
+    return "head";
+  if (["пака", "пак", "пач", "пачка", "пачки"].includes(value)) return "pack";
+  if (["ящ", "ящик", "ящика"].includes(value)) return "crate";
+  if (["м"].includes(value)) return "bag";
+  if (["ведро", "ведра", "в"].includes(value)) return "bucket";
   return "";
 }
