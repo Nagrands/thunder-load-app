@@ -20,8 +20,10 @@ export function normalizeWhitespace(value = "") {
 export function cleanupEntryText(value = "") {
   return normalizeWhitespace(
     String(value || "")
+      .replace(/([а-яё])([А-ЯЁ])/g, "$1 $2")
       .replace(/(^|[\s-])[оО](?=[.,]\d)/g, "$10")
       .replace(/(\d),(\d)/g, "$1.$2")
+      .replace(/(\d):(\d)/g, "$1.$2")
       .replace(/(\d)\s+(\d{3})(?=\s*(кг|гр|г)\b)/gi, "$1.$2")
       .replace(/([A-Za-zА-Яа-яЁё⁕])\s*-\s*(?=\d)/g, "$1 ")
       .replace(/(^|\s)-\s*(?=\d)/g, "$1")
@@ -80,9 +82,14 @@ export function looksLikeIngredient(value = "") {
 }
 
 export function normalizeSectionTitle(value = "") {
-  const normalized = normalizeLookupKey(value).replace(/\s+в\s+\d{1,2}\s*$/, "");
+  const cleaned = cleanupEntryText(value).replace(/\s+в\s+\d{1,2}\s*$/i, "");
+  const normalized = normalizeLookupKey(cleaned).replace(/\s+в\s+\d{1,2}\s*$/, "");
   if (!normalized) return "";
   if (normalized === "рыба горького") return "Рыба Горького";
+  const hasLetters = /[A-Za-zА-Яа-яЁё]/.test(cleaned);
+  if (hasLetters && cleaned === cleaned.toUpperCase()) {
+    return normalized.toUpperCase();
+  }
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
@@ -103,7 +110,7 @@ export function isLikelySectionHeading(line, nextLine, context = {}) {
 
 export function parseQuantity(line = "") {
   const cleaned = cleanupEntryText(line);
-  if (!cleaned) return { name: "", quantity: null, unit: "" };
+  if (!cleaned) return { name: "", quantity: null, unit: "", tail: "" };
 
   let match = cleaned.match(SUFFIX_QUANTITY_RE);
   if (match) {
@@ -111,6 +118,7 @@ export function parseQuantity(line = "") {
       name: cleanupEntryText(match[1]),
       quantity: Number(match[2]),
       unit: cleanupEntryText(match[3] || ""),
+      tail: "",
     };
   }
 
@@ -120,6 +128,7 @@ export function parseQuantity(line = "") {
       name: cleanupEntryText(match[4]),
       quantity: Number(match[1]),
       unit: cleanupEntryText(match[2] || ""),
+      tail: "",
     };
   }
 
@@ -128,13 +137,14 @@ export function parseQuantity(line = "") {
     const before = cleanupEntryText(match[1]);
     const after = cleanupEntryText(match[4] || "");
     return {
-      name: cleanupEntryText([before, after].filter(Boolean).join(" ")),
+      name: before,
       quantity: Number(match[2]),
       unit: cleanupEntryText(match[3] || ""),
+      tail: after,
     };
   }
 
-  return { name: cleaned, quantity: null, unit: "" };
+  return { name: cleaned, quantity: null, unit: "", tail: "" };
 }
 
 export function normalizeUnit(unit = "") {

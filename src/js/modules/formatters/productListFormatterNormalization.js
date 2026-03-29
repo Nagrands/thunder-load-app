@@ -11,6 +11,7 @@ export function createEntryNormalizer({
   normalizeUnit,
   parseQuantity,
   sentenceCase,
+  buildSectionQualifier,
   shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
   shouldHidePiecesUnitInSection,
@@ -40,8 +41,15 @@ export function createEntryNormalizer({
     diagnostics.issues.push(issue);
   }
 
+  function expandCommonLookupVariants(lookupKey = "") {
+    return normalizeLookupKey(lookupKey)
+      .replace(/\bзел\b/g, "зеленый")
+      .replace(/\bкр\b/g, "красный");
+  }
+
   function analyzeDisplayName(name = "", replacements = defaultReplacements) {
     const lookupKey = normalizeLookupKey(name);
+    const expandedLookupKey = expandCommonLookupVariants(lookupKey);
     if (!lookupKey) {
       return {
         displayName: "",
@@ -63,6 +71,13 @@ export function createEntryNormalizer({
       };
     }
 
+    if (expandedLookupKey && replacements[expandedLookupKey]) {
+      return {
+        displayName: replacements[expandedLookupKey],
+        typoCorrected: false,
+      };
+    }
+
     if (lookupKey.startsWith("капуста мол")) {
       return {
         displayName: "Капуста молодая",
@@ -79,7 +94,7 @@ export function createEntryNormalizer({
     }
 
     return {
-      displayName: sentenceCase(lookupKey),
+      displayName: sentenceCase(expandedLookupKey || lookupKey),
       typoCorrected: false,
     };
   }
@@ -87,13 +102,28 @@ export function createEntryNormalizer({
   function resolveParsedEntry(rawEntry, sectionTitle, replacements) {
     const source = cleanupEntryText(rawEntry);
     const parsed = parseQuantity(source);
-    const nameMeta = analyzeDisplayName(parsed.name, replacements);
+    const sectionQualifier = buildSectionQualifier(parsed.tail);
+    const effectiveName = sectionQualifier
+      ? parsed.name
+      : cleanupEntryText([parsed.name, parsed.tail].filter(Boolean).join(" "));
+    const nameMeta = analyzeDisplayName(effectiveName, replacements);
     const displayName = nameMeta.displayName;
     if (!displayName) return null;
+    if (
+      !Number.isFinite(parsed.quantity) &&
+      displayName === "Латук" &&
+      normalizeLookupKey(source) === "лист салата"
+    ) {
+      return null;
+    }
 
     const starred =
       String(rawEntry || "").includes("⁕") || hasGreeneryMarker(displayName);
     const item = createItem(displayName, starred);
+    item.sectionQualifier = sectionQualifier;
+    if (item.sectionQualifier) {
+      item.key = `${item.key}::${normalizeLookupKey(item.sectionQualifier)}`;
+    }
     const issues = [];
 
     const normalizedUnit = normalizeUnit(parsed.unit);
@@ -222,6 +252,8 @@ export function createEntryNormalizer({
     current.uncertain = current.uncertain || resolved.item.uncertain;
     current.hidePcsUnitInSection =
       current.hidePcsUnitInSection || resolved.item.hidePcsUnitInSection;
+    current.sectionQualifier =
+      current.sectionQualifier || resolved.item.sectionQualifier;
     resolved.item.rawEntries.forEach((entry) => current.rawEntries.push(entry));
     current.rawEntries.push(resolved.source);
     resolved.item.uncertainReasons.forEach((reason) =>

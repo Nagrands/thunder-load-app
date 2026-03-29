@@ -61,6 +61,12 @@ describe("productFormatterView", () => {
         "aria-expanded",
       ),
     ).toBe("false");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      false,
+    );
+    expect(wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden).toBe(
+      false,
+    );
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
     expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
       false,
@@ -424,7 +430,7 @@ describe("productFormatterView", () => {
     ).toContain("объединены дубли");
     expect(
       wrapper.querySelector('[data-ui="products-diff-panel"]')?.textContent,
-    ).toContain("ПетрушкаЦ 2 пуч");
+    ).toContain("Петрушка Ц 2 пуч");
     expect(wrapper.querySelector("#products-diff-list")?.hidden).toBe(true);
     expect(
       wrapper.querySelectorAll(".products-preview__item--uncertain").length,
@@ -612,7 +618,7 @@ describe("productFormatterView", () => {
       wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
     ).not.toContain("объединены дубли");
     expect(wrapper.querySelector("#products-diff-list")?.textContent).toContain(
-      "ПетрушкаЦ 2 пуч",
+      "Петрушка Ц 2 пуч",
     );
 
     wrapper.querySelector('.products-diagnostics__filter[data-filter="duplicates"]').click();
@@ -713,7 +719,13 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
     ).toBe(false);
+    expect(wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden).toBe(
+      true,
+    );
     expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      true,
+    );
     expect(document.activeElement).toBe(
       wrapper.querySelector("#products-dictionary-input"),
     );
@@ -750,7 +762,12 @@ describe("productFormatterView", () => {
     ).toBe(
       true,
     );
-    expect(document.activeElement).toBe(dictionaryToggle);
+    expect(wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden).toBe(
+      false,
+    );
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Картофель сладкий 3",
+    );
   });
 
   test("shows dictionary validation when malformed rules are entered", () => {
@@ -938,48 +955,65 @@ describe("productFormatterView", () => {
     expect(cleanInvalidButton.disabled).toBe(true);
   });
 
-  test("closes the dictionary via escape and backdrop and traps focus while open", () => {
+  test("toggles the dictionary as a sidebar and closes it via the close button", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
     const dictionaryToggle = wrapper.querySelector("#products-dictionary-toggle");
     const dictionaryLayer = wrapper.querySelector('[data-ui="products-dictionary"]');
-    const dictionaryPanel = wrapper.querySelector("#products-dictionary-panel");
+    const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
     const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
     const dictionaryClose = wrapper.querySelector("#products-dictionary-close");
-    const dictionaryReset = wrapper.querySelector("#products-dictionary-reset");
-    const backdrop = wrapper.querySelector('[data-ui="products-dictionary-backdrop"]');
 
     dictionaryToggle.focus();
     dictionaryToggle.click();
     expect(dictionaryLayer?.hidden).toBe(false);
+    expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      true,
+    );
+    expect(resultPane?.hidden).toBe(true);
     expect(document.activeElement).toBe(dictionaryInput);
+    expect(wrapper.querySelector('[data-ui="products-dictionary-backdrop"]')).toBeNull();
 
-    dictionaryReset.focus();
-    dictionaryPanel.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
-    );
-    expect(document.activeElement).toBe(dictionaryClose);
-
-    dictionaryClose.focus();
-    dictionaryPanel.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "Tab",
-        shiftKey: true,
-        bubbles: true,
-      }),
-    );
-    expect(document.activeElement).toBe(dictionaryReset);
-
-    dictionaryPanel.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-    );
+    dictionaryClose.click();
     expect(dictionaryLayer?.hidden).toBe(true);
-    expect(document.activeElement).toBe(dictionaryToggle);
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      false,
+    );
+    expect(resultPane?.hidden).toBe(false);
 
     dictionaryToggle.click();
-    backdrop.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(dictionaryLayer?.hidden).toBe(false);
+    expect(resultPane?.hidden).toBe(true);
+    dictionaryToggle.click();
     expect(dictionaryLayer?.hidden).toBe(true);
+    expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("false");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      false,
+    );
+    expect(resultPane?.hidden).toBe(false);
+  });
+
+  test("preserves formatted result while the result pane is hidden by the dictionary", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = "Тесто\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+
+    const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
+    wrapper.querySelector("#products-dictionary-toggle").click();
+
+    expect(resultPane?.hidden).toBe(true);
+    expect(wrapper.querySelector("#products-copy")?.disabled).toBe(false);
+
+    wrapper.querySelector("#products-dictionary-close").click();
+
+    expect(resultPane?.hidden).toBe(false);
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Лук репчатый 1",
+    );
   });
 
   test("resets comparison history after paste and demo actions", async () => {

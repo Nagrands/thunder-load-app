@@ -112,42 +112,86 @@ export function buildMarkup() {
               </button>
             </div>
 
-            <div
-              id="products-dictionary-layer"
-              class="products-dictionary-layer"
-              data-ui="products-dictionary"
-              hidden
-            >
-              <div class="products-dictionary__backdrop" data-ui="products-dictionary-backdrop"></div>
+            <div class="products-pane__body products-pane__body--editor">
+              <div class="products-editor-layout" data-ui="products-editor-layout">
+                <div class="products-editor-main" data-ui="products-editor-main">
+                  <textarea
+                    id="products-input"
+                    class="products-formatter-textarea"
+                    data-i18n-placeholder="productsFormatter.inputPlaceholder"
+                    placeholder="${t("productsFormatter.inputPlaceholder")}"
+                    aria-label="${t("productsFormatter.inputLabel")}"
+                    data-i18n-aria="productsFormatter.inputLabel"
+                    spellcheck="false"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <footer class="products-pane__footer products-pane__footer--action">
               <div
-                id="products-dictionary-panel"
-                class="products-dictionary"
-                data-ui="products-dictionary-panel"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="products-dictionary-title"
+                id="products-dirty-state"
+                class="products-dirty-state"
+                data-ui="products-dirty-state"
+                hidden
               >
-                <div class="products-dictionary__header">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span
+                  id="products-dirty-text"
+                  data-i18n="productsFormatter.staleBanner"
+                >${t("productsFormatter.staleBanner")}</span>
+              </div>
+              <button
+                id="products-format"
+                type="button"
+                class="large-button products-format-button"
+              >
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span data-i18n="productsFormatter.format">${t("productsFormatter.format")}</span>
+              </button>
+            </footer>
+          </section>
+
+          <aside
+            id="products-dictionary-layer"
+            class="products-dictionary-layer products-pane wg-glass"
+            data-ui="products-dictionary"
+            aria-labelledby="products-dictionary-title"
+            hidden
+          >
+            <div
+              id="products-dictionary-panel"
+              class="products-dictionary"
+              data-ui="products-dictionary-panel"
+            >
+              <div class="products-dictionary__header">
+                <div class="products-dictionary__header-copy">
                   <span
                     id="products-dictionary-title"
                     class="products-dictionary__title"
                     data-i18n="productsFormatter.dictionaryTitle"
                   >${t("productsFormatter.dictionaryTitle")}</span>
-                  <button
-                    id="products-dictionary-close"
-                    type="button"
-                    class="small-button products-icon-button products-dictionary__close"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="${t("productsFormatter.closeDictionary")}"
-                    data-i18n-title="productsFormatter.closeDictionary"
-                    aria-label="${t("productsFormatter.closeDictionary")}"
-                    data-i18n-aria="productsFormatter.closeDictionary"
-                  >
-                    <i class="fa-solid fa-xmark"></i>
-                  </button>
+                  <div
+                    class="products-dictionary__hint"
+                    data-i18n="productsFormatter.dictionaryHint"
+                  >${t("productsFormatter.dictionaryHint")}</div>
                 </div>
-                <div class="products-dictionary__body">
+                <button
+                  id="products-dictionary-close"
+                  type="button"
+                  class="small-button products-icon-button products-dictionary__close"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="${t("productsFormatter.closeDictionary")}"
+                  data-i18n-title="productsFormatter.closeDictionary"
+                  aria-label="${t("productsFormatter.closeDictionary")}"
+                  data-i18n-aria="productsFormatter.closeDictionary"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <div class="products-dictionary__body">
+                <div class="products-dictionary__editor">
                   <textarea
                     id="products-dictionary-input"
                     class="products-dictionary__textarea"
@@ -155,21 +199,8 @@ export function buildMarkup() {
                     placeholder="${t("productsFormatter.dictionaryPlaceholder")}"
                     spellcheck="false"
                   ></textarea>
-                  <div
-                    class="products-dictionary__hint"
-                    data-i18n="productsFormatter.dictionaryHint"
-                  >${t("productsFormatter.dictionaryHint")}</div>
-                  <div
-                    class="products-dictionary__examples"
-                    data-ui="products-dictionary-examples"
-                  >
-                    <div class="products-dictionary__examples-title" data-i18n="productsFormatter.dictionaryExamplesTitle">${t("productsFormatter.dictionaryExamplesTitle")}</div>
-                    <div class="products-dictionary__examples-list">
-                      <span class="products-dictionary__example">батат = Картофель сладкий</span>
-                      <span class="products-dictionary__example">лук зел = Лук зеленый</span>
-                      <span class="products-dictionary__example">черри = Помидор Черри</span>
-                    </div>
-                  </div>
+                </div>
+                <div class="products-dictionary__support">
                   <div
                     id="products-dictionary-preview"
                     class="products-dictionary__preview"
@@ -208,45 +239,21 @@ export function buildMarkup() {
                       </button>
                     </div>
                   </div>
+                  <div
+                    class="products-dictionary__examples"
+                    data-ui="products-dictionary-examples"
+                  >
+                    <div class="products-dictionary__examples-title" data-i18n="productsFormatter.dictionaryExamplesTitle">${t("productsFormatter.dictionaryExamplesTitle")}</div>
+                    <div class="products-dictionary__examples-list">
+                      <span class="products-dictionary__example">батат = Картофель сладкий</span>
+                      <span class="products-dictionary__example">лук зел = Лук зеленый</span>
+                      <span class="products-dictionary__example">черри = Помидор Черри</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div class="products-pane__body products-pane__body--editor">
-              <textarea
-                id="products-input"
-                class="products-formatter-textarea"
-                data-i18n-placeholder="productsFormatter.inputPlaceholder"
-                placeholder="${t("productsFormatter.inputPlaceholder")}"
-                aria-label="${t("productsFormatter.inputLabel")}"
-                data-i18n-aria="productsFormatter.inputLabel"
-                spellcheck="false"
-              ></textarea>
-            </div>
-
-            <footer class="products-pane__footer products-pane__footer--action">
-              <div
-                id="products-dirty-state"
-                class="products-dirty-state"
-                data-ui="products-dirty-state"
-                hidden
-              >
-                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                <span
-                  id="products-dirty-text"
-                  data-i18n="productsFormatter.staleBanner"
-                >${t("productsFormatter.staleBanner")}</span>
-              </div>
-              <button
-                id="products-format"
-                type="button"
-                class="large-button products-format-button"
-              >
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span data-i18n="productsFormatter.format">${t("productsFormatter.format")}</span>
-              </button>
-            </footer>
-          </section>
+          </aside>
 
           <section class="products-pane products-pane--result wg-glass" data-ui="products-result-pane">
             <header class="products-pane__header products-pane__header--result">

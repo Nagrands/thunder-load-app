@@ -80,6 +80,34 @@ export function shouldConvertHeadToPieces(name = "") {
   return lookupKey === "салат айсберг";
 }
 
+export function buildSectionQualifier(tail = "") {
+  const lookupKey = normalizeLookupKey(tail);
+  if (!lookupKey) return "";
+
+  if (["сред", "средний", "средняя", "среднее"].includes(lookupKey)) {
+    return "(сред.)";
+  }
+
+  const tokens = lookupKey.split(/\s+/).filter(Boolean);
+  const qualifierMap = new Map([
+    ["зел", "(зеленый)"],
+    ["зеленый", "(зеленый)"],
+    ["зелёный", "(зеленый)"],
+    ["кр", "(красный)"],
+    ["красный", "(красный)"],
+    ["круп", "(крупный)"],
+    ["крупный", "(крупный)"],
+  ]);
+
+  for (const token of tokens) {
+    if (qualifierMap.has(token)) {
+      return qualifierMap.get(token) || "";
+    }
+  }
+
+  return "";
+}
+
 export function createItem(displayName = "", starred = false) {
   return {
     key: normalizeLookupKey(displayName),
@@ -93,11 +121,12 @@ export function createItem(displayName = "", starred = false) {
       pack: 0,
       bag: 0,
       crate: 0,
-      bucket: 0,
+    bucket: 0,
     },
     hasNameOnly: false,
     uncertain: false,
     hidePcsUnitInSection: false,
+    sectionQualifier: "",
     uncertainReasons: new Set(),
     rawEntries: [],
   };

@@ -30,6 +30,14 @@
     min-height: 280px;
   }
 
+  .products-editor-layout {
+    display: flex;
+  }
+
+  .products-editor-main {
+    min-height: 280px;
+  }
+
   .products-pane__body--result {
     min-height: 300px;
   }
@@ -87,7 +95,23 @@
   }
 
   .products-dictionary {
-    inset: 122px 18px 92px 18px;
+    min-height: 320px;
+  }
+
+  .products-dictionary-layer {
+    min-height: 320px;
+  }
+
+  .products-view--dictionary-open .products-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .products-dictionary__textarea {
+    min-height: 200px;
+  }
+
+  .products-dictionary__actions {
+    gap: 10px;
   }
 
   .products-formatter-empty {

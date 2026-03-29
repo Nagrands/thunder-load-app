@@ -89,6 +89,10 @@
   overflow: hidden;
 }
 
+.products-view--dictionary-open .products-workbench {
+  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
+}
+
 .products-pane {
   height: 100%;
   max-height: 100%;
@@ -103,7 +107,6 @@
 
 .products-pane--input {
   grid-template-rows: auto auto minmax(0, 1fr) auto;
-  position: relative;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(5, 8, 16, 0.16)),
     rgba(9, 12, 22, 0.42);
@@ -161,6 +164,22 @@
 .products-pane__body--editor {
   min-height: 0;
   overflow: hidden;
+  display: flex;
+}
+
+.products-editor-layout {
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+.products-editor-main {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  display: grid;
 }
 
 .products-pane__body--result {
@@ -168,6 +187,10 @@
   overflow: auto;
   padding-right: 4px;
   overscroll-behavior: contain;
+}
+
+.products-pane--result[hidden] {
+  display: none !important;
 }
 
 .products-pane__footer {
@@ -250,9 +273,9 @@
 }
 
 .products-dictionary-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .products-dictionary-layer[hidden] {

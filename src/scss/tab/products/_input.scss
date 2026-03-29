@@ -1,82 +1,103 @@
-.products-dictionary__backdrop {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: rgba(3, 6, 12, 0.54);
-  backdrop-filter: blur(3px);
+.products-dictionary-layer {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .products-dictionary {
-  position: absolute;
-  inset: 132px 18px 86px 18px;
-  z-index: 3;
+  min-height: 0;
+  height: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.08), rgba(4, 8, 14, 0.16)),
-    rgba(10, 14, 26, 0.96);
-  box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  overflow: hidden;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: clip;
 }
 
 .products-dictionary__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.products-dictionary__header-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
 }
 
 .products-dictionary__title {
   color: var(--color-highlight);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
 }
 
 .products-dictionary__body {
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 16px;
+  min-height: 0;
+  padding: 14px 14px 16px;
+}
+
+.products-dictionary__editor,
+.products-dictionary__support {
+  display: grid;
   gap: 10px;
   min-height: 0;
-  padding: 14px;
+}
+
+.products-dictionary__editor {
+  align-content: stretch;
 }
 
 .products-dictionary__hint {
   color: var(--color-quality);
-  font-size: 0.79rem;
+  font-size: 0.77rem;
   line-height: 1.4;
 }
 
 .products-dictionary__examples,
 .products-dictionary__preview {
   display: grid;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 11px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(4, 8, 14, 0.08)),
+    rgba(255, 255, 255, 0.02);
 }
 
 .products-dictionary__examples-title,
 .products-dictionary__preview-title {
-  color: var(--color-highlight);
-  font-size: 0.78rem;
+  color: rgba(var(--color-accent-rgb), 0.9);
+  font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .products-dictionary__examples-list {
   display: grid;
-  gap: 6px;
+  gap: 4px;
+}
+
+.products-dictionary__support {
+  align-content: start;
 }
 
 .products-dictionary__summary {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding-top: 2px;
 }
 
 .products-dictionary__summary[hidden] {
@@ -89,10 +110,11 @@
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.035);
-  color: var(--color-quality);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-highlight);
   font-size: 0.76rem;
+  font-weight: 600;
   line-height: 1;
   transition:
     border-color 0.2s ease,
@@ -121,9 +143,22 @@
   word-break: break-word;
 }
 
+.products-dictionary__preview-body {
+  font-family:
+    ui-monospace,
+    "SFMono-Regular",
+    "SF Mono",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
+}
+
 .products-dictionary__preview[data-tone="warning"] {
-  border-color: rgba(255, 184, 77, 0.18);
-  background: rgba(255, 184, 77, 0.06);
+  border-color: rgba(255, 184, 77, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 184, 77, 0.08), rgba(255, 184, 77, 0.03)),
+    rgba(255, 184, 77, 0.03);
 }
 
 .products-dictionary__textarea {
@@ -133,11 +168,21 @@
   resize: none;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(4, 8, 14, 0.08)),
+    rgba(0, 0, 0, 0.16);
   color: var(--color-highlight);
-  padding: 12px 14px;
+  padding: 13px 14px;
   line-height: 1.45;
-  font-size: 0.87rem;
+  font-size: 0.84rem;
+  font-family:
+    ui-monospace,
+    "SFMono-Regular",
+    "SF Mono",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
   outline: none;
   transition:
     border-color 0.2s ease,
@@ -155,16 +200,16 @@
 }
 
 .products-dictionary__actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  align-content: start;
 }
 
 .products-dictionary__buttons {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -172,9 +217,25 @@
   color: var(--color-quality);
   font-size: 0.8rem;
   line-height: 1.35;
+  min-height: 34px;
 
   &[data-tone="warning"] {
     color: var(--color-toast-warning);
+  }
+}
+
+.products-view--dictionary-open {
+  .products-formatter-textarea,
+  .products-dictionary__textarea {
+    min-height: 0;
+  }
+
+  .products-dictionary__preview {
+    min-height: 0;
+  }
+
+  .products-dictionary__examples {
+    opacity: 0.82;
   }
 }
 

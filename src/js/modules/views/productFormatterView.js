@@ -12,7 +12,6 @@ import { initTooltips } from "../tooltipInitializer.js";
 import {
   buildComparison,
   copyText,
-  getFocusableElements,
 } from "./products/viewHelpers.js";
 import {
   renderComparison,
@@ -83,9 +82,6 @@ export default function renderProductFormatterView(wrapper) {
   );
   const dictionaryLayer = wrapper.querySelector("#products-dictionary-layer");
   const dictionaryPanel = wrapper.querySelector("#products-dictionary-panel");
-  const dictionaryBackdrop = wrapper.querySelector(
-    '[data-ui="products-dictionary-backdrop"]',
-  );
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
   const dictionaryMeta = wrapper.querySelector("#products-dictionary-meta");
   const dictionaryPreview = wrapper.querySelector("#products-dictionary-preview");
@@ -101,6 +97,7 @@ export default function renderProductFormatterView(wrapper) {
   const copyButton = wrapper.querySelector("#products-copy");
   const searchInput = wrapper.querySelector("#products-search");
   const resultToolbar = wrapper.querySelector('[data-ui="products-result-toolbar"]');
+  const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
   const resultContent = wrapper.querySelector("#products-result-content");
@@ -136,7 +133,6 @@ export default function renderProductFormatterView(wrapper) {
       currentResult: null,
       collapsedSections: {},
       dictionaryOpen: false,
-      dictionaryReturnFocus: null,
       sectionCopyFeedbackTimer: null,
       isDirty: false,
       showOnlyUncertain: false,
@@ -257,6 +253,7 @@ export default function renderProductFormatterView(wrapper) {
     dictionaryLayer,
     dictionaryPanel,
     dictionaryToggleButton,
+    resultPane,
     copyButton,
     resultToolbar,
     preview,
@@ -323,8 +320,6 @@ export default function renderProductFormatterView(wrapper) {
     clearButton,
     demoButton,
     dictionaryToggleButton,
-    dictionaryPanel,
-    dictionaryBackdrop,
     dictionaryInput,
     dictionarySummary,
     dictionaryCleanInvalidButton,
@@ -352,7 +347,6 @@ export default function renderProductFormatterView(wrapper) {
     formatProductLists,
     formatSource,
     getCurrentSource,
-    getFocusableElements,
     loadProductFormatterDictionary,
     openDictionaryPanel,
     removeInvalidProductFormatterDictionaryLines,

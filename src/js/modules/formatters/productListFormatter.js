@@ -28,8 +28,13 @@ import {
   fixKnownTypos,
   hasGreeneryMarker,
   isStoreBagName,
+  buildSectionQualifier,
+  shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
+  shouldHidePiecesUnitInSection,
+  shouldTreatPackAsCrate,
   shouldTreatPackAsPieces,
+  shouldTreatUnitlessQuantityAsPieces,
 } from "./productListFormatterRules.js";
 
 const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
@@ -46,13 +51,26 @@ const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
   parseQuantity,
   sentenceCase,
   addUnit,
+  buildSectionQualifier,
+  shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
+  shouldHidePiecesUnitInSection,
+  shouldTreatPackAsCrate,
   shouldTreatPackAsPieces,
+  shouldTreatUnitlessQuantityAsPieces,
 });
 
 function isGroupedChildSection(title = "") {
   const lookup = normalizeLookupKey(title);
   return SECTION_GROUP_CHILD_TITLES.includes(lookup);
+}
+
+function isAddressLikeBoundary(line = "", nextLineIsHeading = false) {
+  if (!nextLineIsHeading) return false;
+  if (!/[\d]/.test(line)) return false;
+  if (/[,;:]/.test(line)) return false;
+  if (line.split(/\s+/).length > 4) return false;
+  return true;
 }
 
 function getMeaningfulLine(rawLines, startIndex) {
@@ -66,6 +84,28 @@ function getMeaningfulLine(rawLines, startIndex) {
     }
   }
   return null;
+}
+
+function expandCommonLookupVariants(lookupKey = "") {
+  return normalizeLookupKey(lookupKey)
+    .replace(/\bзел\b/g, "зеленый")
+    .replace(/\bкр\b/g, "красный");
+}
+
+function looksLikeKnownProductHeading(line = "", replacements = {}) {
+  const normalized = cleanupEntryText(line);
+  if (!normalized) return false;
+  if (normalized !== normalized.toLowerCase()) return false;
+  if (normalized.split(/\s+/).length < 2) return false;
+
+  const lookupKey = normalizeLookupKey(normalized);
+  const expandedLookupKey = expandCommonLookupVariants(lookupKey);
+
+  if (replacements[lookupKey] || replacements[expandedLookupKey]) {
+    return true;
+  }
+
+  return hasGreeneryMarker(expandedLookupKey);
 }
 
 function buildProductListContract(input = "", options = {}) {
@@ -170,10 +210,12 @@ function collectSections(
       ? getMeaningfulLine(rawLines, nextMeaningful.index + 1)?.line || ""
       : "";
     const atStart = sections.length === 0 && !currentSection;
-    const isHeading = isLikelySectionHeading(line, nextLine, {
+    const isHeadingCandidate = isLikelySectionHeading(line, nextLine, {
       afterBlank: previousBlank,
       atStart,
     });
+    const isHeading =
+      isHeadingCandidate && !looksLikeKnownProductHeading(line, replacements);
     const nextLineIsHeading = nextLine
       ? isLikelySectionHeading(nextLine, lineAfterNext, {
           afterBlank: true,
@@ -183,9 +225,15 @@ function collectSections(
     const isGroupedHeading =
       previousBlank &&
       nextLineIsHeading &&
+      !looksLikeKnownProductHeading(line, replacements) &&
       !/[\d]/.test(line) &&
       !/[,;:]/.test(line) &&
       line.split(/\s+/).length <= 4;
+
+    if (previousBlank && isAddressLikeBoundary(line, nextLineIsHeading)) {
+      previousBlank = true;
+      return;
+    }
 
     if (isGroupedHeading) {
       groupedSectionPrefix = normalizeSectionTitle(line);
@@ -216,6 +264,7 @@ function collectSections(
       currentSection = {
         title: labels.unsorted,
         itemsMap: new Map(),
+        untitled: true,
       };
       sections.push(currentSection);
     }
@@ -240,6 +289,7 @@ function collectSections(
     return {
       name: section.title,
       title: section.title,
+      untitled: !!section.untitled,
       items,
       lines,
     };

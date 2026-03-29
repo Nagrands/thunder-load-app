@@ -18,11 +18,19 @@ export function sortByRuAlpha(a, b) {
 export function formatUnitsForSection(item) {
   const parts = [];
   if (item.units.kg > 0) parts.push(formatNumber(item.units.kg));
-  if (item.units.pcs > 0) parts.push(`${formatNumber(item.units.pcs)}шт`);
+  if (item.units.pcs > 0) {
+    parts.push(
+      item.hidePcsUnitInSection
+        ? formatNumber(item.units.pcs)
+        : `${formatNumber(item.units.pcs)}шт`,
+    );
+  }
   if (item.units.bunch > 0) parts.push(`${formatNumber(item.units.bunch)}п`);
   if (item.units.head > 0) parts.push(`${formatNumber(item.units.head)} гол`);
   if (item.units.pack > 0) parts.push(`${formatNumber(item.units.pack)} пака`);
   if (item.units.bag > 0) parts.push(`${formatNumber(item.units.bag)}м`);
+  if (item.units.crate > 0) parts.push(`${formatNumber(item.units.crate)}ящ`);
+  if (item.units.bucket > 0) parts.push(`${formatNumber(item.units.bucket)}в`);
   return parts.join(" + ");
 }
 
@@ -35,13 +43,16 @@ export function formatUnitsForSummary(item) {
   if (item.units.pack > 0) parts.push(`${formatNumber(item.units.pack)} пака`);
   if (item.units.bag > 0) parts.push(`${formatNumber(item.units.bag)}м`);
   if (item.units.crate > 0) parts.push(`${formatNumber(item.units.crate)}ящ`);
+  if (item.units.bucket > 0) parts.push(`${formatNumber(item.units.bucket)}в`);
   return parts.join(" + ");
 }
 
 export function formatSectionLine(item) {
   const suffix = formatUnitsForSection(item);
   const displayName = item.starred ? `${item.displayName}⁕` : item.displayName;
-  return suffix ? `${displayName} ${suffix}` : displayName;
+  const qualifier = item.sectionQualifier ? ` ${item.sectionQualifier}` : "";
+  if (suffix) return `${displayName} ${suffix}${qualifier}`;
+  return `${displayName}${qualifier}`;
 }
 
 export function formatSummaryLine(item) {
@@ -63,6 +74,7 @@ export function cloneUnits(units = {}) {
     pack: units.pack || 0,
     bag: units.bag || 0,
     crate: units.crate || 0,
+    bucket: units.bucket || 0,
   };
 }
 
@@ -77,6 +89,8 @@ export function buildSectionContract(section) {
       hasNameOnly: item.hasNameOnly,
       units: cloneUnits(item.units),
       uncertain: item.uncertain,
+      hidePcsUnitInSection: !!item.hidePcsUnitInSection,
+      sectionQualifier: item.sectionQualifier || "",
       uncertainReasons: Array.from(item.uncertainReasons),
       sourceEntries: item.rawEntries.slice(),
       line,
@@ -84,11 +98,14 @@ export function buildSectionContract(section) {
     };
   });
   const lines = items.map((item) => item.line);
-  const text = [section.title, ...lines].join("\n").trim();
+  const text = section.untitled
+    ? lines.join("\n").trim()
+    : [section.title, ...lines].join("\n").trim();
 
   return {
     name: section.title,
     title: section.title,
+    untitled: !!section.untitled,
     items,
     lines,
     text,
@@ -107,6 +124,7 @@ export function buildSummaryContract(summary) {
       units: cloneUnits(item.units),
       hasNameOnly: item.hasNameOnly,
       sources: Array.from(item.sources),
+      sectionQualifier: item.sectionQualifier || "",
       line,
       text: line,
     };
@@ -148,13 +166,19 @@ export function buildAggregateSummary(sections, labels, options = {}) {
           pack: 0,
           bag: 0,
           crate: 0,
+          bucket: 0,
         },
         hasNameOnly: false,
         sources: new Set(),
+        sectionQualifier: item.sectionQualifier || "",
       };
 
-      summaryItem.sources.add(section.title);
+      if (!section.untitled) {
+        summaryItem.sources.add(section.title);
+      }
       summaryItem.hasNameOnly = summaryItem.hasNameOnly || item.hasNameOnly;
+      summaryItem.sectionQualifier =
+        summaryItem.sectionQualifier || item.sectionQualifier || "";
       Object.keys(summaryItem.units).forEach((unitKey) => {
         summaryItem.units[unitKey] += item.units[unitKey] || 0;
       });

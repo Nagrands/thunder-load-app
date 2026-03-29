@@ -13,8 +13,6 @@ export function bindViewEvents({
   clearButton,
   demoButton,
   dictionaryToggleButton,
-  dictionaryPanel,
-  dictionaryBackdrop,
   dictionaryInput,
   dictionarySummary,
   dictionaryCleanInvalidButton,
@@ -42,7 +40,6 @@ export function bindViewEvents({
   formatProductLists,
   formatSource,
   getCurrentSource,
-  getFocusableElements,
   loadProductFormatterDictionary,
   openDictionaryPanel,
   removeInvalidProductFormatterDictionaryLines,
@@ -127,33 +124,6 @@ export function bindViewEvents({
 
   dictionaryCloseButton?.addEventListener("click", () => {
     closeDictionaryPanel();
-  });
-
-  dictionaryBackdrop?.addEventListener("click", () => {
-    closeDictionaryPanel();
-  });
-
-  dictionaryPanel?.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeDictionaryPanel();
-      return;
-    }
-
-    if (event.key !== "Tab") return;
-
-    const focusable = getFocusableElements(dictionaryPanel);
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
   });
 
   formatButton?.addEventListener("click", () => {

@@ -215,7 +215,7 @@ describe("productListFormatter", () => {
     expect(result.diffEntries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: "ПетрушкаЦ 2 пуч",
+          source: "Петрушка Ц 2 пуч",
           output: "Петрушка⁕ 2п",
           uncertain: true,
         }),
@@ -253,7 +253,7 @@ describe("productListFormatter", () => {
       expect.arrayContaining([
         expect.objectContaining({
           code: "typoCorrected",
-          source: "ПетрушкаЦ 15",
+          source: "Петрушка Ц 15",
           output: "Петрушка⁕ 15п",
         }),
       ]),
@@ -613,5 +613,205 @@ describe("productListFormatter", () => {
 Укроп⁕ 35п
 Шпинат⁕ 12п
 Яйца 60`);
+  });
+
+  test("normalizes fused section titles and missing chili or egg aliases", () => {
+    const result = formatProductLists(`РыбаБар
+
+Чили перец 500гр
+Имбирь-300гр.
+Петрушка -100гр
+Черри 1.5кг
+Помидоры 1 кг.
+Огурцы 500гр.
+Лук зеленый 50гр.
+Яблоки 500гр.
+Лимон 1 кг
+Апельсин 1 кг.
+Яйцо куриные 30шт.
+Мята 100гр.`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Рыба бар
+Апельсин 1
+Имбирь 0.3
+Лимон 1
+Лук зеленый⁕ 0.05
+Мята⁕ 0.1
+Огурец 0.5
+Перец Чили 0.5
+Петрушка⁕ 0.1
+Помидор 1
+Помидор черри 1.5
+Яблоко 0.5
+Яйца 30`);
+    expect(result.formattedSectionsText).not.toContain("Рыбабар");
+    expect(result.formattedSectionsText).not.toContain("Чили перец");
+    expect(result.formattedSectionsText).not.toContain("Яйцо куриные");
+  });
+
+  test("keeps address-like lines from swallowing the next section and ignores bare salad leaf lines", () => {
+    const result = formatProductLists(`Магазин
+
+Банан
+Лайм
+Апельсин
+Перец светофор
+Черри
+Мандарин бэби
+Баклажан
+Мята 3
+Щавель 4
+Латук 4
+Лук зел 10
+Айс 3шт сред
+
+Мята
+
+Болгарский перец 1 кг
+Лук порей 1 шт
+Айсберг 0.300
+Апельсин 2 кг
+Лимон 1 кг
+Лайм 1 кг
+Мята 0.100
+Грейпфрут 3 шт
+Розмарин 0.100
+
+Сергеева Ценского 6
+РыбаБар.
+
+Помидоры 1 кг.
+Огурцы 500гр.
+Апельсин 500гр.
+Укроп 100гр.
+Грибы 2 кг.
+Помидоры черри 1кг.
+Мята 50гр.
+Лимон 500гр.
+Лист салата
+Дубок красный 200гр.
+Фризе 200гр.
+Росса 200гр.
+Лук зеленый 50гр.`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Магазин
+Апельсин
+Баклажан
+Банан
+Лайм
+Латук⁕ 4п
+Лук зеленый⁕ 10п
+Мандарин бэби
+Мята⁕ 3п
+Перец микс
+Помидор черри
+Салат Айсберг⁕ 3шт (сред.)
+Щавель⁕ 4п
+
+Мята
+Апельсин 2
+Грейпфрут 3шт
+Лайм 1
+Лимон 1
+Лук порей⁕ 1шт
+Мята⁕ 0.1
+Перец микс 1
+Розмарин⁕ 0.1
+Салат Айсберг⁕ 0.3
+
+Рыба бар
+Апельсин 0.5
+Гриб Шампиньон 2
+Дубок красный⁕ 0.2
+Лимон 0.5
+Лук зеленый⁕ 0.05
+Мята⁕ 0.05
+Огурец 0.5
+Помидор 1
+Помидор черри 1
+Салат Лолло Росса⁕ 0.2
+Укроп⁕ 0.1
+Фризе⁕ 0.2`);
+    expect(result.formattedSectionsText).not.toContain("Сергеева");
+    expect(result.formattedSectionsText).not.toContain("Латук⁕\n");
+  });
+
+  test("normalizes plural produce, golden apples, color abbreviations, and colon decimals", () => {
+    const result = formatProductLists(`Тесто
+Кабачки 2 шт
+Баклажаны 3 шт
+Гольден 1 кг
+Голден 2 кг
+Яблоки Голден 0,5 кг
+Дубок зел 0.150
+Дубок кр 0:25
+Баз кр 2
+Баз зел 2`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Тесто
+Базилик зеленый⁕ 2
+Базилик красный⁕ 2
+Баклажан 3шт
+Дубок зеленый⁕ 0.15
+Дубок красный⁕ 0.25
+Кабачок 2шт
+Яблоко Голден 3.5`);
+    expect(result.formattedSectionsText).not.toContain("Гольден");
+    expect(result.formattedSectionsText).not.toContain("Кабачки");
+    expect(result.formattedSectionsText).not.toContain("Баклажаны");
+  });
+
+  test("preserves uppercase vitamin heading and converts post-quantity tails into qualifiers", () => {
+    const result = formatProductLists(`ВИТАМИН
+
+банан 0,5 ящ зел
+лимон 1
+апельсин 2
+гольден 4 круп
+мандарин 4 крупный красивый`);
+
+    expect(result.formattedSectionsText).toBe(`ВИТАМИН
+Апельсин 2
+Банан 0.5ящ (зеленый)
+Лимон 1
+Мандарин 4 (крупный)
+Яблоко Голден 4 (крупный)`);
+    expect(result.formattedSummaryText).toBe(`Итого
+Апельсин 2 кг (ВИТАМИН)
+Банан 0.5ящ (ВИТАМИН)
+Лимон 1 кг (ВИТАМИН)
+Мандарин 4 кг (ВИТАМИН)
+Яблоко Голден 4 кг (ВИТАМИН)`);
+    expect(result.formattedSectionsText).not.toContain("Гольден");
+    expect(result.formattedSectionsText).not.toContain("красивый");
+    expect(result.formattedSectionsText).not.toContain("Банан зел");
+  });
+
+  test("does not mistake lower-case greenery aliases for section headings", () => {
+    const result = formatProductLists(`фризе зел
+дубок кр
+фризе кр
+тимьян
+розмарин
+лук зел`);
+
+    expect(result.formattedSectionsText).toBe(`Дубок красный⁕
+Лук зеленый⁕
+Розмарин⁕
+Тимьян⁕
+Фризе зеленое⁕
+Фризе красное⁕`);
+    expect(result.formattedSummaryText).toBe("");
+    expect(result.sections).toHaveLength(1);
+    expect(result.sections[0]).toMatchObject({
+      title: "Без раздела",
+      untitled: true,
+    });
   });
 });

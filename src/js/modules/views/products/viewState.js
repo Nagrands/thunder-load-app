@@ -16,6 +16,7 @@ export function createViewStateHandlers({
   dictionaryLayer,
   dictionaryPanel,
   dictionaryToggleButton,
+  resultPane,
   copyButton,
   resultToolbar,
   preview,
@@ -220,11 +221,14 @@ export function createViewStateHandlers({
 
   const syncDictionaryPanel = () => {
     if (!dictionaryLayer || !dictionaryPanel) return;
+    wrapper.classList.toggle("products-view--dictionary-open", state.dictionaryOpen);
     dictionaryLayer.hidden = !state.dictionaryOpen;
-    dictionaryPanel.setAttribute(
-      "aria-hidden",
-      state.dictionaryOpen ? "false" : "true",
-    );
+    dictionaryLayer.setAttribute("aria-hidden", state.dictionaryOpen ? "false" : "true");
+    dictionaryPanel.setAttribute("aria-hidden", state.dictionaryOpen ? "false" : "true");
+    if (resultPane) {
+      resultPane.hidden = state.dictionaryOpen;
+      resultPane.setAttribute("aria-hidden", state.dictionaryOpen ? "true" : "false");
+    }
     if (dictionaryToggleButton) {
       dictionaryToggleButton.setAttribute(
         "aria-expanded",
@@ -290,24 +294,13 @@ export function createViewStateHandlers({
     updateDirtyState();
   };
 
-  const closeDictionaryPanel = ({ restoreFocus = true } = {}) => {
+  const closeDictionaryPanel = () => {
     if (!state.dictionaryOpen) return;
     state.dictionaryOpen = false;
     syncDictionaryPanel();
-    if (restoreFocus) {
-      const focusTarget = state.dictionaryReturnFocus || dictionaryToggleButton;
-      if (focusTarget instanceof HTMLElement) {
-        focusTarget.focus();
-      }
-    }
-    state.dictionaryReturnFocus = null;
   };
 
   const openDictionaryPanel = () => {
-    state.dictionaryReturnFocus =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : dictionaryToggleButton;
     state.dictionaryOpen = true;
     syncDictionaryPanel();
   };
