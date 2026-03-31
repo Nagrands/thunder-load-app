@@ -16,7 +16,7 @@ export const toolsTranslations = {
     "productsFormatter.paste": "Вставить",
     "productsFormatter.clear": "Очистить",
     "productsFormatter.demo": "Демо",
-    "productsFormatter.dictionaryTitle": "Dev-словарь замен",
+    "productsFormatter.dictionaryTitle": "Словарь замен",
     "productsFormatter.closeDictionary": "Закрыть словарь",
     "productsFormatter.dictionaryPlaceholder":
       "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
@@ -80,6 +80,7 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.filter.typos": "Опечатки",
     "productsFormatter.diagnostics.filter.duplicates": "Дубли",
     "productsFormatter.diagnostics.applyLine": "Подставить строку",
+    "productsFormatter.diagnostics.revealLine": "Показать во входе",
     "productsFormatter.diagnostics.emptyFiltered":
       "Для фильтра «{filter}» совпадений нет.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
@@ -126,6 +127,8 @@ export const toolsTranslations = {
       "Нормализованный текст подставлен во вход.",
     "productsFormatter.status.lineApplied":
       "Исправленная строка подставлена во вход.",
+    "productsFormatter.status.sourceFocused":
+      "Исходная строка найдена во входе.",
     "productsFormatter.status.applyLineError":
       "Не удалось найти исходную строку для подстановки.",
     "productsFormatter.status.copyError": "Не удалось скопировать результат.",
@@ -937,6 +940,7 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.filter.typos": "Typos",
     "productsFormatter.diagnostics.filter.duplicates": "Duplicates",
     "productsFormatter.diagnostics.applyLine": "Apply line",
+    "productsFormatter.diagnostics.revealLine": "Reveal in input",
     "productsFormatter.diagnostics.emptyFiltered":
       "No matches for the “{filter}” filter.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
@@ -983,6 +987,8 @@ export const toolsTranslations = {
       "Normalized text was applied to the input.",
     "productsFormatter.status.lineApplied":
       "The corrected line was applied to the input.",
+    "productsFormatter.status.sourceFocused":
+      "The source line was focused in the input.",
     "productsFormatter.status.applyLineError":
       "Could not find the source line to replace.",
     "productsFormatter.status.copyError": "Could not copy the result.",

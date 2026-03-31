@@ -122,6 +122,18 @@ export function renderDiagnostics(
     text.textContent = formatIssue(issue);
     item.appendChild(text);
 
+    if (issue.source && typeof options.onRevealSource === "function") {
+      const revealButton = document.createElement("button");
+      revealButton.type = "button";
+      revealButton.className =
+        "small-button products-diff-row__reveal products-utility-button";
+      revealButton.textContent = t("productsFormatter.diagnostics.revealLine");
+      revealButton.addEventListener("click", () => {
+        options.onRevealSource(issue);
+      });
+      item.appendChild(revealButton);
+    }
+
     const closeButton = document.createElement("button");
     closeButton.type = "button";
     closeButton.className =
@@ -178,6 +190,18 @@ export function renderDiagnostics(
         options.onApplyDiff?.(entry);
       });
       actions.appendChild(applyButton);
+
+      if (typeof options.onRevealSource === "function") {
+        const revealButton = document.createElement("button");
+        revealButton.type = "button";
+        revealButton.className =
+          "small-button products-diff-row__reveal products-utility-button";
+        revealButton.textContent = t("productsFormatter.diagnostics.revealLine");
+        revealButton.addEventListener("click", () => {
+          options.onRevealSource(entry);
+        });
+        actions.appendChild(revealButton);
+      }
 
       row.appendChild(actions);
     }

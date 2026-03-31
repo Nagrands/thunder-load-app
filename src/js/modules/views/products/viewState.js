@@ -37,6 +37,7 @@ export function createViewStateHandlers({
   formatButton,
   setStatus,
   showResult,
+  refreshPreview,
 }) {
   const clearDirtyStatusIfNeeded = () => {
     const statusEl = wrapper.querySelector("#products-status");
@@ -309,7 +310,7 @@ export function createViewStateHandlers({
     if (!state.currentResult) return;
     if (!collapsed) {
       state.collapsedSections = {};
-      showResult(state.currentResult);
+      refreshPreview();
       return;
     }
 
@@ -328,7 +329,7 @@ export function createViewStateHandlers({
       ] = true;
     }
     state.collapsedSections = nextState;
-    showResult(state.currentResult);
+    refreshPreview();
   };
 
   return {

@@ -12,6 +12,7 @@ import { initTooltips } from "../tooltipInitializer.js";
 import {
   buildComparison,
   copyText,
+  getTextareaSelectionForLine,
 } from "./products/viewHelpers.js";
 import {
   renderComparison,
@@ -25,11 +26,11 @@ import { bindViewEvents } from "./products/viewEvents.js";
 import { buildMarkup } from "./products/viewMarkup.js";
 import { createViewStateHandlers } from "./products/viewState.js";
 
-const DEMO_INPUT = `Витамин
+const DEMO_INPUT = `Заявка 1
 Банан пол пака
 Лимон 2кг
 
-Тесто
+Заявка 4
 Грибы 4 кг.
 картофель 10 кг.
 помидоры 500г
@@ -153,11 +154,27 @@ export default function renderProductFormatterView(wrapper) {
 
   const getCurrentSource = () => String(input?.value || "").trim();
 
-  const showResult = (result) => {
+  const revealSourceLine = (sourceLine = "") => {
+    if (!input) return false;
+    const sourceKey = cleanupEntryText(sourceLine);
+    if (!sourceKey) return false;
+    const lines = String(input.value || "").split("\n");
+    const lineIndex = lines.findIndex(
+      (line) => cleanupEntryText(line) === sourceKey,
+    );
+    if (lineIndex === -1) return false;
+    const { selectionStart, selectionEnd } = getTextareaSelectionForLine(
+      input.value,
+      lineIndex + 1,
+    );
+    input.focus();
+    input.setSelectionRange(selectionStart, selectionEnd);
+    return true;
+  };
+
+  const renderPreviewArea = (result) => {
     state.copiedText = result.fullOutputText;
     state.hasResult = !!result.fullOutputText;
-    state.resultMenuOpen = false;
-    setResultMenuState(resultMenuToggle, resultMenuPanel, false);
     clearCopyFeedbackTimer();
     renderPreview(
       preview,
@@ -191,6 +208,14 @@ export default function renderProductFormatterView(wrapper) {
         searchQuery: state.resultSearchQuery,
       },
     );
+    if (resultToolbar) resultToolbar.hidden = false;
+    if (resultContent) resultContent.hidden = false;
+    if (empty) empty.hidden = true;
+    updateDirtyState();
+    initTooltips(wrapper);
+  };
+
+  const renderDiagnosticsArea = (result) => {
     renderDiagnostics(issuesList, diffList, diagnostics, result, {
       activeFilter: state.diagnosticsFilter,
       filterButtons: diagnosticsFilters,
@@ -211,22 +236,36 @@ export default function renderProductFormatterView(wrapper) {
         syncDirtyFromInputs();
         setStatus(t("productsFormatter.status.lineApplied"), "success");
       },
+      onRevealSource: (entry) => {
+        if (!revealSourceLine(entry.source)) {
+          setStatus(t("productsFormatter.status.applyLineError"), "error");
+          return;
+        }
+        setStatus(t("productsFormatter.status.sourceFocused"), "success");
+      },
     });
+    if (comparisonPanel?.hidden === false && diagnostics) {
+      diagnostics.hidden = false;
+    }
+  };
+
+  const renderComparisonArea = (result) => {
     renderComparison(
       comparisonSummary,
       comparisonList,
       comparisonPanel,
       buildComparison(state.previousResult, result),
     );
-    if (comparisonPanel?.hidden === false && diagnostics) {
-      diagnostics.hidden = false;
-    }
-    if (resultToolbar) resultToolbar.hidden = false;
-    if (resultContent) resultContent.hidden = false;
-    if (empty) empty.hidden = true;
+  };
+
+  const showResult = (result) => {
+    state.resultMenuOpen = false;
+    setResultMenuState(resultMenuToggle, resultMenuPanel, false);
+    renderPreviewArea(result);
+    renderDiagnosticsArea(result);
+    renderComparisonArea(result);
     state.isDirty = false;
     updateDirtyState();
-    initTooltips(wrapper);
   };
 
   const {
@@ -274,6 +313,10 @@ export default function renderProductFormatterView(wrapper) {
     formatButton,
     setStatus,
     showResult,
+    refreshPreview: () => {
+      if (!state.currentResult) return;
+      renderPreviewArea(state.currentResult);
+    },
   });
 
   if (searchInput) searchInput.disabled = true;
@@ -357,6 +400,14 @@ export default function renderProductFormatterView(wrapper) {
     syncDictionaryMeta,
     syncDirtyFromInputs,
     clearCopyFeedbackTimer,
+    refreshDiagnostics: () => {
+      if (!state.currentResult) return;
+      renderDiagnosticsArea(state.currentResult);
+    },
+    refreshPreview: () => {
+      if (!state.currentResult) return;
+      renderPreviewArea(state.currentResult);
+    },
     showResult,
     setStatus,
     initTooltips,

@@ -15,11 +15,11 @@ function loadFormatterFixture(name) {
 
 describe("productListFormatter", () => {
   test("formats the prompt sample and appends the summary", () => {
-    const input = `Витамин
+    const input = `Заявка 1
 Банан пол пака
 Лимон 2кг
 
-Тесто
+Заявка 4
 Грибы 4 кг.
 картофель 10 кг.
 помидоры 500г
@@ -41,11 +41,11 @@ describe("productListFormatter", () => {
     const result = formatProductLists(input, { includeSummary: true });
 
     expect(result.formattedSectionsText).toBe(
-      `Витамин
+      `Заявка 1
 Банан 0.5ящ
 Лимон 2
 
-Тесто
+Заявка 4
 Гриб Шампиньон 4
 Картофель 10
 Лимон 4шт
@@ -67,24 +67,24 @@ describe("productListFormatter", () => {
 
     expect(result.formattedSummaryText).toBe(
       `Итого
-Банан 1.5ящ (Витамин, Магазин)
-Гриб Шампиньон 4 кг (Тесто)
-Картофель 10 кг + 2м (Тесто, Магазин)
+Банан 1.5ящ (Заявка 1, Магазин)
+Гриб Шампиньон 4 кг (Заявка 4)
+Картофель 10 кг + 2м (Заявка 4, Магазин)
 Киви 1ящ (Магазин)
-Лимон 2 кг + 4 шт (Витамин, Тесто)
+Лимон 2 кг + 4 шт (Заявка 1, Заявка 4)
 Лук Марс 1ящ (Магазин)
-Огурец 1 кг (Тесто)
-Перец микс 5 шт (Тесто)
-Помидор 0.5 кг (Тесто)
-Чеснок 0.5 кг (Тесто)`,
+Огурец 1 кг (Заявка 4)
+Перец микс 5 шт (Заявка 4)
+Помидор 0.5 кг (Заявка 4)
+Чеснок 0.5 кг (Заявка 4)`,
     );
 
     expect(result.fullOutputText).toBe(
       `${result.formattedSectionsText}\n\n${result.formattedSummaryText}`,
     );
     expect(result.sections.map((section) => section.name)).toEqual([
-      "Витамин",
-      "Тесто",
+      "Заявка 1",
+      "Заявка 4",
       "Магазин",
     ]);
     expect(result.sections[1].items[0]).toMatchObject({
@@ -95,13 +95,13 @@ describe("productListFormatter", () => {
     expect(result.summary?.text).toBe(result.formattedSummaryText);
     expect(result.summary?.items[0]).toMatchObject({
       name: "Банан",
-      line: "Банан 1.5ящ (Витамин, Магазин)",
-      sources: ["Витамин", "Магазин"],
+      line: "Банан 1.5ящ (Заявка 1, Магазин)",
+      sources: ["Заявка 1", "Магазин"],
     });
   });
 
   test("normalizes decimal commas, grams, and unit names in sections", () => {
-    const input = `Тесто
+    const input = `Заявка 4
 Грибы 100г
 Лимон 4шт
 Петрушка 1 головка
@@ -111,7 +111,7 @@ describe("productListFormatter", () => {
     const result = formatProductLists(input, { includeSummary: false });
 
     expect(result.formattedSectionsText).toBe(
-      `Тесто
+      `Заявка 4
 Гриб Шампиньон 0.1
 Лимон 4шт
 Петрушка⁕ 1 гол
@@ -150,21 +150,21 @@ describe("productListFormatter", () => {
   });
 
   test("merges cherry variants and sums weights", () => {
-    const input = `Тесто
+    const input = `Заявка 4
 Черри 100г
 Помидоры черри 0.2 кг
 Помидор черри 50г`;
 
     const result = formatProductLists(input);
 
-    expect(result.formattedSectionsText).toBe(`Тесто
+    expect(result.formattedSectionsText).toBe(`Заявка 4
 Помидор черри 0.35`);
     expect(result.formattedSummaryText).toBe(`Итого
-Помидор черри 0.35 кг (Тесто)`);
+Помидор черри 0.35 кг (Заявка 4)`);
   });
 
   test("parseProductList returns structured sections and raw text without summary when disabled", () => {
-    const parsed = parseProductList(`Витамин
+    const parsed = parseProductList(`Заявка 1
 Банан 1
 
 Магазин
@@ -173,14 +173,14 @@ describe("productListFormatter", () => {
     expect(parsed.sections).toHaveLength(2);
     expect(parsed.summary).toBeNull();
     expect(parsed.sections[0].items[0].line).toBe("Банан 1");
-    expect(parsed.sections[0].text).toBe("Витамин\nБанан 1");
+    expect(parsed.sections[0].text).toBe("Заявка 1\nБанан 1");
     expect(parsed.formattedSummaryText).toBe("");
-    expect(parsed.fullOutputText).toBe("Витамин\nБанан 1\n\nМагазин\nБанан");
+    expect(parsed.fullOutputText).toBe("Заявка 1\nБанан 1\n\nМагазин\nБанан");
   });
 
   test("appends a greens summary block when the optional toggle is enabled", () => {
     const result = formatProductLists(
-      `Тесто
+      `Заявка 4
 Укроп 2 пуч.
 ПетрушкаЦ 1 пуч.
 
@@ -195,8 +195,8 @@ describe("productListFormatter", () => {
 
     expect(result.formattedGreensSummaryText).toBe(
       `Зелень
-Петрушка 1п (Тесто)
-Укроп 22п (Тесто, Магазин)`,
+Петрушка 1п (Заявка 4)
+Укроп 22п (Заявка 4, Магазин)`,
     );
     expect(result.greensSummary?.text).toBe(result.formattedGreensSummaryText);
     expect(result.fullOutputText).toBe(
@@ -204,12 +204,12 @@ describe("productListFormatter", () => {
     );
     expect(result.greensSummary?.items[0]).toMatchObject({
       name: "Петрушка",
-      line: "Петрушка 1п (Тесто)",
+      line: "Петрушка 1п (Заявка 4)",
     });
   });
 
   test("returns diagnostics for ambiguous units, duplicates, typo fixes, and ignored store quantities", () => {
-    const result = formatProductLists(`Тесто
+    const result = formatProductLists(`Заявка 4
 Лук 5
 Лук 1 кг
 ПетрушкаЦ 2 пуч.
@@ -245,7 +245,7 @@ describe("productListFormatter", () => {
   });
 
   test("does not drop greenery bunch quantities in sections or store rules", () => {
-    const result = formatProductLists(`Тесто
+    const result = formatProductLists(`Заявка 4
 укроп 2 пуч.
 петрушка 2 Пуч.
 
@@ -255,7 +255,7 @@ describe("productListFormatter", () => {
       includeSummary: false,
     });
 
-    expect(result.formattedSectionsText).toBe(`Тесто
+    expect(result.formattedSectionsText).toBe(`Заявка 4
 Петрушка⁕ 2п
 Укроп⁕ 2п
 
@@ -283,7 +283,7 @@ describe("productListFormatter", () => {
   });
 
   test("does not warn for lines that are already in valid normalized form", () => {
-    const result = formatProductLists(`Тесто
+    const result = formatProductLists(`Заявка 4
 Гриб Шампиньон 4
 Картофель 10
 Огурец 1
@@ -298,7 +298,7 @@ describe("productListFormatter", () => {
   });
 
   test("applies custom replacement rules and exposes normalization stats", () => {
-    const result = formatProductLists(`Тесто
+    const result = formatProductLists(`Заявка 4
 батат 2
 батат 1
 ПетрушкаЦ 2 пуч.`, {
@@ -316,7 +316,7 @@ describe("productListFormatter", () => {
   });
 
   test("builds grouped sections and broader produce replacements from noisy source lists", () => {
-    const result = formatProductLists(`Рыба бар
+    const result = formatProductLists(`Заявка 2
 
 кабачок-2 шт,
 лук репка-2 кг,
@@ -333,7 +333,7 @@ describe("productListFormatter", () => {
 лимон-5шт,
 яйцо куриное -30шт
 
-Мята
+Заявка 6
 
 Бар
 Лайм 1 кг
@@ -356,7 +356,7 @@ describe("productListFormatter", () => {
 Лук зелёный 0.050
 Сельдерей стебель 1 пачка`);
 
-    expect(result.formattedSectionsText).toBe(`Рыба бар
+    expect(result.formattedSectionsText).toBe(`Заявка 2
 Гриб Шампиньон 1.5
 Кабачок 2шт
 Картофель 3
@@ -395,28 +395,28 @@ describe("productListFormatter", () => {
     expect(result.formattedSummaryText).toBe(`Итого
 Банан 3 шт (Мята кухня)
 Грейпфрут 1 шт (Мята бар)
-Гриб Шампиньон 2 кг (Рыба бар, Мята кухня)
+Гриб Шампиньон 2 кг (Заявка 2, Мята кухня)
 Имбирь 0.4 кг (Мята бар)
-Кабачок 2 шт (Рыба бар)
-Картофель 3 кг (Рыба бар)
+Кабачок 2 шт (Заявка 2)
+Картофель 3 кг (Заявка 2)
 Корица трубчатая 0.2 кг (Мята бар)
 Лайм 1 кг (Мята бар)
-Лимон 2 кг + 5 шт (Рыба бар, Мята бар)
-Лук репчатый 2 кг (Рыба бар)
-Перец микс 1 кг (Рыба бар)
+Лимон 2 кг + 5 шт (Заявка 2, Мята бар)
+Лук репчатый 2 кг (Заявка 2)
+Перец микс 1 кг (Заявка 2)
 Помидор 1 кг (Мята кухня)
-Помидор черри 2 кг (Рыба бар, Мята кухня)
+Помидор черри 2 кг (Заявка 2, Мята кухня)
 Яблоко 3 кг (Мята бар, Мята кухня)
-Яйца 30 шт (Рыба бар)`);
+Яйца 30 шт (Заявка 2)`);
     expect(result.sections.map((section) => section.title)).toEqual([
-      "Рыба бар",
+      "Заявка 2",
       "Мята (бар)",
       "Мята (кухня)",
     ]);
   });
 
   test("normalizes noisy mixed procurement lists into stable sections and aliases", () => {
-    const result = formatProductLists(`Рыба бар в 10
+    const result = formatProductLists(`Заявка 2 в 10
 
 шампиньоны -2,5 кг,
 картофель -6кг,
@@ -438,7 +438,7 @@ describe("productListFormatter", () => {
 яйцо перепелиное-30 шт,
 лук зелёный -2 пучка
 
-Тесто
+Заявка 4
 
 Картошка 10 кг
 лук 5 кг
@@ -451,7 +451,7 @@ describe("productListFormatter", () => {
 перец светофор 5 штук
 капуста мол 17кг сред на голубцы
 
-Витамин
+Заявка 1
 
 Бананы 1 пак
 Мандарин крупный 3кг
@@ -472,7 +472,7 @@ describe("productListFormatter", () => {
 Мята 0,2
 Розмарин 0,05
 
-Рыба Горького
+Заявка 5
 
 Шампиньон 1кг
 Баклажан 3шт
@@ -526,7 +526,7 @@ describe("productListFormatter", () => {
       includeSummary: false,
     });
 
-    expect(result.formattedSectionsText).toBe(`Рыба бар
+    expect(result.formattedSectionsText).toBe(`Заявка 2
 Апельсин 4шт
 Гриб Шампиньон 2.5
 Картофель 6
@@ -547,7 +547,7 @@ describe("productListFormatter", () => {
 Яйца 30
 Яйцо перепелиное 30
 
-Тесто
+Заявка 4
 Капуста молодая 17
 Картофель 10
 Лук репчатый 5
@@ -559,7 +559,7 @@ describe("productListFormatter", () => {
 Салат Айсберг⁕ 2шт
 Укроп⁕ 2п
 
-Витамин
+Заявка 1
 Апельсин 1.5
 Банан 1ящ
 Мандарин 3
@@ -577,7 +577,7 @@ describe("productListFormatter", () => {
 Салат Айсберг⁕ 1шт
 Яблоко 0.5
 
-Рыба Горького
+Заявка 5
 Апельсин 3
 Баклажан 3шт
 Гриб Шампиньон 1
@@ -629,7 +629,7 @@ describe("productListFormatter", () => {
   });
 
   test("normalizes fused section titles and missing chili or egg aliases", () => {
-    const result = formatProductLists(`РыбаБар
+    const result = formatProductLists(`Заявка 2
 
 Чили перец 500гр
 Имбирь-300гр.
@@ -646,7 +646,7 @@ describe("productListFormatter", () => {
       includeSummary: false,
     });
 
-    expect(result.formattedSectionsText).toBe(`Рыба бар
+    expect(result.formattedSectionsText).toBe(`Заявка 2
 Апельсин 1
 Имбирь 0.3
 Лимон 1
@@ -659,7 +659,7 @@ describe("productListFormatter", () => {
 Помидор черри 1.5
 Яблоко 0.5
 Яйца 30`);
-    expect(result.formattedSectionsText).not.toContain("Рыбабар");
+    expect(result.formattedSectionsText).not.toContain("Заявка 2");
     expect(result.formattedSectionsText).not.toContain("Чили перец");
     expect(result.formattedSectionsText).not.toContain("Яйцо куриные");
   });
@@ -692,8 +692,7 @@ describe("productListFormatter", () => {
 Грейпфрут 3 шт
 Розмарин 0.100
 
-Сергеева Ценского 6
-РыбаБар.
+Заявка 2
 
 Помидоры 1 кг.
 Огурцы 500гр.
@@ -725,7 +724,7 @@ describe("productListFormatter", () => {
 Салат Айсберг⁕ 3шт
 Щавель⁕ 4п
 
-Мята
+Заявка 3
 Апельсин 2
 Грейпфрут 3шт
 Лайм 1
@@ -736,7 +735,7 @@ describe("productListFormatter", () => {
 Розмарин⁕ 0.1
 Салат Айсберг⁕ 0.3
 
-Рыба бар
+Заявка 2
 Апельсин 0.5
 Гриб Шампиньон 2
 Дубок красный⁕ 0.2
@@ -755,7 +754,7 @@ describe("productListFormatter", () => {
   });
 
   test("normalizes plural produce, golden apples, color abbreviations, and colon decimals", () => {
-    const result = formatProductLists(`Тесто
+    const result = formatProductLists(`Заявка 4
 Кабачки 2 шт
 Баклажаны 3 шт
 Гольден 1 кг
@@ -768,7 +767,7 @@ describe("productListFormatter", () => {
       includeSummary: false,
     });
 
-    expect(result.formattedSectionsText).toBe(`Тесто
+    expect(result.formattedSectionsText).toBe(`Заявка 4
 Базилик зеленый⁕ 2
 Базилик красный⁕ 2
 Баклажан 3шт
@@ -782,7 +781,7 @@ describe("productListFormatter", () => {
   });
 
   test("preserves uppercase vitamin heading and converts post-quantity tails into qualifiers", () => {
-    const result = formatProductLists(`ВИТАМИН
+    const result = formatProductLists(`Заявка 1
 
 банан 0,5 ящ зел
 лимон 1
@@ -790,18 +789,18 @@ describe("productListFormatter", () => {
 гольден 4 круп
 мандарин 4 крупный красивый`);
 
-    expect(result.formattedSectionsText).toBe(`ВИТАМИН
+    expect(result.formattedSectionsText).toBe(`Заявка 1
 Апельсин 2
 Банан 0.5ящ (зеленый)
 Лимон 1
 Мандарин 4
 Яблоко Голден 4`);
     expect(result.formattedSummaryText).toBe(`Итого
-Апельсин 2 кг (ВИТАМИН)
-Банан 0.5ящ (ВИТАМИН)
-Лимон 1 кг (ВИТАМИН)
-Мандарин 4 кг (крупный) (ВИТАМИН)
-Яблоко Голден 4 кг (крупный) (ВИТАМИН)`);
+Апельсин 2 кг (Заявка 1)
+Банан 0.5ящ (Заявка 1)
+Лимон 1 кг (Заявка 1)
+Мандарин 4 кг (крупный) (Заявка 1)
+Яблоко Голден 4 кг (крупный) (Заявка 1)`);
     expect(result.formattedSectionsText).not.toContain("Гольден");
     expect(result.formattedSectionsText).not.toContain("красивый");
     expect(result.formattedSectionsText).not.toContain("Банан зел");
@@ -854,7 +853,7 @@ describe("productListFormatter", () => {
   });
 
   test("applies new produce aliases and keeps size notes only in summary", () => {
-    const result = formatProductLists(`Тесто
+    const result = formatProductLists(`Заявка 4
 Цв капуста 2
 ялта 1
 Огурец сол 3
@@ -870,7 +869,7 @@ describe("productListFormatter", () => {
 Баклажаны 4 мелкое
 Лимоны 5 среднее`);
 
-    expect(result.formattedSectionsText).toBe(`Тесто
+    expect(result.formattedSectionsText).toBe(`Заявка 4
 Баклажан 4
 Виноград Кишмиш 0.5
 Капуста брокколи 1
@@ -885,18 +884,18 @@ describe("productListFormatter", () => {
 Помело 1
 Яблоко Голден 3`);
     expect(result.formattedSummaryText).toBe(`Итого
-Баклажан 4 кг (мелкий) (Тесто)
-Виноград Кишмиш 0.5 кг (Тесто)
-Капуста брокколи 1 кг (Тесто)
-Капуста пекинская 2 кг (Тесто)
-Капуста цветная 2 кг (Тесто)
-Лимон 4 кг (Тесто)
-Лимон 5 кг (средний) (Тесто)
-Лук Ялта 1 кг (Тесто)
-Огурец соленый 3 кг (Тесто)
-Перец Белозерка 3 кг (Тесто)
-Перец Чили 0.2 кг (Тесто)
-Помело 1 кг (Тесто)
-Яблоко Голден 3 кг (Тесто)`);
+Баклажан 4 кг (мелкий) (Заявка 4)
+Виноград Кишмиш 0.5 кг (Заявка 4)
+Капуста брокколи 1 кг (Заявка 4)
+Капуста пекинская 2 кг (Заявка 4)
+Капуста цветная 2 кг (Заявка 4)
+Лимон 4 кг (Заявка 4)
+Лимон 5 кг (средний) (Заявка 4)
+Лук Ялта 1 кг (Заявка 4)
+Огурец соленый 3 кг (Заявка 4)
+Перец Белозерка 3 кг (Заявка 4)
+Перец Чили 0.2 кг (Заявка 4)
+Помело 1 кг (Заявка 4)
+Яблоко Голден 3 кг (Заявка 4)`);
   });
 });

@@ -104,7 +104,7 @@ describe("productFormatterView", () => {
     const summaryCard = wrapper.querySelector("#products-summary-card");
     const preview = wrapper.querySelector("#products-preview");
 
-    textarea.value = `Тесто
+    textarea.value = `Заявка 4
 Лук 1
 
 Магазин
@@ -122,7 +122,7 @@ describe("productFormatterView", () => {
       Array.from(preview.querySelectorAll(".products-preview__title")).map(
         (el) => el.textContent,
       ),
-    ).toEqual(["Тесто", "Магазин", "Итого"]);
+    ).toEqual(["Заявка 4", "Магазин", "Итого"]);
     expect(wrapper.querySelector("#products-search")?.disabled).toBe(false);
     expect(wrapper.querySelector("#products-result-menu-toggle")?.disabled).toBe(
       false,
@@ -138,7 +138,7 @@ describe("productFormatterView", () => {
     const textarea = wrapper.querySelector("#products-input");
     const greensToggle = wrapper.querySelector("#products-greens-toggle");
 
-    textarea.value = `Тесто
+    textarea.value = `Заявка 4
 Укроп 2 пуч.
 ПетрушкаЦ 1 пуч.
 
@@ -155,14 +155,14 @@ describe("productFormatterView", () => {
           ".products-preview__title",
         ) || [],
       ).map((el) => el.textContent),
-    ).toEqual(["Тесто", "Магазин", "Итого", "Зелень"]);
+    ).toEqual(["Заявка 4", "Магазин", "Итого", "Зелень"]);
   });
 
   test("reformats the preview immediately when toggles change after formatting", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Укроп 2 пуч.
 
 Магазин
@@ -176,15 +176,15 @@ describe("productFormatterView", () => {
         (el) => el.textContent,
       );
 
-    expect(previewTitles()).toEqual(["Тесто", "Магазин", "Итого"]);
+    expect(previewTitles()).toEqual(["Заявка 4", "Магазин", "Итого"]);
 
     greensToggle.checked = true;
     greensToggle.dispatchEvent(new Event("change"));
-    expect(previewTitles()).toEqual(["Тесто", "Магазин", "Итого", "Зелень"]);
+    expect(previewTitles()).toEqual(["Заявка 4", "Магазин", "Итого", "Зелень"]);
 
     summaryToggle.checked = false;
     summaryToggle.dispatchEvent(new Event("change"));
-    expect(previewTitles()).toEqual(["Тесто", "Магазин", "Зелень"]);
+    expect(previewTitles()).toEqual(["Заявка 4", "Магазин", "Зелень"]);
     expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
   });
 
@@ -199,7 +199,7 @@ describe("productFormatterView", () => {
     const summaryCard = wrapper.querySelector("#products-summary-card");
     const preview = wrapper.querySelector("#products-preview");
 
-    textarea.value = `Тесто
+    textarea.value = `Заявка 4
 Лук 1`;
     summaryToggle.checked = false;
     formatButton.click();
@@ -209,13 +209,13 @@ describe("productFormatterView", () => {
       Array.from(preview.querySelectorAll(".products-preview__title")).map(
         (el) => el.textContent,
       ),
-    ).toEqual(["Тесто"]);
+    ).toEqual(["Заявка 4"]);
     expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
 
     copyButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Заявка 4
 Лук репчатый 1`);
     expect(copyButton.getAttribute("title")).toBe("Скопировано");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
@@ -235,14 +235,14 @@ describe("productFormatterView", () => {
     const status = wrapper.querySelector("#products-status");
 
     demoButton.click();
-    expect(input.value).toContain("Витамин");
+    expect(input.value).toContain("Заявка 1");
     expect(status.textContent).toBe("Демо-список загружен.");
 
-    navigator.clipboard.readText.mockResolvedValueOnce("Тесто\nЛук 1");
+    navigator.clipboard.readText.mockResolvedValueOnce("Заявка 4\nЛук 1");
     pasteButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(input.value).toBe("Тесто\nЛук 1");
+    expect(input.value).toBe("Заявка 4\nЛук 1");
     expect(status.textContent).toBe("Текст вставлен из буфера обмена.");
 
     formatButton.click();
@@ -250,7 +250,7 @@ describe("productFormatterView", () => {
       false,
     );
 
-    input.value = "Тесто\nЛук 2";
+    input.value = "Заявка 4\nЛук 2";
     formatButton.click();
     expect(
       wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
@@ -280,11 +280,11 @@ describe("productFormatterView", () => {
     const formatButton = wrapper.querySelector("#products-format");
     const dirtyState = wrapper.querySelector('[data-ui="products-dirty-state"]');
 
-    input.value = "Тесто\nЛук 1";
+    input.value = "Заявка 4\nЛук 1";
     formatButton.click();
     expect(dirtyState?.hidden).toBe(true);
 
-    input.value = "Тесто\nЛук 2";
+    input.value = "Заявка 4\nЛук 2";
     input.dispatchEvent(new Event("input"));
     expect(dirtyState?.hidden).toBe(false);
     expect(dirtyState?.textContent).toContain("Результат устарел");
@@ -298,7 +298,7 @@ describe("productFormatterView", () => {
     renderProductFormatterView(wrapper);
 
     const input = wrapper.querySelector("#products-input");
-    input.value = "Тесто\nЛук 1";
+    input.value = "Заявка 4\nЛук 1";
     wrapper.querySelector("#products-format").click();
 
     expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
@@ -319,16 +319,16 @@ describe("productFormatterView", () => {
     const input = wrapper.querySelector("#products-input");
     const formatButton = wrapper.querySelector("#products-format");
 
-    input.value = "Тесто\nЛук 1";
+    input.value = "Заявка 4\nЛук 1";
     formatButton.click();
 
-    input.value = "Тесто\nЛук 2";
+    input.value = "Заявка 4\nЛук 2";
     input.dispatchEvent(new Event("input"));
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Исходник изменён. Переформатируйте результат.",
     );
 
-    input.value = "Тесто\nЛук 1";
+    input.value = "Заявка 4\nЛук 1";
     renderProductFormatterView(wrapper);
 
     expect(wrapper.querySelector("#products-status")?.textContent).toBe("");
@@ -341,17 +341,17 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    navigator.clipboard.readText.mockResolvedValueOnce("Тесто\nЛук 1");
+    navigator.clipboard.readText.mockResolvedValueOnce("Заявка 4\nЛук 1");
     wrapper.querySelector("#products-empty-paste").click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(wrapper.querySelector("#products-input")?.value).toBe("Тесто\nЛук 1");
+    expect(wrapper.querySelector("#products-input")?.value).toBe("Заявка 4\nЛук 1");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Текст вставлен из буфера обмена.",
     );
 
     wrapper.querySelector("#products-empty-demo").click();
-    expect(wrapper.querySelector("#products-input")?.value).toContain("Витамин");
+    expect(wrapper.querySelector("#products-input")?.value).toContain("Заявка 1");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
       "Демо-список загружен.",
     );
@@ -371,7 +371,7 @@ describe("productFormatterView", () => {
 
     navigator.clipboard.writeText.mockRejectedValueOnce(new Error("denied"));
     const textarea = wrapper.querySelector("#products-input");
-    textarea.value = "Тесто\nЛук 1";
+    textarea.value = "Заявка 4\nЛук 1";
     wrapper.querySelector("#products-format").click();
     wrapper.querySelector("#products-copy").click();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -386,7 +386,7 @@ describe("productFormatterView", () => {
     renderProductFormatterView(wrapper);
 
     const textarea = wrapper.querySelector("#products-input");
-    textarea.value = `Тесто
+    textarea.value = `Заявка 4
 Лук 1
 
 Магазин
@@ -401,7 +401,7 @@ describe("productFormatterView", () => {
     firstSectionCopy.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Тесто
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Заявка 4
 Лук репчатый 1`);
     expect(firstSectionCopy.getAttribute("title")).toBe("Скопировано");
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
@@ -413,7 +413,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 5
 Лук 1 кг
 ПетрушкаЦ 2 пуч.
@@ -444,7 +444,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 5`;
     wrapper.querySelector("#products-format").click();
 
@@ -469,7 +469,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 5
 
 Магазин
@@ -497,7 +497,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 5
 Лук 1 кг`;
     wrapper.querySelector("#products-format").click();
@@ -521,7 +521,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 5
 Лук 1 кг
 ПетрушкаЦ 2 пуч.
@@ -571,7 +571,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 1`;
     wrapper.querySelector("#products-format").click();
 
@@ -596,7 +596,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 5
 Лук 1 кг
 ПетрушкаЦ 2 пуч.
@@ -636,7 +636,7 @@ describe("productFormatterView", () => {
     renderProductFormatterView(wrapper);
 
     const textarea = wrapper.querySelector("#products-input");
-    textarea.value = `Тесто
+    textarea.value = `Заявка 4
 ПетрушкаЦ 2 пуч.
 Лук 1 кг`;
     wrapper.querySelector("#products-format").click();
@@ -644,7 +644,7 @@ describe("productFormatterView", () => {
     wrapper.querySelector("#products-result-menu-toggle").click();
     wrapper.querySelector("#products-apply-input").click();
 
-    expect(textarea.value).toBe(`Тесто
+    expect(textarea.value).toBe(`Заявка 4
 Лук репчатый 1
 Петрушка⁕ 2п`);
     expect(
@@ -660,7 +660,7 @@ describe("productFormatterView", () => {
     renderProductFormatterView(wrapper);
 
     const textarea = wrapper.querySelector("#products-input");
-    textarea.value = `Тесто
+    textarea.value = `Заявка 4
 ПетрушкаЦ 2 пуч.
 Лук 1`;
     wrapper.querySelector("#products-format").click();
@@ -682,7 +682,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 Лук 1
 ПетрушкаЦ 2 пуч.
 
@@ -706,6 +706,55 @@ describe("productFormatterView", () => {
 
     expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
       "По запросу «банан» ничего не найдено.",
+    );
+  });
+
+  test("keeps normalization expanded while search only refreshes the preview", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    const diffList = wrapper.querySelector("#products-diff-list");
+    expect(diffList?.hidden).toBe(false);
+
+    const search = wrapper.querySelector("#products-search");
+    search.value = "лук";
+    search.dispatchEvent(new Event("input"));
+
+    expect(diffList?.hidden).toBe(false);
+    expect(wrapper.querySelector("#products-diff-toggle")?.getAttribute("aria-expanded")).toBe(
+      "true",
+    );
+  });
+
+  test("reveals source lines in the input from diagnostics actions", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 5`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    const revealButtons = Array.from(
+      wrapper.querySelectorAll("button"),
+    ).filter((button) => button.textContent?.trim() === "Показать во входе");
+
+    expect(revealButtons.length).toBeGreaterThan(0);
+    revealButtons[0].click();
+
+    expect(document.activeElement).toBe(textarea);
+    expect(textarea.selectionStart).toBe(6);
+    expect(textarea.selectionEnd).toBe(22);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исходная строка найдена во входе.",
     );
   });
 
@@ -738,7 +787,7 @@ describe("productFormatterView", () => {
       "Правил: 1",
     );
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 батат 2`;
     wrapper.querySelector("#products-format").click();
 
@@ -746,7 +795,7 @@ describe("productFormatterView", () => {
       "Картофель сладкий 2",
     );
 
-    wrapper.querySelector("#products-input").value = `Тесто
+    wrapper.querySelector("#products-input").value = `Заявка 4
 батат 3`;
     wrapper.querySelector("#products-format").click();
 
@@ -999,7 +1048,7 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = "Тесто\nЛук 1";
+    wrapper.querySelector("#products-input").value = "Заявка 4\nЛук 1";
     wrapper.querySelector("#products-format").click();
 
     const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
@@ -1020,16 +1069,16 @@ describe("productFormatterView", () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
-    wrapper.querySelector("#products-input").value = "Тесто\nЛук 1";
+    wrapper.querySelector("#products-input").value = "Заявка 4\nЛук 1";
     wrapper.querySelector("#products-format").click();
-    wrapper.querySelector("#products-input").value = "Тесто\nЛук 2";
+    wrapper.querySelector("#products-input").value = "Заявка 4\nЛук 2";
     wrapper.querySelector("#products-format").click();
 
     expect(
       wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
     ).toBe(false);
 
-    navigator.clipboard.readText.mockResolvedValueOnce("Тесто\nЛук 4");
+    navigator.clipboard.readText.mockResolvedValueOnce("Заявка 4\nЛук 4");
     wrapper.querySelector("#products-paste").click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     wrapper.querySelector("#products-format").click();

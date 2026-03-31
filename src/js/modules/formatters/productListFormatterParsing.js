@@ -85,7 +85,7 @@ export function normalizeSectionTitle(value = "") {
   const cleaned = cleanupEntryText(value).replace(/\s+в\s+\d{1,2}\s*$/i, "");
   const normalized = normalizeLookupKey(cleaned).replace(/\s+в\s+\d{1,2}\s*$/, "");
   if (!normalized) return "";
-  if (normalized === "рыба горького") return "Рыба Горького";
+  if (normalized === "Заявка 5") return "Заявка 5";
   const hasLetters = /[A-Za-zА-Яа-яЁё]/.test(cleaned);
   if (hasLetters && cleaned === cleaned.toUpperCase()) {
     return normalized.toUpperCase();

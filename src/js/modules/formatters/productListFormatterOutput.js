@@ -57,12 +57,13 @@ export function formatSectionLine(item) {
 
 export function formatSummaryLine(item) {
   const suffix = formatUnitsForSummary(item);
+  const qualifier = item.summaryQualifier ? ` ${item.summaryQualifier}` : "";
   const sources = Array.from(item.sources).map((source) =>
     String(source).replace(/\s*\(([^)]+)\)\s*$/, " $1"),
   );
   const sourceText = sources.length ? ` (${sources.join(", ")})` : "";
-  if (!suffix) return `${item.displayName}${sourceText}`;
-  return `${item.displayName} ${suffix}${sourceText}`;
+  if (!suffix) return `${item.displayName}${qualifier}${sourceText}`;
+  return `${item.displayName} ${suffix}${qualifier}${sourceText}`;
 }
 
 export function cloneUnits(units = {}) {
@@ -91,6 +92,7 @@ export function buildSectionContract(section) {
       uncertain: item.uncertain,
       hidePcsUnitInSection: !!item.hidePcsUnitInSection,
       sectionQualifier: item.sectionQualifier || "",
+      summaryQualifier: item.summaryQualifier || "",
       uncertainReasons: Array.from(item.uncertainReasons),
       sourceEntries: item.rawEntries.slice(),
       line,
@@ -125,6 +127,7 @@ export function buildSummaryContract(summary) {
       hasNameOnly: item.hasNameOnly,
       sources: Array.from(item.sources),
       sectionQualifier: item.sectionQualifier || "",
+      summaryQualifier: item.summaryQualifier || "",
       line,
       text: line,
     };
@@ -171,6 +174,7 @@ export function buildAggregateSummary(sections, labels, options = {}) {
         hasNameOnly: false,
         sources: new Set(),
         sectionQualifier: item.sectionQualifier || "",
+        summaryQualifier: item.summaryQualifier || "",
       };
 
       if (!section.untitled) {
@@ -179,6 +183,8 @@ export function buildAggregateSummary(sections, labels, options = {}) {
       summaryItem.hasNameOnly = summaryItem.hasNameOnly || item.hasNameOnly;
       summaryItem.sectionQualifier =
         summaryItem.sectionQualifier || item.sectionQualifier || "";
+      summaryItem.summaryQualifier =
+        summaryItem.summaryQualifier || item.summaryQualifier || "";
       Object.keys(summaryItem.units).forEach((unitKey) => {
         summaryItem.units[unitKey] += item.units[unitKey] || 0;
       });

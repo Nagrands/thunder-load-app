@@ -50,6 +50,8 @@ export function bindViewEvents({
   syncDictionaryMeta,
   syncDirtyFromInputs,
   clearCopyFeedbackTimer,
+  refreshDiagnostics,
+  refreshPreview,
   showResult,
   setStatus,
   initTooltips,
@@ -247,7 +249,7 @@ export function bindViewEvents({
   searchInput?.addEventListener("input", () => {
     state.resultSearchQuery = String(searchInput.value || "").trim();
     if (!state.currentResult) return;
-    showResult(state.currentResult);
+    refreshPreview();
   });
 
   resultMenuToggle?.addEventListener("click", () => {
@@ -292,7 +294,7 @@ export function bindViewEvents({
       ?.closest('[role="menuitemcheckbox"]')
       ?.setAttribute("aria-checked", String(filterUncertainToggle.checked));
     if (!state.currentResult) return;
-    showResult(state.currentResult);
+    refreshPreview();
     closeResultMenu();
   });
   diagnosticsFilters?.forEach((button) => {
@@ -301,7 +303,7 @@ export function bindViewEvents({
       if (state.diagnosticsFilter === nextFilter) return;
       state.diagnosticsFilter = nextFilter;
       if (!state.currentResult) return;
-      showResult(state.currentResult);
+      refreshDiagnostics();
     });
   });
   collapseAllButton?.addEventListener("click", () => {

@@ -1665,7 +1665,7 @@ export const getDefaultTab = () => window.electron.invoke("get-default-tab");
 export const setDefaultTab = (tabId) =>
   window.electron.invoke("set-default-tab", normalizeDefaultTabId(tabId));
 
-// Тестовая прокладка для unit-тестов
+
 export const __test_updateModuleBadge = updateModuleBadge;
 export const __test_collectCurrentConfig = collectCurrentConfig;
 export const __test_applyConfig = applyConfig;

@@ -48,8 +48,7 @@ build/
 *.dev.config
 
 .codex/
-
-# ─── Obsidian ──────────────────────────────────────────────
+.zed/
 .obsidian/
 
 # ─── Logs ──────────────────────────────────────────────────
@@ -60,5 +59,3 @@ logs/
 # ─── Electron Specific ─────────────────────────────────────
 *.asar
 *.asar.unpacked
-
-whats-new.md
