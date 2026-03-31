@@ -206,6 +206,11 @@ export function bindViewEvents({
   });
 
   applyInputButton?.addEventListener("click", () => {
+    if (state.isDirty) {
+      setStatus(t("productsFormatter.status.stale"), "warning");
+      closeResultMenu();
+      return;
+    }
     if (!state.currentResult?.formattedSectionsText) return;
     input.value = state.currentResult.formattedSectionsText;
     input.focus();
@@ -272,18 +277,11 @@ export function bindViewEvents({
   const handleToggleReformat = () => {
     const source = getCurrentSource();
     if (!source || !state.currentResult) return;
-    const result = formatProductLists(
+    formatSource({
       source,
-      buildFormatterOptions(
-        includeSummary,
-        includeGreensSummary,
-        dictionaryInput,
-      ),
-    );
-    state.currentResult = result;
-    state.lastFormattedSource = String(input?.value || "");
-    state.lastFormattedDictionary = String(dictionaryInput?.value || "");
-    showResult(result);
+      statusMessage: "",
+      comparisonBase: state.currentResult,
+    });
   };
 
   includeSummary?.addEventListener("change", handleToggleReformat);

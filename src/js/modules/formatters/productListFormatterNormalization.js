@@ -39,7 +39,12 @@ export function createEntryNormalizer({
     diagnostics.issues.push(issue);
   }
 
-  function resolveParsedEntry(rawEntry, sectionTitle, replacements) {
+  function resolveParsedEntry(
+    rawEntry,
+    sectionTitle,
+    replacements,
+    sourceLineNumber = null,
+  ) {
     const source = cleanupEntryText(rawEntry);
     const parsed = parseQuantity(source);
     const qualifiers = buildItemQualifiers(parsed.tail);
@@ -122,6 +127,7 @@ export function createEntryNormalizer({
           sectionTitle,
           displayName,
           source,
+          sourceLineNumber,
           output: formatSectionLine(item),
         });
       }
@@ -146,6 +152,7 @@ export function createEntryNormalizer({
         sectionTitle,
         displayName,
         source,
+        sourceLineNumber,
         output: formatSectionLine(item),
       });
     }
@@ -158,6 +165,7 @@ export function createEntryNormalizer({
         sectionTitle,
         displayName,
         source,
+        sourceLineNumber,
         output: formatSectionLine(item),
       });
     }
@@ -189,8 +197,14 @@ export function createEntryNormalizer({
     sectionTitle,
     diagnostics,
     replacements,
+    sourceLineNumber = null,
   ) {
-    const resolved = resolveParsedEntry(rawEntry, sectionTitle, replacements);
+    const resolved = resolveParsedEntry(
+      rawEntry,
+      sectionTitle,
+      replacements,
+      sourceLineNumber,
+    );
     if (!resolved) return;
 
     const current =
@@ -225,6 +239,7 @@ export function createEntryNormalizer({
         sectionTitle,
         displayName: current.displayName,
         source: resolved.source,
+        sourceLineNumber,
         output: formatSectionLine(current),
       });
     }
@@ -240,6 +255,7 @@ export function createEntryNormalizer({
       diagnostics.diffEntries.push({
         sectionTitle,
         source: resolved.source,
+        sourceLineNumber,
         output: resolved.output,
         uncertain: resolved.item.uncertain,
         issueCodes: resolved.issues.map((issue) => issue.code),

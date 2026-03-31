@@ -157,6 +157,11 @@
   align-items: center;
 }
 
+.products-pane__toggles--footer {
+  justify-content: flex-start;
+  padding-left: 4px;
+}
+
 .products-pane__body {
   min-height: 0;
 }
@@ -207,6 +212,7 @@
   padding-top: 6px;
   position: relative;
   z-index: 1;
+  align-items: stretch;
 }
 
 .products-dirty-state {

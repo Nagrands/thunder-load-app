@@ -64,15 +64,22 @@ export function createSectionCollector({
           atStart: false,
         })
       : false;
+    const nextLineIsGroupedChild = nextLine
+      ? isGroupedChildSection(nextLine)
+      : false;
     const isGroupedHeading =
       previousBlank &&
       nextLineIsHeading &&
-      !looksLikeKnownProductLine(line, replacements) &&
-      !/[\d]/.test(line) &&
+      nextLineIsGroupedChild &&
       !/[,;:]/.test(line) &&
+      (!/[\d]/.test(line) || /^заявка\s+\d+$/i.test(normalizeLookupKey(line))) &&
       line.split(/\s+/).length <= 4;
 
-    if (previousBlank && isAddressLikeBoundary(line, nextLineIsHeading)) {
+    if (
+      previousBlank &&
+      isAddressLikeBoundary(line, nextLineIsHeading) &&
+      !/^заявка\s+\d+$/i.test(normalizeLookupKey(line))
+    ) {
       return {
         type: "addressBoundary",
         line,
@@ -171,6 +178,7 @@ export function createSectionCollector({
           classification.line,
           diagnostics,
           replacements,
+          index + 1,
         );
       }
       previousBlank = false;
@@ -191,7 +199,13 @@ export function createSectionCollector({
     });
   }
 
-  function addEntriesToSection(section, line, diagnostics, replacements) {
+  function addEntriesToSection(
+    section,
+    line,
+    diagnostics,
+    replacements,
+    sourceLineNumber = null,
+  ) {
     splitEntryCandidates(line).forEach((entry) =>
       addParsedEntry(
         section.itemsMap,
@@ -199,6 +213,7 @@ export function createSectionCollector({
         section.title,
         diagnostics,
         replacements,
+        sourceLineNumber,
       ),
     );
   }

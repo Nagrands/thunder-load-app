@@ -75,6 +75,10 @@
     flex-wrap: wrap;
   }
 
+  .products-pane__toggles--footer {
+    padding-left: 0;
+  }
+
   .products-result-toolbar {
     grid-template-columns: 1fr;
   }

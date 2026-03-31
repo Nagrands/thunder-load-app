@@ -19,39 +19,6 @@ export function buildMarkup() {
             <header class="products-pane__header">
               <div class="products-pane__title products-pane__title--stack">
                 <h2 data-i18n="productsFormatter.inputLabel">${t("productsFormatter.inputLabel")}</h2>
-                <div class="products-pane__toggles">
-                  <label
-                    class="products-formatter-toggle"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="${t("productsFormatter.summaryToggleHint")}"
-                    data-i18n-title="productsFormatter.summaryToggleHint"
-                    aria-label="${t("productsFormatter.summaryToggleHint")}"
-                    data-i18n-aria="productsFormatter.summaryToggleHint"
-                  >
-                    <input
-                      id="products-summary-toggle"
-                      type="checkbox"
-                      checked
-                    />
-                    <span data-i18n="productsFormatter.summaryToggle">${t("productsFormatter.summaryToggle")}</span>
-                  </label>
-                  <label
-                    class="products-formatter-toggle"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="${t("productsFormatter.greensToggleHint")}"
-                    data-i18n-title="productsFormatter.greensToggleHint"
-                    aria-label="${t("productsFormatter.greensToggleHint")}"
-                    data-i18n-aria="productsFormatter.greensToggleHint"
-                  >
-                    <input
-                      id="products-greens-toggle"
-                      type="checkbox"
-                    />
-                    <span data-i18n="productsFormatter.greensToggle">${t("productsFormatter.greensToggle")}</span>
-                  </label>
-                </div>
               </div>
             </header>
 
@@ -149,6 +116,42 @@ export function buildMarkup() {
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                 <span data-i18n="productsFormatter.format">${t("productsFormatter.format")}</span>
               </button>
+              <div
+                class="products-pane__toggles products-pane__toggles--footer"
+                data-ui="products-footer-toggles"
+              >
+                <label
+                  class="products-formatter-toggle"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="${t("productsFormatter.summaryToggleHint")}"
+                  data-i18n-title="productsFormatter.summaryToggleHint"
+                  aria-label="${t("productsFormatter.summaryToggleHint")}"
+                  data-i18n-aria="productsFormatter.summaryToggleHint"
+                >
+                  <input
+                    id="products-summary-toggle"
+                    type="checkbox"
+                    checked
+                  />
+                  <span data-i18n="productsFormatter.summaryToggle">${t("productsFormatter.summaryToggle")}</span>
+                </label>
+                <label
+                  class="products-formatter-toggle"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="${t("productsFormatter.greensToggleHint")}"
+                  data-i18n-title="productsFormatter.greensToggleHint"
+                  aria-label="${t("productsFormatter.greensToggleHint")}"
+                  data-i18n-aria="productsFormatter.greensToggleHint"
+                >
+                  <input
+                    id="products-greens-toggle"
+                    type="checkbox"
+                  />
+                  <span data-i18n="productsFormatter.greensToggle">${t("productsFormatter.greensToggle")}</span>
+                </label>
+              </div>
             </footer>
           </section>
 

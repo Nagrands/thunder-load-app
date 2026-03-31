@@ -85,7 +85,8 @@ export function normalizeSectionTitle(value = "") {
   const cleaned = cleanupEntryText(value).replace(/\s+в\s+\d{1,2}\s*$/i, "");
   const normalized = normalizeLookupKey(cleaned).replace(/\s+в\s+\d{1,2}\s*$/, "");
   if (!normalized) return "";
-  if (normalized === "Заявка 5") return "Заявка 5";
+  const requestMatch = normalized.match(/^заявка\s+(\d+)$/i);
+  if (requestMatch) return `Заявка ${requestMatch[1]}`;
   const hasLetters = /[A-Za-zА-Яа-яЁё]/.test(cleaned);
   if (hasLetters && cleaned === cleaned.toUpperCase()) {
     return normalized.toUpperCase();
@@ -99,6 +100,7 @@ export function isLikelySectionHeading(line, nextLine, context = {}) {
   if (!(context.afterBlank || context.atStart)) return false;
   if (!nextLine) return false;
   const lookup = normalizeLookupKey(normalized).replace(/\s+в\s+\d{1,2}\s*$/, "");
+  if (/^заявка\s+\d+$/i.test(lookup)) return true;
   if (lookup === "магазин") return true;
   if (/[,;:]/.test(normalized)) return false;
   if (/[\d]/.test(normalized) && !/\s+в\s+\d{1,2}\s*$/i.test(normalized)) {

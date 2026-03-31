@@ -67,7 +67,11 @@ export function createViewStateHandlers({
       searchInput.disabled = !state.hasResult;
     }
     if (resultMenuToggle) {
-      resultMenuToggle.disabled = !state.hasResult;
+      resultMenuToggle.disabled = !state.hasResult || state.isDirty;
+    }
+    if (state.isDirty) {
+      state.resultMenuOpen = false;
+      setResultMenuState(resultMenuToggle, resultMenuPanel, false);
     }
   };
 

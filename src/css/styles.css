@@ -30298,6 +30298,11 @@ h1.section-heading .bk-heading-search #bk-search-info {
   align-items: center;
 }
 
+.products-pane__toggles--footer {
+  justify-content: flex-start;
+  padding-left: 4px;
+}
+
 .products-pane__body {
   min-height: 0;
 }
@@ -30348,6 +30353,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
   padding-top: 6px;
   position: relative;
   z-index: 1;
+  align-items: stretch;
 }
 
 .products-dirty-state {
@@ -31406,6 +31412,9 @@ h1.section-heading .bk-heading-search #bk-search-info {
   }
   .products-pane__toggles {
     flex-wrap: wrap;
+  }
+  .products-pane__toggles--footer {
+    padding-left: 0;
   }
   .products-result-toolbar {
     grid-template-columns: 1fr;

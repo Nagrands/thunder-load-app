@@ -69,6 +69,19 @@ function appendEmptyDiagnosticsState(container, activeFilter) {
   container.appendChild(empty);
 }
 
+function buildVisibleSectionText(title, items = []) {
+  const lines = items
+    .map((entry) => String(entry?.line || entry?.text || "").trim())
+    .filter(Boolean);
+  if (!title) {
+    return lines.join("\n").trim();
+  }
+  if (!lines.length) {
+    return String(title).trim();
+  }
+  return `${title}\n${lines.join("\n")}`.trim();
+}
+
 export function renderDiagnostics(
   issuesEl,
   diffEl,
@@ -319,7 +332,7 @@ function createSectionBlock(
   title,
   items = [],
   type = "section",
-  text = "",
+  copyTextValue = "",
   onCopy,
   collapsed = false,
   onToggleCollapse,
@@ -355,17 +368,17 @@ function createSectionBlock(
   headingButton.appendChild(heading);
   header.appendChild(headingButton);
 
-  if (text && typeof onCopy === "function") {
+  if (copyTextValue && typeof onCopy === "function") {
     const copyButton = document.createElement("button");
     copyButton.type = "button";
     copyButton.className = "products-section-copy";
-    copyButton.dataset.copyText = text;
+    copyButton.dataset.copyText = copyTextValue;
     copyButton.setAttribute("data-bs-toggle", "tooltip");
     copyButton.setAttribute("data-bs-placement", "top");
     copyButton.setAttribute("title", t("productsFormatter.copy"));
     copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
     copyButton.innerHTML = `<i class="fa-regular fa-copy" aria-hidden="true"></i>`;
-    copyButton.addEventListener("click", () => onCopy(text, copyButton));
+    copyButton.addEventListener("click", () => onCopy(copyTextValue, copyButton));
     header.appendChild(copyButton);
   }
 
@@ -455,7 +468,7 @@ export function renderPreview(
         section.title,
         matchedItems,
         "section",
-        section.text,
+        buildVisibleSectionText(section.title, matchedItems),
         onCopySection,
         collapsedSections?.[key] === true,
         (collapsed) => onToggleCollapse?.(key, collapsed),
@@ -478,7 +491,7 @@ export function renderPreview(
           result.summary.title,
           matchedItems,
           "summary",
-          result.summary.text,
+          buildVisibleSectionText(result.summary.title, matchedItems),
           onCopySection,
           collapsedSections?.[key] === true,
           (collapsed) => onToggleCollapse?.(key, collapsed),
@@ -504,7 +517,7 @@ export function renderPreview(
           result.greensSummary.title,
           matchedItems,
           "summary",
-          result.greensSummary.text,
+          buildVisibleSectionText(result.greensSummary.title, matchedItems),
           onCopySection,
           collapsedSections?.[key] === true,
           (collapsed) => onToggleCollapse?.(key, collapsed),

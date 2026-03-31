@@ -154,14 +154,23 @@ export default function renderProductFormatterView(wrapper) {
 
   const getCurrentSource = () => String(input?.value || "").trim();
 
-  const revealSourceLine = (sourceLine = "") => {
-    if (!input) return false;
+  const findSourceLineIndex = (sourceLine = "", sourceLineNumber = null) => {
+    const lines = String(input?.value || "").split("\n");
+    const safeLineNumber = Number(sourceLineNumber);
+    if (Number.isInteger(safeLineNumber) && safeLineNumber >= 1) {
+      const directIndex = safeLineNumber - 1;
+      if (directIndex < lines.length) {
+        return directIndex;
+      }
+    }
     const sourceKey = cleanupEntryText(sourceLine);
-    if (!sourceKey) return false;
-    const lines = String(input.value || "").split("\n");
-    const lineIndex = lines.findIndex(
-      (line) => cleanupEntryText(line) === sourceKey,
-    );
+    if (!sourceKey) return -1;
+    return lines.findIndex((line) => cleanupEntryText(line) === sourceKey);
+  };
+
+  const revealSourceLine = (sourceLine = "", sourceLineNumber = null) => {
+    if (!input) return false;
+    const lineIndex = findSourceLineIndex(sourceLine, sourceLineNumber);
     if (lineIndex === -1) return false;
     const { selectionStart, selectionEnd } = getTextareaSelectionForLine(
       input.value,
@@ -221,10 +230,10 @@ export default function renderProductFormatterView(wrapper) {
       filterButtons: diagnosticsFilters,
       onApplyDiff: (entry) => {
         const lines = String(input?.value || "").split("\n");
-        const sourceKey = cleanupEntryText(entry.source);
         const nextLines = [...lines];
-        const lineIndex = nextLines.findIndex(
-          (line) => cleanupEntryText(line) === sourceKey,
+        const lineIndex = findSourceLineIndex(
+          entry.source,
+          entry.sourceLineNumber,
         );
         if (lineIndex === -1) {
           setStatus(t("productsFormatter.status.applyLineError"), "error");
@@ -237,7 +246,7 @@ export default function renderProductFormatterView(wrapper) {
         setStatus(t("productsFormatter.status.lineApplied"), "success");
       },
       onRevealSource: (entry) => {
-        if (!revealSourceLine(entry.source)) {
+        if (!revealSourceLine(entry.source, entry.sourceLineNumber)) {
           setStatus(t("productsFormatter.status.applyLineError"), "error");
           return;
         }
@@ -262,8 +271,8 @@ export default function renderProductFormatterView(wrapper) {
     state.resultMenuOpen = false;
     setResultMenuState(resultMenuToggle, resultMenuPanel, false);
     renderPreviewArea(result);
-    renderDiagnosticsArea(result);
     renderComparisonArea(result);
+    renderDiagnosticsArea(result);
     state.isDirty = false;
     updateDirtyState();
   };
