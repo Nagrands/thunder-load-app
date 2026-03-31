@@ -1,8 +1,6 @@
 export function createEntryNormalizer({
-  defaultReplacements,
   cleanupEntryText,
   createItem,
-  fixKnownTypos,
   formatSectionLine,
   hasGreeneryMarker,
   isStoreBagName,
@@ -10,8 +8,8 @@ export function createEntryNormalizer({
   normalizeLookupKey,
   normalizeUnit,
   parseQuantity,
-  sentenceCase,
-  buildSectionQualifier,
+  buildItemQualifiers,
+  resolveDisplayName,
   shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
   shouldHidePiecesUnitInSection,
@@ -41,72 +39,14 @@ export function createEntryNormalizer({
     diagnostics.issues.push(issue);
   }
 
-  function expandCommonLookupVariants(lookupKey = "") {
-    return normalizeLookupKey(lookupKey)
-      .replace(/\bзел\b/g, "зеленый")
-      .replace(/\bкр\b/g, "красный");
-  }
-
-  function analyzeDisplayName(name = "", replacements = defaultReplacements) {
-    const lookupKey = normalizeLookupKey(name);
-    const expandedLookupKey = expandCommonLookupVariants(lookupKey);
-    if (!lookupKey) {
-      return {
-        displayName: "",
-        typoCorrected: false,
-      };
-    }
-
-    if (lookupKey.includes("черри")) {
-      return {
-        displayName: "Помидор черри",
-        typoCorrected: false,
-      };
-    }
-
-    if (replacements[lookupKey]) {
-      return {
-        displayName: replacements[lookupKey],
-        typoCorrected: false,
-      };
-    }
-
-    if (expandedLookupKey && replacements[expandedLookupKey]) {
-      return {
-        displayName: replacements[expandedLookupKey],
-        typoCorrected: false,
-      };
-    }
-
-    if (lookupKey.startsWith("капуста мол")) {
-      return {
-        displayName: "Капуста молодая",
-        typoCorrected: false,
-      };
-    }
-
-    const typoFixed = fixKnownTypos(lookupKey);
-    if (typoFixed) {
-      return {
-        displayName: typoFixed,
-        typoCorrected: true,
-      };
-    }
-
-    return {
-      displayName: sentenceCase(expandedLookupKey || lookupKey),
-      typoCorrected: false,
-    };
-  }
-
   function resolveParsedEntry(rawEntry, sectionTitle, replacements) {
     const source = cleanupEntryText(rawEntry);
     const parsed = parseQuantity(source);
-    const sectionQualifier = buildSectionQualifier(parsed.tail);
-    const effectiveName = sectionQualifier
+    const qualifiers = buildItemQualifiers(parsed.tail);
+    const effectiveName = qualifiers.hasQualifier
       ? parsed.name
       : cleanupEntryText([parsed.name, parsed.tail].filter(Boolean).join(" "));
-    const nameMeta = analyzeDisplayName(effectiveName, replacements);
+    const nameMeta = resolveDisplayName(effectiveName, replacements);
     const displayName = nameMeta.displayName;
     if (!displayName) return null;
     if (
@@ -120,9 +60,20 @@ export function createEntryNormalizer({
     const starred =
       String(rawEntry || "").includes("⁕") || hasGreeneryMarker(displayName);
     const item = createItem(displayName, starred);
-    item.sectionQualifier = sectionQualifier;
-    if (item.sectionQualifier) {
-      item.key = `${item.key}::${normalizeLookupKey(item.sectionQualifier)}`;
+    item.sectionQualifier = qualifiers.sectionQualifier;
+    item.summaryQualifier = qualifiers.summaryQualifier;
+    if (item.sectionQualifier || item.summaryQualifier) {
+      item.key = [
+        item.key,
+        item.sectionQualifier
+          ? normalizeLookupKey(item.sectionQualifier)
+          : "",
+        item.summaryQualifier
+          ? normalizeLookupKey(item.summaryQualifier)
+          : "",
+      ]
+        .filter(Boolean)
+        .join("::");
     }
     const issues = [];
 
@@ -246,6 +197,7 @@ export function createEntryNormalizer({
       targetMap.get(resolved.key) ||
       createItem(resolved.item.displayName, resolved.item.starred);
     const existed = targetMap.has(resolved.key);
+    current.key = resolved.key;
     current.displayName = resolved.item.displayName;
     current.starred = current.starred || resolved.item.starred;
     current.hasNameOnly = current.hasNameOnly || resolved.item.hasNameOnly;
@@ -254,6 +206,8 @@ export function createEntryNormalizer({
       current.hidePcsUnitInSection || resolved.item.hidePcsUnitInSection;
     current.sectionQualifier =
       current.sectionQualifier || resolved.item.sectionQualifier;
+    current.summaryQualifier =
+      current.summaryQualifier || resolved.item.summaryQualifier;
     resolved.item.rawEntries.forEach((entry) => current.rawEntries.push(entry));
     current.rawEntries.push(resolved.source);
     resolved.item.uncertainReasons.forEach((reason) =>

@@ -1,4 +1,17 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { formatProductLists, parseProductList } from "../formatters/productListFormatter.js";
+
+const PRODUCT_LIST_FIXTURES_DIR = join(
+  process.cwd(),
+  "src/js/modules/__tests__/__fixtures__/productListFormatter",
+);
+
+function loadFormatterFixture(name) {
+  return JSON.parse(
+    readFileSync(join(PRODUCT_LIST_FIXTURES_DIR, `${name}.json`), "utf8"),
+  );
+}
 
 describe("productListFormatter", () => {
   test("formats the prompt sample and appends the summary", () => {
@@ -709,7 +722,7 @@ describe("productListFormatter", () => {
 Мята⁕ 3п
 Перец микс
 Помидор черри
-Салат Айсберг⁕ 3шт (сред.)
+Салат Айсберг⁕ 3шт
 Щавель⁕ 4п
 
 Мята
@@ -738,6 +751,7 @@ describe("productListFormatter", () => {
 Фризе⁕ 0.2`);
     expect(result.formattedSectionsText).not.toContain("Сергеева");
     expect(result.formattedSectionsText).not.toContain("Латук⁕\n");
+    expect(result.formattedSectionsText).not.toContain("(сред.");
   });
 
   test("normalizes plural produce, golden apples, color abbreviations, and colon decimals", () => {
@@ -780,14 +794,14 @@ describe("productListFormatter", () => {
 Апельсин 2
 Банан 0.5ящ (зеленый)
 Лимон 1
-Мандарин 4 (крупный)
-Яблоко Голден 4 (крупный)`);
+Мандарин 4
+Яблоко Голден 4`);
     expect(result.formattedSummaryText).toBe(`Итого
 Апельсин 2 кг (ВИТАМИН)
 Банан 0.5ящ (ВИТАМИН)
 Лимон 1 кг (ВИТАМИН)
-Мандарин 4 кг (ВИТАМИН)
-Яблоко Голден 4 кг (ВИТАМИН)`);
+Мандарин 4 кг (крупный) (ВИТАМИН)
+Яблоко Голден 4 кг (крупный) (ВИТАМИН)`);
     expect(result.formattedSectionsText).not.toContain("Гольден");
     expect(result.formattedSectionsText).not.toContain("красивый");
     expect(result.formattedSectionsText).not.toContain("Банан зел");
@@ -813,5 +827,76 @@ describe("productListFormatter", () => {
       title: "Без раздела",
       untitled: true,
     });
+  });
+
+  test("matches the grouped section fixture", () => {
+    const fixture = loadFormatterFixture("grouped-sections");
+    const result = formatProductLists(fixture.input, fixture.options || {});
+
+    expect(result.formattedSectionsText).toBe(fixture.formattedSectionsText);
+    expect(result.sections.map((section) => section.title)).toEqual(
+      fixture.sectionTitles,
+    );
+  });
+
+  test("matches the heading-free greens fixture", () => {
+    const fixture = loadFormatterFixture("heading-free-greens");
+    const result = formatProductLists(fixture.input, fixture.options || {});
+
+    expect(result.formattedSectionsText).toBe(fixture.formattedSectionsText);
+    expect(result.formattedSummaryText).toBe(fixture.formattedSummaryText);
+    expect(
+      result.sections.map((section) => ({
+        title: section.title,
+        untitled: !!section.untitled,
+      })),
+    ).toEqual(fixture.sections);
+  });
+
+  test("applies new produce aliases and keeps size notes only in summary", () => {
+    const result = formatProductLists(`Тесто
+Цв капуста 2
+ялта 1
+Огурец сол 3
+Киш-миш 0.5
+Брокколи 1
+Пекинка 2
+Памела 1
+лимоны 4
+Чили 0.2
+Белозерка 1
+Перец Крым 2
+Яблоко гольден 3
+Баклажаны 4 мелкое
+Лимоны 5 среднее`);
+
+    expect(result.formattedSectionsText).toBe(`Тесто
+Баклажан 4
+Виноград Кишмиш 0.5
+Капуста брокколи 1
+Капуста пекинская 2
+Капуста цветная 2
+Лимон 4
+Лимон 5
+Лук Ялта 1
+Огурец соленый 3
+Перец Белозерка 3
+Перец Чили 0.2
+Помело 1
+Яблоко Голден 3`);
+    expect(result.formattedSummaryText).toBe(`Итого
+Баклажан 4 кг (мелкий) (Тесто)
+Виноград Кишмиш 0.5 кг (Тесто)
+Капуста брокколи 1 кг (Тесто)
+Капуста пекинская 2 кг (Тесто)
+Капуста цветная 2 кг (Тесто)
+Лимон 4 кг (Тесто)
+Лимон 5 кг (средний) (Тесто)
+Лук Ялта 1 кг (Тесто)
+Огурец соленый 3 кг (Тесто)
+Перец Белозерка 3 кг (Тесто)
+Перец Чили 0.2 кг (Тесто)
+Помело 1 кг (Тесто)
+Яблоко Голден 3 кг (Тесто)`);
   });
 });

@@ -2,23 +2,7 @@ import { normalizeLookupKey } from "./productListFormatterParsing.js";
 import {
   GREENERY_PATTERNS,
   STORE_BAG_PATTERNS,
-  TYPO_STEMS,
 } from "./productListFormatterData.js";
-
-export function fixKnownTypos(lookupKey = "") {
-  if (!lookupKey) return "";
-  for (const [stem, display] of Object.entries(TYPO_STEMS)) {
-    const suffixLength = lookupKey.length - stem.length;
-    if (
-      lookupKey.startsWith(stem) &&
-      suffixLength > 0 &&
-      suffixLength <= 2
-    ) {
-      return display;
-    }
-  }
-  return "";
-}
 
 export function hasGreeneryMarker(name = "") {
   const lookupKey = normalizeLookupKey(name);
@@ -80,34 +64,6 @@ export function shouldConvertHeadToPieces(name = "") {
   return lookupKey === "салат айсберг";
 }
 
-export function buildSectionQualifier(tail = "") {
-  const lookupKey = normalizeLookupKey(tail);
-  if (!lookupKey) return "";
-
-  if (["сред", "средний", "средняя", "среднее"].includes(lookupKey)) {
-    return "(сред.)";
-  }
-
-  const tokens = lookupKey.split(/\s+/).filter(Boolean);
-  const qualifierMap = new Map([
-    ["зел", "(зеленый)"],
-    ["зеленый", "(зеленый)"],
-    ["зелёный", "(зеленый)"],
-    ["кр", "(красный)"],
-    ["красный", "(красный)"],
-    ["круп", "(крупный)"],
-    ["крупный", "(крупный)"],
-  ]);
-
-  for (const token of tokens) {
-    if (qualifierMap.has(token)) {
-      return qualifierMap.get(token) || "";
-    }
-  }
-
-  return "";
-}
-
 export function createItem(displayName = "", starred = false) {
   return {
     key: normalizeLookupKey(displayName),
@@ -127,6 +83,7 @@ export function createItem(displayName = "", starred = false) {
     uncertain: false,
     hidePcsUnitInSection: false,
     sectionQualifier: "",
+    summaryQualifier: "",
     uncertainReasons: new Set(),
     rawEntries: [],
   };

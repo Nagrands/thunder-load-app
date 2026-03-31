@@ -1,14 +1,12 @@
 import {
   DEFAULT_LABELS,
   DEFAULT_REPLACEMENTS,
-  SECTION_GROUP_CHILD_TITLES,
 } from "./productListFormatterData.js";
 import {
   buildAggregateSummary,
   buildSectionContract,
   buildSummaryContract,
   formatSectionLine,
-  sortByRuAlpha,
 } from "./productListFormatterOutput.js";
 import {
   cleanupEntryText,
@@ -22,13 +20,11 @@ import {
   splitEntryCandidates,
 } from "./productListFormatterParsing.js";
 import { createEntryNormalizer } from "./productListFormatterNormalization.js";
+import { createProductFormatterLexicon } from "./productListFormatterLexicon.js";
+import { createSectionCollector } from "./productListFormatterSections.js";
 import {
   addUnit,
   createItem,
-  fixKnownTypos,
-  hasGreeneryMarker,
-  isStoreBagName,
-  buildSectionQualifier,
   shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
   shouldHidePiecesUnitInSection,
@@ -37,21 +33,26 @@ import {
   shouldTreatUnitlessQuantityAsPieces,
 } from "./productListFormatterRules.js";
 
+const lexicon = createProductFormatterLexicon({
+  cleanupEntryText,
+  normalizeLookupKey,
+  sentenceCase,
+});
+
 const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
   defaultReplacements: DEFAULT_REPLACEMENTS,
   cleanupEntryText,
   createItem,
-  fixKnownTypos,
+  resolveDisplayName: lexicon.resolveDisplayName,
   formatSectionLine,
-  hasGreeneryMarker,
-  isStoreBagName,
+  hasGreeneryMarker: lexicon.hasGreeneryMarker,
+  isStoreBagName: lexicon.isStoreBagName,
   isStoreSection,
   normalizeLookupKey,
   normalizeUnit,
   parseQuantity,
-  sentenceCase,
   addUnit,
-  buildSectionQualifier,
+  buildItemQualifiers: lexicon.buildItemQualifiers,
   shouldConvertHeadToPieces,
   shouldConvertSmallGreeneryKgToBunch,
   shouldHidePiecesUnitInSection,
@@ -60,53 +61,16 @@ const { addParsedEntry, createDiagnosticsBucket } = createEntryNormalizer({
   shouldTreatUnitlessQuantityAsPieces,
 });
 
-function isGroupedChildSection(title = "") {
-  const lookup = normalizeLookupKey(title);
-  return SECTION_GROUP_CHILD_TITLES.includes(lookup);
-}
-
-function isAddressLikeBoundary(line = "", nextLineIsHeading = false) {
-  if (!nextLineIsHeading) return false;
-  if (!/[\d]/.test(line)) return false;
-  if (/[,;:]/.test(line)) return false;
-  if (line.split(/\s+/).length > 4) return false;
-  return true;
-}
-
-function getMeaningfulLine(rawLines, startIndex) {
-  for (let index = startIndex; index < rawLines.length; index += 1) {
-    const line = cleanupEntryText(rawLines[index]);
-    if (line) {
-      return {
-        index,
-        line,
-      };
-    }
-  }
-  return null;
-}
-
-function expandCommonLookupVariants(lookupKey = "") {
-  return normalizeLookupKey(lookupKey)
-    .replace(/\bзел\b/g, "зеленый")
-    .replace(/\bкр\b/g, "красный");
-}
-
-function looksLikeKnownProductHeading(line = "", replacements = {}) {
-  const normalized = cleanupEntryText(line);
-  if (!normalized) return false;
-  if (normalized !== normalized.toLowerCase()) return false;
-  if (normalized.split(/\s+/).length < 2) return false;
-
-  const lookupKey = normalizeLookupKey(normalized);
-  const expandedLookupKey = expandCommonLookupVariants(lookupKey);
-
-  if (replacements[lookupKey] || replacements[expandedLookupKey]) {
-    return true;
-  }
-
-  return hasGreeneryMarker(expandedLookupKey);
-}
+const { collectSections } = createSectionCollector({
+  addParsedEntry,
+  cleanupEntryText,
+  formatSectionLine,
+  isLikelySectionHeading,
+  looksLikeKnownProductLine: lexicon.looksLikeKnownProductLine,
+  normalizeLookupKey,
+  normalizeSectionTitle,
+  splitEntryCandidates,
+});
 
 function buildProductListContract(input = "", options = {}) {
   const labels = {
@@ -184,118 +148,6 @@ function buildProductListContract(input = "", options = {}) {
     normalizationStats,
   };
 }
-
-function collectSections(
-  input = "",
-  labels = DEFAULT_LABELS,
-  diagnostics,
-  replacements,
-) {
-  const rawLines = String(input || "").split("\n");
-  const sections = [];
-  let currentSection = null;
-  let previousBlank = true;
-  let groupedSectionPrefix = "";
-
-  rawLines.forEach((rawLine, index) => {
-    const line = cleanupEntryText(rawLine);
-    if (!line) {
-      previousBlank = true;
-      return;
-    }
-
-    const nextMeaningful = getMeaningfulLine(rawLines, index + 1);
-    const nextLine = nextMeaningful?.line || "";
-    const lineAfterNext = nextMeaningful
-      ? getMeaningfulLine(rawLines, nextMeaningful.index + 1)?.line || ""
-      : "";
-    const atStart = sections.length === 0 && !currentSection;
-    const isHeadingCandidate = isLikelySectionHeading(line, nextLine, {
-      afterBlank: previousBlank,
-      atStart,
-    });
-    const isHeading =
-      isHeadingCandidate && !looksLikeKnownProductHeading(line, replacements);
-    const nextLineIsHeading = nextLine
-      ? isLikelySectionHeading(nextLine, lineAfterNext, {
-          afterBlank: true,
-          atStart: false,
-        })
-      : false;
-    const isGroupedHeading =
-      previousBlank &&
-      nextLineIsHeading &&
-      !looksLikeKnownProductHeading(line, replacements) &&
-      !/[\d]/.test(line) &&
-      !/[,;:]/.test(line) &&
-      line.split(/\s+/).length <= 4;
-
-    if (previousBlank && isAddressLikeBoundary(line, nextLineIsHeading)) {
-      previousBlank = true;
-      return;
-    }
-
-    if (isGroupedHeading) {
-      groupedSectionPrefix = normalizeSectionTitle(line);
-      currentSection = null;
-      previousBlank = false;
-      return;
-    }
-
-    if (isHeading) {
-      const normalizedTitle = normalizeSectionTitle(line);
-      const title =
-        groupedSectionPrefix && isGroupedChildSection(normalizedTitle)
-          ? `${groupedSectionPrefix} (${normalizeLookupKey(normalizedTitle)})`
-          : normalizedTitle;
-      currentSection = {
-        title,
-        itemsMap: new Map(),
-      };
-      sections.push(currentSection);
-      if (!isGroupedChildSection(normalizedTitle)) {
-        groupedSectionPrefix = "";
-      }
-      previousBlank = false;
-      return;
-    }
-
-    if (!currentSection) {
-      currentSection = {
-        title: labels.unsorted,
-        itemsMap: new Map(),
-        untitled: true,
-      };
-      sections.push(currentSection);
-    }
-
-    splitEntryCandidates(line).forEach((entry) =>
-      addParsedEntry(
-        currentSection.itemsMap,
-        entry,
-        currentSection.title,
-        diagnostics,
-        replacements,
-      ),
-    );
-    previousBlank = false;
-  });
-
-  return sections.map((section) => {
-    const items = Array.from(section.itemsMap.values()).sort((left, right) =>
-      sortByRuAlpha(left.displayName, right.displayName),
-    );
-    const lines = items.map(formatSectionLine);
-    return {
-      name: section.title,
-      title: section.title,
-      untitled: !!section.untitled,
-      items,
-      lines,
-    };
-  });
-}
-
 export function parseProductList(input = "", options = {}) {
   return buildProductListContract(input, options);
 }
