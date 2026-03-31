@@ -71,6 +71,14 @@
     padding-inline: 10px;
   }
 
+  .products-issue {
+    grid-template-columns: 1fr;
+  }
+
+  .products-issue__actions {
+    justify-content: flex-end;
+  }
+
   .products-pane__toggles {
     flex-wrap: wrap;
   }

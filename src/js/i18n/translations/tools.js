@@ -1,8 +1,8 @@
 export const toolsTranslations = {
   ru: {
-    "productsFormatter.title": "Форматтер списков продуктов",
+    "productsFormatter.title": "Форматтер списков",
     "productsFormatter.subtitle":
-      "Приводит сырой список к разделам, нормализует единицы и при необходимости собирает общий список закупки.",
+      "Приводит список к разделам, нормализует единицы и при необходимости собирает общий список закупки.",
     "productsFormatter.inputLabel": "Исходный список",
     "productsFormatter.inputPlaceholder":
       "Вставьте неструктурированный список продуктов с разделами и позициями.",

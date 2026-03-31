@@ -314,7 +314,10 @@ export function buildMarkup() {
                   aria-controls="products-result-menu-panel"
                 >
                   <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                  <span data-i18n="productsFormatter.resultActions.more">${t("productsFormatter.resultActions.more")}</span>
+                  <span class="products-result-menu__toggle-copy">
+                    <span data-i18n="productsFormatter.resultActions.more">${t("productsFormatter.resultActions.more")}</span>
+                    <i class="fa-solid fa-chevron-down products-result-menu__toggle-chevron" aria-hidden="true"></i>
+                  </span>
                 </button>
 
                 <div
@@ -323,11 +326,15 @@ export function buildMarkup() {
                   data-ui="products-result-menu-panel"
                   hidden
                 >
+                  <div class="products-result-menu__header">
+                    <span class="products-result-menu__header-title" data-i18n="productsFormatter.resultActions.more">${t("productsFormatter.resultActions.more")}</span>
+                  </div>
                   <button
                     id="products-collapse-all"
                     type="button"
                     class="products-result-menu__item"
                   >
+                    <i class="fa-solid fa-compress" aria-hidden="true"></i>
                     <span data-i18n="productsFormatter.resultActions.collapseAll">${t("productsFormatter.resultActions.collapseAll")}</span>
                   </button>
                   <button
@@ -335,6 +342,7 @@ export function buildMarkup() {
                     type="button"
                     class="products-result-menu__item"
                   >
+                    <i class="fa-solid fa-expand" aria-hidden="true"></i>
                     <span data-i18n="productsFormatter.resultActions.expandAll">${t("productsFormatter.resultActions.expandAll")}</span>
                   </button>
                   <button
@@ -342,11 +350,15 @@ export function buildMarkup() {
                     type="button"
                     class="products-result-menu__item"
                   >
+                    <i class="fa-solid fa-arrow-turn-down" aria-hidden="true"></i>
                     <span data-i18n="productsFormatter.resultActions.applyInput">${t("productsFormatter.resultActions.applyInput")}</span>
                   </button>
                   <label class="products-result-menu__item products-result-menu__item--toggle">
+                    <span class="products-result-menu__item-copy">
+                      <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                      <span data-i18n="productsFormatter.resultActions.onlyUncertain">${t("productsFormatter.resultActions.onlyUncertain")}</span>
+                    </span>
                     <input id="products-filter-uncertain" type="checkbox" />
-                    <span data-i18n="productsFormatter.resultActions.onlyUncertain">${t("productsFormatter.resultActions.onlyUncertain")}</span>
                   </label>
                 </div>
               </div>
@@ -440,7 +452,16 @@ export function buildMarkup() {
                     data-ui="products-issues-panel"
                     hidden
                   >
-                    <h3 class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.issues">${t("productsFormatter.diagnostics.issues")}</h3>
+                    <div class="products-diagnostics__header">
+                      <span class="products-diagnostics__header-copy">
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                        <span class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.issues">${t("productsFormatter.diagnostics.issues")}</span>
+                      </span>
+                      <span
+                        id="products-issues-meta"
+                        class="products-diagnostics__meta"
+                      ></span>
+                    </div>
                     <div id="products-issues-list" class="products-issues-list"></div>
                   </section>
 
@@ -463,6 +484,10 @@ export function buildMarkup() {
                           data-i18n="productsFormatter.diagnostics.diff"
                         >${t("productsFormatter.diagnostics.diff")}</span>
                       </span>
+                      <span
+                        id="products-diff-meta"
+                        class="products-diagnostics__meta"
+                      ></span>
                     </button>
                     <div id="products-diff-list" class="products-diff-list" hidden></div>
                   </section>
@@ -473,7 +498,16 @@ export function buildMarkup() {
                     data-ui="products-comparison-panel"
                     hidden
                   >
-                    <h3 class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.comparison">${t("productsFormatter.diagnostics.comparison")}</h3>
+                    <div class="products-diagnostics__header">
+                      <span class="products-diagnostics__header-copy">
+                        <i class="fa-solid fa-code-compare" aria-hidden="true"></i>
+                        <span class="products-diagnostics__title" data-i18n="productsFormatter.diagnostics.comparison">${t("productsFormatter.diagnostics.comparison")}</span>
+                      </span>
+                      <span
+                        id="products-comparison-meta"
+                        class="products-diagnostics__meta"
+                      ></span>
+                    </div>
                     <div
                       id="products-comparison-summary"
                       class="products-comparison-summary"

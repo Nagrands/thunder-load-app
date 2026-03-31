@@ -110,6 +110,8 @@ export function renderDiagnostics(
   const diffPanel = diffEl.closest('[data-ui="products-diff-panel"]');
   const diffToggle = diffPanel?.querySelector("#products-diff-toggle");
   const diffChevron = diffToggle?.querySelector("i");
+  const issuesMeta = diagnosticsEl.querySelector("#products-issues-meta");
+  const diffMeta = diagnosticsEl.querySelector("#products-diff-meta");
 
   const syncDiagnosticsVisibility = () => {
     const issuesPanel = issuesEl.closest('[data-ui="products-issues-panel"]');
@@ -135,6 +137,9 @@ export function renderDiagnostics(
     text.textContent = formatIssue(issue);
     item.appendChild(text);
 
+    const actions = document.createElement("div");
+    actions.className = "products-issue__actions";
+
     if (issue.source && typeof options.onRevealSource === "function") {
       const revealButton = document.createElement("button");
       revealButton.type = "button";
@@ -144,7 +149,7 @@ export function renderDiagnostics(
       revealButton.addEventListener("click", () => {
         options.onRevealSource(issue);
       });
-      item.appendChild(revealButton);
+      actions.appendChild(revealButton);
     }
 
     const closeButton = document.createElement("button");
@@ -162,9 +167,13 @@ export function renderDiagnostics(
     closeButton.addEventListener("click", () => {
       item.remove();
       syncDiagnosticsVisibility();
+      if (issuesMeta) {
+        issuesMeta.textContent = String(issuesEl.childElementCount);
+      }
       initTooltips(diagnosticsEl);
     });
-    item.appendChild(closeButton);
+    actions.appendChild(closeButton);
+    item.appendChild(actions);
 
     issuesEl.appendChild(item);
   });
@@ -229,6 +238,13 @@ export function renderDiagnostics(
     appendEmptyDiagnosticsState(diffEl, activeFilter);
   }
 
+  if (issuesMeta) {
+    issuesMeta.textContent = filteredIssues.length ? String(filteredIssues.length) : "";
+  }
+  if (diffMeta) {
+    diffMeta.textContent = filteredDiffEntries.length ? String(filteredDiffEntries.length) : "";
+  }
+
   if (diffToggle && !diffToggle.dataset.bound) {
     diffToggle.addEventListener("click", () => {
       const expanded = diffToggle.getAttribute("aria-expanded") === "true";
@@ -266,9 +282,11 @@ export function renderDiagnostics(
 
 export function renderComparison(summaryEl, listEl, panelEl, comparison) {
   if (!summaryEl || !listEl || !panelEl) return;
+  const comparisonMeta = panelEl.querySelector("#products-comparison-meta");
 
   summaryEl.replaceChildren();
   listEl.replaceChildren();
+  if (comparisonMeta) comparisonMeta.textContent = "";
 
   if (!comparison) {
     panelEl.hidden = true;
@@ -280,6 +298,7 @@ export function renderComparison(summaryEl, listEl, panelEl, comparison) {
   if (!comparison.entries.length) {
     summary.textContent = t("productsFormatter.comparison.noChanges");
     summaryEl.appendChild(summary);
+    if (comparisonMeta) comparisonMeta.textContent = "0";
     panelEl.hidden = false;
     return;
   }
@@ -290,6 +309,9 @@ export function renderComparison(summaryEl, listEl, panelEl, comparison) {
     sections: comparison.changedSections,
   });
   summaryEl.appendChild(summary);
+  if (comparisonMeta) {
+    comparisonMeta.textContent = String(comparison.entries.length);
+  }
 
   comparison.entries.forEach((entry) => {
     const row = document.createElement("div");
