@@ -6,5 +6,6 @@
 
 | What changed | What you get |
 |---|---|
+| Section navigation now migrates from the header into the footer | Tabs stay in the header near the top of the page, then move into the lower bar while scrolling down together with a quick back-to-top action |
 | Added the new Emerald color theme | The app now includes another calm dark option with emerald and teal accents, available in both Settings and the first-run flow |
 | Developer mode now persists and controls more UI | It no longer resets after restart or language changes, can disable the Downloader tab, and hides extra quick actions in the top bar while active |

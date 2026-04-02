@@ -13,6 +13,7 @@ import { initDownloadActions } from "../downloadActions.js";
 import { initDownloadCancel } from "../downloadCancel.js";
 import { initDownloadCompleteHandler } from "../downloadCompleteHandler.js";
 import { initExternalLinksHandler } from "../externalLinks.js";
+import { initFooterStatusBar } from "../footerStatusBar.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import { initModalHandlers } from "../modalHandlers.js";
 import { initElectronEvents } from "../electronEvents.js";
@@ -86,6 +87,7 @@ async function runDeferredInitialization({ tabs }) {
     initHistoryFilter();
     initHistoryActions();
     initDownloadActions();
+    initFooterStatusBar();
     initDownloadCancel();
     initDownloadCompleteHandler();
     initIconUpdater();

@@ -9,6 +9,7 @@ import { applyI18n, t } from "../i18n.js";
 import { requestToolsView } from "../toolsNavigation.js";
 
 const GLOBAL_SELECTOR = [
+  "#nav-visibility-sentinel",
   ".modal-overlay",
   ".settings-modal",
   ".shortcuts-modal",

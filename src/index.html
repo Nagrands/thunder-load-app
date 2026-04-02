@@ -24,26 +24,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <div class="top-bar">
-  <div class="top-bar__left" data-topbar-priority="p1">
-    <div class="brand-chip">
-      
-      <div class="brand-meta">
-        <span class="brand-title">Thunder</span>
-        <div
-          class="app-version-label version-container"
-          id="app-version-label"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="Версия приложения"
-          data-i18n-title="topbar.appVersion"
-        >
-          <i class="fas fa-bolt fa-beat-fade"></i>
-          <span class="version">v<span id="app-version">?</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="top-bar__center" data-topbar-priority="p1">
     <div
       class="center-menu"
@@ -260,6 +240,7 @@
 </div>
 
   <div id="main-view" class="container">
+  <div id="nav-visibility-sentinel" class="main-view-scroll-sentinel" aria-hidden="true"></div>
   <!-- Меню в правом верхнем углу -->
 <header>
   <!-- Input Container -->
@@ -2919,11 +2900,98 @@
 ></div>
 
       <!-- Footer -->
-    <footer>
-      <p class="footer-info">
-        &copy; <span id="current-year"></span> Thunder
-        <i class="fa fa-bolt" aria-hidden="true"></i> load
-      </p>
+    <footer
+      id="app-footer"
+      class="app-footer"
+      aria-label="Нижняя строка состояния"
+      data-i18n-aria="footer.aria"
+    >
+      <div class="app-footer__bar">
+        <div class="app-footer__zone app-footer__zone--lead">
+          <span class="app-footer__kicker" data-i18n="footer.kicker">Thunder Load</span>
+          <div
+            id="app-version-label"
+            class="app-footer__context version-container"
+            title="Версия приложения"
+            data-i18n-title="topbar.appVersion"
+          >
+            <span id="footer-app-version">v?</span>
+          </div>
+        </div>
+
+        <div class="app-footer__zone app-footer__zone--center">
+          <div id="footer-status-cluster" class="app-footer__status-cluster">
+            <div class="app-footer__zone app-footer__zone--status">
+              <span
+                id="footer-status-meta"
+                class="app-footer__status-meta"
+                data-i18n="footer.sectionLabel"
+                >Раздел</span
+              >
+              <strong
+                id="footer-active-section"
+                class="app-footer__status-value"
+                title="Текущий активный раздел"
+                aria-live="polite"
+                >Загрузчик</strong
+              >
+            </div>
+
+            <div class="app-footer__zone app-footer__zone--status">
+              <span class="app-footer__status-meta" data-i18n="footer.themeLabel"
+                >Тема</span
+              >
+              <strong
+                id="footer-theme-value"
+                class="app-footer__status-value"
+                title="Текущая тема интерфейса"
+                aria-live="polite"
+                >Темная</strong
+              >
+            </div>
+          </div>
+
+          <div
+            id="footer-tab-nav"
+            class="app-footer__tab-nav"
+            role="navigation"
+            aria-label="Навигация по разделам"
+            data-i18n-aria="topbar.nav"
+            hidden
+          ></div>
+        </div>
+
+        <div class="app-footer__zone app-footer__zone--actions">
+          <button
+            id="footer-open-settings"
+            class="app-footer__action"
+            type="button"
+            title="Открыть настройки"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="footer.openSettings"
+            aria-label="Открыть настройки приложения"
+            data-i18n-aria="footer.openSettingsAria"
+          >
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+          </button>
+
+          <button
+            id="footer-back-to-top"
+            class="app-footer__action app-footer__action--ghost"
+            type="button"
+            title="Вернуться наверх"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="footer.backToTop"
+            aria-label="Прокрутить страницу к началу"
+            data-i18n-aria="footer.backToTopAria"
+            hidden
+          >
+            <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
     </footer>
 
     <div class="downloader-bg-preload"></div>
@@ -2943,12 +3011,6 @@
     <script src="../assets/vendor/dompurify/purify.min.js"></script>
     <script src="../node_modules/lucide/dist/umd/lucide.js"></script>
     <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" onload="window._startRenderer()"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("current-year").textContent =
-          new Date().getFullYear();
-      });
-    </script>
     <script>
       document.getElementById("reload-app").addEventListener("click", () => {
         location.reload();

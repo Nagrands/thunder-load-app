@@ -26,6 +26,7 @@ describe("bootstrapRenderer", () => {
       initHistoryFilter: jest.fn(),
       initHistoryActions: jest.fn(),
       initDownloadActions: jest.fn(),
+      initFooterStatusBar: jest.fn(),
       initDownloadCancel: jest.fn(),
       initDownloadCompleteHandler: jest.fn(),
       initExternalLinksHandler: jest.fn(),
@@ -100,6 +101,9 @@ describe("bootstrapRenderer", () => {
       }));
       jest.doMock("../downloadActions.js", () => ({
         initDownloadActions: mocks.initDownloadActions,
+      }));
+      jest.doMock("../footerStatusBar.js", () => ({
+        initFooterStatusBar: mocks.initFooterStatusBar,
       }));
       jest.doMock("../downloadCancel.js", () => ({
         initDownloadCancel: mocks.initDownloadCancel,
@@ -193,6 +197,7 @@ describe("bootstrapRenderer", () => {
     await Promise.resolve();
 
     expect(mocks.initSettings).toHaveBeenCalled();
+    expect(mocks.initFooterStatusBar).toHaveBeenCalled();
     expect(mocks.initTooltips).toHaveBeenCalled();
     expect(mocks.registerWgControls).toHaveBeenCalled();
     expect(mocks.initUpdateHandler).toHaveBeenCalled();

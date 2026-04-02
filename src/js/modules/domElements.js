@@ -102,6 +102,7 @@ const elements = {
 };
 
 const OPTIONAL_KEYS = new Set([
+  "versionElement",
   "historyCards",
   "historyCardsEmpty",
   "historyEmpty",

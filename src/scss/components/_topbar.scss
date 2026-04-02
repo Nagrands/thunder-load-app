@@ -9,16 +9,16 @@
   width: 100%;
   min-height: var(--topbar-height);
   display: grid;
-  grid-template-columns: minmax(170px, auto) minmax(280px, 1fr) auto;
+  grid-template-columns: minmax(280px, 1fr) auto;
   grid-template-areas:
-    "left center right"
-    "progress progress progress";
+    "center right"
+    "progress progress";
   align-items: center;
   column-gap: 16px;
   // row-gap: 8px;
-  background-color: var(--topbar-bg);
-  border-bottom: 1px solid var(--topbar-border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  background: transparent;
+  border-bottom: 0;
+  box-shadow: none;
   padding: var(--topbar-padding-y) var(--topbar-padding-x)
     calc(var(--topbar-padding-y) - 2px);
   z-index: 1000;
@@ -26,7 +26,6 @@
   @include mixins.fade-in(0.35s);
 }
 
-.top-bar__left,
 .top-bar__center,
 .top-bar__right {
   display: flex;
@@ -36,19 +35,32 @@
 }
 
 .top-bar__left {
-  grid-area: left;
-  justify-content: flex-start;
+  display: none;
 }
 
 .top-bar__center {
   grid-area: center;
   justify-content: center;
   overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  transition:
+    opacity 240ms ease,
+    transform 280ms ease,
+    visibility 280ms linear;
 }
 
 .top-bar__right {
   grid-area: right;
   justify-content: flex-end;
+}
+
+.top-bar__center--hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .brand-chip {
@@ -524,8 +536,7 @@
   .top-bar {
     grid-template-columns: 1fr auto;
     grid-template-areas:
-      "left right"
-      "center center"
+      "center right"
       "progress progress";
     --topbar-padding-x: 14px;
   }
@@ -558,18 +569,8 @@
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "center right"
-      "left left"
       "progress progress";
-    row-gap: 6px;
     --topbar-control-size: 40px;
-  }
-
-  .top-bar__left {
-    justify-content: flex-start;
-  }
-
-  .brand-chip {
-    padding: 4px 10px;
   }
 
   .quick-actions [data-topbar-priority="p2"],
@@ -605,10 +606,6 @@
     --topbar-control-size: 36px;
     --topbar-padding-x: 10px;
     padding: 8px var(--topbar-padding-x) 6px;
-  }
-
-  .top-bar__left {
-    display: none;
   }
 
   .top-bar__right-group {

@@ -107,8 +107,8 @@ strong {
 
 /* **** Дополнительные медиазапросы для адаптивности **** */
 @media (max-width: variables.$breakpoint-tablet) {
-  footer {
-    font-size: 12px;
+  :root {
+    --app-footer-height: 98px;
   }
 }
 
