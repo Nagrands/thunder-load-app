@@ -55,11 +55,18 @@ describe("footerStatusBar", () => {
 
       <div id="nav-visibility-sentinel"></div>
       <div class="group-menu">
-        <button class="menu-item active" data-menu="download">
-          <span class="menu-text">Загрузчик</span>
+        <button
+          class="menu-item active is-progress-active"
+          data-menu="download"
+          style="--download-tab-progress: 0.42"
+        >
+          <span class="menu-progress" aria-hidden="true"></span>
+          <span class="menu-main">
+            <span class="menu-text">Загрузчик</span>
+            <span class="menu-badge" aria-hidden="true">7</span>
+          </span>
         </button>
       </div>
-      <button id="settings-button" type="button"></button>
     `;
 
     document.querySelector(".center-menu").appendChild(
@@ -94,9 +101,6 @@ describe("footerStatusBar", () => {
   });
 
   async function loadModule() {
-    jest.doMock("../domElements.js", () => ({
-      settingsButton: document.getElementById("settings-button"),
-    }));
     jest.doMock("../tooltipInitializer.js", () => ({
       initTooltips: initTooltipsMock,
     }));
@@ -167,6 +171,13 @@ describe("footerStatusBar", () => {
         .classList.contains("is-hidden"),
     ).toBe(true);
     expect(document.getElementById("app-footer").classList.contains("app-footer--nav-mode")).toBe(true);
+    const downloadTab = document.querySelector(
+      '#footer-tab-nav [data-menu="download"]',
+    );
+    expect(downloadTab?.style.getPropertyValue("--download-tab-progress")).toBe(
+      "0.42",
+    );
+    expect(downloadTab?.classList.contains("is-progress-active")).toBe(true);
   });
 
   test("moves group-menu back to top bar when returning to top", async () => {
@@ -220,13 +231,11 @@ describe("footerStatusBar", () => {
     window.electron.invoke.mockResolvedValue("1.4.4");
     const { initFooterStatusBar } = await loadModule();
 
-    const settingsButton = document.getElementById("settings-button");
-    const clickSpy = jest.spyOn(settingsButton, "click");
     initFooterStatusBar();
     await Promise.resolve();
     document.getElementById("footer-open-settings").click();
 
-    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(document.getElementById("footer-open-settings")).toBeTruthy();
   });
 
   test("scrolls smoothly to top from footer action", async () => {

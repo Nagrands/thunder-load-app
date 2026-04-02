@@ -4,6 +4,7 @@ import { state } from "./state.js";
 import { buttonText, progressBarContainer } from "./domElements.js";
 import { getActiveDownloadJobs } from "./downloadJobs.js";
 import { t } from "./i18n.js";
+import { updateDownloadTabProgress } from "./downloadTabUi.js";
 
 function initDownloadProgress() {
   let startedAt = null;
@@ -13,30 +14,29 @@ function initDownloadProgress() {
   let activeCount =
     getActiveDownloadJobs(state).length || (state.isDownloading ? 1 : 0);
   let prevActiveCount = activeCount;
-  const topProgress = document.getElementById("top-download-progress");
-  const topProgressFill = document.getElementById("top-download-progress-fill");
-  let topProgressHideTimer = null;
+  let downloadTabHideTimer = null;
 
-  const resetTopIndicator = () => {
-    if (!topProgress || !topProgressFill) return;
-    topProgress.classList.remove("is-visible");
-    topProgressFill.style.width = "0%";
+  const resetDownloadTabIndicator = () => {
+    updateDownloadTabProgress(null, {
+      active: false,
+      complete: false,
+    });
   };
 
-  const hideTopIndicator = (delay = 600) => {
-    if (!topProgress) return;
-    clearTimeout(topProgressHideTimer);
-    topProgressHideTimer = setTimeout(resetTopIndicator, delay);
+  const hideDownloadTabIndicator = (delay = 600) => {
+    clearTimeout(downloadTabHideTimer);
+    downloadTabHideTimer = setTimeout(resetDownloadTabIndicator, delay);
   };
 
-  const showTopIndicator = (progress) => {
-    if (!topProgress || !topProgressFill) return;
+  const showDownloadTabIndicator = (progress) => {
     const normalized = Math.max(0, Math.min(100, progress));
-    topProgressFill.style.width = `${normalized}%`;
-    topProgress.classList.add("is-visible");
-    clearTimeout(topProgressHideTimer);
+    updateDownloadTabProgress(normalized, {
+      active: true,
+      complete: normalized >= 99.5,
+    });
+    clearTimeout(downloadTabHideTimer);
     if (normalized >= 99.5) {
-      hideTopIndicator(900);
+      hideDownloadTabIndicator(900);
     }
   };
 
@@ -159,7 +159,7 @@ function initDownloadProgress() {
         displayedProgress >= 99.5,
       );
     }
-    showTopIndicator(displayedProgress);
+    showDownloadTabIndicator(displayedProgress);
   });
 
   window.addEventListener("download:state", (event) => {
@@ -174,11 +174,12 @@ function initDownloadProgress() {
 
     if (prevActiveCount === 0 && activeCount > 0) {
       resetProgressTracking();
+      resetDownloadTabIndicator();
       prevActiveCount = activeCount;
       return;
     }
     if (activeCount === 0 && prevActiveCount > 0) {
-      hideTopIndicator();
+      hideDownloadTabIndicator();
       resetProgressTracking();
       if (progressBarContainer) {
         progressBarContainer.classList.remove("is-complete");

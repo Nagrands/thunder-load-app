@@ -5,16 +5,12 @@ describe("topBarResponsive", () => {
         <div class="top-bar__right-group">
           <button id="open-history" type="button"></button>
           <button id="shortcuts-button" type="button"></button>
-          <button id="settings-button" type="button"></button>
-          <button id="theme-toggle" type="button"></button>
           <button id="open-github" type="button"></button>
           <button id="reload-app" type="button"></button>
           <button id="topbar-more-toggle" type="button" aria-expanded="false" aria-controls="topbar-overflow-menu"></button>
           <div id="topbar-overflow-menu" hidden>
             <button class="topbar-overflow__item" data-proxy-target="#open-history"></button>
             <button class="topbar-overflow__item" data-proxy-target="#shortcuts-button"></button>
-            <button class="topbar-overflow__item" data-proxy-target="#settings-button"></button>
-            <button class="topbar-overflow__item" data-proxy-target="#theme-toggle"></button>
             <button class="topbar-overflow__item" data-proxy-target="#open-github"></button>
             <button class="topbar-overflow__item" data-proxy-target="#reload-app"></button>
           </div>
@@ -103,7 +99,7 @@ describe("topBarResponsive", () => {
   });
 
   test("does not surface suppressed actions in overflow", () => {
-    const target = document.getElementById("settings-button");
+    const target = document.getElementById("open-github");
     target.hidden = true;
     target.dataset.topbarSuppressed = "1";
 
@@ -113,7 +109,7 @@ describe("topBarResponsive", () => {
     });
 
     const proxy = document.querySelector(
-      '#topbar-overflow-menu [data-proxy-target="#settings-button"]',
+      '#topbar-overflow-menu [data-proxy-target="#open-github"]',
     );
 
     expect(proxy.hidden).toBe(true);

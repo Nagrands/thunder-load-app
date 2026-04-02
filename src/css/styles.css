@@ -11850,13 +11850,41 @@ header {
   cursor: pointer;
   transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
+.app-footer__tab-nav .menu-item .menu-progress {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+.app-footer__tab-nav .menu-item .menu-progress::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.28), rgba(var(--color-accent-rgb), 0.58));
+  transform: scaleX(var(--download-tab-progress, 0));
+  transform-origin: left center;
+  transition: transform 240ms ease, opacity 180ms ease;
+  opacity: 0.92;
+}
 .app-footer__tab-nav .menu-item .menu-main {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-width: 0;
   line-height: 1;
+}
+.app-footer__tab-nav .menu-item.is-progress-active .menu-progress, .app-footer__tab-nav .menu-item.is-progress-complete .menu-progress {
+  opacity: 1;
+}
+.app-footer__tab-nav .menu-item.is-progress-complete .menu-progress::before {
+  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.34), rgba(var(--color-accent-rgb), 0.7));
 }
 .app-footer__tab-nav .menu-item:hover:not(.active):not(.disabled) {
   color: var(--color-accent);
@@ -11876,6 +11904,12 @@ header {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+.app-footer__tab-nav .menu-item.is-progress-active .menu-progress {
+  opacity: 1;
+}
+.app-footer__tab-nav .menu-item.is-progress-complete .menu-progress::before {
+  opacity: 1;
 }
 .app-footer__tab-nav .menu-item:focus-visible {
   outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
@@ -12153,7 +12187,7 @@ body.low-effects .app-footer__bar {
   min-height: var(--topbar-height);
   display: grid;
   grid-template-columns: minmax(280px, 1fr) auto;
-  grid-template-areas: "center right" "progress progress";
+  grid-template-areas: "center right";
   align-items: center;
   column-gap: 16px;
   background: transparent;
@@ -12301,6 +12335,32 @@ body.low-effects .app-footer__bar {
 .center-menu .menu-item::after {
   opacity: 0;
 }
+.center-menu .menu-item .menu-progress {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+.center-menu .menu-item .menu-progress::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.28), rgba(var(--color-accent-rgb), 0.58));
+  transform: scaleX(var(--download-tab-progress, 0));
+  transform-origin: left center;
+  transition: transform 240ms ease, opacity 180ms ease;
+  opacity: 0.92;
+}
+.center-menu .menu-item.is-progress-active .menu-progress, .center-menu .menu-item.is-progress-complete .menu-progress {
+  opacity: 1;
+}
+.center-menu .menu-item.is-progress-complete .menu-progress::before {
+  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.34), rgba(var(--color-accent-rgb), 0.7));
+}
 .center-menu .menu-item .menu-main {
   position: relative;
   z-index: 1;
@@ -12338,6 +12398,12 @@ body.low-effects .app-footer__bar {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+.center-menu .menu-item.is-progress-active .menu-progress {
+  opacity: 1;
+}
+.center-menu .menu-item.is-progress-complete .menu-progress::before {
+  opacity: 1;
 }
 .center-menu .menu-item .menu-badge {
   margin-left: 8px;
@@ -12572,21 +12638,6 @@ body.low-effects .app-footer__bar {
   background: rgba(var(--color-accent-rgb), 0.1);
 }
 
-.top-bar .top-download-progress {
-  grid-area: progress;
-  position: relative;
-  height: 4px;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  margin: 0 calc(var(--topbar-padding-x) * -1) -8px;
-}
-.top-bar .top-download-progress .top-download-progress-fill {
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.95), var(--color-highlight));
-  transition: width 0.25s ease;
-}
-
 @media (min-width: 1440px) {
   .top-bar {
     column-gap: 22px;
@@ -12609,7 +12660,7 @@ body.low-effects .app-footer__bar {
 @media (max-width: 1023px) {
   .top-bar {
     grid-template-columns: 1fr auto;
-    grid-template-areas: "center right" "progress progress";
+    grid-template-areas: "center right";
     --topbar-padding-x: 14px;
   }
   .top-bar__center {
@@ -12634,7 +12685,7 @@ body.low-effects .app-footer__bar {
 @media (max-width: 640px) {
   .top-bar {
     grid-template-columns: 1fr auto;
-    grid-template-areas: "center right" "progress progress";
+    grid-template-areas: "center right";
     --topbar-control-size: 40px;
   }
   .quick-actions [data-topbar-priority=p2],
@@ -30472,9 +30523,6 @@ body.is-mac .btn-close {
 }
 body.is-mac .window-controls {
   border: 1px var(--color-accent);
-}
-body.is-mac .top-bar .top-download-progress {
-  margin: 0 -104px -8px;
 }
 
 /*# sourceMappingURL=styles.css.map */

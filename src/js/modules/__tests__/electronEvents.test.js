@@ -26,7 +26,7 @@ describe("electronEvents", () => {
       jest.doMock("../domElements.js", () => ({
         downloadCancelButton: { disabled: true },
         versionElement: null,
-        settingsButton: null,
+        settingsTrigger: null,
       }));
 
       const { initElectronEvents } = await import("../electronEvents.js");

@@ -3,8 +3,6 @@ import { readDeveloperModeEnabled } from "./developerMode.js";
 const HIDDEN_TOPBAR_ACTION_IDS = Object.freeze([
   "open-history",
   "shortcuts-button",
-  "settings-button",
-  "theme-toggle",
   "open-github",
 ]);
 

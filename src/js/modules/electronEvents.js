@@ -3,7 +3,7 @@
 import {
   downloadCancelButton,
   versionElement,
-  settingsButton,
+  settingsTrigger,
 } from "./domElements.js";
 import { showToast } from "./toast.js";
 
@@ -53,8 +53,8 @@ function initElectronEvents() {
   // Обработчик события 'open-settings'
   if (!window.openSettingsHandlerRegistered) {
     window.electron.on("open-settings", () => {
-      if (settingsButton) {
-        settingsButton.click(); // Открытие окна настроек
+      if (settingsTrigger) {
+        settingsTrigger.click(); // Открытие окна настроек
       }
     });
     window.openSettingsHandlerRegistered = true;

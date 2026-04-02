@@ -39,6 +39,11 @@ describe("TabSystem", () => {
     expect(render).toHaveBeenCalledTimes(2);
     expect(wrapper.childNodes).toHaveLength(1);
     expect(document.getElementById("main-view").contains(wrapper)).toBe(true);
+    expect(
+      document
+        .querySelector('[data-menu="tools"]')
+        ?.querySelector(".menu-progress"),
+    ).not.toBeNull();
   });
 
   test("hides Downloader when developer option is enabled and Tools is available", () => {

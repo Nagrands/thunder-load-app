@@ -30,6 +30,7 @@ import { openDownloadQualityModal } from "./downloadQualityModal.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
+import { syncDownloadTabAccessibility } from "./downloadTabUi.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
 import {
   formatDownloadErrorToast,
@@ -98,9 +99,7 @@ function updateDownloaderTabLabel() {
     if (topBar) {
       topBar.classList.toggle("has-download-activity", count > 0);
     }
-    try {
-      tab.setAttribute("aria-label", count > 0 ? `${base} (${count})` : base);
-    } catch {}
+    syncDownloadTabAccessibility(tab, { count });
   } catch (_e) {
     // no-op
   }

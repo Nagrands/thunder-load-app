@@ -19,19 +19,23 @@ jest.mock("../firstRunModal.js", () => ({
   initFirstRunModal: jest.fn(),
 }));
 
+jest.mock("../tooltipInitializer.js", () => ({
+  hideAllTooltips: jest.fn(),
+}));
+
 jest.mock("../domElements.js", () => ({
   get settingsModal() {
     return global.document.getElementById("settings-modal");
   },
-  get settingsButton() {
-    return global.document.getElementById("settings-button");
+  get settingsTrigger() {
+    return global.document.getElementById("footer-open-settings");
   },
 }));
 
 describe("settingsModal mobile sections navigation", () => {
   const makeDom = () => {
     document.body.innerHTML = `
-      <button id="settings-button" type="button">open</button>
+      <button id="footer-open-settings" type="button">open</button>
       <div id="settings-modal" style="display:none">
         <button id="settings-sections-toggle" aria-expanded="false" aria-controls="settings-tabs-panel"></button>
         <button id="first-run-reset-button" type="button"></button>
@@ -127,9 +131,11 @@ describe("settingsModal mobile sections navigation", () => {
   test("openSettings resets mobile panel state and syncs label", () => {
     jest.isolateModules(() => {
       const mod = require("../settingsModal.js");
+      const { hideAllTooltips } = require("../tooltipInitializer.js");
       mod.initSettingsModal();
       document.getElementById("settings-sections-toggle").click();
       mod.openSettings();
+      expect(hideAllTooltips).toHaveBeenCalled();
     });
 
     const wrapper = document.getElementById("settings-tabs-panel");
@@ -150,15 +156,36 @@ describe("settingsModal mobile sections navigation", () => {
   test("closeSettings removes modal scroll lock", () => {
     jest.isolateModules(() => {
       const mod = require("../settingsModal.js");
+      const { hideAllTooltips } = require("../tooltipInitializer.js");
       mod.initSettingsModal();
       mod.openSettings();
+      hideAllTooltips.mockClear();
       mod.closeSettings();
+      expect(hideAllTooltips).toHaveBeenCalled();
     });
 
     const modal = document.getElementById("settings-modal");
     expect(modal.style.display).toBe("none");
     expect(modal.getAttribute("aria-hidden")).toBe("true");
     expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+  });
+
+  test("closeSettings suppresses settings trigger tooltip while focus is restored", async () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+      mod.closeSettings();
+    });
+
+    const trigger = document.getElementById("footer-open-settings");
+
+    expect(document.activeElement).toBe(trigger);
+    expect(trigger.dataset.tooltipSuppressed).toBe("true");
+
+    await Promise.resolve();
+
+    expect(trigger.dataset.tooltipSuppressed).toBeUndefined();
   });
 
   test("opens first-run modal from settings without reload", () => {

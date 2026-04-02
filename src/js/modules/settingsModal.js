@@ -8,9 +8,10 @@ import {
   setDefaultTab,
   resetConfigToDefaults,
 } from "./settings.js";
-import { settingsModal, settingsButton } from "./domElements.js";
+import { settingsModal, settingsTrigger } from "./domElements.js";
 import { t } from "./i18n.js";
 import { initFirstRunModal } from "./firstRunModal.js";
+import { hideAllTooltips } from "./tooltipInitializer.js";
 
 let previousFocus = null;
 let trapHandler = null;
@@ -89,11 +90,15 @@ function getTabbables(root) {
 
 export function openSettings() {
   if (!settingsModal) return;
+  hideAllTooltips();
+  previousFocus = document.activeElement;
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
   settingsModal.style.display = "flex";
   settingsModal.style.justifyContent = "center";
   settingsModal.style.alignItems = "center";
   settingsModal.setAttribute("aria-hidden", "false");
-  previousFocus = document.activeElement;
   syncModalScrollLock();
 
   try {
@@ -147,6 +152,8 @@ export function openSettingsWithTab(tabId) {
 
 export function closeSettings() {
   if (!settingsModal) return;
+  const restoreTarget = settingsTrigger || previousFocus;
+  hideAllTooltips();
   settingsModal.style.display = "none";
   settingsModal.setAttribute("aria-hidden", "true");
   if (trapHandler) {
@@ -156,8 +163,15 @@ export function closeSettings() {
   closeSettingsSectionsPanel();
   syncModalScrollLock();
   try {
-    (settingsButton || previousFocus)?.focus?.();
+    if (restoreTarget instanceof HTMLElement) {
+      restoreTarget.dataset.tooltipSuppressed = "true";
+      restoreTarget.focus?.();
+      queueMicrotask(() => {
+        delete restoreTarget.dataset.tooltipSuppressed;
+      });
+    }
   } catch {}
+  hideAllTooltips();
   previousFocus = null;
 }
 

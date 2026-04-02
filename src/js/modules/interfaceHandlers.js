@@ -2,7 +2,7 @@
 
 import {
   settingsModal,
-  settingsButton,
+  settingsTrigger,
   closeSettingsButton,
   filterInput,
   clearFilterInputButton,
@@ -13,7 +13,7 @@ import { state } from "./state.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 
 function initInterfaceHandlers() {
-  settingsButton?.addEventListener("click", () => {
+  settingsTrigger?.addEventListener("click", () => {
     if (settingsModal.style.display === "flex") {
       closeSettings();
     } else {

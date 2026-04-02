@@ -51,41 +51,6 @@
 
         <button
           class="menu-item"
-          id="settings-button"
-          type="button"
-          aria-label="Настройки"
-          data-topbar-priority="p2"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="Настройки"
-          data-i18n-title="topbar.settings"
-          data-hotkey="Ctrl+,"
-        >
-          <span class="menu-main">
-            <i class="fa-solid fa-gear"></i>
-            <span class="menu-text" data-i18n="topbar.action.settings">Настройки</span>
-          </span>
-        </button>
-
-        <button
-          class="menu-item"
-          id="theme-toggle"
-          type="button"
-          aria-label="Сменить тему"
-          data-topbar-priority="p2"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="Сменить тему"
-          data-i18n-title="topbar.theme"
-        >
-          <span class="menu-main">
-            <i class="fa-solid fa-palette"></i>
-            <span class="menu-text" data-i18n="topbar.action.theme">Тема</span>
-          </span>
-        </button>
-
-        <button
-          class="menu-item"
           id="open-github"
           type="button"
           aria-label="Открыть репозиторий на GitHub"
@@ -177,14 +142,6 @@
             <i class="fas fa-keyboard"></i>
             <span data-i18n="topbar.action.shortcuts">Клавиши</span>
           </button>
-          <button class="topbar-overflow__item" type="button" role="menuitem" data-proxy-target="#settings-button">
-            <i class="fa-solid fa-gear"></i>
-            <span data-i18n="topbar.action.settings">Настройки</span>
-          </button>
-          <button class="topbar-overflow__item" type="button" role="menuitem" data-proxy-target="#theme-toggle">
-            <i class="fa-solid fa-palette"></i>
-            <span data-i18n="topbar.action.theme">Тема</span>
-          </button>
           <button class="topbar-overflow__item" type="button" role="menuitem" data-proxy-target="#open-github">
             <i class="fa-brands fa-github"></i>
             <span data-i18n="topbar.action.github">GitHub</span>
@@ -198,11 +155,4 @@
     </div>
   </div>
 
-  <div
-    id="top-download-progress"
-    class="top-download-progress"
-    aria-hidden="true"
-  >
-    <div id="top-download-progress-fill" class="top-download-progress-fill"></div>
-  </div>
 </div>

@@ -1,4 +1,3 @@
-import { settingsButton } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { t } from "./i18n.js";
 
@@ -281,10 +280,6 @@ function initFooterStatusBar() {
   if (!bindDom()) return;
 
   if (!state.isInitialized) {
-    dom.settingsAction.addEventListener("click", () => {
-      settingsButton?.click?.();
-    });
-
     dom.backToTopAction.addEventListener("click", () => {
       scrollToTop();
     });

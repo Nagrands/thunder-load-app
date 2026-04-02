@@ -46,6 +46,7 @@ export default class TabSystem {
     btn.dataset.menu = id;
     btn.dataset.tabgen = "true";
     btn.innerHTML = `
+      <span class="menu-progress" aria-hidden="true"></span>
       <span class="menu-main">
         <i class="${iconCls}"></i>
         <span class="menu-text">${label}</span>

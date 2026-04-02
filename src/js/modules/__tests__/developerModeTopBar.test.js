@@ -5,8 +5,6 @@ describe("developerModeTopBar", () => {
     document.body.innerHTML = `
       <button id="open-history" type="button"></button>
       <button id="shortcuts-button" type="button"></button>
-      <button id="settings-button" type="button"></button>
-      <button id="theme-toggle" type="button"></button>
       <button id="open-github" type="button"></button>
     `;
   });
@@ -24,8 +22,6 @@ describe("developerModeTopBar", () => {
     [
       "open-history",
       "shortcuts-button",
-      "settings-button",
-      "theme-toggle",
       "open-github",
     ].forEach((id) => {
       const el = document.getElementById(id);
@@ -46,8 +42,8 @@ describe("developerModeTopBar", () => {
       setDeveloperModeEnabled(false);
     });
 
-    expect(document.getElementById("settings-button").hidden).toBe(false);
-    expect(document.getElementById("settings-button").dataset.topbarSuppressed).toBe(
+    expect(document.getElementById("open-github").hidden).toBe(false);
+    expect(document.getElementById("open-github").dataset.topbarSuppressed).toBe(
       "0",
     );
   });

@@ -10,9 +10,7 @@
   min-height: var(--topbar-height);
   display: grid;
   grid-template-columns: minmax(280px, 1fr) auto;
-  grid-template-areas:
-    "center right"
-    "progress progress";
+  grid-template-areas: "center right";
   align-items: center;
   column-gap: 16px;
   // row-gap: 8px;
@@ -176,6 +174,51 @@
       opacity: 0;
     }
 
+    .menu-progress {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          rgba(var(--color-accent-rgb), 0.28),
+          rgba(var(--color-accent-rgb), 0.58)
+        );
+        transform: scaleX(var(--download-tab-progress, 0));
+        transform-origin: left center;
+        transition:
+          transform 240ms ease,
+          opacity 180ms ease;
+        opacity: 0.92;
+      }
+    }
+
+    &.is-progress-active,
+    &.is-progress-complete {
+      .menu-progress {
+        opacity: 1;
+      }
+    }
+
+    &.is-progress-complete {
+      .menu-progress::before {
+        background: linear-gradient(
+          90deg,
+          rgba(var(--color-accent-rgb), 0.34),
+          rgba(var(--color-accent-rgb), 0.7)
+        );
+      }
+    }
+
     .menu-main {
       position: relative;
       z-index: 1;
@@ -220,6 +263,14 @@
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
+    }
+
+    &.is-progress-active .menu-progress {
+      opacity: 1;
+    }
+
+    &.is-progress-complete .menu-progress::before {
+      opacity: 1;
     }
 
     .menu-badge {
@@ -489,26 +540,6 @@
   background: rgba(var(--color-accent-rgb), 0.1);
 }
 
-.top-bar .top-download-progress {
-  grid-area: progress;
-  position: relative;
-  height: 4px;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  margin: 0 calc(var(--topbar-padding-x) * -1) -8px;
-
-  .top-download-progress-fill {
-    height: 100%;
-    width: 0;
-    background: linear-gradient(
-      90deg,
-      rgba(var(--color-accent-rgb), 0.95),
-      var(--color-highlight)
-    );
-    transition: width 0.25s ease;
-  }
-}
-
 @media (min-width: 1440px) {
   .top-bar {
     column-gap: 22px;
@@ -535,9 +566,7 @@
 @media (max-width: 1023px) {
   .top-bar {
     grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "center right"
-      "progress progress";
+    grid-template-areas: "center right";
     --topbar-padding-x: 14px;
   }
 
@@ -567,9 +596,7 @@
 @media (max-width: 640px) {
   .top-bar {
     grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "center right"
-      "progress progress";
+    grid-template-areas: "center right";
     --topbar-control-size: 40px;
   }
 

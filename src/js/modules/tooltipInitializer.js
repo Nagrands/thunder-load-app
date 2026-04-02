@@ -91,6 +91,9 @@ function ensureTooltipSafety() {
         if (document.body?.classList?.contains("confirmation-open")) {
           return this;
         }
+        if (this._element?.dataset?.tooltipSuppressed === "true") {
+          return this;
+        }
         return originalShow.apply(this, args);
       } catch (error) {
         console.warn("[Tooltips] Ошибка при показе tooltip:", error);
