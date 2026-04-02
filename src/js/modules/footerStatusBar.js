@@ -1,5 +1,4 @@
 import { settingsButton } from "./domElements.js";
-import { onChange as onSettingsChange } from "./settingsStore.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { t } from "./i18n.js";
 
@@ -13,7 +12,6 @@ const dom = {
   root: null,
   version: null,
   activeSection: null,
-  themeValue: null,
   settingsAction: null,
   backToTopAction: null,
   statusCluster: null,
@@ -26,12 +24,17 @@ const dom = {
 
 const state = {
   isInitialized: false,
-  themeListenerBound: false,
   observer: null,
   fallbackBound: false,
   resizeBound: false,
   isFooterNavMode: false,
+  pendingMode: null,
+  pendingTimer: null,
 };
+
+const NAV_ENTER_SCROLL_Y = 12;
+const NAV_EXIT_SCROLL_Y = 4;
+const NAV_SWITCH_DELAY_MS = 90;
 
 function setSoftVisibility(element, visible) {
   if (!element) return;
@@ -44,7 +47,6 @@ function bindDom() {
   dom.root = document.getElementById("app-footer");
   dom.version = document.getElementById("footer-app-version");
   dom.activeSection = document.getElementById("footer-active-section");
-  dom.themeValue = document.getElementById("footer-theme-value");
   dom.settingsAction = document.getElementById("footer-open-settings");
   dom.backToTopAction = document.getElementById("footer-back-to-top");
   dom.statusCluster = document.getElementById("footer-status-cluster");
@@ -58,7 +60,6 @@ function bindDom() {
     dom.root &&
     dom.version &&
     dom.activeSection &&
-    dom.themeValue &&
     dom.settingsAction &&
     dom.backToTopAction &&
     dom.statusCluster &&
@@ -91,25 +92,14 @@ function resolveTopBarHeight() {
   return 96;
 }
 
-function getThemeLabel(theme) {
-  const normalized = String(theme || "")
-    .trim()
-    .toLowerCase();
-  const key = `settings.appearance.theme.${normalized || "dark"}`;
-  const translated = t(key);
-  return translated === key ? normalized || "dark" : translated;
-}
-
-function updateTheme() {
-  if (!dom.themeValue) return;
-  const currentTheme =
-    document.documentElement.getAttribute("data-theme") ||
-    localStorage.getItem("theme") ||
-    "dark";
-  const label = getThemeLabel(currentTheme);
-  dom.themeValue.textContent = label;
-  dom.themeValue.setAttribute("title", label);
-  dom.themeValue.setAttribute("data-bs-original-title", label);
+function resolveScrollY() {
+  return (
+    window.scrollY ||
+    window.pageYOffset ||
+    document.documentElement?.scrollTop ||
+    document.body?.scrollTop ||
+    0
+  );
 }
 
 function updateActiveSection(tabId = "") {
@@ -150,6 +140,7 @@ function moveGroupMenu(target) {
 
 function applyNavigationMode(useFooterNav) {
   state.isFooterNavMode = !!useFooterNav;
+  state.pendingMode = null;
 
   dom.root?.classList.toggle("app-footer--nav-mode", state.isFooterNavMode);
   dom.topBar?.classList.toggle("top-bar--nav-detached", state.isFooterNavMode);
@@ -171,16 +162,46 @@ function applyNavigationMode(useFooterNav) {
   moveGroupMenu(state.isFooterNavMode ? dom.footerNavHost : dom.topNavHost);
 }
 
-function evaluateNavigationMode() {
-  if (!dom.sentinel) {
-    applyNavigationMode(false);
+function clearPendingNavigationMode() {
+  if (state.pendingTimer) {
+    window.clearTimeout(state.pendingTimer);
+    state.pendingTimer = null;
+  }
+}
+
+function scheduleNavigationMode(nextMode) {
+  if (nextMode === state.isFooterNavMode) {
+    state.pendingMode = null;
+    clearPendingNavigationMode();
     return;
   }
 
+  if (state.pendingMode === nextMode) return;
+
+  clearPendingNavigationMode();
+  state.pendingMode = nextMode;
+  state.pendingTimer = window.setTimeout(() => {
+    state.pendingTimer = null;
+    if (state.pendingMode === nextMode) {
+      applyNavigationMode(nextMode);
+    }
+  }, NAV_SWITCH_DELAY_MS);
+}
+
+function resolveDesiredNavigationMode(sentinelTop) {
+  if (state.isFooterNavMode) {
+    return sentinelTop > NAV_EXIT_SCROLL_Y;
+  }
+  return sentinelTop > NAV_ENTER_SCROLL_Y;
+}
+
+function evaluateNavigationMode(sentinelTop = null) {
   try {
-    const threshold = resolveTopBarHeight();
-    const rect = dom.sentinel.getBoundingClientRect();
-    applyNavigationMode(rect.top < threshold - 1);
+    const top =
+      typeof sentinelTop === "number"
+        ? sentinelTop
+        : resolveScrollY();
+    scheduleNavigationMode(resolveDesiredNavigationMode(top));
   } catch {
     applyNavigationMode(false);
   }
@@ -190,7 +211,7 @@ function bindFallbackScrollObserver() {
   if (state.fallbackBound) return;
 
   const handleScroll = () => {
-    evaluateNavigationMode();
+    applyNavigationMode(resolveDesiredNavigationMode(resolveScrollY()));
   };
 
   window.addEventListener("scroll", handleScroll, { passive: true });
@@ -199,6 +220,8 @@ function bindFallbackScrollObserver() {
 }
 
 function setupNavigationObserver() {
+  bindFallbackScrollObserver();
+
   if (state.observer) {
     state.observer.disconnect();
     state.observer = null;
@@ -207,8 +230,7 @@ function setupNavigationObserver() {
   if (!dom.sentinel) return;
 
   if (typeof window.IntersectionObserver !== "function") {
-    bindFallbackScrollObserver();
-    evaluateNavigationMode();
+    applyNavigationMode(resolveDesiredNavigationMode(resolveScrollY()));
     return;
   }
 
@@ -217,7 +239,7 @@ function setupNavigationObserver() {
     (entries) => {
       const [entry] = entries;
       if (!entry) return;
-      applyNavigationMode(!entry.isIntersecting);
+      evaluateNavigationMode(resolveScrollY());
     },
     {
       threshold: 0,
@@ -235,7 +257,6 @@ function handleTabsActivated(event) {
 
 function handleI18nChanged() {
   updateActiveSection();
-  updateTheme();
   setupNavigationObserver();
   try {
     initTooltips();
@@ -279,13 +300,8 @@ function initFooterStatusBar() {
     state.isInitialized = true;
   }
 
-  if (!state.themeListenerBound) {
-    onSettingsChange("theme", () => updateTheme());
-    state.themeListenerBound = true;
-  }
-
   updateActiveSection();
-  updateTheme();
+  applyNavigationMode(state.isFooterNavMode);
   setupNavigationObserver();
   void refreshVersion();
 

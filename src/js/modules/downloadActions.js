@@ -11,9 +11,9 @@ import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
 
 /**
- * Обработчик открытия папки загрузок
+ * Открывает актуальную папку загрузок или местоположение последнего файла.
  */
-async function handleOpenFolder() {
+async function openDownloadFolderFromState() {
   try {
     const lastDownloadedFile =
       window.localStorage.getItem("lastDownloadedFile");
@@ -48,6 +48,13 @@ async function handleOpenFolder() {
     console.error("Error opening download folder:", error);
     showToast(t("download.folder.openError"), "error");
   }
+}
+
+/**
+ * Обработчик открытия папки загрузок
+ */
+async function handleOpenFolder() {
+  await openDownloadFolderFromState();
 }
 
 /**
@@ -145,3 +152,4 @@ function initDownloadActions() {
 }
 
 export { initDownloadActions };
+export { openDownloadFolderFromState };

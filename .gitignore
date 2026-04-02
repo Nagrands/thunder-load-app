@@ -48,6 +48,7 @@ build/
 *.dev.config
 
 .codex/
+.zed/
 
 # ─── Obsidian ──────────────────────────────────────────────
 .obsidian/

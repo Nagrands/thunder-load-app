@@ -2,13 +2,25 @@
 
 describe("footerStatusBar", () => {
   const initTooltipsMock = jest.fn();
-  const onSettingsChangeMock = jest.fn();
   let intersectionObservers;
+
+  function setScrollPosition(value) {
+    Object.defineProperty(window, "scrollY", {
+      value,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(window, "pageYOffset", {
+      value,
+      configurable: true,
+      writable: true,
+    });
+  }
 
   beforeEach(() => {
     jest.resetModules();
+    jest.useFakeTimers();
     initTooltipsMock.mockReset();
-    onSettingsChangeMock.mockReset();
     intersectionObservers = [];
 
     document.body.innerHTML = `
@@ -30,10 +42,6 @@ describe("footerStatusBar", () => {
               <div class="app-footer__zone app-footer__zone--status">
                 <span id="footer-status-meta" class="app-footer__status-meta"></span>
                 <strong id="footer-active-section" class="app-footer__status-value"></strong>
-              </div>
-              <div class="app-footer__zone app-footer__zone--status">
-                <span class="app-footer__status-meta"></span>
-                <strong id="footer-theme-value" class="app-footer__status-value"></strong>
               </div>
             </div>
             <div id="footer-tab-nav" hidden></div>
@@ -63,6 +71,7 @@ describe("footerStatusBar", () => {
       invoke: jest.fn(),
     };
     window.scrollTo = jest.fn();
+    setScrollPosition(0);
     window.IntersectionObserver = class {
       constructor(callback, options) {
         this.callback = callback;
@@ -80,12 +89,13 @@ describe("footerStatusBar", () => {
     sentinel.getBoundingClientRect = jest.fn(() => ({ top: 120 }));
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   async function loadModule() {
     jest.doMock("../domElements.js", () => ({
       settingsButton: document.getElementById("settings-button"),
-    }));
-    jest.doMock("../settingsStore.js", () => ({
-      onChange: onSettingsChangeMock,
     }));
     jest.doMock("../tooltipInitializer.js", () => ({
       initTooltips: initTooltipsMock,
@@ -96,8 +106,6 @@ describe("footerStatusBar", () => {
           "tabs.download": "Downloader",
           "tabs.tools": "Tools",
           "footer.sectionLabel": "Section",
-          "settings.appearance.theme.emerald": "Emerald",
-          "settings.appearance.theme.midnight": "Midnight",
         };
         return map[key] || key;
       },
@@ -115,12 +123,10 @@ describe("footerStatusBar", () => {
 
     const version = document.getElementById("footer-app-version");
     const section = document.getElementById("footer-active-section");
-    const theme = document.getElementById("footer-theme-value");
 
     expect(window.electron.invoke).toHaveBeenCalledWith("get-version");
     expect(version.textContent).toBe("v1.4.4");
     expect(section.textContent).toBe("Downloader");
-    expect(theme.textContent).toBe("Emerald");
     expect(document.querySelector(".center-menu .group-menu")).not.toBeNull();
     expect(
       document.getElementById("footer-tab-nav").classList.contains("is-hidden"),
@@ -130,10 +136,6 @@ describe("footerStatusBar", () => {
         .getElementById("footer-back-to-top")
         .classList.contains("is-hidden"),
     ).toBe(true);
-    expect(onSettingsChangeMock).toHaveBeenCalledWith(
-      "theme",
-      expect.any(Function),
-    );
     expect(initTooltipsMock).toHaveBeenCalled();
   });
 
@@ -145,7 +147,9 @@ describe("footerStatusBar", () => {
     await Promise.resolve();
 
     const observer = intersectionObservers[0];
-    observer.callback([{ isIntersecting: false }]);
+    setScrollPosition(48);
+    observer.callback([{ boundingClientRect: { top: 40 } }]);
+    jest.advanceTimersByTime(95);
 
     expect(document.querySelector("#footer-tab-nav .group-menu")).not.toBeNull();
     expect(document.querySelector(".center-menu .group-menu")).toBeNull();
@@ -173,8 +177,12 @@ describe("footerStatusBar", () => {
     await Promise.resolve();
 
     const observer = intersectionObservers[0];
-    observer.callback([{ isIntersecting: false }]);
-    observer.callback([{ isIntersecting: true }]);
+    setScrollPosition(48);
+    observer.callback([{ boundingClientRect: { top: 40 } }]);
+    jest.advanceTimersByTime(95);
+    setScrollPosition(0);
+    observer.callback([{ boundingClientRect: { top: 140 } }]);
+    jest.advanceTimersByTime(95);
 
     expect(document.querySelector(".center-menu .group-menu")).not.toBeNull();
     expect(document.querySelector("#footer-tab-nav .group-menu")).toBeNull();
@@ -208,23 +216,6 @@ describe("footerStatusBar", () => {
     expect(section.getAttribute("title")).toBe("Tools");
   });
 
-  test("updates theme label through settings-store subscription", async () => {
-    let themeHandler = null;
-    onSettingsChangeMock.mockImplementation((_type, handler) => {
-      themeHandler = handler;
-    });
-    window.electron.invoke.mockResolvedValue("1.4.4");
-    const { initFooterStatusBar } = await loadModule();
-
-    initFooterStatusBar();
-    await Promise.resolve();
-    document.documentElement.setAttribute("data-theme", "midnight");
-    themeHandler();
-
-    const theme = document.getElementById("footer-theme-value");
-    expect(theme.textContent).toBe("Midnight");
-  });
-
   test("opens settings from the footer action", async () => {
     window.electron.invoke.mockResolvedValue("1.4.4");
     const { initFooterStatusBar } = await loadModule();
@@ -244,7 +235,9 @@ describe("footerStatusBar", () => {
 
     initFooterStatusBar();
     await Promise.resolve();
-    intersectionObservers[0].callback([{ isIntersecting: false }]);
+    setScrollPosition(48);
+    intersectionObservers[0].callback([{ boundingClientRect: { top: 40 } }]);
+    jest.advanceTimersByTime(95);
     document.getElementById("footer-back-to-top").click();
 
     expect(window.scrollTo).toHaveBeenCalledWith({
@@ -253,22 +246,31 @@ describe("footerStatusBar", () => {
     });
   });
 
-  test("falls back to scroll calculations when IntersectionObserver is unavailable", async () => {
-    delete window.IntersectionObserver;
+  test("keeps footer controller stable when IntersectionObserver is unavailable", async () => {
+    window.IntersectionObserver = undefined;
     window.electron.invoke.mockResolvedValue("1.4.4");
-    const sentinel = document.getElementById("nav-visibility-sentinel");
-    sentinel.getBoundingClientRect = jest.fn(() => ({ top: 20 }));
+    setScrollPosition(20);
+    const { initFooterStatusBar } = await loadModule();
+
+    expect(() => initFooterStatusBar()).not.toThrow();
+    await Promise.resolve();
+    expect(() => window.dispatchEvent(new Event("scroll"))).not.toThrow();
+    jest.advanceTimersByTime(95);
+  });
+
+  test("does not switch modes while sentinel stays inside hysteresis band", async () => {
+    window.electron.invoke.mockResolvedValue("1.4.4");
     const { initFooterStatusBar } = await loadModule();
 
     initFooterStatusBar();
     await Promise.resolve();
-    window.dispatchEvent(new Event("scroll"));
 
-    expect(document.querySelector("#footer-tab-nav .group-menu")).not.toBeNull();
-    expect(
-      document
-        .getElementById("footer-back-to-top")
-        .classList.contains("is-hidden"),
-    ).toBe(false);
+    const observer = intersectionObservers[0];
+    setScrollPosition(8);
+    observer.callback([{ boundingClientRect: { top: 75 } }]);
+    jest.advanceTimersByTime(120);
+
+    expect(document.querySelector(".center-menu .group-menu")).not.toBeNull();
+    expect(document.querySelector("#footer-tab-nav .group-menu")).toBeNull();
   });
 });
