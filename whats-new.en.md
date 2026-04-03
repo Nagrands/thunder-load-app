@@ -11,5 +11,6 @@
 | The History button moved from the header into the footer | Download history now sits next to Settings in the lower bar, appears only on the Downloader tab, and no longer clutters the top quick actions area |
 | Settings and theme switcher were removed from the top bar | The upper chrome is cleaner and keeps only quick actions, while settings and back-to-top stay in the footer |
 | Section navigation now migrates from the header into the footer | Tabs stay in the header near the top of the page, then move into the lower bar while scrolling down together with a quick back-to-top action |
+| The app update UI was cleaned up and improved | Updates now use a single flyover flow near the app version, show checking and up-to-date states, keep a compact “ready to restart” badge, and distinguish network, download, and install errors |
 | Added the new Emerald color theme | The app now includes another calm dark option with emerald and teal accents, available in both Settings and the first-run flow |
 | Developer mode now persists and controls more UI | It no longer resets after restart or language changes, can disable the Downloader tab, and hides extra quick actions in the top bar while active |

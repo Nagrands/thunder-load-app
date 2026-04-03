@@ -15,10 +15,6 @@ const GLOBAL_SELECTOR = [
   ".shortcuts-modal",
   ".whats-modal",
   "#context-menu",
-  "#update-available-modal",
-  "#update-downloaded-modal",
-  "#update-error-modal",
-  "#update-progress-container",
 ].join(",");
 
 function createWrappers(mainView) {

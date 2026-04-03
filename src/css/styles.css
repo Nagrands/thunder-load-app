@@ -12125,10 +12125,7 @@ body.low-effects .app-footer__bar {
 #settings-modal,
 #shortcuts-modal,
 #whats-new-modal,
-#confirmation-modal,
-#update-available-modal,
-#update-downloaded-modal,
-#update-error-modal {
+#confirmation-modal {
   padding-top: 0 !important;
   min-height: 100vh !important;
   z-index: 1001;
@@ -16844,10 +16841,7 @@ hr {
 .whats-modal-content,
 .settings-modal-content,
 .first-run-modal-content,
-.bk-modal,
-#update-available-modal .modal-content,
-#update-downloaded-modal .modal-content,
-#update-error-modal .modal-content {
+.bk-modal {
   position: relative;
   background-position: center;
   background-repeat: no-repeat;
@@ -16868,10 +16862,7 @@ hr {
 .whats-modal-content h2,
 .settings-modal-content h2,
 .first-run-modal-content h2,
-.bk-modal h2,
-#update-available-modal .modal-content h2,
-#update-downloaded-modal .modal-content h2,
-#update-error-modal .modal-content h2 {
+.bk-modal h2 {
   color: var(--color-accent);
 }
 .modal-content h2 i,
@@ -16879,10 +16870,7 @@ hr {
 .whats-modal-content h2 i,
 .settings-modal-content h2 i,
 .first-run-modal-content h2 i,
-.bk-modal h2 i,
-#update-available-modal .modal-content h2 i,
-#update-downloaded-modal .modal-content h2 i,
-#update-error-modal .modal-content h2 i {
+.bk-modal h2 i {
   padding-right: 10px;
 }
 .modal-content,
@@ -16890,10 +16878,7 @@ hr {
 .whats-modal-content,
 .settings-modal-content,
 .first-run-modal-content,
-.bk-modal,
-#update-available-modal .modal-content,
-#update-downloaded-modal .modal-content,
-#update-error-modal .modal-content {
+.bk-modal {
   background: var(--color-bg-main);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -18856,59 +18841,6 @@ hr {
   color: var(--color-accent);
 }
 
-#update-progress-container {
-  display: none;
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  max-width: 480px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  padding: 20px 24px;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  z-index: 1000;
-  color: var(--color-text-main);
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  transition: all 0.3s ease;
-}
-#update-progress-container.show {
-  display: flex;
-  animation: fadeInUp 0.3s ease;
-}
-#update-progress-container #update-progress-text {
-  text-align: center;
-  font-size: 15px;
-  color: var(--color-highlight);
-}
-#update-progress-container #update-progress-bar {
-  width: 100%;
-  height: 16px;
-  appearance: none;
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-#update-progress-container #update-progress-bar::-webkit-progress-bar {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-}
-#update-progress-container #update-progress-bar::-webkit-progress-value {
-  background: linear-gradient(90deg, var(--color-accent), #0a84ff);
-  transition: width 0.3s ease;
-}
-#update-progress-container #update-progress-bar::-moz-progress-bar {
-  background: linear-gradient(90deg, var(--color-accent), #0a84ff);
-}
-
 @media screen and (max-width: 480px) {
   .modal-content {
     width: 90%;
@@ -20330,6 +20262,15 @@ hr {
   border-top: 1px solid rgba(120, 180, 255, 0.18);
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
 }
+.upd-flyover[data-placement=top]::after {
+  top: auto;
+  bottom: -7px;
+  transform: rotate(225deg);
+  border-left: 0;
+  border-top: 0;
+  border-right: 1px solid rgba(120, 180, 255, 0.18);
+  border-bottom: 1px solid rgba(120, 180, 255, 0.18);
+}
 .upd-flyover .upd-close {
   position: absolute;
   top: 6px;
@@ -20347,7 +20288,7 @@ hr {
   transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease, outline var(--transition-duration) ease;
 }
 .upd-flyover .upd-close:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  color: var(--color-accent);
 }
 .upd-flyover .upd-close:active {
   transform: translateY(1px);
@@ -20377,6 +20318,7 @@ hr {
 .upd-flyover .row {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
 }
 .upd-flyover .btn {
   box-shadow: 0 6px 16px rgba(10, 132, 255, 0.16);
@@ -20405,7 +20347,58 @@ hr {
   color: var(--color-highlight);
   font-size: 13px;
 }
+.upd-flyover .upd-pulse {
+  width: 100%;
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.15), rgba(var(--color-accent-rgb), 0.58), rgba(var(--color-accent-rgb), 0.15));
+  background-size: 200% 100%;
+  animation: upd-pulse-slide 1.3s linear infinite;
+}
 
+.upd-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  padding: 0 10px;
+  margin-left: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 224, 132, 0.3);
+  background: rgba(123, 224, 132, 0.12);
+  color: #d8ffe0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease, background var(--transition-duration) ease;
+}
+.upd-ready-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(24, 84, 40, 0.22);
+  background: rgba(123, 224, 132, 0.18);
+}
+.upd-ready-badge:focus-visible {
+  outline: 2px solid rgba(123, 224, 132, 0.55);
+  outline-offset: 2px;
+}
+
+.upd-ready-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #7be084;
+  box-shadow: 0 0 0 4px rgba(123, 224, 132, 0.16);
+}
+
+@keyframes upd-pulse-slide {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
 [data-theme=midnight] .upd-flyover {
   border: 1px solid rgba(90, 150, 255, 0.22);
   box-shadow: 0 24px 60px rgba(0, 10, 25, 0.55), inset 0 1px 0 rgba(160, 200, 255, 0.08);

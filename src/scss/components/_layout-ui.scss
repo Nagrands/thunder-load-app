@@ -29,10 +29,7 @@
 #settings-modal,
 #shortcuts-modal,
 #whats-new-modal,
-#confirmation-modal,
-#update-available-modal,
-#update-downloaded-modal,
-#update-error-modal {
+#confirmation-modal {
   padding-top: 0 !important;
   min-height: 100vh !important;
   z-index: 1001; // Выше чем top-bar (z-index: 1000)

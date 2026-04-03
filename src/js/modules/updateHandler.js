@@ -3,291 +3,354 @@
  * @description
  * Manages application update notifications and progress UI for Thunder Load.
  * Handles communication with the Electron main process via contextBridge.
- *
- * Responsibilities:
- *  - Listen for update-related IPC events from main process
- *      • update-available
- *      • update-progress
- *      • update-error
- *      • update-downloaded
- *  - Display modals for available updates and downloaded updates
- *  - Update progress bar during download
- *  - Display error notifications when update fails
- *  - Handle modal close actions and cleanup UI elements
- *  - Provide utility to hide or update progress bar
- *
- * Exports:
- *  - initUpdateHandler — initializes event listeners and modals
- *  - updateProgressBar — updates progress bar and progress text
  */
 
-// src/js/modules/updateHandler.js
+import { t } from "./i18n.js";
+import { createUpdateFlyoverView } from "./updateFlyoverView.js";
 
-import { applyI18n, t } from "./i18n.js";
-
-// Используем методы, предоставленные через contextBridge
 const { electron } = window;
 
-// ---------- In-app flyover anchored to version label ----------
-let _updFly = null;
-let _updStyleInjected = true; // стили теперь в SCSS; инлайн‑вставка выключена
-let _updInfo = { current: null, next: null };
-function _getNumberSetting(key, def) {
+const UP_TO_DATE_HIDE_DELAY_MS = 1800;
+
+let updateFlyover = null;
+let updateInfo = { current: null, next: null };
+let resizeBound = false;
+let upToDateHideTimer = null;
+let updateReady = false;
+
+function clearUpToDateTimer() {
+  if (upToDateHideTimer) {
+    clearTimeout(upToDateHideTimer);
+    upToDateHideTimer = null;
+  }
+}
+
+function getNumberSetting(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
-    if (raw === null || raw === undefined) return def;
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : def;
+    if (raw === null || raw === undefined) return fallback;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : fallback;
   } catch {
-    return def;
+    return fallback;
   }
 }
 
 function getTailShiftPx() {
-  // Настройка: updFlyoverTailShiftPx (пиксели), смещение хвостика по X; по умолчанию 0
-  return _getNumberSetting("updFlyoverTailShiftPx", 0);
+  return getNumberSetting("updFlyoverTailShiftPx", 0);
 }
 
 function getFlyoverXOffset() {
-  // Настройка: updFlyoverXOffsetPx — базовый сдвиг всей карточки по X; по умолчанию -8
-  return _getNumberSetting("updFlyoverXOffsetPx", -8);
+  return getNumberSetting("updFlyoverXOffsetPx", -8);
 }
 
-function ensureStyleOnce() {
-  /* стили поставляются из SCSS */
+function getVersionBadge() {
+  return (
+    document.querySelector(".version-container") ||
+    document.getElementById("app-version-label")
+  );
 }
 
-function positionFlyover() {
-  const anchor = document.getElementById("app-version-label");
-  if (!anchor || !_updFly) return;
-  const r = anchor.getBoundingClientRect();
-  const top = r.bottom + 8;
-  const left = Math.max(12, r.left + getFlyoverXOffset());
-  _updFly.style.top = `${Math.round(top)}px`;
-  _updFly.style.left = `${Math.round(left)}px`;
-  // выравниваем «хвостик» относительно центра бейджа версии
+function removeUpdateIndicator() {
   try {
-    const flyRect = _updFly.getBoundingClientRect();
-    const tailLeft = Math.max(
-      12,
-      Math.min(
-        r.left + r.width / 2 - left - 6 + getTailShiftPx(),
-        flyRect.width - 24,
-      ),
-    );
-    _updFly.style.setProperty("--tail-left", `${Math.round(tailLeft)}px`);
+    getVersionBadge()?.querySelector(".update-indicator")?.remove();
   } catch {}
 }
 
-function ensureFlyover() {
-  ensureStyleOnce();
-  if (_updFly) return _updFly;
-  const wrap = document.createElement("div");
-  wrap.className = "upd-flyover";
-  wrap.style.display = "none";
-  wrap.innerHTML = `
-    <button id=\"upd-close\" class=\"upd-close\" aria-label=\"${t("modal.close")}\" data-i18n-aria="modal.close">&times;</button>
-    <div class="state state-available">
-      <h3 class="hdr" data-i18n="update.flyover.available.title">${t("update.flyover.available.title")}</h3>
-      <div class="ver">
-        <span data-i18n="update.flyover.available.current">${t("update.flyover.available.current")}</span>
-        <span class="cur" id="upd-cur">—</span>
-        <span class="dot"> · </span>
-        <span data-i18n="update.flyover.available.next">${t("update.flyover.available.next")}</span>
-        <span class="next" id="upd-next">—</span>
-      </div>
-      <div class="row">
-        <button id="upd-start" class="btn btn-sm btn-primary" data-i18n="update.flyover.available.action">${t("update.flyover.available.action")}</button>
-      </div>
-    </div>
-    <div class="state state-progress" style="display:none">
-      <h3 class="hdr" data-i18n="update.flyover.progress.title">${t("update.flyover.progress.title")}</h3>
-      <div class="ver muted">
-        <span data-i18n="update.flyover.progress.version">${t("update.flyover.progress.version")}</span>
-        <span id="upd-next-p">—</span>
-      </div>
-      <progress id="upd-bar" value="0" max="100"></progress>
-      <div class="muted" id="upd-label">0%</div>
-    </div>
-    <div class="state state-done" style="display:none">
-      <h3 class="hdr" data-i18n="update.flyover.done.title">${t("update.flyover.done.title")}</h3>
-      <div class="muted" data-i18n="update.flyover.done.body">${t("update.flyover.done.body")}</div>
-      <div class="row" style="margin-top:8px">
-        <button id="upd-restart" class="btn btn-sm btn-primary" data-i18n="update.flyover.done.action">${t("update.flyover.done.action")}</button>
-      </div>
-    </div>
-    <div class="state state-error" style="display:none">
-      <h3 class="hdr" data-i18n="update.flyover.error.title">${t("update.flyover.error.title")}</h3>
-      <div class="muted" id="upd-err" data-i18n="update.flyover.error.body">${t("update.flyover.error.body")}</div>
-    </div>`;
-  document.body.appendChild(wrap);
-  _updFly = wrap;
-  applyI18n(_updFly);
-
-  const hide = () => (_updFly.style.display = "none");
-  _updFly.querySelector("#upd-close")?.addEventListener("click", hide);
-  _updFly.querySelector("#upd-start")?.addEventListener("click", () => {
-    window.electron?.invoke && window.electron.invoke("download-update");
-    showProgressPanel(0);
-    // Уберём индикатор у бейджа версии сразу после старта
-    try {
-      const badge =
-        document.querySelector(".version-container") ||
-        document.getElementById("app-version-label");
-      badge?.querySelector(".update-indicator")?.remove();
-    } catch {}
-  });
-  _updFly.querySelector("#upd-restart")?.addEventListener("click", () => {
-    window.electron?.invoke && window.electron.invoke("restart-app");
-  });
-
-  window.addEventListener("i18n:changed", () => {
-    if (_updFly) applyI18n(_updFly);
-  });
-
-  window.addEventListener("resize", positionFlyover);
-  return _updFly;
-}
-
-function switchState(name) {
-  if (!_updFly) return;
-  _updFly
-    .querySelectorAll(".state")
-    .forEach((el) => (el.style.display = "none"));
-  const el = _updFly.querySelector(`.state-${name}`);
-  if (el) el.style.display = "block";
-}
-
-function showAvailable(_message) {
-  const fly = ensureFlyover();
-  fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add("is-visible"));
-  positionFlyover();
-  // маленький индикатор возле бейджа версии
+function ensureUpdateIndicator() {
   try {
-    const badge =
-      document.querySelector(".version-container") ||
-      document.getElementById("app-version-label");
+    const badge = getVersionBadge();
     if (badge && !badge.querySelector(".update-indicator")) {
       const dot = document.createElement("span");
       dot.className = "update-indicator";
       badge.appendChild(dot);
     }
   } catch {}
-  switchState("available");
-  const curEl = fly.querySelector("#upd-cur");
-  const nextEl = fly.querySelector("#upd-next");
-  const nextP = fly.querySelector("#upd-next-p");
-  if (curEl && _updInfo.current) curEl.textContent = _updInfo.current;
-  if (nextEl && _updInfo.next) nextEl.textContent = _updInfo.next;
-  if (nextP && _updInfo.next) nextP.textContent = _updInfo.next;
 }
 
-function showProgressPanel(progress) {
-  const fly = ensureFlyover();
-  fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add("is-visible"));
-  positionFlyover();
-  switchState("progress");
-  const bar = fly.querySelector("#upd-bar");
-  const lab = fly.querySelector("#upd-label");
-  const nextP = fly.querySelector("#upd-next-p");
+function formatProgress(progress) {
   let percent = progress;
-  let bps = null,
-    transferred = null,
-    total = null;
+  let bytesPerSecond = 0;
+  let transferred = 0;
+  let total = 0;
+
   if (typeof progress === "object" && progress) {
     percent = progress.percent;
-    bps = Number(progress.bytesPerSecond || 0);
+    bytesPerSecond = Number(progress.bytesPerSecond || 0);
     transferred = Number(progress.transferred || 0);
     total = Number(progress.total || 0);
   }
-  const p = Math.max(0, Math.min(100, Number(percent) || 0));
-  if (bar) bar.value = p;
-  if (lab) {
-    const parts = [`${Math.round(p)}%`];
-    if (bps && bps > 0) {
-      const fmt = (n) => {
-        const units = ["B/s", "KB/s", "MB/s", "GB/s"];
-        let u = 0;
-        let v = n;
-        while (v >= 1024 && u < units.length - 1) {
-          v /= 1024;
-          u++;
-        }
-        return `${v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)} ${units[u]}`;
-      };
-      parts.push(fmt(bps));
+
+  const normalizedPercent = Math.max(0, Math.min(100, Number(percent) || 0));
+  const parts = [`${Math.round(normalizedPercent)}%`];
+
+  if (bytesPerSecond > 0) {
+    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
+    let unitIndex = 0;
+    let value = bytesPerSecond;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex += 1;
     }
-    if (bps && bps > 0 && total && transferred >= 0 && total > transferred) {
-      const remain = (total - transferred) / bps;
-      const eta = Math.max(0, Math.round(remain));
-      const mm = String(Math.floor(eta / 60)).padStart(2, "0");
-      const ss = String(eta % 60).padStart(2, "0");
-      parts.push(`~${mm}:${ss}`);
-    }
-    lab.textContent = parts.join(" • ");
+    parts.push(
+      `${value.toFixed(value >= 100 ? 0 : value >= 10 ? 1 : 2)} ${units[unitIndex]}`,
+    );
   }
-  if (nextP && _updInfo.next) nextP.textContent = _updInfo.next;
-  // На прогрессе индикатор больше не нужен
+
+  if (
+    bytesPerSecond > 0 &&
+    total > 0 &&
+    transferred >= 0 &&
+    total > transferred
+  ) {
+    const eta = Math.max(0, Math.round((total - transferred) / bytesPerSecond));
+    const mm = String(Math.floor(eta / 60)).padStart(2, "0");
+    const ss = String(eta % 60).padStart(2, "0");
+    parts.push(`~${mm}:${ss}`);
+  }
+
+  return {
+    percent: normalizedPercent,
+    label: parts.join(" • "),
+  };
+}
+
+function classifyErrorType(rawError, forcedType = "") {
+  if (forcedType) return forcedType;
+
+  const text = String(rawError || "").toLowerCase();
+  if (
+    /restart|quitandinstall|quit and install|install|cannot quit|перезапуск|установ/i.test(
+      text,
+    )
+  ) {
+    return "install";
+  }
+  if (
+    /network|offline|timeout|timed out|socket|econn|enotfound|fetch|dns|сеть|соединен|таймаут/i.test(
+      text,
+    )
+  ) {
+    return "network";
+  }
+  return "download";
+}
+
+function getErrorCopy(type, rawError) {
+  const suffix =
+    type === "install"
+      ? "install"
+      : type === "network"
+        ? "network"
+        : "download";
+
+  const fallbackKey = `update.flyover.error.${suffix}.body`;
+  const rawMessage = String(rawError || "").trim();
+  const fallbackMessage = t(fallbackKey);
+
+  return {
+    title: t(`update.flyover.error.${suffix}.title`),
+    message:
+      rawMessage && rawMessage !== fallbackMessage
+        ? `${fallbackMessage} ${rawMessage}`
+        : fallbackMessage,
+    canRetry: suffix !== "install",
+  };
+}
+
+function positionFlyover() {
+  const anchor = document.getElementById("app-version-label");
+  const flyoverElement = updateFlyover?.getElement();
+  if (!anchor || !flyoverElement) return;
+
+  const rect = anchor.getBoundingClientRect();
+  const viewportWidth =
+    window.innerWidth || document.documentElement.clientWidth || 0;
+  const viewportHeight =
+    window.innerHeight || document.documentElement.clientHeight || 0;
+  const gap = 8;
+  const maxEdgePadding = 12;
+  const estimatedWidth = flyoverElement.offsetWidth || 380;
+  const estimatedHeight = flyoverElement.offsetHeight || 220;
+  const unclampedLeft = rect.left + getFlyoverXOffset();
+  const maxLeft = Math.max(maxEdgePadding, viewportWidth - estimatedWidth - maxEdgePadding);
+  const left = Math.min(Math.max(maxEdgePadding, unclampedLeft), maxLeft);
+  const availableBelow = viewportHeight - rect.bottom - gap;
+  const availableAbove = rect.top - gap;
+  const shouldOpenAbove =
+    availableBelow < estimatedHeight && availableAbove > availableBelow;
+  const top = shouldOpenAbove
+    ? Math.max(maxEdgePadding, rect.top - estimatedHeight - gap)
+    : Math.max(maxEdgePadding, rect.bottom + gap);
+
+  flyoverElement.style.left = `${Math.round(left)}px`;
+  flyoverElement.style.top = `${Math.round(top)}px`;
+  flyoverElement.dataset.placement = shouldOpenAbove ? "top" : "bottom";
+
   try {
-    const badge =
-      document.querySelector(".version-container") ||
-      document.getElementById("app-version-label");
-    badge?.querySelector(".update-indicator")?.remove();
+    const flyoverRect = flyoverElement.getBoundingClientRect();
+    const tailLeft = Math.max(
+      12,
+      Math.min(
+        rect.left + rect.width / 2 - left - 6 + getTailShiftPx(),
+        flyoverRect.width - 24,
+      ),
+    );
+    flyoverElement.style.setProperty("--tail-left", `${Math.round(tailLeft)}px`);
   } catch {}
+}
+
+function setReadyBadgeVisible(visible) {
+  updateReady = visible;
+  updateFlyover?.setReadyBadgeVisible(visible);
+}
+
+function ensureFlyover() {
+  if (!updateFlyover) {
+    updateFlyover = createUpdateFlyoverView({
+      onStart: async () => {
+        clearUpToDateTimer();
+        setReadyBadgeVisible(false);
+        const result = await window.electron?.invoke?.("download-update");
+        if (result && result.success === false) {
+          showErrorPanel(result.error, "download");
+          return;
+        }
+        showProgressPanel(0);
+      },
+      onRestart: async () => {
+        clearUpToDateTimer();
+        const result = await window.electron?.invoke?.("restart-app");
+        if (result && result.success === false) {
+          setReadyBadgeVisible(true);
+          showErrorPanel(result.error, "install");
+          return;
+        }
+        setReadyBadgeVisible(false);
+      },
+      onRetry: async () => {
+        clearUpToDateTimer();
+        const result = await window.electron?.invoke?.("download-update");
+        if (result && result.success === false) {
+          showErrorPanel(result.error, "download");
+          return;
+        }
+        showProgressPanel(0);
+      },
+      onReadyBadgeClick: () => {
+        openFlyover();
+        updateFlyover.switchState("done");
+        updateFlyover.focusPrimaryAction("done");
+      },
+    });
+  }
+
+  updateFlyover.ensure();
+  updateFlyover.setReadyBadgeVisible(updateReady);
+
+  if (!resizeBound) {
+    resizeBound = true;
+    window.addEventListener("resize", positionFlyover);
+  }
+
+  return updateFlyover;
+}
+
+function openFlyover() {
+  ensureFlyover();
+  updateFlyover.open();
+  positionFlyover();
+}
+
+function showAvailable() {
+  clearUpToDateTimer();
+  openFlyover();
+  ensureUpdateIndicator();
+  setReadyBadgeVisible(false);
+  updateFlyover.switchState("available");
+  updateFlyover.setVersions(updateInfo);
+}
+
+function showCheckingPanel() {
+  clearUpToDateTimer();
+  openFlyover();
+  removeUpdateIndicator();
+  updateFlyover.switchState("checking");
+}
+
+function showUpToDatePanel() {
+  clearUpToDateTimer();
+  openFlyover();
+  removeUpdateIndicator();
+  updateFlyover.switchState("up-to-date");
+  upToDateHideTimer = window.setTimeout(() => {
+    if (updateFlyover?.getElement()?.dataset.state === "up-to-date") {
+      updateFlyover.close();
+    }
+    upToDateHideTimer = null;
+  }, UP_TO_DATE_HIDE_DELAY_MS);
+}
+
+function showProgressPanel(progress) {
+  clearUpToDateTimer();
+  openFlyover();
+  removeUpdateIndicator();
+  setReadyBadgeVisible(false);
+  updateFlyover.switchState("progress");
+  updateFlyover.setVersions(updateInfo);
+  const formatted = formatProgress(progress);
+  updateFlyover.setProgressValue(formatted.percent);
+  updateFlyover.setProgressLabel(formatted.label);
 }
 
 function showDownloadedPanel() {
-  const fly = ensureFlyover();
-  fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add("is-visible"));
-  positionFlyover();
-  switchState("done");
-  // На этапе «загружено» индикатор также удаляем
-  try {
-    const badge =
-      document.querySelector(".version-container") ||
-      document.getElementById("app-version-label");
-    badge?.querySelector(".update-indicator")?.remove();
-  } catch {}
+  clearUpToDateTimer();
+  openFlyover();
+  removeUpdateIndicator();
+  setReadyBadgeVisible(true);
+  updateFlyover.switchState("done");
+  updateFlyover.focusPrimaryAction("done");
 }
 
-function showErrorPanel(error) {
-  const fly = ensureFlyover();
-  fly.style.display = "block";
-  requestAnimationFrame(() => fly.classList.add("is-visible"));
-  positionFlyover();
-  switchState("error");
-  const e = fly.querySelector("#upd-err");
-  if (e) e.textContent = String(error || t("update.flyover.error.title"));
+function showErrorPanel(error, forcedType = "") {
+  clearUpToDateTimer();
+  openFlyover();
+  removeUpdateIndicator();
+  const copy = getErrorCopy(classifyErrorType(error, forcedType), error);
+  updateFlyover.switchState("error");
+  updateFlyover.setError(copy);
 }
 
-function hideUpdateProgressBar() {
-  const container = document.getElementById("update-progress-container");
-  if (container) container.style.display = "none";
+function handleUpdateMessage(message) {
+  const text = String(message || "");
+  if (/провер|checking/i.test(text)) {
+    showCheckingPanel();
+    return;
+  }
+  if (/не найдено|not available|no updates/i.test(text)) {
+    if (updateFlyover?.getElement()?.dataset.state === "checking") {
+      showUpToDatePanel();
+    }
+  }
 }
 
 function initUpdateHandler() {
-  hideUpdateProgressBar();
-  electron.on("update-available", (message) => {
-    showAvailable(message);
+  electron.on("update-available", () => {
+    showAvailable();
   });
   electron.on("update-available-info", (payload) => {
     try {
-      _updInfo = {
+      updateInfo = {
         current: payload?.current || null,
         next: payload?.next || null,
       };
-      if (_updFly && _updFly.style.display !== "none") {
-        const curEl = _updFly.querySelector("#upd-cur");
-        const nextEl = _updFly.querySelector("#upd-next");
-        const nextP = _updFly.querySelector("#upd-next-p");
-        if (curEl && _updInfo.current) curEl.textContent = _updInfo.current;
-        if (nextEl && _updInfo.next) nextEl.textContent = _updInfo.next;
-        if (nextP && _updInfo.next) nextP.textContent = _updInfo.next;
+      if (updateFlyover?.isOpen()) {
+        updateFlyover.setVersions(updateInfo);
       }
     } catch {}
+  });
+  electron.on("update-message", (message) => {
+    handleUpdateMessage(message);
   });
   electron.on("update-progress", (progress) => {
     showProgressPanel(progress);
@@ -298,151 +361,10 @@ function initUpdateHandler() {
   electron.on("update-downloaded", () => {
     showDownloadedPanel();
   });
-
-  // Подстраховка: закрытие старых модалок при любых кликах на их крестики
-  document.querySelectorAll(".close-modal").forEach((button) => {
-    button.addEventListener("click", (_event) => {
-      const modal = button.closest(".modal-overlay");
-      if (modal) {
-        hideUpdateProgressBar();
-        modal.style.display = "none";
-      }
-    });
-  });
-
-  const closeErrorNotificationBtn = document.getElementById(
-    "close-error-notification",
-  );
-  if (closeErrorNotificationBtn) {
-    closeErrorNotificationBtn.addEventListener("click", () => {
-      closeModal("update-error-modal");
-    });
-  }
 }
 
-// (автозакрытие отключено по требованию)
-
-/**
- * Функция для отображения модального окна с предложением загрузить обновление.
- * @param {string} message - Сообщение для пользователя.
- */
-function _showUpdateAvailableModal(message) {
-  const modal = document.getElementById("update-available-modal");
-  if (modal) {
-    const modalBody = modal.querySelector(".modal-body p");
-    if (modalBody) {
-      modalBody.textContent = message;
-    }
-    modal.style.display = "flex";
-    modal.style.flexDirection = "row";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
-
-    // Обработчики кнопок
-    const downloadBtn = document.getElementById("download-update-btn");
-    const laterBtn = document.getElementById("later-update-btn");
-
-    if (downloadBtn) {
-      downloadBtn.onclick = () => {
-        electron.invoke("download-update");
-        closeModal("update-available-modal");
-      };
-    }
-
-    if (laterBtn) {
-      laterBtn.onclick = () => {
-        closeModal("update-available-modal");
-      };
-    }
-  }
-}
-
-/**
- * Функция для отображения модального окна после загрузки обновления.
- */
-function _showUpdateDownloadedModal() {
-  const modal = document.getElementById("update-downloaded-modal");
-  if (modal) {
-    hideUpdateProgressBar();
-    modal.style.display = "flex";
-    modal.style.flexDirection = "row";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
-
-    // Обработчики кнопок
-    const restartBtn = document.getElementById("restart-app-btn");
-    const laterRestartBtn = document.getElementById("later-restart-btn");
-
-    if (restartBtn) {
-      restartBtn.onclick = () => {
-        electron.invoke("restart-app");
-        closeModal("update-downloaded-modal");
-      };
-    }
-
-    if (laterRestartBtn) {
-      laterRestartBtn.onclick = () => {
-        closeModal("update-downloaded-modal");
-      };
-    }
-  }
-}
-
-/**
- * Функция для обновления прогресс-бара.
- * @param {number} percent - Процент загрузки обновления.
- */
-function updateProgressBar(percent) {
-  const progressContainer = document.getElementById(
-    "update-progress-container",
-  );
-  const progressBar = document.getElementById("update-progress-bar");
-  const progressText = document.getElementById("update-progress-text");
-
-  if (progressContainer && progressBar && progressText) {
-    progressContainer.style.display = "flex";
-    progressContainer.style.flexDirection = "column";
-    progressContainer.style.justifyContent = "center";
-    progressContainer.style.alignItems = "center";
-
-    progressBar.value = percent;
-    if (typeof percent === "number") {
-      progressText.textContent = t("update.progress.percent", {
-        percent: percent.toFixed(2),
-      });
-    } else {
-      progressText.textContent = t("update.progress.loading");
-    }
-  }
-}
-
-/**
- * Функция для отображения уведомления об ошибке.
- * @param {string} error - Сообщение об ошибке.
- */
-function _showErrorNotification(error) {
-  const modal = document.getElementById("update-error-modal");
-  const errorMessage = document.getElementById("update-error-message");
-
-  if (modal && errorMessage) {
-    hideUpdateProgressBar();
-    errorMessage.textContent = t("update.error.withDetail", { error });
-    modal.style.display = "flex";
-    modal.style.flexDirection = "row";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
-  }
-}
-
-/**
- * Функция для закрытия модального окна по его ID.
- * @param {string} modalId - ID модального окна.
- */
-function closeModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.style.display = "none";
-  }
+function updateProgressBar(progress) {
+  showProgressPanel(progress ?? 0);
 }
 
 export { initUpdateHandler, updateProgressBar };
