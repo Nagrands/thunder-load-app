@@ -40,24 +40,6 @@
       <div class="quick-actions" aria-label="Быстрые действия" data-i18n-aria="topbar.quickActions">
         <button
           class="menu-item"
-          id="open-history"
-          type="button"
-          aria-label="История загрузок"
-          data-topbar-priority="p3"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="История загрузок"
-          data-i18n-title="topbar.history"
-          data-hotkey="Ctrl+H"
-        >
-          <span class="menu-main">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <span class="menu-text" data-i18n="topbar.action.history">История</span>
-          </span>
-        </button>
-
-        <button
-          class="menu-item"
           id="shortcuts-button"
           type="button"
           aria-label="Горячие клавиши"
@@ -159,10 +141,6 @@
           aria-label="Быстрые действия"
           data-i18n-aria="topbar.overflow.aria"
         >
-          <button class="topbar-overflow__item" type="button" role="menuitem" data-proxy-target="#open-history">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <span data-i18n="topbar.action.history">История</span>
-          </button>
           <button class="topbar-overflow__item" type="button" role="menuitem" data-proxy-target="#shortcuts-button">
             <i class="fas fa-keyboard"></i>
             <span data-i18n="topbar.action.shortcuts">Клавиши</span>
@@ -2899,6 +2877,20 @@
         </div>
 
         <div class="app-footer__zone app-footer__zone--actions">
+          <button
+            id="open-history"
+            class="app-footer__action app-footer__action--history"
+            type="button"
+            title="История загрузок"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="topbar.history"
+            aria-label="Открыть историю загрузок"
+            data-hotkey="Ctrl+H"
+          >
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+          </button>
+
           <button
             id="footer-open-settings"
             class="app-footer__action"

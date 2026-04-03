@@ -3,13 +3,11 @@ describe("topBarResponsive", () => {
     document.body.innerHTML = `
       <div class="top-bar">
         <div class="top-bar__right-group">
-          <button id="open-history" type="button"></button>
           <button id="shortcuts-button" type="button"></button>
           <button id="open-github" type="button"></button>
           <button id="reload-app" type="button"></button>
           <button id="topbar-more-toggle" type="button" aria-expanded="false" aria-controls="topbar-overflow-menu"></button>
           <div id="topbar-overflow-menu" hidden>
-            <button class="topbar-overflow__item" data-proxy-target="#open-history"></button>
             <button class="topbar-overflow__item" data-proxy-target="#shortcuts-button"></button>
             <button class="topbar-overflow__item" data-proxy-target="#open-github"></button>
             <button class="topbar-overflow__item" data-proxy-target="#reload-app"></button>
@@ -64,7 +62,7 @@ describe("topBarResponsive", () => {
   });
 
   test("clicking proxy item triggers target click", () => {
-    const target = document.getElementById("open-history");
+    const target = document.getElementById("shortcuts-button");
     const targetSpy = jest.fn();
     target.addEventListener("click", targetSpy);
 
@@ -75,7 +73,7 @@ describe("topBarResponsive", () => {
 
     const toggle = document.getElementById("topbar-more-toggle");
     const firstProxy = document.querySelector(
-      '#topbar-overflow-menu [data-proxy-target="#open-history"]',
+      '#topbar-overflow-menu [data-proxy-target="#shortcuts-button"]',
     );
 
     toggle.click();

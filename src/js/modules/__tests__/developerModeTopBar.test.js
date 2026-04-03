@@ -3,7 +3,6 @@ describe("developerModeTopBar", () => {
     jest.resetModules();
     localStorage.clear();
     document.body.innerHTML = `
-      <button id="open-history" type="button"></button>
       <button id="shortcuts-button" type="button"></button>
       <button id="open-github" type="button"></button>
     `;
@@ -19,11 +18,7 @@ describe("developerModeTopBar", () => {
       initDeveloperModeTopBarVisibility();
     });
 
-    [
-      "open-history",
-      "shortcuts-button",
-      "open-github",
-    ].forEach((id) => {
+    ["shortcuts-button", "open-github"].forEach((id) => {
       const el = document.getElementById(id);
       expect(el.hidden).toBe(true);
       expect(el.dataset.topbarSuppressed).toBe("1");

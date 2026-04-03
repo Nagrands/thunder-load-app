@@ -62,6 +62,8 @@ export async function registerTabs(mainView) {
     if (openHistoryBtn) openHistoryBtn.style.display = flag ? "" : "none";
   };
 
+  showHistory(false);
+
   const tabs = new TabSystem(".group-menu", "#main-view");
   tabs.addTab(
     "download",
@@ -91,7 +93,6 @@ export async function registerTabs(mainView) {
       onShow: () => showHistory(false),
       onHide: () => {
         disposeToolsWrapperContent(wrappers.wireguardWrapper);
-        showHistory(true);
       },
     },
   );
@@ -115,6 +116,7 @@ export async function registerTabs(mainView) {
   if (requestedToolView && !wgConfig.autosend) {
     requestToolsView(requestedToolView);
   }
+  showHistory(tabToActivate === "download");
   tabs.activateTab(tabToActivate);
 
   return { tabs, wgConfig, wrappers };

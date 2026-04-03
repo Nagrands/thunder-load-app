@@ -47,6 +47,7 @@ describe("footerStatusBar", () => {
             <div id="footer-tab-nav" hidden></div>
           </div>
           <div class="app-footer__zone app-footer__zone--actions">
+            <button id="open-history" type="button"></button>
             <button id="footer-open-settings" type="button"></button>
             <button id="footer-back-to-top" type="button" hidden></button>
           </div>
@@ -236,6 +237,19 @@ describe("footerStatusBar", () => {
     document.getElementById("footer-open-settings").click();
 
     expect(document.getElementById("footer-open-settings")).toBeTruthy();
+  });
+
+  test("renders history action before settings in the footer", async () => {
+    window.electron.invoke.mockResolvedValue("1.4.4");
+    const { initFooterStatusBar } = await loadModule();
+
+    initFooterStatusBar();
+    await Promise.resolve();
+
+    expect(document.getElementById("open-history")).toBeTruthy();
+    expect(
+      document.querySelector(".app-footer__zone--actions")?.firstElementChild?.id,
+    ).toBe("open-history");
   });
 
   test("scrolls smoothly to top from footer action", async () => {

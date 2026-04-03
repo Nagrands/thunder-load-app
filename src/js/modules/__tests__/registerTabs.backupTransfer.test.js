@@ -92,6 +92,7 @@ describe("registerTabs backup transfer", () => {
     expect(initWgAutoShutdownNotifierMock).toHaveBeenCalledWith({
       autosend: false,
     });
+    expect(document.getElementById("open-history").style.display).toBe("none");
   });
 
   test("falls back to Tools when Downloader tab is disabled in developer mode", async () => {
@@ -103,5 +104,30 @@ describe("registerTabs backup transfer", () => {
     await registerTabs(document.getElementById("main-view"));
 
     expect(activateTabMock).toHaveBeenCalledWith("wireguard");
+    expect(document.getElementById("open-history").style.display).toBe("none");
+  });
+
+  test("shows history button only for the Downloader tab callbacks", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+
+    await registerTabs(document.getElementById("main-view"));
+
+    const [, , , , downloadOptions] = addTabMock.mock.calls[0];
+    const [, , , , toolsOptions] = addTabMock.mock.calls[1];
+    const historyButton = document.getElementById("open-history");
+
+    expect(historyButton.style.display).toBe("");
+
+    toolsOptions.onShow();
+    expect(historyButton.style.display).toBe("none");
+
+    downloadOptions.onShow();
+    expect(historyButton.style.display).toBe("");
+
+    toolsOptions.onHide();
+    expect(historyButton.style.display).toBe("");
+
+    downloadOptions.onHide();
+    expect(historyButton.style.display).toBe("none");
   });
 });
