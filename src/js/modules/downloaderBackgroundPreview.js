@@ -1,4 +1,5 @@
 const RECOVERY_EVENT = "downloader:background-preview-recover";
+const LIVE_PREVIEW_STATE_EVENT = "downloader:live-preview-state";
 const DOWNLOADER_TAB_ID = "download";
 const CROSSFADE_DELAY_MS = 40;
 const CROSSFADE_SETTLE_MS = 320;
@@ -16,6 +17,7 @@ let hasInitialized = false;
 let currentSlotIndex = -1;
 let pendingSlotIndex = -1;
 let pendingResumeTime = null;
+let livePreviewOpen = false;
 
 function syncRefs() {
   layerEl = document.getElementById("downloader-background-preview");
@@ -58,6 +60,7 @@ function setLayerActive(isActive) {
 function isLayerAllowedToPlay() {
   return (
     activeTabId === DOWNLOADER_TAB_ID &&
+    !livePreviewOpen &&
     document.visibilityState !== "hidden" &&
     document.hasFocus()
   );
@@ -317,6 +320,11 @@ function handleTabsActivated(event) {
   syncPlaybackState();
 }
 
+function handleLivePreviewState(event) {
+  livePreviewOpen = !!event?.detail?.isOpen;
+  syncPlaybackState();
+}
+
 function initDownloaderBackgroundPreview() {
   syncRefs();
   if (videoEls.length < 2 || hasInitialized) return;
@@ -330,6 +338,7 @@ function initDownloaderBackgroundPreview() {
   window.addEventListener("focus", syncPlaybackState);
   window.addEventListener("blur", syncPlaybackState);
   window.addEventListener("tabs:activated", handleTabsActivated);
+  window.addEventListener(LIVE_PREVIEW_STATE_EVENT, handleLivePreviewState);
 
   syncPlaybackState();
 }

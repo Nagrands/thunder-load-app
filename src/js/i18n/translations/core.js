@@ -75,6 +75,14 @@ export const coreTranslations = {
     "input.url.preview.save": "Сохранить превью",
     "input.url.preview.saveWithTitle": 'Сохранить: "{title}"',
     "input.url.preview.duration": "Длительность: {duration}",
+    "input.url.preview.openLive": "Открыть live preview",
+    "input.url.preview.openLiveTitle":
+      "Открыть встроенный preview-плеер со звуком",
+    "input.url.preview.closeLive": "Закрыть live preview",
+    "input.url.preview.closeLiveTitle":
+      "Закрыть встроенный preview-плеер со звуком",
+    "input.url.preview.liveTitle": "Live preview",
+    "input.url.preview.liveClose": "Закрыть live preview",
     "input.paste": "Вставить из буфера",
     "input.clear": "Очистить",
     "input.folder": "Выбор папки",
@@ -270,6 +278,14 @@ export const coreTranslations = {
     "input.url.preview.save": "Save preview",
     "input.url.preview.saveWithTitle": 'Save: "{title}"',
     "input.url.preview.duration": "Duration: {duration}",
+    "input.url.preview.openLive": "Open live preview",
+    "input.url.preview.openLiveTitle":
+      "Open the embedded live preview player with sound",
+    "input.url.preview.closeLive": "Close live preview",
+    "input.url.preview.closeLiveTitle":
+      "Close the embedded live preview player with sound",
+    "input.url.preview.liveTitle": "Live preview",
+    "input.url.preview.liveClose": "Close live preview",
     "input.paste": "Paste from clipboard",
     "input.clear": "Clear",
     "input.folder": "Choose folder",

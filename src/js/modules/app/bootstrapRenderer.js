@@ -7,6 +7,7 @@ import { initWhatsNewModal } from "../whatsNewModal.js";
 import { initSettings } from "../settings.js";
 import { initUrlInputHandler } from "../urlInputHandler.js";
 import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
+import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
 import { initSort } from "../sort.js";
 import { initHistoryFilter } from "../historyFilter.js";
 import { initHistoryActions } from "../historyActions.js";
@@ -67,6 +68,7 @@ async function runCriticalInitialization(mainView) {
 
   initDeveloperModeTopBarVisibility();
   initDownloaderBackgroundPreview();
+  initDownloaderLivePreview();
   initUrlInputHandler();
   initHistory();
   await initHistoryState();

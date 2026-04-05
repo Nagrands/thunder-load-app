@@ -51,6 +51,12 @@ const buildDom = () => {
           <div id="preview-title"></div>
           <small id="preview-duration"></small>
         </div>
+        <div id="preview-live-player" class="hidden">
+          <button id="preview-live-close" type="button"></button>
+          <video id="preview-live-video">
+            <source id="preview-live-video-source" />
+          </video>
+        </div>
       </div>
     </div>
     <div id="download-quality-modal" class="modal-overlay" aria-hidden="true"></div>
@@ -83,6 +89,7 @@ describe("urlInputHandler", () => {
   let getVideoInfoMock;
   let applyDownloaderBackgroundPreviewMock;
   let clearDownloaderBackgroundPreviewMock;
+  let hideDownloaderLivePreviewMock;
   let initUrlInputHandler;
 
   const loadModule = () => {
@@ -103,6 +110,12 @@ describe("urlInputHandler", () => {
         RECOVERY_EVENT: "downloader:background-preview-recover",
         applyDownloaderBackgroundPreview: applyDownloaderBackgroundPreviewMock,
         clearDownloaderBackgroundPreview: clearDownloaderBackgroundPreviewMock,
+      }));
+      jest.doMock("../downloaderLivePreview.js", () => ({
+        PLAY_EVENT: "downloader:live-preview-open",
+        RETRY_EVENT: "downloader:live-preview-retry",
+        STATE_EVENT: "downloader:live-preview-state",
+        hideDownloaderLivePreview: hideDownloaderLivePreviewMock,
       }));
       jest.doMock("../i18n", () => ({
         t: (key, vars = {}) => {
@@ -154,6 +167,18 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.duration") {
             return `Длительность: ${vars.duration}`;
           }
+          if (key === "input.url.preview.openLive") {
+            return "Открыть live preview";
+          }
+          if (key === "input.url.preview.openLiveTitle") {
+            return "Открыть встроенный preview-плеер со звуком";
+          }
+          if (key === "input.url.preview.closeLive") {
+            return "Закрыть live preview";
+          }
+          if (key === "input.url.preview.closeLiveTitle") {
+            return "Закрыть встроенный preview-плеер со звуком";
+          }
           if (key === "input.url.preview.kicker") {
             return "Предпросмотр";
           }
@@ -199,6 +224,7 @@ describe("urlInputHandler", () => {
     getVideoInfoMock = jest.fn().mockResolvedValue({ success: true });
     applyDownloaderBackgroundPreviewMock = jest.fn().mockResolvedValue(true);
     clearDownloaderBackgroundPreviewMock = jest.fn();
+    hideDownloaderLivePreviewMock = jest.fn();
     window.electron = {
       invoke: jest.fn(),
       ipcRenderer: { invoke: getVideoInfoMock },
@@ -399,6 +425,7 @@ describe("urlInputHandler", () => {
     expect(error.textContent).toContain("требует авторизации");
     expect(previewCard.style.display).toBe("none");
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+    expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
   test("Escape clears input, preview and inline error", () => {
@@ -416,6 +443,7 @@ describe("urlInputHandler", () => {
     expect(error.classList.contains("hidden")).toBe(true);
     expect(wrapper.classList.contains("is-invalid")).toBe(false);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+    expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
   test("does not handle Enter or Escape from URL input while quality modal is open", () => {
@@ -519,6 +547,137 @@ describe("urlInputHandler", () => {
     );
   });
 
+  test("shows live preview action only when livePreview is available", async () => {
+    const { input, previewCard } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "YouTube demo",
+      duration: 120,
+      thumbnail: "https://example.com/thumb.jpg",
+      livePreview: {
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-live",
+        mime: "video/mp4",
+        container: "mp4",
+      },
+    });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(previewCard.textContent).toContain("Открыть live preview");
+    expect(document.getElementById("preview-open-live")?.style.display).toBe("");
+  });
+
+  test("clicking live preview action dispatches explicit player-open event", async () => {
+    const { input } = getState();
+    const listener = jest.fn();
+    window.addEventListener("downloader:live-preview-open", listener);
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "YouTube demo",
+      duration: 120,
+      thumbnail: "https://example.com/thumb.jpg",
+      livePreview: {
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-live",
+        mime: "video/mp4",
+        container: "mp4",
+      },
+    });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    document.getElementById("preview-open-live").click();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0].detail.preview.src).toContain("demo-live");
+  });
+
+  test("live preview action becomes a close toggle while player is open", async () => {
+    const { input } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "YouTube demo",
+      duration: 120,
+      thumbnail: "https://example.com/thumb.jpg",
+      livePreview: {
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-live",
+        mime: "video/mp4",
+        container: "mp4",
+      },
+    });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    window.dispatchEvent(
+      new CustomEvent("downloader:live-preview-state", {
+        detail: { isOpen: true },
+      }),
+    );
+
+    const btn = document.getElementById("preview-open-live");
+    expect(btn?.textContent).toContain("Закрыть live preview");
+    btn.click();
+    expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
+  });
+
+  test("live preview retry refreshes current preview and reopens player", async () => {
+    const { input } = getState();
+    const listener = jest.fn();
+    window.addEventListener("downloader:live-preview-open", listener);
+    getVideoInfoMock
+      .mockResolvedValueOnce({
+        success: true,
+        title: "YouTube demo",
+        duration: 120,
+        thumbnail: "https://example.com/thumb.jpg",
+        webpage_url: "https://www.youtube.com/watch?v=demo",
+        livePreview: {
+          src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-live-1",
+          mime: "video/mp4",
+          container: "mp4",
+        },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        title: "YouTube demo",
+        duration: 120,
+        thumbnail: "https://example.com/thumb.jpg",
+        webpage_url: "https://www.youtube.com/watch?v=demo",
+        livePreview: {
+          src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-live-2",
+          mime: "video/mp4",
+          container: "mp4",
+        },
+      });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    window.dispatchEvent(
+      new CustomEvent("downloader:live-preview-retry", {
+        detail: { url: "https://www.youtube.com/watch?v=demo", resumeTime: 28.5 },
+      }),
+    );
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0].detail.preview.src).toContain(
+      "demo-live-2",
+    );
+    expect(listener.mock.calls[0][0].detail.options.resumeTime).toBe(28.5);
+  });
+
   test("non-YouTube preview keeps the default downloader background", async () => {
     const { input } = getState();
     getVideoInfoMock.mockResolvedValueOnce({
@@ -546,6 +705,7 @@ describe("urlInputHandler", () => {
     clearBtn.click();
 
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+    expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
   test("closing the preview card clears the downloader background video", async () => {
@@ -570,6 +730,7 @@ describe("urlInputHandler", () => {
     previewCard.querySelector(".preview-close").click();
 
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+    expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
   test("switching from YouTube preview to another source clears stale video background", async () => {
@@ -609,6 +770,7 @@ describe("urlInputHandler", () => {
 
     expect(applyDownloaderBackgroundPreviewMock).toHaveBeenCalledTimes(1);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+    expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
   test("background recovery refreshes current YouTube preview without showing an error", async () => {

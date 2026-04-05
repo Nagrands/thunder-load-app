@@ -48,8 +48,16 @@ function normalizeContainer(format = {}) {
   const ext = String(format?.ext || "").trim().toLowerCase();
   if (PLAYABLE_CONTAINERS.has(ext)) return ext;
 
-  const container = String(format?.container || "").trim().toLowerCase();
-  if (PLAYABLE_CONTAINERS.has(container)) return container;
+  const containerText = String(format?.container || "")
+    .trim()
+    .toLowerCase();
+  if (PLAYABLE_CONTAINERS.has(containerText)) return containerText;
+  const containerTokens = containerText
+    .split(/[,/ ]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const tokenMatch = containerTokens.find((part) => PLAYABLE_CONTAINERS.has(part));
+  if (tokenMatch) return tokenMatch;
 
   const mimeType = String(format?.mime_type || "").trim().toLowerCase();
   if (mimeType.startsWith("video/mp4")) return "mp4";
@@ -104,6 +112,45 @@ function scorePreviewFormat(format = {}, container = "") {
   return score;
 }
 
+function scoreLivePreviewFormat(format = {}, container = "") {
+  const height = Number(format?.height || 0);
+  const width = Number(format?.width || 0);
+  const fps = Number(format?.fps || 0);
+  const bitrate =
+    Number(format?.tbr || format?.vbr || format?.abr || format?.filesize_approx) ||
+    0;
+  const hasAudio = String(format?.acodec || "").toLowerCase() !== "none";
+  const audioBitrate = Number(format?.abr || 0) || 0;
+
+  let score = 0;
+  score += container === "mp4" ? 50 : 45;
+
+  if (height > 0 && height <= 480) score += 26;
+  else if (height > 0 && height <= 720) score += 18;
+  else if (height > 720 && height <= 1080) score += 6;
+  else if (height > 1080) score -= 12;
+
+  if (width > 0 && width <= 854) score += 12;
+  else if (width > 854 && width <= 1280) score += 6;
+  else if (width > 1600) score -= 8;
+
+  if (fps > 0 && fps <= 30) score += 6;
+  if (fps > 30 && fps <= 60) score += 2;
+  if (fps > 60) score -= 6;
+
+  if (bitrate > 0 && bitrate <= 1800) score += 16;
+  else if (bitrate > 1800 && bitrate <= 3200) score += 9;
+  else if (bitrate > 3200 && bitrate <= 5000) score += 2;
+  else if (bitrate > 5000) score -= 10;
+
+  if (audioBitrate > 0 && audioBitrate <= 160) score += 5;
+  if (audioBitrate > 320) score -= 4;
+
+  if (!hasAudio) score -= 100;
+
+  return score;
+}
+
 function isPlayablePreviewFormat(format = {}) {
   const src = String(format?.url || "").trim();
   if (!hasValidHttpUrl(src)) return false;
@@ -122,6 +169,17 @@ function isPlayablePreviewFormat(format = {}) {
   }
 
   if (format?.manifest_url || format?.fragment_base_url) return false;
+
+  return true;
+}
+
+function isPlayableLivePreviewFormat(format = {}) {
+  if (!isPlayablePreviewFormat(format)) return false;
+
+  const vcodec = String(format?.vcodec || "").trim().toLowerCase();
+  const acodec = String(format?.acodec || "").trim().toLowerCase();
+  if (!vcodec || vcodec === "none") return false;
+  if (!acodec || acodec === "none") return false;
 
   return true;
 }
@@ -161,7 +219,45 @@ function selectYouTubeBackgroundPreview(info = {}, sourceUrl = "") {
   };
 }
 
+function selectYouTubeLivePreview(info = {}, sourceUrl = "") {
+  if (!isYouTubeUrl(sourceUrl)) return null;
+  if (info?.is_live || info?.was_live || info?.live_status === "is_live") {
+    return null;
+  }
+
+  const formats = Array.isArray(info?.formats) ? info.formats : [];
+  const poster = pickPoster(info);
+
+  const candidate = formats
+    .filter((format) => isPlayableLivePreviewFormat(format))
+    .map((format) => {
+      const container = normalizeContainer(format);
+      return {
+        src: String(format.url).trim(),
+        poster,
+        mime: getMimeType(format, container),
+        container,
+        width: Number(format?.width || 0) || null,
+        height: Number(format?.height || 0) || null,
+        score: scoreLivePreviewFormat(format, container),
+      };
+    })
+    .sort((left, right) => right.score - left.score)[0];
+
+  if (!candidate) return null;
+
+  return {
+    src: candidate.src,
+    poster: candidate.poster,
+    mime: candidate.mime,
+    container: candidate.container,
+    width: candidate.width,
+    height: candidate.height,
+  };
+}
+
 module.exports = {
   isYouTubeUrl,
   selectYouTubeBackgroundPreview,
+  selectYouTubeLivePreview,
 };

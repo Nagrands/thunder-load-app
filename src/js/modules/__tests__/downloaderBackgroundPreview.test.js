@@ -130,6 +130,34 @@ describe("downloaderBackgroundPreview", () => {
     expect(playMock).toHaveBeenCalled();
   });
 
+  test("pauses background preview while live preview is open and resumes after close", async () => {
+    const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
+      moduleApi;
+    initDownloaderBackgroundPreview();
+
+    await applyDownloaderBackgroundPreview(
+      { src: "https://cdn.example.com/demo.mp4", mime: "video/mp4" },
+      { pageUrl: "https://www.youtube.com/watch?v=demo" },
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("downloader:live-preview-state", {
+        detail: { isOpen: true },
+      }),
+    );
+    expect(pauseMock).toHaveBeenCalled();
+
+    const playCallsBeforeResume = playMock.mock.calls.length;
+    window.dispatchEvent(
+      new CustomEvent("downloader:live-preview-state", {
+        detail: { isOpen: false },
+      }),
+    );
+    await Promise.resolve();
+
+    expect(playMock.mock.calls.length).toBeGreaterThan(playCallsBeforeResume);
+  });
+
   test("crossfades to the second buffer when source changes", async () => {
     const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
       moduleApi;

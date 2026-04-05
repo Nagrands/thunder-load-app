@@ -615,6 +615,46 @@ describe("ipcHandlers tools quick actions", () => {
       width: 640,
       height: 360,
     });
+    expect(result.livePreview).toEqual({
+      src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18",
+      poster: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      mime: "video/mp4",
+      container: "mp4",
+      width: 640,
+      height: 360,
+    });
+  });
+
+  test("get-video-info keeps livePreview null for non-YouTube URLs", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockResolvedValueOnce({
+      title: "Vimeo demo",
+      duration: 120,
+      thumbnail: "https://example.com/thumb.jpg",
+      webpage_url: "https://vimeo.com/123",
+      formats: [
+        {
+          url: "https://cdn.example.com/video.mp4",
+          ext: "mp4",
+          protocol: "https",
+          vcodec: "avc1.42001E",
+          acodec: "mp4a.40.2",
+          width: 854,
+          height: 480,
+        },
+      ],
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://vimeo.com/123",
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.backgroundPreview).toBeNull();
+    expect(result.livePreview).toBeNull();
   });
 
   test("get-video-info maps auth errors to AUTH_REQUIRED", async () => {

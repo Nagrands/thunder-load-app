@@ -12,6 +12,12 @@ import {
   applyDownloaderBackgroundPreview,
   clearDownloaderBackgroundPreview,
 } from "./downloaderBackgroundPreview.js";
+import {
+  PLAY_EVENT as LIVE_PREVIEW_PLAY_EVENT,
+  RETRY_EVENT as LIVE_PREVIEW_RETRY_EVENT,
+  STATE_EVENT as LIVE_PREVIEW_STATE_EVENT,
+  hideDownloaderLivePreview,
+} from "./downloaderLivePreview.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -22,6 +28,10 @@ const previewSpinner = document.getElementById("url-preview-spinner");
 const helperTextEl = document.getElementById("url-helper-text");
 const BACKGROUND_RECOVERY_HANDLER_KEY =
   "__thunderLoadDownloaderBackgroundRecoveryHandler";
+const LIVE_PREVIEW_RETRY_HANDLER_KEY =
+  "__thunderLoadDownloaderLivePreviewRetryHandler";
+const LIVE_PREVIEW_STATE_HANDLER_KEY =
+  "__thunderLoadDownloaderLivePreviewStateHandler";
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
@@ -83,6 +93,9 @@ function initUrlInputHandler() {
   let previewRequestId = 0;
   let dragDepth = 0;
   let backgroundRecoveryInFlight = false;
+  let livePreviewButton = null;
+  let currentLivePreview = null;
+  let livePreviewOpen = false;
 
   const setPreviewLoading = (isLoading) => {
     wrapperEl?.classList.toggle("is-preview-loading", isLoading);
@@ -188,6 +201,48 @@ function initUrlInputHandler() {
       : `${m}:${String(r).padStart(2, "0")}`;
   };
 
+  const syncLivePreviewButton = () => {
+    if (!livePreviewButton) return;
+    if (!currentLivePreview?.src) {
+      livePreviewButton.style.display = "none";
+      livePreviewButton.onclick = null;
+      return;
+    }
+
+    if (livePreviewOpen) {
+      livePreviewButton.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ${t("input.url.preview.closeLive")}`;
+      livePreviewButton.setAttribute(
+        "title",
+        t("input.url.preview.closeLiveTitle"),
+      );
+      livePreviewButton.style.display = "";
+      livePreviewButton.onclick = () => {
+        hideDownloaderLivePreview();
+      };
+      return;
+    }
+
+    livePreviewButton.innerHTML = `<i class="fa-solid fa-volume-high"></i> ${t("input.url.preview.openLive")}`;
+    livePreviewButton.setAttribute(
+      "title",
+      t("input.url.preview.openLiveTitle"),
+    );
+    livePreviewButton.style.display = "";
+    livePreviewButton.onclick = () => {
+      window.dispatchEvent(
+        new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
+          detail: {
+            preview: currentLivePreview,
+            options: {
+              pageUrl:
+                currentLivePreview?.pageUrl || lastPreviewUrl || urlInput.value.trim(),
+            },
+          },
+        }),
+      );
+    };
+  };
+
   const renderPreview = (data) => {
     const card = document.getElementById("preview-card");
     const previewTitleEl = document.getElementById("preview-title");
@@ -199,11 +254,15 @@ function initUrlInputHandler() {
     let addAllBtn = document.getElementById("preview-enqueue-all");
     if (!card || !previewTitleEl || !previewDurationEl || !img) return;
     if (!data || !data.success) {
+      currentLivePreview = null;
+      livePreviewOpen = false;
       card.style.display = "none";
       card.classList.remove("pos-top");
       setStateClass("has-preview", false);
       if (addAllBtn) addAllBtn.style.display = "none";
+      if (livePreviewButton) livePreviewButton.style.display = "none";
       clearDownloaderBackgroundPreview();
+      hideDownloaderLivePreview();
       return;
     }
     try {
@@ -230,6 +289,13 @@ function initUrlInputHandler() {
     card.style.display = data.title || data.thumbnail ? "" : "none";
     card.classList.add("visible");
     setStateClass("has-preview", card.style.display !== "none");
+    currentLivePreview = data.livePreview
+      ? {
+          ...data.livePreview,
+          pageUrl:
+            data?.webpage_url || data?.original_url || lastPreviewUrl || "",
+        }
+      : null;
 
     try {
       const container = document.querySelector(".input-container");
@@ -262,6 +328,19 @@ function initUrlInputHandler() {
       const previewMeta = card.querySelector(".preview-meta");
       previewMeta?.appendChild(previewActionsEl);
     }
+    if (!livePreviewButton) {
+      livePreviewButton = document.createElement("button");
+      livePreviewButton.id = "preview-open-live";
+      livePreviewButton.className =
+        "preview-action-button preview-action-button--secondary";
+      livePreviewButton.setAttribute("type", "button");
+      previewActionsEl?.appendChild(livePreviewButton);
+    }
+    if (!currentLivePreview?.src) {
+      livePreviewOpen = false;
+      hideDownloaderLivePreview();
+    }
+    syncLivePreviewButton();
     if (count > 1 && Array.isArray(data.entries) && data.entries.length) {
       setHelperText("input.url.helper.playlistChoice");
       playlistMetaEl.innerHTML = `
@@ -345,11 +424,14 @@ function initUrlInputHandler() {
       closeBtn.setAttribute("aria-label", t("input.url.preview.close"));
       closeBtn.innerHTML = "&times;";
       closeBtn.addEventListener("click", () => {
+        currentLivePreview = null;
+        livePreviewOpen = false;
         card.style.display = "none";
         card.classList.remove("visible");
         card.classList.remove("pos-top");
         setStateClass("has-preview", false);
         clearDownloaderBackgroundPreview();
+        hideDownloaderLivePreview();
       });
       card.appendChild(closeBtn);
     }
@@ -459,13 +541,58 @@ function initUrlInputHandler() {
       const data = await fetchPreviewInfo(url);
       if (!data?.success) {
         clearDownloaderBackgroundPreview();
+        hideDownloaderLivePreview();
+        livePreviewOpen = false;
+        syncLivePreviewButton();
         return;
       }
       await syncBackgroundPreview(data);
     } catch {
       clearDownloaderBackgroundPreview();
+      hideDownloaderLivePreview();
+      livePreviewOpen = false;
+      syncLivePreviewButton();
     } finally {
       backgroundRecoveryInFlight = false;
+    }
+  };
+
+  const refreshLivePreview = async (requestedUrl = "", resumeTime = null) => {
+    const url = normalizeUrlInput(urlInput.value).trim();
+    if (!url || (requestedUrl && requestedUrl !== url)) return;
+
+    try {
+      const data = await fetchPreviewInfo(url);
+      if (!data?.success || !data?.livePreview?.src) {
+        currentLivePreview = null;
+        livePreviewOpen = false;
+        hideDownloaderLivePreview();
+        syncLivePreviewButton();
+        return;
+      }
+
+      currentLivePreview = {
+        ...data.livePreview,
+        pageUrl: data?.webpage_url || data?.original_url || url,
+      };
+      livePreviewOpen = true;
+      syncLivePreviewButton();
+      window.dispatchEvent(
+        new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
+          detail: {
+            preview: currentLivePreview,
+            options: {
+              pageUrl: currentLivePreview.pageUrl,
+              resumeTime,
+            },
+          },
+        }),
+      );
+    } catch {
+      currentLivePreview = null;
+      livePreviewOpen = false;
+      hideDownloaderLivePreview();
+      syncLivePreviewButton();
     }
   };
 
@@ -483,6 +610,9 @@ function initUrlInputHandler() {
     lastPreviewUrl = url;
     const currentRequest = ++previewRequestId;
     setPreviewLoading(true);
+    hideDownloaderLivePreview();
+    livePreviewOpen = false;
+    syncLivePreviewButton();
     try {
       const data = await fetchPreviewInfo(url);
       if (currentRequest !== previewRequestId) return;
@@ -516,6 +646,9 @@ function initUrlInputHandler() {
       return;
     }
     setPreviewLoading(true);
+    hideDownloaderLivePreview();
+    livePreviewOpen = false;
+    syncLivePreviewButton();
     try {
       const data = await fetchPreviewInfo(url);
       const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
@@ -542,6 +675,7 @@ function initUrlInputHandler() {
       hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
       lastPreviewUrl = "";
+      livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
       syncShellState("");
@@ -579,6 +713,7 @@ function initUrlInputHandler() {
       hasInteracted = false;
       urlInput.value = "";
       lastPreviewUrl = "";
+      livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
       hideInlineError();
@@ -626,6 +761,7 @@ function initUrlInputHandler() {
     toggleButtons();
     // Немедленно скрываем превью
     lastPreviewUrl = "";
+    livePreviewOpen = false;
     setPreviewLoading(false);
     renderPreview(null);
     hideInlineError();
@@ -674,6 +810,40 @@ function initUrlInputHandler() {
   window.addEventListener(
     RECOVERY_EVENT,
     window[BACKGROUND_RECOVERY_HANDLER_KEY],
+  );
+
+  if (window[LIVE_PREVIEW_RETRY_HANDLER_KEY]) {
+    window.removeEventListener(
+      LIVE_PREVIEW_RETRY_EVENT,
+      window[LIVE_PREVIEW_RETRY_HANDLER_KEY],
+    );
+  }
+  window[LIVE_PREVIEW_RETRY_HANDLER_KEY] = async (event) => {
+    const requestedUrl = String(event?.detail?.url || "").trim();
+    const resumeTime = Number(event?.detail?.resumeTime);
+    await refreshLivePreview(
+      requestedUrl,
+      Number.isFinite(resumeTime) ? resumeTime : null,
+    );
+  };
+  window.addEventListener(
+    LIVE_PREVIEW_RETRY_EVENT,
+    window[LIVE_PREVIEW_RETRY_HANDLER_KEY],
+  );
+
+  if (window[LIVE_PREVIEW_STATE_HANDLER_KEY]) {
+    window.removeEventListener(
+      LIVE_PREVIEW_STATE_EVENT,
+      window[LIVE_PREVIEW_STATE_HANDLER_KEY],
+    );
+  }
+  window[LIVE_PREVIEW_STATE_HANDLER_KEY] = (event) => {
+    livePreviewOpen = !!event?.detail?.isOpen;
+    syncLivePreviewButton();
+  };
+  window.addEventListener(
+    LIVE_PREVIEW_STATE_EVENT,
+    window[LIVE_PREVIEW_STATE_HANDLER_KEY],
   );
 
   // Drag & Drop ссылок в область ввода URL

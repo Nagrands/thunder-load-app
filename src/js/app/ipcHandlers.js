@@ -59,6 +59,7 @@ const {
 } = require("./runtimeTools");
 const {
   selectYouTubeBackgroundPreview,
+  selectYouTubeLivePreview,
 } = require("./downloaderBackgroundPreview");
 console.log("ipcHandlers loaded");
 
@@ -824,12 +825,17 @@ function setupIpcHandlers(dependencies) {
         info,
         info?.webpage_url || info?.original_url || normalizedUrl,
       );
+      const livePreview = selectYouTubeLivePreview(
+        info,
+        info?.webpage_url || info?.original_url || normalizedUrl,
+      );
       return {
         success: true,
         title,
         duration,
         thumbnail: thumb,
         backgroundPreview,
+        livePreview,
         playlistCount,
         playlistDuration,
         entries,

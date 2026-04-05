@@ -171,6 +171,35 @@
         <div id="preview-title" class="preview-title"></div>
         <small id="preview-duration" class="muted"></small>
       </div>
+      <div
+        id="preview-live-player"
+        class="preview-live-player hidden"
+        aria-hidden="true"
+      >
+        <div class="preview-live-player__header">
+          <strong data-i18n="input.url.preview.liveTitle">Live preview</strong>
+          <button
+            id="preview-live-close"
+            type="button"
+            class="preview-live-player__close"
+            aria-label="Закрыть live preview"
+            data-i18n-aria="input.url.preview.liveClose"
+            title="Закрыть live preview"
+            data-i18n-title="input.url.preview.liveClose"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+        <video
+          id="preview-live-video"
+          class="preview-live-player__video"
+          controls
+          playsinline
+          preload="metadata"
+        >
+          <source id="preview-live-video-source" />
+        </video>
+      </div>
     </div>
   </div>
 </header>
