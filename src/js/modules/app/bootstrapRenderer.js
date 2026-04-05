@@ -6,6 +6,7 @@ import { initContextMenu } from "../contextMenu.js";
 import { initWhatsNewModal } from "../whatsNewModal.js";
 import { initSettings } from "../settings.js";
 import { initUrlInputHandler } from "../urlInputHandler.js";
+import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
 import { initSort } from "../sort.js";
 import { initHistoryFilter } from "../historyFilter.js";
 import { initHistoryActions } from "../historyActions.js";
@@ -65,6 +66,7 @@ async function runCriticalInitialization(mainView) {
   registerI18nListeners(tabs);
 
   initDeveloperModeTopBarVisibility();
+  initDownloaderBackgroundPreview();
   initUrlInputHandler();
   initHistory();
   await initHistoryState();

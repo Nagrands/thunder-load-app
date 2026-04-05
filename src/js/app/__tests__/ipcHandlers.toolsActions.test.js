@@ -578,6 +578,45 @@ describe("ipcHandlers tools quick actions", () => {
     expect(download.getVideoInfo).not.toHaveBeenCalled();
   });
 
+  test("get-video-info includes backgroundPreview for playable YouTube sources", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockResolvedValueOnce({
+      title: "YouTube demo",
+      duration: 120,
+      thumbnail: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      webpage_url: "https://www.youtube.com/watch?v=demo",
+      formats: [
+        {
+          url: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18",
+          ext: "mp4",
+          protocol: "https",
+          vcodec: "avc1.42001E",
+          acodec: "mp4a.40.2",
+          width: 640,
+          height: 360,
+          tbr: 900,
+        },
+      ],
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=demo",
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.backgroundPreview).toEqual({
+      src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18",
+      poster: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      mime: "video/mp4",
+      container: "mp4",
+      width: 640,
+      height: 360,
+    });
+  });
+
   test("get-video-info maps auth errors to AUTH_REQUIRED", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");

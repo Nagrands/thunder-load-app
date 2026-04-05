@@ -57,6 +57,9 @@ const {
   getRuntimeFfprobePath,
   prepareBinaryForExecution,
 } = require("./runtimeTools");
+const {
+  selectYouTubeBackgroundPreview,
+} = require("./downloaderBackgroundPreview");
 console.log("ipcHandlers loaded");
 
 function parseWhatsNewVersion(markdown = "") {
@@ -817,11 +820,16 @@ function setupIpcHandlers(dependencies) {
       } else if (typeof info?.playlist_count === "number") {
         playlistCount = info.playlist_count;
       }
+      const backgroundPreview = selectYouTubeBackgroundPreview(
+        info,
+        info?.webpage_url || info?.original_url || normalizedUrl,
+      );
       return {
         success: true,
         title,
         duration,
         thumbnail: thumb,
+        backgroundPreview,
         playlistCount,
         playlistDuration,
         entries,
@@ -3643,4 +3651,4 @@ function setupIpcHandlers(dependencies) {
   });
 }
 
-module.exports = { setupIpcHandlers };
+module.exports = { setupIpcHandlers, selectYouTubeBackgroundPreview };

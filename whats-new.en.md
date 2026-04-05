@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Added a background video preview to the Downloader tab for YouTube links | Pasting a YouTube URL can now start a muted looping video behind the Downloader UI, while every other source and any unplayable YouTube case still falls back to the existing static preview without extra errors |
 | The global progress bar moved into the Downloader tab button | Download progress now stays attached to navigation and remains visible in both the header and the footer without a separate top strip |
 | Redesigned the main page and settings backgrounds | Downloader, Tools, Backup, and Settings now use distinct atmospheric background modes that still follow the active app theme while separating screens more clearly |
 | Fixed the window expand toggles on Windows | The options that react to copied URLs and completed downloads now maximize an already open or minimized window correctly without pulling it back from a tray-hidden state |

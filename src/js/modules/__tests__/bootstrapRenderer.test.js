@@ -22,6 +22,7 @@ describe("bootstrapRenderer", () => {
       initWhatsNewModal: jest.fn(),
       initSettings: jest.fn(),
       initUrlInputHandler: jest.fn(),
+      initDownloaderBackgroundPreview: jest.fn(),
       initSort: jest.fn(),
       initHistoryFilter: jest.fn(),
       initHistoryActions: jest.fn(),
@@ -92,6 +93,9 @@ describe("bootstrapRenderer", () => {
       }));
       jest.doMock("../urlInputHandler.js", () => ({
         initUrlInputHandler: mocks.initUrlInputHandler,
+      }));
+      jest.doMock("../downloaderBackgroundPreview.js", () => ({
+        initDownloaderBackgroundPreview: mocks.initDownloaderBackgroundPreview,
       }));
       jest.doMock("../sort.js", () => ({ initSort: mocks.initSort }));
       jest.doMock("../historyFilter.js", () => ({
@@ -185,6 +189,7 @@ describe("bootstrapRenderer", () => {
     expect(mocks.registerTabs).toHaveBeenCalledWith(
       document.getElementById("main-view"),
     );
+    expect(mocks.initDownloaderBackgroundPreview).toHaveBeenCalled();
     expect(mocks.initUrlInputHandler).toHaveBeenCalled();
     expect(mocks.initHistory).toHaveBeenCalled();
     expect(mocks.initHistoryState).toHaveBeenCalled();

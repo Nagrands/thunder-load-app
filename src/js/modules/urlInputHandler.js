@@ -7,6 +7,10 @@ import { setCachedVideoInfo } from "./videoInfoCache.js";
 import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
+import {
+  applyDownloaderBackgroundPreview,
+  clearDownloaderBackgroundPreview,
+} from "./downloaderBackgroundPreview.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -195,6 +199,7 @@ function initUrlInputHandler() {
       card.classList.remove("pos-top");
       setStateClass("has-preview", false);
       if (addAllBtn) addAllBtn.style.display = "none";
+      clearDownloaderBackgroundPreview();
       return;
     }
     try {
@@ -339,6 +344,8 @@ function initUrlInputHandler() {
         card.style.display = "none";
         card.classList.remove("visible");
         card.classList.remove("pos-top");
+        setStateClass("has-preview", false);
+        clearDownloaderBackgroundPreview();
       });
       card.appendChild(closeBtn);
     }
@@ -424,7 +431,15 @@ function initUrlInputHandler() {
     }
   };
 
-  const maybeFetchPreview = () => {
+  const syncBackgroundPreview = async (data) => {
+    if (data?.success && data?.backgroundPreview?.src) {
+      await applyDownloaderBackgroundPreview(data.backgroundPreview);
+      return;
+    }
+    clearDownloaderBackgroundPreview();
+  };
+
+  const maybeFetchPreview = async () => {
     const url = urlInput.value.trim();
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
       setPreviewLoading(false);
@@ -438,30 +453,28 @@ function initUrlInputHandler() {
     lastPreviewUrl = url;
     const currentRequest = ++previewRequestId;
     setPreviewLoading(true);
-    window.electron.ipcRenderer
-      .invoke("get-video-info", url)
-      .then((data) => {
-        if (currentRequest !== previewRequestId) return;
-        const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
-        if (fetchError) {
-          showInlineErrorText(fetchError);
-          renderPreview(null);
-          return;
-        }
-        renderPreview(data);
-      })
-      .catch(() => {
-        if (currentRequest !== previewRequestId) return;
+    try {
+      const data = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      if (currentRequest !== previewRequestId) return;
+      const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
+      if (fetchError) {
+        showInlineErrorText(fetchError);
         renderPreview(null);
-      })
-      .finally(() => {
-        if (currentRequest !== previewRequestId) return;
-        setPreviewLoading(false);
-      });
+        return;
+      }
+      renderPreview(data);
+      await syncBackgroundPreview(data);
+    } catch {
+      if (currentRequest !== previewRequestId) return;
+      renderPreview(null);
+    } finally {
+      if (currentRequest !== previewRequestId) return;
+      setPreviewLoading(false);
+    }
   };
 
   // Внешний триггер принудительного показа предпросмотра (например, из истории → Повторить)
-  urlInput.addEventListener("force-preview", () => {
+  urlInput.addEventListener("force-preview", async () => {
     if (previewTimer) clearTimeout(previewTimer);
     // сбрасываем кэш URL, чтобы форсировать повторный запрос
     lastPreviewUrl = "";
@@ -473,19 +486,21 @@ function initUrlInputHandler() {
       return;
     }
     setPreviewLoading(true);
-    window.electron.ipcRenderer
-      .invoke("get-video-info", url)
-      .then((data) => {
-        const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
-        if (fetchError) {
-          showInlineErrorText(fetchError);
-          renderPreview(null);
-          return;
-        }
-        renderPreview(data);
-      })
-      .catch(() => renderPreview(null))
-      .finally(() => setPreviewLoading(false));
+    try {
+      const data = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
+      if (fetchError) {
+        showInlineErrorText(fetchError);
+        renderPreview(null);
+        return;
+      }
+      renderPreview(data);
+      await syncBackgroundPreview(data);
+    } catch {
+      renderPreview(null);
+    } finally {
+      setPreviewLoading(false);
+    }
   });
 
   urlInput.addEventListener("input", () => {

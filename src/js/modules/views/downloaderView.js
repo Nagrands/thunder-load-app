@@ -29,6 +29,27 @@ export default function renderDownloader(wrapper) {
     const center = document.createElement("div");
     center.className = "downloader-center";
 
+    const backgroundLayer = document.createElement("div");
+    backgroundLayer.id = "downloader-background-preview";
+    backgroundLayer.className = "downloader-background-preview";
+    backgroundLayer.setAttribute("aria-hidden", "true");
+    backgroundLayer.innerHTML = `
+      <video
+        id="downloader-background-video"
+        class="downloader-background-preview__video"
+        muted
+        autoplay
+        loop
+        playsinline
+        preload="metadata"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <source id="downloader-background-video-source" />
+      </video>
+      <div class="downloader-background-preview__overlay"></div>
+    `;
+
     const glass = document.createElement("div");
     glass.className = "wg-glass";
 
@@ -139,6 +160,7 @@ export default function renderDownloader(wrapper) {
 
     wrapper.innerHTML = "";
     wrapper.classList.add("downloader-view", "tab-content");
+    wrapper.appendChild(backgroundLayer);
     wrapper.appendChild(center);
 
     wrapper.__dl_built = true;
