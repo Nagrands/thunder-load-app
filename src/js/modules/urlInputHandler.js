@@ -8,6 +8,7 @@ import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
 import {
+  RECOVERY_EVENT,
   applyDownloaderBackgroundPreview,
   clearDownloaderBackgroundPreview,
 } from "./downloaderBackgroundPreview.js";
@@ -19,6 +20,8 @@ const sourceLinkButton = document.getElementById("url-source-link");
 const urlErrorEl = document.getElementById("url-inline-error");
 const previewSpinner = document.getElementById("url-preview-spinner");
 const helperTextEl = document.getElementById("url-helper-text");
+const BACKGROUND_RECOVERY_HANDLER_KEY =
+  "__thunderLoadDownloaderBackgroundRecoveryHandler";
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
@@ -79,6 +82,7 @@ function initUrlInputHandler() {
   let hasInteracted = false;
   let previewRequestId = 0;
   let dragDepth = 0;
+  let backgroundRecoveryInFlight = false;
 
   const setPreviewLoading = (isLoading) => {
     wrapperEl?.classList.toggle("is-preview-loading", isLoading);
@@ -432,11 +436,37 @@ function initUrlInputHandler() {
   };
 
   const syncBackgroundPreview = async (data) => {
+    const pageUrl = data?.webpage_url || data?.original_url || lastPreviewUrl || "";
     if (data?.success && data?.backgroundPreview?.src) {
-      await applyDownloaderBackgroundPreview(data.backgroundPreview);
+      await applyDownloaderBackgroundPreview(data.backgroundPreview, {
+        pageUrl,
+      });
       return;
     }
     clearDownloaderBackgroundPreview();
+  };
+
+  const fetchPreviewInfo = async (url) => {
+    return window.electron.ipcRenderer.invoke("get-video-info", url);
+  };
+
+  const refreshBackgroundPreview = async () => {
+    const url = normalizeUrlInput(urlInput.value).trim();
+    if (!url || url !== lastPreviewUrl || backgroundRecoveryInFlight) return;
+
+    backgroundRecoveryInFlight = true;
+    try {
+      const data = await fetchPreviewInfo(url);
+      if (!data?.success) {
+        clearDownloaderBackgroundPreview();
+        return;
+      }
+      await syncBackgroundPreview(data);
+    } catch {
+      clearDownloaderBackgroundPreview();
+    } finally {
+      backgroundRecoveryInFlight = false;
+    }
   };
 
   const maybeFetchPreview = async () => {
@@ -454,7 +484,7 @@ function initUrlInputHandler() {
     const currentRequest = ++previewRequestId;
     setPreviewLoading(true);
     try {
-      const data = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      const data = await fetchPreviewInfo(url);
       if (currentRequest !== previewRequestId) return;
       const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
       if (fetchError) {
@@ -487,7 +517,7 @@ function initUrlInputHandler() {
     }
     setPreviewLoading(true);
     try {
-      const data = await window.electron.ipcRenderer.invoke("get-video-info", url);
+      const data = await fetchPreviewInfo(url);
       const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
       if (fetchError) {
         showInlineErrorText(fetchError);
@@ -629,6 +659,22 @@ function initUrlInputHandler() {
       console.error("Failed to open source link from URL input:", error);
     }
   });
+
+  if (window[BACKGROUND_RECOVERY_HANDLER_KEY]) {
+    window.removeEventListener(
+      RECOVERY_EVENT,
+      window[BACKGROUND_RECOVERY_HANDLER_KEY],
+    );
+  }
+  window[BACKGROUND_RECOVERY_HANDLER_KEY] = async (event) => {
+    const requestedUrl = String(event?.detail?.url || "").trim();
+    if (!requestedUrl || requestedUrl !== lastPreviewUrl) return;
+    await refreshBackgroundPreview();
+  };
+  window.addEventListener(
+    RECOVERY_EVENT,
+    window[BACKGROUND_RECOVERY_HANDLER_KEY],
+  );
 
   // Drag & Drop ссылок в область ввода URL
   const wrapper = document.querySelector(".url-input-wrapper");

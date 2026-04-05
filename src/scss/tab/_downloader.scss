@@ -71,7 +71,26 @@
     object-position: center;
     filter: saturate(1.02) contrast(1.04) brightness(0.92) blur(0.35px);
     transform: scale(1.015);
-    opacity: 0.84;
+    opacity: 0;
+    transition:
+      opacity 240ms ease,
+      transform 320ms ease;
+    will-change: opacity, transform;
+
+    &.is-loading {
+      opacity: 0;
+      transform: scale(1.028);
+    }
+
+    &.is-ready {
+      opacity: 0;
+      transform: scale(1.015);
+    }
+
+    &.is-visible {
+      opacity: 0.84;
+      transform: scale(1.015);
+    }
   }
 
   .downloader-background-preview__overlay {

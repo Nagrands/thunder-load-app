@@ -35,7 +35,7 @@ export default function renderDownloader(wrapper) {
     backgroundLayer.setAttribute("aria-hidden", "true");
     backgroundLayer.innerHTML = `
       <video
-        id="downloader-background-video"
+        id="downloader-background-video-a"
         class="downloader-background-preview__video"
         muted
         autoplay
@@ -45,7 +45,20 @@ export default function renderDownloader(wrapper) {
         tabindex="-1"
         aria-hidden="true"
       >
-        <source id="downloader-background-video-source" />
+        <source id="downloader-background-video-source-a" />
+      </video>
+      <video
+        id="downloader-background-video-b"
+        class="downloader-background-preview__video"
+        muted
+        autoplay
+        loop
+        playsinline
+        preload="metadata"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <source id="downloader-background-video-source-b" />
       </video>
       <div class="downloader-background-preview__overlay"></div>
     `;

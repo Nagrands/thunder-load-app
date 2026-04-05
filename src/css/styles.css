@@ -23110,7 +23110,21 @@ video {
   object-position: center;
   filter: saturate(1.02) contrast(1.04) brightness(0.92) blur(0.35px);
   transform: scale(1.015);
+  opacity: 0;
+  transition: opacity 240ms ease, transform 320ms ease;
+  will-change: opacity, transform;
+}
+.downloader-background-preview .downloader-background-preview__video.is-loading {
+  opacity: 0;
+  transform: scale(1.028);
+}
+.downloader-background-preview .downloader-background-preview__video.is-ready {
+  opacity: 0;
+  transform: scale(1.015);
+}
+.downloader-background-preview .downloader-background-preview__video.is-visible {
   opacity: 0.84;
+  transform: scale(1.015);
 }
 .downloader-background-preview .downloader-background-preview__overlay {
   background: radial-gradient(58% 42% at 50% 0%, rgba(var(--color-accent-rgb), 0.12), transparent 74%), linear-gradient(180deg, rgba(4, 8, 18, 0.22) 0%, rgba(6, 10, 18, 0.54) 48%, rgba(6, 10, 18, 0.76) 100%);

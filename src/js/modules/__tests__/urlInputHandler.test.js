@@ -60,6 +60,7 @@ const buildDom = () => {
 const flushPromises = async () => {
   await Promise.resolve();
   await Promise.resolve();
+  await Promise.resolve();
 };
 
 const getState = () => ({
@@ -99,6 +100,7 @@ describe("urlInputHandler", () => {
         updateButtonState: updateButtonStateMock,
       }));
       jest.doMock("../downloaderBackgroundPreview.js", () => ({
+        RECOVERY_EVENT: "downloader:background-preview-recover",
         applyDownloaderBackgroundPreview: applyDownloaderBackgroundPreviewMock,
         clearDownloaderBackgroundPreview: clearDownloaderBackgroundPreviewMock,
       }));
@@ -372,6 +374,7 @@ describe("urlInputHandler", () => {
 
     jest.advanceTimersByTime(600);
     await flushPromises();
+    await flushPromises();
 
     expect(getVideoInfoMock).toHaveBeenCalled();
     expect(wrapper.classList.contains("is-preview-loading")).toBe(false);
@@ -512,6 +515,7 @@ describe("urlInputHandler", () => {
 
     expect(applyDownloaderBackgroundPreviewMock).toHaveBeenCalledWith(
       backgroundPreview,
+      { pageUrl: "https://www.youtube.com/watch?v=demo" },
     );
   });
 
@@ -605,6 +609,56 @@ describe("urlInputHandler", () => {
 
     expect(applyDownloaderBackgroundPreviewMock).toHaveBeenCalledTimes(1);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+  });
+
+  test("background recovery refreshes current YouTube preview without showing an error", async () => {
+    const { input, error } = getState();
+    getVideoInfoMock
+      .mockResolvedValueOnce({
+        success: true,
+        title: "YouTube demo",
+        duration: 120,
+        thumbnail: "https://example.com/thumb.jpg",
+        webpage_url: "https://www.youtube.com/watch?v=demo",
+        backgroundPreview: {
+          src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-1",
+          mime: "video/mp4",
+          container: "mp4",
+        },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        title: "YouTube demo",
+        duration: 120,
+        thumbnail: "https://example.com/thumb.jpg",
+        webpage_url: "https://www.youtube.com/watch?v=demo",
+        backgroundPreview: {
+          src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-2",
+          mime: "video/mp4",
+          container: "mp4",
+        },
+      });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    window.dispatchEvent(
+      new CustomEvent("downloader:background-preview-recover", {
+        detail: { url: "https://www.youtube.com/watch?v=demo" },
+      }),
+    );
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(2);
+    expect(error.classList.contains("hidden")).toBe(true);
+    expect(applyDownloaderBackgroundPreviewMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-2",
+      }),
+      { pageUrl: "https://www.youtube.com/watch?v=demo" },
+    );
   });
 
   test("renders playlist summary and add-all action inside preview", async () => {
