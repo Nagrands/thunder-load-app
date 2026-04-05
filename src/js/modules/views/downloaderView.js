@@ -103,61 +103,6 @@ export default function renderDownloader(wrapper) {
       </div>
     `;
 
-    const toolsStatus = document.createElement("div");
-    toolsStatus.className = "downloader-tools-status";
-    toolsStatus.innerHTML = `
-      <div
-        class="status-line downloader-tools-status__line"
-        id="dl-tools-status"
-        role="status"
-        aria-live="polite"
-      >
-        <i
-          class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
-          id="dl-tools-icon"
-          aria-hidden="true"
-        ></i>
-        <span
-          id="dl-tools-text"
-          class="downloader-tools-status__text"
-          data-i18n="downloader.tools.checking"
-        >
-          ${t("downloader.tools.checking")}
-        </span>
-        <div
-          class="tool-badges downloader-tools-status__badges"
-          id="dl-tools-badges"
-        ></div>
-      </div>
-      <button
-        type="button"
-        class="downloader-tools-status__toggle"
-        id="dl-tools-toggle"
-        title="${t("downloader.tools.hideTitle")}"
-        data-bs-toggle="tooltip"
-        data-i18n-title="downloader.tools.hideTitle"
-        aria-label="${t("downloader.tools.hideAria")}"
-        data-i18n-aria="downloader.tools.hideAria"
-      >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <button
-        type="button"
-        class="downloader-tools-status__reinstall"
-        id="dl-tools-reinstall"
-        title="${t("downloader.tools.reinstallTitle")}"
-        data-bs-toggle="tooltip"
-        data-i18n-title="downloader.tools.reinstallTitle"
-      >
-        <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span data-i18n="downloader.tools.reinstall">${t("downloader.tools.reinstall")}</span>
-      </button>
-    `;
-
-    hdr
-      .querySelector(".downloader-shell-header__meta")
-      ?.appendChild(toolsStatus);
-
     shell.appendChild(hdr);
     glass.appendChild(shell);
 

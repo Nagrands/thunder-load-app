@@ -49,18 +49,13 @@ describe("downloaderView hero", () => {
     expect(meta).not.toBeNull();
     expect(hero?.querySelector(".title-content")).not.toBeNull();
     expect(meta?.querySelector("#downloader-job-summary")).not.toBeNull();
-    expect(meta?.querySelector("#dl-tools-status")).not.toBeNull();
+    expect(meta?.querySelector("#dl-tools-status")).toBeNull();
     expect(
       wrapper.querySelector("#downloader-job-summary-title")?.textContent,
     ).toBeTruthy();
     expect(
       wrapper.querySelector("#downloader-job-summary-meta"),
     ).not.toBeNull();
-    expect(wrapper.querySelector("#dl-tools-icon")).not.toBeNull();
-    expect(wrapper.querySelector("#dl-tools-text")).not.toBeNull();
-    expect(wrapper.querySelector("#dl-tools-badges")).not.toBeNull();
-    expect(wrapper.querySelector("#dl-tools-toggle")).not.toBeNull();
-    expect(wrapper.querySelector("#dl-tools-reinstall")).not.toBeNull();
     expect(wrapper.querySelector("#inspect-last-video")).toBeNull();
     expect(
       wrapper.querySelector("#downloader-media-inspector-slot"),

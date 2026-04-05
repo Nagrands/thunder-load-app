@@ -15,7 +15,6 @@ const el = {
   text: null,
   reinstall: null,
   badges: null,
-  toggle: null,
 };
 
 const setBadges = (details = []) => {
@@ -96,21 +95,19 @@ async function reinstallTools() {
 }
 
 function bindDom() {
-  el.container = document.querySelector(".downloader-tools-status");
+  el.container = document.getElementById("footer-tools-status");
   el.line = document.getElementById("dl-tools-status");
   el.icon = document.getElementById("dl-tools-icon");
   el.text = document.getElementById("dl-tools-text");
   el.reinstall = document.getElementById("dl-tools-reinstall");
   el.badges = document.getElementById("dl-tools-badges");
-  el.toggle = document.getElementById("dl-tools-toggle");
   if (
     !el.container ||
     !el.line ||
     !el.icon ||
     !el.text ||
     !el.reinstall ||
-    !el.badges ||
-    !el.toggle
+    !el.badges
   )
     return false;
 
@@ -121,22 +118,15 @@ function bindDom() {
   try {
     if (localStorage.getItem(HIDDEN_KEY) === "1") {
       el.container.classList.add("hidden");
+      el.container.setAttribute("aria-hidden", "true");
     }
   } catch {}
 
   el.reinstall.addEventListener("click", () => reinstallTools());
-  el.toggle.addEventListener("click", () => {
-    el.container.classList.add("hidden");
-    try {
-      localStorage.setItem(HIDDEN_KEY, "1");
-    } catch {}
-    window.dispatchEvent(
-      new CustomEvent("tools:visibility", { detail: { hidden: true } }),
-    );
-  });
   window.addEventListener("tools:visibility", (ev) => {
     const hidden = ev?.detail?.hidden === true;
     el.container.classList.toggle("hidden", hidden);
+    el.container.setAttribute("aria-hidden", hidden ? "true" : "false");
     try {
       if (hidden) localStorage.setItem(HIDDEN_KEY, "1");
       else localStorage.removeItem(HIDDEN_KEY);

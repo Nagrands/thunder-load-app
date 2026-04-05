@@ -21,8 +21,6 @@ jest.mock("../i18n.js", () => ({
       "tools.summary.ok": "All dependencies are installed",
       "tools.summary.missingList": "Missing: {items}",
       "downloader.tools.checking": "Checking tools…",
-      "downloader.tools.hideTitle": "Hide status",
-      "downloader.tools.hideAria": "Hide tools status",
       "downloader.tools.reinstallTitle":
         "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
       "downloader.tools.reinstall": "Reinstall",
@@ -37,23 +35,12 @@ jest.mock("../i18n.js", () => ({
 
 const buildDom = () => {
   document.body.innerHTML = `
-    <div class="downloader-tools-status">
+    <div id="footer-tools-status" class="app-footer__tools-status downloader-tools-status">
       <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
         <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
         <span id="dl-tools-text" data-i18n="downloader.tools.checking">Checking tools…</span>
         <div class="tool-badges" id="dl-tools-badges"></div>
       </div>
-      <button
-        type="button"
-        id="dl-tools-toggle"
-        title="Hide status"
-        data-bs-toggle="tooltip"
-        data-i18n-title="downloader.tools.hideTitle"
-        aria-label="Hide tools status"
-        data-i18n-aria="downloader.tools.hideAria"
-      >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
       <button
         type="button"
         id="dl-tools-reinstall"
@@ -111,17 +98,14 @@ describe("downloaderToolsStatus", () => {
         .getElementById("dl-tools-reinstall")
         .classList.contains("hidden"),
     ).toBe(true);
-    const container = document.querySelector(".downloader-tools-status");
+    const container = document.getElementById("footer-tools-status");
     expect(container.outerHTML).toMatchInlineSnapshot(`
-     "<div class="downloader-tools-status">
+     "<div id="footer-tools-status" class="app-footer__tools-status downloader-tools-status">
            <div class="status-line is-ok" id="dl-tools-status" role="status" aria-live="polite">
              <i class="fa-solid fa-check" id="dl-tools-icon" aria-hidden="true"></i>
              <span id="dl-tools-text" data-i18n="downloader.tools.checking">Tools are ready</span>
              <div class="tool-badges" id="dl-tools-badges"><span class="tool-badge ok" data-tool="yt"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">yt-dlp</span> <span class="tool-badge__version">2024.01.01</span></span><span class="tool-badge ok" data-tool="ff"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">ffmpeg</span> <span class="tool-badge__version">7.1</span></span><span class="tool-badge ok" data-tool="deno"><span class="tool-badge__state" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span class="tool-badge__label">Deno</span> <span class="tool-badge__version">2.0.0</span></span></div>
            </div>
-           <button type="button" id="dl-tools-toggle" title="Hide status" data-bs-toggle="tooltip" data-i18n-title="downloader.tools.hideTitle" aria-label="Hide tools status" data-i18n-aria="downloader.tools.hideAria">
-             <i class="fa-solid fa-xmark"></i>
-           </button>
            <button type="button" id="dl-tools-reinstall" title="Reinstall dependencies (yt-dlp, ffmpeg, Deno)" data-bs-toggle="tooltip" data-i18n-title="downloader.tools.reinstallTitle" class="hidden">
              <i class="fa-solid fa-arrow-rotate-right"></i>
              <span data-i18n="downloader.tools.reinstall">Reinstall</span>
@@ -203,7 +187,7 @@ describe("downloaderToolsStatus", () => {
     // UI статус не меняется автоматически — ждём действий в настройках.
   });
 
-  test("close hides container until settings shows it", async () => {
+  test("settings visibility event hides container until re-enabled", async () => {
     window.electron.tools.getVersions.mockResolvedValue({
       ytDlp: { ok: true, path: "/tmp/yt-dlp", version: "2024.01.01" },
       ffmpeg: {
@@ -218,18 +202,21 @@ describe("downloaderToolsStatus", () => {
     initDownloaderToolsStatus();
     await tick();
 
-    const container = document.querySelector(".downloader-tools-status");
-    const toggle = document.getElementById("dl-tools-toggle");
+    const container = document.getElementById("footer-tools-status");
     expect(container.classList.contains("hidden")).toBe(false);
 
-    toggle.click();
+    window.dispatchEvent(
+      new CustomEvent("tools:visibility", { detail: { hidden: true } }),
+    );
     expect(container.classList.contains("hidden")).toBe(true);
+    expect(container.getAttribute("aria-hidden")).toBe("true");
     expect(localStorage.getItem("downloaderToolsStatusHidden")).toBe("1");
 
     window.dispatchEvent(
       new CustomEvent("tools:visibility", { detail: { hidden: false } }),
     );
     expect(container.classList.contains("hidden")).toBe(false);
+    expect(container.getAttribute("aria-hidden")).toBe("false");
     expect(localStorage.getItem("downloaderToolsStatusHidden")).toBeNull();
   });
 });

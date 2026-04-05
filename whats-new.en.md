@@ -7,6 +7,7 @@
 | What changed | What you get |
 |---|---|
 | Added background and live preview for YouTube links in Downloader | Pasting a YouTube URL still enables the muted decorative background preview, and now an explicit button can open a separate modal player with sound; when the preview source is refreshed, the player tries to continue the same video from roughly the same position |
+| Downloader tools status moved into the footer top-state | The `yt-dlp`, `ffmpeg`, and `Deno` block now lives next to the current section label in the lower bar, appears only near the top of the page, and still respects the existing Settings toggle |
 | The global progress bar moved into the Downloader tab button | Download progress now stays attached to navigation and remains visible in both the header and the footer without a separate top strip |
 | Redesigned the main page and settings backgrounds | Downloader, Tools, Backup, and Settings now use distinct atmospheric background modes that still follow the active app theme while separating screens more clearly |
 | Fixed the window expand toggles on Windows | The options that react to copied URLs and completed downloads now maximize an already open or minimized window correctly without pulling it back from a tray-hidden state |

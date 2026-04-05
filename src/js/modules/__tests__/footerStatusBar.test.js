@@ -43,6 +43,10 @@ describe("footerStatusBar", () => {
                 <span id="footer-status-meta" class="app-footer__status-meta"></span>
                 <strong id="footer-active-section" class="app-footer__status-value"></strong>
               </div>
+              <div
+                id="footer-tools-status"
+                class="app-footer__tools-status downloader-tools-status"
+              ></div>
             </div>
             <div id="footer-tab-nav" hidden></div>
           </div>
@@ -134,6 +138,11 @@ describe("footerStatusBar", () => {
     expect(section.textContent).toBe("Downloader");
     expect(document.querySelector(".center-menu .group-menu")).not.toBeNull();
     expect(
+      document
+        .getElementById("footer-tools-status")
+        .classList.contains("is-context-hidden"),
+    ).toBe(false);
+    expect(
       document.getElementById("footer-tab-nav").classList.contains("is-hidden"),
     ).toBe(true);
     expect(
@@ -170,6 +179,11 @@ describe("footerStatusBar", () => {
       document
         .getElementById("footer-status-cluster")
         .classList.contains("is-hidden"),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById("footer-tools-status")
+        .classList.contains("is-context-hidden"),
     ).toBe(true);
     expect(document.getElementById("app-footer").classList.contains("app-footer--nav-mode")).toBe(true);
     const downloadTab = document.querySelector(
@@ -211,6 +225,11 @@ describe("footerStatusBar", () => {
         .getElementById("footer-status-cluster")
         .classList.contains("is-hidden"),
     ).toBe(false);
+    expect(
+      document
+        .getElementById("footer-tools-status")
+        .classList.contains("is-context-hidden"),
+    ).toBe(false);
   });
 
   test("updates the active section when tab changes", async () => {
@@ -226,6 +245,32 @@ describe("footerStatusBar", () => {
     const section = document.getElementById("footer-active-section");
     expect(section.textContent).toBe("Tools");
     expect(section.getAttribute("title")).toBe("Tools");
+    expect(
+      document
+        .getElementById("footer-tools-status")
+        .classList.contains("is-context-hidden"),
+    ).toBe(true);
+  });
+
+  test("hides footer tools block when settings toggle broadcasts hidden state", async () => {
+    window.electron.invoke.mockResolvedValue("1.4.4");
+    const { initFooterStatusBar } = await loadModule();
+
+    initFooterStatusBar();
+    await Promise.resolve();
+
+    const tools = document.getElementById("footer-tools-status");
+    window.dispatchEvent(
+      new CustomEvent("tools:visibility", { detail: { hidden: true } }),
+    );
+
+    expect(tools.classList.contains("is-context-hidden")).toBe(true);
+
+    window.dispatchEvent(
+      new CustomEvent("tools:visibility", { detail: { hidden: false } }),
+    );
+
+    expect(tools.classList.contains("is-context-hidden")).toBe(false);
   });
 
   test("opens settings from the footer action", async () => {

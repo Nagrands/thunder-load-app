@@ -14,6 +14,7 @@ const dom = {
   settingsAction: null,
   backToTopAction: null,
   statusCluster: null,
+  toolsStatus: null,
   footerNavHost: null,
   topBar: null,
   topBarCenter: null,
@@ -27,6 +28,8 @@ const state = {
   fallbackBound: false,
   resizeBound: false,
   isFooterNavMode: false,
+  activeTabId: "download",
+  toolsHiddenByPreference: false,
   pendingMode: null,
   pendingTimer: null,
 };
@@ -49,11 +52,18 @@ function bindDom() {
   dom.settingsAction = document.getElementById("footer-open-settings");
   dom.backToTopAction = document.getElementById("footer-back-to-top");
   dom.statusCluster = document.getElementById("footer-status-cluster");
+  dom.toolsStatus = document.getElementById("footer-tools-status");
   dom.footerNavHost = document.getElementById("footer-tab-nav");
   dom.topBar = document.querySelector(".top-bar");
   dom.topBarCenter = document.querySelector(".top-bar__center");
   dom.topNavHost = document.querySelector(".center-menu");
   dom.sentinel = document.getElementById("nav-visibility-sentinel");
+  try {
+    state.toolsHiddenByPreference =
+      localStorage.getItem("downloaderToolsStatusHidden") === "1";
+  } catch {
+    state.toolsHiddenByPreference = false;
+  }
 
   return !!(
     dom.root &&
@@ -62,12 +72,25 @@ function bindDom() {
     dom.settingsAction &&
     dom.backToTopAction &&
     dom.statusCluster &&
+    dom.toolsStatus &&
     dom.footerNavHost &&
     dom.topBar &&
     dom.topBarCenter &&
     dom.topNavHost &&
     dom.sentinel
   );
+}
+
+function syncToolsVisibility() {
+  if (!dom.toolsStatus) return;
+  const locallyHidden =
+    state.toolsHiddenByPreference || dom.toolsStatus.classList.contains("hidden");
+  const shouldShow =
+    state.activeTabId === "download" &&
+    !state.isFooterNavMode &&
+    !locallyHidden;
+  dom.toolsStatus.classList.toggle("is-context-hidden", !shouldShow);
+  dom.toolsStatus.setAttribute("aria-hidden", shouldShow ? "false" : "true");
 }
 
 function getGroupMenu() {
@@ -107,10 +130,11 @@ function updateActiveSection(tabId = "") {
   const activeButton = document.querySelector(".group-menu .menu-item.active");
   const normalizedId =
     String(tabId || "").trim() || activeButton?.dataset?.menu || "";
+  state.activeTabId = normalizedId || "download";
   const fallbackLabel =
     activeButton?.querySelector(".menu-text")?.textContent?.trim() ||
     t("tabs.download");
-  const labelKey = TAB_LABEL_MAP[normalizedId];
+  const labelKey = TAB_LABEL_MAP[state.activeTabId];
   const label = labelKey ? t(labelKey) : fallbackLabel;
 
   dom.activeSection.textContent = label;
@@ -159,6 +183,7 @@ function applyNavigationMode(useFooterNav) {
   }
 
   moveGroupMenu(state.isFooterNavMode ? dom.footerNavHost : dom.topNavHost);
+  syncToolsVisibility();
 }
 
 function clearPendingNavigationMode() {
@@ -251,12 +276,15 @@ function setupNavigationObserver() {
 }
 
 function handleTabsActivated(event) {
-  updateActiveSection(event?.detail?.id);
+  state.activeTabId = String(event?.detail?.id || "").trim() || "download";
+  updateActiveSection(state.activeTabId);
+  syncToolsVisibility();
 }
 
 function handleI18nChanged() {
   updateActiveSection();
   setupNavigationObserver();
+  syncToolsVisibility();
   try {
     initTooltips();
   } catch {}
@@ -286,6 +314,10 @@ function initFooterStatusBar() {
 
     window.addEventListener("tabs:activated", handleTabsActivated);
     window.addEventListener("i18n:changed", handleI18nChanged);
+    window.addEventListener("tools:visibility", (event) => {
+      state.toolsHiddenByPreference = event?.detail?.hidden === true;
+      syncToolsVisibility();
+    });
 
     if (!state.resizeBound) {
       window.addEventListener("resize", handleResize);
@@ -298,6 +330,7 @@ function initFooterStatusBar() {
   updateActiveSection();
   applyNavigationMode(state.isFooterNavMode);
   setupNavigationObserver();
+  syncToolsVisibility();
   void refreshVersion();
 
   try {
