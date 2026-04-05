@@ -2794,17 +2794,6 @@
                   id="dl-tools-badges"
                 ></div>
               </div>
-              <button
-                type="button"
-                class="downloader-tools-status__reinstall"
-                id="dl-tools-reinstall"
-                title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
-                data-bs-toggle="tooltip"
-                data-i18n-title="downloader.tools.reinstallTitle"
-              >
-                <i class="fa-solid fa-arrow-rotate-right"></i>
-                <span data-i18n="downloader.tools.reinstall">Переустановить</span>
-              </button>
             </div>
           </div>
 
@@ -2819,6 +2808,18 @@
         </div>
 
         <div class="app-footer__zone app-footer__zone--actions">
+          <button
+            id="dl-tools-reinstall"
+            class="app-footer__action app-footer__action--tools hidden"
+            type="button"
+            title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="downloader.tools.reinstallTitle"
+          >
+            <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
+            <span data-i18n="downloader.tools.reinstall">Переустановить</span>
+          </button>
           <button
             id="open-history"
             class="app-footer__action app-footer__action--history"

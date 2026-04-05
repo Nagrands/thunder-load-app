@@ -1,7 +1,10 @@
 /** @jest-environment jsdom */
 
 jest.mock("../toast.js", () => ({ showToast: jest.fn() }));
-jest.mock("../tooltipInitializer.js", () => ({ initTooltips: jest.fn() }));
+jest.mock("../tooltipInitializer.js", () => ({
+  initTooltips: jest.fn(),
+  hideAllTooltips: jest.fn(),
+}));
 jest.mock("../toolsInfo.js", () => ({
   summarizeToolsState:
     jest.requireActual("../toolsInfo.js").summarizeToolsState,

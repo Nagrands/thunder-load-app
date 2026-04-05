@@ -99,19 +99,13 @@
     flex: 0 1 auto;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     white-space: nowrap;
     color: var(--color-quality);
   }
 
   #dl-tools-icon {
-    width: 12px;
-    height: 12px;
-    font-size: 11px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.95;
+    display: none;
   }
 
   .status-line.is-ok {
@@ -127,12 +121,7 @@
   }
 
   .downloader-tools-status__text {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-    flex: 0 0 auto;
-    color: rgba(221, 231, 246, 0.82);
+    display: none;
   }
 
   .downloader-tools-status__badges {
@@ -468,6 +457,10 @@
   border-width: 0;
 }
 
+.app-footer__action.is-context-hidden {
+  display: none;
+}
+
 .app-footer__action {
   display: inline-flex;
   align-items: center;
@@ -519,6 +512,31 @@
 
 .app-footer__action--history {
   background: rgba(255, 255, 255, 0.05);
+}
+
+.app-footer__action--tools {
+  width: auto;
+  min-width: 42px;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgba(87, 58, 22, 0.38);
+  border: 1px solid rgba(255, 188, 112, 0.34);
+  color: #ffdca8;
+
+  span {
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  &:hover {
+    color: #ffe6be;
+    background: rgba(103, 68, 26, 0.46);
+    border-color: rgba(255, 198, 122, 0.42);
+  }
 }
 
 .app-footer__action--ghost {
@@ -594,6 +612,10 @@ body.low-effects {
     grid-area: actions;
   }
 
+  .app-footer__action--tools {
+    min-width: 0;
+  }
+
   .app-footer__tab-nav .group-menu {
     justify-content: flex-start;
     overflow-x: auto;
@@ -606,6 +628,16 @@ body.low-effects {
   .app-footer__action {
     width: 42px;
     padding: 0;
+  }
+
+  .app-footer__action--tools {
+    width: auto;
+    min-width: 42px;
+    padding: 0 10px;
+
+    span {
+      display: none;
+    }
   }
 
   .app-footer__kicker {

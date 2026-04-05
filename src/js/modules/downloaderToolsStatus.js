@@ -1,6 +1,6 @@
 // src/js/modules/downloaderToolsStatus.js
 
-import { initTooltips } from "./tooltipInitializer.js";
+import { hideAllTooltips, initTooltips } from "./tooltipInitializer.js";
 import { summarizeToolsState } from "./toolsInfo.js";
 import { openSettingsWithTab } from "./settingsModal.js";
 import { t } from "./i18n.js";
@@ -36,6 +36,7 @@ const setState = (state, message, details = []) => {
   if (!el.line || !el.icon || !el.text || !el.reinstall) return;
 
   el.line.classList.remove("is-ok", "is-error", "is-loading");
+  hideAllTooltips();
   el.reinstall.classList.add("hidden");
 
   switch (state) {

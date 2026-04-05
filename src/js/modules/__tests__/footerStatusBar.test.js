@@ -51,6 +51,7 @@ describe("footerStatusBar", () => {
             <div id="footer-tab-nav" hidden></div>
           </div>
           <div class="app-footer__zone app-footer__zone--actions">
+            <button id="dl-tools-reinstall" type="button"></button>
             <button id="open-history" type="button"></button>
             <button id="footer-open-settings" type="button"></button>
             <button id="footer-back-to-top" type="button" hidden></button>
@@ -143,6 +144,11 @@ describe("footerStatusBar", () => {
         .classList.contains("is-context-hidden"),
     ).toBe(false);
     expect(
+      document
+        .getElementById("dl-tools-reinstall")
+        .classList.contains("is-context-hidden"),
+    ).toBe(false);
+    expect(
       document.getElementById("footer-tab-nav").classList.contains("is-hidden"),
     ).toBe(true);
     expect(
@@ -183,6 +189,11 @@ describe("footerStatusBar", () => {
     expect(
       document
         .getElementById("footer-tools-status")
+        .classList.contains("is-context-hidden"),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById("dl-tools-reinstall")
         .classList.contains("is-context-hidden"),
     ).toBe(true);
     expect(document.getElementById("app-footer").classList.contains("app-footer--nav-mode")).toBe(true);
@@ -230,6 +241,11 @@ describe("footerStatusBar", () => {
         .getElementById("footer-tools-status")
         .classList.contains("is-context-hidden"),
     ).toBe(false);
+    expect(
+      document
+        .getElementById("dl-tools-reinstall")
+        .classList.contains("is-context-hidden"),
+    ).toBe(false);
   });
 
   test("updates the active section when tab changes", async () => {
@@ -250,6 +266,11 @@ describe("footerStatusBar", () => {
         .getElementById("footer-tools-status")
         .classList.contains("is-context-hidden"),
     ).toBe(true);
+    expect(
+      document
+        .getElementById("dl-tools-reinstall")
+        .classList.contains("is-context-hidden"),
+    ).toBe(true);
   });
 
   test("hides footer tools block when settings toggle broadcasts hidden state", async () => {
@@ -260,17 +281,20 @@ describe("footerStatusBar", () => {
     await Promise.resolve();
 
     const tools = document.getElementById("footer-tools-status");
+    const reinstall = document.getElementById("dl-tools-reinstall");
     window.dispatchEvent(
       new CustomEvent("tools:visibility", { detail: { hidden: true } }),
     );
 
     expect(tools.classList.contains("is-context-hidden")).toBe(true);
+    expect(reinstall.classList.contains("is-context-hidden")).toBe(true);
 
     window.dispatchEvent(
       new CustomEvent("tools:visibility", { detail: { hidden: false } }),
     );
 
     expect(tools.classList.contains("is-context-hidden")).toBe(false);
+    expect(reinstall.classList.contains("is-context-hidden")).toBe(false);
   });
 
   test("opens settings from the footer action", async () => {
@@ -294,7 +318,7 @@ describe("footerStatusBar", () => {
     expect(document.getElementById("open-history")).toBeTruthy();
     expect(
       document.querySelector(".app-footer__zone--actions")?.firstElementChild?.id,
-    ).toBe("open-history");
+    ).toBe("dl-tools-reinstall");
   });
 
   test("scrolls smoothly to top from footer action", async () => {
