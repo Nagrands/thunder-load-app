@@ -90,6 +90,8 @@ describe("expandMainWindowForToggle", () => {
       isMaximized: jest.fn(() => false),
       restore: jest.fn(),
       maximize: jest.fn(),
+      show: jest.fn(),
+      setAlwaysOnTop: jest.fn(),
       focus: jest.fn(),
       moveTop: jest.fn(),
     };
@@ -97,10 +99,23 @@ describe("expandMainWindowForToggle", () => {
     const ok = expandMainWindowForToggle(mainWindow);
 
     expect(ok).toBe(true);
+    expect(mockApp.focus).toHaveBeenCalled();
     expect(mainWindow.restore).not.toHaveBeenCalled();
     expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(
+      1,
+      true,
+      "screen-saver",
+    );
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
     expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(85);
+    expect(mainWindow.show).toHaveBeenCalledTimes(2);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(2);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(2);
+    expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, false);
   });
 
   test("restores and maximizes minimized window on Windows", () => {
@@ -116,6 +131,8 @@ describe("expandMainWindowForToggle", () => {
       isMaximized: jest.fn(() => false),
       restore: jest.fn(),
       maximize: jest.fn(),
+      show: jest.fn(),
+      setAlwaysOnTop: jest.fn(),
       focus: jest.fn(),
       moveTop: jest.fn(),
     };
@@ -123,10 +140,23 @@ describe("expandMainWindowForToggle", () => {
     const ok = expandMainWindowForToggle(mainWindow);
 
     expect(ok).toBe(true);
+    expect(mockApp.focus).toHaveBeenCalled();
     expect(mainWindow.restore).toHaveBeenCalledTimes(1);
     expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(
+      1,
+      true,
+      "screen-saver",
+    );
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
     expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(85);
+    expect(mainWindow.show).toHaveBeenCalledTimes(2);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(2);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(2);
+    expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, false);
   });
 
   test("does nothing for hidden window on Windows", () => {
@@ -142,6 +172,8 @@ describe("expandMainWindowForToggle", () => {
       isMaximized: jest.fn(() => false),
       restore: jest.fn(),
       maximize: jest.fn(),
+      show: jest.fn(),
+      setAlwaysOnTop: jest.fn(),
       focus: jest.fn(),
       moveTop: jest.fn(),
     };
@@ -151,6 +183,8 @@ describe("expandMainWindowForToggle", () => {
     expect(ok).toBe(false);
     expect(mainWindow.restore).not.toHaveBeenCalled();
     expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.show).not.toHaveBeenCalled();
+    expect(mainWindow.setAlwaysOnTop).not.toHaveBeenCalled();
     expect(mainWindow.focus).not.toHaveBeenCalled();
     expect(mainWindow.moveTop).not.toHaveBeenCalled();
   });

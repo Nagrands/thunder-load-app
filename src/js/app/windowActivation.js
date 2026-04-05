@@ -1,5 +1,7 @@
 const { app } = require("electron");
 
+const WINDOWS_FOCUS_RETRY_DELAY_MS = 80;
+
 function bringMainWindowToFront(mainWindow) {
   if (!mainWindow || mainWindow.isDestroyed?.()) return false;
 
@@ -49,6 +51,14 @@ function expandMainWindowForToggle(mainWindow) {
   if (mainWindow.isVisible?.() === false) return false;
 
   try {
+    try {
+      app.focus?.({ steal: true });
+    } catch {
+      try {
+        app.focus?.();
+      } catch {}
+    }
+
     if (mainWindow.isMinimized?.()) {
       mainWindow.restore?.();
     }
@@ -57,8 +67,21 @@ function expandMainWindowForToggle(mainWindow) {
       mainWindow.maximize?.();
     }
 
+    mainWindow.show?.();
+    mainWindow.setAlwaysOnTop?.(true, "screen-saver");
     mainWindow.focus?.();
     mainWindow.moveTop?.();
+
+    setTimeout(() => {
+      try {
+        if (mainWindow.isDestroyed?.()) return;
+        mainWindow.show?.();
+        mainWindow.focus?.();
+        mainWindow.moveTop?.();
+        mainWindow.setAlwaysOnTop?.(false);
+      } catch {}
+    }, WINDOWS_FOCUS_RETRY_DELAY_MS);
+
     return true;
   } catch {
     return false;
