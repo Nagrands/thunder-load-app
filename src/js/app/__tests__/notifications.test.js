@@ -8,9 +8,17 @@ jest.mock("electron", () => ({
   },
 }));
 
+const mockExpandMainWindowForToggle = jest.fn();
+
+jest.mock("../windowActivation", () => ({
+  expandMainWindowForToggle: (...args) =>
+    mockExpandMainWindowForToggle(...args),
+}));
+
 describe("notifications", () => {
   beforeEach(() => {
     jest.resetModules();
+    jest.clearAllMocks();
   });
 
   test("classifies rate-limited downloader errors with retry delay", () => {
@@ -121,5 +129,55 @@ describe("notifications", () => {
         hasFfmpeg: true,
       }),
     ).toContain("Не найден yt-dlp");
+  });
+
+  test("expands window on download complete when toggle is enabled", () => {
+    const { sendDownloadCompletionNotification } = require("../notifications.js");
+    const store = {
+      get: jest.fn((key, fallback) =>
+        key === "expandWindowOnDownloadComplete" ? true : fallback,
+      ),
+      set: jest.fn(),
+    };
+    const mainWindow = {
+      webContents: { send: jest.fn() },
+    };
+
+    sendDownloadCompletionNotification(
+      "demo.mp4",
+      "/tmp/demo.mp4",
+      store,
+      mainWindow,
+    );
+
+    expect(store.set).toHaveBeenCalledWith("lastDownloadedFile", "/tmp/demo.mp4");
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      "download-complete",
+      { title: "demo.mp4", filePath: "/tmp/demo.mp4" },
+    );
+    expect(mockExpandMainWindowForToggle).toHaveBeenCalledTimes(1);
+    expect(mockExpandMainWindowForToggle).toHaveBeenCalledWith(mainWindow);
+  });
+
+  test("does not expand window on download complete when toggle is disabled", () => {
+    const { sendDownloadCompletionNotification } = require("../notifications.js");
+    const store = {
+      get: jest.fn((key, fallback) =>
+        key === "expandWindowOnDownloadComplete" ? false : fallback,
+      ),
+      set: jest.fn(),
+    };
+    const mainWindow = {
+      webContents: { send: jest.fn() },
+    };
+
+    sendDownloadCompletionNotification(
+      "demo.mp4",
+      "/tmp/demo.mp4",
+      store,
+      mainWindow,
+    );
+
+    expect(mockExpandMainWindowForToggle).not.toHaveBeenCalled();
   });
 });

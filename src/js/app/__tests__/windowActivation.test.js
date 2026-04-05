@@ -59,3 +59,126 @@ describe("bringMainWindowToFront", () => {
     expect(bringMainWindowToFront(null)).toBe(false);
   });
 });
+
+describe("expandMainWindowForToggle", () => {
+  const originalPlatform = process.platform;
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    Object.defineProperty(process, "platform", {
+      value: originalPlatform,
+      configurable: true,
+    });
+  });
+
+  test("maximizes visible non-maximized window on Windows", () => {
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    const { expandMainWindowForToggle } = require("../windowActivation");
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      isMinimized: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      restore: jest.fn(),
+      maximize: jest.fn(),
+      focus: jest.fn(),
+      moveTop: jest.fn(),
+    };
+
+    const ok = expandMainWindowForToggle(mainWindow);
+
+    expect(ok).toBe(true);
+    expect(mainWindow.restore).not.toHaveBeenCalled();
+    expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
+  });
+
+  test("restores and maximizes minimized window on Windows", () => {
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    const { expandMainWindowForToggle } = require("../windowActivation");
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      isMinimized: jest.fn(() => true),
+      isMaximized: jest.fn(() => false),
+      restore: jest.fn(),
+      maximize: jest.fn(),
+      focus: jest.fn(),
+      moveTop: jest.fn(),
+    };
+
+    const ok = expandMainWindowForToggle(mainWindow);
+
+    expect(ok).toBe(true);
+    expect(mainWindow.restore).toHaveBeenCalledTimes(1);
+    expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
+  });
+
+  test("does nothing for hidden window on Windows", () => {
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    const { expandMainWindowForToggle } = require("../windowActivation");
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMinimized: jest.fn(() => true),
+      isMaximized: jest.fn(() => false),
+      restore: jest.fn(),
+      maximize: jest.fn(),
+      focus: jest.fn(),
+      moveTop: jest.fn(),
+    };
+
+    const ok = expandMainWindowForToggle(mainWindow);
+
+    expect(ok).toBe(false);
+    expect(mainWindow.restore).not.toHaveBeenCalled();
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.focus).not.toHaveBeenCalled();
+    expect(mainWindow.moveTop).not.toHaveBeenCalled();
+  });
+
+  test("keeps non-Windows behavior unchanged", () => {
+    Object.defineProperty(process, "platform", {
+      value: "darwin",
+      configurable: true,
+    });
+    const { expandMainWindowForToggle } = require("../windowActivation");
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMinimized: jest.fn(() => true),
+      isMaximized: jest.fn(() => false),
+      restore: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+      moveTop: jest.fn(),
+    };
+
+    const ok = expandMainWindowForToggle(mainWindow);
+
+    expect(ok).toBe(true);
+    expect(mockApp.dock.show).toHaveBeenCalled();
+    expect(mockApp.focus).toHaveBeenCalledWith({ steal: true });
+    expect(mainWindow.restore).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+  });
+});

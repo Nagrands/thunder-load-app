@@ -2,7 +2,7 @@
 
 const { Notification, shell } = require("electron");
 const path = require("path");
-const { bringMainWindowToFront } = require("./windowActivation");
+const { expandMainWindowForToggle } = require("./windowActivation");
 const {
   classifyDownloadError,
 } = require("../shared/downloadErrorClassifier.shared.js");
@@ -69,7 +69,7 @@ function sendDownloadCompletionNotification(
     false,
   );
   if (expandWindowOnDownloadComplete) {
-    bringMainWindowToFront(mainWindow);
+    expandMainWindowForToggle(mainWindow);
   }
 }
 

@@ -40,4 +40,29 @@ function bringMainWindowToFront(mainWindow) {
   }
 }
 
-module.exports = { bringMainWindowToFront };
+function expandMainWindowForToggle(mainWindow) {
+  if (process.platform !== "win32") {
+    return bringMainWindowToFront(mainWindow);
+  }
+
+  if (!mainWindow || mainWindow.isDestroyed?.()) return false;
+  if (mainWindow.isVisible?.() === false) return false;
+
+  try {
+    if (mainWindow.isMinimized?.()) {
+      mainWindow.restore?.();
+    }
+
+    if (!mainWindow.isMaximized?.()) {
+      mainWindow.maximize?.();
+    }
+
+    mainWindow.focus?.();
+    mainWindow.moveTop?.();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+module.exports = { bringMainWindowToFront, expandMainWindowForToggle };

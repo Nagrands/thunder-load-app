@@ -1,7 +1,7 @@
 // clipboardMonitor.js (src/js/app/clipboardMonitor.js)
 
 const { clipboard } = require("electron");
-const { bringMainWindowToFront } = require("./windowActivation");
+const { expandMainWindowForToggle } = require("./windowActivation");
 
 class ClipboardMonitor {
   constructor(store, mainWindow, isValidUrl, isSupportedUrl) {
@@ -26,7 +26,7 @@ class ClipboardMonitor {
         this.previousText = currentText;
 
         if (this.isValidUrl(currentText) && this.isSupportedUrl(currentText)) {
-          bringMainWindowToFront(this.mainWindow);
+          expandMainWindowForToggle(this.mainWindow);
         }
       }
     }, 1000);

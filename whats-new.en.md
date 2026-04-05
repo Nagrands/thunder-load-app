@@ -7,6 +7,7 @@
 | What changed | What you get |
 |---|---|
 | The global progress bar moved into the Downloader tab button | Download progress now stays attached to navigation and remains visible in both the header and the footer without a separate top strip |
+| Fixed the window expand toggles on Windows | The options that react to copied URLs and completed downloads now maximize an already open or minimized window correctly without pulling it back from a tray-hidden state |
 | Fixed the lingering tooltip after closing Settings | The footer settings button no longer leaves a visible tooltip behind after the modal is opened and closed |
 | The History button moved from the header into the footer | Download history now sits next to Settings in the lower bar, appears only on the Downloader tab, and no longer clutters the top quick actions area |
 | Settings and theme switcher were removed from the top bar | The upper chrome is cleaner and keeps only quick actions, while settings and back-to-top stay in the footer |
