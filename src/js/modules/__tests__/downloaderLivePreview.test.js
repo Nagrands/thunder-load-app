@@ -9,11 +9,14 @@ describe("downloaderLivePreview", () => {
   beforeEach(() => {
     jest.resetModules();
     document.body.innerHTML = `
-      <div id="preview-live-player" class="hidden" aria-hidden="true">
-        <button id="preview-live-close" type="button"></button>
-        <video id="preview-live-video">
-          <source id="preview-live-video-source" />
-        </video>
+      <button id="preview-open-live" type="button">open</button>
+      <div id="preview-live-player" class="preview-live-player-modal modal-overlay hidden" aria-hidden="true">
+        <div class="preview-live-player-modal__dialog">
+          <button id="preview-live-close" type="button"></button>
+          <video id="preview-live-video">
+            <source id="preview-live-video-source" />
+          </video>
+        </div>
       </div>
     `;
 
@@ -67,6 +70,7 @@ describe("downloaderLivePreview", () => {
     expect(panel.classList.contains("hidden")).toBe(false);
     expect(panel.classList.contains("is-open")).toBe(true);
     expect(panel.getAttribute("aria-hidden")).toBe("false");
+    expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
     expect(source.getAttribute("src")).toBe("https://cdn.example.com/live.mp4");
     expect(source.getAttribute("type")).toBe("video/mp4");
     expect(video.getAttribute("poster")).toBe("https://cdn.example.com/poster.jpg");
@@ -88,8 +92,46 @@ describe("downloaderLivePreview", () => {
     const source = document.getElementById("preview-live-video-source");
 
     expect(panel.classList.contains("hidden")).toBe(true);
+    expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
     expect(source.getAttribute("src")).toBeNull();
     expect(pauseMock).toHaveBeenCalled();
+  });
+
+  test("closes modal on Escape and returns focus to opener", async () => {
+    api.initDownloaderLivePreview();
+    const opener = document.getElementById("preview-open-live");
+    const openerFocusSpy = jest.spyOn(opener, "focus");
+    opener.focus();
+
+    await api.openDownloaderLivePreview({
+      src: "https://cdn.example.com/live.mp4",
+      mime: "video/mp4",
+    });
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    const panel = document.getElementById("preview-live-player");
+    expect(panel.classList.contains("is-open")).toBe(false);
+    expect(openerFocusSpy).toHaveBeenCalled();
+  });
+
+  test("closes modal when backdrop is clicked", async () => {
+    api.initDownloaderLivePreview();
+
+    await api.openDownloaderLivePreview({
+      src: "https://cdn.example.com/live.mp4",
+      mime: "video/mp4",
+    });
+
+    document
+      .getElementById("preview-live-player")
+      .dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+
+    const panel = document.getElementById("preview-live-player");
+    expect(panel.classList.contains("is-open")).toBe(false);
+    expect(panel.classList.contains("hidden")).toBe(true);
   });
 
   test("pauses live preview when window becomes hidden", async () => {

@@ -785,73 +785,11 @@
     }
   }
 
-  .preview-live-player {
-    grid-area: live;
-    width: 100%;
-    display: grid;
-    gap: 10px;
-    margin-top: 6px;
-    padding: 12px;
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.06),
-        rgba(255, 255, 255, 0.02)
-      ),
-      rgba(7, 12, 22, 0.34);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-
-    &.hidden {
-      display: none;
-    }
-
-    .preview-live-player__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      color: rgba(238, 244, 255, 0.94);
-      font-size: 0.86rem;
-    }
-
-    .preview-live-player__close {
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(234, 241, 251, 0.92);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition:
-        background-color 0.2s ease,
-        transform 0.1s ease;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.09);
-        transform: scale(1.03);
-      }
-    }
-
-    .preview-live-player__video {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 14px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-    }
-  }
-
   @media (max-width: 720px) {
     grid-template-columns: 1fr;
     grid-template-areas:
       "media"
-      "meta"
-      "live";
+      "meta";
     min-height: 0;
 
     .preview-media {
@@ -892,6 +830,111 @@
       width: 100%;
       margin-left: 0;
       margin-right: 0;
+    }
+  }
+}
+
+.preview-live-player-modal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(var(--color-accent-rgb), 0.14),
+      transparent 34%
+    ),
+    rgba(5, 10, 18, 0.5);
+  backdrop-filter: blur(14px);
+
+  &.hidden {
+    display: none;
+  }
+
+  &.is-open {
+    display: flex;
+  }
+
+  .preview-live-player-modal__dialog {
+    width: min(92vw, 960px);
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.03)
+      ),
+      rgba(8, 16, 30, 0.94);
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    animation: fadeIn 0.18s ease-out;
+  }
+
+  .preview-live-player-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: rgba(238, 244, 255, 0.96);
+    font-size: 0.92rem;
+  }
+
+  .preview-live-player-modal__close {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(234, 241, 251, 0.92);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.1s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(var(--color-accent-rgb), 0.24);
+      transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.22);
+    }
+  }
+
+  .preview-live-player-modal__video {
+    width: 100%;
+    max-height: min(72vh, 640px);
+    aspect-ratio: 16 / 9;
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  @media (max-width: 720px) {
+    padding: 18px;
+
+    .preview-live-player-modal__dialog {
+      width: min(100%, 96vw);
+      padding: 14px;
+      border-radius: 20px;
+    }
+
+    .preview-live-player-modal__video {
+      max-height: 58vh;
+      border-radius: 14px;
     }
   }
 }

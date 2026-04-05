@@ -3,6 +3,7 @@ const RETRY_EVENT = "downloader:live-preview-retry";
 const STATE_EVENT = "downloader:live-preview-state";
 
 let panelEl = null;
+let dialogEl = null;
 let videoEl = null;
 let sourceEl = null;
 let closeButtonEl = null;
@@ -10,9 +11,11 @@ let hasInitialized = false;
 let currentPageUrl = "";
 let retryTriggered = false;
 let pendingResumeTime = null;
+let lastFocusedElement = null;
 
 function syncRefs() {
   panelEl = document.getElementById("preview-live-player");
+  dialogEl = panelEl?.querySelector(".preview-live-player-modal__dialog") || null;
   videoEl = document.getElementById("preview-live-video");
   sourceEl = document.getElementById("preview-live-video-source");
   closeButtonEl = document.getElementById("preview-live-close");
@@ -48,26 +51,54 @@ function resetPlayerState() {
   videoEl.load();
 }
 
-function hideDownloaderLivePreview() {
+function syncBodyScrollLock() {
+  document.body.classList.toggle(
+    "modal-scroll-lock",
+    !!panelEl?.classList.contains("is-open"),
+  );
+}
+
+function restoreFocus() {
+  if (
+    lastFocusedElement &&
+    typeof lastFocusedElement.focus === "function" &&
+    lastFocusedElement.isConnected
+  ) {
+    try {
+      lastFocusedElement.focus();
+    } catch {}
+  }
+  lastFocusedElement = null;
+}
+
+function hideDownloaderLivePreview(options = {}) {
   syncRefs();
   panelEl?.classList.add("hidden");
   panelEl?.classList.remove("is-open");
   panelEl?.setAttribute("aria-hidden", "true");
+  syncBodyScrollLock();
   currentPageUrl = "";
   retryTriggered = false;
   pendingResumeTime = null;
   resetPlayerState();
   emitState(false);
+  if (options?.restoreFocus === true) {
+    restoreFocus();
+  } else {
+    lastFocusedElement = null;
+  }
 }
 
 async function openDownloaderLivePreview(preview = null, options = {}) {
   syncRefs();
-  if (!panelEl || !videoEl || !sourceEl || !preview?.src) {
+  if (!panelEl || !dialogEl || !videoEl || !sourceEl || !preview?.src) {
     hideDownloaderLivePreview();
     return false;
   }
 
   resetPlayerState();
+  lastFocusedElement =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
   currentPageUrl =
     typeof options?.pageUrl === "string" ? options.pageUrl.trim() : "";
@@ -97,7 +128,9 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   panelEl.classList.remove("hidden");
   panelEl.classList.add("is-open");
   panelEl.setAttribute("aria-hidden", "false");
+  syncBodyScrollLock();
   emitState(true);
+  closeButtonEl?.focus();
 
   try {
     const playAttempt = videoEl.play();
@@ -111,7 +144,7 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
 
 function handlePlaybackError() {
   if (!currentPageUrl || retryTriggered) {
-    hideDownloaderLivePreview();
+    hideDownloaderLivePreview({ restoreFocus: false });
     return;
   }
 
@@ -120,6 +153,7 @@ function handlePlaybackError() {
   panelEl?.classList.add("hidden");
   panelEl?.classList.remove("is-open");
   panelEl?.setAttribute("aria-hidden", "true");
+  syncBodyScrollLock();
   emitState(false);
   window.dispatchEvent(
     new CustomEvent(RETRY_EVENT, {
@@ -140,18 +174,32 @@ function handleVisibilityPause() {
   }
 }
 
+function handleEscapeClose(event) {
+  if (event.key !== "Escape" || !panelEl?.classList.contains("is-open")) return;
+  event.preventDefault();
+  hideDownloaderLivePreview({ restoreFocus: true });
+}
+
+function handleOverlayPointerDown(event) {
+  if (!panelEl?.classList.contains("is-open")) return;
+  if (event.target !== panelEl) return;
+  hideDownloaderLivePreview({ restoreFocus: true });
+}
+
 function initDownloaderLivePreview() {
   syncRefs();
   if (!panelEl || !videoEl || hasInitialized) return;
   hasInitialized = true;
 
   closeButtonEl?.addEventListener("click", () => {
-    hideDownloaderLivePreview();
+    hideDownloaderLivePreview({ restoreFocus: true });
   });
 
   videoEl.addEventListener("error", handlePlaybackError);
   document.addEventListener("visibilitychange", handleVisibilityPause);
+  document.addEventListener("keydown", handleEscapeClose);
   window.addEventListener("blur", handleVisibilityPause);
+  panelEl.addEventListener("mousedown", handleOverlayPointerDown);
 
   window.addEventListener(PLAY_EVENT, async (event) => {
     await openDownloaderLivePreview(
