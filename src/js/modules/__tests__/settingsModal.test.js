@@ -154,6 +154,9 @@ describe("settingsModal mobile sections navigation", () => {
   });
 
   test("closeSettings removes modal scroll lock", () => {
+    const closedHandler = jest.fn();
+    window.addEventListener("settings:closed", closedHandler);
+
     jest.isolateModules(() => {
       const mod = require("../settingsModal.js");
       const { hideAllTooltips } = require("../tooltipInitializer.js");
@@ -168,6 +171,7 @@ describe("settingsModal mobile sections navigation", () => {
     expect(modal.style.display).toBe("none");
     expect(modal.getAttribute("aria-hidden")).toBe("true");
     expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+    expect(closedHandler).toHaveBeenCalledTimes(1);
   });
 
   test("closeSettings suppresses settings trigger tooltip while focus is restored", async () => {

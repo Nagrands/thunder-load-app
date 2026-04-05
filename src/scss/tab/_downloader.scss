@@ -4,6 +4,28 @@
 
 .downloader-view {
   position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -36px 6% auto;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(
+      72% 100% at 18% 0%,
+      rgba(var(--color-accent-rgb), 0.14) 0%,
+      rgba(var(--color-accent-rgb), 0.04) 34%,
+      transparent 76%
+    );
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.95;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .downloader-shell {
@@ -42,6 +64,17 @@
     padding: 18px 20px;
     border-radius: 24px;
     border: 1px solid rgba(170, 206, 255, 0.1);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.12),
+        rgba(255, 255, 255, 0.02) 42%,
+        rgba(255, 255, 255, 0.008) 100%
+      ),
+      rgba(255, 255, 255, 0.014);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 18px 34px rgba(4, 8, 16, 0.12);
 
     i {
       font-size: 2rem;
@@ -145,9 +178,15 @@
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.06);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(10, 16, 28, 0.12)),
-    rgba(255, 255, 255, 0.01);
-  box-shadow: none;
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.028),
+      rgba(10, 16, 28, 0.12)
+    ),
+    rgba(255, 255, 255, 0.012);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 22px rgba(4, 8, 16, 0.08);
 
   &.hidden {
     display: none;
@@ -366,8 +405,10 @@
     padding-inline: 20px;
     border-radius: 10px;
     border: 1px solid rgba(82, 159, 248, 0.38);
-    background: #3f7fcb;
-    box-shadow: none;
+    background: linear-gradient(180deg, #5294df 0%, #3976bf 100%);
+    box-shadow:
+      0 10px 22px rgba(22, 72, 138, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
     color: #f5f9ff;
     width: 100%;
     min-width: 0;
@@ -389,7 +430,7 @@
 
     &:hover:not(:disabled) {
       border-color: rgba(104, 180, 255, 0.42);
-      background: #4a8ddd;
+      background: linear-gradient(180deg, #5b9de8 0%, #4281ca 100%);
       color: #f8fbff;
     }
 

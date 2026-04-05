@@ -1588,6 +1588,14 @@ export default function renderToolsView() {
       toolState.persistCurrentToolView(targetView);
     }
 
+    try {
+      window.dispatchEvent(
+        new CustomEvent("tools:view-changed", {
+          detail: { toolView: targetView },
+        }),
+      );
+    } catch {}
+
     if (showLauncher && focusLauncher) {
       const firstLauncherBtn = getEl("tools-open-wg", view);
       firstLauncherBtn?.focus();

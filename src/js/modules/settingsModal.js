@@ -172,6 +172,9 @@ export function closeSettings() {
     }
   } catch {}
   hideAllTooltips();
+  try {
+    window.dispatchEvent(new Event("settings:closed"));
+  } catch {}
   previousFocus = null;
 }
 

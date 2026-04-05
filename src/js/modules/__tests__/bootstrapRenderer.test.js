@@ -44,6 +44,7 @@ describe("bootstrapRenderer", () => {
       initializeTheme: jest.fn().mockResolvedValue(undefined),
       initializeFontSize: jest.fn().mockResolvedValue(undefined),
       initLowEffectsFromStore: jest.fn(),
+      initPageBackgroundMode: jest.fn(),
       initI18n: jest.fn(),
       t: jest.fn(() => "Thunder Load"),
       registerTabs: jest.fn().mockResolvedValue({
@@ -156,6 +157,9 @@ describe("bootstrapRenderer", () => {
       jest.doMock("../effectsMode.js", () => ({
         initLowEffectsFromStore: mocks.initLowEffectsFromStore,
       }));
+      jest.doMock("../pageBackgroundMode.js", () => ({
+        initPageBackgroundMode: mocks.initPageBackgroundMode,
+      }));
       jest.doMock("../i18n.js", () => ({
         initI18n: mocks.initI18n,
         t: mocks.t,
@@ -177,6 +181,7 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initI18n).toHaveBeenCalled();
     expect(mocks.initializeTheme).toHaveBeenCalled();
     expect(mocks.initializeFontSize).toHaveBeenCalled();
+    expect(mocks.initPageBackgroundMode).toHaveBeenCalled();
     expect(mocks.registerTabs).toHaveBeenCalledWith(
       document.getElementById("main-view"),
     );

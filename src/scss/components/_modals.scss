@@ -2680,6 +2680,11 @@
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
+      radial-gradient(
+        100% 120% at 100% 0%,
+        rgba(255, 255, 255, 0.045) 0%,
+        transparent 56%
+      ),
       linear-gradient(
         180deg,
         rgba(255, 255, 255, 0.05),
@@ -3162,6 +3167,12 @@
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background:
+      radial-gradient(
+        94% 74% at 0% 0%,
+        rgba(var(--color-accent-rgb), 0.08) 0%,
+        rgba(var(--color-accent-rgb), 0.02) 24%,
+        transparent 58%
+      ),
       linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.012)),
       rgba(8, 15, 28, 0.5);
     box-shadow:
@@ -3183,6 +3194,11 @@
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.09);
     background:
+      radial-gradient(
+        82% 84% at 100% 0%,
+        rgba(255, 255, 255, 0.06) 0%,
+        transparent 58%
+      ),
       linear-gradient(
         135deg,
         rgba(var(--color-accent-rgb), 0.08),
@@ -3322,6 +3338,12 @@
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
+      radial-gradient(
+        84% 92% at 0% 0%,
+        rgba(var(--color-accent-rgb), 0.08) 0%,
+        rgba(var(--color-accent-rgb), 0.02) 26%,
+        transparent 60%
+      ),
       linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
       rgba(7, 13, 23, 0.42);
     box-shadow: none;
@@ -3550,9 +3572,18 @@
     width: min(980px, calc(100vw - 32px));
     padding: 12px 14px 14px;
     border-radius: 18px;
-    background: #141418;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.03) 0%,
+        rgba(255, 255, 255, 0.012) 18%,
+        rgba(10, 12, 18, 0.08) 100%
+      ),
+      #141418;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 22px 52px rgba(0, 0, 0, 0.38);
+    box-shadow:
+      0 22px 52px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .close-settings {
@@ -3576,6 +3607,23 @@
     margin-bottom: 10px;
     padding: 0 32px 10px 2px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      right: 32px;
+      bottom: -1px;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        rgba(var(--color-accent-rgb), 0.28) 0%,
+        rgba(var(--color-accent-rgb), 0.08) 28%,
+        transparent 78%
+      );
+      pointer-events: none;
+    }
 
     h1 {
       margin: 0;
@@ -3714,8 +3762,16 @@
     padding: 14px 16px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background: #232327;
-    box-shadow: none;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.038) 0%,
+        rgba(255, 255, 255, 0.018) 100%
+      ),
+      #232327;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 10px 22px rgba(0, 0, 0, 0.12);
   }
 
   .settings-card__title {
@@ -3732,6 +3788,8 @@
 
   .settings-card__intro {
     gap: 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
 
   .settings-card__eyebrow,
@@ -4385,5 +4443,33 @@
 
   .upd-close {
     border-color: rgba(90, 150, 255, 0.24);
+  }
+}
+
+body[data-modal-mode="settings"] {
+  .settings-modal-content {
+    background:
+      radial-gradient(
+        94% 72% at 14% 0%,
+        rgba(var(--color-accent-rgb), 0.18) 0%,
+        rgba(var(--color-accent-rgb), 0.06) 26%,
+        transparent 64%
+      ),
+      radial-gradient(
+        88% 74% at 100% 10%,
+        rgba(255, 255, 255, 0.07) 0%,
+        transparent 58%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.035) 0%,
+        rgba(255, 255, 255, 0.015) 18%,
+        rgba(10, 12, 18, 0.12) 100%
+      ),
+      var(--color-bg-main);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 24px 80px rgba(4, 8, 16, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 }

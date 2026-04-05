@@ -28,6 +28,7 @@ import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
 import { initLowEffectsFromStore } from "../effectsMode.js";
+import { initPageBackgroundMode } from "../pageBackgroundMode.js";
 import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
 import { syncDeveloperModeState } from "../developerMode.js";
 import { initI18n, t } from "../i18n.js";
@@ -58,6 +59,7 @@ function scheduleDeferredInitialization(task) {
 async function runCriticalInitialization(mainView) {
   console.time("[Startup] Critical init");
 
+  initPageBackgroundMode();
   const { tabs } = await registerTabs(mainView);
 
   registerI18nListeners(tabs);

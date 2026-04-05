@@ -500,6 +500,19 @@ $themes: (
   --spacing-medium: #{$spacing-medium};
   --spacing-large: #{$spacing-large};
   --border-radius: #{$border-radius};
+  --app-bg-base-wash: var(--app-bg-gradient);
+  --app-bg-texture: var(--app-bg-pattern);
+  --app-bg-page-aura: radial-gradient(
+    circle at 50% 50%,
+    transparent 0%,
+    transparent 100%
+  );
+  --app-bg-page-beam: linear-gradient(180deg, transparent 0%, transparent 100%);
+  --app-bg-page-veil: radial-gradient(
+    circle at 50% 50%,
+    transparent 0%,
+    transparent 100%
+  );
   --color-accent-rgb:
     #{color.channel(theme-value(dark, color-accent), "red", $space: rgb)},
     #{color.channel(theme-value(dark, color-accent), "green", $space: rgb)},

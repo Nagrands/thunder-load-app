@@ -1244,6 +1244,27 @@ $wg-max-width: 1200px;
   gap: 20px;
   padding-bottom: 24px;
   position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -32px 5% auto;
+    height: 210px;
+    border-radius: 50%;
+    background: radial-gradient(
+      70% 100% at 82% 0%,
+      rgba(var(--color-accent-rgb), 0.12) 0%,
+      rgba(var(--color-accent-rgb), 0.04) 34%,
+      transparent 76%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .tools-shell-header {
@@ -1255,6 +1276,19 @@ $wg-max-width: 1200px;
     align-items: center;
     justify-content: flex-start;
     margin-bottom: 0;
+    padding: 18px 20px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.034) 0%,
+        rgba(255, 255, 255, 0.016) 100%
+      ),
+      rgba(8, 12, 20, 0.14);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 18px 34px rgba(4, 8, 16, 0.12);
   }
 
   .title i {
@@ -1292,6 +1326,10 @@ $wg-max-width: 1200px;
   font-size: 0.85rem;
   font-weight: 600;
   margin-top: 16px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .tools-breadcrumbs__item {
@@ -1351,7 +1389,7 @@ $wg-max-width: 1200px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-top: 1px solid var(--color-hover);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding-top: 20px;
 }
 
@@ -1405,7 +1443,13 @@ $wg-max-width: 1200px;
   min-height: 290px;
   border-radius: var(--border-radius);
   border: 1px solid var(--color-history-scroll);
-  background: var(--color-hover);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.014) 100%
+    ),
+    rgba(255, 255, 255, 0.018);
   color: var(--color-highlight);
   display: grid;
   place-items: center;
@@ -1418,6 +1462,9 @@ $wg-max-width: 1200px;
     border-color 0.24s ease,
     box-shadow 0.24s ease,
     background-color 0.24s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 14px 30px rgba(4, 8, 16, 0.12);
 
   i {
     font-size: 3.35rem;
@@ -1438,11 +1485,13 @@ $wg-max-width: 1200px;
   &:hover {
     transform: translateY(-4px);
     border-color: rgba(var(--color-accent-rgb), 0.6);
-    box-shadow: 0 18px 36px rgba(5, 10, 26, 0.44);
+    box-shadow:
+      0 18px 36px rgba(5, 10, 26, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
     background: linear-gradient(
       180deg,
-      rgba(20, 30, 58, 0.92) 0%,
-      rgba(13, 21, 42, 0.96) 100%
+      rgba(20, 30, 58, 0.78) 0%,
+      rgba(13, 21, 42, 0.9) 100%
     );
   }
 
