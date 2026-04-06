@@ -27,77 +27,40 @@ body {
   position: relative;
   user-select: none;
   --app-bg-alpha: var(--app-bg-opacity, 1);
-  background-image:
-    var(--app-bg-vignette), var(--app-bg-page-veil), var(--app-bg-page-beam),
-    var(--app-bg-page-aura), var(--app-bg-base-wash), var(--app-bg-texture);
-  background-position: center;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
-    repeat;
-  background-size: cover, cover, cover, cover, cover, var(--app-bg-size);
+  background-image: var(--app-bg-vignette), var(--app-bg-page-aura),
+    var(--app-bg-base-wash);
+  background-position: center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: cover, cover, cover;
   background-blend-mode: var(--app-bg-blend);
-  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed;
+  background-attachment: fixed, fixed, fixed;
   opacity: 1;
 }
 
 body[data-page-mode="downloader"] {
   --app-bg-page-aura: radial-gradient(
-    92% 78% at 14% 8%,
-    rgba(var(--color-accent-rgb), 0.22) 0%,
-    rgba(var(--color-accent-rgb), 0.08) 26%,
-    transparent 68%
-  );
-  --app-bg-page-beam: linear-gradient(
-    128deg,
-    rgba(var(--color-accent-rgb), 0.14) 0%,
-    rgba(var(--color-accent-rgb), 0.05) 18%,
-    transparent 40%
-  );
-  --app-bg-page-veil: radial-gradient(
-    88% 62% at 78% 18%,
-    rgba(255, 255, 255, 0.05) 0%,
-    transparent 58%
+    72% 60% at 14% 8%,
+    rgba(var(--color-accent-rgb), 0.12) 0%,
+    rgba(var(--color-accent-rgb), 0.045) 24%,
+    transparent 62%
   );
 }
 
 body[data-page-mode="tools"] {
   --app-bg-page-aura: radial-gradient(
-    86% 72% at 82% 10%,
-    rgba(var(--color-accent-rgb), 0.16) 0%,
-    rgba(var(--color-accent-rgb), 0.06) 24%,
-    transparent 64%
-  );
-  --app-bg-page-beam: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.045) 0%,
-    rgba(255, 255, 255, 0.018) 18%,
-    transparent 38%
-  );
-  --app-bg-page-veil: radial-gradient(
-    130% 94% at 14% 92%,
-    rgba(8, 12, 22, 0.22) 0%,
-    rgba(8, 12, 22, 0.12) 42%,
-    transparent 76%
+    68% 56% at 82% 10%,
+    rgba(var(--color-accent-rgb), 0.095) 0%,
+    rgba(var(--color-accent-rgb), 0.035) 24%,
+    transparent 60%
   );
 }
 
 body[data-page-mode="backup"] {
   --app-bg-page-aura: radial-gradient(
-    108% 74% at 18% 82%,
-    rgba(var(--color-accent-rgb), 0.15) 0%,
-    rgba(var(--color-accent-rgb), 0.05) 28%,
-    transparent 68%
-  );
-  --app-bg-page-beam: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.02) 0%,
-    transparent 26%,
-    rgba(10, 14, 24, 0.16) 100%
-  );
-  --app-bg-page-veil: radial-gradient(
-    130% 110% at 50% 100%,
-    rgba(7, 10, 18, 0.24) 0%,
-    rgba(7, 10, 18, 0.16) 46%,
-    transparent 80%
+    76% 58% at 20% 86%,
+    rgba(var(--color-accent-rgb), 0.09) 0%,
+    rgba(var(--color-accent-rgb), 0.03) 24%,
+    transparent 62%
   );
 }
 
@@ -204,5 +167,6 @@ body.low-effects {
   background-repeat: no-repeat, no-repeat !important;
   background-size: cover, cover !important;
   background-position: center, center !important;
+  background-attachment: scroll, scroll !important;
   background-blend-mode: normal !important;
 }

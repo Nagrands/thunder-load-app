@@ -77,32 +77,22 @@ $themes: (
     sidebar-color: #e7eefc,
     sidebar-list-color: #ffffff20,
     color-text-main: #dfe7f7,
-    app-bg-gradient: (
-      radial-gradient(
-        110% 85% at 14% 10%,
-        rgba(110, 165, 255, 0.14) 0%,
-        rgba(110, 165, 255, 0) 62%
-      ),
-      radial-gradient(
-        90% 70% at 84% 18%,
-        rgba(104, 128, 210, 0.1) 0%,
-        rgba(104, 128, 210, 0) 66%
-      )
+    app-bg-gradient: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.028) 0%,
+      rgba(255, 255, 255, 0.012) 22%,
+      rgba(255, 255, 255, 0) 54%
     ),
-    app-bg-pattern: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.015) 0%,
-        rgba(255, 255, 255, 0) 100%
-      ),
+    app-bg-pattern: none,
     app-bg-vignette: radial-gradient(
-        135% 115% at 50% 96%,
-        rgba(4, 7, 14, 0.2) 0%,
-        rgba(4, 7, 14, 0.4) 74%,
-        rgba(4, 7, 14, 0.52) 100%
+        132% 108% at 50% 100%,
+        rgba(4, 7, 14, 0) 0%,
+        rgba(4, 7, 14, 0.18) 72%,
+        rgba(4, 7, 14, 0.28) 100%
       ),
     app-bg-blend: normal,
-    app-bg-size: 40px 40px,
-    app-bg-opacity: 0.75,
+    app-bg-size: cover,
+    app-bg-opacity: 0.62,
     color-youtube: #e44f4f,
     color-twitch: #9e60fc,
     color-vkvideo: #0077ff,
@@ -181,32 +171,22 @@ $themes: (
     sidebar-color: #ffe9df,
     sidebar-list-color: rgba(255, 255, 255, 0.12),
     color-text-main: #ffe9df,
-    app-bg-gradient: (
-      radial-gradient(
-        112% 88% at 15% 9%,
-        rgba(255, 170, 122, 0.15) 0%,
-        rgba(255, 170, 122, 0) 62%
-      ),
-      radial-gradient(
-        94% 74% at 84% 18%,
-        rgba(232, 108, 180, 0.1) 0%,
-        rgba(232, 108, 180, 0) 66%
-      )
+    app-bg-gradient: linear-gradient(
+      180deg,
+      rgba(255, 236, 225, 0.028) 0%,
+      rgba(255, 236, 225, 0.012) 22%,
+      rgba(255, 236, 225, 0) 54%
     ),
-    app-bg-pattern: linear-gradient(
-        180deg,
-        rgba(255, 228, 210, 0.014) 0%,
-        rgba(255, 228, 210, 0) 100%
-      ),
+    app-bg-pattern: none,
     app-bg-vignette: radial-gradient(
-        136% 115% at 50% 96%,
-        rgba(17, 7, 16, 0.18) 0%,
-        rgba(17, 7, 16, 0.36) 74%,
-        rgba(17, 7, 16, 0.46) 100%
+        132% 108% at 50% 100%,
+        rgba(17, 7, 16, 0) 0%,
+        rgba(17, 7, 16, 0.16) 72%,
+        rgba(17, 7, 16, 0.26) 100%
       ),
     app-bg-blend: normal,
-    app-bg-size: 42px 42px,
-    app-bg-opacity: 0.7,
+    app-bg-size: cover,
+    app-bg-opacity: 0.6,
     color-youtube: #ff6b6b,
     color-twitch: #c084fc,
     color-vkvideo: #fb923c,
@@ -269,32 +249,22 @@ $themes: (
     sidebar-color: #e8f2ff,
     sidebar-list-color: rgba(255, 255, 255, 0.12),
     color-text-main: #e2edff,
-    app-bg-gradient: (
-      radial-gradient(
-        112% 86% at 14% 9%,
-        rgba(108, 182, 255, 0.15) 0%,
-        rgba(108, 182, 255, 0) 62%
-      ),
-      radial-gradient(
-        92% 72% at 84% 18%,
-        rgba(102, 145, 228, 0.1) 0%,
-        rgba(102, 145, 228, 0) 66%
-      ),
+    app-bg-gradient: linear-gradient(
+      180deg,
+      rgba(219, 235, 255, 0.03) 0%,
+      rgba(219, 235, 255, 0.013) 22%,
+      rgba(219, 235, 255, 0) 54%
     ),
-    app-bg-pattern: linear-gradient(
-        180deg,
-        rgba(214, 231, 255, 0.015) 0%,
-        rgba(214, 231, 255, 0) 100%
-      ),
+    app-bg-pattern: none,
     app-bg-vignette: radial-gradient(
-        136% 115% at 50% 96%,
-        rgba(4, 10, 20, 0.2) 0%,
-        rgba(4, 10, 20, 0.4) 74%,
-        rgba(4, 10, 20, 0.5) 100%
+        132% 108% at 50% 100%,
+        rgba(4, 10, 20, 0) 0%,
+        rgba(4, 10, 20, 0.18) 72%,
+        rgba(4, 10, 20, 0.28) 100%
       ),
     app-bg-blend: normal,
-    app-bg-size: 40px 40px,
-    app-bg-opacity: 0.74,
+    app-bg-size: cover,
+    app-bg-opacity: 0.62,
     color-youtube: #ff6157,
     color-twitch: #9e60fc,
     color-vkvideo: #0a84ff,
@@ -357,32 +327,22 @@ $themes: (
     sidebar-color: #e8fff5,
     sidebar-list-color: rgba(255, 255, 255, 0.1),
     color-text-main: #e4fff4,
-    app-bg-gradient: (
-      radial-gradient(
-        112% 86% at 14% 9%,
-        rgba(61, 220, 151, 0.16) 0%,
-        rgba(61, 220, 151, 0) 62%
-      ),
-      radial-gradient(
-        92% 72% at 84% 18%,
-        rgba(79, 209, 197, 0.1) 0%,
-        rgba(79, 209, 197, 0) 66%
-      )
+    app-bg-gradient: linear-gradient(
+      180deg,
+      rgba(228, 255, 244, 0.028) 0%,
+      rgba(228, 255, 244, 0.012) 22%,
+      rgba(228, 255, 244, 0) 54%
     ),
-    app-bg-pattern: linear-gradient(
-        180deg,
-        rgba(227, 255, 243, 0.014) 0%,
-        rgba(227, 255, 243, 0) 100%
-      ),
+    app-bg-pattern: none,
     app-bg-vignette: radial-gradient(
-        136% 115% at 50% 96%,
-        rgba(5, 14, 11, 0.2) 0%,
-        rgba(5, 14, 11, 0.4) 74%,
-        rgba(5, 14, 11, 0.5) 100%
+        132% 108% at 50% 100%,
+        rgba(5, 14, 11, 0) 0%,
+        rgba(5, 14, 11, 0.18) 72%,
+        rgba(5, 14, 11, 0.28) 100%
       ),
     app-bg-blend: normal,
-    app-bg-size: 40px 40px,
-    app-bg-opacity: 0.74,
+    app-bg-size: cover,
+    app-bg-opacity: 0.62,
     color-youtube: #ff6b72,
     color-twitch: #8b7bff,
     color-vkvideo: #2dcf88,
@@ -446,32 +406,22 @@ $themes: (
     sidebar-color: #f7edff,
     sidebar-list-color: rgba(250, 245, 255, 0.1),
     color-text-main: #f7edff,
-    app-bg-gradient: (
-      radial-gradient(
-        112% 86% at 14% 9%,
-        rgba(201, 150, 255, 0.15) 0%,
-        rgba(201, 150, 255, 0) 60%
-      ),
-      radial-gradient(
-        94% 74% at 84% 18%,
-        rgba(144, 120, 236, 0.1) 0%,
-        rgba(144, 120, 236, 0) 66%
-      )
+    app-bg-gradient: linear-gradient(
+      180deg,
+      rgba(245, 238, 255, 0.028) 0%,
+      rgba(245, 238, 255, 0.012) 22%,
+      rgba(245, 238, 255, 0) 54%
     ),
-    app-bg-pattern: linear-gradient(
-        180deg,
-        rgba(241, 230, 255, 0.015) 0%,
-        rgba(241, 230, 255, 0) 100%
-      ),
+    app-bg-pattern: none,
     app-bg-vignette: radial-gradient(
-        136% 115% at 50% 96%,
-        rgba(8, 4, 16, 0.2) 0%,
-        rgba(8, 4, 16, 0.4) 74%,
-        rgba(8, 4, 16, 0.5) 100%
+        132% 108% at 50% 100%,
+        rgba(8, 4, 16, 0) 0%,
+        rgba(8, 4, 16, 0.18) 72%,
+        rgba(8, 4, 16, 0.28) 100%
       ),
     app-bg-blend: normal,
-    app-bg-size: 40px 40px,
-    app-bg-opacity: 0.72,
+    app-bg-size: cover,
+    app-bg-opacity: 0.61,
     color-youtube: #ff739b,
     color-twitch: #c084fc,
     color-vkvideo: #a78bfa,
@@ -501,14 +451,7 @@ $themes: (
   --spacing-large: #{$spacing-large};
   --border-radius: #{$border-radius};
   --app-bg-base-wash: var(--app-bg-gradient);
-  --app-bg-texture: var(--app-bg-pattern);
   --app-bg-page-aura: radial-gradient(
-    circle at 50% 50%,
-    transparent 0%,
-    transparent 100%
-  );
-  --app-bg-page-beam: linear-gradient(180deg, transparent 0%, transparent 100%);
-  --app-bg-page-veil: radial-gradient(
     circle at 50% 50%,
     transparent 0%,
     transparent 100%

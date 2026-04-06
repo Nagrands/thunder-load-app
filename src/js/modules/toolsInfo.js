@@ -308,15 +308,6 @@ function renderToolsInfoSkeleton(section) {
       <div class="tools-panel__body" id="tools-panel-body">
         <div class="tools-dashboard">
           <section class="tools-panel-hero">
-            <div class="tools-panel__header">
-              <div class="tools-panel__titles">
-                <h2 data-i18n="tools.title">${t("tools.title")}</h2>
-                <small data-i18n="settings.downloader.tools.hint">
-                  ${t("settings.downloader.tools.hint")}
-                </small>
-              </div>
-            </div>
-
             <section class="tools-panel-quick">
               <div class="tools-panel-quick__state">
                 <span class="tools-panel__dot tools-panel__dot--neutral" id="tools-summary-dot" aria-hidden="true"></span>
@@ -326,14 +317,13 @@ function renderToolsInfoSkeleton(section) {
                 <div class="tools-panel-quick__copy">
                   <div class="tools-panel-quick__eyebrow">
                     <span data-i18n="tools.title">${t("tools.title")}</span>
-                    <span aria-hidden="true">•</span>
-                    <span id="tools-summary-badge" class="tools-panel__badge tools-panel__badge--neutral">${t("tools.summary.checking")}</span>
                   </div>
-                  <strong id="tools-summary-status" aria-live="polite" data-i18n="tools.summary.checking">${t("tools.summary.checking")}</strong>
+                  <strong id="tools-summary-status" aria-live="polite">${t("tools.summary.checkingText")}</strong>
                   <small id="tools-status" class="muted"></small>
                 </div>
               </div>
               <div class="tools-panel-quick-actions">
+                <span id="tools-summary-badge" class="tools-panel__badge tools-panel__badge--neutral">${t("tools.summary.checking")}</span>
                 <button id="tools-check-btn" type="button" title="${t("tools.button.check")}" data-i18n-title="tools.button.check">
                   <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
                   <span id="tools-check-label" data-i18n="tools.button.check">${t("tools.button.check")}</span>
@@ -358,7 +348,23 @@ function renderToolsInfoSkeleton(section) {
             </section>
           </section>
 
-          <div class="tools-status-cards" id="tools-status-cards" role="list"></div>
+          <div class="tools-status-cards" id="tools-status-cards" role="list">
+            <div class="tool-card tool-card--neutral" data-tool="yt" role="listitem">
+              <span class="tool-card__dot"></span>
+              <div class="tool-card__label">yt-dlp</div>
+              <div class="tool-card__version">—</div>
+            </div>
+            <div class="tool-card tool-card--neutral" data-tool="ff" role="listitem">
+              <span class="tool-card__dot"></span>
+              <div class="tool-card__label">ffmpeg</div>
+              <div class="tool-card__version">—</div>
+            </div>
+            <div class="tool-card tool-card--neutral" data-tool="deno" role="listitem">
+              <span class="tool-card__dot"></span>
+              <div class="tool-card__label">Deno</div>
+              <div class="tool-card__version">—</div>
+            </div>
+          </div>
 
           <section class="tools-location-block" aria-live="polite">
             <div class="tools-location-block__header">
@@ -474,7 +480,9 @@ function initContext(section) {
   ];
 
   const setStatusText = (text = "") => {
-    setText(el.statusEl, text);
+    const next = String(text || "").trim();
+    const summaryText = String(el.summaryStatusEl?.textContent || "").trim();
+    setText(el.statusEl, next && next !== summaryText ? next : "");
   };
 
   const setHintText = (text = "") => {
@@ -489,7 +497,7 @@ function initContext(section) {
     return false;
   };
 
-    const setQuickActionsVisibility = ({
+  const setQuickActionsVisibility = ({
     showRetry = false,
     showOpenLocation = false,
   } = {}) => {
@@ -534,12 +542,12 @@ function initContext(section) {
     const overallState = options.customState || derivedState;
     const summaryText =
       options.customText ||
-      summary.text ||
       (overallState === "ok"
         ? t("tools.summary.readyText")
-        : overallState === "update"
-          ? t("tools.status.updatesFound")
-          : t("tools.summary.problemText"));
+        : summary.text ||
+          (overallState === "update"
+            ? t("tools.status.updatesFound")
+            : t("tools.summary.problemText")));
 
     setSummaryState(el, overallState, summaryText);
   };
@@ -944,7 +952,7 @@ function initContext(section) {
     on: () => {
       applyNetworkState(allButtons, state.isInstalling, state.isChecking);
       if (el.statusEl?.textContent === t("tools.status.noNetwork")) {
-        setQuickState("checking", t("tools.summary.checking"));
+        setQuickState("checking", t("tools.summary.checkingText"));
       }
       if (el.hintEl?.textContent === t("tools.status.noNetwork"))
         setHintText("");
@@ -966,7 +974,7 @@ function initContext(section) {
 
     const requestId = ++state.requestId;
     applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-    setQuickState("checking", t("tools.summary.checking"));
+    setQuickState("checking", t("tools.summary.checkingText"));
 
     try {
       const [versionsRes] = await Promise.all([
@@ -1000,7 +1008,7 @@ function initContext(section) {
       setHintText(missing ? t("tools.hint.missing") : "");
       setQuickState(
         missing ? "missing" : "ok",
-        missing ? t("tools.summary.missing") : t("tools.summary.readyText"),
+        missing ? summary.text || t("tools.summary.problemText") : t("tools.summary.readyText"),
         { showOpenLocation: true },
       );
 

@@ -6,6 +6,8 @@
 
 | What changed | What you get |
 |---|---|
+| The app background is now lighter and more minimal | The main backdrop is cleaner and less distracting, still follows the active theme accent, and now differs between screens only in subtle ways |
+| Fixed the top status row of the Downloader tools card in Settings | The top strip no longer repeats state labels across the heading, badge, and main status line, and the update-check button now stays smaller and cleaner beside the badge |
 | The Downloader tools block in Settings now uses a glassy redesign | The embedded dependency card now matches the refreshed visual language, showing readiness, `yt-dlp`/`ffmpeg`/`Deno` versions, the tools folder path, and a compact overflow menu for extra actions |
 | Added background and live preview for YouTube links in Downloader | Pasting a YouTube URL still enables the muted decorative background preview, and now an explicit button can open a separate modal player with sound; when the preview source is refreshed, the player tries to continue the same video from roughly the same position |
 | Downloader tools status moved into the footer top-state | The `yt-dlp`, `ffmpeg`, and `Deno` block now lives next to the current section label in the lower bar, appears only near the top of the page, and still respects the existing Settings toggle |

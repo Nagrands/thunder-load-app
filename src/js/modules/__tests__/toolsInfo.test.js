@@ -74,7 +74,40 @@ describe("renderToolsInfo", () => {
       expect.arrayContaining(["2024.01.01", "7.1", "1.42.0"]),
     );
     const badge = document.getElementById("tools-summary-badge");
+    const summaryStatus = document.getElementById("tools-summary-status");
+    const eyebrow = document.querySelector(".tools-panel-quick__eyebrow");
     expect(badge?.textContent).toMatch(/Готово|OK/i);
+    expect(summaryStatus?.textContent).toMatch(/Все инструменты готовы/i);
+    expect(eyebrow?.textContent).toMatch(/Инструменты|Tools/i);
+    expect(eyebrow?.textContent).not.toMatch(/Проверка|Checking|Готово|Ready/i);
+  });
+
+  it("keeps checking copy split between eyebrow, badge and detailed status", async () => {
+    let resolveVersions;
+    window.electron.tools.getVersions.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveVersions = resolve;
+        }),
+    );
+
+    const renderPromise = renderToolsInfo();
+    await flush();
+
+    const eyebrow = document.querySelector(".tools-panel-quick__eyebrow");
+    const badge = document.getElementById("tools-summary-badge");
+    const summaryStatus = document.getElementById("tools-summary-status");
+
+    expect(eyebrow?.textContent).toMatch(/Инструменты|Tools/i);
+    expect(eyebrow?.textContent).not.toMatch(/Проверка|Checking|Готово|Ready/i);
+    expect(badge?.textContent).toMatch(/Проверка|Checking/i);
+    expect(summaryStatus?.textContent).toMatch(
+      /Проверяем версии и обновления|Checking versions and updates/i,
+    );
+    expect(summaryStatus?.textContent).not.toMatch(/Проверка|Checking$/i);
+
+    resolveVersions?.(versionPayload);
+    await renderPromise;
   });
 
   it("install button downloads when tools are missing", async () => {

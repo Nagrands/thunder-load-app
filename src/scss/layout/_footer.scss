@@ -81,8 +81,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-left: 14px;
-  padding-left: 16px;
+  margin-left: 20px;
+  padding-left: 18px;
   border-left: 1px solid rgba(255, 255, 255, 0.06);
   transition:
     opacity 220ms ease,
@@ -230,7 +230,7 @@
 
 .app-footer__kicker {
   padding: 8px 10px;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--color-text-main);
   font-size: 14px;
   font-weight: 600;
 }
@@ -243,11 +243,14 @@
 }
 
 .app-footer__context {
-  padding: 6px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  background-color: rgba(255, 255, 255, 0.04);
+  
+  &:hover {
+    color: var(--color-accent);
+  }
 }
 
 .app-footer__status-value {
