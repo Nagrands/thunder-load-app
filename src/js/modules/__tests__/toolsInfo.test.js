@@ -59,7 +59,8 @@ describe("renderToolsInfo", () => {
     expect(document.getElementById("tools-location-path")).toBeNull();
     expect(document.getElementById("tools-advanced-section")).not.toBeNull();
     expect(document.getElementById("tools-advanced-title")).not.toBeNull();
-    expect(document.getElementById("tools-advanced-toggle")).toBeNull();
+    expect(document.getElementById("tools-wizard")).toBeNull();
+    expect(document.querySelector("details#tools-panel")).toBeNull();
   });
 
   it("shows tools version summary when all tools exist", async () => {
@@ -294,6 +295,16 @@ describe("renderToolsInfo", () => {
     expect(badge?.textContent).toMatch(/Офлайн|Offline/i);
     expect(retryBtn?.style.display).toBe("");
     expect(openBtn?.style.display).toBe("none");
+  });
+
+  it("keeps overflow menu and force action in the compact footer row", async () => {
+    await renderToolsInfo();
+
+    expect(document.getElementById("tools-more-btn")).not.toBeNull();
+    expect(document.getElementById("tools-force-btn")).not.toBeNull();
+    expect(document.getElementById("tools-advanced-title")?.textContent).toMatch(
+      /Дополнительно|More/i,
+    );
   });
 
   it("throws localized error when installAll bridge is unavailable", async () => {
