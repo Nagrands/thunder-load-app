@@ -27,6 +27,28 @@ describe("downloadErrorClassifier shared helper", () => {
     });
   });
 
+  test("classifies network timeout with neutral default message", async () => {
+    await import("../../shared/downloadErrorClassifier.shared.js");
+    const { classifyDownloadError, getDownloadErrorMetaByCode } =
+      globalThis.__thunderDownloadErrorClassifier;
+
+    expect(
+      classifyDownloadError(new Error("ERR_YTDLP_NETWORK_TIMEOUT: read timed out")),
+    ).toMatchObject({
+      code: "NETWORK_TIMEOUT",
+      retryable: true,
+      toastKey: "download.error.networkTimeout",
+      message:
+        "Не удалось получить данные от источника. Проверьте подключение и повторите попытку.",
+    });
+
+    expect(getDownloadErrorMetaByCode("NETWORK_TIMEOUT")).toMatchObject({
+      retryable: true,
+      defaultMessage:
+        "Не удалось получить данные от источника. Проверьте подключение и повторите попытку.",
+    });
+  });
+
   test("classifies private content, captcha, disk full and permission errors", async () => {
     await import("../../shared/downloadErrorClassifier.shared.js");
     const { classifyDownloadError } =

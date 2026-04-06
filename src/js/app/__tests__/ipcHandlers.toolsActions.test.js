@@ -736,7 +736,7 @@ describe("ipcHandlers tools quick actions", () => {
       success: false,
       errorCode: "NETWORK_TIMEOUT",
     });
-    expect(result.error).toContain("YouTube");
+    expect(result.error).toContain("Не удалось получить данные от источника");
   });
 
   test("get-video-info maps private content errors to PRIVATE_CONTENT", async () => {

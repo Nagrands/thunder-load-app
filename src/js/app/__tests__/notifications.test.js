@@ -73,7 +73,7 @@ describe("notifications", () => {
           "ERR_YTDLP_NETWORK_TIMEOUT: ERROR: Read timed out while contacting YouTube",
         ),
       ),
-    ).toContain("YouTube");
+    ).toContain("Не удалось получить данные от источника");
   });
 
   test("formats downloader rate-limited errors with retry hint", () => {

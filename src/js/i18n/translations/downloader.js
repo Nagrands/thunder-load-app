@@ -121,7 +121,7 @@ export const downloaderTranslations = {
     "download.pool.full": "Лимит одновременных загрузок достигнут.",
     "download.error.retry": "Не удалось загрузить. Повторите попытку.",
     "download.error.networkTimeout":
-      "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
+      "Не удалось получить данные от источника. Проверьте подключение и повторите попытку.",
     "download.error.authRequired":
       "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.",
     "download.error.geoBlocked": "Видео недоступно в вашем регионе.",
@@ -358,7 +358,7 @@ export const downloaderTranslations = {
     "download.pool.full": "Parallel download limit reached.",
     "download.error.retry": "Download failed. Please try again.",
     "download.error.networkTimeout":
-      "Could not reach YouTube. Check your connection and try again.",
+      "Could not fetch data from the source. Check your connection and try again.",
     "download.error.authRequired":
       "This video requires authorization. Add browser cookies and try again.",
     "download.error.geoBlocked": "This video is unavailable in your region.",

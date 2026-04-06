@@ -8,7 +8,7 @@
       historyReasonKey: "history.failed.reason.networkTimeout",
       retryable: true,
       defaultMessage:
-        "Не удалось связаться с YouTube. Проверьте подключение и повторите попытку.",
+        "Не удалось получить данные от источника. Проверьте подключение и повторите попытку.",
     },
     {
       prefix: "ERR_YTDLP_AUTH_REQUIRED:",
