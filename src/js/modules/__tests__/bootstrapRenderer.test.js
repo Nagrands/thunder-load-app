@@ -47,6 +47,7 @@ describe("bootstrapRenderer", () => {
       initializeFontSize: jest.fn().mockResolvedValue(undefined),
       initLowEffectsFromStore: jest.fn(),
       initPageBackgroundMode: jest.fn(),
+      initScrollLockRepair: jest.fn(),
       initI18n: jest.fn(),
       t: jest.fn(() => "Thunder Load"),
       registerTabs: jest.fn().mockResolvedValue({
@@ -168,6 +169,9 @@ describe("bootstrapRenderer", () => {
       jest.doMock("../pageBackgroundMode.js", () => ({
         initPageBackgroundMode: mocks.initPageBackgroundMode,
       }));
+      jest.doMock("../scrollLockRepair.js", () => ({
+        initScrollLockRepair: mocks.initScrollLockRepair,
+      }));
       jest.doMock("../i18n.js", () => ({
         initI18n: mocks.initI18n,
         t: mocks.t,
@@ -190,6 +194,7 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initializeTheme).toHaveBeenCalled();
     expect(mocks.initializeFontSize).toHaveBeenCalled();
     expect(mocks.initPageBackgroundMode).toHaveBeenCalled();
+    expect(mocks.initScrollLockRepair).toHaveBeenCalled();
     expect(mocks.registerTabs).toHaveBeenCalledWith(
       document.getElementById("main-view"),
     );

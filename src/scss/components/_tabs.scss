@@ -12,20 +12,6 @@
   position: relative;
   isolation: isolate;
 
-  &::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(
-      340px 340px at 50% 88%,
-      rgba(255, 255, 255, 0.08),
-      transparent 64%
-    );
-    opacity: 0.16;
-    pointer-events: none;
-    z-index: -1;
-  }
-
   &::after {
     content: "";
     position: fixed;

@@ -1245,22 +1245,6 @@ $wg-max-width: 1200px;
   padding-bottom: 24px;
   position: relative;
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -32px 5% auto;
-    height: 210px;
-    border-radius: 50%;
-    background: radial-gradient(
-      70% 100% at 82% 0%,
-      rgba(var(--color-accent-rgb), 0.12) 0%,
-      rgba(var(--color-accent-rgb), 0.04) 34%,
-      transparent 76%
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
   > * {
     position: relative;
     z-index: 1;

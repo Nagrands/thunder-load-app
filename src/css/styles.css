@@ -15087,6 +15087,7 @@ hr {
   align-items: stretch;
   width: 100%;
   min-width: 0;
+  margin-top: 10px;
   justify-content: stretch;
 }
 .history-filter-group > .history-filter-pill {
@@ -15204,10 +15205,10 @@ hr {
 }
 .history-filter-pill .history-filter-meta .bk-select-label {
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  color: rgba(233, 242, 255, 0.94);
+  letter-spacing: 0.03em;
+  color: var(--color-accent);
 }
 .history-filter-pill .history-filter-meta .bk-select-label-text {
   min-width: 0;
@@ -15227,9 +15228,6 @@ hr {
   width: auto;
   box-sizing: border-box;
   border-radius: 10px;
-  border: 1px solid rgba(138, 166, 205, 0.35);
-  background: rgba(8, 14, 27, 0.98);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
   padding: 6px;
   gap: 4px;
 }
@@ -16237,6 +16235,27 @@ hr {
   margin: 10px 0;
 }
 
+.history-toolbar .history-action-button[data-hint]::after {
+  top: calc(100% + 6px);
+  transform: translate(-50%, -4px);
+}
+
+.history-toolbar .history-action-button[data-hint]:hover::after,
+.history-toolbar .history-action-button[data-hint]:focus-visible::after {
+  transform: translate(-50%, 0);
+}
+
+.history-toolbar #history-more-trigger[data-hint]::after {
+  left: auto;
+  right: 0;
+  transform: translate(0, -4px);
+}
+
+.history-toolbar #history-more-trigger[data-hint]:hover::after,
+.history-toolbar #history-more-trigger[data-hint]:focus-visible::after {
+  transform: translate(0, 0);
+}
+
 .history-actions-card {
   width: auto;
   margin-left: auto;
@@ -16511,8 +16530,8 @@ hr {
 }
 
 .history-row.selected {
-  background: rgba(37, 99, 235, 0.2);
-  border-color: rgba(96, 165, 250, 0.74);
+  background: var(--color-hover);
+  border-color: var(--color-hover);
 }
 
 .history-row__thumb {
@@ -18796,7 +18815,7 @@ hr {
   color: var(--color-highlight);
   cursor: pointer;
   z-index: 1001;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(8, 10, 20, 0.7);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .close:hover, .close:focus,
@@ -18810,7 +18829,6 @@ hr {
 .history-card-preview-close:focus,
 .quality-modal-close:hover,
 .quality-modal-close:focus {
-  background: var(--color-hover);
   border-color: rgba(255, 255, 255, 0.3);
   color: var(--color-accent);
 }
@@ -18958,11 +18976,11 @@ hr {
   text-align: center;
   transform: translateX(-50%);
   padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(8, 10, 20, 0.7);
+  border-radius: var(--border-radius);
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  color: var(--color-highlight);
+  background: rgba(8, 10, 20, 0.2);
   backdrop-filter: blur(6px);
 }
 
@@ -18973,6 +18991,7 @@ hr {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  background: rgba(8, 10, 20, 0.2);
   color: var(--color-highlight);
   backdrop-filter: blur(6px);
   display: grid;
@@ -18980,8 +18999,8 @@ hr {
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .history-card-preview-nav:hover:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.6);
-  background: var(--color-hover);
+  background: rgba(8, 10, 20, 0.7);
+  color: var(--color-accent);
 }
 .history-card-preview-nav:disabled {
   opacity: 0.35;
@@ -21224,15 +21243,6 @@ body[data-modal-mode=settings] .settings-modal-content {
   transition: opacity 250ms ease;
   position: relative;
   isolation: isolate;
-}
-.tab-view::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(340px 340px at 50% 88%, rgba(255, 255, 255, 0.08), transparent 64%);
-  opacity: 0.16;
-  pointer-events: none;
-  z-index: -1;
 }
 .tab-view::after {
   content: "";
@@ -23795,17 +23805,6 @@ video {
   position: relative;
   overflow: clip;
 }
-.downloader-view::before {
-  content: "";
-  position: absolute;
-  inset: -36px 6% auto;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(72% 100% at 18% 0%, rgba(var(--color-accent-rgb), 0.14) 0%, rgba(var(--color-accent-rgb), 0.04) 34%, transparent 76%);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.95;
-}
 .downloader-view > * {
   position: relative;
   z-index: 1;
@@ -26083,16 +26082,6 @@ video {
   gap: 20px;
   padding-bottom: 24px;
   position: relative;
-}
-.tools-shell::before {
-  content: "";
-  position: absolute;
-  inset: -32px 5% auto;
-  height: 210px;
-  border-radius: 50%;
-  background: radial-gradient(70% 100% at 82% 0%, rgba(var(--color-accent-rgb), 0.12) 0%, rgba(var(--color-accent-rgb), 0.04) 34%, transparent 76%);
-  pointer-events: none;
-  z-index: 0;
 }
 .tools-shell > * {
   position: relative;

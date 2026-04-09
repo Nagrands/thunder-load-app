@@ -500,6 +500,7 @@
   align-items: stretch;
   width: 100%;
   min-width: 0;
+  margin-top: 10px;
   justify-content: stretch;
 
   > .history-filter-pill {
@@ -639,10 +640,10 @@
 
     .bk-select-label {
       min-width: 0;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
-      letter-spacing: 0.01em;
-      color: rgba(233, 242, 255, 0.94);
+      letter-spacing: 0.03em;
+      color: var(--color-accent);
     }
 
     .bk-select-label-text {
@@ -665,9 +666,6 @@
       width: auto;
       box-sizing: border-box;
       border-radius: 10px;
-      border: 1px solid rgba(138, 166, 205, 0.35);
-      background: rgba(8, 14, 27, 0.98);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
       padding: 6px;
       gap: 4px;
     }
@@ -1782,6 +1780,27 @@
   margin: 10px 0;
 }
 
+.history-toolbar .history-action-button[data-hint]::after {
+  top: calc(100% + 6px);
+  transform: translate(-50%, -4px);
+}
+
+.history-toolbar .history-action-button[data-hint]:hover::after,
+.history-toolbar .history-action-button[data-hint]:focus-visible::after {
+  transform: translate(-50%, 0);
+}
+
+.history-toolbar #history-more-trigger[data-hint]::after {
+  left: auto;
+  right: 0;
+  transform: translate(0, -4px);
+}
+
+.history-toolbar #history-more-trigger[data-hint]:hover::after,
+.history-toolbar #history-more-trigger[data-hint]:focus-visible::after {
+  transform: translate(0, 0);
+}
+
 .history-actions-card {
   width: auto;
   margin-left: auto;
@@ -2066,8 +2085,8 @@
 }
 
 .history-row.selected {
-  background: rgba(37, 99, 235, 0.2);
-  border-color: rgba(96, 165, 250, 0.74);
+  background: var(--color-hover);
+  border-color: var(--color-hover);
 }
 
 .history-row__thumb {
