@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Improved `yt-dlp` resilience for custom tools folders | The app now does a stricter preflight before launching the binary, distinguishes `429`, `404`, unsupported URLs, and exec failures more clearly, and no longer deletes the working `yt-dlp` binary before a successful replacement |
 | The app background is now lighter and more minimal | The main backdrop is cleaner and less distracting, still follows the active theme accent, and now differs between screens only in subtle ways |
 | Fixed the top status row of the Downloader tools card in Settings | The top strip no longer repeats state labels across the heading, badge, and main status line, and the update-check button now stays smaller and cleaner beside the badge |
 | The Downloader tools block in Settings now uses a glassy redesign | The embedded dependency card now matches the refreshed visual language, showing readiness, `yt-dlp`/`ffmpeg`/`Deno` versions, the tools folder path, and a compact overflow menu for extra actions |

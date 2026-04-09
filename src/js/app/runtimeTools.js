@@ -53,25 +53,59 @@ function resolveBinaryFromPath(name) {
   return "";
 }
 
-function resolveRuntimeBinaryPath(name, storeOrGetter) {
+function resolveRuntimeBinaryCandidates(name, storeOrGetter) {
+  const candidates = [];
+  const seen = new Set();
+  const push = (candidatePath, source) => {
+    const normalized = String(candidatePath || "").trim();
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    candidates.push({
+      path: normalized,
+      source,
+      executable: isExecutableFile(normalized),
+    });
+  };
+
   const preferredDir = getEffectiveToolsDir(storeOrGetter);
   const preferredPath =
     name === "ffprobe"
       ? path.join(preferredDir, getBinaryName(name))
       : resolveToolPath(name, preferredDir);
-  if (isExecutableFile(preferredPath)) return preferredPath;
+  push(preferredPath, "preferred");
 
   const fallbackDir = getDefaultToolsDir();
   const fallbackPath =
     name === "ffprobe"
       ? path.join(fallbackDir, getBinaryName(name))
       : resolveToolPath(name, fallbackDir);
-  if (fallbackDir !== preferredDir && isExecutableFile(fallbackPath)) {
-    return fallbackPath;
+  if (fallbackDir !== preferredDir) {
+    push(fallbackPath, "default");
   }
+
   const pathResolved = resolveBinaryFromPath(getBinaryName(name));
-  if (pathResolved) return pathResolved;
-  return preferredPath;
+  if (pathResolved) {
+    push(pathResolved, "path");
+  }
+
+  return candidates;
+}
+
+function resolveRuntimeBinaryDetails(name, storeOrGetter) {
+  const candidates = resolveRuntimeBinaryCandidates(name, storeOrGetter);
+  const executableCandidate = candidates.find((candidate) => candidate.executable);
+  if (executableCandidate) return executableCandidate;
+  return (
+    candidates[0] || {
+      path: "",
+      source: "preferred",
+      executable: false,
+    }
+  );
+}
+
+function resolveRuntimeBinaryPath(name, storeOrGetter) {
+  return resolveRuntimeBinaryDetails(name, storeOrGetter).path;
 }
 
 function resolveRuntimeFfmpegDir(storeOrGetter) {
@@ -124,6 +158,8 @@ module.exports = {
   isExecutableFile,
   prepareBinaryForExecution,
   resolveBinaryFromPath,
+  resolveRuntimeBinaryCandidates,
+  resolveRuntimeBinaryDetails,
   resolveRuntimeBinaryPath,
   resolveRuntimeFfmpegDir,
 };

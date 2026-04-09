@@ -47,6 +47,9 @@ const {
 const {
   getRuntimeFfprobePath,
   resolveRuntimeBinaryPath,
+  resolveRuntimeBinaryCandidates,
+  resolveRuntimeBinaryDetails,
+  prepareBinaryForExecution,
   resolveRuntimeFfmpegDir: resolveRuntimeFfmpegDirHelper,
 } = require("../app/runtimeTools");
 
@@ -86,6 +89,14 @@ function getDenoPath() {
 
 function resolveRuntimeToolPath(tool) {
   return resolveRuntimeBinaryPath(tool, getStore());
+}
+
+function resolveRuntimeToolDetails(tool) {
+  return resolveRuntimeBinaryDetails(tool, getStore());
+}
+
+function resolveRuntimeToolCandidates(tool) {
+  return resolveRuntimeBinaryCandidates(tool, getStore());
 }
 
 function resolveRuntimeFfmpegDir() {
@@ -136,6 +147,19 @@ function getYtDlpSpawnOptions() {
     env: getYtDlpEnvironment(),
     windowsHide: true,
   };
+}
+
+function getYtDlpSpawnOptionsForBinary(binaryPath) {
+  const options = getYtDlpSpawnOptions();
+  const dir = path.dirname(String(binaryPath || ""));
+  if (!dir) return options;
+  const currentPath = String(options.env?.PATH || "");
+  const parts = currentPath.split(path.delimiter).filter(Boolean);
+  if (!parts.includes(dir)) {
+    parts.unshift(dir);
+    options.env.PATH = parts.join(path.delimiter);
+  }
+  return options;
 }
 
 // Предустановленные профили качества
@@ -741,13 +765,18 @@ function selectFormatsByQuality(formats, desiredQuality) {
  * Получает версию yt-dlp.
  */
 async function getYtDlpVersion(token = null) {
-  const ytDlpPath = getYtDlpPath();
-  if (!fs.existsSync(ytDlpPath)) {
-    log.warn("yt-dlp binary not found at path:", ytDlpPath);
-    return null;
-  }
+  const details = resolveRuntimeToolDetails("yt-dlp");
+  const ytDlpPath = details.path || getYtDlpPath();
   try {
-    const version = await runProcess(ytDlpPath, ["--version"], { token });
+    if (!fs.existsSync(ytDlpPath)) {
+      log.warn("yt-dlp binary not found at path:", ytDlpPath);
+      return null;
+    }
+    await prepareBinaryForExecution(ytDlpPath);
+    const version = await runProcess(ytDlpPath, ["--version"], {
+      token,
+      env: getYtDlpSpawnOptionsForBinary(ytDlpPath).env,
+    });
     log.info("yt-dlp version detected:", version);
     return version;
   } catch (err) {
@@ -760,9 +789,19 @@ async function getYtDlpVersion(token = null) {
  * Устанавливает yt-dlp, если его нет.
  */
 async function installYtDlp(token = null) {
+  const opts =
+    token &&
+    typeof token === "object" &&
+    !Array.isArray(token) &&
+    ("token" in token || "targetPath" in token)
+      ? token
+      : { token };
+  const activeToken = opts.token || null;
+  const targetPath = opts.targetPath || getYtDlpPath();
   try {
-    const version = await getYtDlpVersion(token);
-    if (version) {
+    const defaultTargetPath = path.resolve(targetPath) === path.resolve(getYtDlpPath());
+    const version = defaultTargetPath ? await getYtDlpVersion(activeToken) : null;
+    if (version && defaultTargetPath) {
       log.info(`yt-dlp version ${version} is already installed.`);
       return;
     }
@@ -776,12 +815,12 @@ async function installYtDlp(token = null) {
 
     const MIN_EXPECTED_SIZE = 1_000_000; // минимальный размер 1 МБ
 
-    const dir = getToolsDir();
-    const ytDlpPath = getYtDlpPath();
+    const dir = path.dirname(targetPath);
+    const ytDlpPath = targetPath;
     await ensureToolsDir(dir);
     await downloadFile(ytDlpUrl, ytDlpPath, 0, 1, {
       ...TOOL_DOWNLOAD_OPTIONS,
-      token,
+      token: activeToken,
     });
 
     // Устанавливаем права доступа
@@ -849,7 +888,11 @@ async function installYtDlp(token = null) {
     }
 
     // Проверяем версию после установки
-    const newVersion = await getYtDlpVersion();
+    await prepareBinaryForExecution(ytDlpPath);
+    const newVersion = await runProcess(ytDlpPath, ["--version"], {
+      token: activeToken,
+      env: getYtDlpSpawnOptionsForBinary(ytDlpPath).env,
+    });
     log.info(`yt-dlp version after install: ${newVersion}`);
     if (!newVersion) {
       throw new Error("yt-dlp installed but version check failed.");
@@ -1372,13 +1415,13 @@ function isYouTubeUrl(url) {
 }
 
 function isYoutubeRateLimitError(stderrOutput = "") {
-  return /rate-limited by YouTube|This content isn't available, try again later/i.test(
+  return /rate-limited by YouTube|This content isn't available, try again later|HTTP Error 429: Too Many Requests|Too Many Requests/i.test(
     String(stderrOutput || ""),
   );
 }
 
 function isYtDlpTransientNetworkError(stderrOutput = "") {
-  return /Read timed out|timed out|Unable to download API page|Unable to download webpage|TransportError|Connection reset by peer|Temporary failure in name resolution|Network is unreachable|TLS handshake timeout|Connection timed out/i.test(
+  return /Read timed out|timed out|Unable to download API page|TransportError|Connection reset by peer|Temporary failure in name resolution|Network is unreachable|TLS handshake timeout|Connection timed out/i.test(
     String(stderrOutput || ""),
   );
 }
@@ -1386,6 +1429,29 @@ function isYtDlpTransientNetworkError(stderrOutput = "") {
 function classifyYtDlpErrorMessage(message = "") {
   const normalized = String(message || "").trim();
   if (!normalized) return null;
+  if (/Unsupported URL/i.test(normalized)) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}UNSUPPORTED_URL`,
+      detail: "Этот URL не поддерживается yt-dlp или приложением.",
+    };
+  }
+  if (/HTTP Error 429: Too Many Requests|Too Many Requests/i.test(normalized)) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}RATE_LIMIT`,
+      detail:
+        "Источник временно ограничил запросы. Повторите попытку позже.",
+    };
+  }
+  if (
+    /HTTP Error 404: Not Found|404: Not Found|Requested content is not available/i.test(
+      normalized,
+    )
+  ) {
+    return {
+      code: `${YTDLP_ERROR_PREFIX}NOT_FOUND`,
+      detail: "Источник вернул 404 или контент больше недоступен по этому URL.",
+    };
+  }
   if (isYtDlpTransientNetworkError(normalized)) {
     return {
       code: `${YTDLP_ERROR_PREFIX}NETWORK_TIMEOUT`,
@@ -1468,6 +1534,53 @@ function classifyYtDlpErrorMessage(message = "") {
   return null;
 }
 
+function classifyYtDlpSpawnError(error, binaryPath = "") {
+  const rawMessage = String(error?.message || error || "").trim();
+  const detail = rawMessage || "Не удалось запустить yt-dlp.";
+  const pathSuffix = binaryPath ? ` (${binaryPath})` : "";
+  return {
+    code: `${YTDLP_ERROR_PREFIX}EXEC_FAILED`,
+    detail: `Не удалось запустить yt-dlp${pathSuffix}. ${detail}`.trim(),
+  };
+}
+
+async function resolveUsableYtDlpBinary(token = null) {
+  const candidates = resolveRuntimeToolCandidates("yt-dlp");
+  let lastError = null;
+
+  for (const candidate of candidates) {
+    const candidatePath = String(candidate?.path || "");
+    if (!candidatePath || !fs.existsSync(candidatePath)) {
+      continue;
+    }
+    try {
+      await prepareBinaryForExecution(candidatePath);
+      await runProcess(candidatePath, ["--version"], {
+        token,
+        env: getYtDlpSpawnOptionsForBinary(candidatePath).env,
+      });
+      return {
+        path: candidatePath,
+        source: candidate.source,
+      };
+    } catch (error) {
+      const classified = classifyYtDlpSpawnError(error, candidatePath);
+      lastError = new Error(`${classified.code}: ${classified.detail}`);
+      log.warn("[download] yt-dlp preflight failed", {
+        candidatePath,
+        source: candidate.source,
+        error: error?.message || String(error),
+      });
+    }
+  }
+
+  if (lastError) throw lastError;
+  const details = resolveRuntimeToolDetails("yt-dlp");
+  throw new Error(
+    `${YTDLP_ERROR_PREFIX}EXEC_FAILED: Не найден рабочий бинарник yt-dlp (${details.path || "unknown path"}).`,
+  );
+}
+
 function makeYtDlpExitError(code, stderrOutput = "") {
   const reason = String(stderrOutput || "").trim();
   const lastLine = reason.split("\n").filter(Boolean).slice(-1)[0] || "";
@@ -1499,75 +1612,85 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
   ) {
     try {
       return await new Promise((resolve, reject) => {
-        const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
         const ffmpegDir = resolveRuntimeFfmpegDir();
-        log.info("[download] getVideoInfo runtime tools", {
-          preferredToolsDir: getToolsDir(),
-          ytDlpPath,
-          ffmpegDir,
-          attempt,
-        });
-        processStore.getVideoInfo = spawn(
-          ytDlpPath,
-          [
-            "-J",
-            url,
-            "--ffmpeg-location",
-            ffmpegDir,
-            "--no-warnings",
-            "--ignore-config",
-          ],
-          getYtDlpSpawnOptions(),
-        );
-        let output = "";
-        let stderrOutput = "";
-        processStore.getVideoInfo.stdout.on("data", (data) => {
-          if (isCancelled(token)) {
-            processStore.getVideoInfo?.kill("SIGTERM");
-            return;
-          }
-          output += data.toString();
-        });
-        processStore.getVideoInfo.stderr.on("data", (data) => {
-          const text = data?.toString?.() || "";
-          stderrOutput += text;
-          log.error(`Error: ${text}`);
-        });
-        processStore.getVideoInfo.on("close", (code) => {
-          processStore.getVideoInfo = null;
-          if (isCancelled(token)) {
-            log.info("getVideoInfo operation cancelled.");
-            return reject(new Error("Download cancelled"));
-          }
-          if (code !== 0) {
-            if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
-              youtubeRateLimitUntilTs =
-                Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
-              log.warn(
-                `[download] YouTube rate-limit detected; enabling getVideoInfo cooldown for ${Math.ceil(YOUTUBE_RATE_LIMIT_COOLDOWN_MS / 60000)} minutes.`,
-              );
-            }
-            return reject(makeYtDlpExitError(code, stderrOutput));
-          }
-          try {
-            const info = JSON.parse(output);
-            if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
-              const oldestKey = [...videoInfoCache.entries()].sort(
-                (a, b) => a[1].timestamp - b[1].timestamp,
-              )[0]?.[0];
-              if (oldestKey) videoInfoCache.delete(oldestKey);
-            }
-            videoInfoCache.set(cacheKey, { timestamp: Date.now(), data: info });
-            resolve(info);
-          } catch (err) {
-            log.error(`Error parsing video information: ${err.message}`);
-            reject(err);
-          }
-        });
-        processStore.getVideoInfo.on("error", (err) => {
-          processStore.getVideoInfo = null;
-          reject(err);
-        });
+        resolveUsableYtDlpBinary(token)
+          .then((runtimeInfo) => {
+            const ytDlpPath = runtimeInfo.path;
+            log.info("[download] getVideoInfo runtime tools", {
+              preferredToolsDir: getToolsDir(),
+              resolvedRuntimePath: ytDlpPath,
+              resolutionSource: runtimeInfo.source,
+              preflightResult: "ok",
+              ffmpegDir,
+              attempt,
+            });
+            processStore.getVideoInfo = spawn(
+              ytDlpPath,
+              [
+                "-J",
+                url,
+                "--ffmpeg-location",
+                ffmpegDir,
+                "--no-warnings",
+                "--ignore-config",
+              ],
+              getYtDlpSpawnOptionsForBinary(ytDlpPath),
+            );
+            let output = "";
+            let stderrOutput = "";
+            processStore.getVideoInfo.stdout.on("data", (data) => {
+              if (isCancelled(token)) {
+                processStore.getVideoInfo?.kill("SIGTERM");
+                return;
+              }
+              output += data.toString();
+            });
+            processStore.getVideoInfo.stderr.on("data", (data) => {
+              const text = data?.toString?.() || "";
+              stderrOutput += text;
+              log.error(`Error: ${text}`);
+            });
+            processStore.getVideoInfo.on("close", (code) => {
+              processStore.getVideoInfo = null;
+              if (isCancelled(token)) {
+                log.info("getVideoInfo operation cancelled.");
+                return reject(new Error("Download cancelled"));
+              }
+              if (code !== 0) {
+                if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
+                  youtubeRateLimitUntilTs =
+                    Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
+                  log.warn(
+                    `[download] YouTube rate-limit detected; enabling getVideoInfo cooldown for ${Math.ceil(YOUTUBE_RATE_LIMIT_COOLDOWN_MS / 60000)} minutes.`,
+                  );
+                }
+                return reject(makeYtDlpExitError(code, stderrOutput));
+              }
+              try {
+                const info = JSON.parse(output);
+                if (videoInfoCache.size >= VIDEO_INFO_CACHE_MAX) {
+                  const oldestKey = [...videoInfoCache.entries()].sort(
+                    (a, b) => a[1].timestamp - b[1].timestamp,
+                  )[0]?.[0];
+                  if (oldestKey) videoInfoCache.delete(oldestKey);
+                }
+                videoInfoCache.set(cacheKey, {
+                  timestamp: Date.now(),
+                  data: info,
+                });
+                resolve(info);
+              } catch (err) {
+                log.error(`Error parsing video information: ${err.message}`);
+                reject(err);
+              }
+            });
+            processStore.getVideoInfo.on("error", (err) => {
+              processStore.getVideoInfo = null;
+              const classified = classifyYtDlpSpawnError(err, ytDlpPath);
+              reject(new Error(`${classified.code}: ${classified.detail}`));
+            });
+          })
+          .catch(reject);
       });
     } catch (error) {
       lastError = error;
@@ -1673,67 +1796,80 @@ function spawnDownloadProcess(
   const processStore = getProcessStore(token);
   const runOnce = () =>
     new Promise((resolve, reject) => {
-      const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
       const ffmpegDir = resolveRuntimeFfmpegDir();
-      log.info("[download] spawnDownloadProcess runtime tools", {
-        preferredToolsDir: getToolsDir(),
-        ytDlpPath,
-        ffmpegDir,
-      });
-      const args = [];
-      if (format) {
-        args.push("-f", format);
-      }
-      args.push(
-        "-o",
-        outputPath,
-        url,
-        "--ffmpeg-location",
-        ffmpegDir,
-        "--continue",
-        "--part",
-        "--newline",
-        "--ignore-errors",
-        "--no-warnings",
-      );
-      if (extraArgs.length) {
-        args.push(...extraArgs);
-      }
-      const proc = spawn(ytDlpPath, args, getYtDlpSpawnOptions());
-      processStore[processKey] = proc;
-      let stderrOutput = "";
-      proc.stdout.on("data", (data) => {
-        if (isCancelled(token)) {
-          proc.kill("SIGTERM");
-          return;
-        }
-        data
-          .toString()
-          .split("\n")
-          .forEach((line) => {
-            const progress = parseProgress(line);
-            if (progress !== null) progressCallback(progress);
+      resolveUsableYtDlpBinary(token)
+        .then((runtimeInfo) => {
+          const ytDlpPath = runtimeInfo.path;
+          log.info("[download] spawnDownloadProcess runtime tools", {
+            preferredToolsDir: getToolsDir(),
+            resolvedRuntimePath: ytDlpPath,
+            resolutionSource: runtimeInfo.source,
+            preflightResult: "ok",
+            ffmpegDir,
           });
-      });
-      proc.stderr.on("data", (data) => {
-        const text = data?.toString?.() || "";
-        stderrOutput += text;
-        log.error(text);
-      });
-      proc.on("close", (code) => {
-        processStore[processKey] = null;
-        if (isCancelled(token)) {
-          return reject(new Error(token.cancelReason || "Download cancelled"));
-        }
-        if (code !== 0) {
-          return reject(makeYtDlpExitError(code, stderrOutput));
-        }
-        resolve();
-      });
-      proc.on("error", (err) => {
-        processStore[processKey] = null;
-        reject(err);
-      });
+          const args = [];
+          if (format) {
+            args.push("-f", format);
+          }
+          args.push(
+            "-o",
+            outputPath,
+            url,
+            "--ffmpeg-location",
+            ffmpegDir,
+            "--continue",
+            "--part",
+            "--newline",
+            "--ignore-errors",
+            "--no-warnings",
+          );
+          if (extraArgs.length) {
+            args.push(...extraArgs);
+          }
+          const proc = spawn(
+            ytDlpPath,
+            args,
+            getYtDlpSpawnOptionsForBinary(ytDlpPath),
+          );
+          processStore[processKey] = proc;
+          let stderrOutput = "";
+          proc.stdout.on("data", (data) => {
+            if (isCancelled(token)) {
+              proc.kill("SIGTERM");
+              return;
+            }
+            data
+              .toString()
+              .split("\n")
+              .forEach((line) => {
+                const progress = parseProgress(line);
+                if (progress !== null) progressCallback(progress);
+              });
+          });
+          proc.stderr.on("data", (data) => {
+            const text = data?.toString?.() || "";
+            stderrOutput += text;
+            log.error(text);
+          });
+          proc.on("close", (code) => {
+            processStore[processKey] = null;
+            if (isCancelled(token)) {
+              return reject(
+                new Error(token.cancelReason || "Download cancelled"),
+              );
+            }
+            if (code !== 0) {
+              return reject(makeYtDlpExitError(code, stderrOutput));
+            }
+            resolve();
+          });
+          proc.on("error", (err) => {
+            processStore[processKey] = null;
+            const classified = classifyYtDlpSpawnError(err, ytDlpPath);
+            reject(new Error(`${classified.code}: ${classified.detail}`));
+          });
+        })
+        .catch(reject);
     });
 
   const runWithRetries = async () => {
@@ -2271,6 +2407,7 @@ async function stopDownload(tokenOrTokens = activeDownloadToken) {
 log.info("[download.js] tool paths initialized", {
   toolsDir: getToolsDir(),
   usesDefaultToolsDir: getToolsDir() === getDefaultToolsDir(),
+  runtimeYtDlp: resolveRuntimeToolDetails("yt-dlp"),
 });
 
 module.exports = {
@@ -2284,6 +2421,8 @@ module.exports = {
   stopDownload,
   selectFormatsByQuality,
   ensureAllDependencies,
+  classifyYtDlpErrorMessage,
+  makeYtDlpExitError,
   setSharedStore,
 };
 

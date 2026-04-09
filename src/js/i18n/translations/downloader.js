@@ -122,6 +122,11 @@ export const downloaderTranslations = {
     "download.error.retry": "Не удалось загрузить. Повторите попытку.",
     "download.error.networkTimeout":
       "Не удалось получить данные от источника. Проверьте подключение и повторите попытку.",
+    "download.error.unsupportedUrl": "Этот URL не поддерживается.",
+    "download.error.notFound":
+      "Контент по этой ссылке не найден или больше недоступен.",
+    "download.error.execFailed":
+      "Не удалось запустить yt-dlp. Проверьте путь к инструментам и повторите попытку.",
     "download.error.authRequired":
       "Видео требует авторизации. Добавьте cookies браузера и повторите попытку.",
     "download.error.geoBlocked": "Видео недоступно в вашем регионе.",
@@ -215,6 +220,9 @@ export const downloaderTranslations = {
     "queue.status.done": "Готово",
     "queue.status.error": "Ошибка",
     "queue.reason.networkTimeout": "Сбой сети",
+    "queue.reason.unsupportedUrl": "Неподдерживаемый URL",
+    "queue.reason.notFound": "Контент не найден",
+    "queue.reason.execFailed": "Сбой запуска yt-dlp",
     "queue.reason.authRequired": "Нужна авторизация",
     "queue.reason.geoBlocked": "Недоступно в регионе",
     "queue.reason.unavailable": "Видео недоступно",
@@ -359,6 +367,11 @@ export const downloaderTranslations = {
     "download.error.retry": "Download failed. Please try again.",
     "download.error.networkTimeout":
       "Could not fetch data from the source. Check your connection and try again.",
+    "download.error.unsupportedUrl": "This URL is not supported.",
+    "download.error.notFound":
+      "The content at this URL was not found or is no longer available.",
+    "download.error.execFailed":
+      "Could not start yt-dlp. Check the tools path and try again.",
     "download.error.authRequired":
       "This video requires authorization. Add browser cookies and try again.",
     "download.error.geoBlocked": "This video is unavailable in your region.",
@@ -452,6 +465,9 @@ export const downloaderTranslations = {
     "queue.status.done": "Done",
     "queue.status.error": "Error",
     "queue.reason.networkTimeout": "Network timeout",
+    "queue.reason.unsupportedUrl": "Unsupported URL",
+    "queue.reason.notFound": "Content not found",
+    "queue.reason.execFailed": "yt-dlp launch failed",
     "queue.reason.authRequired": "Authorization required",
     "queue.reason.geoBlocked": "Region blocked",
     "queue.reason.unavailable": "Video unavailable",

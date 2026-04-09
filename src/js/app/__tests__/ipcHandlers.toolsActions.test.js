@@ -739,6 +739,66 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result.error).toContain("Не удалось получить данные от источника");
   });
 
+  test("get-video-info maps unsupported URLs to UNSUPPORTED_URL", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_UNSUPPORTED_URL: unsupported source"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://example.com/test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "UNSUPPORTED_URL",
+      retryable: false,
+    });
+  });
+
+  test("get-video-info maps not found errors to NOT_FOUND", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_NOT_FOUND: http 404"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://example.com/missing",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "NOT_FOUND",
+      retryable: false,
+    });
+  });
+
+  test("get-video-info maps exec failures to EXEC_FAILED", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockRejectedValueOnce(
+      new Error("ERR_YTDLP_EXEC_FAILED: spawn Unknown system error -88"),
+    );
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=test",
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: "EXEC_FAILED",
+      retryable: true,
+    });
+  });
+
   test("get-video-info maps private content errors to PRIVATE_CONTENT", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");
@@ -841,6 +901,49 @@ describe("ipcHandlers tools quick actions", () => {
       retryAfterMinutes: 7,
     });
     expect(result.error).toContain("7 мин");
+  });
+
+  test("tools:updateYtDlp keeps current binary if temp install fails", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const toolsVersions = require("../toolsVersions");
+
+    initHandlers();
+    const existingPath = path.join(toolsDir, "yt-dlp");
+    fs.writeFileSync(existingPath, "old-binary", "utf8");
+    toolsVersions.getToolsVersions.mockResolvedValueOnce({
+      ytDlp: { ok: true, path: existingPath },
+    });
+    download.installYtDlp.mockRejectedValueOnce(new Error("install failed"));
+
+    const result = await handlers[CHANNELS.TOOLS_UPDATEYTDLP]();
+
+    expect(result).toMatchObject({
+      success: false,
+      error: expect.stringContaining("install failed"),
+    });
+    expect(fs.readFileSync(existingPath, "utf8")).toBe("old-binary");
+  });
+
+  test("tools:updateYtDlp swaps in temp binary after successful install", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const toolsVersions = require("../toolsVersions");
+
+    initHandlers();
+    const existingPath = path.join(toolsDir, "yt-dlp");
+    fs.writeFileSync(existingPath, "old-binary", "utf8");
+    toolsVersions.getToolsVersions.mockResolvedValueOnce({
+      ytDlp: { ok: true, path: existingPath },
+    });
+    download.installYtDlp.mockImplementationOnce(async ({ targetPath }) => {
+      fs.writeFileSync(targetPath, "new-binary", "utf8");
+    });
+
+    const result = await handlers[CHANNELS.TOOLS_UPDATEYTDLP]();
+
+    expect(result).toMatchObject({ success: true });
+    expect(fs.readFileSync(existingPath, "utf8")).toBe("new-binary");
   });
 
   test("hashCalculate returns SHA-256 hash and match", async () => {

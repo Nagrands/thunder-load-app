@@ -11,7 +11,11 @@ jest.mock("electron-log", () => ({
   error: jest.fn(),
 }));
 
-const { selectFormatsByQuality } = require("../download.js");
+const {
+  selectFormatsByQuality,
+  classifyYtDlpErrorMessage,
+  makeYtDlpExitError,
+} = require("../download.js");
 
 describe("selectFormatsByQuality object fallback", () => {
   it("falls back by quality label when stored format IDs are unavailable", () => {
@@ -65,5 +69,44 @@ describe("selectFormatsByQuality object fallback", () => {
 
     expect(picked.videoFormat).toBeNull();
     expect(picked.audioFormat).toBe("251");
+  });
+});
+
+describe("yt-dlp error classification helpers", () => {
+  it("classifies unsupported URLs, 404, 429 and spawn-like failures", () => {
+    expect(classifyYtDlpErrorMessage("ERROR: Unsupported URL: https://avito.ru"))
+      .toMatchObject({
+        code: "ERR_YTDLP_UNSUPPORTED_URL",
+      });
+
+    expect(
+      classifyYtDlpErrorMessage(
+        "ERROR: [generic] Unable to download webpage: HTTP Error 404: Not Found",
+      ),
+    ).toMatchObject({
+      code: "ERR_YTDLP_NOT_FOUND",
+    });
+
+    expect(
+      classifyYtDlpErrorMessage(
+        "ERROR: [generic] Unable to download webpage: HTTP Error 429: Too Many Requests",
+      ),
+    ).toMatchObject({
+      code: "ERR_YTDLP_RATE_LIMIT",
+    });
+  });
+
+  it("converts yt-dlp exit output into structured errors", () => {
+    const unsupported = makeYtDlpExitError(
+      1,
+      "ERROR: Unsupported URL: https://avito.ru",
+    );
+    expect(unsupported.message).toContain("ERR_YTDLP_UNSUPPORTED_URL");
+
+    const notFound = makeYtDlpExitError(
+      1,
+      "ERROR: [generic] Unable to download webpage: HTTP Error 404: Not Found",
+    );
+    expect(notFound.message).toContain("ERR_YTDLP_NOT_FOUND");
   });
 });

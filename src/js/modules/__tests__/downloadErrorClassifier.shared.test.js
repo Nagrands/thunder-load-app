@@ -49,6 +49,55 @@ describe("downloadErrorClassifier shared helper", () => {
     });
   });
 
+  test("classifies unsupported, not found, exec failed and rate limit errors", async () => {
+    await import("../../shared/downloadErrorClassifier.shared.js");
+    const { classifyDownloadError, getDownloadErrorMetaByCode } =
+      globalThis.__thunderDownloadErrorClassifier;
+
+    expect(
+      classifyDownloadError(
+        new Error("ERR_YTDLP_UNSUPPORTED_URL: unsupported source"),
+      ),
+    ).toMatchObject({
+      code: "UNSUPPORTED_URL",
+      retryable: false,
+      toastKey: "download.error.unsupportedUrl",
+    });
+
+    expect(
+      classifyDownloadError(new Error("ERR_YTDLP_NOT_FOUND: http 404")),
+    ).toMatchObject({
+      code: "NOT_FOUND",
+      retryable: false,
+      toastKey: "download.error.notFound",
+    });
+
+    expect(
+      classifyDownloadError(
+        new Error("ERR_YTDLP_EXEC_FAILED: spawn Unknown system error -88"),
+      ),
+    ).toMatchObject({
+      code: "EXEC_FAILED",
+      retryable: true,
+      toastKey: "download.error.execFailed",
+    });
+
+    expect(
+      classifyDownloadError(
+        new Error("ERR_YTDLP_RATE_LIMIT: YouTube temporarily rate-limited requests for this client (about 5 minutes)"),
+      ),
+    ).toMatchObject({
+      code: "YTDLP_RATE_LIMIT",
+      retryable: true,
+      retryAfterMinutes: 5,
+      toastKey: "download.error.youtubeRateLimit",
+    });
+
+    expect(getDownloadErrorMetaByCode("EXEC_FAILED")).toMatchObject({
+      queueReasonKey: "queue.reason.execFailed",
+    });
+  });
+
   test("classifies private content, captcha, disk full and permission errors", async () => {
     await import("../../shared/downloadErrorClassifier.shared.js");
     const { classifyDownloadError } =

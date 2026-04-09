@@ -11,6 +11,44 @@
         "Не удалось получить данные от источника. Проверьте подключение и повторите попытку.",
     },
     {
+      prefix: "ERR_YTDLP_RATE_LIMIT:",
+      code: "YTDLP_RATE_LIMIT",
+      toastKey: "download.error.youtubeRateLimit",
+      queueReasonKey: "queue.reason.youtubeRateLimit",
+      historyReasonKey: "history.failed.reason.youtubeRateLimit",
+      retryable: true,
+      defaultMessage:
+        "Источник временно ограничил запросы. Повторите попытку позже.",
+    },
+    {
+      prefix: "ERR_YTDLP_NOT_FOUND:",
+      code: "NOT_FOUND",
+      toastKey: "download.error.notFound",
+      queueReasonKey: "queue.reason.notFound",
+      historyReasonKey: "history.failed.reason.notFound",
+      retryable: false,
+      defaultMessage: "Контент по этой ссылке не найден или больше недоступен.",
+    },
+    {
+      prefix: "ERR_YTDLP_UNSUPPORTED_URL:",
+      code: "UNSUPPORTED_URL",
+      toastKey: "download.error.unsupportedUrl",
+      queueReasonKey: "queue.reason.unsupportedUrl",
+      historyReasonKey: "history.failed.reason.unsupportedUrl",
+      retryable: false,
+      defaultMessage: "Этот URL не поддерживается.",
+    },
+    {
+      prefix: "ERR_YTDLP_EXEC_FAILED:",
+      code: "EXEC_FAILED",
+      toastKey: "download.error.execFailed",
+      queueReasonKey: "queue.reason.execFailed",
+      historyReasonKey: "history.failed.reason.execFailed",
+      retryable: true,
+      defaultMessage:
+        "Не удалось запустить yt-dlp. Проверьте путь к инструментам и повторите попытку.",
+    },
+    {
       prefix: "ERR_YTDLP_AUTH_REQUIRED:",
       code: "AUTH_REQUIRED",
       toastKey: "download.error.authRequired",
@@ -131,12 +169,21 @@
     for (const definition of DEFINITIONS) {
       if (rawMessage.startsWith(definition.prefix)) {
         const detailMessage = rawMessage.slice(definition.prefix.length).trim();
+        const isRateLimit = definition.code === "YTDLP_RATE_LIMIT";
+        const rateLimitMatch = isRateLimit
+          ? rawMessage.match(RATE_LIMIT_MINUTES_PATTERN)
+          : null;
         return {
           ...definition,
-          message: definition.defaultMessage,
+          message:
+            isRateLimit && rateLimitMatch
+              ? `YouTube временно ограничил запросы. Попробуйте снова примерно через ${Number(rateLimitMatch[1]) || 1} мин.`
+              : definition.defaultMessage,
           detailMessage,
           rawMessage,
-          retryAfterMinutes: null,
+          retryAfterMinutes: isRateLimit
+            ? Number(rateLimitMatch?.[1]) || null
+            : null,
         };
       }
     }

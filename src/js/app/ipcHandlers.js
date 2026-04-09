@@ -2365,31 +2365,46 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_UPDATEYTDLP, async () => {
     try {
       log.info("tools:updateYtDlp: Checking current yt-dlp version...");
-      // Учитываем пользовательскую папку инструментов
       const tools = await getToolsVersions(store);
       const ytDlpInfo = tools?.ytDlp;
-      if (ytDlpInfo?.ok && ytDlpInfo?.path) {
-        log.info(
-          `tools:updateYtDlp: Removing existing yt-dlp binary at ${ytDlpInfo.path}`,
-        );
-        try {
-          await fsPromises.unlink(ytDlpInfo.path);
-          log.info("tools:updateYtDlp: Existing yt-dlp binary removed.");
-        } catch (e) {
-          log.error(
-            "tools:updateYtDlp: Failed to remove existing yt-dlp binary:",
-            e,
+      const toolsDir = await ensureToolsDir(getEffectiveToolsDir(store));
+      const ytDlpFileName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
+      const finalPath = ytDlpInfo?.path || path.join(toolsDir, ytDlpFileName);
+      const tempPath = `${finalPath}.tmp-${Date.now()}`;
+      const backupPath = `${finalPath}.bak-${Date.now()}`;
+
+      log.info("tools:updateYtDlp: Installing yt-dlp to temporary path...", {
+        finalPath,
+        tempPath,
+      });
+      await installYtDlp({ targetPath: tempPath });
+
+      let backupCreated = false;
+      try {
+        if (fs.existsSync(finalPath)) {
+          log.info(
+            `tools:updateYtDlp: Moving current yt-dlp to backup ${backupPath}`,
           );
-          // Continue anyway
+          await fsPromises.rename(finalPath, backupPath);
+          backupCreated = true;
         }
-      } else {
-        log.info(
-          "tools:updateYtDlp: No existing yt-dlp binary detected, proceeding with install.",
-        );
+        await fsPromises.rename(tempPath, finalPath);
+        if (backupCreated) {
+          await fsPromises.unlink(backupPath).catch(() => {});
+        }
+      } catch (swapError) {
+        if (fs.existsSync(tempPath)) {
+          await fsPromises.unlink(tempPath).catch(() => {});
+        }
+        if (backupCreated && fs.existsSync(backupPath) && !fs.existsSync(finalPath)) {
+          await fsPromises.rename(backupPath, finalPath).catch(() => {});
+        }
+        throw swapError;
       }
-      log.info("tools:updateYtDlp: Installing yt-dlp...");
-      await installYtDlp();
-      log.info("tools:updateYtDlp: yt-dlp installed successfully.");
+
+      log.info("tools:updateYtDlp: yt-dlp installed successfully.", {
+        finalPath,
+      });
       return { success: true };
     } catch (error) {
       log.error("tools:updateYtDlp: Error updating yt-dlp:", error);
