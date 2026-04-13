@@ -54,7 +54,9 @@ function disposeToolsWrapperContent(wireguardWrapper) {
   const toolsView = wireguardWrapper?.firstElementChild;
   if (!toolsView) return;
   try {
-    toolsView.dispatchEvent(new Event("tools:view-hidden"));
+    toolsView.dispatchEvent(
+      new CustomEvent("tools:view-hidden", { bubbles: true }),
+    );
   } catch {}
   wireguardWrapper.replaceChildren();
 }

@@ -8,8 +8,13 @@ import {
   formatDownloadErrorToast,
   getDownloadErrorDetails,
 } from "./downloadErrorUi.js";
+import {
+  acquireBodyScrollLock,
+  releaseBodyScrollLock,
+} from "./scrollLockManager.js";
 
 const INFO_REQUEST_TIMEOUT = 15000;
+const DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER = "download-quality-modal";
 
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
@@ -114,14 +119,11 @@ const state = {
   loadingTickTimer: null,
 };
 
-function isSettingsModalOpen() {
-  return document.getElementById("settings-modal")?.style.display === "flex";
-}
-
 function syncBodyScrollLock() {
-  const shouldLock =
-    !!modal?.classList.contains("is-open") || isSettingsModalOpen();
-  document.body.classList.toggle("modal-scroll-lock", shouldLock);
+  const shouldLock = !!modal?.classList.contains("is-open");
+  if (shouldLock)
+    acquireBodyScrollLock(DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER);
+  else releaseBodyScrollLock(DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER);
 }
 
 const extractHeight = (fmt) => {

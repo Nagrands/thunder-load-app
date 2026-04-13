@@ -39,7 +39,7 @@ function initModalHandlers() {
   // Закрытие модальных окон при клике вне их области
   window.addEventListener("click", (event) => {
     if (modals.includes(event.target)) {
-      event.target.style.display = "none";
+      closeAllModals([event.target]);
     }
   });
 }

@@ -4,6 +4,10 @@ import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { applyI18n, t } from "../i18n.js";
 import { initTooltips } from "../tooltipInitializer.js";
+import {
+  acquireDocumentScrollLock,
+  releaseDocumentScrollLock,
+} from "../scrollLockManager.js";
 
 /**
  * @typedef {Object} BackupProgram
@@ -34,6 +38,8 @@ import { initTooltips } from "../tooltipInitializer.js";
  * @returns {HTMLDivElement} Root element of the Backup tool.
  */
 export default function renderBackup() {
+  const BACKUP_DELETE_MODAL_SCROLL_LOCK_OWNER = "backup-delete-modal";
+  const BACKUP_EDIT_MODAL_SCROLL_LOCK_OWNER = "backup-edit-modal";
   /**
    * Detects whether the Backup tool is disabled via localStorage flag.
    * @returns {boolean}
@@ -346,9 +352,7 @@ export default function renderBackup() {
   `;
 
     // Показ оверлея, блокируем прокрутку
-    const _docEl = document.documentElement;
-    const _prevOverflow = _docEl.style.overflow;
-    _docEl.style.overflow = "hidden";
+    acquireDocumentScrollLock(BACKUP_DELETE_MODAL_SCROLL_LOCK_OWNER);
     overlay.style.display = "flex";
     wrapper.appendChild(overlay);
     applyI18n(overlay);
@@ -438,7 +442,7 @@ export default function renderBackup() {
     const closeOverlay = () => {
       overlay.remove();
       window.removeEventListener("keydown", onEsc);
-      _docEl.style.overflow = _prevOverflow;
+      releaseDocumentScrollLock(BACKUP_DELETE_MODAL_SCROLL_LOCK_OWNER);
       if (typeof updateActionsState === "function") updateActionsState();
     };
     overlay
@@ -1836,9 +1840,7 @@ export default function renderBackup() {
       `;
 
     // Show modal
-    const _docEl = document.documentElement;
-    const _prevOverflow = _docEl.style.overflow;
-    _docEl.style.overflow = "hidden";
+    acquireDocumentScrollLock(BACKUP_EDIT_MODAL_SCROLL_LOCK_OWNER);
     overlay.style.display = "flex";
     wrapper.appendChild(overlay);
 
@@ -2459,7 +2461,7 @@ export default function renderBackup() {
     const closeOverlay = () => {
       overlay.remove();
       window.removeEventListener("keydown", onEsc);
-      _docEl.style.overflow = _prevOverflow;
+      releaseDocumentScrollLock(BACKUP_EDIT_MODAL_SCROLL_LOCK_OWNER);
     };
 
     overlay.querySelectorAll(".bk-close").forEach((b) => {

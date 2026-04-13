@@ -1,3 +1,8 @@
+import {
+  acquireBodyScrollLock,
+  releaseBodyScrollLock,
+} from "./scrollLockManager.js";
+
 const PLAY_EVENT = "downloader:live-preview-open";
 const RETRY_EVENT = "downloader:live-preview-retry";
 const STATE_EVENT = "downloader:live-preview-state";
@@ -12,6 +17,7 @@ let currentPageUrl = "";
 let retryTriggered = false;
 let pendingResumeTime = null;
 let lastFocusedElement = null;
+const DOWNLOADER_LIVE_PREVIEW_SCROLL_LOCK_OWNER = "downloader-live-preview";
 
 function syncRefs() {
   panelEl = document.getElementById("preview-live-player");
@@ -52,10 +58,11 @@ function resetPlayerState() {
 }
 
 function syncBodyScrollLock() {
-  document.body.classList.toggle(
-    "modal-scroll-lock",
-    !!panelEl?.classList.contains("is-open"),
-  );
+  if (panelEl?.classList.contains("is-open")) {
+    acquireBodyScrollLock(DOWNLOADER_LIVE_PREVIEW_SCROLL_LOCK_OWNER);
+    return;
+  }
+  releaseBodyScrollLock(DOWNLOADER_LIVE_PREVIEW_SCROLL_LOCK_OWNER);
 }
 
 function restoreFocus() {

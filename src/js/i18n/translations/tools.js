@@ -290,7 +290,7 @@ export const toolsTranslations = {
     "tools.launcher.open.power": "Быстрые ярлыки",
     "tools.launcher.open.backup": "Backup",
     "tools.launcher.open.mediaInspector": "Media Inspector",
-    "tools.launcher.open.sorter": "File Sorter",
+    "tools.launcher.open.sorter": "Сортировщик",
     "tools.launcher.desc.wg": "Быстрое восстановление WireGuard.",
     "tools.launcher.desc.hash": "Сравнение контрольных сумм файлов.",
     "tools.launcher.desc.power":
@@ -317,7 +317,7 @@ export const toolsTranslations = {
     "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.power": "Быстрые ярлыки",
     "tools.nav.current.backup": "Backup",
-    "tools.nav.current.sorter": "File Sorter",
+    "tools.nav.current.sorter": "Сортировщик",
     "tools.mediaInspector.title": "Media Inspector",
     "tools.mediaInspector.subtitle":
       "Анализирует локальный медиафайл через ffprobe и показывает практические предупреждения.",
@@ -408,12 +408,12 @@ export const toolsTranslations = {
     "tools.mediaInspector.status.loading": "Читаем метаданные медиафайла...",
     "tools.mediaInspector.status.ready": "Анализ завершен.",
     "tools.mediaInspector.status.error": "Анализ завершился с ошибкой.",
-    "tools.sorter.title": "File Sorter",
+    "tools.sorter.title": "Сортировщик",
     "tools.sorter.subtitle":
-      "Сортирует файлы в выбранной папке по категориям расширений.",
+      "Упрощает сортировку файлов по категориям, предпросмотр и запуск в один поток.",
     "tools.sorter.workspace.title": "Рабочая область",
     "tools.sorter.workspace.subtitle":
-      "Выберите папку, при необходимости укажите лог и затем запустите предпросмотр или сортировку.",
+      "Выберите папку, при необходимости укажите лог и сразу переходите к предпросмотру или применению.",
     "tools.sorter.folder": "Папка для сортировки",
     "tools.sorter.pickFolder": "Выбрать папку",
     "tools.sorter.openFolder": "Открыть папку",
@@ -467,11 +467,11 @@ export const toolsTranslations = {
       "Не удалось экспортировать результат сортировки.",
     "tools.sorter.rules.title": "Категории сортировки",
     "tools.sorter.rules.subtitle":
-      "Сначала посмотрите, в какие папки попадут файлы по расширениям.",
+      "Быстрый ориентир по папкам, в которые попадут файлы каждого типа.",
     "tools.sorter.rules.other": "Все остальные расширения",
     "tools.sorter.options.title": "Параметры сортировки",
     "tools.sorter.options.subtitle":
-      "Управляйте конфликтами имен, вложенными папками и исключениями.",
+      "Соберите конфликт-режим, подпапки и исключения в одном компактном блоке.",
     "tools.sorter.conflicts.label": "Конфликт имен",
     "tools.sorter.conflicts.rename": "Переименовать",
     "tools.sorter.conflicts.skip": "Пропустить файл",
@@ -505,7 +505,7 @@ export const toolsTranslations = {
     "tools.sorter.status.logFile": "Пропущен: это файл лога сортировки",
     "tools.sorter.status.error": "ошибка",
     "tools.sorter.howto.open": "Как это работает",
-    "tools.sorter.howto.title": "Как работает File Sorter",
+    "tools.sorter.howto.title": "Как работает Сортировщик",
     "tools.sorter.howto.close": "Закрыть",
     "tools.sorter.howto.prev": "Назад",
     "tools.sorter.howto.next": "Далее",

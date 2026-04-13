@@ -13,6 +13,10 @@ import { TOOLS_STORAGE_KEYS } from "./tools/storage.js";
 import { createLogController } from "./tools/logController.js";
 import { createToolViewState } from "./tools/toolViewState.js";
 import {
+  acquireDocumentScrollLock,
+  releaseDocumentScrollLock,
+} from "../scrollLockManager.js";
+import {
   POWER_SHORTCUT_ACTIONS,
   POWER_SHORTCUT_GROUPS,
   getPowerActionStateTone,
@@ -123,28 +127,16 @@ export default function renderToolsView() {
   let hashSelectedFileSecond = "";
   let hashCopyFeedbackTimerFirst = null;
   let hashCopyFeedbackTimerSecond = null;
-  let wgHowtoPrevOverflow = null;
-  let powerHowtoPrevOverflow = null;
-  let hashHowtoPrevOverflow = null;
-  let sorterHowtoPrevOverflow = null;
+  const WG_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-wg";
+  const POWER_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-power";
+  const HASH_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-hash";
+  const SORTER_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-sorter";
 
   const disposeView = () => {
-    if (wgHowtoPrevOverflow !== null) {
-      document.documentElement.style.overflow = wgHowtoPrevOverflow;
-      wgHowtoPrevOverflow = null;
-    }
-    if (powerHowtoPrevOverflow !== null) {
-      document.documentElement.style.overflow = powerHowtoPrevOverflow;
-      powerHowtoPrevOverflow = null;
-    }
-    if (hashHowtoPrevOverflow !== null) {
-      document.documentElement.style.overflow = hashHowtoPrevOverflow;
-      hashHowtoPrevOverflow = null;
-    }
-    if (sorterHowtoPrevOverflow !== null) {
-      document.documentElement.style.overflow = sorterHowtoPrevOverflow;
-      sorterHowtoPrevOverflow = null;
-    }
+    releaseDocumentScrollLock(WG_HOWTO_SCROLL_LOCK_OWNER);
+    releaseDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
+    releaseDocumentScrollLock(HASH_HOWTO_SCROLL_LOCK_OWNER);
+    releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
     stopCountdown();
     tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
     tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
@@ -530,7 +522,7 @@ export default function renderToolsView() {
                 class="tools-launcher-button"
               >
               <i class="fa-solid fa-folder-tree"></i>
-              <span data-i18n="tools.launcher.open.sorter">File Sorter</span>
+              <span data-i18n="tools.launcher.open.sorter">${t("tools.launcher.open.sorter")}</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
                 ${t("tools.launcher.desc.sorter")}
               </small>
@@ -1176,25 +1168,29 @@ export default function renderToolsView() {
 
         <section class="tools-view hidden" data-tool-view="sorter" aria-label="${t("tools.nav.current.sorter")}">
           <article class="tools-card tools-detail-card sorter-shell">
-            <div class="tools-card__header">
-              <h2 data-i18n="tools.sorter.title">${t("tools.sorter.title")}</h2>
-              <button
-                id="sorter-open-howto"
-                type="button"
-                class="small-button sorter-howto-open"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                data-i18n-title="tools.sorter.howto.open"
-                data-i18n-aria="tools.sorter.howto.open"
-                title="${t("tools.sorter.howto.open")}"
-                aria-label="${t("tools.sorter.howto.open")}"
-              >
-                <i class="fa-regular fa-circle-question"></i>
-              </button>
+            <div class="tools-card__header sorter-header">
+              <div class="sorter-header__copy">
+                <h2 data-i18n="tools.sorter.title">${t("tools.sorter.title")}</h2>
+                <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
+                  ${t("tools.sorter.subtitle")}
+                </p>
+              </div>
+              <div class="sorter-header__actions">
+                <button
+                  id="sorter-open-howto"
+                  type="button"
+                  class="small-button sorter-howto-open"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  data-i18n-title="tools.sorter.howto.open"
+                  data-i18n-aria="tools.sorter.howto.open"
+                  title="${t("tools.sorter.howto.open")}"
+                  aria-label="${t("tools.sorter.howto.open")}"
+                >
+                  <i class="fa-regular fa-circle-question"></i>
+                </button>
+              </div>
             </div>
-            <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
-              ${t("tools.sorter.subtitle")}
-            </p>
             <div class="sorter-surfaces">
               <section class="sorter-workspace-panel sorter-surface sorter-surface--workspace" aria-label="${t("tools.sorter.workspace.title")}">
                 <div class="sorter-workspace-panel__header">
@@ -1203,16 +1199,6 @@ export default function renderToolsView() {
                     <p class="muted" data-i18n="tools.sorter.workspace.subtitle">
                       ${t("tools.sorter.workspace.subtitle")}
                     </p>
-                  </div>
-                  <div class="sorter-actions">
-                    <button id="sorter-preview-run" type="button" class="large-button secondary">
-                      <i class="fa-regular fa-eye"></i>
-                      <span data-i18n="tools.sorter.previewAction">${t("tools.sorter.previewAction")}</span>
-                    </button>
-                    <button id="sorter-apply-run" type="button" class="large-button">
-                      <i class="fa-solid fa-play"></i>
-                      <span data-i18n="tools.sorter.applyAction">${t("tools.sorter.applyAction")}</span>
-                    </button>
                   </div>
                 </div>
                 <div class="sorter-workspace-grid">
@@ -1245,6 +1231,16 @@ export default function renderToolsView() {
                     </div>
                   </div>
                 </div>
+                <div class="sorter-actions sorter-actions--workspace">
+                  <button id="sorter-preview-run" type="button" class="large-button secondary">
+                    <i class="fa-regular fa-eye"></i>
+                    <span data-i18n="tools.sorter.previewAction">${t("tools.sorter.previewAction")}</span>
+                  </button>
+                  <button id="sorter-apply-run" type="button" class="large-button">
+                    <i class="fa-solid fa-play"></i>
+                    <span data-i18n="tools.sorter.applyAction">${t("tools.sorter.applyAction")}</span>
+                  </button>
+                </div>
               </section>
               <div class="sorter-setup-grid">
                 <section class="sorter-rules-panel sorter-surface sorter-surface--rules" aria-label="${t("tools.sorter.rules.title")}">
@@ -1268,7 +1264,7 @@ export default function renderToolsView() {
                     </div>
                   </div>
                   <div class="sorter-options-grid">
-                    <div class="sorter-option-field">
+                    <div class="sorter-option-field sorter-option-field--conflict">
                       <label for="sorter-conflict-mode" class="muted" data-i18n="tools.sorter.conflicts.label">${t("tools.sorter.conflicts.label")}</label>
                       <select id="sorter-conflict-mode" class="wg-input">
                         <option value="rename" data-i18n="tools.sorter.conflicts.rename">${t("tools.sorter.conflicts.rename")}</option>
@@ -1276,34 +1272,38 @@ export default function renderToolsView() {
                         <option value="replace" data-i18n="tools.sorter.conflicts.replace">${t("tools.sorter.conflicts.replace")}</option>
                       </select>
                     </div>
-                    <label class="sorter-option-toggle" for="sorter-recursive">
-                      <input id="sorter-recursive" type="checkbox" />
-                      <span>
-                        <strong data-i18n="tools.sorter.recursive.label">${t("tools.sorter.recursive.label")}</strong>
-                        <small class="muted" data-i18n="tools.sorter.recursive.hint">
-                          ${t("tools.sorter.recursive.hint")}
-                        </small>
-                      </span>
-                    </label>
-                    <div class="sorter-option-field">
-                      <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">${t("tools.sorter.ignoreExtensions.label")}</label>
-                      <input
-                        id="sorter-ignore-extensions"
-                        type="text"
-                        class="wg-input"
-                        data-i18n-placeholder="tools.sorter.ignoreExtensions.placeholder"
-                        placeholder=".tmp, .part, .crdownload"
-                      />
-                    </div>
-                    <div class="sorter-option-field">
-                      <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">${t("tools.sorter.ignoreFolders.label")}</label>
-                      <input
-                        id="sorter-ignore-folders"
-                        type="text"
-                        class="wg-input"
-                        data-i18n-placeholder="tools.sorter.ignoreFolders.placeholder"
-                        placeholder="temp, cache"
-                      />
+                    <div class="sorter-options-stack">
+                      <label class="sorter-option-toggle" for="sorter-recursive">
+                        <input id="sorter-recursive" type="checkbox" />
+                        <span>
+                          <strong data-i18n="tools.sorter.recursive.label">${t("tools.sorter.recursive.label")}</strong>
+                          <small class="muted" data-i18n="tools.sorter.recursive.hint">
+                            ${t("tools.sorter.recursive.hint")}
+                          </small>
+                        </span>
+                      </label>
+                      <div class="sorter-ignore-grid">
+                        <div class="sorter-option-field">
+                          <label for="sorter-ignore-extensions" class="muted" data-i18n="tools.sorter.ignoreExtensions.label">${t("tools.sorter.ignoreExtensions.label")}</label>
+                          <input
+                            id="sorter-ignore-extensions"
+                            type="text"
+                            class="wg-input"
+                            data-i18n-placeholder="tools.sorter.ignoreExtensions.placeholder"
+                            placeholder=".tmp, .part, .crdownload"
+                          />
+                        </div>
+                        <div class="sorter-option-field">
+                          <label for="sorter-ignore-folders" class="muted" data-i18n="tools.sorter.ignoreFolders.label">${t("tools.sorter.ignoreFolders.label")}</label>
+                          <input
+                            id="sorter-ignore-folders"
+                            type="text"
+                            class="wg-input"
+                            data-i18n-placeholder="tools.sorter.ignoreFolders.placeholder"
+                            placeholder="temp, cache"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -1313,8 +1313,8 @@ export default function renderToolsView() {
               ${t("tools.sorter.resultIdle")}
             </div>
             <section id="sorter-preview-panel" class="sorter-preview-panel sorter-surface sorter-surface--preview hidden" aria-live="polite">
-              <div class="sorter-preview-hero">
-                <div class="sorter-preview-header">
+              <div class="sorter-preview-topline">
+                <div class="sorter-preview-heading">
                   <div class="sorter-section-intro">
                     <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">${t("tools.sorter.preview.title")}</h3>
                   </div>
@@ -1325,42 +1325,6 @@ export default function renderToolsView() {
                   >
                     ${t("tools.sorter.preview.badge")}
                   </span>
-                </div>
-                <div class="sorter-preview-toolbar">
-                  <div class="sorter-preview-toolbar__filters">
-                    <input
-                      id="sorter-preview-search"
-                      type="text"
-                      class="wg-input"
-                      data-i18n-placeholder="tools.sorter.preview.searchPlaceholder"
-                      placeholder="${t("tools.sorter.preview.searchPlaceholder")}"
-                    />
-                    <select id="sorter-preview-category-filter" class="wg-input">
-                      <option value="all" data-i18n="tools.sorter.preview.filter.all">${t("tools.sorter.preview.filter.all")}</option>
-                    </select>
-                    <select id="sorter-preview-status-filter" class="wg-input">
-                      <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">${t("tools.sorter.preview.statusFilter.all")}</option>
-                      <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">${t("tools.sorter.preview.statusFilter.planned")}</option>
-                      <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">${t("tools.sorter.preview.statusFilter.moved")}</option>
-                      <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">${t("tools.sorter.preview.statusFilter.skipped")}</option>
-                      <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">${t("tools.sorter.preview.statusFilter.error")}</option>
-                    </select>
-                  </div>
-                  <div class="sorter-preview-toolbar__actions">
-                    <select id="sorter-export-format" class="wg-input sorter-export-format">
-                      <option value="txt">TXT</option>
-                      <option value="csv">CSV</option>
-                      <option value="json">JSON</option>
-                    </select>
-                    <button id="sorter-copy-result" type="button" class="small-button">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="tools.sorter.copy">${t("tools.sorter.copy")}</span>
-                    </button>
-                    <button id="sorter-export-result" type="button" class="small-button">
-                      <i class="fa-regular fa-file-export"></i>
-                      <span data-i18n="tools.sorter.export">${t("tools.sorter.export")}</span>
-                    </button>
-                  </div>
                 </div>
                 <div id="sorter-preview-stats" class="sorter-preview-stats">
                   <div class="sorter-preview-stat sorter-preview-stat--primary">
@@ -1379,6 +1343,42 @@ export default function renderToolsView() {
                     <span class="muted" data-i18n="tools.sorter.preview.stats.errors">${t("tools.sorter.preview.stats.errors")}</span>
                     <strong id="sorter-preview-stat-errors">0</strong>
                   </div>
+                </div>
+              </div>
+              <div class="sorter-preview-controls">
+                <div class="sorter-preview-controls__filters">
+                  <input
+                    id="sorter-preview-search"
+                    type="text"
+                    class="wg-input"
+                    data-i18n-placeholder="tools.sorter.preview.searchPlaceholder"
+                    placeholder="${t("tools.sorter.preview.searchPlaceholder")}"
+                  />
+                  <select id="sorter-preview-category-filter" class="wg-input">
+                    <option value="all" data-i18n="tools.sorter.preview.filter.all">${t("tools.sorter.preview.filter.all")}</option>
+                  </select>
+                  <select id="sorter-preview-status-filter" class="wg-input">
+                    <option value="all" data-i18n="tools.sorter.preview.statusFilter.all">${t("tools.sorter.preview.statusFilter.all")}</option>
+                    <option value="planned" data-i18n="tools.sorter.preview.statusFilter.planned">${t("tools.sorter.preview.statusFilter.planned")}</option>
+                    <option value="moved" data-i18n="tools.sorter.preview.statusFilter.moved">${t("tools.sorter.preview.statusFilter.moved")}</option>
+                    <option value="skipped" data-i18n="tools.sorter.preview.statusFilter.skipped">${t("tools.sorter.preview.statusFilter.skipped")}</option>
+                    <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">${t("tools.sorter.preview.statusFilter.error")}</option>
+                  </select>
+                </div>
+                <div class="sorter-preview-controls__actions">
+                  <select id="sorter-export-format" class="wg-input sorter-export-format">
+                    <option value="txt">TXT</option>
+                    <option value="csv">CSV</option>
+                    <option value="json">JSON</option>
+                  </select>
+                  <button id="sorter-copy-result" type="button" class="small-button">
+                    <i class="fa-regular fa-copy"></i>
+                    <span data-i18n="tools.sorter.copy">${t("tools.sorter.copy")}</span>
+                  </button>
+                  <button id="sorter-export-result" type="button" class="small-button">
+                    <i class="fa-regular fa-file-export"></i>
+                    <span data-i18n="tools.sorter.export">${t("tools.sorter.export")}</span>
+                  </button>
                 </div>
               </div>
               <div class="sorter-preview-layout">
@@ -2283,10 +2283,7 @@ export default function renderToolsView() {
     const openWgHowtoModal = () => {
       if (!wgHowtoModalEl || !wgHowtoDialogEl) return;
       wgHowtoReturnFocusEl = document.activeElement;
-      if (wgHowtoPrevOverflow === null) {
-        wgHowtoPrevOverflow = document.documentElement.style.overflow;
-      }
-      document.documentElement.style.overflow = "hidden";
+      acquireDocumentScrollLock(WG_HOWTO_SCROLL_LOCK_OWNER);
       wgHowtoModalEl.classList.remove("hidden");
       wgHowtoModalEl.setAttribute("aria-hidden", "false");
       wgHowtoDialogEl.setAttribute("aria-hidden", "false");
@@ -2299,10 +2296,7 @@ export default function renderToolsView() {
       wgHowtoModalEl.classList.add("hidden");
       wgHowtoModalEl.setAttribute("aria-hidden", "true");
       wgHowtoDialogEl.setAttribute("aria-hidden", "true");
-      if (wgHowtoPrevOverflow !== null) {
-        document.documentElement.style.overflow = wgHowtoPrevOverflow;
-        wgHowtoPrevOverflow = null;
-      }
+      releaseDocumentScrollLock(WG_HOWTO_SCROLL_LOCK_OWNER);
       if (returnFocus) {
         if (wgHowtoReturnFocusEl?.focus) wgHowtoReturnFocusEl.focus();
         else wgOpenHowtoBtn?.focus();
@@ -2467,10 +2461,7 @@ export default function renderToolsView() {
     const openHashHowtoModal = () => {
       if (!hashHowtoModalEl || !hashHowtoDialogEl) return;
       hashHowtoReturnFocusEl = document.activeElement;
-      if (hashHowtoPrevOverflow === null) {
-        hashHowtoPrevOverflow = document.documentElement.style.overflow;
-      }
-      document.documentElement.style.overflow = "hidden";
+      acquireDocumentScrollLock(HASH_HOWTO_SCROLL_LOCK_OWNER);
       hashHowtoModalEl.classList.remove("hidden");
       hashHowtoModalEl.setAttribute("aria-hidden", "false");
       hashHowtoDialogEl.setAttribute("aria-hidden", "false");
@@ -2483,10 +2474,7 @@ export default function renderToolsView() {
       hashHowtoModalEl.classList.add("hidden");
       hashHowtoModalEl.setAttribute("aria-hidden", "true");
       hashHowtoDialogEl.setAttribute("aria-hidden", "true");
-      if (hashHowtoPrevOverflow !== null) {
-        document.documentElement.style.overflow = hashHowtoPrevOverflow;
-        hashHowtoPrevOverflow = null;
-      }
+      releaseDocumentScrollLock(HASH_HOWTO_SCROLL_LOCK_OWNER);
       if (returnFocus) {
         if (hashHowtoReturnFocusEl?.focus) hashHowtoReturnFocusEl.focus();
         else hashOpenHowtoBtn?.focus();
@@ -3310,10 +3298,7 @@ export default function renderToolsView() {
     const openSorterHowtoModal = () => {
       if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
       sorterHowtoReturnFocusEl = document.activeElement;
-      if (sorterHowtoPrevOverflow === null) {
-        sorterHowtoPrevOverflow = document.documentElement.style.overflow;
-      }
-      document.documentElement.style.overflow = "hidden";
+      acquireDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
       sorterHowtoModalEl.classList.remove("hidden");
       sorterHowtoModalEl.setAttribute("aria-hidden", "false");
       sorterHowtoDialogEl.setAttribute("aria-hidden", "false");
@@ -3326,10 +3311,7 @@ export default function renderToolsView() {
       sorterHowtoModalEl.classList.add("hidden");
       sorterHowtoModalEl.setAttribute("aria-hidden", "true");
       sorterHowtoDialogEl.setAttribute("aria-hidden", "true");
-      if (sorterHowtoPrevOverflow !== null) {
-        document.documentElement.style.overflow = sorterHowtoPrevOverflow;
-        sorterHowtoPrevOverflow = null;
-      }
+      releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
       if (returnFocus) {
         if (sorterHowtoReturnFocusEl?.focus) sorterHowtoReturnFocusEl.focus();
         else sorterOpenHowtoBtn?.focus();
@@ -3441,10 +3423,7 @@ export default function renderToolsView() {
     const openPowerHowtoModal = () => {
       if (!powerHowtoModalEl || !powerHowtoDialogEl) return;
       powerHowtoReturnFocusEl = document.activeElement;
-      if (powerHowtoPrevOverflow === null) {
-        powerHowtoPrevOverflow = document.documentElement.style.overflow;
-      }
-      document.documentElement.style.overflow = "hidden";
+      acquireDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
       powerHowtoModalEl.classList.remove("hidden");
       powerHowtoModalEl.setAttribute("aria-hidden", "false");
       powerHowtoDialogEl.setAttribute("aria-hidden", "false");
@@ -3457,10 +3436,7 @@ export default function renderToolsView() {
       powerHowtoModalEl.classList.add("hidden");
       powerHowtoModalEl.setAttribute("aria-hidden", "true");
       powerHowtoDialogEl.setAttribute("aria-hidden", "true");
-      if (powerHowtoPrevOverflow !== null) {
-        document.documentElement.style.overflow = powerHowtoPrevOverflow;
-        powerHowtoPrevOverflow = null;
-      }
+      releaseDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
       if (returnFocus) {
         if (powerHowtoReturnFocusEl?.focus) powerHowtoReturnFocusEl.focus();
         else powerOpenHowtoBtn?.focus();

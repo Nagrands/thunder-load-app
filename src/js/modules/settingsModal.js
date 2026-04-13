@@ -12,9 +12,14 @@ import { settingsModal, settingsTrigger } from "./domElements.js";
 import { t } from "./i18n.js";
 import { initFirstRunModal } from "./firstRunModal.js";
 import { hideAllTooltips } from "./tooltipInitializer.js";
+import {
+  acquireBodyScrollLock,
+  releaseBodyScrollLock,
+} from "./scrollLockManager.js";
 
 let previousFocus = null;
 let trapHandler = null;
+const SETTINGS_MODAL_SCROLL_LOCK_OWNER = "settings-modal";
 
 function isDownloadQualityModalOpen() {
   return !!document
@@ -25,7 +30,8 @@ function isDownloadQualityModalOpen() {
 function syncModalScrollLock() {
   const shouldLock =
     settingsModal?.style.display === "flex" || isDownloadQualityModalOpen();
-  document.body.classList.toggle("modal-scroll-lock", shouldLock);
+  if (shouldLock) acquireBodyScrollLock(SETTINGS_MODAL_SCROLL_LOCK_OWNER);
+  else releaseBodyScrollLock(SETTINGS_MODAL_SCROLL_LOCK_OWNER);
 }
 
 function getSettingsTabsWrapper() {

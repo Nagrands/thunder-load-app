@@ -292,6 +292,15 @@ describe("toolsView quick actions", () => {
     });
   });
 
+  afterEach(() => {
+    Array.from(document.body.children).forEach((child) => {
+      child.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
+    });
+    document.body.innerHTML = "";
+    document.body.className = "";
+    document.documentElement.style.overflow = "";
+  });
+
   test("opens launcher by default and keeps power tool unavailable on macos", async () => {
     const el = await renderView();
     const powerBtn = el.querySelector("#tools-open-power");
@@ -401,11 +410,17 @@ describe("toolsView quick actions", () => {
 
   test("cleans up ipc listeners when the tools view is hidden", async () => {
     const el = await renderView();
+    await openTool(el, "hash");
+    el.querySelector("#hash-open-howto")?.click();
+    await nextTick();
+
+    expect(document.documentElement.style.overflow).toBe("hidden");
     expect(window.electron.ipcRenderer.removeListener).not.toHaveBeenCalled();
 
-    el.dispatchEvent(new Event("tools:view-hidden"));
+    el.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
 
     expect(window.electron.ipcRenderer.removeListener).toHaveBeenCalled();
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("opens launcher by default even if last tool is stored", async () => {
@@ -510,7 +525,8 @@ describe("toolsView quick actions", () => {
 
     expect(el.querySelector(".sorter-shell")).not.toBeNull();
     expect(el.querySelector(".sorter-workspace-strip")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-hero")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-topline")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-controls")).not.toBeNull();
     expect(el.querySelector(".sorter-workspace-panel")).not.toBeNull();
     expect(el.querySelector(".sorter-setup-grid")).not.toBeNull();
     expect(el.querySelector(".sorter-preview-layout")).not.toBeNull();
@@ -1286,6 +1302,7 @@ describe("toolsView quick actions", () => {
 
     expect(modal?.classList.contains("hidden")).toBe(false);
     expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(document.documentElement.style.overflow).toBe("hidden");
     expect(prevBtn?.disabled).toBe(true);
     expect(nextBtn?.disabled).toBe(false);
     expect(track?.style.transform).toBe("translateX(-0%)");
@@ -1330,6 +1347,7 @@ describe("toolsView quick actions", () => {
 
     expect(modal?.classList.contains("hidden")).toBe(true);
     expect(document.activeElement).toBe(openBtn);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("hash how-to modal closes on overlay click", async () => {
@@ -1346,6 +1364,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("wg how-to modal opens and can navigate slides", async () => {
@@ -1363,6 +1382,7 @@ describe("toolsView quick actions", () => {
 
     expect(modal?.classList.contains("hidden")).toBe(false);
     expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(document.documentElement.style.overflow).toBe("hidden");
     expect(prevBtn?.disabled).toBe(true);
     expect(nextBtn?.disabled).toBe(false);
     expect(track?.style.transform).toBe("translateX(-0%)");
@@ -1407,6 +1427,7 @@ describe("toolsView quick actions", () => {
 
     expect(modal?.classList.contains("hidden")).toBe(true);
     expect(document.activeElement).toBe(openBtn);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("wg how-to modal closes on overlay click", async () => {
@@ -1423,6 +1444,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("power how-to modal opens and can navigate slides", async () => {
@@ -1440,6 +1462,7 @@ describe("toolsView quick actions", () => {
 
     expect(modal?.classList.contains("hidden")).toBe(false);
     expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(document.documentElement.style.overflow).toBe("hidden");
     expect(prevBtn?.disabled).toBe(true);
     expect(nextBtn?.disabled).toBe(false);
     expect(track?.style.transform).toBe("translateX(-0%)");
@@ -1483,6 +1506,7 @@ describe("toolsView quick actions", () => {
 
     expect(modal?.classList.contains("hidden")).toBe(true);
     expect(document.activeElement).toBe(openBtn);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("power how-to modal closes on overlay click", async () => {
@@ -1499,6 +1523,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("sorter how-to modal opens and can navigate slides", async () => {
@@ -1515,6 +1540,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(modal?.classList.contains("hidden")).toBe(false);
+    expect(document.documentElement.style.overflow).toBe("hidden");
     expect(track?.style.transform).toBe("translateX(-0%)");
 
     nextBtn?.click();
@@ -1530,6 +1556,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(modal?.classList.contains("hidden")).toBe(true);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("renders WG quick hierarchy with primary and secondary actions", async () => {

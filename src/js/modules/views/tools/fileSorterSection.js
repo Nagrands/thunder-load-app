@@ -1,9 +1,14 @@
 const SORTER_LAST_FOLDER_KEY = "toolsSorterLastFolder";
+import {
+  acquireDocumentScrollLock,
+  releaseDocumentScrollLock,
+} from "../../scrollLockManager.js";
 const SORTER_LOG_PATH_KEY = "toolsSorterLogPath";
 const SORTER_CONFLICT_MODE_KEY = "toolsSorterConflictMode";
 const SORTER_RECURSIVE_KEY = "toolsSorterRecursive";
 const SORTER_IGNORE_EXTENSIONS_KEY = "toolsSorterIgnoreExtensions";
 const SORTER_IGNORE_FOLDERS_KEY = "toolsSorterIgnoreFolders";
+const SORTER_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-sorter";
 
 const SORTER_CATEGORY_ORDER = [
   "Images",
@@ -80,7 +85,6 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
   const SORTER_PREVIEW_LIMIT = 20;
   const sorterHowtoSlideCount = 4;
   let sorterSelectedFolder = "";
-  let sorterHowtoPrevOverflow = null;
   let sorterHowtoIndex = 0;
   let sorterHowtoReturnFocusEl = null;
   let sorterBusy = false;
@@ -670,10 +674,7 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
   const openSorterHowtoModal = () => {
     if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
     sorterHowtoReturnFocusEl = document.activeElement;
-    if (sorterHowtoPrevOverflow === null) {
-      sorterHowtoPrevOverflow = document.documentElement.style.overflow;
-    }
-    document.documentElement.style.overflow = "hidden";
+    acquireDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
     sorterHowtoModalEl.classList.remove("hidden");
     sorterHowtoModalEl.setAttribute("aria-hidden", "false");
     sorterHowtoDialogEl.setAttribute("aria-hidden", "false");
@@ -686,10 +687,7 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
     sorterHowtoModalEl.classList.add("hidden");
     sorterHowtoModalEl.setAttribute("aria-hidden", "true");
     sorterHowtoDialogEl.setAttribute("aria-hidden", "true");
-    if (sorterHowtoPrevOverflow !== null) {
-      document.documentElement.style.overflow = sorterHowtoPrevOverflow;
-      sorterHowtoPrevOverflow = null;
-    }
+    releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
     if (returnFocus) {
       if (sorterHowtoReturnFocusEl?.focus) sorterHowtoReturnFocusEl.focus();
       else sorterOpenHowtoBtn?.focus();
@@ -880,9 +878,6 @@ export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
   updateSorterHowtoUi();
 
   registerCleanup?.(() => {
-    if (sorterHowtoPrevOverflow !== null) {
-      document.documentElement.style.overflow = sorterHowtoPrevOverflow;
-      sorterHowtoPrevOverflow = null;
-    }
+    releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
   });
 }

@@ -151,10 +151,16 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
-  it("clears stale body scroll lock on refocus when modal is no longer open", async () => {
+  it("does not remove another modal body lock when quality modal closes", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
       const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const {
+        acquireBodyScrollLock,
+        releaseBodyScrollLock,
+      } = require("../scrollLockManager.js");
+
+      acquireBodyScrollLock("settings-modal");
 
       const resultPromise = openDownloadQualityModal(
         "https://example.com/video",
@@ -162,16 +168,13 @@ describe("downloadQualityModal close behavior", () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      const modal = document.getElementById("download-quality-modal");
-      modal.classList.remove("is-open");
-      document.body.classList.add("modal-scroll-lock");
-
-      window.dispatchEvent(new Event("focus"));
-
-      expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
-
       document.getElementById("download-quality-cancel").click();
       await resultPromise;
+
+      expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
+
+      releaseBodyScrollLock("settings-modal");
+      expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
     });
   });
 

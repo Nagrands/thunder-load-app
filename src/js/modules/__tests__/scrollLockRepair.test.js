@@ -19,14 +19,13 @@ describe("scrollLockRepair", () => {
     });
   });
 
-  test("keeps body scroll lock when settings modal is still open", async () => {
+  test("keeps body scroll lock when a lock owner is still active", async () => {
     await jest.isolateModulesAsync(async () => {
       const { initScrollLockRepair } = await import("../scrollLockRepair.js");
+      const { acquireBodyScrollLock } = await import("../scrollLockManager.js");
 
-      document.body.innerHTML = `
-        <div id="settings-modal" aria-hidden="false" style="display:flex"></div>
-      `;
-      document.body.classList.add("modal-scroll-lock");
+      acquireBodyScrollLock("settings-modal");
+      document.body.classList.remove("modal-scroll-lock");
       initScrollLockRepair();
 
       window.dispatchEvent(new Event("focus"));
@@ -48,19 +47,43 @@ describe("scrollLockRepair", () => {
     });
   });
 
-  test("keeps document overflow lock while a modal overlay is visible", async () => {
+  test("keeps document overflow lock while a lock owner is still active", async () => {
     await jest.isolateModulesAsync(async () => {
       const { initScrollLockRepair } = await import("../scrollLockRepair.js");
+      const { acquireDocumentScrollLock } = await import(
+        "../scrollLockManager.js"
+      );
 
-      document.body.innerHTML = `
-        <div class="modal-overlay" style="display:flex"></div>
-      `;
-      document.documentElement.style.overflow = "hidden";
+      acquireDocumentScrollLock("hash-howto");
+      document.documentElement.style.overflow = "";
       initScrollLockRepair();
 
       window.dispatchEvent(new Event("focus"));
 
       expect(document.documentElement.style.overflow).toBe("hidden");
+    });
+  });
+
+  test("clears all scroll locks when tools view is hidden", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const { initScrollLockRepair } = await import("../scrollLockRepair.js");
+      const {
+        acquireBodyScrollLock,
+        acquireDocumentScrollLock,
+      } = await import("../scrollLockManager.js");
+
+      acquireBodyScrollLock("settings-modal");
+      acquireDocumentScrollLock("hash-howto");
+      initScrollLockRepair();
+
+      const toolsView = document.createElement("div");
+      document.body.appendChild(toolsView);
+      toolsView.dispatchEvent(
+        new CustomEvent("tools:view-hidden", { bubbles: true }),
+      );
+
+      expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.documentElement.style.overflow).toBe("");
     });
   });
 });
