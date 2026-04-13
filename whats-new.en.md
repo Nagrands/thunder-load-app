@@ -14,3 +14,4 @@
 | Tab content no longer slides under the footer | Top-level screens now reserve space for the bottom bar, so work areas and lower controls stay visible above the fixed footer |
 | Windows system quick shortcuts were updated in Tools | Instead of Device Manager and Network Settings, the panel now creates shortcuts for `appwiz.cpl` (Programs and Features) and `cleanmgr` (Disk Cleanup) |
 | The quick shortcuts panel in Tools is now more compact | The always-visible summary block was removed, the section header uses less space, and the latest-action status appears only after an operation runs |
+| Hash Check now has a compact redesign and fixed Drag and Drop on Windows | File selection and verification settings take less space, there is a quick reset action, and dropped Windows paths plus `file://` URIs are parsed correctly again |

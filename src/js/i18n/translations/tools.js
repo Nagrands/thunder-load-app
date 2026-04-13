@@ -523,7 +523,8 @@ export const toolsTranslations = {
     "tools.sorter.howto.slide4.desc":
       "После запуска вы увидите статистику. При желании можно сохранить лог-файл со всеми действиями.",
     "hashCheck.title": "Проверка хеша",
-    "hashCheck.subtitle": "Проверьте целостность файла по контрольной сумме.",
+    "hashCheck.subtitle":
+      "Быстро сверяйте контрольную сумму файла, ожидаемый хеш или второй файл.",
     "hashCheck.file1": "Файл 1",
     "hashCheck.file2": "Файл 2",
     "hashCheck.primaryFile": "Основной файл",
@@ -545,11 +546,12 @@ export const toolsTranslations = {
     "hashCheck.pickFileSecond": "Выбрать файл",
     "hashCheck.noFileSecond": "Второй файл не выбран",
     "hashCheck.clearSecond": "Очистить файл 2",
+    "hashCheck.clearAll": "Сбросить",
     "hashCheck.algorithm": "Алгоритм",
     "hashCheck.expected": "Ожидаемый хеш",
     "hashCheck.expectedPlaceholder": "Вставьте хеш для сравнения (опционально)",
     "hashCheck.expectedHint":
-      "Если выбран второй файл, ожидаемый хеш сравнивается с каждым файлом отдельно.",
+      "Ожидаемый хеш необязателен. Если выбран второй файл, сравнение выполняется для обоих.",
     "hashCheck.run": "Проверить",
     "hashCheck.resultIdle": "Результат появится после проверки.",
     "hashCheck.needFile": "Сначала выберите файл",
@@ -609,7 +611,7 @@ export const toolsTranslations = {
     "hashCheck.dropHintSecond":
       "Первый файл уже выбран. Бросьте второй файл для сравнения.",
     "hashCheck.dropHintCompare":
-      "Основной файл уже выбран. Можно открыть сравнение или сразу бросить второй файл.",
+      "Основной файл уже выбран. Можно сразу добавить второй файл или сверить ожидаемый хеш.",
     "hashCheck.dropHintReplaceSecond":
       "Оба файла выбраны. Новый файл заменит файл 2.",
     "hashCheck.dropHintBusy": "Дождитесь завершения вычисления хеша.",
@@ -1365,7 +1367,8 @@ export const toolsTranslations = {
     "tools.sorter.howto.slide4.desc":
       "After running, check the summary. You can also save a log file with all actions.",
     "hashCheck.title": "Hash Check",
-    "hashCheck.subtitle": "Verify file integrity with checksums.",
+    "hashCheck.subtitle":
+      "Quickly verify a file against a checksum, an expected hash, or a second file.",
     "hashCheck.file1": "File 1",
     "hashCheck.file2": "File 2",
     "hashCheck.primaryFile": "Primary file",
@@ -1387,11 +1390,12 @@ export const toolsTranslations = {
     "hashCheck.pickFileSecond": "Pick file",
     "hashCheck.noFileSecond": "Second file not selected",
     "hashCheck.clearSecond": "Clear file 2",
+    "hashCheck.clearAll": "Reset",
     "hashCheck.algorithm": "Algorithm",
     "hashCheck.expected": "Expected hash",
     "hashCheck.expectedPlaceholder": "Paste hash to compare (optional)",
     "hashCheck.expectedHint":
-      "When the second file is selected, expected hash is checked against each file.",
+      "Expected hash is optional. When a second file is selected, both files are checked.",
     "hashCheck.run": "Verify",
     "hashCheck.resultIdle": "Result will appear after verification.",
     "hashCheck.needFile": "Select a file first",
@@ -1451,7 +1455,7 @@ export const toolsTranslations = {
     "hashCheck.dropHintSecond":
       "The first file is already selected. Drop a second file to compare.",
     "hashCheck.dropHintCompare":
-      "The primary file is ready. Open comparison or drop a second file right away.",
+      "The primary file is ready. Add a second file right away or compare against an expected hash.",
     "hashCheck.dropHintReplaceSecond":
       "Both files are selected. A new drop will replace file 2.",
     "hashCheck.dropHintBusy": "Wait until hash calculation is finished.",

@@ -743,23 +743,27 @@ export default function renderToolsView() {
 
         <section class="tools-view hidden" data-tool-view="hash" aria-label="${t("tools.nav.current.hash")}">
           <article class="tools-card tools-detail-card">
-            <div class="tools-card__header">
-              <h2 data-i18n="hashCheck.title">${t("hashCheck.title")}</h2>
-              <button
-                id="hash-open-howto"
-                type="button"
-                class="small-button hash-howto-open"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                data-i18n-title="hashCheck.howto.open"
-                data-i18n-aria="hashCheck.howto.open"
-                title="${t("hashCheck.howto.open")}"
-                aria-label="${t("hashCheck.howto.open")}"
-              >
-                <i class="fa-regular fa-circle-question"></i>
-              </button>
+            <div class="tools-card__header hash-header">
+              <div class="hash-header__copy">
+                <h2 data-i18n="hashCheck.title">${t("hashCheck.title")}</h2>
+                <p class="tools-card__hint" data-i18n="hashCheck.subtitle">${t("hashCheck.subtitle")}</p>
+              </div>
+              <div class="hash-header__actions">
+                <button
+                  id="hash-open-howto"
+                  type="button"
+                  class="small-button hash-howto-open"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  data-i18n-title="hashCheck.howto.open"
+                  data-i18n-aria="hashCheck.howto.open"
+                  title="${t("hashCheck.howto.open")}"
+                  aria-label="${t("hashCheck.howto.open")}"
+                >
+                  <i class="fa-regular fa-circle-question"></i>
+                </button>
+              </div>
             </div>
-            <p class="tools-card__hint" data-i18n="hashCheck.subtitle">${t("hashCheck.subtitle")}</p>
             <div class="hash-shell">
               <section class="hash-stage hash-stage--source" aria-labelledby="hash-source-title">
                 <div class="hash-stage__header">
@@ -810,12 +814,12 @@ export default function renderToolsView() {
                       <span id="hash-file-name" class="hash-file-pill muted" data-i18n="hashCheck.noFile">${t("hashCheck.noFile")}</span>
                     </div>
                   </article>
-                  <article class="hash-file-card hash-file-card--compare-toggle">
-                    <div class="hash-file-card__top">
-                      <span class="muted hash-file-label" data-i18n="hashCheck.compareTitle">${t("hashCheck.compareTitle")}</span>
-                    </div>
-                    <div class="hash-file-card__body">
-                      <p class="muted hash-file-card__hint" data-i18n="hashCheck.compareHint">${t("hashCheck.compareHint")}</p>
+                  <div class="hash-compare-column">
+                    <div class="hash-compare-summary">
+                      <div class="hash-compare-summary__copy">
+                        <span class="muted hash-file-label" data-i18n="hashCheck.compareTitle">${t("hashCheck.compareTitle")}</span>
+                        <p class="muted hash-file-card__hint" data-i18n="hashCheck.compareHint">${t("hashCheck.compareHint")}</p>
+                      </div>
                       <button
                         id="hash-toggle-compare"
                         type="button"
@@ -827,37 +831,37 @@ export default function renderToolsView() {
                         <span id="hash-toggle-compare-label" data-i18n="hashCheck.compareToggle.open">${t("hashCheck.compareToggle.open")}</span>
                       </button>
                     </div>
-                  </article>
-                </div>
-                <div id="hash-compare-panel" class="hash-compare-panel hidden" aria-hidden="true">
-                  <article class="hash-file-card hash-file-card--secondary">
-                    <div class="hash-file-card__top">
-                      <span class="muted hash-file-label" data-i18n="hashCheck.compareFile">${t("hashCheck.compareFile")}</span>
-                      <div class="hash-actions-inline">
-                        <button id="hash-pick-file-2" type="button" class="small-button">
-                          <i class="fa-regular fa-file"></i>
-                          <span data-i18n="hashCheck.pickFileSecond">${t("hashCheck.pickFileSecond")}</span>
-                        </button>
-                        <button
-                          id="hash-clear-file-2"
-                          type="button"
-                          class="small-button hash-clear-btn"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-i18n-title="hashCheck.clearSecond"
-                          data-i18n-aria="hashCheck.clearSecond"
-                          title="${t("hashCheck.clearSecond")}"
-                          aria-label="${t("hashCheck.clearSecond")}"
-                          disabled
-                        >
-                          <i class="fa-solid fa-xmark"></i>
-                        </button>
-                      </div>
+                    <div id="hash-compare-panel" class="hash-compare-panel hidden" aria-hidden="true">
+                      <article class="hash-file-card hash-file-card--secondary">
+                        <div class="hash-file-card__top">
+                          <span class="muted hash-file-label" data-i18n="hashCheck.compareFile">${t("hashCheck.compareFile")}</span>
+                          <div class="hash-actions-inline">
+                            <button id="hash-pick-file-2" type="button" class="small-button">
+                              <i class="fa-regular fa-file"></i>
+                              <span data-i18n="hashCheck.pickFileSecond">${t("hashCheck.pickFileSecond")}</span>
+                            </button>
+                            <button
+                              id="hash-clear-file-2"
+                              type="button"
+                              class="small-button hash-clear-btn"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              data-i18n-title="hashCheck.clearSecond"
+                              data-i18n-aria="hashCheck.clearSecond"
+                              title="${t("hashCheck.clearSecond")}"
+                              aria-label="${t("hashCheck.clearSecond")}"
+                              disabled
+                            >
+                              <i class="fa-solid fa-xmark"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="hash-file-card__body">
+                          <span id="hash-file-name-2" class="hash-file-pill muted" data-i18n="hashCheck.noFileSecond">${t("hashCheck.noFileSecond")}</span>
+                        </div>
+                      </article>
                     </div>
-                    <div class="hash-file-card__body">
-                      <span id="hash-file-name-2" class="hash-file-pill muted" data-i18n="hashCheck.noFileSecond">${t("hashCheck.noFileSecond")}</span>
-                    </div>
-                  </article>
+                  </div>
                 </div>
               </section>
 
@@ -895,10 +899,16 @@ export default function renderToolsView() {
                     <span class="muted hash-expected-hint" data-i18n="hashCheck.expectedHint">
                       ${t("hashCheck.expectedHint")}
                     </span>
-                    <button id="hash-run" type="button" class="large-button">
-                      <i class="fa-solid fa-play"></i>
-                      <span data-i18n="hashCheck.run">${t("hashCheck.run")}</span>
-                    </button>
+                    <div class="hash-config-actions">
+                      <button id="hash-clear-all" type="button" class="small-button hash-clear-all-btn" disabled>
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span data-i18n="hashCheck.clearAll">${t("hashCheck.clearAll")}</span>
+                      </button>
+                      <button id="hash-run" type="button" class="large-button">
+                        <i class="fa-solid fa-play"></i>
+                        <span data-i18n="hashCheck.run">${t("hashCheck.run")}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -912,62 +922,64 @@ export default function renderToolsView() {
                 </div>
                 <span id="hash-status-badge" class="hash-status-badge muted" data-i18n="hashCheck.status.idle">${t("hashCheck.status.idle")}</span>
               </div>
-              <div class="hash-actual-box">
-                <div class="hash-actual-box__top">
-                  <span id="hash-actual-label" class="muted">${t("hashCheck.actualLabelWithAlgorithm", { algorithm: "SHA-256" })}</span>
-                  <div class="hash-copy-wrap">
-                    <span id="hash-copy-feedback-1" class="hash-copy-feedback muted" aria-live="polite"></span>
-                    <button
-                      id="hash-copy-actual-1"
-                      type="button"
-                      class="small-button hash-copy-btn"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      data-i18n-title="hashCheck.copyActual"
-                      data-i18n-aria="hashCheck.copyActual"
-                      title="${t("hashCheck.copyActual")}"
-                      aria-label="${t("hashCheck.copyActual")}"
-                      disabled
-                    >
-                      <i class="fa-regular fa-copy"></i>
-                    </button>
+              <div class="hash-result-stack">
+                <div class="hash-actual-box">
+                  <div class="hash-actual-box__top">
+                    <span id="hash-actual-label" class="muted">${t("hashCheck.actualLabelWithAlgorithm", { algorithm: "SHA-256" })}</span>
+                    <div class="hash-copy-wrap">
+                      <span id="hash-copy-feedback-1" class="hash-copy-feedback muted" aria-live="polite"></span>
+                      <button
+                        id="hash-copy-actual-1"
+                        type="button"
+                        class="small-button hash-copy-btn"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-i18n-title="hashCheck.copyActual"
+                        data-i18n-aria="hashCheck.copyActual"
+                        title="${t("hashCheck.copyActual")}"
+                        aria-label="${t("hashCheck.copyActual")}"
+                        disabled
+                      >
+                        <i class="fa-regular fa-copy"></i>
+                      </button>
+                    </div>
                   </div>
+                  <code id="hash-actual-value">-</code>
                 </div>
-                <code id="hash-actual-value">-</code>
-              </div>
-              <div id="hash-actual-box-2" class="hash-actual-box hidden">
-                <div class="hash-actual-box__top">
-                  <span id="hash-actual-label-2" class="muted">${t("hashCheck.secondActualLabelWithAlgorithm", { algorithm: "SHA-256" })}</span>
-                  <div class="hash-copy-wrap">
-                    <span id="hash-copy-feedback-2" class="hash-copy-feedback muted" aria-live="polite"></span>
-                    <button
-                      id="hash-copy-actual-2"
-                      type="button"
-                      class="small-button hash-copy-btn"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      data-i18n-title="hashCheck.copyActualSecond"
-                      data-i18n-aria="hashCheck.copyActualSecond"
-                      title="${t("hashCheck.copyActualSecond")}"
-                      aria-label="${t("hashCheck.copyActualSecond")}"
-                      disabled
-                    >
-                      <i class="fa-regular fa-copy"></i>
-                    </button>
+                <div id="hash-actual-box-2" class="hash-actual-box hidden">
+                  <div class="hash-actual-box__top">
+                    <span id="hash-actual-label-2" class="muted">${t("hashCheck.secondActualLabelWithAlgorithm", { algorithm: "SHA-256" })}</span>
+                    <div class="hash-copy-wrap">
+                      <span id="hash-copy-feedback-2" class="hash-copy-feedback muted" aria-live="polite"></span>
+                      <button
+                        id="hash-copy-actual-2"
+                        type="button"
+                        class="small-button hash-copy-btn"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-i18n-title="hashCheck.copyActualSecond"
+                        data-i18n-aria="hashCheck.copyActualSecond"
+                        title="${t("hashCheck.copyActualSecond")}"
+                        aria-label="${t("hashCheck.copyActualSecond")}"
+                        disabled
+                      >
+                        <i class="fa-regular fa-copy"></i>
+                      </button>
+                    </div>
                   </div>
+                  <code id="hash-actual-value-2">-</code>
                 </div>
-                <code id="hash-actual-value-2">-</code>
-              </div>
-              <div id="hash-compare-details" class="hash-compare-details hidden">
-                <div class="hash-compare-row">
-                  <span class="hash-compare-row__label muted" data-i18n="hashCheck.primaryFile">${t("hashCheck.primaryFile")}</span>
-                  <span id="hash-compare-name-1" class="muted">${t("hashCheck.file1")}</span>
-                  <span id="hash-compare-state-1" class="hash-compare-state muted">-</span>
-                </div>
-                <div class="hash-compare-row">
-                  <span class="hash-compare-row__label muted" data-i18n="hashCheck.compareFile">${t("hashCheck.compareFile")}</span>
-                  <span id="hash-compare-name-2" class="muted">${t("hashCheck.file2")}</span>
-                  <span id="hash-compare-state-2" class="hash-compare-state muted">-</span>
+                <div id="hash-compare-details" class="hash-compare-details hidden">
+                  <div class="hash-compare-row">
+                    <span class="hash-compare-row__label muted" data-i18n="hashCheck.primaryFile">${t("hashCheck.primaryFile")}</span>
+                    <span id="hash-compare-name-1" class="muted">${t("hashCheck.file1")}</span>
+                    <span id="hash-compare-state-1" class="hash-compare-state muted">-</span>
+                  </div>
+                  <div class="hash-compare-row">
+                    <span class="hash-compare-row__label muted" data-i18n="hashCheck.compareFile">${t("hashCheck.compareFile")}</span>
+                    <span id="hash-compare-name-2" class="muted">${t("hashCheck.file2")}</span>
+                    <span id="hash-compare-state-2" class="hash-compare-state muted">-</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2318,6 +2330,7 @@ export default function renderToolsView() {
     const hashPickFileBtn = getEl("hash-pick-file", view);
     const hashPickFileSecondBtn = getEl("hash-pick-file-2", view);
     const hashClearFileSecondBtn = getEl("hash-clear-file-2", view);
+    const hashClearAllBtn = getEl("hash-clear-all", view);
     const hashRunBtn = getEl("hash-run", view);
     const hashFileNameEl = getEl("hash-file-name", view);
     const hashFileNameSecondEl = getEl("hash-file-name-2", view);
@@ -2372,6 +2385,15 @@ export default function renderToolsView() {
     const syncSecondFileControls = () => {
       if (!hashClearFileSecondBtn) return;
       hashClearFileSecondBtn.disabled = hashBusy || !hashSelectedFileSecond;
+    };
+
+    const syncHashUtilityButtons = () => {
+      if (!hashClearAllBtn) return;
+      const hasSelection =
+        !!hashSelectedFile ||
+        !!hashSelectedFileSecond ||
+        !!String(hashExpectedEl?.value || "").trim();
+      hashClearAllBtn.disabled = hashBusy || !hasSelection;
     };
 
     const syncHashComparePanel = () => {
@@ -2485,6 +2507,7 @@ export default function renderToolsView() {
         );
       }
       syncSecondFileControls();
+      syncHashUtilityButtons();
       syncHashComparePanel();
       updateHashDropZone();
     };
@@ -2593,6 +2616,7 @@ export default function renderToolsView() {
         hashCompareNameSecondEl.textContent =
           compareNameSecond || t("hashCheck.file2");
       }
+      syncHashUtilityButtons();
     };
 
     const setCopyFeedback = (el, key = "") => {
@@ -2675,6 +2699,18 @@ export default function renderToolsView() {
       });
     };
 
+    const resetHashSelections = () => {
+      hashComparePinnedByUser = false;
+      if (hashExpectedEl) hashExpectedEl.value = "";
+      applyHashFileSelection({
+        firstFilePath: "",
+        secondFilePath: "",
+      });
+      setHashCompareOpen(false);
+      setHashActualLabels();
+      syncHashUtilityButtons();
+    };
+
     const applyHashFileSelection = ({
       firstFilePath = hashSelectedFile,
       secondFilePath = hashSelectedFileSecond,
@@ -2696,9 +2732,26 @@ export default function renderToolsView() {
         hashCompareExpanded = true;
       }
       syncSecondFileControls();
+      syncHashUtilityButtons();
       syncHashComparePanel();
       updateHashDropZone();
       resetHashResultState();
+    };
+
+    const normalizeDroppedFilePath = (rawPath = "") => {
+      const value = String(rawPath || "").trim();
+      if (!value) return "";
+      if (/^[a-zA-Z]:[\\/]/.test(value) || /^\\\\/.test(value)) {
+        return value;
+      }
+      if (/^\/\/[^/]/.test(value)) {
+        return `\\\\${value.slice(2).replace(/\//g, "\\")}`;
+      }
+      const windowsDriveMatch = value.match(/^\/([a-zA-Z]:[\\/].*)$/);
+      if (windowsDriveMatch) {
+        return windowsDriveMatch[1];
+      }
+      return value;
     };
 
     const getDroppedFilePath = (entry) => {
@@ -2732,9 +2785,24 @@ export default function renderToolsView() {
         .map((line) => line.trim())
         .filter((line) => line && !line.startsWith("#"))
         .map((line) => {
-          if (!line.startsWith("file://")) return "";
+          if (
+            /^[a-zA-Z]:[\\/]/.test(line) ||
+            /^\\\\/.test(line) ||
+            /^\/\/[^/]/.test(line)
+          ) {
+            return normalizeDroppedFilePath(line);
+          }
+          if (!/^file:\/\//i.test(line)) return "";
           try {
-            return decodeURIComponent(new URL(line).pathname);
+            const parsed = new URL(line);
+            const host = parsed.hostname || "";
+            const decodedPath = decodeURIComponent(parsed.pathname || "");
+            if (host && host !== "localhost") {
+              return normalizeDroppedFilePath(
+                `\\\\${host}${decodedPath.replace(/\//g, "\\")}`,
+              );
+            }
+            return normalizeDroppedFilePath(decodedPath);
           } catch {
             return "";
           }
@@ -2752,6 +2820,7 @@ export default function renderToolsView() {
         ),
         ...parseDroppedUriList(dataTransfer?.getData?.("text/uri-list")),
         ...parseDroppedUriList(dataTransfer?.getData?.("text/plain")),
+        ...parseDroppedUriList(dataTransfer?.getData?.("text")),
       ].filter(Boolean);
 
       return Array.from(new Set(collected));
@@ -2870,6 +2939,11 @@ export default function renderToolsView() {
         firstFilePath: hashSelectedFile,
         secondFilePath: "",
       });
+    });
+
+    hashClearAllBtn?.addEventListener("click", () => {
+      if (hashBusy) return;
+      resetHashSelections();
     });
 
     hashCompareToggleBtn?.addEventListener("click", () => {
@@ -3163,8 +3237,10 @@ export default function renderToolsView() {
     syncHashComparePanel();
     setHashBusy(false);
     syncSecondFileControls();
+    syncHashUtilityButtons();
     updateHashDropZone();
     hashAlgorithmEl?.addEventListener("change", () => setHashActualLabels());
+    hashExpectedEl?.addEventListener("input", () => syncHashUtilityButtons());
     hashOpenHowtoBtn?.addEventListener("click", () => openHashHowtoModal());
     hashHowtoCloseBtn?.addEventListener("click", () => closeHashHowtoModal());
     hashHowtoPrevBtn?.addEventListener("click", () =>

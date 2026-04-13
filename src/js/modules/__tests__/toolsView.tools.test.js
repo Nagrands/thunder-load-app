@@ -1796,6 +1796,56 @@ describe("toolsView quick actions", () => {
     expect(comparePanel?.classList.contains("hidden")).toBe(false);
   });
 
+  test("accepts dropped Windows file URI from text/uri-list", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const firstFilePill = el.querySelector("#hash-file-name");
+
+    dispatchFileDropFromMixedSources(dropZone, {
+      textUriList: "file:///C:/Users/Demo/Downloads/windows-drop.iso",
+    });
+    await nextTick();
+
+    expect(firstFilePill?.textContent).toBe("windows-drop.iso");
+  });
+
+  test("accepts raw Windows path from text/plain drop data", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const firstFilePill = el.querySelector("#hash-file-name");
+
+    dispatchFileDropFromMixedSources(dropZone, {
+      textPlain: "C:\\Users\\Demo\\Downloads\\plain-drop.iso",
+    });
+    await nextTick();
+
+    expect(firstFilePill?.textContent).toBe("plain-drop.iso");
+  });
+
+  test("accepts localhost Windows file URI and opens compare panel for second file", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const firstFilePill = el.querySelector("#hash-file-name");
+    const secondFilePill = el.querySelector("#hash-file-name-2");
+    const comparePanel = el.querySelector("#hash-compare-panel");
+
+    dispatchFileDropFromMixedSources(dropZone, {
+      textUriList:
+        "file:///C:/Users/Demo/one.iso\nfile://localhost/C:/Users/Demo/two.iso",
+    });
+    await nextTick();
+
+    expect(firstFilePill?.textContent).toBe("one.iso");
+    expect(secondFilePill?.textContent).toBe("two.iso");
+    expect(comparePanel?.classList.contains("hidden")).toBe(false);
+  });
+
   test("highlights hash drop zone during drag operations", async () => {
     const el = await renderView();
     await openTool(el, "hash");
@@ -1848,6 +1898,40 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(window.electron.tools.calculateHash).toHaveBeenCalledTimes(1);
+  });
+
+  test("resets selected files and expected hash with clear all action", async () => {
+    window.electron.tools.pickFileForHash.mockResolvedValueOnce({
+      success: true,
+      filePath: "/tmp/file-a.bin",
+    });
+
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const pickBtn = el.querySelector("#hash-pick-file");
+    const expected = el.querySelector("#hash-expected");
+    const clearAllBtn = el.querySelector("#hash-clear-all");
+    const firstFilePill = el.querySelector("#hash-file-name");
+    const secondFilePill = el.querySelector("#hash-file-name-2");
+    const result = el.querySelector("#hash-result");
+
+    pickBtn.click();
+    await nextTick();
+    expected.value = "abc123";
+    expected.dispatchEvent(new Event("input", { bubbles: true }));
+    await nextTick();
+
+    expect(clearAllBtn?.hasAttribute("disabled")).toBe(false);
+
+    clearAllBtn.click();
+    await nextTick();
+
+    expect(firstFilePill?.textContent).toBe("hashCheck.noFile");
+    expect(secondFilePill?.textContent).toBe("hashCheck.noFileSecond");
+    expect(expected.value).toBe("");
+    expect(result?.textContent).toBe("hashCheck.resultIdle");
+    expect(clearAllBtn?.hasAttribute("disabled")).toBe(true);
   });
 
   test("normalizes expected hash before single-file verification", async () => {
