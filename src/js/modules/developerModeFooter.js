@@ -6,10 +6,10 @@ function applyDeveloperModeFooterVisibility() {
   const footer = document.getElementById(APP_FOOTER_ID);
   if (!footer) return;
 
-  const hidden = readDeveloperModeEnabled();
-  footer.hidden = hidden;
-  footer.style.display = hidden ? "none" : "";
-  footer.dataset.developerModeHidden = hidden ? "1" : "0";
+  readDeveloperModeEnabled();
+  footer.hidden = false;
+  footer.style.display = "";
+  footer.dataset.developerModeHidden = "0";
 }
 
 function initDeveloperModeFooterVisibility() {

@@ -90,7 +90,10 @@ $wg-max-width: 1200px;
 }
 
 .wg-center {
-  min-height: calc(100vh - 120px);
+  min-height: calc(
+    100vh - var(--topbar-safe-space, 96px) - var(--footer-safe-space, 102px) -
+      18px
+  );
   display: flex;
   align-items: flex-start;
   justify-content: center;

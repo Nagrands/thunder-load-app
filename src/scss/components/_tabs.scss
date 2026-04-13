@@ -11,6 +11,8 @@
   transition: opacity 250ms ease;
   position: relative;
   isolation: isolate;
+  box-sizing: border-box;
+  max-width: 100%;
 
   &::after {
     content: "";
@@ -55,6 +57,7 @@
     flex-direction: column;
     width: 80%;
     opacity: 1;
+    padding-bottom: var(--footer-safe-space, 102px);
   }
 
   &.container {

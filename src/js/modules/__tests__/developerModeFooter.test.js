@@ -7,7 +7,7 @@ describe("developerModeFooter", () => {
     `;
   });
 
-  test("hides app footer in developer mode", () => {
+  test("keeps app footer visible in developer mode", () => {
     localStorage.setItem("developerToolsUnlocked", "true");
 
     jest.isolateModules(() => {
@@ -18,11 +18,12 @@ describe("developerModeFooter", () => {
     });
 
     const footer = document.getElementById("app-footer");
-    expect(footer.hidden).toBe(true);
-    expect(footer.dataset.developerModeHidden).toBe("1");
+    expect(footer.hidden).toBe(false);
+    expect(footer.style.display).toBe("");
+    expect(footer.dataset.developerModeHidden).toBe("0");
   });
 
-  test("restores app footer when developer mode is disabled", () => {
+  test("keeps app footer visible when developer mode is disabled", () => {
     localStorage.setItem("developerToolsUnlocked", "true");
 
     jest.isolateModules(() => {
@@ -36,6 +37,7 @@ describe("developerModeFooter", () => {
 
     const footer = document.getElementById("app-footer");
     expect(footer.hidden).toBe(false);
+    expect(footer.style.display).toBe("");
     expect(footer.dataset.developerModeHidden).toBe("0");
   });
 });

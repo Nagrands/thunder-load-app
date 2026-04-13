@@ -21243,6 +21243,8 @@ body[data-modal-mode=settings] .settings-modal-content {
   transition: opacity 250ms ease;
   position: relative;
   isolation: isolate;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 .tab-view::after {
   content: "";
@@ -21258,6 +21260,7 @@ body[data-modal-mode=settings] .settings-modal-content {
   flex-direction: column;
   width: 80%;
   opacity: 1;
+  padding-bottom: var(--footer-safe-space, 102px);
 }
 .tab-view.container {
   animation: none !important;
@@ -25083,7 +25086,7 @@ video {
 }
 
 .wg-center {
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - var(--topbar-safe-space, 96px) - var(--footer-safe-space, 102px) - 18px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -31287,7 +31290,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 
 .products-view {
   width: 100%;
-  height: calc(100vh - var(--topbar-safe-space, 96px));
+  height: calc(100vh - var(--topbar-safe-space, 96px) - var(--footer-safe-space, 102px));
   min-height: 0;
   overflow: hidden;
 }

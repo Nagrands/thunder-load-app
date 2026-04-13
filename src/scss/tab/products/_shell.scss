@@ -1,6 +1,8 @@
 .products-view {
   width: 100%;
-  height: calc(100vh - var(--topbar-safe-space, 96px));
+  height: calc(
+    100vh - var(--topbar-safe-space, 96px) - var(--footer-safe-space, 102px)
+  );
   min-height: 0;
   overflow: hidden;
 }
