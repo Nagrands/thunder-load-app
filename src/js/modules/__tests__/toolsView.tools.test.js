@@ -524,7 +524,8 @@ describe("toolsView quick actions", () => {
     await openTool(el, "sorter");
 
     expect(el.querySelector(".sorter-shell")).not.toBeNull();
-    expect(el.querySelector(".sorter-workspace-strip")).not.toBeNull();
+    expect(el.querySelector(".sorter-workspace-field__head")).not.toBeNull();
+    expect(el.querySelector(".sorter-folder-actions")).not.toBeNull();
     expect(el.querySelector(".sorter-preview-topline")).not.toBeNull();
     expect(el.querySelector(".sorter-preview-controls")).not.toBeNull();
     expect(el.querySelector(".sorter-workspace-panel")).not.toBeNull();

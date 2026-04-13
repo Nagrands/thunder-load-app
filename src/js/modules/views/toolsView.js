@@ -1203,23 +1203,31 @@ export default function renderToolsView() {
                 </div>
                 <div class="sorter-workspace-grid">
                   <div class="sorter-workspace-field sorter-workspace-field--folder">
-                    <span class="muted hash-file-label" data-i18n="tools.sorter.folder">${t("tools.sorter.folder")}</span>
-                    <div class="sorter-workspace-strip">
-                      <div class="hash-actions-inline sorter-folder-actions">
-                        <button id="sorter-pick-folder" type="button" class="small-button">
-                          <i class="fa-regular fa-folder-open"></i>
-                          <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
-                        </button>
-                        <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">${t("tools.sorter.noFolder")}</span>
-                        <button id="sorter-open-folder" type="button" class="small-button" disabled>
-                          <i class="fa-solid fa-up-right-from-square"></i>
-                          <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
-                        </button>
-                      </div>
+                    <div class="sorter-workspace-field__head">
+                      <span class="muted hash-file-label" data-i18n="tools.sorter.folder">${t("tools.sorter.folder")}</span>
+                      <span class="sorter-workspace-field__symbol" aria-hidden="true">
+                        <i class="fa-regular fa-folder-open"></i>
+                      </span>
+                    </div>
+                    <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">${t("tools.sorter.noFolder")}</span>
+                    <div class="sorter-folder-actions">
+                      <button id="sorter-pick-folder" type="button" class="small-button">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
+                      </button>
+                      <button id="sorter-open-folder" type="button" class="small-button" disabled>
+                        <i class="fa-solid fa-up-right-from-square"></i>
+                        <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
+                      </button>
                     </div>
                   </div>
                   <div class="sorter-workspace-field sorter-workspace-field--log">
-                    <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">${t("tools.sorter.logLabel")}</label>
+                    <div class="sorter-workspace-field__head">
+                      <label for="sorter-log-path" class="muted" data-i18n="tools.sorter.logLabel">${t("tools.sorter.logLabel")}</label>
+                      <span class="sorter-workspace-field__symbol" aria-hidden="true">
+                        <i class="fa-regular fa-file-lines"></i>
+                      </span>
+                    </div>
                     <div class="sorter-log-shell">
                       <input
                         id="sorter-log-path"
