@@ -50,6 +50,15 @@ export default class TabSystem {
     this._applyProductsVisibility();
   }
 
+  _syncActiveTabLayoutState(id = "") {
+    if (!this.view) return;
+    this.view.dataset.activeTab = id || "";
+    this.view.classList.toggle(
+      "main-view--products-active",
+      id === this._PRD_ID,
+    );
+  }
+
   addTab(id, label, iconCls, renderCb, hooks = {}) {
     if (this.tabs.has(id)) return;
     const btn = document.createElement("button");
@@ -159,6 +168,7 @@ export default class TabSystem {
     next.onShow?.();
 
     this.activeTabId = id;
+    this._syncActiveTabLayoutState(id);
     try {
       window.dispatchEvent(
         new CustomEvent("tabs:activated", { detail: { id } }),
@@ -310,5 +320,6 @@ export default class TabSystem {
       prev.onHide?.();
     }
     this.activeTabId = null;
+    this._syncActiveTabLayoutState("");
   }
 }

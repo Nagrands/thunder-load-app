@@ -8,6 +8,7 @@
 |---|---|
 | Fixed scroll getting stuck after closing modals and overlays | Scroll locking is now handled by a single internal manager, so closing dialogs, how-to overlays, or leaving the Tools tab restores page scrolling reliably without a refresh |
 | The app background is now lighter and more minimal | The main backdrop is cleaner and less distracting, still follows the active theme accent, and now differs between screens only in subtle ways |
+| The Products tab is now wider and taller on desktop | The list formatter now uses almost the full available window width and gets a taller work area, so the source list and result pane can show more content without feeling cramped |
 | Fixed YouTube background preview in Downloader | When `yt-dlp` returns a playable Googlevideo URL without an explicit container field, the app now infers the format and restores the muted background video preview behind the Downloader interface |
 | Added background and live preview for YouTube links in Downloader | Pasting a YouTube URL still enables the muted decorative background preview, and now an explicit button can open a separate modal player with sound; when the preview source is refreshed, the player tries to continue the same video from roughly the same position |
 | Downloader tools status moved into the footer top-state | The `yt-dlp`, `ffmpeg`, and `Deno` block now lives next to the current section label in the lower bar, appears only near the top of the page, and still respects the existing Settings toggle |

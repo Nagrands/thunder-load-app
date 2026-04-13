@@ -1,3 +1,18 @@
+@media (max-width: 1280px) and (min-width: 981px) {
+  .products-center {
+    padding: 14px;
+  }
+
+  .products-workbench {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: 14px;
+  }
+
+  .products-view--dictionary-open .products-workbench {
+    grid-template-columns: minmax(0, 1.04fr) minmax(420px, 0.96fr);
+  }
+}
+
 @media (max-width: 980px) {
   .products-view {
     height: auto;

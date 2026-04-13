@@ -70,6 +70,16 @@
   }
 }
 
+#products-view-wrapper.tab-show {
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 auto;
+  min-height: calc(
+    100vh - var(--topbar-safe-space, 96px) - var(--footer-safe-space, 102px)
+  );
+  padding-bottom: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tab-view::after {
     background: linear-gradient(
