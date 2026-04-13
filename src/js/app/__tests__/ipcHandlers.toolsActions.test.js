@@ -625,6 +625,42 @@ describe("ipcHandlers tools quick actions", () => {
     });
   });
 
+  test("get-video-info keeps youtube backgroundPreview when container is inferred from url mime", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoInfo.mockResolvedValueOnce({
+      title: "YouTube demo",
+      duration: 120,
+      thumbnail: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      webpage_url: "https://www.youtube.com/watch?v=demo",
+      formats: [
+        {
+          url: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18&mime=video/mp4",
+          protocol: "https",
+          width: 640,
+          height: 360,
+          acodec: "mp4a.40.2",
+        },
+      ],
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_INFO](
+      null,
+      "https://www.youtube.com/watch?v=demo",
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.backgroundPreview).toEqual({
+      src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18&mime=video/mp4",
+      poster: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      mime: "video/mp4",
+      container: "mp4",
+      width: 640,
+      height: 360,
+    });
+  });
+
   test("get-video-info keeps livePreview null for non-YouTube URLs", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");

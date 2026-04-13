@@ -48,6 +48,9 @@ function normalizeContainer(format = {}) {
   const ext = String(format?.ext || "").trim().toLowerCase();
   if (PLAYABLE_CONTAINERS.has(ext)) return ext;
 
+  const videoExt = String(format?.video_ext || "").trim().toLowerCase();
+  if (PLAYABLE_CONTAINERS.has(videoExt)) return videoExt;
+
   const containerText = String(format?.container || "")
     .trim()
     .toLowerCase();
@@ -62,6 +65,23 @@ function normalizeContainer(format = {}) {
   const mimeType = String(format?.mime_type || "").trim().toLowerCase();
   if (mimeType.startsWith("video/mp4")) return "mp4";
   if (mimeType.startsWith("video/webm")) return "webm";
+
+  try {
+    const parsed = new URL(String(format?.url || "").trim());
+    const mimeFromQuery = [
+      parsed.searchParams.get("mime"),
+      parsed.searchParams.get("mime_type"),
+    ]
+      .map((value) => String(value || "").trim().toLowerCase())
+      .find(Boolean);
+    if (mimeFromQuery?.startsWith("video/mp4")) return "mp4";
+    if (mimeFromQuery?.startsWith("video/webm")) return "webm";
+
+    const pathExt = (parsed.pathname.match(/\.([a-z0-9]+)$/i) || [])[1]
+      ?.trim()
+      .toLowerCase();
+    if (PLAYABLE_CONTAINERS.has(pathExt)) return pathExt;
+  } catch {}
 
   return null;
 }
@@ -162,9 +182,19 @@ function isPlayablePreviewFormat(format = {}) {
   if (!container) return false;
 
   const vcodec = String(format?.vcodec || "").trim().toLowerCase();
-  if (!vcodec || vcodec === "none") return false;
+  const videoExt = String(format?.video_ext || "").trim().toLowerCase();
+  const width = Number(format?.width || 0);
+  const height = Number(format?.height || 0);
+  const resolution = String(format?.resolution || "").trim().toLowerCase();
+  const hasVideoTrack =
+    (vcodec && vcodec !== "none") ||
+    (videoExt && videoExt !== "none") ||
+    width > 0 ||
+    height > 0 ||
+    (resolution && !resolution.includes("audio only"));
+  if (!hasVideoTrack) return false;
 
-  if (String(format?.video_ext || "").trim().toLowerCase() === "none") {
+  if (videoExt === "none") {
     return false;
   }
 

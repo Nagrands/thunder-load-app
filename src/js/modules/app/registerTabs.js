@@ -3,6 +3,8 @@ import renderToolsView from "../views/toolsView.js";
 import renderDownloaderView from "../views/downloaderView.js";
 import renderProductFormatterView from "../views/productFormatterView.js";
 import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
+import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
+import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
 import { initWgAutoShutdownNotifier } from "../wgAutoShutdownNotifier.js";
 import { getDefaultTab } from "../settings.js";
 import { isDownloaderTabEffectivelyDisabled } from "../developerMode.js";
@@ -77,6 +79,8 @@ export async function registerTabs(mainView) {
     "fa-solid fa-download",
     () => {
       renderDownloaderView(wrappers.downloaderWrapper);
+      initDownloaderBackgroundPreview();
+      initDownloaderLivePreview();
       initDownloaderToolsStatus();
       applyI18n(wrappers.downloaderWrapper);
       return wrappers.downloaderWrapper;

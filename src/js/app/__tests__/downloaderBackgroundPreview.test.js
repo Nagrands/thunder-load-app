@@ -92,6 +92,33 @@ describe("selectYouTubeBackgroundPreview", () => {
     expect(result).toBeNull();
   });
 
+  test("accepts youtube googlevideo formats when container is inferred from url mime", () => {
+    const result = selectYouTubeBackgroundPreview(
+      {
+        thumbnail: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+        formats: [
+          {
+            url: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18&mime=video/mp4",
+            protocol: "https",
+            width: 640,
+            height: 360,
+            acodec: "mp4a.40.2",
+          },
+        ],
+      },
+      "https://www.youtube.com/watch?v=demo",
+    );
+
+    expect(result).toEqual({
+      src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18&mime=video/mp4",
+      poster: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      mime: "video/mp4",
+      container: "mp4",
+      width: 640,
+      height: 360,
+    });
+  });
+
   test("returns null for non-YouTube URLs", () => {
     const result = selectYouTubeBackgroundPreview(
       {

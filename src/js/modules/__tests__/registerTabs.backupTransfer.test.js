@@ -8,6 +8,8 @@ describe("registerTabs backup transfer", () => {
   let renderProductFormatterViewMock;
   let getDefaultTabMock;
   let initDownloaderToolsStatusMock;
+  let initDownloaderBackgroundPreviewMock;
+  let initDownloaderLivePreviewMock;
   let initWgAutoShutdownNotifierMock;
   let applyI18nMock;
   let registerTabs;
@@ -30,6 +32,8 @@ describe("registerTabs backup transfer", () => {
     renderProductFormatterViewMock = jest.fn();
     getDefaultTabMock = jest.fn(async () => "backup");
     initDownloaderToolsStatusMock = jest.fn();
+    initDownloaderBackgroundPreviewMock = jest.fn();
+    initDownloaderLivePreviewMock = jest.fn();
     initWgAutoShutdownNotifierMock = jest.fn();
     applyI18nMock = jest.fn();
 
@@ -59,6 +63,12 @@ describe("registerTabs backup transfer", () => {
     );
     jest.doMock("../downloaderToolsStatus.js", () => ({
       initDownloaderToolsStatus: initDownloaderToolsStatusMock,
+    }));
+    jest.doMock("../downloaderBackgroundPreview.js", () => ({
+      initDownloaderBackgroundPreview: initDownloaderBackgroundPreviewMock,
+    }));
+    jest.doMock("../downloaderLivePreview.js", () => ({
+      initDownloaderLivePreview: initDownloaderLivePreviewMock,
     }));
     jest.doMock("../wgAutoShutdownNotifier.js", () => ({
       initWgAutoShutdownNotifier: initWgAutoShutdownNotifierMock,
@@ -136,5 +146,19 @@ describe("registerTabs backup transfer", () => {
 
     downloadOptions.onHide();
     expect(historyButton.style.display).toBe("none");
+  });
+
+  test("initializes downloader preview modules when Download tab renderer runs", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("backup");
+
+    await registerTabs(document.getElementById("main-view"));
+
+    const [, , , downloadFactory] = addTabMock.mock.calls[0];
+    downloadFactory();
+
+    expect(renderDownloaderViewMock).toHaveBeenCalled();
+    expect(initDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+    expect(initDownloaderLivePreviewMock).toHaveBeenCalled();
+    expect(initDownloaderToolsStatusMock).toHaveBeenCalled();
   });
 });
