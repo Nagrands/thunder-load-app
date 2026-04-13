@@ -245,11 +245,11 @@ describe("toolsView quick actions", () => {
           success: false,
           unsupported: true,
         }),
-        createWindowsDeviceManagerShortcut: jest.fn().mockResolvedValue({
+        createWindowsProgramsShortcut: jest.fn().mockResolvedValue({
           success: false,
           unsupported: true,
         }),
-        createWindowsNetworkSettingsShortcut: jest.fn().mockResolvedValue({
+        createWindowsDiskCleanupShortcut: jest.fn().mockResolvedValue({
           success: false,
           unsupported: true,
         }),
@@ -1990,11 +1990,11 @@ describe("toolsView quick actions", () => {
     const uefiBtn = el.querySelector("#create-uefi-shortcut");
     const advancedBootBtn = el.querySelector("#create-advanced-boot-shortcut");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
-    const deviceManagerBtn = el.querySelector(
-      "#create-device-manager-shortcut",
+    const programsBtn = el.querySelector(
+      "#create-programs-shortcut",
     );
-    const networkSettingsBtn = el.querySelector(
-      "#create-network-settings-shortcut",
+    const diskCleanupBtn = el.querySelector(
+      "#create-disk-cleanup-shortcut",
     );
     expect(restartCard.classList.contains("hidden")).toBe(false);
     expect(actionsWrap).not.toBeNull();
@@ -2006,8 +2006,8 @@ describe("toolsView quick actions", () => {
     expect(uefiBtn?.hasAttribute("disabled")).toBe(true);
     expect(advancedBootBtn?.hasAttribute("disabled")).toBe(true);
     expect(shutdownBtn?.hasAttribute("disabled")).toBe(true);
-    expect(deviceManagerBtn?.hasAttribute("disabled")).toBe(true);
-    expect(networkSettingsBtn?.hasAttribute("disabled")).toBe(true);
+    expect(programsBtn?.hasAttribute("disabled")).toBe(true);
+    expect(diskCleanupBtn?.hasAttribute("disabled")).toBe(true);
   });
 
   test("hides power tool on linux", async () => {

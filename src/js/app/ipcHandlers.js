@@ -1724,38 +1724,38 @@ function setupIpcHandlers(dependencies) {
   );
 
   ipcMain.handle(
-    CHANNELS.TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT,
+    CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT,
     async () => {
       try {
         return createWindowsDesktopShortcut({
-          fileName: "Device Manager.lnk",
-          target: "C:\\Windows\\System32\\mmc.exe",
-          args: "devmgmt.msc",
-          description: "Open Device Manager",
-          iconPath: "C:\\Windows\\System32\\devmgr.dll",
+          fileName: "Programs and Features.lnk",
+          target: "C:\\Windows\\System32\\control.exe",
+          args: "appwiz.cpl",
+          description: "Open Programs and Features",
+          iconPath: "C:\\Windows\\System32\\appwiz.cpl",
           iconIndex: 0,
         });
       } catch (error) {
-        log.error("tools:createWindowsDeviceManagerShortcut error:", error);
+        log.error("tools:createWindowsProgramsShortcut error:", error);
         return { success: false, error: error.message || String(error) };
       }
     },
   );
 
   ipcMain.handle(
-    CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT,
+    CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT,
     async () => {
       try {
         return createWindowsDesktopShortcut({
-          fileName: "Network Settings.lnk",
-          target: "C:\\Windows\\System32\\cmd.exe",
-          args: '/c start "" ms-settings:network',
-          description: "Open Network Settings",
-          iconPath: "C:\\Windows\\System32\\netshell.dll",
+          fileName: "Disk Cleanup.lnk",
+          target: "C:\\Windows\\System32\\cleanmgr.exe",
+          args: "",
+          description: "Open Disk Cleanup",
+          iconPath: "C:\\Windows\\System32\\cleanmgr.exe",
           iconIndex: 0,
         });
       } catch (error) {
-        log.error("tools:createWindowsNetworkSettingsShortcut error:", error);
+        log.error("tools:createWindowsDiskCleanupShortcut error:", error);
         return { success: false, error: error.message || String(error) };
       }
     },

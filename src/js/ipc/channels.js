@@ -99,10 +99,10 @@ const CHANNELS = Object.freeze({
     "tools:createWindowsUefiRebootShortcut",
   TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT:
     "tools:createWindowsAdvancedBootShortcut",
-  TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT:
-    "tools:createWindowsDeviceManagerShortcut",
-  TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT:
-    "tools:createWindowsNetworkSettingsShortcut",
+  TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT:
+    "tools:createWindowsProgramsShortcut",
+  TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT:
+    "tools:createWindowsDiskCleanupShortcut",
   DIALOG_CHOOSE_TOOLS_DIR: "dialog:choose-tools-dir",
   WG_OPEN_CONFIG_FOLDER: "wg-open-config-folder",
   WG_OPEN_NETWORK_SETTINGS: "open-network-settings",

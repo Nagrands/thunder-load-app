@@ -243,26 +243,28 @@ export const toolsTranslations = {
     "quickActions.shutdown.confirm": "Создать ярлык выключения?",
     "quickActions.shutdown.error": "Не удалось создать ярлык выключения",
     "quickActions.shutdown.created": "Ярлык выключения создан: Рабочий стол",
-    "quickActions.deviceManager.title": "Создание ярлыка диспетчера устройств",
-    "quickActions.deviceManager.cardTitle": "Диспетчер устройств",
-    "quickActions.deviceManager.cardHint":
-      "Быстрый доступ к управлению устройствами и драйверами.",
-    "quickActions.deviceManager.action": "Создать ярлык диспетчера устройств",
-    "quickActions.deviceManager.confirm": "Создать ярлык диспетчера устройств?",
-    "quickActions.deviceManager.error":
-      "Не удалось создать ярлык диспетчера устройств",
-    "quickActions.deviceManager.created":
-      "Ярлык диспетчера устройств создан: Рабочий стол",
-    "quickActions.networkSettings.title": "Создание ярлыка параметров сети",
-    "quickActions.networkSettings.cardTitle": "Параметры сети",
-    "quickActions.networkSettings.cardHint":
-      "Открывает современное окно сетевых параметров Windows.",
-    "quickActions.networkSettings.action": "Создать ярлык параметров сети",
-    "quickActions.networkSettings.confirm": "Создать ярлык параметров сети?",
-    "quickActions.networkSettings.error":
-      "Не удалось создать ярлык параметров сети",
-    "quickActions.networkSettings.created":
-      "Ярлык параметров сети создан: Рабочий стол",
+    "quickActions.programs.title":
+      "Создание ярлыка установки и удаления программ",
+    "quickActions.programs.cardTitle": "Установка и удаление программ",
+    "quickActions.programs.cardHint":
+      "Открывает классическое окно со списком установленных программ.",
+    "quickActions.programs.action":
+      "Создать ярлык установки и удаления программ",
+    "quickActions.programs.confirm":
+      "Создать ярлык установки и удаления программ?",
+    "quickActions.programs.error":
+      "Не удалось создать ярлык установки и удаления программ",
+    "quickActions.programs.created":
+      "Ярлык установки и удаления программ создан: Рабочий стол",
+    "quickActions.diskCleanup.title": "Создание ярлыка чистки диска",
+    "quickActions.diskCleanup.cardTitle": "Чистка диска",
+    "quickActions.diskCleanup.cardHint":
+      "Запускает системную утилиту cleanmgr для удаления временных файлов.",
+    "quickActions.diskCleanup.action": "Создать ярлык чистки диска",
+    "quickActions.diskCleanup.confirm": "Создать ярлык чистки диска?",
+    "quickActions.diskCleanup.error": "Не удалось создать ярлык чистки диска",
+    "quickActions.diskCleanup.created":
+      "Ярлык чистки диска создан: Рабочий стол",
     "tools.dashboard.title": "Панель инструментов",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Быстрые действия для восстановления WireGuard.",
@@ -1106,27 +1108,27 @@ export const toolsTranslations = {
     "quickActions.shutdown.confirm": "Create a shutdown shortcut?",
     "quickActions.shutdown.error": "Failed to create shutdown shortcut",
     "quickActions.shutdown.created": "Shutdown shortcut created: Desktop",
-    "quickActions.deviceManager.title": "Create Device Manager shortcut",
-    "quickActions.deviceManager.cardTitle": "Device Manager",
-    "quickActions.deviceManager.cardHint":
-      "Quick access to hardware devices and driver management.",
-    "quickActions.deviceManager.action": "Create Device Manager shortcut",
-    "quickActions.deviceManager.confirm": "Create a Device Manager shortcut?",
-    "quickActions.deviceManager.error":
-      "Failed to create Device Manager shortcut",
-    "quickActions.deviceManager.created":
-      "Device Manager shortcut created: Desktop",
-    "quickActions.networkSettings.title": "Create Network Settings shortcut",
-    "quickActions.networkSettings.cardTitle": "Network Settings",
-    "quickActions.networkSettings.cardHint":
-      "Opens the modern Windows network settings page.",
-    "quickActions.networkSettings.action": "Create Network Settings shortcut",
-    "quickActions.networkSettings.confirm":
-      "Create a Network Settings shortcut?",
-    "quickActions.networkSettings.error":
-      "Failed to create Network Settings shortcut",
-    "quickActions.networkSettings.created":
-      "Network Settings shortcut created: Desktop",
+    "quickActions.programs.title": "Create Programs and Features shortcut",
+    "quickActions.programs.cardTitle": "Programs and Features",
+    "quickActions.programs.cardHint":
+      "Opens the classic list of installed Windows programs.",
+    "quickActions.programs.action": "Create Programs and Features shortcut",
+    "quickActions.programs.confirm":
+      "Create a Programs and Features shortcut?",
+    "quickActions.programs.error":
+      "Failed to create Programs and Features shortcut",
+    "quickActions.programs.created":
+      "Programs and Features shortcut created: Desktop",
+    "quickActions.diskCleanup.title": "Create Disk Cleanup shortcut",
+    "quickActions.diskCleanup.cardTitle": "Disk Cleanup",
+    "quickActions.diskCleanup.cardHint":
+      "Launches the built-in cleanmgr utility to remove temporary files.",
+    "quickActions.diskCleanup.action": "Create Disk Cleanup shortcut",
+    "quickActions.diskCleanup.confirm": "Create a Disk Cleanup shortcut?",
+    "quickActions.diskCleanup.error":
+      "Failed to create Disk Cleanup shortcut",
+    "quickActions.diskCleanup.created":
+      "Disk Cleanup shortcut created: Desktop",
     "tools.dashboard.title": "Tools dashboard",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Fast recovery actions for WireGuard.",

@@ -1412,16 +1412,16 @@ describe("ipcHandlers tools quick actions", () => {
       await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
     const advancedBootResult =
       await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT]();
-    const deviceManagerResult =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT]();
-    const networkSettingsResult =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT]();
+    const programsResult =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT]();
+    const diskCleanupResult =
+      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT]();
 
     [
       uefiResult,
       advancedBootResult,
-      deviceManagerResult,
-      networkSettingsResult,
+      programsResult,
+      diskCleanupResult,
     ].forEach((result) => {
       expect(result.success).toBe(false);
       expect(result.unsupported).toBe(true);
@@ -1441,8 +1441,8 @@ describe("ipcHandlers tools quick actions", () => {
 
     await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
     await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT]();
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DEVICE_MANAGER_SHORTCUT]();
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_NETWORK_SETTINGS_SHORTCUT]();
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT]();
+    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT]();
 
     expect(shell.writeShortcutLink).toHaveBeenCalledTimes(4);
     const calls = shell.writeShortcutLink.mock.calls.map((call) => call[2]);
@@ -1454,6 +1454,25 @@ describe("ipcHandlers tools quick actions", () => {
         }),
       );
     });
+
+    expect(shell.writeShortcutLink).toHaveBeenNthCalledWith(
+      3,
+      expect.any(String),
+      "create",
+      expect.objectContaining({
+        target: "C:\\Windows\\System32\\control.exe",
+        args: "appwiz.cpl",
+      }),
+    );
+    expect(shell.writeShortcutLink).toHaveBeenNthCalledWith(
+      4,
+      expect.any(String),
+      "create",
+      expect.objectContaining({
+        target: "C:\\Windows\\System32\\cleanmgr.exe",
+        args: "",
+      }),
+    );
   });
 
   test("uefi shortcut uses firmware reboot command with fallback", async () => {

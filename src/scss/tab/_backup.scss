@@ -115,40 +115,6 @@
     position: relative;
     max-width: 1080px;
     margin: 0 auto;
-
-    &::before {
-      content: "";
-      position: absolute;
-      inset: -28px 4% auto;
-      height: 240px;
-      border-radius: 50%;
-      background: radial-gradient(
-        68% 100% at 50% 0%,
-        rgba(var(--color-accent-rgb), 0.14) 0%,
-        rgba(var(--color-accent-rgb), 0.05) 34%,
-        transparent 74%
-      );
-      pointer-events: none;
-      filter: blur(8px);
-      opacity: 0.95;
-      z-index: -1;
-    }
-
-    &::after {
-      content: "";
-      position: absolute;
-      inset: auto 10% -26px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(
-        62% 100% at 50% 100%,
-        rgba(8, 12, 20, 0.34) 0%,
-        rgba(8, 12, 20, 0.16) 42%,
-        transparent 76%
-      );
-      pointer-events: none;
-      z-index: -1;
-    }
   }
 
   .wg-glass {
@@ -179,29 +145,6 @@
     align-items: stretch;
     gap: 16px;
     justify-items: stretch;
-
-    &::before {
-      content: "";
-      position: absolute;
-      inset: -16px -10px auto;
-      height: 136px;
-      border-radius: 28px;
-      background:
-        linear-gradient(
-          90deg,
-          rgba(var(--color-accent-rgb), 0.08) 0%,
-          rgba(var(--color-accent-rgb), 0.025) 24%,
-          transparent 58%
-        ),
-        radial-gradient(
-          76% 90% at 100% 0%,
-          rgba(255, 255, 255, 0.06) 0%,
-          transparent 60%
-        );
-      opacity: 0.95;
-      pointer-events: none;
-      z-index: -1;
-    }
 
     .title {
       @include mixins.header-style;

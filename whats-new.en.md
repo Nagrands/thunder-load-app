@@ -12,3 +12,4 @@
 | Section navigation now migrates from the header into the footer | Tabs stay in the header near the top of the page, then move into the lower bar while scrolling down together with a quick back-to-top action |
 | Footer stays available in developer mode | The bottom bar now remains usable even when developer mode is enabled, so quick actions and section status stay on screen |
 | Tab content no longer slides under the footer | Top-level screens now reserve space for the bottom bar, so work areas and lower controls stay visible above the fixed footer |
+| Windows system quick shortcuts were updated in Tools | Instead of Device Manager and Network Settings, the panel now creates shortcuts for `appwiz.cpl` (Programs and Features) and `cleanmgr` (Disk Cleanup) |

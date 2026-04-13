@@ -130,8 +130,8 @@ try {
     "tools:createWindowsShutdownShortcut",
     "tools:createWindowsUefiRebootShortcut",
     "tools:createWindowsAdvancedBootShortcut",
-    "tools:createWindowsDeviceManagerShortcut",
-    "tools:createWindowsNetworkSettingsShortcut",
+    "tools:createWindowsProgramsShortcut",
+    "tools:createWindowsDiskCleanupShortcut",
     "dialog:choose-tools-dir",
     "wg-open-config-folder",
     "open-network-settings",
@@ -399,10 +399,10 @@ try {
         safeInvoke("tools:createWindowsUefiRebootShortcut"),
       createWindowsAdvancedBootShortcut: () =>
         safeInvoke("tools:createWindowsAdvancedBootShortcut"),
-      createWindowsDeviceManagerShortcut: () =>
-        safeInvoke("tools:createWindowsDeviceManagerShortcut"),
-      createWindowsNetworkSettingsShortcut: () =>
-        safeInvoke("tools:createWindowsNetworkSettingsShortcut"),
+      createWindowsProgramsShortcut: () =>
+        safeInvoke("tools:createWindowsProgramsShortcut"),
+      createWindowsDiskCleanupShortcut: () =>
+        safeInvoke("tools:createWindowsDiskCleanupShortcut"),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код
