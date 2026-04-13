@@ -1063,26 +1063,6 @@ export default function renderToolsView() {
                   </div>
                 </div>
               </div>
-              <section class="power-shortcuts-summary">
-                <div class="power-shortcuts-summary__intro">
-                  <strong data-i18n="quickActions.power.summary.title">${t("quickActions.power.summary.title")}</strong>
-                  <p data-i18n="quickActions.power.summary.subtitle">${t("quickActions.power.summary.subtitle")}</p>
-                </div>
-                <div class="power-shortcuts-summary__grid">
-                  <div class="power-shortcuts-summary__item">
-                    <span class="power-shortcuts-summary__label" data-i18n="quickActions.power.summary.location.label">${t("quickActions.power.summary.location.label")}</span>
-                    <strong id="power-summary-location" data-i18n="quickActions.power.summary.location.value">${t("quickActions.power.summary.location.value")}</strong>
-                  </div>
-                  <div class="power-shortcuts-summary__item">
-                    <span class="power-shortcuts-summary__label" data-i18n="quickActions.power.summary.requirements.label">${t("quickActions.power.summary.requirements.label")}</span>
-                    <strong id="power-summary-requirements" data-i18n="quickActions.power.summary.requirements.value">${t("quickActions.power.summary.requirements.value")}</strong>
-                  </div>
-                  <div class="power-shortcuts-summary__item">
-                    <span class="power-shortcuts-summary__label" data-i18n="quickActions.power.summary.platform.label">${t("quickActions.power.summary.platform.label")}</span>
-                    <strong id="power-summary-platform">${t("quickActions.power.summary.platform.windows")}</strong>
-                  </div>
-                </div>
-              </section>
               <section
                 id="power-session-summary"
                 class="power-session-summary hidden"
@@ -3332,8 +3312,6 @@ export default function renderToolsView() {
     const restartShortcutNote = getEl("restart-shortcut-note", view);
     const powerPlatformBanner = getEl("power-platform-banner", view);
     const powerPlatformBannerText = getEl("power-platform-banner-text", view);
-    const powerSummaryPlatform = getEl("power-summary-platform", view);
-    const powerSummaryRequirements = getEl("power-summary-requirements", view);
     const powerSessionSummary = getEl("power-session-summary", view);
     const powerSessionSummaryText = getEl("power-session-summary-text", view);
     const powerSessionSummaryDetail = getEl(
@@ -3492,18 +3470,12 @@ export default function renderToolsView() {
       const windowsReadyText = t("quickActions.power.windowsReady");
       const windowsOnlyBannerText = t("quickActions.power.banner.windowsOnly");
       const previewBannerText = t("quickActions.power.banner.previewOnly");
-      const summaryPlatformKey = isWindows
-        ? "quickActions.power.summary.platform.windows"
-        : "quickActions.power.summary.platform.preview";
       if (!showTool) {
         restartCard?.classList.add("hidden");
         openPowerBtn?.classList.add("hidden");
         powerPlatformBanner?.classList.add("hidden");
         if (powerPlatformBannerText) {
           powerPlatformBannerText.textContent = windowsOnlyBannerText;
-        }
-        if (powerSummaryPlatform) {
-          powerSummaryPlatform.textContent = t(summaryPlatformKey);
         }
         if (restartShortcutNote) {
           restartShortcutNote.textContent = windowsOnlyText;
@@ -3520,16 +3492,6 @@ export default function renderToolsView() {
           powerPlatformBannerText.textContent = isWindows
             ? windowsOnlyBannerText
             : previewBannerText;
-        }
-        if (powerSummaryPlatform) {
-          powerSummaryPlatform.textContent = t(summaryPlatformKey);
-        }
-        if (powerSummaryRequirements) {
-          powerSummaryRequirements.textContent = t(
-            isWindows
-              ? "quickActions.power.summary.requirements.value"
-              : "quickActions.power.summary.requirements.preview",
-          );
         }
         powerPlatformBanner?.classList.toggle("hidden", !!isWindows);
       }
@@ -3580,7 +3542,7 @@ export default function renderToolsView() {
           return;
         }
         const detail =
-          res?.path || t("quickActions.power.summary.location.value");
+          res?.path || t("quickActions.power.desktopLocation");
         setPowerActionVisualState(action, "success", {
           message: t("quickActions.power.result.created", {
             action: t(action.cardTitleKey),

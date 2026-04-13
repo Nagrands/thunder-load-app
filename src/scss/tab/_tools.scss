@@ -3391,11 +3391,11 @@ $wg-max-width: 1200px;
 
 .power-shortcuts-header {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .power-shortcuts-header__top {
@@ -3408,7 +3408,7 @@ $wg-max-width: 1200px;
 .power-shortcuts-header__title-wrap {
   min-width: 0;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 
   h2 {
     margin: 0;
@@ -3437,19 +3437,18 @@ $wg-max-width: 1200px;
 
 .power-shortcuts-header__hint {
   margin: 0;
-  max-width: 72ch;
+  max-width: 60ch;
 }
 
 .power-shortcuts-dashboard {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
-.power-shortcuts-summary,
 .power-session-summary {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   background:
     linear-gradient(
       135deg,
@@ -3459,7 +3458,6 @@ $wg-max-width: 1200px;
     rgba(255, 255, 255, 0.03);
 }
 
-.power-shortcuts-summary__intro,
 .power-session-summary__copy {
   display: grid;
   gap: 6px;
@@ -3472,30 +3470,9 @@ $wg-max-width: 1200px;
   }
 }
 
-.power-shortcuts-summary__grid {
-  display: grid;
-  gap: 12px;
-  margin-top: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.power-shortcuts-summary__item {
-  display: grid;
-  gap: 4px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.power-shortcuts-summary__label {
-  font-size: 0.78rem;
-  color: var(--color-quality);
-}
-
 .power-session-summary {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
@@ -3534,17 +3511,17 @@ $wg-max-width: 1200px;
 }
 
 .power-shortcuts-actions {
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .power-shortcuts-groups {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .power-shortcuts-group {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .power-shortcuts-group__header {
@@ -3566,7 +3543,7 @@ $wg-max-width: 1200px;
 
 .power-shortcuts-group__grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -3574,7 +3551,7 @@ $wg-max-width: 1200px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
   background: rgba(255, 255, 255, 0.015);
-  padding: 16px;
+  padding: 14px;
   display: grid;
   gap: 12px;
   align-content: start;
@@ -4099,7 +4076,6 @@ $wg-max-width: 1200px;
     justify-content: space-between;
   }
 
-  .power-shortcuts-summary__grid,
   .power-shortcuts-group__grid,
   .power-session-summary {
     grid-template-columns: 1fr;

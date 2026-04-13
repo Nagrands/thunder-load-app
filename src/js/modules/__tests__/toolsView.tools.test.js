@@ -1999,9 +1999,10 @@ describe("toolsView quick actions", () => {
     expect(restartCard.classList.contains("hidden")).toBe(false);
     expect(actionsWrap).not.toBeNull();
     expect(banner?.classList.contains("hidden")).toBe(false);
-    expect(el.querySelector("#power-summary-platform")?.textContent).toBe(
-      "quickActions.power.summary.platform.preview",
-    );
+    expect(el.querySelector(".power-shortcuts-summary")).toBeNull();
+    expect(
+      el.querySelector("#power-session-summary")?.classList.contains("hidden"),
+    ).toBe(true);
     expect(restartBtn?.hasAttribute("disabled")).toBe(true);
     expect(uefiBtn?.hasAttribute("disabled")).toBe(true);
     expect(advancedBootBtn?.hasAttribute("disabled")).toBe(true);
@@ -2131,6 +2132,7 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "power");
 
+    expect(el.querySelector(".power-shortcuts-summary")).toBeNull();
     expect(el.querySelectorAll(".power-shortcuts-group").length).toBe(3);
     expect(
       el

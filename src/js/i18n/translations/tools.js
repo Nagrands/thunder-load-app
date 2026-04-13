@@ -156,20 +156,6 @@ export const toolsTranslations = {
       "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
     "quickActions.power.banner.previewOnly":
       "Инструмент доступен для просмотра интерфейса, но создание ярлыков работает только в Windows.",
-    "quickActions.power.summary.title": "Панель быстрых ярлыков",
-    "quickActions.power.summary.subtitle":
-      "Выберите системное действие, подтвердите создание и сразу проверьте результат в карточке.",
-    "quickActions.power.summary.location.label": "Где появится",
-    "quickActions.power.summary.location.value": "Рабочий стол Windows",
-    "quickActions.power.summary.requirements.label": "Что нужно",
-    "quickActions.power.summary.requirements.value":
-      "Подтвердить создание ярлыка в диалоге.",
-    "quickActions.power.summary.requirements.preview":
-      "Для создания ярлыков нужен запуск приложения в Windows.",
-    "quickActions.power.summary.platform.label": "Текущий режим",
-    "quickActions.power.summary.platform.windows": "Windows: создание доступно",
-    "quickActions.power.summary.platform.preview":
-      "Preview only: действия заблокированы",
     "quickActions.power.group.power.title": "Питание",
     "quickActions.power.group.power.hint":
       "Базовые действия для быстрого перезапуска или выключения системы.",
@@ -182,6 +168,7 @@ export const toolsTranslations = {
     "quickActions.power.session.title": "Последнее действие выполнено",
     "quickActions.power.session.empty": "Статус пока не сформирован.",
     "quickActions.power.session.success": "Ярлык «{action}» создан.",
+    "quickActions.power.desktopLocation": "Рабочий стол Windows",
     "quickActions.power.createAnother": "Создать ещё",
     "quickActions.power.clearStatus": "Очистить статус",
     "quickActions.power.status.idle": "Ожидание",
@@ -1019,21 +1006,6 @@ export const toolsTranslations = {
       "Shortcut creation is available only on Windows. Actions are disabled on this platform.",
     "quickActions.power.banner.previewOnly":
       "The tool stays visible for UI preview, but shortcut creation works only on Windows.",
-    "quickActions.power.summary.title": "Power shortcuts dashboard",
-    "quickActions.power.summary.subtitle":
-      "Choose a system action, confirm creation, and review the result directly in the action card.",
-    "quickActions.power.summary.location.label": "Created in",
-    "quickActions.power.summary.location.value": "Windows desktop",
-    "quickActions.power.summary.requirements.label": "What you need",
-    "quickActions.power.summary.requirements.value":
-      "Confirm shortcut creation in the dialog.",
-    "quickActions.power.summary.requirements.preview":
-      "Shortcut creation requires running the app on Windows.",
-    "quickActions.power.summary.platform.label": "Current mode",
-    "quickActions.power.summary.platform.windows":
-      "Windows: creation available",
-    "quickActions.power.summary.platform.preview":
-      "Preview only: actions disabled",
     "quickActions.power.group.power.title": "Power",
     "quickActions.power.group.power.hint":
       "Core restart and shutdown shortcuts for quick system control.",
@@ -1046,6 +1018,7 @@ export const toolsTranslations = {
     "quickActions.power.session.title": "Last action completed",
     "quickActions.power.session.empty": "No shortcut has been created yet.",
     "quickActions.power.session.success": "Shortcut “{action}” was created.",
+    "quickActions.power.desktopLocation": "Windows desktop",
     "quickActions.power.createAnother": "Create another",
     "quickActions.power.clearStatus": "Clear status",
     "quickActions.power.status.idle": "Idle",

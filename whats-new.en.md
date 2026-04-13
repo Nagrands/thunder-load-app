@@ -13,3 +13,4 @@
 | Footer stays available in developer mode | The bottom bar now remains usable even when developer mode is enabled, so quick actions and section status stay on screen |
 | Tab content no longer slides under the footer | Top-level screens now reserve space for the bottom bar, so work areas and lower controls stay visible above the fixed footer |
 | Windows system quick shortcuts were updated in Tools | Instead of Device Manager and Network Settings, the panel now creates shortcuts for `appwiz.cpl` (Programs and Features) and `cleanmgr` (Disk Cleanup) |
+| The quick shortcuts panel in Tools is now more compact | The always-visible summary block was removed, the section header uses less space, and the latest-action status appears only after an operation runs |

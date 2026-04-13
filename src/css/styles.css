@@ -27976,11 +27976,11 @@ video {
 
 .power-shortcuts-header {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .power-shortcuts-header__top {
@@ -27993,7 +27993,7 @@ video {
 .power-shortcuts-header__title-wrap {
   min-width: 0;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 .power-shortcuts-header__title-wrap h2 {
   margin: 0;
@@ -28021,31 +28021,25 @@ video {
 
 .power-shortcuts-header__hint {
   margin: 0;
-  max-width: 72ch;
+  max-width: 60ch;
 }
 
 .power-shortcuts-dashboard {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
-.power-shortcuts-summary,
 .power-session-summary {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.09), transparent 72%), rgba(255, 255, 255, 0.03);
 }
 
-.power-shortcuts-summary__intro,
 .power-session-summary__copy {
   display: grid;
   gap: 6px;
 }
-.power-shortcuts-summary__intro p,
-.power-shortcuts-summary__intro span,
-.power-shortcuts-summary__intro small,
-.power-shortcuts-summary__intro strong,
 .power-session-summary__copy p,
 .power-session-summary__copy span,
 .power-session-summary__copy small,
@@ -28053,30 +28047,9 @@ video {
   margin: 0;
 }
 
-.power-shortcuts-summary__grid {
-  display: grid;
-  gap: 12px;
-  margin-top: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.power-shortcuts-summary__item {
-  display: grid;
-  gap: 4px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.power-shortcuts-summary__label {
-  font-size: 0.78rem;
-  color: var(--color-quality);
-}
-
 .power-session-summary {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
@@ -28114,17 +28087,17 @@ video {
 }
 
 .power-shortcuts-actions {
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .power-shortcuts-groups {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .power-shortcuts-group {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .power-shortcuts-group__header {
@@ -28146,7 +28119,7 @@ video {
 
 .power-shortcuts-group__grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -28154,7 +28127,7 @@ video {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
   background: rgba(255, 255, 255, 0.015);
-  padding: 16px;
+  padding: 14px;
   display: grid;
   gap: 12px;
   align-content: start;
@@ -28585,7 +28558,6 @@ video {
     width: 100%;
     justify-content: space-between;
   }
-  .power-shortcuts-summary__grid,
   .power-shortcuts-group__grid,
   .power-session-summary {
     grid-template-columns: 1fr;
