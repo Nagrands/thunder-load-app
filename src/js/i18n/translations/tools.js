@@ -1,5 +1,137 @@
 export const toolsTranslations = {
   ru: {
+    "productsFormatter.title": "Форматтер списков",
+    "productsFormatter.subtitle":
+      "Приводит список к разделам, нормализует единицы и при необходимости собирает общий список закупки.",
+    "productsFormatter.inputLabel": "Исходный список",
+    "productsFormatter.inputPlaceholder":
+      "Вставьте неструктурированный список продуктов с разделами и позициями.",
+    "productsFormatter.summaryToggle": "Итого",
+    "productsFormatter.greensToggle": "Зелень",
+    "productsFormatter.summaryToggleHint":
+      "Добавляет итоговый блок «Итого» в конец результата.",
+    "productsFormatter.greensToggleHint":
+      "Добавляет только отдельный блок «Зелень».",
+    "productsFormatter.format": "Форматировать",
+    "productsFormatter.paste": "Вставить",
+    "productsFormatter.clear": "Очистить",
+    "productsFormatter.demo": "Демо",
+    "productsFormatter.dictionaryTitle": "Словарь замен",
+    "productsFormatter.closeDictionary": "Закрыть словарь",
+    "productsFormatter.dictionaryPlaceholder":
+      "Каждая строка: исходное = замена\nНапример:\nбатат = Картофель сладкий",
+    "productsFormatter.dictionaryHint":
+      "Поддерживается формат `исходное = замена`. Повторяющиеся ключи, битые строки и правила без эффекта подсвечиваются.",
+    "productsFormatter.dictionaryExamplesTitle": "Примеры",
+    "productsFormatter.dictionaryPreviewTitle": "Что применится",
+    "productsFormatter.dictionaryPreviewEmpty": "Введите правило, чтобы увидеть нормализованный ключ и итоговую замену.",
+    "productsFormatter.dictionaryPreviewInvalid": "Строка {line} пока не распознана как правило `исходное = замена`.",
+    "productsFormatter.dictionaryPreviewNoop": "Ключ «{source}» не изменится после такого правила.",
+    "productsFormatter.dictionaryPreviewValue": "Ключ: {source} -> замена: {target}.",
+    "productsFormatter.dictionaryPreviewOverride": "Переопределяет встроенную замену: {target}.",
+    "productsFormatter.dictionaryPreviewDuplicate": "Перекрывает более раннее правило с тем же ключом.",
+    "productsFormatter.dictionaryCategoryInvalid": "Ошибки",
+    "productsFormatter.dictionaryCategoryDuplicate": "Конфликты",
+    "productsFormatter.dictionaryCategoryNoop": "Без эффекта",
+    "productsFormatter.dictionaryCategoryOverride": "Переопределения",
+    "productsFormatter.dictionaryJumpToLine": "{label}: перейти к строке {line}",
+    "productsFormatter.dictionaryCleanInvalid": "Очистить ошибки",
+    "productsFormatter.dictionaryReset": "Сбросить словарь",
+    "productsFormatter.dictionaryStatsValid": "Правил: {count}",
+    "productsFormatter.dictionaryStatsMixed":
+      "Правил: {count}, конфликты: {duplicates}, без эффекта: {noop}, переопределения: {overrides}, ошибки: {invalid}.",
+    "productsFormatter.dictionaryStatsInvalid":
+      "Нет применимых правил. Конфликты: {duplicates}, без эффекта: {noop}, переопределения: {overrides}, ошибки: {invalid}.",
+    "productsFormatter.dictionaryProblemLines": "Строки: {lines}",
+    "productsFormatter.dictionaryInvalidLine": "Строка {line}: {value}",
+    "productsFormatter.copy": "Копировать",
+    "productsFormatter.copyDone": "Скопировано",
+    "productsFormatter.dismissWarning": "Скрыть предупреждение",
+    "productsFormatter.outputLabel": "Результат",
+    "productsFormatter.reformat": "Переформатировать",
+    "productsFormatter.resultActions.collapseAll": "Свернуть всё",
+    "productsFormatter.resultActions.expandAll": "Развернуть всё",
+    "productsFormatter.resultActions.applyInput": "Подставить во вход",
+    "productsFormatter.resultActions.onlyUncertain": "Только спорные",
+    "productsFormatter.resultActions.more": "Ещё",
+    "productsFormatter.resultActions.showAll": "Показать всё",
+    "productsFormatter.resultActions.searchPlaceholder": "Поиск по результату",
+    "productsFormatter.resultActions.noUncertain":
+      "Спорных позиций в текущем результате нет.",
+    "productsFormatter.resultActions.noSearchMatches":
+      "По запросу «{query}» ничего не найдено.",
+    "productsFormatter.staleBanner":
+      "Результат устарел после изменений во входе или словаре.",
+    "productsFormatter.emptyTitle": "Результат появится здесь",
+    "productsFormatter.emptyHint":
+      "Вставьте список из буфера или загрузите демо-пример, чтобы сразу проверить форматирование.",
+    "productsFormatter.shortcutHint": "Быстрое действие: Ctrl/Cmd + Enter",
+    "productsFormatter.empty":
+      "Здесь появится готовый список по разделам и сводный блок «Итого».",
+    "productsFormatter.unsorted": "Без раздела",
+    "productsFormatter.summaryTitle": "Итого",
+    "productsFormatter.greensTitle": "Зелень",
+    "productsFormatter.uncertain": "Проверить",
+    "productsFormatter.diagnostics.issues": "Предупреждения",
+    "productsFormatter.diagnostics.diff": "Нормализация",
+    "productsFormatter.diagnostics.comparison": "Сравнение запусков",
+    "productsFormatter.diagnostics.filter.all": "Все",
+    "productsFormatter.diagnostics.filter.review": "Проверить",
+    "productsFormatter.diagnostics.filter.typos": "Опечатки",
+    "productsFormatter.diagnostics.filter.duplicates": "Дубли",
+    "productsFormatter.diagnostics.applyLine": "Подставить строку",
+    "productsFormatter.diagnostics.revealLine": "Показать во входе",
+    "productsFormatter.diagnostics.emptyFiltered":
+      "Для фильтра «{filter}» совпадений нет.",
+    "productsFormatter.issue.ambiguousUnitAssumedKg":
+      "«{source}» интерпретировано как «{output}».",
+    "productsFormatter.issue.duplicateMerged":
+      "В разделе «{section}» объединены дубли: {name}.",
+    "productsFormatter.issue.storeQuantityIgnored":
+      "В разделе «{section}» число в строке «{source}» проигнорировано.",
+    "productsFormatter.issue.typoCorrected":
+      "«{source}» нормализовано как «{name}».",
+    "productsFormatter.meta.sections": "Разделов: {count}",
+    "productsFormatter.meta.items": "Позиций: {count}",
+    "productsFormatter.meta.summaryOn": "Итого включено",
+    "productsFormatter.meta.summaryOff": "Итого скрыто",
+    "productsFormatter.meta.greensOn": "Зелень включена",
+    "productsFormatter.meta.greensOff": "Зелень скрыта",
+    "productsFormatter.stats.duplicates": "Дубли: {count}",
+    "productsFormatter.stats.typos": "Опечатки: {count}",
+    "productsFormatter.stats.review": "Проверить: {count}",
+    "productsFormatter.comparison.summary":
+      "Добавлено: {added}, удалено: {removed}, разделов изменено: {sections}",
+    "productsFormatter.comparison.noChanges":
+      "После повторного запуска изменений нет.",
+    "productsFormatter.comparison.added": "Добавлено",
+    "productsFormatter.comparison.removed": "Удалено",
+    "productsFormatter.status.empty":
+      "Вставьте список продуктов перед форматированием.",
+    "productsFormatter.status.formatted": "Список подготовлен.",
+    "productsFormatter.status.copied": "Результат скопирован.",
+    "productsFormatter.status.sectionCopied": "Раздел скопирован.",
+    "productsFormatter.status.pasted": "Текст вставлен из буфера обмена.",
+    "productsFormatter.status.pasteEmpty": "Буфер обмена пуст.",
+    "productsFormatter.status.pasteError":
+      "Не удалось прочитать буфер обмена.",
+    "productsFormatter.status.cleared": "Поле очищено.",
+    "productsFormatter.status.demoLoaded": "Демо-список загружен.",
+    "productsFormatter.status.dictionaryReset": "Dev-словарь очищен.",
+    "productsFormatter.status.dictionaryCleaned": "Битые строки удалены из dev-словаря.",
+    "productsFormatter.status.dictionaryChanged":
+      "Правила словаря изменены. Обновите результат.",
+    "productsFormatter.status.stale":
+      "Исходник изменён. Переформатируйте результат.",
+    "productsFormatter.status.appliedToInput":
+      "Нормализованный текст подставлен во вход.",
+    "productsFormatter.status.lineApplied":
+      "Исправленная строка подставлена во вход.",
+    "productsFormatter.status.sourceFocused":
+      "Исходная строка найдена во входе.",
+    "productsFormatter.status.applyLineError":
+      "Не удалось найти исходную строку для подстановки.",
+    "productsFormatter.status.copyError": "Не удалось скопировать результат.",
     "wg.autoShutdown.toast.title": "Авто‑закрытие",
     "wg.autoShutdown.toast.body": "Приложение закроется через",
     "wg.autoShutdown.toast.cancel": "Отменить закрытие",
@@ -729,6 +861,138 @@ export const toolsTranslations = {
     "tools.migrate.mode.keep": "без замены",
   },
   en: {
+    "productsFormatter.title": "Product List Formatter",
+    "productsFormatter.subtitle":
+      "Turns raw product notes into normalized sections and can append a consolidated shopping summary.",
+    "productsFormatter.inputLabel": "Source list",
+    "productsFormatter.inputPlaceholder":
+      "Paste an unstructured product list with section headers and items.",
+    "productsFormatter.summaryToggle": "Summary",
+    "productsFormatter.greensToggle": "Greens",
+    "productsFormatter.summaryToggleHint":
+      "Adds the final Summary block at the end of the result.",
+    "productsFormatter.greensToggleHint":
+      "Adds only the separate Greens block.",
+    "productsFormatter.format": "Format",
+    "productsFormatter.paste": "Paste",
+    "productsFormatter.clear": "Clear",
+    "productsFormatter.demo": "Demo",
+    "productsFormatter.dictionaryTitle": "Dev replacement dictionary",
+    "productsFormatter.closeDictionary": "Close dictionary",
+    "productsFormatter.dictionaryPlaceholder":
+      "One rule per line: source = replacement\nExample:\nsweet potato = Sweet potato",
+    "productsFormatter.dictionaryHint":
+      "Use the `source = replacement` format. Duplicate keys, broken lines, and no-op rules are highlighted.",
+    "productsFormatter.dictionaryExamplesTitle": "Examples",
+    "productsFormatter.dictionaryPreviewTitle": "What will apply",
+    "productsFormatter.dictionaryPreviewEmpty": "Enter a rule to preview the normalized key and final replacement.",
+    "productsFormatter.dictionaryPreviewInvalid": "Line {line} is not recognized as a `source = replacement` rule yet.",
+    "productsFormatter.dictionaryPreviewNoop": "The key “{source}” would stay unchanged with this rule.",
+    "productsFormatter.dictionaryPreviewValue": "Key: {source} -> replacement: {target}.",
+    "productsFormatter.dictionaryPreviewOverride": "Overrides the built-in replacement: {target}.",
+    "productsFormatter.dictionaryPreviewDuplicate": "Overrides an earlier rule with the same key.",
+    "productsFormatter.dictionaryCategoryInvalid": "Errors",
+    "productsFormatter.dictionaryCategoryDuplicate": "Conflicts",
+    "productsFormatter.dictionaryCategoryNoop": "No-op",
+    "productsFormatter.dictionaryCategoryOverride": "Overrides",
+    "productsFormatter.dictionaryJumpToLine": "{label}: jump to line {line}",
+    "productsFormatter.dictionaryCleanInvalid": "Clear errors",
+    "productsFormatter.dictionaryReset": "Reset dictionary",
+    "productsFormatter.dictionaryStatsValid": "Rules: {count}",
+    "productsFormatter.dictionaryStatsMixed":
+      "Rules: {count}, conflicts: {duplicates}, no-op: {noop}, overrides: {overrides}, invalid: {invalid}.",
+    "productsFormatter.dictionaryStatsInvalid":
+      "No applicable rules. Conflicts: {duplicates}, no-op: {noop}, overrides: {overrides}, invalid: {invalid}.",
+    "productsFormatter.dictionaryProblemLines": "Lines: {lines}",
+    "productsFormatter.dictionaryInvalidLine": "Line {line}: {value}",
+    "productsFormatter.copy": "Copy",
+    "productsFormatter.copyDone": "Copied",
+    "productsFormatter.dismissWarning": "Dismiss warning",
+    "productsFormatter.outputLabel": "Result",
+    "productsFormatter.reformat": "Reformat",
+    "productsFormatter.resultActions.collapseAll": "Collapse all",
+    "productsFormatter.resultActions.expandAll": "Expand all",
+    "productsFormatter.resultActions.applyInput": "Apply to input",
+    "productsFormatter.resultActions.onlyUncertain": "Only uncertain",
+    "productsFormatter.resultActions.more": "More",
+    "productsFormatter.resultActions.showAll": "Show all",
+    "productsFormatter.resultActions.searchPlaceholder": "Search in result",
+    "productsFormatter.resultActions.noUncertain":
+      "There are no uncertain entries in the current result.",
+    "productsFormatter.resultActions.noSearchMatches":
+      "No matches found for “{query}”.",
+    "productsFormatter.staleBanner":
+      "The result is stale after changes in the source or dictionary.",
+    "productsFormatter.emptyTitle": "The result will appear here",
+    "productsFormatter.emptyHint":
+      "Paste a list from the clipboard or load the demo sample to preview formatting right away.",
+    "productsFormatter.shortcutHint": "Quick action: Ctrl/Cmd + Enter",
+    "productsFormatter.empty":
+      "The formatted sections and optional summary will appear here.",
+    "productsFormatter.unsorted": "Unsorted",
+    "productsFormatter.summaryTitle": "Summary",
+    "productsFormatter.greensTitle": "Greens",
+    "productsFormatter.uncertain": "Check",
+    "productsFormatter.diagnostics.issues": "Warnings",
+    "productsFormatter.diagnostics.diff": "Normalization",
+    "productsFormatter.diagnostics.comparison": "Run comparison",
+    "productsFormatter.diagnostics.filter.all": "All",
+    "productsFormatter.diagnostics.filter.review": "Review",
+    "productsFormatter.diagnostics.filter.typos": "Typos",
+    "productsFormatter.diagnostics.filter.duplicates": "Duplicates",
+    "productsFormatter.diagnostics.applyLine": "Apply line",
+    "productsFormatter.diagnostics.revealLine": "Reveal in input",
+    "productsFormatter.diagnostics.emptyFiltered":
+      "No matches for the “{filter}” filter.",
+    "productsFormatter.issue.ambiguousUnitAssumedKg":
+      "\"{source}\" was interpreted as \"{output}\".",
+    "productsFormatter.issue.duplicateMerged":
+      "Duplicates were merged in \"{section}\": {name}.",
+    "productsFormatter.issue.storeQuantityIgnored":
+      "The number in \"{source}\" was ignored in \"{section}\".",
+    "productsFormatter.issue.typoCorrected":
+      "\"{source}\" was normalized as \"{name}\".",
+    "productsFormatter.meta.sections": "Sections: {count}",
+    "productsFormatter.meta.items": "Items: {count}",
+    "productsFormatter.meta.summaryOn": "Summary on",
+    "productsFormatter.meta.summaryOff": "Summary off",
+    "productsFormatter.meta.greensOn": "Greens on",
+    "productsFormatter.meta.greensOff": "Greens off",
+    "productsFormatter.stats.duplicates": "Duplicates: {count}",
+    "productsFormatter.stats.typos": "Typos: {count}",
+    "productsFormatter.stats.review": "Review: {count}",
+    "productsFormatter.comparison.summary":
+      "Added: {added}, removed: {removed}, sections changed: {sections}",
+    "productsFormatter.comparison.noChanges":
+      "There are no result changes after the rerun.",
+    "productsFormatter.comparison.added": "Added",
+    "productsFormatter.comparison.removed": "Removed",
+    "productsFormatter.status.empty":
+      "Paste a product list before formatting.",
+    "productsFormatter.status.formatted": "The list is ready.",
+    "productsFormatter.status.copied": "The result was copied.",
+    "productsFormatter.status.sectionCopied": "Section copied.",
+    "productsFormatter.status.pasted": "Text was pasted from the clipboard.",
+    "productsFormatter.status.pasteEmpty": "The clipboard is empty.",
+    "productsFormatter.status.pasteError":
+      "Could not read the clipboard.",
+    "productsFormatter.status.cleared": "The field was cleared.",
+    "productsFormatter.status.demoLoaded": "Demo list loaded.",
+    "productsFormatter.status.dictionaryReset": "Dev dictionary cleared.",
+    "productsFormatter.status.dictionaryCleaned": "Broken lines removed from the dev dictionary.",
+    "productsFormatter.status.dictionaryChanged":
+      "Dictionary rules changed. Refresh the result.",
+    "productsFormatter.status.stale":
+      "The source changed. Reformat the result.",
+    "productsFormatter.status.appliedToInput":
+      "Normalized text was applied to the input.",
+    "productsFormatter.status.lineApplied":
+      "The corrected line was applied to the input.",
+    "productsFormatter.status.sourceFocused":
+      "The source line was focused in the input.",
+    "productsFormatter.status.applyLineError":
+      "Could not find the source line to replace.",
+    "productsFormatter.status.copyError": "Could not copy the result.",
     "wg.autoShutdown.toast.title": "Auto-close",
     "wg.autoShutdown.toast.body": "The app will close in",
     "wg.autoShutdown.toast.cancel": "Cancel shutdown",

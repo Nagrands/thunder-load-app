@@ -1,0 +1,1251 @@
+import renderProductFormatterView from "../views/productFormatterView.js";
+
+describe("productFormatterView", () => {
+  beforeEach(() => {
+    jest.useRealTimers();
+    localStorage.clear();
+    document.body.innerHTML = `<div id="wrapper"></div>`;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: jest.fn().mockResolvedValue(undefined),
+        readText: jest.fn().mockResolvedValue(""),
+      },
+    });
+  });
+
+  test("renders the upgraded workspace with utility actions and empty result state", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+    const footer = wrapper.querySelector(".products-pane__footer--action");
+    const footerToggles = wrapper.querySelector('[data-ui="products-footer-toggles"]');
+
+    expect(wrapper.querySelector('[data-ui="products-workbench"]')).not.toBeNull();
+    expect(wrapper.querySelector("#products-paste")).not.toBeNull();
+    expect(wrapper.querySelector("#products-clear")).not.toBeNull();
+    expect(wrapper.querySelector("#products-demo")).not.toBeNull();
+    expect(wrapper.querySelector("#products-dictionary-toggle")).not.toBeNull();
+    expect(wrapper.querySelector("#products-summary-toggle")?.checked).toBe(true);
+    expect(wrapper.querySelector("#products-greens-toggle")?.checked).toBe(
+      false,
+    );
+    expect(
+      wrapper
+        .querySelector("#products-summary-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.textContent?.trim(),
+    ).toBe("Итого");
+    expect(
+      wrapper
+        .querySelector("#products-greens-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.textContent?.trim(),
+    ).toBe("Зелень");
+    expect(
+      wrapper
+        .querySelector("#products-summary-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.getAttribute("title"),
+    ).toBe('Добавляет итоговый блок «Итого» в конец результата.');
+    expect(
+      wrapper
+        .querySelector("#products-greens-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.getAttribute("title"),
+    ).toBe("Добавляет только отдельный блок «Зелень».");
+    expect(footer?.contains(footerToggles)).toBe(true);
+    expect(footer?.contains(wrapper.querySelector("#products-format"))).toBe(true);
+    expect(footerToggles?.contains(wrapper.querySelector("#products-summary-toggle"))).toBe(
+      true,
+    );
+    expect(footerToggles?.contains(wrapper.querySelector("#products-greens-toggle"))).toBe(
+      true,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
+    ).toBe(
+      true,
+    );
+    expect(
+      wrapper.querySelector("#products-dictionary-toggle")?.getAttribute(
+        "aria-expanded",
+      ),
+    ).toBe("false");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      false,
+    );
+    expect(wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden).toBe(
+      false,
+    );
+    expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
+    expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
+      false,
+    );
+    expect(
+      wrapper.querySelector(".products-formatter-empty__title")?.textContent,
+    ).toBe("Результат появится здесь");
+    expect(wrapper.querySelector("#products-empty-paste")).not.toBeNull();
+    expect(wrapper.querySelector("#products-empty-demo")).not.toBeNull();
+    expect(
+      wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
+    ).toBe(true);
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+    expect(wrapper.querySelector("#products-search")).not.toBeNull();
+    expect(wrapper.querySelector("#products-search")?.disabled).toBe(true);
+    expect(wrapper.querySelector("#products-result-menu-toggle")).not.toBeNull();
+    expect(wrapper.querySelector("#products-result-menu-toggle")?.disabled).toBe(
+      true,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-result-menu-panel"]')?.hidden,
+    ).toBe(true);
+    expect(wrapper.querySelectorAll(".products-diagnostics__filter").length).toBe(4);
+  });
+
+  test("formats into a single preview flow with summary at the end and enables the compact result controls", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+    const summaryCard = wrapper.querySelector("#products-summary-card");
+    const preview = wrapper.querySelector("#products-preview");
+
+    textarea.value = `Заявка 4
+Лук 1
+
+Магазин
+Банан`;
+    formatButton.click();
+
+    expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
+      true,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
+    ).toBe(false);
+    expect(summaryCard.hidden).toBe(true);
+    expect(
+      Array.from(preview.querySelectorAll(".products-preview__title")).map(
+        (el) => el.textContent,
+      ),
+    ).toEqual(["Заявка 4", "Магазин", "Итого"]);
+    expect(wrapper.querySelector("#products-search")?.disabled).toBe(false);
+    expect(wrapper.querySelector("#products-result-menu-toggle")?.disabled).toBe(
+      false,
+    );
+    expect(wrapper.querySelector("#products-copy")?.disabled).toBe(false);
+    expect(preview.querySelectorAll(".products-section-copy").length).toBe(3);
+  });
+
+  test("appends the greens summary block when the optional toggle is enabled", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    const greensToggle = wrapper.querySelector("#products-greens-toggle");
+
+    textarea.value = `Заявка 4
+Укроп 2 пуч.
+ПетрушкаЦ 1 пуч.
+
+Магазин
+Укроп 20
+Банан`;
+    greensToggle.checked = true;
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
+    expect(
+      Array.from(
+        wrapper.querySelector("#products-preview")?.querySelectorAll(
+          ".products-preview__title",
+        ) || [],
+      ).map((el) => el.textContent),
+    ).toEqual(["Заявка 4", "Магазин", "Итого", "Зелень"]);
+  });
+
+  test("reformats the preview immediately when toggles change after formatting", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Укроп 2 пуч.
+
+Магазин
+Банан`;
+    wrapper.querySelector("#products-format").click();
+
+    const summaryToggle = wrapper.querySelector("#products-summary-toggle");
+    const greensToggle = wrapper.querySelector("#products-greens-toggle");
+    const previewTitles = () =>
+      Array.from(wrapper.querySelectorAll(".products-preview__title")).map(
+        (el) => el.textContent,
+      );
+
+    expect(previewTitles()).toEqual(["Заявка 4", "Магазин", "Итого"]);
+
+    greensToggle.checked = true;
+    greensToggle.dispatchEvent(new Event("change"));
+    expect(previewTitles()).toEqual(["Заявка 4", "Магазин", "Итого", "Зелень"]);
+
+    summaryToggle.checked = false;
+    summaryToggle.dispatchEvent(new Event("change"));
+    expect(previewTitles()).toEqual(["Заявка 4", "Магазин", "Зелень"]);
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
+  });
+
+  test("omits summary from the preview flow when the checkbox is disabled and copies raw output", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    const summaryToggle = wrapper.querySelector("#products-summary-toggle");
+    const formatButton = wrapper.querySelector("#products-format");
+    const copyButton = wrapper.querySelector("#products-copy");
+    const summaryCard = wrapper.querySelector("#products-summary-card");
+    const preview = wrapper.querySelector("#products-preview");
+
+    textarea.value = `Заявка 4
+Лук 1`;
+    summaryToggle.checked = false;
+    formatButton.click();
+
+    expect(summaryCard.hidden).toBe(true);
+    expect(
+      Array.from(preview.querySelectorAll(".products-preview__title")).map(
+        (el) => el.textContent,
+      ),
+    ).toEqual(["Заявка 4"]);
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
+
+    copyButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Заявка 4
+Лук репчатый 1`);
+    expect(copyButton.getAttribute("title")).toBe("Скопировано");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Результат скопирован.",
+    );
+  });
+
+  test("supports demo, paste and clear actions with coherent status and reset state", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const demoButton = wrapper.querySelector("#products-demo");
+    const pasteButton = wrapper.querySelector("#products-paste");
+    const clearButton = wrapper.querySelector("#products-clear");
+    const formatButton = wrapper.querySelector("#products-format");
+    const status = wrapper.querySelector("#products-status");
+
+    demoButton.click();
+    expect(input.value).toContain("Заявка 1");
+    expect(status.textContent).toBe("Демо-список загружен.");
+
+    navigator.clipboard.readText.mockResolvedValueOnce("Заявка 4\nЛук 1");
+    pasteButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(input.value).toBe("Заявка 4\nЛук 1");
+    expect(status.textContent).toBe("Текст вставлен из буфера обмена.");
+
+    formatButton.click();
+    expect(wrapper.querySelector('[data-ui="products-result-content"]')?.hidden).toBe(
+      false,
+    );
+
+    input.value = "Заявка 4\nЛук 2";
+    formatButton.click();
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+
+    clearButton.click();
+    expect(input.value).toBe("");
+    expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
+      false,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
+    ).toBe(true);
+    expect(wrapper.querySelector('[data-ui="products-result-meta"]')).toBeNull();
+    expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
+    expect(status.textContent).toBe("Поле очищено.");
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(true);
+  });
+
+  test("marks the result as stale after editing the source and clears it on rerun", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+    const dirtyState = wrapper.querySelector('[data-ui="products-dirty-state"]');
+
+    input.value = "Заявка 4\nЛук 1";
+    formatButton.click();
+    expect(dirtyState?.hidden).toBe(true);
+
+    input.value = "Заявка 4\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+    expect(dirtyState?.hidden).toBe(false);
+    expect(dirtyState?.textContent).toContain("Результат устарел");
+
+    formatButton.click();
+    expect(dirtyState?.hidden).toBe(true);
+  });
+
+  test("does not keep the stale banner after rerender when source and dictionary did not change", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    input.value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+
+    renderProductFormatterView(wrapper);
+
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+  });
+
+  test("clears stale status text after rerender when result is no longer dirty", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+
+    input.value = "Заявка 4\nЛук 1";
+    formatButton.click();
+
+    input.value = "Заявка 4\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исходник изменён. Переформатируйте результат.",
+    );
+
+    input.value = "Заявка 4\nЛук 1";
+    renderProductFormatterView(wrapper);
+
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe("");
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+  });
+
+  test("supports empty-state quick actions for paste and demo", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    navigator.clipboard.readText.mockResolvedValueOnce("Заявка 4\nЛук 1");
+    wrapper.querySelector("#products-empty-paste").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.querySelector("#products-input")?.value).toBe("Заявка 4\nЛук 1");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Текст вставлен из буфера обмена.",
+    );
+
+    wrapper.querySelector("#products-empty-demo").click();
+    expect(wrapper.querySelector("#products-input")?.value).toContain("Заявка 1");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Демо-список загружен.",
+    );
+  });
+
+  test("surfaces clipboard errors through the inline status channel", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    navigator.clipboard.readText.mockRejectedValueOnce(new Error("denied"));
+    wrapper.querySelector("#products-paste").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Не удалось прочитать буфер обмена.",
+    );
+
+    navigator.clipboard.writeText.mockRejectedValueOnce(new Error("denied"));
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+    wrapper.querySelector("#products-copy").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Не удалось скопировать результат.",
+    );
+  });
+
+  test("copies an individual section from its local action", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+Лук 1
+
+Магазин
+Банан`;
+    wrapper.querySelector("#products-format").click();
+
+    const firstSectionCopy = wrapper.querySelector(".products-section-copy");
+    expect(firstSectionCopy?.classList.contains("small-button")).toBe(false);
+    expect(firstSectionCopy?.classList.contains("products-icon-button")).toBe(
+      false,
+    );
+    firstSectionCopy.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`Заявка 4
+Лук репчатый 1`);
+    expect(firstSectionCopy.getAttribute("title")).toBe("Скопировано");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Раздел скопирован.",
+    );
+  });
+
+  test("renders diagnostics and highlights uncertain normalized lines", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector('[data-ui="products-diagnostics"]')?.hidden).toBe(
+      false,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).toContain("объединены дубли");
+    expect(
+      wrapper.querySelector('[data-ui="products-diff-panel"]')?.textContent,
+    ).toContain("Петрушка Ц 2 пуч");
+    expect(wrapper.querySelector("#products-diff-list")?.hidden).toBe(true);
+    expect(
+      wrapper.querySelectorAll(".products-preview__item--uncertain").length,
+    ).toBeGreaterThan(0);
+    expect(wrapper.querySelector(".products-preview__badge")?.textContent).toBe(
+      "Проверить",
+    );
+  });
+
+  test("keeps normalization collapsed by default and expands on click", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 5`;
+    wrapper.querySelector("#products-format").click();
+
+    const diffToggle = wrapper.querySelector("#products-diff-toggle");
+    const diffList = wrapper.querySelector("#products-diff-list");
+
+    expect(diffToggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(diffList?.hidden).toBe(true);
+    expect(
+      wrapper.querySelector('[data-ui="products-diff-panel"]')?.classList.contains(
+        "products-diagnostics__panel--collapsed",
+      ),
+    ).toBe(true);
+
+    diffToggle.click();
+
+    expect(diffToggle?.getAttribute("aria-expanded")).toBe("true");
+    expect(diffList?.hidden).toBe(false);
+  });
+
+  test("allows dismissing warnings from the diagnostics panel", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 5
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    const diagnostics = wrapper.querySelector('[data-ui="products-diagnostics"]');
+    const issuesPanel = wrapper.querySelector('[data-ui="products-issues-panel"]');
+    const closeButtons = wrapper.querySelectorAll(".products-issue__close");
+
+    expect(diagnostics?.hidden).toBe(false);
+    expect(issuesPanel?.hidden).toBe(false);
+    expect(closeButtons.length).toBeGreaterThan(0);
+
+    closeButtons.forEach((button) => button.click());
+
+    expect(issuesPanel?.hidden).toBe(true);
+    expect(diagnostics?.hidden).toBe(false);
+    expect(wrapper.querySelector('[data-ui="products-diff-panel"]')?.hidden).toBe(
+      false,
+    );
+  });
+
+  test("supports collapsible sections without a separate normalization stats block", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 5
+Лук 1 кг`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-normalization-stats"]'),
+    ).toBeNull();
+
+    const firstToggle = wrapper.querySelector(".products-preview__heading-button");
+    const firstSection = wrapper.querySelector(".products-preview__section");
+    expect(firstSection?.classList.contains("products-preview__section--collapsed")).toBe(
+      false,
+    );
+    firstToggle.click();
+    expect(firstSection?.classList.contains("products-preview__section--collapsed")).toBe(
+      true,
+    );
+  });
+
+  test("supports result actions from the compact overflow menu", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+    Магазин
+    Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-result-menu-toggle").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-result-menu-panel"]')?.hidden,
+    ).toBe(false);
+
+    wrapper.querySelector("#products-collapse-all").click();
+    expect(
+      Array.from(wrapper.querySelectorAll(".products-preview__section")).every(
+        (section) =>
+          section.classList.contains("products-preview__section--collapsed"),
+      ),
+    ).toBe(true);
+    expect(
+      wrapper.querySelector('[data-ui="products-result-menu-panel"]')?.hidden,
+    ).toBe(true);
+
+    wrapper.querySelector("#products-result-menu-toggle").click();
+    wrapper.querySelector("#products-expand-all").click();
+    expect(
+      Array.from(wrapper.querySelectorAll(".products-preview__section")).every(
+        (section) =>
+          !section.classList.contains("products-preview__section--collapsed"),
+      ),
+    ).toBe(true);
+
+    const filterToggle = wrapper.querySelector("#products-filter-uncertain");
+    filterToggle.checked = true;
+    filterToggle.dispatchEvent(new Event("change"));
+
+    expect(
+      wrapper.querySelectorAll(".products-preview__item:not(.products-preview__item--uncertain)").length,
+    ).toBe(0);
+    expect(
+      wrapper.querySelectorAll(".products-preview__item--uncertain").length,
+    ).toBeGreaterThan(0);
+  });
+
+  test("blocks stale apply-to-input actions and disables the result menu", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    const menuToggle = wrapper.querySelector("#products-result-menu-toggle");
+    const applyButton = wrapper.querySelector("#products-apply-input");
+
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1 кг`;
+    wrapper.querySelector("#products-format").click();
+
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 2 кг`;
+    textarea.dispatchEvent(new Event("input"));
+
+    expect(menuToggle.disabled).toBe(true);
+
+    applyButton.click();
+
+    expect(textarea.value).toBe(`Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 2 кг`);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исходник изменён. Переформатируйте результат.",
+    );
+  });
+
+  test("closes the result menu on escape and outside click", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 1`;
+    wrapper.querySelector("#products-format").click();
+
+    const toggle = wrapper.querySelector("#products-result-menu-toggle");
+    const panel = wrapper.querySelector('[data-ui="products-result-menu-panel"]');
+
+    toggle.click();
+    expect(panel?.hidden).toBe(false);
+
+    wrapper.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    expect(panel?.hidden).toBe(true);
+    expect(document.activeElement).toBe(toggle);
+
+    toggle.click();
+    document.body.click();
+    expect(panel?.hidden).toBe(true);
+  });
+
+  test("filters diagnostics by category", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 5
+Лук 1 кг
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    const typoFilter = wrapper.querySelector(
+      '.products-diagnostics__filter[data-filter="typos"]',
+    );
+    typoFilter.click();
+
+    expect(typoFilter.getAttribute("data-active")).toBe("true");
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).toContain("нормализовано как");
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).not.toContain("объединены дубли");
+    expect(wrapper.querySelector("#products-diff-list")?.textContent).toContain(
+      "Петрушка Ц 2 пуч",
+    );
+
+    wrapper.querySelector('.products-diagnostics__filter[data-filter="duplicates"]').click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.textContent,
+    ).toContain("объединены дубли");
+    expect(wrapper.querySelector("#products-diff-list")?.textContent).toContain(
+      "Для фильтра «Дубли» совпадений нет.",
+    );
+  });
+
+  test("applies normalized text back to the input", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1 кг`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-result-menu-toggle").click();
+    wrapper.querySelector("#products-apply-input").click();
+
+    expect(textarea.value).toBe(`Заявка 4
+Лук репчатый 1
+Петрушка⁕ 2п`);
+    expect(
+      wrapper.querySelector('[data-ui="products-result-content"]')?.hidden,
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Нормализованный текст подставлен во вход.",
+    );
+  });
+
+  test("applies a normalized diff row back to the input", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    wrapper.querySelector(".products-diff-row__apply").click();
+
+    expect(textarea.value).toContain("Петрушка⁕ 2п");
+    expect(textarea.value).not.toContain("ПетрушкаЦ 2 пуч.");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исправленная строка подставлена во вход.",
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden,
+    ).toBe(false);
+  });
+
+  test("applies the selected duplicated diff row back to the matching source line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1
+ПетрушкаЦ 2 пуч.`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    const applyButtons = wrapper.querySelectorAll(".products-diff-row__apply");
+    applyButtons[2].click();
+
+    expect(textarea.value).toBe(`Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1
+Петрушка⁕ 2п`);
+  });
+
+  test("filters the result preview by search query", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 1
+ПетрушкаЦ 2 пуч.
+
+Магазин
+Чеснок 3`;
+    wrapper.querySelector("#products-format").click();
+
+    const search = wrapper.querySelector("#products-search");
+    search.value = "чеснок";
+    search.dispatchEvent(new Event("input"));
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Чеснок",
+    );
+    expect(wrapper.querySelector("#products-preview")?.textContent).not.toContain(
+      "Петрушка",
+    );
+
+    search.value = "банан";
+    search.dispatchEvent(new Event("input"));
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "По запросу «банан» ничего не найдено.",
+    );
+  });
+
+  test("copies only the currently visible lines from a filtered section", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+Лук 1
+Чеснок 2`;
+    wrapper.querySelector("#products-format").click();
+
+    const search = wrapper.querySelector("#products-search");
+    search.value = "чеснок";
+    search.dispatchEvent(new Event("input"));
+
+    wrapper.querySelector(".products-section-copy").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(`Заявка 4
+Чеснок 2`);
+  });
+
+  test("keeps normalization expanded while search only refreshes the preview", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    const diffList = wrapper.querySelector("#products-diff-list");
+    expect(diffList?.hidden).toBe(false);
+
+    const search = wrapper.querySelector("#products-search");
+    search.value = "лук";
+    search.dispatchEvent(new Event("input"));
+
+    expect(diffList?.hidden).toBe(false);
+    expect(wrapper.querySelector("#products-diff-toggle")?.getAttribute("aria-expanded")).toBe(
+      "true",
+    );
+  });
+
+  test("reveals source lines in the input from diagnostics actions", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 5`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    const revealButtons = Array.from(
+      wrapper.querySelectorAll("button"),
+    ).filter((button) => button.textContent?.trim() === "Показать во входе");
+
+    expect(revealButtons.length).toBeGreaterThan(0);
+    revealButtons[0].click();
+
+    const lineStart = textarea.value.indexOf("ПетрушкаЦ 2 пуч.");
+    expect(document.activeElement).toBe(textarea);
+    expect(textarea.selectionStart).toBe(lineStart);
+    expect(textarea.selectionEnd).toBe(lineStart + "ПетрушкаЦ 2 пуч.".length);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Исходная строка найдена во входе.",
+    );
+  });
+
+  test("reveals the exact duplicated source line from diagnostics actions", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const textarea = wrapper.querySelector("#products-input");
+    textarea.value = `Заявка 4
+ПетрушкаЦ 2 пуч.
+Лук 1
+ПетрушкаЦ 2 пуч.`;
+    wrapper.querySelector("#products-format").click();
+
+    wrapper.querySelector("#products-diff-toggle").click();
+    const revealButtons = wrapper.querySelectorAll(".products-diff-row__reveal");
+    revealButtons[2].click();
+
+    const secondOccurrence = textarea.value.lastIndexOf("ПетрушкаЦ 2 пуч.");
+    expect(textarea.selectionStart).toBe(secondOccurrence);
+    expect(textarea.selectionEnd).toBe(
+      secondOccurrence + "ПетрушкаЦ 2 пуч.".length,
+    );
+  });
+
+  test("supports custom dev dictionary and shows comparison after a rerun", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const dictionaryToggle = wrapper.querySelector("#products-dictionary-toggle");
+    dictionaryToggle.focus();
+    dictionaryToggle.click();
+    expect(
+      wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
+    ).toBe(false);
+    expect(wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden).toBe(
+      true,
+    );
+    expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      true,
+    );
+    expect(document.activeElement).toBe(
+      wrapper.querySelector("#products-dictionary-input"),
+    );
+    wrapper.querySelector("#products-dictionary-input").value =
+      "батат = Картофель сладкий";
+    wrapper.querySelector("#products-dictionary-input").dispatchEvent(
+      new Event("input"),
+    );
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 1",
+    );
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+батат 2`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Картофель сладкий 2",
+    );
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+батат 3`;
+    wrapper.querySelector("#products-format").click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+    expect(wrapper.querySelector("#products-comparison-list")?.textContent).toContain(
+      "Картофель сладкий 3",
+    );
+    wrapper.querySelector("#products-dictionary-close").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
+    ).toBe(
+      true,
+    );
+    expect(wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden).toBe(
+      false,
+    );
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Картофель сладкий 3",
+    );
+  });
+
+  test("keeps diagnostics visible when only the comparison panel has changes", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    input.value = "Заявка 4\nБанан";
+    wrapper.querySelector("#products-format").click();
+
+    input.value = "Заявка 4\nКиви";
+    wrapper.querySelector("#products-format").click();
+
+    expect(wrapper.querySelector('[data-ui="products-diagnostics"]')?.hidden).toBe(
+      false,
+    );
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+    expect(
+      wrapper.querySelector('[data-ui="products-issues-panel"]')?.hidden,
+    ).toBe(true);
+    expect(
+      wrapper.querySelector('[data-ui="products-diff-panel"]')?.hidden,
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-comparison-list")?.textContent).toContain(
+      "Киви",
+    );
+  });
+
+  test("uses the latest formatted result as the comparison baseline for toggle reruns", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const summaryToggle = wrapper.querySelector("#products-summary-toggle");
+
+    input.value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+
+    input.value = "Заявка 4\nЛук 2";
+    wrapper.querySelector("#products-format").click();
+
+    summaryToggle.checked = false;
+    summaryToggle.dispatchEvent(new Event("change"));
+
+    expect(wrapper.querySelector("#products-comparison-list")?.childElementCount).toBe(
+      0,
+    );
+    expect(wrapper.querySelector("#products-comparison-summary")?.textContent).toBe(
+      "После повторного запуска изменений нет.",
+    );
+  });
+
+  test("shows dictionary validation when malformed rules are entered", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    dictionaryInput.value = "батат\nморковь =\nлук = Лук";
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(
+      dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Нет применимых правил. Конфликты: 0, без эффекта: 1, переопределения: 0, ошибки: 2. Строки: 1, 2, 3",
+    );
+  });
+
+  test("shows duplicate keys and built-in overrides in dictionary meta", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+Батат = Батат новый
+черри = Томаты черри`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(
+      dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
+    ).toBe(true);
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 2, конфликты: 1, без эффекта: 0, переопределения: 1, ошибки: 0. Строки: 2",
+    );
+    expect(
+      Array.from(
+        wrapper.querySelectorAll("#products-dictionary-summary .products-dictionary__chip"),
+      ).map((node) => node.textContent),
+    ).toEqual(["Конфликты: 1", "Переопределения: 1"]);
+  });
+
+  test("keeps dictionary preview tied to the active textarea line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+битая строка
+лук = лук`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    dictionaryInput.setSelectionRange(5, 5);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ: батат -> замена: Картофель сладкий.",
+    );
+
+    dictionaryInput.setSelectionRange(30, 30);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Строка 2 пока не распознана как правило `исходное = замена`.",
+    );
+
+    dictionaryInput.setSelectionRange(dictionaryInput.value.length, dictionaryInput.value.length);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ «лук» не изменится после такого правила.",
+    );
+  });
+
+  test("shows duplicate and built-in override hints for the active dictionary line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+Батат = Батат новый
+черри = Томаты черри`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    const duplicateIndex = dictionaryInput.value.indexOf("Батат");
+    dictionaryInput.setSelectionRange(duplicateIndex, duplicateIndex);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ: батат -> замена: Батат новый. Перекрывает более раннее правило с тем же ключом.",
+    );
+
+    const overrideIndex = dictionaryInput.value.indexOf("черри");
+    dictionaryInput.setSelectionRange(overrideIndex, overrideIndex);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Ключ: черри -> замена: Томаты черри. Переопределяет встроенную замену: Помидор черри.",
+    );
+  });
+
+  test("jumps from dictionary summary chips to the first problem line", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `батат = Картофель сладкий
+битая строка
+лук = лук`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    const invalidChip = wrapper.querySelector(
+      '#products-dictionary-summary [data-dictionary-jump="invalid"]',
+    );
+    invalidChip.click();
+    expect(document.activeElement).toBe(dictionaryInput);
+    expect(dictionaryInput.selectionStart).toBe(dictionaryInput.value.indexOf("битая строка"));
+    expect(dictionaryInput.selectionEnd).toBe(
+      dictionaryInput.value.indexOf("битая строка") + "битая строка".length,
+    );
+    expect(previewBody?.textContent).toBe(
+      "Строка 2 пока не распознана как правило `исходное = замена`.",
+    );
+
+    const noopChip = wrapper.querySelector(
+      '#products-dictionary-summary [data-dictionary-jump="noop"]',
+    );
+    noopChip.click();
+    expect(previewBody?.textContent).toBe(
+      "Ключ «лук» не изменится после такого правила.",
+    );
+  });
+
+  test("shows override chips without marking the dictionary textarea invalid", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    dictionaryInput.value = "черри = Томаты черри";
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(
+      dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
+    ).toBe(false);
+    expect(
+      Array.from(
+        wrapper.querySelectorAll("#products-dictionary-summary .products-dictionary__chip"),
+      ).map((node) => node.textContent),
+    ).toEqual(["Переопределения: 1"]);
+  });
+
+  test("cleans only invalid dictionary lines from the panel", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const cleanInvalidButton = wrapper.querySelector(
+      "#products-dictionary-clean-invalid",
+    );
+
+    dictionaryInput.value = `батат
+батат = Картофель сладкий
+морковь =
+черри = Томаты черри`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(cleanInvalidButton.hidden).toBe(false);
+    cleanInvalidButton.click();
+
+    expect(dictionaryInput.value).toBe(`батат = Картофель сладкий
+черри = Томаты черри`);
+    expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
+      "Правил: 2, конфликты: 0, без эффекта: 0, переопределения: 1, ошибки: 0.",
+    );
+    expect(cleanInvalidButton.disabled).toBe(true);
+  });
+
+  test("toggles the dictionary as a sidebar and closes it via the close button", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const dictionaryToggle = wrapper.querySelector("#products-dictionary-toggle");
+    const dictionaryLayer = wrapper.querySelector('[data-ui="products-dictionary"]');
+    const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const dictionaryClose = wrapper.querySelector("#products-dictionary-close");
+
+    dictionaryToggle.focus();
+    dictionaryToggle.click();
+    expect(dictionaryLayer?.hidden).toBe(false);
+    expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      true,
+    );
+    expect(resultPane?.hidden).toBe(true);
+    expect(document.activeElement).toBe(dictionaryInput);
+    expect(wrapper.querySelector('[data-ui="products-dictionary-backdrop"]')).toBeNull();
+
+    dictionaryClose.click();
+    expect(dictionaryLayer?.hidden).toBe(true);
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      false,
+    );
+    expect(resultPane?.hidden).toBe(false);
+
+    dictionaryToggle.click();
+    expect(dictionaryLayer?.hidden).toBe(false);
+    expect(resultPane?.hidden).toBe(true);
+    dictionaryToggle.click();
+    expect(dictionaryLayer?.hidden).toBe(true);
+    expect(dictionaryToggle.getAttribute("aria-expanded")).toBe("false");
+    expect(wrapper.classList.contains("products-view--dictionary-open")).toBe(
+      false,
+    );
+    expect(resultPane?.hidden).toBe(false);
+  });
+
+  test("preserves formatted result while the result pane is hidden by the dictionary", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+
+    const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
+    wrapper.querySelector("#products-dictionary-toggle").click();
+
+    expect(resultPane?.hidden).toBe(true);
+    expect(wrapper.querySelector("#products-copy")?.disabled).toBe(false);
+
+    wrapper.querySelector("#products-dictionary-close").click();
+
+    expect(resultPane?.hidden).toBe(false);
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Лук репчатый 1",
+    );
+  });
+
+  test("resets comparison history after paste and demo actions", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+    wrapper.querySelector("#products-input").value = "Заявка 4\nЛук 2";
+    wrapper.querySelector("#products-format").click();
+
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(false);
+
+    navigator.clipboard.readText.mockResolvedValueOnce("Заявка 4\nЛук 4");
+    wrapper.querySelector("#products-paste").click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    wrapper.querySelector("#products-format").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(true);
+
+    wrapper.querySelector("#products-demo").click();
+    wrapper.querySelector("#products-format").click();
+    expect(
+      wrapper.querySelector('[data-ui="products-comparison-panel"]')?.hidden,
+    ).toBe(true);
+  });
+});

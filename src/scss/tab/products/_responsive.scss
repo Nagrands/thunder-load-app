@@ -1,0 +1,132 @@
+@media (max-width: 980px) {
+  .products-view {
+    height: auto;
+    overflow: visible;
+  }
+
+  .products-center {
+    height: auto;
+    min-height: auto;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .products-formatter-shell {
+    height: auto;
+    min-height: auto;
+    grid-template-rows: auto auto;
+  }
+
+  .products-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .products-pane--input,
+  .products-pane--result {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .products-pane__body--editor {
+    min-height: 280px;
+  }
+
+  .products-editor-layout {
+    display: flex;
+  }
+
+  .products-editor-main {
+    min-height: 280px;
+  }
+
+  .products-pane__body--result {
+    min-height: 300px;
+  }
+
+  .products-result-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .products-result-menu {
+    justify-content: stretch;
+  }
+
+  .products-result-menu__toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .products-result-menu__panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+
+  .products-diagnostics__filters {
+    gap: 6px;
+  }
+
+  .products-diagnostics__filter {
+    flex: 0 1 auto;
+    min-height: 30px;
+    padding-inline: 10px;
+  }
+
+  .products-issue {
+    grid-template-columns: 1fr;
+  }
+
+  .products-issue__actions {
+    justify-content: flex-end;
+  }
+
+  .products-pane__toggles {
+    flex-wrap: wrap;
+  }
+
+  .products-pane__toggles--footer {
+    padding-left: 0;
+  }
+
+  .products-result-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .products-result-menu {
+    justify-content: stretch;
+  }
+
+  .products-result-menu__toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .products-result-menu__panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+
+  .products-dictionary {
+    min-height: 320px;
+  }
+
+  .products-dictionary-layer {
+    min-height: 320px;
+  }
+
+  .products-view--dictionary-open .products-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .products-dictionary__textarea {
+    min-height: 200px;
+  }
+
+  .products-dictionary__actions {
+    gap: 10px;
+  }
+
+  .products-formatter-empty {
+    min-height: 220px;
+  }
+}

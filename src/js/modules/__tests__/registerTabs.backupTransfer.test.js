@@ -5,6 +5,7 @@ describe("registerTabs backup transfer", () => {
   let renderBackupMock;
   let renderDownloaderViewMock;
   let renderToolsViewMock;
+  let renderProductFormatterViewMock;
   let getDefaultTabMock;
   let initDownloaderToolsStatusMock;
   let initWgAutoShutdownNotifierMock;
@@ -26,6 +27,7 @@ describe("registerTabs backup transfer", () => {
     renderBackupMock = jest.fn(() => document.createElement("div"));
     renderDownloaderViewMock = jest.fn();
     renderToolsViewMock = jest.fn(() => document.createElement("div"));
+    renderProductFormatterViewMock = jest.fn();
     getDefaultTabMock = jest.fn(async () => "backup");
     initDownloaderToolsStatusMock = jest.fn();
     initWgAutoShutdownNotifierMock = jest.fn();
@@ -51,6 +53,10 @@ describe("registerTabs backup transfer", () => {
     jest.doMock("../views/toolsView.js", () => renderToolsViewMock);
     jest.doMock("../views/backupView.js", () => renderBackupMock);
     jest.doMock("../views/downloaderView.js", () => renderDownloaderViewMock);
+    jest.doMock(
+      "../views/productFormatterView.js",
+      () => renderProductFormatterViewMock,
+    );
     jest.doMock("../downloaderToolsStatus.js", () => ({
       initDownloaderToolsStatus: initDownloaderToolsStatusMock,
     }));
@@ -71,13 +77,14 @@ describe("registerTabs backup transfer", () => {
     ({ registerTabs } = require("../app/registerTabs.js"));
   });
 
-  test("registers only Download and Tools tabs", async () => {
+  test("registers Download, Tools, and Products tabs", async () => {
     await registerTabs(document.getElementById("main-view"));
 
-    expect(addTabMock).toHaveBeenCalledTimes(2);
+    expect(addTabMock).toHaveBeenCalledTimes(3);
     expect(addTabMock.mock.calls.map(([id]) => id)).toEqual([
       "download",
       "wireguard",
+      "products",
     ]);
     expect(renderBackupMock).not.toHaveBeenCalled();
   });

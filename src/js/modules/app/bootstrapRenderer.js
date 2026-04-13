@@ -30,6 +30,7 @@ import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
 import { initLowEffectsFromStore } from "../effectsMode.js";
+import { initDeveloperModeFooterVisibility } from "../developerModeFooter.js";
 import { initPageBackgroundMode } from "../pageBackgroundMode.js";
 import { initScrollLockRepair } from "../scrollLockRepair.js";
 import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
@@ -68,6 +69,7 @@ async function runCriticalInitialization(mainView) {
 
   registerI18nListeners(tabs);
 
+  initDeveloperModeFooterVisibility();
   initDeveloperModeTopBarVisibility();
   initDownloaderBackgroundPreview();
   initDownloaderLivePreview();
