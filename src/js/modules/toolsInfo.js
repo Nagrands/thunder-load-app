@@ -128,6 +128,37 @@ export function summarizeToolsState(res) {
   };
 }
 
+export function resolvePendingToolUpdates(currentVersions, updatesPayload) {
+  const ytCurrentFromPayload = normVer(updatesPayload?.ytDlp?.current || "");
+  const ffCurrentFromPayload = normVer(updatesPayload?.ffmpeg?.current || "");
+
+  const ytCurrentLocal = normVer(
+    firstLine(currentVersions?.ytDlp?.version || "").replace(/^v/i, ""),
+  );
+  const ffCurrentLocal = normVer(
+    firstLine(currentVersions?.ffmpeg?.version || "")
+      .replace(/^ffmpeg version\s*/i, "")
+      .split(" ")[0],
+  );
+
+  const ytCurrent = ytCurrentLocal || ytCurrentFromPayload || "";
+  const ffCurrent = ffCurrentLocal || ffCurrentFromPayload || "";
+  const ytLatest = normVer(updatesPayload?.ytDlp?.latest || "");
+  const ffSkip = !!updatesPayload?.ffmpeg?.skipUpdates;
+  const ffLatest = ffSkip
+    ? ffCurrent
+    : normVer(updatesPayload?.ffmpeg?.latest || "");
+
+  const ytCmp = ytCurrent && ytLatest ? cmpYtDlp(ytLatest, ytCurrent) : null;
+  const ffCmp =
+    !ffSkip && ffCurrent && ffLatest ? cmpFfSemver(ffLatest, ffCurrent) : null;
+
+  return {
+    yt: ytCmp === 1,
+    ff: !ffSkip && ffCmp === 1,
+  };
+}
+
 function emitToolsStatus(res) {
   try {
     const summary = summarizeToolsState(res || {});
@@ -690,36 +721,8 @@ function initContext(section) {
         setCachedUpdates(versionsSignature, upd);
       }
 
-      const yCurUpd = normVer(upd?.ytDlp?.current || "");
-      const fCurUpd = normVer(upd?.ffmpeg?.current || "");
       const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
-      const yLatN = normVer(upd?.ytDlp?.latest || "");
-      const fLatN = normVer(upd?.ffmpeg?.latest || "");
-
-      const yCurLocal = normVer(
-        firstLine(cur?.ytDlp?.version || "").replace(/^v/i, ""),
-      );
-      const fCurLocal = normVer(
-        firstLine(cur?.ffmpeg?.version || "")
-          .replace(/^ffmpeg version\s*/i, "")
-          .split(" ")[0],
-      );
-
-      const ytCur = yCurUpd || yCurLocal || "";
-      const ffCur = fCurUpd || fCurLocal || "";
-      const ytLatest = yLatN;
-      const ffSkip = !!upd?.ffmpeg?.skipUpdates;
-      const ffLatest = ffSkip ? ffCur : fLatN;
-
-      let ytCmp = null;
-      let ffCmp = null;
-      if (ytCur && ytLatest) ytCmp = cmpYtDlp(ytLatest, ytCur);
-      if (!ffSkip && ffCur && ffLatest) ffCmp = cmpFfSemver(ffLatest, ffCur);
-
-      state.pendingUpdate = {
-        yt: ytCmp === 1,
-        ff: !ffSkip && ffCmp === 1,
-      };
+      state.pendingUpdate = resolvePendingToolUpdates(cur, upd);
 
       const anyUpdate = state.pendingUpdate.yt || state.pendingUpdate.ff;
       const overrides = {

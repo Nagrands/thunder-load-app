@@ -94,9 +94,10 @@ export const downloaderTranslations = {
     "downloader.tools.checking": "Проверяем инструменты…",
     "downloader.tools.hideTitle": "Скрыть статус",
     "downloader.tools.hideAria": "Скрыть статус инструментов",
-    "downloader.tools.reinstallTitle":
-      "Переустановить зависимости (yt-dlp, ffmpeg, Deno)",
-    "downloader.tools.reinstall": "Переустановить",
+    "downloader.tools.installTitle":
+      "Установить зависимости (yt-dlp, ffmpeg, Deno)",
+    "downloader.tools.updateTitle":
+      "Обновить инструменты (yt-dlp, ffmpeg)",
     "queue.label": "В очереди:",
     "queue.active.label": "Активно:",
     "queue.title": "Очередь",
@@ -339,9 +340,10 @@ export const downloaderTranslations = {
     "downloader.tools.checking": "Checking tools…",
     "downloader.tools.hideTitle": "Hide status",
     "downloader.tools.hideAria": "Hide tools status",
-    "downloader.tools.reinstallTitle":
-      "Reinstall dependencies (yt-dlp, ffmpeg, Deno)",
-    "downloader.tools.reinstall": "Reinstall",
+    "downloader.tools.installTitle":
+      "Install dependencies (yt-dlp, ffmpeg, Deno)",
+    "downloader.tools.updateTitle":
+      "Update tools (yt-dlp, ffmpeg)",
     "queue.label": "In queue:",
     "queue.active.label": "Active:",
     "queue.title": "Queue",

@@ -1,19 +1,27 @@
 // src/js/modules/downloaderToolsStatus.js
 
 import { hideAllTooltips, initTooltips } from "./tooltipInitializer.js";
-import { summarizeToolsState } from "./toolsInfo.js";
-import { openSettingsWithTab } from "./settingsModal.js";
+import {
+  installAllTools,
+  resolvePendingToolUpdates,
+  summarizeToolsState,
+} from "./toolsInfo.js";
 import { t } from "./i18n.js";
 
 let isInitialized = false;
 let isLoading = false;
+let isActionRunning = false;
+let currentAction = null;
+let pendingUpdate = { yt: false, ff: false };
 
 const el = {
   container: null,
   line: null,
   icon: null,
   text: null,
-  reinstall: null,
+  action: null,
+  actionIcon: null,
+  actionLabel: null,
   badges: null,
 };
 
@@ -32,12 +40,72 @@ const setBadges = (details = []) => {
   el.badges.appendChild(frag);
 };
 
-const setState = (state, message, details = []) => {
-  if (!el.line || !el.icon || !el.text || !el.reinstall) return;
+function hideAction() {
+  if (!el.action) return;
+  currentAction = null;
+  el.action.classList.add("hidden");
+  el.action.classList.remove("is-busy");
+  el.action.disabled = false;
+  el.action.setAttribute("aria-hidden", "true");
+  el.action.setAttribute("title", "");
+  el.action.setAttribute("data-bs-original-title", "");
+}
+
+function setAction(action) {
+  if (!el.action || !el.actionLabel || !el.actionIcon) return;
+  currentAction = action;
+  if (!action) {
+    hideAction();
+    return;
+  }
+
+  const labelKey =
+    action === "install" ? "tools.button.install" : "tools.button.update";
+  const titleKey =
+    action === "install"
+      ? "downloader.tools.installTitle"
+      : "downloader.tools.updateTitle";
+  const iconClass =
+    action === "install"
+      ? "fa-solid fa-download"
+      : "fa-solid fa-arrows-rotate";
+  const label = t(labelKey);
+  const title = t(titleKey);
+
+  el.actionLabel.textContent = label;
+  el.actionLabel.setAttribute("data-i18n", labelKey);
+  el.actionIcon.className = iconClass;
+  el.action.classList.remove("hidden");
+  el.action.classList.toggle("is-busy", isActionRunning);
+  el.action.disabled = isActionRunning;
+  el.action.setAttribute("aria-hidden", "false");
+  el.action.setAttribute("title", title);
+  el.action.setAttribute("data-bs-original-title", title);
+  el.action.setAttribute("data-i18n-title", titleKey);
+}
+
+function setActionBusy(isBusy, action = currentAction) {
+  if (!el.action || !el.actionIcon || !el.actionLabel) return;
+  isActionRunning = isBusy;
+  el.action.classList.toggle("is-busy", isBusy);
+  el.action.disabled = isBusy;
+  if (!action) return;
+  el.actionIcon.className = isBusy
+    ? "fa-solid fa-circle-notch fa-spin"
+    : action === "install"
+      ? "fa-solid fa-download"
+      : "fa-solid fa-arrows-rotate";
+  el.actionLabel.textContent = isBusy
+    ? t("tools.status.installing")
+    : t(action === "install" ? "tools.button.install" : "tools.button.update");
+}
+
+const setState = (state, message, details = [], action = null) => {
+  if (!el.line || !el.icon || !el.text || !el.action) return;
 
   el.line.classList.remove("is-ok", "is-error", "is-loading");
   hideAllTooltips();
-  el.reinstall.classList.add("hidden");
+  hideAction();
 
   switch (state) {
     case "ok":
@@ -45,13 +113,14 @@ const setState = (state, message, details = []) => {
       el.icon.className = "fa-solid fa-check";
       el.text.textContent = message || t("tools.status.ready");
       setBadges(details);
+      setAction(action);
       break;
     case "error":
       el.line.classList.add("is-error");
       el.icon.className = "fa-solid fa-triangle-exclamation";
       el.text.textContent = message || t("tools.status.unavailable");
-      el.reinstall.classList.remove("hidden");
       setBadges(details);
+      setAction(action);
       break;
     case "loading":
     default:
@@ -62,6 +131,31 @@ const setState = (state, message, details = []) => {
       break;
   }
 };
+
+async function showToast(message, tone) {
+  await window.electron?.invoke?.("toast", message, tone);
+}
+
+async function resolveUpdateAction(versionsRes, summary) {
+  if (!window.electron?.tools?.checkUpdates) {
+    setState("error", t("tools.error.update"), summary.details);
+    return;
+  }
+
+  setState("loading", t("tools.status.checkingUpdates"), summary.details);
+  const updates = await window.electron.tools.checkUpdates({
+    noCache: false,
+    forceFetch: false,
+  });
+  pendingUpdate = resolvePendingToolUpdates(versionsRes, updates);
+
+  if (pendingUpdate.yt || pendingUpdate.ff) {
+    setState("ok", t("tools.status.updatesFound"), summary.details, "update");
+    return;
+  }
+
+  setState("ok", t("tools.status.ready"), summary.details);
+}
 
 async function fetchStatus() {
   if (!window.electron?.tools?.getVersions) {
@@ -74,13 +168,14 @@ async function fetchStatus() {
   try {
     const res = await window.electron.tools.getVersions();
     const summary = summarizeToolsState(res);
-    const msg = summary.state === "ok" ? t("tools.status.ready") : summary.text;
-    setState(summary.state, msg, summary.details);
-    if (summary.state === "ok") {
-      el.reinstall.classList.add("hidden");
-    } else {
-      el.reinstall.classList.remove("hidden");
+    pendingUpdate = { yt: false, ff: false };
+
+    if (summary.state !== "ok") {
+      setState("error", summary.text, summary.details, "install");
+      return;
     }
+
+    await resolveUpdateAction(res, summary);
   } catch (error) {
     console.error("[downloaderToolsStatus] getVersions failed:", error);
     setState("error", t("tools.status.error"));
@@ -89,10 +184,36 @@ async function fetchStatus() {
   }
 }
 
-async function reinstallTools() {
-  // Вместо фоновой переустановки открываем настройки с вкладкой Загрузчик,
-  // где есть полный менеджер инструментов.
-  openSettingsWithTab("window-settings");
+async function runAction() {
+  const action = currentAction;
+  if (!action || isActionRunning) return;
+  if (!navigator.onLine) {
+    setState("error", t("tools.status.noNetwork"), [], action);
+    return;
+  }
+
+  try {
+    setActionBusy(true, action);
+    setState("loading", t("tools.status.installing"));
+    setAction(action);
+    setActionBusy(true, action);
+    if (action === "install") {
+      await installAllTools();
+      await showToast(t("tools.toast.installSuccess"), "success");
+    } else if (action === "update") {
+      if (pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
+      if (pendingUpdate.ff) await window.electron?.tools?.updateFfmpeg?.();
+    }
+    await fetchStatus();
+  } catch (error) {
+    console.error("[downloaderToolsStatus] action failed:", error);
+    const message =
+      action === "install" ? t("tools.error.install") : t("tools.error.update");
+    setState("error", message, [], action);
+    await showToast(message, "error");
+  } finally {
+    isActionRunning = false;
+  }
 }
 
 function bindDom() {
@@ -100,14 +221,18 @@ function bindDom() {
   el.line = document.getElementById("dl-tools-status");
   el.icon = document.getElementById("dl-tools-icon");
   el.text = document.getElementById("dl-tools-text");
-  el.reinstall = document.getElementById("dl-tools-reinstall");
+  el.action = document.getElementById("dl-tools-action");
+  el.actionIcon = document.getElementById("dl-tools-action-icon");
+  el.actionLabel = document.getElementById("dl-tools-action-label");
   el.badges = document.getElementById("dl-tools-badges");
   if (
     !el.container ||
     !el.line ||
     !el.icon ||
     !el.text ||
-    !el.reinstall ||
+    !el.action ||
+    !el.actionIcon ||
+    !el.actionLabel ||
     !el.badges
   )
     return false;
@@ -123,7 +248,9 @@ function bindDom() {
     }
   } catch {}
 
-  el.reinstall.addEventListener("click", () => reinstallTools());
+  el.action.addEventListener("click", () => {
+    runAction();
+  });
   window.addEventListener("tools:visibility", (ev) => {
     const hidden = ev?.detail?.hidden === true;
     el.container.classList.toggle("hidden", hidden);
@@ -138,14 +265,12 @@ function bindDom() {
   window.addEventListener("tools:status", (ev) => {
     const summary = ev?.detail?.summary;
     if (summary) {
-      const msg =
-        summary.state === "ok" ? t("tools.status.ready") : summary.text;
-      setState(summary.state, msg, summary.details);
       if (summary.state === "ok") {
-        el.reinstall.classList.add("hidden");
-      } else {
-        el.reinstall.classList.remove("hidden");
+        fetchStatus();
+        return;
       }
+      pendingUpdate = { yt: false, ff: false };
+      setState("error", summary.text, summary.details, "install");
     } else {
       fetchStatus();
     }

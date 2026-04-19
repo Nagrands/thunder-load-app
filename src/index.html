@@ -2756,7 +2756,7 @@
                 id="footer-status-meta"
                 class="app-footer__status-meta"
                 data-i18n="footer.sectionLabel"
-                >Раздел</span
+                >Вкладка</span
               >
               <strong
                 id="footer-active-section"
@@ -2809,16 +2809,19 @@
 
         <div class="app-footer__zone app-footer__zone--actions">
           <button
-            id="dl-tools-reinstall"
+            id="dl-tools-action"
             class="app-footer__action app-footer__action--tools hidden"
             type="button"
-            title="Переустановить зависимости (yt-dlp, ffmpeg, Deno)"
+            title=""
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            data-i18n-title="downloader.tools.reinstallTitle"
           >
-            <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
-            <span data-i18n="downloader.tools.reinstall">Переустановить</span>
+            <i
+              id="dl-tools-action-icon"
+              class="fa-solid fa-download"
+              aria-hidden="true"
+            ></i>
+            <span id="dl-tools-action-label">Скачать зависимости</span>
           </button>
           <button
             id="open-history"

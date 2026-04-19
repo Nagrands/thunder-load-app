@@ -12,7 +12,7 @@ const dom = {
   version: null,
   activeSection: null,
   settingsAction: null,
-  toolsReinstallAction: null,
+  toolsAction: null,
   backToTopAction: null,
   statusCluster: null,
   toolsStatus: null,
@@ -51,7 +51,7 @@ function bindDom() {
   dom.version = document.getElementById("footer-app-version");
   dom.activeSection = document.getElementById("footer-active-section");
   dom.settingsAction = document.getElementById("footer-open-settings");
-  dom.toolsReinstallAction = document.getElementById("dl-tools-reinstall");
+  dom.toolsAction = document.getElementById("dl-tools-action");
   dom.backToTopAction = document.getElementById("footer-back-to-top");
   dom.statusCluster = document.getElementById("footer-status-cluster");
   dom.toolsStatus = document.getElementById("footer-tools-status");
@@ -72,7 +72,7 @@ function bindDom() {
     dom.version &&
     dom.activeSection &&
     dom.settingsAction &&
-    dom.toolsReinstallAction &&
+    dom.toolsAction &&
     dom.backToTopAction &&
     dom.statusCluster &&
     dom.toolsStatus &&
@@ -85,7 +85,7 @@ function bindDom() {
 }
 
 function syncToolsVisibility() {
-  if (!dom.toolsStatus || !dom.toolsReinstallAction) return;
+  if (!dom.toolsStatus || !dom.toolsAction) return;
   const locallyHidden =
     state.toolsHiddenByPreference || dom.toolsStatus.classList.contains("hidden");
   const shouldShow =
@@ -94,8 +94,8 @@ function syncToolsVisibility() {
     !locallyHidden;
   dom.toolsStatus.classList.toggle("is-context-hidden", !shouldShow);
   dom.toolsStatus.setAttribute("aria-hidden", shouldShow ? "false" : "true");
-  dom.toolsReinstallAction.classList.toggle("is-context-hidden", !shouldShow);
-  dom.toolsReinstallAction.setAttribute(
+  dom.toolsAction.classList.toggle("is-context-hidden", !shouldShow);
+  dom.toolsAction.setAttribute(
     "aria-hidden",
     shouldShow ? "false" : "true",
   );

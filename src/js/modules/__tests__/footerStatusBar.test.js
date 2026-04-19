@@ -40,7 +40,7 @@ describe("footerStatusBar", () => {
           <div class="app-footer__zone app-footer__zone--center">
             <div id="footer-status-cluster">
               <div class="app-footer__zone app-footer__zone--status">
-                <span id="footer-status-meta" class="app-footer__status-meta"></span>
+                <span id="footer-status-meta" class="app-footer__status-meta">Tab</span>
                 <strong id="footer-active-section" class="app-footer__status-value"></strong>
               </div>
               <div
@@ -51,7 +51,7 @@ describe("footerStatusBar", () => {
             <div id="footer-tab-nav" hidden></div>
           </div>
           <div class="app-footer__zone app-footer__zone--actions">
-            <button id="dl-tools-reinstall" type="button"></button>
+            <button id="dl-tools-action" type="button"></button>
             <button id="open-history" type="button"></button>
             <button id="footer-open-settings" type="button"></button>
             <button id="footer-back-to-top" type="button" hidden></button>
@@ -115,7 +115,7 @@ describe("footerStatusBar", () => {
         const map = {
           "tabs.download": "Downloader",
           "tabs.tools": "Tools",
-          "footer.sectionLabel": "Section",
+          "footer.sectionLabel": "Tab",
         };
         return map[key] || key;
       },
@@ -145,7 +145,7 @@ describe("footerStatusBar", () => {
     ).toBe(false);
     expect(
       document
-        .getElementById("dl-tools-reinstall")
+        .getElementById("dl-tools-action")
         .classList.contains("is-context-hidden"),
     ).toBe(false);
     expect(
@@ -193,7 +193,7 @@ describe("footerStatusBar", () => {
     ).toBe(true);
     expect(
       document
-        .getElementById("dl-tools-reinstall")
+        .getElementById("dl-tools-action")
         .classList.contains("is-context-hidden"),
     ).toBe(true);
     expect(document.getElementById("app-footer").classList.contains("app-footer--nav-mode")).toBe(true);
@@ -243,7 +243,7 @@ describe("footerStatusBar", () => {
     ).toBe(false);
     expect(
       document
-        .getElementById("dl-tools-reinstall")
+        .getElementById("dl-tools-action")
         .classList.contains("is-context-hidden"),
     ).toBe(false);
   });
@@ -268,7 +268,7 @@ describe("footerStatusBar", () => {
     ).toBe(true);
     expect(
       document
-        .getElementById("dl-tools-reinstall")
+        .getElementById("dl-tools-action")
         .classList.contains("is-context-hidden"),
     ).toBe(true);
   });
@@ -281,20 +281,20 @@ describe("footerStatusBar", () => {
     await Promise.resolve();
 
     const tools = document.getElementById("footer-tools-status");
-    const reinstall = document.getElementById("dl-tools-reinstall");
+    const action = document.getElementById("dl-tools-action");
     window.dispatchEvent(
       new CustomEvent("tools:visibility", { detail: { hidden: true } }),
     );
 
     expect(tools.classList.contains("is-context-hidden")).toBe(true);
-    expect(reinstall.classList.contains("is-context-hidden")).toBe(true);
+    expect(action.classList.contains("is-context-hidden")).toBe(true);
 
     window.dispatchEvent(
       new CustomEvent("tools:visibility", { detail: { hidden: false } }),
     );
 
     expect(tools.classList.contains("is-context-hidden")).toBe(false);
-    expect(reinstall.classList.contains("is-context-hidden")).toBe(false);
+    expect(action.classList.contains("is-context-hidden")).toBe(false);
   });
 
   test("opens settings from the footer action", async () => {
@@ -318,7 +318,17 @@ describe("footerStatusBar", () => {
     expect(document.getElementById("open-history")).toBeTruthy();
     expect(
       document.querySelector(".app-footer__zone--actions")?.firstElementChild?.id,
-    ).toBe("dl-tools-reinstall");
+    ).toBe("dl-tools-action");
+  });
+
+  test("keeps footer meta label as tab", async () => {
+    window.electron.invoke.mockResolvedValue("1.4.4");
+    const { initFooterStatusBar } = await loadModule();
+
+    initFooterStatusBar();
+    await Promise.resolve();
+
+    expect(document.getElementById("footer-status-meta")?.textContent).toBe("Tab");
   });
 
   test("scrolls smoothly to top from footer action", async () => {
