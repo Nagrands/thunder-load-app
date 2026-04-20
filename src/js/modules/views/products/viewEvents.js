@@ -32,6 +32,7 @@ export function bindViewEvents({
   diagnosticsFilters,
   includeSummary,
   includeGreensSummary,
+  autoReformatToggle,
   demoInput,
   applyCollapsedStateToAll,
   clearPreview,
@@ -60,6 +61,26 @@ export function bindViewEvents({
   if (wrapper.__productsFormatterBound) {
     return;
   }
+
+  const isAutoReformatEnabled = () => autoReformatToggle?.checked === true;
+
+  const autoReformatIfEnabled = ({
+    source = getCurrentSource(),
+    resetComparison = false,
+  } = {}) => {
+    if (!isAutoReformatEnabled()) return false;
+    if (!String(source || "").trim()) {
+      clearPreview({ resetComparison });
+      setStatus("", "");
+      return true;
+    }
+    formatSource({
+      source,
+      statusMessage: "",
+      comparisonBase: resetComparison ? null : state.currentResult,
+    });
+    return true;
+  };
 
   const closeResultMenu = ({ focusToggle = false } = {}) => {
     state.resultMenuOpen = false;
@@ -91,7 +112,9 @@ export function bindViewEvents({
     dictionaryInput.addEventListener("input", () => {
       saveProductFormatterDictionary(dictionaryInput.value);
       syncDictionaryPreviewLine();
-      syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
+      if (!autoReformatIfEnabled()) {
+        syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
+      }
     });
     ["click", "keyup", "select", "focus"].forEach((eventName) => {
       dictionaryInput.addEventListener(eventName, () => {
@@ -146,6 +169,7 @@ export function bindViewEvents({
       input.focus();
       clearPreview({ resetComparison: true });
       setStatus(t("productsFormatter.status.pasted"), "success");
+      autoReformatIfEnabled({ source: text, resetComparison: true });
     } catch {
       setStatus(t("productsFormatter.status.pasteError"), "error");
     }
@@ -163,6 +187,7 @@ export function bindViewEvents({
     input.focus();
     clearPreview({ resetComparison: true });
     setStatus(t("productsFormatter.status.demoLoaded"), "success");
+    autoReformatIfEnabled({ source: demoInput, resetComparison: true });
   });
 
   dictionaryResetButton?.addEventListener("click", () => {
@@ -244,6 +269,7 @@ export function bindViewEvents({
 
   input?.addEventListener("input", () => {
     if (String(input.value || "").trim()) {
+      if (autoReformatIfEnabled()) return;
       syncDirtyFromInputs();
       return;
     }
@@ -276,7 +302,14 @@ export function bindViewEvents({
 
   const handleToggleReformat = () => {
     const source = getCurrentSource();
-    if (!source || !state.currentResult) return;
+    if (!source) {
+      if (isAutoReformatEnabled()) {
+        clearPreview({ resetComparison: true });
+        setStatus("", "");
+      }
+      return;
+    }
+    if (!state.currentResult && !isAutoReformatEnabled()) return;
     formatSource({
       source,
       statusMessage: "",
@@ -286,6 +319,13 @@ export function bindViewEvents({
 
   includeSummary?.addEventListener("change", handleToggleReformat);
   includeGreensSummary?.addEventListener("change", handleToggleReformat);
+  autoReformatToggle?.addEventListener("change", () => {
+    if (isAutoReformatEnabled()) {
+      autoReformatIfEnabled();
+      return;
+    }
+    syncDirtyFromInputs();
+  });
   filterUncertainToggle?.addEventListener("change", () => {
     state.showOnlyUncertain = filterUncertainToggle.checked;
     filterUncertainToggle

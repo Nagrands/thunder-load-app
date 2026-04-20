@@ -8,10 +8,13 @@ export const toolsTranslations = {
       "Вставьте неструктурированный список продуктов с разделами и позициями.",
     "productsFormatter.summaryToggle": "Итого",
     "productsFormatter.greensToggle": "Зелень",
+    "productsFormatter.autoReformat": "Автообновление",
     "productsFormatter.summaryToggleHint":
       "Добавляет итоговый блок «Итого» в конец результата.",
     "productsFormatter.greensToggleHint":
       "Добавляет только отдельный блок «Зелень».",
+    "productsFormatter.autoReformatHint":
+      "Автоматически пересчитывает результат после изменений во входе, словаре и переключателях.",
     "productsFormatter.format": "Форматировать",
     "productsFormatter.paste": "Вставить",
     "productsFormatter.clear": "Очистить",
@@ -860,10 +863,13 @@ export const toolsTranslations = {
       "Paste an unstructured product list with section headers and items.",
     "productsFormatter.summaryToggle": "Summary",
     "productsFormatter.greensToggle": "Greens",
+    "productsFormatter.autoReformat": "Auto refresh",
     "productsFormatter.summaryToggleHint":
       "Adds the final Summary block at the end of the result.",
     "productsFormatter.greensToggleHint":
       "Adds only the separate Greens block.",
+    "productsFormatter.autoReformatHint":
+      "Recalculates the result automatically after changes in the input, dictionary, and toggles.",
     "productsFormatter.format": "Format",
     "productsFormatter.paste": "Paste",
     "productsFormatter.clear": "Clear",

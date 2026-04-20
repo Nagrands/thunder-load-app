@@ -29,6 +29,9 @@ describe("productFormatterView", () => {
     expect(wrapper.querySelector("#products-greens-toggle")?.checked).toBe(
       false,
     );
+    expect(wrapper.querySelector("#products-auto-reformat-toggle")?.checked).toBe(
+      false,
+    );
     expect(
       wrapper
         .querySelector("#products-summary-toggle")
@@ -53,6 +56,20 @@ describe("productFormatterView", () => {
         ?.closest(".products-formatter-toggle")
         ?.getAttribute("title"),
     ).toBe("Добавляет только отдельный блок «Зелень».");
+    expect(
+      wrapper
+        .querySelector("#products-auto-reformat-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.textContent?.trim(),
+    ).toBe("Автообновление");
+    expect(
+      wrapper
+        .querySelector("#products-auto-reformat-toggle")
+        ?.closest(".products-formatter-toggle")
+        ?.getAttribute("title"),
+    ).toBe(
+      "Автоматически пересчитывает результат после изменений во входе, словаре и переключателях.",
+    );
     expect(footer?.contains(footerToggles)).toBe(true);
     expect(footer?.contains(wrapper.querySelector("#products-format"))).toBe(true);
     expect(footerToggles?.contains(wrapper.querySelector("#products-summary-toggle"))).toBe(
@@ -61,6 +78,9 @@ describe("productFormatterView", () => {
     expect(footerToggles?.contains(wrapper.querySelector("#products-greens-toggle"))).toBe(
       true,
     );
+    expect(
+      footerToggles?.contains(wrapper.querySelector("#products-auto-reformat-toggle")),
+    ).toBe(true);
     expect(
       wrapper.querySelector('[data-ui="products-dictionary"]')?.hidden,
     ).toBe(
@@ -301,6 +321,72 @@ describe("productFormatterView", () => {
 
     formatButton.click();
     expect(dirtyState?.hidden).toBe(true);
+  });
+
+  test("auto-reformats the result on source edits when auto refresh is enabled", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+    const autoReformatToggle = wrapper.querySelector(
+      "#products-auto-reformat-toggle",
+    );
+    const dirtyState = wrapper.querySelector('[data-ui="products-dirty-state"]');
+    const previewTitles = () =>
+      Array.from(wrapper.querySelectorAll(".products-preview__title")).map(
+        (el) => el.textContent,
+      );
+
+    input.value = "Заявка 4\nЛук 1";
+    formatButton.click();
+    autoReformatToggle.checked = true;
+    autoReformatToggle.dispatchEvent(new Event("change"));
+
+    input.value = "Заявка 4\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+
+    expect(dirtyState?.hidden).toBe(true);
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Список подготовлен.",
+    );
+    expect(previewTitles()).toEqual(["Заявка 4", "Итого"]);
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Лук репчатый 2",
+    );
+    expect(wrapper.querySelector("#products-copy")?.disabled).toBe(false);
+    expect(wrapper.querySelector("#products-result-menu-toggle")?.disabled).toBe(
+      false,
+    );
+  });
+
+  test("auto-reformats after dictionary edits when auto refresh is enabled", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+    const autoReformatToggle = wrapper.querySelector(
+      "#products-auto-reformat-toggle",
+    );
+    const dictionaryToggle = wrapper.querySelector("#products-dictionary-toggle");
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+
+    input.value = "Заявка 4\nбатат 1";
+    formatButton.click();
+    autoReformatToggle.checked = true;
+    autoReformatToggle.dispatchEvent(new Event("change"));
+    dictionaryToggle.click();
+
+    dictionaryInput.value = "батат = Батат фермерский";
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    expect(wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden).toBe(
+      true,
+    );
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Батат фермерский 1",
+    );
   });
 
   test("does not keep the stale banner after rerender when source and dictionary did not change", () => {

@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| Formatter now has automatic result refresh | In the Products tab, you can now enable automatic recalculation: the list is reformatted right after changes in the source text, dev dictionary, or toggles, so experienced users no longer need to run formatting manually after every edit |
 | Fixed scroll getting stuck after closing modals and overlays | Scroll locking is now handled by a single internal manager, so closing dialogs, how-to overlays, or leaving the Tools tab restores page scrolling reliably without a refresh |
 | The app background is now lighter and more minimal | The main backdrop is cleaner and less distracting, still follows the active theme accent, and now differs between screens only in subtle ways |
 | The Products tab is now wider and taller on desktop | The list formatter now uses almost the full available window width and gets a taller work area, so the source list and result pane can show more content without feeling cramped |

@@ -151,6 +151,21 @@ export function buildMarkup() {
                   />
                   <span data-i18n="productsFormatter.greensToggle">${t("productsFormatter.greensToggle")}</span>
                 </label>
+                <label
+                  class="products-formatter-toggle"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="${t("productsFormatter.autoReformatHint")}"
+                  data-i18n-title="productsFormatter.autoReformatHint"
+                  aria-label="${t("productsFormatter.autoReformatHint")}"
+                  data-i18n-aria="productsFormatter.autoReformatHint"
+                >
+                  <input
+                    id="products-auto-reformat-toggle"
+                    type="checkbox"
+                  />
+                  <span data-i18n="productsFormatter.autoReformat">${t("productsFormatter.autoReformat")}</span>
+                </label>
               </div>
             </footer>
           </section>

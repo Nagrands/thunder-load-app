@@ -74,6 +74,9 @@ export default function renderProductFormatterView(wrapper) {
   const input = wrapper.querySelector("#products-input");
   const includeSummary = wrapper.querySelector("#products-summary-toggle");
   const includeGreensSummary = wrapper.querySelector("#products-greens-toggle");
+  const autoReformatToggle = wrapper.querySelector(
+    "#products-auto-reformat-toggle",
+  );
   const formatButton = wrapper.querySelector("#products-format");
   const pasteButton = wrapper.querySelector("#products-paste");
   const clearButton = wrapper.querySelector("#products-clear");
@@ -391,6 +394,7 @@ export default function renderProductFormatterView(wrapper) {
     diagnosticsFilters,
     includeSummary,
     includeGreensSummary,
+    autoReformatToggle,
     demoInput: DEMO_INPUT,
     applyCollapsedStateToAll,
     clearPreview,
