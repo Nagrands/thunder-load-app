@@ -827,6 +827,83 @@ describe("productListFormatter", () => {
     });
   });
 
+  test("normalizes unicode punctuation, bullets, and noisy quantity markers", () => {
+    const result = formatProductLists(`Заявка 7
+• “Черри” — 0,500-кг
+▪ Лимоны 2x
+● Укроп 0,100гр.
+◦ Бананы (1 пак)
+• Петрушка / 2х`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Заявка 7
+Банан 1ящ
+Лимон 2шт
+Петрушка⁕ 2шт
+Помидор черри 0.5
+Укроп⁕ 0.1`);
+    expect(result.formattedSectionsText).not.toContain("“");
+    expect(result.formattedSectionsText).not.toContain("—");
+    expect(result.formattedSectionsText).not.toContain(" ");
+  });
+
+  test("resolves contextual aliases, reordered product names, and spaced decimals", () => {
+    const result = formatProductLists(`Заявка 11
+гала
+репчатый лук
+семрнко
+лук 0, 500 гр`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Заявка 11
+Лук репчатый 0.5
+Яблоко Гала
+Яблоко Симиренко`);
+    expect(result.formattedSectionsText).not.toContain("семрнко");
+    expect(result.formattedSectionsText).not.toContain("0, 500");
+    expect(result.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "duplicateMerged",
+          displayName: "Лук репчатый",
+        }),
+      ]),
+    );
+  });
+
+  test("splits predictable slash-delimited clipboard lines without creating false headings", () => {
+    const result = formatProductLists(`Магазин
+Апельсин 2 шт / Лайм 1 шт / Укроп 5 / Петрушка 3`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Магазин
+Апельсин 2шт
+Лайм 1шт
+Петрушка⁕ 3п
+Укроп⁕ 5п`);
+    expect(result.sections).toHaveLength(1);
+    expect(result.sections[0].title).toBe("Магазин");
+  });
+
+  test("keeps uncertain handling for ambiguous entries after symbol normalization", () => {
+    const result = formatProductLists(`Заявка 9
+Лук — 5`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Заявка 9
+Лук репчатый 5`);
+    expect(result.sections[0].items[0]).toMatchObject({
+      uncertain: true,
+    });
+    expect(result.sections[0].items[0].uncertainReasons).toContain(
+      "ambiguousUnitAssumedKg",
+    );
+  });
+
   test("matches the grouped section fixture", () => {
     const fixture = loadFormatterFixture("grouped-sections");
     const result = formatProductLists(fixture.input, fixture.options || {});
@@ -849,6 +926,17 @@ describe("productListFormatter", () => {
         untitled: !!section.untitled,
       })),
     ).toEqual(fixture.sections);
+  });
+
+  test("matches the noisy clipboard fixture", () => {
+    const fixture = loadFormatterFixture("noisy-clipboard");
+    const result = formatProductLists(fixture.input, fixture.options || {});
+
+    expect(result.formattedSectionsText).toBe(fixture.formattedSectionsText);
+    expect(result.formattedSummaryText).toBe(fixture.formattedSummaryText);
+    expect(result.sections.map((section) => section.title)).toEqual(
+      fixture.sectionTitles,
+    );
   });
 
   test("applies new produce aliases and keeps size notes only in summary", () => {

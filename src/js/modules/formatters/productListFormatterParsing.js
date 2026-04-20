@@ -1,5 +1,14 @@
-export const QUANTITY_RE =
-  "(\\d+(?:\\.\\d+)?)\\s*(кг|килограмм(?:а|ов)?|к|гр|грамм(?:а|ов)?|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|голова|головы|голов|головка|головки|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)?";
+const UNIT_RE =
+  "(кг|килограмм(?:а|ов)?|к|гр|грамм(?:а|ов)?|г|шт|штук|штуки|шт\\.|пуч|пучок|пучка|п|гол|голова|головы|голов|головка|головки|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)";
+const BULLET_RE = /[•·●▪◦‣⁃∙◉○◌◍]/g;
+const QUOTE_RE = /["'`“”„‟«»‹›]/g;
+const SLASH_DELIMITER_RE = /\s+\/+\s+/g;
+const BRACKETED_QUANTITY_RE = new RegExp(
+  `\\(\\s*(\\d+(?:[.,:]\\d+)?)\\s*${UNIT_RE}?\\s*\\)`,
+  "gi",
+);
+
+export const QUANTITY_RE = `(\\d+(?:\\.\\d+)?)\\s*${UNIT_RE}?`;
 
 const PREFIX_QUANTITY_RE = new RegExp(`^${QUANTITY_RE}\\s+(.+)$`, "i");
 const SUFFIX_QUANTITY_RE = new RegExp(`^(.+?)\\s+${QUANTITY_RE}$`, "i");
@@ -8,8 +17,24 @@ const INFIX_QUANTITY_RE = new RegExp(
   "i",
 );
 
-export function normalizeWhitespace(value = "") {
+function preNormalizeRawText(value = "") {
   return String(value || "")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+    .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, " ")
+    .replace(/[‐‑‒–—−]/g, "-")
+    .replace(QUOTE_RE, "")
+    .replace(BULLET_RE, ",")
+    .replace(BRACKETED_QUANTITY_RE, "$1 $2")
+    .replace(/(^|[\s(])(?:o|о|O|О)(?=[.,]\d)/g, "$10")
+    .replace(/(\d)\s*[xх×]\s*(?=(?:шт|штук|штуки|кг|килограмм|гр|грамм|г|пуч|пучок|гол|пака|пак|пач|банка|ящ|ящик|м|ведро|в)\b)/gi, "$1 ")
+    .replace(/(\d)\s*[xх×](?=$|[\s,.;:])/g, "$1 шт")
+    .replace(/(^|[\s,.;:])([xх×])\s*(\d)(?=$|[\s,.;:])/gi, "$1$3 шт")
+    .replace(/\/{2,}/g, "/")
+    .replace(/[,:;!?/\\]+$/g, "");
+}
+
+export function normalizeWhitespace(value = "") {
+  return preNormalizeRawText(value)
     .replace(/\r/g, "")
     .replace(/\t/g, " ")
     .replace(/\u00a0/g, " ")
@@ -19,9 +44,10 @@ export function normalizeWhitespace(value = "") {
 
 export function cleanupEntryText(value = "") {
   return normalizeWhitespace(
-    String(value || "")
+    preNormalizeRawText(value)
       .replace(/([а-яё])([А-ЯЁ])/g, "$1 $2")
       .replace(/(^|[\s-])[оО](?=[.,]\d)/g, "$10")
+      .replace(/(\d)\s*([,:])\s*(\d)/g, "$1.$3")
       .replace(/(\d),(\d)/g, "$1.$2")
       .replace(/(\d):(\d)/g, "$1.$2")
       .replace(/(\d)\s+(\d{3})(?=\s*(кг|гр|г)\b)/gi, "$1.$2")
@@ -33,9 +59,10 @@ export function cleanupEntryText(value = "") {
       .replace(/\bмед\s+(\d+(?:[.,]\d+)?)\s*бан(?:ка|ки)?\b/gi, "мед $1")
       .replace(/\bсред\s+на\s+голубцы\b/gi, "")
       .replace(/\b(кг|гр|г|шт|пуч|гол|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\./gi, "$1")
+      .replace(/([A-Za-zА-Яа-яЁё⁕])\s*\/\s*(?=\d)/g, "$1 ")
       .replace(/(\d)([A-Za-zА-Яа-яЁё⁕]+)/g, "$1 $2")
       .replace(/([A-Za-zА-Яа-яЁё⁕])(\d)/g, "$1 $2")
-      .replace(/[,:;]+$/g, "")
+      .replace(/[,:;!?/\\]+$/g, "")
       .replace(/\.+$/g, ""),
   );
 }
@@ -62,7 +89,9 @@ export function isStoreSection(sectionTitle = "") {
 }
 
 export function splitEntryCandidates(line = "") {
-  return cleanupEntryText(line)
+  return cleanupEntryText(
+    preNormalizeRawText(line).replace(SLASH_DELIMITER_RE, ", "),
+  )
     .split(/\s*[,;]\s*/)
     .map((item) => cleanupEntryText(item))
     .filter(Boolean);
@@ -155,7 +184,7 @@ export function normalizeUnit(unit = "") {
   if (["кг", "килограмм", "килограмма", "килограммов", "к"].includes(value))
     return "kg";
   if (["гр", "грамм", "грамма", "граммов", "г"].includes(value)) return "g";
-  if (["шт", "штук", "штуки"].includes(value)) return "pcs";
+  if (["шт", "штук", "штуки", "x", "х", "×"].includes(value)) return "pcs";
   if (["пуч", "пучок", "пучка", "п"].includes(value)) return "bunch";
   if (["гол", "голова", "головы", "голов", "головка", "головки"].includes(value))
     return "head";

@@ -37,11 +37,17 @@ export function createProductFormatterLexicon({
   }
 
   function matchDisplayNameRule(lookupKey = "") {
+    const tokens = lookupKey.split(/\s+/).filter(Boolean);
     return (
       DISPLAY_NAME_RULES.find((rule) => {
         if (rule.type === "includes") return lookupKey.includes(rule.value);
         if (rule.type === "startsWith") return lookupKey.startsWith(rule.value);
         if (rule.type === "equals") return lookupKey === rule.value;
+        if (rule.type === "allTokens") {
+          return rule.value.every((token) =>
+            tokens.some((currentToken) => currentToken.startsWith(token)),
+          );
+        }
         return false;
       }) || null
     );

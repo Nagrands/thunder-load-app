@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The list formatter now handles noisy pasted text and contextual product aliases better | In the Products tab, lines pasted from messengers or notes now normalize bullets, typographic dashes, smart quotes, `NBSP`, `2x`/`2х`, bracketed quantities, contextual aliases like `repchatyi luk`/`semrnko`, and spaced decimals such as `0, 500 gr`, so copied lists need less manual cleanup before formatting |
 | The Products tab now uses a simpler scroll-container hierarchy | Intermediate wrappers around the formatter work area clip overflow less aggressively now, so scrolling in both the source editor and result pane should hit fewer nested-container edges and feel more predictable |
 | The Products tab height is now more stable while scrolling | The list formatter now relies more on its parent container height instead of a local `100vh` calculation, so vertical scrolling in both the source editor and result pane should feel steadier and trigger fewer stalls |
 | Formatter now has automatic result refresh | In the Products tab, you can now enable automatic recalculation: the list is reformatted right after changes in the source text, dev dictionary, or toggles, so experienced users no longer need to run formatting manually after every edit |
