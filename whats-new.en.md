@@ -6,6 +6,7 @@
 
 | What changed | What you get |
 |---|---|
+| The Products tab now uses a simpler scroll-container hierarchy | Intermediate wrappers around the formatter work area clip overflow less aggressively now, so scrolling in both the source editor and result pane should hit fewer nested-container edges and feel more predictable |
 | The Products tab height is now more stable while scrolling | The list formatter now relies more on its parent container height instead of a local `100vh` calculation, so vertical scrolling in both the source editor and result pane should feel steadier and trigger fewer stalls |
 | Formatter now has automatic result refresh | In the Products tab, you can now enable automatic recalculation: the list is reformatted right after changes in the source text, dev dictionary, or toggles, so experienced users no longer need to run formatting manually after every edit |
 | Fixed scroll getting stuck after closing modals and overlays | Scroll locking is now handled by a single internal manager, so closing dialogs, how-to overlays, or leaving the Tools tab restores page scrolling reliably without a refresh |

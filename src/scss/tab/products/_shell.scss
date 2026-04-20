@@ -14,7 +14,7 @@
   justify-content: center;
   padding: 14px 16px 12px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .products-formatter-shell {
@@ -87,7 +87,7 @@
   grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.18fr);
   gap: 16px;
   align-items: stretch;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .products-view--dictionary-open .products-workbench {
@@ -102,7 +102,7 @@
   gap: 14px;
   padding: 14px;
   border-radius: var(--border-radius);
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -169,7 +169,7 @@
 
 .products-pane__body--editor {
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
 }
 
