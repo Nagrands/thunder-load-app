@@ -873,6 +873,52 @@ describe("productListFormatter", () => {
     );
   });
 
+  test("folds simirenko typo family into one canonical apple and keeps typo diagnostics", () => {
+    const result = formatProductLists(`Заявка 12
+Симиренко 1
+семиренко 1
+симиренкоо 1
+семрнко 1`, {
+      includeSummary: false,
+    });
+
+    expect(result.formattedSectionsText).toBe(`Заявка 12
+Яблоко Симиренко 4`);
+    expect(result.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "typoCorrected",
+          displayName: "Яблоко Симиренко",
+          source: "симиренкоо 1",
+        }),
+        expect.objectContaining({
+          code: "duplicateMerged",
+          displayName: "Яблоко Симиренко",
+        }),
+      ]),
+    );
+    expect(result.sections[0].items[0]).toMatchObject({
+      uncertain: true,
+    });
+  });
+
+  test("does not fuzzy-match when two custom candidates are equally close", () => {
+    const result = formatProductLists(`Заявка 13
+сома 1`, {
+      includeSummary: false,
+      replacements: {
+        сима: "Тест Сима",
+        сема: "Тест Сема",
+      },
+    });
+
+    expect(result.formattedSectionsText).toBe(`Заявка 13
+Сома 1`);
+    expect(
+      result.issues.some((issue) => issue.code === "typoCorrected"),
+    ).toBe(false);
+  });
+
   test("splits predictable slash-delimited clipboard lines without creating false headings", () => {
     const result = formatProductLists(`Магазин
 Апельсин 2 шт / Лайм 1 шт / Укроп 5 / Петрушка 3`, {
