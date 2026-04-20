@@ -919,6 +919,39 @@ describe("productListFormatter", () => {
     ).toBe(false);
   });
 
+  test("applies dev normalize and token rules before fuzzy fallback", () => {
+    const result = formatProductLists(`Заявка 4
+симиренко 1
+репчатый лук 2
+лук репчат 3
+лук зел 4`, {
+      includeSummary: false,
+      replacements: {
+        батат: "Картофель сладкий",
+      },
+      dictionaryRules: [
+        {
+          type: "normalize",
+          normalizedSource: "симиренко",
+          target: "симиренко",
+        },
+        {
+          type: "token_rule",
+          requiresTokens: ["лук", "репчат"],
+          forbidsTokens: ["зел"],
+          sections: [],
+          priority: 10,
+          target: "Лук репчатый",
+        },
+      ],
+    });
+
+    expect(result.formattedSectionsText).toBe(`Заявка 4
+Лук зеленый⁕ 4
+Лук репчатый 5
+Яблоко Симиренко 1`);
+  });
+
   test("splits predictable slash-delimited clipboard lines without creating false headings", () => {
     const result = formatProductLists(`Магазин
 Апельсин 2 шт / Лайм 1 шт / Укроп 5 / Петрушка 3`, {

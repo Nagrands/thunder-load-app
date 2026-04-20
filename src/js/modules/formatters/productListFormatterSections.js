@@ -111,6 +111,7 @@ export function createSectionCollector({
     labels,
     diagnostics,
     replacements,
+    dictionaryRules = [],
   ) {
     const rawLines = String(input || "").split("\n");
     const sections = [];
@@ -178,6 +179,7 @@ export function createSectionCollector({
           classification.line,
           diagnostics,
           replacements,
+          dictionaryRules,
           index + 1,
         );
       }
@@ -204,6 +206,7 @@ export function createSectionCollector({
     line,
     diagnostics,
     replacements,
+    dictionaryRules = [],
     sourceLineNumber = null,
   ) {
     splitEntryCandidates(line).forEach((entry) =>
@@ -213,6 +216,7 @@ export function createSectionCollector({
         section.title,
         diagnostics,
         replacements,
+        dictionaryRules,
         sourceLineNumber,
       ),
     );

@@ -14,6 +14,17 @@ export function createProductFormatterLexicon({
   sentenceCase,
   replacements = DEFAULT_REPLACEMENTS,
 } = {}) {
+  function buildMatchResult(displayName = "", options = {}) {
+    return {
+      displayName,
+      typoCorrected: options.typoCorrected === true,
+      matchSource: options.matchSource || "built-in",
+      matchType: options.matchType || "exact",
+      confidence: options.confidence ?? 1,
+      reason: options.reason || "",
+    };
+  }
+
   function normalizeFuzzyKey(value = "") {
     return expandLookupKeyVariants(value)
       .replace(/[ьъ]/g, "")
@@ -152,6 +163,101 @@ export function createProductFormatterLexicon({
     return bestCandidate;
   }
 
+  function normalizeResolveOptions(
+    customReplacementsOrOptions = replacements,
+    maybeContext = {},
+  ) {
+    if (
+      customReplacementsOrOptions &&
+      typeof customReplacementsOrOptions === "object" &&
+      (
+        Object.prototype.hasOwnProperty.call(
+          customReplacementsOrOptions,
+          "replacements",
+        ) ||
+        Object.prototype.hasOwnProperty.call(
+          customReplacementsOrOptions,
+          "dictionaryRules",
+        ) ||
+        Object.prototype.hasOwnProperty.call(customReplacementsOrOptions, "context")
+      )
+    ) {
+      return {
+        replacements: customReplacementsOrOptions.replacements || replacements,
+        dictionaryRules: customReplacementsOrOptions.dictionaryRules || [],
+        context: customReplacementsOrOptions.context || {},
+      };
+    }
+
+    return {
+      replacements: customReplacementsOrOptions || replacements,
+      dictionaryRules: [],
+      context: maybeContext,
+    };
+  }
+
+  function matchRuleTokens(rule, lookupKey = "", context = {}) {
+    if (rule.type !== "token_rule") return false;
+    const tokens = lookupKey.split(/\s+/).filter(Boolean);
+    if (!rule.requiresTokens?.every((token) => tokens.includes(token))) {
+      return false;
+    }
+    if (rule.forbidsTokens?.some((token) => tokens.includes(token))) {
+      return false;
+    }
+    if (rule.sections?.length) {
+      const normalizedSection = normalizeLookupKey(context.sectionTitle || "");
+      if (!rule.sections.includes(normalizedSection)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function resolveDictionaryNormalizeRule(lookupKey = "", dictionaryRules = []) {
+    return (
+      dictionaryRules.find(
+        (rule) =>
+          rule.type === "normalize" && rule.normalizedSource === lookupKey,
+      ) || null
+    );
+  }
+
+  function resolveDictionaryAliasRule(lookupKey = "", dictionaryRules = []) {
+    return (
+      dictionaryRules.find(
+        (rule) => rule.type === "alias" && rule.normalizedSource === lookupKey,
+      ) || null
+    );
+  }
+
+  function resolveDictionaryTokenRule(
+    lookupKey = "",
+    dictionaryRules = [],
+    context = {},
+  ) {
+    const matchingRules = dictionaryRules.filter((rule) =>
+      matchRuleTokens(rule, lookupKey, context),
+    );
+    if (!matchingRules.length) return null;
+
+    const rankedRules = [...matchingRules].sort(
+      (left, right) =>
+        (left.priority || 100) - (right.priority || 100) ||
+        right.requiresTokens.length - left.requiresTokens.length ||
+        left.lineNumber - right.lineNumber,
+    );
+    const [bestRule, secondRule] = rankedRules;
+    if (
+      secondRule &&
+      (secondRule.priority || 100) === (bestRule.priority || 100) &&
+      secondRule.requiresTokens.length === bestRule.requiresTokens.length
+    ) {
+      return null;
+    }
+    return bestRule || null;
+  }
+
   function expandLookupKeyVariants(lookupKey = "") {
     return LOOKUP_VARIANT_RULES.reduce(
       (current, rule) => current.replace(rule.pattern, rule.replacement),
@@ -191,58 +297,110 @@ export function createProductFormatterLexicon({
     );
   }
 
-  function resolveDisplayName(name = "", customReplacements = replacements) {
-    const lookupKey = normalizeLookupKey(name);
-    const expandedLookupKey = expandLookupKeyVariants(lookupKey);
+  function resolveDisplayName(name = "", resolveOptions = replacements) {
+    const {
+      replacements: customReplacements,
+      dictionaryRules,
+      context,
+    } = normalizeResolveOptions(resolveOptions);
+    let lookupKey = normalizeLookupKey(name);
+    let expandedLookupKey = expandLookupKeyVariants(lookupKey);
     if (!lookupKey) {
-      return {
-        displayName: "",
-        typoCorrected: false,
-      };
+      return buildMatchResult("", {
+        matchSource: "built-in",
+        matchType: "exact",
+      });
+    }
+
+    const normalizeRule = resolveDictionaryNormalizeRule(
+      lookupKey,
+      dictionaryRules,
+    );
+    if (normalizeRule) {
+      lookupKey = normalizeLookupKey(normalizeRule.target);
+      expandedLookupKey = expandLookupKeyVariants(lookupKey);
+    }
+
+    const dictionaryAlias = resolveDictionaryAliasRule(lookupKey, dictionaryRules);
+    if (dictionaryAlias) {
+      return buildMatchResult(dictionaryAlias.target, {
+        matchSource: "dev-dictionary",
+        matchType: "exact",
+        confidence: 1,
+        reason: "alias",
+      });
+    }
+
+    if (customReplacements[lookupKey]) {
+      return buildMatchResult(customReplacements[lookupKey], {
+        matchSource: "built-in",
+        matchType: "exact",
+        confidence: 1,
+        reason: "alias",
+      });
+    }
+
+    if (expandedLookupKey && customReplacements[expandedLookupKey]) {
+      return buildMatchResult(customReplacements[expandedLookupKey], {
+        matchSource: "built-in",
+        matchType: "exact",
+        confidence: 1,
+        reason: "variant",
+      });
     }
 
     const displayRule = matchDisplayNameRule(lookupKey);
     if (displayRule) {
-      return {
-        displayName: displayRule.displayName,
-        typoCorrected: false,
-      };
+      return buildMatchResult(displayRule.displayName, {
+        matchSource: "built-in",
+        matchType: "token",
+        confidence: 0.95,
+        reason: displayRule.type,
+      });
     }
 
-    if (customReplacements[lookupKey]) {
-      return {
-        displayName: customReplacements[lookupKey],
-        typoCorrected: false,
-      };
-    }
-
-    if (expandedLookupKey && customReplacements[expandedLookupKey]) {
-      return {
-        displayName: customReplacements[expandedLookupKey],
-        typoCorrected: false,
-      };
+    const dictionaryTokenRule = resolveDictionaryTokenRule(
+      expandedLookupKey || lookupKey,
+      dictionaryRules,
+      context,
+    );
+    if (dictionaryTokenRule) {
+      return buildMatchResult(dictionaryTokenRule.target, {
+        matchSource: "dev-dictionary",
+        matchType: "token",
+        confidence: 0.94,
+        reason: "token_rule",
+      });
     }
 
     const typoFixed = resolveTypoStem(lookupKey);
     if (typoFixed) {
-      return {
-        displayName: typoFixed,
+      return buildMatchResult(typoFixed, {
         typoCorrected: true,
-      };
+        matchSource: "built-in",
+        matchType: "fuzzy",
+        confidence: 0.86,
+        reason: "stem",
+      });
     }
 
     const fuzzyMatch = findFuzzyReplacement(lookupKey, customReplacements);
     if (fuzzyMatch) {
-      return {
-        displayName: fuzzyMatch.displayName,
+      return buildMatchResult(fuzzyMatch.displayName, {
         typoCorrected: true,
-      };
+        matchSource: "fuzzy",
+        matchType: "fuzzy",
+        confidence: 0.74,
+        reason: fuzzyMatch.candidateKey,
+      });
     }
 
-    return {
-      displayName: sentenceCase(expandedLookupKey || lookupKey),
-      typoCorrected: false,
-    };
+    return buildMatchResult(sentenceCase(expandedLookupKey || lookupKey), {
+      matchSource: normalizeRule ? "dev-dictionary" : "built-in",
+      matchType: normalizeRule ? "normalize" : "exact",
+      confidence: normalizeRule ? 0.92 : 0.3,
+      reason: normalizeRule ? "normalize" : "fallback",
+    });
   }
 
   function buildItemQualifiers(tail = "") {

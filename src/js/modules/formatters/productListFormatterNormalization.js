@@ -43,6 +43,7 @@ export function createEntryNormalizer({
     rawEntry,
     sectionTitle,
     replacements,
+    dictionaryRules,
     sourceLineNumber = null,
   ) {
     const source = cleanupEntryText(rawEntry);
@@ -51,7 +52,13 @@ export function createEntryNormalizer({
     const effectiveName = qualifiers.hasQualifier
       ? parsed.name
       : cleanupEntryText([parsed.name, parsed.tail].filter(Boolean).join(" "));
-    const nameMeta = resolveDisplayName(effectiveName, replacements);
+    const nameMeta = resolveDisplayName(effectiveName, {
+      replacements,
+      dictionaryRules,
+      context: {
+        sectionTitle,
+      },
+    });
     const displayName = nameMeta.displayName;
     if (!displayName) return null;
     if (
@@ -197,12 +204,14 @@ export function createEntryNormalizer({
     sectionTitle,
     diagnostics,
     replacements,
+    dictionaryRules = [],
     sourceLineNumber = null,
   ) {
     const resolved = resolveParsedEntry(
       rawEntry,
       sectionTitle,
       replacements,
+      dictionaryRules,
       sourceLineNumber,
     );
     if (!resolved) return;

@@ -3,6 +3,7 @@ import {
   clearProductFormatterDictionary,
   loadProductFormatterDictionary,
   parseProductFormatterDictionary,
+  parseProductFormatterDictionaryRules,
   removeInvalidProductFormatterDictionaryLines,
   saveProductFormatterDictionary,
 } from "../formatters/productFormatterDictionary.js";
@@ -50,10 +51,12 @@ const DEMO_INPUT = `Заявка 1
 ПетрушкаЦ 15`;
 
 function buildFormatterOptions(includeSummary, includeGreensSummary, dictionaryInput) {
+  const dictionaryText = dictionaryInput?.value || "";
   return {
     includeSummary: includeSummary?.checked !== false,
     includeGreensSummary: includeGreensSummary?.checked === true,
-    replacements: parseProductFormatterDictionary(dictionaryInput?.value || ""),
+    replacements: parseProductFormatterDictionary(dictionaryText),
+    dictionaryRules: parseProductFormatterDictionaryRules(dictionaryText),
     labels: {
       summary: t("productsFormatter.summaryTitle"),
       greens: t("productsFormatter.greensTitle"),

@@ -1095,7 +1095,7 @@ describe("productFormatterView", () => {
       dictionaryInput.classList.contains("products-dictionary__textarea--invalid"),
     ).toBe(true);
     expect(wrapper.querySelector("#products-dictionary-meta")?.textContent).toBe(
-      "Правил: 2, конфликты: 1, без эффекта: 0, переопределения: 1, ошибки: 0. Строки: 2",
+      "Правил: 3, конфликты: 1, без эффекта: 0, переопределения: 1, ошибки: 0. Строки: 2",
     );
     expect(
       Array.from(
@@ -1162,6 +1162,53 @@ describe("productFormatterView", () => {
     expect(previewBody?.textContent).toBe(
       "Ключ: черри -> замена: Томаты черри. Переопределяет встроенную замену: Помидор черри.",
     );
+  });
+
+  test("shows structured rule types and token rule details in dictionary preview", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-dictionary-toggle").click();
+    const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
+    const previewBody = wrapper.querySelector("#products-dictionary-preview-body");
+
+    dictionaryInput.value = `normalize: симмеренко = симиренко
+tokens: лук + репчат !зел [магазин|заявка 4] = Лук репчатый`;
+    dictionaryInput.dispatchEvent(new Event("input"));
+
+    dictionaryInput.setSelectionRange(5, 5);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Тип: normalize. Ключ: симмеренко -> замена: симиренко.",
+    );
+
+    const tokenIndex = dictionaryInput.value.indexOf("tokens:");
+    dictionaryInput.setSelectionRange(tokenIndex, tokenIndex);
+    dictionaryInput.dispatchEvent(new Event("select"));
+    expect(previewBody?.textContent).toBe(
+      "Тип: token rule. Ключ: лук + репчат !зел [магазин|заявка 4] -> замена: Лук репчатый. Требует: лук, репчат. Исключает: зел. Секции: магазин, заявка 4.",
+    );
+    expect(
+      Array.from(
+        wrapper.querySelectorAll("#products-dictionary-summary .products-dictionary__chip"),
+      ).map((node) => node.textContent),
+    ).toEqual(["Normalize: 1", "Token rules: 1"]);
+  });
+
+  test("shows read-only dictionary suggestions after formatting typo-corrected entries", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    wrapper.querySelector("#products-input").value = `Заявка 4
+симиренко 1`;
+    wrapper.querySelector("#products-format").click();
+    wrapper.querySelector("#products-dictionary-toggle").click();
+
+    expect(
+      Array.from(
+        wrapper.querySelectorAll("#products-dictionary-summary [data-dictionary-suggestion]"),
+      ).map((node) => node.textContent),
+    ).toContain("Подсказка: normalize: симиренко 1 = Яблоко Симиренко 1");
   });
 
   test("jumps from dictionary summary chips to the first problem line", () => {

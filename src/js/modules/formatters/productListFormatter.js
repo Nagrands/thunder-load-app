@@ -77,6 +77,9 @@ function buildProductListContract(input = "", options = {}) {
     ...DEFAULT_LABELS,
     ...(options.labels || {}),
   };
+  const dictionaryRules = Array.isArray(options.dictionaryRules)
+    ? options.dictionaryRules
+    : [];
   const replacements = {
     ...DEFAULT_REPLACEMENTS,
     ...(options.replacements || {}),
@@ -84,7 +87,13 @@ function buildProductListContract(input = "", options = {}) {
   const includeSummary = options.includeSummary !== false;
   const includeGreensSummary = options.includeGreensSummary === true;
   const diagnostics = createDiagnosticsBucket();
-  const internalSections = collectSections(input, labels, diagnostics, replacements);
+  const internalSections = collectSections(
+    input,
+    labels,
+    diagnostics,
+    replacements,
+    dictionaryRules,
+  );
   const sections = internalSections.map(buildSectionContract);
   const internalSummary = includeSummary
     ? buildAggregateSummary(internalSections, labels, {

@@ -65,12 +65,57 @@ export function inspectDictionaryText(text = "", options = {}) {
     : [...inspection.entries].reverse().find((entry) => entry.raw) || null;
   return {
     validCount: inspection.appliedCount,
+    inspection,
     invalidLines: inspection.invalidLines,
     duplicateLines: inspection.duplicateLines,
     noopLines: inspection.noopLines,
     overrideLines: inspection.overrideLines,
     previewEntry,
   };
+}
+
+export function buildDictionarySuggestions(result = null) {
+  if (!result) return [];
+
+  const suggestions = new Map();
+  const pushSuggestion = (key, value) => {
+    if (!key || !value || suggestions.has(key)) return;
+    suggestions.set(key, value);
+  };
+
+  (result.issues || []).forEach((issue) => {
+    if (issue.code === "typoCorrected" && issue.displayName) {
+      pushSuggestion(
+        `alias:${normalizeKey(issue.source)}`,
+        {
+          type: "alias",
+          label: `${normalizeText(issue.source)} = ${issue.displayName}`,
+        },
+      );
+    }
+  });
+
+  (result.diffEntries || []).forEach((entry) => {
+    if (entry.uncertain && entry.source && entry.output) {
+      pushSuggestion(
+        `normalize:${normalizeKey(entry.source)}`,
+        {
+          type: "normalize",
+          label: `normalize: ${normalizeText(entry.source)} = ${normalizeText(entry.output)}`,
+        },
+      );
+    }
+  });
+
+  return Array.from(suggestions.values()).slice(0, 3);
+}
+
+function normalizeText(value = "") {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeKey(value = "") {
+  return normalizeText(value).toLowerCase();
 }
 
 export function buildSectionStateKey(type = "section", title = "") {

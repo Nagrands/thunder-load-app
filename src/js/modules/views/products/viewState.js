@@ -1,6 +1,10 @@
 import { t } from "../../i18n.js";
 import { initTooltips } from "../../tooltipInitializer.js";
-import { buildSectionStateKey, inspectDictionaryText } from "./viewHelpers.js";
+import {
+  buildDictionarySuggestions,
+  buildSectionStateKey,
+  inspectDictionaryText,
+} from "./viewHelpers.js";
 import { setCopyButtonState, setResultMenuState } from "./viewRenderers.js";
 
 export function createViewStateHandlers({
@@ -80,6 +84,7 @@ export function createViewStateHandlers({
     const validation = inspectDictionaryText(dictionaryInput.value, {
       lineNumber: state.activeDictionaryLine,
     });
+    const suggestions = buildDictionarySuggestions(state.currentResult);
     const problemLines = [
       ...validation.invalidLines,
       ...validation.duplicateLines,
@@ -123,6 +128,9 @@ export function createViewStateHandlers({
       : countsText;
 
     if (dictionarySummary) {
+      const explicitRules = validation.inspection.rules.filter(
+        (rule) => rule.explicitType,
+      );
       const summaryItems = [
         {
           key: "invalid",
@@ -148,10 +156,28 @@ export function createViewStateHandlers({
           count: validation.overrideLines.length,
           line: validation.overrideLines[0],
         },
+        {
+          key: "alias",
+          label: t("productsFormatter.dictionaryCategoryAlias"),
+          count: explicitRules.filter((rule) => rule.type === "alias").length,
+          line: explicitRules.find((rule) => rule.type === "alias")?.lineNumber,
+        },
+        {
+          key: "normalize",
+          label: t("productsFormatter.dictionaryCategoryNormalize"),
+          count: explicitRules.filter((rule) => rule.type === "normalize").length,
+          line: explicitRules.find((rule) => rule.type === "normalize")?.lineNumber,
+        },
+        {
+          key: "token_rule",
+          label: t("productsFormatter.dictionaryCategoryToken"),
+          count: explicitRules.filter((rule) => rule.type === "token_rule").length,
+          line: explicitRules.find((rule) => rule.type === "token_rule")?.lineNumber,
+        },
       ].filter((item) => item.count > 0);
 
       dictionarySummary.replaceChildren();
-      dictionarySummary.hidden = summaryItems.length === 0;
+      dictionarySummary.hidden = summaryItems.length === 0 && suggestions.length === 0;
 
       summaryItems.forEach((item) => {
         const button = document.createElement("button");
@@ -168,6 +194,14 @@ export function createViewStateHandlers({
           }),
         );
         dictionarySummary.append(button);
+      });
+
+      suggestions.forEach((item) => {
+        const suggestion = document.createElement("span");
+        suggestion.className = "products-dictionary__chip";
+        suggestion.dataset.dictionarySuggestion = item.type;
+        suggestion.textContent = `${t("productsFormatter.dictionarySuggestionLabel")}: ${item.label}`;
+        dictionarySummary.append(suggestion);
       });
     }
 
@@ -191,6 +225,7 @@ export function createViewStateHandlers({
           source: preview.normalizedSource || preview.source,
         });
       } else {
+        const ruleTypeLabel = t(`productsFormatter.dictionaryRuleType.${preview.type}`);
         const extra = preview.override
           ? ` ${t("productsFormatter.dictionaryPreviewOverride", {
               target: preview.builtInTarget,
@@ -198,10 +233,27 @@ export function createViewStateHandlers({
           : preview.duplicate
             ? ` ${t("productsFormatter.dictionaryPreviewDuplicate")}`
             : "";
-        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewValue", {
-          source: preview.normalizedSource,
-          target: preview.target,
-        }) + extra;
+        const conditions = preview.type === "token_rule"
+          ? t("productsFormatter.dictionaryPreviewTokenDetails", {
+              requires: preview.requiresTokens.join(", "),
+              forbids: preview.forbidsTokens.join(", ") || "—",
+              sections: preview.sections.join(", ") || "—",
+            })
+          : "";
+        const previewText = preview.explicitType
+          ? t("productsFormatter.dictionaryPreviewValue", {
+              type: ruleTypeLabel,
+              source:
+                preview.type === "token_rule"
+                  ? preview.source
+                  : preview.normalizedSource || preview.source,
+              target: preview.target,
+            })
+          : t("productsFormatter.dictionaryPreviewValueLegacy", {
+              source: preview.normalizedSource || preview.source,
+              target: preview.target,
+            });
+        dictionaryPreviewBody.textContent = previewText + conditions + extra;
       }
     }
   };
