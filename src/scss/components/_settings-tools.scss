@@ -14,11 +14,8 @@
 }
 
 .tools-panel {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
 
   summary {
     display: flex;
@@ -1059,11 +1056,6 @@
 }
 
 .tools-panel {
-  border-radius: 12px;
-  border-color: rgba(255, 255, 255, 0.08);
-  background: #1f2026;
-  box-shadow: none;
-
   summary {
     padding: 10px 12px;
   }
@@ -1855,7 +1847,6 @@
     grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 16px;
     align-items: center;
-    padding-bottom: 28px;
     border-top: 1px solid rgba(30, 41, 59, 0.82);
   }
 

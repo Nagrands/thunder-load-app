@@ -50,9 +50,8 @@ describe("scrollLockRepair", () => {
   test("keeps document overflow lock while a lock owner is still active", async () => {
     await jest.isolateModulesAsync(async () => {
       const { initScrollLockRepair } = await import("../scrollLockRepair.js");
-      const { acquireDocumentScrollLock } = await import(
-        "../scrollLockManager.js"
-      );
+      const { acquireDocumentScrollLock } =
+        await import("../scrollLockManager.js");
 
       acquireDocumentScrollLock("hash-howto");
       document.documentElement.style.overflow = "";
@@ -67,10 +66,8 @@ describe("scrollLockRepair", () => {
   test("clears all scroll locks when tools view is hidden", async () => {
     await jest.isolateModulesAsync(async () => {
       const { initScrollLockRepair } = await import("../scrollLockRepair.js");
-      const {
-        acquireBodyScrollLock,
-        acquireDocumentScrollLock,
-      } = await import("../scrollLockManager.js");
+      const { acquireBodyScrollLock, acquireDocumentScrollLock } =
+        await import("../scrollLockManager.js");
 
       acquireBodyScrollLock("settings-modal");
       acquireDocumentScrollLock("hash-howto");

@@ -40,15 +40,19 @@ export function createViewStateHandlers({
   resultMenuPanel,
   formatButton,
   setStatus,
-  showResult,
   refreshPreview,
 }) {
   const clearDirtyStatusIfNeeded = () => {
     const statusEl = wrapper.querySelector("#products-status");
     const currentText = String(statusEl?.textContent || "").trim();
     const staleMessage = t("productsFormatter.status.stale");
-    const dictionaryChangedMessage = t("productsFormatter.status.dictionaryChanged");
-    if (currentText === staleMessage || currentText === dictionaryChangedMessage) {
+    const dictionaryChangedMessage = t(
+      "productsFormatter.status.dictionaryChanged",
+    );
+    if (
+      currentText === staleMessage ||
+      currentText === dictionaryChangedMessage
+    ) {
       setStatus("", "");
     }
   };
@@ -95,30 +99,33 @@ export function createViewStateHandlers({
       "products-dictionary__textarea--invalid",
       hasProblems,
     );
-    dictionaryMeta.dataset.tone =
-      hasProblems ? "warning" : "default";
-    const countsText = !validation.validCount && hasProblems
-      ? t("productsFormatter.dictionaryStatsInvalid", {
-          duplicates: validation.duplicateLines.length,
-          noop: validation.noopLines.length,
-          overrides: validation.overrideLines.length,
-          invalid: validation.invalidLines.length,
-        })
-      : hasProblems || validation.overrideLines.length
-        ? t("productsFormatter.dictionaryStatsMixed", {
-            count: validation.validCount,
+    dictionaryMeta.dataset.tone = hasProblems ? "warning" : "default";
+    const countsText =
+      !validation.validCount && hasProblems
+        ? t("productsFormatter.dictionaryStatsInvalid", {
             duplicates: validation.duplicateLines.length,
             noop: validation.noopLines.length,
             overrides: validation.overrideLines.length,
             invalid: validation.invalidLines.length,
           })
-        : t("productsFormatter.dictionaryStatsValid", {
-            count: validation.validCount,
-          });
+        : hasProblems || validation.overrideLines.length
+          ? t("productsFormatter.dictionaryStatsMixed", {
+              count: validation.validCount,
+              duplicates: validation.duplicateLines.length,
+              noop: validation.noopLines.length,
+              overrides: validation.overrideLines.length,
+              invalid: validation.invalidLines.length,
+            })
+          : t("productsFormatter.dictionaryStatsValid", {
+              count: validation.validCount,
+            });
     if (!validation.validCount && hasProblems) {
-      dictionaryMeta.textContent = `${countsText} ${t("productsFormatter.dictionaryProblemLines", {
-        lines: problemLines.join(", "),
-      })}`;
+      dictionaryMeta.textContent = `${countsText} ${t(
+        "productsFormatter.dictionaryProblemLines",
+        {
+          lines: problemLines.join(", "),
+        },
+      )}`;
       return;
     }
     dictionaryMeta.textContent = hasProblems
@@ -165,19 +172,24 @@ export function createViewStateHandlers({
         {
           key: "normalize",
           label: t("productsFormatter.dictionaryCategoryNormalize"),
-          count: explicitRules.filter((rule) => rule.type === "normalize").length,
-          line: explicitRules.find((rule) => rule.type === "normalize")?.lineNumber,
+          count: explicitRules.filter((rule) => rule.type === "normalize")
+            .length,
+          line: explicitRules.find((rule) => rule.type === "normalize")
+            ?.lineNumber,
         },
         {
           key: "token_rule",
           label: t("productsFormatter.dictionaryCategoryToken"),
-          count: explicitRules.filter((rule) => rule.type === "token_rule").length,
-          line: explicitRules.find((rule) => rule.type === "token_rule")?.lineNumber,
+          count: explicitRules.filter((rule) => rule.type === "token_rule")
+            .length,
+          line: explicitRules.find((rule) => rule.type === "token_rule")
+            ?.lineNumber,
         },
       ].filter((item) => item.count > 0);
 
       dictionarySummary.replaceChildren();
-      dictionarySummary.hidden = summaryItems.length === 0 && suggestions.length === 0;
+      dictionarySummary.hidden =
+        summaryItems.length === 0 && suggestions.length === 0;
 
       summaryItems.forEach((item) => {
         const button = document.createElement("button");
@@ -206,26 +218,37 @@ export function createViewStateHandlers({
     }
 
     if (dictionaryCleanInvalidButton) {
-      dictionaryCleanInvalidButton.disabled = validation.invalidLines.length === 0;
+      dictionaryCleanInvalidButton.disabled =
+        validation.invalidLines.length === 0;
     }
 
     if (dictionaryPreview && dictionaryPreviewBody) {
       const preview = validation.previewEntry;
       dictionaryPreview.dataset.tone = "default";
       if (!preview) {
-        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewEmpty");
+        dictionaryPreviewBody.textContent = t(
+          "productsFormatter.dictionaryPreviewEmpty",
+        );
       } else if (preview.invalid) {
         dictionaryPreview.dataset.tone = "warning";
-        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewInvalid", {
-          line: preview.lineNumber,
-        });
+        dictionaryPreviewBody.textContent = t(
+          "productsFormatter.dictionaryPreviewInvalid",
+          {
+            line: preview.lineNumber,
+          },
+        );
       } else if (preview.noop) {
         dictionaryPreview.dataset.tone = "warning";
-        dictionaryPreviewBody.textContent = t("productsFormatter.dictionaryPreviewNoop", {
-          source: preview.normalizedSource || preview.source,
-        });
+        dictionaryPreviewBody.textContent = t(
+          "productsFormatter.dictionaryPreviewNoop",
+          {
+            source: preview.normalizedSource || preview.source,
+          },
+        );
       } else {
-        const ruleTypeLabel = t(`productsFormatter.dictionaryRuleType.${preview.type}`);
+        const ruleTypeLabel = t(
+          `productsFormatter.dictionaryRuleType.${preview.type}`,
+        );
         const extra = preview.override
           ? ` ${t("productsFormatter.dictionaryPreviewOverride", {
               target: preview.builtInTarget,
@@ -233,13 +256,14 @@ export function createViewStateHandlers({
           : preview.duplicate
             ? ` ${t("productsFormatter.dictionaryPreviewDuplicate")}`
             : "";
-        const conditions = preview.type === "token_rule"
-          ? t("productsFormatter.dictionaryPreviewTokenDetails", {
-              requires: preview.requiresTokens.join(", "),
-              forbids: preview.forbidsTokens.join(", ") || "—",
-              sections: preview.sections.join(", ") || "—",
-            })
-          : "";
+        const conditions =
+          preview.type === "token_rule"
+            ? t("productsFormatter.dictionaryPreviewTokenDetails", {
+                requires: preview.requiresTokens.join(", "),
+                forbids: preview.forbidsTokens.join(", ") || "—",
+                sections: preview.sections.join(", ") || "—",
+              })
+            : "";
         const previewText = preview.explicitType
           ? t("productsFormatter.dictionaryPreviewValue", {
               type: ruleTypeLabel,
@@ -258,7 +282,9 @@ export function createViewStateHandlers({
     }
   };
 
-  const syncDirtyFromInputs = (statusKey = "productsFormatter.status.stale") => {
+  const syncDirtyFromInputs = (
+    statusKey = "productsFormatter.status.stale",
+  ) => {
     if (!state.currentResult) {
       state.isDirty = false;
       updateDirtyState();
@@ -278,13 +304,25 @@ export function createViewStateHandlers({
 
   const syncDictionaryPanel = () => {
     if (!dictionaryLayer || !dictionaryPanel) return;
-    wrapper.classList.toggle("products-view--dictionary-open", state.dictionaryOpen);
+    wrapper.classList.toggle(
+      "products-view--dictionary-open",
+      state.dictionaryOpen,
+    );
     dictionaryLayer.hidden = !state.dictionaryOpen;
-    dictionaryLayer.setAttribute("aria-hidden", state.dictionaryOpen ? "false" : "true");
-    dictionaryPanel.setAttribute("aria-hidden", state.dictionaryOpen ? "false" : "true");
+    dictionaryLayer.setAttribute(
+      "aria-hidden",
+      state.dictionaryOpen ? "false" : "true",
+    );
+    dictionaryPanel.setAttribute(
+      "aria-hidden",
+      state.dictionaryOpen ? "false" : "true",
+    );
     if (resultPane) {
       resultPane.hidden = state.dictionaryOpen;
-      resultPane.setAttribute("aria-hidden", state.dictionaryOpen ? "true" : "false");
+      resultPane.setAttribute(
+        "aria-hidden",
+        state.dictionaryOpen ? "true" : "false",
+      );
     }
     if (dictionaryToggleButton) {
       dictionaryToggleButton.setAttribute(

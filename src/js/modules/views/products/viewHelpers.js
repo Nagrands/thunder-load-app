@@ -1,11 +1,11 @@
 import { inspectProductFormatterDictionary } from "../../formatters/productFormatterDictionary.js";
 
 const FOCUSABLE_SELECTOR = [
-  'button:not([disabled])',
-  '[href]',
+  "button:not([disabled])",
+  "[href]",
   'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
+  "select:not([disabled])",
+  "textarea:not([disabled])",
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
@@ -53,7 +53,8 @@ export function getTextareaSelectionForLine(text = "", lineNumber = 1) {
   for (let index = 0; index < safeLineNumber - 1; index += 1) {
     selectionStart += (lines[index] || "").length + 1;
   }
-  const selectionEnd = selectionStart + (lines[safeLineNumber - 1] || "").length;
+  const selectionEnd =
+    selectionStart + (lines[safeLineNumber - 1] || "").length;
   return { selectionStart, selectionEnd };
 }
 
@@ -61,7 +62,8 @@ export function inspectDictionaryText(text = "", options = {}) {
   const inspection = inspectProductFormatterDictionary(text);
   const requestedLine = Number(options.lineNumber) || 0;
   const previewEntry = requestedLine
-    ? inspection.entries.find((entry) => entry.lineNumber === requestedLine) || null
+    ? inspection.entries.find((entry) => entry.lineNumber === requestedLine) ||
+      null
     : [...inspection.entries].reverse().find((entry) => entry.raw) || null;
   return {
     validCount: inspection.appliedCount,
@@ -85,25 +87,19 @@ export function buildDictionarySuggestions(result = null) {
 
   (result.issues || []).forEach((issue) => {
     if (issue.code === "typoCorrected" && issue.displayName) {
-      pushSuggestion(
-        `alias:${normalizeKey(issue.source)}`,
-        {
-          type: "alias",
-          label: `${normalizeText(issue.source)} = ${issue.displayName}`,
-        },
-      );
+      pushSuggestion(`alias:${normalizeKey(issue.source)}`, {
+        type: "alias",
+        label: `${normalizeText(issue.source)} = ${issue.displayName}`,
+      });
     }
   });
 
   (result.diffEntries || []).forEach((entry) => {
     if (entry.uncertain && entry.source && entry.output) {
-      pushSuggestion(
-        `normalize:${normalizeKey(entry.source)}`,
-        {
-          type: "normalize",
-          label: `normalize: ${normalizeText(entry.source)} = ${normalizeText(entry.output)}`,
-        },
-      );
+      pushSuggestion(`normalize:${normalizeKey(entry.source)}`, {
+        type: "normalize",
+        label: `normalize: ${normalizeText(entry.source)} = ${normalizeText(entry.output)}`,
+      });
     }
   });
 
@@ -111,7 +107,9 @@ export function buildDictionarySuggestions(result = null) {
 }
 
 function normalizeText(value = "") {
-  return String(value || "").replace(/\s+/g, " ").trim();
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function normalizeKey(value = "") {
@@ -128,12 +126,20 @@ export function buildComparison(previousResult, nextResult) {
   }
 
   const previousMap = new Map(
-    previousResult.sections.map((section) => [section.title, new Set(section.lines)]),
+    previousResult.sections.map((section) => [
+      section.title,
+      new Set(section.lines),
+    ]),
   );
   const nextMap = new Map(
-    nextResult.sections.map((section) => [section.title, new Set(section.lines)]),
+    nextResult.sections.map((section) => [
+      section.title,
+      new Set(section.lines),
+    ]),
   );
-  const titles = Array.from(new Set([...previousMap.keys(), ...nextMap.keys()]));
+  const titles = Array.from(
+    new Set([...previousMap.keys(), ...nextMap.keys()]),
+  );
   const entries = [];
 
   titles.forEach((title) => {

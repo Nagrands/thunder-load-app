@@ -45,10 +45,14 @@ function pickPoster(info = {}) {
 }
 
 function normalizeContainer(format = {}) {
-  const ext = String(format?.ext || "").trim().toLowerCase();
+  const ext = String(format?.ext || "")
+    .trim()
+    .toLowerCase();
   if (PLAYABLE_CONTAINERS.has(ext)) return ext;
 
-  const videoExt = String(format?.video_ext || "").trim().toLowerCase();
+  const videoExt = String(format?.video_ext || "")
+    .trim()
+    .toLowerCase();
   if (PLAYABLE_CONTAINERS.has(videoExt)) return videoExt;
 
   const containerText = String(format?.container || "")
@@ -59,10 +63,14 @@ function normalizeContainer(format = {}) {
     .split(/[,/ ]+/)
     .map((part) => part.trim())
     .filter(Boolean);
-  const tokenMatch = containerTokens.find((part) => PLAYABLE_CONTAINERS.has(part));
+  const tokenMatch = containerTokens.find((part) =>
+    PLAYABLE_CONTAINERS.has(part),
+  );
   if (tokenMatch) return tokenMatch;
 
-  const mimeType = String(format?.mime_type || "").trim().toLowerCase();
+  const mimeType = String(format?.mime_type || "")
+    .trim()
+    .toLowerCase();
   if (mimeType.startsWith("video/mp4")) return "mp4";
   if (mimeType.startsWith("video/webm")) return "webm";
 
@@ -72,7 +80,11 @@ function normalizeContainer(format = {}) {
       parsed.searchParams.get("mime"),
       parsed.searchParams.get("mime_type"),
     ]
-      .map((value) => String(value || "").trim().toLowerCase())
+      .map((value) =>
+        String(value || "")
+          .trim()
+          .toLowerCase(),
+      )
       .find(Boolean);
     if (mimeFromQuery?.startsWith("video/mp4")) return "mp4";
     if (mimeFromQuery?.startsWith("video/webm")) return "webm";
@@ -87,7 +99,9 @@ function normalizeContainer(format = {}) {
 }
 
 function getMimeType(format = {}, container = "") {
-  const mimeType = String(format?.mime_type || "").trim().toLowerCase();
+  const mimeType = String(format?.mime_type || "")
+    .trim()
+    .toLowerCase();
   if (mimeType.startsWith("video/")) return mimeType;
   if (container === "mp4") return "video/mp4";
   if (container === "webm") return "video/webm";
@@ -105,8 +119,9 @@ function scorePreviewFormat(format = {}, container = "") {
   const width = Number(format?.width || 0);
   const fps = Number(format?.fps || 0);
   const bitrate =
-    Number(format?.tbr || format?.vbr || format?.abr || format?.filesize_approx) ||
-    0;
+    Number(
+      format?.tbr || format?.vbr || format?.abr || format?.filesize_approx,
+    ) || 0;
   const hasAudio = String(format?.acodec || "").toLowerCase() !== "none";
 
   let score = 0;
@@ -137,8 +152,9 @@ function scoreLivePreviewFormat(format = {}, container = "") {
   const width = Number(format?.width || 0);
   const fps = Number(format?.fps || 0);
   const bitrate =
-    Number(format?.tbr || format?.vbr || format?.abr || format?.filesize_approx) ||
-    0;
+    Number(
+      format?.tbr || format?.vbr || format?.abr || format?.filesize_approx,
+    ) || 0;
   const hasAudio = String(format?.acodec || "").toLowerCase() !== "none";
   const audioBitrate = Number(format?.abr || 0) || 0;
 
@@ -175,17 +191,25 @@ function isPlayablePreviewFormat(format = {}) {
   const src = String(format?.url || "").trim();
   if (!hasValidHttpUrl(src)) return false;
 
-  const protocol = String(format?.protocol || "").trim().toLowerCase();
+  const protocol = String(format?.protocol || "")
+    .trim()
+    .toLowerCase();
   if (UNSUPPORTED_PROTOCOLS.has(protocol)) return false;
 
   const container = normalizeContainer(format);
   if (!container) return false;
 
-  const vcodec = String(format?.vcodec || "").trim().toLowerCase();
-  const videoExt = String(format?.video_ext || "").trim().toLowerCase();
+  const vcodec = String(format?.vcodec || "")
+    .trim()
+    .toLowerCase();
+  const videoExt = String(format?.video_ext || "")
+    .trim()
+    .toLowerCase();
   const width = Number(format?.width || 0);
   const height = Number(format?.height || 0);
-  const resolution = String(format?.resolution || "").trim().toLowerCase();
+  const resolution = String(format?.resolution || "")
+    .trim()
+    .toLowerCase();
   const hasVideoTrack =
     (vcodec && vcodec !== "none") ||
     (videoExt && videoExt !== "none") ||
@@ -206,8 +230,12 @@ function isPlayablePreviewFormat(format = {}) {
 function isPlayableLivePreviewFormat(format = {}) {
   if (!isPlayablePreviewFormat(format)) return false;
 
-  const vcodec = String(format?.vcodec || "").trim().toLowerCase();
-  const acodec = String(format?.acodec || "").trim().toLowerCase();
+  const vcodec = String(format?.vcodec || "")
+    .trim()
+    .toLowerCase();
+  const acodec = String(format?.acodec || "")
+    .trim()
+    .toLowerCase();
   if (!vcodec || vcodec === "none") return false;
   if (!acodec || acodec === "none") return false;
 

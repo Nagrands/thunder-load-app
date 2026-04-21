@@ -28,11 +28,14 @@ export default class TabSystem {
     this._applyBackupVisibility =
       this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
     this._applyDownloadVisibility =
-      this._applyDownloadVisibility?.bind(this) || this._applyDownloadVisibility;
+      this._applyDownloadVisibility?.bind(this) ||
+      this._applyDownloadVisibility;
     this._applyProductsVisibility =
-      this._applyProductsVisibility?.bind(this) || this._applyProductsVisibility;
-    window.addEventListener("wg:toggleDisabled", () =>
-      (this._applyWgVisibility(), this._applyDownloadVisibility()),
+      this._applyProductsVisibility?.bind(this) ||
+      this._applyProductsVisibility;
+    window.addEventListener(
+      "wg:toggleDisabled",
+      () => (this._applyWgVisibility(), this._applyDownloadVisibility()),
     );
     window.addEventListener("backup:toggleDisabled", () =>
       this._applyBackupVisibility(),

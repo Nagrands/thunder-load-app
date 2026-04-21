@@ -53,7 +53,7 @@
   border-radius: var(--border-radius);
   z-index: 1;
   border: 1px solid rgba(170, 206, 255, 0.18);
-  background-color: var(--color-hover);
+  backdrop-filter: blur(6px);
   transition:
     border-color 0.22s ease,
     transform 0.22s ease;
@@ -64,23 +64,14 @@
 
   &:focus-within {
     border-color: rgba(var(--color-accent-rgb), 0.58);
-    box-shadow:
-      0 0 0 2px rgba(var(--color-accent-rgb), 0.28),
-      0 22px 52px rgba(11, 34, 84, 0.34);
   }
 
   &.is-invalid {
     border-color: rgba(255, 120, 120, 0.8);
-    box-shadow:
-      0 0 0 2px rgba(255, 110, 110, 0.18),
-      0 20px 45px rgba(90, 15, 20, 0.26);
   }
 
   &.is-valid:not(.is-invalid) {
     border-color: rgba(140, 184, 255, 0.34);
-    box-shadow:
-      0 0 0 1px rgba(var(--color-accent-rgb), 0.14),
-      0 18px 42px rgba(8, 18, 38, 0.24);
   }
 
   &.is-empty {

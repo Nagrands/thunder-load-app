@@ -44,7 +44,11 @@
 .products-preview__section--summary {
   border-color: rgba(var(--color-accent-rgb), 0.22);
   background:
-    linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.14), transparent 52%),
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.14),
+      transparent 52%
+    ),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(4, 8, 14, 0.18)),
     rgba(255, 255, 255, 0.025);
   box-shadow:

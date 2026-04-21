@@ -7,10 +7,7 @@ function normalizeOwner(owner, fallback) {
 }
 
 function syncBodyScrollLock() {
-  document.body.classList.toggle(
-    "modal-scroll-lock",
-    bodyLockOwners.size > 0,
-  );
+  document.body.classList.toggle("modal-scroll-lock", bodyLockOwners.size > 0);
 }
 
 function syncDocumentScrollLock() {

@@ -31,9 +31,8 @@ describe("downloadTabUi", () => {
       }),
     }));
 
-    const { syncDownloadTabAccessibility, getDownloadTabButton } = await import(
-      "../downloadTabUi.js"
-    );
+    const { syncDownloadTabAccessibility, getDownloadTabButton } =
+      await import("../downloadTabUi.js");
 
     const tab = getDownloadTabButton();
     syncDownloadTabAccessibility(tab, { count: 7 });

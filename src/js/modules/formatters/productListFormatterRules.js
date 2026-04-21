@@ -6,8 +6,8 @@ import {
 
 export function hasGreeneryMarker(name = "") {
   const lookupKey = normalizeLookupKey(name);
-  return GREENERY_PATTERNS.some((pattern) =>
-    lookupKey === pattern || lookupKey.startsWith(`${pattern} `),
+  return GREENERY_PATTERNS.some(
+    (pattern) => lookupKey === pattern || lookupKey.startsWith(`${pattern} `),
   );
 }
 
@@ -36,27 +36,17 @@ export function shouldTreatPackAsCrate(name = "") {
 
 export function shouldTreatUnitlessQuantityAsPieces(name = "") {
   const lookupKey = normalizeLookupKey(name);
-  return [
-    "яйца",
-    "яйцо перепелиное",
-    "стебель сельдерея",
-  ].includes(lookupKey);
+  return ["яйца", "яйцо перепелиное", "стебель сельдерея"].includes(lookupKey);
 }
 
 export function shouldHidePcsUnitInSection(name = "") {
   const lookupKey = normalizeLookupKey(name);
-  return [
-    "яйца",
-    "яйцо перепелиное",
-  ].includes(lookupKey);
+  return ["яйца", "яйцо перепелиное"].includes(lookupKey);
 }
 
 export function shouldHidePiecesUnitInSection(name = "") {
   const lookupKey = normalizeLookupKey(name);
-  return [
-    "яйца",
-    "яйцо перепелиное",
-  ].includes(lookupKey);
+  return ["яйца", "яйцо перепелиное"].includes(lookupKey);
 }
 
 export function shouldConvertHeadToPieces(name = "") {
@@ -77,7 +67,7 @@ export function createItem(displayName = "", starred = false) {
       pack: 0,
       bag: 0,
       crate: 0,
-    bucket: 0,
+      bucket: 0,
     },
     hasNameOnly: false,
     uncertain: false,

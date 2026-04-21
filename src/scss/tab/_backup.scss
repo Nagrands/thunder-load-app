@@ -120,21 +120,8 @@
   .wg-glass {
     @include backup-glass-panel();
     padding: 0;
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.045) 0%,
-        rgba(255, 255, 255, 0.018) 14%,
-        rgba(8, 12, 18, 0.06) 100%
-      ),
-      radial-gradient(
-        120% 100% at 50% 100%,
-        rgba(8, 12, 18, 0.14) 0%,
-        transparent 62%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 24px 54px rgba(4, 8, 16, 0.18);
+    background-color: var(--color-progress-bg);
+    backdrop-filter: blur(4px);
   }
 
   .backup-shell-header {

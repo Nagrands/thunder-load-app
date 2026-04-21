@@ -504,12 +504,12 @@ describe("developer tools gate", () => {
       document.getElementById("settings-developer-activate-button")
         ?.textContent,
     ).toBe("settings.developer.deactivate");
-    expect(document.getElementById("settings-developer-status")?.textContent).toBe(
-      "settings.developer.status.enabled",
-    );
     expect(
-      document.getElementById("settings-developer-options")?.hidden,
-    ).toBe(false);
+      document.getElementById("settings-developer-status")?.textContent,
+    ).toBe("settings.developer.status.enabled");
+    expect(document.getElementById("settings-developer-options")?.hidden).toBe(
+      false,
+    );
     expect(
       document.getElementById("settings-developer-disable-downloader-tab")
         ?.checked,

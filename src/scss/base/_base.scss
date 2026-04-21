@@ -27,8 +27,9 @@ body {
   position: relative;
   user-select: none;
   --app-bg-alpha: var(--app-bg-opacity, 1);
-  background-image: var(--app-bg-vignette), var(--app-bg-page-aura),
-    var(--app-bg-base-wash);
+  background-image:
+    var(--app-bg-vignette), var(--app-bg-page-aura),
+    url("../../assets/img/wall.png");
   background-position: center, center, center;
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-size: cover, cover, cover;

@@ -74,10 +74,11 @@ describe("selectFormatsByQuality object fallback", () => {
 
 describe("yt-dlp error classification helpers", () => {
   it("classifies unsupported URLs, 404, 429 and spawn-like failures", () => {
-    expect(classifyYtDlpErrorMessage("ERROR: Unsupported URL: https://avito.ru"))
-      .toMatchObject({
-        code: "ERR_YTDLP_UNSUPPORTED_URL",
-      });
+    expect(
+      classifyYtDlpErrorMessage("ERROR: Unsupported URL: https://avito.ru"),
+    ).toMatchObject({
+      code: "ERR_YTDLP_UNSUPPORTED_URL",
+    });
 
     expect(
       classifyYtDlpErrorMessage(

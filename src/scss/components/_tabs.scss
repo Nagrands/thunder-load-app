@@ -47,7 +47,7 @@
         rgba(8, 10, 20, 0.9) 40%,
         rgba(10, 12, 22, 0.94) 100%
       );
-    opacity: 0.58;
+    opacity: 0.88;
     z-index: -2;
     pointer-events: none;
   }
@@ -99,7 +99,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: var(--color-hover);
+  background: var(--color-bg-secondary);
   border-radius: var(--border-radius);
   padding: 12px;
   margin: 10px;
@@ -277,11 +277,10 @@
   .queue-list {
     width: 100%;
     margin-top: 12px;
-    padding: 2px;
+    padding: 0;
     border-radius: var(--border-radius);
-    background: rgba(8, 13, 23, 0.34);
     color: var(--color-highlight);
-    max-height: 290px;
+    max-height: 336px;
     overflow: auto;
   }
 

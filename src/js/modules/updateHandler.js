@@ -173,7 +173,10 @@ function positionFlyover() {
   const estimatedWidth = flyoverElement.offsetWidth || 380;
   const estimatedHeight = flyoverElement.offsetHeight || 220;
   const unclampedLeft = rect.left + getFlyoverXOffset();
-  const maxLeft = Math.max(maxEdgePadding, viewportWidth - estimatedWidth - maxEdgePadding);
+  const maxLeft = Math.max(
+    maxEdgePadding,
+    viewportWidth - estimatedWidth - maxEdgePadding,
+  );
   const left = Math.min(Math.max(maxEdgePadding, unclampedLeft), maxLeft);
   const availableBelow = viewportHeight - rect.bottom - gap;
   const availableAbove = rect.top - gap;
@@ -196,7 +199,10 @@ function positionFlyover() {
         flyoverRect.width - 24,
       ),
     );
-    flyoverElement.style.setProperty("--tail-left", `${Math.round(tailLeft)}px`);
+    flyoverElement.style.setProperty(
+      "--tail-left",
+      `${Math.round(tailLeft)}px`,
+    );
   } catch {}
 }
 

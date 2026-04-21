@@ -38,7 +38,6 @@ export function bindViewEvents({
   clearPreview,
   closeDictionaryPanel,
   copyText,
-  formatProductLists,
   formatSource,
   getCurrentSource,
   loadProductFormatterDictionary,
@@ -46,14 +45,12 @@ export function bindViewEvents({
   removeInvalidProductFormatterDictionaryLines,
   saveProductFormatterDictionary,
   setCopyButtonState,
-  buildFormatterOptions,
   clearProductFormatterDictionary,
   syncDictionaryMeta,
   syncDirtyFromInputs,
   clearCopyFeedbackTimer,
   refreshDiagnostics,
   refreshPreview,
-  showResult,
   setStatus,
   initTooltips,
   setResultMenuState,
@@ -124,9 +121,10 @@ export function bindViewEvents({
   }
 
   dictionarySummary?.addEventListener("click", (event) => {
-    const button = event.target instanceof HTMLElement
-      ? event.target.closest("[data-dictionary-jump]")
-      : null;
+    const button =
+      event.target instanceof HTMLElement
+        ? event.target.closest("[data-dictionary-jump]")
+        : null;
     if (!(button instanceof HTMLElement) || !dictionaryInput) return;
     const lineNumber = Number(button.dataset.line) || 1;
     const { selectionStart, selectionEnd } = getTextareaSelectionForLine(

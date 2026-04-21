@@ -38,8 +38,8 @@ describe("developerModeTopBar", () => {
     });
 
     expect(document.getElementById("open-github").hidden).toBe(false);
-    expect(document.getElementById("open-github").dataset.topbarSuppressed).toBe(
-      "0",
-    );
+    expect(
+      document.getElementById("open-github").dataset.topbarSuppressed,
+    ).toBe("0");
   });
 });

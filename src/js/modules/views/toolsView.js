@@ -3601,8 +3601,7 @@ export default function renderToolsView() {
           powerLastSuccessfulActionId = "";
           return;
         }
-        const detail =
-          res?.path || t("quickActions.power.desktopLocation");
+        const detail = res?.path || t("quickActions.power.desktopLocation");
         setPowerActionVisualState(action, "success", {
           message: t("quickActions.power.result.created", {
             action: t(action.cardTitleKey),

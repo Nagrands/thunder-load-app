@@ -1453,15 +1453,12 @@ describe("ipcHandlers tools quick actions", () => {
     const diskCleanupResult =
       await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT]();
 
-    [
-      uefiResult,
-      advancedBootResult,
-      programsResult,
-      diskCleanupResult,
-    ].forEach((result) => {
-      expect(result.success).toBe(false);
-      expect(result.unsupported).toBe(true);
-    });
+    [uefiResult, advancedBootResult, programsResult, diskCleanupResult].forEach(
+      (result) => {
+        expect(result.success).toBe(false);
+        expect(result.unsupported).toBe(true);
+      },
+    );
   });
 
   test("new windows shortcut handlers set icon fields on windows", async () => {

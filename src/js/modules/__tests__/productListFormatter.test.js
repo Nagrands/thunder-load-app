@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { formatProductLists, parseProductList } from "../formatters/productListFormatter.js";
+import {
+  formatProductLists,
+  parseProductList,
+} from "../formatters/productListFormatter.js";
 
 const PRODUCT_LIST_FIXTURES_DIR = join(
   process.cwd(),
@@ -164,11 +167,14 @@ describe("productListFormatter", () => {
   });
 
   test("parseProductList returns structured sections and raw text without summary when disabled", () => {
-    const parsed = parseProductList(`Заявка 1
+    const parsed = parseProductList(
+      `Заявка 1
 Банан 1
 
 Магазин
-Банан`, { includeSummary: false });
+Банан`,
+      { includeSummary: false },
+    );
 
     expect(parsed.sections).toHaveLength(2);
     expect(parsed.summary).toBeNull();
@@ -245,15 +251,18 @@ describe("productListFormatter", () => {
   });
 
   test("does not drop greenery bunch quantities in sections or store rules", () => {
-    const result = formatProductLists(`Заявка 4
+    const result = formatProductLists(
+      `Заявка 4
 укроп 2 пуч.
 петрушка 2 Пуч.
 
 Магазин
 Укроп 20
-ПетрушкаЦ 15`, {
-      includeSummary: false,
-    });
+ПетрушкаЦ 15`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 4
 Петрушка⁕ 2п
@@ -271,15 +280,15 @@ describe("productListFormatter", () => {
         }),
       ]),
     );
-    expect(
-      result.issues.some((issue) => issue.source === "укроп 2 пуч"),
-    ).toBe(false);
+    expect(result.issues.some((issue) => issue.source === "укроп 2 пуч")).toBe(
+      false,
+    );
     expect(
       result.issues.some((issue) => issue.source === "петрушка 2 Пуч"),
     ).toBe(false);
-    expect(
-      result.issues.some((issue) => issue.source === "Укроп 20"),
-    ).toBe(false);
+    expect(result.issues.some((issue) => issue.source === "Укроп 20")).toBe(
+      false,
+    );
   });
 
   test("does not warn for lines that are already in valid normalized form", () => {
@@ -298,14 +307,17 @@ describe("productListFormatter", () => {
   });
 
   test("applies custom replacement rules and exposes normalization stats", () => {
-    const result = formatProductLists(`Заявка 4
+    const result = formatProductLists(
+      `Заявка 4
 батат 2
 батат 1
-ПетрушкаЦ 2 пуч.`, {
-      replacements: {
-        батат: "Картофель сладкий",
+ПетрушкаЦ 2 пуч.`,
+      {
+        replacements: {
+          батат: "Картофель сладкий",
+        },
       },
-    });
+    );
 
     expect(result.sections[0].lines).toContain("Картофель сладкий 3");
     expect(result.normalizationStats).toMatchObject({
@@ -416,7 +428,8 @@ describe("productListFormatter", () => {
   });
 
   test("normalizes noisy mixed procurement lists into stable sections and aliases", () => {
-    const result = formatProductLists(`Заявка 2 в 10
+    const result = formatProductLists(
+      `Заявка 2 в 10
 
 шампиньоны -2,5 кг,
 картофель -6кг,
@@ -522,9 +535,11 @@ describe("productListFormatter", () => {
 Укроп 35
 Латук 20
 Росса 4
-Бионда 4`, {
-      includeSummary: false,
-    });
+Бионда 4`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 2
 Апельсин 4шт
@@ -629,7 +644,8 @@ describe("productListFormatter", () => {
   });
 
   test("normalizes fused section titles and missing chili or egg aliases", () => {
-    const result = formatProductLists(`Заявка 2
+    const result = formatProductLists(
+      `Заявка 2
 
 Чили перец 500гр
 Имбирь-300гр.
@@ -642,9 +658,11 @@ describe("productListFormatter", () => {
 Лимон 1 кг
 Апельсин 1 кг.
 Яйцо куриные 30шт.
-Мята 100гр.`, {
-      includeSummary: false,
-    });
+Мята 100гр.`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 2
 Апельсин 1
@@ -664,7 +682,8 @@ describe("productListFormatter", () => {
   });
 
   test("keeps address-like lines from swallowing the next section and ignores bare salad leaf lines", () => {
-    const result = formatProductLists(`Магазин
+    const result = formatProductLists(
+      `Магазин
 
 Банан
 Лайм
@@ -705,9 +724,11 @@ describe("productListFormatter", () => {
 Дубок красный 200гр.
 Фризе 200гр.
 Росса 200гр.
-Лук зеленый 50гр.`, {
-      includeSummary: false,
-    });
+Лук зеленый 50гр.`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Магазин
 Апельсин
@@ -753,7 +774,8 @@ describe("productListFormatter", () => {
   });
 
   test("normalizes plural produce, golden apples, color abbreviations, and colon decimals", () => {
-    const result = formatProductLists(`Заявка 4
+    const result = formatProductLists(
+      `Заявка 4
 Кабачки 2 шт
 Баклажаны 3 шт
 Гольден 1 кг
@@ -762,9 +784,11 @@ describe("productListFormatter", () => {
 Дубок зел 0.150
 Дубок кр 0:25
 Баз кр 2
-Баз зел 2`, {
-      includeSummary: false,
-    });
+Баз зел 2`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 4
 Базилик зеленый⁕ 2
@@ -828,14 +852,17 @@ describe("productListFormatter", () => {
   });
 
   test("normalizes unicode punctuation, bullets, and noisy quantity markers", () => {
-    const result = formatProductLists(`Заявка 7
+    const result = formatProductLists(
+      `Заявка 7
 • “Черри” — 0,500-кг
 ▪ Лимоны 2x
 ● Укроп 0,100гр.
 ◦ Бананы (1 пак)
-• Петрушка / 2х`, {
-      includeSummary: false,
-    });
+• Петрушка / 2х`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 7
 Банан 1ящ
@@ -849,13 +876,16 @@ describe("productListFormatter", () => {
   });
 
   test("resolves contextual aliases, reordered product names, and spaced decimals", () => {
-    const result = formatProductLists(`Заявка 11
+    const result = formatProductLists(
+      `Заявка 11
 гала
 репчатый лук
 семрнко
-лук 0, 500 гр`, {
-      includeSummary: false,
-    });
+лук 0, 500 гр`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 11
 Лук репчатый 0.5
@@ -874,13 +904,16 @@ describe("productListFormatter", () => {
   });
 
   test("folds simirenko typo family into one canonical apple and keeps typo diagnostics", () => {
-    const result = formatProductLists(`Заявка 12
+    const result = formatProductLists(
+      `Заявка 12
 Симиренко 1
 семиренко 1
 симиренкоо 1
-семрнко 1`, {
-      includeSummary: false,
-    });
+семрнко 1`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 12
 Яблоко Симиренко 4`);
@@ -903,48 +936,54 @@ describe("productListFormatter", () => {
   });
 
   test("does not fuzzy-match when two custom candidates are equally close", () => {
-    const result = formatProductLists(`Заявка 13
-сома 1`, {
-      includeSummary: false,
-      replacements: {
-        сима: "Тест Сима",
-        сема: "Тест Сема",
+    const result = formatProductLists(
+      `Заявка 13
+сома 1`,
+      {
+        includeSummary: false,
+        replacements: {
+          сима: "Тест Сима",
+          сема: "Тест Сема",
+        },
       },
-    });
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 13
 Сома 1`);
-    expect(
-      result.issues.some((issue) => issue.code === "typoCorrected"),
-    ).toBe(false);
+    expect(result.issues.some((issue) => issue.code === "typoCorrected")).toBe(
+      false,
+    );
   });
 
   test("applies dev normalize and token rules before fuzzy fallback", () => {
-    const result = formatProductLists(`Заявка 4
+    const result = formatProductLists(
+      `Заявка 4
 симиренко 1
 репчатый лук 2
 лук репчат 3
-лук зел 4`, {
-      includeSummary: false,
-      replacements: {
-        батат: "Картофель сладкий",
+лук зел 4`,
+      {
+        includeSummary: false,
+        replacements: {
+          батат: "Картофель сладкий",
+        },
+        dictionaryRules: [
+          {
+            type: "normalize",
+            normalizedSource: "симиренко",
+            target: "симиренко",
+          },
+          {
+            type: "token_rule",
+            requiresTokens: ["лук", "репчат"],
+            forbidsTokens: ["зел"],
+            sections: [],
+            priority: 10,
+            target: "Лук репчатый",
+          },
+        ],
       },
-      dictionaryRules: [
-        {
-          type: "normalize",
-          normalizedSource: "симиренко",
-          target: "симиренко",
-        },
-        {
-          type: "token_rule",
-          requiresTokens: ["лук", "репчат"],
-          forbidsTokens: ["зел"],
-          sections: [],
-          priority: 10,
-          target: "Лук репчатый",
-        },
-      ],
-    });
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 4
 Лук зеленый⁕ 4
@@ -953,10 +992,13 @@ describe("productListFormatter", () => {
   });
 
   test("splits predictable slash-delimited clipboard lines without creating false headings", () => {
-    const result = formatProductLists(`Магазин
-Апельсин 2 шт / Лайм 1 шт / Укроп 5 / Петрушка 3`, {
-      includeSummary: false,
-    });
+    const result = formatProductLists(
+      `Магазин
+Апельсин 2 шт / Лайм 1 шт / Укроп 5 / Петрушка 3`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Магазин
 Апельсин 2шт
@@ -968,10 +1010,13 @@ describe("productListFormatter", () => {
   });
 
   test("keeps uncertain handling for ambiguous entries after symbol normalization", () => {
-    const result = formatProductLists(`Заявка 9
-Лук — 5`, {
-      includeSummary: false,
-    });
+    const result = formatProductLists(
+      `Заявка 9
+Лук — 5`,
+      {
+        includeSummary: false,
+      },
+    );
 
     expect(result.formattedSectionsText).toBe(`Заявка 9
 Лук репчатый 5`);

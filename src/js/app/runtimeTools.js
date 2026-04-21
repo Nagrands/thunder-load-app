@@ -93,7 +93,9 @@ function resolveRuntimeBinaryCandidates(name, storeOrGetter) {
 
 function resolveRuntimeBinaryDetails(name, storeOrGetter) {
   const candidates = resolveRuntimeBinaryCandidates(name, storeOrGetter);
-  const executableCandidate = candidates.find((candidate) => candidate.executable);
+  const executableCandidate = candidates.find(
+    (candidate) => candidate.executable,
+  );
   if (executableCandidate) return executableCandidate;
   return (
     candidates[0] || {

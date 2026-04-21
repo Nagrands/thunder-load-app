@@ -46,12 +46,7 @@ function dispatchFileDrop(target, filePaths) {
 
 function dispatchFileDropFromMixedSources(
   target,
-  {
-    files = [],
-    items = [],
-    textUriList = "",
-    textPlain = "",
-  } = {},
+  { files = [], items = [], textUriList = "", textPlain = "" } = {},
 ) {
   const event = new Event("drop", { bubbles: true });
   Object.defineProperty(event, "dataTransfer", {
@@ -294,7 +289,9 @@ describe("toolsView quick actions", () => {
 
   afterEach(() => {
     Array.from(document.body.children).forEach((child) => {
-      child.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
+      child.dispatchEvent(
+        new CustomEvent("tools:view-hidden", { bubbles: true }),
+      );
     });
     document.body.innerHTML = "";
     document.body.className = "";
@@ -2102,12 +2099,8 @@ describe("toolsView quick actions", () => {
     const uefiBtn = el.querySelector("#create-uefi-shortcut");
     const advancedBootBtn = el.querySelector("#create-advanced-boot-shortcut");
     const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
-    const programsBtn = el.querySelector(
-      "#create-programs-shortcut",
-    );
-    const diskCleanupBtn = el.querySelector(
-      "#create-disk-cleanup-shortcut",
-    );
+    const programsBtn = el.querySelector("#create-programs-shortcut");
+    const diskCleanupBtn = el.querySelector("#create-disk-cleanup-shortcut");
     expect(restartCard.classList.contains("hidden")).toBe(false);
     expect(actionsWrap).not.toBeNull();
     expect(banner?.classList.contains("hidden")).toBe(false);

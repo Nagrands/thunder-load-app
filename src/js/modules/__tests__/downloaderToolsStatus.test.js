@@ -115,9 +115,7 @@ describe("downloaderToolsStatus", () => {
     );
     expect(badges).toEqual(["yt-dlp 2024.01.01", "ffmpeg 7.1", "Deno 2.0.0"]);
     expect(
-      document
-        .getElementById("dl-tools-action")
-        .classList.contains("hidden"),
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
     const container = document.getElementById("footer-tools-status");
     expect(container.outerHTML).toMatchInlineSnapshot(`
@@ -155,9 +153,7 @@ describe("downloaderToolsStatus", () => {
       "Install dependencies (yt-dlp, ffmpeg, Deno)",
     );
     expect(
-      document
-        .getElementById("dl-tools-action")
-        .classList.contains("hidden"),
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(false);
   });
 
@@ -173,9 +169,7 @@ describe("downloaderToolsStatus", () => {
       "Tools: bridge unavailable",
     );
     expect(
-      document
-        .getElementById("dl-tools-action")
-        .classList.contains("hidden"),
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
   });
 
@@ -220,7 +214,9 @@ describe("downloaderToolsStatus", () => {
     document.getElementById("dl-tools-action").click();
     await tick();
 
-    expect(document.getElementById("dl-tools-action").classList.contains("is-busy")).toBe(true);
+    expect(
+      document.getElementById("dl-tools-action").classList.contains("is-busy"),
+    ).toBe(true);
     expect(document.getElementById("dl-tools-action")?.disabled).toBe(true);
     expect(document.getElementById("dl-tools-action-label").textContent).toBe(
       "Downloading",
@@ -242,7 +238,9 @@ describe("downloaderToolsStatus", () => {
     expect(document.getElementById("dl-tools-text").textContent).toBe(
       "Tools are ready",
     );
-    expect(document.getElementById("dl-tools-action").classList.contains("hidden")).toBe(true);
+    expect(
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("shows update action when updates are available and runs selective updates", async () => {
@@ -290,7 +288,9 @@ describe("downloaderToolsStatus", () => {
 
     expect(window.electron.tools.updateYtDlp).toHaveBeenCalledTimes(1);
     expect(window.electron.tools.updateFfmpeg).toHaveBeenCalledTimes(1);
-    expect(document.getElementById("dl-tools-action").classList.contains("hidden")).toBe(true);
+    expect(
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("keeps CTA hidden when tools are installed and up to date", async () => {
@@ -315,7 +315,9 @@ describe("downloaderToolsStatus", () => {
     await tick();
     await tick();
 
-    expect(document.getElementById("dl-tools-action").classList.contains("hidden")).toBe(true);
+    expect(
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("shows error state when update check fails without breaking footer CTA", async () => {
@@ -339,7 +341,9 @@ describe("downloaderToolsStatus", () => {
     expect(document.getElementById("dl-tools-text").textContent).toBe(
       "Tools check failed",
     );
-    expect(document.getElementById("dl-tools-action").classList.contains("hidden")).toBe(true);
+    expect(
+      document.getElementById("dl-tools-action").classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("settings visibility event hides container until re-enabled", async () => {

@@ -77,12 +77,8 @@ export function createEntryNormalizer({
     if (item.sectionQualifier || item.summaryQualifier) {
       item.key = [
         item.key,
-        item.sectionQualifier
-          ? normalizeLookupKey(item.sectionQualifier)
-          : "",
-        item.summaryQualifier
-          ? normalizeLookupKey(item.summaryQualifier)
-          : "",
+        item.sectionQualifier ? normalizeLookupKey(item.sectionQualifier) : "",
+        item.summaryQualifier ? normalizeLookupKey(item.summaryQualifier) : "",
       ]
         .filter(Boolean)
         .join("::");
@@ -106,7 +102,10 @@ export function createEntryNormalizer({
     } else if (normalizedUnit) {
       if (normalizedUnit === "pack" && shouldTreatPackAsCrate(displayName)) {
         addUnit(item, "crate", quantity);
-      } else if (normalizedUnit === "pack" && shouldTreatPackAsPieces(displayName)) {
+      } else if (
+        normalizedUnit === "pack" &&
+        shouldTreatPackAsPieces(displayName)
+      ) {
         addUnit(item, "pcs", quantity);
       } else if (
         normalizedUnit === "kg" &&
@@ -115,7 +114,10 @@ export function createEntryNormalizer({
         addUnit(item, "bunch", Math.round(quantity / 0.05));
       } else {
         addUnit(item, normalizedUnit, quantity);
-        if (normalizedUnit === "pcs" && shouldHidePiecesUnitInSection(displayName)) {
+        if (
+          normalizedUnit === "pcs" &&
+          shouldHidePiecesUnitInSection(displayName)
+        ) {
           item.hidePcsUnitInSection = true;
         }
       }
@@ -258,7 +260,8 @@ export function createEntryNormalizer({
     });
 
     const hasMeaningfulDiff =
-      normalizeLookupKey(resolved.source) !== normalizeLookupKey(resolved.output);
+      normalizeLookupKey(resolved.source) !==
+      normalizeLookupKey(resolved.output);
 
     if (diagnostics && (hasMeaningfulDiff || resolved.item.uncertain)) {
       diagnostics.diffEntries.push({

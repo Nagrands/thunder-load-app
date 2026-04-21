@@ -71,9 +71,9 @@ describe("TabSystem", () => {
       document.querySelector('[data-menu="download"]')?.style.display,
     ).toBe("none");
     expect(
-      document.querySelector('[data-menu="wireguard"]')?.classList.contains(
-        "active",
-      ),
+      document
+        .querySelector('[data-menu="wireguard"]')
+        ?.classList.contains("active"),
     ).toBe(true);
   });
 
@@ -90,9 +90,9 @@ describe("TabSystem", () => {
       return el;
     });
 
-    expect(document.querySelector('[data-menu="products"]')?.style.display).toBe(
-      "none",
-    );
+    expect(
+      document.querySelector('[data-menu="products"]')?.style.display,
+    ).toBe("none");
 
     localStorage.setItem("developerToolsUnlocked", "true");
     window.dispatchEvent(
@@ -101,9 +101,9 @@ describe("TabSystem", () => {
       }),
     );
 
-    expect(document.querySelector('[data-menu="products"]')?.style.display).toBe(
-      "",
-    );
+    expect(
+      document.querySelector('[data-menu="products"]')?.style.display,
+    ).toBe("");
   });
 
   test("falls back from products tab when developer mode is disabled", () => {
@@ -123,9 +123,9 @@ describe("TabSystem", () => {
 
     tabs.activateTab("products");
     expect(
-      document.querySelector('[data-menu="products"]')?.classList.contains(
-        "active",
-      ),
+      document
+        .querySelector('[data-menu="products"]')
+        ?.classList.contains("active"),
     ).toBe(true);
 
     localStorage.setItem("developerToolsUnlocked", "false");
@@ -135,13 +135,13 @@ describe("TabSystem", () => {
       }),
     );
 
-    expect(document.querySelector('[data-menu="products"]')?.style.display).toBe(
-      "none",
-    );
     expect(
-      document.querySelector('[data-menu="download"]')?.classList.contains(
-        "active",
-      ),
+      document.querySelector('[data-menu="products"]')?.style.display,
+    ).toBe("none");
+    expect(
+      document
+        .querySelector('[data-menu="download"]')
+        ?.classList.contains("active"),
     ).toBe(true);
   });
 
@@ -177,9 +177,9 @@ describe("TabSystem", () => {
       document.querySelector('[data-menu="wireguard"]')?.style.display,
     ).toBe("none");
     expect(
-      document.querySelector('[data-menu="products"]')?.classList.contains(
-        "active",
-      ),
+      document
+        .querySelector('[data-menu="products"]')
+        ?.classList.contains("active"),
     ).toBe(true);
   });
 
@@ -198,9 +198,9 @@ describe("TabSystem", () => {
 
     expect(tabs.activeTabId).toBeNull();
     expect(
-      document.querySelector('[data-menu="download"]')?.classList.contains(
-        "active",
-      ),
+      document
+        .querySelector('[data-menu="download"]')
+        ?.classList.contains("active"),
     ).toBe(false);
   });
 });

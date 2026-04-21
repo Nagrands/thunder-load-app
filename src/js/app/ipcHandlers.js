@@ -1723,24 +1723,21 @@ function setupIpcHandlers(dependencies) {
     },
   );
 
-  ipcMain.handle(
-    CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT,
-    async () => {
-      try {
-        return createWindowsDesktopShortcut({
-          fileName: "Programs and Features.lnk",
-          target: "C:\\Windows\\System32\\control.exe",
-          args: "appwiz.cpl",
-          description: "Open Programs and Features",
-          iconPath: "C:\\Windows\\System32\\appwiz.cpl",
-          iconIndex: 0,
-        });
-      } catch (error) {
-        log.error("tools:createWindowsProgramsShortcut error:", error);
-        return { success: false, error: error.message || String(error) };
-      }
-    },
-  );
+  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT, async () => {
+    try {
+      return createWindowsDesktopShortcut({
+        fileName: "Programs and Features.lnk",
+        target: "C:\\Windows\\System32\\control.exe",
+        args: "appwiz.cpl",
+        description: "Open Programs and Features",
+        iconPath: "C:\\Windows\\System32\\appwiz.cpl",
+        iconIndex: 0,
+      });
+    } catch (error) {
+      log.error("tools:createWindowsProgramsShortcut error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
 
   ipcMain.handle(
     CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT,
@@ -2368,7 +2365,8 @@ function setupIpcHandlers(dependencies) {
       const tools = await getToolsVersions(store);
       const ytDlpInfo = tools?.ytDlp;
       const toolsDir = await ensureToolsDir(getEffectiveToolsDir(store));
-      const ytDlpFileName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
+      const ytDlpFileName =
+        process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
       const finalPath = ytDlpInfo?.path || path.join(toolsDir, ytDlpFileName);
       const tempPath = `${finalPath}.tmp-${Date.now()}`;
       const backupPath = `${finalPath}.bak-${Date.now()}`;
@@ -2396,7 +2394,11 @@ function setupIpcHandlers(dependencies) {
         if (fs.existsSync(tempPath)) {
           await fsPromises.unlink(tempPath).catch(() => {});
         }
-        if (backupCreated && fs.existsSync(backupPath) && !fs.existsSync(finalPath)) {
+        if (
+          backupCreated &&
+          fs.existsSync(backupPath) &&
+          !fs.existsSync(finalPath)
+        ) {
           await fsPromises.rename(backupPath, finalPath).catch(() => {});
         }
         throw swapError;

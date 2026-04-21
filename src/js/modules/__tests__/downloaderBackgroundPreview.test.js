@@ -77,8 +77,10 @@ describe("downloaderBackgroundPreview", () => {
   });
 
   test("fades in the background video after media becomes ready", async () => {
-    const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
-      moduleApi;
+    const {
+      initDownloaderBackgroundPreview,
+      applyDownloaderBackgroundPreview,
+    } = moduleApi;
     initDownloaderBackgroundPreview();
 
     await applyDownloaderBackgroundPreview(
@@ -103,8 +105,10 @@ describe("downloaderBackgroundPreview", () => {
   });
 
   test("pauses when document becomes hidden and resumes on focus", async () => {
-    const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
-      moduleApi;
+    const {
+      initDownloaderBackgroundPreview,
+      applyDownloaderBackgroundPreview,
+    } = moduleApi;
     initDownloaderBackgroundPreview();
 
     await applyDownloaderBackgroundPreview(
@@ -131,8 +135,10 @@ describe("downloaderBackgroundPreview", () => {
   });
 
   test("pauses background preview while live preview is open and resumes after close", async () => {
-    const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
-      moduleApi;
+    const {
+      initDownloaderBackgroundPreview,
+      applyDownloaderBackgroundPreview,
+    } = moduleApi;
     initDownloaderBackgroundPreview();
 
     await applyDownloaderBackgroundPreview(
@@ -159,8 +165,10 @@ describe("downloaderBackgroundPreview", () => {
   });
 
   test("crossfades to the second buffer when source changes", async () => {
-    const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
-      moduleApi;
+    const {
+      initDownloaderBackgroundPreview,
+      applyDownloaderBackgroundPreview,
+    } = moduleApi;
     initDownloaderBackgroundPreview();
 
     await applyDownloaderBackgroundPreview(
@@ -193,8 +201,10 @@ describe("downloaderBackgroundPreview", () => {
   });
 
   test("preserves playback position when recovering the same page with a new source", async () => {
-    const { initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
-      moduleApi;
+    const {
+      initDownloaderBackgroundPreview,
+      applyDownloaderBackgroundPreview,
+    } = moduleApi;
     initDownloaderBackgroundPreview();
 
     await applyDownloaderBackgroundPreview(
@@ -221,7 +231,10 @@ describe("downloaderBackgroundPreview", () => {
     });
 
     await applyDownloaderBackgroundPreview(
-      { src: "https://cdn.example.com/demo-a-refreshed.mp4", mime: "video/mp4" },
+      {
+        src: "https://cdn.example.com/demo-a-refreshed.mp4",
+        mime: "video/mp4",
+      },
       { pageUrl: "https://www.youtube.com/watch?v=demo" },
     );
 
@@ -233,8 +246,11 @@ describe("downloaderBackgroundPreview", () => {
   });
 
   test("dispatches a single recovery event on playback error", async () => {
-    const { RECOVERY_EVENT, initDownloaderBackgroundPreview, applyDownloaderBackgroundPreview } =
-      moduleApi;
+    const {
+      RECOVERY_EVENT,
+      initDownloaderBackgroundPreview,
+      applyDownloaderBackgroundPreview,
+    } = moduleApi;
     initDownloaderBackgroundPreview();
 
     const recoverListener = jest.fn();

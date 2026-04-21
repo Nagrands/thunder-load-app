@@ -67,7 +67,8 @@ export function initDeveloperToolsGate() {
       applyStatus(status, button, true);
       if (options) options.hidden = false;
       if (disableDownloaderTabToggle) {
-        disableDownloaderTabToggle.checked = readDeveloperDisableDownloaderTab();
+        disableDownloaderTabToggle.checked =
+          readDeveloperDisableDownloaderTab();
       }
       window.electron
         ?.invoke?.("toast", t("settings.developer.unlock.success"), "success")

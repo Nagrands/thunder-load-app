@@ -27,14 +27,22 @@ export const toolsTranslations = {
       "Поддерживаются `source = target`, `alias:`, `normalize:` и `tokens:`. Для token-rules можно использовать `!токен` как запрет. Повторяющиеся ключи, битые строки и правила без эффекта подсвечиваются.",
     "productsFormatter.dictionaryExamplesTitle": "Примеры",
     "productsFormatter.dictionaryPreviewTitle": "Что применится",
-    "productsFormatter.dictionaryPreviewEmpty": "Введите правило, чтобы увидеть нормализованный ключ и итоговую замену.",
-    "productsFormatter.dictionaryPreviewInvalid": "Строка {line} пока не распознана как правило `исходное = замена`.",
-    "productsFormatter.dictionaryPreviewNoop": "Ключ «{source}» не изменится после такого правила.",
-    "productsFormatter.dictionaryPreviewValueLegacy": "Ключ: {source} -> замена: {target}.",
-    "productsFormatter.dictionaryPreviewValue": "Тип: {type}. Ключ: {source} -> замена: {target}.",
-    "productsFormatter.dictionaryPreviewTokenDetails": " Требует: {requires}. Исключает: {forbids}. Секции: {sections}.",
-    "productsFormatter.dictionaryPreviewOverride": "Переопределяет встроенную замену: {target}.",
-    "productsFormatter.dictionaryPreviewDuplicate": "Перекрывает более раннее правило с тем же ключом.",
+    "productsFormatter.dictionaryPreviewEmpty":
+      "Введите правило, чтобы увидеть нормализованный ключ и итоговую замену.",
+    "productsFormatter.dictionaryPreviewInvalid":
+      "Строка {line} пока не распознана как правило `исходное = замена`.",
+    "productsFormatter.dictionaryPreviewNoop":
+      "Ключ «{source}» не изменится после такого правила.",
+    "productsFormatter.dictionaryPreviewValueLegacy":
+      "Ключ: {source} -> замена: {target}.",
+    "productsFormatter.dictionaryPreviewValue":
+      "Тип: {type}. Ключ: {source} -> замена: {target}.",
+    "productsFormatter.dictionaryPreviewTokenDetails":
+      " Требует: {requires}. Исключает: {forbids}. Секции: {sections}.",
+    "productsFormatter.dictionaryPreviewOverride":
+      "Переопределяет встроенную замену: {target}.",
+    "productsFormatter.dictionaryPreviewDuplicate":
+      "Перекрывает более раннее правило с тем же ключом.",
     "productsFormatter.dictionaryCategoryInvalid": "Ошибки",
     "productsFormatter.dictionaryCategoryDuplicate": "Конфликты",
     "productsFormatter.dictionaryCategoryNoop": "Без эффекта",
@@ -46,7 +54,8 @@ export const toolsTranslations = {
     "productsFormatter.dictionaryRuleType.alias": "alias",
     "productsFormatter.dictionaryRuleType.normalize": "normalize",
     "productsFormatter.dictionaryRuleType.token_rule": "token rule",
-    "productsFormatter.dictionaryJumpToLine": "{label}: перейти к строке {line}",
+    "productsFormatter.dictionaryJumpToLine":
+      "{label}: перейти к строке {line}",
     "productsFormatter.dictionaryCleanInvalid": "Очистить ошибки",
     "productsFormatter.dictionaryReset": "Сбросить словарь",
     "productsFormatter.dictionaryStatsValid": "Правил: {count}",
@@ -125,12 +134,12 @@ export const toolsTranslations = {
     "productsFormatter.status.sectionCopied": "Раздел скопирован.",
     "productsFormatter.status.pasted": "Текст вставлен из буфера обмена.",
     "productsFormatter.status.pasteEmpty": "Буфер обмена пуст.",
-    "productsFormatter.status.pasteError":
-      "Не удалось прочитать буфер обмена.",
+    "productsFormatter.status.pasteError": "Не удалось прочитать буфер обмена.",
     "productsFormatter.status.cleared": "Поле очищено.",
     "productsFormatter.status.demoLoaded": "Демо-список загружен.",
     "productsFormatter.status.dictionaryReset": "Dev-словарь очищен.",
-    "productsFormatter.status.dictionaryCleaned": "Битые строки удалены из dev-словаря.",
+    "productsFormatter.status.dictionaryCleaned":
+      "Битые строки удалены из dev-словаря.",
     "productsFormatter.status.dictionaryChanged":
       "Правила словаря изменены. Обновите результат.",
     "productsFormatter.status.stale":
@@ -628,7 +637,8 @@ export const toolsTranslations = {
       "Оба файла выбраны. Новый файл заменит файл 2.",
     "hashCheck.dropHintBusy": "Дождитесь завершения вычисления хеша.",
     "hashCheck.dropTargetFirst": "Следующий файл: файл 1",
-    "hashCheck.dropTargetCompare": "Следующее действие: открыть сравнение или файл 2",
+    "hashCheck.dropTargetCompare":
+      "Следующее действие: открыть сравнение или файл 2",
     "hashCheck.dropTargetSecond": "Следующий файл: файл 2",
     "hashCheck.dropTargetReplaceSecond": "Следующий файл: заменить файл 2",
     "hashCheck.dropError": "Не удалось получить путь к перетащенному файлу.",
@@ -891,14 +901,22 @@ export const toolsTranslations = {
       "Supports `source = replacement`, `alias:`, `normalize:`, and `tokens:`. Use `!token` in token rules to forbid a token. Duplicate keys, malformed lines, and no-op rules are highlighted.",
     "productsFormatter.dictionaryExamplesTitle": "Examples",
     "productsFormatter.dictionaryPreviewTitle": "What will apply",
-    "productsFormatter.dictionaryPreviewEmpty": "Enter a rule to preview the normalized key and final replacement.",
-    "productsFormatter.dictionaryPreviewInvalid": "Line {line} is not recognized as a `source = replacement` rule yet.",
-    "productsFormatter.dictionaryPreviewNoop": "The key “{source}” would stay unchanged with this rule.",
-    "productsFormatter.dictionaryPreviewValueLegacy": "Key: {source} -> replacement: {target}.",
-    "productsFormatter.dictionaryPreviewValue": "Type: {type}. Key: {source} -> replacement: {target}.",
-    "productsFormatter.dictionaryPreviewTokenDetails": " Requires: {requires}. Forbids: {forbids}. Sections: {sections}.",
-    "productsFormatter.dictionaryPreviewOverride": "Overrides the built-in replacement: {target}.",
-    "productsFormatter.dictionaryPreviewDuplicate": "Overrides an earlier rule with the same key.",
+    "productsFormatter.dictionaryPreviewEmpty":
+      "Enter a rule to preview the normalized key and final replacement.",
+    "productsFormatter.dictionaryPreviewInvalid":
+      "Line {line} is not recognized as a `source = replacement` rule yet.",
+    "productsFormatter.dictionaryPreviewNoop":
+      "The key “{source}” would stay unchanged with this rule.",
+    "productsFormatter.dictionaryPreviewValueLegacy":
+      "Key: {source} -> replacement: {target}.",
+    "productsFormatter.dictionaryPreviewValue":
+      "Type: {type}. Key: {source} -> replacement: {target}.",
+    "productsFormatter.dictionaryPreviewTokenDetails":
+      " Requires: {requires}. Forbids: {forbids}. Sections: {sections}.",
+    "productsFormatter.dictionaryPreviewOverride":
+      "Overrides the built-in replacement: {target}.",
+    "productsFormatter.dictionaryPreviewDuplicate":
+      "Overrides an earlier rule with the same key.",
     "productsFormatter.dictionaryCategoryInvalid": "Errors",
     "productsFormatter.dictionaryCategoryDuplicate": "Conflicts",
     "productsFormatter.dictionaryCategoryNoop": "No-op",
@@ -960,13 +978,13 @@ export const toolsTranslations = {
     "productsFormatter.diagnostics.emptyFiltered":
       "No matches for the “{filter}” filter.",
     "productsFormatter.issue.ambiguousUnitAssumedKg":
-      "\"{source}\" was interpreted as \"{output}\".",
+      '"{source}" was interpreted as "{output}".',
     "productsFormatter.issue.duplicateMerged":
-      "Duplicates were merged in \"{section}\": {name}.",
+      'Duplicates were merged in "{section}": {name}.',
     "productsFormatter.issue.storeQuantityIgnored":
-      "The number in \"{source}\" was ignored in \"{section}\".",
+      'The number in "{source}" was ignored in "{section}".',
     "productsFormatter.issue.typoCorrected":
-      "\"{source}\" was normalized as \"{name}\".",
+      '"{source}" was normalized as "{name}".',
     "productsFormatter.meta.sections": "Sections: {count}",
     "productsFormatter.meta.items": "Items: {count}",
     "productsFormatter.meta.summaryOn": "Summary on",
@@ -982,19 +1000,18 @@ export const toolsTranslations = {
       "There are no result changes after the rerun.",
     "productsFormatter.comparison.added": "Added",
     "productsFormatter.comparison.removed": "Removed",
-    "productsFormatter.status.empty":
-      "Paste a product list before formatting.",
+    "productsFormatter.status.empty": "Paste a product list before formatting.",
     "productsFormatter.status.formatted": "The list is ready.",
     "productsFormatter.status.copied": "The result was copied.",
     "productsFormatter.status.sectionCopied": "Section copied.",
     "productsFormatter.status.pasted": "Text was pasted from the clipboard.",
     "productsFormatter.status.pasteEmpty": "The clipboard is empty.",
-    "productsFormatter.status.pasteError":
-      "Could not read the clipboard.",
+    "productsFormatter.status.pasteError": "Could not read the clipboard.",
     "productsFormatter.status.cleared": "The field was cleared.",
     "productsFormatter.status.demoLoaded": "Demo list loaded.",
     "productsFormatter.status.dictionaryReset": "Dev dictionary cleared.",
-    "productsFormatter.status.dictionaryCleaned": "Broken lines removed from the dev dictionary.",
+    "productsFormatter.status.dictionaryCleaned":
+      "Broken lines removed from the dev dictionary.",
     "productsFormatter.status.dictionaryChanged":
       "Dictionary rules changed. Refresh the result.",
     "productsFormatter.status.stale":
@@ -1112,8 +1129,7 @@ export const toolsTranslations = {
     "quickActions.programs.cardHint":
       "Opens the classic list of installed Windows programs.",
     "quickActions.programs.action": "Create Programs and Features shortcut",
-    "quickActions.programs.confirm":
-      "Create a Programs and Features shortcut?",
+    "quickActions.programs.confirm": "Create a Programs and Features shortcut?",
     "quickActions.programs.error":
       "Failed to create Programs and Features shortcut",
     "quickActions.programs.created":
@@ -1124,8 +1140,7 @@ export const toolsTranslations = {
       "Launches the built-in cleanmgr utility to remove temporary files.",
     "quickActions.diskCleanup.action": "Create Disk Cleanup shortcut",
     "quickActions.diskCleanup.confirm": "Create a Disk Cleanup shortcut?",
-    "quickActions.diskCleanup.error":
-      "Failed to create Disk Cleanup shortcut",
+    "quickActions.diskCleanup.error": "Failed to create Disk Cleanup shortcut",
     "quickActions.diskCleanup.created":
       "Disk Cleanup shortcut created: Desktop",
     "tools.dashboard.title": "Tools dashboard",

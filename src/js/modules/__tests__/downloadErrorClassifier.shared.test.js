@@ -33,7 +33,9 @@ describe("downloadErrorClassifier shared helper", () => {
       globalThis.__thunderDownloadErrorClassifier;
 
     expect(
-      classifyDownloadError(new Error("ERR_YTDLP_NETWORK_TIMEOUT: read timed out")),
+      classifyDownloadError(
+        new Error("ERR_YTDLP_NETWORK_TIMEOUT: read timed out"),
+      ),
     ).toMatchObject({
       code: "NETWORK_TIMEOUT",
       retryable: true,
@@ -84,7 +86,9 @@ describe("downloadErrorClassifier shared helper", () => {
 
     expect(
       classifyDownloadError(
-        new Error("ERR_YTDLP_RATE_LIMIT: YouTube temporarily rate-limited requests for this client (about 5 minutes)"),
+        new Error(
+          "ERR_YTDLP_RATE_LIMIT: YouTube temporarily rate-limited requests for this client (about 5 minutes)",
+        ),
       ),
     ).toMatchObject({
       code: "YTDLP_RATE_LIMIT",

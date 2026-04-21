@@ -799,8 +799,11 @@ async function installYtDlp(token = null) {
   const activeToken = opts.token || null;
   const targetPath = opts.targetPath || getYtDlpPath();
   try {
-    const defaultTargetPath = path.resolve(targetPath) === path.resolve(getYtDlpPath());
-    const version = defaultTargetPath ? await getYtDlpVersion(activeToken) : null;
+    const defaultTargetPath =
+      path.resolve(targetPath) === path.resolve(getYtDlpPath());
+    const version = defaultTargetPath
+      ? await getYtDlpVersion(activeToken)
+      : null;
     if (version && defaultTargetPath) {
       log.info(`yt-dlp version ${version} is already installed.`);
       return;
@@ -1438,8 +1441,7 @@ function classifyYtDlpErrorMessage(message = "") {
   if (/HTTP Error 429: Too Many Requests|Too Many Requests/i.test(normalized)) {
     return {
       code: `${YTDLP_ERROR_PREFIX}RATE_LIMIT`,
-      detail:
-        "Источник временно ограничил запросы. Повторите попытку позже.",
+      detail: "Источник временно ограничил запросы. Повторите попытку позже.",
     };
   }
   if (
@@ -1657,7 +1659,10 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
                 return reject(new Error("Download cancelled"));
               }
               if (code !== 0) {
-                if (isYoutubeRateLimitError(stderrOutput) && isYouTubeUrl(url)) {
+                if (
+                  isYoutubeRateLimitError(stderrOutput) &&
+                  isYouTubeUrl(url)
+                ) {
                   youtubeRateLimitUntilTs =
                     Date.now() + YOUTUBE_RATE_LIMIT_COOLDOWN_MS;
                   log.warn(

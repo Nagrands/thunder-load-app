@@ -48,8 +48,7 @@ export function createProductFormatterLexicon({
 
     for (let row = 1; row <= leftLength; row += 1) {
       for (let column = 1; column <= rightLength; column += 1) {
-        const substitutionCost =
-          left[row - 1] === right[column - 1] ? 0 : 1;
+        const substitutionCost = left[row - 1] === right[column - 1] ? 0 : 1;
         matrix[row][column] = Math.min(
           matrix[row - 1][column] + 1,
           matrix[row][column - 1] + 1,
@@ -91,7 +90,10 @@ export function createProductFormatterLexicon({
     return normalizeFuzzyKey(lookupKey).length >= 4;
   }
 
-  function findFuzzyReplacement(lookupKey = "", customReplacements = replacements) {
+  function findFuzzyReplacement(
+    lookupKey = "",
+    customReplacements = replacements,
+  ) {
     if (!shouldTryFuzzyMatch(lookupKey)) return null;
 
     const targetKey = normalizeFuzzyKey(lookupKey);
@@ -99,48 +101,48 @@ export function createProductFormatterLexicon({
     const maxDistance = getFuzzyDistanceLimit(lookupKey);
     const bestByDisplay = new Map();
 
-    Object.entries(customReplacements).forEach(([candidateKey, displayName]) => {
-      const candidateLookupKey = normalizeLookupKey(candidateKey);
-      if (!candidateLookupKey) return;
-      const candidateTokens = candidateLookupKey.split(/\s+/).filter(Boolean);
-      if (candidateTokens.length !== tokenCount) return;
+    Object.entries(customReplacements).forEach(
+      ([candidateKey, displayName]) => {
+        const candidateLookupKey = normalizeLookupKey(candidateKey);
+        if (!candidateLookupKey) return;
+        const candidateTokens = candidateLookupKey.split(/\s+/).filter(Boolean);
+        if (candidateTokens.length !== tokenCount) return;
 
-      const candidateFuzzyKey = normalizeFuzzyKey(candidateLookupKey);
-      if (
-        candidateFuzzyKey[0] !== targetKey[0] ||
-        candidateFuzzyKey[candidateFuzzyKey.length - 1] !==
-          targetKey[targetKey.length - 1]
-      ) {
-        return;
-      }
-      const compactLengthDiff = Math.abs(
-        candidateFuzzyKey.length - targetKey.length,
-      );
-      if (compactLengthDiff > maxDistance) return;
+        const candidateFuzzyKey = normalizeFuzzyKey(candidateLookupKey);
+        if (
+          candidateFuzzyKey[0] !== targetKey[0] ||
+          candidateFuzzyKey[candidateFuzzyKey.length - 1] !==
+            targetKey[targetKey.length - 1]
+        ) {
+          return;
+        }
+        const compactLengthDiff = Math.abs(
+          candidateFuzzyKey.length - targetKey.length,
+        );
+        if (compactLengthDiff > maxDistance) return;
 
-      const distance = calculateDamerauLevenshteinDistance(
-        targetKey,
-        candidateFuzzyKey,
-      );
-      if (distance === 0 || distance > maxDistance) return;
+        const distance = calculateDamerauLevenshteinDistance(
+          targetKey,
+          candidateFuzzyKey,
+        );
+        if (distance === 0 || distance > maxDistance) return;
 
-      const current = bestByDisplay.get(displayName);
-      if (
-        !current ||
-        distance < current.distance ||
-        (
-          distance === current.distance &&
-          candidateFuzzyKey.length < current.fuzzyKey.length
-        )
-      ) {
-        bestByDisplay.set(displayName, {
-          candidateKey: candidateLookupKey,
-          displayName,
-          distance,
-          fuzzyKey: candidateFuzzyKey,
-        });
-      }
-    });
+        const current = bestByDisplay.get(displayName);
+        if (
+          !current ||
+          distance < current.distance ||
+          (distance === current.distance &&
+            candidateFuzzyKey.length < current.fuzzyKey.length)
+        ) {
+          bestByDisplay.set(displayName, {
+            candidateKey: candidateLookupKey,
+            displayName,
+            distance,
+            fuzzyKey: candidateFuzzyKey,
+          });
+        }
+      },
+    );
 
     const rankedCandidates = Array.from(bestByDisplay.values()).sort(
       (left, right) =>
@@ -170,17 +172,18 @@ export function createProductFormatterLexicon({
     if (
       customReplacementsOrOptions &&
       typeof customReplacementsOrOptions === "object" &&
-      (
-        Object.prototype.hasOwnProperty.call(
-          customReplacementsOrOptions,
-          "replacements",
-        ) ||
+      (Object.prototype.hasOwnProperty.call(
+        customReplacementsOrOptions,
+        "replacements",
+      ) ||
         Object.prototype.hasOwnProperty.call(
           customReplacementsOrOptions,
           "dictionaryRules",
         ) ||
-        Object.prototype.hasOwnProperty.call(customReplacementsOrOptions, "context")
-      )
+        Object.prototype.hasOwnProperty.call(
+          customReplacementsOrOptions,
+          "context",
+        ))
     ) {
       return {
         replacements: customReplacementsOrOptions.replacements || replacements,
@@ -214,7 +217,10 @@ export function createProductFormatterLexicon({
     return true;
   }
 
-  function resolveDictionaryNormalizeRule(lookupKey = "", dictionaryRules = []) {
+  function resolveDictionaryNormalizeRule(
+    lookupKey = "",
+    dictionaryRules = [],
+  ) {
     return (
       dictionaryRules.find(
         (rule) =>
@@ -269,11 +275,7 @@ export function createProductFormatterLexicon({
     if (!lookupKey) return "";
     for (const [stem, display] of Object.entries(TYPO_STEMS)) {
       const suffixLength = lookupKey.length - stem.length;
-      if (
-        lookupKey.startsWith(stem) &&
-        suffixLength > 0 &&
-        suffixLength <= 2
-      ) {
+      if (lookupKey.startsWith(stem) && suffixLength > 0 && suffixLength <= 2) {
         return display;
       }
     }
@@ -321,7 +323,10 @@ export function createProductFormatterLexicon({
       expandedLookupKey = expandLookupKeyVariants(lookupKey);
     }
 
-    const dictionaryAlias = resolveDictionaryAliasRule(lookupKey, dictionaryRules);
+    const dictionaryAlias = resolveDictionaryAliasRule(
+      lookupKey,
+      dictionaryRules,
+    );
     if (dictionaryAlias) {
       return buildMatchResult(dictionaryAlias.target, {
         matchSource: "dev-dictionary",
@@ -435,8 +440,8 @@ export function createProductFormatterLexicon({
 
   function hasGreeneryMarker(name = "") {
     const lookupKey = normalizeLookupKey(name);
-    return GREENERY_PATTERNS.some((pattern) =>
-      lookupKey === pattern || lookupKey.startsWith(`${pattern} `),
+    return GREENERY_PATTERNS.some(
+      (pattern) => lookupKey === pattern || lookupKey.startsWith(`${pattern} `),
     );
   }
 
@@ -447,7 +452,10 @@ export function createProductFormatterLexicon({
     );
   }
 
-  function looksLikeKnownProductLine(line = "", customReplacements = replacements) {
+  function looksLikeKnownProductLine(
+    line = "",
+    customReplacements = replacements,
+  ) {
     const normalized = cleanupEntryText(line);
     if (!normalized) return false;
     if (normalized !== normalized.toLowerCase()) return false;
@@ -456,7 +464,10 @@ export function createProductFormatterLexicon({
     const lookupKey = normalizeLookupKey(normalized);
     const expandedLookupKey = expandLookupKeyVariants(lookupKey);
 
-    if (customReplacements[lookupKey] || customReplacements[expandedLookupKey]) {
+    if (
+      customReplacements[lookupKey] ||
+      customReplacements[expandedLookupKey]
+    ) {
       return true;
     }
 

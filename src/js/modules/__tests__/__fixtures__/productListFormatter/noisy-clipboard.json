@@ -5,8 +5,5 @@
   },
   "formattedSectionsText": "Заявка 3\nЛимон 2шт\nПомидор черри 0.5\nУкроп⁕ 0.1\n\nМагазин\nАпельсин 2шт\nБанан 1ящ\nПетрушка⁕ 3шт",
   "formattedSummaryText": "",
-  "sectionTitles": [
-    "Заявка 3",
-    "Магазин"
-  ]
+  "sectionTitles": ["Заявка 3", "Магазин"]
 }

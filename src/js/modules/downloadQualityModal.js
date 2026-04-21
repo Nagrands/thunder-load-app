@@ -121,8 +121,7 @@ const state = {
 
 function syncBodyScrollLock() {
   const shouldLock = !!modal?.classList.contains("is-open");
-  if (shouldLock)
-    acquireBodyScrollLock(DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER);
+  if (shouldLock) acquireBodyScrollLock(DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER);
   else releaseBodyScrollLock(DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER);
 }
 

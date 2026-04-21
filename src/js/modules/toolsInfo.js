@@ -528,10 +528,7 @@ function initContext(section) {
     return false;
   };
 
-  const setQuickActionsVisibility = ({
-    showRetry = false,
-    showOpenLocation = false,
-  } = {}) => {
+  const setQuickActionsVisibility = ({ showRetry = false } = {}) => {
     if (el.quickRetryBtn) {
       el.quickRetryBtn.style.display = showRetry ? "" : "none";
     }
@@ -1011,7 +1008,9 @@ function initContext(section) {
       setHintText(missing ? t("tools.hint.missing") : "");
       setQuickState(
         missing ? "missing" : "ok",
-        missing ? summary.text || t("tools.summary.problemText") : t("tools.summary.readyText"),
+        missing
+          ? summary.text || t("tools.summary.problemText")
+          : t("tools.summary.readyText"),
         { showOpenLocation: true },
       );
 

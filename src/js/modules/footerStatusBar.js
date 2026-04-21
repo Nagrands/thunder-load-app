@@ -87,7 +87,8 @@ function bindDom() {
 function syncToolsVisibility() {
   if (!dom.toolsStatus || !dom.toolsAction) return;
   const locallyHidden =
-    state.toolsHiddenByPreference || dom.toolsStatus.classList.contains("hidden");
+    state.toolsHiddenByPreference ||
+    dom.toolsStatus.classList.contains("hidden");
   const shouldShow =
     state.activeTabId === "download" &&
     !state.isFooterNavMode &&
@@ -95,10 +96,7 @@ function syncToolsVisibility() {
   dom.toolsStatus.classList.toggle("is-context-hidden", !shouldShow);
   dom.toolsStatus.setAttribute("aria-hidden", shouldShow ? "false" : "true");
   dom.toolsAction.classList.toggle("is-context-hidden", !shouldShow);
-  dom.toolsAction.setAttribute(
-    "aria-hidden",
-    shouldShow ? "false" : "true",
-  );
+  dom.toolsAction.setAttribute("aria-hidden", shouldShow ? "false" : "true");
 }
 
 function getGroupMenu() {
@@ -230,9 +228,7 @@ function resolveDesiredNavigationMode(sentinelTop) {
 function evaluateNavigationMode(sentinelTop = null) {
   try {
     const top =
-      typeof sentinelTop === "number"
-        ? sentinelTop
-        : resolveScrollY();
+      typeof sentinelTop === "number" ? sentinelTop : resolveScrollY();
     scheduleNavigationMode(resolveDesiredNavigationMode(top));
   } catch {
     applyNavigationMode(false);

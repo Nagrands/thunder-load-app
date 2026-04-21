@@ -7,9 +7,7 @@
   --footer-safe-space: calc(var(--app-footer-height, 74px) + 28px);
   padding-top: var(--topbar-safe-space); // Высота top-bar + запас
   padding-bottom: var(--footer-safe-space);
-  min-height: calc(
-    100vh - var(--topbar-safe-space) - var(--footer-safe-space)
-  );
+  min-height: calc(100vh - var(--topbar-safe-space) - var(--footer-safe-space));
   box-sizing: border-box;
 }
 
@@ -19,9 +17,7 @@
   --footer-safe-space: calc(var(--app-footer-height, 74px) + 28px);
   padding-top: var(--topbar-safe-space);
   padding-bottom: var(--footer-safe-space);
-  min-height: calc(
-    100vh - var(--topbar-safe-space) - var(--footer-safe-space)
-  );
+  min-height: calc(100vh - var(--topbar-safe-space) - var(--footer-safe-space));
   box-sizing: border-box;
 }
 
@@ -52,7 +48,10 @@
 
 .container {
   min-height: calc(
-    100vh - var(--topbar-current-height, 80px) - var(--app-footer-height, 74px) -
+    100vh - var(--topbar-current-height, 80px) - var(
+        --app-footer-height,
+        74px
+      ) -
       36px
   );
   display: flex;

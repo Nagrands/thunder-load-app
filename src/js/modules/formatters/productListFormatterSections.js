@@ -37,7 +37,14 @@ export function createSectionCollector({
     return null;
   }
 
-  function buildLineClassification(rawLines, index, sections, currentSection, previousBlank, replacements) {
+  function buildLineClassification(
+    rawLines,
+    index,
+    sections,
+    currentSection,
+    previousBlank,
+    replacements,
+  ) {
     const line = cleanupEntryText(rawLines[index]);
     if (!line) {
       return {
@@ -72,7 +79,8 @@ export function createSectionCollector({
       nextLineIsHeading &&
       nextLineIsGroupedChild &&
       !/[,;:]/.test(line) &&
-      (!/[\d]/.test(line) || /^заявка\s+\d+$/i.test(normalizeLookupKey(line))) &&
+      (!/[\d]/.test(line) ||
+        /^заявка\s+\d+$/i.test(normalizeLookupKey(line))) &&
       line.split(/\s+/).length <= 4;
 
     if (

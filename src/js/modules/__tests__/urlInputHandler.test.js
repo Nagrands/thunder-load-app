@@ -588,7 +588,9 @@ describe("urlInputHandler", () => {
     await flushPromises();
 
     expect(previewCard.textContent).toContain("Открыть live preview");
-    expect(document.getElementById("preview-open-live")?.style.display).toBe("");
+    expect(document.getElementById("preview-open-live")?.style.display).toBe(
+      "",
+    );
   });
 
   test("clicking live preview action dispatches explicit player-open event", async () => {
@@ -686,7 +688,10 @@ describe("urlInputHandler", () => {
 
     window.dispatchEvent(
       new CustomEvent("downloader:live-preview-retry", {
-        detail: { url: "https://www.youtube.com/watch?v=demo", resumeTime: 28.5 },
+        detail: {
+          url: "https://www.youtube.com/watch?v=demo",
+          resumeTime: 28.5,
+        },
       }),
     );
     await flushPromises();

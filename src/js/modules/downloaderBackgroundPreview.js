@@ -285,7 +285,8 @@ async function applyDownloaderBackgroundPreview(preview = null, options = {}) {
 
     pendingSlotIndex = targetSlotIndex;
     if (
-      getVideo(targetSlotIndex)?.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+      getVideo(targetSlotIndex)?.readyState >=
+      HTMLMediaElement.HAVE_CURRENT_DATA
     ) {
       activatePendingSlot(targetSlotIndex);
     }

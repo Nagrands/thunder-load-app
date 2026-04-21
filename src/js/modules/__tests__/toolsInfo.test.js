@@ -335,9 +335,9 @@ describe("renderToolsInfo", () => {
 
     expect(document.getElementById("tools-more-btn")).not.toBeNull();
     expect(document.getElementById("tools-force-btn")).not.toBeNull();
-    expect(document.getElementById("tools-advanced-title")?.textContent).toMatch(
-      /Дополнительно|More/i,
-    );
+    expect(
+      document.getElementById("tools-advanced-title")?.textContent,
+    ).toMatch(/Дополнительно|More/i);
   });
 
   it("throws localized error when installAll bridge is unavailable", async () => {

@@ -31,10 +31,7 @@ function initDeveloperModeTopBarVisibility() {
     applyDeveloperModeTopBarVisibility,
   );
   window.addEventListener("tabs:activated", applyDeveloperModeTopBarVisibility);
-  window.addEventListener(
-    "i18n:changed",
-    applyDeveloperModeTopBarVisibility,
-  );
+  window.addEventListener("i18n:changed", applyDeveloperModeTopBarVisibility);
 }
 
 export {

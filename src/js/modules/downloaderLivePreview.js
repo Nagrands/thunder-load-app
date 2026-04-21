@@ -21,7 +21,8 @@ const DOWNLOADER_LIVE_PREVIEW_SCROLL_LOCK_OWNER = "downloader-live-preview";
 
 function syncRefs() {
   panelEl = document.getElementById("preview-live-player");
-  dialogEl = panelEl?.querySelector(".preview-live-player-modal__dialog") || null;
+  dialogEl =
+    panelEl?.querySelector(".preview-live-player-modal__dialog") || null;
   videoEl = document.getElementById("preview-live-video");
   sourceEl = document.getElementById("preview-live-video-source");
   closeButtonEl = document.getElementById("preview-live-close");
@@ -105,7 +106,9 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
 
   resetPlayerState();
   lastFocusedElement =
-    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
 
   currentPageUrl =
     typeof options?.pageUrl === "string" ? options.pageUrl.trim() : "";

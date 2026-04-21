@@ -1471,10 +1471,7 @@ async function applyConfig(config, options = {}) {
   } catch {}
 
   writeJson("wgUnlockDisabled", !!cfg.modules.wgUnlockDisabled);
-  writeJson(
-    "developerDisableDownloaderTab",
-    !!cfg.modules.downloaderDisabled,
-  );
+  writeJson("developerDisableDownloaderTab", !!cfg.modules.downloaderDisabled);
   writeJson("backupDisabled", !!cfg.modules.backupDisabled);
   writeJson(
     "bk_view_mode",
@@ -1664,7 +1661,6 @@ export async function resetConfigToDefaults() {
 export const getDefaultTab = () => window.electron.invoke("get-default-tab");
 export const setDefaultTab = (tabId) =>
   window.electron.invoke("set-default-tab", normalizeDefaultTabId(tabId));
-
 
 export const __test_updateModuleBadge = updateModuleBadge;
 export const __test_collectCurrentConfig = collectCurrentConfig;

@@ -132,7 +132,9 @@ describe("notifications", () => {
   });
 
   test("expands window on download complete when toggle is enabled", () => {
-    const { sendDownloadCompletionNotification } = require("../notifications.js");
+    const {
+      sendDownloadCompletionNotification,
+    } = require("../notifications.js");
     const store = {
       get: jest.fn((key, fallback) =>
         key === "expandWindowOnDownloadComplete" ? true : fallback,
@@ -150,7 +152,10 @@ describe("notifications", () => {
       mainWindow,
     );
 
-    expect(store.set).toHaveBeenCalledWith("lastDownloadedFile", "/tmp/demo.mp4");
+    expect(store.set).toHaveBeenCalledWith(
+      "lastDownloadedFile",
+      "/tmp/demo.mp4",
+    );
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       "download-complete",
       { title: "demo.mp4", filePath: "/tmp/demo.mp4" },
@@ -160,7 +165,9 @@ describe("notifications", () => {
   });
 
   test("does not expand window on download complete when toggle is disabled", () => {
-    const { sendDownloadCompletionNotification } = require("../notifications.js");
+    const {
+      sendDownloadCompletionNotification,
+    } = require("../notifications.js");
     const store = {
       get: jest.fn((key, fallback) =>
         key === "expandWindowOnDownloadComplete" ? false : fallback,

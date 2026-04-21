@@ -2671,24 +2671,11 @@
   }
 
   .settings-card {
-    border-radius: 16px;
+    border-radius: var(--border-radius);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background:
-      radial-gradient(
-        100% 120% at 100% 0%,
-        rgba(255, 255, 255, 0.045) 0%,
-        transparent 56%
-      ),
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.05),
-        rgba(255, 255, 255, 0.025)
-      ),
-      rgba(255, 255, 255, 0.02);
-    padding: 14px;
+    padding: 16px;
     display: grid;
     gap: 12px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
     &--stacked {
       grid-column: 1 / -1;
@@ -3574,24 +3561,6 @@
 
 // Flat settings refinement
 .settings-modal {
-  .settings-modal-content {
-    width: min(980px, calc(100vw - 32px));
-    padding: 12px 14px 14px;
-    border-radius: 18px;
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.03) 0%,
-        rgba(255, 255, 255, 0.012) 18%,
-        rgba(10, 12, 18, 0.08) 100%
-      ),
-      #141418;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      0 22px 52px rgba(0, 0, 0, 0.38),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  }
-
   .close-settings {
     top: 12px;
     right: 12px;
@@ -3642,12 +3611,6 @@
     }
   }
 
-  .settings-layout {
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: 14px;
-    align-items: start;
-  }
-
   .settings-shell-sidebar {
     min-width: 0;
     width: 100%;
@@ -3658,13 +3621,6 @@
   .settings-tabs {
     width: 100%;
     min-width: 0;
-  }
-
-  .settings-tabs {
-    padding: 6px;
-    border-radius: 14px;
-    border-color: rgba(255, 255, 255, 0.06);
-    background: #16161b;
   }
 
   .settings-tabs .tab-link {
@@ -3761,23 +3717,6 @@
   #window-settings .settings-card--downloader {
     grid-area: auto;
     min-height: 0;
-  }
-
-  .settings-card {
-    gap: 10px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.038) 0%,
-        rgba(255, 255, 255, 0.018) 100%
-      ),
-      #232327;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 10px 22px rgba(0, 0, 0, 0.12);
   }
 
   .settings-card__title {
@@ -4448,33 +4387,5 @@
 
   .upd-close {
     border-color: rgba(90, 150, 255, 0.24);
-  }
-}
-
-body[data-modal-mode="settings"] {
-  .settings-modal-content {
-    background:
-      radial-gradient(
-        94% 72% at 14% 0%,
-        rgba(var(--color-accent-rgb), 0.18) 0%,
-        rgba(var(--color-accent-rgb), 0.06) 26%,
-        transparent 64%
-      ),
-      radial-gradient(
-        88% 74% at 100% 10%,
-        rgba(255, 255, 255, 0.07) 0%,
-        transparent 58%
-      ),
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.035) 0%,
-        rgba(255, 255, 255, 0.015) 18%,
-        rgba(10, 12, 18, 0.12) 100%
-      ),
-      var(--color-bg-main);
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow:
-      0 24px 80px rgba(4, 8, 16, 0.38),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 }

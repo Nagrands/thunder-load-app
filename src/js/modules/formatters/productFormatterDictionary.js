@@ -5,7 +5,9 @@ const STORAGE_KEY = "thunder_products_dev_dictionary";
 const RULE_PREFIX_RE = /^(alias|normalize|tokens)\s*:/i;
 
 function normalizeLine(value = "") {
-  return String(value || "").replace(/\r/g, "").trim();
+  return String(value || "")
+    .replace(/\r/g, "")
+    .trim();
 }
 
 function parseRuleType(line = "") {
@@ -19,7 +21,9 @@ function parseRuleType(line = "") {
   }
   return {
     type: String(match[1] || "").toLowerCase(),
-    body: String(line || "").slice(match[0].length).trim(),
+    body: String(line || "")
+      .slice(match[0].length)
+      .trim(),
     explicitType: true,
   };
 }
@@ -288,14 +292,16 @@ export function parseProductFormatterDictionaryRules(text = "") {
 }
 
 export function removeInvalidProductFormatterDictionaryLines(text = "") {
-  const lines = String(text || "").replace(/\r/g, "").split("\n");
-  const invalidLines = new Set(inspectProductFormatterDictionary(text).invalidLines);
+  const lines = String(text || "")
+    .replace(/\r/g, "")
+    .split("\n");
+  const invalidLines = new Set(
+    inspectProductFormatterDictionary(text).invalidLines,
+  );
   if (!invalidLines.size) {
     return String(text || "");
   }
-  return lines
-    .filter((_, index) => !invalidLines.has(index + 1))
-    .join("\n");
+  return lines.filter((_, index) => !invalidLines.has(index + 1)).join("\n");
 }
 
 export function loadProductFormatterDictionary() {

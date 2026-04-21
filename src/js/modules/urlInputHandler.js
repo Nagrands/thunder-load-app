@@ -235,7 +235,9 @@ function initUrlInputHandler() {
             preview: currentLivePreview,
             options: {
               pageUrl:
-                currentLivePreview?.pageUrl || lastPreviewUrl || urlInput.value.trim(),
+                currentLivePreview?.pageUrl ||
+                lastPreviewUrl ||
+                urlInput.value.trim(),
             },
           },
         }),
@@ -518,7 +520,8 @@ function initUrlInputHandler() {
   };
 
   const syncBackgroundPreview = async (data) => {
-    const pageUrl = data?.webpage_url || data?.original_url || lastPreviewUrl || "";
+    const pageUrl =
+      data?.webpage_url || data?.original_url || lastPreviewUrl || "";
     if (data?.success && data?.backgroundPreview?.src) {
       await applyDownloaderBackgroundPreview(data.backgroundPreview, {
         pageUrl,

@@ -26,7 +26,10 @@ function preNormalizeRawText(value = "") {
     .replace(BULLET_RE, ",")
     .replace(BRACKETED_QUANTITY_RE, "$1 $2")
     .replace(/(^|[\s(])(?:o|о|O|О)(?=[.,]\d)/g, "$10")
-    .replace(/(\d)\s*[xх×]\s*(?=(?:шт|штук|штуки|кг|килограмм|гр|грамм|г|пуч|пучок|гол|пака|пак|пач|банка|ящ|ящик|м|ведро|в)\b)/gi, "$1 ")
+    .replace(
+      /(\d)\s*[xх×]\s*(?=(?:шт|штук|штуки|кг|килограмм|гр|грамм|г|пуч|пучок|гол|пака|пак|пач|банка|ящ|ящик|м|ведро|в)\b)/gi,
+      "$1 ",
+    )
     .replace(/(\d)\s*[xх×](?=$|[\s,.;:])/g, "$1 шт")
     .replace(/(^|[\s,.;:])([xх×])\s*(\d)(?=$|[\s,.;:])/gi, "$1$3 шт")
     .replace(/\/{2,}/g, "/")
@@ -54,11 +57,17 @@ export function cleanupEntryText(value = "") {
       .replace(/([A-Za-zА-Яа-яЁё⁕])\s*-\s*(?=\d)/g, "$1 ")
       .replace(/(^|\s)-\s*(?=\d)/g, "$1")
       .replace(/(\d)\s*-\s*(?=[A-Za-zА-Яа-яЁё⁕]+)/g, "$1 ")
-      .replace(/(\d)\s*-\s*(?=(кг|гр|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|головы|голов|головка|головки|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\b)/gi, "$1 ")
+      .replace(
+        /(\d)\s*-\s*(?=(кг|гр|г|шт|штук|штуки|пуч|пучок|пучка|п|гол|головы|голов|головка|головки|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\b)/gi,
+        "$1 ",
+      )
       .replace(/(^|\s)пол\s+пака(?=\s|$)/gi, "$10.5 пака")
       .replace(/\bмед\s+(\d+(?:[.,]\d+)?)\s*бан(?:ка|ки)?\b/gi, "мед $1")
       .replace(/\bсред\s+на\s+голубцы\b/gi, "")
-      .replace(/\b(кг|гр|г|шт|пуч|гол|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\./gi, "$1")
+      .replace(
+        /\b(кг|гр|г|шт|пуч|гол|пака|пак|пач|пачка|пачки|банка|банки|ящ|ящик|ящика|м|ведро|ведра|в)\./gi,
+        "$1",
+      )
       .replace(/([A-Za-zА-Яа-яЁё⁕])\s*\/\s*(?=\d)/g, "$1 ")
       .replace(/(\d)([A-Za-zА-Яа-яЁё⁕]+)/g, "$1 $2")
       .replace(/([A-Za-zА-Яа-яЁё⁕])(\d)/g, "$1 $2")
@@ -112,7 +121,10 @@ export function looksLikeIngredient(value = "") {
 
 export function normalizeSectionTitle(value = "") {
   const cleaned = cleanupEntryText(value).replace(/\s+в\s+\d{1,2}\s*$/i, "");
-  const normalized = normalizeLookupKey(cleaned).replace(/\s+в\s+\d{1,2}\s*$/, "");
+  const normalized = normalizeLookupKey(cleaned).replace(
+    /\s+в\s+\d{1,2}\s*$/,
+    "",
+  );
   if (!normalized) return "";
   const requestMatch = normalized.match(/^заявка\s+(\d+)$/i);
   if (requestMatch) return `Заявка ${requestMatch[1]}`;
@@ -128,7 +140,10 @@ export function isLikelySectionHeading(line, nextLine, context = {}) {
   if (!normalized) return false;
   if (!(context.afterBlank || context.atStart)) return false;
   if (!nextLine) return false;
-  const lookup = normalizeLookupKey(normalized).replace(/\s+в\s+\d{1,2}\s*$/, "");
+  const lookup = normalizeLookupKey(normalized).replace(
+    /\s+в\s+\d{1,2}\s*$/,
+    "",
+  );
   if (/^заявка\s+\d+$/i.test(lookup)) return true;
   if (lookup === "магазин") return true;
   if (/[,;:]/.test(normalized)) return false;
@@ -186,7 +201,9 @@ export function normalizeUnit(unit = "") {
   if (["гр", "грамм", "грамма", "граммов", "г"].includes(value)) return "g";
   if (["шт", "штук", "штуки", "x", "х", "×"].includes(value)) return "pcs";
   if (["пуч", "пучок", "пучка", "п"].includes(value)) return "bunch";
-  if (["гол", "голова", "головы", "голов", "головка", "головки"].includes(value))
+  if (
+    ["гол", "голова", "головы", "голов", "головка", "головки"].includes(value)
+  )
     return "head";
   if (["пака", "пак", "пач", "пачка", "пачки"].includes(value)) return "pack";
   if (["ящ", "ящик", "ящика"].includes(value)) return "crate";

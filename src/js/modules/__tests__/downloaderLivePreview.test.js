@@ -73,7 +73,9 @@ describe("downloaderLivePreview", () => {
     expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
     expect(source.getAttribute("src")).toBe("https://cdn.example.com/live.mp4");
     expect(source.getAttribute("type")).toBe("video/mp4");
-    expect(video.getAttribute("poster")).toBe("https://cdn.example.com/poster.jpg");
+    expect(video.getAttribute("poster")).toBe(
+      "https://cdn.example.com/poster.jpg",
+    );
     expect(video.muted).toBe(false);
     expect(video.volume).toBe(0.5);
     expect(playMock).toHaveBeenCalled();

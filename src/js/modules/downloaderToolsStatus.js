@@ -66,9 +66,7 @@ function setAction(action) {
       ? "downloader.tools.installTitle"
       : "downloader.tools.updateTitle";
   const iconClass =
-    action === "install"
-      ? "fa-solid fa-download"
-      : "fa-solid fa-arrows-rotate";
+    action === "install" ? "fa-solid fa-download" : "fa-solid fa-arrows-rotate";
   const label = t(labelKey);
   const title = t(titleKey);
 

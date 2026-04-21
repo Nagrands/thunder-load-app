@@ -96,11 +96,15 @@ export function renderDiagnostics(
 
   const activeFilter = options.activeFilter || "all";
   options.filterButtons?.forEach((button) => {
-    button.dataset.active = String((button.dataset.filter || "all") === activeFilter);
+    button.dataset.active = String(
+      (button.dataset.filter || "all") === activeFilter,
+    );
   });
 
   const issues = Array.isArray(result.issues) ? result.issues : [];
-  const diffEntries = Array.isArray(result.diffEntries) ? result.diffEntries : [];
+  const diffEntries = Array.isArray(result.diffEntries)
+    ? result.diffEntries
+    : [];
   const filteredIssues = issues.filter((issue) =>
     issueMatchesFilter(issue, activeFilter),
   );
@@ -218,7 +222,9 @@ export function renderDiagnostics(
         revealButton.type = "button";
         revealButton.className =
           "small-button products-diff-row__reveal products-utility-button";
-        revealButton.textContent = t("productsFormatter.diagnostics.revealLine");
+        revealButton.textContent = t(
+          "productsFormatter.diagnostics.revealLine",
+        );
         revealButton.addEventListener("click", () => {
           options.onRevealSource(entry);
         });
@@ -234,15 +240,23 @@ export function renderDiagnostics(
   if (!filteredIssues.length && issues.length && activeFilter !== "all") {
     appendEmptyDiagnosticsState(issuesEl, activeFilter);
   }
-  if (!filteredDiffEntries.length && diffEntries.length && activeFilter !== "all") {
+  if (
+    !filteredDiffEntries.length &&
+    diffEntries.length &&
+    activeFilter !== "all"
+  ) {
     appendEmptyDiagnosticsState(diffEl, activeFilter);
   }
 
   if (issuesMeta) {
-    issuesMeta.textContent = filteredIssues.length ? String(filteredIssues.length) : "";
+    issuesMeta.textContent = filteredIssues.length
+      ? String(filteredIssues.length)
+      : "";
   }
   if (diffMeta) {
-    diffMeta.textContent = filteredDiffEntries.length ? String(filteredDiffEntries.length) : "";
+    diffMeta.textContent = filteredDiffEntries.length
+      ? String(filteredDiffEntries.length)
+      : "";
   }
 
   if (diffToggle && !diffToggle.dataset.bound) {
@@ -400,7 +414,9 @@ function createSectionBlock(
     copyButton.setAttribute("title", t("productsFormatter.copy"));
     copyButton.setAttribute("aria-label", t("productsFormatter.copy"));
     copyButton.innerHTML = `<i class="fa-regular fa-copy" aria-hidden="true"></i>`;
-    copyButton.addEventListener("click", () => onCopy(copyTextValue, copyButton));
+    copyButton.addEventListener("click", () =>
+      onCopy(copyTextValue, copyButton),
+    );
     header.appendChild(copyButton);
   }
 
@@ -432,7 +448,10 @@ function createSectionBlock(
     const nextCollapsed = !section.classList.contains(
       "products-preview__section--collapsed",
     );
-    section.classList.toggle("products-preview__section--collapsed", nextCollapsed);
+    section.classList.toggle(
+      "products-preview__section--collapsed",
+      nextCollapsed,
+    );
     chevron.className = nextCollapsed
       ? "fa-solid fa-chevron-right"
       : "fa-solid fa-chevron-down";
@@ -455,7 +474,9 @@ export function renderPreview(
 ) {
   if (!previewEl || !summaryCardEl) return;
   const showOnlyUncertain = options.showOnlyUncertain === true;
-  const searchQuery = String(options.searchQuery || "").trim().toLowerCase();
+  const searchQuery = String(options.searchQuery || "")
+    .trim()
+    .toLowerCase();
   const matchesSearch = (sectionTitle, entry) => {
     if (!searchQuery) return true;
     const haystack = [
@@ -506,7 +527,10 @@ export function renderPreview(
     const matchedItems = searchQuery
       ? visibleItems.filter((item) => matchesSearch(result.summary.title, item))
       : visibleItems;
-    if ((matchedItems.length || !showOnlyUncertain) && (!searchQuery || matchedItems.length)) {
+    if (
+      (matchedItems.length || !showOnlyUncertain) &&
+      (!searchQuery || matchedItems.length)
+    ) {
       const key = buildSectionStateKey("summary", result.summary.title);
       previewEl.appendChild(
         createSectionBlock(
@@ -532,7 +556,10 @@ export function renderPreview(
           matchesSearch(result.greensSummary.title, item),
         )
       : visibleItems;
-    if ((matchedItems.length || !showOnlyUncertain) && (!searchQuery || matchedItems.length)) {
+    if (
+      (matchedItems.length || !showOnlyUncertain) &&
+      (!searchQuery || matchedItems.length)
+    ) {
       const key = buildSectionStateKey("greens", result.greensSummary.title);
       previewEl.appendChild(
         createSectionBlock(

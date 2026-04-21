@@ -211,7 +211,8 @@ function createUpdateFlyoverView({
     const errorEl = element.querySelector("#upd-err");
     const retryButton = element.querySelector("#upd-retry");
     if (titleEl) titleEl.textContent = title || t("update.flyover.error.title");
-    if (errorEl) errorEl.textContent = message || t("update.flyover.error.body");
+    if (errorEl)
+      errorEl.textContent = message || t("update.flyover.error.body");
     if (retryButton) retryButton.style.display = canRetry ? "" : "none";
     focusPrimaryAction("error");
   }

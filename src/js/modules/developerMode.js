@@ -47,7 +47,10 @@ export function syncDeveloperModeState() {
 }
 
 export function readDeveloperDisableDownloaderTab() {
-  return readBooleanStorage(DEVELOPER_DISABLE_DOWNLOADER_TAB_STORAGE_KEY, false);
+  return readBooleanStorage(
+    DEVELOPER_DISABLE_DOWNLOADER_TAB_STORAGE_KEY,
+    false,
+  );
 }
 
 export function isDownloaderTabEffectivelyDisabled() {

@@ -50,8 +50,7 @@ function syncDownloadTabAccessibility(tab, options = {}) {
   if (!tab) return;
 
   if (Object.prototype.hasOwnProperty.call(options, "count")) {
-    const count =
-      options.count === null ? 0 : normalizeCount(options.count, 0);
+    const count = options.count === null ? 0 : normalizeCount(options.count, 0);
     if (count > 0) {
       tab.dataset.downloadCount = String(count);
     } else {

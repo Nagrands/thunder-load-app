@@ -50,7 +50,11 @@ const DEMO_INPUT = `Заявка 1
 Лук Марс
 ПетрушкаЦ 15`;
 
-function buildFormatterOptions(includeSummary, includeGreensSummary, dictionaryInput) {
+function buildFormatterOptions(
+  includeSummary,
+  includeGreensSummary,
+  dictionaryInput,
+) {
   const dictionaryText = dictionaryInput?.value || "";
   return {
     includeSummary: includeSummary?.checked !== false,
@@ -91,19 +95,31 @@ export default function renderProductFormatterView(wrapper) {
   const dictionaryPanel = wrapper.querySelector("#products-dictionary-panel");
   const dictionaryInput = wrapper.querySelector("#products-dictionary-input");
   const dictionaryMeta = wrapper.querySelector("#products-dictionary-meta");
-  const dictionaryPreview = wrapper.querySelector("#products-dictionary-preview");
-  const dictionaryPreviewBody = wrapper.querySelector("#products-dictionary-preview-body");
-  const dictionarySummary = wrapper.querySelector("#products-dictionary-summary");
+  const dictionaryPreview = wrapper.querySelector(
+    "#products-dictionary-preview",
+  );
+  const dictionaryPreviewBody = wrapper.querySelector(
+    "#products-dictionary-preview-body",
+  );
+  const dictionarySummary = wrapper.querySelector(
+    "#products-dictionary-summary",
+  );
   const dictionaryCleanInvalidButton = wrapper.querySelector(
     "#products-dictionary-clean-invalid",
   );
-  const dictionaryResetButton = wrapper.querySelector("#products-dictionary-reset");
-  const dictionaryCloseButton = wrapper.querySelector("#products-dictionary-close");
+  const dictionaryResetButton = wrapper.querySelector(
+    "#products-dictionary-reset",
+  );
+  const dictionaryCloseButton = wrapper.querySelector(
+    "#products-dictionary-close",
+  );
   const emptyPasteButton = wrapper.querySelector("#products-empty-paste");
   const emptyDemoButton = wrapper.querySelector("#products-empty-demo");
   const copyButton = wrapper.querySelector("#products-copy");
   const searchInput = wrapper.querySelector("#products-search");
-  const resultToolbar = wrapper.querySelector('[data-ui="products-result-toolbar"]');
+  const resultToolbar = wrapper.querySelector(
+    '[data-ui="products-result-toolbar"]',
+  );
   const resultPane = wrapper.querySelector('[data-ui="products-result-pane"]');
   const preview = wrapper.querySelector("#products-preview");
   const summaryCard = wrapper.querySelector("#products-summary-card");
@@ -112,14 +128,20 @@ export default function renderProductFormatterView(wrapper) {
   const issuesList = wrapper.querySelector("#products-issues-list");
   const diffList = wrapper.querySelector("#products-diff-list");
   const comparisonPanel = wrapper.querySelector("#products-comparison-panel");
-  const comparisonSummary = wrapper.querySelector("#products-comparison-summary");
+  const comparisonSummary = wrapper.querySelector(
+    "#products-comparison-summary",
+  );
   const comparisonList = wrapper.querySelector("#products-comparison-list");
   const collapseAllButton = wrapper.querySelector("#products-collapse-all");
   const expandAllButton = wrapper.querySelector("#products-expand-all");
   const applyInputButton = wrapper.querySelector("#products-apply-input");
-  const filterUncertainToggle = wrapper.querySelector("#products-filter-uncertain");
+  const filterUncertainToggle = wrapper.querySelector(
+    "#products-filter-uncertain",
+  );
   const resultMenu = wrapper.querySelector('[data-ui="products-result-menu"]');
-  const resultMenuToggle = wrapper.querySelector("#products-result-menu-toggle");
+  const resultMenuToggle = wrapper.querySelector(
+    "#products-result-menu-toggle",
+  );
   const resultMenuPanel = wrapper.querySelector(
     '[data-ui="products-result-menu-panel"]',
   );

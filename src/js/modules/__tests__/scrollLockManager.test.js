@@ -7,10 +7,8 @@ describe("scrollLockManager", () => {
 
   test("keeps body lock until the last owner releases it", async () => {
     await jest.isolateModulesAsync(async () => {
-      const {
-        acquireBodyScrollLock,
-        releaseBodyScrollLock,
-      } = await import("../scrollLockManager.js");
+      const { acquireBodyScrollLock, releaseBodyScrollLock } =
+        await import("../scrollLockManager.js");
 
       acquireBodyScrollLock("settings");
       acquireBodyScrollLock("quality");
@@ -26,10 +24,8 @@ describe("scrollLockManager", () => {
 
   test("does not break on repeated acquire for the same owner", async () => {
     await jest.isolateModulesAsync(async () => {
-      const {
-        acquireDocumentScrollLock,
-        releaseDocumentScrollLock,
-      } = await import("../scrollLockManager.js");
+      const { acquireDocumentScrollLock, releaseDocumentScrollLock } =
+        await import("../scrollLockManager.js");
 
       acquireDocumentScrollLock("hash-howto");
       acquireDocumentScrollLock("hash-howto");
@@ -62,11 +58,8 @@ describe("scrollLockManager", () => {
 
   test("repair and clear keep DOM synchronized with owner state", async () => {
     await jest.isolateModulesAsync(async () => {
-      const {
-        acquireBodyScrollLock,
-        repairScrollLocks,
-        clearAllScrollLocks,
-      } = await import("../scrollLockManager.js");
+      const { acquireBodyScrollLock, repairScrollLocks, clearAllScrollLocks } =
+        await import("../scrollLockManager.js");
 
       acquireBodyScrollLock("settings");
       document.body.classList.remove("modal-scroll-lock");

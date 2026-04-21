@@ -75,9 +75,9 @@ describe("footerStatusBar", () => {
       </div>
     `;
 
-    document.querySelector(".center-menu").appendChild(
-      document.querySelector(".group-menu"),
-    );
+    document
+      .querySelector(".center-menu")
+      .appendChild(document.querySelector(".group-menu"));
 
     global.window = global.window || {};
     window.electron = {
@@ -171,7 +171,9 @@ describe("footerStatusBar", () => {
     observer.callback([{ boundingClientRect: { top: 40 } }]);
     jest.advanceTimersByTime(95);
 
-    expect(document.querySelector("#footer-tab-nav .group-menu")).not.toBeNull();
+    expect(
+      document.querySelector("#footer-tab-nav .group-menu"),
+    ).not.toBeNull();
     expect(document.querySelector(".center-menu .group-menu")).toBeNull();
     expect(
       document.getElementById("footer-tab-nav").classList.contains("is-hidden"),
@@ -196,7 +198,11 @@ describe("footerStatusBar", () => {
         .getElementById("dl-tools-action")
         .classList.contains("is-context-hidden"),
     ).toBe(true);
-    expect(document.getElementById("app-footer").classList.contains("app-footer--nav-mode")).toBe(true);
+    expect(
+      document
+        .getElementById("app-footer")
+        .classList.contains("app-footer--nav-mode"),
+    ).toBe(true);
     const downloadTab = document.querySelector(
       '#footer-tab-nav [data-menu="download"]',
     );
@@ -317,7 +323,8 @@ describe("footerStatusBar", () => {
 
     expect(document.getElementById("open-history")).toBeTruthy();
     expect(
-      document.querySelector(".app-footer__zone--actions")?.firstElementChild?.id,
+      document.querySelector(".app-footer__zone--actions")?.firstElementChild
+        ?.id,
     ).toBe("dl-tools-action");
   });
 
@@ -328,7 +335,9 @@ describe("footerStatusBar", () => {
     initFooterStatusBar();
     await Promise.resolve();
 
-    expect(document.getElementById("footer-status-meta")?.textContent).toBe("Tab");
+    expect(document.getElementById("footer-status-meta")?.textContent).toBe(
+      "Tab",
+    );
   });
 
   test("scrolls smoothly to top from footer action", async () => {
