@@ -1321,10 +1321,11 @@ export default function renderToolsView() {
               ${t("tools.sorter.resultIdle")}
             </div>
             <section id="sorter-preview-panel" class="sorter-preview-panel sorter-surface sorter-surface--preview hidden" aria-live="polite">
-              <div class="sorter-preview-topline">
+              <div class="sorter-preview-summary">
                 <div class="sorter-preview-heading">
-                  <div class="sorter-section-intro">
+                  <div class="sorter-section-intro sorter-preview-heading__copy">
                     <h3 id="sorter-preview-title" data-i18n="tools.sorter.preview.title">${t("tools.sorter.preview.title")}</h3>
+                    <p class="muted">${t("tools.sorter.subtitle")}</p>
                   </div>
                   <span
                     id="sorter-preview-badge"
@@ -1334,7 +1335,7 @@ export default function renderToolsView() {
                     ${t("tools.sorter.preview.badge")}
                   </span>
                 </div>
-                <div id="sorter-preview-stats" class="sorter-preview-stats">
+                <div id="sorter-preview-stats" class="sorter-preview-stats sorter-preview-summary__stats">
                   <div class="sorter-preview-stat sorter-preview-stat--primary">
                     <span class="muted" data-i18n="tools.sorter.preview.stats.moved">${t("tools.sorter.preview.stats.moved")}</span>
                     <strong id="sorter-preview-stat-moved">0</strong>
@@ -1353,8 +1354,8 @@ export default function renderToolsView() {
                   </div>
                 </div>
               </div>
-              <div class="sorter-preview-controls">
-                <div class="sorter-preview-controls__filters">
+              <div class="sorter-preview-toolbar">
+                <div class="sorter-preview-toolbar__filters">
                   <input
                     id="sorter-preview-search"
                     type="text"
@@ -1373,7 +1374,7 @@ export default function renderToolsView() {
                     <option value="error" data-i18n="tools.sorter.preview.statusFilter.error">${t("tools.sorter.preview.statusFilter.error")}</option>
                   </select>
                 </div>
-                <div class="sorter-preview-controls__actions">
+                <div class="sorter-preview-toolbar__actions">
                   <select id="sorter-export-format" class="wg-input sorter-export-format">
                     <option value="txt">TXT</option>
                     <option value="csv">CSV</option>
@@ -1390,8 +1391,8 @@ export default function renderToolsView() {
                 </div>
               </div>
               <div class="sorter-preview-layout">
-                <div class="sorter-preview-main">
-                  <div class="sorter-preview-list-panel">
+                <section class="sorter-preview-main">
+                  <div class="sorter-preview-list-panel sorter-preview-surface">
                     <div class="sorter-preview-list-panel__header">
                       <div class="sorter-preview-list-panel__header-copy">
                         <h4 data-i18n="tools.sorter.preview.list.title">${t("tools.sorter.preview.list.title")}</h4>
@@ -1404,16 +1405,16 @@ export default function renderToolsView() {
                     </p>
                     <p id="sorter-preview-more" class="sorter-preview-more muted hidden"></p>
                   </div>
-                </div>
-                <aside class="sorter-preview-sidebar">
-                  <div class="sorter-breakdown">
+                </section>
+                <aside class="sorter-preview-support">
+                  <div class="sorter-breakdown sorter-preview-surface">
                     <div class="sorter-breakdown__header">
                       <h4 data-i18n="tools.sorter.breakdown.title">${t("tools.sorter.breakdown.title")}</h4>
                       <span id="sorter-breakdown-count" class="sorter-section-count muted">0</span>
                     </div>
                     <div id="sorter-breakdown-list" class="sorter-breakdown-list"></div>
                   </div>
-                  <div id="sorter-errors-panel" class="sorter-errors-panel hidden">
+                  <div id="sorter-errors-panel" class="sorter-errors-panel sorter-preview-surface hidden">
                     <div class="sorter-errors-panel__header">
                       <h4 data-i18n="tools.sorter.errorsPanel.title">${t("tools.sorter.errorsPanel.title")}</h4>
                       <span id="sorter-errors-count" class="sorter-section-count muted">0</span>

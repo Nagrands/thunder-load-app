@@ -523,11 +523,12 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector(".sorter-shell")).not.toBeNull();
     expect(el.querySelector(".sorter-workspace-field__head")).not.toBeNull();
     expect(el.querySelector(".sorter-folder-actions")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-topline")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-controls")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-summary")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-toolbar")).not.toBeNull();
     expect(el.querySelector(".sorter-workspace-panel")).not.toBeNull();
     expect(el.querySelector(".sorter-setup-grid")).not.toBeNull();
     expect(el.querySelector(".sorter-preview-layout")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-support")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-list-count")).not.toBeNull();
     expect(el.querySelector("#sorter-breakdown-count")).not.toBeNull();
     expect(el.querySelector("#sorter-errors-count")).not.toBeNull();
@@ -542,6 +543,7 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#sorter-preview-search")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-category-filter")).not.toBeNull();
     expect(el.querySelector("#sorter-preview-status-filter")).not.toBeNull();
+    expect(el.querySelector(".sorter-preview-toolbar__actions")).not.toBeNull();
     expect(el.querySelector("#sorter-export-format")).not.toBeNull();
     expect(el.querySelector("#sorter-copy-result")).not.toBeNull();
     expect(el.querySelector("#sorter-export-result")).not.toBeNull();
@@ -683,6 +685,7 @@ describe("toolsView quick actions", () => {
       el.querySelectorAll("#sorter-errors-list .sorter-errors-row").length,
     ).toBe(3);
     expect(el.querySelector("#sorter-errors-count")?.textContent).toBe("3");
+    expect(el.querySelector(".sorter-preview-support")).not.toBeNull();
     expect(el.querySelector("#sorter-errors-list")?.textContent).toContain(
       "nested/ignored.tmp",
     );
