@@ -16,7 +16,10 @@ const { resolveIconPathFrom, resolveIconPathFromAppDir } = require("./iconPaths"
 const { showTrayNotification } = require("./notifications.js");
 
 let windowTray = null;
-const isMac = process.platform === "darwin";
+
+function isMacPlatform() {
+  return process.platform === "darwin";
+}
 
 // Helper to load a NativeImage from a list of candidate paths
 function loadNativeImageFrom(paths) {
@@ -29,6 +32,25 @@ function loadNativeImageFrom(paths) {
   }
   console.warn("No suitable icon found among:", paths);
   return null;
+}
+
+function loadTrayImage(iconPath, { template = false } = {}) {
+  if (!fs.existsSync(iconPath)) {
+    console.warn("Tray icon not found:", iconPath);
+    return null;
+  }
+
+  const trayImage = nativeImage.createFromPath(iconPath);
+  if (!trayImage || trayImage.isEmpty()) {
+    console.warn("Tray icon exists but failed to load:", iconPath);
+    return null;
+  }
+
+  if (template && typeof trayImage.setTemplateImage === "function") {
+    trayImage.setTemplateImage(true);
+  }
+
+  return trayImage;
 }
 
 function trimMenuText(text, maxLength = 44) {
@@ -349,7 +371,7 @@ function createWindow(
     console.error("❌ Failed to create tray:", err);
   }
 
-  if (isMac) {
+  if (isMacPlatform()) {
     createAppMenu(isDev, app);
 
     // Set Dock icon using candidate/fallback approach
@@ -397,6 +419,9 @@ function createTray(mainWindow, app, store, downloadPath) {
     isMac ? "TRAY_ICON_MACOS_TEMPLATE" : "TRAY_ICON_WINDOWS",
   );
   const iconLoadingPath = resolveIconPathFromAppDir("TRAY_ICON_LOADING");
+  const trayImage = isMac
+    ? loadTrayImage(trayIconPath, { template: true })
+    : null;
   const trayMenuPaths = {
     trayIconPath,
     videoIconPath: resolveIconPathFromAppDir("MENU_VIDEO"),
@@ -405,11 +430,10 @@ function createTray(mainWindow, app, store, downloadPath) {
     logoutIconPath: resolveIconPathFromAppDir("MENU_LOGOUT"),
   };
 
-  if (!fs.existsSync(trayIconPath)) {
-    console.warn("Tray icon not found:", trayIconPath);
+  if (isMac ? !trayImage : !fs.existsSync(trayIconPath)) {
     return;
   }
-  windowTray = new Tray(trayIconPath);
+  windowTray = new Tray(trayImage || trayIconPath);
 
   const menuHandlers = createMenuHandlers({
     app,
@@ -451,13 +475,15 @@ function createTray(mainWindow, app, store, downloadPath) {
   });
 
   ipcMain.on("download-started", () => {
-    if (fs.existsSync(iconLoadingPath)) {
+    if (!isMac && fs.existsSync(iconLoadingPath)) {
       windowTray.setImage(iconLoadingPath);
     }
   });
 
   ipcMain.on("download-finished", () => {
-    if (fs.existsSync(trayIconPath)) {
+    if (isMac && trayImage) {
+      windowTray.setImage(trayImage);
+    } else if (fs.existsSync(trayIconPath)) {
       windowTray.setImage(trayIconPath);
     }
     refreshTrayMenu();
@@ -465,6 +491,7 @@ function createTray(mainWindow, app, store, downloadPath) {
 }
 
 function createAppMenu(isDev, app) {
+  const isMac = isMacPlatform();
   const template = [
     ...(isMac
       ? [
@@ -540,8 +567,13 @@ function createAppMenu(isDev, app) {
   Menu.setApplicationMenu(menu);
 }
 
+function resetWindowStateForTests() {
+  windowTray = null;
+}
+
 module.exports = {
   createWindow,
   buildTrayMenuTemplate,
   buildDockMenuTemplate,
+  resetWindowStateForTests,
 };

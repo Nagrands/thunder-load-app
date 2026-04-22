@@ -1,6 +1,14 @@
 const fs = require("fs");
 const { EventEmitter } = require("events");
 
+const createNativeImageMock = () => {
+  const image = {
+    isEmpty: jest.fn(() => false),
+    setTemplateImage: jest.fn(),
+  };
+  return image;
+};
+
 jest.mock("electron", () => {
   class MockBrowserWindow {
     constructor() {
@@ -52,7 +60,7 @@ jest.mock("electron", () => {
     },
     shell: { openPath: jest.fn(() => Promise.resolve("")) },
     ipcMain: { on: jest.fn(), handle: jest.fn() },
-    nativeImage: { createFromPath: jest.fn(() => ({ isEmpty: () => false })) },
+    nativeImage: { createFromPath: jest.fn(() => createNativeImageMock()) },
   };
 });
 
@@ -70,8 +78,8 @@ jest.mock("../notifications.js", () => ({
   showTrayNotification: jest.fn(),
 }));
 
-const { createWindow } = require("../window.js");
-const { Tray, ipcMain } = require("electron");
+const { createWindow, resetWindowStateForTests } = require("../window.js");
+const { Tray, ipcMain, nativeImage } = require("electron");
 
 function createStore(values = {}) {
   return {
@@ -86,18 +94,33 @@ function createStore(values = {}) {
 
 describe("tray runtime behavior", () => {
   let existsSyncSpy;
+  let platformDescriptor;
 
   beforeEach(() => {
     Tray.mockClear();
     ipcMain.on.mockClear();
+    nativeImage.createFromPath.mockClear();
     existsSyncSpy = jest.spyOn(fs, "existsSync").mockReturnValue(true);
+    platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    resetWindowStateForTests();
   });
 
   afterEach(() => {
     existsSyncSpy.mockRestore();
+    if (platformDescriptor) {
+      Object.defineProperty(process, "platform", platformDescriptor);
+    }
   });
 
-  test("handles click/double-click/right-click and refresh events", () => {
+  function setPlatform(platform) {
+    Object.defineProperty(process, "platform", {
+      value: platform,
+      configurable: true,
+    });
+  }
+
+  test("handles click/double-click/right-click and refresh events on windows tray", () => {
+    setPlatform("win32");
     const app = new EventEmitter();
     app.getName = () => "Thunder Load";
     app.getVersion = () => "1.3.6";
@@ -171,5 +194,58 @@ describe("tray runtime behavior", () => {
     expect(tray.setContextMenu.mock.calls.length).toBe(
       contextMenuCallsBeforeAppRefresh + 1,
     );
+  });
+
+  test("creates a template tray image on macOS and keeps it on download events", () => {
+    setPlatform("darwin");
+    const app = new EventEmitter();
+    app.getName = () => "Thunder Load";
+    app.getVersion = () => "1.3.6";
+    app.getAppPath = () => "/tmp/app";
+    app.quit = jest.fn();
+    app.isPackaged = false;
+    app.isQuitting = false;
+    app.dock = { setIcon: jest.fn(), setMenu: jest.fn() };
+
+    const store = createStore({ downloadPath: "/tmp/downloads" });
+
+    createWindow(
+      false,
+      app,
+      store,
+      "/tmp/downloads",
+      () => "1.3.6",
+      "",
+      "",
+      "",
+      () => true,
+    );
+
+    const tray = Tray.mock.results[0].value;
+    const trayImageCallIndex = nativeImage.createFromPath.mock.calls.findIndex(
+      ([iconPath]) =>
+        String(iconPath).includes("assets/icons/tray/tray-icon-macos-template.png"),
+    );
+    const trayImage = nativeImage.createFromPath.mock.results[trayImageCallIndex]
+      .value;
+    const startedHandler = ipcMain.on.mock.calls.find(
+      ([event]) => event === "download-started",
+    )[1];
+    const finishedHandler = ipcMain.on.mock.calls.find(
+      ([event]) => event === "download-finished",
+    )[1];
+
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith(
+      expect.stringContaining("assets/icons/tray/tray-icon-macos-template.png"),
+    );
+    expect(trayImage.setTemplateImage).toHaveBeenCalledWith(true);
+    expect(Tray).toHaveBeenCalledWith(trayImage);
+
+    const setImageCallsBeforeStart = tray.setImage.mock.calls.length;
+    startedHandler();
+    expect(tray.setImage.mock.calls.length).toBe(setImageCallsBeforeStart);
+
+    finishedHandler();
+    expect(tray.setImage).toHaveBeenCalledWith(trayImage);
   });
 });
