@@ -15,10 +15,16 @@ describe("scrollLockManager", () => {
       releaseBodyScrollLock("settings");
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        true,
+      );
 
       releaseBodyScrollLock("quality");
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
     });
   });
 
@@ -32,6 +38,9 @@ describe("scrollLockManager", () => {
       releaseDocumentScrollLock("hash-howto");
 
       expect(document.documentElement.style.overflow).toBe("");
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
     });
   });
 
@@ -49,10 +58,16 @@ describe("scrollLockManager", () => {
 
       releaseBodyScrollLock("settings");
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        true,
+      );
       expect(document.documentElement.style.overflow).toBe("hidden");
 
       releaseDocumentScrollLock("hash-howto");
       expect(document.documentElement.style.overflow).toBe("");
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
     });
   });
 
@@ -66,10 +81,16 @@ describe("scrollLockManager", () => {
       repairScrollLocks();
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        true,
+      );
 
       clearAllScrollLocks();
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
       expect(document.documentElement.style.overflow).toBe("");
     });
   });

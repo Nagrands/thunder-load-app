@@ -11,11 +11,15 @@ describe("scrollLockRepair", () => {
       const { initScrollLockRepair } = await import("../scrollLockRepair.js");
 
       document.body.classList.add("modal-scroll-lock");
+      document.body.classList.add("modal-overlay-active");
       initScrollLockRepair();
 
       window.dispatchEvent(new Event("focus"));
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
     });
   });
 
@@ -31,6 +35,9 @@ describe("scrollLockRepair", () => {
       window.dispatchEvent(new Event("focus"));
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(true);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        true,
+      );
     });
   });
 
@@ -60,6 +67,9 @@ describe("scrollLockRepair", () => {
       window.dispatchEvent(new Event("focus"));
 
       expect(document.documentElement.style.overflow).toBe("hidden");
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        true,
+      );
     });
   });
 
@@ -80,6 +90,9 @@ describe("scrollLockRepair", () => {
       );
 
       expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
       expect(document.documentElement.style.overflow).toBe("");
     });
   });

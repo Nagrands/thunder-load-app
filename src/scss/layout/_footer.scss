@@ -12,6 +12,12 @@
   pointer-events: none;
 }
 
+body.modal-overlay-active .app-footer {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+}
+
 .app-footer__bar {
   pointer-events: auto;
   display: grid;
@@ -35,6 +41,13 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease,
+    visibility 220ms linear,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
 }
 
 .app-footer__zone {
