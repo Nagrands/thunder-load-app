@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icons/icon.png" alt="ThunderLoad Logo" width="120" />
+  <img src="assets/icons/app/app-icon.png" alt="ThunderLoad Logo" width="120" />
 </p>
 
 <h1 align="center">Thunder Load</h1>

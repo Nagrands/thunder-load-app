@@ -12,6 +12,7 @@
 - `docs/IMPROVEMENTS_WORKFLOW.en.md` — improvements workflow (EN).
 - `docs/README.ru.md` — краткое описание проекта (RU).
 - `docs/README.uk.md` — краткое описание проекта (UK).
+- `docs/icons.md` — структура и правила именования иконок.
 
 ## Документация вкладок
 

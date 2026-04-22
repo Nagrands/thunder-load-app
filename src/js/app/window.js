@@ -12,6 +12,7 @@ const {
   nativeImage,
 } = require("electron");
 const windowStateKeeper = require("electron-window-state");
+const { resolveIconPathFrom, resolveIconPathFromAppDir } = require("./iconPaths");
 const { showTrayNotification } = require("./notifications.js");
 
 let windowTray = null;
@@ -238,15 +239,9 @@ function createWindow(
   const baseAssetsPath = app.isPackaged
     ? process.resourcesPath
     : app.getAppPath();
-  const macIcns = path.join(
-    baseAssetsPath,
-    "assets",
-    "icons",
-    "macOS",
-    "icon.icns",
-  );
-  const macPng = path.join(baseAssetsPath, "assets", "icons", "icon.png");
-  const winIco = path.join(baseAssetsPath, "assets", "icons", "icon.ico");
+  const macIcns = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICNS");
+  const macPng = resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG");
+  const winIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
 
   // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns
   const bwIconCandidates =
@@ -360,10 +355,10 @@ function createWindow(
     // Set Dock icon using candidate/fallback approach
     const dockIconCandidates = app.isPackaged
       ? [
-          path.join(baseAssetsPath, "assets", "icons", "macOS", "icon.icns"),
-          path.join(baseAssetsPath, "assets", "icons", "icon.png"),
+          resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICNS"),
+          resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG"),
         ]
-      : [path.join(baseAssetsPath, "assets", "icons", "icon.png")];
+      : [resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG")];
     const dockImg = loadNativeImageFrom(dockIconCandidates);
     console.log("dock icon candidates:", dockIconCandidates);
     if (dockImg) {
@@ -398,28 +393,16 @@ function createTray(mainWindow, app, store, downloadPath) {
   if (windowTray) return;
 
   const isMac = process.platform === "darwin";
-  const trayIconPath = path.join(
-    __dirname,
-    isMac
-      ? "../../../assets/icons/macOS/trayTemplate.png"
-      : "../../../assets/icons/tray-logo.png",
+  const trayIconPath = resolveIconPathFromAppDir(
+    isMac ? "TRAY_ICON_MACOS_TEMPLATE" : "TRAY_ICON_WINDOWS",
   );
-  const iconLoadingPath = path.join(
-    __dirname,
-    "../../../assets/icons/tray-loading.png",
-  );
+  const iconLoadingPath = resolveIconPathFromAppDir("TRAY_ICON_LOADING");
   const trayMenuPaths = {
     trayIconPath,
-    videoIconPath: path.join(__dirname, "../../../assets/icons/video.png"),
-    folderIconPath: path.join(
-      __dirname,
-      "../../../assets/icons/open-folder.png",
-    ),
-    settingsIconPath: path.join(
-      __dirname,
-      "../../../assets/icons/settings.png",
-    ),
-    logoutIconPath: path.join(__dirname, "../../../assets/icons/logout.png"),
+    videoIconPath: resolveIconPathFromAppDir("MENU_VIDEO"),
+    folderIconPath: resolveIconPathFromAppDir("MENU_OPEN_FOLDER"),
+    settingsIconPath: resolveIconPathFromAppDir("MENU_SETTINGS"),
+    logoutIconPath: resolveIconPathFromAppDir("MENU_LOGOUT"),
   };
 
   if (!fs.existsSync(trayIconPath)) {

@@ -1,8 +1,8 @@
 // notifications.js (src/js/app/notifications.js)
 
 const { Notification, shell } = require("electron");
-const path = require("path");
 const { expandMainWindowForToggle } = require("./windowActivation");
+const { resolveIconPathFromAppDir } = require("./iconPaths");
 const {
   classifyDownloadError,
 } = require("../shared/downloadErrorClassifier.shared.js");
@@ -28,7 +28,7 @@ function showTrayNotification(message) {
   const notification = new Notification({
     title: "Thunder Load",
     body: message,
-    icon: path.join(__dirname, "../../../assets/icons/thunder-logo.png"),
+    icon: resolveIconPathFromAppDir("APP_ICON_256"),
   });
   notification.show();
 }
@@ -37,7 +37,7 @@ function notifyDownloadError(error) {
   const notification = new Notification({
     title: "Ошибка загрузки",
     body: formatDownloadErrorMessage(error),
-    icon: path.join(__dirname, "../../../assets/icons/info-error.png"),
+    icon: resolveIconPathFromAppDir("NOTIFICATION_ERROR"),
   });
   notification.show();
 }
@@ -52,7 +52,7 @@ function sendDownloadCompletionNotification(
     title: "Загрузка завершена",
     body: `Файл "${title}" успешно загружен.`,
     silent: false,
-    icon: path.join(__dirname, "../../../assets/icons/info-done.png"),
+    icon: resolveIconPathFromAppDir("NOTIFICATION_SUCCESS"),
   });
 
   notification.on("click", () => {

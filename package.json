@@ -98,13 +98,13 @@
       "target": [
         "nsis"
       ],
-      "icon": "assets/icons/icon.ico"
+      "icon": "assets/icons/app/app-icon.ico"
     },
     "linux": {
       "target": [
         "AppImage"
       ],
-      "icon": "assets/icons/icon.png",
+      "icon": "assets/icons/app/app-icon.png",
       "category": "Utility"
     },
     "mac": {
@@ -125,7 +125,7 @@
         }
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "icon": "assets/icons/macOS/icon.icns",
+      "icon": "assets/icons/platform/macos/app-icon.icns",
       "category": "public.app-category.utilities"
     }
   },

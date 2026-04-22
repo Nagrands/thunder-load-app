@@ -153,7 +153,7 @@ describe("tray runtime behavior", () => {
 
     startedHandler();
     expect(tray.setImage).toHaveBeenCalledWith(
-      expect.stringContaining("assets/icons/tray-loading.png"),
+      expect.stringContaining("assets/icons/tray/tray-loading.png"),
     );
 
     const contextMenuCallsBeforeFinish = tray.setContextMenu.mock.calls.length;

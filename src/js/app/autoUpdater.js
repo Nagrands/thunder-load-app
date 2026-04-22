@@ -2,15 +2,12 @@
 
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
-const path = require("path");
 const { Notification, app } = require("electron");
+const { resolveIconPathFromAppDir } = require("./iconPaths");
 
 const isMac = process.platform === "darwin";
-const iconPath = path.resolve(
-  __dirname,
-  isMac
-    ? "../../../assets/icons/macOS/icon.icns"
-    : "../../../assets/icons/icon.ico",
+const iconPath = resolveIconPathFromAppDir(
+  isMac ? "APP_ICON_ICNS" : "APP_ICON_ICO",
 );
 
 function setupAutoUpdater(mainWindow) {
