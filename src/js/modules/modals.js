@@ -9,6 +9,10 @@ import {
 } from "./domElements.js";
 import { t } from "./i18n.js";
 import { hideAllTooltips } from "./tooltipInitializer.js";
+import {
+  acquireOverlayActive,
+  releaseOverlayActive,
+} from "./scrollLockManager.js";
 
 const CONFIRMATION_HTML_ALLOWED_TAGS = [
   "strong",
@@ -23,6 +27,7 @@ const CONFIRMATION_HTML_ALLOWED_TAGS = [
   "h4",
   "hr",
 ];
+const CONFIRMATION_MODAL_OVERLAY_OWNER = "confirmation-modal";
 
 function sanitizeConfirmationHtml(html) {
   const purifier = window?.DOMPurify;
@@ -169,8 +174,10 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
 
     const closeModal = (returnFocus = true) => {
       confirmationModal.style.display = "none";
+      confirmationModal.setAttribute("aria-hidden", "true");
       confirmationModal.removeAttribute("data-tone");
       document.body.classList.remove("confirmation-open");
+      releaseOverlayActive(CONFIRMATION_MODAL_OVERLAY_OWNER);
       cancelButton.style.display = "";
       confirmButton.removeEventListener("click", onConfirmClick);
       cancelButton.removeEventListener("click", onCancelClick);
@@ -199,6 +206,8 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     confirmationModal.style.display = "flex";
     confirmationModal.style.justifyContent = "center";
     confirmationModal.style.alignItems = "center";
+    confirmationModal.setAttribute("aria-hidden", "false");
+    acquireOverlayActive(CONFIRMATION_MODAL_OVERLAY_OWNER);
     confirmButton.focus();
   });
 }

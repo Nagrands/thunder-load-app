@@ -6,6 +6,7 @@ jest.mock("../domElements.js", () => {
     addEventListener: jest.fn(),
     querySelector: jest.fn(),
     insertAdjacentHTML: jest.fn(),
+    setAttribute: jest.fn(),
   });
 
   return {
@@ -54,5 +55,89 @@ describe("whatsNew sanitizer", () => {
     const input = '<a href="javascript:alert(1)">x</a>';
     const output = sanitize(input);
     expect(output).toBe("<a>x</a>");
+  });
+});
+
+describe("whatsNew overlay state", () => {
+  test("adds and removes modal overlay class when modal opens and closes", async () => {
+    jest.resetModules();
+
+    const listeners = {};
+    const header = {
+      innerHTML: "",
+      appendChild: jest.fn(),
+      insertAdjacentText: jest.fn(),
+    };
+    const whatsNewModal = {
+      style: {},
+      setAttribute: jest.fn(),
+      querySelector: jest.fn(() => header),
+    };
+    const whatsNewContent = {
+      innerHTML: "",
+      insertAdjacentHTML: jest.fn(),
+    };
+    const versionContainer = {
+      addEventListener: jest.fn((event, handler) => {
+        listeners[event] = handler;
+      }),
+    };
+    const closeWhatsNewBtn = {
+      addEventListener: jest.fn((event, handler) => {
+        listeners[`close:${event}`] = handler;
+      }),
+    };
+
+    jest.doMock("../domElements.js", () => ({
+      versionContainer,
+      whatsNewModal,
+      whatsNewContent,
+      closeWhatsNewBtn,
+      shortcutsModal: null,
+      confirmationModal: null,
+      settingsModal: null,
+    }));
+    jest.doMock("../modalManager.js", () => ({
+      closeAllModals: jest.fn(),
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(() => "en"),
+      t: (key, vars = {}) =>
+        key === "whatsnew.version" ? `Version ${vars.version}` : key,
+    }));
+
+    window.electron = {
+      invoke: jest.fn(async (channel) => {
+        if (channel === "get-version") return "1.4.4";
+        if (channel === "get-whats-new") {
+          return { version: "1.4.4", changes: ["<p>ok</p>"] };
+        }
+        return undefined;
+      }),
+      onShowWhatsNew: jest.fn(),
+    };
+
+    const mod = await import("../whatsNewModal.js");
+    mod.initWhatsNewModal();
+
+    await listeners.click();
+
+    expect(whatsNewModal.style.display).toBe("flex");
+    expect(whatsNewModal.setAttribute).toHaveBeenCalledWith(
+      "aria-hidden",
+      "false",
+    );
+    expect(document.body.classList.contains("modal-overlay-active")).toBe(true);
+
+    listeners["close:click"]();
+
+    expect(whatsNewModal.style.display).toBe("none");
+    expect(whatsNewModal.setAttribute).toHaveBeenCalledWith(
+      "aria-hidden",
+      "true",
+    );
+    expect(document.body.classList.contains("modal-overlay-active")).toBe(
+      false,
+    );
   });
 });

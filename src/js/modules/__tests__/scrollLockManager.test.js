@@ -94,4 +94,28 @@ describe("scrollLockManager", () => {
       expect(document.documentElement.style.overflow).toBe("");
     });
   });
+
+  test("supports overlay-only owners without forcing body scroll lock", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const {
+        acquireOverlayActive,
+        releaseOverlayActive,
+        getScrollLockState,
+      } = await import("../scrollLockManager.js");
+
+      acquireOverlayActive("whats-new-modal");
+
+      expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        true,
+      );
+      expect(getScrollLockState().overlayOwners).toEqual(["whats-new-modal"]);
+
+      releaseOverlayActive("whats-new-modal");
+
+      expect(document.body.classList.contains("modal-overlay-active")).toBe(
+        false,
+      );
+    });
+  });
 });

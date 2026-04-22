@@ -1,6 +1,7 @@
 // src/js/modules/modalManager.js
 
 import {
+  releaseOverlayActive,
   releaseBodyScrollLock,
   repairScrollLocks,
 } from "./scrollLockManager.js";
@@ -15,8 +16,11 @@ function closeAllModals(modals) {
   modals.forEach((modal) => {
     if (modal && modal.style.display === "flex") {
       modal.style.display = "none";
-      if (modal.id === "settings-modal") {
+      if (modal.id) {
         modal.setAttribute("aria-hidden", "true");
+        releaseOverlayActive(modal.id);
+      }
+      if (modal.id === "settings-modal") {
         releaseBodyScrollLock(SETTINGS_MODAL_SCROLL_LOCK_OWNER);
       }
     }

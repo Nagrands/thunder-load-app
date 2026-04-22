@@ -69,6 +69,8 @@ describe("firstRunModal", () => {
 
     const modal = document.getElementById("first-run-modal");
     expect(modal?.style.display).toBe("flex");
+    expect(modal?.getAttribute("aria-hidden")).toBe("false");
+    expect(document.body.classList.contains("modal-overlay-active")).toBe(true);
     expect(document.getElementById("first-run-back")?.disabled).toBe(true);
     expect(document.getElementById("first-run-primary")?.textContent).toBe(
       "firstRun.next",
@@ -130,6 +132,11 @@ describe("firstRunModal", () => {
     expect(localStorage.getItem("firstRunCompleted")).toBe("1");
     expect(localStorage.getItem("wgUnlockDisabled")).toBe("false");
     expect(localStorage.getItem("backupDisabled")).toBe("true");
+    expect(modal?.style.display).toBe("none");
+    expect(modal?.getAttribute("aria-hidden")).toBe("true");
+    expect(document.body.classList.contains("modal-overlay-active")).toBe(
+      false,
+    );
   });
 
   test("treats Backup as a tool inside Tools in the summary", async () => {

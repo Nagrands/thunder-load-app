@@ -11,6 +11,10 @@ import {
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
 import { getLanguage, t } from "./i18n.js";
+import {
+  acquireOverlayActive,
+  releaseOverlayActive,
+} from "./scrollLockManager.js";
 const WHATSNEW_ALLOWED_TAGS = [
   "h1",
   "h2",
@@ -36,6 +40,7 @@ const WHATSNEW_ALLOWED_TAGS = [
   "th",
   "td",
 ];
+const WHATS_NEW_MODAL_OVERLAY_OWNER = "whats-new-modal";
 
 const WHATSNEW_ALLOWED_ATTR = {
   "*": ["title"],
@@ -118,6 +123,8 @@ async function showWhatsNew(version) {
     whatsNewModal.style.flexWrap = "wrap";
     whatsNewModal.style.justifyContent = "center";
     whatsNewModal.style.alignItems = "center";
+    whatsNewModal.setAttribute("aria-hidden", "false");
+    acquireOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
 
     console.log("Модальное окно 'Что нового?' отображено с содержимым."); // Для отладки
     try {
@@ -155,6 +162,8 @@ function initWhatsNewModal() {
   if (closeWhatsNewBtn) {
     closeWhatsNewBtn.addEventListener("click", () => {
       whatsNewModal.style.display = "none";
+      whatsNewModal.setAttribute("aria-hidden", "true");
+      releaseOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
     });
   }
 
@@ -162,6 +171,8 @@ function initWhatsNewModal() {
   window.addEventListener("click", (event) => {
     if (event.target === whatsNewModal) {
       whatsNewModal.style.display = "none";
+      whatsNewModal.setAttribute("aria-hidden", "true");
+      releaseOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
     }
   });
 

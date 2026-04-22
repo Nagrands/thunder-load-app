@@ -9,6 +9,7 @@ import {
   settingsModal,
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
+import { acquireOverlayActive } from "./scrollLockManager.js";
 
 function initModalHandlers() {
   const firstRunModal = document.getElementById("first-run-modal");
@@ -29,6 +30,8 @@ function initModalHandlers() {
     shortcutsModal.style.flexWrap = "wrap";
     shortcutsModal.style.justifyContent = "center";
     shortcutsModal.style.alignItems = "center";
+    shortcutsModal.setAttribute("aria-hidden", "false");
+    acquireOverlayActive("shortcuts-modal");
   });
 
   // Обработчик закрытия модального окна

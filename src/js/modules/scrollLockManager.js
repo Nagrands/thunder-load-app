@@ -1,5 +1,6 @@
 const bodyLockOwners = new Set();
 const documentLockOwners = new Set();
+const overlayActiveOwners = new Set();
 const MODAL_ACTIVE_CLASS = "modal-overlay-active";
 
 function normalizeOwner(owner, fallback) {
@@ -11,7 +12,9 @@ function syncBodyScrollLock() {
   document.body.classList.toggle("modal-scroll-lock", bodyLockOwners.size > 0);
   document.body.classList.toggle(
     MODAL_ACTIVE_CLASS,
-    bodyLockOwners.size > 0 || documentLockOwners.size > 0,
+    bodyLockOwners.size > 0 ||
+      documentLockOwners.size > 0 ||
+      overlayActiveOwners.size > 0,
   );
 }
 
@@ -52,13 +55,25 @@ function repairScrollLocks() {
 function clearAllScrollLocks() {
   bodyLockOwners.clear();
   documentLockOwners.clear();
+  overlayActiveOwners.clear();
   syncScrollLocks();
+}
+
+function acquireOverlayActive(owner) {
+  overlayActiveOwners.add(normalizeOwner(owner, "overlay-active"));
+  syncBodyScrollLock();
+}
+
+function releaseOverlayActive(owner) {
+  overlayActiveOwners.delete(normalizeOwner(owner, "overlay-active"));
+  syncBodyScrollLock();
 }
 
 function getScrollLockState() {
   return {
     bodyOwners: Array.from(bodyLockOwners),
     documentOwners: Array.from(documentLockOwners),
+    overlayOwners: Array.from(overlayActiveOwners),
   };
 }
 
@@ -67,6 +82,8 @@ export {
   releaseBodyScrollLock,
   acquireDocumentScrollLock,
   releaseDocumentScrollLock,
+  acquireOverlayActive,
+  releaseOverlayActive,
   repairScrollLocks,
   clearAllScrollLocks,
   getScrollLockState,

@@ -1,9 +1,14 @@
 import { setLanguage, setLanguagePreview, getLanguage, t } from "./i18n.js";
 import { setTheme, getTheme } from "./settingsStore.js";
 import { updateModuleBadge } from "./settings.js";
+import {
+  acquireOverlayActive,
+  releaseOverlayActive,
+} from "./scrollLockManager.js";
 
 const FIRST_RUN_KEY = "firstRunCompleted";
 const STEP_COUNT = 4;
+const FIRST_RUN_MODAL_OVERLAY_OWNER = "first-run-modal";
 
 const DEFAULT_TAB_FLAGS = {
   wireguard: true,
@@ -127,6 +132,12 @@ export function initFirstRunModal() {
   const alreadyCompleted = localStorage.getItem(FIRST_RUN_KEY) === "1";
   if (alreadyCompleted) return;
   let currentStep = 0;
+
+  const hideFirstRunModal = () => {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+    releaseOverlayActive(FIRST_RUN_MODAL_OVERLAY_OWNER);
+  };
 
   const currentLang = getLanguage();
   setRadioValue("first-run-language", currentLang);
@@ -294,6 +305,8 @@ export function initFirstRunModal() {
       localStorage.setItem(FIRST_RUN_KEY, "1");
     } catch {}
 
+    hideFirstRunModal();
+
     const isTestEnv =
       typeof process !== "undefined" &&
       process.env &&
@@ -306,6 +319,8 @@ export function initFirstRunModal() {
   modal.style.display = "flex";
   modal.style.justifyContent = "center";
   modal.style.alignItems = "center";
+  modal.setAttribute("aria-hidden", "false");
+  acquireOverlayActive(FIRST_RUN_MODAL_OVERLAY_OWNER);
   syncSelectedCards();
   updateSummary();
   renderStep();

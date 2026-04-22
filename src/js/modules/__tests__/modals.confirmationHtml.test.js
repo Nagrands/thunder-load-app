@@ -61,10 +61,16 @@ describe("showConfirmationDialog (allowHtml)", () => {
     expect(messageEl.innerHTML).toContain("toast-success");
     expect(messageEl.querySelector("script")).toBeNull();
     expect(messageEl.querySelector("img")).toBeNull();
+    expect(confirmationModal.getAttribute("aria-hidden")).toBe("false");
+    expect(document.body.classList.contains("modal-overlay-active")).toBe(true);
 
     // Close immediately to resolve promise and avoid hanging listeners.
     confirmationModal.querySelector(".close-modal").click();
     await expect(resultPromise).resolves.toBe(false);
+    expect(confirmationModal.getAttribute("aria-hidden")).toBe("true");
+    expect(document.body.classList.contains("modal-overlay-active")).toBe(
+      false,
+    );
   });
 
   test("falls back to text when DOMPurify is missing", async () => {
