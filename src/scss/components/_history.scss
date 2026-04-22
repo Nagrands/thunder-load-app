@@ -306,7 +306,11 @@
     padding: 6px 10px;
     border-radius: 8px;
     font-size: 12px;
-    white-space: nowrap;
+    width: max-content;
+    max-width: min(32ch, calc(100vw - 24px));
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
     opacity: 0;
     pointer-events: none;
     transition:
@@ -321,6 +325,17 @@
     opacity: 1;
     transform: translate(-50%, calc(-100% - 4px));
   }
+}
+
+#clear-filter-input[data-hint]::after {
+  left: auto;
+  right: 0;
+  transform: translate(0, -100%);
+}
+
+#clear-filter-input[data-hint]:hover::after,
+#clear-filter-input[data-hint]:focus-visible::after {
+  transform: translate(0, calc(-100% - 4px));
 }
 
 .history-action-segment--danger .history-action-button {
