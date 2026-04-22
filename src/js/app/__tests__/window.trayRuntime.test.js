@@ -241,6 +241,13 @@ describe("tray runtime behavior", () => {
     expect(trayImage.setTemplateImage).toHaveBeenCalledWith(true);
     expect(Tray).toHaveBeenCalledWith(trayImage);
 
+    const contextMenuCallsBeforeClick = tray.setContextMenu.mock.calls.length;
+    tray.handlers.click();
+    expect(tray.setContextMenu.mock.calls.length).toBe(
+      contextMenuCallsBeforeClick + 1,
+    );
+    expect(tray.popUpContextMenu).toHaveBeenCalledTimes(1);
+
     const setImageCallsBeforeStart = tray.setImage.mock.calls.length;
     startedHandler();
     expect(tray.setImage.mock.calls.length).toBe(setImageCallsBeforeStart);

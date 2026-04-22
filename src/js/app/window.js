@@ -462,6 +462,11 @@ function createTray(mainWindow, app, store, downloadPath) {
   app?.on?.("thunder-load:tray-refresh", handleTrayRefreshRequest);
 
   windowTray.on("click", () => {
+    if (isMac) {
+      refreshTrayMenu();
+      windowTray.popUpContextMenu();
+      return;
+    }
     toggleFromTray(mainWindow, menuHandlers.open);
   });
 
