@@ -114,9 +114,6 @@ export default function renderToolsView() {
   const getLogText = logController.getLogText;
 
   let currentMsg = ")";
-  let shutdownTicker = null;
-  let shutdownDeadlineTs = null;
-  let lastLoggedRemaining = null;
   let tipsIntervalId = null;
   let tipsSwapTimer = null;
   let tipsFadeTimer = null;
@@ -137,7 +134,6 @@ export default function renderToolsView() {
     releaseDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
     releaseDocumentScrollLock(HASH_HOWTO_SCROLL_LOCK_OWNER);
     releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
-    stopCountdown();
     tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
     tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
     tipsFadeTimer = cleanup.clearTimeout(tipsFadeTimer);
@@ -238,92 +234,6 @@ export default function renderToolsView() {
     if (msg.includes("ECONNREFUSED")) return t("wg.error.connectionRefused");
     if (msg.toLowerCase().includes("timeout")) return t("wg.error.timeout");
     return msg;
-  };
-
-  // =============================================
-  // ФУНКЦИИ АВТО-ЗАКРЫТИЯ
-  // =============================================
-
-  const stopCountdown = () => {
-    log(t("wg.log.autoShutdown.timerStopped"));
-    shutdownTicker = cleanup.clearInterval(shutdownTicker);
-    shutdownDeadlineTs = null;
-    lastLoggedRemaining = null;
-  };
-
-  const startCountdownWithDeadline = (deadlineMs) => {
-    stopCountdown();
-    shutdownDeadlineTs = Number(deadlineMs);
-    log(
-      t("wg.log.autoShutdown.timerStartedUntil", {
-        time: new Date(shutdownDeadlineTs).toLocaleTimeString(),
-      }),
-    );
-
-    if (!Number.isFinite(shutdownDeadlineTs)) return;
-
-    const tick = () => {
-      const now = Date.now();
-      let remaining = Math.ceil((shutdownDeadlineTs - now) / 1000);
-      if (remaining < 0) remaining = 0;
-      if (lastLoggedRemaining !== remaining) {
-        log(t("wg.log.autoShutdown.remaining", { seconds: remaining }));
-        lastLoggedRemaining = remaining;
-      }
-      if (remaining <= 0) {
-        stopCountdown();
-      }
-    };
-
-    tick();
-    shutdownTicker = cleanup.setInterval(tick, 1000);
-  };
-
-  const startCountdownFromSeconds = (secs) => {
-    const s = Number(secs);
-    const safeSecs = Number.isFinite(s) ? s : 30;
-    const deadline = Date.now() + safeSecs * 1000;
-    startCountdownWithDeadline(deadline);
-  };
-
-  const initAutoShutdown = async () => {
-    try {
-      const [enabled, seconds] = await Promise.all([
-        window.electron.ipcRenderer.invoke("get-auto-shutdown-status"),
-        window.electron.ipcRenderer.invoke("get-auto-shutdown-seconds"),
-      ]);
-
-      let deadline = null;
-      try {
-        deadline = await window.electron.ipcRenderer.invoke(
-          "get-auto-shutdown-deadline",
-        );
-      } catch (_) {}
-
-      if (enabled) {
-        if (deadline && Number.isFinite(Number(deadline))) {
-          startCountdownWithDeadline(Number(deadline));
-          const eta = new Date(Number(deadline)).toLocaleTimeString();
-          log(t("wg.log.autoShutdown.loaded.enabledWithEta", { time: eta }));
-        } else {
-          startCountdownFromSeconds(seconds);
-          log(
-            t("wg.log.autoShutdown.loaded.enabledWithSeconds", {
-              seconds: Number(seconds) || 30,
-            }),
-          );
-        }
-      } else {
-        log(
-          t("wg.log.autoShutdown.loaded.disabled", {
-            seconds: Number(seconds) || 30,
-          }),
-        );
-      }
-    } catch (e) {
-      console.error("auto-shutdown init error:", e);
-      log(t("wg.log.autoShutdown.initError", { message: e.message }), true);
-    }
   };
 
   // =============================================
@@ -3865,8 +3775,6 @@ export default function renderToolsView() {
       setupEasterEgg();
       setupEventHandlers();
       updateLogControls();
-      await initAutoShutdown();
-
       // Анимация и автосмена советов
       const initTipsRotation = async (lang = "ru") => {
         const tipsCard = view
@@ -4063,38 +3971,6 @@ export default function renderToolsView() {
       log(t("wg.log.error.init", { message: error.message }), true);
     }
   };
-
-  // Обработчик обновления авто-закрытия
-  const onAutoShutdownUpdated = (payload) => {
-    try {
-      const { enabled, seconds, deadline } = payload || {};
-      if (enabled) {
-        if (deadline && Number.isFinite(Number(deadline))) {
-          startCountdownWithDeadline(Number(deadline));
-          const eta = new Date(Number(deadline)).toLocaleTimeString();
-          log(t("wg.log.autoShutdown.enabledWithEta", { time: eta }));
-        } else {
-          startCountdownFromSeconds(seconds);
-          log(
-            t("wg.log.autoShutdown.enabledWithSeconds", {
-              seconds: Number(seconds) || 30,
-            }),
-          );
-        }
-      } else {
-        stopCountdown();
-        log(t("wg.log.autoShutdown.disabledStopped"));
-      }
-    } catch (err) {
-      console.error("wg-auto-shutdown-updated handler error:", err);
-      log(t("wg.log.error.autoShutdownUpdate", { message: err.message }), true);
-    }
-  };
-  cleanup.onIpcEvent(
-    window.electron.ipcRenderer,
-    "wg-auto-shutdown-updated",
-    onAutoShutdownUpdated,
-  );
 
   const disconnectObserver = new MutationObserver(() => {
     if (!container.isConnected) {

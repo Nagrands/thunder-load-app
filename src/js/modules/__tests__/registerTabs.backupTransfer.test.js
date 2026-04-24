@@ -10,7 +10,6 @@ describe("registerTabs backup transfer", () => {
   let initDownloaderToolsStatusMock;
   let initDownloaderBackgroundPreviewMock;
   let initDownloaderLivePreviewMock;
-  let initWgAutoShutdownNotifierMock;
   let applyI18nMock;
   let registerTabs;
 
@@ -34,7 +33,6 @@ describe("registerTabs backup transfer", () => {
     initDownloaderToolsStatusMock = jest.fn();
     initDownloaderBackgroundPreviewMock = jest.fn();
     initDownloaderLivePreviewMock = jest.fn();
-    initWgAutoShutdownNotifierMock = jest.fn();
     applyI18nMock = jest.fn();
 
     window.electron = {
@@ -70,9 +68,6 @@ describe("registerTabs backup transfer", () => {
     jest.doMock("../downloaderLivePreview.js", () => ({
       initDownloaderLivePreview: initDownloaderLivePreviewMock,
     }));
-    jest.doMock("../wgAutoShutdownNotifier.js", () => ({
-      initWgAutoShutdownNotifier: initWgAutoShutdownNotifierMock,
-    }));
     jest.doMock("../settings.js", () => ({
       getDefaultTab: getDefaultTabMock,
     }));
@@ -106,9 +101,6 @@ describe("registerTabs backup transfer", () => {
 
     expect(requestToolsViewMock).toHaveBeenCalledWith("backup");
     expect(activateTabMock).toHaveBeenCalledWith("wireguard");
-    expect(initWgAutoShutdownNotifierMock).toHaveBeenCalledWith({
-      autosend: false,
-    });
     expect(document.getElementById("open-history").style.display).toBe("none");
   });
 

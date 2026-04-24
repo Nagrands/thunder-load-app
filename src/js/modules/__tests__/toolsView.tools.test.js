@@ -265,9 +265,6 @@ describe("toolsView quick actions", () => {
               autosend: false,
             };
           }
-          if (channel === "get-auto-shutdown-status") return false;
-          if (channel === "get-auto-shutdown-seconds") return 30;
-          if (channel === "get-auto-shutdown-deadline") return null;
           return null;
         }),
         send: jest.fn(),

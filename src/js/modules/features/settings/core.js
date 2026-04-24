@@ -1106,117 +1106,6 @@ async function initSettings() {
     });
   })();
 
-  // === WG Unlock: авто‑закрытие (toggle + range 10–60s) ===
-  const wgAutoToggle = document.getElementById("wg-auto-shutdown-toggle");
-  const wgRangeWrap = document.getElementById("wg-auto-shutdown-range");
-  const wgRange = document.getElementById("wg-auto-shutdown-seconds");
-  const wgValue = document.getElementById("wg-auto-shutdown-value");
-
-  if (wgAutoToggle && wgRangeWrap && wgRange && wgValue) {
-    // Live countdown in Settings modal
-    let wgCountdownTimer = null;
-    let wgRemaining = 0;
-
-    const stopSettingsCountdown = () => {
-      if (wgCountdownTimer) {
-        clearInterval(wgCountdownTimer);
-        wgCountdownTimer = null;
-      }
-    };
-
-    const startSettingsCountdown = (secs) => {
-      stopSettingsCountdown();
-      const s = Number(secs);
-      wgRemaining = Number.isFinite(s) ? s : 30;
-      wgValue.textContent = String(wgRemaining);
-      wgCountdownTimer = setInterval(() => {
-        wgRemaining -= 1;
-        if (wgRemaining <= 0) {
-          wgValue.textContent = "0";
-          stopSettingsCountdown();
-          return;
-        }
-        wgValue.textContent = String(wgRemaining);
-      }, 1000);
-    };
-    const syncAutoShutdownFromStore = async () => {
-      try {
-        const [enabled, seconds] = await Promise.all([
-          window.electron.invoke("get-auto-shutdown-status"),
-          window.electron.invoke("get-auto-shutdown-seconds"),
-        ]);
-        const secs = Number(seconds) || 30;
-        wgAutoToggle.checked = !!enabled;
-        wgRangeWrap.style.display = enabled ? "" : "none";
-        wgRange.value = secs;
-        wgValue.textContent = String(secs);
-        if (enabled) startSettingsCountdown(secs);
-        else stopSettingsCountdown();
-      } catch (e) {
-        console.error("[settings] auto-shutdown init error:", e);
-      }
-    };
-
-    // init on load
-    await syncAutoShutdownFromStore();
-
-    // toggle on/off
-    wgAutoToggle.addEventListener("change", () => {
-      const enabled = wgAutoToggle.checked;
-      wgRangeWrap.style.display = enabled ? "" : "none";
-      window.electron.invoke("set-auto-shutdown-status", enabled).catch((e) => {
-        console.error("[settings] set-auto-shutdown-status error:", e);
-      });
-      if (enabled) {
-        startSettingsCountdown(wgRange.value);
-      } else {
-        stopSettingsCountdown();
-      }
-    });
-
-    // live value label
-    wgRange.addEventListener("input", () => {
-      wgValue.textContent = String(wgRange.value);
-    });
-
-    // persist on change with clamp 10–60
-    wgRange.addEventListener("change", () => {
-      const secs = Math.min(60, Math.max(10, Number(wgRange.value) || 30));
-      wgRange.value = secs;
-      wgValue.textContent = String(secs);
-      window.electron.invoke("set-auto-shutdown-seconds", secs).catch((e) => {
-        console.error("[settings] set-auto-shutdown-seconds error:", e);
-      });
-      if (wgAutoToggle.checked) {
-        startSettingsCountdown(secs);
-      }
-    });
-
-    // Sync from main/other views: restart/stop countdown based on payload
-    window.electron.on("wg-auto-shutdown-updated", ({ enabled, seconds }) => {
-      try {
-        const secs = Number(seconds) || 30;
-        wgAutoToggle.checked = !!enabled;
-        wgRangeWrap.style.display = enabled ? "" : "none";
-        wgRange.value = secs;
-        if (enabled) {
-          startSettingsCountdown(secs);
-        } else {
-          stopSettingsCountdown();
-          wgValue.textContent = String(secs);
-        }
-      } catch (e) {
-        console.error("[settings] wg-auto-shutdown-updated handler error:", e);
-      }
-    });
-
-    // refresh on modal open
-    onOpenSettings("wg-auto-shutdown", async () => {
-      await syncAutoShutdownFromStore();
-    });
-  }
-  // === /WG Unlock: авто‑закрытие ===
-
   // Встроенный блок "Инструменты" во вкладке Загрузчик
   (function initEmbeddedToolsInfo() {
     const toolsSection = document.getElementById("tools-info");
@@ -1299,8 +1188,6 @@ async function collectCurrentConfig() {
     disableCompleteModal,
     defaultTab,
     minimizeToTray,
-    autoShutdownEnabled,
-    autoShutdownSeconds,
     toolsLocation,
   ] = await Promise.all([
     getTheme(),
@@ -1315,8 +1202,6 @@ async function collectCurrentConfig() {
     window.electron.invoke("get-disable-complete-modal-status"),
     getDefaultTab(),
     window.electron.invoke("get-minimize-to-tray-status").catch(() => false),
-    window.electron.invoke("get-auto-shutdown-status").catch(() => false),
-    window.electron.invoke("get-auto-shutdown-seconds").catch(() => 30),
     window.electron.tools?.getLocation?.().catch(() => null),
   ]);
 
@@ -1418,8 +1303,6 @@ async function collectCurrentConfig() {
       logVisible: backupLogVisible,
     },
     wg: {
-      autoShutdownEnabled,
-      autoShutdownSeconds,
       autosend: wgAutosend,
       rememberLastTool: readJsonFlag(WG_REMEMBER_LAST_TOOL_KEY, false),
     },
@@ -1526,16 +1409,6 @@ async function applyConfig(config, options = {}) {
   ];
 
   await Promise.all(ipcTasks);
-
-  await window.electron
-    .invoke(
-      "set-auto-shutdown-seconds",
-      Number(cfg.wg.autoShutdownSeconds) || 30,
-    )
-    .catch(() => {});
-  await window.electron
-    .invoke("set-auto-shutdown-status", !!cfg.wg.autoShutdownEnabled)
-    .catch(() => {});
 
   if (options.forceToolsReset || cfg.tools.resetLocation) {
     try {

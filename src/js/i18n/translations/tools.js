@@ -153,11 +153,6 @@ export const toolsTranslations = {
     "productsFormatter.status.applyLineError":
       "Не удалось найти исходную строку для подстановки.",
     "productsFormatter.status.copyError": "Не удалось скопировать результат.",
-    "wg.autoShutdown.toast.title": "Авто‑закрытие",
-    "wg.autoShutdown.toast.body": "Приложение закроется через",
-    "wg.autoShutdown.toast.cancel": "Отменить закрытие",
-    "wg.autoShutdown.toast.cancelled": "Авто‑закрытие отменено",
-    "wg.autoShutdown.toast.cancelError": "Не удалось отменить авто‑закрытие",
     "wg.title": "Инструменты",
     "wg.subtitle": "Быстрые действия для задач с файлами и сетью.",
     "quickActions.title": "Quick Actions",
@@ -726,24 +721,6 @@ export const toolsTranslations = {
       "Сеть недоступна. Проверьте подключение к интернету.",
     "wg.error.connectionRefused": "Соединение отклонено удалённой стороной.",
     "wg.error.timeout": "Время ожидания истекло.",
-    "wg.log.autoShutdown.timerStopped": "[Авто-закрытие] Таймер остановлен",
-    "wg.log.autoShutdown.timerStartedUntil":
-      "[Авто-закрытие] Таймер запущен до {time}",
-    "wg.log.autoShutdown.remaining": "[Авто-закрытие] Осталось: {seconds} с",
-    "wg.log.autoShutdown.loaded.enabledWithEta":
-      "[Авто-закрытие] Загружено: включено, завершение в {time}",
-    "wg.log.autoShutdown.loaded.enabledWithSeconds":
-      "[Авто-закрытие] Загружено: включено, {seconds} с",
-    "wg.log.autoShutdown.loaded.disabled":
-      "[Авто-закрытие] Загружено: выключено, {seconds} с",
-    "wg.log.autoShutdown.initError":
-      "[Авто-закрытие] Ошибка инициализации: {message}",
-    "wg.log.autoShutdown.enabledWithEta":
-      "[Авто-закрытие] Включено; завершение в {time}",
-    "wg.log.autoShutdown.enabledWithSeconds":
-      "[Авто-закрытие] Включено; {seconds} с",
-    "wg.log.autoShutdown.disabledStopped":
-      "[Авто-закрытие] Выключено; обратный отсчёт остановлен",
     "wg.log.settings.loaded": "[Настройки] Конфигурация загружена",
     "wg.log.settings.fieldsRestored":
       "[Настройки] Поля восстановлены ({count})",
@@ -782,8 +759,6 @@ export const toolsTranslations = {
     "wg.log.debug.active":
       "[Лог] Режим отладки активен - все события будут записываться",
     "wg.log.error.init": "[Ошибка] Инициализация: {message}",
-    "wg.log.error.autoShutdownUpdate":
-      "[Ошибка] Обновление авто-закрытия: {message}",
     "wg.log.system.debugInit":
       "[Система] WireGuard Unlock инициализирован с включенной отладкой",
     "tools.status.ready": "Инструменты готовы",
@@ -1025,11 +1000,6 @@ export const toolsTranslations = {
     "productsFormatter.status.applyLineError":
       "Could not find the source line to replace.",
     "productsFormatter.status.copyError": "Could not copy the result.",
-    "wg.autoShutdown.toast.title": "Auto-close",
-    "wg.autoShutdown.toast.body": "The app will close in",
-    "wg.autoShutdown.toast.cancel": "Cancel shutdown",
-    "wg.autoShutdown.toast.cancelled": "Auto-close cancelled",
-    "wg.autoShutdown.toast.cancelError": "Failed to cancel auto-close",
     "wg.title": "Tools",
     "wg.subtitle": "Quick actions for file and network tasks.",
     "quickActions.title": "Quick Actions",
@@ -1586,23 +1556,6 @@ export const toolsTranslations = {
       "Network unreachable. Check your internet connection.",
     "wg.error.connectionRefused": "Connection refused by remote host.",
     "wg.error.timeout": "Request timed out.",
-    "wg.log.autoShutdown.timerStopped": "[Auto-close] Timer stopped",
-    "wg.log.autoShutdown.timerStartedUntil":
-      "[Auto-close] Timer started until {time}",
-    "wg.log.autoShutdown.remaining": "[Auto-close] Remaining: {seconds} s",
-    "wg.log.autoShutdown.loaded.enabledWithEta":
-      "[Auto-close] Loaded: enabled, ends at {time}",
-    "wg.log.autoShutdown.loaded.enabledWithSeconds":
-      "[Auto-close] Loaded: enabled, {seconds} s",
-    "wg.log.autoShutdown.loaded.disabled":
-      "[Auto-close] Loaded: disabled, {seconds} s",
-    "wg.log.autoShutdown.initError": "[Auto-close] Init error: {message}",
-    "wg.log.autoShutdown.enabledWithEta":
-      "[Auto-close] Enabled; ends at {time}",
-    "wg.log.autoShutdown.enabledWithSeconds":
-      "[Auto-close] Enabled; {seconds} s",
-    "wg.log.autoShutdown.disabledStopped":
-      "[Auto-close] Disabled; countdown stopped",
     "wg.log.settings.loaded": "[Settings] Config loaded",
     "wg.log.settings.fieldsRestored": "[Settings] Fields restored ({count})",
     "wg.log.send.scheduleAuto": "[Send] Scheduling auto-send in 50 ms",
@@ -1636,7 +1589,6 @@ export const toolsTranslations = {
     "wg.log.debug.active":
       "[Log] Debug mode active - all events will be recorded",
     "wg.log.error.init": "[Error] Initialization: {message}",
-    "wg.log.error.autoShutdownUpdate": "[Error] Auto-close update: {message}",
     "wg.log.system.debugInit":
       "[System] WireGuard Unlock initialized with debug enabled",
     "tools.status.ready": "Tools are ready",

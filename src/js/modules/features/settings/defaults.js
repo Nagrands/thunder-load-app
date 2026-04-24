@@ -36,8 +36,6 @@ export const DEFAULT_CONFIG = {
     logVisible: true,
   },
   wg: {
-    autoShutdownEnabled: false,
-    autoShutdownSeconds: 30,
     autosend: false,
     rememberLastTool: false,
   },

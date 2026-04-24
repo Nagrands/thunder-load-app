@@ -5,7 +5,6 @@ import renderProductFormatterView from "../views/productFormatterView.js";
 import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
 import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
 import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
-import { initWgAutoShutdownNotifier } from "../wgAutoShutdownNotifier.js";
 import { getDefaultTab } from "../settings.js";
 import { isDownloaderTabEffectivelyDisabled } from "../developerMode.js";
 import { applyI18n, t } from "../i18n.js";
@@ -137,7 +136,6 @@ export async function registerTabs(mainView) {
       ? "wireguard"
       : resolvedDefaultTab;
 
-  initWgAutoShutdownNotifier({ autosend: !!wgConfig.autosend });
   if (requestedToolView && !wgConfig.autosend) {
     requestToolsView(requestedToolView);
   }

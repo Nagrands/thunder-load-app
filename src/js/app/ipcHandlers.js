@@ -477,9 +477,13 @@ function setupIpcHandlers(dependencies) {
   } catch (e) {
     log.warn("Unable to set shared store for tools paths:", e);
   }
+  try {
+    store.delete("autoShutdownEnabled");
+    store.delete("autoShutdownSeconds");
+  } catch (e) {
+    log.warn("Unable to remove legacy auto-shutdown settings:", e);
+  }
 
-  let autoShutdownTimeout = null; // таймер авто‑закрытия WG Unlock
-  let autoShutdownDeadlineMs = null; // абсолютный дедлайн (ms) для синхронизации обратного отсчёта
   let isReloadShortcutBlocked = false;
   const previewDirPath =
     (typeof previewCacheDir === "string" && previewCacheDir) ||
@@ -629,25 +633,6 @@ function setupIpcHandlers(dependencies) {
         event.preventDefault();
       }
     });
-  }
-
-  // Initialize auto-shutdown on startup (single source of truth)
-  try {
-    const enabledAtStart = store.get("autoShutdownEnabled", false);
-    if (enabledAtStart) {
-      const secsAtStart = Math.min(
-        60,
-        Math.max(10, Number(store.get("autoShutdownSeconds", 30))),
-      );
-      if (autoShutdownTimeout) clearTimeout(autoShutdownTimeout);
-      autoShutdownDeadlineMs = Date.now() + secsAtStart * 1000;
-      autoShutdownTimeout = setTimeout(() => app.quit(), secsAtStart * 1000);
-      log.info(
-        `[WG Unlock] Auto-shutdown scheduled on init for ${secsAtStart}s, deadline=${new Date(autoShutdownDeadlineMs).toISOString()}`,
-      );
-    }
-  } catch (e) {
-    log.error("auto-shutdown init schedule error:", e);
   }
 
   ipcMain.handle(CHANNELS.GET_DEFAULT_TAB, () =>
@@ -3450,111 +3435,6 @@ function setupIpcHandlers(dependencies) {
       );
     }
   });
-
-  // ==== WG Unlock: авто‑закрытие приложения ====
-  ipcMain.handle(CHANNELS.GET_AUTO_SHUTDOWN_STATUS, () => {
-    return store.get("autoShutdownEnabled", false);
-  });
-
-  ipcMain.handle(CHANNELS.GET_AUTO_SHUTDOWN_SECONDS, () => {
-    return store.get("autoShutdownSeconds", 30);
-  });
-
-  ipcMain.handle(CHANNELS.GET_AUTO_SHUTDOWN_DEADLINE, () => {
-    const enabled = store.get("autoShutdownEnabled", false);
-    return enabled ? autoShutdownDeadlineMs : null;
-  });
-
-  ipcMain.handle(CHANNELS.SET_AUTO_SHUTDOWN_STATUS, (event, enable) => {
-    try {
-      store.set("autoShutdownEnabled", !!enable);
-      if (enable) {
-        const secondsRaw = Number(store.get("autoShutdownSeconds", 30));
-        const seconds = Math.min(60, Math.max(10, secondsRaw));
-        autoShutdownDeadlineMs = Date.now() + seconds * 1000;
-        if (autoShutdownTimeout) clearTimeout(autoShutdownTimeout);
-        autoShutdownTimeout = setTimeout(() => app.quit(), seconds * 1000);
-        log.info(
-          `[WG Unlock] Auto-shutdown enabled for ${seconds}s, deadline=${new Date(autoShutdownDeadlineMs).toISOString()}`,
-        );
-        if (mainWindow && mainWindow.webContents) {
-          try {
-            mainWindow.webContents.send("wg-auto-shutdown-updated", {
-              enabled: true,
-              seconds,
-              deadline: autoShutdownDeadlineMs,
-            });
-          } catch (sendErr) {
-            log.warn(
-              "Failed to send wg-auto-shutdown-updated (enabled)",
-              sendErr,
-            );
-          }
-        }
-      } else {
-        if (autoShutdownTimeout) clearTimeout(autoShutdownTimeout);
-        autoShutdownTimeout = null;
-        autoShutdownDeadlineMs = null;
-        log.info("[WG Unlock] Auto-shutdown disabled");
-        const seconds = Number(store.get("autoShutdownSeconds", 30));
-        if (mainWindow && mainWindow.webContents) {
-          try {
-            mainWindow.webContents.send("wg-auto-shutdown-updated", {
-              enabled: false,
-              seconds,
-              deadline: null,
-            });
-          } catch (sendErr) {
-            log.warn(
-              "Failed to send wg-auto-shutdown-updated (disabled)",
-              sendErr,
-            );
-          }
-        }
-      }
-      return true;
-    } catch (e) {
-      log.error("set-auto-shutdown-status error:", e);
-      return false;
-    }
-  });
-
-  ipcMain.handle(CHANNELS.SET_AUTO_SHUTDOWN_SECONDS, (event, seconds) => {
-    try {
-      const sNum = Number(seconds);
-      if (!Number.isFinite(sNum)) return false;
-      const s = Math.min(60, Math.max(10, sNum));
-      store.set("autoShutdownSeconds", s);
-      if (store.get("autoShutdownEnabled", false)) {
-        autoShutdownDeadlineMs = Date.now() + s * 1000;
-        if (autoShutdownTimeout) clearTimeout(autoShutdownTimeout);
-        autoShutdownTimeout = setTimeout(() => app.quit(), s * 1000);
-        log.info(
-          `[WG Unlock] Auto-shutdown rescheduled for ${s}s, deadline=${new Date(autoShutdownDeadlineMs).toISOString()}`,
-        );
-      }
-      const enabledNow = store.get("autoShutdownEnabled", false);
-      if (mainWindow && mainWindow.webContents) {
-        try {
-          mainWindow.webContents.send("wg-auto-shutdown-updated", {
-            enabled: !!enabledNow,
-            seconds: s,
-            deadline: autoShutdownDeadlineMs,
-          });
-        } catch (sendErr) {
-          log.warn(
-            "Failed to send wg-auto-shutdown-updated (seconds)",
-            sendErr,
-          );
-        }
-      }
-      return true;
-    } catch (e) {
-      log.error("set-auto-shutdown-seconds error:", e);
-      return false;
-    }
-  });
-  // ==== /WG Unlock: авто‑закрытие приложения ====
 
   ipcMain.handle(CHANNELS.SET_MINIMIZE_ON_LAUNCH_STATUS, (_, enabled) => {
     store.set("minimizeOnLaunch", enabled);

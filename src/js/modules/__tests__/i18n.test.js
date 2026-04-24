@@ -19,9 +19,7 @@ describe("i18n translations split", () => {
     expect(translations.ru["update.flyover.done.title"]).toBe(
       "Обновление загружено",
     );
-    expect(translations.en["wg.autoShutdown.toast.cancel"]).toBe(
-      "Cancel shutdown",
-    );
+    expect(translations.en["backup.hints.title"]).toBe("Tips");
   });
 
   test("t and applyI18n work with merged translation sections", async () => {
@@ -41,7 +39,7 @@ describe("i18n translations split", () => {
     expect(document.getElementById("field")?.getAttribute("placeholder")).toBe(
       "Введите URL видео или аудио",
     );
-    expect(t("wg.autoShutdown.toast.title")).toBe("Авто‑закрытие");
+    expect(t("backup.hints.title")).toBe("Советы");
 
     setLanguagePreview("en");
     expect(document.getElementById("text")?.textContent).toBe("Tips");
@@ -49,6 +47,6 @@ describe("i18n translations split", () => {
     expect(document.getElementById("field")?.getAttribute("placeholder")).toBe(
       "Enter video or audio URL",
     );
-    expect(t("wg.autoShutdown.toast.title")).toBe("Auto-close");
+    expect(t("backup.hints.title")).toBe("Tips");
   });
 });

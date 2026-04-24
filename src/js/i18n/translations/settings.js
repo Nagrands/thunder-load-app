@@ -81,12 +81,6 @@ export const settingsTranslations = {
     "settings.wg.rememberLastTool": "Запоминать последний открытый инструмент",
     "settings.wg.rememberLastTool.hint":
       "При следующем открытии вкладки Инструменты сразу показывает инструмент, который был открыт последним.",
-    "settings.wg.autoclose.hint":
-      "Автоматически закрывает приложение через выбранное время.",
-    "settings.wg.autoclose": "Авто‑закрытие приложения",
-    "settings.wg.autoclose.after": "Закрытие приложения через:",
-    "settings.wg.autoclose.seconds": "сек.",
-    "settings.wg.autoclose.aria": "Время до авто‑закрытия в секундах",
     "settings.backup.title": "Инструмент Backup в Инструментах",
     "settings.backup.disable.hint":
       "Управление отображением профилей и журнала инструмента Backup в разделе Инструменты.",
@@ -257,12 +251,6 @@ export const settingsTranslations = {
     "settings.wg.rememberLastTool": "Remember last opened tool",
     "settings.wg.rememberLastTool.hint":
       "When enabled, the Tools tab reopens with the tool you used last time.",
-    "settings.wg.autoclose.hint":
-      "Automatically closes the app after the selected delay.",
-    "settings.wg.autoclose": "Auto‑close the app",
-    "settings.wg.autoclose.after": "Close the app after:",
-    "settings.wg.autoclose.seconds": "sec.",
-    "settings.wg.autoclose.aria": "Time until auto‑close in seconds",
     "settings.backup.title": "Backup tool inside Tools",
     "settings.backup.disable.hint":
       "Controls profile display and the operations log for the Backup tool inside Tools.",
