@@ -124,101 +124,101 @@
     backdrop-filter: blur(4px);
   }
 
-  .backup-shell-header {
-    position: relative;
-    margin-bottom: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
-    align-items: stretch;
-    gap: 16px;
-    justify-items: stretch;
+  // .backup-shell-header {
+  //   position: relative;
+  //   margin-bottom: 0;
+  //   display: grid;
+  //   grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
+  //   align-items: stretch;
+  //   gap: 16px;
+  //   justify-items: stretch;
 
-    .title {
-      @include mixins.header-style;
-      gap: 20px;
-      align-items: center;
-      justify-content: flex-start;
-      margin-bottom: 0;
-      padding: 18px 20px;
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background:
-        linear-gradient(
-          135deg,
-          rgba(var(--color-accent-rgb), 0.11),
-          rgba(255, 255, 255, 0.02) 42%,
-          rgba(255, 255, 255, 0.01) 100%
-        ),
-        rgba(255, 255, 255, 0.015);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 16px 30px rgba(4, 8, 16, 0.12);
-    }
+  //   .title {
+  //     @include mixins.header-style;
+  //     gap: 20px;
+  //     align-items: center;
+  //     justify-content: flex-start;
+  //     margin-bottom: 0;
+  //     padding: 18px 20px;
+  //     border-radius: 22px;
+  //     border: 1px solid rgba(255, 255, 255, 0.06);
+  //     background:
+  //       linear-gradient(
+  //         135deg,
+  //         rgba(var(--color-accent-rgb), 0.11),
+  //         rgba(255, 255, 255, 0.02) 42%,
+  //         rgba(255, 255, 255, 0.01) 100%
+  //       ),
+  //       rgba(255, 255, 255, 0.015);
+  //     box-shadow:
+  //       inset 0 1px 0 rgba(255, 255, 255, 0.05),
+  //       0 16px 30px rgba(4, 8, 16, 0.12);
+  //   }
 
-    .title i {
-      font-size: 2.3rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-accent);
-      transition: all 0.25s ease;
-    }
+  //   .title i {
+  //     font-size: 2.3rem;
+  //     display: inline-flex;
+  //     align-items: center;
+  //     justify-content: center;
+  //     color: var(--color-accent);
+  //     transition: all 0.25s ease;
+  //   }
 
-    .title:hover i {
-      transform: scale(1.03);
-    }
+  //   .title:hover i {
+  //     transform: scale(1.03);
+  //   }
 
-    .title-content h1 {
-      margin: 0 0 8px;
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
+  //   .title-content h1 {
+  //     margin: 0 0 8px;
+  //     font-size: 1.5rem;
+  //     font-weight: 600;
+  //   }
 
-    .title-content .subtitle {
-      margin: 0;
-      max-width: 680px;
-      color: var(--color-quality);
-      font-size: 0.9rem;
-      font-style: italic;
-    }
+  //   .title-content .subtitle {
+  //     margin: 0;
+  //     max-width: 680px;
+  //     color: var(--color-quality);
+  //     font-size: 0.9rem;
+  //     font-style: italic;
+  //   }
 
-    .backup-header-right {
-      display: flex;
-      justify-content: flex-end;
-      align-self: stretch;
+  //   .backup-header-right {
+  //     display: flex;
+  //     justify-content: flex-end;
+  //     align-self: stretch;
 
-      .bk-hints {
-        margin-top: 0;
-        width: min(100%, 360px);
-      }
-    }
-  }
+  //     .bk-hints {
+  //       margin-top: 0;
+  //       width: min(100%, 360px);
+  //     }
+  //   }
+  // }
 
-  @media (max-width: 680px) {
-    .backup-shell-header {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
+  // @media (max-width: 680px) {
+  //   .backup-shell-header {
+  //     grid-template-columns: 1fr;
+  //     gap: 12px;
+  //   }
 
-    .backup-shell-header .title {
-      gap: 12px;
+  //   .backup-shell-header .title {
+  //     gap: 12px;
 
-      i {
-        width: 52px;
-        height: 46px;
-        font-size: 1.15rem;
-      }
-    }
+  //     i {
+  //       width: 52px;
+  //       height: 46px;
+  //       font-size: 1.15rem;
+  //     }
+  //   }
 
-    .backup-shell-header .title-content h1 {
-      font-size: 1.55rem;
-      margin-bottom: 4px;
-    }
+  //   .backup-shell-header .title-content h1 {
+  //     font-size: 1.55rem;
+  //     margin-bottom: 4px;
+  //   }
 
-    .backup-shell-header .backup-header-right .bk-hints {
-      display: none;
-    }
-  }
+  //   .backup-shell-header .backup-header-right .bk-hints {
+  //     display: none;
+  //   }
+  // }
 
   .wg-block {
     padding: 0.2rem;

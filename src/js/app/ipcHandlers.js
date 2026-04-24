@@ -1016,6 +1016,36 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(
+    CHANNELS.TOOLS_HASH_INSPECT_FILE,
+    async (_evt, payload = {}) => {
+      try {
+        const filePath = String(payload.filePath || "").trim();
+        if (!filePath) {
+          return { success: false, error: "File path is required" };
+        }
+        const stat = await fsPromises.stat(filePath);
+        await fsPromises.access(filePath, fs.constants.R_OK);
+        return {
+          success: true,
+          filePath,
+          fileName: path.basename(filePath),
+          size: stat.size,
+          readable: true,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          filePath: String(payload.filePath || "").trim(),
+          fileName: path.basename(String(payload.filePath || "").trim()),
+          size: null,
+          readable: false,
+          error: error.message || String(error),
+        };
+      }
+    },
+  );
+
   ipcMain.handle(CHANNELS.TOOLS_HASH_CALCULATE, async (_evt, payload = {}) => {
     try {
       const filePath = String(payload.filePath || "").trim();

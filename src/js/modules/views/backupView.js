@@ -111,16 +111,6 @@ export default function renderBackup() {
   container.className = "backup-center";
 
   const html = `
-      <header class="backup-shell-header">
-        <div class="title">
-          <i class="fa-solid fa-database"></i>
-          <div class="title-content">
-            <h1 class="wg-text-gradient" data-i18n="backup.title">${tb("title")}</h1>
-            <p class="subtitle" data-i18n="backup.subtitle">${tb("subtitle")}</p>
-          </div>
-        </div>
-        <div class="backup-header-right" id="backup-header-right"></div>
-      </header>
       <div class="wg-glass">
 
       <div id="bk-toolbar" class="wg-block" aria-label="${tb("toolbar.aria")}" data-i18n-aria="backup.toolbar.aria">

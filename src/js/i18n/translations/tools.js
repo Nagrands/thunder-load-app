@@ -548,7 +548,7 @@ export const toolsTranslations = {
     "hashCheck.compareTitle": "Сравнение",
     "hashCheck.compareHint":
       "Добавьте второй файл только если хотите сравнить две контрольные суммы.",
-    "hashCheck.compareToggle.open": "Сравнить с другим файлом",
+    "hashCheck.compareToggle.open": "Добавить второй файл",
     "hashCheck.compareToggle.close": "Скрыть сравнение",
     "hashCheck.stage.source": "Источник файла",
     "hashCheck.stage.sourceHint":
@@ -559,6 +559,10 @@ export const toolsTranslations = {
     "hashCheck.resultTitle": "Результат проверки",
     "hashCheck.pickFile": "Выбрать файл",
     "hashCheck.noFile": "Файл не выбран",
+    "hashCheck.fileSizeUnknown": "Размер не определён",
+    "hashCheck.fileStatus.empty": "Ожидание",
+    "hashCheck.fileStatus.ready": "Готов",
+    "hashCheck.fileStatus.unreadable": "Нет доступа",
     "hashCheck.pickFileSecond": "Выбрать файл",
     "hashCheck.noFileSecond": "Второй файл не выбран",
     "hashCheck.clearSecond": "Очистить файл 2",
@@ -614,7 +618,7 @@ export const toolsTranslations = {
       "Укажите файл, для которого нужно посчитать контрольную сумму.",
     "hashCheck.howto.slide2.title": "Выберите алгоритм",
     "hashCheck.howto.slide2.desc":
-      "Выберите MD5, SHA-1, SHA-256 или SHA-512 в зависимости от того, с чем сравниваете.",
+      "Выберите SHA-256, SHA-1 или MD5 в зависимости от того, с чем сравниваете.",
     "hashCheck.howto.slide3.title": "Сравните результат",
     "hashCheck.howto.slide3.desc":
       "Можно вставить ожидаемый хеш или выбрать второй файл, чтобы проверить совпадение.",
@@ -1385,7 +1389,7 @@ export const toolsTranslations = {
     "hashCheck.compareTitle": "Comparison",
     "hashCheck.compareHint":
       "Add a second file only when you want to compare two checksums.",
-    "hashCheck.compareToggle.open": "Compare with another file",
+    "hashCheck.compareToggle.open": "Add second file",
     "hashCheck.compareToggle.close": "Hide comparison",
     "hashCheck.stage.source": "File source",
     "hashCheck.stage.sourceHint":
@@ -1396,6 +1400,10 @@ export const toolsTranslations = {
     "hashCheck.resultTitle": "Verification result",
     "hashCheck.pickFile": "Pick file",
     "hashCheck.noFile": "No file selected",
+    "hashCheck.fileSizeUnknown": "Size unknown",
+    "hashCheck.fileStatus.empty": "Waiting",
+    "hashCheck.fileStatus.ready": "Ready",
+    "hashCheck.fileStatus.unreadable": "No access",
     "hashCheck.pickFileSecond": "Pick file",
     "hashCheck.noFileSecond": "Second file not selected",
     "hashCheck.clearSecond": "Clear file 2",
@@ -1451,7 +1459,7 @@ export const toolsTranslations = {
       "Select the file you want to verify with a checksum.",
     "hashCheck.howto.slide2.title": "Pick an algorithm",
     "hashCheck.howto.slide2.desc":
-      "Use MD5, SHA-1, SHA-256, or SHA-512 depending on the checksum source.",
+      "Use SHA-256, SHA-1, or MD5 depending on the checksum source.",
     "hashCheck.howto.slide3.title": "Compare the result",
     "hashCheck.howto.slide3.desc":
       "You can paste an expected hash or pick a second file to compare both values.",

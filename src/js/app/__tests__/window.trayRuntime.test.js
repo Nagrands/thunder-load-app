@@ -255,4 +255,49 @@ describe("tray runtime behavior", () => {
     finishedHandler();
     expect(tray.setImage).toHaveBeenCalledWith(trayImage);
   });
+
+  test("window-close IPC respects minimize-to-tray behavior on Windows", () => {
+    setPlatform("win32");
+    const app = new EventEmitter();
+    app.getName = () => "Thunder Load";
+    app.getVersion = () => "1.3.6";
+    app.getAppPath = () => "/tmp/app";
+    app.quit = jest.fn();
+    app.isPackaged = false;
+    app.isQuitting = false;
+    app.dock = { setIcon: jest.fn(), setMenu: jest.fn() };
+
+    const store = createStore({
+      downloadPath: "/tmp/downloads",
+      minimizeInsteadOfClose: true,
+      closeNotification: false,
+    });
+
+    const mainWindow = createWindow(
+      false,
+      app,
+      store,
+      "/tmp/downloads",
+      () => "1.3.6",
+      "",
+      "",
+      "",
+      () => true,
+    );
+
+    const closeIpcHandler = ipcMain.on.mock.calls.find(
+      ([event]) => event === "window-close",
+    )?.[1];
+    expect(typeof closeIpcHandler).toBe("function");
+
+    closeIpcHandler();
+    expect(app.isQuitting).toBe(false);
+    expect(mainWindow.close).toHaveBeenCalledTimes(1);
+
+    const preventDefault = jest.fn();
+    mainWindow._events.close({ preventDefault });
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    expect(app.quit).not.toHaveBeenCalled();
+  });
 });

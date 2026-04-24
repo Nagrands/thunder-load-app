@@ -38,7 +38,7 @@ export const downloaderTranslations = {
     "quality.hint.queue":
       "Выберите вариант выше, затем нажмите Enter, чтобы добавить его в очередь.",
     "quality.hint.more": "Дополнительно: A — в очередь, Tab — фокус",
-    "quality.selected": "Выбранный вариант",
+    "quality.selected": "Выбрано",
     "quality.notSelected": "Вариант не выбран",
     "quality.selectHint": "Выберите качество в списке выше.",
     "quality.resultPlaceholder":
@@ -67,8 +67,9 @@ export const downloaderTranslations = {
     "quality.audioUnavailable": "Аудио варианты недоступны для этой ссылки.",
     "quality.videoUnavailable": "Видео варианты недоступны для этой ссылки.",
     "quality.openSourceError": "Не удалось открыть источник.",
-    "quality.bestCurrent": "Лучшее в этой вкладке",
+    "quality.bestCurrent": "Лучшее",
     "quality.cancel": "Отмена",
+    "quality.downloadAction": "Скачать",
     "quality.split.primary": "Скачать выбранное",
     "quality.split.primaryDisabledHint": "Выберите формат выше",
     "quality.split.primaryDisabledHintQueue": "Выберите формат для очереди",
@@ -283,7 +284,7 @@ export const downloaderTranslations = {
     "quality.hint.queue":
       "Choose an option above, then press Enter to add it to the queue.",
     "quality.hint.more": "More: A to queue, Tab to focus",
-    "quality.selected": "Selected option",
+    "quality.selected": "Selected",
     "quality.notSelected": "No option selected",
     "quality.selectHint": "Pick a quality option from the list above.",
     "quality.resultPlaceholder":
@@ -314,6 +315,7 @@ export const downloaderTranslations = {
     "quality.openSourceError": "Failed to open the source.",
     "quality.bestCurrent": "Best in this tab",
     "quality.cancel": "Cancel",
+    "quality.downloadAction": "Download",
     "quality.split.primary": "Download selected",
     "quality.split.primaryDisabledHint": "Pick a format above",
     "quality.split.primaryDisabledHintQueue": "Pick a format to queue",

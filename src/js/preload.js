@@ -114,6 +114,7 @@ try {
     "tools:detectLegacy",
     "tools:resetLocation",
     "tools:hashPickFile",
+    "tools:hashInspectFile",
     "tools:hashCalculate",
     "tools:mediaInspectorPickFile",
     "tools:mediaInspectorAnalyze",
@@ -369,6 +370,8 @@ try {
       detectLegacy: () => safeInvoke("tools:detectLegacy"),
       resetLocation: () => safeInvoke("tools:resetLocation"),
       pickFileForHash: () => safeInvoke("tools:hashPickFile"),
+      inspectHashFile: (payload) =>
+        safeInvoke("tools:hashInspectFile", payload),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
       getDroppedFilePath: (file) => {
         try {

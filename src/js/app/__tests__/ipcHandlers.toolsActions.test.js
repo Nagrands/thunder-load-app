@@ -1014,6 +1014,25 @@ describe("ipcHandlers tools quick actions", () => {
     );
   });
 
+  test("hashInspectFile returns readable file metadata", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const filePath = path.join(os.tmpdir(), `hash-inspect-${Date.now()}.bin`);
+    fs.writeFileSync(filePath, "demo", "utf8");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_HASH_INSPECT_FILE](null, {
+      filePath,
+    });
+
+    expect(result).toMatchObject({
+      success: true,
+      filePath,
+      fileName: path.basename(filePath),
+      size: 4,
+      readable: true,
+    });
+  });
+
   test("sorterPickFolder returns selected directory path", async () => {
     const { dialog } = require("electron");
     const { CHANNELS } = require("../../ipc/channels");

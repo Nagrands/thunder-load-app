@@ -73,8 +73,14 @@ const buildDom = () => {
       <span id="download-quality-count-video-only"></span>
       <span id="download-quality-count-audio"></span>
       <button id="download-quality-best-current" type="button"></button>
-      <img id="download-quality-thumb" />
-      <div id="download-quality-thumb-fallback" class="hidden"></div>
+      <div class="quality-thumb">
+        <img id="download-quality-thumb" />
+        <div class="quality-thumb-overlay" aria-hidden="true">
+          <span id="download-quality-cover-title" class="quality-thumb-kicker"></span>
+          <strong id="download-quality-cover-genre" class="quality-thumb-genre hidden"></strong>
+        </div>
+        <div id="download-quality-thumb-fallback" class="hidden"></div>
+      </div>
       <h4 id="download-quality-name"></h4>
       <p id="download-quality-uploader"></p>
       <p id="download-quality-duration"></p>
@@ -83,10 +89,13 @@ const buildDom = () => {
       <button id="download-quality-download-preview" type="button"></button>
       <button id="download-quality-copy-source" type="button"></button>
       <div id="download-quality-selection-summary">
+        <div class="quality-selection-text">
+          <span class="quality-selection-label">Выбрано</span>
+          <strong id="download-quality-selection-title"></strong>
+          <small id="download-quality-selection-meta"></small>
+        </div>
         <small id="download-quality-selection-output"></small>
       </div>
-      <strong id="download-quality-selection-title"></strong>
-      <small id="download-quality-selection-meta"></small>
     </div>
   `;
 };
@@ -403,9 +412,21 @@ describe("downloadQualityModal close behavior", () => {
       await Promise.resolve();
 
       const metrics = document.querySelectorAll(".quality-option-metrics");
+      const toggles = document.querySelectorAll(
+        "[data-quality-toggle='metrics']",
+      );
       expect(metrics.length).toBeGreaterThan(0);
       metrics.forEach((el) => {
         expect(el.classList.contains("is-collapsed")).toBe(true);
+        expect(el.getAttribute("aria-hidden")).toBe("true");
+      });
+      toggles.forEach((toggle) => {
+        expect(toggle.getAttribute("aria-expanded")).toBe("false");
+        expect(
+          toggle.querySelector(
+            ".fa-chevron-down, [data-lucide='chevron-down']",
+          ),
+        ).toBeTruthy();
       });
 
       document.getElementById("download-quality-cancel").click();
@@ -417,7 +438,7 @@ describe("downloadQualityModal close behavior", () => {
     await jest.isolateModulesAsync(async () => {
       window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
         success: true,
-        title: "Video title",
+        title: 'Far Cry 5 X New Dawn | "When the Morning Light Shines In/New Dawn"',
         uploader: "Uploader",
         duration: 120,
         thumbnail: "https://cdn.example.com/preview.jpg",
@@ -462,12 +483,19 @@ describe("downloadQualityModal close behavior", () => {
         ".quality-option-metrics",
       );
       const refreshedSecondToggle = refreshedOptions[1].querySelector(
-        ".quality-option-toggle",
+        "[data-quality-toggle='metrics']",
       );
 
       expect(firstMetrics.classList.contains("is-collapsed")).toBe(true);
+      expect(firstMetrics.getAttribute("aria-hidden")).toBe("true");
       expect(secondMetrics.classList.contains("is-collapsed")).toBe(false);
-      expect(refreshedSecondToggle.textContent.toLowerCase()).toContain("свер");
+      expect(secondMetrics.getAttribute("aria-hidden")).toBe("false");
+      expect(refreshedSecondToggle.getAttribute("aria-expanded")).toBe("true");
+      expect(
+        refreshedSecondToggle.querySelector(
+          ".fa-chevron-down, [data-lucide='chevron-down']",
+        ),
+      ).toBeTruthy();
 
       document.getElementById("download-quality-cancel").click();
       await resultPromise;
@@ -502,7 +530,17 @@ describe("downloadQualityModal close behavior", () => {
       metrics = document.querySelector(
         ".quality-option .quality-option-metrics",
       );
+      const toggleAfterCollapse = document.querySelector(
+        ".quality-option [data-quality-toggle='metrics']",
+      );
       expect(metrics.classList.contains("is-collapsed")).toBe(true);
+      expect(metrics.getAttribute("aria-hidden")).toBe("true");
+      expect(toggleAfterCollapse.getAttribute("aria-expanded")).toBe("false");
+      expect(
+        toggleAfterCollapse.querySelector(
+          ".fa-chevron-down, [data-lucide='chevron-down']",
+        ),
+      ).toBeTruthy();
 
       document.getElementById("download-quality-cancel").click();
       await resultPromise;
@@ -906,6 +944,15 @@ describe("downloadQualityModal close behavior", () => {
 
       const options = document.getElementById("download-quality-options");
       const firstOption = document.querySelector(".quality-option");
+      const selectionTitle = document.getElementById(
+        "download-quality-selection-title",
+      );
+      const selectionMeta = document.getElementById(
+        "download-quality-selection-meta",
+      );
+      const selectionOutput = document.getElementById(
+        "download-quality-selection-output",
+      );
 
       expect(options.getAttribute("role")).toBe("radiogroup");
       expect(firstOption.getAttribute("role")).toBe("radio");
@@ -913,6 +960,93 @@ describe("downloadQualityModal close behavior", () => {
       expect(options.getAttribute("aria-activedescendant")).toBe(
         firstOption.id,
       );
+      expect(selectionTitle.textContent).toContain("360p");
+      expect(selectionMeta.textContent).toMatch(/MP4|h\.264|avc1/i);
+      expect(selectionOutput.textContent).toMatch(/MP4|360p/);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("derives cover overlay genre from title metadata", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Atmospheric Nu-Metal Instrumental Mix Vol.5",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const coverTitle = document.getElementById(
+        "download-quality-cover-title",
+      );
+      const coverGenre = document.getElementById(
+        "download-quality-cover-genre",
+      );
+
+      expect(coverTitle.textContent).toBe(
+        "Atmospheric Nu-Metal Instrumental Mix Vol.5",
+      );
+      expect(coverGenre.textContent).toBe("NU-METAL");
+      expect(coverGenre.classList.contains("hidden")).toBe(false);
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("hides cover overlay genre when title has no reliable genre fragment", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const coverGenre = document.getElementById(
+        "download-quality-cover-genre",
+      );
+
+      expect(coverGenre.textContent).toBe("");
+      expect(coverGenre.classList.contains("hidden")).toBe(true);
 
       document.getElementById("download-quality-cancel").click();
       await resultPromise;

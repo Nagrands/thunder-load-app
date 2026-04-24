@@ -37,12 +37,23 @@ export function initDeveloperToolsGate() {
 
   if (!input || !button || !status) return;
 
+  const resetDownloaderTabToggle = () => {
+    setDeveloperDisableDownloaderTab(false, { emit: false });
+    if (disableDownloaderTabToggle) {
+      disableDownloaderTabToggle.checked = false;
+    }
+  };
+
   const sync = () => {
     const enabled = readDeveloperModeEnabled();
     applyStatus(status, button, enabled);
     if (options) options.hidden = !enabled;
     if (disableDownloaderTabToggle) {
-      disableDownloaderTabToggle.checked = readDeveloperDisableDownloaderTab();
+      if (enabled) {
+        disableDownloaderTabToggle.checked = readDeveloperDisableDownloaderTab();
+      } else {
+        resetDownloaderTabToggle();
+      }
     }
     input.value = "";
   };
@@ -52,6 +63,7 @@ export function initDeveloperToolsGate() {
       setDeveloperModeEnabled(false);
       applyStatus(status, button, false);
       if (options) options.hidden = true;
+      resetDownloaderTabToggle();
       window.electron
         ?.invoke?.("toast", t("settings.developer.lock.success"), "success")
         .catch(() => {});

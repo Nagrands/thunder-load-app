@@ -105,7 +105,7 @@ export const coreTranslations = {
     "tabs.tools": "Инструменты",
     "tabs.backup": "Инструмент Backup",
     "modal.whatsNew": "Что нового?",
-    "modal.whatsNew.subtitle": "Новые возможности и исправления",
+    "modal.whatsNew.subtitle": "Информация об обновлении",
     "modal.close": "Закрыть",
     "modal.settings": "Настройки",
     "modal.shortcuts": "Горячие клавиши",

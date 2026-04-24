@@ -56,8 +56,7 @@
 .first-run-modal-content,
 .bk-modal {
   @include mixins.modal-content-base;
-  // backdrop-filter: blur(20px);
-  background: var(--color-bg-main);
+  background: var(--color-bg-secondary);
   border: 1px solid rgba(255, 255, 255, 0.15);
   // box-shadow:
   //   0 8px 32px rgba(0, 0, 0, 0.2),
@@ -1407,19 +1406,6 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      padding: 4px;
-
-      li.custom-theme-select {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        margin: 0;
-        transition: all 0.3s ease;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
-        }
-      }
     }
 
     // Выравнивание дропдаунов и размера кнопок
@@ -1647,13 +1633,6 @@
       transform: translateY(-50%);
       width: 12px;
       height: 12px;
-      border-radius: 999px;
-      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
-      background: radial-gradient(
-        circle at 30% 30%,
-        rgba(var(--dropdown-accent), 0.9),
-        rgba(var(--dropdown-accent), 0.35) 70%
-      );
     }
 
     #language-dropdown-menu li,
@@ -1821,12 +1800,11 @@
   // Единый стиль чекбоксов
   input[type="checkbox"] {
     appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
 
-    border: 1px solid rgba(255, 255, 255, 0.22);
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 6px;
+    border-radius: 12px;
 
     display: grid;
     place-items: center;
@@ -1838,7 +1816,6 @@
     transition:
       background-color 0.2s ease,
       border-color 0.2s ease,
-      box-shadow 0.2s ease,
       transform 0.15s ease;
 
     &::after {
@@ -2671,11 +2648,11 @@
   }
 
   .settings-card {
-    border-radius: var(--border-radius);
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 16px;
+    padding: 14px 18px;
     display: grid;
-    gap: 12px;
+    gap: 6px;
 
     &--stacked {
       grid-column: 1 / -1;
@@ -2768,11 +2745,6 @@
       align-content: start;
     }
 
-    .settings-card--downloader .settings-control {
-      border-color: rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.025);
-    }
-
     .quality-profile-shell {
       gap: 6px;
     }
@@ -2852,7 +2824,6 @@
 
   .settings-card__intro {
     display: grid;
-    gap: 6px;
   }
 
   #about-settings {
@@ -2961,11 +2932,7 @@
   .settings-control {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(255, 255, 255, 0.03);
+    gap: 6px;
     min-width: 0;
     transition:
       border-color 0.16s ease,
@@ -3385,7 +3352,6 @@
 
   .settings-tabs {
     min-height: 0;
-    padding: 8px;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
@@ -3798,9 +3764,7 @@
   }
 
   .settings-card__intro {
-    gap: 4px;
     padding-bottom: 6px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
 
   .settings-card__eyebrow,
@@ -3818,21 +3782,6 @@
     background: rgba(255, 255, 255, 0.08);
     font-size: 10px;
     color: rgba(255, 255, 255, 0.86);
-  }
-
-  .settings-control-list {
-    gap: 8px;
-  }
-
-  .settings-control,
-  .settings-control-list--feature .settings-control,
-  .settings-control-list--decision .settings-control,
-  .settings-control-list--tiles .settings-control {
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.03);
-    box-shadow: none;
   }
 
   .settings-control::before,

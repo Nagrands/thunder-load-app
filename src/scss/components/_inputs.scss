@@ -41,7 +41,7 @@
 
 #history-header {
   cursor: default;
-  color: var(--color-accent) !important;
+  color: #8aa0bf !important;
 }
 
 .url-input-wrapper {
@@ -53,7 +53,7 @@
   border-radius: var(--border-radius);
   z-index: 1;
   border: 1px solid rgba(170, 206, 255, 0.18);
-  backdrop-filter: blur(6px);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
   transition:
     border-color 0.22s ease,
     transform 0.22s ease;
@@ -150,19 +150,7 @@
   justify-content: center;
   border-radius: 16px;
   border: 1px solid rgba(var(--color-accent-rgb), 0.16);
-  background:
-    radial-gradient(
-      circle at 30% 20%,
-      rgba(var(--color-accent-rgb), 0.12),
-      transparent 60%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.02)
-    );
   color: rgba(var(--color-accent-rgb), 0.9);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 0;
   appearance: none;
   cursor: pointer;
@@ -238,7 +226,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  min-height: 62px;
+  // min-height: 62px;
   padding: 0 14px 0 10px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -374,7 +362,6 @@
   min-width: 0;
   padding-left: 8px;
   padding-right: 0;
-  color: rgba(242, 247, 255, 0.96);
   font-size: clamp(0.92rem, 1.25vw, 1rem);
   font-weight: 540;
 
@@ -841,17 +828,6 @@
     gap: 12px;
     padding: 16px;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.08),
-        rgba(255, 255, 255, 0.03)
-      ),
-      rgba(8, 16, 30, 0.94);
-    box-shadow:
-      0 30px 90px rgba(0, 0, 0, 0.38),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
     animation: fadeIn 0.18s ease-out;
   }
 

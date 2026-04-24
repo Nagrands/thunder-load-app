@@ -1207,7 +1207,6 @@
   display: grid;
   gap: 6px;
   padding: 8px;
-  border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
 }
 
@@ -1624,7 +1623,6 @@
   .tools-status-cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin: 0;
-    padding-top: 18px;
     padding-bottom: 18px;
   }
 
@@ -1738,7 +1736,6 @@
 
   .tools-location-block {
     display: grid;
-    gap: 14px;
   }
 
   .tools-location-block__header h3,
@@ -1761,7 +1758,7 @@
     grid-template-columns: minmax(0, 1fr) 48px 48px 48px;
     gap: 10px;
     align-items: center;
-    padding: 12px;
+    padding: 0 12px;
     border: 1px solid rgba(51, 65, 85, 0.64);
     border-radius: 20px;
     background: rgba(30, 41, 59, 0.4);

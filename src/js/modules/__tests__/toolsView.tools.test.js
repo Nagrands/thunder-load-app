@@ -156,6 +156,13 @@ describe("toolsView quick actions", () => {
           actualHash: "abcd",
           matches: null,
         }),
+        inspectHashFile: jest.fn(async ({ filePath }) => ({
+          success: true,
+          filePath,
+          fileName: String(filePath).split(/[\\/]/).pop(),
+          size: 4096,
+          readable: true,
+        })),
         pickMediaInspectorFile: jest.fn().mockResolvedValue({
           success: true,
           filePath: "/tmp/sample-video.mp4",
@@ -1661,10 +1668,54 @@ describe("toolsView quick actions", () => {
     await openTool(el, "hash");
     const copyFirstBtn = el.querySelector("#hash-copy-actual-1");
     const copySecondBtn = el.querySelector("#hash-copy-actual-2");
+    const runBtn = el.querySelector("#hash-run");
     const status = el.querySelector("#hash-status-badge");
     expect(copyFirstBtn?.hasAttribute("disabled")).toBe(true);
     expect(copySecondBtn?.hasAttribute("disabled")).toBe(true);
+    expect(runBtn?.hasAttribute("disabled")).toBe(true);
     expect(status?.textContent).toBe("hashCheck.status.idle");
+  });
+
+  test("hash algorithm dropdown exposes only supported UI algorithms", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const nativeSelect = el.querySelector("#hash-algorithm");
+    const trigger = el.querySelector("#hash-algorithm-toggle");
+    const options = Array.from(
+      el.querySelectorAll(".hash-algorithm-option"),
+    ).map((option) => option.dataset.hashAlgorithm);
+
+    expect(options).toEqual(["SHA-256", "SHA-1", "MD5"]);
+    expect(options).not.toContain("SHA-512");
+
+    trigger.click();
+    await nextTick();
+    el.querySelector('[data-hash-algorithm="SHA-1"]').click();
+    await nextTick();
+
+    expect(nativeSelect.value).toBe("SHA-1");
+    expect(el.querySelector("#hash-algorithm-label")?.textContent).toBe(
+      "SHA-1",
+    );
+  });
+
+  test("shows file size and ready status after selecting hash file", async () => {
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    el.querySelector("#hash-pick-file").click();
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.inspectHashFile).toHaveBeenCalledWith({
+      filePath: "/tmp/demo.bin",
+    });
+    expect(el.querySelector("#hash-file-name")?.textContent).toBe("demo.bin");
+    expect(el.querySelector("#hash-file-size")?.textContent).toBe("4 KB");
+    expect(el.querySelector("#hash-file-status")?.textContent).toContain(
+      "hashCheck.fileStatus.ready",
+    );
   });
 
   test("enables hash copy and copies actual hash after verify", async () => {

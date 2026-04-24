@@ -361,7 +361,6 @@ function createWindow(
   });
 
   ipcMain.on("window-close", () => {
-    app.isQuitting = true;
     mainWindow.close();
   });
 

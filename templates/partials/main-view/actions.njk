@@ -33,6 +33,10 @@
       <div class="quality-preview">
         <div class="quality-thumb">
           <img id="download-quality-thumb" alt="" loading="lazy" />
+          <div class="quality-thumb-overlay" aria-hidden="true">
+            <span id="download-quality-cover-title" class="quality-thumb-kicker"></span>
+            <strong id="download-quality-cover-genre" class="quality-thumb-genre hidden"></strong>
+          </div>
           <div id="download-quality-thumb-fallback" class="quality-thumb-fallback hidden">
             <i class="fa-regular fa-image" aria-hidden="true"></i>
             <span data-i18n="quality.previewUnavailable">Превью недоступно</span>
@@ -50,25 +54,40 @@
               type="button"
               id="download-quality-open-source"
               class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Открыть источник"
+              data-i18n-title="quality.openSource"
+              aria-label="Открыть источник"
+              data-i18n-aria="quality.openSource"
             >
-              <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              <span data-i18n="quality.openSource">Открыть источник</span>
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
             </button>
             <button
               type="button"
               id="download-quality-download-preview"
               class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Скачать превью"
+              data-i18n-title="quality.downloadPreview"
+              aria-label="Скачать превью"
+              data-i18n-aria="quality.downloadPreview"
             >
-              <i class="fa-regular fa-image"></i>
-              <span data-i18n="quality.downloadPreview">Скачать превью</span>
+              <i class="fa-regular fa-image" aria-hidden="true"></i>
             </button>
             <button
               type="button"
               id="download-quality-copy-source"
               class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Копировать URL"
+              data-i18n-title="quality.copySourceUrl"
+              aria-label="Копировать URL"
+              data-i18n-aria="quality.copySourceUrl"
             >
-              <i class="fa-regular fa-copy"></i>
-              <span data-i18n="quality.copySourceUrl">Копировать URL</span>
+              <i class="fa-regular fa-copy" aria-hidden="true"></i>
             </button>
           </div>
         </div>
@@ -91,6 +110,7 @@
               aria-label="Видео + аудио"
               data-i18n-aria="quality.aria.tab.video"
             >
+              <i class="fa-solid fa-film" aria-hidden="true"></i>
               <span data-i18n="quality.tab.video">Видео + аудио</span>
               <span
                 class="quality-tab-count"
@@ -114,6 +134,7 @@
               aria-label="Только видео"
               data-i18n-aria="quality.aria.tab.videoOnly"
             >
+              <i class="fa-solid fa-video" aria-hidden="true"></i>
               <span data-i18n="quality.tab.videoOnly">Только видео</span>
               <span
                 class="quality-tab-count"
@@ -135,6 +156,7 @@
               aria-label="Только аудио"
               data-i18n-aria="quality.aria.tab.audio"
             >
+              <i class="fa-solid fa-music" aria-hidden="true"></i>
               <span data-i18n="quality.tab.audio">Только аудио</span>
               <span
                 class="quality-tab-count"
@@ -239,7 +261,7 @@
         >
           <div class="quality-selection-text">
             <span class="quality-selection-label" data-i18n="quality.selected">
-              Выбранный вариант
+              Выбрано
             </span>
             <strong id="download-quality-selection-title" data-i18n="quality.notSelected">
               Вариант не выбран
@@ -320,7 +342,8 @@
             disabled
             data-i18n="quality.split.primary"
           >
-            Скачать
+            <i class="fa-solid fa-download" aria-hidden="true"></i>
+            <span>Скачать</span>
           </button>
         </div>
       </div>

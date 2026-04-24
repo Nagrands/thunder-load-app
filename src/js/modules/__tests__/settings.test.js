@@ -516,6 +516,24 @@ describe("developer tools gate", () => {
     ).toBe(true);
   });
 
+  it("keeps downloader-tab setting hidden while developer mode is disabled", async () => {
+    renderDevGateDom();
+    localStorage.setItem("developerToolsUnlocked", "false");
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    expect(document.getElementById("settings-developer-options")?.hidden).toBe(
+      true,
+    );
+    expect(
+      document.getElementById("settings-developer-disable-downloader-tab")
+        ?.checked,
+    ).toBe(false);
+    expect(localStorage.getItem("developerDisableDownloaderTab")).toBe("false");
+  });
+
   it("toggles downloader tab from developer options", async () => {
     renderDevGateDom();
     localStorage.setItem("developerToolsUnlocked", "true");
@@ -588,6 +606,14 @@ describe("developer tools gate", () => {
     expect(window.__thunder_dev_tools_unlocked__).toBe(false);
     expect(button?.textContent).toBe("settings.developer.activate");
     expect(status?.textContent).toBe("settings.developer.status.disabled");
+    expect(document.getElementById("settings-developer-options")?.hidden).toBe(
+      true,
+    );
+    expect(
+      document.getElementById("settings-developer-disable-downloader-tab")
+        ?.checked,
+    ).toBe(false);
+    expect(localStorage.getItem("developerDisableDownloaderTab")).toBe("false");
     expect(
       window.electron.invoke.mock.calls.some(
         (args) =>

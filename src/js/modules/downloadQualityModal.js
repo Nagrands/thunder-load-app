@@ -15,6 +15,25 @@ import {
 
 const INFO_REQUEST_TIMEOUT = 15000;
 const DOWNLOAD_QUALITY_SCROLL_LOCK_OWNER = "download-quality-modal";
+const COVER_GENRE_LABELS = [
+  "NU-METAL",
+  "SYNTHWAVE",
+  "HIP-HOP",
+  "LO-FI",
+  "METAL",
+  "ROCK",
+  "EDM",
+  "HOUSE",
+  "TECHNO",
+  "TRANCE",
+  "DNB",
+  "DRUM&BASS",
+  "AMBIENT",
+  "PHONK",
+  "JAZZ",
+  "POP",
+  "RAP",
+];
 
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
@@ -46,6 +65,8 @@ const tabCountEls = {
 };
 const bestCurrentBtn = document.getElementById("download-quality-best-current");
 const thumbEl = document.getElementById("download-quality-thumb");
+const coverTitleEl = document.getElementById("download-quality-cover-title");
+const coverGenreEl = document.getElementById("download-quality-cover-genre");
 const titleEl = document.getElementById("download-quality-name");
 const uploaderEl = document.getElementById("download-quality-uploader");
 const durationEl = document.getElementById("download-quality-duration");
@@ -176,6 +197,36 @@ function escapeHTML(value) {
     .replaceAll("'", "&#39;");
 }
 
+function getCoverGenre(title) {
+  const normalized = String(title || "")
+    .replace(/[()[\]{}]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const upper = normalized.toUpperCase();
+  return (
+    COVER_GENRE_LABELS.find((genre) => {
+      const escaped = genre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(^|[^A-ZА-Я0-9])${escaped}([^A-ZА-Я0-9]|$)`).test(
+        upper,
+      );
+    }) || ""
+  );
+}
+
+function renderPrimaryButtonLabel(label, { queue = false, disabled = false } = {}) {
+  if (!primaryBtn) return;
+  const icon = queue
+    ? '<i class="fa-solid fa-list-check" aria-hidden="true"></i>'
+    : '<i class="fa-solid fa-download" aria-hidden="true"></i>';
+  const text = disabled
+    ? label
+    : queue
+      ? t("quality.enqueue")
+      : t("quality.downloadAction");
+  const suffix = disabled || !label ? "" : ` <span>${escapeHTML(label)}</span>`;
+  primaryBtn.innerHTML = `${icon}<strong>${escapeHTML(text)}</strong>${suffix}`;
+}
+
 function getSortedOptions(tab) {
   return (state.optionMap.get(tab) || [])
     .slice()
@@ -201,9 +252,16 @@ function updateSelectionSummary(option) {
   }
   selectionTitleEl.textContent =
     option.payload?.label || option.title || t("quality.selected");
-  selectionMetaEl.textContent =
-    option.description ||
-    [option.extLabel, option.sizeLabel].filter(Boolean).join(" • ");
+  selectionMetaEl.textContent = [
+    option.resolutionLabel && option.resolutionLabel !== "—"
+      ? option.resolutionLabel
+      : option.title,
+    option.fpsLabel && option.fpsLabel !== "—" ? `${option.fpsLabel}fps` : "",
+    option.codecLabel && option.codecLabel !== "—" ? option.codecLabel : "",
+    option.audioBitrateLabel ? option.audioBitrateLabel : "",
+  ]
+    .filter(Boolean)
+    .join(" • ");
   if (selectionOutputEl) {
     selectionOutputEl.textContent = t("quality.resultSummary", {
       container: option.containerLabel || "—",
@@ -246,20 +304,20 @@ function syncConfirmUi() {
   }
   const option = state.selectedOption;
   if (primaryBtn) {
-    primaryBtn.textContent = option
-      ? t(
-          isQueueConfirmMode()
-            ? "quality.enqueueWithLabel"
-            : "quality.confirmWithLabel",
-          {
-            label: option.payload.label,
-          },
-        )
-      : t(
+    if (option) {
+      renderPrimaryButtonLabel(`(${option.payload.label})`, {
+        queue: isQueueConfirmMode(),
+      });
+    } else {
+      renderPrimaryButtonLabel(
+        t(
           isQueueConfirmMode()
             ? "quality.split.primaryDisabledHintQueue"
             : "quality.split.primaryDisabledHint",
-        );
+        ),
+        { queue: isQueueConfirmMode(), disabled: true },
+      );
+    }
   }
 }
 
@@ -299,6 +357,13 @@ function resetModalState() {
   }
   if (previewResolutionEl) {
     previewResolutionEl.textContent = t("quality.previewResolutionUnknown");
+  }
+  if (coverTitleEl) {
+    coverTitleEl.textContent = "";
+  }
+  if (coverGenreEl) {
+    coverGenreEl.textContent = "";
+    coverGenreEl.classList.add("hidden");
   }
   if (thumbEl) {
     thumbEl.onload = null;
@@ -518,6 +583,14 @@ function renderPreview(info, url) {
     setCachedVideoInfo(info.webpage_url || info.original_url || url, info);
   } catch (_) {}
   titleEl.textContent = info.title || t("quality.previewUnavailable");
+  if (coverTitleEl) {
+    coverTitleEl.textContent = info.title || "";
+  }
+  const coverGenre = getCoverGenre(info.title);
+  if (coverGenreEl) {
+    coverGenreEl.textContent = coverGenre;
+    coverGenreEl.classList.toggle("hidden", !coverGenre);
+  }
   uploaderEl.textContent = info.uploader || info.channel || "";
   durationEl.textContent = info.duration
     ? t("input.url.preview.duration", {
@@ -903,8 +976,11 @@ function renderOptions(tab) {
     const tags = [];
     if (index === 0) tags.push('<span class="tag tag-top">TOP</span>');
     if (option.extra) {
+      const tagClass = /^[A-Z0-9]{2,8}$/.test(option.extra)
+        ? "tag-soft"
+        : "tag-accent";
       tags.push(
-        `<span class="tag tag-accent">${escapeHTML(option.extra)}</span>`,
+        `<span class="tag ${tagClass}">${escapeHTML(option.extra)}</span>`,
       );
     }
     const tagsMarkup = tags.length
@@ -912,7 +988,7 @@ function renderOptions(tab) {
       : '<div class="quality-option-tags quality-option-tags-empty" aria-hidden="true"></div>';
 
     const el = document.createElement("div");
-    el.className = "quality-option";
+    el.className = `quality-option${isExpanded ? " quality-option--expanded" : ""}`;
     el.dataset.optionId = option.id;
     el.id = `quality-option-${option.id}`;
     el.setAttribute("role", "radio");
@@ -948,11 +1024,12 @@ function renderOptions(tab) {
           <button type="button" class="quality-option-toggle" data-quality-toggle="metrics" aria-label="${escapeHTML(
             t("quality.metrics.aria"),
           )}" aria-expanded="${isExpanded ? "true" : "false"}">
-            ${escapeHTML(
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            <span class="sr-only">${escapeHTML(
               isExpanded
                 ? t("quality.metrics.collapse")
                 : t("quality.metrics.expand"),
-            )}
+            )}</span>
           </button>
         </div>
       </div>
