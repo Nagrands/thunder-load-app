@@ -2990,6 +2990,18 @@ function setupIpcHandlers(dependencies) {
   });
 
   // Обработка запроса на загрузку обновления из рендер-процесса
+  ipcMain.handle(CHANNELS.CHECK_APP_UPDATES, async () => {
+    try {
+      log.info("Запрос на ручную проверку обновлений получен.");
+      autoUpdater.checkForUpdates();
+      return { success: true };
+    } catch (error) {
+      log.error("Ошибка при ручной проверке обновлений:", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Обработка запроса на загрузку обновления из рендер-процесса
   ipcMain.handle(CHANNELS.DOWNLOAD_UPDATE, async () => {
     try {
       log.info("Запрос на загрузку обновления получен.");

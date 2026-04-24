@@ -74,6 +74,10 @@
                   <i class="fa-solid fa-palette"></i>
                   <span data-i18n="settings.tabs.appearance">Внешний вид</span>
                 </button>
+                <button class="tab-link" data-tab="about-settings">
+                  <i class="fa-solid fa-circle-info"></i>
+                  <span data-i18n="settings.tabs.about">О приложении</span>
+                </button>
                 <button class="tab-link" data-tab="other-settings">
                   <i class="fa-solid fa-wrench"></i>
                   <span data-i18n="settings.tabs.other">Другое</span>
@@ -737,6 +741,72 @@
                     </div>
                   </section>
                 </div>
+              </div>
+
+              <!-- Other Settings Tab -->
+              <div id="about-settings" class="tab-pane">
+                <div class="settings-pane-header">
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.about.title">О приложении</h2>
+                    <p data-i18n="settings.about.hint">
+                      Краткая информация о Thunder Load, версии приложения и его runtime.
+                    </p>
+                  </div>
+                </div>
+                <section class="settings-card settings-about-card settings-card--stacked">
+                  <div class="settings-about-shell">
+                    <div class="settings-card__intro settings-about-intro">
+                      <h3 class="settings-card__title" data-i18n="settings.about.productTitle">
+                        Thunder Load
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.about.productHint">
+                        Desktop-приложение на Electron для загрузки медиа и встроенных инструментов.
+                      </p>
+                    </div>
+
+                    <div class="settings-about-metrics">
+                      <div class="settings-about-metric">
+                        <span class="settings-about-metric__label" data-i18n="settings.about.appVersion">
+                          Версия приложения
+                        </span>
+                        <strong id="settings-app-version" class="settings-about-metric__value muted">—</strong>
+                      </div>
+                      <div class="settings-about-metric">
+                        <span class="settings-about-metric__label" data-i18n="settings.about.electronVersion">
+                          Версия Electron
+                        </span>
+                        <strong id="settings-about-electron-version" class="settings-about-metric__value muted">—</strong>
+                      </div>
+                      <div class="settings-about-metric">
+                        <span class="settings-about-metric__label" data-i18n="settings.about.chromeVersion">
+                          Версия Chrome
+                        </span>
+                        <strong id="settings-about-chrome-version" class="settings-about-metric__value muted">—</strong>
+                      </div>
+                      <div class="settings-about-metric">
+                        <span class="settings-about-metric__label" data-i18n="settings.about.nodeVersion">
+                          Версия Node
+                        </span>
+                        <strong id="settings-about-node-version" class="settings-about-metric__value muted">—</strong>
+                      </div>
+                    </div>
+
+                    <div class="settings-about-actions">
+                      <button id="settings-about-whats-new-button" type="button">
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span data-i18n="settings.about.whatsNew">Что нового</span>
+                      </button>
+                      <button id="settings-about-copy-info-button" type="button">
+                        <i class="fa-regular fa-copy"></i>
+                        <span data-i18n="settings.about.copyInfo">Скопировать информацию</span>
+                      </button>
+                      <button id="settings-about-check-updates-button" type="button">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span data-i18n="settings.about.checkUpdates">Проверить обновления</span>
+                      </button>
+                    </div>
+                  </div>
+                </section>
               </div>
 
               <!-- Other Settings Tab -->

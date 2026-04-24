@@ -53,6 +53,7 @@ jest.mock("electron-updater", () => ({
   autoUpdater: {
     quitAndInstall: jest.fn(),
     downloadUpdate: jest.fn(),
+    checkForUpdates: jest.fn(),
   },
 }));
 
@@ -239,6 +240,17 @@ describe("ipcHandlers tools quick actions", () => {
     expect(
       fs.existsSync(path.join(userDataPath, "wireguard.conf")),
     ).toBeTruthy();
+  });
+
+  test("check-app-updates triggers a manual updater check", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { autoUpdater } = require("electron-updater");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.CHECK_APP_UPDATES]();
+
+    expect(result).toEqual({ success: true });
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
   });
 
   test("mediaInspectorAnalyze returns structured report for a local file", async () => {

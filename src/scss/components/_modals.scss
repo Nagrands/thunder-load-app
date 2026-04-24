@@ -2855,6 +2855,72 @@
     gap: 6px;
   }
 
+  #about-settings {
+    .settings-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+
+  .settings-about-card {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .settings-about-shell {
+    display: grid;
+    gap: 12px;
+  }
+
+  .settings-about-intro {
+    gap: 4px;
+    max-width: 720px;
+  }
+
+  .settings-about-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .settings-about-metric {
+    padding: 10px 12px;
+    display: grid;
+    gap: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+    min-width: 0;
+  }
+
+  .settings-about-metric__label {
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--color-quality);
+  }
+
+  .settings-about-metric__value {
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--color-text-main);
+    overflow-wrap: anywhere;
+  }
+
+  .settings-about-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .settings-about-actions button {
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    justify-content: center;
+    gap: 6px;
+  }
+
   .settings-card__heading {
     display: flex;
     align-items: center;
@@ -3988,10 +4054,16 @@
   }
 
   .settings-action-group button,
+  .settings-about-actions button,
   .settings-developer-gate__button,
   .settings-tools-open {
     min-height: 38px;
     border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-main);
+    cursor: pointer;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: none;
@@ -4030,6 +4102,14 @@
     #appearance-settings,
     #other-settings {
       .settings-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    #about-settings {
+      .settings-grid,
+      .settings-about-metrics,
+      .settings-about-actions {
         grid-template-columns: 1fr;
       }
     }

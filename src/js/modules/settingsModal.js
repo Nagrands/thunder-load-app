@@ -12,6 +12,7 @@ import { settingsModal, settingsTrigger } from "./domElements.js";
 import { t } from "./i18n.js";
 import { initFirstRunModal } from "./firstRunModal.js";
 import { hideAllTooltips } from "./tooltipInitializer.js";
+import { showToast } from "./toast.js";
 import {
   acquireBodyScrollLock,
   releaseBodyScrollLock,
@@ -94,6 +95,45 @@ function getTabbables(root) {
   );
 }
 
+async function populateAboutSection() {
+  try {
+    const [version, runtimeInfo] = await Promise.all([
+      window.electron?.invoke?.("get-version"),
+      window.electron?.getRuntimeInfo?.(),
+    ]);
+
+    const setText = (id, value, { prefixV = true } = {}) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const normalized = String(value || "").trim();
+      el.textContent = normalized ? `${prefixV ? "v" : ""}${normalized}` : "—";
+    };
+
+    setText("settings-app-version", version);
+    setText("settings-about-electron-version", runtimeInfo?.electron);
+    setText("settings-about-chrome-version", runtimeInfo?.chrome);
+    setText("settings-about-node-version", runtimeInfo?.node);
+  } catch {}
+}
+
+async function copyAboutSectionInfo() {
+  const [version, runtimeInfo, platformInfo] = await Promise.all([
+    window.electron?.invoke?.("get-version"),
+    window.electron?.getRuntimeInfo?.(),
+    window.electron?.getPlatformInfo?.(),
+  ]);
+  const lines = [
+    "Thunder Load",
+    `App: v${String(version || "—").trim() || "—"}`,
+    `Electron: v${String(runtimeInfo?.electron || "—").trim() || "—"}`,
+    `Chrome: v${String(runtimeInfo?.chrome || "—").trim() || "—"}`,
+    `Node: v${String(runtimeInfo?.node || "—").trim() || "—"}`,
+    `Platform: ${String(platformInfo?.platform || "—").trim() || "—"}`,
+    `Arch: ${String(platformInfo?.arch || "—").trim() || "—"}`,
+  ];
+  await navigator.clipboard.writeText(lines.join("\n"));
+}
+
 export function openSettings() {
   if (!settingsModal) return;
   hideAllTooltips();
@@ -110,6 +150,7 @@ export function openSettings() {
   try {
     window.dispatchEvent(new Event("settings:opened"));
   } catch {}
+  populateAboutSection();
   syncActiveSettingsSectionLabel();
   closeSettingsSectionsPanel();
 
@@ -207,6 +248,15 @@ export function initSettingsModal() {
   const fontSizeToggle = document.getElementById("settings-font-size-toggle");
   const resetBtn = document.getElementById("reset-config-button");
   const firstRunResetBtn = document.getElementById("first-run-reset-button");
+  const aboutWhatsNewBtn = document.getElementById(
+    "settings-about-whats-new-button",
+  );
+  const aboutCopyInfoBtn = document.getElementById(
+    "settings-about-copy-info-button",
+  );
+  const aboutCheckUpdatesBtn = document.getElementById(
+    "settings-about-check-updates-button",
+  );
   const sectionsToggle = getSettingsSectionsToggle();
 
   const initDefaultTabSetting = async () => {
@@ -313,7 +363,44 @@ export function initSettingsModal() {
     });
   }
 
+  if (aboutWhatsNewBtn) {
+    aboutWhatsNewBtn.addEventListener("click", () => {
+      const trigger = document.querySelector(".version-container");
+      if (trigger instanceof HTMLElement) {
+        trigger.click();
+      }
+    });
+  }
+
+  if (aboutCopyInfoBtn) {
+    aboutCopyInfoBtn.addEventListener("click", async () => {
+      try {
+        await copyAboutSectionInfo();
+        showToast(t("settings.about.copySuccess"), "success");
+      } catch (error) {
+        console.error("[settingsModal] Failed to copy app info:", error);
+        showToast(t("settings.about.copyError"), "error");
+      }
+    });
+  }
+
+  if (aboutCheckUpdatesBtn) {
+    aboutCheckUpdatesBtn.addEventListener("click", async () => {
+      try {
+        closeSettings();
+        const result = await window.electron?.invoke?.("check-app-updates");
+        if (result?.success === false) {
+          showToast(t("settings.about.updatesError"), "error");
+        }
+      } catch (error) {
+        console.error("[settingsModal] Failed to start update check:", error);
+        showToast(t("settings.about.updatesError"), "error");
+      }
+    });
+  }
+
   initDefaultTabSetting();
+  populateAboutSection();
 
   // --- Логика выбора темы удалена, чтобы избежать конфликта с settings.js ---
   // (См. settings.js для реализации кастомного dropdown выбора темы)

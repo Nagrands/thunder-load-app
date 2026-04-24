@@ -19537,6 +19537,60 @@ hr {
   display: grid;
   gap: 6px;
 }
+.settings-modal #about-settings .settings-grid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.settings-modal .settings-about-card {
+  padding: 12px 14px;
+  gap: 10px;
+}
+.settings-modal .settings-about-shell {
+  display: grid;
+  gap: 12px;
+}
+.settings-modal .settings-about-intro {
+  gap: 4px;
+  max-width: 720px;
+}
+.settings-modal .settings-about-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.settings-modal .settings-about-metric {
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  min-width: 0;
+}
+.settings-modal .settings-about-metric__label {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--color-quality);
+}
+.settings-modal .settings-about-metric__value {
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--color-text-main);
+  overflow-wrap: anywhere;
+}
+.settings-modal .settings-about-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.settings-modal .settings-about-actions button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  justify-content: center;
+  gap: 6px;
+}
 .settings-modal .settings-card__heading {
   display: flex;
   align-items: center;
@@ -20430,15 +20484,22 @@ hr {
   background: rgba(255, 255, 255, 0.03);
 }
 .settings-modal .settings-action-group button,
+.settings-modal .settings-about-actions button,
 .settings-modal .settings-developer-gate__button,
 .settings-modal .settings-tools-open {
   min-height: 38px;
   border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-main);
+  cursor: pointer;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
 }
 .settings-modal .settings-action-group button:hover,
+.settings-modal .settings-about-actions button:hover,
 .settings-modal .settings-developer-gate__button:hover,
 .settings-modal .settings-tools-open:hover {
   transform: none;
@@ -20463,6 +20524,11 @@ hr {
   .settings-modal #wgunlock-settings .settings-grid,
   .settings-modal #appearance-settings .settings-grid,
   .settings-modal #other-settings .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .settings-modal #about-settings .settings-grid,
+  .settings-modal #about-settings .settings-about-metrics,
+  .settings-modal #about-settings .settings-about-actions {
     grid-template-columns: 1fr;
   }
   .settings-modal .settings-card {

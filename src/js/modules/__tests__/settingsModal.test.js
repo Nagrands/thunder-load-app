@@ -23,6 +23,10 @@ jest.mock("../tooltipInitializer.js", () => ({
   hideAllTooltips: jest.fn(),
 }));
 
+jest.mock("../toast.js", () => ({
+  showToast: jest.fn(),
+}));
+
 jest.mock("../domElements.js", () => ({
   get settingsModal() {
     return global.document.getElementById("settings-modal");
@@ -36,9 +40,17 @@ describe("settingsModal mobile sections navigation", () => {
   const makeDom = () => {
     document.body.innerHTML = `
       <button id="footer-open-settings" type="button">open</button>
+      <button class="version-container" type="button">version</button>
       <div id="settings-modal" style="display:none">
         <button id="settings-sections-toggle" aria-expanded="false" aria-controls="settings-tabs-panel"></button>
         <button id="first-run-reset-button" type="button"></button>
+        <button id="settings-about-whats-new-button" type="button"></button>
+        <button id="settings-about-copy-info-button" type="button"></button>
+        <button id="settings-about-check-updates-button" type="button"></button>
+        <strong id="settings-app-version">—</strong>
+        <strong id="settings-about-electron-version">—</strong>
+        <strong id="settings-about-chrome-version">—</strong>
+        <strong id="settings-about-node-version">—</strong>
         <span id="settings-active-section-label"></span>
         <div id="settings-tabs-panel" class="settings-tabs-wrapper" data-open="false">
           <div class="settings-tabs">
@@ -50,11 +62,16 @@ describe("settingsModal mobile sections navigation", () => {
               <i class="fa-solid fa-download"></i>
               <span>Downloader</span>
             </button>
+            <button class="tab-link" data-tab="about-settings">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>О приложении</span>
+            </button>
           </div>
         </div>
         <div class="tab-content">
           <div id="general-settings" class="tab-pane active"></div>
           <div id="window-settings" class="tab-pane"></div>
+          <div id="about-settings" class="tab-pane"></div>
         </div>
       </div>
     `;
@@ -63,6 +80,28 @@ describe("settingsModal mobile sections navigation", () => {
   beforeEach(() => {
     jest.resetModules();
     localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn(async (channel) => {
+        if (channel === "get-version") return "1.4.4";
+        if (channel === "check-app-updates") return { success: true };
+        return null;
+      }),
+      getRuntimeInfo: jest.fn(async () => ({
+        electron: "39.0.0",
+        chrome: "140.0.0.0",
+        node: "22.18.0",
+      })),
+      getPlatformInfo: jest.fn(async () => ({
+        platform: "darwin",
+        arch: "arm64",
+      })),
+    };
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: jest.fn().mockResolvedValue(undefined),
+      },
+    });
     makeDom();
   });
 
@@ -126,6 +165,25 @@ describe("settingsModal mobile sections navigation", () => {
     expect(windowTab.classList.contains("active")).toBe(true);
     expect(windowPane.classList.contains("active")).toBe(true);
     expect(label.textContent).toBe("Downloader");
+  });
+
+  test("restores about label from saved lastSettingsTab on init", () => {
+    localStorage.setItem("lastSettingsTab", "about-settings");
+
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+    });
+
+    const label = document.getElementById("settings-active-section-label");
+    const aboutTab = document.querySelector(
+      '.tab-link[data-tab="about-settings"]',
+    );
+    const aboutPane = document.getElementById("about-settings");
+
+    expect(aboutTab.classList.contains("active")).toBe(true);
+    expect(aboutPane.classList.contains("active")).toBe(true);
+    expect(label.textContent).toBe("О приложении");
   });
 
   test("openSettings resets mobile panel state and syncs label", () => {
@@ -207,5 +265,75 @@ describe("settingsModal mobile sections navigation", () => {
       );
       expect(initFirstRunModal).toHaveBeenCalled();
     });
+  });
+
+  test("populates about section details on init", async () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.getElementById("settings-app-version")?.textContent).toBe(
+      "v1.4.4",
+    );
+    expect(
+      document.getElementById("settings-about-electron-version")?.textContent,
+    ).toBe("v39.0.0");
+    expect(
+      document.getElementById("settings-about-chrome-version")?.textContent,
+    ).toBe("v140.0.0.0");
+    expect(
+      document.getElementById("settings-about-node-version")?.textContent,
+    ).toBe("v22.18.0");
+  });
+
+  test("copies app info from about section", async () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+    });
+
+    document.getElementById("settings-about-copy-info-button").click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining("Thunder Load"),
+    );
+    expect(window.electron.getPlatformInfo).toHaveBeenCalled();
+  });
+
+  test("starts update check from about section and closes settings", async () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+    });
+
+    document.getElementById("settings-about-check-updates-button").click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith("check-app-updates");
+    expect(document.getElementById("settings-modal").style.display).toBe(
+      "none",
+    );
+  });
+
+  test("opens whats new from about section via existing version trigger", () => {
+    const versionTrigger = document.querySelector(".version-container");
+    const clickSpy = jest.spyOn(versionTrigger, "click");
+
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+    });
+
+    document.getElementById("settings-about-whats-new-button").click();
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 });

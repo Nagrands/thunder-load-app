@@ -5,6 +5,7 @@ export const settingsTranslations = {
     "settings.tabs.wg": "Инструменты",
     "settings.tabs.backup": "Инструмент Backup",
     "settings.tabs.appearance": "Внешний вид",
+    "settings.tabs.about": "О приложении",
     "settings.tabs.other": "Другое",
     "settings.sections.menu": "Разделы",
     "settings.sections.toggle": "Показать разделы настроек",
@@ -105,6 +106,28 @@ export const settingsTranslations = {
       "Отключает анимации и эффекты размытия",
     "settings.appearance.lowEffects":
       "Режим <strong>экономии эффектов</strong>",
+    "settings.about.title": "О приложении",
+    "settings.about.hint":
+      "Краткая информация о Thunder Load, версии приложения и его runtime.",
+    "settings.about.productTitle": "Thunder Load",
+    "settings.about.productHint":
+      "Desktop-приложение на Electron для загрузки медиа и встроенных инструментов.",
+    "settings.about.appVersion": "Версия приложения",
+    "settings.about.electronVersion": "Версия Electron",
+    "settings.about.chromeVersion": "Версия Chrome",
+    "settings.about.nodeVersion": "Версия Node",
+    "settings.about.actionsTitle": "Действия",
+    "settings.about.actionsHint":
+      "Быстрые действия для просмотра изменений, копирования сведений и проверки обновлений.",
+    "settings.about.whatsNew": "Что нового",
+    "settings.about.copyInfo": "Скопировать информацию",
+    "settings.about.checkUpdates": "Проверить обновления",
+    "settings.about.copySuccess":
+      "Информация о приложении скопирована в буфер обмена",
+    "settings.about.copyError":
+      "Не удалось скопировать информацию о приложении",
+    "settings.about.updatesError":
+      "Не удалось запустить проверку обновлений",
     "settings.other.title": "Другие настройки",
     "settings.other.hint":
       "Дополнительные параметры для детальной настройки поведения приложения.",
@@ -179,6 +202,7 @@ export const settingsTranslations = {
     "settings.tabs.wg": "Tools",
     "settings.tabs.backup": "Backup tool",
     "settings.tabs.appearance": "Appearance",
+    "settings.tabs.about": "About app",
     "settings.tabs.other": "Other",
     "settings.sections.menu": "Sections",
     "settings.sections.toggle": "Show settings sections",
@@ -273,6 +297,25 @@ export const settingsTranslations = {
     "settings.appearance.lowEffects.hint":
       "Disables animations and blur effects",
     "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
+    "settings.about.title": "About app",
+    "settings.about.hint":
+      "Brief information about Thunder Load, the app version, and its runtime.",
+    "settings.about.productTitle": "Thunder Load",
+    "settings.about.productHint":
+      "An Electron desktop app for media downloads and built-in utilities.",
+    "settings.about.appVersion": "App version",
+    "settings.about.electronVersion": "Electron version",
+    "settings.about.chromeVersion": "Chrome version",
+    "settings.about.nodeVersion": "Node version",
+    "settings.about.actionsTitle": "Actions",
+    "settings.about.actionsHint":
+      "Quick actions to review changes, copy app details, and check for updates.",
+    "settings.about.whatsNew": "What's new",
+    "settings.about.copyInfo": "Copy app info",
+    "settings.about.checkUpdates": "Check for updates",
+    "settings.about.copySuccess": "App information copied to clipboard",
+    "settings.about.copyError": "Failed to copy app information",
+    "settings.about.updatesError": "Failed to start update check",
     "settings.other.title": "Other settings",
     "settings.other.hint":
       "Additional parameters for fine‑tuning app behavior.",

@@ -28,9 +28,23 @@ function initElectronEvents() {
       const runtimeInfo =
         (await window.electron?.getRuntimeInfo?.()) || undefined;
       const electronVersion = runtimeInfo?.electron;
+      const chromeVersion = runtimeInfo?.chrome;
+      const nodeVersion = runtimeInfo?.node;
       const el3 = document.getElementById("settings-tabs-electron-version");
       if (el3 && electronVersion) {
         el3.textContent = `v${electronVersion}`;
+      }
+      const el4 = document.getElementById("settings-about-electron-version");
+      if (el4 && electronVersion) {
+        el4.textContent = `v${electronVersion}`;
+      }
+      const el5 = document.getElementById("settings-about-chrome-version");
+      if (el5 && chromeVersion) {
+        el5.textContent = `v${chromeVersion}`;
+      }
+      const el6 = document.getElementById("settings-about-node-version");
+      if (el6 && nodeVersion) {
+        el6.textContent = `v${nodeVersion}`;
       }
     } catch {}
   });

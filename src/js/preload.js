@@ -41,6 +41,7 @@ try {
   const VALID_CHANNELS = Object.freeze([
     "check-file-exists",
     "clear-history",
+    "check-app-updates",
     "delete-file",
     "download-update",
     "download-video",

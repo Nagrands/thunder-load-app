@@ -34,4 +34,19 @@ describe("settings template backup placement", () => {
     expect(html).not.toContain('data-value="light"');
     expect(html).not.toContain('name="first-run-theme" value="light"');
   });
+
+  test("includes about app tab and version fields in settings template", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('data-tab="about-settings"');
+    expect(html).toContain('<div id="about-settings" class="tab-pane">');
+    expect(html).toContain('id="settings-app-version"');
+    expect(html).toContain('id="settings-about-electron-version"');
+    expect(html).toContain('id="settings-about-chrome-version"');
+    expect(html).toContain('id="settings-about-node-version"');
+    expect(html).toContain('id="settings-about-whats-new-button"');
+    expect(html).toContain('id="settings-about-copy-info-button"');
+    expect(html).toContain('id="settings-about-check-updates-button"');
+  });
 });

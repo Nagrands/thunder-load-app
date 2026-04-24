@@ -14,6 +14,7 @@
 const CHANNELS = Object.freeze({
   CHECK_FILE_EXISTS: "check-file-exists",
   CLEAR_HISTORY: "clear-history",
+  CHECK_APP_UPDATES: "check-app-updates",
   DELETE_FILE: "delete-file",
   DOWNLOAD_UPDATE: "download-update",
   DOWNLOAD_VIDEO: "download-video",
