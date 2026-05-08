@@ -674,13 +674,20 @@ export default function renderBackup() {
 
   // Backup Hints Block
   const headerRight = container.querySelector("#backup-header-right");
+  const toolbar = container.querySelector("#bk-toolbar");
   const hintsBlock = document.createElement("div");
   hintsBlock.className = "info-card bk-hints";
   hintsBlock.innerHTML = `
     <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="backup.hints.title">${tb("hints.title")}</span></h3>
     <p class="bk-hint-text"></p>
   `;
-  headerRight?.appendChild(hintsBlock);
+  if (headerRight) {
+    headerRight.appendChild(hintsBlock);
+  } else if (toolbar) {
+    toolbar.after(hintsBlock);
+  } else {
+    container.appendChild(hintsBlock);
+  }
   applyI18n(hintsBlock);
 
   const hints = [

@@ -97,7 +97,7 @@ export const coreTranslations = {
     "actions.openFolder": "Открыть папку с видео",
     "actions.videoFolder": "Папка с видео",
     "tabs.download": "Загрузчик",
-    "tabs.products": "Продукты",
+    "tabs.products": "Format",
     "tabs.download.countOnly": "{base} ({count})",
     "tabs.download.progressOnly": "{base} - {progress}%",
     "tabs.download.progressWithCount": "{base} - {progress}% ({count})",

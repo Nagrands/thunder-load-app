@@ -65,7 +65,6 @@ const jobSummaryTitle = document.getElementById("downloader-job-summary-title");
 const jobSummaryMeta = document.getElementById("downloader-job-summary-meta");
 const QUEUE_LOG_TAG = "[queue]";
 
-const DOWNLOAD_HISTORY_CACHE_TTL_MS = 12000;
 let downloadedUrlCache = { ts: 0, map: new Map() };
 
 function updateDownloaderTabLabel() {
@@ -771,6 +770,28 @@ function buildDownloadedUrlMap(entries = []) {
   return map;
 }
 
+async function historyEntryFileExists(entry) {
+  const filePath = entry?.filePath;
+  if (!filePath) return true;
+  try {
+    return (
+      (await window.electron.invoke("check-file-exists", filePath)) === true
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function filterHistoryEntriesWithExistingFiles(entries = []) {
+  const checks = await Promise.all(
+    entries.map(async (entry) => ({
+      entry,
+      exists: await historyEntryFileExists(entry),
+    })),
+  );
+  return checks.filter(({ exists }) => exists).map(({ entry }) => entry);
+}
+
 function getDownloadedUrlMapSync() {
   try {
     const entries = getHistoryData();
@@ -780,15 +801,8 @@ function getDownloadedUrlMapSync() {
   }
 }
 
-async function getDownloadedUrlMap(forceRefresh = false) {
+async function getDownloadedUrlMap() {
   const now = Date.now();
-  if (
-    !forceRefresh &&
-    downloadedUrlCache.map.size > 0 &&
-    now - downloadedUrlCache.ts < DOWNLOAD_HISTORY_CACHE_TTL_MS
-  ) {
-    return downloadedUrlCache.map;
-  }
 
   let entries = [];
   try {
@@ -802,7 +816,12 @@ async function getDownloadedUrlMap(forceRefresh = false) {
   } catch {
     entries = [];
   }
-  downloadedUrlCache = { ts: now, map: buildDownloadedUrlMap(entries) };
+  const existingFileEntries =
+    await filterHistoryEntriesWithExistingFiles(entries);
+  downloadedUrlCache = {
+    ts: now,
+    map: buildDownloadedUrlMap(existingFileEntries),
+  };
   return downloadedUrlCache.map;
 }
 
@@ -1419,7 +1438,9 @@ const downloadVideo = async (url, quality, options = {}) => {
         sourceUrl,
       };
 
-      await addNewEntryToHistory(newLogEntry);
+      await addNewEntryToHistory(newLogEntry, {
+        replaceExistingFilePath: false,
+      });
       markAsDownloaded(sourceUrl || url, requestedDownloadKind);
       await updateDownloadCount();
 
@@ -2216,12 +2237,13 @@ function initDownloadButton() {
   refreshPendingQueueTitles();
 
   // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
-  window.addEventListener("queue:addMany", (e) => {
+  window.addEventListener("queue:addMany", async (e) => {
     const urls = Array.isArray(e.detail?.urls) ? e.detail.urls : [];
     const q = e.detail?.quality || lastChosenQuality || t("quality.source");
-    const res = enqueueMany(urls, q, {});
+    const downloadedMap = await getDownloadedUrlMap();
+    const res = enqueueMany(urls, q, { downloadedMap });
     console.log(QUEUE_LOG_TAG, "enqueueMany-event", { count: urls.length });
-    if (res.added || res.duplicates || res.invalid) {
+    if (res.added || res.duplicates || res.invalid || res.alreadyDownloaded) {
       showToast(
         t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
         "info",

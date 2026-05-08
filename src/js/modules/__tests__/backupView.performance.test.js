@@ -121,38 +121,33 @@ describe("backupView performance behaviors", () => {
     expect(clearIntervalSpy).toHaveBeenCalled();
   });
 
-  test("renders downloader-like backup header and places hints in header right slot", async () => {
+  test("renders compact backup toolbar and keeps hints detached from the toolbar", async () => {
     setupBootstrapTooltipMock();
     setupWindowElectronMock();
     const view = renderBackup();
     document.body.appendChild(view);
     await flush();
 
-    const header = view.querySelector(".backup-shell-header");
-    const headerRight = view.querySelector("#backup-header-right");
+    const toolbar = view.querySelector("#bk-toolbar");
+    const heading = view.querySelector(".section-heading");
     const hints = view.querySelector(".bk-hints");
 
-    expect(header).toBeTruthy();
-    expect(header?.querySelector(".title-content")).toBeTruthy();
-    expect(headerRight).toBeTruthy();
+    expect(toolbar).toBeTruthy();
+    expect(heading).toBeTruthy();
+    expect(heading?.querySelector("#bk-open-delete-modal")).toBeTruthy();
+    expect(heading?.querySelector("#bk-filter")).toBeTruthy();
+    expect(heading?.querySelector(".bk-actions")).toBeTruthy();
     expect(hints).toBeTruthy();
-    expect(header?.contains(hints)).toBe(true);
-    expect(headerRight?.contains(hints)).toBe(true);
+    expect(toolbar?.contains(hints)).toBe(false);
   });
 
-  test("uses localized backup header and toolbar strings in initial markup", async () => {
+  test("uses localized backup toolbar strings in initial markup", async () => {
     setupBootstrapTooltipMock();
     setupWindowElectronMock();
     const view = renderBackup();
     document.body.appendChild(view);
     await flush();
 
-    expect(view.querySelector("[data-i18n='backup.title']")?.textContent).toBe(
-      "backup.title",
-    );
-    expect(
-      view.querySelector("[data-i18n='backup.subtitle']")?.textContent,
-    ).toBe("backup.subtitle");
     expect(view.querySelector("#bk-toolbar")?.getAttribute("aria-label")).toBe(
       "backup.toolbar.aria",
     );

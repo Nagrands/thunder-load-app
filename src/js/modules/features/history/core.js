@@ -3566,17 +3566,21 @@ const loadHistory = async (forceRender = false) => {
   }
 };
 
-const addNewEntryToHistory = async (newEntryRaw) => {
+const addNewEntryToHistory = async (
+  newEntryRaw,
+  { replaceExistingFilePath = true } = {},
+) => {
   try {
     const normalized = await normalizeEntry(newEntryRaw);
     normalized._highlight = true;
 
     const existingHistory = getHistoryData();
-    const existingIndex = normalized.filePath
-      ? existingHistory.findIndex(
-          (entry) => entry.filePath === normalized.filePath,
-        )
-      : -1;
+    const existingIndex =
+      replaceExistingFilePath && normalized.filePath
+        ? existingHistory.findIndex(
+            (entry) => entry.filePath === normalized.filePath,
+          )
+        : -1;
 
     let removedPreviews = [];
     if (existingIndex !== -1) {

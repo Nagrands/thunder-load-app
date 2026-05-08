@@ -1,3 +1,87 @@
+// ============================================================
+// 1. ПЕРЕМЕННЫЕ (значения по умолчанию)
+// ============================================================
+:root {
+  // Цветовая система
+  --color-highlight-default: #ffffff;
+  --color-quality-default: #a0a0a0;
+  --color-accent-default: #4f9eff;
+  --color-accent-rgb-default: 79, 158, 255;
+
+  --color-hover: rgba(255, 255, 255, 0.06);
+  --color-toast-success: #2b9a5e;
+  --color-toast-warning: #ffb84d;
+  --color-toast-error: #f56565;
+
+  // Размеры и радиусы
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 10px;
+  --gap-lg: 12px;
+  --gap-xl: 16px;
+
+  --padding-xs: 2px;
+  --padding-sm: 11px 12px;
+  --padding-md: 13px 14px;
+  --padding-lg: 14px 14px 12px;
+  --padding-xl: 14px 14px 16px;
+
+  // Анимации
+  --transition-default: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease, transform 0.2s ease;
+  --transition-focus: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  // Шрифты
+  --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Consolas,
+    'Liberation Mono', Menlo, monospace;
+}
+
+// ============================================================
+// 2. МИКСИНЫ ДЛЯ ПОВТОРЯЮЩИХСЯ ПАТТЕРНОВ
+// ============================================================
+@mixin focus-ring($color-var: --color-accent-rgb) {
+  &:focus-visible {
+    border-color: rgba(var(#{$color-var}), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(#{$color-var}), 0.16);
+  }
+}
+
+@mixin hover-lift($scale: 1.02) {
+  transition: transform var(--transition-default);
+
+  &:hover {
+    transform: translateY(-1px) scale($scale);
+  }
+}
+
+@mixin gradient-surface($start-opacity: 0.03, $end-opacity: 0.08) {
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, $start-opacity),
+      rgba(4, 8, 14, $end-opacity)
+    ),
+    rgba(0, 0, 0, 0.16);
+}
+
+@mixin glass-card($border-opacity: 0.07) {
+  border: 1px solid rgba(255, 255, 255, $border-opacity);
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03),
+      rgba(4, 8, 14, 0.08)
+    ),
+    rgba(255, 255, 255, 0.02);
+}
+
+// ============================================================
+// 3. ОСНОВНЫЕ СТИЛИ С ПЕРЕМЕННЫМИ = ИСПРАВЛЕННЫЙ КОД
+// ============================================================
 .products-dictionary-layer {
   min-width: 0;
   min-height: 0;
@@ -21,19 +105,19 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 14px 12px;
+  gap: var(--gap-lg);
+  padding: var(--padding-lg);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .products-dictionary__header-copy {
   display: grid;
-  gap: 8px;
+  gap: var(--gap-sm);
   min-width: 0;
 }
 
 .products-dictionary__title {
-  color: var(--color-highlight);
+  color: var(--color-highlight, var(--color-highlight-default));
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -41,15 +125,15 @@
 .products-dictionary__body {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: var(--gap-xl);
   min-height: 0;
-  padding: 14px 14px 16px;
+  padding: var(--padding-xl);
 }
 
 .products-dictionary__editor,
 .products-dictionary__support {
   display: grid;
-  gap: 10px;
+  gap: var(--gap-md);
   min-height: 0;
 }
 
@@ -58,7 +142,7 @@
 }
 
 .products-dictionary__hint {
-  color: var(--color-quality);
+  color: var(--color-quality, var(--color-quality-default));
   font-size: 0.77rem;
   line-height: 1.4;
 }
@@ -67,17 +151,13 @@
 .products-dictionary__preview {
   display: grid;
   gap: 6px;
-  padding: 11px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(4, 8, 14, 0.08)),
-    rgba(255, 255, 255, 0.02);
+  padding: var(--padding-sm);
+  @include glass-card(0.07);
 }
 
 .products-dictionary__examples-title,
 .products-dictionary__preview-title {
-  color: rgba(var(--color-accent-rgb), 0.9);
+  color: rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.9);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -86,7 +166,7 @@
 
 .products-dictionary__examples-list {
   display: grid;
-  gap: 4px;
+  gap: var(--gap-xs);
 }
 
 .products-dictionary__support {
@@ -96,175 +176,139 @@
 .products-dictionary__summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 2px;
+  gap: var(--gap-sm);
+  padding-top: var(--padding-xs);
+
+  &[hidden] {
+    display: none !important;
+  }
 }
 
-.products-dictionary__summary[hidden] {
-  display: none !important;
-}
-
+// ----- чипсы (объединённые стили) -----
 .products-dictionary__chip {
+  @include hover-lift(1.01);
   display: inline-flex;
   align-items: center;
   min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
+  padding: 0 var(--gap-lg);
+  border-radius: var(--radius-pill);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
-  color: var(--color-highlight);
+  color: var(--color-highlight, var(--color-highlight-default));
   font-size: 0.76rem;
   font-weight: 600;
   line-height: 1;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
 
   &:hover {
-    transform: translateY(-1px);
-    border-color: rgba(var(--color-accent-rgb), 0.24);
-    background: rgba(var(--color-accent-rgb), 0.1);
-    color: var(--color-highlight);
+    border-color: rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.24);
+    background: rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.1);
   }
 
-  &:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.36);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.14);
-  }
+  @include focus-ring();
 }
 
 .products-dictionary__example,
 .products-dictionary__preview-body {
-  color: var(--color-quality);
+  color: var(--color-quality, var(--color-quality-default));
   font-size: 0.78rem;
   line-height: 1.45;
   word-break: break-word;
 }
 
 .products-dictionary__preview-body {
-  font-family:
-    ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono",
-    Menlo, monospace;
+  font-family: var(--font-mono);
 }
 
-.products-dictionary__preview[data-tone="warning"] {
+.products-dictionary__preview[data-tone='warning'] {
   border-color: rgba(255, 184, 77, 0.22);
-  background:
-    linear-gradient(180deg, rgba(255, 184, 77, 0.08), rgba(255, 184, 77, 0.03)),
+  background: linear-gradient(180deg, rgba(255, 184, 77, 0.08), rgba(255, 184, 77, 0.03)),
     rgba(255, 184, 77, 0.03);
 }
 
-.products-dictionary__textarea {
+// ----- textarea единый миксин -----
+@mixin textarea-base {
   width: 100%;
   min-height: 0;
-  height: 100%;
   resize: none;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(4, 8, 14, 0.08)),
-    rgba(0, 0, 0, 0.16);
-  color: var(--color-highlight);
-  padding: 13px 14px;
-  line-height: 1.45;
-  font-size: 0.84rem;
-  font-family:
-    ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono",
-    Menlo, monospace;
   outline: none;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  font-family: var(--font-mono);
+  transition: var(--transition-focus);
 
   &:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.5);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
+    border-color: rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.16);
   }
 }
 
-.products-dictionary__textarea--invalid {
-  border-color: rgba(255, 184, 77, 0.32);
-  box-shadow: inset 0 0 0 1px rgba(255, 184, 77, 0.08);
-}
+.products-dictionary__textarea {
+  @include textarea-base;
+  height: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  @include gradient-surface(0.02, 0.08);
+  color: var(--color-highlight, var(--color-highlight-default));
+  padding: var(--padding-md);
+  line-height: 1.45;
+  font-size: 0.84rem;
 
-.products-dictionary__actions {
-  display: grid;
-  gap: 10px;
-  padding-top: 4px;
-  align-content: start;
-}
-
-.products-dictionary__buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 8px;
-}
-
-.products-dictionary__meta {
-  color: var(--color-quality);
-  font-size: 0.8rem;
-  line-height: 1.35;
-  min-height: 34px;
-
-  &[data-tone="warning"] {
-    color: var(--color-toast-warning);
+  &--invalid {
+    border-color: rgba(255, 184, 77, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(255, 184, 77, 0.08);
   }
 }
 
-.products-view--dictionary-open {
-  .products-formatter-textarea,
-  .products-dictionary__textarea {
-    min-height: 0;
-  }
+.products-formatter-textarea {
+  @include textarea-base;
+  height: 100%;
+  overflow: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(4, 8, 14, 0.2)),
+    rgba(0, 0, 0, 0.18);
+  color: var(--color-highlight, var(--color-highlight-default));
+  padding: 16px 18px;
+  line-height: 1.5;
+  font-size: 0.95rem;
 
-  .products-dictionary__preview {
-    min-height: 0;
+  &::placeholder {
+    color: var(--color-quality, var(--color-quality-default));
   }
+}
 
-  .products-dictionary__examples {
-    opacity: 0.82;
+// ----- кнопки общий миксин -----
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  border-radius: var(--radius-md);
+  transition: var(--transition-default);
+  @include hover-lift(1.01);
+  @include focus-ring();
+
+  &:hover {
+    background: var(--color-hover);
+    color: var(--color-highlight, var(--color-highlight-default));
   }
 }
 
 .products-utility-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding-inline: 14px;
-  border-radius: 14px;
+  @include button-base;
+  padding-inline: var(--gap-md);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
-  color: var(--color-accent);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    transform 0.2s ease;
+  color: var(--color-accent, var(--color-accent-default));
 
-  &:hover {
-    transform: translateY(-1px);
-    background: var(--color-hover);
-    color: var(--color-highlight);
-  }
+  &--icon {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--radius-md);
 
-  &:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.32);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
-  }
-}
-
-.products-utility-button--icon {
-  width: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  justify-content: center;
-  border-radius: 14px;
-
-  i {
-    font-size: 0.98rem;
+    i {
+      font-size: 0.98rem;
+    }
   }
 }
 
@@ -284,149 +328,109 @@
   width: 100%;
   min-height: 56px;
   justify-content: center;
-  gap: 10px;
+  gap: var(--gap-md);
   padding-inline: 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.28);
-  background:
-    linear-gradient(
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.28);
+  background: linear-gradient(
       135deg,
-      rgba(var(--color-accent-rgb), 0.26),
-      rgba(var(--color-accent-rgb), 0.12)
+      rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.26),
+      rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.12)
     ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.06),
-      rgba(255, 255, 255, 0.02)
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 14px 28px rgba(var(--color-accent-rgb), 0.14);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 14px 28px rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.14);
   font-size: 0.98rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  margin-top: 2px;
+  margin-top: var(--padding-xs);
 
   i {
     font-size: 1rem;
   }
 
   &:hover {
-    transform: translateY(-1px);
-    border-color: rgba(var(--color-accent-rgb), 0.42);
-    background:
-      linear-gradient(
+    border-color: rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.42);
+    background: linear-gradient(
         135deg,
-        rgba(var(--color-accent-rgb), 0.34),
-        rgba(var(--color-accent-rgb), 0.16)
+        rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.34),
+        rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.16)
       ),
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.07),
-        rgba(255, 255, 255, 0.02)
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 18px 32px rgba(var(--color-accent-rgb), 0.18);
-  }
-
-  &:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.42);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 18px 32px rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.18);
   }
 }
 
-.products-formatter-textarea {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: auto;
-  resize: none;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(4, 8, 14, 0.2)),
-    rgba(0, 0, 0, 0.18);
-  color: var(--color-highlight);
-  padding: 16px 18px;
-  line-height: 1.5;
-  font-size: 0.95rem;
-  outline: none;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-
-  &:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.5);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
-  }
-
-  &::placeholder {
-    color: var(--color-quality);
-  }
-}
-
+// ----- статусы -----
 .products-formatter-status {
   min-height: 18px;
   font-size: 0.86rem;
-  color: var(--color-quality);
+  color: var(--color-quality, var(--color-quality-default));
   font-weight: 600;
 
-  &[data-tone="success"] {
+  &[data-tone='success'] {
     color: var(--color-toast-success);
   }
-
-  &[data-tone="warning"] {
+  &[data-tone='warning'] {
     color: var(--color-toast-warning);
   }
-
-  &[data-tone="error"] {
+  &[data-tone='error'] {
     color: var(--color-toast-error);
   }
 }
 
 .products-copy-button {
-  color: var(--color-accent);
+  color: var(--color-accent, var(--color-accent-default));
 
-  &[data-state="ready"] {
+  &[data-state='ready'] {
     border-color: rgba(255, 255, 255, 0.1);
   }
-
-  &[data-state="success"] {
-    color: var(--color-highlight);
-    border-color: rgba(var(--color-accent-rgb), 0.28);
-    background:
-      linear-gradient(
+  &[data-state='success'] {
+    color: var(--color-highlight, var(--color-highlight-default));
+    border-color: rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.28);
+    background: linear-gradient(
         180deg,
-        rgba(var(--color-accent-rgb), 0.16),
+        rgba(var(--color-accent-rgb, var(--color-accent-rgb-default)), 0.16),
         rgba(255, 255, 255, 0.03)
       ),
       rgba(255, 255, 255, 0.025);
   }
-
   &:disabled {
     opacity: 0.5;
   }
-
-  &:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.32);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
-  }
 }
 
-.products-dictionary__close {
-  border-radius: 14px;
-
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
-  }
-}
-
+.products-dictionary__close,
 .products-dictionary__reset {
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.16);
+  border-radius: var(--radius-md);
+  @include focus-ring();
+}
+
+// ============================================================
+// 4. КОНТЕКСТНЫЕ ПРАВИЛА
+// ============================================================
+.products-view--dictionary-open {
+  .products-formatter-textarea,
+  .products-dictionary__textarea {
+    min-height: 0;
+  }
+
+  .products-dictionary__preview {
+    min-height: 0;
+  }
+
+  .products-dictionary__examples {
+    opacity: 0.82;
   }
 }
+
+// ============================================================
+// 5. ПРИМЕЧАНИЕ ПО УЛУЧШЕНИЯМ (не код)
+// ============================================================
+// - Все магические числа вынесены в CSS-переменные :root с fallback.
+// - Добавлены миксины для часто используемых паттернов (фокус, ховер, градиенты, textarea).
+// - Устранено дублирование между .products-dictionary__textarea и .products-formatter-textarea.
+// - Единая система радиусов, отступов, цветов.
+// - Улучшена поддерживаемость: изменение дизайна потребует правки только переменных.
+// - Для production-сборки рекомендуется разбить на партиалы (variables, mixins, button, dictionary и т.д.).

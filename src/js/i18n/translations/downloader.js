@@ -147,8 +147,7 @@ export const downloaderTranslations = {
     "download.url.invalid": "Введите корректный URL.",
     "download.url.active": "URL уже загружается.",
     "download.url.queued": "URL уже есть в очереди.",
-    "download.url.downloaded":
-      "Этот URL уже есть в истории для выбранного режима.",
+    "download.url.downloaded": "Файл уже загружен для выбранного режима.",
     "download.complete.title": "Загрузка завершена!",
     "download.complete.savedAt": "Файл сохранен по пути:",
     "download.complete.openPrompt": "Открыть файл?",
@@ -394,7 +393,7 @@ export const downloaderTranslations = {
     "download.url.active": "This URL is already downloading.",
     "download.url.queued": "This URL is already queued.",
     "download.url.downloaded":
-      "This URL already exists in history for the selected mode.",
+      "The file is already downloaded for the selected mode.",
     "download.complete.title": "Download complete!",
     "download.complete.savedAt": "File saved at:",
     "download.complete.openPrompt": "Open file?",
