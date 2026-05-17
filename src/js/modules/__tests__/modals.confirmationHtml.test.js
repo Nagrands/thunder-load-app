@@ -98,4 +98,43 @@ describe("showConfirmationDialog (allowHtml)", () => {
     confirmationModal.querySelector(".close-modal").click();
     await expect(resultPromise).resolves.toBe(false);
   });
+
+  test("returns custom confirm, cancel, and close results", async () => {
+    const confirmationModal = createConfirmationModalDom();
+    jest.doMock("../domElements.js", () => ({
+      confirmationModal,
+      shortcutsModal: null,
+      whatsNewModal: null,
+      settingsModal: null,
+    }));
+
+    const { showConfirmationDialog } = await import("../modals.js");
+
+    const confirmPromise = showConfirmationDialog({
+      message: "Confirm result",
+      confirmResult: "all",
+      cancelResult: "single",
+      closeResult: false,
+    });
+    confirmationModal.querySelector(".confirm-button").click();
+    await expect(confirmPromise).resolves.toBe("all");
+
+    const cancelPromise = showConfirmationDialog({
+      message: "Cancel result",
+      confirmResult: "all",
+      cancelResult: "single",
+      closeResult: false,
+    });
+    confirmationModal.querySelector(".cancel-button").click();
+    await expect(cancelPromise).resolves.toBe("single");
+
+    const closePromise = showConfirmationDialog({
+      message: "Close result",
+      confirmResult: "all",
+      cancelResult: "single",
+      closeResult: false,
+    });
+    confirmationModal.querySelector(".close-modal").click();
+    await expect(closePromise).resolves.toBe(false);
+  });
 });

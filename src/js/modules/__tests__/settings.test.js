@@ -741,6 +741,46 @@ describe("downloader tools status visibility toggle", () => {
   });
 });
 
+describe("downloader auto quality modal toggle", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({ success: true }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  it("defaults to enabled and stores disabled state", async () => {
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <input type="checkbox" id="settings-auto-open-quality-modal" />
+      </div>`;
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+
+    const checkbox = document.getElementById(
+      "settings-auto-open-quality-modal",
+    );
+    expect(checkbox?.checked).toBe(true);
+    expect(localStorage.getItem("downloadAutoOpenQualityModal")).toBeNull();
+
+    let eventDetail = null;
+    window.addEventListener("download:auto-quality-modal-changed", (event) => {
+      eventDetail = event?.detail || null;
+    });
+
+    checkbox.checked = false;
+    checkbox.dispatchEvent(new Event("change"));
+
+    expect(localStorage.getItem("downloadAutoOpenQualityModal")).toBe("0");
+    expect(eventDetail).toEqual({ enabled: false });
+  });
+});
+
 describe("downloader behavior toggles", () => {
   beforeEach(() => {
     jest.resetModules();

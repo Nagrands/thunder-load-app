@@ -224,10 +224,12 @@ describe("tray runtime behavior", () => {
     const tray = Tray.mock.results[0].value;
     const trayImageCallIndex = nativeImage.createFromPath.mock.calls.findIndex(
       ([iconPath]) =>
-        String(iconPath).includes("assets/icons/tray/tray-icon-macos-template.png"),
+        String(iconPath).includes(
+          "assets/icons/tray/tray-icon-macos-template.png",
+        ),
     );
-    const trayImage = nativeImage.createFromPath.mock.results[trayImageCallIndex]
-      .value;
+    const trayImage =
+      nativeImage.createFromPath.mock.results[trayImageCallIndex].value;
     const startedHandler = ipcMain.on.mock.calls.find(
       ([event]) => event === "download-started",
     )[1];

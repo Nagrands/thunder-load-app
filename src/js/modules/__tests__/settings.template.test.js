@@ -49,4 +49,14 @@ describe("settings template backup placement", () => {
     expect(html).toContain('id="settings-about-copy-info-button"');
     expect(html).toContain('id="settings-about-check-updates-button"');
   });
+
+  test("includes auto quality modal toggle in downloader settings", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('id="settings-auto-open-quality-modal"');
+    expect(html).toContain(
+      'data-i18n-html="settings.downloader.autoQualityModal"',
+    );
+  });
 });

@@ -213,7 +213,10 @@ function getCoverGenre(title) {
   );
 }
 
-function renderPrimaryButtonLabel(label, { queue = false, disabled = false } = {}) {
+function renderPrimaryButtonLabel(
+  label,
+  { queue = false, disabled = false } = {},
+) {
   if (!primaryBtn) return;
   const icon = queue
     ? '<i class="fa-solid fa-list-check" aria-hidden="true"></i>'

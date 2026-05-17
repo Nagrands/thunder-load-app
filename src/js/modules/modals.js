@@ -82,6 +82,9 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     tone = "danger",
     singleButton = false,
     allowHtml = false,
+    confirmResult = true,
+    cancelResult = false,
+    closeResult = false,
     onConfirm: confirmCb,
     onCancel: cancelCb,
   } = opts;
@@ -152,7 +155,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
       try {
         if (typeof confirmCb === "function") await confirmCb();
         if (typeof onConfirm === "function") await onConfirm();
-        finalize(true);
+        finalize(confirmResult);
       } catch (err) {
         console.error("Ошибка в обработчике подтверждения:", err);
       } finally {
@@ -160,7 +163,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
       }
     };
 
-    const onCancelClick = () => {
+    const onCancelClick = (result = cancelResult) => {
       try {
         if (typeof cancelCb === "function") cancelCb();
         if (typeof onCancel === "function") onCancel();
@@ -168,9 +171,12 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
         console.error("Ошибка в обработчике отмены:", err);
       } finally {
         closeModal();
-        finalize(false);
+        finalize(result);
       }
     };
+
+    const onCancelButtonClick = () => onCancelClick(cancelResult);
+    const onCloseClick = () => onCancelClick(closeResult);
 
     const closeModal = (returnFocus = true) => {
       confirmationModal.style.display = "none";
@@ -180,15 +186,15 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
       releaseOverlayActive(CONFIRMATION_MODAL_OVERLAY_OWNER);
       cancelButton.style.display = "";
       confirmButton.removeEventListener("click", onConfirmClick);
-      cancelButton.removeEventListener("click", onCancelClick);
-      closeModalIcon.removeEventListener("click", onCancelClick);
+      cancelButton.removeEventListener("click", onCancelButtonClick);
+      closeModalIcon.removeEventListener("click", onCloseClick);
       window.removeEventListener("keydown", onKeyDown);
       if (returnFocus) confirmButton.blur();
     };
 
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
-        onCancelClick();
+        onCancelClick(closeResult);
       } else if (event.key === "Enter") {
         onConfirmClick();
       }
@@ -198,8 +204,8 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
 
     // Добавляем слушатели событий
     confirmButton.addEventListener("click", onConfirmClick);
-    cancelButton.addEventListener("click", onCancelClick);
-    closeModalIcon.addEventListener("click", onCancelClick);
+    cancelButton.addEventListener("click", onCancelButtonClick);
+    closeModalIcon.addEventListener("click", onCloseClick);
     window.addEventListener("keydown", onKeyDown);
 
     // Показываем модальное окно

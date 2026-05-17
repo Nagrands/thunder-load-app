@@ -1666,6 +1666,19 @@
                           <li class="settings-control">
                             <input
                               type="checkbox"
+                              id="settings-auto-open-quality-modal"
+                              checked
+                            />
+                            <label for="settings-auto-open-quality-modal">
+                              <i class="fa-solid fa-sliders"></i>
+                              <span data-i18n-html="settings.downloader.autoQualityModal">
+                                Автоматически открывать <strong>выбор качества</strong> после вставки URL
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
                               id="settings-disable-complete-modal-toggle"
                             />
                             <label for="settings-disable-complete-modal-toggle">
@@ -2887,8 +2900,9 @@
             data-i18n-title="footer.openSettings"
             aria-label="Открыть настройки приложения"
             data-i18n-aria="footer.openSettingsAria"
+            data-hotkey="Ctrl+,"
           >
-            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
           </button>
 
           <button

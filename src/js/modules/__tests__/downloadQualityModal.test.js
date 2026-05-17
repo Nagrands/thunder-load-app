@@ -438,7 +438,8 @@ describe("downloadQualityModal close behavior", () => {
     await jest.isolateModulesAsync(async () => {
       window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
         success: true,
-        title: 'Far Cry 5 X New Dawn | "When the Morning Light Shines In/New Dawn"',
+        title:
+          'Far Cry 5 X New Dawn | "When the Morning Light Shines In/New Dawn"',
         uploader: "Uploader",
         duration: 120,
         thumbnail: "https://cdn.example.com/preview.jpg",

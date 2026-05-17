@@ -16,6 +16,7 @@ export const DEFAULT_CONFIG = {
     openOnCopyUrl: false,
     disableCompleteModal: true,
     downloadQualityProfile: QUALITY_PROFILE_DEFAULT,
+    autoOpenQualityModal: true,
     showToolsStatus: true,
   },
   appearance: {

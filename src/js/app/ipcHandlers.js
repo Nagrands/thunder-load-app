@@ -10,7 +10,10 @@ const {
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { CHANNELS } = require("../ipc/channels");
-const { resolveIconPathFromAppDir, resolveIconPathFrom } = require("./iconPaths");
+const {
+  resolveIconPathFromAppDir,
+  resolveIconPathFrom,
+} = require("./iconPaths");
 
 const { getToolsVersions } = require("./toolsVersions");
 const {
@@ -2829,7 +2832,9 @@ function setupIpcHandlers(dependencies) {
     const iconCandidates = [];
 
     if (typeof process.resourcesPath === "string" && process.resourcesPath) {
-      iconCandidates.push(resolveIconPathFrom(process.resourcesPath, "APP_ICON_ICO"));
+      iconCandidates.push(
+        resolveIconPathFrom(process.resourcesPath, "APP_ICON_ICO"),
+      );
     }
 
     if (typeof appPath === "string" && appPath) {

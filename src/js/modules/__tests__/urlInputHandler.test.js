@@ -378,6 +378,63 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
+  test("auto-opens quality selection after pasted URL resolves with preview and formats", async () => {
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("does not auto-open quality selection when preview or formats are missing", async () => {
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+
+    expect(clickSpy).not.toHaveBeenCalled();
+  });
+
+  test("does not auto-open quality selection when the setting is disabled", async () => {
+    localStorage.setItem("downloadAutoOpenQualityModal", "0");
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+
+    expect(clickSpy).not.toHaveBeenCalled();
+  });
+
   test("does not request preview for invalid URL and keeps preview hidden", () => {
     const { input, previewCard } = getState();
     input.value = "bad-url";

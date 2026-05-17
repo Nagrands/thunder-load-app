@@ -1130,6 +1130,38 @@ async function initSettings() {
   })();
 
   // Переключатель отображения статуса инструментов в шапке Загрузчика
+  (function initAutoOpenQualityModalToggle() {
+    const checkbox = document.getElementById(
+      "settings-auto-open-quality-modal",
+    );
+    if (!checkbox) return;
+    const KEY = "downloadAutoOpenQualityModal";
+    const syncFromStore = () => {
+      try {
+        checkbox.checked = localStorage.getItem(KEY) !== "0";
+      } catch {
+        checkbox.checked = true;
+      }
+    };
+    syncFromStore();
+    checkbox.addEventListener("change", () => {
+      const enabled = checkbox.checked;
+      try {
+        if (enabled) localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, "0");
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("download:auto-quality-modal-changed", {
+          detail: { enabled },
+        }),
+      );
+    });
+    window.addEventListener("download:auto-quality-modal-changed", (ev) => {
+      checkbox.checked = ev?.detail?.enabled !== false;
+    });
+  })();
+
+  // Переключатель отображения статуса инструментов в шапке Загрузчика
   (function initToolsStatusVisibilityToggle() {
     const checkbox = document.getElementById("settings-show-tools-status");
     if (!checkbox) return;
@@ -1222,6 +1254,13 @@ async function collectCurrentConfig() {
       return true;
     }
   })();
+  const autoOpenQualityModal = (() => {
+    try {
+      return localStorage.getItem("downloadAutoOpenQualityModal") !== "0";
+    } catch {
+      return true;
+    }
+  })();
   const firstRunCompleted = (() => {
     try {
       return localStorage.getItem("firstRunCompleted") === "1";
@@ -1283,6 +1322,7 @@ async function collectCurrentConfig() {
       openOnCopyUrl,
       disableCompleteModal,
       downloadQualityProfile: qualityProfile,
+      autoOpenQualityModal,
       showToolsStatus,
     },
     appearance: {
@@ -1331,6 +1371,14 @@ async function applyConfig(config, options = {}) {
       QUALITY_PROFILE_KEY,
       cfg.window.downloadQualityProfile || QUALITY_PROFILE_DEFAULT,
     );
+  } catch {}
+
+  try {
+    if (cfg.window.autoOpenQualityModal) {
+      localStorage.removeItem("downloadAutoOpenQualityModal");
+    } else {
+      localStorage.setItem("downloadAutoOpenQualityModal", "0");
+    }
   } catch {}
 
   try {

@@ -50,7 +50,8 @@ export function initDeveloperToolsGate() {
     if (options) options.hidden = !enabled;
     if (disableDownloaderTabToggle) {
       if (enabled) {
-        disableDownloaderTabToggle.checked = readDeveloperDisableDownloaderTab();
+        disableDownloaderTabToggle.checked =
+          readDeveloperDisableDownloaderTab();
       } else {
         resetDownloaderTabToggle();
       }

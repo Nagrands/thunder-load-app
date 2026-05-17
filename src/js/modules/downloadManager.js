@@ -64,6 +64,10 @@ const jobSummary = document.getElementById("downloader-job-summary");
 const jobSummaryTitle = document.getElementById("downloader-job-summary-title");
 const jobSummaryMeta = document.getElementById("downloader-job-summary-meta");
 const QUEUE_LOG_TAG = "[queue]";
+const QUEUE_START_MODE = Object.freeze({
+  single: "single",
+  all: "all",
+});
 
 let downloadedUrlCache = { ts: 0, map: new Map() };
 
@@ -1535,6 +1539,45 @@ function pumpDownloadPool(reason = "auto") {
   }
 }
 
+async function resolveQueueStartMode(pendingCount) {
+  if (pendingCount <= 1) return QUEUE_START_MODE.all;
+  const result = await showConfirmationDialog({
+    title: t("queue.startChoice.title"),
+    subtitle: t("queue.startChoice.subtitle"),
+    message: t("queue.startChoice.message", { count: pendingCount }),
+    confirmText: t("queue.startChoice.all"),
+    cancelText: t("queue.startChoice.single"),
+    tone: "warning",
+    confirmResult: QUEUE_START_MODE.all,
+    cancelResult: QUEUE_START_MODE.single,
+    closeResult: false,
+  });
+  return result;
+}
+
+function startSinglePendingQueueItem() {
+  const next = getPendingDownloadJobs(state)[0];
+  if (!next) return false;
+  const signature = getQueueSignature(next.url, next.quality);
+  if (getCurrentDownloadSignatures().has(signature)) return false;
+  queuePumpReservations.add(signature);
+  Promise.resolve(
+    initiateDownload(next.url, next.quality, {
+      fromQueue: true,
+      initialTitle: next.title || "",
+    }),
+  ).finally(() => {
+    queuePumpReservations.delete(signature);
+  });
+  persistQueue();
+  updateQueueDisplay();
+  showQueueStartIndicator();
+  console.log(QUEUE_LOG_TAG, "manual-start-single", {
+    url: next.url,
+  });
+  return true;
+}
+
 const initiateDownload = async (url, quality, options = {}) => {
   const { fromQueue = false, initialTitle = "" } = options;
   const signature = getQueueSignature(url, quality);
@@ -2149,16 +2192,21 @@ function initDownloadButton() {
   }
 
   if (queueStartButton) {
-    queueStartButton.addEventListener("click", () => {
-      if (
-        getPendingDownloadJobs(state).length === 0 ||
-        getActiveDownloadJobs(state).length > 0
-      )
-        return;
-      state.suppressAutoPump = false;
-      state.queuePaused = false;
-      console.log(QUEUE_LOG_TAG, "manual-start");
-      pumpDownloadPool("manual");
+    queueStartButton.addEventListener("click", async () => {
+      const pendingCount = getPendingDownloadJobs(state).length;
+      if (pendingCount === 0 || getActiveDownloadJobs(state).length > 0) return;
+      const startMode = await resolveQueueStartMode(pendingCount);
+      if (!startMode) return;
+      if (startMode === QUEUE_START_MODE.single) {
+        state.suppressAutoPump = true;
+        state.queuePaused = true;
+        startSinglePendingQueueItem();
+      } else {
+        state.suppressAutoPump = false;
+        state.queuePaused = false;
+        console.log(QUEUE_LOG_TAG, "manual-start");
+        pumpDownloadPool("manual");
+      }
       updateQueueDisplay();
     });
   }

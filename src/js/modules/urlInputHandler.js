@@ -32,6 +32,7 @@ const LIVE_PREVIEW_RETRY_HANDLER_KEY =
   "__thunderLoadDownloaderLivePreviewRetryHandler";
 const LIVE_PREVIEW_STATE_HANDLER_KEY =
   "__thunderLoadDownloaderLivePreviewStateHandler";
+const AUTO_OPEN_QUALITY_MODAL_KEY = "downloadAutoOpenQualityModal";
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
@@ -96,6 +97,44 @@ function initUrlInputHandler() {
   let livePreviewButton = null;
   let currentLivePreview = null;
   let livePreviewOpen = false;
+  let pendingAutoQualityUrl = "";
+
+  const isAutoQualityModalEnabled = () => {
+    try {
+      return localStorage.getItem(AUTO_OPEN_QUALITY_MODAL_KEY) !== "0";
+    } catch {
+      return true;
+    }
+  };
+
+  const markAutoQualityCandidate = (value) => {
+    const normalized = normalizeUrlInput(value).trim();
+    pendingAutoQualityUrl =
+      normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
+        ? normalized
+        : "";
+  };
+
+  const hasUsableQualityInfo = (data) =>
+    !!data?.success &&
+    !!String(data?.title || "").trim() &&
+    !!String(data?.thumbnail || "").trim() &&
+    Array.isArray(data?.formats) &&
+    data.formats.length > 0;
+
+  const maybeOpenQualityModalAfterPaste = (url, data) => {
+    if (!pendingAutoQualityUrl || pendingAutoQualityUrl !== url) return;
+    if (!isAutoQualityModalEnabled() || !hasUsableQualityInfo(data)) {
+      pendingAutoQualityUrl = "";
+      return;
+    }
+    const qualityModal = document.getElementById("download-quality-modal");
+    if (qualityModal?.classList.contains("is-open")) return;
+    const downloadBtn = document.getElementById("download-button");
+    if (!downloadBtn || downloadBtn.disabled) return;
+    pendingAutoQualityUrl = "";
+    downloadBtn.click();
+  };
 
   const setPreviewLoading = (isLoading) => {
     wrapperEl?.classList.toggle("is-preview-loading", isLoading);
@@ -604,6 +643,7 @@ function initUrlInputHandler() {
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
       setPreviewLoading(false);
       renderPreview(null);
+      pendingAutoQualityUrl = "";
       return;
     }
     if (url === lastPreviewUrl) {
@@ -623,13 +663,16 @@ function initUrlInputHandler() {
       if (fetchError) {
         showInlineErrorText(fetchError);
         renderPreview(null);
+        pendingAutoQualityUrl = "";
         return;
       }
       renderPreview(data);
       await syncBackgroundPreview(data);
+      maybeOpenQualityModalAfterPaste(url, data);
     } catch {
       if (currentRequest !== previewRequestId) return;
       renderPreview(null);
+      pendingAutoQualityUrl = "";
     } finally {
       if (currentRequest !== previewRequestId) return;
       setPreviewLoading(false);
@@ -646,6 +689,7 @@ function initUrlInputHandler() {
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
       setPreviewLoading(false);
       renderPreview(null);
+      pendingAutoQualityUrl = "";
       return;
     }
     setPreviewLoading(true);
@@ -658,20 +702,38 @@ function initUrlInputHandler() {
       if (fetchError) {
         showInlineErrorText(fetchError);
         renderPreview(null);
+        pendingAutoQualityUrl = "";
         return;
       }
       renderPreview(data);
       await syncBackgroundPreview(data);
+      maybeOpenQualityModalAfterPaste(url, data);
     } catch {
       renderPreview(null);
+      pendingAutoQualityUrl = "";
     } finally {
       setPreviewLoading(false);
     }
   });
 
-  urlInput.addEventListener("input", () => {
+  urlInput.addEventListener("paste", (event) => {
+    const text = event.clipboardData?.getData?.("text") || "";
+    if (text) {
+      markAutoQualityCandidate(text);
+    } else {
+      pendingAutoQualityUrl = "__pending_native_paste__";
+    }
+  });
+
+  urlInput.addEventListener("input", (event) => {
     toggleButtons();
     const val = urlInput.value.trim();
+    if (
+      event?.inputType === "insertFromPaste" ||
+      pendingAutoQualityUrl === "__pending_native_paste__"
+    ) {
+      markAutoQualityCandidate(val);
+    }
     syncUrlUiState({ showError: false });
     // Если поле пустое — моментально скрываем превью без ожидания debounce
     if (val === "") {
@@ -778,6 +840,7 @@ function initUrlInputHandler() {
     const text = (await navigator.clipboard.readText()) || "";
     hasInteracted = false;
     urlInput.value = normalizeUrlInput(text.trim());
+    markAutoQualityCandidate(urlInput.value);
     toggleButtons();
     hideInlineError();
     urlInput.dispatchEvent(new Event("input", { bubbles: true })); // запускаем реакцию

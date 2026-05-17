@@ -65,6 +65,8 @@ export const settingsTranslations = {
       "Разворачивать окно <strong>по окончанию загрузки</strong>",
     "settings.downloader.expandOnCopy":
       "Разворачивать окно <strong>при копировании URL</strong>",
+    "settings.downloader.autoQualityModal":
+      "Автоматически открывать <strong>выбор качества</strong> после вставки URL",
     "settings.downloader.disableComplete":
       "Отключить <strong>окно открытия файла</strong> после завершения загрузки",
     "settings.downloader.toolsStatus": "Показывать статус инструментов",
@@ -126,8 +128,7 @@ export const settingsTranslations = {
       "Информация о приложении скопирована в буфер обмена",
     "settings.about.copyError":
       "Не удалось скопировать информацию о приложении",
-    "settings.about.updatesError":
-      "Не удалось запустить проверку обновлений",
+    "settings.about.updatesError": "Не удалось запустить проверку обновлений",
     "settings.other.title": "Другие настройки",
     "settings.other.hint":
       "Дополнительные параметры для детальной настройки поведения приложения.",
@@ -258,6 +259,8 @@ export const settingsTranslations = {
       "Expand the window <strong>after download</strong>",
     "settings.downloader.expandOnCopy":
       "Expand the window <strong>on URL copy</strong>",
+    "settings.downloader.autoQualityModal":
+      "Automatically open <strong>quality selection</strong> after pasting a URL",
     "settings.downloader.disableComplete":
       "Disable <strong>file open dialog</strong> after download",
     "settings.downloader.toolsStatus": "Show tools status",

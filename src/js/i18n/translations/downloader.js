@@ -208,6 +208,12 @@ export const downloaderTranslations = {
     "queue.limit.full": "Лимит очереди достигнут",
     "queue.start": "Запустить",
     "queue.start.title": "Запустить",
+    "queue.startChoice.title": "Как запустить очередь?",
+    "queue.startChoice.subtitle": "Выбор режима",
+    "queue.startChoice.message":
+      "В очереди {count} записей. Можно скачать только первое видео или продолжить запуск всей очереди.",
+    "queue.startChoice.single": "Только одно",
+    "queue.startChoice.all": "Загрузить всё",
     "queue.pause": "Пауза",
     "queue.pause.title": "Пауза очереди",
     "queue.pause.stoppedAndQueued":
@@ -454,6 +460,12 @@ export const downloaderTranslations = {
     "queue.limit.full": "Queue limit reached",
     "queue.start": "Start",
     "queue.start.title": "Start",
+    "queue.startChoice.title": "How should the queue start?",
+    "queue.startChoice.subtitle": "Start mode",
+    "queue.startChoice.message":
+      "There are {count} items in the queue. You can download only the first video or continue starting the whole queue.",
+    "queue.startChoice.single": "Only one",
+    "queue.startChoice.all": "Download all",
     "queue.pause": "Pause",
     "queue.pause.title": "Pause queue",
     "queue.pause.stoppedAndQueued":

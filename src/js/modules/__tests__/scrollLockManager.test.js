@@ -97,11 +97,8 @@ describe("scrollLockManager", () => {
 
   test("supports overlay-only owners without forcing body scroll lock", async () => {
     await jest.isolateModulesAsync(async () => {
-      const {
-        acquireOverlayActive,
-        releaseOverlayActive,
-        getScrollLockState,
-      } = await import("../scrollLockManager.js");
+      const { acquireOverlayActive, releaseOverlayActive, getScrollLockState } =
+        await import("../scrollLockManager.js");
 
       acquireOverlayActive("whats-new-modal");
 

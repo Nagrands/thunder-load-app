@@ -2352,6 +2352,240 @@ describe("downloadManager parallel pool", () => {
     });
   });
 
+  it("asks before manual queue start and keeps parallel start when user chooses all", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      const second = deferred();
+      const downloads = new Map([
+        ["https://example.com/a", first],
+        ["https://example.com/b", second],
+      ]);
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return downloads.get(url).promise.then((filePath) => ({
+              fileName: "file.mp4",
+              filePath,
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: url,
+              cancelled: false,
+            }));
+          }
+          if (channel === "get-icon-path") return Promise.resolve("");
+          if (channel === "cache-history-preview")
+            return Promise.resolve({ success: false });
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn(async () => ({ success: true })) },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../modals", () => ({
+        showConfirmationDialog: jest.fn(async () => "all"),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+
+      const { state } = require("../state");
+      const { initDownloadButton } = require("../downloadManager");
+      const { showConfirmationDialog } = require("../modals");
+      state.maxParallelDownloads = 2;
+      state.downloadQueue = [
+        { url: "https://example.com/a", quality: "Source" },
+        { url: "https://example.com/b", quality: "Source" },
+      ];
+
+      initDownloadButton();
+      document.getElementById("queue-start-button").click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(showConfirmationDialog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          confirmResult: "all",
+          cancelResult: "single",
+        }),
+      );
+      const downloadCalls = window.electron.invoke.mock.calls.filter(
+        ([channel]) => channel === "download-video",
+      );
+      expect(downloadCalls).toHaveLength(2);
+      expect(state.activeDownloads).toHaveLength(2);
+
+      first.resolve("/tmp/a.mp4");
+      second.resolve("/tmp/b.mp4");
+      await Promise.resolve();
+    });
+  });
+
+  it("starts only one queued item when user chooses single manual start", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return first.promise.then((filePath) => ({
+              fileName: "file.mp4",
+              filePath,
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: url,
+              cancelled: false,
+            }));
+          }
+          if (channel === "get-icon-path") return Promise.resolve("");
+          if (channel === "cache-history-preview")
+            return Promise.resolve({ success: false });
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn(async () => ({ success: true })) },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../modals", () => ({
+        showConfirmationDialog: jest.fn(async () => "single"),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+
+      const { state } = require("../state");
+      const { initDownloadButton } = require("../downloadManager");
+      state.maxParallelDownloads = 2;
+      state.downloadQueue = [
+        { url: "https://example.com/a", quality: "Source" },
+        { url: "https://example.com/b", quality: "Source" },
+      ];
+
+      initDownloadButton();
+      document.getElementById("queue-start-button").click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const downloadCalls = window.electron.invoke.mock.calls.filter(
+        ([channel]) => channel === "download-video",
+      );
+      expect(downloadCalls).toHaveLength(1);
+      expect(downloadCalls[0][1]).toBe("https://example.com/a");
+      expect(state.activeDownloads).toHaveLength(1);
+      expect(state.downloadQueue).toHaveLength(1);
+      expect(state.downloadQueue[0].url).toBe("https://example.com/b");
+      expect(state.suppressAutoPump).toBe(true);
+      expect(state.queuePaused).toBe(true);
+
+      first.resolve("/tmp/a.mp4");
+      await Promise.resolve();
+    });
+  });
+
+  it("starts a single queued item without asking for start mode", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return first.promise.then((filePath) => ({
+              fileName: "file.mp4",
+              filePath,
+              quality: "Source",
+              actualQuality: "Source",
+              sourceUrl: url,
+              cancelled: false,
+            }));
+          }
+          if (channel === "get-icon-path") return Promise.resolve("");
+          if (channel === "cache-history-preview")
+            return Promise.resolve({ success: false });
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn(async () => ({ success: true })) },
+        on: jest.fn(),
+      };
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../modals", () => ({
+        showConfirmationDialog: jest.fn(async () => "all"),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+
+      const { state } = require("../state");
+      const { initDownloadButton } = require("../downloadManager");
+      const { showConfirmationDialog } = require("../modals");
+      state.maxParallelDownloads = 2;
+      state.downloadQueue = [
+        { url: "https://example.com/a", quality: "Source" },
+      ];
+
+      initDownloadButton();
+      document.getElementById("queue-start-button").click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(showConfirmationDialog).not.toHaveBeenCalled();
+      const downloadCalls = window.electron.invoke.mock.calls.filter(
+        ([channel]) => channel === "download-video",
+      );
+      expect(downloadCalls).toHaveLength(1);
+
+      first.resolve("/tmp/a.mp4");
+      await Promise.resolve();
+    });
+  });
+
   it("starts download immediately when one slot is still free", async () => {
     await jest.isolateModulesAsync(async () => {
       const started = [];

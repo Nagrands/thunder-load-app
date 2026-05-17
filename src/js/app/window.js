@@ -12,7 +12,10 @@ const {
   nativeImage,
 } = require("electron");
 const windowStateKeeper = require("electron-window-state");
-const { resolveIconPathFrom, resolveIconPathFromAppDir } = require("./iconPaths");
+const {
+  resolveIconPathFrom,
+  resolveIconPathFromAppDir,
+} = require("./iconPaths");
 const { showTrayNotification } = require("./notifications.js");
 
 let windowTray = null;

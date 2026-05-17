@@ -132,7 +132,7 @@ export const backupTranslations = {
     "backup.validation.nameExistsToast":
       "Нельзя создать профиль с одинаковым именем",
     "backup.field.name.label": "Название *",
-    "backup.field.name.hint": "Имя профиля и создаваемого архива",
+    "backup.field.name.hint": "Имя создаваемого архива",
     "backup.field.name.suggested": "Автопредложение имени: {name}",
     "backup.field.source.label": "Исходная папка *",
     "backup.field.source.hint": "Укажите путь к папке резервного копирования",

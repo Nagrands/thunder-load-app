@@ -1,22 +1,56 @@
 // src/scss/layout/_footer.scss
 
+// ============================================================
+//  Переменные и настройки
+// ============================================================
+
+$breakpoint-tablet: 900px;
+$breakpoint-mobile: 560px;
+
+// Базовые переходы
+$transition-fade-slide: opacity 240ms ease, transform 280ms ease;
+$transition-fade: opacity 180ms ease;
+$transition-transform: transform 180ms ease;
+
+// Миксин для скрытых состояний (мягкое исчезновение)
+@mixin soft-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+// Миксин для анимации пульсации (инструменты)
+@mixin busy-pulse-animation {
+  animation: footer-tools-busy-pulse 1.2s ease-in-out infinite;
+}
+
+// ============================================================
+//  Контейнер футера
+// ============================================================
+
 .app-footer {
   --app-footer-offset-x: clamp(12px, 2vw, 22px);
   --app-footer-offset-y: 12px;
   --app-footer-height: 74px;
+
   position: fixed;
   left: var(--app-footer-offset-x);
   right: var(--app-footer-offset-x);
   bottom: var(--app-footer-offset-y);
   z-index: 940;
   pointer-events: none;
+
+  body.modal-overlay-active & {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+  }
 }
 
-body.modal-overlay-active .app-footer {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(12px);
-}
+// ============================================================
+//  Основная панель (бар)
+// ============================================================
 
 .app-footer__bar {
   pointer-events: auto;
@@ -40,195 +74,68 @@ body.modal-overlay-active .app-footer {
     0 18px 48px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
   transition:
-    opacity 180ms ease,
-    transform 220ms ease,
-    visibility 220ms linear,
+    $transition-fade-slide,
     border-color 180ms ease,
     box-shadow 180ms ease,
     background-color 180ms ease;
+
+  // Упрощённый стиль для режима low-effects
+  body.low-effects & {
+    background: rgba(16, 20, 28, 0.92);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    backdrop-filter: none;
+  }
 }
+
+// ============================================================
+//  Зоны футера
+// ============================================================
 
 .app-footer__zone {
   min-width: 0;
   display: flex;
   align-items: center;
+
+  &--lead {
+    gap: 8px;
+  }
+
+  &--center {
+    min-width: 0;
+  }
+
+  &--status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 0 32px 0 24px;
+    min-width: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  &--actions {
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
 }
 
-.app-footer__zone--lead {
-  gap: 8px;
-}
-
-.app-footer__zone--center {
-  min-width: 0;
-}
+// ============================================================
+//  Статусы и кластеры
+// ============================================================
 
 .app-footer__status-cluster {
   display: inline-flex;
   align-items: center;
   min-width: 0;
   gap: 0;
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-  transition:
-    opacity 240ms ease,
-    transform 280ms ease,
-    visibility 280ms linear;
-}
+  transition: $transition-fade-slide;
 
-.app-footer__zone--status {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 0 32px 0 24px;
-  min-width: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.app-footer__tools-status {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 100%;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 20px;
-  padding-left: 18px;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-  transition:
-    opacity 220ms ease,
-    transform 220ms ease,
-    visibility 220ms linear;
-
-  &.hidden,
-  &.is-context-hidden {
-    display: none;
+  &.is-hidden {
+    @include soft-hidden;
   }
-
-  .downloader-tools-status__line {
-    min-width: 0;
-    flex: 0 1 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 0;
-    white-space: nowrap;
-    color: var(--color-quality);
-  }
-
-  #dl-tools-icon {
-    display: none;
-  }
-
-  .status-line.is-ok {
-    color: rgba(225, 241, 235, 0.9);
-  }
-
-  .status-line.is-error {
-    color: #ffcaa5;
-  }
-
-  .status-line.is-loading {
-    color: #ffda80;
-  }
-
-  .downloader-tools-status__text {
-    display: none;
-  }
-
-  .downloader-tools-status__badges {
-    min-width: 0;
-    flex: 0 1 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-  }
-
-  .tool-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 23px;
-    padding: 2px 9px 2px 7px;
-    border-radius: 999px;
-    border: 1px solid rgba(124, 194, 160, 0.26);
-    background: linear-gradient(
-      140deg,
-      rgba(19, 45, 36, 0.72),
-      rgba(18, 49, 39, 0.44)
-    );
-    color: #d6f1e3;
-    font-size: 11px;
-    line-height: 1;
-
-    .tool-badge__state {
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(126, 222, 169, 0.14);
-      color: #9cf2c3;
-
-      i {
-        font-size: 8px;
-      }
-    }
-
-    .tool-badge__label {
-      font-weight: 500;
-      color: #e8f8f0;
-      white-space: nowrap;
-    }
-
-    .tool-badge__version {
-      color: rgba(220, 243, 231, 0.88);
-      white-space: nowrap;
-    }
-
-    &.missing {
-      border-color: rgba(255, 124, 124, 0.42);
-      background: linear-gradient(
-        140deg,
-        rgba(68, 25, 29, 0.72),
-        rgba(61, 23, 28, 0.44)
-      );
-      color: #ffd2d2;
-
-      .tool-badge__state {
-        background: rgba(255, 138, 138, 0.17);
-        color: #ffb4b4;
-      }
-    }
-  }
-
-  #dl-tools-reinstall {
-    margin-left: 2px;
-    white-space: nowrap;
-    border-radius: 9px;
-    border: 1px solid rgba(255, 188, 112, 0.34);
-    background: rgba(87, 58, 22, 0.38);
-    color: #ffdca8;
-    font-size: 12px;
-    font-weight: 500;
-    height: 26px;
-    padding: 0 9px;
-
-    &.hidden {
-      display: none;
-    }
-  }
-}
-
-.app-footer__zone--actions {
-  justify-content: flex-end;
-  gap: 10px;
-  flex-shrink: 0;
-  margin-left: auto;
 }
 
 .app-footer__kicker,
@@ -277,17 +184,150 @@ body.modal-overlay-active .app-footer {
   color: var(--color-highlight);
 }
 
+// ============================================================
+//  Блок инструментов (загрузчики, тулзы)
+// ============================================================
+
+.app-footer__tools-status {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 20px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  transition: $transition-fade-slide;
+
+  &.hidden,
+  &.is-context-hidden {
+    display: none;
+  }
+
+  .downloader-tools-status__line {
+    min-width: 0;
+    flex: 0 1 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    white-space: nowrap;
+    color: var(--color-quality);
+  }
+
+  #dl-tools-icon {
+    display: none;
+  }
+
+  .status-line {
+    &.is-ok {
+      color: rgba(225, 241, 235, 0.9);
+    }
+    &.is-error {
+      color: #ffcaa5;
+    }
+    &.is-loading {
+      color: #ffda80;
+    }
+  }
+
+  .downloader-tools-status__text {
+    display: none;
+  }
+
+  .downloader-tools-status__badges {
+    min-width: 0;
+    flex: 0 1 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+}
+
+// Бейдж инструмента (переиспользуемый блок – можно вынести в отдельный partial)
+.tool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 23px;
+  padding: 2px 9px 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 194, 160, 0.26);
+  background: linear-gradient(140deg, rgba(19, 45, 36, 0.72), rgba(18, 49, 39, 0.44));
+  color: #d6f1e3;
+  font-size: 11px;
+  line-height: 1;
+
+  &__state {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(126, 222, 169, 0.14);
+    color: #9cf2c3;
+
+    i {
+      font-size: 8px;
+    }
+  }
+
+  &__label {
+    font-weight: 500;
+    color: #e8f8f0;
+    white-space: nowrap;
+  }
+
+  &__version {
+    color: rgba(220, 243, 231, 0.88);
+    white-space: nowrap;
+  }
+
+  &.missing {
+    border-color: rgba(255, 124, 124, 0.42);
+    background: linear-gradient(140deg, rgba(68, 25, 29, 0.72), rgba(61, 23, 28, 0.44));
+    color: #ffd2d2;
+
+    .tool-badge__state {
+      background: rgba(255, 138, 138, 0.17);
+      color: #ffb4b4;
+    }
+  }
+}
+
+#dl-tools-reinstall {
+  margin-left: 2px;
+  white-space: nowrap;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 188, 112, 0.34);
+  background: rgba(87, 58, 22, 0.38);
+  color: #ffdca8;
+  font-size: 12px;
+  font-weight: 500;
+  height: 26px;
+  padding: 0 9px;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+// ============================================================
+//  Таб-навигация
+// ============================================================
+
 .app-footer__tab-nav {
   display: block;
   width: 100%;
   min-width: 0;
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-  transition:
-    opacity 240ms ease,
-    transform 280ms ease,
-    visibility 280ms linear;
+  transition: $transition-fade-slide;
+
+  &.is-hidden {
+    @include soft-hidden;
+  }
 
   .group-menu {
     display: flex;
@@ -315,12 +355,7 @@ body.modal-overlay-active .app-footer {
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
-    transition:
-      transform 180ms ease,
-      background-color 180ms ease,
-      border-color 180ms ease,
-      color 180ms ease,
-      box-shadow 180ms ease;
+    transition: $transition-transform, background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
 
     .menu-progress {
       position: absolute;
@@ -336,16 +371,10 @@ body.modal-overlay-active .app-footer {
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(
-          90deg,
-          rgba(var(--color-accent-rgb), 0.28),
-          rgba(var(--color-accent-rgb), 0.58)
-        );
+        background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.28), rgba(var(--color-accent-rgb), 0.58));
         transform: scaleX(var(--download-tab-progress, 0));
         transform-origin: left center;
-        transition:
-          transform 240ms ease,
-          opacity 180ms ease;
+        transition: transform 240ms ease, opacity 180ms ease;
         opacity: 0.92;
       }
     }
@@ -361,6 +390,7 @@ body.modal-overlay-active .app-footer {
       line-height: 1;
     }
 
+    // Объединённые состояния прогресса
     &.is-progress-active,
     &.is-progress-complete {
       .menu-progress {
@@ -368,14 +398,8 @@ body.modal-overlay-active .app-footer {
       }
     }
 
-    &.is-progress-complete {
-      .menu-progress::before {
-        background: linear-gradient(
-          90deg,
-          rgba(var(--color-accent-rgb), 0.34),
-          rgba(var(--color-accent-rgb), 0.7)
-        );
-      }
+    &.is-progress-complete .menu-progress::before {
+      background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.34), rgba(var(--color-accent-rgb), 0.7));
     }
 
     &:hover:not(.active):not(.disabled) {
@@ -392,21 +416,12 @@ body.modal-overlay-active .app-footer {
       color: var(--color-accent);
       border-color: rgba(var(--color-accent-rgb), 0.42);
       background: rgba(var(--color-accent-rgb), 0.14);
-      box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb), 0.14);
     }
 
     &.disabled {
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
-    }
-
-    &.is-progress-active .menu-progress {
-      opacity: 1;
-    }
-
-    &.is-progress-complete .menu-progress::before {
-      opacity: 1;
     }
 
     &:focus-visible {
@@ -427,55 +442,19 @@ body.modal-overlay-active .app-footer {
       line-height: 18px;
       text-align: center;
       display: none;
-    }
 
-    .menu-badge.is-visible {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      &.is-visible {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
   }
 }
 
-.app-footer__action--ghost {
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-  transition:
-    width 220ms ease,
-    min-width 220ms ease,
-    flex-basis 220ms ease,
-    margin 220ms ease,
-    border-width 220ms ease,
-    opacity 240ms ease,
-    transform 280ms ease,
-    visibility 280ms linear,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.app-footer__status-cluster.is-hidden,
-.app-footer__tab-nav.is-hidden,
-.app-footer__action--ghost.is-hidden {
-  opacity: 0;
-  transform: translateY(10px);
-  pointer-events: none;
-  visibility: hidden;
-}
-
-.app-footer__action--ghost.is-hidden {
-  width: 0;
-  min-width: 0;
-  flex-basis: 0;
-  margin: 0;
-  border-width: 0;
-}
-
-.app-footer__action.is-context-hidden {
-  display: none;
-}
+// ============================================================
+//  Кнопки действий (Action buttons)
+// ============================================================
 
 .app-footer__action {
   display: inline-flex;
@@ -486,16 +465,11 @@ body.modal-overlay-active .app-footer {
   min-width: 42px;
   padding: 0;
   flex: 0 0 42px;
-  border-radius: 14px;
+  border-radius: 50%;
   background: rgba(var(--color-accent-rgb), 0.1);
   color: var(--color-highlight);
   cursor: pointer;
-  transition:
-    transform 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+  transition: $transition-transform, background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
 
   &:hover {
     transform: translateY(-1px);
@@ -524,108 +498,99 @@ body.modal-overlay-active .app-footer {
     flex: 0 0 auto;
     pointer-events: none;
   }
-}
 
-.app-footer__action--history {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.app-footer__action--tools {
-  position: relative;
-  overflow: hidden;
-  width: auto;
-  min-width: 42px;
-  flex: 0 0 auto;
-  gap: 8px;
-  padding: 0 12px;
-  border-radius: 12px;
-  background: rgba(87, 58, 22, 0.38);
-  border: 1px solid rgba(255, 188, 112, 0.34);
-  color: #ffdca8;
-
-  span {
-    white-space: nowrap;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1;
+  &--history {
+    background: rgba(255, 255, 255, 0.05);
   }
 
-  &:hover {
-    color: #ffe6be;
-    background: rgba(103, 68, 26, 0.46);
-    border-color: rgba(255, 198, 122, 0.42);
+  &--ghost {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    transition: width 220ms ease, min-width 220ms ease, flex-basis 220ms ease, margin 220ms ease, border-width 220ms ease, $transition-fade-slide, background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+
+    &.is-hidden {
+      @include soft-hidden;
+      width: 0;
+      min-width: 0;
+      flex-basis: 0;
+      margin: 0;
+      border-width: 0;
+    }
   }
 
-  &.is-busy {
-    color: #fff0d5;
-    background:
-      linear-gradient(
-        110deg,
-        rgba(255, 214, 158, 0.12) 0%,
-        rgba(255, 214, 158, 0.36) 45%,
-        rgba(255, 214, 158, 0.12) 100%
-      ),
-      rgba(103, 68, 26, 0.54);
-    border-color: rgba(255, 208, 140, 0.62);
-    box-shadow:
-      0 0 0 1px rgba(255, 214, 158, 0.12),
-      0 0 18px rgba(255, 190, 102, 0.24);
-    cursor: wait;
-    animation: footer-tools-busy-pulse 1.2s ease-in-out infinite;
+  &--tools {
+    position: relative;
+    overflow: hidden;
+    width: auto;
+    min-width: 42px;
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: 12px;
+    background: rgba(87, 58, 22, 0.38);
+    border: 1px solid rgba(255, 188, 112, 0.34);
+    color: #ffdca8;
 
-    &:hover,
-    &:active {
-      transform: none;
+    span {
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    &:hover {
+      color: #ffe6be;
+      background: rgba(103, 68, 26, 0.46);
+      border-color: rgba(255, 198, 122, 0.42);
+    }
+
+    &.is-busy {
       color: #fff0d5;
-      background:
-        linear-gradient(
-          110deg,
-          rgba(255, 214, 158, 0.12) 0%,
-          rgba(255, 214, 158, 0.36) 45%,
-          rgba(255, 214, 158, 0.12) 100%
-        ),
-        rgba(103, 68, 26, 0.54);
+      background: linear-gradient(110deg, rgba(255, 214, 158, 0.12) 0%, rgba(255, 214, 158, 0.36) 45%, rgba(255, 214, 158, 0.12) 100%), rgba(103, 68, 26, 0.54);
       border-color: rgba(255, 208, 140, 0.62);
+      box-shadow: 0 0 0 1px rgba(255, 214, 158, 0.12), 0 0 18px rgba(255, 190, 102, 0.24);
+      cursor: wait;
+      @include busy-pulse-animation;
+
+      &:hover,
+      &:active {
+        transform: none;
+        color: #fff0d5;
+        background: linear-gradient(110deg, rgba(255, 214, 158, 0.12) 0%, rgba(255, 214, 158, 0.36) 45%, rgba(255, 214, 158, 0.12) 100%), rgba(103, 68, 26, 0.54);
+        border-color: rgba(255, 208, 140, 0.62);
+      }
     }
   }
 }
 
+// Класс .is-context-hidden для любых элементов
+.is-context-hidden {
+  display: none;
+}
+
+// ============================================================
+//  Анимация пульсации для кнопки инструментов
+// ============================================================
+
 @keyframes footer-tools-busy-pulse {
   0%,
   100% {
-    box-shadow:
-      0 0 0 1px rgba(255, 214, 158, 0.12),
-      0 0 14px rgba(255, 190, 102, 0.18);
+    box-shadow: 0 0 0 1px rgba(255, 214, 158, 0.12), 0 0 14px rgba(255, 190, 102, 0.18);
   }
-
   50% {
-    box-shadow:
-      0 0 0 1px rgba(255, 214, 158, 0.18),
-      0 0 22px rgba(255, 190, 102, 0.34);
+    box-shadow: 0 0 0 1px rgba(255, 214, 158, 0.18), 0 0 22px rgba(255, 190, 102, 0.34);
   }
 }
 
-body.low-effects {
-  .app-footer__action--tools.is-busy {
-    animation: none;
-  }
+body.low-effects .app-footer__action--tools.is-busy {
+  animation: none;
 }
 
-.app-footer__action--ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
-}
+// ============================================================
+//  Адаптивность (медиа-запросы)
+// ============================================================
 
-body.low-effects {
-  .app-footer__bar {
-    background: rgba(16, 20, 28, 0.92);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-@media (max-width: 900px) {
+@media (max-width: $breakpoint-tablet) {
   .app-footer {
     --app-footer-height: 98px;
     left: 10px;
@@ -643,15 +608,24 @@ body.low-effects {
     border-radius: 18px;
   }
 
-  .app-footer__zone--lead {
-    grid-area: lead;
-    gap: 8px;
-  }
-
-  .app-footer__zone--center {
-    grid-area: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 10px;
+  .app-footer__zone {
+    &--lead {
+      grid-area: lead;
+      gap: 8px;
+    }
+    &--center {
+      grid-area: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 10px;
+    }
+    &--status {
+      flex: 1 1 50%;
+      padding: 0 14px 0 0;
+      border-left: 0;
+    }
+    &--actions {
+      grid-area: actions;
+    }
   }
 
   .app-footer__status-cluster {
@@ -674,16 +648,6 @@ body.low-effects {
     }
   }
 
-  .app-footer__zone--status {
-    flex: 1 1 50%;
-    padding: 0 14px 0 0;
-    border-left: 0;
-  }
-
-  .app-footer__zone--actions {
-    grid-area: actions;
-  }
-
   .app-footer__action--tools {
     min-width: 0;
   }
@@ -696,19 +660,19 @@ body.low-effects {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: $breakpoint-mobile) {
   .app-footer__action {
     width: 42px;
     padding: 0;
-  }
 
-  .app-footer__action--tools {
-    width: auto;
-    min-width: 42px;
-    padding: 0 10px;
+    &--tools {
+      width: auto;
+      min-width: 42px;
+      padding: 0 10px;
 
-    span {
-      display: none;
+      span {
+        display: none;
+      }
     }
   }
 
@@ -723,11 +687,17 @@ body.low-effects {
   }
 }
 
+// ============================================================
+//  Доступность: отключение анимаций при запросе
+// ============================================================
+
 @media (prefers-reduced-motion: reduce) {
-  .app-footer *,
-  .app-footer__action,
-  .app-footer__tab-nav .menu-item {
-    transition: none !important;
-    animation: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
