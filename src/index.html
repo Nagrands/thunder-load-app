@@ -425,7 +425,22 @@
           </div>
         </div>
         <div class="quality-info">
-          <h4 id="download-quality-name"></h4>
+          <div class="quality-title-row">
+            <h4 id="download-quality-name"></h4>
+            <button
+              type="button"
+              id="download-quality-copy-title"
+              class="btn-link quality-title-copy"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Копировать название"
+              data-i18n-title="quality.copyTitle"
+              aria-label="Копировать название"
+              data-i18n-aria="quality.copyTitle"
+            >
+              <i class="fa-regular fa-copy" aria-hidden="true"></i>
+            </button>
+          </div>
           <p id="download-quality-uploader"></p>
           <p id="download-quality-duration"></p>
           <p id="download-quality-preview-resolution" data-i18n="quality.previewResolutionUnknown">
@@ -464,10 +479,10 @@
               class="btn-link"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
-              title="Копировать URL"
-              data-i18n-title="quality.copySourceUrl"
-              aria-label="Копировать URL"
-              data-i18n-aria="quality.copySourceUrl"
+              title="Копировать информацию"
+              data-i18n-title="quality.copyFileInfo"
+              aria-label="Копировать информацию"
+              data-i18n-aria="quality.copyFileInfo"
             >
               <i class="fa-regular fa-copy" aria-hidden="true"></i>
             </button>

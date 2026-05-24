@@ -81,7 +81,10 @@ const buildDom = () => {
         </div>
         <div id="download-quality-thumb-fallback" class="hidden"></div>
       </div>
-      <h4 id="download-quality-name"></h4>
+      <div class="quality-title-row">
+        <h4 id="download-quality-name"></h4>
+        <button id="download-quality-copy-title" type="button"></button>
+      </div>
       <p id="download-quality-uploader"></p>
       <p id="download-quality-duration"></p>
       <p id="download-quality-preview-resolution"></p>
@@ -322,7 +325,7 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
-  it("copies source url from quality modal", async () => {
+  it("copies current file information from quality modal", async () => {
     await jest.isolateModulesAsync(async () => {
       const showToast = jest.fn();
       const writeText = jest.fn().mockResolvedValue(undefined);
@@ -344,7 +347,46 @@ describe("downloadQualityModal close behavior", () => {
       expect(copyBtn.disabled).toBe(false);
 
       await copyBtn.onclick();
-      expect(writeText).toHaveBeenCalledWith("https://example.com/video");
+      expect(writeText).toHaveBeenCalledWith(
+        [
+          "Название: Video title",
+          "Канал: Uploader",
+          "Длительность: 2:00",
+          "Разрешение превью: 1280x720",
+        ].join("\n"),
+      );
+      expect(showToast).toHaveBeenCalledWith(expect.any(String), "success");
+
+      document.getElementById("download-quality-cancel").click();
+      await resultPromise;
+    });
+  });
+
+  it("copies title from the title copy button", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const showToast = jest.fn();
+      const writeText = jest.fn().mockResolvedValue(undefined);
+      Object.defineProperty(window.navigator, "clipboard", {
+        configurable: true,
+        value: { writeText },
+      });
+
+      jest.doMock("../toast", () => ({ showToast }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const copyTitleBtn = document.getElementById(
+        "download-quality-copy-title",
+      );
+      expect(copyTitleBtn.disabled).toBe(false);
+
+      await copyTitleBtn.onclick();
+      expect(writeText).toHaveBeenCalledWith("Video title");
       expect(showToast).toHaveBeenCalledWith(expect.any(String), "success");
 
       document.getElementById("download-quality-cancel").click();

@@ -567,10 +567,17 @@
     }
 
     .quality-info {
+      .quality-title-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
       h4 {
         margin: 0;
         font-size: 1rem;
         color: #fff;
+        flex: 1;
       }
 
       p {
@@ -605,6 +612,10 @@
           cursor: not-allowed;
           text-decoration: none;
         }
+      }
+
+      .quality-title-copy {
+        flex: 0 0 auto;
       }
     }
   }
@@ -1449,9 +1460,17 @@
       min-height: 256px;
       padding: 20px 20px 18px;
 
+      .quality-title-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 0 0 7px;
+      }
+
       h4 {
         display: -webkit-box;
-        margin: 0 0 7px;
+        flex: 1;
+        margin: 0;
         overflow: hidden;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
@@ -1495,6 +1514,13 @@
           color: #cfbfff;
           text-decoration: none;
         }
+      }
+
+      .quality-title-copy {
+        width: 34px;
+        min-height: 34px;
+        padding: 0;
+        flex: 0 0 34px;
       }
     }
   }

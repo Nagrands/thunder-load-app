@@ -77,6 +77,7 @@ const openSourceBtn = document.getElementById("download-quality-open-source");
 const copySourceUrlBtn = document.getElementById(
   "download-quality-copy-source",
 );
+const copyTitleBtn = document.getElementById("download-quality-copy-title");
 const downloadPreviewBtn = document.getElementById(
   "download-quality-download-preview",
 );
@@ -558,6 +559,29 @@ async function copyTextToClipboard(value) {
   if (!success) throw new Error("copy_failed");
 }
 
+function stripPreviewResolutionLabel(text) {
+  const value = String(text || "").trim();
+  if (!value) return "";
+  const parts = value.split(":");
+  return (parts.length > 1 ? parts.slice(1).join(":") : value).trim();
+}
+
+function buildFileInfoText(info, previewResolutionText = "") {
+  const title = String(info?.title || "").trim() || "—";
+  const channel = String(info?.uploader || info?.channel || "").trim() || "—";
+  const duration = info?.duration ? secondsToTime(info.duration) : "—";
+  const previewResolution =
+    String(previewResolutionText || "").trim() ||
+    stripPreviewResolutionLabel(previewResolutionEl?.textContent) ||
+    "—";
+  return [
+    `${t("quality.fileInfo.title")}: ${title}`,
+    `${t("quality.fileInfo.channel")}: ${channel}`,
+    `${t("quality.fileInfo.duration")}: ${duration}`,
+    `${t("quality.fileInfo.previewResolution")}: ${previewResolution}`,
+  ].join("\n");
+}
+
 async function downloadPreviewImage(sourceUrl, title) {
   if (!sourceUrl) return;
   try {
@@ -586,6 +610,20 @@ function renderPreview(info, url) {
     setCachedVideoInfo(info.webpage_url || info.original_url || url, info);
   } catch (_) {}
   titleEl.textContent = info.title || t("quality.previewUnavailable");
+  if (copyTitleBtn) {
+    const title = String(info.title || "").trim();
+    copyTitleBtn.disabled = !title;
+    copyTitleBtn.onclick = async () => {
+      if (!title) return;
+      try {
+        await copyTextToClipboard(title);
+        showToast(t("quality.copyTitleSuccess"), "success");
+      } catch (err) {
+        console.error("Не удалось скопировать название:", err);
+        showToast(t("quality.copyTitleError"), "error");
+      }
+    };
+  }
   if (coverTitleEl) {
     coverTitleEl.textContent = info.title || "";
   }
@@ -658,15 +696,14 @@ function renderPreview(info, url) {
     };
   }
   if (copySourceUrlBtn) {
-    copySourceUrlBtn.disabled = !targetUrl;
+    copySourceUrlBtn.disabled = !info;
     copySourceUrlBtn.onclick = async () => {
-      if (!targetUrl) return;
       try {
-        await copyTextToClipboard(targetUrl);
-        showToast(t("quality.copySourceUrlSuccess"), "success");
+        await copyTextToClipboard(buildFileInfoText(info, previewResolution));
+        showToast(t("quality.copyFileInfoSuccess"), "success");
       } catch (err) {
-        console.error("Не удалось скопировать URL источника:", err);
-        showToast(t("quality.copySourceUrlError"), "error");
+        console.error("Не удалось скопировать информацию о файле:", err);
+        showToast(t("quality.copyFileInfoError"), "error");
       }
     };
   }
