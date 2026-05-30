@@ -399,6 +399,26 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
+  test("auto-opens quality selection when recognized preview has no loaded formats yet", async () => {
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
   test("auto-opens quality selection when yt-dlp returns preview only in thumbnails", async () => {
     const { pasteBtn, downloadBtn } = getState();
     downloadBtn.disabled = false;
@@ -505,7 +525,38 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
-  test("does not auto-open quality selection when preview or formats are missing", async () => {
+  test("auto-opens quality selection when force-preview requests it", async () => {
+    const { input, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    input.value = "https://youtube.com/watch?v=retry";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(
+      new CustomEvent("force-preview", {
+        detail: { autoOpenQuality: true },
+      }),
+    );
+
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-info",
+      "https://youtube.com/watch?v=retry",
+    );
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("does not auto-open quality selection when preview image is missing", async () => {
     const { pasteBtn, downloadBtn } = getState();
     downloadBtn.disabled = false;
     const clickSpy = jest.spyOn(downloadBtn, "click");

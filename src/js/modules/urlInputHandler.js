@@ -122,16 +122,14 @@ function initUrlInputHandler() {
     return data.thumbnails.some((thumb) => String(thumb?.url || "").trim());
   };
 
-  const hasUsableQualityInfo = (data) =>
+  const hasRecognizedPreviewInfo = (data) =>
     !!data?.success &&
     !!String(data?.title || "").trim() &&
-    hasPreviewImage(data) &&
-    Array.isArray(data?.formats) &&
-    data.formats.length > 0;
+    hasPreviewImage(data);
 
   const maybeOpenQualityModalAfterPaste = (url, data) => {
     if (!pendingAutoQualityUrl || pendingAutoQualityUrl !== url) return;
-    if (!isAutoQualityModalEnabled() || !hasUsableQualityInfo(data)) {
+    if (!isAutoQualityModalEnabled() || !hasRecognizedPreviewInfo(data)) {
       pendingAutoQualityUrl = "";
       return;
     }
@@ -696,12 +694,15 @@ function initUrlInputHandler() {
   };
 
   // Внешний триггер принудительного показа предпросмотра (например, из истории → Повторить)
-  urlInput.addEventListener("force-preview", async () => {
+  urlInput.addEventListener("force-preview", async (event) => {
     if (previewTimer) clearTimeout(previewTimer);
     // сбрасываем кэш URL, чтобы форсировать повторный запрос
     lastPreviewUrl = "";
     // вызываем немедленно без debounce
     const url = urlInput.value.trim();
+    if (event?.detail?.autoOpenQuality === true) {
+      markAutoQualityCandidate(url);
+    }
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
       setPreviewLoading(false);
       renderPreview(null);

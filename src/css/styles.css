@@ -26841,7 +26841,6 @@ video {
   gap: 14px;
   min-height: 46px;
   backdrop-filter: blur(4px);
-  background-color: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--color-hover);
   border-radius: 12px;
 }

@@ -474,11 +474,19 @@ describe("Downloader history list", () => {
 
     const menuItems = document.querySelectorAll(".history-row__menu-item");
     const retryItem = menuItems[1];
+    const forcePreviewEvents = [];
+    document
+      .getElementById("url")
+      .addEventListener("force-preview", (event) =>
+        forcePreviewEvents.push(event),
+      );
     retryItem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     const url = document.getElementById("url");
 
     expect(url.value).toBe("https://example.com/watch?v=1");
+    expect(forcePreviewEvents[0]).toBeInstanceOf(CustomEvent);
+    expect(forcePreviewEvents[0].detail).toEqual({ autoOpenQuality: true });
     expect(window.scrollTo).toHaveBeenCalledWith(
       expect.objectContaining({
         behavior: "smooth",

@@ -2198,7 +2198,11 @@ function retryHistoryCardDownload(entry) {
   urlInput.value = entry.sourceUrl;
   try {
     urlInput.dispatchEvent(new Event("input", { bubbles: true }));
-    urlInput.dispatchEvent(new Event("force-preview"));
+    urlInput.dispatchEvent(
+      new CustomEvent("force-preview", {
+        detail: { autoOpenQuality: true },
+      }),
+    );
   } catch (_) {}
   updateButtonState();
   downloadButton.classList.add("active");

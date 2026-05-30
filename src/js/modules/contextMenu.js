@@ -650,7 +650,11 @@ function handleRetryDownload(logEntry) {
     // Синхронизируем UI кнопок вокруг поля и форсируем предпросмотр
     try {
       urlInput.dispatchEvent(new Event("input", { bubbles: true }));
-      urlInput.dispatchEvent(new Event("force-preview"));
+      urlInput.dispatchEvent(
+        new CustomEvent("force-preview", {
+          detail: { autoOpenQuality: true },
+        }),
+      );
     } catch (_) {}
 
     downloadButton.classList.remove("disabled");

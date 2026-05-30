@@ -282,6 +282,12 @@ describe("context menu UI", () => {
     initContextMenu();
 
     await openContextMenuOnEntry();
+    const forcePreviewEvents = [];
+    document
+      .getElementById("url")
+      .addEventListener("force-preview", (event) =>
+        forcePreviewEvents.push(event),
+      );
     document
       .getElementById("retry-download")
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -289,6 +295,8 @@ describe("context menu UI", () => {
     const url = document.getElementById("url");
 
     expect(url.value).toBe("https://example.com/video");
+    expect(forcePreviewEvents[0]).toBeInstanceOf(CustomEvent);
+    expect(forcePreviewEvents[0].detail).toEqual({ autoOpenQuality: true });
     expect(window.scrollTo).toHaveBeenCalledWith(
       expect.objectContaining({
         behavior: "smooth",
