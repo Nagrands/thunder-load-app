@@ -1,4 +1,5 @@
 import renderBackup from "../views/backupView.js";
+import { showConfirmationDialog } from "../modals.js";
 
 jest.mock("../toast.js", () => ({
   showToast: jest.fn(),
@@ -10,7 +11,12 @@ jest.mock("../modals.js", () => ({
 
 jest.mock("../i18n.js", () => ({
   applyI18n: jest.fn(),
-  t: jest.fn((key) => key),
+  t: jest.fn((key, vars = {}) => {
+    if (key === "backup.confirm.deleteProfile") {
+      return `Вы уверены, что хотите удалить профиль: <b>${vars.names}</b>?`;
+    }
+    return key;
+  }),
 }));
 
 const flush = async () => {
@@ -83,20 +89,14 @@ describe("backupView performance behaviors", () => {
     jest.clearAllMocks();
   });
 
-  test("hints timer starts only when backup tab is active and pauses on tab switch", async () => {
+  test("does not start backup hints timers on tab activation", async () => {
     setupBootstrapTooltipMock();
     setupWindowElectronMock();
     const setIntervalSpy = jest.spyOn(global, "setInterval");
-    const clearIntervalSpy = jest.spyOn(global, "clearInterval");
 
     const view = renderBackup();
     document.body.appendChild(view);
     await flush();
-
-    const hintIntervalCallsBefore = setIntervalSpy.mock.calls.filter(
-      (call) => call[1] === 10000,
-    ).length;
-    expect(hintIntervalCallsBefore).toBe(0);
 
     const activeDownload = document.querySelector(
       '.group-menu .menu-item[data-menu="download"]',
@@ -110,18 +110,13 @@ describe("backupView performance behaviors", () => {
     window.dispatchEvent(
       new CustomEvent("tabs:activated", { detail: { id: "backup" } }),
     );
-    const hintIntervalCallsAfter = setIntervalSpy.mock.calls.filter(
+    const hintIntervalCalls = setIntervalSpy.mock.calls.filter(
       (call) => call[1] === 10000,
     ).length;
-    expect(hintIntervalCallsAfter).toBe(1);
-
-    window.dispatchEvent(
-      new CustomEvent("tabs:activated", { detail: { id: "download" } }),
-    );
-    expect(clearIntervalSpy).toHaveBeenCalled();
+    expect(hintIntervalCalls).toBe(0);
   });
 
-  test("renders compact backup toolbar and keeps hints detached from the toolbar", async () => {
+  test("renders compact backup toolbar without hints block", async () => {
     setupBootstrapTooltipMock();
     setupWindowElectronMock();
     const view = renderBackup();
@@ -130,15 +125,15 @@ describe("backupView performance behaviors", () => {
 
     const toolbar = view.querySelector("#bk-toolbar");
     const heading = view.querySelector(".section-heading");
-    const hints = view.querySelector(".bk-hints");
+    const removedHintsSelector = [".bk", "hints"].join("-");
+    const hints = view.querySelector(removedHintsSelector);
 
     expect(toolbar).toBeTruthy();
     expect(heading).toBeTruthy();
     expect(heading?.querySelector("#bk-open-delete-modal")).toBeTruthy();
     expect(heading?.querySelector("#bk-filter")).toBeTruthy();
     expect(heading?.querySelector(".bk-actions")).toBeTruthy();
-    expect(hints).toBeTruthy();
-    expect(toolbar?.contains(hints)).toBe(false);
+    expect(hints).toBeNull();
   });
 
   test("uses localized backup toolbar strings in initial markup", async () => {
@@ -160,10 +155,7 @@ describe("backupView performance behaviors", () => {
     expect(view.querySelector("#bk-log-copy")?.getAttribute("title")).toBe(
       "backup.log.copy",
     );
-    expect(
-      view.querySelector(".bk-hints [data-i18n='backup.hints.title']")
-        ?.textContent,
-    ).toBe("backup.hints.title");
+    expect(view.querySelector([".bk", "hints"].join("-"))).toBeNull();
   });
 
   test("large backup list uses no-animation mode on rerenders", async () => {
@@ -232,5 +224,31 @@ describe("backupView performance behaviors", () => {
     const renderedRows = list.querySelectorAll(".bk-row").length;
     expect(renderedRows).toBeGreaterThan(0);
     expect(renderedRows).toBeLessThan(25);
+  });
+
+  test("renders delete confirmation markup without treating profile name as HTML", async () => {
+    setupBootstrapTooltipMock();
+    setupWindowElectronMock([
+      {
+        name: "<b>Test 2323</b>",
+        source_path: "/src/test",
+        backup_path: "/dst/test",
+        archive_type: "zip",
+      },
+    ]);
+    const view = renderBackup();
+    document.body.appendChild(view);
+    await flush();
+
+    view.querySelector(".bk-row")?.click();
+    view.querySelector("#bk-del")?.click();
+
+    expect(showConfirmationDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowHtml: true,
+        message:
+          "Вы уверены, что хотите удалить профиль: <b>&lt;b&gt;Test 2323&lt;/b&gt;</b>?",
+      }),
+    );
   });
 });

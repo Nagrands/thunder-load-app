@@ -186,11 +186,6 @@
   //     display: flex;
   //     justify-content: flex-end;
   //     align-self: stretch;
-
-  //     .bk-hints {
-  //       margin-top: 0;
-  //       width: min(100%, 360px);
-  //     }
   //   }
   // }
 
@@ -215,9 +210,6 @@
   //     margin-bottom: 4px;
   //   }
 
-  //   .backup-shell-header .backup-header-right .bk-hints {
-  //     display: none;
-  //   }
   // }
 
   .wg-block {
@@ -2754,70 +2746,6 @@ h1.section-heading {
 
   .bk-skeleton {
     animation: none;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Backup Hints Block
-// ---------------------------------------------------------------------------
-.bk-hints {
-  @include backup-glass-panel(1.25rem, rgba(255, 255, 255, 0.1), 18px);
-  margin-top: 0;
-  border-radius: 20px;
-  text-align: left;
-  color: var(--color-highlight);
-  background:
-    radial-gradient(
-      110% 88% at 0% 0%,
-      rgba(var(--color-accent-rgb), 0.11) 0%,
-      rgba(var(--color-accent-rgb), 0.03) 24%,
-      transparent 62%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.045) 0%,
-      rgba(255, 255, 255, 0.02) 100%
-    ),
-    radial-gradient(
-      120% 90% at 100% 0%,
-      rgba(var(--color-accent-rgb), 0.12) 0%,
-      transparent 52%
-    ),
-    rgba(255, 255, 255, 0.018);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 16px 34px rgba(4, 8, 16, 0.12);
-
-  h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 12px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    i {
-      color: var(--color-accent);
-    }
-  }
-
-  .bk-hint-text {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--color-quality);
-    opacity: 0;
-    transition:
-      opacity 0.4s ease,
-      transform 0.4s ease;
-  }
-
-  .bk-hint-text[style*="opacity: 1"] {
-    transform: translateY(0);
-  }
-
-  .bk-hint-text[style*="opacity: 0"] {
-    transform: translateY(5px);
   }
 }
 

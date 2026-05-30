@@ -64,17 +64,6 @@ export const backupTranslations = {
     "backup.log.copyError": "Не удалось скопировать",
     "backup.log.fileSaved": "Файл лога сохранён",
     "backup.log.fileSaveError": "Не удалось сохранить файл",
-    "backup.hints.title": "Советы",
-    "backup.hints.1":
-      "💾 Дважды кликните по профилю, чтобы быстро отредактировать пути и параметры.",
-    "backup.hints.2":
-      "👆 Выделяйте профили одним кликом по карточке — чекбоксы больше не нужны.",
-    "backup.hints.3":
-      "⚙️ Используйте кнопку «Запустить для выбранных», чтобы копировать несколько профилей сразу.",
-    "backup.hints.4":
-      "📁 Нажмите путь назначения в профиле, чтобы открыть его в Finder или Проводнике.",
-    "backup.hints.5":
-      "🕒 Последнее время успешного копирования видно под именем каждого профиля.",
     "backup.tags.aria": "Теги",
     "backup.lastCopy.label": "Последняя копия:",
     "backup.profile.fallbackName": "Профиль {index}",
@@ -230,17 +219,6 @@ export const backupTranslations = {
     "backup.log.copyError": "Failed to copy",
     "backup.log.fileSaved": "Log file saved",
     "backup.log.fileSaveError": "Failed to save file",
-    "backup.hints.title": "Tips",
-    "backup.hints.1":
-      "💾 Double-click a profile to quickly edit paths and settings.",
-    "backup.hints.2":
-      "👆 Select profiles with a single click — no checkboxes needed.",
-    "backup.hints.3":
-      "⚙️ Use “Run selected” to back up multiple profiles at once.",
-    "backup.hints.4":
-      "📁 Click the destination path to open it in Finder or Explorer.",
-    "backup.hints.5":
-      "🕒 The last successful backup time appears under each profile name.",
     "backup.tags.aria": "Tags",
     "backup.lastCopy.label": "Last backup:",
     "backup.profile.fallbackName": "Profile {index}",

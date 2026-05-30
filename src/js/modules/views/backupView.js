@@ -64,6 +64,13 @@ export default function renderBackup() {
 
   const ipc = window.electron?.ipcRenderer || window.electron;
   const tb = (key, vars) => t(`backup.${key}`, vars);
+  const escapeHtml = (value) =>
+    String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
 
   /**
    * Wrapper over Electron's ipcRenderer.invoke with a guarded fallback.
@@ -285,7 +292,6 @@ export default function renderBackup() {
    */
   const getEl = (sel, root = wrapper) => root.querySelector(sel);
   let hasRenderedListOnce = false;
-  let hintsTimer = null;
   let clearVirtualization = null;
   let currentVisibleKeys = new Set();
   const VIRTUALIZATION_MIN_ITEMS = 20;
@@ -671,79 +677,6 @@ export default function renderBackup() {
       renderList();
     });
   }
-
-  // Backup Hints Block
-  const headerRight = container.querySelector("#backup-header-right");
-  const toolbar = container.querySelector("#bk-toolbar");
-  const hintsBlock = document.createElement("div");
-  hintsBlock.className = "info-card bk-hints";
-  hintsBlock.innerHTML = `
-    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="backup.hints.title">${tb("hints.title")}</span></h3>
-    <p class="bk-hint-text"></p>
-  `;
-  if (headerRight) {
-    headerRight.appendChild(hintsBlock);
-  } else if (toolbar) {
-    toolbar.after(hintsBlock);
-  } else {
-    container.appendChild(hintsBlock);
-  }
-  applyI18n(hintsBlock);
-
-  const hints = [
-    tb("hints.1"),
-    tb("hints.2"),
-    tb("hints.3"),
-    tb("hints.4"),
-    tb("hints.5"),
-  ];
-
-  let hintIndex = 0;
-  const hintEl = hintsBlock.querySelector(".bk-hint-text");
-  const showHint = () => {
-    if (!hintEl) return;
-    hintEl.style.opacity = 0;
-    setTimeout(() => {
-      hintEl.textContent = hints[hintIndex];
-      hintEl.style.opacity = 1;
-      hintIndex = (hintIndex + 1) % hints.length;
-    }, 400);
-  };
-  const isBackupTabActive = () =>
-    document.querySelector(".group-menu .menu-item.active")?.dataset.menu ===
-    "backup";
-  const canRunHints = () =>
-    wrapper.isConnected && !document.hidden && isBackupTabActive();
-  const stopHintsRotation = () => {
-    if (hintsTimer) {
-      clearInterval(hintsTimer);
-      hintsTimer = null;
-    }
-  };
-  const startHintsRotation = () => {
-    if (hintsTimer || !canRunHints()) return;
-    hintsTimer = setInterval(showHint, 10000);
-  };
-  const syncHintsRotation = () => {
-    if (canRunHints()) {
-      startHintsRotation();
-      return;
-    }
-    stopHintsRotation();
-  };
-  const onTabsActivated = (event) => {
-    const activeTab = event?.detail?.id || "";
-    if (activeTab && activeTab !== "backup") {
-      stopHintsRotation();
-      return;
-    }
-    syncHintsRotation();
-  };
-
-  showHint();
-  window.addEventListener("tabs:activated", onTabsActivated);
-  document.addEventListener("visibilitychange", syncHintsRotation);
-  syncHintsRotation();
 
   // Autofocus search when opening the tab
   queueMicrotask(() => {
@@ -2908,17 +2841,22 @@ export default function renderBackup() {
       .map((i) => state.programs[i]?.name)
       .filter(Boolean)
       .join(", ");
+    const safeNames = escapeHtml(names);
 
-    showConfirmationDialog(tb("confirm.deleteProfile", { names }), async () => {
-      state.programs = state.programs.filter((_, i) => !indices.includes(i));
-      try {
-        await save();
-        await load();
-        toast(tb("toast.deleted"));
-      } catch (e) {
-        toast(e.message || tb("common.error"), "error");
-      }
-      log(tb("log.profilesDeleted", { names }));
+    showConfirmationDialog({
+      message: tb("confirm.deleteProfile", { names: safeNames }),
+      allowHtml: true,
+      onConfirm: async () => {
+        state.programs = state.programs.filter((_, i) => !indices.includes(i));
+        try {
+          await save();
+          await load();
+          toast(tb("toast.deleted"));
+        } catch (e) {
+          toast(e.message || tb("common.error"), "error");
+        }
+        log(tb("log.profilesDeleted", { names }));
+      },
     });
   });
 
@@ -3168,13 +3106,10 @@ export default function renderBackup() {
   queueMicrotask(() => initTooltips(wrapper));
 
   const destroyViewResources = () => {
-    stopHintsRotation();
     if (clearVirtualization) {
       clearVirtualization();
       clearVirtualization = null;
     }
-    window.removeEventListener("tabs:activated", onTabsActivated);
-    document.removeEventListener("visibilitychange", syncHintsRotation);
   };
   const disconnectObserver = new MutationObserver(() => {
     if (!wrapper.isConnected) {
