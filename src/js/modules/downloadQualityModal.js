@@ -34,6 +34,7 @@ const COVER_GENRE_LABELS = [
   "POP",
   "RAP",
 ];
+const MP3_AUDIO_EXT = "mp3";
 
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
@@ -958,6 +959,35 @@ function buildOptions(info) {
       }),
     });
   });
+
+  if (bestAudio) {
+    const bitrate = bestAudio.abr || bestAudio.tbr || "?";
+    optionGroups.audio.push({
+      id: `audio-mp3-${bestAudio.format_id}`,
+      tab: "audio",
+      title: t("quality.label.audioMp3"),
+      description: t("quality.desc.audioMp3", { bitrate }),
+      extLabel: MP3_AUDIO_EXT.toUpperCase(),
+      sizeLabel: bytesToSize(bestAudio.filesize || bestAudio.filesize_approx),
+      extra: t("quality.extra.convertedAudio"),
+      resolutionLabel: t("quality.label.audio"),
+      fpsLabel: "—",
+      codecLabel: "MP3",
+      containerLabel: MP3_AUDIO_EXT.toUpperCase(),
+      audioBitrateLabel: `${bitrate} kbps`,
+      score: (bestAudio.abr || bestAudio.tbr || 0) / 10 - 0.1,
+      payload: buildOptionPayload({
+        type: "audio-only",
+        label: t("quality.label.audioMp3"),
+        videoFormat: null,
+        audioFormat: bestAudio.format_id,
+        videoExt: null,
+        audioExt: MP3_AUDIO_EXT,
+        resolution: t("quality.label.audioMp3"),
+        fps: null,
+      }),
+    });
+  }
 
   return optionGroups;
 }

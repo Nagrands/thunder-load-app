@@ -169,6 +169,14 @@ const QUALITY_FHD = "FHD 1080p";
 const QUALITY_HD = "HD 720p";
 const QUALITY_SD = "SD 360p";
 
+function isAudioOnlyQuality(quality, videoFormat, audioFormat) {
+  if (quality === QUALITY_AUDIO_ONLY) return true;
+  if (quality?.type === "audio-only" || quality?.downloadKind === "audio") {
+    return true;
+  }
+  return videoFormat === null && !!audioFormat;
+}
+
 const PREFERRED_AUDIO_LANGS = [
   "ru",
   "ru-ru",
@@ -1905,6 +1913,64 @@ function spawnDownloadProcess(
   return runWithRetries();
 }
 
+function convertAudioToMp3(inputPath, outputPath, options = {}) {
+  const { token = null, processKey = "audioDownload" } = options;
+  const processStore = getProcessStore(token);
+  return new Promise((resolve, reject) => {
+    if (isCancelled(token)) {
+      return reject(new Error(token.cancelReason || "Download cancelled"));
+    }
+    const ffmpegPath = resolveRuntimeToolPath("ffmpeg");
+    const args = [
+      "-y",
+      "-i",
+      inputPath,
+      "-vn",
+      "-codec:a",
+      "libmp3lame",
+      "-q:a",
+      "0",
+      outputPath,
+    ];
+    log.info("[download] Spawning ffmpeg for mp3 conversion", {
+      inputPath,
+      outputPath,
+      ffmpegPath,
+    });
+    const proc = spawn(
+      ffmpegPath,
+      args,
+      getYtDlpSpawnOptionsForBinary(ffmpegPath),
+    );
+    processStore[processKey] = proc;
+    let stderrOutput = "";
+    proc.stderr.on("data", (data) => {
+      const text = data?.toString?.() || "";
+      stderrOutput += text;
+      log.error(text);
+    });
+    proc.on("close", (code) => {
+      processStore[processKey] = null;
+      if (isCancelled(token)) {
+        return reject(new Error(token.cancelReason || "Download cancelled"));
+      }
+      if (code !== 0) {
+        const detail = stderrOutput.trim().split("\n").filter(Boolean).pop();
+        return reject(
+          new Error(
+            `ffmpeg mp3 conversion exited with code ${code}${detail ? `: ${detail}` : ""}`,
+          ),
+        );
+      }
+      resolve();
+    });
+    proc.on("error", (err) => {
+      processStore[processKey] = null;
+      reject(err);
+    });
+  });
+}
+
 const isCancelError = (err) =>
   err && typeof err.message === "string"
     ? err.message.includes("Download cancelled")
@@ -2084,7 +2150,7 @@ async function downloadMedia(
     });
 
     // Audio Only режим
-    if (quality === QUALITY_AUDIO_ONLY) {
+    if (isAudioOnlyQuality(quality, videoFormat, audioFormat)) {
       if (url.includes("twitch.tv")) {
         // Для Twitch: извлекаем аудио и конвертируем в mp3
         const audioOutput = path.join(downloadPath, `${sanitizedFilename}.mp3`);
@@ -2150,15 +2216,22 @@ async function downloadMedia(
         return audioOutput;
       } else {
         // Для не-Twitch источников: используем формат аудио, как возвращён из selectFormatsByQuality
-        const audioExtension = audioExt; // audioExt, полученный из selectFormatsByQuality
+        const audioExtension = String(audioExt || "m4a").toLowerCase(); // audioExt, полученный из selectFormatsByQuality
+        const shouldExtractMp3 = audioExtension === "mp3";
         const finalAudioPath = path.join(
           downloadPath,
           `${sanitizedFilename}.${audioExtension}`,
         );
-        const tempAudioPath = path.join(
+        const tempAudioPath = shouldExtractMp3
+          ? path.join(downloadPath, `audio_${resumePrefix}.mp3`)
+          : path.join(downloadPath, `audio_${resumePrefix}.${audioExtension}`);
+        const tempSourceAudioPath = path.join(
           downloadPath,
-          `audio_${resumePrefix}.${audioExtension}`,
+          `audio_${resumePrefix}.source`,
         );
+        const tempAudioOutput = shouldExtractMp3
+          ? tempSourceAudioPath
+          : tempAudioPath;
         let lastLogged = 0;
         const updateProgress = (progress) => {
           if (progress - lastLogged >= 5 || progress >= 100) {
@@ -2168,8 +2241,10 @@ async function downloadMedia(
           emitDownloadProgress(event, progress, { jobId, phase: "download" });
         };
         log.info("[download] Spawning yt-dlp for audio-only download", {
-          output: tempAudioPath,
+          output: shouldExtractMp3 ? tempAudioOutput : tempAudioPath,
           audioFormat,
+          audioExtension,
+          convertToMp3: shouldExtractMp3,
           url,
           resume: hasResumeArtifacts(tempAudioPath, downloadPath, resumeKey),
         });
@@ -2183,20 +2258,41 @@ async function downloadMedia(
         try {
           await spawnDownloadProcess(
             String(audioFormat),
-            tempAudioPath,
+            tempAudioOutput,
             url,
             updateProgress,
-            { processKey: "audioDownload", token },
+            {
+              extraArgs: shouldExtractMp3 ? ["--no-playlist"] : [],
+              processKey: "audioDownload",
+              token,
+            },
           );
+          if (shouldExtractMp3) {
+            emitDownloadProgress(event, 99, { jobId, phase: "finalize" });
+            await convertAudioToMp3(tempSourceAudioPath, tempAudioPath, {
+              token,
+              processKey: "audioDownload",
+            });
+          }
         } catch (err) {
           if (fs.existsSync(tempAudioPath)) {
             try {
               await fs.promises.unlink(tempAudioPath);
             } catch {}
           }
+          if (shouldExtractMp3 && fs.existsSync(tempSourceAudioPath)) {
+            try {
+              await fs.promises.unlink(tempSourceAudioPath);
+            } catch {}
+          }
           throw err;
         }
         safeMoveFile(tempAudioPath, finalAudioPath);
+        if (shouldExtractMp3 && fs.existsSync(tempSourceAudioPath)) {
+          try {
+            await fs.promises.unlink(tempSourceAudioPath);
+          } catch {}
+        }
         clearResumeState(downloadPath, resumeKey);
         log.info(`Audio downloaded: ${finalAudioPath}`);
         emitDownloadProgress(event, 100, { jobId, phase: "download" });

@@ -70,6 +70,32 @@ describe("selectFormatsByQuality object fallback", () => {
     expect(picked.videoFormat).toBeNull();
     expect(picked.audioFormat).toBe("251");
   });
+
+  it("preserves mp3 audio output for explicit audio-only selections", () => {
+    const formats = [
+      {
+        format_id: "251",
+        vcodec: "none",
+        acodec: "opus",
+        abr: 160,
+        ext: "webm",
+      },
+    ];
+
+    const picked = selectFormatsByQuality(formats, {
+      type: "audio-only",
+      label: "MP3",
+      audioFormatId: "251",
+      videoFormatId: null,
+      audioExt: "mp3",
+      resolution: "MP3",
+    });
+
+    expect(picked.videoFormat).toBeNull();
+    expect(picked.audioFormat).toBe("251");
+    expect(picked.audioExt).toBe("mp3");
+    expect(picked.resolution).toBe("MP3");
+  });
 });
 
 describe("yt-dlp error classification helpers", () => {

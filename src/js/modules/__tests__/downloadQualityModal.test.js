@@ -924,6 +924,74 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
+  it("adds an MP3 option in the audio tab and returns an mp3 audio payload", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        thumbnail: "https://cdn.example.com/preview.jpg",
+        formats: [
+          {
+            format_id: "251",
+            vcodec: "none",
+            acodec: "opus",
+            abr: 160,
+            ext: "webm",
+          },
+          {
+            format_id: "140",
+            vcodec: "none",
+            acodec: "mp4a.40.2",
+            abr: 128,
+            ext: "m4a",
+          },
+          {
+            format_id: "18",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 360,
+            ext: "mp4",
+          },
+        ],
+      });
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+        { forceAudioOnly: true },
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const audioOptions = Array.from(
+        document.querySelectorAll(".quality-option"),
+      );
+      const mp3Option = audioOptions.find((option) =>
+        option.textContent.includes("MP3"),
+      );
+
+      expect(
+        document.getElementById("download-quality-count-audio").textContent,
+      ).toBe("3");
+      expect(mp3Option).toBeTruthy();
+
+      mp3Option.click();
+      document.getElementById("download-quality-primary").click();
+
+      const result = await resultPromise;
+      expect(result).toMatchObject({
+        type: "audio-only",
+        label: "MP3",
+        audioFormatId: "251",
+        audioExt: "mp3",
+        videoFormatId: null,
+      });
+    });
+  });
+
   it("keeps forceAudioOnly priority over remembered video label", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));
