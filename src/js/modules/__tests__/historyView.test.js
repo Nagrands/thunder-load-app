@@ -193,6 +193,93 @@ describe("Downloader history list", () => {
     ).toBe(true);
   });
 
+  test("renders compact pagination controls with page-size options", async () => {
+    const { renderHistory } = await import("../history.js");
+    const entries = Array.from({ length: 12 }, (_, idx) =>
+      createEntry({ id: String(idx + 1), fileName: `Entry ${idx + 1}` }),
+    );
+
+    renderHistory(entries, {
+      pageSize: 10,
+      totalEntries: entries.length,
+      fullEntries: entries,
+    });
+
+    const pagination = document.getElementById("history-pagination");
+    const pageSize = document.getElementById("history-page-size");
+
+    expect(pagination).not.toBeNull();
+    expect(pagination.dataset.ui).toBe("history-pagination");
+    expect(pagination.querySelector(".history-page-side--left")).not.toBeNull();
+    expect(
+      pagination.querySelector(".history-page-side--right"),
+    ).not.toBeNull();
+    expect(pagination.querySelector("#history-page-info").textContent).toBe(
+      "Стр. 1 / 2 · 12 записей",
+    );
+    expect(Array.from(pageSize.options).map((opt) => opt.value)).toEqual([
+      "4",
+      "10",
+      "20",
+    ]);
+    expect(pageSize.value).toBe("10");
+    expect(pagination.querySelector(".bk-select-wrapper")).not.toBeNull();
+  });
+
+  test("hides pagination for empty history", async () => {
+    const { renderHistory } = await import("../history.js");
+
+    renderHistory([], {
+      pageSize: 10,
+      totalEntries: 0,
+      fullEntries: [],
+    });
+
+    const pagination = document.getElementById("history-pagination");
+
+    expect(pagination).not.toBeNull();
+    expect(pagination.style.display).toBe("none");
+  });
+
+  test("keeps pagination disabled states in sync with current page", async () => {
+    const { renderHistory } = await import("../history.js");
+    const entries = Array.from({ length: 12 }, (_, idx) =>
+      createEntry({ id: String(idx + 1), fileName: `Entry ${idx + 1}` }),
+    );
+
+    renderHistory(entries, {
+      page: 1,
+      pageSize: 4,
+      totalEntries: entries.length,
+      fullEntries: entries,
+    });
+
+    expect(document.getElementById("history-page-prev").disabled).toBe(true);
+    expect(document.getElementById("history-page-prev-fast").disabled).toBe(
+      true,
+    );
+    expect(document.getElementById("history-page-next").disabled).toBe(false);
+    expect(document.getElementById("history-page-next-fast").disabled).toBe(
+      false,
+    );
+
+    renderHistory(entries, {
+      page: 3,
+      pageSize: 4,
+      totalEntries: entries.length,
+      fullEntries: entries,
+    });
+
+    expect(document.getElementById("history-page-prev").disabled).toBe(false);
+    expect(document.getElementById("history-page-prev-fast").disabled).toBe(
+      false,
+    );
+    expect(document.getElementById("history-page-next").disabled).toBe(true);
+    expect(document.getElementById("history-page-next-fast").disabled).toBe(
+      true,
+    );
+  });
+
   test("groups entries by date with labels", async () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-02-07T12:00:00"));

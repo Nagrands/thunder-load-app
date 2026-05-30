@@ -292,6 +292,7 @@ function ensurePaginationElements() {
   paginationRoot = document.createElement("div");
   paginationRoot.id = "history-pagination";
   paginationRoot.className = "history-pagination";
+  paginationRoot.setAttribute("data-ui", "history-pagination");
   paginationRoot.innerHTML = `
     <div class="history-page-side history-page-side--left">
       <button
@@ -312,7 +313,7 @@ function ensurePaginationElements() {
       </button>
     </div>
     <div class="history-page-center">
-      <span class="history-page-info" id="history-page-info">
+      <span class="history-page-info" id="history-page-info" aria-live="polite">
         ${t("history.pagination.info", {
           page: 1,
           total: 1,
@@ -321,7 +322,7 @@ function ensurePaginationElements() {
         })}
       </span>
       <label class="history-page-size">
-        <span>${t("history.pagination.perLabel")}</span>
+        <span class="history-page-size-label">${t("history.pagination.perLabel")}</span>
         <select
           id="history-page-size"
           class="input input-sm history-page-size-select bk-select-init"
