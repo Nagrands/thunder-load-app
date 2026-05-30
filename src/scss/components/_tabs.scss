@@ -315,6 +315,21 @@
     &:hover {
       border-color: var(--color-accent);
     }
+
+    &.is-dragging {
+      opacity: 0.55;
+      transform: scale(0.992);
+    }
+
+    &.is-drag-over {
+      border-color: rgba(var(--color-accent-rgb), 0.72) !important;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(var(--color-accent-rgb), 0.13),
+          rgba(255, 255, 255, 0.035)
+        ) !important;
+    }
   }
 
   .queue-item-index-wrap {
@@ -337,10 +352,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    cursor: grab;
 
     svg {
       width: 13px;
       height: 13px;
+    }
+
+    &:active {
+      cursor: grabbing;
     }
   }
 

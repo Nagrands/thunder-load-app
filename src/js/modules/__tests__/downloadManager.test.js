@@ -1084,6 +1084,90 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
+  it("supports dragging pending queue items by the grip handle", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "en"),
+        t: jest.fn((key, params = {}) => {
+          if (key === "queue.limit.near") return `Slots left: ${params.count}`;
+          if (key === "queue.limit.full") return "Queue limit reached";
+          return key;
+        }),
+      }));
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+
+      state.downloadQueue = [
+        { url: "https://example.com/a", quality: "Source" },
+        { url: "https://example.com/b", quality: "Source" },
+        { url: "https://example.com/c", quality: "Source" },
+      ];
+      initDownloadButton();
+      updateQueueDisplay();
+
+      const dataTransfer = {
+        effectAllowed: "",
+        dropEffect: "",
+        setData: jest.fn(),
+      };
+      const dragStart = new Event("dragstart", {
+        bubbles: true,
+        cancelable: true,
+      });
+      Object.defineProperty(dragStart, "dataTransfer", {
+        value: dataTransfer,
+      });
+      document
+        .querySelector('[data-queue-drag-handle][data-index="2"]')
+        .dispatchEvent(dragStart);
+
+      const firstRow = document.querySelector(
+        '.queue-item[data-queue-pending-index="0"]',
+      );
+      firstRow.getBoundingClientRect = jest.fn(() => ({
+        top: 100,
+        left: 0,
+        width: 500,
+        height: 40,
+        right: 500,
+        bottom: 140,
+      }));
+
+      const drop = new Event("drop", { bubbles: true, cancelable: true });
+      Object.defineProperty(drop, "dataTransfer", { value: dataTransfer });
+      Object.defineProperty(drop, "clientY", { value: 104 });
+      firstRow.dispatchEvent(drop);
+
+      expect(state.downloadQueue.map((item) => item.url)).toEqual([
+        "https://example.com/c",
+        "https://example.com/a",
+        "https://example.com/b",
+      ]);
+      expect(dataTransfer.setData).toHaveBeenCalledWith("text/plain", "2");
+    });
+  });
+
   it("renders 200 queued items when queue reaches max size", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({

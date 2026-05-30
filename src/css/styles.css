@@ -21592,6 +21592,14 @@ hr {
 .download-queue-info .queue-item:hover {
   border-color: var(--color-accent);
 }
+.download-queue-info .queue-item.is-dragging {
+  opacity: 0.55;
+  transform: scale(0.992);
+}
+.download-queue-info .queue-item.is-drag-over {
+  border-color: rgba(var(--color-accent-rgb), 0.72) !important;
+  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.13), rgba(255, 255, 255, 0.035)) !important;
+}
 .download-queue-info .queue-item-index-wrap {
   width: 22px;
   position: relative;
@@ -21610,10 +21618,14 @@ hr {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: grab;
 }
 .download-queue-info .queue-item-grip svg {
   width: 13px;
   height: 13px;
+}
+.download-queue-info .queue-item-grip:active {
+  cursor: grabbing;
 }
 .download-queue-info .queue-item:hover .queue-item-index {
   opacity: 0;

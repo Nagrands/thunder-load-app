@@ -1093,10 +1093,10 @@ function updateQueueDisplay() {
     const isFirst = pendingIndex === 0;
     const isLast = pendingIndex === pendingItems.length - 1;
     return `
-      <li class="queue-item group ${isDownloading ? "is-downloading" : ""}" role="listitem" style="background:${isDownloading ? "linear-gradient(180deg, rgba(74,158,255,0.07), rgba(255,255,255,0.03))" : QUEUE_COLORS.cardBg};border:1px solid ${QUEUE_COLORS.cardBorder};">
+      <li class="queue-item group ${isDownloading ? "is-downloading" : ""}" role="listitem" ${isPendingGroup ? `data-queue-pending-index="${pendingIndex}"` : ""} style="background:${isDownloading ? "linear-gradient(180deg, rgba(74,158,255,0.07), rgba(255,255,255,0.03))" : QUEUE_COLORS.cardBg};border:1px solid ${QUEUE_COLORS.cardBorder};">
         <div class="queue-item-index-wrap">
           <span class="queue-item-index">${String(displayIndex + 1).padStart(2, "0")}</span>
-          <span class="queue-item-grip" aria-hidden="true"><i data-lucide="grip-vertical"></i></span>
+          <span class="queue-item-grip" ${isPendingGroup ? `draggable="true" data-queue-drag-handle="1" data-index="${pendingIndex}" title="${t("queue.item.drag.title")}" aria-label="${t("queue.item.drag.title")}" role="button" tabindex="0"` : `aria-hidden="true"`}><i data-lucide="grip-vertical"></i></span>
         </div>
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
@@ -1189,6 +1189,34 @@ function updateQueueDisplay() {
 let lastChosenQuality = null;
 let lastChosenQualityLabel = null;
 let progressResetTimer = null;
+let queueDragState = null;
+
+function movePendingQueueItem(fromIndex, toIndex) {
+  const pendingJobs = [...getPendingDownloadJobs(state)];
+  if (
+    !Number.isInteger(fromIndex) ||
+    !Number.isInteger(toIndex) ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= pendingJobs.length ||
+    toIndex >= pendingJobs.length ||
+    fromIndex === toIndex
+  ) {
+    return false;
+  }
+
+  const [item] = pendingJobs.splice(fromIndex, 1);
+  pendingJobs.splice(toIndex, 0, item);
+  replaceDownloadJobsByStatus(
+    state,
+    [JOB_STATUS.pending, JOB_STATUS.paused],
+    pendingJobs,
+  );
+  persistQueue();
+  updateQueueDisplay();
+  console.log(QUEUE_LOG_TAG, "move-item", { from: fromIndex, to: toIndex });
+  return true;
+}
 
 const clearProgressResetTimer = () => {
   if (progressResetTimer) {
@@ -2079,6 +2107,76 @@ function initDownloadButton() {
   }
 
   if (queueList && !queueList.dataset.bound) {
+    const clearQueueDragMarkers = () => {
+      queueList.classList.remove("is-dragging");
+      queueList
+        .querySelectorAll(".queue-item.is-dragging, .queue-item.is-drag-over")
+        .forEach((item) =>
+          item.classList.remove("is-dragging", "is-drag-over"),
+        );
+    };
+
+    queueList.addEventListener("dragstart", (e) => {
+      const handle = e.target.closest("[data-queue-drag-handle]");
+      if (!handle || !queueList.contains(handle)) return;
+      const fromIndex = Number(handle.dataset.index);
+      if (!Number.isInteger(fromIndex)) return;
+      queueDragState = { fromIndex };
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(fromIndex));
+      }
+      handle.closest(".queue-item")?.classList.add("is-dragging");
+      queueList.classList.add("is-dragging");
+    });
+
+    queueList.addEventListener("dragover", (e) => {
+      if (!queueDragState) return;
+      const row = e.target.closest(".queue-item[data-queue-pending-index]");
+      if (!row || !queueList.contains(row)) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+      queueList
+        .querySelectorAll(".queue-item.is-drag-over")
+        .forEach((item) => item.classList.remove("is-drag-over"));
+      row.classList.add("is-drag-over");
+    });
+
+    queueList.addEventListener("dragleave", (e) => {
+      const row = e.target.closest(".queue-item[data-queue-pending-index]");
+      if (!row || row.contains(e.relatedTarget)) return;
+      row.classList.remove("is-drag-over");
+    });
+
+    queueList.addEventListener("drop", (e) => {
+      if (!queueDragState) return;
+      const row = e.target.closest(".queue-item[data-queue-pending-index]");
+      if (!row || !queueList.contains(row)) {
+        clearQueueDragMarkers();
+        queueDragState = null;
+        return;
+      }
+      e.preventDefault();
+      const fromIndex = queueDragState.fromIndex;
+      const targetIndex = Number(row.dataset.queuePendingIndex);
+      const rect = row.getBoundingClientRect();
+      const dropAfter = e.clientY > rect.top + rect.height / 2;
+      let toIndex = targetIndex + (dropAfter ? 1 : 0);
+      if (fromIndex < toIndex) toIndex -= 1;
+      const lastIndex = getPendingDownloadJobs(state).length - 1;
+      toIndex = Math.max(0, Math.min(lastIndex, toIndex));
+      clearQueueDragMarkers();
+      queueDragState = null;
+      if (movePendingQueueItem(fromIndex, toIndex)) {
+        showToast(t("queue.item.reordered"), "info");
+      }
+    });
+
+    queueList.addEventListener("dragend", () => {
+      clearQueueDragMarkers();
+      queueDragState = null;
+    });
+
     queueList.addEventListener("click", (e) => {
       const retryFailedBtn = e.target.closest("[data-queue-retry-failed]");
       if (retryFailedBtn) {
@@ -2110,35 +2208,18 @@ function initDownloadButton() {
         const idx = Number(moveBtn.dataset.index);
         const direction = moveBtn.dataset.queueMove;
         if (!Number.isFinite(idx)) return;
-        const pendingJobs = [...getPendingDownloadJobs(state)];
         if (direction === "up" && idx > 0) {
-          const [item] = pendingJobs.splice(idx, 1);
-          pendingJobs.splice(idx - 1, 0, item);
-          replaceDownloadJobsByStatus(
-            state,
-            [JOB_STATUS.pending, JOB_STATUS.paused],
-            pendingJobs,
-          );
-          persistQueue();
-          updateQueueDisplay();
-          console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx - 1 });
-          showToast(t("queue.item.movedUp"), "info");
+          if (movePendingQueueItem(idx, idx - 1)) {
+            showToast(t("queue.item.movedUp"), "info");
+          }
         } else if (
           direction === "down" &&
           idx >= 0 &&
-          idx < pendingJobs.length - 1
+          idx < getPendingDownloadJobs(state).length - 1
         ) {
-          const [item] = pendingJobs.splice(idx, 1);
-          pendingJobs.splice(idx + 1, 0, item);
-          replaceDownloadJobsByStatus(
-            state,
-            [JOB_STATUS.pending, JOB_STATUS.paused],
-            pendingJobs,
-          );
-          persistQueue();
-          updateQueueDisplay();
-          console.log(QUEUE_LOG_TAG, "move-item", { from: idx, to: idx + 1 });
-          showToast(t("queue.item.movedDown"), "info");
+          if (movePendingQueueItem(idx, idx + 1)) {
+            showToast(t("queue.item.movedDown"), "info");
+          }
         }
         return;
       }
