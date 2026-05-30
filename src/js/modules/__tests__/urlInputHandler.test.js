@@ -393,7 +393,115 @@ describe("urlInputHandler", () => {
     pasteBtn.click();
     await flushPromises();
     await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
 
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("auto-opens quality selection when yt-dlp returns preview only in thumbnails", async () => {
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnails: [{ url: "https://example.com/thumb.jpg" }],
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("auto-opens quality selection for pasted URL that already has loaded formats", async () => {
+    const { input, downloadBtn } = getState();
+    const url = "https://youtube.com/watch?v=test";
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    input.value = url;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
+    expect(clickSpy).not.toHaveBeenCalled();
+
+    const pasteEvent = new Event("paste", { bubbles: true });
+    Object.defineProperty(pasteEvent, "clipboardData", {
+      value: {
+        getData: (type) => (type === "text" ? url : ""),
+      },
+    });
+    input.dispatchEvent(pasteEvent);
+    input.value = url;
+    const inputEvent = new Event("input", { bubbles: true });
+    Object.defineProperty(inputEvent, "inputType", {
+      value: "insertFromPaste",
+    });
+    input.dispatchEvent(inputEvent);
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("normalizes native pasted URL before preview and auto-open", async () => {
+    const { input, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    const pasteEvent = new Event("paste", { bubbles: true });
+    Object.defineProperty(pasteEvent, "clipboardData", {
+      value: {
+        getData: (type) => (type === "text" ? "youtube.com/watch?v=test" : ""),
+      },
+    });
+    input.dispatchEvent(pasteEvent);
+    input.value = "youtube.com/watch?v=test";
+    const inputEvent = new Event("input", { bubbles: true });
+    Object.defineProperty(inputEvent, "inputType", {
+      value: "insertFromPaste",
+    });
+    input.dispatchEvent(inputEvent);
+
+    expect(input.value).toBe("https://youtube.com/watch?v=test");
+
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-info",
+      "https://youtube.com/watch?v=test",
+    );
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
@@ -411,6 +519,25 @@ describe("urlInputHandler", () => {
     pasteBtn.click();
     await flushPromises();
     await flushPromises();
+    jest.runOnlyPendingTimers();
+
+    expect(clickSpy).not.toHaveBeenCalled();
+  });
+
+  test("does not auto-open quality selection when content is not recognized", async () => {
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
 
     expect(clickSpy).not.toHaveBeenCalled();
   });
@@ -431,6 +558,7 @@ describe("urlInputHandler", () => {
     pasteBtn.click();
     await flushPromises();
     await flushPromises();
+    jest.runOnlyPendingTimers();
 
     expect(clickSpy).not.toHaveBeenCalled();
   });

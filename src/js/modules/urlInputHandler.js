@@ -98,6 +98,7 @@ function initUrlInputHandler() {
   let currentLivePreview = null;
   let livePreviewOpen = false;
   let pendingAutoQualityUrl = "";
+  let lastPreviewData = null;
 
   const isAutoQualityModalEnabled = () => {
     try {
@@ -115,10 +116,16 @@ function initUrlInputHandler() {
         : "";
   };
 
+  const hasPreviewImage = (data) => {
+    if (String(data?.thumbnail || "").trim()) return true;
+    if (!Array.isArray(data?.thumbnails)) return false;
+    return data.thumbnails.some((thumb) => String(thumb?.url || "").trim());
+  };
+
   const hasUsableQualityInfo = (data) =>
     !!data?.success &&
     !!String(data?.title || "").trim() &&
-    !!String(data?.thumbnail || "").trim() &&
+    hasPreviewImage(data) &&
     Array.isArray(data?.formats) &&
     data.formats.length > 0;
 
@@ -129,11 +136,17 @@ function initUrlInputHandler() {
       return;
     }
     const qualityModal = document.getElementById("download-quality-modal");
-    if (qualityModal?.classList.contains("is-open")) return;
+    if (qualityModal?.classList.contains("is-open")) {
+      pendingAutoQualityUrl = "";
+      return;
+    }
     const downloadBtn = document.getElementById("download-button");
+    updateButtonState();
     if (!downloadBtn || downloadBtn.disabled) return;
     pendingAutoQualityUrl = "";
-    downloadBtn.click();
+    setTimeout(() => {
+      if (!downloadBtn.disabled) downloadBtn.click();
+    }, 0);
   };
 
   const setPreviewLoading = (isLoading) => {
@@ -306,11 +319,10 @@ function initUrlInputHandler() {
       hideDownloaderLivePreview();
       return;
     }
+    lastPreviewData = data;
+    const previewUrl = lastPreviewUrl || data.webpage_url || data.original_url;
     try {
-      setCachedVideoInfo(
-        lastPreviewUrl || data.webpage_url || data.original_url,
-        data,
-      );
+      setCachedVideoInfo(previewUrl || urlInput.value.trim(), data);
     } catch (_) {}
     hideInlineError();
     previewTitleEl.textContent = data.title || "";
@@ -644,10 +656,12 @@ function initUrlInputHandler() {
       setPreviewLoading(false);
       renderPreview(null);
       pendingAutoQualityUrl = "";
+      lastPreviewData = null;
       return;
     }
     if (url === lastPreviewUrl) {
       setPreviewLoading(false);
+      maybeOpenQualityModalAfterPaste(url, lastPreviewData);
       return; // не повторяем
     }
     lastPreviewUrl = url;
@@ -664,6 +678,7 @@ function initUrlInputHandler() {
         showInlineErrorText(fetchError);
         renderPreview(null);
         pendingAutoQualityUrl = "";
+        lastPreviewData = null;
         return;
       }
       renderPreview(data);
@@ -673,6 +688,7 @@ function initUrlInputHandler() {
       if (currentRequest !== previewRequestId) return;
       renderPreview(null);
       pendingAutoQualityUrl = "";
+      lastPreviewData = null;
     } finally {
       if (currentRequest !== previewRequestId) return;
       setPreviewLoading(false);
@@ -690,8 +706,10 @@ function initUrlInputHandler() {
       setPreviewLoading(false);
       renderPreview(null);
       pendingAutoQualityUrl = "";
+      lastPreviewData = null;
       return;
     }
+    lastPreviewUrl = url;
     setPreviewLoading(true);
     hideDownloaderLivePreview();
     livePreviewOpen = false;
@@ -703,6 +721,7 @@ function initUrlInputHandler() {
         showInlineErrorText(fetchError);
         renderPreview(null);
         pendingAutoQualityUrl = "";
+        lastPreviewData = null;
         return;
       }
       renderPreview(data);
@@ -711,6 +730,7 @@ function initUrlInputHandler() {
     } catch {
       renderPreview(null);
       pendingAutoQualityUrl = "";
+      lastPreviewData = null;
     } finally {
       setPreviewLoading(false);
     }
@@ -726,12 +746,15 @@ function initUrlInputHandler() {
   });
 
   urlInput.addEventListener("input", (event) => {
+    const isPasteInput =
+      event?.inputType === "insertFromPaste" ||
+      pendingAutoQualityUrl === "__pending_native_paste__";
+    if (isPasteInput) {
+      normalizeInputValue();
+    }
     toggleButtons();
     const val = urlInput.value.trim();
-    if (
-      event?.inputType === "insertFromPaste" ||
-      pendingAutoQualityUrl === "__pending_native_paste__"
-    ) {
+    if (isPasteInput) {
       markAutoQualityCandidate(val);
     }
     syncUrlUiState({ showError: false });
@@ -740,6 +763,7 @@ function initUrlInputHandler() {
       hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
       lastPreviewUrl = "";
+      lastPreviewData = null;
       livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
@@ -778,6 +802,7 @@ function initUrlInputHandler() {
       hasInteracted = false;
       urlInput.value = "";
       lastPreviewUrl = "";
+      lastPreviewData = null;
       livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
@@ -796,6 +821,7 @@ function initUrlInputHandler() {
     if (!validation.isValid) {
       e.preventDefault();
       lastPreviewUrl = "";
+      lastPreviewData = null;
       renderPreview(null);
       return;
     }
@@ -826,6 +852,7 @@ function initUrlInputHandler() {
     toggleButtons();
     // Немедленно скрываем превью
     lastPreviewUrl = "";
+    lastPreviewData = null;
     livePreviewOpen = false;
     setPreviewLoading(false);
     renderPreview(null);
@@ -840,6 +867,7 @@ function initUrlInputHandler() {
     const text = (await navigator.clipboard.readText()) || "";
     hasInteracted = false;
     urlInput.value = normalizeUrlInput(text.trim());
+    lastPreviewData = null;
     markAutoQualityCandidate(urlInput.value);
     toggleButtons();
     hideInlineError();

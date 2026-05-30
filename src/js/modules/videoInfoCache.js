@@ -20,6 +20,8 @@ function setCachedVideoInfo(url, info) {
   const keyA = String(url || "");
   const keyB = normalize(url);
   const payload = {
+    ...info,
+    success: info.success !== false,
     title: info.title || info.name || "",
     url: info.webpage_url || info.original_url || url,
   };

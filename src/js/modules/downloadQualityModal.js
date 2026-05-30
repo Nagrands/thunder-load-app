@@ -1138,7 +1138,7 @@ function handleOptionClick(event) {
 
 async function loadFormatsWithRetry(
   url,
-  { preferredLabel = null, force = false } = {},
+  { preferredLabel = null, force = false, cachedInfo = null } = {},
 ) {
   if (!url) {
     showError(t("quality.error.urlUnavailable"));
@@ -1155,10 +1155,15 @@ async function loadFormatsWithRetry(
   beginFetchView();
 
   try {
-    const info = await withTimeout(
-      window.electron.ipcRenderer.invoke("get-video-info", url),
-      INFO_REQUEST_TIMEOUT,
-    );
+    const info =
+      cachedInfo?.success &&
+      Array.isArray(cachedInfo?.formats) &&
+      cachedInfo.formats.length > 0
+        ? cachedInfo
+        : await withTimeout(
+            window.electron.ipcRenderer.invoke("get-video-info", url),
+            INFO_REQUEST_TIMEOUT,
+          );
     if (!info || info.success === false) {
       throw (
         info || {
@@ -1465,6 +1470,7 @@ async function openDownloadQualityModal(url, opts = {}) {
     await loadFormatsWithRetry(url, {
       preferredLabel: opts.preferredLabel,
       force: true,
+      cachedInfo: opts.cachedInfo,
     });
   });
 }

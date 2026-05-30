@@ -11735,7 +11735,6 @@ body.modal-overlay-active .app-footer {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px) saturate(140%);
   transition: opacity 240ms ease, transform 280ms ease, border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
@@ -16540,7 +16539,6 @@ hr {
 }
 
 .history-badge {
-  height: 24px;
   padding: 0 9px;
   font-size: 0.76rem;
   font-weight: 600;
@@ -16559,7 +16557,6 @@ hr {
 .history-badge--media {
   background: rgba(59, 130, 246, 0.28);
   color: #bfdbfe;
-  border-color: rgba(96, 165, 250, 0.35);
 }
 
 .history-badge--resolution-4k {
@@ -16572,8 +16569,8 @@ hr {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #94a3b8;
-  font-size: 0.94rem;
+  color: var(--color-accent);
+  font-size: 0.8rem;
   white-space: nowrap;
 }
 
@@ -23838,7 +23835,7 @@ video {
 .downloader-shell-header {
   position: relative;
   display: grid;
-  gap: 15px;
+  /* gap: 15px; */
   align-items: stretch;
 }
 .downloader-shell-header .downloader-shell-header__hero {
@@ -23858,8 +23855,6 @@ video {
   display: flex;
   align-items: center;
   gap: 16px;
-  backdrop-filter: blur(4px);
-  background-color: var(--color-url-bg);
   padding: 12px 20px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -25678,8 +25673,6 @@ video {
   display: flex;
   align-items: center;
   gap: 16px;
-  backdrop-filter: blur(4px);
-  background-color: var(--color-url-bg);
   padding: 12px 20px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -26616,8 +26609,6 @@ video {
   display: flex;
   align-items: center;
   gap: 16px;
-  backdrop-filter: blur(4px);
-  background-color: var(--color-url-bg);
   padding: 12px 20px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -26656,9 +26647,10 @@ video {
 .tools-breadcrumbs {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 15px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .tools-breadcrumbs__item {
@@ -26865,11 +26857,11 @@ video {
 
 .tools-card {
   border: 1px solid var(--color-hover);
-  background: var(--color-bg-secondary);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
   border-radius: var(--border-radius);
-  padding: 22px;
+  padding: 14px;
   display: grid;
-  gap: 16px;
+  gap: 8px;
   min-height: auto;
   transition: border-color 0.2s ease;
 }
@@ -27263,12 +27255,13 @@ video {
 .sorter-folder-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px;
 }
 .sorter-folder-actions #sorter-open-folder,
 .sorter-folder-actions #sorter-pick-folder {
   width: 100%;
   min-height: 42px;
+  background: none;
   border-radius: 12px;
   padding-inline: 14px;
   justify-content: center;
@@ -27311,28 +27304,23 @@ video {
 
 .sorter-workspace-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.7fr);
   gap: 12px;
 }
 
 .sorter-workspace-field {
   border-radius: 14px;
   padding: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 16, 28, 0.12)), rgba(0, 0, 0, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.06);
   display: grid;
   gap: 10px;
 }
 
-.sorter-workspace-field--folder {
-  background: radial-gradient(circle at top left, rgba(var(--color-accent-rgb), 0.22), transparent 52%), linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(8, 14, 24, 0.18)), rgba(0, 0, 0, 0.14);
-}
-
 .sorter-workspace-field__head {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 4px;
 }
 .sorter-workspace-field__head label,
 .sorter-workspace-field__head .hash-file-label {
@@ -27344,16 +27332,12 @@ video {
 
 .sorter-workspace-field__symbol {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 11px;
-  color: rgba(255, 233, 219, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(8, 14, 24, 0.16)), rgba(255, 255, 255, 0.03);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: var(--color-accent);
 }
 
 .sorter-workspace-field--folder #sorter-folder-pill {
@@ -27531,11 +27515,7 @@ video {
   min-width: 0;
 }
 .sorter-actions .large-button {
-  min-height: 42px;
-  border-radius: 12px;
   justify-content: center;
-  font-weight: 700;
-  padding-inline: 14px;
   font-size: 0.88rem;
 }
 .sorter-actions .large-button.secondary {
@@ -27543,11 +27523,6 @@ video {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(8, 14, 24, 0.08)), rgba(255, 255, 255, 0.02);
   color: var(--color-highlight);
   box-shadow: none;
-}
-
-.sorter-actions--workspace {
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sorter-preview-panel {
@@ -27682,7 +27657,7 @@ video {
 
 .sorter-preview-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(250px, 0.8fr);
+  grid-template-columns: minmax(0, 0.75fr) minmax(250px, 0.8fr);
   gap: 14px;
   align-items: start;
   max-width: 100%;
@@ -28166,7 +28141,7 @@ video {
 
 .hash-tool-card {
   gap: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(7, 13, 23, 0.06)), var(--color-bg-secondary);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
 }
 
 .hash-icon-button {
@@ -29103,7 +29078,7 @@ video {
 
 .power-shortcuts-group__grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -32177,7 +32152,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), transparent 38%), linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(4, 8, 14, 0.16)), rgba(8, 12, 22, 0.36);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 36px rgba(0, 0, 0, 0.14);
 }
 
 .products-workbench-header__icon {
@@ -32243,7 +32217,7 @@ h1.section-heading .bk-heading-search #bk-search-info {
 
 .products-pane--result {
   grid-template-rows: auto auto minmax(0, 1fr);
-  background: rgba(10, 10, 10, 0.92);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
 }
 
 .products-pane__header {
@@ -32283,8 +32257,9 @@ h1.section-heading .bk-heading-search #bk-search-info {
 }
 
 .products-pane__toggles--footer {
-  justify-content: flex-start;
-  padding-left: 4px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 .products-pane__body {
@@ -32441,7 +32416,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
   min-width: 0;
   min-height: 0;
   height: 100%;
-  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .products-dictionary {

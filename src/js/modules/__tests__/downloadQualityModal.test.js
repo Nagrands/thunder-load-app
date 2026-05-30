@@ -163,6 +163,46 @@ describe("downloadQualityModal close behavior", () => {
     });
   });
 
+  it("uses cached formats without requesting video info again", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const modal = document.getElementById("download-quality-modal");
+      const cachedInfo = {
+        success: true,
+        title: "Cached video",
+        uploader: "Cached channel",
+        duration: 42,
+        thumbnail: "https://cdn.example.com/cached.jpg",
+        formats: [
+          {
+            format_id: "22",
+            vcodec: "avc1",
+            acodec: "mp4a",
+            height: 720,
+            ext: "mp4",
+          },
+        ],
+      };
+
+      const resultPromise = openDownloadQualityModal(
+        "https://example.com/video",
+        { cachedInfo },
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(window.electron.ipcRenderer.invoke).not.toHaveBeenCalled();
+      expect(modal.classList.contains("is-open")).toBe(true);
+      expect(document.getElementById("download-quality-name").textContent).toBe(
+        "Cached video",
+      );
+
+      document.getElementById("download-quality-cancel").click();
+      await expect(resultPromise).resolves.toBeNull();
+    });
+  });
+
   it("does not remove another modal body lock when quality modal closes", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../toast", () => ({ showToast: jest.fn() }));

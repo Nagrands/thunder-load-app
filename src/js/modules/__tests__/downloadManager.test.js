@@ -520,6 +520,51 @@ describe("downloadManager enqueueOnly behavior", () => {
       );
     });
   });
+
+  it("passes cached preview info to the quality modal", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const cachedInfo = {
+        success: true,
+        title: "Cached title",
+        formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+      };
+      window.__videoInfoCache = new Map([
+        ["https://example.com/cached", cachedInfo],
+      ]);
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
+      }));
+
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const urlInput = document.getElementById("url");
+
+      urlInput.value = "https://example.com/cached";
+      await handleDownloadButtonClick();
+
+      expect(openDownloadQualityModal).toHaveBeenCalledWith(
+        "https://example.com/cached",
+        expect.objectContaining({
+          cachedInfo,
+        }),
+      );
+    });
+  });
 });
 
 describe("downloadManager job summary", () => {
