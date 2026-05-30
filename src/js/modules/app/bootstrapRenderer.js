@@ -33,6 +33,7 @@ import { initLowEffectsFromStore } from "../effectsMode.js";
 import { initDeveloperModeFooterVisibility } from "../developerModeFooter.js";
 import { initPageBackgroundMode } from "../pageBackgroundMode.js";
 import { initScrollLockRepair } from "../scrollLockRepair.js";
+import { initScrollbarVisibility } from "../scrollbarVisibility.js";
 import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
 import { syncDeveloperModeState } from "../developerMode.js";
 import { initI18n, t } from "../i18n.js";
@@ -65,6 +66,7 @@ async function runCriticalInitialization(mainView) {
 
   initPageBackgroundMode();
   initScrollLockRepair();
+  initScrollbarVisibility();
   const { tabs } = await registerTabs(mainView);
 
   registerI18nListeners(tabs);
