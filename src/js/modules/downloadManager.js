@@ -8,7 +8,7 @@ import {
   updateDownloadCount,
   getHistoryData,
 } from "./history.js";
-import { isValidUrl, isSupportedUrl } from "./validation.js";
+import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import {
   urlInput,
   downloadButton,
@@ -36,7 +36,7 @@ import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
 import { syncDownloadTabAccessibility } from "./downloadTabUi.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
-import { getVideoPreview } from "./videoInfoBroker.js";
+import { getVideoInfo, getVideoPreview } from "./videoInfoBroker.js";
 import {
   formatDownloadErrorToast,
   formatDownloadQueueReason,
@@ -75,6 +75,8 @@ const QUEUE_START_MODE = Object.freeze({
 });
 
 let downloadedUrlCache = { ts: 0, map: new Map() };
+let lastDownloadIntentWarmup = { url: "", ts: 0 };
+const DOWNLOAD_INTENT_WARMUP_RETRY_MS = 30 * 1000;
 
 function updateDownloaderTabLabel() {
   try {
@@ -220,6 +222,31 @@ async function ensureQueueTitle(url, opts = {}) {
     });
   queueTitleRequestsInFlight.set(key, request);
   return request;
+}
+
+function warmupDownloadIntentInfo() {
+  if (
+    downloadButton?.disabled ||
+    downloadButton?.classList?.contains("disabled")
+  ) {
+    return;
+  }
+  const candidate = normalizeUrlInput(urlInput?.value || "").trim();
+  if (!candidate || !isValidUrl(candidate) || !isSupportedUrl(candidate)) return;
+  const url = normalizeUrl(candidate);
+  const cached = getCachedVideoInfo(url);
+  if (cached?.success && Array.isArray(cached.formats) && cached.formats.length) {
+    return;
+  }
+  const now = Date.now();
+  if (
+    lastDownloadIntentWarmup.url === url &&
+    now - lastDownloadIntentWarmup.ts < DOWNLOAD_INTENT_WARMUP_RETRY_MS
+  ) {
+    return;
+  }
+  lastDownloadIntentWarmup = { url, ts: now };
+  void getVideoInfo(url).catch(() => {});
 }
 
 function refreshPendingQueueTitles() {
@@ -1948,6 +1975,9 @@ const handleDownloadButtonClick = async (options = {}) => {
 };
 
 function initDownloadButton() {
+  downloadButton.addEventListener("pointerenter", warmupDownloadIntentInfo);
+  downloadButton.addEventListener("focus", warmupDownloadIntentInfo);
+
   downloadButton.addEventListener("click", async () => {
     const opts = {
       enqueueOnly: downloadButton.dataset.enqueueOnly === "1",

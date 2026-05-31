@@ -210,6 +210,85 @@ describe("downloadManager queue persistence", () => {
   });
 });
 
+describe("downloadManager intent warmup", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn(),
+      ipcRenderer: { invoke: jest.fn() },
+      on: jest.fn(),
+    };
+  });
+
+  const mockDownloadManagerDeps = () => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      addNewEntryToHistory: jest.fn(async () => {}),
+      updateDownloadCount: jest.fn(async () => {}),
+      getHistoryData: jest.fn(() => []),
+    }));
+  };
+
+  it("warms full video info on download button intent and throttles repeats", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDownloadManagerDeps();
+      window.electron.ipcRenderer.invoke.mockResolvedValue({
+        success: true,
+        title: "Intent title",
+        formats: [{ format_id: "18" }],
+      });
+      const { initDownloadButton } = require("../downloadManager");
+      const urlInput = document.getElementById("url");
+      const downloadButton = document.getElementById("download-button");
+      urlInput.value = "https://example.com/intent";
+
+      initDownloadButton();
+      downloadButton.dispatchEvent(new Event("pointerenter"));
+      downloadButton.dispatchEvent(new Event("focus"));
+      await Promise.resolve();
+
+      expect(window.electron.ipcRenderer.invoke).toHaveBeenCalledTimes(1);
+      expect(window.electron.ipcRenderer.invoke).toHaveBeenCalledWith(
+        "get-video-info",
+        "https://example.com/intent",
+      );
+    });
+  });
+
+  it("does not warm video info when download button is disabled", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDownloadManagerDeps();
+      const { initDownloadButton } = require("../downloadManager");
+      const urlInput = document.getElementById("url");
+      const downloadButton = document.getElementById("download-button");
+      urlInput.value = "https://example.com/disabled";
+      downloadButton.disabled = true;
+
+      initDownloadButton();
+      downloadButton.dispatchEvent(new Event("pointerenter"));
+      downloadButton.dispatchEvent(new Event("focus"));
+      await Promise.resolve();
+
+      expect(window.electron.ipcRenderer.invoke).not.toHaveBeenCalled();
+    });
+  });
+});
+
 describe("downloadManager enqueueOnly behavior", () => {
   beforeEach(() => {
     jest.resetModules();
