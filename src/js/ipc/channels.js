@@ -31,6 +31,7 @@ const CHANNELS = Object.freeze({
   GET_ICON_PATH: "get-icon-path",
   CACHE_HISTORY_PREVIEW: "cache-history-preview",
   DELETE_HISTORY_PREVIEW: "delete-history-preview",
+  CANCEL_VIDEO_INFO_REQUEST: "cancel-video-info-request",
   GET_VIDEO_INFO: "get-video-info",
   GET_VIDEO_PREVIEW: "get-video-preview",
   GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS: "get-minimize-instead-of-close-status",

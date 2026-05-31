@@ -135,4 +135,20 @@ describe("videoInfoBroker", () => {
       });
     });
   });
+
+  it("cancels an in-flight preview request by URL", async () => {
+    const invoke = setupElectron();
+    invoke.mockResolvedValue({ success: true });
+
+    await jest.isolateModulesAsync(async () => {
+      const { cancelVideoPreviewRequest } = require("../videoInfoBroker");
+
+      await cancelVideoPreviewRequest("https://example.com/cancel");
+
+      expect(invoke).toHaveBeenCalledWith("cancel-video-info-request", {
+        url: "https://example.com/cancel",
+        previewOnly: true,
+      });
+    });
+  });
 });

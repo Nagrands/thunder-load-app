@@ -5,11 +5,7 @@
 // ---------------------------------------------------------------------------
 // Shared mixins for Backup UI
 // ---------------------------------------------------------------------------
-@mixin backup-glass-panel(
-  $padding: 1rem,
-  $border: rgba(255, 255, 255, 0.06),
-  $blur: 0px // $shadow: 0 8px 24px rgba(0, 0, 0, 0.25)
-) {
+@mixin backup-glass-panel($padding: 1rem, $border: rgba(255, 255, 255, 0.06)) {
   padding: $padding;
   border-radius: var(--border-radius);
   border: 1px solid $border;
@@ -95,6 +91,15 @@
 .backup-view {
   position: relative;
   isolation: isolate;
+  --bk-surface-bg: rgba(18, 24, 38, 0.95);
+  --bk-surface-bg-hover: rgba(28, 38, 58, 0.97);
+  --bk-surface-bg-selected: rgba(36, 52, 82, 0.98);
+  --bk-surface-border: rgba(120, 180, 255, 0.16);
+  --bk-control-bg: rgba(255, 255, 255, 0.04);
+  --bk-control-bg-hover: rgba(120, 180, 255, 0.12);
+  --bk-control-border: rgba(255, 255, 255, 0.08);
+  --bk-control-border-hover: rgba(120, 180, 255, 0.25);
+  --bk-panel-shadow: 0 8px 26px rgba(0, 0, 0, 0.18);
 
   // ---------------------------------------------------------------------------
   // Layout Containers
@@ -224,7 +229,7 @@
     margin: 0.35rem 0.7rem 0.25rem;
     padding: 0.65rem 0.85rem;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--bk-control-border);
 
     .bk-filter-control {
       display: flex;
@@ -245,8 +250,8 @@
         padding: 0.45rem 0.6rem;
         min-height: 36px;
         color: var(--color-highlight);
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bk-control-bg);
+        border: 1px solid var(--bk-control-border);
         border-radius: 10px;
 
         &:focus {
@@ -274,14 +279,14 @@
       }
 
       button.history-action-button {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bk-control-bg);
+        border: 1px solid var(--bk-control-border);
         color: inherit;
         transition: all 0.18s ease;
 
         &:hover {
-          background: rgba(120, 180, 255, 0.12);
-          border-color: rgba(120, 180, 255, 0.45);
+          background: var(--bk-control-bg-hover);
+          border-color: var(--bk-control-border-hover);
           transform: translateY(-1px);
           box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
         }
@@ -299,8 +304,8 @@
     select:not(.bk-select-hidden),
     .bk-page-size:not(.bk-select-hidden) {
       appearance: none;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bk-control-bg);
+      border: 1px solid var(--bk-control-border);
       color: var(--color-highlight);
       border-radius: 10px;
       padding: 0.45rem 2.25rem 0.45rem 0.6rem;
@@ -317,7 +322,7 @@
         background 0.2s ease;
 
       &:hover {
-        border-color: rgba(120, 180, 255, 0.25);
+        border-color: var(--bk-control-border-hover);
         box-shadow: 0 0 0 1px rgba(120, 180, 255, 0.18);
       }
 
@@ -343,7 +348,7 @@
     border-radius: 12px;
     border: 1px solid rgba(120, 180, 255, 0.12);
     background: rgba(120, 180, 255, 0.06);
-    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--bk-panel-shadow);
 
     &.is-warn {
       border-color: rgba(255, 224, 102, 0.4);
@@ -1187,8 +1192,8 @@
       // Split layout (form + preview) for editor modal
       &.bk-form-split {
         display: grid !important;
-        grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
-        gap: 14px;
+        grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+        gap: 16px;
         align-items: start;
         width: 100%;
 
@@ -1204,6 +1209,7 @@
           display: flex;
           flex-direction: column;
           min-width: 0;
+          gap: 2px;
         }
 
         .bk-preview-card {
@@ -1239,8 +1245,8 @@
         }
 
         @media (max-width: 720px) {
-          gap: 10px;
-          padding: 0 4px;
+          gap: 8px;
+          padding: 0 6px;
         }
       }
     }
@@ -1329,33 +1335,6 @@
       }
     }
 
-    // Split layout for editor modal (form + preview)
-    .bk-form-grid.bk-form-split {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
-      gap: 16px;
-      align-items: start;
-
-      @media (max-width: 1100px) {
-        grid-template-columns: 1fr;
-        gap: 12px;
-
-        .bk-preview-card {
-          order: 2;
-        }
-      }
-
-      @media (max-width: 720px) {
-        gap: 8px;
-        padding: 0 6px;
-      }
-    }
-
-    .bk-form-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
 
     // Autofill Fix
     input:-webkit-autofill,
@@ -1902,10 +1881,10 @@ h1.section-heading {
 }
 
 .bk-row {
-  --bk-row-bg: rgba(18, 24, 38, 0.95);
-  --bk-row-bg-hover: rgba(28, 38, 58, 0.97);
-  --bk-row-bg-selected: rgba(36, 52, 82, 0.98);
-  --bk-row-border: 1px solid rgba(120, 180, 255, 0.16);
+  --bk-row-bg: var(--bk-surface-bg);
+  --bk-row-bg-hover: var(--bk-surface-bg-hover);
+  --bk-row-bg-selected: var(--bk-surface-bg-selected);
+  --bk-row-border: 1px solid var(--bk-surface-border);
 
   display: flex;
   flex-direction: row;
@@ -2095,7 +2074,7 @@ h1.section-heading {
       letter-spacing: 0.02em;
       padding: 2px 8px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--bk-control-bg);
 
       &:hover,
       &:focus {
@@ -2124,7 +2103,7 @@ h1.section-heading {
         padding: 4px 8px;
         border-radius: 999px;
         background: rgba(120, 180, 255, 0.12);
-        color: var(--color-text-main);
+        color: var(--color-highlight);
         font-size: 11px;
         line-height: 1.2;
         border: 1px solid rgba(120, 180, 255, 0.16);
@@ -2150,7 +2129,7 @@ h1.section-heading {
         rgba(120, 180, 255, 0.18),
         rgba(70, 110, 200, 0.16)
       );
-      border: 1px solid rgba(120, 180, 255, 0.18);
+      border: 1px solid var(--bk-surface-border);
       box-shadow:
         0 3px 10px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -2443,15 +2422,7 @@ h1.section-heading {
   }
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
 
-  100% {
-    transform: translateX(400%);
-  }
-}
 
 // Адаптивность для мобильных устройств
 @media (max-width: 640px) {
@@ -3063,7 +3034,7 @@ h1.section-heading {
       justify-content: space-between;
       gap: 8px;
       padding: 10px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid var(--bk-control-border);
 
       &:last-child {
         border-bottom: none;

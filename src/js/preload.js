@@ -63,6 +63,7 @@ try {
     "get-icon-path",
     "cache-history-preview",
     "delete-history-preview",
+    "cancel-video-info-request",
     "get-video-info",
     "get-video-preview",
     "get-minimize-instead-of-close-status",

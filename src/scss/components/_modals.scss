@@ -2033,8 +2033,61 @@
   width: min(1120px, calc(100vw - 32px));
   max-height: calc(100vh - 36px);
   margin: 0 auto;
+  padding: 18px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(
+      90% 70% at 0% 0%,
+      rgba(var(--color-accent-rgb), 0.12) 0%,
+      rgba(var(--color-accent-rgb), 0.04) 30%,
+      transparent 64%
+    ),
+    radial-gradient(
+      70% 58% at 100% 0%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 58%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.025)
+    ),
+    var(--color-bg-secondary);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.42),
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  scrollbar-gutter: stable;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: rgba(var(--color-accent-rgb), 0.34);
+    background-clip: padding-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--color-accent-rgb), 0.52);
+    background-clip: padding-box;
+  }
+
+  @media (max-width: 720px) {
+    width: min(96vw, calc(100vw - 20px));
+    max-height: calc(100vh - 20px);
+    padding: 14px;
+    border-radius: 22px;
+  }
 }
 
 // Заголовок модального окна
@@ -2303,6 +2356,33 @@
   .modal-content {
     max-width: 520px;
     width: 100%;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+      radial-gradient(
+        90% 70% at 0% 0%,
+        rgba(var(--color-accent-rgb), 0.14) 0%,
+        rgba(var(--color-accent-rgb), 0.04) 28%,
+        transparent 62%
+      ),
+      radial-gradient(
+        70% 60% at 100% 0%,
+        rgba(255, 255, 255, 0.06) 0%,
+        transparent 56%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.045),
+        rgba(255, 255, 255, 0.015)
+      ),
+      var(--color-bg-secondary);
+    box-shadow:
+      0 28px 64px rgba(0, 0, 0, 0.46),
+      0 10px 24px rgba(0, 0, 0, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .confirmation-header {

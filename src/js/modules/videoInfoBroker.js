@@ -153,4 +153,23 @@ function clearVideoInfoBrokerCache(url = "") {
   state.infoInFlight.delete(key);
 }
 
-export { clearVideoInfoBrokerCache, getVideoInfo, getVideoPreview };
+function cancelVideoPreviewRequest(url) {
+  const key = normalize(url);
+  if (!key) return Promise.resolve(null);
+  const state = getState();
+  state.previewInFlight.delete(key);
+  const invoke = getInvoke();
+  if (typeof invoke !== "function") {
+    return Promise.resolve(null);
+  }
+  return Promise.resolve(
+    invoke("cancel-video-info-request", { url: key, previewOnly: true }),
+  ).catch(() => null);
+}
+
+export {
+  cancelVideoPreviewRequest,
+  clearVideoInfoBrokerCache,
+  getVideoInfo,
+  getVideoPreview,
+};

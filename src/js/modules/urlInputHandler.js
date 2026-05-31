@@ -4,7 +4,11 @@ import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
-import { getVideoInfo, getVideoPreview } from "./videoInfoBroker.js";
+import {
+  cancelVideoPreviewRequest,
+  getVideoInfo,
+  getVideoPreview,
+} from "./videoInfoBroker.js";
 import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
@@ -611,6 +615,13 @@ function initUrlInputHandler() {
     return getVideoPreview(url, options);
   };
 
+  const cancelStalePreviewRequest = (nextUrl = "") => {
+    const previousUrl = normalizeUrlInput(lastPreviewUrl).trim();
+    const normalizedNext = normalizeUrlInput(nextUrl).trim();
+    if (!previousUrl || previousUrl === normalizedNext) return;
+    void cancelVideoPreviewRequest(previousUrl);
+  };
+
   const clearFullInfoWarmup = () => {
     if (!fullInfoWarmupTimer) return;
     clearTimeout(fullInfoWarmupTimer);
@@ -770,9 +781,11 @@ function initUrlInputHandler() {
   urlInput.addEventListener("force-preview", async (event) => {
     if (previewTimer) clearTimeout(previewTimer);
     // Сбрасываем URL-сентинел, но broker может переиспользовать свежий preview-cache.
+    const forcedUrl = urlInput.value.trim();
+    cancelStalePreviewRequest(forcedUrl);
     lastPreviewUrl = "";
     // вызываем немедленно без debounce
-    const url = urlInput.value.trim();
+    const url = forcedUrl;
     if (event?.detail?.autoOpenQuality === true) {
       markAutoQualityCandidate(url);
     }
@@ -840,6 +853,7 @@ function initUrlInputHandler() {
     if (val === "") {
       hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
+      cancelStalePreviewRequest("");
       clearFullInfoWarmup();
       lastPreviewUrl = "";
       lastPreviewData = null;
@@ -850,6 +864,7 @@ function initUrlInputHandler() {
       setHelperText("input.url.helper");
       return;
     }
+    cancelStalePreviewRequest(val);
     if (previewTimer) clearTimeout(previewTimer);
     setPreviewLoading(true);
     if (isPasteInput) {

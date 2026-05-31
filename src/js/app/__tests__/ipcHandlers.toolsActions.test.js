@@ -610,6 +610,7 @@ describe("ipcHandlers tools quick actions", () => {
 
     expect(download.getVideoPreview).toHaveBeenCalledWith(
       "https://example.com/video",
+      expect.objectContaining({ cancelled: false }),
     );
     expect(download.getVideoInfo).not.toHaveBeenCalled();
     expect(result).toMatchObject({
@@ -621,6 +622,41 @@ describe("ipcHandlers tools quick actions", () => {
       backgroundPreview: null,
       livePreview: null,
     });
+  });
+
+  test("cancel-video-info-request stops active preview token", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    let resolvePreview;
+    download.getVideoPreview.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePreview = resolve;
+        }),
+    );
+    initHandlers();
+
+    const previewPromise = handlers[CHANNELS.GET_VIDEO_PREVIEW](
+      null,
+      "https://example.com/video",
+    );
+    await Promise.resolve();
+
+    const result = await handlers[CHANNELS.CANCEL_VIDEO_INFO_REQUEST](null, {
+      url: "https://example.com/video",
+      previewOnly: true,
+    });
+
+    expect(result).toEqual({ success: true, cancelled: true });
+    expect(download.stopDownload).toHaveBeenCalledWith([
+      expect.objectContaining({ cancelled: false }),
+    ]);
+
+    resolvePreview({
+      title: "Preview demo",
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+    await previewPromise;
   });
 
   test("get-video-info includes backgroundPreview for playable YouTube sources", async () => {

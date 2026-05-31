@@ -468,6 +468,9 @@ function setupIpcHandlers(dependencies) {
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;
+  const activeVideoInfoTokens = new Map();
+  const makeVideoInfoTokenKey = (url, previewOnly = false) =>
+    `${previewOnly ? "preview" : "info"}:${url}`;
   const normalizeParallelDownloadLimit = (value) => {
     const n = Number(value);
     if (!Number.isFinite(n)) return 1;
@@ -846,9 +849,13 @@ function setupIpcHandlers(dependencies) {
           "Invalid URL: host is incomplete. Example: https://example.com",
         );
       }
+      const tokenKey = makeVideoInfoTokenKey(normalizedUrl, previewOnly);
+      const token =
+        activeVideoInfoTokens.get(tokenKey) || createDownloadToken();
+      activeVideoInfoTokens.set(tokenKey, token);
       const info = previewOnly
-        ? await getVideoPreview(normalizedUrl)
-        : await getVideoInfo(normalizedUrl);
+        ? await getVideoPreview(normalizedUrl, token)
+        : await getVideoInfo(normalizedUrl, token);
       return formatVideoInfoResponse(info, normalizedUrl, {
         includeFormats: !previewOnly,
       });
@@ -870,6 +877,15 @@ function setupIpcHandlers(dependencies) {
         };
       }
       return { success: false, error: rawMessage };
+    } finally {
+      try {
+        const normalizedUrl = normalizeUrl(url);
+        if (normalizedUrl) {
+          activeVideoInfoTokens.delete(
+            makeVideoInfoTokenKey(normalizedUrl, previewOnly),
+          );
+        }
+      } catch (_) {}
     }
   };
 
@@ -881,6 +897,25 @@ function setupIpcHandlers(dependencies) {
   // Полные данные видео с форматами для выбора качества и загрузки.
   ipcMain.handle(CHANNELS.GET_VIDEO_INFO, async (_evt, url) => {
     return handleVideoInfoRequest(url, { previewOnly: false });
+  });
+
+  ipcMain.handle(CHANNELS.CANCEL_VIDEO_INFO_REQUEST, async (_evt, payload) => {
+    try {
+      const rawUrl =
+        typeof payload === "string" ? payload : payload?.url || "";
+      const normalizedUrl = normalizeUrl(rawUrl);
+      if (!normalizedUrl) return { success: false, error: "Invalid URL" };
+      const previewOnly =
+        typeof payload === "object" ? payload?.previewOnly !== false : true;
+      const tokenKey = makeVideoInfoTokenKey(normalizedUrl, previewOnly);
+      const token = activeVideoInfoTokens.get(tokenKey);
+      if (!token) return { success: true, cancelled: false };
+      await stopDownload([token]);
+      activeVideoInfoTokens.delete(tokenKey);
+      return { success: true, cancelled: true };
+    } catch (error) {
+      return { success: false, error: error?.message || String(error) };
+    }
   });
 
   ipcMain.handle(CHANNELS.TOOLS_SHOWINFOLDER, async (_evt, filePath) => {

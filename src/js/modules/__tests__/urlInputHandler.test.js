@@ -670,6 +670,31 @@ describe("urlInputHandler", () => {
     );
   });
 
+  test("cancels stale preview request when URL changes", async () => {
+    const { input } = getState();
+    getVideoInfoMock.mockResolvedValue({
+      success: true,
+      title: "Preview",
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    input.value = "https://youtube.com/watch?v=old";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    input.value = "https://youtube.com/watch?v=new";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "cancel-video-info-request",
+      {
+        url: "https://youtube.com/watch?v=old",
+        previewOnly: true,
+      },
+    );
+  });
+
   test("does not auto-open quality selection after paste in compact mode", async () => {
     isCompactDownloaderModeMock.mockReturnValue(true);
     const { pasteBtn, downloadBtn } = getState();
