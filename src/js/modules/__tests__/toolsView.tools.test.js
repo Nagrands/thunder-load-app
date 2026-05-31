@@ -321,11 +321,17 @@ describe("toolsView quick actions", () => {
   test("renders combined header with breadcrumbs and tools section header", async () => {
     const el = await renderView();
     const header = el.querySelector("#tools-launcher-header");
+    const nav = el.querySelector("#tools-nav");
     const breadcrumbs = el.querySelector(".tools-breadcrumbs");
     expect(header).not.toBeNull();
     expect(header?.querySelector(".title-content")).not.toBeNull();
+    expect(el.querySelector("#tools-breadcrumb-home")).toBeNull();
     expect(breadcrumbs).not.toBeNull();
     expect(header?.contains(breadcrumbs)).toBe(false);
+    expect(nav?.contains(breadcrumbs)).toBe(true);
+    expect(breadcrumbs?.firstElementChild?.id).toBe(
+      "tools-breadcrumb-tools",
+    );
     expect(el.querySelector("#tools-launcher-section-header")).not.toBeNull();
     expect(
       el
@@ -337,9 +343,6 @@ describe("toolsView quick actions", () => {
   test("uses localized launcher strings in initial markup", async () => {
     const el = await renderView();
 
-    expect(el.querySelector("#tools-view-title")?.textContent?.trim()).toBe(
-      "tools.launcher.title",
-    );
     expect(
       el.querySelector(".tools-launcher-section-title")?.textContent?.trim(),
     ).toBe("tools.launcher.availableTitle");
@@ -1183,10 +1186,27 @@ describe("toolsView quick actions", () => {
         .querySelector("#tools-breadcrumb-current")
         ?.classList.contains("hidden"),
     ).toBe(false);
+    expect(
+      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
+    ).toBe("tools.nav.current.wg");
     el.querySelector("#tools-breadcrumb-tools")?.click();
     await nextTick();
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+  });
+
+  test("shows backup as current breadcrumb after opening Backup", async () => {
+    const el = await renderView();
+    await openTool(el, "backup");
+
+    expect(
+      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
+    ).toBe("tools.nav.current.backup");
+    expect(
+      el.querySelector("#tools-breadcrumb-current")?.classList.contains(
+        "hidden",
+      ),
     ).toBe(false);
   });
 

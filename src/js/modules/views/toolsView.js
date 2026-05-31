@@ -313,38 +313,6 @@ export default function renderToolsView() {
         </div>
       </header>
 
-      <div class="tools-breadcrumbs" aria-label="${t("tools.launcher.breadcrumbs.aria")}" data-i18n-aria="tools.launcher.breadcrumbs.aria">
-        <button
-          id="tools-breadcrumb-home"
-          type="button"
-          class="tools-breadcrumbs__item tools-breadcrumbs__link"
-          data-i18n-aria="tools.launcher.breadcrumbs.home"
-          aria-label="${t("tools.launcher.breadcrumbs.home")}"
-        >
-          <i class="fa-solid fa-screwdriver-wrench"></i>
-          <span data-i18n="tools.launcher.breadcrumbs.home">${t("tools.launcher.breadcrumbs.home")}</span>
-        </button>
-        <i class="fa-solid fa-chevron-right tools-breadcrumbs__sep" aria-hidden="true"></i>
-        <button
-          id="tools-breadcrumb-tools"
-          type="button"
-          class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
-          data-i18n-aria="tools.launcher.breadcrumbs.tools"
-          aria-label="${t("tools.launcher.breadcrumbs.tools")}"
-        >
-          <span data-i18n="tools.launcher.breadcrumbs.tools">${t("tools.launcher.breadcrumbs.tools")}</span>
-        </button>
-        <i
-          id="tools-breadcrumb-current-sep"
-          class="fa-solid fa-chevron-right tools-breadcrumbs__sep hidden"
-          aria-hidden="true"
-        ></i>
-        <span
-          id="tools-breadcrumb-current"
-          class="tools-breadcrumbs__item tools-breadcrumbs__item--current hidden"
-        ></span>
-      </div>
-
       <div id="tools-nav" class="tools-nav">
         <button
           id="tools-back-btn"
@@ -357,9 +325,26 @@ export default function renderToolsView() {
         >
           <i class="fa-solid fa-arrow-left"></i>
         </button>
-        <h2 id="tools-view-title" class="tools-view-title" data-i18n="tools.launcher.title">
-          ${t("tools.launcher.title")}
-        </h2>
+        <div class="tools-breadcrumbs" aria-label="${t("tools.launcher.breadcrumbs.aria")}" data-i18n-aria="tools.launcher.breadcrumbs.aria">
+          <button
+            id="tools-breadcrumb-tools"
+            type="button"
+            class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
+            data-i18n-aria="tools.launcher.breadcrumbs.tools"
+            aria-label="${t("tools.launcher.breadcrumbs.tools")}"
+          >
+            <span data-i18n="tools.launcher.breadcrumbs.tools">${t("tools.launcher.breadcrumbs.tools")}</span>
+          </button>
+          <i
+            id="tools-breadcrumb-current-sep"
+            class="fa-solid fa-chevron-right tools-breadcrumbs__sep hidden"
+            aria-hidden="true"
+          ></i>
+          <span
+            id="tools-breadcrumb-current"
+            class="tools-breadcrumbs__item tools-breadcrumbs__item--current hidden"
+          ></span>
+        </div>
       </div>
 
       <div id="tools-launcher-section-header" class="tools-launcher-section-header">
@@ -1400,7 +1385,6 @@ export default function renderToolsView() {
     const openBackupBtn = getEl("tools-open-backup", view);
     const openSorterBtn = getEl("tools-open-sorter", view);
     const backBtn = getEl("tools-back-btn", view);
-    const breadcrumbHomeBtn = getEl("tools-breadcrumb-home", view);
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
 
     const applyDeveloperToolsAvailability = () => {
@@ -1479,9 +1463,6 @@ export default function renderToolsView() {
       setToolView("sorter");
     });
     backBtn?.addEventListener("click", () =>
-      setToolView("launcher", { persist: false, focusLauncher: true }),
-    );
-    breadcrumbHomeBtn?.addEventListener("click", () =>
       setToolView("launcher", { persist: false, focusLauncher: true }),
     );
     breadcrumbToolsBtn?.addEventListener("click", () =>
