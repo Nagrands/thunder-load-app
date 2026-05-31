@@ -72,6 +72,7 @@ jest.mock("../../scripts/download.js", () => ({
   installFfmpeg: jest.fn(),
   installDeno: jest.fn(),
   getVideoInfo: jest.fn(),
+  getVideoPreview: jest.fn(),
   downloadMedia: jest.fn(),
   stopDownload: jest.fn(),
   setActiveDownloadToken: jest.fn(),
@@ -588,6 +589,38 @@ describe("ipcHandlers tools quick actions", () => {
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/host is incomplete/i);
     expect(download.getVideoInfo).not.toHaveBeenCalled();
+  });
+
+  test("get-video-preview returns metadata without formats", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    download.getVideoPreview.mockResolvedValueOnce({
+      title: "Preview demo",
+      duration: 120,
+      thumbnail: "https://example.com/thumb.jpg",
+      webpage_url: "https://example.com/video",
+      formats: [{ format_id: "18" }],
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.GET_VIDEO_PREVIEW](
+      null,
+      "https://example.com/video",
+    );
+
+    expect(download.getVideoPreview).toHaveBeenCalledWith(
+      "https://example.com/video",
+    );
+    expect(download.getVideoInfo).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      success: true,
+      title: "Preview demo",
+      duration: 120,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [],
+      backgroundPreview: null,
+      livePreview: null,
+    });
   });
 
   test("get-video-info includes backgroundPreview for playable YouTube sources", async () => {

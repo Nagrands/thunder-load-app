@@ -605,7 +605,7 @@ function initUrlInputHandler() {
   };
 
   const fetchPreviewInfo = async (url) => {
-    return window.electron.ipcRenderer.invoke("get-video-info", url);
+    return window.electron.ipcRenderer.invoke("get-video-preview", url);
   };
 
   const refreshBackgroundPreview = async () => {

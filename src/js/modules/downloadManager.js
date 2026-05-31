@@ -195,7 +195,7 @@ async function ensureQueueTitle(url, opts = {}) {
     });
   }
   const invokeResult = window?.electron?.ipcRenderer?.invoke?.(
-    "get-video-info",
+    "get-video-preview",
     url,
   );
   if (!invokeResult || typeof invokeResult.then !== "function") {

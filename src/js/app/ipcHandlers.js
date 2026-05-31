@@ -42,6 +42,7 @@ const {
   installFfmpeg,
   installDeno,
   getVideoInfo,
+  getVideoPreview,
   downloadMedia,
   stopDownload,
   setActiveDownloadToken,
@@ -771,8 +772,72 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  // Предпросмотр: получить метаданные видео по URL (заголовок, длительность, превью)
-  ipcMain.handle(CHANNELS.GET_VIDEO_INFO, async (_evt, url) => {
+  const formatVideoInfoResponse = (
+    info,
+    normalizedUrl,
+    { includeFormats = true } = {},
+  ) => {
+    const title = info?.title || "";
+    const duration = Number(info?.duration || 0);
+    // thumbnails: yt-dlp отдаёт массив; возьмём самый широкий
+    let thumb = null;
+    if (Array.isArray(info?.thumbnails) && info.thumbnails.length) {
+      thumb =
+        info.thumbnails
+          .slice()
+          .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || null;
+    } else if (info?.thumbnail) {
+      thumb = info.thumbnail;
+    }
+    // плейлист
+    let playlistCount = 0;
+    let playlistDuration = 0;
+    let entries = [];
+    if (Array.isArray(info?.entries) && info.entries.length) {
+      playlistCount = info.entries.length;
+      playlistDuration = info.entries.reduce(
+        (acc, entry) => acc + Math.max(0, Number(entry?.duration) || 0),
+        0,
+      );
+      entries = info.entries
+        .map((e) => e?.webpage_url || e?.url)
+        .filter((u) => typeof u === "string" && u.length > 0);
+    } else if (typeof info?.playlist_count === "number") {
+      playlistCount = info.playlist_count;
+    }
+    const backgroundPreview = includeFormats
+      ? selectYouTubeBackgroundPreview(
+          info,
+          info?.webpage_url || info?.original_url || normalizedUrl,
+        )
+      : null;
+    const livePreview = includeFormats
+      ? selectYouTubeLivePreview(
+          info,
+          info?.webpage_url || info?.original_url || normalizedUrl,
+        )
+      : null;
+    return {
+      success: true,
+      title,
+      duration,
+      thumbnail: thumb,
+      backgroundPreview,
+      livePreview,
+      playlistCount,
+      playlistDuration,
+      entries,
+      uploader: info?.uploader || info?.channel || "",
+      channel: info?.channel || "",
+      webpage_url: info?.webpage_url || info?.original_url || normalizedUrl,
+      original_url: info?.original_url || normalizedUrl,
+      formats: includeFormats ? info?.formats || [] : [],
+      is_live: info?.is_live || false,
+      extractor: info?.extractor || "",
+    };
+  };
+
+  const handleVideoInfoRequest = async (url, { previewOnly = false } = {}) => {
     try {
       const normalizedUrl = normalizeUrl(url);
       if (!normalizedUrl) throw new Error("Invalid URL");
@@ -781,64 +846,18 @@ function setupIpcHandlers(dependencies) {
           "Invalid URL: host is incomplete. Example: https://example.com",
         );
       }
-      const info = await getVideoInfo(normalizedUrl);
-      const title = info?.title || "";
-      const duration = Number(info?.duration || 0);
-      // thumbnails: yt-dlp отдаёт массив; возьмём самый широкий
-      let thumb = null;
-      if (Array.isArray(info?.thumbnails) && info.thumbnails.length) {
-        thumb =
-          info.thumbnails
-            .slice()
-            .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || null;
-      } else if (info?.thumbnail) {
-        thumb = info.thumbnail;
-      }
-      // плейлист
-      let playlistCount = 0;
-      let playlistDuration = 0;
-      let entries = [];
-      if (Array.isArray(info?.entries) && info.entries.length) {
-        playlistCount = info.entries.length;
-        playlistDuration = info.entries.reduce(
-          (acc, entry) => acc + Math.max(0, Number(entry?.duration) || 0),
-          0,
-        );
-        entries = info.entries
-          .map((e) => e?.webpage_url || e?.url)
-          .filter((u) => typeof u === "string" && u.length > 0);
-      } else if (typeof info?.playlist_count === "number") {
-        playlistCount = info.playlist_count;
-      }
-      const backgroundPreview = selectYouTubeBackgroundPreview(
-        info,
-        info?.webpage_url || info?.original_url || normalizedUrl,
-      );
-      const livePreview = selectYouTubeLivePreview(
-        info,
-        info?.webpage_url || info?.original_url || normalizedUrl,
-      );
-      return {
-        success: true,
-        title,
-        duration,
-        thumbnail: thumb,
-        backgroundPreview,
-        livePreview,
-        playlistCount,
-        playlistDuration,
-        entries,
-        uploader: info?.uploader || info?.channel || "",
-        channel: info?.channel || "",
-        webpage_url: info?.webpage_url || info?.original_url || normalizedUrl,
-        original_url: info?.original_url || normalizedUrl,
-        formats: info?.formats || [],
-        is_live: info?.is_live || false,
-        extractor: info?.extractor || "",
-      };
+      const info = previewOnly
+        ? await getVideoPreview(normalizedUrl)
+        : await getVideoInfo(normalizedUrl);
+      return formatVideoInfoResponse(info, normalizedUrl, {
+        includeFormats: !previewOnly,
+      });
     } catch (e) {
       const rawMessage = e?.message || String(e);
-      log.warn("get-video-info error:", rawMessage);
+      log.warn(
+        `${previewOnly ? "get-video-preview" : "get-video-info"} error:`,
+        rawMessage,
+      );
       const classified = classifyDownloadError(rawMessage);
       if (classified.code) {
         return {
@@ -852,6 +871,16 @@ function setupIpcHandlers(dependencies) {
       }
       return { success: false, error: rawMessage };
     }
+  };
+
+  // Предпросмотр: получить метаданные видео по URL (заголовок, длительность, превью)
+  ipcMain.handle(CHANNELS.GET_VIDEO_PREVIEW, async (_evt, url) => {
+    return handleVideoInfoRequest(url, { previewOnly: true });
+  });
+
+  // Полные данные видео с форматами для выбора качества и загрузки.
+  ipcMain.handle(CHANNELS.GET_VIDEO_INFO, async (_evt, url) => {
+    return handleVideoInfoRequest(url, { previewOnly: false });
   });
 
   ipcMain.handle(CHANNELS.TOOLS_SHOWINFOLDER, async (_evt, filePath) => {

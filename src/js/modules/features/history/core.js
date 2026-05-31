@@ -1863,7 +1863,7 @@ const fetchThumbnailFromSource = async (entry) => {
   if (!entry?.sourceUrl) return "";
   try {
     const info = await window.electron.invoke(
-      "get-video-info",
+      "get-video-preview",
       entry.sourceUrl,
     );
     if (info?.success === false) return "";

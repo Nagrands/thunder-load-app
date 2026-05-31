@@ -526,7 +526,7 @@ describe("urlInputHandler", () => {
     await flushPromises();
 
     expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-info",
+      "get-video-preview",
       "https://youtube.com/watch?v=test",
     );
     expect(clickSpy).toHaveBeenCalledTimes(1);
@@ -557,7 +557,7 @@ describe("urlInputHandler", () => {
     await flushPromises();
 
     expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-info",
+      "get-video-preview",
       "https://youtube.com/watch?v=retry",
     );
     expect(clickSpy).toHaveBeenCalledTimes(1);
@@ -583,7 +583,7 @@ describe("urlInputHandler", () => {
     await flushPromises();
 
     expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-info",
+      "get-video-preview",
       "https://youtube.com/watch?v=test",
     );
     expect(clickSpy).not.toHaveBeenCalled();
@@ -616,7 +616,7 @@ describe("urlInputHandler", () => {
     await flushPromises();
 
     expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-info",
+      "get-video-preview",
       "https://youtube.com/watch?v=retry",
     );
     expect(clickSpy).not.toHaveBeenCalled();

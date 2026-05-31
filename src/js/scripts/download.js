@@ -19,6 +19,7 @@
  *  - installYtDlp
  *  - installFfmpeg
  *  - getVideoInfo
+ *  - getVideoPreview
  *  - downloadMedia
  *  - stopDownload
  *  - selectFormatsByQuality
@@ -210,6 +211,8 @@ const VIDEO_INFO_CACHE_TTL = 10 * 60 * 1000; // 10 минут
 const VIDEO_INFO_LIVE_CACHE_TTL = 60 * 1000; // 1 минута
 const VIDEO_INFO_CACHE_MAX = 50;
 const videoInfoInFlight = new Map(); // url -> Promise
+const videoPreviewCache = new Map(); // url -> { timestamp, data }
+const videoPreviewInFlight = new Map(); // url -> Promise
 const VIDEO_INFO_MAX_CONCURRENCY = 1;
 const VIDEO_INFO_QUEUE_POLL_MS = 80;
 const YOUTUBE_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000;
@@ -1444,6 +1447,17 @@ function isYouTubeSingleVideoUrl(url) {
   }
 }
 
+function isExplicitYouTubePlaylistUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (!host.includes("youtube.com")) return false;
+    return parsed.pathname === "/playlist" && !!parsed.searchParams.get("list");
+  } catch {
+    return false;
+  }
+}
+
 function buildYtDlpVideoInfoArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
   const args = [
     "-J",
@@ -1459,8 +1473,42 @@ function buildYtDlpVideoInfoArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
   return args;
 }
 
+function buildYtDlpVideoPreviewArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
+  const args = [
+    "-J",
+    url,
+    "--ffmpeg-location",
+    ffmpegDir,
+    "--skip-download",
+    "--no-check-formats",
+    "--no-warnings",
+    "--ignore-config",
+  ];
+  if (isYouTubeSingleVideoUrl(url)) {
+    args.push("--no-playlist");
+  } else if (isExplicitYouTubePlaylistUrl(url)) {
+    args.push("--flat-playlist");
+  }
+  return args;
+}
+
 function getVideoInfoCacheTtl(data) {
   return data?.is_live ? VIDEO_INFO_LIVE_CACHE_TTL : VIDEO_INFO_CACHE_TTL;
+}
+
+function stripPreviewOnlyInfo(info) {
+  if (!info || typeof info !== "object") return info;
+  const clone = { ...info };
+  delete clone.formats;
+  if (Array.isArray(clone.entries)) {
+    clone.entries = clone.entries.map((entry) => {
+      if (!entry || typeof entry !== "object") return entry;
+      const entryClone = { ...entry };
+      delete entryClone.formats;
+      return entryClone;
+    });
+  }
+  return clone;
 }
 
 function isYoutubeRateLimitError(stderrOutput = "") {
@@ -1784,6 +1832,76 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
   throw lastError || new Error("Failed to fetch video information");
 }
 
+async function runYtDlpVideoPreview(url, token, cacheKey) {
+  const processStore = getProcessStore(token);
+  return new Promise((resolve, reject) => {
+    const ffmpegDir = resolveRuntimeFfmpegDir();
+    resolveUsableYtDlpBinary(token)
+      .then((runtimeInfo) => {
+        const ytDlpPath = runtimeInfo.path;
+        log.info("[download] getVideoPreview runtime tools", {
+          preferredToolsDir: getToolsDir(),
+          resolvedRuntimePath: ytDlpPath,
+          resolutionSource: runtimeInfo.source,
+          preflightResult: "ok",
+          ffmpegDir,
+        });
+        processStore.getVideoInfo = spawn(
+          ytDlpPath,
+          buildYtDlpVideoPreviewArgs(url, ffmpegDir),
+          getYtDlpSpawnOptionsForBinary(ytDlpPath),
+        );
+        let output = "";
+        let stderrOutput = "";
+        processStore.getVideoInfo.stdout.on("data", (data) => {
+          if (isCancelled(token)) {
+            processStore.getVideoInfo?.kill("SIGTERM");
+            return;
+          }
+          output += data.toString();
+        });
+        processStore.getVideoInfo.stderr.on("data", (data) => {
+          const text = data?.toString?.() || "";
+          stderrOutput += text;
+          log.error(`Error: ${text}`);
+        });
+        processStore.getVideoInfo.on("close", (code) => {
+          processStore.getVideoInfo = null;
+          if (isCancelled(token)) {
+            log.info("getVideoPreview operation cancelled.");
+            return reject(new Error("Download cancelled"));
+          }
+          if (code !== 0) {
+            return reject(makeYtDlpExitError(code, stderrOutput));
+          }
+          try {
+            const preview = stripPreviewOnlyInfo(JSON.parse(output));
+            if (videoPreviewCache.size >= VIDEO_INFO_CACHE_MAX) {
+              const oldestKey = [...videoPreviewCache.entries()].sort(
+                (a, b) => a[1].timestamp - b[1].timestamp,
+              )[0]?.[0];
+              if (oldestKey) videoPreviewCache.delete(oldestKey);
+            }
+            videoPreviewCache.set(cacheKey, {
+              timestamp: Date.now(),
+              data: preview,
+            });
+            resolve(preview);
+          } catch (err) {
+            log.error(`Error parsing video preview: ${err.message}`);
+            reject(err);
+          }
+        });
+        processStore.getVideoInfo.on("error", (err) => {
+          processStore.getVideoInfo = null;
+          const classified = classifyYtDlpSpawnError(err, ytDlpPath);
+          reject(new Error(`${classified.code}: ${classified.detail}`));
+        });
+      })
+      .catch(reject);
+  });
+}
+
 async function acquireVideoInfoSlot(token = null) {
   while (videoInfoRunning >= VIDEO_INFO_MAX_CONCURRENCY) {
     if (isCancelled(token)) {
@@ -1844,6 +1962,41 @@ function getVideoInfo(url, token = null) {
   videoInfoInFlight.set(key, promise);
   return promise.finally(() => {
     videoInfoInFlight.delete(key);
+  });
+}
+
+function getVideoPreview(url, token = null) {
+  log.info(`Getting video preview for URL: ${url}`);
+  const key = normalizeCacheKey(url);
+  try {
+    checkYoutubeRateLimitCooldown(url);
+  } catch (err) {
+    return Promise.reject(err);
+  }
+  if (videoPreviewCache.has(key)) {
+    const cached = videoPreviewCache.get(key);
+    if (Date.now() - cached.timestamp < getVideoInfoCacheTtl(cached.data)) {
+      log.info(`[download] Using cached video preview for ${key}`);
+      return Promise.resolve(cached.data);
+    }
+    videoPreviewCache.delete(key);
+  }
+  if (videoPreviewInFlight.has(key)) {
+    log.info(`[download] Awaiting in-flight video preview for ${key}`);
+    return videoPreviewInFlight.get(key);
+  }
+  const promise = (async () => {
+    await acquireVideoInfoSlot(token);
+    try {
+      checkYoutubeRateLimitCooldown(url);
+      return await runYtDlpVideoPreview(url, token, key);
+    } finally {
+      releaseVideoInfoSlot();
+    }
+  })();
+  videoPreviewInFlight.set(key, promise);
+  return promise.finally(() => {
+    videoPreviewInFlight.delete(key);
   });
 }
 
@@ -2575,6 +2728,7 @@ module.exports = {
   createDownloadToken,
   setActiveDownloadToken,
   getVideoInfo,
+  getVideoPreview,
   downloadMedia,
   stopDownload,
   selectFormatsByQuality,
@@ -2583,6 +2737,7 @@ module.exports = {
   makeYtDlpExitError,
   setSharedStore,
   _buildYtDlpVideoInfoArgs: buildYtDlpVideoInfoArgs,
+  _buildYtDlpVideoPreviewArgs: buildYtDlpVideoPreviewArgs,
   _getVideoInfoCacheTtl: getVideoInfoCacheTtl,
   _resolveUsableYtDlpBinary: resolveUsableYtDlpBinary,
   _resetYtDlpBinaryCache: () => {

@@ -159,7 +159,7 @@ describe("downloadManager queue persistence", () => {
         invoke: jest.fn(),
         ipcRenderer: {
           invoke: jest.fn().mockImplementation((channel) => {
-            if (channel === "get-video-info") {
+            if (channel === "get-video-preview") {
               return Promise.resolve({
                 success: true,
                 title: "Resolved title",
@@ -2028,12 +2028,12 @@ describe("downloadManager progress activity class", () => {
       expect(progressBarContainer.classList.contains("is-active")).toBe(true);
       const previewInfoCallCountBeforeAwait =
         window.electron.ipcRenderer.invoke.mock.calls.filter(
-          ([channel]) => channel === "get-video-info",
+          ([channel]) => channel === "get-video-preview",
         ).length;
       await promise;
       const previewInfoCallCountAfterAwait =
         window.electron.ipcRenderer.invoke.mock.calls.filter(
-          ([channel]) => channel === "get-video-info",
+          ([channel]) => channel === "get-video-preview",
         ).length;
       expect(previewInfoCallCountAfterAwait).toBe(
         previewInfoCallCountBeforeAwait,

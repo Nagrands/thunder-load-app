@@ -32,6 +32,7 @@ const CHANNELS = Object.freeze({
   CACHE_HISTORY_PREVIEW: "cache-history-preview",
   DELETE_HISTORY_PREVIEW: "delete-history-preview",
   GET_VIDEO_INFO: "get-video-info",
+  GET_VIDEO_PREVIEW: "get-video-preview",
   GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS: "get-minimize-instead-of-close-status",
   GET_MINIMIZE_ON_LAUNCH_STATUS: "get-minimize-on-launch-status",
   GET_MINIMIZE_TO_TRAY_STATUS: "get-minimize-to-tray-status",

@@ -64,6 +64,7 @@ try {
     "cache-history-preview",
     "delete-history-preview",
     "get-video-info",
+    "get-video-preview",
     "get-minimize-instead-of-close-status",
     "get-minimize-on-launch-status",
     "get-minimize-to-tray-status",

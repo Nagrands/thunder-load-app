@@ -16,6 +16,7 @@ const {
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
   _buildYtDlpVideoInfoArgs,
+  _buildYtDlpVideoPreviewArgs,
   _getVideoInfoCacheTtl,
 } = require("../download.js");
 
@@ -159,6 +160,32 @@ describe("yt-dlp video info optimization helpers", () => {
       "/tmp/ffmpeg",
     );
 
+    expect(args).not.toContain("--no-playlist");
+  });
+
+  it("builds lightweight preview args without format checking", () => {
+    const args = _buildYtDlpVideoPreviewArgs(
+      "https://www.youtube.com/watch?v=abc123&list=PL123",
+      "/tmp/ffmpeg",
+    );
+
+    expect(args).toEqual(
+      expect.arrayContaining([
+        "-J",
+        "--skip-download",
+        "--no-check-formats",
+        "--no-playlist",
+      ]),
+    );
+  });
+
+  it("uses flat playlist extraction only for explicit playlist preview URLs", () => {
+    const args = _buildYtDlpVideoPreviewArgs(
+      "https://www.youtube.com/playlist?list=PL123",
+      "/tmp/ffmpeg",
+    );
+
+    expect(args).toContain("--flat-playlist");
     expect(args).not.toContain("--no-playlist");
   });
 
