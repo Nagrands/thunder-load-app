@@ -347,4 +347,40 @@ describe("context menu UI", () => {
       { allowHtml: true },
     );
   });
+
+  test("deletes history entry when stored id is a string", async () => {
+    mockShowConfirmationDialog.mockResolvedValue(true);
+    const failedEntry = {
+      id: "42",
+      fileName: "Failed file",
+      filePath: "",
+      sourceUrl: "https://example.com/failed",
+      downloadStatus: "failed",
+    };
+    window.electron.invoke.mockImplementation(async (channel, payload) => {
+      if (channel === "check-file-exists") return false;
+      if (channel === "load-history") return [failedEntry];
+      if (channel === "save-history") {
+        expect(payload).toEqual([]);
+        return true;
+      }
+      return null;
+    });
+
+    const { handleDeleteEntry } = await import("../contextMenu.js");
+    const entry = document.querySelector(".log-entry");
+
+    await handleDeleteEntry(entry);
+
+    expect(window.electron.invoke).toHaveBeenCalledWith("save-history", []);
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.stringContaining("Запись успешно удалена"),
+      "success",
+      5500,
+      null,
+      null,
+      false,
+      { allowHtml: true },
+    );
+  });
 });

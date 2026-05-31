@@ -484,11 +484,15 @@ async function handleDeleteEntry(logEntry) {
 async function deleteEntryFromHistory(entryId) {
   let currentHistory = await window.electron.invoke("load-history");
   const initialHistoryLength = currentHistory.length;
-  const numericId = Number(entryId);
-  const entryToDelete = currentHistory.find((entry) => entry.id === numericId);
+  const normalizedEntryId = String(entryId);
+  const entryToDelete = currentHistory.find(
+    (entry) => String(entry?.id) === normalizedEntryId,
+  );
 
   // Фильтрация истории
-  currentHistory = currentHistory.filter((entry) => entry.id !== numericId);
+  currentHistory = currentHistory.filter(
+    (entry) => String(entry?.id) !== normalizedEntryId,
+  );
 
   // Сохранение обновленной истории
   await window.electron.invoke("save-history", currentHistory);
