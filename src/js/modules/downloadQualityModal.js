@@ -2,6 +2,7 @@
 
 import { showToast } from "./toast.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
+import { getVideoInfo } from "./videoInfoBroker.js";
 import { t } from "./i18n.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import {
@@ -1191,7 +1192,7 @@ async function loadFormatsWithRetry(
       cachedInfo.formats.length > 0
         ? cachedInfo
         : await withTimeout(
-            window.electron.ipcRenderer.invoke("get-video-info", url),
+            getVideoInfo(url),
             INFO_REQUEST_TIMEOUT,
           );
     if (!info || info.success === false) {

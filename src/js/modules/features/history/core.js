@@ -34,6 +34,7 @@ import { getLanguage, t } from "../../i18n.js";
 import { focusUrlInputAfterRetry } from "../../retryFocus.js";
 import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
 import { initMediaInspectorPanel } from "../../views/tools/mediaInspectorPanel.js";
+import { getVideoPreview } from "../../videoInfoBroker.js";
 
 const RECENT_HISTORY_LIMIT = 8;
 const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
@@ -1862,10 +1863,7 @@ const pickInfoThumbnail = (info) => {
 const fetchThumbnailFromSource = async (entry) => {
   if (!entry?.sourceUrl) return "";
   try {
-    const info = await window.electron.invoke(
-      "get-video-preview",
-      entry.sourceUrl,
-    );
+    const info = await getVideoPreview(entry.sourceUrl);
     if (info?.success === false) return "";
     return pickInfoThumbnail(info);
   } catch (error) {

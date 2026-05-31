@@ -107,6 +107,8 @@ describe("downloadQualityModal close behavior", () => {
   beforeEach(() => {
     jest.resetModules();
     buildDom();
+    delete window.__videoInfoCache;
+    delete window.__videoInfoBrokerState;
     global.window = global.window || {};
     window.electron = {
       ipcRenderer: {

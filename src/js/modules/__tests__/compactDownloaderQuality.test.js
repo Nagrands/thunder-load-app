@@ -28,6 +28,8 @@ describe("compactDownloaderQuality", () => {
   beforeEach(() => {
     jest.resetModules();
     localStorage.clear();
+    delete window.__videoInfoCache;
+    delete window.__videoInfoBrokerState;
     buildDom();
     window.electron = {
       ipcRenderer: { invoke: jest.fn() },

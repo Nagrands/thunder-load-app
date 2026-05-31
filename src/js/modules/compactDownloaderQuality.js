@@ -1,5 +1,6 @@
 import { t } from "./i18n.js";
 import { getCachedVideoInfo, setCachedVideoInfo } from "./videoInfoCache.js";
+import { getVideoInfo } from "./videoInfoBroker.js";
 import { normalizeUrlInput } from "./validation.js";
 import {
   buildCompactPayload,
@@ -202,10 +203,7 @@ async function ensureCompactQualityReady(url) {
   state.loading = true;
   setStatus("quality.compact.loading", "muted");
   try {
-    const info = await window.electron.ipcRenderer.invoke(
-      "get-video-info",
-      normalized,
-    );
+    const info = await getVideoInfo(normalized);
     if (!info?.success || !Array.isArray(info.formats) || !info.formats.length) {
       setStatus("quality.compact.error", "warning");
       return false;

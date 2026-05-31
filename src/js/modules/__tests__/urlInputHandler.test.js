@@ -102,6 +102,7 @@ describe("urlInputHandler", () => {
         initTooltips: jest.fn(),
       }));
       jest.doMock("../videoInfoCache", () => ({
+        getCachedVideoInfo: jest.fn(() => null),
         setCachedVideoInfo: jest.fn(),
       }));
       jest.doMock("../state", () => ({
@@ -224,6 +225,8 @@ describe("urlInputHandler", () => {
   beforeEach(() => {
     jest.resetModules();
     jest.useFakeTimers();
+    delete window.__videoInfoCache;
+    delete window.__videoInfoBrokerState;
     buildDom();
     updateButtonStateMock = jest.fn();
     getVideoInfoMock = jest.fn().mockResolvedValue({ success: true });
@@ -1102,7 +1105,7 @@ describe("urlInputHandler", () => {
     expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
-  test("background recovery refreshes current YouTube preview without showing an error", async () => {
+  test("background recovery keeps cached YouTube preview without showing an error", async () => {
     const { input, error } = getState();
     getVideoInfoMock
       .mockResolvedValueOnce({
@@ -1142,11 +1145,11 @@ describe("urlInputHandler", () => {
     );
     await flushPromises();
 
-    expect(getVideoInfoMock).toHaveBeenCalledTimes(2);
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
     expect(error.classList.contains("hidden")).toBe(true);
     expect(applyDownloaderBackgroundPreviewMock).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-2",
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-1",
       }),
       { pageUrl: "https://www.youtube.com/watch?v=demo" },
     );

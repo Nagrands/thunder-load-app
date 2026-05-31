@@ -4,6 +4,7 @@ import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
+import { getVideoPreview } from "./videoInfoBroker.js";
 import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
@@ -604,13 +605,13 @@ function initUrlInputHandler() {
     clearDownloaderBackgroundPreview();
   };
 
-  const fetchPreviewInfo = async (url) => {
-    return window.electron.ipcRenderer.invoke("get-video-preview", url);
+  const fetchPreviewInfo = async (url, options = {}) => {
+    return getVideoPreview(url, options);
   };
 
   const refreshBackgroundPreview = async () => {
     const url = normalizeUrlInput(urlInput.value).trim();
-    if (!url || url !== lastPreviewUrl || backgroundRecoveryInFlight) return;
+    if (!url || backgroundRecoveryInFlight) return;
 
     backgroundRecoveryInFlight = true;
     try {
@@ -638,7 +639,7 @@ function initUrlInputHandler() {
     if (!url || (requestedUrl && requestedUrl !== url)) return;
 
     try {
-      const data = await fetchPreviewInfo(url);
+      const data = await fetchPreviewInfo(url, { force: true });
       if (!data?.success || !data?.livePreview?.src) {
         currentLivePreview = null;
         livePreviewOpen = false;
@@ -693,7 +694,7 @@ function initUrlInputHandler() {
     livePreviewOpen = false;
     syncLivePreviewButton();
     try {
-      const data = await fetchPreviewInfo(url);
+      const data = await fetchPreviewInfo(url, { force: true });
       if (currentRequest !== previewRequestId) return;
       const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
       if (fetchError) {
@@ -740,7 +741,7 @@ function initUrlInputHandler() {
     livePreviewOpen = false;
     syncLivePreviewButton();
     try {
-      const data = await fetchPreviewInfo(url);
+      const data = await fetchPreviewInfo(url, { force: true });
       const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
       if (fetchError) {
         showInlineErrorText(fetchError);
@@ -922,8 +923,9 @@ function initUrlInputHandler() {
     );
   }
   window[BACKGROUND_RECOVERY_HANDLER_KEY] = async (event) => {
-    const requestedUrl = String(event?.detail?.url || "").trim();
-    if (!requestedUrl || requestedUrl !== lastPreviewUrl) return;
+    const requestedUrl = normalizeUrlInput(event?.detail?.url || "").trim();
+    const currentInputUrl = normalizeUrlInput(urlInput.value).trim();
+    if (!requestedUrl || requestedUrl !== currentInputUrl) return;
     await refreshBackgroundPreview();
   };
   window.addEventListener(

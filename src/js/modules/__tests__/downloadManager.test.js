@@ -30,6 +30,11 @@ const buildDom = () => {
   `;
 };
 
+beforeEach(() => {
+  delete window.__videoInfoCache;
+  delete window.__videoInfoBrokerState;
+});
+
 describe("downloadManager queue persistence", () => {
   beforeEach(() => {
     jest.resetModules();

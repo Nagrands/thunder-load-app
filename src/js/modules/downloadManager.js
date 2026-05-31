@@ -36,6 +36,7 @@ import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
 import { syncDownloadTabAccessibility } from "./downloadTabUi.js";
 import { getCachedVideoInfo } from "./videoInfoCache.js";
+import { getVideoPreview } from "./videoInfoBroker.js";
 import {
   formatDownloadErrorToast,
   formatDownloadQueueReason,
@@ -194,10 +195,7 @@ async function ensureQueueTitle(url, opts = {}) {
       return title;
     });
   }
-  const invokeResult = window?.electron?.ipcRenderer?.invoke?.(
-    "get-video-preview",
-    url,
-  );
+  const invokeResult = getVideoPreview(url);
   if (!invokeResult || typeof invokeResult.then !== "function") {
     return "";
   }
