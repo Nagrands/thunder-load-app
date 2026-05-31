@@ -35,6 +35,40 @@ describe("settings template backup placement", () => {
     expect(html).not.toContain('name="first-run-theme" value="light"');
   });
 
+  test("uses compact appearance panel and preserves control ids", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+    const appearancePaneStart = html.indexOf(
+      '<div id="appearance-settings" class="tab-pane">',
+    );
+    const aboutPaneStart = html.indexOf(
+      '<div id="about-settings" class="tab-pane">',
+    );
+    const appearancePaneHtml = html.slice(appearancePaneStart, aboutPaneStart);
+
+    expect(appearancePaneHtml).toContain("settings-card--appearance-panel");
+    expect(appearancePaneHtml).not.toContain("settings-card--appearance-main");
+    expect(appearancePaneHtml).not.toContain(
+      "settings-card--appearance-secondary",
+    );
+    [
+      "language-dropdown-btn",
+      "language-dropdown-menu",
+      "language-selected-label",
+      "font-size-dropdown-btn",
+      "font-size-dropdown-menu",
+      "font-size-selected-label",
+      "reset-font-size",
+      "theme-dropdown-btn",
+      "theme-dropdown-menu",
+      "theme-selected-label",
+      "reset-theme",
+      "settings-low-effects-toggle",
+    ].forEach((id) => {
+      expect(appearancePaneHtml).toContain(`id="${id}"`);
+    });
+  });
+
   test("includes about app tab and version fields in settings template", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");

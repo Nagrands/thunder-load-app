@@ -3970,25 +3970,70 @@
   }
 
   #appearance-settings .settings-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     align-items: start;
   }
 
-  #appearance-settings .settings-card {
-    min-height: 100%;
+  #appearance-settings .settings-card--appearance-panel {
+    grid-column: 1 / -1;
+    gap: 10px;
+    padding: 10px;
+    border-color: rgba(var(--color-accent-rgb), 0.14);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.035),
+        rgba(255, 255, 255, 0.015)
+      ),
+      rgba(255, 255, 255, 0.02);
   }
 
-  #appearance-settings .settings-card__body {
+  #appearance-settings .settings-appearance-section {
     display: grid;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  #appearance-settings .settings-card__intro {
+    gap: 2px;
+  }
+
+  #appearance-settings .settings-card__title {
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+
+  #appearance-settings .settings-card__desc {
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 11px;
+    font-style: normal;
+  }
+
+  #appearance-settings .settings-control-list--appearance {
     gap: 8px;
   }
 
   #appearance-settings .settings-control {
-    min-height: 46px;
+    min-height: 40px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    background: rgba(255, 255, 255, 0.035);
   }
 
   #appearance-settings .settings-control__copy label {
     align-items: center;
+    font-weight: 650;
+    color: rgba(255, 255, 255, 0.86);
+
+    i {
+      width: 18px;
+      color: rgba(var(--color-accent-rgb), 0.9);
+      text-align: center;
+    }
   }
 
   #appearance-settings .settings-control__copy label span {
@@ -3997,21 +4042,21 @@
   }
 
   #appearance-settings .dropdown {
-    width: min(100%, 220px);
+    width: min(100%, 230px);
   }
 
   #appearance-settings .dropdown-toggle {
     width: 100%;
     justify-content: space-between;
     height: 34px;
-    border-radius: 8px;
-    padding: 0 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
     box-shadow: none;
 
     &::before {
-      right: 33px;
+      right: 35px;
       width: 24px;
       height: 10px;
     }
@@ -4023,13 +4068,30 @@
     min-width: 34px;
     height: 34px;
     padding: 0;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
-  #appearance-settings #settings-low-effects-toggle + label {
-    align-items: center;
+  #appearance-settings .settings-control--low-effects {
+    justify-content: flex-start;
+  }
+
+  #appearance-settings #settings-low-effects-toggle {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+  }
+
+  #appearance-settings #settings-low-effects-toggle + .settings-control__copy {
+    flex: 0 1 auto;
+  }
+
+  #appearance-settings #theme-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+    max-height: min(230px, calc(100vh - 180px));
+    overflow-y: auto;
   }
 
   .settings-parallel-hint {

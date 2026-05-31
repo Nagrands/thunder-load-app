@@ -20610,41 +20610,75 @@ hr {
   color: rgba(255, 255, 255, 0.52);
 }
 .settings-modal #appearance-settings .settings-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   align-items: start;
 }
-.settings-modal #appearance-settings .settings-card {
-  min-height: 100%;
+.settings-modal #appearance-settings .settings-card--appearance-panel {
+  grid-column: 1/-1;
+  gap: 10px;
+  padding: 10px;
+  border-color: rgba(var(--color-accent-rgb), 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)), rgba(255, 255, 255, 0.02);
 }
-.settings-modal #appearance-settings .settings-card__body {
+.settings-modal #appearance-settings .settings-appearance-section {
   display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.settings-modal #appearance-settings .settings-card__intro {
+  gap: 2px;
+}
+.settings-modal #appearance-settings .settings-card__title {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.settings-modal #appearance-settings .settings-card__desc {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 11px;
+  font-style: normal;
+}
+.settings-modal #appearance-settings .settings-control-list--appearance {
   gap: 8px;
 }
 .settings-modal #appearance-settings .settings-control {
-  min-height: 46px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  background: rgba(255, 255, 255, 0.035);
 }
 .settings-modal #appearance-settings .settings-control__copy label {
   align-items: center;
+  font-weight: 650;
+  color: rgba(255, 255, 255, 0.86);
+}
+.settings-modal #appearance-settings .settings-control__copy label i {
+  width: 18px;
+  color: rgba(var(--color-accent-rgb), 0.9);
+  text-align: center;
 }
 .settings-modal #appearance-settings .settings-control__copy label span {
   display: block;
   line-height: 1.35;
 }
 .settings-modal #appearance-settings .dropdown {
-  width: min(100%, 220px);
+  width: min(100%, 230px);
 }
 .settings-modal #appearance-settings .dropdown-toggle {
   width: 100%;
   justify-content: space-between;
   height: 34px;
-  border-radius: 8px;
-  padding: 0 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
   box-shadow: none;
 }
 .settings-modal #appearance-settings .dropdown-toggle::before {
-  right: 33px;
+  right: 35px;
   width: 24px;
   height: 10px;
 }
@@ -20654,12 +20688,26 @@ hr {
   min-width: 34px;
   height: 34px;
   padding: 0;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
 }
-.settings-modal #appearance-settings #settings-low-effects-toggle + label {
-  align-items: center;
+.settings-modal #appearance-settings .settings-control--low-effects {
+  justify-content: flex-start;
+}
+.settings-modal #appearance-settings #settings-low-effects-toggle {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+.settings-modal #appearance-settings #settings-low-effects-toggle + .settings-control__copy {
+  flex: 0 1 auto;
+}
+.settings-modal #appearance-settings #theme-dropdown-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+  max-height: min(230px, 100vh - 180px);
+  overflow-y: auto;
 }
 .settings-modal .settings-parallel-hint {
   color: rgba(255, 255, 255, 0.42);

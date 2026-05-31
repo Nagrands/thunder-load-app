@@ -101,6 +101,10 @@ export const settingsTranslations = {
     "settings.appearance.theme.emerald": "Изумруд",
     "settings.appearance.theme.sunset": "Закат",
     "settings.appearance.theme.violet": "Виолет",
+    "settings.appearance.interfaceHint":
+      "Язык интерфейса и базовая читаемость.",
+    "settings.appearance.themeHint":
+      "Выбор темы и снижение визуальной нагрузки.",
     "settings.appearance.theme.reset": "Сбросить тему по умолчанию",
     "settings.appearance.fontSize": "Размер текста",
     "settings.appearance.fontSize.reset": "Сбросить размер шрифта по умолчанию",
@@ -294,6 +298,10 @@ export const settingsTranslations = {
     "settings.appearance.theme.emerald": "Emerald",
     "settings.appearance.theme.sunset": "Sunset",
     "settings.appearance.theme.violet": "Violet",
+    "settings.appearance.interfaceHint":
+      "Interface language and baseline readability.",
+    "settings.appearance.themeHint":
+      "Theme choice and reduced visual load.",
     "settings.appearance.theme.reset": "Reset theme to default",
     "settings.appearance.fontSize": "Text size",
     "settings.appearance.fontSize.reset": "Reset font size to default",

@@ -602,17 +602,17 @@
                   </div>
                 </div>
                 <div class="settings-grid">
-                  <section class="settings-card settings-card--appearance-main">
-                    <div class="settings-card__intro">
-                      <h3 class="settings-card__title" data-i18n="language.label">
-                        Язык интерфейса
-                      </h3>
-                      <p class="settings-card__desc">
-                        Язык интерфейса и базовая читаемость.
-                      </p>
-                    </div>
-                    <div class="settings-card__body">
-                      <ul class="module settings-control-list">
+                  <section class="settings-card settings-card--appearance-panel">
+                    <div class="settings-appearance-section">
+                      <div class="settings-card__intro">
+                        <h3 class="settings-card__title" data-i18n="language.label">
+                          Язык интерфейса
+                        </h3>
+                        <p class="settings-card__desc" data-i18n="settings.appearance.interfaceHint">
+                          Язык интерфейса и базовая читаемость.
+                        </p>
+                      </div>
+                      <ul class="module settings-control-list settings-control-list--appearance">
                         <li class="custom-theme-select settings-control settings-control--split">
                           <div class="settings-control__copy">
                             <label for="language-dropdown-btn">
@@ -675,19 +675,17 @@
                         </li>
                       </ul>
                     </div>
-                  </section>
 
-                  <section class="settings-card settings-card--appearance-secondary">
-                    <div class="settings-card__intro">
-                      <h3 class="settings-card__title" data-i18n="settings.appearance.theme">
-                        Цветовая тема
-                      </h3>
-                      <p class="settings-card__desc">
-                        Выбор темы и снижение визуальной нагрузки.
-                      </p>
-                    </div>
-                    <div class="settings-card__body">
-                      <ul class="module settings-control-list">
+                    <div class="settings-appearance-section">
+                      <div class="settings-card__intro">
+                        <h3 class="settings-card__title" data-i18n="settings.appearance.theme">
+                          Цветовая тема
+                        </h3>
+                        <p class="settings-card__desc" data-i18n="settings.appearance.themeHint">
+                          Выбор темы и снижение визуальной нагрузки.
+                        </p>
+                      </div>
+                      <ul class="module settings-control-list settings-control-list--appearance">
                         <li class="custom-theme-select settings-control settings-control--split">
                           <div class="settings-control__copy">
                             <label for="theme-dropdown-btn">
@@ -735,20 +733,22 @@
                           </div>
                         </li>
 
-                        <li class="settings-control">
+                        <li class="settings-control settings-control--split settings-control--low-effects">
                           <input type="checkbox" id="settings-low-effects-toggle" />
-                          <label
-                            for="settings-low-effects-toggle"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="Отключает анимации и эффекты размытия"
-                            data-i18n-title="settings.appearance.lowEffects.hint"
-                          >
-                            <i class="fa-solid fa-leaf"></i>
-                            <span data-i18n-html="settings.appearance.lowEffects">
-                              Режим <strong>экономии эффектов</strong>
-                            </span>
-                          </label>
+                          <div class="settings-control__copy">
+                            <label
+                              for="settings-low-effects-toggle"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="Отключает анимации и эффекты размытия"
+                              data-i18n-title="settings.appearance.lowEffects.hint"
+                            >
+                              <i class="fa-solid fa-leaf"></i>
+                              <span data-i18n-html="settings.appearance.lowEffects">
+                                Режим <strong>экономии эффектов</strong>
+                              </span>
+                            </label>
+                          </div>
                         </li>
                       </ul>
                     </div>
