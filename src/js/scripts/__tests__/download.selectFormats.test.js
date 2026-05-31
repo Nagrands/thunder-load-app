@@ -258,6 +258,51 @@ describe("yt-dlp video info optimization helpers", () => {
     expect(_getPersistentPreviewMetadata("playlist").entries).toBeUndefined();
   });
 
+  it("invalidates persistent preview metadata after the preview TTL", () => {
+    const fs = require("fs");
+    const cachePath = _getPersistentPreviewCachePath();
+    try {
+      fs.rmSync(cachePath, { force: true });
+    } catch {}
+    const nowSpy = jest.spyOn(Date, "now").mockReturnValue(1000);
+
+    try {
+      _setPersistentPreviewMetadata("ttl", {
+        title: "TTL demo",
+        thumbnail: "https://cdn.example.com/ttl.jpg",
+      });
+
+      nowSpy.mockReturnValue(1000 + 24 * 60 * 60 * 1000 + 1);
+      expect(_getPersistentPreviewMetadata("ttl")).toBeNull();
+
+      const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+      expect(cache.entries.ttl).toBeUndefined();
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it("invalidates persistent preview metadata when the yt-dlp signature changes", () => {
+    const fs = require("fs");
+    const cachePath = _getPersistentPreviewCachePath();
+    try {
+      fs.rmSync(cachePath, { force: true });
+    } catch {}
+
+    _setPersistentPreviewMetadata("signature", {
+      title: "Signature demo",
+      thumbnail: "https://cdn.example.com/signature.jpg",
+    });
+
+    const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+    cache.entries.signature.ytDlpSignature = "old-binary-signature";
+    fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), "utf8");
+
+    expect(_getPersistentPreviewMetadata("signature")).toBeNull();
+    const refreshed = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+    expect(refreshed.entries.signature).toBeUndefined();
+  });
+
   it("caches the resolved yt-dlp binary while the file signature is unchanged", async () => {
     jest.resetModules();
     const { EventEmitter } = require("events");

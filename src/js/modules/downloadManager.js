@@ -249,8 +249,19 @@ function warmupDownloadIntentInfo() {
   void getVideoInfo(url).catch(() => {});
 }
 
+function shouldWarmQueueFormats(quality) {
+  if (!quality || typeof quality !== "object") return false;
+  return Boolean(
+    quality.formatId ||
+      quality.videoFormatId ||
+      quality.audioFormatId ||
+      quality.video?.format_id ||
+      quality.audio?.format_id,
+  );
+}
+
 function ensureQueueFormatsReady(url, quality) {
-  if (!url || !quality) return;
+  if (!url || !shouldWarmQueueFormats(quality)) return;
   void getVideoInfo(url).catch(() => {
     // download-video will surface the same source error in the normal flow.
   });

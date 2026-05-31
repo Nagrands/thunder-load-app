@@ -754,6 +754,9 @@ export default function renderToolsView() {
         <section class="tools-view hidden" data-tool-view="sorter" aria-label="${t("tools.nav.current.sorter")}">
           <article class="tools-card tools-detail-card sorter-shell">
             <div class="tools-card__header sorter-header">
+              <div class="sorter-header__mark" aria-hidden="true">
+                <i class="fa-solid fa-layer-group"></i>
+              </div>
               <div class="sorter-header__copy">
                 <h2 data-i18n="tools.sorter.title">${t("tools.sorter.title")}</h2>
                 <p class="tools-card__hint" data-i18n="tools.sorter.subtitle">
@@ -779,6 +782,9 @@ export default function renderToolsView() {
             <div class="sorter-surfaces">
               <section class="sorter-workspace-panel sorter-surface sorter-surface--workspace" aria-label="${t("tools.sorter.workspace.title")}">
                 <div class="sorter-workspace-panel__header">
+                  <span class="sorter-panel-icon sorter-panel-icon--workspace" aria-hidden="true">
+                    <i class="fa-regular fa-folder-open"></i>
+                  </span>
                   <div class="sorter-section-intro">
                     <h3 data-i18n="tools.sorter.workspace.title">${t("tools.sorter.workspace.title")}</h3>
                     <p class="muted" data-i18n="tools.sorter.workspace.subtitle">
@@ -795,16 +801,16 @@ export default function renderToolsView() {
                       </span>
                     </div>
                     <span id="sorter-folder-pill" class="hash-file-pill muted" data-i18n="tools.sorter.noFolder">${t("tools.sorter.noFolder")}</span>
-                    <div class="sorter-folder-actions">
-                      <button id="sorter-pick-folder" type="button" class="small-button">
-                        <i class="fa-regular fa-folder-open"></i>
-                        <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
-                      </button>
-                      <button id="sorter-open-folder" type="button" class="small-button" disabled>
-                        <i class="fa-solid fa-up-right-from-square"></i>
-                        <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
-                      </button>
-                    </div>
+                  </div>
+                  <div class="sorter-folder-actions">
+                    <button id="sorter-pick-folder" type="button" class="small-button">
+                      <i class="fa-regular fa-folder-open"></i>
+                      <span data-i18n="tools.sorter.pickFolder">${t("tools.sorter.pickFolder")}</span>
+                    </button>
+                    <button id="sorter-open-folder" type="button" class="small-button" disabled>
+                      <i class="fa-solid fa-up-right-from-square"></i>
+                      <span data-i18n="tools.sorter.openFolder">${t("tools.sorter.openFolder")}</span>
+                    </button>
                   </div>
                   <div class="sorter-workspace-field sorter-workspace-field--log">
                     <div class="sorter-workspace-field__head">
@@ -838,6 +844,9 @@ export default function renderToolsView() {
               <div class="sorter-setup-grid">
                 <section class="sorter-rules-panel sorter-surface sorter-surface--rules" aria-label="${t("tools.sorter.rules.title")}">
                   <div class="sorter-rules-panel__header">
+                    <span class="sorter-panel-icon sorter-panel-icon--rules" aria-hidden="true">
+                      <i class="fa-solid fa-table-cells-large"></i>
+                    </span>
                     <div class="sorter-section-intro">
                       <h3 data-i18n="tools.sorter.rules.title">${t("tools.sorter.rules.title")}</h3>
                       <p class="muted" data-i18n="tools.sorter.rules.subtitle">
@@ -849,6 +858,9 @@ export default function renderToolsView() {
                 </section>
                 <section class="sorter-options-panel sorter-surface sorter-surface--options" aria-label="${t("tools.sorter.options.title")}">
                   <div class="sorter-options-panel__header">
+                    <span class="sorter-panel-icon sorter-panel-icon--options" aria-hidden="true">
+                      <i class="fa-solid fa-gear"></i>
+                    </span>
                     <div class="sorter-section-intro">
                       <h3 data-i18n="tools.sorter.options.title">${t("tools.sorter.options.title")}</h3>
                       <p class="muted" data-i18n="tools.sorter.options.subtitle">

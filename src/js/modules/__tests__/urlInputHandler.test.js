@@ -730,6 +730,46 @@ describe("urlInputHandler", () => {
     );
   });
 
+  test("ignores stale preview response after rapid URL replacement", async () => {
+    const { input, previewCard } = getState();
+    let resolveOldPreview;
+    getVideoInfoMock.mockImplementation((channel, url) => {
+      if (channel === "get-video-preview" && url === "https://example.com/old") {
+        return new Promise((resolve) => {
+          resolveOldPreview = resolve;
+        });
+      }
+      if (channel === "get-video-preview" && url === "https://example.com/new") {
+        return Promise.resolve({
+          success: true,
+          title: "New preview",
+          thumbnail: "https://example.com/new.jpg",
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    input.value = "https://example.com/old";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    input.value = "https://example.com/new";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    resolveOldPreview({
+      success: true,
+      title: "Old preview",
+      thumbnail: "https://example.com/old.jpg",
+    });
+    await flushPromises();
+
+    expect(previewCard.textContent).toContain("New preview");
+    expect(previewCard.textContent).not.toContain("Old preview");
+  });
+
   test("does not auto-open quality selection after paste in compact mode", async () => {
     isCompactDownloaderModeMock.mockReturnValue(true);
     const { pasteBtn, downloadBtn } = getState();

@@ -660,6 +660,8 @@
 
       &.active {
         background: var(--color-hover);
+        border: 1px var(--color-hover) solid;
+        font-weight: 600;
         color: var(--color-accent);
       }
     }

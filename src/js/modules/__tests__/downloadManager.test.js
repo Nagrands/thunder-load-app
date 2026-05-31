@@ -352,6 +352,44 @@ describe("downloadManager queue format readiness", () => {
       );
     });
   });
+
+  it("does not warm full formats for simple queued preset labels", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { initiateDownload } = require("../downloadManager");
+
+      await initiateDownload("https://example.com/queued", "Source", {
+        fromQueue: true,
+      });
+
+      expect(window.electron.ipcRenderer.invoke).not.toHaveBeenCalledWith(
+        "get-video-info",
+        "https://example.com/queued",
+      );
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "download-video",
+        "https://example.com/queued",
+        "Source",
+        expect.any(String),
+      );
+    });
+  });
 });
 
 describe("downloadManager enqueueOnly behavior", () => {
@@ -402,6 +440,61 @@ describe("downloadManager enqueueOnly behavior", () => {
       );
       expect(state.downloadQueue).toHaveLength(1);
       expect(state.isDownloading).toBe(false);
+    });
+  });
+
+  it("does not request formats when adding a URL to the queue", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../downloadQualityModal", () => ({
+        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
+      }));
+      window.electron.invoke.mockImplementation((channel) => {
+        if (channel === "load-history") return Promise.resolve([]);
+        if (channel === "check-file-exists") return Promise.resolve(false);
+        return Promise.resolve({ success: true });
+      });
+      window.electron.ipcRenderer.invoke.mockResolvedValue({
+        success: true,
+        title: "Queued title",
+        thumbnail: "https://example.com/thumb.jpg",
+        formats: [],
+      });
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      const urlInput = document.getElementById("url");
+      urlInput.value = "https://example.com/no-formats";
+
+      await handleDownloadButtonClick({ enqueueOnly: true });
+      await Promise.resolve();
+
+      expect(window.electron.ipcRenderer.invoke).toHaveBeenCalledWith(
+        "get-video-preview",
+        "https://example.com/no-formats",
+      );
+      expect(window.electron.ipcRenderer.invoke).not.toHaveBeenCalledWith(
+        "get-video-info",
+        "https://example.com/no-formats",
+      );
+      expect(window.electron.invoke).not.toHaveBeenCalledWith(
+        "download-video",
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 
