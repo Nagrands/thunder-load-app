@@ -852,6 +852,11 @@ function initUrlInputHandler() {
     }
     if (previewTimer) clearTimeout(previewTimer);
     setPreviewLoading(true);
+    if (isPasteInput) {
+      previewTimer = null;
+      maybeFetchPreview();
+      return;
+    }
     previewTimer = setTimeout(() => {
       previewTimer = null;
       maybeFetchPreview();
@@ -1067,6 +1072,7 @@ function initUrlInputHandler() {
           urlInput.value = normalizeUrlInput(text);
           hideInlineError();
           urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+          urlInput.dispatchEvent(new Event("force-preview"));
           urlInput.focus();
         }
       } catch (_) {}

@@ -589,6 +589,35 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
+  test("starts preview immediately after native paste without debounce delay", async () => {
+    const { input } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    const pasteEvent = new Event("paste", { bubbles: true });
+    Object.defineProperty(pasteEvent, "clipboardData", {
+      value: {
+        getData: (type) => (type === "text" ? "youtube.com/watch?v=fast" : ""),
+      },
+    });
+    input.dispatchEvent(pasteEvent);
+    input.value = "youtube.com/watch?v=fast";
+    const inputEvent = new Event("input", { bubbles: true });
+    Object.defineProperty(inputEvent, "inputType", {
+      value: "insertFromPaste",
+    });
+    input.dispatchEvent(inputEvent);
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-preview",
+      "https://youtube.com/watch?v=fast",
+    );
+  });
+
   test("auto-opens quality selection when force-preview requests it", async () => {
     const { input, downloadBtn } = getState();
     downloadBtn.disabled = false;
