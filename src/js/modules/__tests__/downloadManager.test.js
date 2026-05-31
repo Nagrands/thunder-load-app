@@ -289,6 +289,71 @@ describe("downloadManager intent warmup", () => {
   });
 });
 
+describe("downloadManager queue format readiness", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn().mockResolvedValue({
+        fileName: "Queued",
+        filePath: "/tmp/queued.mp4",
+        quality: "Source",
+        actualQuality: "Source",
+        sourceUrl: "https://example.com/queued",
+      }),
+      ipcRenderer: { invoke: jest.fn().mockResolvedValue({ success: true }) },
+      on: jest.fn(),
+    };
+  });
+
+  it("warms full formats before starting a queued task", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { initiateDownload } = require("../downloadManager");
+      const quality = {
+        type: "pair",
+        label: "1080p + audio",
+        videoFormatId: "137",
+        audioFormatId: "140",
+      };
+
+      await initiateDownload("https://example.com/queued", quality, {
+        fromQueue: true,
+      });
+
+      expect(window.electron.ipcRenderer.invoke).toHaveBeenCalledWith(
+        "get-video-info",
+        "https://example.com/queued",
+      );
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "download-video",
+        "https://example.com/queued",
+        quality,
+        expect.any(String),
+      );
+    });
+  });
+});
+
 describe("downloadManager enqueueOnly behavior", () => {
   beforeEach(() => {
     jest.resetModules();

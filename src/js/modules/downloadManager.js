@@ -249,6 +249,13 @@ function warmupDownloadIntentInfo() {
   void getVideoInfo(url).catch(() => {});
 }
 
+function ensureQueueFormatsReady(url, quality) {
+  if (!url || !quality) return;
+  void getVideoInfo(url).catch(() => {
+    // download-video will surface the same source error in the normal flow.
+  });
+}
+
 function refreshPendingQueueTitles() {
   if (!Array.isArray(state.downloadQueue) || state.downloadQueue.length === 0) {
     return;
@@ -1667,6 +1674,10 @@ const initiateDownload = async (url, quality, options = {}) => {
       showToast(t("download.url.queued"), "info");
     }
     return null;
+  }
+
+  if (fromQueue) {
+    ensureQueueFormatsReady(url, quality);
   }
 
   clearProgressResetTimer();

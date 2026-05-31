@@ -38,6 +38,7 @@ const crypto = require("crypto");
 const unzipper = require("unzipper");
 const treeKill = require("tree-kill");
 const log = require("electron-log");
+const { app } = require("electron");
 
 const {
   getEffectiveToolsDir,
@@ -213,6 +214,9 @@ const VIDEO_INFO_CACHE_MAX = 50;
 const videoInfoInFlight = new Map(); // url -> Promise
 const videoPreviewCache = new Map(); // url -> { timestamp, data }
 const videoPreviewInFlight = new Map(); // url -> Promise
+const VIDEO_PREVIEW_PERSISTENT_CACHE_TTL = 24 * 60 * 60 * 1000;
+const VIDEO_PREVIEW_PERSISTENT_CACHE_MAX = 100;
+const VIDEO_PREVIEW_PERSISTENT_CACHE_FILE = "video-preview-metadata-cache.json";
 const VIDEO_INFO_MAX_CONCURRENCY = 1;
 const VIDEO_INFO_QUEUE_POLL_MS = 80;
 const YOUTUBE_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000;
@@ -1496,6 +1500,117 @@ function getVideoInfoCacheTtl(data) {
   return data?.is_live ? VIDEO_INFO_LIVE_CACHE_TTL : VIDEO_INFO_CACHE_TTL;
 }
 
+function getPersistentPreviewCachePath() {
+  const baseDir =
+    typeof app?.getPath === "function" ? app.getPath("userData") : os.tmpdir();
+  return path.join(baseDir, VIDEO_PREVIEW_PERSISTENT_CACHE_FILE);
+}
+
+function getYtDlpCacheSignature() {
+  try {
+    const ytDlpPath = resolveRuntimeToolPath("yt-dlp");
+    const stats = fs.existsSync(ytDlpPath) ? fs.statSync(ytDlpPath) : null;
+    return stats
+      ? `${ytDlpPath}:${stats.mtimeMs}:${stats.size}`
+      : `${ytDlpPath}:missing`;
+  } catch {
+    return "unknown";
+  }
+}
+
+function readPersistentPreviewCache() {
+  try {
+    const cachePath = getPersistentPreviewCachePath();
+    if (!fs.existsSync(cachePath)) return { entries: {} };
+    const parsed = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+    return parsed && typeof parsed === "object" && parsed.entries
+      ? parsed
+      : { entries: {} };
+  } catch (error) {
+    log.warn("[download] Failed to read preview metadata cache:", error);
+    return { entries: {} };
+  }
+}
+
+function writePersistentPreviewCache(cache) {
+  try {
+    const cachePath = getPersistentPreviewCachePath();
+    fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+    fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), "utf8");
+  } catch (error) {
+    log.warn("[download] Failed to write preview metadata cache:", error);
+  }
+}
+
+function pickPreviewThumbnails(thumbnails) {
+  if (!Array.isArray(thumbnails)) return [];
+  return thumbnails
+    .filter((item) => item?.url)
+    .slice(0, 6)
+    .map((item) => ({
+      url: item.url,
+      width: Number(item.width) || null,
+      height: Number(item.height) || null,
+    }));
+}
+
+function toPersistentPreviewMetadata(info) {
+  if (!info?.title || info?.is_live || info?.live_status) return null;
+  const playlistCount =
+    Number(info.playlistCount) ||
+    (Array.isArray(info.entries) ? info.entries.length : 0) ||
+    0;
+  const playlistDuration = Number(info.playlistDuration) || 0;
+  return {
+    success: true,
+    title: info.title || info.name || "",
+    thumbnail: info.thumbnail || "",
+    thumbnails: pickPreviewThumbnails(info.thumbnails),
+    duration: Number(info.duration) || 0,
+    playlistCount,
+    playlistDuration,
+    webpage_url: info.webpage_url || "",
+    original_url: info.original_url || "",
+  };
+}
+
+function getPersistentPreviewMetadata(cacheKey) {
+  const cache = readPersistentPreviewCache();
+  const entry = cache.entries?.[cacheKey];
+  if (!entry) return null;
+  const signature = getYtDlpCacheSignature();
+  const isExpired =
+    Date.now() - Number(entry.timestamp || 0) >
+    VIDEO_PREVIEW_PERSISTENT_CACHE_TTL;
+  if (entry.ytDlpSignature !== signature || isExpired) {
+    delete cache.entries[cacheKey];
+    writePersistentPreviewCache(cache);
+    return null;
+  }
+  return entry.data || null;
+}
+
+function setPersistentPreviewMetadata(cacheKey, info) {
+  const data = toPersistentPreviewMetadata(info);
+  if (!data) return;
+  const cache = readPersistentPreviewCache();
+  const entries = cache.entries || {};
+  entries[cacheKey] = {
+    timestamp: Date.now(),
+    ytDlpSignature: getYtDlpCacheSignature(),
+    data,
+  };
+  const keys = Object.keys(entries).sort(
+    (a, b) =>
+      Number(entries[a]?.timestamp || 0) - Number(entries[b]?.timestamp || 0),
+  );
+  while (keys.length > VIDEO_PREVIEW_PERSISTENT_CACHE_MAX) {
+    const oldest = keys.shift();
+    if (oldest) delete entries[oldest];
+  }
+  writePersistentPreviewCache({ version: 1, entries });
+}
+
 function stripPreviewOnlyInfo(info) {
   if (!info || typeof info !== "object") return info;
   const clone = { ...info };
@@ -1886,6 +2001,7 @@ async function runYtDlpVideoPreview(url, token, cacheKey) {
               timestamp: Date.now(),
               data: preview,
             });
+            setPersistentPreviewMetadata(cacheKey, preview);
             resolve(preview);
           } catch (err) {
             log.error(`Error parsing video preview: ${err.message}`);
@@ -1980,6 +2096,15 @@ function getVideoPreview(url, token = null) {
       return Promise.resolve(cached.data);
     }
     videoPreviewCache.delete(key);
+  }
+  const persistentPreview = getPersistentPreviewMetadata(key);
+  if (persistentPreview) {
+    log.info(`[download] Using persistent video preview for ${key}`);
+    videoPreviewCache.set(key, {
+      timestamp: Date.now(),
+      data: persistentPreview,
+    });
+    return Promise.resolve(persistentPreview);
   }
   if (videoPreviewInFlight.has(key)) {
     log.info(`[download] Awaiting in-flight video preview for ${key}`);
@@ -2739,6 +2864,9 @@ module.exports = {
   _buildYtDlpVideoInfoArgs: buildYtDlpVideoInfoArgs,
   _buildYtDlpVideoPreviewArgs: buildYtDlpVideoPreviewArgs,
   _getVideoInfoCacheTtl: getVideoInfoCacheTtl,
+  _getPersistentPreviewCachePath: getPersistentPreviewCachePath,
+  _getPersistentPreviewMetadata: getPersistentPreviewMetadata,
+  _setPersistentPreviewMetadata: setPersistentPreviewMetadata,
   _resolveUsableYtDlpBinary: resolveUsableYtDlpBinary,
   _resetYtDlpBinaryCache: () => {
     cachedYtDlpBinary = null;

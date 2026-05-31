@@ -153,21 +153,30 @@ function clearVideoInfoBrokerCache(url = "") {
   state.infoInFlight.delete(key);
 }
 
-function cancelVideoPreviewRequest(url) {
+function cancelVideoInfoRequest(url, { previewOnly = false } = {}) {
   const key = normalize(url);
   if (!key) return Promise.resolve(null);
   const state = getState();
-  state.previewInFlight.delete(key);
+  if (previewOnly) {
+    state.previewInFlight.delete(key);
+  } else {
+    state.infoInFlight.delete(key);
+  }
   const invoke = getInvoke();
   if (typeof invoke !== "function") {
     return Promise.resolve(null);
   }
   return Promise.resolve(
-    invoke("cancel-video-info-request", { url: key, previewOnly: true }),
+    invoke("cancel-video-info-request", { url: key, previewOnly }),
   ).catch(() => null);
 }
 
+function cancelVideoPreviewRequest(url) {
+  return cancelVideoInfoRequest(url, { previewOnly: true });
+}
+
 export {
+  cancelVideoInfoRequest,
   cancelVideoPreviewRequest,
   clearVideoInfoBrokerCache,
   getVideoInfo,

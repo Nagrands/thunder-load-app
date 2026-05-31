@@ -18,6 +18,9 @@ const {
   _buildYtDlpVideoInfoArgs,
   _buildYtDlpVideoPreviewArgs,
   _getVideoInfoCacheTtl,
+  _getPersistentPreviewCachePath,
+  _getPersistentPreviewMetadata,
+  _setPersistentPreviewMetadata,
 } = require("../download.js");
 
 describe("selectFormatsByQuality object fallback", () => {
@@ -192,6 +195,67 @@ describe("yt-dlp video info optimization helpers", () => {
   it("uses a longer cache TTL for normal videos and a short TTL for live videos", () => {
     expect(_getVideoInfoCacheTtl({ is_live: false })).toBe(10 * 60 * 1000);
     expect(_getVideoInfoCacheTtl({ is_live: true })).toBe(60 * 1000);
+  });
+
+  it("stores lightweight preview metadata in persistent cache without formats", () => {
+    const fs = require("fs");
+    const cachePath = _getPersistentPreviewCachePath();
+    try {
+      fs.rmSync(cachePath, { force: true });
+    } catch {}
+
+    _setPersistentPreviewMetadata("https://example.com/video", {
+      title: "Preview title",
+      thumbnail: "https://cdn.example.com/thumb.jpg",
+      duration: 120,
+      formats: [{ format_id: "18" }],
+      thumbnails: [{ url: "https://cdn.example.com/1.jpg", width: 320 }],
+    });
+
+    const cached = _getPersistentPreviewMetadata("https://example.com/video");
+
+    expect(cached).toMatchObject({
+      success: true,
+      title: "Preview title",
+      thumbnail: "https://cdn.example.com/thumb.jpg",
+      duration: 120,
+    });
+    expect(cached.formats).toBeUndefined();
+    expect(cached.thumbnails).toEqual([
+      {
+        url: "https://cdn.example.com/1.jpg",
+        width: 320,
+        height: null,
+      },
+    ]);
+  });
+
+  it("does not persist live preview metadata but keeps playlist summary", () => {
+    const fs = require("fs");
+    const cachePath = _getPersistentPreviewCachePath();
+    try {
+      fs.rmSync(cachePath, { force: true });
+    } catch {}
+
+    _setPersistentPreviewMetadata("live", {
+      title: "Live",
+      is_live: true,
+      thumbnail: "https://cdn.example.com/live.jpg",
+    });
+    _setPersistentPreviewMetadata("playlist", {
+      title: "Playlist",
+      entries: [{ id: "1" }, { id: "2" }],
+      thumbnail: "https://cdn.example.com/playlist.jpg",
+      playlistDuration: 300,
+    });
+
+    expect(_getPersistentPreviewMetadata("live")).toBeNull();
+    expect(_getPersistentPreviewMetadata("playlist")).toMatchObject({
+      title: "Playlist",
+      playlistCount: 2,
+      playlistDuration: 300,
+    });
+    expect(_getPersistentPreviewMetadata("playlist").entries).toBeUndefined();
   });
 
   it("caches the resolved yt-dlp binary while the file signature is unchanged", async () => {

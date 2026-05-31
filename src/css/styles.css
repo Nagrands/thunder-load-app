@@ -12366,7 +12366,7 @@ body.low-effects .app-footer__action--tools.is-busy {
   justify-content: center;
   width: 100%;
   flex-wrap: wrap;
-  max-width: 1080px;
+  max-width: 940px;
   animation: fadeIn 0.5s ease-in-out;
   transition: background-color var(--transition-duration), color var(--transition-duration), border-color var(--transition-duration), box-shadow var(--transition-duration);
 }
@@ -13204,7 +13204,7 @@ body.is-mac .window-controls .btn-minimize {
   background: rgba(255, 255, 255, 0.02);
   color: rgba(220, 231, 247, 0.66);
   font-size: 0.74rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
@@ -21613,7 +21613,7 @@ hr {
 .tab-view.tab-show {
   display: flex;
   flex-direction: column;
-  width: 80%;
+  width: 100%;
   opacity: 1;
   padding-bottom: var(--footer-safe-space, 102px);
 }
@@ -26029,10 +26029,7 @@ video {
 }
 
 .wg-card {
-  background: rgba(0, 0, 0, 0.7019607843);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 15px;
-  border-radius: var(--border-radius);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
@@ -26630,16 +26627,14 @@ video {
 }
 
 .wg-glass-effect {
-  background: rgba(0, 0, 0, 0.7019607843);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 15px;
-  border-radius: var(--border-radius);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
 }
 
 .wg-glass {
+  padding: 15px;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
@@ -26752,10 +26747,7 @@ video {
 }
 
 .quick-action-card {
-  background: rgba(0, 0, 0, 0.7019607843);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 15px;
-  border-radius: var(--border-radius);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
@@ -27012,7 +27004,7 @@ video {
   margin-bottom: 0;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.034) 0%, rgba(255, 255, 255, 0.016) 100%), rgba(8, 12, 20, 0.14);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.02) 42%, rgba(255, 255, 255, 0.008) 100%), rgba(255, 255, 255, 0.014);
 }
 .tools-shell-header .title i {
   display: inline-flex;

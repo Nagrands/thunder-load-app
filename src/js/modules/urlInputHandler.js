@@ -5,6 +5,7 @@ import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
 import {
+  cancelVideoInfoRequest,
   cancelVideoPreviewRequest,
   getVideoInfo,
   getVideoPreview,
@@ -109,6 +110,7 @@ function initUrlInputHandler() {
   let livePreviewOpen = false;
   let pendingAutoQualityUrl = "";
   let fullInfoWarmupTimer = null;
+  let fullInfoWarmupUrl = "";
   let lastPreviewData = null;
 
   const isAutoQualityModalEnabled = () => {
@@ -423,7 +425,8 @@ function initUrlInputHandler() {
       hideDownloaderLivePreview();
     }
     syncLivePreviewButton();
-    if (count > 1 && Array.isArray(data.entries) && data.entries.length) {
+    if (count > 1) {
+      const playlistEntries = Array.isArray(data.entries) ? data.entries : [];
       setHelperText("input.url.helper.playlistChoice");
       playlistMetaEl.innerHTML = `
         <span class="preview-playlist-chip">${t("input.url.preview.playlistCount", { count })}</span>
@@ -459,11 +462,11 @@ function initUrlInputHandler() {
         currentOnlyBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> ${t("input.url.preview.currentOnly")}`;
         currentOnlyBtn.style.display = "";
       }
-      if (!addAllBtn) {
+      if (playlistEntries.length && !addAllBtn) {
         addAllBtn = document.createElement("button");
         addAllBtn.id = "preview-enqueue-all";
         addAllBtn.className = "preview-action-button";
-        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: data.entries.length })}`;
+        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: playlistEntries.length })}`;
         addAllBtn.setAttribute("data-bs-toggle", "tooltip");
         addAllBtn.setAttribute("data-bs-placement", "top");
         addAllBtn.setAttribute("title", t("input.url.preview.addAllTitle"));
@@ -471,21 +474,25 @@ function initUrlInputHandler() {
         try {
           initTooltips();
         } catch (_) {}
-      } else {
-        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: data.entries.length })}`;
+      } else if (playlistEntries.length && addAllBtn) {
+        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: playlistEntries.length })}`;
         addAllBtn.style.display = "";
         try {
           initTooltips();
         } catch (_) {}
+      } else if (addAllBtn) {
+        addAllBtn.style.display = "none";
       }
-      addAllBtn.onclick = () => {
-        try {
-          const ev = new CustomEvent("queue:addMany", {
-            detail: { urls: data.entries },
-          });
-          window.dispatchEvent(ev);
-        } catch (_) {}
-      };
+      if (addAllBtn && playlistEntries.length) {
+        addAllBtn.onclick = () => {
+          try {
+            const ev = new CustomEvent("queue:addMany", {
+              detail: { urls: playlistEntries },
+            });
+            window.dispatchEvent(ev);
+          } catch (_) {}
+        };
+      }
       currentOnlyBtn.onclick = () => {
         document.getElementById("download-button")?.click();
       };
@@ -623,9 +630,24 @@ function initUrlInputHandler() {
   };
 
   const clearFullInfoWarmup = () => {
-    if (!fullInfoWarmupTimer) return;
-    clearTimeout(fullInfoWarmupTimer);
-    fullInfoWarmupTimer = null;
+    if (fullInfoWarmupTimer) {
+      clearTimeout(fullInfoWarmupTimer);
+      fullInfoWarmupTimer = null;
+    }
+    fullInfoWarmupUrl = "";
+  };
+
+  const cancelFullInfoWarmup = (nextUrl = "") => {
+    const warmupUrl = normalizeUrlInput(fullInfoWarmupUrl).trim();
+    const normalizedNext = normalizeUrlInput(nextUrl).trim();
+    if (!warmupUrl || warmupUrl === normalizedNext) {
+      clearFullInfoWarmup();
+      return;
+    }
+    clearFullInfoWarmup();
+    const qualityModal = document.getElementById("download-quality-modal");
+    if (qualityModal?.classList.contains("is-open")) return;
+    void cancelVideoInfoRequest(warmupUrl, { previewOnly: false });
   };
 
   const shouldWarmupFullInfo = (data) =>
@@ -643,10 +665,14 @@ function initUrlInputHandler() {
     if (!shouldWarmupFullInfo(data)) return;
     const normalizedUrl = normalizeUrlInput(url).trim();
     if (!normalizedUrl) return;
+    fullInfoWarmupUrl = normalizedUrl;
     fullInfoWarmupTimer = setTimeout(async () => {
       fullInfoWarmupTimer = null;
       try {
         const info = await getVideoInfo(normalizedUrl);
+        if (fullInfoWarmupUrl === normalizedUrl) {
+          fullInfoWarmupUrl = "";
+        }
         const currentUrl = normalizeUrlInput(urlInput.value).trim();
         if (
           requestId !== previewRequestId ||
@@ -661,6 +687,11 @@ function initUrlInputHandler() {
           }),
         );
       } catch (_) {}
+      finally {
+        if (fullInfoWarmupUrl === normalizedUrl) {
+          fullInfoWarmupUrl = "";
+        }
+      }
     }, FULL_INFO_WARMUP_DELAY_MS);
   };
 
@@ -731,7 +762,7 @@ function initUrlInputHandler() {
   const maybeFetchPreview = async () => {
     const url = urlInput.value.trim();
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
-      clearFullInfoWarmup();
+      cancelFullInfoWarmup(url);
       setPreviewLoading(false);
       renderPreview(null);
       pendingAutoQualityUrl = "";
@@ -790,7 +821,7 @@ function initUrlInputHandler() {
       markAutoQualityCandidate(url);
     }
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
-      clearFullInfoWarmup();
+      cancelFullInfoWarmup(url);
       setPreviewLoading(false);
       renderPreview(null);
       pendingAutoQualityUrl = "";
@@ -854,7 +885,7 @@ function initUrlInputHandler() {
       hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
       cancelStalePreviewRequest("");
-      clearFullInfoWarmup();
+      cancelFullInfoWarmup("");
       lastPreviewUrl = "";
       lastPreviewData = null;
       livePreviewOpen = false;
@@ -865,6 +896,7 @@ function initUrlInputHandler() {
       return;
     }
     cancelStalePreviewRequest(val);
+    cancelFullInfoWarmup(val);
     if (previewTimer) clearTimeout(previewTimer);
     setPreviewLoading(true);
     if (isPasteInput) {
@@ -902,7 +934,7 @@ function initUrlInputHandler() {
       urlInput.value = "";
       lastPreviewUrl = "";
       lastPreviewData = null;
-      clearFullInfoWarmup();
+      cancelFullInfoWarmup("");
       livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
@@ -922,6 +954,7 @@ function initUrlInputHandler() {
       e.preventDefault();
       lastPreviewUrl = "";
       lastPreviewData = null;
+      cancelFullInfoWarmup("");
       renderPreview(null);
       return;
     }
@@ -953,7 +986,7 @@ function initUrlInputHandler() {
     // Немедленно скрываем превью
     lastPreviewUrl = "";
     lastPreviewData = null;
-    clearFullInfoWarmup();
+    cancelFullInfoWarmup("");
     livePreviewOpen = false;
     setPreviewLoading(false);
     renderPreview(null);
