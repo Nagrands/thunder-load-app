@@ -15,6 +15,8 @@ const {
   selectFormatsByQuality,
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
+  _buildYtDlpVideoInfoArgs,
+  _getVideoInfoCacheTtl,
 } = require("../download.js");
 
 describe("selectFormatsByQuality object fallback", () => {
@@ -135,5 +137,94 @@ describe("yt-dlp error classification helpers", () => {
       "ERROR: [generic] Unable to download webpage: HTTP Error 404: Not Found",
     );
     expect(notFound.message).toContain("ERR_YTDLP_NOT_FOUND");
+  });
+});
+
+describe("yt-dlp video info optimization helpers", () => {
+  it("adds no-playlist for a YouTube watch link with playlist metadata", () => {
+    const args = _buildYtDlpVideoInfoArgs(
+      "https://www.youtube.com/watch?v=abc123&list=PL123&index=2",
+      "/tmp/ffmpeg",
+    );
+
+    expect(args).toContain("--no-playlist");
+    expect(args).toEqual(
+      expect.arrayContaining(["-J", "--ffmpeg-location", "/tmp/ffmpeg"]),
+    );
+  });
+
+  it("keeps playlist URLs eligible for playlist extraction", () => {
+    const args = _buildYtDlpVideoInfoArgs(
+      "https://www.youtube.com/playlist?list=PL123",
+      "/tmp/ffmpeg",
+    );
+
+    expect(args).not.toContain("--no-playlist");
+  });
+
+  it("uses a longer cache TTL for normal videos and a short TTL for live videos", () => {
+    expect(_getVideoInfoCacheTtl({ is_live: false })).toBe(10 * 60 * 1000);
+    expect(_getVideoInfoCacheTtl({ is_live: true })).toBe(60 * 1000);
+  });
+
+  it("caches the resolved yt-dlp binary while the file signature is unchanged", async () => {
+    jest.resetModules();
+    const { EventEmitter } = require("events");
+    const fs = require("fs");
+    const os = require("os");
+    const path = require("path");
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "yt-dlp-cache-"));
+    const binaryPath = path.join(
+      tmpDir,
+      process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp",
+    );
+    fs.writeFileSync(binaryPath, "demo");
+
+    const spawnMock = jest.fn(() => {
+      const proc = new EventEmitter();
+      proc.stdout = new EventEmitter();
+      proc.stderr = new EventEmitter();
+      proc.kill = jest.fn();
+      process.nextTick(() => {
+        proc.stdout.emit("data", "2026.01.01\n");
+        proc.emit("close", 0);
+      });
+      return proc;
+    });
+
+    jest.doMock("child_process", () => ({
+      spawn: spawnMock,
+    }));
+    jest.doMock("../../app/toolsPaths", () => ({
+      getEffectiveToolsDir: jest.fn(() => tmpDir),
+      getDefaultToolsDir: jest.fn(() => tmpDir),
+      ensureToolsDir: jest.fn(() => tmpDir),
+      resolveToolPath: jest.fn(() => binaryPath),
+    }));
+    jest.doMock("../../app/runtimeTools", () => ({
+      getRuntimeFfprobePath: jest.fn(() => path.join(tmpDir, "ffprobe")),
+      resolveRuntimeBinaryPath: jest.fn(() => binaryPath),
+      resolveRuntimeBinaryCandidates: jest.fn(() => [
+        { path: binaryPath, source: "test" },
+      ]),
+      resolveRuntimeBinaryDetails: jest.fn(() => ({
+        path: binaryPath,
+        source: "test",
+      })),
+      prepareBinaryForExecution: jest.fn(),
+      resolveRuntimeFfmpegDir: jest.fn(() => tmpDir),
+    }));
+
+    const mod = require("../download.js");
+    mod._resetYtDlpBinaryCache();
+
+    await mod._resolveUsableYtDlpBinary();
+    await mod._resolveUsableYtDlpBinary();
+
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+
+    jest.dontMock("child_process");
+    jest.dontMock("../../app/toolsPaths");
+    jest.dontMock("../../app/runtimeTools");
   });
 });

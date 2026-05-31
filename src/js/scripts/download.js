@@ -206,7 +206,8 @@ function createDownloadToken() {
 let activeDownloadToken = null;
 const globalAbortControllers = new Map();
 const videoInfoCache = new Map(); // url -> { timestamp, data }
-const VIDEO_INFO_CACHE_TTL = 60 * 1000; // 1 минута
+const VIDEO_INFO_CACHE_TTL = 10 * 60 * 1000; // 10 минут
+const VIDEO_INFO_LIVE_CACHE_TTL = 60 * 1000; // 1 минута
 const VIDEO_INFO_CACHE_MAX = 50;
 const videoInfoInFlight = new Map(); // url -> Promise
 const VIDEO_INFO_MAX_CONCURRENCY = 1;
@@ -219,6 +220,7 @@ const YTDLP_DOWNLOAD_RETRY_DELAY_MS = 2000;
 const YTDLP_ERROR_PREFIX = "ERR_YTDLP_";
 let videoInfoRunning = 0;
 let youtubeRateLimitUntilTs = 0;
+let cachedYtDlpBinary = null;
 const TOOL_DOWNLOAD_OPTIONS = {
   maxRetries: 4,
   requestTimeout: 30000,
@@ -1425,6 +1427,42 @@ function isYouTubeUrl(url) {
   }
 }
 
+function isYouTubeSingleVideoUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (host.includes("youtu.be")) {
+      return parsed.pathname.replace(/^\/+/, "").length > 0;
+    }
+    if (!host.includes("youtube.com")) return false;
+    if (parsed.pathname === "/watch" && parsed.searchParams.get("v")) {
+      return true;
+    }
+    return /^\/(?:shorts|live|embed)\//i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function buildYtDlpVideoInfoArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
+  const args = [
+    "-J",
+    url,
+    "--ffmpeg-location",
+    ffmpegDir,
+    "--no-warnings",
+    "--ignore-config",
+  ];
+  if (isYouTubeSingleVideoUrl(url)) {
+    args.push("--no-playlist");
+  }
+  return args;
+}
+
+function getVideoInfoCacheTtl(data) {
+  return data?.is_live ? VIDEO_INFO_LIVE_CACHE_TTL : VIDEO_INFO_CACHE_TTL;
+}
+
 function isYoutubeRateLimitError(stderrOutput = "") {
   return /rate-limited by YouTube|This content isn't available, try again later|HTTP Error 429: Too Many Requests|Too Many Requests/i.test(
     String(stderrOutput || ""),
@@ -1555,6 +1593,25 @@ function classifyYtDlpSpawnError(error, binaryPath = "") {
 }
 
 async function resolveUsableYtDlpBinary(token = null) {
+  if (cachedYtDlpBinary?.path && fs.existsSync(cachedYtDlpBinary.path)) {
+    try {
+      const stats = fs.statSync(cachedYtDlpBinary.path);
+      if (
+        stats.mtimeMs === cachedYtDlpBinary.mtimeMs &&
+        stats.size === cachedYtDlpBinary.size
+      ) {
+        return {
+          path: cachedYtDlpBinary.path,
+          source: cachedYtDlpBinary.source,
+        };
+      }
+    } catch {
+      cachedYtDlpBinary = null;
+    }
+  } else {
+    cachedYtDlpBinary = null;
+  }
+
   const candidates = resolveRuntimeToolCandidates("yt-dlp");
   let lastError = null;
 
@@ -1569,6 +1626,13 @@ async function resolveUsableYtDlpBinary(token = null) {
         token,
         env: getYtDlpSpawnOptionsForBinary(candidatePath).env,
       });
+      const stats = fs.statSync(candidatePath);
+      cachedYtDlpBinary = {
+        path: candidatePath,
+        source: candidate.source,
+        mtimeMs: stats.mtimeMs,
+        size: stats.size,
+      };
       return {
         path: candidatePath,
         source: candidate.source,
@@ -1636,14 +1700,7 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
             });
             processStore.getVideoInfo = spawn(
               ytDlpPath,
-              [
-                "-J",
-                url,
-                "--ffmpeg-location",
-                ffmpegDir,
-                "--no-warnings",
-                "--ignore-config",
-              ],
+              buildYtDlpVideoInfoArgs(url, ffmpegDir),
               getYtDlpSpawnOptionsForBinary(ytDlpPath),
             );
             let output = "";
@@ -1765,7 +1822,7 @@ function getVideoInfo(url, token = null) {
   }
   if (videoInfoCache.has(key)) {
     const cached = videoInfoCache.get(key);
-    if (Date.now() - cached.timestamp < VIDEO_INFO_CACHE_TTL) {
+    if (Date.now() - cached.timestamp < getVideoInfoCacheTtl(cached.data)) {
       log.info(`[download] Using cached video info for ${key}`);
       return Promise.resolve(cached.data);
     }
@@ -2525,6 +2582,12 @@ module.exports = {
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
   setSharedStore,
+  _buildYtDlpVideoInfoArgs: buildYtDlpVideoInfoArgs,
+  _getVideoInfoCacheTtl: getVideoInfoCacheTtl,
+  _resolveUsableYtDlpBinary: resolveUsableYtDlpBinary,
+  _resetYtDlpBinaryCache: () => {
+    cachedYtDlpBinary = null;
+  },
 };
 
 /**
