@@ -90,6 +90,7 @@ describe("urlInputHandler", () => {
   let applyDownloaderBackgroundPreviewMock;
   let clearDownloaderBackgroundPreviewMock;
   let hideDownloaderLivePreviewMock;
+  let isCompactDownloaderModeMock;
   let initUrlInputHandler;
 
   const loadModule = () => {
@@ -116,6 +117,10 @@ describe("urlInputHandler", () => {
         RETRY_EVENT: "downloader:live-preview-retry",
         STATE_EVENT: "downloader:live-preview-state",
         hideDownloaderLivePreview: hideDownloaderLivePreviewMock,
+      }));
+      jest.doMock("../compactDownloaderQuality.js", () => ({
+        PREVIEW_EVENT: "downloader:preview-info",
+        isCompactDownloaderMode: isCompactDownloaderModeMock,
       }));
       jest.doMock("../i18n", () => ({
         t: (key, vars = {}) => {
@@ -225,6 +230,7 @@ describe("urlInputHandler", () => {
     applyDownloaderBackgroundPreviewMock = jest.fn().mockResolvedValue(true);
     clearDownloaderBackgroundPreviewMock = jest.fn();
     hideDownloaderLivePreviewMock = jest.fn();
+    isCompactDownloaderModeMock = jest.fn(() => false);
     window.electron = {
       invoke: jest.fn(),
       ipcRenderer: { invoke: getVideoInfoMock },
@@ -555,6 +561,66 @@ describe("urlInputHandler", () => {
       "https://youtube.com/watch?v=retry",
     );
     expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("does not auto-open quality selection after paste in compact mode", async () => {
+    isCompactDownloaderModeMock.mockReturnValue(true);
+    const { pasteBtn, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+    });
+
+    pasteBtn.click();
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-info",
+      "https://youtube.com/watch?v=test",
+    );
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(downloadBtn.dataset.forceQualityModal).toBeUndefined();
+  });
+
+  test("does not auto-open quality selection when force-preview requests it in compact mode", async () => {
+    isCompactDownloaderModeMock.mockReturnValue(true);
+    const { input, downloadBtn } = getState();
+    downloadBtn.disabled = false;
+    const clickSpy = jest.spyOn(downloadBtn, "click");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 90,
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    input.value = "https://youtube.com/watch?v=retry";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(
+      new CustomEvent("force-preview", {
+        detail: { autoOpenQuality: true },
+      }),
+    );
+
+    await flushPromises();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-info",
+      "https://youtube.com/watch?v=retry",
+    );
+    expect(clickSpy).not.toHaveBeenCalled();
+    expect(downloadBtn.dataset.forceQualityModal).toBeUndefined();
   });
 
   test("does not auto-open quality selection when preview image is missing", async () => {

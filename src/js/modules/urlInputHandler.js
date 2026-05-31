@@ -18,7 +18,10 @@ import {
   STATE_EVENT as LIVE_PREVIEW_STATE_EVENT,
   hideDownloaderLivePreview,
 } from "./downloaderLivePreview.js";
-import { PREVIEW_EVENT } from "./compactDownloaderQuality.js";
+import {
+  PREVIEW_EVENT,
+  isCompactDownloaderMode,
+} from "./compactDownloaderQuality.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -109,7 +112,14 @@ function initUrlInputHandler() {
     }
   };
 
+  const shouldAutoOpenQualityModal = () =>
+    isAutoQualityModalEnabled() && !isCompactDownloaderMode();
+
   const markAutoQualityCandidate = (value) => {
+    if (!shouldAutoOpenQualityModal()) {
+      pendingAutoQualityUrl = "";
+      return;
+    }
     const normalized = normalizeUrlInput(value).trim();
     pendingAutoQualityUrl =
       normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
@@ -130,7 +140,7 @@ function initUrlInputHandler() {
 
   const maybeOpenQualityModalAfterPaste = (url, data) => {
     if (!pendingAutoQualityUrl || pendingAutoQualityUrl !== url) return;
-    if (!isAutoQualityModalEnabled() || !hasRecognizedPreviewInfo(data)) {
+    if (!shouldAutoOpenQualityModal() || !hasRecognizedPreviewInfo(data)) {
       pendingAutoQualityUrl = "";
       return;
     }
