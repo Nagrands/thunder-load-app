@@ -397,6 +397,7 @@ describe("urlInputHandler", () => {
     await flushPromises();
 
     expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(downloadBtn.dataset.forceQualityModal).toBe("1");
   });
 
   test("auto-opens quality selection when recognized preview has no loaded formats yet", async () => {

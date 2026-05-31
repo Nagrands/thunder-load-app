@@ -27,6 +27,10 @@ import {
   queueRetryFailedButton,
 } from "./domElements.js";
 import { openDownloadQualityModal } from "./downloadQualityModal.js";
+import {
+  isCompactDownloaderMode,
+  resolveCompactQualityPayload,
+} from "./compactDownloaderQuality.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
@@ -1784,11 +1788,16 @@ const handleDownloadButtonClick = async (options = {}) => {
   }
   const downloadedMap = await getDownloadedUrlMap();
 
-  // Если несколько: стартуем первый/добавляем остальные в очередь
-  if (validUrls.length > 1) {
-    const first = validUrls[0];
-    const qualityProfile = options.presetProfile || readQualityProfile();
-    const selectionRaw = await openDownloadQualityModal(first, {
+  const resolveSelectionForUrl = async (url, qualityProfile) => {
+    if (isCompactDownloaderMode() && !options.forceQualityModal) {
+      const payload = await resolveCompactQualityPayload(url);
+      if (!payload) {
+        showToast(t("quality.compact.invalidSelection"), "warning");
+        return null;
+      }
+      return payload;
+    }
+    return openDownloadQualityModal(url, {
       presetQuality: resolvePresetQuality(qualityProfile),
       defaultQualityProfile: qualityProfile,
       preferredLabel:
@@ -1797,8 +1806,15 @@ const handleDownloadButtonClick = async (options = {}) => {
           : null,
       forceAudioOnly: options.forceAudioOnly,
       enqueueOnly: options.enqueueOnly,
-      cachedInfo: getCachedVideoInfo(first),
+      cachedInfo: getCachedVideoInfo(url),
     });
+  };
+
+  // Если несколько: стартуем первый/добавляем остальные в очередь
+  if (validUrls.length > 1) {
+    const first = validUrls[0];
+    const qualityProfile = options.presetProfile || readQualityProfile();
+    const selectionRaw = await resolveSelectionForUrl(first, qualityProfile);
     if (!selectionRaw) return;
     const selection = normalizeSelection(selectionRaw);
     const payload = selection.payload;
@@ -1851,17 +1867,7 @@ const handleDownloadButtonClick = async (options = {}) => {
   // Один URL
   const url = validUrls[0];
   const qualityProfile = options.presetProfile || readQualityProfile();
-  const selectionRaw = await openDownloadQualityModal(url, {
-    presetQuality: resolvePresetQuality(qualityProfile),
-    defaultQualityProfile: qualityProfile,
-    preferredLabel:
-      qualityProfile === "remember"
-        ? lastChosenQualityLabel || readLastQuality()
-        : null,
-    forceAudioOnly: options.forceAudioOnly,
-    enqueueOnly: options.enqueueOnly,
-    cachedInfo: getCachedVideoInfo(url),
-  });
+  const selectionRaw = await resolveSelectionForUrl(url, qualityProfile);
   if (!selectionRaw) return;
   const selection = normalizeSelection(selectionRaw);
   const payload = selection.payload;
@@ -1948,10 +1954,12 @@ function initDownloadButton() {
     const opts = {
       enqueueOnly: downloadButton.dataset.enqueueOnly === "1",
       forceAudioOnly: downloadButton.dataset.forceAudioOnly === "1",
+      forceQualityModal: downloadButton.dataset.forceQualityModal === "1",
       presetProfile: downloadButton.dataset.presetProfile || "",
     };
     delete downloadButton.dataset.enqueueOnly;
     delete downloadButton.dataset.forceAudioOnly;
+    delete downloadButton.dataset.forceQualityModal;
     delete downloadButton.dataset.presetProfile;
     await handleDownloadButtonClick(opts);
   });

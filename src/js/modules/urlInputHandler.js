@@ -18,6 +18,7 @@ import {
   STATE_EVENT as LIVE_PREVIEW_STATE_EVENT,
   hideDownloaderLivePreview,
 } from "./downloaderLivePreview.js";
+import { PREVIEW_EVENT } from "./compactDownloaderQuality.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -143,7 +144,10 @@ function initUrlInputHandler() {
     if (!downloadBtn || downloadBtn.disabled) return;
     pendingAutoQualityUrl = "";
     setTimeout(() => {
-      if (!downloadBtn.disabled) downloadBtn.click();
+      if (!downloadBtn.disabled) {
+        downloadBtn.dataset.forceQualityModal = "1";
+        downloadBtn.click();
+      }
     }, 0);
   };
 
@@ -315,6 +319,11 @@ function initUrlInputHandler() {
       if (livePreviewButton) livePreviewButton.style.display = "none";
       clearDownloaderBackgroundPreview();
       hideDownloaderLivePreview();
+      window.dispatchEvent(
+        new CustomEvent(PREVIEW_EVENT, {
+          detail: { info: null, url: urlInput.value.trim() },
+        }),
+      );
       return;
     }
     lastPreviewData = data;
@@ -322,6 +331,11 @@ function initUrlInputHandler() {
     try {
       setCachedVideoInfo(previewUrl || urlInput.value.trim(), data);
     } catch (_) {}
+    window.dispatchEvent(
+      new CustomEvent(PREVIEW_EVENT, {
+        detail: { info: data, url: previewUrl || urlInput.value.trim() },
+      }),
+    );
     hideInlineError();
     previewTitleEl.textContent = data.title || "";
     previewDurationEl.textContent = data.duration

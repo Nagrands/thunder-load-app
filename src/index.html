@@ -174,6 +174,27 @@
   <!-- Input Container -->
   <div class="input-container">
     <div class="url-entry-shell">
+      <div
+        class="downloader-view-mode"
+        role="group"
+        aria-label="Режим отображения загрузчика"
+        data-i18n-aria="quality.compact.modeGroup"
+      >
+        <button
+          id="downloader-view-detailed"
+          type="button"
+          class="downloader-view-mode__btn active"
+          aria-pressed="true"
+          data-i18n="quality.compact.modeDetailed"
+        >Подробно</button>
+        <button
+          id="downloader-view-compact"
+          type="button"
+          class="downloader-view-mode__btn"
+          aria-pressed="false"
+          data-i18n="quality.compact.modeCompact"
+        >Компактно</button>
+      </div>
       <div class="url-input-wrapper">
         <div class="url-input-main">
           <div class="url-input-leading">
@@ -273,6 +294,32 @@
           aria-label="Основные действия"
           data-i18n-aria="actions.primary"
         >
+          <section
+            id="compact-quality-panel"
+            class="compact-quality-panel"
+            aria-label="Компактный выбор качества"
+            data-i18n-aria="quality.compact.panel"
+            hidden
+            aria-hidden="true"
+          >
+            <div class="compact-quality-panel__grid">
+              <label class="compact-quality-field" for="compact-video-quality">
+                <span data-i18n="quality.compact.video">Видео</span>
+                <select id="compact-video-quality" class="compact-quality-select"></select>
+              </label>
+              <label class="compact-quality-field" for="compact-audio-quality">
+                <span data-i18n="quality.compact.audio">Аудио</span>
+                <select id="compact-audio-quality" class="compact-quality-select"></select>
+              </label>
+            </div>
+            <p
+              id="compact-quality-status"
+              class="compact-quality-status hidden"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </section>
+
           <button
             id="open-last-video"
             class="small-button btn btn-sm btn-secondary downloader-action-row__aside"

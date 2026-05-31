@@ -13190,6 +13190,34 @@ body.is-mac .window-controls .btn-minimize {
   gap: 6px;
 }
 
+.downloader-view-mode {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.downloader-view-mode__btn {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(220, 231, 247, 0.66);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.downloader-view-mode__btn.active {
+  border-color: rgba(var(--color-accent-rgb), 0.34);
+  background: rgba(var(--color-accent-rgb), 0.14);
+  color: rgba(240, 247, 255, 0.94);
+}
+.downloader-view-mode__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.18);
+}
+
 .url-input-main {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -13519,6 +13547,123 @@ body.is-mac .window-controls .btn-minimize {
 
 .url-inline-error.hidden {
   display: none !important;
+}
+
+.compact-quality-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.12);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.1), rgba(255, 255, 255, 0.025)), rgba(11, 17, 28, 0.74);
+}
+.compact-quality-panel[hidden] {
+  display: none !important;
+}
+
+.compact-quality-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.compact-quality-field {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.compact-quality-field > span {
+  color: rgba(225, 235, 249, 0.82);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.compact-quality-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border-radius: 10px;
+  padding: 0 34px 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(242, 247, 255, 0.94);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+.compact-quality-select:focus {
+  outline: none;
+  border-color: rgba(var(--color-accent-rgb), 0.44);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.14);
+}
+
+.compact-quality-status {
+  margin: 0;
+  color: rgba(226, 236, 250, 0.74);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.compact-quality-status.hidden {
+  display: none !important;
+}
+.compact-quality-status[data-tone=warning] {
+  color: #ffce7a;
+}
+
+.input-container.is-downloader-compact {
+  gap: 10px;
+}
+.input-container.is-downloader-compact .url-input-action-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding-top: 10px;
+}
+.input-container.is-downloader-compact #open-last-video,
+.input-container.is-downloader-compact #open-folder,
+.input-container.is-downloader-compact #download-cancel {
+  display: none !important;
+}
+.input-container.is-downloader-compact .download-quality-group,
+.input-container.is-downloader-compact .downloader-action-row__primary {
+  width: 100%;
+  min-width: 0;
+  display: block;
+}
+.input-container.is-downloader-compact #download-button {
+  width: 100%;
+  min-height: 42px;
+  padding-block: 8px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+.input-container.is-downloader-compact #preview-card {
+  justify-items: center;
+  grid-template-columns: 1fr;
+  grid-template-areas: "media" "meta";
+  padding: 12px;
+  text-align: center;
+}
+.input-container.is-downloader-compact #preview-card .preview-media {
+  width: min(100%, 520px);
+  min-height: 0;
+}
+.input-container.is-downloader-compact #preview-card img {
+  height: clamp(150px, 28vw, 260px);
+  border-radius: 12px;
+}
+.input-container.is-downloader-compact #preview-card .preview-meta {
+  justify-content: center;
+  min-height: 0;
+  padding-right: 0;
+}
+.input-container.is-downloader-compact #preview-card .preview-title {
+  font-size: clamp(0.92rem, 1.8vw, 1.08rem);
+}
+.input-container.is-downloader-compact #preview-card .preview-actions {
+  justify-content: center;
 }
 
 /* Карточка предпросмотра для Downloader */
@@ -13924,6 +14069,15 @@ body.is-mac .window-controls .btn-minimize {
   .clear-button,
   .folder-button {
     flex: 0 0 auto;
+  }
+  .downloader-view-mode {
+    justify-content: stretch;
+  }
+  .downloader-view-mode__btn {
+    flex: 1 1 0;
+  }
+  .compact-quality-panel__grid {
+    grid-template-columns: 1fr;
   }
 }
 .input-with-clear {
