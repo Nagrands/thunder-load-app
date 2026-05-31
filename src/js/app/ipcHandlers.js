@@ -808,18 +808,17 @@ function setupIpcHandlers(dependencies) {
     } else if (typeof info?.playlist_count === "number") {
       playlistCount = info.playlist_count;
     }
-    const backgroundPreview = includeFormats
-      ? selectYouTubeBackgroundPreview(
-          info,
-          info?.webpage_url || info?.original_url || normalizedUrl,
-        )
-      : null;
-    const livePreview = includeFormats
-      ? selectYouTubeLivePreview(
-          info,
-          info?.webpage_url || info?.original_url || normalizedUrl,
-        )
-      : null;
+    const previewInfo = Array.isArray(info?.previewFormats)
+      ? { ...info, formats: info.previewFormats }
+      : info;
+    const backgroundPreview = selectYouTubeBackgroundPreview(
+      previewInfo,
+      info?.webpage_url || info?.original_url || normalizedUrl,
+    );
+    const livePreview = selectYouTubeLivePreview(
+      previewInfo,
+      info?.webpage_url || info?.original_url || normalizedUrl,
+    );
     return {
       success: true,
       title,

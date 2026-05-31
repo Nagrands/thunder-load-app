@@ -1554,6 +1554,34 @@ function pickPreviewThumbnails(thumbnails) {
     }));
 }
 
+function pickPreviewFormats(formats) {
+  if (!Array.isArray(formats)) return [];
+  return formats
+    .filter((format) => format?.url)
+    .map((format) => ({
+      url: format.url,
+      ext: format.ext || "",
+      protocol: format.protocol || "",
+      vcodec: format.vcodec || "",
+      acodec: format.acodec || "",
+      width: Number(format.width) || null,
+      height: Number(format.height) || null,
+      fps: Number(format.fps) || null,
+      tbr: Number(format.tbr) || null,
+      vbr: Number(format.vbr) || null,
+      abr: Number(format.abr) || null,
+      filesize_approx: Number(format.filesize_approx) || null,
+      format_id: format.format_id || "",
+      format_note: format.format_note || "",
+      resolution: format.resolution || "",
+      video_ext: format.video_ext || "",
+      container: format.container || "",
+      mime_type: format.mime_type || "",
+      manifest_url: format.manifest_url || "",
+      fragment_base_url: format.fragment_base_url || "",
+    }));
+}
+
 function toPersistentPreviewMetadata(info) {
   if (!info?.title || info?.is_live || info?.live_status) return null;
   const playlistCount =
@@ -1614,11 +1642,13 @@ function setPersistentPreviewMetadata(cacheKey, info) {
 function stripPreviewOnlyInfo(info) {
   if (!info || typeof info !== "object") return info;
   const clone = { ...info };
+  clone.previewFormats = pickPreviewFormats(info.formats);
   delete clone.formats;
   if (Array.isArray(clone.entries)) {
     clone.entries = clone.entries.map((entry) => {
       if (!entry || typeof entry !== "object") return entry;
       const entryClone = { ...entry };
+      entryClone.previewFormats = pickPreviewFormats(entry.formats);
       delete entryClone.formats;
       return entryClone;
     });

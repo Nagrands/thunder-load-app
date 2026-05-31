@@ -681,6 +681,7 @@ function initUrlInputHandler() {
         ) {
           return;
         }
+        await syncBackgroundPreview(info);
         window.dispatchEvent(
           new CustomEvent(PREVIEW_EVENT, {
             detail: { info, url: normalizedUrl },

@@ -1038,6 +1038,55 @@ describe("urlInputHandler", () => {
     );
   });
 
+  test("applies downloader background video after full-info warmup when preview metadata is cached", async () => {
+    const { input } = getState();
+    const backgroundPreview = {
+      src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-warm",
+      poster: "https://i.ytimg.com/vi/demo/maxresdefault.jpg",
+      mime: "video/mp4",
+      container: "mp4",
+      width: 854,
+      height: 480,
+    };
+    getVideoInfoMock.mockImplementation((channel) => {
+      if (channel === "get-video-preview") {
+        return Promise.resolve({
+          success: true,
+          title: "YouTube demo",
+          duration: 120,
+          thumbnail: "https://example.com/thumb.jpg",
+          webpage_url: "https://www.youtube.com/watch?v=demo",
+          formats: [],
+          backgroundPreview: null,
+        });
+      }
+      if (channel === "get-video-info") {
+        return Promise.resolve({
+          success: true,
+          title: "YouTube demo",
+          duration: 120,
+          thumbnail: "https://example.com/thumb.jpg",
+          webpage_url: "https://www.youtube.com/watch?v=demo",
+          formats: [{ format_id: "18" }],
+          backgroundPreview,
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+    jest.advanceTimersByTime(900);
+    await flushPromises();
+
+    expect(applyDownloaderBackgroundPreviewMock).toHaveBeenCalledWith(
+      backgroundPreview,
+      { pageUrl: "https://www.youtube.com/watch?v=demo" },
+    );
+  });
+
   test("shows live preview action only when livePreview is available", async () => {
     const { input, previewCard } = getState();
     getVideoInfoMock.mockResolvedValueOnce({

@@ -597,19 +597,30 @@ describe("ipcHandlers tools quick actions", () => {
     download.getVideoPreview.mockResolvedValueOnce({
       title: "Preview demo",
       duration: 120,
-      thumbnail: "https://example.com/thumb.jpg",
-      webpage_url: "https://example.com/video",
-      formats: [{ format_id: "18" }],
+      thumbnail: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+      webpage_url: "https://www.youtube.com/watch?v=demo",
+      previewFormats: [
+        {
+          url: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18",
+          ext: "mp4",
+          protocol: "https",
+          vcodec: "avc1.42001E",
+          acodec: "mp4a.40.2",
+          width: 640,
+          height: 360,
+          tbr: 900,
+        },
+      ],
     });
     initHandlers();
 
     const result = await handlers[CHANNELS.GET_VIDEO_PREVIEW](
       null,
-      "https://example.com/video",
+      "https://www.youtube.com/watch?v=demo",
     );
 
     expect(download.getVideoPreview).toHaveBeenCalledWith(
-      "https://example.com/video",
+      "https://www.youtube.com/watch?v=demo",
       expect.objectContaining({ cancelled: false }),
     );
     expect(download.getVideoInfo).not.toHaveBeenCalled();
@@ -617,10 +628,24 @@ describe("ipcHandlers tools quick actions", () => {
       success: true,
       title: "Preview demo",
       duration: 120,
-      thumbnail: "https://example.com/thumb.jpg",
+      thumbnail: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
       formats: [],
-      backgroundPreview: null,
-      livePreview: null,
+      backgroundPreview: {
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18",
+        poster: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+        mime: "video/mp4",
+        container: "mp4",
+        width: 640,
+        height: 360,
+      },
+      livePreview: {
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=18",
+        poster: "https://i.ytimg.com/vi/demo/hqdefault.jpg",
+        mime: "video/mp4",
+        container: "mp4",
+        width: 640,
+        height: 360,
+      },
     });
   });
 
