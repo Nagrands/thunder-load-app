@@ -659,7 +659,7 @@ function initUrlInputHandler() {
 
     backgroundRecoveryInFlight = true;
     try {
-      const data = await fetchPreviewInfo(url);
+      const data = await fetchPreviewInfo(url, { force: true });
       if (!data?.success) {
         clearDownloaderBackgroundPreview();
         hideDownloaderLivePreview();
@@ -769,7 +769,7 @@ function initUrlInputHandler() {
   // Внешний триггер принудительного показа предпросмотра (например, из истории → Повторить)
   urlInput.addEventListener("force-preview", async (event) => {
     if (previewTimer) clearTimeout(previewTimer);
-    // сбрасываем кэш URL, чтобы форсировать повторный запрос
+    // Сбрасываем URL-сентинел, но broker может переиспользовать свежий preview-cache.
     lastPreviewUrl = "";
     // вызываем немедленно без debounce
     const url = urlInput.value.trim();
@@ -790,7 +790,7 @@ function initUrlInputHandler() {
     livePreviewOpen = false;
     syncLivePreviewButton();
     try {
-      const data = await fetchPreviewInfo(url, { force: true });
+      const data = await fetchPreviewInfo(url);
       const fetchError = !data?.success ? formatDownloadErrorToast(data) : "";
       if (fetchError) {
         showInlineErrorText(fetchError);

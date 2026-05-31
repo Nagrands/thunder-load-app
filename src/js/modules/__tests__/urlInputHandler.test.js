@@ -649,6 +649,27 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
+  test("force-preview reuses cached preview for the same URL", async () => {
+    const { input } = getState();
+    getVideoInfoMock.mockResolvedValue({
+      success: true,
+      title: "Cached preview",
+      thumbnail: "https://example.com/thumb.jpg",
+    });
+
+    input.value = "https://youtube.com/watch?v=cached";
+    input.dispatchEvent(new Event("force-preview"));
+    await flushPromises();
+    input.dispatchEvent(new Event("force-preview"));
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-preview",
+      "https://youtube.com/watch?v=cached",
+    );
+  });
+
   test("does not auto-open quality selection after paste in compact mode", async () => {
     isCompactDownloaderModeMock.mockReturnValue(true);
     const { pasteBtn, downloadBtn } = getState();
@@ -1188,7 +1209,7 @@ describe("urlInputHandler", () => {
     expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });
 
-  test("background recovery keeps cached YouTube preview without showing an error", async () => {
+  test("background recovery refreshes current YouTube preview without showing an error", async () => {
     const { input, error } = getState();
     getVideoInfoMock
       .mockResolvedValueOnce({
@@ -1228,11 +1249,11 @@ describe("urlInputHandler", () => {
     );
     await flushPromises();
 
-    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
+    expect(getVideoInfoMock).toHaveBeenCalledTimes(2);
     expect(error.classList.contains("hidden")).toBe(true);
     expect(applyDownloaderBackgroundPreviewMock).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-1",
+        src: "https://rr1---sn.example.googlevideo.com/videoplayback?id=demo-2",
       }),
       { pageUrl: "https://www.youtube.com/watch?v=demo" },
     );
