@@ -429,6 +429,60 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
+  test("warms full video info after a recognized preview without blocking preview render", async () => {
+    const { input, previewCard } = getState();
+    const previewListener = jest.fn();
+    window.addEventListener("downloader:preview-info", previewListener);
+    getVideoInfoMock.mockImplementation((channel) =>
+      Promise.resolve(
+        channel === "get-video-preview"
+          ? {
+              success: true,
+              title: "Demo title",
+              thumbnail: "https://example.com/thumb.jpg",
+            }
+          : {
+              success: true,
+              title: "Demo title",
+              thumbnail: "https://example.com/thumb.jpg",
+              formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+            },
+      ),
+    );
+
+    input.value = "https://youtube.com/watch?v=warm";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(previewCard.style.display).not.toBe("none");
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-preview",
+      "https://youtube.com/watch?v=warm",
+    );
+    expect(getVideoInfoMock).not.toHaveBeenCalledWith(
+      "get-video-info",
+      "https://youtube.com/watch?v=warm",
+    );
+
+    jest.advanceTimersByTime(900);
+    await flushPromises();
+
+    expect(getVideoInfoMock).toHaveBeenCalledWith(
+      "get-video-info",
+      "https://youtube.com/watch?v=warm",
+    );
+    expect(previewListener).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          info: expect.objectContaining({
+            formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
+          }),
+        }),
+      }),
+    );
+  });
+
   test("auto-opens quality selection when yt-dlp returns preview only in thumbnails", async () => {
     const { pasteBtn, downloadBtn } = getState();
     downloadBtn.disabled = false;

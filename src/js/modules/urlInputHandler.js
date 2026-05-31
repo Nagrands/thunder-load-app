@@ -4,7 +4,7 @@ import { urlInput } from "./domElements.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import { setCachedVideoInfo } from "./videoInfoCache.js";
-import { getVideoPreview } from "./videoInfoBroker.js";
+import { getVideoInfo, getVideoPreview } from "./videoInfoBroker.js";
 import { updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
@@ -38,6 +38,7 @@ const LIVE_PREVIEW_RETRY_HANDLER_KEY =
 const LIVE_PREVIEW_STATE_HANDLER_KEY =
   "__thunderLoadDownloaderLivePreviewStateHandler";
 const AUTO_OPEN_QUALITY_MODAL_KEY = "downloadAutoOpenQualityModal";
+const FULL_INFO_WARMUP_DELAY_MS = 900;
 
 function initUrlInputHandler() {
   if (!urlInput || !clearButton || !pasteButton || !selectFolderButton) return;
@@ -103,6 +104,7 @@ function initUrlInputHandler() {
   let currentLivePreview = null;
   let livePreviewOpen = false;
   let pendingAutoQualityUrl = "";
+  let fullInfoWarmupTimer = null;
   let lastPreviewData = null;
 
   const isAutoQualityModalEnabled = () => {
@@ -609,6 +611,48 @@ function initUrlInputHandler() {
     return getVideoPreview(url, options);
   };
 
+  const clearFullInfoWarmup = () => {
+    if (!fullInfoWarmupTimer) return;
+    clearTimeout(fullInfoWarmupTimer);
+    fullInfoWarmupTimer = null;
+  };
+
+  const shouldWarmupFullInfo = (data) =>
+    Boolean(
+      data?.success &&
+        (data.title || data.name) &&
+        (data.thumbnail ||
+          (Array.isArray(data.thumbnails) && data.thumbnails.length)) &&
+        (!Array.isArray(data.formats) || data.formats.length === 0) &&
+        (!Array.isArray(data.entries) || data.entries.length <= 1),
+    );
+
+  const scheduleFullInfoWarmup = (url, data, requestId = previewRequestId) => {
+    clearFullInfoWarmup();
+    if (!shouldWarmupFullInfo(data)) return;
+    const normalizedUrl = normalizeUrlInput(url).trim();
+    if (!normalizedUrl) return;
+    fullInfoWarmupTimer = setTimeout(async () => {
+      fullInfoWarmupTimer = null;
+      try {
+        const info = await getVideoInfo(normalizedUrl);
+        const currentUrl = normalizeUrlInput(urlInput.value).trim();
+        if (
+          requestId !== previewRequestId ||
+          currentUrl !== normalizedUrl ||
+          !info?.success
+        ) {
+          return;
+        }
+        window.dispatchEvent(
+          new CustomEvent(PREVIEW_EVENT, {
+            detail: { info, url: normalizedUrl },
+          }),
+        );
+      } catch (_) {}
+    }, FULL_INFO_WARMUP_DELAY_MS);
+  };
+
   const refreshBackgroundPreview = async () => {
     const url = normalizeUrlInput(urlInput.value).trim();
     if (!url || backgroundRecoveryInFlight) return;
@@ -676,6 +720,7 @@ function initUrlInputHandler() {
   const maybeFetchPreview = async () => {
     const url = urlInput.value.trim();
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
+      clearFullInfoWarmup();
       setPreviewLoading(false);
       renderPreview(null);
       pendingAutoQualityUrl = "";
@@ -700,16 +745,19 @@ function initUrlInputHandler() {
       if (fetchError) {
         showInlineErrorText(fetchError);
         renderPreview(null);
+        clearFullInfoWarmup();
         pendingAutoQualityUrl = "";
         lastPreviewData = null;
         return;
       }
       renderPreview(data);
       await syncBackgroundPreview(data);
+      scheduleFullInfoWarmup(url, data, currentRequest);
       maybeOpenQualityModalAfterPaste(url, data);
     } catch {
       if (currentRequest !== previewRequestId) return;
       renderPreview(null);
+      clearFullInfoWarmup();
       pendingAutoQualityUrl = "";
       lastPreviewData = null;
     } finally {
@@ -729,6 +777,7 @@ function initUrlInputHandler() {
       markAutoQualityCandidate(url);
     }
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
+      clearFullInfoWarmup();
       setPreviewLoading(false);
       renderPreview(null);
       pendingAutoQualityUrl = "";
@@ -746,15 +795,18 @@ function initUrlInputHandler() {
       if (fetchError) {
         showInlineErrorText(fetchError);
         renderPreview(null);
+        clearFullInfoWarmup();
         pendingAutoQualityUrl = "";
         lastPreviewData = null;
         return;
       }
       renderPreview(data);
       await syncBackgroundPreview(data);
+      scheduleFullInfoWarmup(url, data);
       maybeOpenQualityModalAfterPaste(url, data);
     } catch {
       renderPreview(null);
+      clearFullInfoWarmup();
       pendingAutoQualityUrl = "";
       lastPreviewData = null;
     } finally {
@@ -788,6 +840,7 @@ function initUrlInputHandler() {
     if (val === "") {
       hasInteracted = false;
       if (previewTimer) clearTimeout(previewTimer);
+      clearFullInfoWarmup();
       lastPreviewUrl = "";
       lastPreviewData = null;
       livePreviewOpen = false;
@@ -829,6 +882,7 @@ function initUrlInputHandler() {
       urlInput.value = "";
       lastPreviewUrl = "";
       lastPreviewData = null;
+      clearFullInfoWarmup();
       livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
@@ -879,6 +933,7 @@ function initUrlInputHandler() {
     // Немедленно скрываем превью
     lastPreviewUrl = "";
     lastPreviewData = null;
+    clearFullInfoWarmup();
     livePreviewOpen = false;
     setPreviewLoading(false);
     renderPreview(null);
