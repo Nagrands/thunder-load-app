@@ -27,6 +27,7 @@ import { initSettingsModal } from "../settingsModal.js";
 import { initUpdateHandler } from "../updateHandler.js";
 import { initTopBarThemeToggle } from "../topBarThemeToggle.js";
 import { initTopBarResponsive } from "../topBarResponsive.js";
+import { initTopBarReloadGuard } from "../topBarReloadGuard.js";
 import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
@@ -80,6 +81,7 @@ async function runCriticalInitialization(mainView) {
   initUrlInputHandler();
   initHistory();
   await initHistoryState();
+  initTopBarReloadGuard();
   initTopBarResponsive();
   initFirstRunModal();
   registerStatusMessageListener();

@@ -349,6 +349,13 @@ if (!app.requestSingleInstanceLock()) {
       ffmpegPath,
       ffprobePath,
       fileExists,
+      () => {
+        const activeDownloads = dependencies.downloadState.activeDownloads;
+        return Boolean(
+          dependencies.downloadState.downloadInProgress ||
+            (activeDownloads && activeDownloads.size > 0),
+        );
+      },
     );
 
     // DevTools noticeably increase GPU usage; keep them closed in production

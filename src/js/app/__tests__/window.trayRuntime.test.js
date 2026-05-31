@@ -55,9 +55,16 @@ jest.mock("electron", () => {
     clipboard: { readText: jest.fn(() => "") },
     Tray,
     Menu: {
-      buildFromTemplate: jest.fn((template) => template),
+      buildFromTemplate: jest.fn((template) => ({
+        template,
+        getMenuItemById: jest.fn((id) => {
+          const viewMenu = template.find((item) => item.label === "Вид");
+          return viewMenu?.submenu?.find((item) => item.id === id) || null;
+        }),
+      })),
       setApplicationMenu: jest.fn(),
     },
+    dialog: { showMessageBoxSync: jest.fn(() => 0) },
     shell: { openPath: jest.fn(() => Promise.resolve("")) },
     ipcMain: { on: jest.fn(), handle: jest.fn() },
     nativeImage: { createFromPath: jest.fn(() => createNativeImageMock()) },
@@ -100,6 +107,9 @@ describe("tray runtime behavior", () => {
     Tray.mockClear();
     ipcMain.on.mockClear();
     nativeImage.createFromPath.mockClear();
+    require("electron").dialog.showMessageBoxSync.mockClear();
+    require("electron").Menu.buildFromTemplate.mockClear();
+    require("electron").Menu.setApplicationMenu.mockClear();
     existsSyncSpy = jest.spyOn(fs, "existsSync").mockReturnValue(true);
     platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
     resetWindowStateForTests();
@@ -300,6 +310,51 @@ describe("tray runtime behavior", () => {
     mainWindow._events.close({ preventDefault });
     expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    expect(app.quit).not.toHaveBeenCalled();
+  });
+
+  test("warns and keeps window open when closing during active download", () => {
+    setPlatform("win32");
+    const { dialog } = require("electron");
+    const app = new EventEmitter();
+    app.getName = () => "Thunder Load";
+    app.getVersion = () => "1.3.6";
+    app.getAppPath = () => "/tmp/app";
+    app.quit = jest.fn();
+    app.isPackaged = false;
+    app.isQuitting = false;
+    app.dock = { setIcon: jest.fn(), setMenu: jest.fn() };
+
+    const store = createStore({
+      downloadPath: "/tmp/downloads",
+      minimizeInsteadOfClose: false,
+      closeNotification: false,
+    });
+
+    const mainWindow = createWindow(
+      false,
+      app,
+      store,
+      "/tmp/downloads",
+      () => "1.3.6",
+      "",
+      "",
+      "",
+      () => true,
+      () => true,
+    );
+
+    const preventDefault = jest.fn();
+    mainWindow._events.close({ preventDefault });
+
+    expect(dialog.showMessageBoxSync).toHaveBeenCalledWith(
+      mainWindow,
+      expect.objectContaining({
+        type: "warning",
+        title: "Идёт загрузка",
+      }),
+    );
+    expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(app.quit).not.toHaveBeenCalled();
   });
 });

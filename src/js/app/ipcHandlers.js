@@ -491,7 +491,23 @@ function setupIpcHandlers(dependencies) {
     log.warn("Unable to remove legacy auto-shutdown settings:", e);
   }
 
-  let isReloadShortcutBlocked = false;
+  let backupReloadBlocked = false;
+  let downloadReloadBlocked = false;
+  const isReloadShortcutBlocked = () =>
+    backupReloadBlocked || downloadReloadBlocked;
+  const syncReloadBlockState = () => {
+    const blocked = isReloadShortcutBlocked();
+    setReloadShortcutSuppressed(blocked);
+    if (typeof setReloadMenuEnabled === "function") {
+      setReloadMenuEnabled(!blocked);
+    }
+  };
+  const setDownloadReloadBlocked = (shouldBlock) => {
+    const next = Boolean(shouldBlock);
+    if (downloadReloadBlocked === next) return;
+    downloadReloadBlocked = next;
+    syncReloadBlockState();
+  };
   const previewDirPath =
     (typeof previewCacheDir === "string" && previewCacheDir) ||
     path.join(app.getPath("userData"), "thunderload-previews");
@@ -631,11 +647,11 @@ function setupIpcHandlers(dependencies) {
   if (mainWindow?.webContents) {
     mainWindow.webContents.on("before-input-event", (event, input) => {
       if (
-        isReloadShortcutBlocked &&
+        isReloadShortcutBlocked() &&
         input?.type === "keyDown" &&
         typeof input?.key === "string" &&
-        input.key.toLowerCase() === "r" &&
-        (input.control || input.meta)
+        ((input.key.toLowerCase() === "r" && (input.control || input.meta)) ||
+          input.key.toLowerCase() === "f5")
       ) {
         event.preventDefault();
       }
@@ -2662,12 +2678,9 @@ function setupIpcHandlers(dependencies) {
     CHANNELS.BACKUP_TOGGLE_RELOAD_BLOCK,
     async (_evt, shouldBlock) => {
       try {
-        isReloadShortcutBlocked = Boolean(shouldBlock);
-        setReloadShortcutSuppressed(isReloadShortcutBlocked);
-        if (typeof setReloadMenuEnabled === "function") {
-          setReloadMenuEnabled(!isReloadShortcutBlocked);
-        }
-        return { success: true, blocked: isReloadShortcutBlocked };
+        backupReloadBlocked = Boolean(shouldBlock);
+        syncReloadBlockState();
+        return { success: true, blocked: backupReloadBlocked };
       } catch (error) {
         log.error("backup:toggleReloadBlock error:", error);
         return { success: false, error: error.message || String(error) };
@@ -3244,6 +3257,7 @@ function setupIpcHandlers(dependencies) {
         startedAt: Date.now(),
       });
       downloadState.downloadInProgress = downloadState.activeDownloads.size > 0;
+      setDownloadReloadBlocked(downloadState.downloadInProgress);
       try {
         const result = await startDownloadProcess(
           event,
@@ -3275,6 +3289,7 @@ function setupIpcHandlers(dependencies) {
         downloadState.activeDownloads.delete(jobId);
         downloadState.downloadInProgress =
           downloadState.activeDownloads.size > 0;
+        setDownloadReloadBlocked(downloadState.downloadInProgress);
         setActiveDownloadToken(null);
       }
     },

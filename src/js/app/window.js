@@ -5,6 +5,7 @@ const fs = require("fs");
 const {
   BrowserWindow,
   clipboard,
+  dialog,
   Tray,
   Menu,
   shell,
@@ -19,6 +20,7 @@ const {
 const { showTrayNotification } = require("./notifications.js");
 
 let windowTray = null;
+let appMenu = null;
 
 function isMacPlatform() {
   return process.platform === "darwin";
@@ -253,6 +255,7 @@ function createWindow(
   _ffmpegPath,
   _ffprobePath,
   _fileExists,
+  getDownloadActivity = () => false,
 ) {
   const mainWindowState = windowStateKeeper({
     defaultWidth: 1280,
@@ -334,9 +337,42 @@ function createWindow(
     mainWindow.webContents.send("window-focused", clipboardContent);
   });
 
+  let activeDownloadCloseConfirmed = false;
+  const hasActiveDownload = () => {
+    try {
+      return Boolean(getDownloadActivity?.());
+    } catch {
+      return false;
+    }
+  };
+
+  const confirmCloseDuringDownload = () => {
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+      type: "warning",
+      buttons: ["Продолжить загрузку", "Закрыть"],
+      defaultId: 0,
+      cancelId: 0,
+      title: "Идёт загрузка",
+      message: "Сейчас выполняется загрузка.",
+      detail:
+        "Если закрыть приложение сейчас, активная загрузка будет остановлена. Дождитесь завершения или отмените загрузку вручную.",
+      noLink: true,
+    });
+    return choice === 1;
+  };
+
   mainWindow.on("close", (event) => {
     const minimizeInsteadOfClose = store.get("minimizeInsteadOfClose", false);
     const showCloseNotification = store.get("closeNotification", true);
+
+    if (!activeDownloadCloseConfirmed && hasActiveDownload()) {
+      if (!confirmCloseDuringDownload()) {
+        event.preventDefault();
+        app.isQuitting = false;
+        return;
+      }
+      activeDownloadCloseConfirmed = true;
+    }
 
     if (!app.isQuitting && minimizeInsteadOfClose) {
       event.preventDefault();
@@ -543,8 +579,8 @@ function createAppMenu(isDev, app) {
     {
       label: "Вид",
       submenu: [
-        { role: "reload" },
-        { role: "forcereload" },
+        { id: "view-reload", role: "reload" },
+        { id: "view-force-reload", role: "forcereload" },
         { role: "toggledevtools", visible: isDev },
         { type: "separator" },
         { role: "resetzoom" },
@@ -570,8 +606,16 @@ function createAppMenu(isDev, app) {
     },
   ];
 
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  appMenu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(appMenu);
+}
+
+function setReloadMenuEnabled(enabled) {
+  const next = Boolean(enabled);
+  ["view-reload", "view-force-reload"].forEach((id) => {
+    const item = appMenu?.getMenuItemById?.(id);
+    if (item) item.enabled = next;
+  });
 }
 
 function resetWindowStateForTests() {
@@ -582,5 +626,6 @@ module.exports = {
   createWindow,
   buildTrayMenuTemplate,
   buildDockMenuTemplate,
+  setReloadMenuEnabled,
   resetWindowStateForTests,
 };
