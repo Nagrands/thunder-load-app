@@ -46,6 +46,29 @@ describe("ClipboardMonitor", () => {
     expect(mockExpandMainWindowForToggle).toHaveBeenCalledWith(mainWindow);
   });
 
+  test("does not start when open-on-copy is disabled", () => {
+    const { clipboard } = require("electron");
+    const ClipboardMonitor = require("../clipboardMonitor");
+    const store = {
+      get: jest.fn((key, fallback) =>
+        key === "openOnCopyUrl" ? false : fallback,
+      ),
+    };
+    const monitor = new ClipboardMonitor(
+      store,
+      { id: "main" },
+      jest.fn(() => true),
+      jest.fn(() => true),
+    );
+
+    clipboard.readText.mockReturnValue("https://example.com/video");
+    monitor.start();
+    jest.advanceTimersByTime(1000);
+
+    expect(clipboard.readText).not.toHaveBeenCalled();
+    expect(mockExpandMainWindowForToggle).not.toHaveBeenCalled();
+  });
+
   test("does not expand window for invalid or unsupported URLs", () => {
     const { clipboard } = require("electron");
     const ClipboardMonitor = require("../clipboardMonitor");

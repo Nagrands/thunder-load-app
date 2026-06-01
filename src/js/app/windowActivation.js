@@ -48,7 +48,6 @@ function expandMainWindowForToggle(mainWindow) {
   }
 
   if (!mainWindow || mainWindow.isDestroyed?.()) return false;
-  if (mainWindow.isVisible?.() === false) return false;
 
   try {
     try {
@@ -61,10 +60,6 @@ function expandMainWindowForToggle(mainWindow) {
 
     if (mainWindow.isMinimized?.()) {
       mainWindow.restore?.();
-    }
-
-    if (!mainWindow.isMaximized?.()) {
-      mainWindow.maximize?.();
     }
 
     mainWindow.show?.();

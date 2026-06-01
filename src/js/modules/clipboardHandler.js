@@ -2,11 +2,13 @@
  * @file clipboardHandler.js
  * @description
  * Handles automatic detection of supported URLs from the clipboard when the
- * application window gains focus. If a valid and supported URL is found, it
- * pre-fills the Загрузчик tab with the link and updates the UI state.
+ * application window gains focus and the open-on-copy setting is enabled. If a
+ * valid and supported URL is found, it pre-fills the Загрузчик tab with the
+ * link and updates the UI state.
  *
  * Responsibilities:
  *  - Listens for clipboard content when window is focused
+ *  - Respects the "open on copied URL" setting
  *  - Validates and checks if the URL is supported
  *  - Switches to Загрузчик tab automatically
  *  - Prefills input field with clipboard URL
@@ -28,8 +30,21 @@ import { updateIcon } from "./iconUpdater.js";
 import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
 
+async function isOpenOnCopyUrlEnabled() {
+  try {
+    return (
+      (await window.electron?.invoke?.("get-open-on-copy-url-status")) === true
+    );
+  } catch {
+    return false;
+  }
+}
+
 function initClipboardHandler() {
-  window.electron.onWindowFocused((clipboardContent) => {
+  window.electron.onWindowFocused(async (clipboardContent) => {
+    const openOnCopyUrlEnabled = await isOpenOnCopyUrlEnabled();
+    if (!openOnCopyUrlEnabled) return;
+
     if (
       !state.isDownloading &&
       isValidUrl(clipboardContent) &&

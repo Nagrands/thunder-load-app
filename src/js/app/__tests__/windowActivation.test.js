@@ -77,7 +77,7 @@ describe("expandMainWindowForToggle", () => {
     });
   });
 
-  test("maximizes visible non-maximized window on Windows", () => {
+  test("focuses visible non-maximized window on Windows without maximizing", () => {
     Object.defineProperty(process, "platform", {
       value: "win32",
       configurable: true,
@@ -101,7 +101,7 @@ describe("expandMainWindowForToggle", () => {
     expect(ok).toBe(true);
     expect(mockApp.focus).toHaveBeenCalled();
     expect(mainWindow.restore).not.toHaveBeenCalled();
-    expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(
       1,
@@ -118,7 +118,7 @@ describe("expandMainWindowForToggle", () => {
     expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, false);
   });
 
-  test("restores and maximizes minimized window on Windows", () => {
+  test("restores and focuses minimized window on Windows without maximizing", () => {
     Object.defineProperty(process, "platform", {
       value: "win32",
       configurable: true,
@@ -142,7 +142,7 @@ describe("expandMainWindowForToggle", () => {
     expect(ok).toBe(true);
     expect(mockApp.focus).toHaveBeenCalled();
     expect(mainWindow.restore).toHaveBeenCalledTimes(1);
-    expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(
       1,
@@ -159,7 +159,7 @@ describe("expandMainWindowForToggle", () => {
     expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, false);
   });
 
-  test("does nothing for hidden window on Windows", () => {
+  test("shows and focuses hidden window on Windows", () => {
     Object.defineProperty(process, "platform", {
       value: "win32",
       configurable: true,
@@ -180,13 +180,17 @@ describe("expandMainWindowForToggle", () => {
 
     const ok = expandMainWindowForToggle(mainWindow);
 
-    expect(ok).toBe(false);
-    expect(mainWindow.restore).not.toHaveBeenCalled();
+    expect(ok).toBe(true);
+    expect(mainWindow.restore).toHaveBeenCalledTimes(1);
     expect(mainWindow.maximize).not.toHaveBeenCalled();
-    expect(mainWindow.show).not.toHaveBeenCalled();
-    expect(mainWindow.setAlwaysOnTop).not.toHaveBeenCalled();
-    expect(mainWindow.focus).not.toHaveBeenCalled();
-    expect(mainWindow.moveTop).not.toHaveBeenCalled();
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(
+      1,
+      true,
+      "screen-saver",
+    );
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
   });
 
   test("keeps non-Windows behavior unchanged", () => {

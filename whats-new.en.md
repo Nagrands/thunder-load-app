@@ -1,6 +1,6 @@
 <!-- version: 1.5.0 -->
 
-# Release date: June 1, 2026
+# Release date: June 3, 2026
 
 ---
 
@@ -16,6 +16,7 @@
 | Downloader tools status moved into the footer top-state                  | The `yt-dlp`, `ffmpeg`, and `Deno` block now lives next to the current section label in the lower bar, appears only near the top of the page, and still respects the existing Settings toggle                                                                         |
 | Section navigation now migrates from the header into the footer          | Tabs stay in the header near the top of the page, then move into the lower bar while scrolling down together with a quick back-to-top action                                                                                                                          |
 | YouTube background preview in Downloader is more reliable                | Pasted links and retry actions now restore the muted video preview from the fast preview path and refresh it after cached metadata warms up                                                                                                                           |
+| Copied URL window behavior is more predictable                           | With the setting disabled, returning focus to the app no longer auto-pastes the copied link, and Windows now only focuses the app window without automatically maximizing it                                                                                          |
 | Active downloads are protected from accidental reloads and closes        | The reload button and shortcuts are disabled while a download is running, and closing the window now shows a warning so the active job is not interrupted accidentally                                                                                                |
 | Downloader optimization now has stricter safeguards                      | The queue no longer warms formats for simple preset jobs, preview cache invalidation is covered more tightly, and rapid URL replacements no longer render stale previews                                                                                              |
 | Hash Check now has a compact redesign and fixed Drag and Drop on Windows | File selection and verification settings take less space, there is a quick reset action, and dropped Windows paths plus `file://` URIs are parsed correctly again                                                                                                     |
