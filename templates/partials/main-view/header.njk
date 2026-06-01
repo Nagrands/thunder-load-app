@@ -132,14 +132,14 @@
             aria-hidden="true"
           >
             <div class="compact-quality-panel__grid">
-              <label class="compact-quality-field" for="compact-video-quality">
-                <span data-i18n="quality.compact.video">Видео</span>
-                <select id="compact-video-quality" class="compact-quality-select"></select>
-              </label>
-              <label class="compact-quality-field" for="compact-audio-quality">
-                <span data-i18n="quality.compact.audio">Аудио</span>
-                <select id="compact-audio-quality" class="compact-quality-select"></select>
-              </label>
+              <div class="compact-quality-field">
+                <label id="compact-video-quality-label" for="compact-video-quality" data-i18n="quality.compact.video">Видео</label>
+                <select id="compact-video-quality" class="compact-quality-select" aria-labelledby="compact-video-quality-label"></select>
+              </div>
+              <div class="compact-quality-field">
+                <label id="compact-audio-quality-label" for="compact-audio-quality" data-i18n="quality.compact.audio">Аудио</label>
+                <select id="compact-audio-quality" class="compact-quality-select" aria-labelledby="compact-audio-quality-label"></select>
+              </div>
             </div>
             <p
               id="compact-quality-status"

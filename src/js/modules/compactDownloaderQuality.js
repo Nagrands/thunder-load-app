@@ -25,10 +25,19 @@ const elements = {
   toggleDetailed: document.getElementById("downloader-view-detailed"),
   toggleCompact: document.getElementById("downloader-view-compact"),
   panel: document.getElementById("compact-quality-panel"),
+  grid: document.querySelector(".compact-quality-panel__grid"),
+  videoField: document
+    .getElementById("compact-video-quality")
+    ?.closest(".compact-quality-field"),
+  audioField: document
+    .getElementById("compact-audio-quality")
+    ?.closest(".compact-quality-field"),
   videoSelect: document.getElementById("compact-video-quality"),
   audioSelect: document.getElementById("compact-audio-quality"),
   status: document.getElementById("compact-quality-status"),
 };
+
+const customSelects = new WeakMap();
 
 const readMode = () => {
   try {
@@ -98,6 +107,120 @@ function optionLabel(option) {
   return `${option.title}${meta}`;
 }
 
+function getOptionByValue(selectEl) {
+  return Array.from(selectEl?.options || []).find(
+    (option) => option.value === selectEl.value,
+  );
+}
+
+function closeCustomSelect(instance) {
+  if (!instance) return;
+  instance.root.classList.remove("is-open");
+  instance.button.setAttribute("aria-expanded", "false");
+}
+
+function closeOtherCustomSelects(current) {
+  [elements.videoSelect, elements.audioSelect].forEach((selectEl) => {
+    const instance = customSelects.get(selectEl);
+    if (instance && instance !== current) closeCustomSelect(instance);
+  });
+}
+
+function syncCustomSelect(selectEl) {
+  const instance = customSelects.get(selectEl);
+  if (!instance) return;
+
+  const selectedOption = getOptionByValue(selectEl);
+  instance.value.textContent =
+    selectedOption?.textContent || t("quality.compact.waiting");
+  instance.list.innerHTML = "";
+
+  Array.from(selectEl.options).forEach((option) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "compact-quality-menu__option";
+    item.dataset.value = option.value;
+    item.textContent = option.textContent;
+    item.disabled = option.disabled;
+    item.setAttribute("role", "option");
+    item.setAttribute(
+      "aria-selected",
+      option.value === selectEl.value ? "true" : "false",
+    );
+    item.addEventListener("click", () => {
+      if (option.disabled) return;
+      selectEl.value = option.value;
+      selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+      closeCustomSelect(instance);
+    });
+    instance.list.appendChild(item);
+  });
+
+  instance.root.classList.toggle("is-empty", selectEl.options.length === 0);
+}
+
+function enhanceSelect(selectEl) {
+  if (!selectEl || customSelects.has(selectEl)) return;
+
+  const root = document.createElement("div");
+  root.className = "compact-quality-menu";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "compact-quality-menu__button";
+  button.setAttribute("aria-haspopup", "listbox");
+  button.setAttribute("aria-expanded", "false");
+  const labelId = selectEl.getAttribute("aria-labelledby");
+  const labelText = labelId
+    ? document.getElementById(labelId)?.textContent?.trim()
+    : "";
+  if (labelText) button.setAttribute("aria-label", labelText);
+
+  const value = document.createElement("span");
+  value.className = "compact-quality-menu__value";
+  button.appendChild(value);
+
+  const list = document.createElement("div");
+  list.className = "compact-quality-menu__list";
+  list.setAttribute("role", "listbox");
+
+  root.append(button, list);
+  selectEl.classList.add("is-enhanced");
+  selectEl.tabIndex = -1;
+  selectEl.setAttribute("aria-hidden", "true");
+  selectEl.insertAdjacentElement("afterend", root);
+
+  const instance = { root, button, value, list };
+  customSelects.set(selectEl, instance);
+
+  button.addEventListener("click", () => {
+    const shouldOpen = !root.classList.contains("is-open");
+    closeOtherCustomSelects(instance);
+    root.classList.toggle("is-open", shouldOpen);
+    button.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+  });
+
+  button.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeCustomSelect(instance);
+    }
+  });
+
+  selectEl.addEventListener("change", () => syncCustomSelect(selectEl));
+  syncCustomSelect(selectEl);
+}
+
+function setQualityFieldsVisible(visible) {
+  [elements.videoField, elements.audioField].forEach((field) => {
+    if (!field) return;
+    field.hidden = !visible;
+    field.setAttribute("aria-hidden", visible ? "false" : "true");
+  });
+  if (elements.grid) {
+    elements.grid.hidden = !visible;
+  }
+}
+
 function renderSelect(selectEl, options, selectedId = "") {
   if (!selectEl) return;
   selectEl.innerHTML = "";
@@ -111,6 +234,7 @@ function renderSelect(selectEl, options, selectedId = "") {
   if (selectedId && options.some((option) => option.id === selectedId)) {
     selectEl.value = selectedId;
   }
+  syncCustomSelect(selectEl);
 }
 
 function getSelectedOption(options, selectedId) {
@@ -140,7 +264,10 @@ function syncAudioAvailability() {
     const fallback =
       state.audioOptions.find((option) => !option.disabled && option.kind === "audio") ||
       state.audioOptions.find((option) => !option.disabled);
-    if (fallback && elements.audioSelect) elements.audioSelect.value = fallback.id;
+    if (fallback && elements.audioSelect) {
+      elements.audioSelect.value = fallback.id;
+      syncCustomSelect(elements.audioSelect);
+    }
   }
 }
 
@@ -179,6 +306,7 @@ function renderQualityControls(info, url = "") {
     state.audioOptions = [];
     renderSelect(elements.videoSelect, []);
     renderSelect(elements.audioSelect, []);
+    setQualityFieldsVisible(false);
     setStatus("quality.compact.waiting", "muted");
     return;
   }
@@ -189,6 +317,7 @@ function renderQualityControls(info, url = "") {
   state.audioOptions = groups.audioOptions;
   renderSelect(elements.videoSelect, state.videoOptions);
   renderSelect(elements.audioSelect, state.audioOptions);
+  setQualityFieldsVisible(true);
   selectDefaults();
 }
 
@@ -249,6 +378,9 @@ function initCompactDownloaderQuality() {
   if (!elements.toggleDetailed || !elements.toggleCompact || !elements.panel) {
     return;
   }
+  enhanceSelect(elements.videoSelect);
+  enhanceSelect(elements.audioSelect);
+  setQualityFieldsVisible(false);
   setMode(readMode(), { persist: false });
   setStatus("quality.compact.waiting", "muted");
 
@@ -264,6 +396,11 @@ function initCompactDownloaderQuality() {
     const info = event?.detail?.info || null;
     const url = event?.detail?.url || "";
     renderQualityControls(info, url);
+  });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest(".compact-quality-menu")) return;
+    closeOtherCustomSelects(null);
   });
 }
 
