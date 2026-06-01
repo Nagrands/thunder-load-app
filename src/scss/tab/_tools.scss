@@ -3379,23 +3379,9 @@ $wg-max-width: 1200px;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-highlight);
+  @include dropdown-control(42px, 12px, 10px 12px, 0.92rem, 700);
   font: inherit;
-  font-size: 0.92rem;
   cursor: pointer;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    box-shadow 0.18s ease;
-
-  &:hover:not(:disabled) {
-    border-color: rgba(var(--color-accent-rgb), 0.36);
-    background: rgba(255, 255, 255, 0.075);
-  }
 
   &:focus-visible,
   &[aria-expanded="true"] {
@@ -3426,38 +3412,21 @@ $wg-max-width: 1200px;
   right: 0;
   display: grid;
   gap: 4px;
-  padding: 6px;
-  border: 1px solid rgba(198, 216, 248, 0.14);
-  border-radius: 8px;
-  background: rgba(13, 21, 34, 0.98);
-  box-shadow:
-    0 14px 28px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  @include dropdown-menu-surface(14px, 330px);
 }
 
 .hash-algorithm-option {
-  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-highlight);
+  @include dropdown-option(9px, 0.86rem);
   font: inherit;
-  font-size: 0.86rem;
   cursor: pointer;
 
   i {
     opacity: 0;
     color: var(--color-accent);
-  }
-
-  &:hover,
-  &[aria-selected="true"] {
-    background: rgba(var(--color-accent-rgb), 0.12);
   }
 
   &[aria-selected="true"] i {
@@ -4350,25 +4319,13 @@ $wg-max-width: 1200px;
   }
 
   select.wg-input {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    @include native-select-control(40px, 12px, 10px 40px 10px 12px, 0.92rem, 700);
     cursor: pointer;
-    padding-right: 36px;
-    background-image:
-      linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.75) 50%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.75) 50%, transparent 50%);
-    background-position:
-      calc(100% - 18px) 53%,
-      calc(100% - 12px) 53%;
-    background-size:
-      6px 6px,
-      6px 6px;
-    background-repeat: no-repeat;
   }
 
   select.wg-input option {
-    color: #111;
+    background: #121c2b;
+    color: rgba(244, 248, 255, 0.96);
   }
 
   .power-shortcut-card .large-button {

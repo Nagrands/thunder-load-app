@@ -1,5 +1,7 @@
 // src/scss/components/_settings-tools.scss
 
+@use "../abstracts/mixins";
+
 // Улучшения UI для окна «Настройки» и блока «Инструменты»
 
 // Общие модули внутри настроек
@@ -949,12 +951,8 @@
   right: 0;
   bottom: 110%;
   min-width: 180px;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(20, 20, 20, 0.92);
+  @include mixins.dropdown-menu-surface(14px, 330px);
   backdrop-filter: blur(6px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
   opacity: 0;
   transform: translateY(6px);
   visibility: hidden;
@@ -972,9 +970,9 @@
     bottom: -6px;
     width: 10px;
     height: 10px;
-    background: inherit;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #121c2b;
+    border-right: 1px solid rgba(126, 201, 255, 0.22);
+    border-bottom: 1px solid rgba(126, 201, 255, 0.22);
     transform: rotate(45deg);
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
   }
@@ -990,19 +988,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  color: var(--color-text-main);
+  @include mixins.dropdown-option(9px, 0.84rem);
   padding: 0 8px;
-  transition:
-    background 0.16s ease,
-    color 0.16s ease;
   cursor: pointer;
-}
-.tools-more-menu button:hover {
-  background: rgba(255, 255, 255, 0.06);
 }
 
 // Compact dashboard refinement for downloader tools modal

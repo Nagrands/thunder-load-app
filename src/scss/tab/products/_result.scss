@@ -1,3 +1,5 @@
+@use "../../abstracts/mixins";
+
 .products-result-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -92,17 +94,8 @@
   min-width: 240px;
   display: grid;
   gap: 6px;
+  @include mixins.dropdown-menu-surface(16px, 330px);
   padding: 10px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.02)
-    ),
-    rgba(18, 18, 34, 0.96);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(18px);
 }
 
@@ -131,19 +124,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 38px;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: var(--color-highlight);
-  font-size: 0.82rem;
-  font-weight: 600;
+  @include mixins.dropdown-option(10px, 0.82rem);
   cursor: pointer;
   text-align: left;
-  transition:
-    background-color 0.18s ease,
-    color 0.18s ease;
 
   i {
     flex: 0 0 auto;
@@ -153,11 +136,6 @@
     text-align: center;
   }
 
-  &:hover,
-  &:focus-visible {
-    background: rgba(255, 255, 255, 0.06);
-    outline: none;
-  }
 }
 
 .products-result-menu__item--toggle {

@@ -482,13 +482,7 @@
   min-width: 220px;
   width: min(300px, calc(100vw - 20px));
   max-width: calc(100vw - 20px);
-  max-height: min(70vh, 360px);
-  overflow: auto;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid var(--topbar-chip-border);
-  background: rgba(18, 18, 22, 0.96);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+  @include mixins.dropdown-menu-surface(14px, 360px);
   z-index: 1200;
   display: grid;
   gap: 2px;
@@ -503,28 +497,13 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--color-highlight);
-  border-radius: 9px;
+  @include mixins.dropdown-option(9px, 0.86rem);
   min-height: 44px;
-  padding: 0 10px;
   text-align: left;
-
-  &:hover {
-    color: var(--color-accent);
-    border-color: rgba(var(--color-accent-rgb), 0.35);
-    background: rgba(var(--color-accent-rgb), 0.08);
-  }
 
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
-  }
-
-  &:focus-visible {
-    outline: 2px solid rgba(var(--color-accent-rgb), 0.7);
-    outline-offset: 1px;
   }
 }
 
