@@ -76,6 +76,10 @@ function setMode(mode, { persist = true } = {}) {
     "is-downloader-compact",
     state.mode === "compact",
   );
+  elements.shell?.classList.toggle(
+    "is-downloader-detailed",
+    state.mode === "detailed",
+  );
   if (elements.panel) {
     elements.panel.hidden = state.mode !== "compact";
     elements.panel.setAttribute(

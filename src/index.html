@@ -185,15 +185,25 @@
           type="button"
           class="downloader-view-mode__btn active"
           aria-pressed="true"
-          data-i18n="quality.compact.modeDetailed"
-        >Подробно</button>
+          aria-label="Подробно"
+          title="Подробно"
+          data-i18n-aria="quality.compact.modeDetailed"
+          data-i18n-title="quality.compact.modeDetailed"
+        >
+          <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
+        </button>
         <button
           id="downloader-view-compact"
           type="button"
           class="downloader-view-mode__btn"
           aria-pressed="false"
-          data-i18n="quality.compact.modeCompact"
-        >Компактно</button>
+          aria-label="Компактно"
+          title="Компактно"
+          data-i18n-aria="quality.compact.modeCompact"
+          data-i18n-title="quality.compact.modeCompact"
+        >
+          <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
+        </button>
       </div>
       <div class="url-input-wrapper">
         <div class="url-input-main">

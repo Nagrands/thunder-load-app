@@ -60,6 +60,16 @@ describe("compactDownloaderQuality", () => {
           .querySelector(".input-container")
           .classList.contains("is-downloader-compact"),
       ).toBe(true);
+      expect(
+        document
+          .querySelector(".url-entry-shell")
+          .classList.contains("is-downloader-compact"),
+      ).toBe(true);
+      expect(
+        document
+          .querySelector(".url-entry-shell")
+          .classList.contains("is-downloader-detailed"),
+      ).toBe(false);
       expect(document.getElementById("compact-quality-panel").hidden).toBe(
         false,
       );
