@@ -89,15 +89,8 @@
 ) {
   min-height: $min-height;
   padding: $padding;
-  border: 1px solid rgba(126, 201, 255, 0.22);
   border-radius: $radius;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.08),
-      rgba(255, 255, 255, 0.035)
-    ),
-    rgba(28, 39, 56, 0.92);
+  background: rgb(0 0 0 / 40%);
   color: rgba(244, 248, 255, 0.96);
   font-size: $font-size;
   font-weight: $font-weight;
@@ -111,13 +104,7 @@
 
   &:hover:not(:disabled) {
     border-color: rgba(var(--color-accent-rgb), 0.48);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.1),
-        rgba(255, 255, 255, 0.045)
-      ),
-      rgba(32, 45, 65, 0.96);
+    background: var(--color-hover);
   }
 
   &:focus,
@@ -197,14 +184,9 @@
   max-height: min(#{$max-height}, 44vh);
   padding: 6px;
   overflow-y: auto;
-  border: 1px solid rgba(126, 201, 255, 0.22);
   border-radius: $radius;
-  background:
-    linear-gradient(180deg, rgba(31, 43, 61, 0.98), rgba(13, 20, 33, 0.98)),
-    #121c2b;
-  box-shadow:
-    0 18px 48px rgba(0, 0, 0, 0.46),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: rgb(0 0 0 / 60%);
+  backdrop-filter: blur(8px);
 }
 
 @mixin dropdown-option($radius: 9px, $font-size: 0.84rem) {

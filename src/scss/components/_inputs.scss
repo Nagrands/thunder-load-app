@@ -591,17 +591,7 @@
 
 .compact-quality-panel {
   display: grid;
-  gap: 8px;
-  padding: 10px 12px 12px;
-  border-radius: 18px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.12);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(var(--color-accent-rgb), 0.1),
-      rgba(255, 255, 255, 0.025)
-    ),
-    rgba(11, 17, 28, 0.74);
+  padding: 6px;
 
   &[hidden] {
     display: none !important;
@@ -625,10 +615,10 @@
   }
 
   > label {
-    color: rgba(225, 235, 249, 0.82);
+    color: var(--color-accent);
     font-size: 0.72rem;
-    line-height: 1.2;
-    font-weight: 800;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 }
@@ -679,7 +669,7 @@
   min-width: 0;
   @include mixins.dropdown-control(42px, 12px, 0 40px 0 14px, 0.86rem, 750);
   font: inherit;
-  text-align: left;
+  // text-align: left;
   cursor: pointer;
 
   &::after {

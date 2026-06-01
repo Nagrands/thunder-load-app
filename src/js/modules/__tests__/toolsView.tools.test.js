@@ -1738,6 +1738,48 @@ describe("toolsView quick actions", () => {
     );
   });
 
+  test("opens hash file picker when clicking the drop zone", async () => {
+    window.electron.tools.pickFileForHash
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/first-click.bin",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        filePath: "/tmp/second-click.bin",
+      });
+
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const dropZone = el.querySelector("#hash-drop-zone");
+    const firstFilePill = el.querySelector("#hash-file-name");
+    const secondFilePill = el.querySelector("#hash-file-name-2");
+    const comparePanel = el.querySelector("#hash-compare-panel");
+    const target = el.querySelector("#hash-drop-target");
+
+    dropZone.click();
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.pickFileForHash).toHaveBeenCalledTimes(1);
+    expect(firstFilePill?.textContent).toBe("first-click.bin");
+    expect(secondFilePill?.textContent).toBe("hashCheck.noFileSecond");
+    expect(target?.textContent).toBe("hashCheck.dropTargetCompare");
+
+    dropZone.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.pickFileForHash).toHaveBeenCalledTimes(2);
+    expect(firstFilePill?.textContent).toBe("first-click.bin");
+    expect(secondFilePill?.textContent).toBe("second-click.bin");
+    expect(comparePanel?.classList.contains("hidden")).toBe(false);
+    expect(target?.textContent).toBe("hashCheck.dropTargetReplaceSecond");
+  });
+
   test("enables hash copy and copies actual hash after verify", async () => {
     const el = await renderView();
     await openTool(el, "hash");

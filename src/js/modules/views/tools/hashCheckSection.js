@@ -1002,6 +1002,11 @@ export const initHashCheckSection = ({ view, cleanup }) => {
     });
   };
 
+  const pickNextHashFileFromDropZone = () => {
+    if (hashBusy) return;
+    pickHashFile(hashSelectedFile ? "second" : "first");
+  };
+
   const runHashVerification = async () => {
     if (hashBusy) return;
     if (!hashSelectedFile) {
@@ -1292,7 +1297,10 @@ export const initHashCheckSection = ({ view, cleanup }) => {
   hashDropZoneEl?.addEventListener("keydown", (event) => {
     if (hashBusy || (event.key !== "Enter" && event.key !== " ")) return;
     event.preventDefault();
-    hashPickFileBtn?.click();
+    pickNextHashFileFromDropZone();
+  });
+  hashDropZoneEl?.addEventListener("click", () => {
+    pickNextHashFileFromDropZone();
   });
   ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
     hashDropZoneEl?.addEventListener(eventName, (event) => {
