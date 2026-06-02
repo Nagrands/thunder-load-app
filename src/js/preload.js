@@ -133,6 +133,7 @@ try {
     "tools:wingetCheckStatus",
     "tools:wingetRunInstall",
     "tools:wingetRunUpdate",
+    "tools:wingetRunUninstall",
     "tools:wingetCancel",
     "tools:wingetLog",
     "dialog:choose-tools-dir",
@@ -414,6 +415,8 @@ try {
         safeInvoke("tools:wingetRunInstall", payload),
       runWingetUpdate: (payload) =>
         safeInvoke("tools:wingetRunUpdate", payload),
+      runWingetUninstall: (payload) =>
+        safeInvoke("tools:wingetRunUninstall", payload),
       cancelWingetRun: (payload) => safeInvoke("tools:wingetCancel", payload),
     },
 

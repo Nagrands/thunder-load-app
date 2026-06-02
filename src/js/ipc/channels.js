@@ -104,6 +104,7 @@ const CHANNELS = Object.freeze({
   TOOLS_WINGET_CHECK_STATUS: "tools:wingetCheckStatus",
   TOOLS_WINGET_RUN_INSTALL: "tools:wingetRunInstall",
   TOOLS_WINGET_RUN_UPDATE: "tools:wingetRunUpdate",
+  TOOLS_WINGET_RUN_UNINSTALL: "tools:wingetRunUninstall",
   TOOLS_WINGET_CANCEL: "tools:wingetCancel",
   TOOLS_WINGET_LOG: "tools:wingetLog",
   DIALOG_CHOOSE_TOOLS_DIR: "dialog:choose-tools-dir",

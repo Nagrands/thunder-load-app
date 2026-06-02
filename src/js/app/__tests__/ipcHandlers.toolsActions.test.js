@@ -2302,6 +2302,88 @@ describe("ipcHandlers download pool", () => {
     expect(result).toMatchObject({ success: false, unsupported: true });
   });
 
+  test("wingetCheckStatus batches installed and upgrade status with versions", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    childProcess.execFile
+      .mockImplementationOnce((_cmd, _args, _opts, cb) => {
+        cb(null, "v1.8.0", "");
+      })
+      .mockImplementationOnce((_cmd, _args, _opts, cb) => {
+        cb(
+          null,
+          JSON.stringify([
+            {
+              Id: "Git.Git",
+              Name: "Git",
+              Version: "2.50.0",
+            },
+            {
+              Id: "VideoLAN.VLC",
+              Name: "VLC",
+              Version: "3.0.20",
+            },
+          ]),
+          "",
+        );
+      })
+      .mockImplementationOnce((_cmd, _args, _opts, cb) => {
+        cb(
+          null,
+          JSON.stringify([
+            {
+              Available: "2.51.0",
+              Id: "Git.Git",
+              Name: "Git",
+              Version: "2.50.0",
+            },
+          ]),
+          "",
+        );
+      });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, {
+      packageIds: ["Git.Git", "VideoLAN.VLC", "Mozilla.Firefox"],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      items: [
+        {
+          availableVersion: "2.51.0",
+          currentVersion: "2.50.0",
+          packageId: "Git.Git",
+          status: "updateAvailable",
+        },
+        {
+          availableVersion: "",
+          currentVersion: "3.0.20",
+          packageId: "VideoLAN.VLC",
+          status: "installed",
+        },
+        {
+          availableVersion: "",
+          currentVersion: "",
+          packageId: "Mozilla.Firefox",
+          status: "notInstalled",
+        },
+      ],
+    });
+    expect(childProcess.execFile).toHaveBeenCalledTimes(3);
+    expect(childProcess.execFile.mock.calls[1][1]).toEqual(
+      expect.arrayContaining(["list", "--output", "json"]),
+    );
+    expect(childProcess.execFile.mock.calls[2][1]).toEqual(
+      expect.arrayContaining(["upgrade", "--output", "json"]),
+    );
+  });
+
   test("wingetRunInstall rejects invalid package IDs", async () => {
     const { CHANNELS } = require("../../ipc/channels");
 
@@ -2312,6 +2394,25 @@ describe("ipcHandlers download pool", () => {
     initHandlers();
 
     const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git;Remove-Item"],
+    });
+
+    expect(result).toMatchObject({
+      success: false,
+      error: expect.stringContaining("Invalid WinGet package ID"),
+    });
+  });
+
+  test("wingetRunUninstall rejects invalid package IDs", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_UNINSTALL](null, {
       packageIds: ["Git.Git;Remove-Item"],
     });
 
@@ -2391,5 +2492,42 @@ describe("ipcHandlers download pool", () => {
       exitCode: 12,
       error: "PowerShell exited with 12",
     });
+  });
+
+  test("wingetRunUninstall starts PowerShell with uninstall command", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    childProcess.spawn.mockImplementation(() => {
+      setTimeout(() => {
+        proc.stdout.emit("data", Buffer.from("Uninstalling Git.Git\n"));
+        proc.emit("close", 0);
+      }, 0);
+      return proc;
+    });
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_UNINSTALL](null, {
+      packageIds: ["Git.Git"],
+      runId: "run-uninstall",
+    });
+
+    const script = childProcess.spawn.mock.calls[0][1].at(-1);
+
+    expect(result).toMatchObject({ success: true, exitCode: 0 });
+    expect(childProcess.spawn).toHaveBeenCalledWith(
+      "powershell.exe",
+      expect.arrayContaining(["-NoProfile", "-ExecutionPolicy", "Bypass"]),
+      expect.objectContaining({ windowsHide: true }),
+    );
+    expect(script).toContain("winget uninstall --id $packageId --exact");
+    expect(script).not.toContain("--accept-package-agreements");
   });
 });

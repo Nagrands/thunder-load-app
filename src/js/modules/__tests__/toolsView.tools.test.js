@@ -18,6 +18,7 @@ jest.mock("../i18n", () => ({
 
 import renderToolsView from "../views/toolsView";
 import { showConfirmationDialog } from "../modals";
+import { toolsTranslations } from "../../i18n/translations/tools";
 
 const nextTick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -273,6 +274,10 @@ describe("toolsView quick actions", () => {
           success: true,
         }),
         runWingetUpdate: jest.fn().mockResolvedValue({
+          exitCode: 0,
+          success: true,
+        }),
+        runWingetUninstall: jest.fn().mockResolvedValue({
           exitCode: 0,
           success: true,
         }),
@@ -536,8 +541,63 @@ describe("toolsView quick actions", () => {
       "tools.winget.platform.preview",
     );
     expect(el.querySelector("#winget-run-script")?.disabled).toBe(true);
-    expect(el.querySelector("#winget-script-preview")?.textContent).toContain(
-      "winget --version",
+    expect(el.querySelector("#winget-script-preview")?.textContent).toBe(
+      "tools.winget.script.empty",
+    );
+    expect(el.querySelector("#winget-package-git")?.checked).toBe(false);
+    expect(el.querySelector("details.winget-package-category")).not.toBeNull();
+    expect(el.querySelector(".winget-package-item__icon")).not.toBeNull();
+    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+  });
+
+  test("renders WinGet package cards with inline status and collapsible categories", async () => {
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+
+    const packagePanel = el.querySelector(".winget-panel--packages");
+    const scriptPanel = el.querySelector(".winget-panel--script");
+
+    expect(el.querySelector(".winget-status-section")).toBeNull();
+    expect(el.querySelector(".winget-status-table")).toBeNull();
+    expect(packagePanel?.querySelector("#winget-status-body")).toBeNull();
+    expect(packagePanel?.querySelector("details[open]")).not.toBeNull();
+    expect(
+      packagePanel?.querySelector('[data-winget-package-status="git"]'),
+    ).not.toBeNull();
+    expect(
+      packagePanel?.querySelector('[data-winget-package-version="git"]'),
+    ).not.toBeNull();
+    expect(
+      packagePanel?.compareDocumentPosition(scriptPanel) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  test("automatically checks built-in WinGet statuses when opened on windows", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledWith({
+      packageIds: expect.arrayContaining(["Git.Git", "VideoLAN.VLC"]),
+    });
+    expect(
+      el.querySelector('[data-winget-package-version="git"]')?.textContent,
+    ).toContain("1.0.0");
+  });
+
+  test("uses Russian WinGet mode labels in translations", () => {
+    expect(toolsTranslations.ru["tools.winget.mode.install"]).toBe("Установка");
+    expect(toolsTranslations.ru["tools.winget.mode.upgrade"]).toBe(
+      "Обновление",
+    );
+    expect(toolsTranslations.ru["tools.winget.mode.uninstall"]).toBe(
+      "Удаление",
     );
   });
 
@@ -545,6 +605,9 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     await openTool(el, "winget-installer");
 
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
     el.querySelector("#winget-copy-script")?.click();
     await nextTick();
 
@@ -560,6 +623,8 @@ describe("toolsView quick actions", () => {
     });
     const el = await renderView();
     await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
 
     el.querySelector("#winget-clear-selection")?.click();
     await nextTick();
@@ -570,6 +635,82 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(window.electron.tools.runWingetInstall).toHaveBeenCalledWith({
+      packageIds: ["Git.Git"],
+      runId: expect.stringMatching(/^winget-/),
+    });
+  });
+
+  test("runs WinGet uninstall on windows with selected package IDs", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
+
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
+    el.querySelector("#winget-mode-uninstall")?.click();
+    await nextTick();
+
+    expect(el.querySelector("#winget-script-preview")?.textContent).toContain(
+      "winget uninstall --id $packageId --exact",
+    );
+
+    el.querySelector("#winget-run-script")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.runWingetUninstall).toHaveBeenCalledWith({
+      packageIds: ["Git.Git"],
+      runId: expect.stringMatching(/^winget-/),
+    });
+  });
+
+  test("checks WinGet status and runs update only for updatable packages", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
+
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
+    el.querySelector("#winget-check-status")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledWith({
+      packageIds: expect.arrayContaining(["Git.Git", "VideoLAN.VLC"]),
+    });
+    expect(
+      el.querySelector('[data-winget-package-version="git"]')?.textContent,
+    ).toContain("1.0.0");
+    expect(
+      el.querySelector('[data-winget-package-latest="git"]')?.textContent,
+    ).toContain("2.0.0");
+    expect(
+      el.querySelector('[data-winget-package-status="git"]')?.textContent,
+    ).toContain("tools.winget.status.updateAvailable");
+    expect(el.querySelector(".winget-panel--packages")?.textContent).toContain(
+      "1.0.0",
+    );
+    expect(el.querySelector(".winget-panel--packages")?.textContent).toContain(
+      "2.0.0",
+    );
+
+    el.querySelector("#winget-mode-upgrade")?.click();
+    await nextTick();
+    el.querySelector("#winget-run-script")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.runWingetUpdate).toHaveBeenCalledWith({
       packageIds: ["Git.Git"],
       runId: expect.stringMatching(/^winget-/),
     });
@@ -590,6 +731,8 @@ describe("toolsView quick actions", () => {
     );
     const el = await renderView();
     await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
 
     el.querySelector("#winget-clear-selection")?.click();
     await nextTick();
@@ -609,6 +752,10 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#winget-live-log")?.textContent).toContain(
       "Installing Git.Git",
     );
+    expect(
+      el.querySelector('[data-winget-package-status="git"]')?.textContent,
+    ).toContain("tools.winget.status.installing");
+    expect(el.querySelector(".winget-log-line.is-info")).not.toBeNull();
   });
 
   test("keeps File Sorter available when developer mode is enabled", async () => {

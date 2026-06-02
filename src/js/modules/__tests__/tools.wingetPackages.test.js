@@ -1,5 +1,7 @@
 import {
+  WINGET_PACKAGE_CATEGORIES,
   WINGET_PACKAGE_GROUPS,
+  aggregateWingetPackageStatus,
   buildWingetScript,
   getWingetPackageIdsFromSelection,
   isValidWingetPackageId,
@@ -18,6 +20,13 @@ describe("wingetPackages", () => {
       "Guru3D.RTSS",
     ]);
     expect(node.packageIds).toEqual(["OpenJS.NodeJS.LTS"]);
+    expect(afterburner.category).toBe("system");
+    expect(afterburner.descriptionKey).toBe(
+      "tools.winget.package.afterburner.desc",
+    );
+    expect(WINGET_PACKAGE_CATEGORIES.map((category) => category.id)).toContain(
+      "media",
+    );
   });
 
   test("validates custom package IDs conservatively", () => {
@@ -38,12 +47,78 @@ describe("wingetPackages", () => {
     expect(packageIds).toEqual(["Git.Git", "Microsoft.PowerToys"]);
   });
 
-  test("builds install and upgrade scripts with winget version preflight", () => {
+  test("aggregates package status for single and multi-id groups", () => {
+    expect(
+      aggregateWingetPackageStatus(
+        ["Git.Git"],
+        [
+          {
+            currentVersion: "2.50.0",
+            packageId: "Git.Git",
+            status: "installed",
+          },
+        ],
+      ),
+    ).toMatchObject({
+      currentVersion: "2.50.0",
+      status: "installed",
+    });
+
+    expect(
+      aggregateWingetPackageStatus(
+        ["Guru3D.Afterburner", "Guru3D.RTSS"],
+        [
+          {
+            currentVersion: "4.6.6",
+            packageId: "Guru3D.Afterburner",
+            status: "installed",
+          },
+          {
+            packageId: "Guru3D.RTSS",
+            status: "notInstalled",
+          },
+        ],
+      ),
+    ).toMatchObject({
+      currentVersion: "4.6.6",
+      status: "partial",
+    });
+
+    expect(
+      aggregateWingetPackageStatus(
+        ["Guru3D.Afterburner", "Guru3D.RTSS"],
+        [
+          {
+            availableVersion: "4.6.7",
+            currentVersion: "4.6.6",
+            packageId: "Guru3D.Afterburner",
+            status: "updateAvailable",
+          },
+          {
+            currentVersion: "7.3.6",
+            packageId: "Guru3D.RTSS",
+            status: "installed",
+          },
+        ],
+      ),
+    ).toMatchObject({
+      availableVersion: "4.6.7",
+      status: "updateAvailable",
+    });
+  });
+
+  test("builds install, upgrade, and uninstall scripts with winget version preflight", () => {
     const installScript = buildWingetScript(["Git.Git"], "install");
     const upgradeScript = buildWingetScript(["Git.Git"], "upgrade");
+    const uninstallScript = buildWingetScript(["Git.Git"], "uninstall");
 
     expect(installScript).toContain("winget --version");
     expect(installScript).toContain("winget install --id $packageId --exact");
     expect(upgradeScript).toContain("winget upgrade --id $packageId --exact");
+    expect(upgradeScript).toContain("--include-unknown");
+    expect(uninstallScript).toContain(
+      "winget uninstall --id $packageId --exact --source winget --disable-interactivity",
+    );
+    expect(uninstallScript).not.toContain("--accept-package-agreements");
   });
 });

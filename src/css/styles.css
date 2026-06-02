@@ -29911,6 +29911,10 @@ video {
   color: var(--color-success, #7bd88f);
   background: rgba(73, 190, 110, 0.12);
 }
+.winget-badge.is-running {
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.12);
+}
 .winget-badge.is-muted {
   color: var(--color-quality);
   background: rgba(255, 255, 255, 0.06);
@@ -29918,13 +29922,12 @@ video {
 
 .winget-installer__layout {
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
 
 .winget-panel,
-.winget-status-panel,
 .winget-log-block {
   border: 1px solid rgba(var(--color-accent-rgb), 0.14);
   border-radius: 12px;
@@ -29951,35 +29954,117 @@ video {
   justify-content: flex-end;
 }
 
+.winget-icon-button {
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.winget-package-categories {
+  display: grid;
+  gap: 14px;
+}
+
+.winget-package-category {
+  display: grid;
+  gap: 9px;
+}
+
+.winget-package-category__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--color-highlight);
+  list-style: none;
+}
+.winget-package-category__header::-webkit-details-marker {
+  display: none;
+}
+.winget-package-category__header h4 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.winget-package-category__header i {
+  color: var(--color-accent);
+}
+
+.winget-package-category__chevron {
+  margin-left: auto;
+  transition: transform 160ms ease;
+}
+
+.winget-package-category:not([open]) .winget-package-category__chevron {
+  transform: rotate(-90deg);
+}
+
 .winget-package-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
   gap: 8px;
 }
 
 .winget-package-item {
   display: grid;
-  grid-template-columns: 18px 1fr;
-  gap: 10px;
-  align-items: start;
-  min-height: 58px;
-  padding: 10px;
+  grid-template-columns: 18px 34px 1fr;
+  gap: 9px;
+  align-items: center;
+  min-height: 84px;
+  padding: 11px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.12);
   cursor: pointer;
 }
 .winget-package-item input {
-  margin-top: 2px;
+  margin: 0;
 }
 .winget-package-item strong,
-.winget-package-item small {
+.winget-package-item small,
+.winget-package-item code {
   display: block;
+}
+.winget-package-item strong {
+  color: var(--color-highlight);
+  line-height: 1.25;
 }
 .winget-package-item small {
   margin-top: 3px;
   color: var(--color-quality);
   overflow-wrap: anywhere;
+}
+.winget-package-item code {
+  margin-top: 5px;
+  color: rgba(var(--color-accent-rgb), 0.92);
+  font-size: 11px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.winget-package-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.winget-package-item__icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(var(--color-accent-rgb), 0.11);
+  color: var(--color-accent);
+}
+
+.winget-package-item__content {
+  min-width: 0;
 }
 
 .winget-custom-field {
@@ -29993,6 +30078,82 @@ video {
 }
 .winget-custom-field .error {
   color: var(--color-error, #ff6b6b);
+}
+
+.winget-custom-status-list {
+  display: grid;
+  gap: 8px;
+}
+.winget-custom-status-list:empty {
+  display: none;
+}
+
+.winget-custom-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+.winget-custom-status-row code {
+  color: var(--color-highlight);
+  overflow-wrap: anywhere;
+}
+
+.winget-script-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.winget-script-head h3,
+.winget-script-head p {
+  margin: 0;
+}
+.winget-script-head p {
+  margin-top: 5px;
+  max-width: 62ch;
+}
+
+.winget-script-head__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.winget-script-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.winget-mode-toggle,
+.winget-script-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.winget-script-steps {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  color: var(--color-quality);
+  font-size: 12px;
+}
+.winget-script-steps li {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.winget-script-steps i {
+  color: var(--color-accent);
 }
 
 .winget-script-preview,
@@ -30014,6 +30175,19 @@ video {
   line-height: 1.45;
 }
 
+.winget-log-line {
+  min-height: 18px;
+}
+.winget-log-line.is-error {
+  color: var(--color-error, #ff6b6b);
+}
+.winget-log-line.is-warning {
+  color: var(--color-warning, #ffd166);
+}
+.winget-log-line.is-success {
+  color: var(--color-success, #7bd88f);
+}
+
 .winget-run-actions {
   display: flex;
   flex-wrap: wrap;
@@ -30021,25 +30195,15 @@ video {
   margin-top: 14px;
 }
 
-.winget-status-table-wrap {
-  overflow-x: auto;
+.winget-package-version,
+.winget-package-latest {
+  color: var(--color-quality);
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
-.winget-status-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.winget-status-table th,
-.winget-status-table td {
-  padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: left;
-  vertical-align: top;
-}
-.winget-status-table code {
-  color: var(--color-highlight);
-  overflow-wrap: anywhere;
+.winget-package-latest {
+  color: var(--color-warning, #ffd166);
 }
 
 .winget-status-pill {
@@ -30055,6 +30219,15 @@ video {
 }
 .winget-status-pill.is-updateAvailable {
   color: var(--color-warning, #ffd166);
+}
+.winget-status-pill.is-checking, .winget-status-pill.is-installing, .winget-status-pill.is-updating, .winget-status-pill.is-uninstalling {
+  color: #fde68a;
+}
+.winget-status-pill.is-error {
+  color: var(--color-error, #ff6b6b);
+}
+.winget-status-pill.is-partial {
+  color: var(--color-accent);
 }
 .winget-status-pill.is-notInstalled, .winget-status-pill.is-unknown {
   color: var(--color-quality);
@@ -30410,7 +30583,13 @@ video {
     align-items: flex-start;
     flex-direction: column;
   }
+  .winget-script-head,
+  .winget-script-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
   .winget-panel__actions,
+  .winget-script-head__actions,
   .winget-run-actions {
     justify-content: flex-start;
     width: 100%;
