@@ -12,6 +12,10 @@ import {
   initHashCheckSection,
   renderHashCheckSection,
 } from "./tools/hashCheckSection.js";
+import {
+  initWingetInstallerSection,
+  renderWingetInstallerSection,
+} from "./tools/wingetInstallerSection.js";
 import { createCleanupRegistry } from "./tools/cleanupRegistry.js";
 import { TOOLS_STORAGE_KEYS } from "./tools/storage.js";
 import { createLogController } from "./tools/logController.js";
@@ -390,6 +394,13 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.backup")}
               </small>
             </button>
+            <button id="tools-open-winget-installer" type="button" class="tools-launcher-button">
+              <i class="fa-brands fa-windows"></i>
+              <span data-i18n="tools.launcher.open.wingetInstaller">${t("tools.launcher.open.wingetInstaller")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wingetInstaller">
+                ${t("tools.launcher.desc.wingetInstaller")}
+              </small>
+            </button>
           </div>
 
           <div
@@ -623,6 +634,8 @@ export default function renderToolsView() {
         ${renderHashCheckSection()}
 
         <section class="tools-view hidden" data-tool-view="media-inspector" aria-label="${t("tools.nav.current.mediaInspector")}"></section>
+
+        ${renderWingetInstallerSection(t)}
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="${t("tools.nav.current.power")}">
           <article id="tools-restart-card" class="tools-card tools-detail-card">
@@ -1112,6 +1125,7 @@ export default function renderToolsView() {
       "wg",
       "hash",
       "media-inspector",
+      "winget-installer",
       "power",
       "backup",
       "sorter",
@@ -1171,11 +1185,13 @@ export default function renderToolsView() {
           ? "tools.nav.current.hash"
           : targetView === "media-inspector"
             ? "tools.nav.current.mediaInspector"
-            : targetView === "power"
-              ? "tools.nav.current.power"
-              : targetView === "backup"
-                ? "tools.nav.current.backup"
-                : "tools.nav.current.sorter";
+            : targetView === "winget-installer"
+              ? "tools.nav.current.wingetInstaller"
+              : targetView === "power"
+                ? "tools.nav.current.power"
+                : targetView === "backup"
+                  ? "tools.nav.current.backup"
+                  : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
@@ -1395,6 +1411,7 @@ export default function renderToolsView() {
     const openMediaInspectorBtn = getEl("tools-open-media-inspector", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
+    const openWingetInstallerBtn = getEl("tools-open-winget-installer", view);
     const openSorterBtn = getEl("tools-open-sorter", view);
     const backBtn = getEl("tools-back-btn", view);
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
@@ -1406,6 +1423,7 @@ export default function renderToolsView() {
       if (
         !openPowerBtn ||
         !openBackupBtn ||
+        !openWingetInstallerBtn ||
         !openSorterBtn ||
         !launcherAvailableGrid ||
         !launcherUnavailableGrid ||
@@ -1446,6 +1464,21 @@ export default function renderToolsView() {
       if (openBackupBtn.parentElement !== launcherAvailableGrid) {
         launcherAvailableGrid.appendChild(openBackupBtn);
       }
+      if (isToolAvailable("winget-installer")) {
+        if (openWingetInstallerBtn.parentElement !== launcherAvailableGrid) {
+          launcherAvailableGrid.appendChild(openWingetInstallerBtn);
+        }
+        openWingetInstallerBtn.disabled = false;
+        openWingetInstallerBtn.removeAttribute("aria-disabled");
+        openWingetInstallerBtn.classList.remove("is-unavailable");
+      } else {
+        if (openWingetInstallerBtn.parentElement !== launcherUnavailableGrid) {
+          launcherUnavailableGrid.appendChild(openWingetInstallerBtn);
+        }
+        openWingetInstallerBtn.disabled = true;
+        openWingetInstallerBtn.setAttribute("aria-disabled", "true");
+        openWingetInstallerBtn.classList.add("is-unavailable");
+      }
       openSorterBtn.disabled = false;
       openSorterBtn.removeAttribute("aria-disabled");
       openSorterBtn.classList.remove("is-unavailable");
@@ -1466,6 +1499,9 @@ export default function renderToolsView() {
       setToolView("media-inspector"),
     );
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
+    openWingetInstallerBtn?.addEventListener("click", () =>
+      setToolView("winget-installer"),
+    );
     openBackupBtn?.addEventListener("click", () => {
       ensureBackupToolView();
       setToolView("backup");
@@ -2494,6 +2530,14 @@ export default function renderToolsView() {
           platform: "",
         },
       );
+      initWingetInstallerSection({
+        cleanup,
+        getEl,
+        platformInfo: toolState.toolsPlatformInfo,
+        showToast,
+        t,
+        view,
+      });
       toolState.setDeveloperToolsUnlocked(
         toolState.readDeveloperToolsUnlocked(),
       );

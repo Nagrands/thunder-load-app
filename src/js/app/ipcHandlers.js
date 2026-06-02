@@ -29,7 +29,7 @@ const https = require("https");
 const http = require("http");
 const crypto = require("crypto");
 const net = require("net");
-const { execFile } = require("child_process");
+const { execFile, spawn } = require("child_process");
 const { promisify } = require("util");
 const { pipeline } = require("stream");
 const { marked } = require("marked");
@@ -506,6 +506,7 @@ function setupIpcHandlers(dependencies) {
     clearPendingWhatsNewVersion,
   } = dependencies;
   const activeVideoInfoTokens = new Map();
+  const activeWingetRuns = new Map();
   const makeVideoInfoTokenKey = (url, previewOnly = false) =>
     `${previewOnly ? "preview" : "info"}:${url}`;
   const normalizeParallelDownloadLimit = (value) => {
@@ -953,8 +954,7 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.CANCEL_VIDEO_INFO_REQUEST, async (_evt, payload) => {
     try {
-      const rawUrl =
-        typeof payload === "string" ? payload : payload?.url || "";
+      const rawUrl = typeof payload === "string" ? payload : payload?.url || "";
       const normalizedUrl = normalizeUrl(rawUrl);
       if (!normalizedUrl) return { success: false, error: "Invalid URL" };
       const previewOnly =
@@ -1892,6 +1892,296 @@ function setupIpcHandlers(dependencies) {
       }
     },
   );
+
+  const WINGET_PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]{1,127}$/;
+
+  function normalizeWingetPackageIds(payload = {}) {
+    const rawPackageIds = Array.isArray(payload?.packageIds)
+      ? payload.packageIds
+      : [];
+    const seen = new Set();
+    const packageIds = [];
+
+    for (const value of rawPackageIds) {
+      const packageId = String(value || "").trim();
+      const key = packageId.toLowerCase();
+      if (!packageId || seen.has(key)) continue;
+      if (!WINGET_PACKAGE_ID_PATTERN.test(packageId)) {
+        return {
+          error: `Invalid WinGet package ID: ${packageId || "(empty)"}`,
+          packageIds: [],
+        };
+      }
+      seen.add(key);
+      packageIds.push(packageId);
+    }
+
+    if (packageIds.length > 80) {
+      return {
+        error: "Too many WinGet packages requested",
+        packageIds: [],
+      };
+    }
+
+    return { packageIds };
+  }
+
+  function escapePowerShellSingleQuotedString(value) {
+    return String(value).replaceAll("'", "''");
+  }
+
+  function buildWingetPowerShell(packageIds = [], mode = "install") {
+    const command = mode === "upgrade" ? "upgrade" : "install";
+    return [
+      "$ErrorActionPreference = 'Stop'",
+      "$wingetVersion = winget --version",
+      'Write-Host "WinGet version: $wingetVersion"',
+      "",
+      "$packages = @(",
+      ...packageIds.map(
+        (packageId) => `  '${escapePowerShellSingleQuotedString(packageId)}'`,
+      ),
+      ")",
+      "",
+      "$failed = @()",
+      "",
+      "foreach ($packageId in $packages) {",
+      `  Write-Host "Running winget ${command} for $packageId"`,
+      `  winget ${command} --id $packageId --exact --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity`,
+      "  if ($LASTEXITCODE -ne 0) {",
+      `    Write-Warning "winget ${command} failed for $packageId with exit code $LASTEXITCODE"`,
+      "    $failed += $packageId",
+      "  }",
+      "}",
+      "",
+      "if ($failed.Count -gt 0) {",
+      "  Write-Error \"Failed packages: $($failed -join ', ')\"",
+      "  exit 1",
+      "}",
+    ].join("\n");
+  }
+
+  function sendWingetLog(runId, text, level = "info") {
+    try {
+      if (!mainWindow?.webContents || mainWindow.webContents.isDestroyed()) {
+        return;
+      }
+      mainWindow.webContents.send(CHANNELS.TOOLS_WINGET_LOG, {
+        level,
+        runId,
+        text: String(text || ""),
+      });
+    } catch {}
+  }
+
+  function parseWingetListOutput(packageId, output = "", upgradeOnly = false) {
+    const lines = String(output || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const lowerId = packageId.toLowerCase();
+    const line = lines.find((entry) => entry.toLowerCase().includes(lowerId));
+    if (!line) {
+      return {
+        packageId,
+        status: upgradeOnly ? "installed" : "notInstalled",
+      };
+    }
+
+    const columns = line.split(/\s{2,}/).filter(Boolean);
+    const idIndex = columns.findIndex(
+      (column) => column.toLowerCase() === lowerId,
+    );
+    const currentVersion = idIndex >= 0 ? columns[idIndex + 1] || "" : "";
+    const availableVersion = idIndex >= 0 ? columns[idIndex + 2] || "" : "";
+
+    return {
+      availableVersion: upgradeOnly ? availableVersion : "",
+      currentVersion,
+      packageId,
+      status: upgradeOnly ? "updateAvailable" : "installed",
+    };
+  }
+
+  async function runWingetList(packageId, extraArgs = []) {
+    const { stdout, stderr } = await execFileAsync(
+      "winget",
+      [
+        "list",
+        "--id",
+        packageId,
+        "--exact",
+        "--accept-source-agreements",
+        "--disable-interactivity",
+        ...extraArgs,
+      ],
+      { timeout: 20000, windowsHide: true },
+    );
+    return `${stdout || ""}\n${stderr || ""}`;
+  }
+
+  ipcMain.handle(CHANNELS.TOOLS_WINGET_CHECK_STATUS, async (_evt, payload) => {
+    if (process.platform !== "win32") {
+      return {
+        success: false,
+        unsupported: true,
+        error: "Available only on Windows",
+      };
+    }
+
+    const normalized = normalizeWingetPackageIds(payload);
+    if (normalized.error) {
+      return { success: false, error: normalized.error };
+    }
+
+    try {
+      await execFileAsync("winget", ["--version"], {
+        timeout: 8000,
+        windowsHide: true,
+      });
+    } catch (error) {
+      return {
+        success: false,
+        code: "wingetUnavailable",
+        error: error.message || String(error),
+      };
+    }
+
+    const items = [];
+    for (const packageId of normalized.packageIds) {
+      try {
+        const listOutput = await runWingetList(packageId);
+        const installed = parseWingetListOutput(packageId, listOutput);
+        if (installed.status === "notInstalled") {
+          items.push(installed);
+          continue;
+        }
+
+        const upgradeOutput = await runWingetList(packageId, [
+          "--upgrade-available",
+        ]);
+        const upgrade = parseWingetListOutput(packageId, upgradeOutput, true);
+        items.push(
+          upgrade.status === "updateAvailable"
+            ? {
+                ...installed,
+                availableVersion: upgrade.availableVersion,
+                status: "updateAvailable",
+              }
+            : installed,
+        );
+      } catch (error) {
+        items.push({
+          error: error.message || String(error),
+          packageId,
+          status: "unknown",
+        });
+      }
+    }
+
+    return { success: true, items };
+  });
+
+  async function runWingetPowerShell(payload = {}, mode = "install") {
+    if (process.platform !== "win32") {
+      return {
+        success: false,
+        unsupported: true,
+        error: "Available only on Windows",
+      };
+    }
+
+    const normalized = normalizeWingetPackageIds(payload);
+    if (normalized.error) {
+      return { success: false, error: normalized.error };
+    }
+    if (!normalized.packageIds.length) {
+      return { success: false, error: "No packages selected" };
+    }
+
+    const runId = String(payload?.runId || `winget-${Date.now()}`);
+    const script = buildWingetPowerShell(normalized.packageIds, mode);
+
+    return new Promise((resolve) => {
+      let output = "";
+      let errorOutput = "";
+      let settled = false;
+      let proc = null;
+      const done = (result) => {
+        if (settled) return;
+        settled = true;
+        activeWingetRuns.delete(runId);
+        resolve(result);
+      };
+
+      try {
+        proc = spawn(
+          "powershell.exe",
+          ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
+          {
+            env: { ...process.env },
+            windowsHide: true,
+          },
+        );
+        activeWingetRuns.set(runId, proc);
+      } catch (error) {
+        return done({
+          success: false,
+          error: error.message || String(error),
+        });
+      }
+
+      proc.stdout.on("data", (chunk) => {
+        const text = chunk.toString();
+        output += text;
+        sendWingetLog(runId, text.trimEnd(), "info");
+      });
+      proc.stderr.on("data", (chunk) => {
+        const text = chunk.toString();
+        errorOutput += text;
+        sendWingetLog(runId, text.trimEnd(), "error");
+      });
+      proc.on("error", (error) => {
+        sendWingetLog(runId, error.message || String(error), "error");
+        done({
+          success: false,
+          error: error.message || String(error),
+          output,
+          stderr: errorOutput,
+        });
+      });
+      proc.on("close", (exitCode) => {
+        done({
+          exitCode,
+          output,
+          stderr: errorOutput,
+          success: exitCode === 0,
+          error: exitCode === 0 ? "" : `PowerShell exited with ${exitCode}`,
+        });
+      });
+    });
+  }
+
+  ipcMain.handle(CHANNELS.TOOLS_WINGET_RUN_INSTALL, async (_evt, payload) => {
+    return runWingetPowerShell(payload, "install");
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_WINGET_RUN_UPDATE, async (_evt, payload) => {
+    return runWingetPowerShell(payload, "upgrade");
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_WINGET_CANCEL, async (_evt, payload = {}) => {
+    const runId = String(payload?.runId || "");
+    const proc = activeWingetRuns.get(runId);
+    if (!proc) return { success: false, error: "Run not found" };
+    try {
+      proc.kill();
+      activeWingetRuns.delete(runId);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message || String(error) };
+    }
+  });
 
   function createWindowsDesktopShortcut({
     fileName,

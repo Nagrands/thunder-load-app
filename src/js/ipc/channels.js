@@ -101,6 +101,11 @@ const CHANNELS = Object.freeze({
   TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT: "tools:createWindowsProgramsShortcut",
   TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT:
     "tools:createWindowsDiskCleanupShortcut",
+  TOOLS_WINGET_CHECK_STATUS: "tools:wingetCheckStatus",
+  TOOLS_WINGET_RUN_INSTALL: "tools:wingetRunInstall",
+  TOOLS_WINGET_RUN_UPDATE: "tools:wingetRunUpdate",
+  TOOLS_WINGET_CANCEL: "tools:wingetCancel",
+  TOOLS_WINGET_LOG: "tools:wingetLog",
   DIALOG_CHOOSE_TOOLS_DIR: "dialog:choose-tools-dir",
   WG_OPEN_CONFIG_FOLDER: "wg-open-config-folder",
   WG_OPEN_NETWORK_SETTINGS: "open-network-settings",

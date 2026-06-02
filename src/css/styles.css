@@ -29886,6 +29886,185 @@ video {
   gap: 4px;
 }
 
+.winget-installer {
+  display: grid;
+  gap: 18px;
+}
+
+.winget-installer__header {
+  align-items: flex-start;
+}
+
+.winget-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.25);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.winget-badge.is-ready {
+  color: var(--color-success, #7bd88f);
+  background: rgba(73, 190, 110, 0.12);
+}
+.winget-badge.is-muted {
+  color: var(--color-quality);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.winget-installer__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.winget-panel,
+.winget-status-panel,
+.winget-log-block {
+  border: 1px solid rgba(var(--color-accent-rgb), 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 16px;
+}
+
+.winget-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.winget-panel__header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.winget-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.winget-package-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.winget-package-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: start;
+  min-height: 58px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.winget-package-item input {
+  margin-top: 2px;
+}
+.winget-package-item strong,
+.winget-package-item small {
+  display: block;
+}
+.winget-package-item small {
+  margin-top: 3px;
+  color: var(--color-quality);
+  overflow-wrap: anywhere;
+}
+
+.winget-custom-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.winget-custom-field textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+.winget-custom-field .error {
+  color: var(--color-error, #ff6b6b);
+}
+
+.winget-script-preview,
+.winget-live-log {
+  width: 100%;
+  min-height: 230px;
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--color-highlight);
+  padding: 14px;
+  font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.winget-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.winget-status-table-wrap {
+  overflow-x: auto;
+}
+
+.winget-status-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.winget-status-table th,
+.winget-status-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+.winget-status-table code {
+  color: var(--color-highlight);
+  overflow-wrap: anywhere;
+}
+
+.winget-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.winget-status-pill.is-installed {
+  color: var(--color-success, #7bd88f);
+}
+.winget-status-pill.is-updateAvailable {
+  color: var(--color-warning, #ffd166);
+}
+.winget-status-pill.is-notInstalled, .winget-status-pill.is-unknown {
+  color: var(--color-quality);
+}
+
+.winget-log-block summary {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
 .power-shortcuts-actions {
   margin-top: 0;
 }
@@ -30201,6 +30380,9 @@ video {
 }
 
 @media (max-width: 1100px) {
+  .winget-installer__layout {
+    grid-template-columns: 1fr;
+  }
   .tools-launcher-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -30221,6 +30403,18 @@ video {
   }
 }
 @media (max-width: 768px) {
+  .winget-package-grid {
+    grid-template-columns: 1fr;
+  }
+  .winget-panel__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .winget-panel__actions,
+  .winget-run-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
   .tools-shell-header .title {
     gap: 12px;
   }

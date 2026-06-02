@@ -5,6 +5,7 @@ const TOOLS_STORAGE_KEYS = Object.freeze({
   WG_LOG_V2: "wg-log-v2",
   WG_LOG_LEGACY: "wg-log",
   WG_LAST_SEND_TIME: "wg-last-send-time",
+  WINGET_INSTALLER_STATE: "toolsWingetInstallerState",
 });
 
 function readStorageValue(key, fallback = "") {

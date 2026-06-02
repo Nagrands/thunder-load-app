@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
+const { EventEmitter } = require("events");
 
 const handlers = {};
 
@@ -13,6 +14,7 @@ jest.mock("child_process", () => ({
     );
     return fn;
   })(),
+  spawn: jest.fn(),
 }));
 
 jest.mock("electron", () => ({
@@ -150,6 +152,13 @@ describe("ipcHandlers tools quick actions", () => {
   } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
     const setReloadMenuEnabled = jest.fn();
+    const mainWindow = {
+      webContents: {
+        send: jest.fn(),
+        isDestroyed: () => false,
+        on: jest.fn(),
+      },
+    };
     const storeGet = jest.fn((key, def) =>
       Object.prototype.hasOwnProperty.call(storeValues, key)
         ? storeValues[key]
@@ -161,13 +170,7 @@ describe("ipcHandlers tools quick actions", () => {
       delete: jest.fn(),
     };
     setupIpcHandlers({
-      mainWindow: {
-        webContents: {
-          send: jest.fn(),
-          isDestroyed: () => false,
-          on: jest.fn(),
-        },
-      },
+      mainWindow,
       store,
       downloadState,
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
@@ -187,7 +190,7 @@ describe("ipcHandlers tools quick actions", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { store, setDownloadPath, setReloadMenuEnabled };
+    return { mainWindow, store, setDownloadPath, setReloadMenuEnabled };
   }
 
   test("set-open-on-copy-url-status toggles clipboard monitor and persists state", async () => {
@@ -1776,19 +1779,20 @@ describe("ipcHandlers download pool", () => {
   function initHandlers({ storeValues = {} } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
     const setReloadMenuEnabled = jest.fn();
+    const mainWindow = {
+      webContents: {
+        send: jest.fn(),
+        isDestroyed: () => false,
+        on: jest.fn(),
+      },
+    };
     const storeGet = jest.fn((key, def) =>
       Object.prototype.hasOwnProperty.call(storeValues, key)
         ? storeValues[key]
         : def,
     );
     setupIpcHandlers({
-      mainWindow: {
-        webContents: {
-          send: jest.fn(),
-          isDestroyed: () => false,
-          on: jest.fn(),
-        },
-      },
+      mainWindow,
       store: {
         get: storeGet,
         set: jest.fn(),
@@ -1809,7 +1813,7 @@ describe("ipcHandlers download pool", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { setReloadMenuEnabled };
+    return { mainWindow, setReloadMenuEnabled };
   }
 
   const deferred = () => {
@@ -2280,5 +2284,112 @@ describe("ipcHandlers download pool", () => {
     mediaB.resolve("/tmp/file-b.mp4");
     await p1;
     await p2;
+  });
+
+  test("wingetCheckStatus returns unsupported outside Windows", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+
+    Object.defineProperty(process, "platform", {
+      value: "darwin",
+      configurable: true,
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, {
+      packageIds: ["Git.Git"],
+    });
+
+    expect(result).toMatchObject({ success: false, unsupported: true });
+  });
+
+  test("wingetRunInstall rejects invalid package IDs", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git;Remove-Item"],
+    });
+
+    expect(result).toMatchObject({
+      success: false,
+      error: expect.stringContaining("Invalid WinGet package ID"),
+    });
+  });
+
+  test("wingetRunInstall streams PowerShell output and succeeds", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    childProcess.spawn.mockImplementation(() => {
+      setTimeout(() => {
+        proc.stdout.emit("data", Buffer.from("Installing Git.Git\n"));
+        proc.emit("close", 0);
+      }, 0);
+      return proc;
+    });
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+
+    const { mainWindow } = initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git"],
+      runId: "run-1",
+    });
+
+    expect(result).toMatchObject({ success: true, exitCode: 0 });
+    expect(childProcess.spawn).toHaveBeenCalledWith(
+      "powershell.exe",
+      expect.arrayContaining(["-NoProfile", "-ExecutionPolicy", "Bypass"]),
+      expect.objectContaining({ windowsHide: true }),
+    );
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      CHANNELS.TOOLS_WINGET_LOG,
+      expect.objectContaining({
+        runId: "run-1",
+        text: "Installing Git.Git",
+      }),
+    );
+  });
+
+  test("wingetRunUpdate returns non-zero PowerShell exit", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    childProcess.spawn.mockImplementation(() => {
+      setTimeout(() => {
+        proc.stderr.emit("data", Buffer.from("failed\n"));
+        proc.emit("close", 12);
+      }, 0);
+      return proc;
+    });
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_UPDATE](null, {
+      packageIds: ["Git.Git"],
+      runId: "run-2",
+    });
+
+    expect(result).toMatchObject({
+      success: false,
+      exitCode: 12,
+      error: "PowerShell exited with 12",
+    });
   });
 });

@@ -1266,7 +1266,13 @@ $wg-max-width: 1200px;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background:
-      linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.02) 42%, rgba(255, 255, 255, 0.008) 100%), rgba(255, 255, 255, 0.014)
+      linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.12),
+        rgba(255, 255, 255, 0.02) 42%,
+        rgba(255, 255, 255, 0.008) 100%
+      ),
+      rgba(255, 255, 255, 0.014);
   }
 
   .title i {
@@ -1540,7 +1546,14 @@ $wg-max-width: 1200px;
 
 .tools-card {
   border: 1px solid var(--color-hover);
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
   border-radius: var(--border-radius);
   padding: 14px;
   display: grid;
@@ -1995,7 +2008,8 @@ $wg-max-width: 1200px;
     rgba(11, 29, 42, 0.72);
   color: var(--sorter-accent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08), 0px 3px 28px rgba(var(--sorter-accent-rgb), 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0px 3px 28px rgba(var(--sorter-accent-rgb), 0.12);
 }
 
 .sorter-header__mark {
@@ -2060,7 +2074,11 @@ $wg-max-width: 1200px;
   border: 1px solid var(--sorter-border);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.018)
+    ),
     var(--sorter-panel);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -2124,7 +2142,11 @@ $wg-max-width: 1200px;
   color: #a9c8ff;
   border-color: rgba(169, 200, 255, 0.2);
   background:
-    linear-gradient(145deg, rgba(117, 159, 230, 0.18), rgba(35, 241, 181, 0.05)),
+    linear-gradient(
+      145deg,
+      rgba(117, 159, 230, 0.18),
+      rgba(35, 241, 181, 0.05)
+    ),
     rgba(15, 30, 52, 0.72);
 }
 
@@ -2200,7 +2222,11 @@ $wg-max-width: 1200px;
   border-color: rgba(113, 143, 185, 0.16);
   border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.012)
+    ),
     rgba(8, 20, 37, 0.72);
   color: #f5f9ff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
@@ -2238,7 +2264,11 @@ $wg-max-width: 1200px;
 
   .large-button.secondary {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.055),
+        rgba(255, 255, 255, 0.018)
+      ),
       rgba(9, 21, 40, 0.52);
     color: rgba(232, 242, 255, 0.96);
   }
@@ -2246,7 +2276,8 @@ $wg-max-width: 1200px;
   .large-button:not(.secondary) {
     color: var(--color-highlight);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08), 0px 3px 28px rgba(var(--sorter-accent-rgb), 0.12);
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0px 3px 28px rgba(var(--sorter-accent-rgb), 0.12);
   }
 }
 
@@ -2281,7 +2312,11 @@ $wg-max-width: 1200px;
   border-radius: 14px;
   padding: 14px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.012)
+    ),
     rgba(6, 16, 31, 0.48);
   transition:
     transform 0.18s ease,
@@ -2297,9 +2332,14 @@ $wg-max-width: 1200px;
     grid-row: 1 / span 2;
     border-radius: 999px;
     background:
-      linear-gradient(145deg, rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.28), rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.1)),
+      linear-gradient(
+        145deg,
+        rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.28),
+        rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.1)
+      ),
       rgba(12, 26, 45, 0.82);
-    box-shadow: 0px 1px 12px rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.12);
+    box-shadow: 0px 1px 12px
+      rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.12);
   }
 
   &::after {
@@ -2319,7 +2359,11 @@ $wg-max-width: 1200px;
     transform: translateY(-2px);
     border-color: rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.34);
     background:
-      linear-gradient(145deg, rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.1), rgba(255, 255, 255, 0.016)),
+      linear-gradient(
+        145deg,
+        rgba(var(--rule-rgb, var(--sorter-accent-rgb)), 0.1),
+        rgba(255, 255, 255, 0.016)
+      ),
       rgba(8, 20, 38, 0.72);
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
   }
@@ -2404,7 +2448,11 @@ $wg-max-width: 1200px;
   border: 1px solid rgba(122, 153, 195, 0.15);
   border-radius: 15px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.012)
+    ),
     rgba(6, 16, 31, 0.48);
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
@@ -2440,8 +2488,16 @@ $wg-max-width: 1200px;
   gap: 18px;
   border-color: rgba(var(--sorter-cyan-rgb), 0.22);
   background:
-    radial-gradient(circle at top right, rgba(var(--sorter-cyan-rgb), 0.13), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.048), rgba(255, 255, 255, 0.016)),
+    radial-gradient(
+      circle at top right,
+      rgba(var(--sorter-cyan-rgb), 0.13),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.048),
+      rgba(255, 255, 255, 0.016)
+    ),
     var(--sorter-panel);
 
   &.is-results {
@@ -2510,7 +2566,11 @@ $wg-max-width: 1200px;
   border-radius: 14px;
   padding: 13px 14px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.012)
+    ),
     rgba(6, 16, 31, 0.48);
 
   span {
@@ -2596,7 +2656,11 @@ $wg-max-width: 1200px;
   border: 1px solid rgba(122, 153, 195, 0.15);
   border-radius: 16px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.012)
+    ),
     rgba(5, 14, 28, 0.42);
   padding: 14px;
 }
@@ -2796,7 +2860,11 @@ $wg-max-width: 1200px;
   border-radius: 18px;
   padding: 0 22px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.012)
+    ),
     rgba(8, 20, 37, 0.62);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.045),
@@ -2812,7 +2880,11 @@ $wg-max-width: 1200px;
   &.success {
     border-color: rgba(var(--sorter-accent-rgb), 0.26);
     background:
-      linear-gradient(180deg, rgba(var(--sorter-accent-rgb), 0.12), rgba(8, 20, 37, 0.4)),
+      linear-gradient(
+        180deg,
+        rgba(var(--sorter-accent-rgb), 0.12),
+        rgba(8, 20, 37, 0.4)
+      ),
       rgba(255, 255, 255, 0.02);
   }
 
@@ -3117,7 +3189,13 @@ $wg-max-width: 1200px;
 .hash-tool-card {
   gap: 16px;
   background:
-    linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
 }
 
 .hash-icon-button {
@@ -4115,6 +4193,199 @@ $wg-max-width: 1200px;
   gap: 4px;
 }
 
+.winget-installer {
+  display: grid;
+  gap: 18px;
+}
+
+.winget-installer__header {
+  align-items: flex-start;
+}
+
+.winget-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.25);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.is-ready {
+    color: var(--color-success, #7bd88f);
+    background: rgba(73, 190, 110, 0.12);
+  }
+
+  &.is-muted {
+    color: var(--color-quality);
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.winget-installer__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.winget-panel,
+.winget-status-panel,
+.winget-log-block {
+  border: 1px solid rgba(var(--color-accent-rgb), 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 16px;
+}
+
+.winget-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+.winget-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.winget-package-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.winget-package-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: start;
+  min-height: 58px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+
+  input {
+    margin-top: 2px;
+  }
+
+  strong,
+  small {
+    display: block;
+  }
+
+  small {
+    margin-top: 3px;
+    color: var(--color-quality);
+    overflow-wrap: anywhere;
+  }
+}
+
+.winget-custom-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+
+  textarea {
+    min-height: 86px;
+    resize: vertical;
+  }
+
+  .error {
+    color: var(--color-error, #ff6b6b);
+  }
+}
+
+.winget-script-preview,
+.winget-live-log {
+  width: 100%;
+  min-height: 230px;
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--color-highlight);
+  padding: 14px;
+  font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.winget-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.winget-status-table-wrap {
+  overflow-x: auto;
+}
+
+.winget-status-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  code {
+    color: var(--color-highlight);
+    overflow-wrap: anywhere;
+  }
+}
+
+.winget-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+
+  &.is-installed {
+    color: var(--color-success, #7bd88f);
+  }
+
+  &.is-updateAvailable {
+    color: var(--color-warning, #ffd166);
+  }
+
+  &.is-notInstalled,
+  &.is-unknown {
+    color: var(--color-quality);
+  }
+}
+
+.winget-log-block summary {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
 .power-shortcuts-actions {
   margin-top: 0;
 }
@@ -4319,7 +4590,13 @@ $wg-max-width: 1200px;
   }
 
   select.wg-input {
-    @include native-select-control(40px, 12px, 10px 40px 10px 12px, 0.92rem, 700);
+    @include native-select-control(
+      40px,
+      12px,
+      10px 40px 10px 12px,
+      0.92rem,
+      700
+    );
     cursor: pointer;
   }
 
@@ -4422,6 +4699,10 @@ $wg-max-width: 1200px;
 }
 
 @media (max-width: 1100px) {
+  .winget-installer__layout {
+    grid-template-columns: 1fr;
+  }
+
   .tools-launcher-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4448,6 +4729,21 @@ $wg-max-width: 1200px;
 }
 
 @media (max-width: 768px) {
+  .winget-package-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .winget-panel__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .winget-panel__actions,
+  .winget-run-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
   .tools-shell-header .title {
     gap: 12px;
 

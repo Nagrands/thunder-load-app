@@ -81,11 +81,13 @@ async function openTool(el, tool) {
         ? "#tools-open-hash"
         : tool === "media-inspector"
           ? "#tools-open-media-inspector"
-          : tool === "power"
-            ? "#tools-open-power"
-            : tool === "backup"
-              ? "#tools-open-backup"
-              : "#tools-open-sorter";
+          : tool === "winget-installer"
+            ? "#tools-open-winget-installer"
+            : tool === "power"
+              ? "#tools-open-power"
+              : tool === "backup"
+                ? "#tools-open-backup"
+                : "#tools-open-sorter";
   el.querySelector(id)?.click();
   await nextTick();
 }
@@ -255,11 +257,34 @@ describe("toolsView quick actions", () => {
           success: false,
           unsupported: true,
         }),
+        checkWingetStatus: jest.fn().mockResolvedValue({
+          success: true,
+          items: [
+            {
+              availableVersion: "2.0.0",
+              currentVersion: "1.0.0",
+              packageId: "Git.Git",
+              status: "updateAvailable",
+            },
+          ],
+        }),
+        runWingetInstall: jest.fn().mockResolvedValue({
+          exitCode: 0,
+          success: true,
+        }),
+        runWingetUpdate: jest.fn().mockResolvedValue({
+          exitCode: 0,
+          success: true,
+        }),
+        cancelWingetRun: jest.fn().mockResolvedValue({
+          success: true,
+        }),
       },
       getPlatformInfo: jest.fn().mockResolvedValue({
         isWindows: false,
         platform: "darwin",
       }),
+      on: jest.fn(),
       send: jest.fn(),
       ipcRenderer: {
         invoke: jest.fn(async (channel) => {
@@ -329,9 +354,7 @@ describe("toolsView quick actions", () => {
     expect(breadcrumbs).not.toBeNull();
     expect(header?.contains(breadcrumbs)).toBe(false);
     expect(nav?.contains(breadcrumbs)).toBe(true);
-    expect(breadcrumbs?.firstElementChild?.id).toBe(
-      "tools-breadcrumb-tools",
-    );
+    expect(breadcrumbs?.firstElementChild?.id).toBe("tools-breadcrumb-tools");
     expect(el.querySelector("#tools-launcher-section-header")).not.toBeNull();
     expect(
       el
@@ -362,7 +385,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 5",
+      "tools.launcher.totalLabel: 6",
     );
   });
 
@@ -400,7 +423,7 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(6);
+    ).toBe(7);
     expect(el.querySelector("#tools-open-media-inspector")).not.toBeNull();
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
@@ -500,6 +523,94 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
   });
 
+  test("opens WinGet Installer in preview mode on macos", async () => {
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+
+    expect(
+      el
+        .querySelector('[data-tool-view="winget-installer"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(el.querySelector("#winget-platform-badge")?.textContent).toBe(
+      "tools.winget.platform.preview",
+    );
+    expect(el.querySelector("#winget-run-script")?.disabled).toBe(true);
+    expect(el.querySelector("#winget-script-preview")?.textContent).toContain(
+      "winget --version",
+    );
+  });
+
+  test("copies generated WinGet script", async () => {
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+
+    el.querySelector("#winget-copy-script")?.click();
+    await nextTick();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining("winget install --id $packageId --exact"),
+    );
+  });
+
+  test("runs WinGet install on windows with selected package IDs", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+
+    el.querySelector("#winget-clear-selection")?.click();
+    await nextTick();
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
+    el.querySelector("#winget-run-script")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.runWingetInstall).toHaveBeenCalledWith({
+      packageIds: ["Git.Git"],
+      runId: expect.stringMatching(/^winget-/),
+    });
+  });
+
+  test("renders WinGet live log events for active run", async () => {
+    let logHandler = null;
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.on.mockImplementation((channel, handler) => {
+      if (channel === "tools:wingetLog") logHandler = handler;
+      return jest.fn();
+    });
+    window.electron.tools.runWingetInstall.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+
+    el.querySelector("#winget-clear-selection")?.click();
+    await nextTick();
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
+    el.querySelector("#winget-run-script")?.click();
+    await nextTick();
+
+    const runId = window.electron.tools.runWingetInstall.mock.calls[0][0].runId;
+    logHandler?.({
+      level: "info",
+      runId,
+      text: "Installing Git.Git",
+    });
+
+    expect(el.querySelector("#winget-live-log")?.textContent).toContain(
+      "Installing Git.Git",
+    );
+  });
+
   test("keeps File Sorter available when developer mode is enabled", async () => {
     window.__thunder_dev_tools_unlocked__ = true;
     const el = await renderView();
@@ -511,7 +622,7 @@ describe("toolsView quick actions", () => {
     expect(powerBtn?.disabled).toBe(false);
     expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 6",
+      "tools.launcher.totalLabel: 7",
     );
 
     sorterBtn?.click();
@@ -1204,9 +1315,9 @@ describe("toolsView quick actions", () => {
       el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
     ).toBe("tools.nav.current.backup");
     expect(
-      el.querySelector("#tools-breadcrumb-current")?.classList.contains(
-        "hidden",
-      ),
+      el
+        .querySelector("#tools-breadcrumb-current")
+        ?.classList.contains("hidden"),
     ).toBe(false);
   });
 

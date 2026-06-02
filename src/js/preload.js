@@ -130,6 +130,11 @@ try {
     "tools:createWindowsAdvancedBootShortcut",
     "tools:createWindowsProgramsShortcut",
     "tools:createWindowsDiskCleanupShortcut",
+    "tools:wingetCheckStatus",
+    "tools:wingetRunInstall",
+    "tools:wingetRunUpdate",
+    "tools:wingetCancel",
+    "tools:wingetLog",
     "dialog:choose-tools-dir",
     "wg-open-config-folder",
     "open-network-settings",
@@ -403,6 +408,13 @@ try {
         safeInvoke("tools:createWindowsProgramsShortcut"),
       createWindowsDiskCleanupShortcut: () =>
         safeInvoke("tools:createWindowsDiskCleanupShortcut"),
+      checkWingetStatus: (payload) =>
+        safeInvoke("tools:wingetCheckStatus", payload),
+      runWingetInstall: (payload) =>
+        safeInvoke("tools:wingetRunInstall", payload),
+      runWingetUpdate: (payload) =>
+        safeInvoke("tools:wingetRunUpdate", payload),
+      cancelWingetRun: (payload) => safeInvoke("tools:wingetCancel", payload),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код
