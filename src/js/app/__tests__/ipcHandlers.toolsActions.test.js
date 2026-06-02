@@ -111,6 +111,17 @@ jest.mock("electron-log", () => ({
   error: jest.fn(),
 }));
 
+function extractWingetArgs(args = []) {
+  const commandIndex = args.indexOf("-Command");
+  if (commandIndex === -1) return args;
+  const command = String(args[commandIndex + 1] || "");
+  const values = [...command.matchAll(/'((?:''|[^'])*)'/g)].map((match) =>
+    match[1].replaceAll("''", "'"),
+  );
+  const wingetIndex = values.indexOf("winget");
+  return wingetIndex === -1 ? values : values.slice(wingetIndex + 1);
+}
+
 describe("ipcHandlers tools quick actions", () => {
   const originalPlatform = process.platform;
   const toolsDir = "/tmp/tools";
@@ -2302,7 +2313,7 @@ describe("ipcHandlers download pool", () => {
     expect(result).toMatchObject({ success: false, unsupported: true });
   });
 
-  test("wingetCheckStatus batches installed and upgrade status with versions", async () => {
+  test("wingetCheckStatus checks exact IDs and returns versions", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const childProcess = require("child_process");
 
@@ -2310,42 +2321,39 @@ describe("ipcHandlers download pool", () => {
       value: "win32",
       configurable: true,
     });
-    childProcess.execFile
-      .mockImplementationOnce((_cmd, _args, _opts, cb) => {
+    childProcess.execFile.mockImplementation((_cmd, args, _opts, cb) => {
+      const wingetArgs = extractWingetArgs(args);
+      if (wingetArgs[0] === "--version") {
         cb(null, "v1.8.0", "");
-      })
-      .mockImplementationOnce((_cmd, _args, _opts, cb) => {
+        return;
+      }
+      if (wingetArgs[0] === "list") {
         cb(
           null,
-          JSON.stringify([
-            {
-              Id: "Git.Git",
-              Name: "Git",
-              Version: "2.50.0",
-            },
-            {
-              Id: "VideoLAN.VLC",
-              Name: "VLC",
-              Version: "3.0.20",
-            },
-          ]),
+          [
+            "Name      Id            Version  Source",
+            "----------------------------------------",
+            "Git       Git.Git       2.50.0   winget",
+            "VLC       VideoLAN.VLC  3.0.20   winget",
+          ].join("\n"),
           "",
         );
-      })
-      .mockImplementationOnce((_cmd, _args, _opts, cb) => {
+        return;
+      }
+      if (wingetArgs[0] === "upgrade") {
         cb(
           null,
-          JSON.stringify([
-            {
-              Available: "2.51.0",
-              Id: "Git.Git",
-              Name: "Git",
-              Version: "2.50.0",
-            },
-          ]),
+          [
+            "Name      Id       Version  Available  Source",
+            "-----------------------------------------------",
+            "Git       Git.Git  2.50.0   2.51.0     winget",
+          ].join("\n"),
           "",
         );
-      });
+        return;
+      }
+      cb(null, "No installed package found matching input criteria.", "");
+    });
 
     initHandlers();
     const result = await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, {
@@ -2375,12 +2383,136 @@ describe("ipcHandlers download pool", () => {
         },
       ],
     });
-    expect(childProcess.execFile).toHaveBeenCalledTimes(3);
-    expect(childProcess.execFile.mock.calls[1][1]).toEqual(
-      expect.arrayContaining(["list", "--output", "json"]),
+    expect(childProcess.execFile).toHaveBeenCalledWith(
+      "powershell.exe",
+      expect.arrayContaining([
+        "-Command",
+        expect.stringContaining("& 'winget' 'list'"),
+      ]),
+      expect.any(Object),
+      expect.any(Function),
     );
-    expect(childProcess.execFile.mock.calls[2][1]).toEqual(
-      expect.arrayContaining(["upgrade", "--output", "json"]),
+    expect(childProcess.execFile).toHaveBeenCalledWith(
+      "powershell.exe",
+      expect.arrayContaining([
+        "-Command",
+        expect.stringContaining("& 'winget' 'upgrade' '--include-unknown'"),
+      ]),
+      expect.any(Object),
+      expect.any(Function),
+    );
+  });
+
+  test("wingetCheckStatus parses bulk table output", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    childProcess.execFile.mockImplementation((_cmd, args, _opts, cb) => {
+      const wingetArgs = extractWingetArgs(args);
+      if (wingetArgs[0] === "--version") {
+        cb(null, "v1.6.0", "");
+        return;
+      }
+      if (wingetArgs[0] === "list") {
+        cb(
+          null,
+          "Name      Id       Version  Source\n----------------------------------------\nGit       Git.Git  2.50.0   winget",
+          "",
+        );
+        return;
+      }
+      cb(null, "No installed package found matching input criteria.", "");
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, {
+      packageIds: ["Git.Git"],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "2.50.0",
+          packageId: "Git.Git",
+          status: "installed",
+        },
+      ],
+    });
+    expect(childProcess.execFile).toHaveBeenCalledWith(
+      "powershell.exe",
+      expect.arrayContaining([
+        "-Command",
+        expect.stringContaining("& 'winget' 'list'"),
+      ]),
+      expect.any(Object),
+      expect.any(Function),
+    );
+  });
+
+  test("wingetCheckStatus falls back to positional package query when bulk output is unusable", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    childProcess.execFile.mockImplementation((_cmd, args, _opts, cb) => {
+      const wingetArgs = extractWingetArgs(args);
+      if (wingetArgs[0] === "--version") {
+        cb(null, "v1.8.0", "");
+        return;
+      }
+      const usesBulkList = wingetArgs[0] === "list" && wingetArgs.length === 1;
+      if (usesBulkList) {
+        cb(null, "unexpected output", "");
+        return;
+      }
+      const usesPositionalGit =
+        wingetArgs[0] === "list" &&
+        wingetArgs[1] === "Git.Git" &&
+        wingetArgs.includes("--exact");
+      if (usesPositionalGit) {
+        cb(
+          null,
+          "Name      Id       Version  Source\n----------------------------------------\nGit       Git.Git  2.50.0   winget",
+          "",
+        );
+        return;
+      }
+      cb(null, "No installed package found matching input criteria.", "");
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, {
+      packageIds: ["Git.Git"],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "2.50.0",
+          packageId: "Git.Git",
+          status: "installed",
+        },
+      ],
+    });
+    expect(childProcess.execFile).toHaveBeenCalledWith(
+      "powershell.exe",
+      expect.arrayContaining([
+        "-Command",
+        expect.stringContaining("& 'winget' 'list' 'Git.Git' '--exact'"),
+      ]),
+      expect.any(Object),
+      expect.any(Function),
     );
   });
 
@@ -2458,6 +2590,49 @@ describe("ipcHandlers download pool", () => {
       expect.objectContaining({
         runId: "run-1",
         text: "Installing Git.Git",
+      }),
+    );
+  });
+
+  test("wingetRunInstall filters noisy PowerShell progress output", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    childProcess.spawn.mockImplementation(() => {
+      setTimeout(() => {
+        proc.stdout.emit(
+          "data",
+          Buffer.from("\u001b[?25l\r████ 42%\r\nInstalling Git.Git\n"),
+        );
+        proc.emit("close", 0);
+      }, 0);
+      return proc;
+    });
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+
+    const { mainWindow } = initHandlers();
+    await handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git"],
+      runId: "run-noise",
+    });
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      CHANNELS.TOOLS_WINGET_LOG,
+      expect.objectContaining({
+        runId: "run-noise",
+        text: "Installing Git.Git",
+      }),
+    );
+    expect(mainWindow.webContents.send).not.toHaveBeenCalledWith(
+      CHANNELS.TOOLS_WINGET_LOG,
+      expect.objectContaining({
+        text: expect.stringContaining("████"),
       }),
     );
   });

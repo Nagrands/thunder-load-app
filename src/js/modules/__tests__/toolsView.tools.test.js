@@ -547,6 +547,9 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#winget-package-git")?.checked).toBe(false);
     expect(el.querySelector("details.winget-package-category")).not.toBeNull();
     expect(el.querySelector(".winget-package-item__icon")).not.toBeNull();
+    expect(el.querySelector("#winget-log-block")?.classList).toContain(
+      "hidden",
+    );
     expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
   });
 
@@ -562,6 +565,9 @@ describe("toolsView quick actions", () => {
     expect(packagePanel?.querySelector("#winget-status-body")).toBeNull();
     expect(packagePanel?.querySelector("details[open]")).not.toBeNull();
     expect(
+      packagePanel?.querySelector(".winget-category-count"),
+    ).not.toBeNull();
+    expect(
       packagePanel?.querySelector('[data-winget-package-status="git"]'),
     ).not.toBeNull();
     expect(
@@ -571,6 +577,27 @@ describe("toolsView quick actions", () => {
       packagePanel?.compareDocumentPosition(scriptPanel) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(
+      el.querySelector(".winget-package-categories")?.textContent,
+    ).not.toContain("Valve.Steam");
+    expect(
+      el.querySelector(".winget-package-categories")?.textContent,
+    ).not.toContain("Raycast.Raycast");
+  });
+
+  test("persists WinGet category open state", async () => {
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+
+    const category = el.querySelector('[data-winget-category="browsers"]');
+    category.open = false;
+    category.dispatchEvent(new Event("toggle"));
+    await nextTick();
+
+    const saved = JSON.parse(
+      localStorage.getItem("toolsWingetInstallerStateV2") || "{}",
+    );
+    expect(saved.openCategoryIds).not.toContain("browsers");
   });
 
   test("automatically checks built-in WinGet statuses when opened on windows", async () => {
@@ -598,6 +625,10 @@ describe("toolsView quick actions", () => {
     );
     expect(toolsTranslations.ru["tools.winget.mode.uninstall"]).toBe(
       "Удаление",
+    );
+    expect(toolsTranslations.ru["tools.winget.script.title"]).toBe("Script");
+    expect(toolsTranslations.ru["tools.winget.log.title"]).toBe(
+      "PowerShell Лог",
     );
   });
 
@@ -669,7 +700,7 @@ describe("toolsView quick actions", () => {
     });
   });
 
-  test("checks WinGet status and runs update only for updatable packages", async () => {
+  test("checks WinGet status and runs update for selected packages", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
@@ -679,8 +710,8 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
-    el.querySelector("#winget-package-git").checked = true;
-    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    el.querySelector("#winget-package-vlc").checked = true;
+    el.querySelector("#winget-package-vlc").dispatchEvent(new Event("change"));
     await nextTick();
     el.querySelector("#winget-check-status")?.click();
     await nextTick();
@@ -711,7 +742,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(window.electron.tools.runWingetUpdate).toHaveBeenCalledWith({
-      packageIds: ["Git.Git"],
+      packageIds: ["VideoLAN.VLC"],
       runId: expect.stringMatching(/^winget-/),
     });
   });
@@ -752,10 +783,25 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#winget-live-log")?.textContent).toContain(
       "Installing Git.Git",
     );
+    expect(el.querySelector("#winget-log-block")?.classList).not.toContain(
+      "hidden",
+    );
     expect(
       el.querySelector('[data-winget-package-status="git"]')?.textContent,
     ).toContain("tools.winget.status.installing");
     expect(el.querySelector(".winget-log-line.is-info")).not.toBeNull();
+
+    el.querySelector("#winget-copy-operation-log")?.click();
+    await nextTick();
+    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(
+      expect.stringContaining("Installing Git.Git"),
+    );
+
+    el.querySelector("#winget-copy-full-log")?.click();
+    await nextTick();
+    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(
+      expect.stringContaining("Installing Git.Git"),
+    );
   });
 
   test("keeps File Sorter available when developer mode is enabled", async () => {

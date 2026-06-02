@@ -1930,6 +1930,22 @@ function setupIpcHandlers(dependencies) {
     return String(value).replaceAll("'", "''");
   }
 
+  function buildWingetPowerShellInvocation(args = []) {
+    const quotedArgs = ["winget", ...args].map(
+      (arg) => `'${escapePowerShellSingleQuotedString(arg)}'`,
+    );
+    return [
+      "$ProgressPreference = 'SilentlyContinue'",
+      "try {",
+      "  [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()",
+      "  $OutputEncoding = [System.Text.UTF8Encoding]::new()",
+      "  $rawUi = $Host.UI.RawUI",
+      "  $rawUi.BufferSize = New-Object System.Management.Automation.Host.Size -ArgumentList 4096, $rawUi.BufferSize.Height",
+      "} catch {}",
+      `& ${quotedArgs.join(" ")}`,
+    ].join("; ");
+  }
+
   function buildWingetPowerShell(packageIds = [], mode = "install") {
     const normalizedMode = ["install", "upgrade", "uninstall"].includes(mode)
       ? mode
@@ -1943,6 +1959,7 @@ function setupIpcHandlers(dependencies) {
       normalizedMode === "upgrade" ? " --include-unknown" : "";
     return [
       "$ErrorActionPreference = 'Stop'",
+      "$ProgressPreference = 'SilentlyContinue'",
       "$wingetVersion = winget --version",
       'Write-Host "WinGet version: $wingetVersion"',
       "",
@@ -1956,29 +1973,63 @@ function setupIpcHandlers(dependencies) {
       "",
       "foreach ($packageId in $packages) {",
       `  Write-Host "Running winget ${command} for $packageId"`,
-      `  winget ${command} --id $packageId --exact --source winget${agreementOptions} --disable-interactivity${commandOptions}`,
-      "  if ($LASTEXITCODE -ne 0) {",
+      `  $wingetOutput = winget ${command} --id $packageId --exact --source winget${agreementOptions} --disable-interactivity${commandOptions} 2>&1`,
+      "  $wingetOutput | ForEach-Object { Write-Host $_ }",
+      "  $exitCode = $LASTEXITCODE",
+      normalizedMode === "upgrade"
+        ? "  $noUpgrade = (($wingetOutput -join \"`n\") -match 'No (available|applicable) upgrade found|No newer package versions are available')"
+        : "  $noUpgrade = $false",
+      "  if ($exitCode -ne 0 -and -not $noUpgrade) {",
       `    Write-Warning "winget ${command} failed for $packageId with exit code $LASTEXITCODE"`,
       "    $failed += $packageId",
+      "  } elseif ($noUpgrade) {",
+      '    Write-Host "No upgrade available for $packageId"',
       "  }",
       "}",
       "",
       "if ($failed.Count -gt 0) {",
-      "  Write-Error \"Failed packages: $($failed -join ', ')\"",
+      "  Write-Host \"Failed packages: $($failed -join ', ')\"",
       "  exit 1",
       "}",
     ].join("\n");
   }
 
+  function sanitizeWingetLogText(value = "") {
+    return String(value || "")
+      .replace(/\u001b\[[0-9;?]*[ -/]*[@-~]/g, "")
+      .replace(/\r/g, "\n")
+      .split(/\n/)
+      .map((line) =>
+        line
+          .replace(/[◐◓◑◒█▒░]+/g, "")
+          .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+          .trimEnd(),
+      )
+      .filter((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return false;
+        if (/^[\\|/-]+$/.test(trimmed)) return false;
+        if (/^[#.=\s-]{8,}$/.test(trimmed)) return false;
+        if (/^\d{1,3}%\s*$/.test(trimmed)) return false;
+        return true;
+      })
+      .join("\n");
+  }
+
   function sendWingetLog(runId, text, level = "info") {
     try {
+      const cleanText = sanitizeWingetLogText(text);
+      if (!cleanText) return;
       if (!mainWindow?.webContents || mainWindow.webContents.isDestroyed()) {
         return;
       }
-      mainWindow.webContents.send(CHANNELS.TOOLS_WINGET_LOG, {
-        level,
-        runId,
-        text: String(text || ""),
+      cleanText.split(/\n/).forEach((line) => {
+        if (!line.trim()) return;
+        mainWindow.webContents.send(CHANNELS.TOOLS_WINGET_LOG, {
+          level,
+          runId,
+          text: line,
+        });
       });
     } catch {}
   }
@@ -2006,10 +2057,23 @@ function setupIpcHandlers(dependencies) {
 
   function runWingetCommand(args = [], options = {}) {
     return new Promise((resolve) => {
+      const command =
+        process.platform === "win32" ? "powershell.exe" : "winget";
+      const commandArgs =
+        process.platform === "win32"
+          ? [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-Command",
+              buildWingetPowerShellInvocation(args),
+            ]
+          : args;
       execFile(
-        "winget",
-        args,
+        command,
+        commandArgs,
         {
+          maxBuffer: options.maxBuffer || 1024 * 1024 * 8,
           timeout: options.timeout || 30000,
           windowsHide: true,
         },
@@ -2069,10 +2133,15 @@ function setupIpcHandlers(dependencies) {
     return String(line || "")
       .replace(/\u001b\[[0-9;?]*[ -/]*[@-~]/g, "")
       .replace(/[◐◓◑◒█▒░]+/g, "")
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
       .trim();
   }
 
-  function parseWingetTableRows(output = "", upgradeOnly = false) {
+  function parseWingetTableRows(
+    output = "",
+    upgradeOnly = false,
+    exactPackageId = "",
+  ) {
     const rows = [];
     const lines = String(output || "")
       .split(/\r?\n/)
@@ -2086,13 +2155,29 @@ function setupIpcHandlers(dependencies) {
       if (/no .*package|не найден|source agreement|terms/i.test(line)) continue;
 
       const columns = line.split(/\s{2,}/).filter(Boolean);
-      const idIndex = columns.findIndex((column) =>
-        WINGET_PACKAGE_ID_PATTERN.test(column),
+      const exactKey = String(exactPackageId || "").toLowerCase();
+      const exactIndex = columns.findIndex(
+        (column) => exactKey && column.toLowerCase() === exactKey,
       );
-      if (idIndex === -1) continue;
-      const packageId = columns[idIndex];
-      const currentVersion = columns[idIndex + 1] || "";
-      const availableVersion = upgradeOnly ? columns[idIndex + 2] || "" : "";
+      const idIndex =
+        exactIndex === -1
+          ? columns.findIndex(
+              (column) =>
+                column.includes(".") && WINGET_PACKAGE_ID_PATTERN.test(column),
+            )
+          : exactIndex;
+      const fallbackIdIndex =
+        idIndex === -1
+          ? columns.findIndex((column) =>
+              WINGET_PACKAGE_ID_PATTERN.test(column),
+            )
+          : idIndex;
+      if (fallbackIdIndex === -1) continue;
+      const packageId = columns[fallbackIdIndex];
+      const currentVersion = columns[fallbackIdIndex + 1] || "";
+      const availableVersion = upgradeOnly
+        ? columns[fallbackIdIndex + 2] || ""
+        : "";
       rows.push({
         availableVersion,
         currentVersion,
@@ -2104,6 +2189,11 @@ function setupIpcHandlers(dependencies) {
     return rows;
   }
 
+  function findExactWingetRow(rows = [], packageId = "") {
+    const key = String(packageId || "").toLowerCase();
+    return rows.find((row) => row.packageId?.toLowerCase() === key);
+  }
+
   function createWingetRowMap(rows = []) {
     return rows.reduce((acc, row) => {
       if (!row?.packageId) return acc;
@@ -2112,29 +2202,178 @@ function setupIpcHandlers(dependencies) {
     }, new Map());
   }
 
-  async function collectWingetStatus(packageIds = []) {
-    const baseArgs = [
-      "--accept-source-agreements",
-      "--disable-interactivity",
-      "--source",
-      "winget",
+  function wingetOutputMentionsPackage(output = "", packageId = "") {
+    return String(output || "")
+      .toLowerCase()
+      .includes(String(packageId || "").toLowerCase());
+  }
+
+  async function runWingetStatusRows(
+    command,
+    packageId,
+    args = [],
+    upgradeOnly,
+  ) {
+    const attempts = [
+      {
+        args: [
+          command,
+          "--id",
+          packageId,
+          "--exact",
+          "--output",
+          "json",
+          ...args,
+        ],
+        json: true,
+      },
+      {
+        args: [command, "--id", packageId, "--exact", ...args],
+      },
+      {
+        args: [command, "--query", packageId, "--exact", ...args],
+      },
+      {
+        args: [command, packageId, "--exact", ...args],
+      },
+      {
+        args: [command, packageId, ...args],
+      },
     ];
-    const installedResult = await runWingetCommand(
-      ["list", "--output", "json", ...baseArgs],
-      { timeout: 45000 },
+
+    for (const attempt of attempts) {
+      const result = await runWingetCommand(attempt.args, { timeout: 30000 });
+      const rows = attempt.json
+        ? parseWingetJsonRows(result.output, upgradeOnly)
+        : parseWingetTableRows(result.output, upgradeOnly, packageId);
+      if (
+        rows &&
+        findExactWingetRow(rows, packageId) &&
+        wingetOutputMentionsPackage(result.output, packageId)
+      ) {
+        return rows;
+      }
+    }
+
+    return [];
+  }
+
+  async function collectOneWingetStatus(
+    packageId,
+    listArgs = [],
+    upgradeArgs = [],
+  ) {
+    const installedRows = await runWingetStatusRows(
+      "list",
+      packageId,
+      listArgs,
+      false,
     );
+    const upgradeRows = await runWingetStatusRows(
+      "upgrade",
+      packageId,
+      upgradeArgs,
+      true,
+    );
+    const installed = findExactWingetRow(installedRows, packageId);
+    const upgrade = findExactWingetRow(upgradeRows, packageId);
+
+    if (upgrade) {
+      return {
+        availableVersion: upgrade.availableVersion,
+        currentVersion:
+          upgrade.currentVersion || installed?.currentVersion || "",
+        packageId,
+        status: "updateAvailable",
+      };
+    }
+    if (installed) {
+      return {
+        availableVersion: "",
+        currentVersion: installed.currentVersion,
+        packageId,
+        status: "installed",
+      };
+    }
+    return {
+      availableVersion: "",
+      currentVersion: "",
+      packageId,
+      status: "notInstalled",
+    };
+  }
+
+  async function mapWithConcurrency(items = [], limit = 4, mapper) {
+    const results = new Array(items.length);
+    let index = 0;
+    const workers = Array.from(
+      { length: Math.min(limit, items.length) },
+      async () => {
+        while (index < items.length) {
+          const currentIndex = index;
+          index += 1;
+          results[currentIndex] = await mapper(
+            items[currentIndex],
+            currentIndex,
+          );
+        }
+      },
+    );
+    await Promise.all(workers);
+    return results;
+  }
+
+  async function collectWingetStatus(packageIds = []) {
+    const listResult = await runWingetCommand(["list"], {
+      maxBuffer: 1024 * 1024 * 16,
+      timeout: 60000,
+    });
     const upgradeResult = await runWingetCommand(
-      ["upgrade", "--output", "json", ...baseArgs],
-      { timeout: 45000 },
+      ["upgrade", "--include-unknown"],
+      {
+        maxBuffer: 1024 * 1024 * 16,
+        timeout: 60000,
+      },
     );
     const installedRows =
-      parseWingetJsonRows(installedResult.output, false) ||
-      parseWingetTableRows(installedResult.output, false);
+      parseWingetJsonRows(listResult.output, false) ||
+      parseWingetTableRows(listResult.output, false);
     const upgradeRows =
       parseWingetJsonRows(upgradeResult.output, true) ||
       parseWingetTableRows(upgradeResult.output, true);
     const installedMap = createWingetRowMap(installedRows);
     const upgradeMap = createWingetRowMap(upgradeRows);
+    const missingPackageIds = packageIds.filter((packageId) => {
+      const key = packageId.toLowerCase();
+      return !installedMap.has(key) && !upgradeMap.has(key);
+    });
+
+    if (missingPackageIds.length && installedRows.length === 0) {
+      const fallbackItems = await mapWithConcurrency(
+        missingPackageIds,
+        6,
+        (packageId) =>
+          collectOneWingetStatus(
+            packageId,
+            [],
+            [
+              "--accept-source-agreements",
+              "--disable-interactivity",
+              "--source",
+              "winget",
+            ],
+          ),
+      );
+      fallbackItems.forEach((item) => {
+        if (item.status === "notInstalled") return;
+        const key = item.packageId.toLowerCase();
+        if (item.status === "updateAvailable") {
+          upgradeMap.set(key, item);
+          return;
+        }
+        installedMap.set(key, item);
+      });
+    }
 
     return packageIds.map((packageId) => {
       const key = packageId.toLowerCase();

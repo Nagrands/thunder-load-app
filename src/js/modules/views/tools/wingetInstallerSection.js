@@ -1,10 +1,10 @@
 import {
-  WINGET_PACKAGE_CATEGORIES,
   WINGET_PACKAGE_GROUPS,
   aggregateWingetPackageStatus,
   buildWingetScript,
   getAllBuiltInWingetPackageIds,
   getWingetPackageIdsFromSelection,
+  getRenderableWingetPackageCategories,
   isValidWingetPackageId,
   parseCustomWingetPackageIds,
 } from "./wingetPackages.js";
@@ -18,12 +18,27 @@ const WINGET_LOG_MAX_ENTRIES = 400;
 const WINGET_CUSTOM_STATUS_DEBOUNCE_MS = 600;
 
 function renderWingetInstallerSection(t) {
-  const packageCategories = WINGET_PACKAGE_CATEGORIES.map((category) => {
-    const packageItems = WINGET_PACKAGE_GROUPS.filter(
-      (group) => group.category === category.id,
-    )
-      .map(
-        (group) => `
+  const savedState = readJsonStorage(
+    TOOLS_STORAGE_KEYS.WINGET_INSTALLER_STATE,
+    {
+      openCategoryIds: null,
+    },
+  );
+  const savedOpenCategoryIds = Array.isArray(savedState?.openCategoryIds)
+    ? new Set(savedState.openCategoryIds)
+    : null;
+  const packageCategories = getRenderableWingetPackageCategories(t)
+    .map((category) => {
+      const groups = WINGET_PACKAGE_GROUPS.filter(
+        (group) => group.category === category.id,
+      );
+      const packageItems = groups
+        .map((group) => {
+          const description =
+            group.category === "browsers"
+              ? ""
+              : `<small class="winget-package-item__desc" data-i18n="${group.descriptionKey}">${t(group.descriptionKey)}</small>`;
+          return `
           <label class="winget-package-item" for="winget-package-${group.id}">
             <input
               id="winget-package-${group.id}"
@@ -35,8 +50,7 @@ function renderWingetInstallerSection(t) {
             </span>
             <span class="winget-package-item__content">
               <strong>${group.label}</strong>
-              <small class="winget-package-item__desc" data-i18n="${group.descriptionKey}">${t(group.descriptionKey)}</small>
-              <code>${group.packageIds.join(", ")}</code>
+              ${description}
               <span class="winget-package-item__meta">
                 <span class="winget-status-pill is-unknown" data-winget-package-status="${group.id}" data-i18n="tools.winget.status.unknown">${t("tools.winget.status.unknown")}</span>
                 <span class="winget-package-version" data-winget-package-version="${group.id}" data-i18n="tools.winget.version.empty">${t("tools.winget.version.empty")}</span>
@@ -44,16 +58,20 @@ function renderWingetInstallerSection(t) {
               </span>
             </span>
           </label>
-        `,
-      )
-      .join("");
+        `;
+        })
+        .join("");
 
-    if (!packageItems) return "";
-    return `
-      <details class="winget-package-category" data-winget-category="${category.id}" open>
+      if (!packageItems) return "";
+      const isOpen = savedOpenCategoryIds
+        ? savedOpenCategoryIds.has(category.id)
+        : true;
+      return `
+      <details class="winget-package-category" data-winget-category="${category.id}" ${isOpen ? "open" : ""}>
         <summary class="winget-package-category__header">
           <i class="${category.icon}" aria-hidden="true"></i>
           <h4 data-i18n="${category.titleKey}">${t(category.titleKey)}</h4>
+          <span class="winget-category-count">${groups.length}</span>
           <i class="fa-solid fa-chevron-down winget-package-category__chevron" aria-hidden="true"></i>
         </summary>
         <div class="winget-package-grid">
@@ -61,7 +79,8 @@ function renderWingetInstallerSection(t) {
         </div>
       </details>
     `;
-  }).join("");
+    })
+    .join("");
 
   const scriptSteps = [
     "tools.winget.script.step.preflight",
@@ -96,6 +115,44 @@ function renderWingetInstallerSection(t) {
             <span data-i18n="tools.winget.platform.body">${t("tools.winget.platform.body")}</span>
           </div>
         </div>
+
+        <details id="winget-log-block" class="winget-log-block hidden" open>
+          <summary>
+            <span class="winget-log-title">
+              <i class="fa-solid fa-terminal"></i>
+              <span data-i18n="tools.winget.log.title">${t("tools.winget.log.title")}</span>
+            </span>
+            <span class="winget-log-actions">
+              <button
+                id="winget-copy-operation-log"
+                type="button"
+                class="small-button winget-icon-button"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-i18n-title="tools.winget.copyOperationLog"
+                data-i18n-aria="tools.winget.copyOperationLog"
+                title="${t("tools.winget.copyOperationLog")}"
+                aria-label="${t("tools.winget.copyOperationLog")}"
+              >
+                <i class="fa-solid fa-clock-rotate-left"></i>
+              </button>
+              <button
+                id="winget-copy-full-log"
+                type="button"
+                class="small-button winget-icon-button"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-i18n-title="tools.winget.copyFullLog"
+                data-i18n-aria="tools.winget.copyFullLog"
+                title="${t("tools.winget.copyFullLog")}"
+                aria-label="${t("tools.winget.copyFullLog")}"
+              >
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </span>
+          </summary>
+          <div id="winget-live-log" class="winget-live-log" data-i18n="tools.winget.log.placeholder">${t("tools.winget.log.placeholder")}</div>
+        </details>
 
         <div class="winget-installer__layout">
           <section class="winget-panel winget-panel--packages" aria-label="${t("tools.winget.packages.title")}">
@@ -210,14 +267,6 @@ function renderWingetInstallerSection(t) {
             </div>
           </section>
         </div>
-
-        <details class="winget-log-block" open>
-          <summary>
-            <i class="fa-solid fa-terminal"></i>
-            <span data-i18n="tools.winget.log.title">${t("tools.winget.log.title")}</span>
-          </summary>
-          <div id="winget-live-log" class="winget-live-log" data-i18n="tools.winget.log.placeholder">${t("tools.winget.log.placeholder")}</div>
-        </details>
       </article>
     </section>
   `;
@@ -242,8 +291,10 @@ function initWingetInstallerSection({
     checking: false,
     entries: [],
     isWindows: !!platformInfo?.isWindows,
+    lastOperationEntries: [],
     lastStatusItems: [],
     mode: "install",
+    operationActive: false,
     runId: "",
     statusItems: new Map(),
     transientStatusItems: new Map(),
@@ -261,6 +312,7 @@ function initWingetInstallerSection({
     runBtn: () => getEl("winget-run-script", view),
     cancelBtn: () => getEl("winget-cancel-run", view),
     checkBtn: () => getEl("winget-check-status", view),
+    logBlock: () => getEl("winget-log-block", view),
     customStatusList: () => getEl("winget-custom-status-list", view),
   };
   let customStatusTimer = null;
@@ -268,6 +320,7 @@ function initWingetInstallerSection({
   const readSavedState = () =>
     readJsonStorage(TOOLS_STORAGE_KEYS.WINGET_INSTALLER_STATE, {
       customPackageIds: [],
+      openCategoryIds: null,
       selectedGroupIds: [],
     });
 
@@ -306,14 +359,24 @@ function initWingetInstallerSection({
 
   const saveSelection = () => {
     const selection = getSelection();
+    const openCategoryIds = Array.from(
+      view.querySelectorAll("[data-winget-category]"),
+    )
+      .filter((category) => category.open)
+      .map((category) => category.dataset.wingetCategory);
     writeJsonStorage(TOOLS_STORAGE_KEYS.WINGET_INSTALLER_STATE, {
       customPackageIds: selection.customPackageIds,
+      openCategoryIds,
       selectedGroupIds: selection.selectedGroupIds,
     });
   };
 
   const appendLog = (text, level = "info") => {
-    state.entries.push({ level, text: String(text || ""), ts: Date.now() });
+    const entry = { level, text: String(text || ""), ts: Date.now() };
+    state.entries.push(entry);
+    if (state.operationActive) {
+      state.lastOperationEntries.push(entry);
+    }
     if (state.entries.length > WINGET_LOG_MAX_ENTRIES) {
       state.entries = state.entries.slice(-WINGET_LOG_MAX_ENTRIES);
     }
@@ -327,10 +390,24 @@ function initWingetInstallerSection({
     state.entries.forEach((entry) => {
       const line = document.createElement("div");
       line.className = `winget-log-line is-${entry.level || "info"}`;
-      line.textContent = formatLogEntry(entry);
+      const dt = new Date(entry.ts || Date.now());
+      const pad = (value) => String(value).padStart(2, "0");
+      const time = document.createElement("span");
+      time.textContent = `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+      const level = document.createElement("span");
+      level.textContent = (entry.level || "info").toUpperCase();
+      const message = document.createElement("span");
+      message.textContent = entry.text || "";
+      line.append(time, level, message);
       logEl.appendChild(line);
     });
     logEl.scrollTop = logEl.scrollHeight;
+  };
+
+  const revealLog = () => {
+    const logBlock = controls.logBlock();
+    logBlock?.classList.remove("hidden");
+    if (logBlock) logBlock.open = true;
   };
 
   const updatePlatformUi = () => {
@@ -588,16 +665,7 @@ function initWingetInstallerSection({
     renderPreview();
   };
 
-  const getUpdatablePackageIds = (fallbackPackageIds = []) => {
-    const updatable = state.lastStatusItems
-      .filter((item) => item.status === "updateAvailable")
-      .map((item) => item.packageId)
-      .filter(isValidWingetPackageId);
-    return state.mode === "upgrade" ? updatable : fallbackPackageIds;
-  };
-
-  const getRunnablePackageIds = (packageIds = []) =>
-    state.mode === "upgrade" ? getUpdatablePackageIds(packageIds) : packageIds;
+  const getRunnablePackageIds = (packageIds = []) => packageIds;
 
   const renderStatuses = (items = []) => {
     mergeStatusItems(items);
@@ -610,6 +678,17 @@ function initWingetInstallerSection({
     try {
       await navigator.clipboard.writeText(text);
       showToast(t("tools.winget.toast.copied"), "success");
+    } catch {
+      showToast(t("tools.winget.toast.copyError"), "error");
+    }
+  };
+
+  const copyLogEntries = async (entries = []) => {
+    const text = entries.map(formatLogEntry).join("\n");
+    if (!text.trim()) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t("tools.winget.toast.logCopied"), "success");
     } catch {
       showToast(t("tools.winget.toast.copyError"), "error");
     }
@@ -652,7 +731,7 @@ function initWingetInstallerSection({
   const checkStatus = async () => {
     const selection = getSelection();
     if (selection.invalidPackageIds.length) return;
-    await checkPackageStatus(getAllVisiblePackageIds());
+    await checkPackageStatus(getAllVisiblePackageIds(), { silent: true });
   };
 
   const scheduleCustomStatusCheck = () => {
@@ -681,6 +760,9 @@ function initWingetInstallerSection({
     const packageIds = getRunnablePackageIds(selection.packageIds);
     if (!packageIds.length) return;
     const runStatus = getTransientStatusForMode(state.mode);
+    state.operationActive = true;
+    state.lastOperationEntries = [];
+    revealLog();
     appendLog(t("tools.winget.log.runStart", { mode: getModeLabel() }));
     setTransientStatuses(packageIds, runStatus);
     setRunning(true);
@@ -707,6 +789,7 @@ function initWingetInstallerSection({
       setTransientStatuses(packageIds, "error");
       appendLog(error?.message || String(error), "error");
     } finally {
+      state.operationActive = false;
       setRunning(false);
       state.runId = "";
     }
@@ -775,11 +858,25 @@ function initWingetInstallerSection({
     renderPreview();
   });
   getEl("winget-copy-script", view)?.addEventListener("click", copyScript);
+  getEl("winget-copy-full-log", view)?.addEventListener("click", (event) => {
+    event.preventDefault();
+    copyLogEntries(state.entries);
+  });
+  getEl("winget-copy-operation-log", view)?.addEventListener(
+    "click",
+    (event) => {
+      event.preventDefault();
+      copyLogEntries(state.lastOperationEntries);
+    },
+  );
   controls.checkBtn()?.addEventListener("click", checkStatus);
   controls.runBtn()?.addEventListener("click", runScript);
   controls.cancelBtn()?.addEventListener("click", cancelRun);
   view.querySelectorAll("[data-winget-mode]").forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.wingetMode));
+  });
+  view.querySelectorAll("[data-winget-category]").forEach((category) => {
+    category.addEventListener("toggle", saveSelection);
   });
 
   applySavedState();

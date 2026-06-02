@@ -4,22 +4,22 @@ import {
   aggregateWingetPackageStatus,
   buildWingetScript,
   getWingetPackageIdsFromSelection,
+  getRenderableWingetPackageCategories,
   isValidWingetPackageId,
   parseCustomWingetPackageIds,
 } from "../views/tools/wingetPackages";
 
 describe("wingetPackages", () => {
-  test("catalog includes Afterburner with RTSS and Node.js LTS", () => {
+  test("catalog keeps Afterburner stable and moves 7-Zip into system", () => {
     const afterburner = WINGET_PACKAGE_GROUPS.find(
       (group) => group.id === "afterburner",
     );
+    const sevenZip = WINGET_PACKAGE_GROUPS.find((group) => group.id === "7zip");
     const node = WINGET_PACKAGE_GROUPS.find((group) => group.id === "node");
 
-    expect(afterburner.packageIds).toEqual([
-      "Guru3D.Afterburner",
-      "Guru3D.RTSS",
-    ]);
+    expect(afterburner.packageIds).toEqual(["Guru3D.Afterburner"]);
     expect(node.packageIds).toEqual(["OpenJS.NodeJS.LTS"]);
+    expect(sevenZip.category).toBe("system");
     expect(afterburner.category).toBe("system");
     expect(afterburner.descriptionKey).toBe(
       "tools.winget.package.afterburner.desc",
@@ -27,6 +27,34 @@ describe("wingetPackages", () => {
     expect(WINGET_PACKAGE_CATEGORIES.map((category) => category.id)).toContain(
       "media",
     );
+    expect(
+      WINGET_PACKAGE_CATEGORIES.map((category) => category.id),
+    ).not.toContain("archives");
+  });
+
+  test("returns renderable categories sorted by localized title", () => {
+    const labels = {
+      "tools.winget.category.browsers": "Браузеры",
+      "tools.winget.category.develop": "Develop",
+      "tools.winget.category.games": "Игры",
+      "tools.winget.category.media": "Медиа",
+      "tools.winget.category.network": "Сеть",
+      "tools.winget.category.productivity": "Продуктивность",
+      "tools.winget.category.system": "Система",
+    };
+    const categories = getRenderableWingetPackageCategories(
+      (key) => labels[key] || key,
+    );
+
+    expect(categories.map((category) => category.id)).toEqual([
+      "develop",
+      "browsers",
+      "games",
+      "media",
+      "productivity",
+      "network",
+      "system",
+    ]);
   });
 
   test("validates custom package IDs conservatively", () => {
@@ -66,15 +94,15 @@ describe("wingetPackages", () => {
 
     expect(
       aggregateWingetPackageStatus(
-        ["Guru3D.Afterburner", "Guru3D.RTSS"],
+        ["Vendor.App", "Vendor.Helper"],
         [
           {
             currentVersion: "4.6.6",
-            packageId: "Guru3D.Afterburner",
+            packageId: "Vendor.App",
             status: "installed",
           },
           {
-            packageId: "Guru3D.RTSS",
+            packageId: "Vendor.Helper",
             status: "notInstalled",
           },
         ],
@@ -86,17 +114,17 @@ describe("wingetPackages", () => {
 
     expect(
       aggregateWingetPackageStatus(
-        ["Guru3D.Afterburner", "Guru3D.RTSS"],
+        ["Vendor.App", "Vendor.Helper"],
         [
           {
             availableVersion: "4.6.7",
             currentVersion: "4.6.6",
-            packageId: "Guru3D.Afterburner",
+            packageId: "Vendor.App",
             status: "updateAvailable",
           },
           {
             currentVersion: "7.3.6",
-            packageId: "Guru3D.RTSS",
+            packageId: "Vendor.Helper",
             status: "installed",
           },
         ],
@@ -113,6 +141,7 @@ describe("wingetPackages", () => {
     const uninstallScript = buildWingetScript(["Git.Git"], "uninstall");
 
     expect(installScript).toContain("winget --version");
+    expect(installScript).toContain("$ProgressPreference = 'SilentlyContinue'");
     expect(installScript).toContain("winget install --id $packageId --exact");
     expect(upgradeScript).toContain("winget upgrade --id $packageId --exact");
     expect(upgradeScript).toContain("--include-unknown");

@@ -10,11 +10,6 @@ const WINGET_PACKAGE_CATEGORIES = Object.freeze([
     titleKey: "tools.winget.category.media",
   },
   {
-    id: "archives",
-    icon: "fa-solid fa-file-zipper",
-    titleKey: "tools.winget.category.archives",
-  },
-  {
     id: "develop",
     icon: "fa-solid fa-code",
     titleKey: "tools.winget.category.develop",
@@ -43,7 +38,7 @@ const WINGET_PACKAGE_CATEGORIES = Object.freeze([
 
 const WINGET_PACKAGE_GROUPS = Object.freeze([
   {
-    category: "archives",
+    category: "system",
     descriptionKey: "tools.winget.package.7zip.desc",
     icon: "fa-solid fa-file-zipper",
     id: "7zip",
@@ -88,7 +83,7 @@ const WINGET_PACKAGE_GROUPS = Object.freeze([
     icon: "fa-solid fa-gauge-high",
     id: "afterburner",
     label: "MSI Afterburner (+ RTSS)",
-    packageIds: ["Guru3D.Afterburner", "Guru3D.RTSS"],
+    packageIds: ["Guru3D.Afterburner"],
   },
   {
     category: "develop",
@@ -251,6 +246,16 @@ function getAllBuiltInWingetPackageIds() {
   );
 }
 
+function getRenderableWingetPackageCategories(t = (key) => key) {
+  return WINGET_PACKAGE_CATEGORIES.filter((category) =>
+    WINGET_PACKAGE_GROUPS.some((group) => group.category === category.id),
+  ).sort((a, b) =>
+    String(t(a.titleKey)).localeCompare(String(t(b.titleKey)), undefined, {
+      sensitivity: "base",
+    }),
+  );
+}
+
 function createWingetStatusMap(items = []) {
   return (Array.isArray(items) ? items : []).reduce((acc, item) => {
     const packageId = normalizeWingetPackageId(item?.packageId);
@@ -334,6 +339,7 @@ function buildWingetScript(packageIds = [], mode = "install") {
   );
   const lines = [
     "$ErrorActionPreference = 'Stop'",
+    "$ProgressPreference = 'SilentlyContinue'",
     "$wingetVersion = winget --version",
     'Write-Host "WinGet version: $wingetVersion"',
     "",
@@ -370,6 +376,7 @@ export {
   buildWingetScript,
   getAllBuiltInWingetPackageIds,
   getWingetPackageIdsFromSelection,
+  getRenderableWingetPackageCategories,
   isValidWingetPackageId,
   parseCustomWingetPackageIds,
   uniqueWingetPackageIds,

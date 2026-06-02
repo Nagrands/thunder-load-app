@@ -29922,17 +29922,26 @@ video {
 
 .winget-installer__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(340px, 1fr) minmax(360px, 0.95fr);
   gap: 16px;
   align-items: start;
 }
 
 .winget-panel,
 .winget-log-block {
-  border: 1px solid rgba(var(--color-accent-rgb), 0.14);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.18);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.06), transparent), rgba(255, 255, 255, 0.035);
   padding: 16px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
+.winget-panel--packages {
+  order: 2;
+}
+
+.winget-panel--script {
+  order: 1;
 }
 
 .winget-panel__header {
@@ -29970,6 +29979,10 @@ video {
 .winget-package-category {
   display: grid;
   gap: 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.1);
+  padding: 10px;
 }
 
 .winget-package-category__header {
@@ -29992,8 +30005,22 @@ video {
   color: var(--color-accent);
 }
 
-.winget-package-category__chevron {
+.winget-category-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 22px;
   margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.12);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.winget-package-category__chevron {
   transition: transform 160ms ease;
 }
 
@@ -30016,15 +30043,15 @@ video {
   padding: 11px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.12);
+  background: radial-gradient(circle at top, rgba(var(--color-accent-rgb), 0.08), transparent 60%), rgba(0, 0, 0, 0.14);
   cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
 }
 .winget-package-item input {
   margin: 0;
 }
 .winget-package-item strong,
-.winget-package-item small,
-.winget-package-item code {
+.winget-package-item small {
   display: block;
 }
 .winget-package-item strong {
@@ -30036,12 +30063,9 @@ video {
   color: var(--color-quality);
   overflow-wrap: anywhere;
 }
-.winget-package-item code {
-  margin-top: 5px;
-  color: rgba(var(--color-accent-rgb), 0.92);
-  font-size: 11px;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
+.winget-package-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--color-accent-rgb), 0.3);
 }
 
 .winget-package-item__meta {
@@ -30138,6 +30162,21 @@ video {
   gap: 8px;
 }
 
+.winget-mode-toggle {
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+}
+.winget-mode-toggle .small-button {
+  border-radius: 8px;
+}
+.winget-mode-toggle .small-button.is-active {
+  color: var(--color-highlight);
+  border-color: rgba(var(--color-accent-rgb), 0.45);
+  background: rgba(var(--color-accent-rgb), 0.2);
+}
+
 .winget-script-steps {
   display: grid;
   gap: 7px;
@@ -30167,16 +30206,20 @@ video {
   overflow-wrap: anywhere;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.28);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 46px, transparent 46px), rgba(0, 0, 0, 0.3);
   color: var(--color-highlight);
-  padding: 14px;
+  padding: 14px 14px 14px 54px;
   font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .winget-log-line {
   min-height: 18px;
+  display: grid;
+  grid-template-columns: 74px 76px 1fr;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
 }
 .winget-log-line.is-error {
   color: var(--color-error, #ff6b6b);
@@ -30216,15 +30259,18 @@ video {
 }
 .winget-status-pill.is-installed {
   color: var(--color-success, #7bd88f);
+  background: rgba(73, 190, 110, 0.16);
 }
 .winget-status-pill.is-updateAvailable {
   color: var(--color-warning, #ffd166);
+  background: rgba(251, 191, 36, 0.16);
 }
 .winget-status-pill.is-checking, .winget-status-pill.is-installing, .winget-status-pill.is-updating, .winget-status-pill.is-uninstalling {
   color: #fde68a;
 }
 .winget-status-pill.is-error {
   color: var(--color-error, #ff6b6b);
+  background: rgba(255, 107, 107, 0.14);
 }
 .winget-status-pill.is-partial {
   color: var(--color-accent);
@@ -30234,8 +30280,19 @@ video {
 }
 
 .winget-log-block summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
   margin-bottom: 10px;
+}
+
+.winget-log-title,
+.winget-log-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .power-shortcuts-actions {
