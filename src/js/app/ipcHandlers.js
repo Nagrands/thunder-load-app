@@ -172,6 +172,7 @@ const COMMON_AUDIO_CODECS = new Set([
 ]);
 
 const MEDIA_INSPECTOR_HIGH_BITRATE_THRESHOLD = 50 * 1000 * 1000;
+const RESUME_STATE_DIR_NAME = ".thunderload-resume";
 
 function normalizeMediaInspectorText(value) {
   const text = String(value ?? "").trim();
@@ -225,6 +226,42 @@ function isHdrStream(stream = {}) {
       );
     })
   );
+}
+
+function hasActiveDownloads(downloadState = {}) {
+  return (
+    !!downloadState.downloadInProgress ||
+    ((downloadState.activeDownloads || new Map()).size || 0) > 0
+  );
+}
+
+async function cleanupResumeStateDirAfterDownloadPathChange({
+  oldPath,
+  newPath,
+  downloadState,
+} = {}) {
+  if (typeof oldPath !== "string" || typeof newPath !== "string") return;
+  const resolvedOldPath = path.resolve(oldPath);
+  const resolvedNewPath = path.resolve(newPath);
+  if (resolvedOldPath === resolvedNewPath) return;
+  if (hasActiveDownloads(downloadState)) {
+    log.info(
+      "Skipping resume state cleanup while downloads are active:",
+      resolvedOldPath,
+    );
+    return;
+  }
+
+  const resumeDir = path.join(resolvedOldPath, RESUME_STATE_DIR_NAME);
+  if (path.basename(resumeDir) !== RESUME_STATE_DIR_NAME) return;
+  try {
+    await fsPromises.rm(resumeDir, { recursive: true, force: true });
+  } catch (error) {
+    log.warn(
+      `Failed to remove resume state directory: ${resumeDir}`,
+      error?.message || error,
+    );
+  }
 }
 
 function isVariableFrameRateStream(stream = {}) {
@@ -3216,7 +3253,13 @@ function setupIpcHandlers(dependencies) {
       try {
         const stats = await fs.promises.stat(selectedPath);
         if (stats.isDirectory()) {
+          const previousDownloadPath = downloadState.downloadPath;
           setDownloadPath(selectedPath);
+          await cleanupResumeStateDirAfterDownloadPathChange({
+            oldPath: previousDownloadPath,
+            newPath: selectedPath,
+            downloadState,
+          });
           return { success: true, path: selectedPath };
         } else {
           throw new Error("The selected path is not a directory.");
@@ -3321,7 +3364,13 @@ function setupIpcHandlers(dependencies) {
       if (!stats.isDirectory()) {
         throw new Error("Path is not a directory");
       }
+      const previousDownloadPath = downloadState.downloadPath;
       setDownloadPath(path);
+      await cleanupResumeStateDirAfterDownloadPathChange({
+        oldPath: previousDownloadPath,
+        newPath: path,
+        downloadState,
+      });
       log.info(`Download path set to: ${path}`);
       return { success: true };
     } catch (error) {

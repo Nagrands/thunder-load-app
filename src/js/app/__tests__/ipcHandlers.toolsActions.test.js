@@ -142,7 +142,12 @@ describe("ipcHandlers tools quick actions", () => {
     });
   });
 
-  function initHandlers({ storeValues = {}, clipboardMonitor = null } = {}) {
+  function initHandlers({
+    storeValues = {},
+    clipboardMonitor = null,
+    downloadState = { downloadPath: "/tmp", downloadInProgress: false },
+    setDownloadPath = jest.fn(),
+  } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
     const setReloadMenuEnabled = jest.fn();
     const storeGet = jest.fn((key, def) =>
@@ -164,9 +169,9 @@ describe("ipcHandlers tools quick actions", () => {
         },
       },
       store,
-      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
+      downloadState,
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
-      setDownloadPath: jest.fn(),
+      setDownloadPath,
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
       iconCache: new Map(),
@@ -182,7 +187,7 @@ describe("ipcHandlers tools quick actions", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { store, setReloadMenuEnabled };
+    return { store, setDownloadPath, setReloadMenuEnabled };
   }
 
   test("set-open-on-copy-url-status toggles clipboard monitor and persists state", async () => {
@@ -226,6 +231,111 @@ describe("ipcHandlers tools quick actions", () => {
     const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_PICK_FILE]();
 
     expect(result).toEqual({ success: true, filePath: "/tmp/movie.webm" });
+  });
+
+  test("set-download-path removes resume state from previous downloads folder", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-old-"));
+    const newDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-new-"));
+    const resumeDir = path.join(oldDir, ".thunderload-resume");
+    fs.mkdirSync(resumeDir, { recursive: true });
+    fs.writeFileSync(path.join(resumeDir, "state.json"), "{}", "utf8");
+
+    const { setDownloadPath } = initHandlers({
+      downloadState: { downloadPath: oldDir, downloadInProgress: false },
+    });
+
+    const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, newDir);
+
+    expect(result).toEqual({ success: true });
+    expect(setDownloadPath).toHaveBeenCalledWith(newDir);
+    expect(fs.existsSync(resumeDir)).toBe(false);
+  });
+
+  test("select-download-folder removes resume state from previous downloads folder", async () => {
+    const { dialog } = require("electron");
+    const { CHANNELS } = require("../../ipc/channels");
+    const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-pick-old-"));
+    const newDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-pick-new-"));
+    const resumeDir = path.join(oldDir, ".thunderload-resume");
+    fs.mkdirSync(resumeDir, { recursive: true });
+    dialog.showOpenDialog.mockResolvedValue({
+      canceled: false,
+      filePaths: [newDir],
+    });
+
+    const { setDownloadPath } = initHandlers({
+      downloadState: { downloadPath: oldDir, downloadInProgress: false },
+    });
+
+    const result = await handlers[CHANNELS.SELECT_DOWNLOAD_FOLDER]();
+
+    expect(result).toEqual({ success: true, path: newDir });
+    expect(setDownloadPath).toHaveBeenCalledWith(newDir);
+    expect(fs.existsSync(resumeDir)).toBe(false);
+  });
+
+  test("set-download-path keeps resume state when downloads folder is unchanged", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-same-"));
+    const resumeDir = path.join(dir, ".thunderload-resume");
+    fs.mkdirSync(resumeDir, { recursive: true });
+
+    initHandlers({
+      downloadState: { downloadPath: dir, downloadInProgress: false },
+    });
+
+    const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, dir);
+
+    expect(result).toEqual({ success: true });
+    expect(fs.existsSync(resumeDir)).toBe(true);
+  });
+
+  test("set-download-path keeps resume state while downloads are active", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-active-"));
+    const newDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-target-"));
+    const resumeDir = path.join(oldDir, ".thunderload-resume");
+    fs.mkdirSync(resumeDir, { recursive: true });
+
+    initHandlers({
+      downloadState: {
+        downloadPath: oldDir,
+        downloadInProgress: true,
+        activeDownloads: new Map([["job-1", {}]]),
+      },
+    });
+
+    const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, newDir);
+
+    expect(result).toEqual({ success: true });
+    expect(fs.existsSync(resumeDir)).toBe(true);
+  });
+
+  test("set-download-path succeeds when resume state cleanup fails", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const log = require("electron-log");
+    const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-error-"));
+    const newDir = fs.mkdtempSync(path.join(os.tmpdir(), "resume-error-new-"));
+    const rmSpy = jest
+      .spyOn(fs.promises, "rm")
+      .mockRejectedValueOnce(new Error("cleanup denied"));
+
+    initHandlers({
+      downloadState: { downloadPath: oldDir, downloadInProgress: false },
+    });
+
+    try {
+      const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, newDir);
+
+      expect(result).toEqual({ success: true });
+      expect(log.warn).toHaveBeenCalledWith(
+        expect.stringContaining(".thunderload-resume"),
+        "cleanup denied",
+      );
+    } finally {
+      rmSpy.mockRestore();
+    }
   });
 
   test("open-config-folder opens settings directory without selecting file", async () => {
