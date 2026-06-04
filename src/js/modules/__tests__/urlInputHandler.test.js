@@ -42,14 +42,28 @@ const buildDom = () => {
         </div>
         <div id="url-inline-error" class="url-inline-error hidden"></div>
       </div>
-      <div id="preview-card" style="display:none;">
-        <div class="preview-media">
-          <img id="preview-thumb" style="display:none;" />
+      <div id="preview-card" class="preview-card" style="display:none;">
+        <div class="preview-card__thumb preview-media">
+          <div class="preview-thumb-wrap">
+            <img id="preview-thumb" style="display:none;" />
+            <span id="preview-duration-overlay" class="preview-duration-overlay hidden"></span>
+          </div>
         </div>
-        <div class="preview-meta">
+        <div class="preview-card__body preview-meta">
           <div class="preview-kicker"></div>
           <div id="preview-title"></div>
-          <small id="preview-duration"></small>
+          <div class="preview-badges">
+            <span id="preview-source" class="preview-chip preview-chip--source hidden"></span>
+            <small id="preview-duration" class="preview-chip preview-chip--duration hidden"></small>
+            <span id="preview-quality" class="preview-chip preview-chip--quality hidden"></span>
+            <span id="preview-ready" class="preview-chip preview-chip--ready hidden"></span>
+          </div>
+          <div id="preview-details" class="preview-details hidden"></div>
+        </div>
+        <div id="preview-actions" class="preview-card__actions preview-actions"></div>
+        <div class="preview-card__controls">
+          <button id="preview-collapse" type="button" aria-expanded="true"></button>
+          <button class="preview-close" type="button"></button>
         </div>
         <div id="preview-live-player" class="hidden">
           <button id="preview-live-close" type="button"></button>
@@ -1065,6 +1079,107 @@ describe("urlInputHandler", () => {
     expect(wrapper.classList.contains("has-preview")).toBe(true);
     expect(container.classList.contains("has-preview")).toBe(true);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+  });
+
+  test("renders preview card metadata in detailed and compact modes", async () => {
+    const { input, previewCard, container } = getState();
+    const zoneSelector =
+      ".preview-card__thumb,.preview-card__body,.preview-card__actions,.preview-card__controls";
+    const initialZones = Array.from(previewCard.querySelectorAll(zoneSelector))
+      .map((el) => el.className)
+      .join("|");
+    isCompactDownloaderModeMock.mockReturnValue(true);
+    container.classList.add("is-downloader-compact");
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "Demo title",
+      duration: 204,
+      thumbnail: "https://example.com/thumb.jpg",
+      webpage_url: "https://www.youtube.com/watch?v=demo",
+      filesize_approx: 320 * 1024 * 1024,
+      formats: [
+        {
+          format_id: "v1",
+          ext: "webm",
+          vcodec: "vp9",
+          height: 2160,
+          fps: 24,
+        },
+        {
+          format_id: "a1",
+          ext: "m4a",
+          abr: 128,
+          acodec: "mp4a.40.2",
+        },
+      ],
+    });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(previewCard.style.display).not.toBe("none");
+    expect(
+      previewCard
+        .querySelector(".preview-card__thumb")
+        .contains(document.getElementById("preview-thumb")),
+    ).toBe(true);
+    expect(
+      previewCard
+        .querySelector(".preview-card__body")
+        .contains(document.getElementById("preview-title")),
+    ).toBe(true);
+    expect(previewCard.querySelector(".preview-card__actions")).toBe(
+      document.getElementById("preview-actions"),
+    );
+    expect(
+      previewCard
+        .querySelector(".preview-card__controls")
+        .contains(document.getElementById("preview-collapse")),
+    ).toBe(true);
+    expect(
+      Array.from(previewCard.querySelectorAll(zoneSelector))
+        .map((el) => el.className)
+        .join("|"),
+    ).toBe(initialZones);
+    expect(previewCard.className).not.toMatch(/compact/i);
+    expect(document.getElementById("preview-title").textContent).toBe(
+      "Demo title",
+    );
+    expect(document.getElementById("preview-duration").textContent).toContain(
+      "3:24",
+    );
+    expect(document.getElementById("preview-duration-overlay").textContent).toBe(
+      "",
+    );
+    expect(document.getElementById("preview-duration-overlay").classList).toContain(
+      "hidden",
+    );
+    expect(document.getElementById("preview-source").textContent).toContain(
+      "YouTube",
+    );
+    expect(document.getElementById("preview-quality").textContent).toContain(
+      "4K",
+    );
+    expect(document.getElementById("preview-quality").textContent).toContain(
+      "24fps",
+    );
+    expect(document.getElementById("preview-ready").classList).not.toContain(
+      "hidden",
+    );
+    expect(document.getElementById("preview-details").textContent).toContain(
+      "WEBM",
+    );
+    expect(document.getElementById("preview-details").textContent).toContain(
+      "M4A",
+    );
+
+    document.getElementById("preview-collapse").click();
+    expect(previewCard.classList.contains("is-collapsed")).toBe(true);
+    expect(
+      document.getElementById("preview-collapse").getAttribute("aria-expanded"),
+    ).toBe("false");
   });
 
   test("enables downloader background video for YouTube preview candidates", async () => {

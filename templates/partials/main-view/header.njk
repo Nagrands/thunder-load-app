@@ -218,19 +218,51 @@
     </div>
     <!-- Preview -->
     <div id="preview-card" class="preview-card" style="display: none">
-      <div class="preview-media">
-        <img
-          id="preview-thumb"
-          alt="Превью"
-          data-i18n-alt="preview.alt"
-          loading="lazy"
-          style="display: none"
-        />
+      <div class="preview-card__thumb preview-media">
+        <div class="preview-thumb-wrap">
+          <img
+            id="preview-thumb"
+            alt="Превью"
+            data-i18n-alt="preview.alt"
+            loading="lazy"
+            style="display: none"
+          />
+          <span id="preview-duration-overlay" class="preview-duration-overlay hidden"></span>
+        </div>
       </div>
-      <div class="preview-meta">
+      <div class="preview-card__body preview-meta">
         <div class="preview-kicker" data-i18n="input.url.preview.kicker">Предпросмотр</div>
         <div id="preview-title" class="preview-title"></div>
-        <small id="preview-duration" class="muted"></small>
+        <div class="preview-badges" aria-live="polite">
+          <span id="preview-source" class="preview-chip preview-chip--source hidden"></span>
+          <small id="preview-duration" class="preview-chip preview-chip--duration hidden"></small>
+          <span id="preview-quality" class="preview-chip preview-chip--quality hidden"></span>
+          <span id="preview-ready" class="preview-chip preview-chip--ready hidden">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <span data-i18n="input.url.preview.ready">Готово к скачиванию</span>
+          </span>
+        </div>
+        <div id="preview-details" class="preview-details hidden"></div>
+      </div>
+      <div id="preview-actions" class="preview-card__actions preview-actions"></div>
+      <div class="preview-card__controls">
+        <button
+          id="preview-collapse"
+          class="preview-collapse"
+          type="button"
+          aria-label="Свернуть предпросмотр"
+          data-i18n-aria="input.url.preview.collapse"
+        >
+          <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+        </button>
+        <button
+          class="preview-close"
+          type="button"
+          aria-label="Закрыть предпросмотр"
+          data-i18n-aria="input.url.preview.close"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
       </div>
     </div>
   </div>

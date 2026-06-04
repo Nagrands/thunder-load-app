@@ -275,6 +275,113 @@ function initUrlInputHandler() {
       : `${m}:${String(r).padStart(2, "0")}`;
   };
 
+  const detectPreviewHost = (data = {}) => {
+    const rawUrl = data.webpage_url || data.original_url || lastPreviewUrl || "";
+    try {
+      const host = new URL(rawUrl).hostname.replace(/^www\./, "");
+      if (/youtu\.be|youtube\.com/i.test(host)) return "YouTube";
+      if (/vimeo\.com/i.test(host)) return "Vimeo";
+      if (/soundcloud\.com/i.test(host)) return "SoundCloud";
+      return host || "";
+    } catch {
+      return "";
+    }
+  };
+
+  const getFormatExt = (format = {}) =>
+    String(format.ext || format.container || "").trim().toUpperCase();
+
+  const getBestVideoFormat = (formats = []) =>
+    formats
+      .filter((format) => Number(format.height || 0) > 0)
+      .sort(
+        (a, b) =>
+          Number(b.height || 0) - Number(a.height || 0) ||
+          Number(b.fps || 0) - Number(a.fps || 0),
+      )[0] || null;
+
+  const getBestAudioFormat = (formats = []) =>
+    formats
+      .filter((format) => Number(format.abr || format.tbr || 0) > 0)
+      .sort(
+        (a, b) =>
+          Number(b.abr || b.tbr || 0) - Number(a.abr || a.tbr || 0),
+      )[0] || null;
+
+  const updatePreviewDetails = (data = {}) => {
+    const card = document.getElementById("preview-card");
+    const sourceEl = document.getElementById("preview-source");
+    const qualityEl = document.getElementById("preview-quality");
+    const readyEl = document.getElementById("preview-ready");
+    const detailsEl = document.getElementById("preview-details");
+    if (!card) return;
+
+    const formats = Array.isArray(data.formats) ? data.formats : [];
+    const video = getBestVideoFormat(formats);
+    const audio = getBestAudioFormat(formats);
+    const host = detectPreviewHost(data);
+    const duration = data.duration ? durationToStr(data.duration) : "";
+
+    if (sourceEl) {
+      const sourceIcon =
+        host === "YouTube" ? "fa-brands fa-youtube" : "fa-solid fa-globe";
+      sourceEl.innerHTML = host
+        ? `<i class="${sourceIcon}" aria-hidden="true"></i><span>${host}</span>`
+        : "";
+      sourceEl.classList.toggle("hidden", !host);
+      sourceEl.classList.toggle("preview-chip--youtube", host === "YouTube");
+    }
+
+    if (qualityEl) {
+      const qualityParts = [];
+      if (video?.height) {
+        qualityParts.push(video.height >= 2160 ? "4K" : `${video.height}p`);
+      }
+      if (video?.fps) qualityParts.push(`${Math.round(Number(video.fps))}fps`);
+      qualityEl.innerHTML = qualityParts.length
+        ? `<i class="fa-regular fa-image" aria-hidden="true"></i><span>${qualityParts.join("  ")}</span>`
+        : "";
+      qualityEl.classList.toggle("hidden", !qualityParts.length);
+    }
+
+    readyEl?.classList.toggle("hidden", !(data.title || data.thumbnail));
+
+    if (detailsEl) {
+      const detailParts = [];
+      if (video) {
+        const videoFormat = [getFormatExt(video), video.vcodec]
+          .filter(Boolean)
+          .join(" ");
+        if (videoFormat) {
+          detailParts.push(`${t("input.url.preview.format")}: ${videoFormat}`);
+        }
+      }
+      if (audio) {
+        const audioFormat = [
+          getFormatExt(audio),
+          audio.abr ? `${Math.round(Number(audio.abr))} kbps` : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        if (audioFormat) {
+          detailParts.push(`${t("input.url.preview.audio")}: ${audioFormat}`);
+        }
+      }
+      if (data.filesize || data.filesize_approx) {
+        const sizeMb = (
+          Number(data.filesize || data.filesize_approx) /
+          1024 /
+          1024
+        ).toFixed(0);
+        if (Number(sizeMb) > 0) {
+          detailParts.push(`${t("input.url.preview.size")}: ~${sizeMb} MB`);
+        }
+      }
+      detailsEl.textContent = detailParts.join("  •  ");
+      detailsEl.classList.toggle("hidden", !detailParts.length);
+    }
+  };
+
   const syncLivePreviewButton = () => {
     if (!livePreviewButton) return;
     if (!currentLivePreview?.src) {
@@ -323,6 +430,9 @@ function initUrlInputHandler() {
     const card = document.getElementById("preview-card");
     const previewTitleEl = document.getElementById("preview-title");
     const previewDurationEl = document.getElementById("preview-duration");
+    const previewDurationOverlayEl = document.getElementById(
+      "preview-duration-overlay",
+    );
     const img = document.getElementById("preview-thumb");
     let playlistMetaEl = document.getElementById("preview-playlist-meta");
     let previewActionsEl = document.getElementById("preview-actions");
@@ -358,11 +468,15 @@ function initUrlInputHandler() {
     );
     hideInlineError();
     previewTitleEl.textContent = data.title || "";
-    previewDurationEl.textContent = data.duration
-      ? t("input.url.preview.duration", {
-          duration: durationToStr(data.duration),
-        })
+    const durationLabel = data.duration ? durationToStr(data.duration) : "";
+    previewDurationEl.innerHTML = durationLabel
+      ? `<i class="fa-regular fa-clock" aria-hidden="true"></i><span>${durationLabel}</span>`
       : "";
+    previewDurationEl.classList.toggle("hidden", !durationLabel);
+    if (previewDurationOverlayEl) {
+      previewDurationOverlayEl.textContent = "";
+      previewDurationOverlayEl.classList.add("hidden");
+    }
     previewTitleEl.setAttribute("title", data.title || "");
     if (data.thumbnail) {
       img.src = data.thumbnail;
@@ -373,7 +487,9 @@ function initUrlInputHandler() {
     }
     card.style.display = data.title || data.thumbnail ? "" : "none";
     card.classList.add("visible");
+    card.classList.remove("is-collapsed");
     setStateClass("has-preview", card.style.display !== "none");
+    updatePreviewDetails(data);
     currentLivePreview = data.livePreview
       ? {
           ...data.livePreview,
@@ -409,9 +525,10 @@ function initUrlInputHandler() {
     if (!previewActionsEl) {
       previewActionsEl = document.createElement("div");
       previewActionsEl.id = "preview-actions";
-      previewActionsEl.className = "preview-actions";
-      const previewMeta = card.querySelector(".preview-meta");
-      previewMeta?.appendChild(previewActionsEl);
+      previewActionsEl.className = "preview-card__actions preview-actions";
+      card.appendChild(previewActionsEl);
+    } else {
+      previewActionsEl.classList.add("preview-card__actions", "preview-actions");
     }
     if (!livePreviewButton) {
       livePreviewButton = document.createElement("button");
@@ -511,8 +628,18 @@ function initUrlInputHandler() {
     if (!closeBtn) {
       closeBtn = document.createElement("button");
       closeBtn.className = "preview-close";
+      closeBtn.setAttribute("type", "button");
       closeBtn.setAttribute("aria-label", t("input.url.preview.close"));
-      closeBtn.innerHTML = "&times;";
+      closeBtn.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+      const controls = card.querySelector(".preview-card__controls");
+      if (controls) {
+        controls.appendChild(closeBtn);
+      } else {
+        card.appendChild(closeBtn);
+      }
+    }
+    if (closeBtn && !closeBtn.dataset.bound) {
+      closeBtn.dataset.bound = "1";
       closeBtn.addEventListener("click", () => {
         currentLivePreview = null;
         livePreviewOpen = false;
@@ -523,7 +650,17 @@ function initUrlInputHandler() {
         clearDownloaderBackgroundPreview();
         hideDownloaderLivePreview();
       });
-      card.appendChild(closeBtn);
+    }
+
+    const collapseBtn = document.getElementById("preview-collapse");
+    collapseBtn?.setAttribute("aria-expanded", "true");
+    if (collapseBtn && !collapseBtn.dataset.bound) {
+      collapseBtn.dataset.bound = "1";
+      collapseBtn.addEventListener("click", () => {
+        const collapsed = !card.classList.contains("is-collapsed");
+        card.classList.toggle("is-collapsed", collapsed);
+        collapseBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      });
     }
 
     let wrap = img?.closest(".preview-thumb-wrap");
