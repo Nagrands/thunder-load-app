@@ -127,12 +127,54 @@
       transform: scale(1);
     }
   }
+
+  &.is-downloader-unavailable {
+    border-color: rgba(255, 170, 96, 0.28);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 170, 96, 0.08),
+        rgba(255, 255, 255, 0.012) 42%,
+        rgba(255, 255, 255, 0.02) 100%
+      ),
+      rgba(12, 16, 24, 0.72);
+
+    &:hover,
+    &:focus-within {
+      border-color: rgba(255, 170, 96, 0.34);
+      transform: none;
+    }
+
+    .url-input-field,
+    .url-input-leading__icon,
+    .paste-button,
+    .clear-button {
+      opacity: 0.56;
+      cursor: not-allowed;
+    }
+
+    .url-input-statusline__dot {
+      background: rgba(255, 170, 96, 0.82);
+      box-shadow: 0 0 0 5px rgba(255, 170, 96, 0.1);
+    }
+
+    .url-helper-text {
+      color: rgba(255, 218, 176, 0.9);
+    }
+  }
 }
 
 .url-entry-shell {
   width: 100%;
   display: grid;
   gap: 6px;
+
+  &.is-downloader-unavailable {
+    .downloader-view-mode,
+    .url-input-shortcuts {
+      opacity: 0.54;
+    }
+  }
 }
 
 .downloader-view-mode {

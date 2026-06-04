@@ -91,6 +91,7 @@ describe("urlInputHandler", () => {
   let clearDownloaderBackgroundPreviewMock;
   let hideDownloaderLivePreviewMock;
   let isCompactDownloaderModeMock;
+  let isDownloaderAvailableMock;
   let initUrlInputHandler;
 
   const loadModule = () => {
@@ -122,6 +123,9 @@ describe("urlInputHandler", () => {
       jest.doMock("../compactDownloaderQuality.js", () => ({
         PREVIEW_EVENT: "downloader:preview-info",
         isCompactDownloaderMode: isCompactDownloaderModeMock,
+      }));
+      jest.doMock("../downloaderAvailability.js", () => ({
+        isDownloaderAvailable: isDownloaderAvailableMock,
       }));
       jest.doMock("../i18n", () => ({
         t: (key, vars = {}) => {
@@ -234,6 +238,7 @@ describe("urlInputHandler", () => {
     clearDownloaderBackgroundPreviewMock = jest.fn();
     hideDownloaderLivePreviewMock = jest.fn();
     isCompactDownloaderModeMock = jest.fn(() => false);
+    isDownloaderAvailableMock = jest.fn(() => true);
     window.electron = {
       invoke: jest.fn(),
       ipcRenderer: { invoke: getVideoInfoMock },
@@ -260,6 +265,19 @@ describe("urlInputHandler", () => {
     expect(error.classList.contains("hidden")).toBe(true);
     expect(wrapper.classList.contains("is-invalid")).toBe(false);
     expect(actionRow.hidden).toBe(false);
+  });
+
+  test("does not paste from clipboard when downloader is unavailable", async () => {
+    isDownloaderAvailableMock.mockReturnValue(false);
+    updateButtonStateMock.mockClear();
+    const { pasteBtn, input } = getState();
+
+    pasteBtn.click();
+    await flushPromises();
+
+    expect(navigator.clipboard.readText).not.toHaveBeenCalled();
+    expect(input.value).toBe("");
+    expect(updateButtonStateMock).not.toHaveBeenCalled();
   });
 
   test("hides action row when URL is empty and shows it after input", () => {

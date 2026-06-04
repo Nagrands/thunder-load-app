@@ -11,6 +11,7 @@ import {
   getVideoPreview,
 } from "./videoInfoBroker.js";
 import { updateButtonState } from "./state.js";
+import { isDownloaderAvailable } from "./downloaderAvailability.js";
 import { t } from "./i18n.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
 import {
@@ -811,6 +812,14 @@ function initUrlInputHandler() {
 
   // Внешний триггер принудительного показа предпросмотра (например, из истории → Повторить)
   urlInput.addEventListener("force-preview", async (event) => {
+    if (!isDownloaderAvailable()) {
+      pendingAutoQualityUrl = "";
+      lastPreviewData = null;
+      setPreviewLoading(false);
+      renderPreview(null);
+      updateButtonState();
+      return;
+    }
     if (previewTimer) clearTimeout(previewTimer);
     // Сбрасываем URL-сентинел, но broker может переиспользовать свежий preview-cache.
     const forcedUrl = urlInput.value.trim();
@@ -869,6 +878,14 @@ function initUrlInputHandler() {
   });
 
   urlInput.addEventListener("input", (event) => {
+    if (!isDownloaderAvailable()) {
+      pendingAutoQualityUrl = "";
+      lastPreviewData = null;
+      setPreviewLoading(false);
+      renderPreview(null);
+      updateButtonState();
+      return;
+    }
     const isPasteInput =
       event?.inputType === "insertFromPaste" ||
       pendingAutoQualityUrl === "__pending_native_paste__";
@@ -999,6 +1016,7 @@ function initUrlInputHandler() {
   });
 
   pasteButton.addEventListener("click", async () => {
+    if (!isDownloaderAvailable()) return;
     const text = (await navigator.clipboard.readText()) || "";
     hasInteracted = false;
     urlInput.value = normalizeUrlInput(text.trim());
@@ -1110,6 +1128,7 @@ function initUrlInputHandler() {
       setStateClass("drag-over", false);
     });
     wrapper.addEventListener("drop", (e) => {
+      if (!isDownloaderAvailable()) return;
       try {
         const text = (
           e.dataTransfer.getData("text/uri-list") ||

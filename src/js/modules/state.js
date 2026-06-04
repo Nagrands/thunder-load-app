@@ -8,6 +8,7 @@ import {
 } from "./domElements.js";
 import { getActiveDownloadJobs } from "./downloadJobs.js";
 import { isValidUrl, isSupportedUrl } from "./validation.js";
+import { isDownloaderAvailable } from "./downloaderAvailability.js";
 
 const readParallelLimit = () => {
   try {
@@ -107,7 +108,8 @@ const updateButtonState = () => {
   }
 
   const url = urlInput.value.trim();
-  const isValid = isValidUrl(url) && isSupportedUrl(url);
+  const isAvailable = isDownloaderAvailable();
+  const isValid = isAvailable && isValidUrl(url) && isSupportedUrl(url);
 
   // Кнопка "Скачать" активна, если URL валидный
   downloadButton.disabled = !isValid;

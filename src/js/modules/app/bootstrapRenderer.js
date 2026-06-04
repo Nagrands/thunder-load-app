@@ -6,6 +6,7 @@ import { initContextMenu } from "../contextMenu.js";
 import { initWhatsNewModal } from "../whatsNewModal.js";
 import { initSettings } from "../settings.js";
 import { initUrlInputHandler } from "../urlInputHandler.js";
+import { initDownloaderAvailability } from "../downloaderAvailability.js";
 import { initCompactDownloaderQuality } from "../compactDownloaderQuality.js";
 import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
 import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
@@ -79,6 +80,7 @@ async function runCriticalInitialization(mainView) {
   initDownloaderLivePreview();
   initCompactDownloaderQuality();
   initUrlInputHandler();
+  initDownloaderAvailability();
   initHistory();
   await initHistoryState();
   initTopBarReloadGuard();

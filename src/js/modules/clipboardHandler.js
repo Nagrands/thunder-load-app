@@ -29,6 +29,7 @@ import { urlInput } from "./domElements.js";
 import { updateIcon } from "./iconUpdater.js";
 import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
+import { isDownloaderAvailable } from "./downloaderAvailability.js";
 
 async function isOpenOnCopyUrlEnabled() {
   try {
@@ -44,6 +45,7 @@ function initClipboardHandler() {
   window.electron.onWindowFocused(async (clipboardContent) => {
     const openOnCopyUrlEnabled = await isOpenOnCopyUrlEnabled();
     if (!openOnCopyUrlEnabled) return;
+    if (!isDownloaderAvailable()) return;
 
     if (
       !state.isDownloading &&

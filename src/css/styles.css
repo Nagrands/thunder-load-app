@@ -13079,11 +13079,37 @@ body.is-mac .window-controls .btn-minimize {
   opacity: 0.92;
   transform: scale(1);
 }
+.url-input-wrapper.is-downloader-unavailable {
+  border-color: rgba(255, 170, 96, 0.28);
+  background: linear-gradient(135deg, rgba(255, 170, 96, 0.08), rgba(255, 255, 255, 0.012) 42%, rgba(255, 255, 255, 0.02) 100%), rgba(12, 16, 24, 0.72);
+}
+.url-input-wrapper.is-downloader-unavailable:hover, .url-input-wrapper.is-downloader-unavailable:focus-within {
+  border-color: rgba(255, 170, 96, 0.34);
+  transform: none;
+}
+.url-input-wrapper.is-downloader-unavailable .url-input-field,
+.url-input-wrapper.is-downloader-unavailable .url-input-leading__icon,
+.url-input-wrapper.is-downloader-unavailable .paste-button,
+.url-input-wrapper.is-downloader-unavailable .clear-button {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+.url-input-wrapper.is-downloader-unavailable .url-input-statusline__dot {
+  background: rgba(255, 170, 96, 0.82);
+  box-shadow: 0 0 0 5px rgba(255, 170, 96, 0.1);
+}
+.url-input-wrapper.is-downloader-unavailable .url-helper-text {
+  color: rgba(255, 218, 176, 0.9);
+}
 
 .url-entry-shell {
   width: 100%;
   display: grid;
   gap: 6px;
+}
+.url-entry-shell.is-downloader-unavailable .downloader-view-mode,
+.url-entry-shell.is-downloader-unavailable .url-input-shortcuts {
+  opacity: 0.54;
 }
 
 .downloader-view-mode {

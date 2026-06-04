@@ -34,6 +34,8 @@ export const coreTranslations = {
     "input.url.actions": "Действия поля URL",
     "input.url.openSource": "Открыть источник",
     "input.url.helper": "Вставьте ссылку или перетащите её сюда",
+    "input.url.helper.ytDlpMissing":
+      "Установите yt-dlp, чтобы вставлять ссылки и запускать загрузки.",
     "input.url.helper.loading": "Получаем превью и проверяем ссылку…",
     "input.url.helper.valid":
       "Ссылка распознана. Нажмите Enter или выберите режим в окне качества.",
@@ -239,6 +241,8 @@ export const coreTranslations = {
     "input.url.actions": "URL field actions",
     "input.url.openSource": "Open source",
     "input.url.helper": "Paste a link or drop it here",
+    "input.url.helper.ytDlpMissing":
+      "Install yt-dlp to paste links and start downloads.",
     "input.url.helper.loading": "Fetching preview and validating the link...",
     "input.url.helper.valid":
       "Link recognized. Press Enter or choose a mode in the quality dialog.",
