@@ -6,12 +6,6 @@ describe("topBarResponsive", () => {
           <button id="shortcuts-button" type="button"></button>
           <button id="open-github" type="button"></button>
           <button id="reload-app" type="button"></button>
-          <button id="topbar-more-toggle" type="button" aria-expanded="false" aria-controls="topbar-overflow-menu"></button>
-          <div id="topbar-overflow-menu" hidden>
-            <button class="topbar-overflow__item" data-proxy-target="#shortcuts-button"></button>
-            <button class="topbar-overflow__item" data-proxy-target="#open-github"></button>
-            <button class="topbar-overflow__item" data-proxy-target="#reload-app"></button>
-          </div>
         </div>
       </div>
     `;
@@ -19,6 +13,7 @@ describe("topBarResponsive", () => {
 
   beforeEach(() => {
     jest.resetModules();
+    document.documentElement.style.removeProperty("--topbar-current-height");
     buildDom();
     const topBar = document.querySelector(".top-bar");
     topBar.getBoundingClientRect = () => ({ height: 88 });
@@ -26,61 +21,6 @@ describe("topBarResponsive", () => {
       observe() {}
       disconnect() {}
     };
-  });
-
-  test("opens and closes overflow by toggle", () => {
-    jest.isolateModules(() => {
-      const { initTopBarResponsive } = require("../topBarResponsive.js");
-      initTopBarResponsive();
-    });
-
-    const toggle = document.getElementById("topbar-more-toggle");
-    const menu = document.getElementById("topbar-overflow-menu");
-
-    toggle.click();
-    expect(menu.hidden).toBe(false);
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
-
-    toggle.click();
-    expect(menu.hidden).toBe(true);
-    expect(toggle.getAttribute("aria-expanded")).toBe("false");
-  });
-
-  test("closes overflow on Escape", () => {
-    jest.isolateModules(() => {
-      const { initTopBarResponsive } = require("../topBarResponsive.js");
-      initTopBarResponsive();
-    });
-
-    const toggle = document.getElementById("topbar-more-toggle");
-    const menu = document.getElementById("topbar-overflow-menu");
-    toggle.click();
-    expect(menu.hidden).toBe(false);
-
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-    expect(menu.hidden).toBe(true);
-  });
-
-  test("clicking proxy item triggers target click", () => {
-    const target = document.getElementById("shortcuts-button");
-    const targetSpy = jest.fn();
-    target.addEventListener("click", targetSpy);
-
-    jest.isolateModules(() => {
-      const { initTopBarResponsive } = require("../topBarResponsive.js");
-      initTopBarResponsive();
-    });
-
-    const toggle = document.getElementById("topbar-more-toggle");
-    const firstProxy = document.querySelector(
-      '#topbar-overflow-menu [data-proxy-target="#shortcuts-button"]',
-    );
-
-    toggle.click();
-    firstProxy.click();
-
-    expect(targetSpy).toHaveBeenCalledTimes(1);
-    expect(document.getElementById("topbar-overflow-menu").hidden).toBe(true);
   });
 
   test("sets --topbar-current-height CSS variable", () => {
@@ -96,21 +36,52 @@ describe("topBarResponsive", () => {
     ).toBe("88px");
   });
 
-  test("does not surface suppressed actions in overflow", () => {
-    const target = document.getElementById("open-github");
-    target.hidden = true;
-    target.dataset.topbarSuppressed = "1";
+  test("updates --topbar-current-height on resize", () => {
+    const topBar = document.querySelector(".top-bar");
+    topBar.getBoundingClientRect = () => ({ height: 72 });
 
     jest.isolateModules(() => {
       const { initTopBarResponsive } = require("../topBarResponsive.js");
       initTopBarResponsive();
     });
 
-    const proxy = document.querySelector(
-      '#topbar-overflow-menu [data-proxy-target="#open-github"]',
-    );
+    topBar.getBoundingClientRect = () => ({ height: 64 });
+    window.dispatchEvent(new Event("resize"));
 
-    expect(proxy.hidden).toBe(true);
-    expect(proxy.disabled).toBe(true);
+    expect(
+      document.documentElement.style.getPropertyValue(
+        "--topbar-current-height",
+      ),
+    ).toBe("64px");
+  });
+
+  test("does nothing when top bar is absent", () => {
+    document.body.innerHTML = "";
+
+    jest.isolateModules(() => {
+      const { initTopBarResponsive } = require("../topBarResponsive.js");
+      initTopBarResponsive();
+    });
+
+    expect(
+      document.documentElement.style.getPropertyValue(
+        "--topbar-current-height",
+      ),
+    ).toBe("");
+  });
+
+  test("does not require the removed More overflow controls", () => {
+    jest.isolateModules(() => {
+      const { initTopBarResponsive } = require("../topBarResponsive.js");
+      initTopBarResponsive();
+    });
+
+    expect(document.getElementById("topbar-more-toggle")).toBeNull();
+    expect(document.getElementById("topbar-overflow-menu")).toBeNull();
+    expect(
+      document.documentElement.style.getPropertyValue(
+        "--topbar-current-height",
+      ),
+    ).toBe("88px");
   });
 });
