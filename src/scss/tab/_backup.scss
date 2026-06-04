@@ -2761,7 +2761,7 @@ h1.section-heading {
 // ---------------------------------------------------------------------------
 .wg-log-block .log-actions button {
   background: rgba(50, 50, 60, 0.25);
-  border: 1px solid rgba(100, 150, 255, 0.18);
+  border: 1px solid var(--color-hover);
   border-radius: 6px;
   padding: 6px 8px;
   margin-left: 4px;

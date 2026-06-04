@@ -1321,7 +1321,7 @@ $wg-max-width: 1200px;
 }
 
 .tools-breadcrumbs__item--current {
-  color: rgba(170, 194, 245, 0.86);
+  color: var(--color-highlight);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3036,7 +3036,7 @@ $wg-max-width: 1200px;
   border-radius: 999px;
   padding: 0 10px;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.2);
   letter-spacing: 0.02em;
 
@@ -4909,7 +4909,7 @@ $wg-max-width: 1200px;
 
 .tools-wg-advanced-panel {
   border: 1px solid var(--color-hover);
-  background: var(--color-bg-secondary);
+  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
   border-radius: var(--border-radius);
   padding: 22px;
   overflow: hidden;

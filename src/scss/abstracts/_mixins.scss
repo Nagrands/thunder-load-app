@@ -189,7 +189,7 @@
   backdrop-filter: blur(8px);
 }
 
-@mixin dropdown-option($radius: 9px, $font-size: 0.84rem) {
+@mixin dropdown-option($radius: 9px, $font-size: 0.86rem) {
   min-height: 34px;
   padding: 8px 10px;
   border: 0;
@@ -197,8 +197,8 @@
   background: transparent;
   color: rgba(238, 246, 255, 0.92);
   font-size: $font-size;
-  font-weight: 650;
-  line-height: 1.28;
+  // font-weight: 650;
+  // line-height: 1.28;
   transition:
     background-color 0.14s ease,
     color 0.14s ease,

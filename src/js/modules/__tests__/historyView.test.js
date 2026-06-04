@@ -37,7 +37,13 @@ const setupDom = () => {
     <button id="open-history"></button>
     <div id="history-container">
       <div class="history-controls">
-        <button id="history-header"><span id="total-downloads">0</span></button>
+        <div id="history-header" class="history-count-pill">
+          <i data-lucide="files"></i>
+          <span id="total-downloads">0</span>
+          <span id="total-downloads-label"></span>
+          <span id="total-download-size">0 MB</span>
+          <span id="total-download-size-label"></span>
+        </div>
         <button id="refresh-button"></button>
         <button id="sort-button"><i data-lucide="arrow-down-wide-narrow"></i></button>
         <button id="clear-history"></button>
@@ -61,6 +67,7 @@ const setupDom = () => {
                 <button id="clear-filter-input" class="hidden"></button>
               </div>
             </div>
+            <button id="history-reset-filters" class="hidden"></button>
           </div>
 
           <div class="history-controls-row history-controls-row--filters history-filters-row">
@@ -74,7 +81,6 @@ const setupDom = () => {
         </div>
       </div>
 
-      <button id="history-reset-filters"></button>
       <span id="history-active-filters-count" class="hidden"></span>
       <select id="history-source-filter"></select>
       <select id="history-sort-key"></select>
@@ -151,6 +157,7 @@ const createEntry = (overrides = {}) => ({
   quality: overrides.quality ?? "1080p",
   resolution: overrides.resolution ?? "1920x1080",
   formattedSize: overrides.formattedSize ?? "10 MB",
+  sizeBytes: overrides.sizeBytes,
   filePath: overrides.filePath ?? "/tmp/video.mp4",
   downloadStatus: overrides.downloadStatus ?? "done",
   errorCode: overrides.errorCode ?? "",
@@ -191,6 +198,27 @@ describe("Downloader history list", () => {
         .getElementById("history-density-compact")
         .classList.contains("is-active"),
     ).toBe(true);
+  });
+
+  test("updates header icon and total files size summary", async () => {
+    const { renderHistory } = await import("../history.js");
+
+    renderHistory([
+      createEntry({ id: "1", sizeBytes: 1048576 }),
+      createEntry({ id: "2", sizeBytes: 2 * 1048576 }),
+      createEntry({ id: "3", sizeBytes: 40 * 1048576, isMissing: true }),
+    ]);
+
+    expect(
+      document.querySelector("#history-header [data-lucide='files']"),
+    ).not.toBeNull();
+    expect(document.getElementById("total-downloads").textContent).toBe("3");
+    expect(document.getElementById("total-downloads-label").textContent).toBe(
+      "файла",
+    );
+    expect(document.getElementById("total-download-size").textContent).toBe(
+      "3 MB",
+    );
   });
 
   test("renders compact pagination controls with page-size options", async () => {
@@ -319,10 +347,15 @@ describe("Downloader history list", () => {
       actions.querySelector(".history-row__actions-secondary"),
     ).not.toBeNull();
 
-    const actionButtons = actions.querySelectorAll(".history-row__action");
-    expect(actionButtons).toHaveLength(3);
-    expect(actions.querySelector('[data-lucide="play"]')).not.toBeNull();
-    expect(actions.querySelector('[data-lucide="folder-open"]')).not.toBeNull();
+    expect(
+      actions.querySelector('[data-action="open-file"] [data-lucide="play"]'),
+    ).not.toBeNull();
+    expect(
+      actions.querySelector(
+        '[data-action="open-folder"] [data-lucide="folder-open"]',
+      ),
+    ).not.toBeNull();
+    expect(actions.querySelector('[data-action="details"]')).not.toBeNull();
 
     const menu = actions.querySelector(".history-row__menu");
     const menuButton = actions.querySelector(".history-row__menu-button");
@@ -384,7 +417,8 @@ describe("Downloader history list", () => {
 
     const menuButtons = document.querySelectorAll(".history-row__menu-button");
     menuButtons[0].click();
-    document.querySelectorAll(".history-row__menu-item")[2].click();
+    document.querySelector('.history-row__menu-item[data-action="inspect"]')
+      .click();
     await Promise.resolve();
     await Promise.resolve();
 
@@ -399,7 +433,9 @@ describe("Downloader history list", () => {
     ).toBeNull();
 
     menuButtons[1].click();
-    rows[1].querySelectorAll(".history-row__menu-item")[2].click();
+    rows[1]
+      .querySelector('.history-row__menu-item[data-action="inspect"]')
+      .click();
     await Promise.resolve();
     await Promise.resolve();
 
@@ -432,7 +468,9 @@ describe("Downloader history list", () => {
     expect(badges).not.toBeNull();
     expect(badges.querySelector(".history-badge--host")).not.toBeNull();
     expect(badges.querySelector(".history-badge--media")).not.toBeNull();
-    expect(badges.querySelector(".history-row__size")).not.toBeNull();
+    expect(row.querySelector(".history-row__summary")).not.toBeNull();
+    expect(row.querySelector(".history-row__meta")).not.toBeNull();
+    expect(row.querySelector(".history-row__size")).not.toBeNull();
   });
 
   test("renders failed history entry with failure badge and disabled file actions", async () => {
@@ -450,10 +488,11 @@ describe("Downloader history list", () => {
     const row = document.querySelector(".history-row");
     expect(row.textContent).toContain("Ошибка");
     expect(
-      row.querySelector('.history-row__action[title="Открыть файл"]')?.disabled,
+      row.querySelector('.history-row__action[data-action="open-file"]')
+        ?.disabled,
     ).toBe(true);
     expect(
-      row.querySelector('.history-row__action[title="Открыть папку"]')
+      row.querySelector('.history-row__action[data-action="open-folder"]')
         ?.disabled,
     ).toBe(true);
 
@@ -472,8 +511,9 @@ describe("Downloader history list", () => {
     const menuButton = document.querySelector(".history-row__menu-button");
     menuButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-    const menuItems = document.querySelectorAll(".history-row__menu-item");
-    const retryItem = menuItems[1];
+    const retryItem = document.querySelector(
+      '.history-row__menu-item[data-action="retry"]',
+    );
     const forcePreviewEvents = [];
     document
       .getElementById("url")
@@ -546,6 +586,7 @@ describe("Downloader history list", () => {
 
     expect(badge.classList.contains("hidden")).toBe(true);
     expect(resetBtn.disabled).toBe(true);
+    expect(resetBtn.classList.contains("hidden")).toBe(true);
 
     sourceSelect.value = "youtube.com";
     sourceSelect.dispatchEvent(new Event("change", { bubbles: true }));
@@ -555,6 +596,12 @@ describe("Downloader history list", () => {
     expect(badge.classList.contains("hidden")).toBe(false);
     expect(badge.textContent).toContain("2");
     expect(resetBtn.disabled).toBe(false);
+    expect(resetBtn.classList.contains("hidden")).toBe(false);
+    expect(
+      resetBtn
+        .closest(".history-controls-row")
+        .classList.contains("has-filter-reset"),
+    ).toBe(true);
 
     resetBtn.click();
 
@@ -563,6 +610,7 @@ describe("Downloader history list", () => {
     expect(sortModeSelect.value).toBe("mixed");
     expect(badge.classList.contains("hidden")).toBe(true);
     expect(resetBtn.disabled).toBe(true);
+    expect(resetBtn.classList.contains("hidden")).toBe(true);
   });
 
   test("renders unified search+filters card with required controls", async () => {
@@ -691,6 +739,9 @@ describe("Downloader history list", () => {
     const toggle = document.querySelector(".history-group__toggle");
     expect(toggle).not.toBeNull();
     expect(toggle.textContent).toContain("Выбрать");
+    expect(document.querySelector(".history-group__count").textContent).toBe(
+      "2",
+    );
 
     toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const checkedAfterSelect = document.querySelectorAll(
@@ -717,12 +768,14 @@ describe("Downloader history list", () => {
 
     const row = document.querySelector(".history-row");
     expect(row.classList.contains("history-row--deleted")).toBe(true);
+    expect(row.querySelector(".history-row__status")).not.toBeNull();
     expect(row.querySelector(".history-badge--missing").textContent).toContain(
       "удал",
     );
-    const actions = row.querySelectorAll(".history-row__action");
-    expect(actions[0].disabled).toBe(true);
-    expect(actions[1].disabled).toBe(true);
+    expect(row.querySelector('[data-action="open-file"]').disabled).toBe(true);
+    expect(row.querySelector('[data-action="open-folder"]').disabled).toBe(
+      true,
+    );
   });
 
   test("collapses and expands filters with persisted state", async () => {

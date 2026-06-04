@@ -3,26 +3,35 @@
   <div class="history-area" aria-live="polite">
     <div class="history-panel-shell">
       <div class="history-toolbar">
-        <div class="history-toolbar__title">
-          <p class="history-cards-subtitle" data-i18n="history.subtitle">
-            Недавние загрузки
-          </p>
-          <h3 class="history-cards-title" data-i18n="history.title">История</h3>
+        <div class="history-toolbar__identity">
+          <div class="history-toolbar__icon" aria-hidden="true">
+            <i data-lucide="history"></i>
+          </div>
+          <div class="history-toolbar__title">
+            <p class="history-cards-subtitle" data-i18n="history.subtitle">
+              Недавние загрузки
+            </p>
+            <h3 class="history-cards-title" data-i18n="history.title">История</h3>
+          </div>
         </div>
         <div class="history-actions-card">
           <div class="history-deck-actions">
             <div class="history-action-segment history-action-segment--view">
-              <button
+              <div
                 id="history-header"
-                class="history-action-button history-count-pill"
+                class="history-count-pill"
                 aria-label="Количество записей"
                 data-hint="Количество записей"
                 data-i18n-aria="history.count"
                 data-i18n-hint="history.count"
               >
-                <i data-lucide="list-filter"></i>
+                <i data-lucide="files"></i>
                 <span id="total-downloads">0</span>
-              </button>
+                <span id="total-downloads-label" data-i18n="history.files.many">файлов</span>
+                <span class="history-count-pill__divider" aria-hidden="true"></span>
+                <span id="total-download-size">0 MB</span>
+                <span id="total-download-size-label" data-i18n="history.stats.size">занято</span>
+              </div>
               <button
                 id="refresh-button"
                 class="history-action-button"
@@ -158,6 +167,42 @@
 
       <div class="history-controls">
         <div class="history-search-filters-card">
+          <div class="history-controls-row history-controls-row--primary">
+            <div class="history-search-card">
+              <div class="history-search-wrapper history-input-wrapper">
+                <i id="icon-filter-search" class="search-icon" data-lucide="search"></i>
+                <input
+                  type="text"
+                  id="filter-input"
+                  placeholder="Поиск по истории"
+                  aria-label="Поиск по истории"
+                  data-i18n-placeholder="history.search.placeholder"
+                  data-i18n-aria="history.search.aria"
+                />
+                <button
+                  id="clear-filter-input"
+                  class="history-action-button hidden"
+                  aria-label="Очистить поиск"
+                  data-hint="Сбросить поисковый запрос"
+                  data-i18n-aria="history.search.clear"
+                  data-i18n-hint="history.search.clearHint"
+                >
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+            </div>
+            <button
+              id="history-reset-filters"
+              class="history-filter-reset history-filter-reset--primary hidden"
+              type="button"
+              aria-label="Сбросить фильтры"
+              data-i18n-aria="history.filters.reset"
+              data-i18n="history.filters.reset"
+            >
+              Сбросить
+            </button>
+          </div>
+
           <div class="history-controls-row history-controls-row--filters history-filters-row">
             <div class="history-filters-card" id="history-filters-card">
               <div class="history-filters-head">
@@ -178,16 +223,6 @@
                     class="history-active-filters-count hidden"
                     aria-live="polite"
                   ></span>
-                  <button
-                    id="history-reset-filters"
-                    class="history-filter-reset"
-                    type="button"
-                    aria-label="Сбросить фильтры"
-                    data-i18n-aria="history.filters.reset"
-                    data-i18n="history.filters.reset"
-                  >
-                    Сбросить
-                  </button>
                 </div>
               </div>
               <div id="history-filters-body" class="history-filters-body">
@@ -262,32 +297,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="history-controls-row history-controls-row--primary">
-            <div class="history-search-card">
-              <div class="history-search-wrapper history-input-wrapper">
-                <i id="icon-filter-search" class="search-icon" data-lucide="search"></i>
-                <input
-                  type="text"
-                  id="filter-input"
-                  placeholder="Поиск по истории"
-                  aria-label="Поиск по истории"
-                  data-i18n-placeholder="history.search.placeholder"
-                  data-i18n-aria="history.search.aria"
-                />
-                <button
-                  id="clear-filter-input"
-                  class="history-action-button hidden"
-                  aria-label="Очистить поиск"
-                  data-hint="Сбросить поисковый запрос"
-                  data-i18n-aria="history.search.clear"
-                  data-i18n-hint="history.search.clearHint"
-                >
-                  <i data-lucide="x"></i>
-                </button>
               </div>
             </div>
           </div>

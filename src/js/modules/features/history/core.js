@@ -78,6 +78,8 @@ let historySortKeySelect = null;
 let historySortModeSelect = null;
 let historyResetFiltersButton = null;
 let historyActiveFiltersCount = null;
+let totalDownloadSizeRoot = null;
+let totalDownloadsLabelRoot = null;
 let historyDensityButtons = {
   compact: null,
   comfort: null,
@@ -120,6 +122,87 @@ const pluralize = (value, [one, few, many]) => {
   if (n10 === 1 && n100 !== 11) return one;
   if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return few;
   return many;
+};
+
+const formatBytes = (bytes = 0) => {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value <= 0) return "0 MB";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = value;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  const maximumFractionDigits = unitIndex <= 1 || size >= 100 ? 0 : 1;
+  return `${size.toLocaleString(getLanguage(), {
+    maximumFractionDigits,
+  })} ${units[unitIndex]}`;
+};
+
+const parseHistorySizeBytes = (entry = {}) => {
+  const numericSize = Number(entry.sizeBytes ?? entry.fileSizeBytes);
+  if (Number.isFinite(numericSize) && numericSize > 0) return numericSize;
+
+  const rawSize = String(entry.formattedSize || entry.size || "").trim();
+  const match = rawSize.match(/^([\d\s.,]+)\s*([KMGT]?I?B|байт|Б)$/i);
+  if (!match) return 0;
+
+  const normalizedValue = Number(
+    match[1].replace(/\s/g, "").replace(",", "."),
+  );
+  if (!Number.isFinite(normalizedValue) || normalizedValue <= 0) return 0;
+
+  const unit = match[2].toUpperCase();
+  const multipliers = {
+    "B": 1,
+    "Б": 1,
+    "БАЙТ": 1,
+    "KB": 1024,
+    "KIB": 1024,
+    "MB": 1024 ** 2,
+    "MIB": 1024 ** 2,
+    "GB": 1024 ** 3,
+    "GIB": 1024 ** 3,
+    "TB": 1024 ** 4,
+    "TIB": 1024 ** 4,
+  };
+  return Math.round(normalizedValue * (multipliers[unit] || 0));
+};
+
+const getHistoryStats = (entries = []) => {
+  const list = Array.isArray(entries) ? entries : [];
+  return {
+    count: list.length,
+    sizeBytes: list.reduce(
+      (total, entry) =>
+        total + (entry?.isMissing ? 0 : parseHistorySizeBytes(entry)),
+      0,
+    ),
+  };
+};
+
+const updateHistoryHeaderStats = ({ count = 0, sizeBytes = 0 } = {}) => {
+  if (!totalDownloadSizeRoot || !totalDownloadSizeRoot.isConnected) {
+    totalDownloadSizeRoot = document.getElementById("total-download-size");
+  }
+  if (!totalDownloadsLabelRoot || !totalDownloadsLabelRoot.isConnected) {
+    totalDownloadsLabelRoot = document.getElementById("total-downloads-label");
+  }
+  if (totalDownloads) {
+    totalDownloads.style.display = "";
+    totalDownloads.textContent = `${Math.max(0, Number(count) || 0)}`;
+  }
+  if (totalDownloadsLabelRoot) {
+    totalDownloadsLabelRoot.textContent = pluralize(Number(count) || 0, [
+      t("history.files.one"),
+      t("history.files.few"),
+      t("history.files.many"),
+    ]);
+  }
+  if (totalDownloadSizeRoot) {
+    totalDownloadSizeRoot.textContent = formatBytes(sizeBytes);
+  }
 };
 
 const normalizePageSize = (value) => {
@@ -184,6 +267,10 @@ const updateHistoryActiveFiltersUi = () => {
   const count = getHistoryActiveFiltersCount();
   if (historyResetFiltersButton) {
     historyResetFiltersButton.disabled = count === 0;
+    historyResetFiltersButton.classList.toggle("hidden", count === 0);
+    historyResetFiltersButton
+      .closest(".history-controls-row")
+      ?.classList.toggle("has-filter-reset", count > 0);
   }
   if (!historyActiveFiltersCount) return;
   if (count === 0) {
@@ -819,6 +906,12 @@ function ensureHistoryControlElements() {
       "history-active-filters-count",
     );
   }
+  if (!totalDownloadSizeRoot || !totalDownloadSizeRoot.isConnected) {
+    totalDownloadSizeRoot = document.getElementById("total-download-size");
+  }
+  if (!totalDownloadsLabelRoot || !totalDownloadsLabelRoot.isConnected) {
+    totalDownloadsLabelRoot = document.getElementById("total-downloads-label");
+  }
   if (
     !historyDensityButtons.compact ||
     !historyDensityButtons.compact.isConnected
@@ -1200,12 +1293,14 @@ function destroyHistoryVirtualList() {
   historyVirtualList = null;
 }
 
-function createHistoryGroupElement(entry, groupKey = "unknown") {
+function createHistoryGroupElement(entry, groupKey = "unknown", count = 0) {
   const entryDate = normalizeEntryDate(entry);
   const group = document.createElement("div");
   group.className = "history-group";
   group.dataset.groupKey = groupKey;
   const left = `<span class="history-group__title">${escapeHtml(getDayLabel(entryDate))}</span>`;
+  const countLabel =
+    count > 0 ? `<span class="history-group__count">${count}</span>` : "";
   const sourceLabel = formatSourceLabel(entry.sourceUrl);
   const sourceIcon = getSourceIconClass(entry.sourceUrl);
   const source =
@@ -1217,6 +1312,7 @@ function createHistoryGroupElement(entry, groupKey = "unknown") {
   group.innerHTML = `
     <div class="history-group__left">
       ${left}
+      ${countLabel}
       ${source}
     </div>
     <span class="history-group__line" aria-hidden="true"></span>
@@ -1231,6 +1327,15 @@ function createHistoryGroupElement(entry, groupKey = "unknown") {
     </button>
   `;
   return group;
+}
+
+function getHistoryGroupCounts(entries = []) {
+  const counts = new Map();
+  entries.forEach((entry) => {
+    const key = getDayKey(normalizeEntryDate(entry));
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return counts;
 }
 
 function estimateVirtualItemHeight(type) {
@@ -1250,6 +1355,7 @@ function estimateVirtualItemHeight(type) {
 function buildVirtualHistoryItems(entries = []) {
   const items = [];
   let lastGroupKey = null;
+  const groupCounts = getHistoryGroupCounts(entries);
   entries.forEach((entry) => {
     const entryDate = normalizeEntryDate(entry);
     const groupKey = getDayKey(entryDate);
@@ -1260,6 +1366,7 @@ function buildVirtualHistoryItems(entries = []) {
         key: `group:${groupKey}`,
         groupKey,
         entry,
+        count: groupCounts.get(groupKey) || 0,
         height: estimateVirtualItemHeight("group"),
       });
     }
@@ -1358,7 +1465,11 @@ function renderHistoryVirtualized(container, entries = []) {
     for (let i = start; i < end; i += 1) {
       const item = items[i];
       if (item.type === "group") {
-        const group = createHistoryGroupElement(item.entry, item.groupKey);
+        const group = createHistoryGroupElement(
+          item.entry,
+          item.groupKey,
+          item.count,
+        );
         group.dataset.virtualIndex = String(i);
         fragment.appendChild(group);
         continue;
@@ -2571,31 +2682,48 @@ function createLogEntry(entry, groupKey = "unknown") {
     audioBadge.textContent = t("history.badge.audio");
     badges.appendChild(audioBadge);
   }
+  const statusCluster = document.createElement("div");
+  statusCluster.className = "history-row__status";
   if (entry.isMissing) {
     const missingBadge = document.createElement("span");
     missingBadge.className = "history-badge history-badge--missing";
     missingBadge.textContent = t("history.deleted.badge");
-    badges.appendChild(missingBadge);
+    statusCluster.appendChild(missingBadge);
     el.classList.add("history-row--deleted");
   }
   if (entry.downloadStatus === "failed") {
     const failedBadge = document.createElement("span");
     failedBadge.className = "history-badge history-badge--missing";
     failedBadge.textContent = t("history.failed.badge");
-    badges.appendChild(failedBadge);
+    statusCluster.appendChild(failedBadge);
   }
 
   titleRow.append(name);
 
   const sizeLabel = formatSizeLabel(entry);
+  const summary = document.createElement("div");
+  summary.className = "history-row__summary";
+  summary.appendChild(badges);
+  if (statusCluster.childElementCount > 0) {
+    summary.appendChild(statusCluster);
+  }
+
+  const meta = document.createElement("div");
+  meta.className = "history-row__meta";
+  if (entry.dateText) {
+    const date = document.createElement("span");
+    date.className = "history-row__meta-item";
+    date.textContent = entry.dateText;
+    meta.appendChild(date);
+  }
   if (sizeLabel) {
     const size = document.createElement("span");
     size.className = "history-row__size";
     size.innerHTML = `<i data-lucide=\"hard-drive\"></i><span>${sizeLabel}</span>`;
-    badges.appendChild(size);
+    meta.appendChild(size);
   }
 
-  main.append(titleRow, badges);
+  main.append(titleRow, summary, meta);
 
   const actions = document.createElement("div");
   actions.className = "history-row__actions";
@@ -2607,6 +2735,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   const openBtn = document.createElement("button");
   openBtn.type = "button";
   openBtn.className = "history-row__action";
+  openBtn.dataset.action = "open-file";
   openBtn.setAttribute("data-bs-toggle", "tooltip");
   openBtn.setAttribute("data-bs-placement", "top");
   openBtn.title = t("history.action.openFile");
@@ -2621,6 +2750,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   const openFolderBtn = document.createElement("button");
   openFolderBtn.type = "button";
   openFolderBtn.className = "history-row__action";
+  openFolderBtn.dataset.action = "open-folder";
   openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
   openFolderBtn.setAttribute("data-bs-placement", "top");
   openFolderBtn.title = t("history.action.openFolderShort");
@@ -2639,6 +2769,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     const item = document.createElement("button");
     item.type = "button";
     item.className = `history-row__menu-item${options.className || ""}`;
+    if (options.action) item.dataset.action = options.action;
     item.setAttribute("role", "menuitem");
     if (options.disabled) item.disabled = true;
     item.innerHTML = `<i data-lucide="${icon}"></i><span>${label}</span>`;
@@ -2658,6 +2789,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   const menuButton = document.createElement("button");
   menuButton.type = "button";
   menuButton.className = "history-row__action history-row__menu-button";
+  menuButton.dataset.action = "more";
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", t("history.action.more"));
   menuButton.setAttribute("data-i18n-aria", "history.action.more");
@@ -2676,17 +2808,20 @@ function createLogEntry(entry, groupKey = "unknown") {
     "external-link",
     {
       disabled: !entry.sourceUrl,
+      action: "open-source",
       onClick: () => openHistorySourceLink(entry.sourceUrl),
     },
   );
 
   const retryItem = menuItem(t("history.action.retry"), "refresh-cw", {
     disabled: !entry.sourceUrl,
+    action: "retry",
     onClick: () => retryHistoryCardDownload(entry),
   });
 
   const inspectItem = menuItem(t("history.action.inspect"), "activity", {
     disabled: entry.isMissing || !entry.filePath,
+    action: "inspect",
     onClick: () => openInspectorFromRow(),
   });
 
@@ -2695,6 +2830,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     "trash-2",
     {
       className: " history-row__delete",
+      action: "delete-entry",
     },
   );
 
@@ -2741,6 +2877,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "history-row__toggle";
+  toggle.dataset.action = "details";
   const initialDetailsOpen = state.historyDetailsExpanded === true;
   toggle.setAttribute("aria-expanded", initialDetailsOpen ? "true" : "false");
   const initialToggleLabel = initialDetailsOpen
@@ -3241,12 +3378,17 @@ function renderHistory(entries, meta = {}) {
       ? allEntries
       : allEntries.slice(start, start + pageSize);
   const count = totalEntries;
+  const headerStats = getHistoryStats(fullEntries);
   const isEmpty = totalEntries === 0;
   lastRenderedFiltered = fullEntries;
   lastRenderedPageEntries = pageEntries;
   buildFilterOptions(fullEntries);
   updateRestoreButton();
   ensureHistoryEmptyElement();
+  updateHistoryHeaderStats({
+    count,
+    sizeBytes: headerStats.sizeBytes,
+  });
 
   // ВСТАВКА: лог в начале renderHistory
   console.log(
@@ -3332,12 +3474,19 @@ function renderHistory(entries, meta = {}) {
     historyVirtualList = renderHistoryVirtualized(container, pageEntries);
   } else {
     let lastGroupKey = null;
+    const groupCounts = getHistoryGroupCounts(pageEntries);
     pageEntries.forEach((entry) => {
       const entryDate = normalizeEntryDate(entry);
       const groupKey = getDayKey(entryDate);
       if (groupKey !== lastGroupKey) {
         lastGroupKey = groupKey;
-        container.appendChild(createHistoryGroupElement(entry, groupKey));
+        container.appendChild(
+          createHistoryGroupElement(
+            entry,
+            groupKey,
+            groupCounts.get(groupKey) || 0,
+          ),
+        );
       }
 
       const { el } = createLogEntry(entry, groupKey);
@@ -3510,10 +3659,12 @@ const sortHistory = (order = "desc") => {
 const updateDownloadCount = async () => {
   try {
     const count = await window.electron.invoke("get-download-count");
-    totalDownloads.style.display = count > 0 ? "block" : "none";
-    totalDownloads.textContent = count > 0 ? `${count}` : "";
+    updateHistoryHeaderStats({
+      count,
+      sizeBytes: getHistoryStats(getHistoryData()).sizeBytes,
+    });
   } catch (error) {
-    totalDownloads.style.display = "none";
+    updateHistoryHeaderStats({ count: 0, sizeBytes: 0 });
     if (error.code !== "ENOENT") {
       console.error("Error getting download count:", error);
       showToast(t("history.toast.countError"), "error");
