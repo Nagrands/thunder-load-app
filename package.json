@@ -126,7 +126,10 @@
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "icon": "assets/icons/platform/macos/app-icon.icns",
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "notarize": true
     }
   },
   "jest": {

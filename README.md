@@ -21,7 +21,7 @@
 ## Downloads
 
 - macOS (Apple/Intel), Windows, Linux builds are published on the [Releases](https://github.com/Nagrands/thunder-load-app/releases) page.
-- Choose installer or portable (where available); macOS builds are **not notarized** (see Installation notes).
+- Choose installer or portable (where available); published macOS builds are signed and notarized.
 
 ---
 
@@ -97,20 +97,8 @@ or use the `*:watch` commands.
 
 ## Installation
 
-<details>
-<summary><strong>macOS Notice</strong></summary>
-ThunderLoad for macOS is **not notarized**. When running the app, you may see a warning that it is damaged or cannot be opened.
-
-To run the app:
-
-1. Move the `.app` to `/Applications`.
-2. Open Terminal and run:
-   ```
-   sudo xattr -dr com.apple.quarantine /Applications/Thunder\ Load.app
-   ```
-3. Then open the app normally.
-
-</details>
+Published macOS builds are signed and notarized. Local unsigned development
+builds may still require removing quarantine before opening the app manually.
 
 ---
 
