@@ -18,7 +18,7 @@
 
   color: var(--color-highlight);
   border: 1px solid var(--color-hover);
-  border-radius: 16px;
+  // border-radius: 16px;
 
   &::before,
   &::after {
@@ -411,7 +411,7 @@
   grid-template-columns: auto 6fr auto auto;
   align-items: center;
   gap: var(--spacing-small);
-  padding: 12px;
+  // padding: 12px;
   border-radius: 20px;
   margin: 12px 0 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);

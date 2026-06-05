@@ -2024,7 +2024,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 0;
+  padding: 10px;
   flex-direction: row;
 }
 
@@ -2521,9 +2521,8 @@
 
 .history-cards-subtitle {
   text-transform: none;
-  letter-spacing: 0;
-  font-size: 0.9rem;
-  color: #9aa9bf;
+  letter-spacing: 0.09em;
+  color: var(--color-quality);
 }
 
 .history-cards-title {
@@ -2556,8 +2555,8 @@
   padding: 0 12px;
   border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(15, 23, 42, 0.42);
-  color: #cbd5e1;
+  background: transparent;
+  color: var(--color-highlight);
   white-space: nowrap;
 }
 
@@ -2665,7 +2664,7 @@
   border-radius: 16px 16px 0 0;
   border: 1px solid var(--color-hover);
   border-bottom: 0;
-  background: var(--color-hover);
+  background: transparent;
 }
 
 .history-group__title {

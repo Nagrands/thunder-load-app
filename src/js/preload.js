@@ -118,6 +118,7 @@ try {
     "tools:hashPickFile",
     "tools:hashInspectFile",
     "tools:hashCalculate",
+    "tools:hashProgress",
     "tools:mediaInspectorPickFile",
     "tools:mediaInspectorAnalyze",
     "tools:sorterPickFolder",
@@ -381,6 +382,7 @@ try {
       inspectHashFile: (payload) =>
         safeInvoke("tools:hashInspectFile", payload),
       calculateHash: (payload) => safeInvoke("tools:hashCalculate", payload),
+      onHashProgress: (callback) => safeOn("tools:hashProgress", callback),
       getDroppedFilePath: (file) => {
         try {
           return webUtils.getPathForFile(file);

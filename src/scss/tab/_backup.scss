@@ -125,8 +125,7 @@
   .wg-glass {
     @include backup-glass-panel();
     padding: 0;
-    background-color: var(--color-progress-bg);
-    backdrop-filter: blur(4px);
+    background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
   }
 
   // .backup-shell-header {
@@ -1694,16 +1693,7 @@ h1.section-heading {
     @include backup-button-base(12px);
     min-height: 36px;
     padding: 0.45rem 0.85rem;
-    background: linear-gradient(
-      120deg,
-      rgba(120, 180, 255, 0.28),
-      rgba(80, 140, 255, 0.24)
-    );
-    border: 1px solid rgba(120, 180, 255, 0.25);
-    box-shadow:
-      0 6px 18px rgba(0, 0, 0, 0.2),
-      0 1px 0 rgba(255, 255, 255, 0.08) inset;
-    color: #f4f7ff;
+    color: var(--color-highlight);
 
     &:hover {
       background: linear-gradient(
@@ -1711,9 +1701,6 @@ h1.section-heading {
         rgba(140, 200, 255, 0.35),
         rgba(90, 150, 255, 0.3)
       );
-      box-shadow:
-        0 10px 24px rgba(90, 150, 255, 0.16),
-        0 2px 0 rgba(255, 255, 255, 0.1) inset;
     }
 
     &:disabled {

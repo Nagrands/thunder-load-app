@@ -1182,15 +1182,59 @@ function setupIpcHandlers(dependencies) {
       if (!normalizedAlgorithm) {
         return { success: false, error: "Unsupported algorithm" };
       }
+      const requestId = String(payload.requestId || "").trim();
 
       await fsPromises.access(filePath, fs.constants.R_OK);
+      const fileStats = await fsPromises.stat(filePath);
+      const totalBytes = Number(fileStats.size) || 0;
+      let lastProgressPercent = -1;
+      let lastProgressEmitTs = 0;
+      const emitHashProgress = (stage, processedBytes) => {
+        if (!requestId || typeof _evt?.sender?.send !== "function") return;
+        const safeProcessed = Math.max(0, Number(processedBytes) || 0);
+        const percent =
+          totalBytes > 0
+            ? Math.min(100, Math.round((safeProcessed / totalBytes) * 100))
+            : stage === "done"
+              ? 100
+              : 0;
+        const now = Date.now();
+        const isRequiredStage = stage === "start" || stage === "done";
+        if (
+          !isRequiredStage &&
+          percent === lastProgressPercent &&
+          now - lastProgressEmitTs < 120
+        ) {
+          return;
+        }
+        lastProgressPercent = percent;
+        lastProgressEmitTs = now;
+        _evt.sender.send(CHANNELS.TOOLS_HASH_PROGRESS, {
+          requestId,
+          filePath,
+          algorithm,
+          stage,
+          processedBytes: safeProcessed,
+          totalBytes,
+          percent,
+        });
+      };
 
       const actualHash = await new Promise((resolve, reject) => {
         const hash = crypto.createHash(normalizedAlgorithm);
+        let processedBytes = 0;
         const stream = fs.createReadStream(filePath);
         stream.on("error", reject);
-        stream.on("data", (chunk) => hash.update(chunk));
-        stream.on("end", () => resolve(hash.digest("hex").toLowerCase()));
+        stream.on("data", (chunk) => {
+          processedBytes += chunk.length;
+          hash.update(chunk);
+          emitHashProgress("progress", processedBytes);
+        });
+        stream.on("end", () => {
+          emitHashProgress("done", totalBytes);
+          resolve(hash.digest("hex").toLowerCase());
+        });
+        emitHashProgress("start", 0);
       });
 
       const expectedHash = String(payload.expectedHash || "")

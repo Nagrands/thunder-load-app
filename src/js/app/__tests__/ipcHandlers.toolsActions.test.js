@@ -1233,6 +1233,41 @@ describe("ipcHandlers tools quick actions", () => {
     );
   });
 
+  test("hashCalculate emits progress events when requestId is provided", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const filePath = path.join(os.tmpdir(), `hash-progress-${Date.now()}.txt`);
+    fs.writeFileSync(filePath, "progress-demo", "utf8");
+    const sender = { send: jest.fn() };
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_HASH_CALCULATE](
+      { sender },
+      {
+        filePath,
+        algorithm: "SHA-256",
+        requestId: "hash-request-1",
+      },
+    );
+
+    expect(result.success).toBe(true);
+    expect(sender.send).toHaveBeenCalledWith(
+      CHANNELS.TOOLS_HASH_PROGRESS,
+      expect.objectContaining({
+        requestId: "hash-request-1",
+        filePath,
+        algorithm: "SHA-256",
+      }),
+    );
+    expect(sender.send).toHaveBeenLastCalledWith(
+      CHANNELS.TOOLS_HASH_PROGRESS,
+      expect.objectContaining({
+        requestId: "hash-request-1",
+        stage: "done",
+        percent: 100,
+      }),
+    );
+  });
+
   test("hashInspectFile returns readable file metadata", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const filePath = path.join(os.tmpdir(), `hash-inspect-${Date.now()}.bin`);

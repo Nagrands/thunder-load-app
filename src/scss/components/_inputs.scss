@@ -250,7 +250,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
 }
 
 .url-input-leading {
@@ -266,7 +266,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: 50%;
   border: 1px solid rgba(var(--color-accent-rgb), 0.16);
   color: rgba(var(--color-accent-rgb), 0.9);
   padding: 0;
@@ -295,7 +295,7 @@
     color: inherit;
     pointer-events: none;
     width: 20px;
-    height: 20px;
+    // height: 20px;
     object-fit: contain;
     display: block;
   }
@@ -330,7 +330,6 @@
     cursor: default;
     opacity: 0.72;
     transform: none;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -561,12 +560,12 @@
 }
 
 .url-helper-text {
-  font-size: 0.75rem;
-  line-height: 1.3;
-  font-weight: 550;
-  letter-spacing: 0.005em;
+  font-size: 0.8rem;
+  // line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.008em;
   text-wrap: pretty;
-  color: rgba(232, 240, 250, 0.9);
+  color: var(--color-highlight);
 }
 
 .url-input-shortcuts {
@@ -878,13 +877,12 @@
     position: absolute;
     right: 8px;
     top: 8px;
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     padding: 0;
     font-size: 0;
-    border-radius: 10px;
-    background: rgba(9, 16, 28, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    background: var(--color-toast-bg);
     color: var(--color-text-main);
     display: inline-flex;
     align-items: center;
@@ -898,9 +896,7 @@
       font-size: 13px;
     }
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
-      transform: scale(1.04);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
+      background: rgb(0 0 0 / 70%);
     }
     &:active {
       transform: scale(0.97);
@@ -919,7 +915,6 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 2;
     transition:
       background-color 0.2s ease,
       transform 0.1s ease,
@@ -1183,13 +1178,6 @@
     }
   }
 
-  .preview-save {
-    right: 8px;
-    top: 8px;
-    z-index: 3;
-    background: rgba(5, 8, 14, 0.68);
-  }
-
   .preview-card__body,
   .preview-meta {
     grid-area: body;
@@ -1201,15 +1189,6 @@
     justify-content: stretch;
     gap: 10px;
     padding-right: 0;
-  }
-
-  .preview-kicker {
-    color: #ff8a1f;
-    font-size: 0.66rem;
-    font-weight: 800;
-    letter-spacing: 0.22em;
-    line-height: 1.1;
-    text-transform: uppercase;
   }
 
   .preview-title {
@@ -1333,10 +1312,10 @@
 
   .preview-card__controls {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    z-index: 4;
-    display: grid;
+    top: 6px;
+    right: 10px;
+    // z-index: 4;
+    display: flex;
     gap: 8px;
     transform: none;
   }

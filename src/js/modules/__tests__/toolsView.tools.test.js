@@ -159,6 +159,7 @@ describe("toolsView quick actions", () => {
           actualHash: "abcd",
           matches: null,
         }),
+        onHashProgress: jest.fn(() => jest.fn()),
         inspectHashFile: jest.fn(async ({ filePath }) => ({
           success: true,
           filePath,
@@ -2089,6 +2090,8 @@ describe("toolsView quick actions", () => {
     await openTool(el, "hash");
     const pickBtn = el.querySelector("#hash-pick-file");
     const runBtn = el.querySelector("#hash-run");
+    const algorithmToggle = el.querySelector("#hash-algorithm-toggle");
+    const algorithmMenu = el.querySelector("#hash-algorithm-menu");
     const copyBtn = el.querySelector("#hash-copy-actual-1");
     const status = el.querySelector("#hash-status-badge");
     const actual = el.querySelector("#hash-actual-value");
@@ -2096,9 +2099,15 @@ describe("toolsView quick actions", () => {
 
     pickBtn.click();
     await nextTick();
+    algorithmToggle.click();
+    await nextTick();
+    expect(algorithmMenu?.classList.contains("hidden")).toBe(false);
+
     runBtn.click();
     await nextTick();
 
+    expect(algorithmMenu?.classList.contains("hidden")).toBe(true);
+    expect(algorithmToggle?.getAttribute("aria-expanded")).toBe("false");
     expect(status?.textContent).toBe("hashCheck.status.calculated");
     expect(actual?.textContent).toBe("abcd");
     expect(copyBtn?.hasAttribute("disabled")).toBe(false);
@@ -2112,6 +2121,68 @@ describe("toolsView quick actions", () => {
       true,
     );
     expect(copyFeedback?.textContent).toBe("hashCheck.copySuccess");
+  });
+
+  test("shows hash progress and stores recent verification history", async () => {
+    let progressHandler;
+    let resolveHash;
+    window.electron.tools.onHashProgress.mockImplementationOnce((handler) => {
+      progressHandler = handler;
+      return jest.fn();
+    });
+    window.electron.tools.calculateHash.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveHash = resolve;
+        }),
+    );
+
+    const el = await renderView();
+    await openTool(el, "hash");
+
+    const pickBtn = el.querySelector("#hash-pick-file");
+    const runBtn = el.querySelector("#hash-run");
+    const progress = el.querySelector("#hash-progress");
+    const progressPercent = el.querySelector("#hash-progress-percent");
+    const progressBar = el.querySelector("#hash-progress-bar");
+    const historyList = el.querySelector("#hash-history-list");
+
+    pickBtn.click();
+    await nextTick();
+    runBtn.click();
+    await nextTick();
+
+    const requestId =
+      window.electron.tools.calculateHash.mock.calls[0][0].requestId;
+    expect(requestId).toBeTruthy();
+
+    progressHandler?.({
+      requestId: "stale",
+      filePath: "/tmp/demo.bin",
+      percent: 90,
+    });
+    expect(progressPercent?.textContent).toBe("0%");
+
+    progressHandler?.({
+      requestId,
+      filePath: "/tmp/demo.bin",
+      percent: 42,
+    });
+    expect(progress?.classList.contains("hidden")).toBe(false);
+    expect(progressPercent?.textContent).toBe("42%");
+    expect(progressBar?.style.width).toBe("42%");
+
+    resolveHash({ success: true, actualHash: "feedface", matches: null });
+    await nextTick();
+    await nextTick();
+
+    expect(historyList?.textContent).toContain("demo.bin");
+    expect(historyList?.textContent).toContain("feedface");
+    expect(historyList?.textContent).toContain("hashCheck.history.calculated");
+
+    historyList?.querySelector("[data-hash-history-copy]")?.click();
+    await nextTick();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("feedface");
   });
 
   test("compares two selected files by hash", async () => {
