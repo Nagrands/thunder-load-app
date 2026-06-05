@@ -1798,12 +1798,43 @@
 /* ===== 2026 History Redesign (Lucide / Dark Panel) ===== */
 #history-container {
   border-radius: 20px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
 }
 
 #history-container,
 #history-container * {
   animation: none !important;
   transition: none !important;
+}
+
+#history-container.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  margin-top: -8px;
+  pointer-events: none;
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.25s ease,
+    margin 0.25s ease !important;
+}
+
+#history-container.is-open {
+  max-height: 9999px;
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 0;
+  pointer-events: auto;
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.25s ease,
+    margin 0.25s ease !important;
 }
 
 #history-container .history-row__details,
@@ -1981,10 +2012,9 @@
 .history-filters-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-end;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 6px 14px 5px;
+  // padding: 6px 14px 5px;
 }
 
 .history-filters-toggle {
@@ -2462,8 +2492,6 @@
 
 .history-toolbar {
   align-items: center;
-  // padding: 4px 10px 2px;
-  margin: 0;
 }
 
 .history-toolbar__identity {
@@ -2517,7 +2545,6 @@
   min-height: 38px;
   border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(15, 23, 42, 0.42);
 }
 
 .history-count-pill {
@@ -2538,7 +2565,7 @@
 .history-count-pill svg {
   width: 17px;
   height: 17px;
-  color: #8fb7f7;
+  color: var(--color-accent);
 }
 
 #total-downloads,
@@ -2608,10 +2635,6 @@
   cursor: not-allowed;
 }
 
-.history-filters-head {
-  padding: 2px 6px 7px;
-}
-
 .history-filters-title {
   font-size: 0.82rem;
 }
@@ -2638,7 +2661,7 @@
   grid-template-columns: auto minmax(16px, 1fr) auto;
   margin: 0;
   margin-top: 20px;
-  padding: 4px 10px;
+  padding: 6px 16px;
   border-radius: 16px 16px 0 0;
   border: 1px solid var(--color-hover);
   border-bottom: 0;
@@ -2657,13 +2680,12 @@
   align-items: center;
   justify-content: center;
   min-width: 24px;
-  height: 22px;
   padding: 0 8px;
   border-radius: 999px;
   background: rgba(148, 163, 184, 0.13);
-  color: #aebdd1;
+  color: var(--color-accent);
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .history-group__toggle {

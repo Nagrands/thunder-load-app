@@ -450,6 +450,20 @@ $themes: (
   --spacing-medium: #{$spacing-medium};
   --spacing-large: #{$spacing-large};
   --border-radius: #{$border-radius};
+  --toast-width: 360px;
+  --toast-radius: 8px;
+  --toast-padding-y: 10px;
+  --toast-padding-x: 12px;
+  --toast-gap: 10px;
+  --toast-icon-size: 24px;
+  --toast-close-size: 28px;
+  --toast-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+  --toast-border: rgba(255, 255, 255, 0.1);
+  --toast-surface: color-mix(
+    in srgb,
+    var(--color-toast-bg) 88%,
+    var(--color-bg-secondary)
+  );
   --app-bg-base-wash: var(--app-bg-gradient);
   --app-bg-page-aura: radial-gradient(
     circle at 50% 50%,

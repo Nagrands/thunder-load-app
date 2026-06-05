@@ -1,0 +1,322 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Thunder Load Notifications Lab{% endblock %}
+
+{% block head_extra %}
+  <style>
+    body {
+      min-height: 100vh;
+      padding: 32px;
+      color: var(--color-text-main);
+      background: var(--color-bg-main);
+    }
+
+    .notification-lab {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .notification-lab__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .notification-lab__title {
+      margin: 0 0 6px;
+      font-size: 1.4rem;
+      line-height: 1.2;
+    }
+
+    .notification-lab__subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 0.9rem;
+    }
+
+    .notification-lab__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .notification-lab__panel {
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+    }
+
+    .notification-lab__panel h2 {
+      margin: 0 0 12px;
+      font-size: 0.92rem;
+    }
+
+    .notification-lab__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .notification-lab__button {
+      min-height: 34px;
+      padding: 7px 11px;
+      color: var(--button-color);
+      background: var(--button-default);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .notification-lab__button:hover {
+      border-color: rgba(var(--color-accent-rgb), 0.5);
+    }
+
+    .version-container {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      color: var(--color-highlight);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 999px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  {% include "partials/toast-overlay.njk" %}
+
+  <main class="notification-lab">
+    <header class="notification-lab__header">
+      <div>
+        <h1 class="notification-lab__title">Notifications Lab</h1>
+        <p class="notification-lab__subtitle">Standalone visual checks for compact toasts and update flyover.</p>
+      </div>
+      <div class="version-container">
+        <span id="app-version-label">v1.5.0</span>
+      </div>
+    </header>
+
+    <section class="notification-lab__grid">
+      <div class="notification-lab__panel">
+        <h2>Toast types</h2>
+        <div class="notification-lab__actions">
+          <button class="notification-lab__button" data-toast="info">Info</button>
+          <button class="notification-lab__button" data-toast="success">Success</button>
+          <button class="notification-lab__button" data-toast="warning">Warning</button>
+          <button class="notification-lab__button" data-toast="error">Error</button>
+          <button class="notification-lab__button" data-toast="loading">Loading</button>
+        </div>
+      </div>
+
+      <div class="notification-lab__panel">
+        <h2>Toast scenarios</h2>
+        <div class="notification-lab__actions">
+          <button class="notification-lab__button" data-scenario="long">Long text</button>
+          <button class="notification-lab__button" data-scenario="html">Sanitized HTML</button>
+          <button class="notification-lab__button" data-scenario="undo">Undo</button>
+          <button class="notification-lab__button" data-scenario="shutdown">Autoshutdown</button>
+          <button class="notification-lab__button" data-scenario="stack">Stack limit</button>
+          <button class="notification-lab__button" data-scenario="clear">Clear</button>
+        </div>
+      </div>
+
+      <div class="notification-lab__panel">
+        <h2>Update flyover</h2>
+        <div class="notification-lab__actions">
+          <button class="notification-lab__button" data-update="checking">Checking</button>
+          <button class="notification-lab__button" data-update="available">Available</button>
+          <button class="notification-lab__button" data-update="progress">Progress</button>
+          <button class="notification-lab__button" data-update="done">Done</button>
+          <button class="notification-lab__button" data-update="error">Error</button>
+          <button class="notification-lab__button" data-update="close">Close</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const container = document.getElementById("toast-container");
+    const maxToasts = 5;
+    const toneIcon = {
+      info: "fa-info-circle",
+      success: "fa-check-circle",
+      warning: "fa-exclamation-triangle",
+      error: "fa-times-circle",
+      loading: "fa-spinner fa-spin",
+    };
+
+    function closeToast(toast) {
+      if (!toast) return;
+      toast.classList.remove("show");
+      toast.classList.add("hide");
+      setTimeout(() => toast.remove(), 220);
+    }
+
+    function pushToast({
+      type = "info",
+      title = "",
+      message = "",
+      duration = 5000,
+      html = false,
+      undo = false,
+      extraClass = "",
+    }) {
+      const toast = document.createElement("div");
+      toast.className = `toast toast-${type} ${extraClass}`.trim();
+      toast.tabIndex = -1;
+      toast.dataset.ui = "toast";
+      toast.innerHTML = `
+        <span class="toast-marker" aria-hidden="true"></span>
+        <i class="toast-icon fas ${toneIcon[type] || toneIcon.info}" aria-hidden="true"></i>
+        <div class="toast-content">
+          ${title ? `<div class="toast-title">${title}</div>` : ""}
+          <div class="toast-message"></div>
+          ${undo ? `<button type="button" class="toast-undo" id="undo-action">Undo</button>` : ""}
+        </div>
+        <button type="button" class="toast-close" aria-label="Close notification">
+          <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+        ${type === "loading" ? "" : `<div class="toast-progress" style="animation-duration:${duration}ms"></div>`}
+      `;
+
+      const messageEl = toast.querySelector(".toast-message");
+      if (html) {
+        messageEl.innerHTML = String(message)
+          .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+          .replace(/\son\w+="[^"]*"/gi, "");
+      } else {
+        messageEl.textContent = message;
+      }
+
+      toast.querySelector(".toast-close")?.addEventListener("click", () => closeToast(toast));
+      toast.querySelector("#undo-action")?.addEventListener("click", () => closeToast(toast));
+      toast.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeToast(toast);
+      });
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add("show"));
+      const activeToasts = Array.from(container.children).filter(
+        (item) => !item.classList.contains("hide"),
+      );
+      while (activeToasts.length > maxToasts) closeToast(activeToasts.shift());
+      if (type !== "loading") setTimeout(() => closeToast(toast), duration);
+      return toast;
+    }
+
+    document.querySelectorAll("[data-toast]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const type = button.dataset.toast;
+        pushToast({
+          type,
+          title: type === "loading" ? "Preparing download" : type[0].toUpperCase() + type.slice(1),
+          message: type === "loading" ? "Waiting for response..." : "Compact notification preview.",
+        });
+      });
+    });
+
+    document.querySelectorAll("[data-scenario]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const scenario = button.dataset.scenario;
+        if (scenario === "clear") {
+          Array.from(container.children).forEach(closeToast);
+          return;
+        }
+        if (scenario === "stack") {
+          for (let index = 1; index <= 7; index += 1) {
+            pushToast({ type: "info", title: `Queued ${index}`, message: "Only five notifications stay visible." });
+          }
+          return;
+        }
+        if (scenario === "long") {
+          pushToast({
+            type: "warning",
+            title: "Long text",
+            message: "This message intentionally uses a longer sentence to check wrapping, clamping, compact height, and readability inside the notification card.",
+          });
+          return;
+        }
+        if (scenario === "html") {
+          pushToast({
+            type: "success",
+            title: "Sanitized HTML",
+            html: true,
+            message: 'Saved <strong>settings</strong><span onclick="alert(1)" class="toast-success"> safely</span>.',
+          });
+          return;
+        }
+        if (scenario === "undo") {
+          pushToast({ type: "info", title: "History updated", message: "Item removed from history.", undo: true, duration: 8000 });
+          return;
+        }
+        if (scenario === "shutdown") {
+          pushToast({
+            type: "warning",
+            title: "Shutdown scheduled",
+            html: true,
+            extraClass: "toast-autoshutdown",
+            message: '<span class="toast-countdown-row"><span>Computer will shut down soon.</span><span class="toast-countdown-value">00:30</span><button class="toast-action-btn">Cancel</button></span>',
+            duration: 9000,
+          });
+        }
+      });
+    });
+
+    let flyover = null;
+    function ensureFlyover() {
+      if (flyover) return flyover;
+      flyover = document.createElement("div");
+      flyover.className = "upd-flyover";
+      flyover.dataset.ui = "update-flyover";
+      flyover.dataset.placement = "bottom";
+      flyover.style.display = "none";
+      flyover.innerHTML = `
+        <button id="upd-close" class="upd-close" data-ui="update-close" aria-label="Close">&times;</button>
+        <div class="state state-checking" data-ui="update-state-checking"><h3 class="hdr">Checking for updates...</h3><div class="muted">Contacting release server.</div><div class="upd-pulse"></div></div>
+        <div class="state state-available" data-ui="update-state-available"><h3 class="hdr">Update available</h3><div class="ver"><span>Current:</span><span class="cur">1.5.0</span><span>New:</span><span class="next">1.5.1</span></div><div class="row"><button id="upd-start" class="btn btn-sm btn-primary">Download</button></div></div>
+        <div class="state state-progress" data-ui="update-state-progress"><h3 class="hdr">Downloading update...</h3><div class="ver muted"><span>Version:</span><span>1.5.1</span></div><progress id="upd-bar" value="42" max="100"></progress><div class="muted" id="upd-label">42% • 1.2 MB/s</div></div>
+        <div class="state state-done" data-ui="update-state-done"><h3 class="hdr">Update downloaded</h3><div class="muted">Restart the app to install.</div><div class="row"><button id="upd-restart" class="btn btn-sm btn-primary">Restart</button></div></div>
+        <div class="state state-error" data-ui="update-state-error"><h3 class="hdr" id="upd-error-title">Could not download the update</h3><div class="muted" id="upd-err">The updater returned a validation error.</div><div class="row upd-actions"><button id="upd-retry" class="btn btn-sm btn-primary">Retry</button><button id="upd-dismiss" class="btn btn-sm btn-ghost">Dismiss</button></div></div>
+      `;
+      document.body.appendChild(flyover);
+      flyover.querySelector("#upd-close")?.addEventListener("click", closeFlyover);
+      flyover.querySelector("#upd-dismiss")?.addEventListener("click", closeFlyover);
+      return flyover;
+    }
+
+    function showUpdateState(state) {
+      const node = ensureFlyover();
+      const anchor = document.getElementById("app-version-label").getBoundingClientRect();
+      const width = Math.min(360, window.innerWidth - 28);
+      const left = Math.min(
+        Math.max(12, anchor.left - 8),
+        Math.max(12, window.innerWidth - width - 12),
+      );
+      node.style.left = `${left}px`;
+      node.style.top = `${anchor.bottom + 10}px`;
+      node.style.display = "block";
+      node.classList.add("is-visible");
+      node.dataset.state = state;
+      node.querySelectorAll(".state").forEach((stateEl) => (stateEl.style.display = "none"));
+      node.querySelector(`.state-${state}`)?.style.setProperty("display", "block");
+    }
+
+    function closeFlyover() {
+      if (!flyover) return;
+      flyover.classList.remove("is-visible");
+      flyover.style.display = "none";
+    }
+
+    document.querySelectorAll("[data-update]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const state = button.dataset.update;
+        if (state === "close") closeFlyover();
+        else showUpdateState(state);
+      });
+    });
+  </script>
+{% endblock %}

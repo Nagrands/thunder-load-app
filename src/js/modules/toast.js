@@ -16,6 +16,62 @@ const TOAST_HTML_ALLOWED_ATTR = {
   span: ["class"],
   code: ["class"],
 };
+const DEFAULT_TOAST_DURATION = 5500;
+const TOAST_HIDE_ANIMATION_MS = 220;
+const MAX_VISIBLE_TOASTS = 5;
+const VALID_TOAST_TYPES = new Set([
+  "info",
+  "success",
+  "error",
+  "warning",
+  "loading",
+]);
+
+function normalizeToastType(type) {
+  return VALID_TOAST_TYPES.has(type) ? type : "info";
+}
+
+function normalizeToastOptions(
+  type = "info",
+  duration = DEFAULT_TOAST_DURATION,
+  title = null,
+  onClickUndo = null,
+  accent = false,
+  options = {},
+) {
+  if (type && typeof type === "object" && !Array.isArray(type)) {
+    const config = type;
+    return {
+      type: normalizeToastType(config.type || config.tone || "info"),
+      duration: Number.isFinite(Number(config.duration))
+        ? Number(config.duration)
+        : DEFAULT_TOAST_DURATION,
+      title: config.title ?? null,
+      onClickUndo:
+        typeof config.onClickUndo === "function"
+          ? config.onClickUndo
+          : typeof config.onUndo === "function"
+            ? config.onUndo
+            : null,
+      accent: Boolean(config.accent),
+      renderOptions: {
+        allowHtml: Boolean(config.allowHtml),
+        ...(config.options || {}),
+      },
+    };
+  }
+
+  return {
+    type: normalizeToastType(type),
+    duration: Number.isFinite(Number(duration))
+      ? Number(duration)
+      : DEFAULT_TOAST_DURATION,
+    title,
+    onClickUndo,
+    accent: Boolean(accent),
+    renderOptions: options || {},
+  };
+}
 
 function sanitizeToastHtml(html) {
   const purifier = window?.DOMPurify;
@@ -43,8 +99,71 @@ function renderToastMessage(messageEl, message, options = {}) {
   messageEl.textContent = text;
 }
 
+function buildToastElement({ message, type, title, onClickUndo, accent, options }) {
+  const toast = document.createElement("div");
+  const toastClass = accent
+    ? `toast toast-${type} toast-accent-${type}`
+    : `toast toast-${type}`;
+  toast.className = toastClass;
+  toast.tabIndex = -1;
+  toast.setAttribute("role", type === "error" ? "alert" : "status");
+  toast.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
+  toast.dataset.ui = "toast";
+  toast.dataset.type = type;
+
+  const marker = document.createElement("span");
+  marker.className = "toast-marker";
+  marker.setAttribute("aria-hidden", "true");
+
+  const icon = document.createElement("i");
+  icon.className = `toast-icon ${getIconClass(type)}`;
+  icon.setAttribute("aria-hidden", "true");
+
+  const content = document.createElement("div");
+  content.className = "toast-content";
+
+  if (title) {
+    const titleEl = document.createElement("div");
+    titleEl.className = "toast-title";
+    titleEl.textContent = String(title);
+    content.appendChild(titleEl);
+  }
+
+  const messageEl = document.createElement("div");
+  messageEl.className = "toast-message";
+  renderToastMessage(messageEl, message, options);
+  content.appendChild(messageEl);
+
+  if (onClickUndo) {
+    const undo = document.createElement("button");
+    undo.type = "button";
+    undo.className = "toast-undo";
+    undo.id = "undo-action";
+    undo.textContent = t("toast.undo");
+    content.appendChild(undo);
+  }
+
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.className = "toast-close";
+  closeButton.setAttribute("aria-label", t("toast.close"));
+  closeButton.dataset.ui = "toast-close";
+  const closeIcon = document.createElement("i");
+  closeIcon.className = "fas fa-times";
+  closeIcon.setAttribute("aria-hidden", "true");
+  closeButton.appendChild(closeIcon);
+
+  const progress = document.createElement("div");
+  progress.className = "toast-progress";
+  progress.setAttribute("aria-hidden", "true");
+
+  toast.append(marker, icon, content, closeButton, progress);
+
+  return { toast, messageEl };
+}
+
 /**
- * Функция для отображения уведомлений (тостов) в стиле Liquid Glass
+ * Функция для отображения компактных уведомлений (тостов)
  * @param {string} message - Сообщение для отображения
  * @param {string} type - Тип уведомления ('info', 'success', 'error', 'warning')
  * @param {number} duration - Продолжительность отображения в миллисекундах
@@ -63,57 +182,29 @@ function showToast(
   options = {},
 ) {
   if (!toastContainer) return;
-  const toast = document.createElement("div");
-  const toastClass = accent
-    ? `toast toast-${type} toast-accent-${type}`
-    : `toast toast-${type}`;
-  toast.className = toastClass;
-
-  const icon = document.createElement("i");
-  icon.className = `toast-icon ${getIconClass(type)}`;
-
-  const content = document.createElement("div");
-  content.className = "toast-content";
-
-  if (title) {
-    const titleEl = document.createElement("div");
-    titleEl.className = "toast-title";
-    titleEl.textContent = String(title);
-    content.appendChild(titleEl);
-  }
-
-  const messageEl = document.createElement("div");
-  messageEl.className = "toast-message";
-  renderToastMessage(messageEl, message, options);
-  content.appendChild(messageEl);
-
-  if (onClickUndo) {
-    const undo = document.createElement("a");
-    undo.href = "#";
-    undo.className = "toast-undo";
-    undo.id = "undo-action";
-    undo.textContent = t("toast.undo");
-    content.appendChild(undo);
-  }
-
-  const closeButton = document.createElement("button");
-  closeButton.className = "toast-close";
-  closeButton.setAttribute("aria-label", t("toast.close"));
-  const closeIcon = document.createElement("i");
-  closeIcon.className = "fas fa-times";
-  closeButton.appendChild(closeIcon);
-
-  const progress = document.createElement("div");
-  progress.className = "toast-progress";
-
-  toast.append(icon, content, closeButton, progress);
+  const normalized = normalizeToastOptions(
+    type,
+    duration,
+    title,
+    onClickUndo,
+    accent,
+    options,
+  );
+  const { toast } = buildToastElement({
+    message,
+    type: normalized.type,
+    title: normalized.title,
+    onClickUndo: normalized.onClickUndo,
+    accent: normalized.accent,
+    options: normalized.renderOptions,
+  });
 
   toastContainer.appendChild(toast);
 
   // Устанавливаем анимацию прогресс-бара
   const progressBar = toast.querySelector(".toast-progress");
   if (progressBar) {
-    progressBar.style.animationDuration = `${duration}ms`;
+    progressBar.style.animationDuration = `${normalized.duration}ms`;
   }
 
   // Показываем тост с небольшой задержкой
@@ -122,10 +213,16 @@ function showToast(
   }, 100);
 
   // Обработчики событий
-  setupToastEventHandlers(toast, duration, onClickUndo);
+  setupToastEventHandlers(
+    toast,
+    normalized.duration,
+    normalized.onClickUndo,
+  );
 
   // Ограничиваем количество одновременно отображаемых тостов
   manageToastLimit();
+
+  return toast;
 }
 
 /**
@@ -136,7 +233,7 @@ function setupToastEventHandlers(toast, duration, onClickUndo) {
   let closeTimer = setTimeout(() => closeToast(toast), duration);
 
   // Обработчик кнопки закрытия
-  closeButton.addEventListener("click", (e) => {
+  closeButton?.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     closeToast(toast);
@@ -196,7 +293,7 @@ function closeToast(toast) {
     if (toast.parentNode === toastContainer) {
       toastContainer.removeChild(toast);
     }
-  }, 400);
+  }, TOAST_HIDE_ANIMATION_MS);
 }
 
 /**
@@ -208,6 +305,7 @@ function getIconClass(type) {
     error: "fas fa-times-circle",
     warning: "fas fa-exclamation-triangle",
     info: "fas fa-info-circle",
+    loading: "fas fa-spinner fa-spin",
   };
   return icons[type] || icons.info;
 }
@@ -216,11 +314,12 @@ function getIconClass(type) {
  * Ограничивает количество одновременно отображаемых тостов
  */
 function manageToastLimit() {
-  const maxToasts = 5;
-  const toasts = toastContainer.children;
+  const activeToasts = Array.from(toastContainer.children).filter(
+    (toast) => !toast.classList.contains("hide"),
+  );
 
-  if (toasts.length > maxToasts) {
-    const oldestToast = toasts[0];
+  while (activeToasts.length > MAX_VISIBLE_TOASTS) {
+    const oldestToast = activeToasts.shift();
     closeToast(oldestToast);
   }
 }
@@ -284,30 +383,20 @@ function showLoading(
   title = t("toast.loading.title"),
   options = {},
 ) {
-  const toast = document.createElement("div");
-  toast.className = "toast toast-info toast-loading";
-
-  const icon = document.createElement("i");
-  icon.className = "toast-icon fas fa-spinner fa-spin";
-
-  const content = document.createElement("div");
-  content.className = "toast-content";
-  const titleEl = document.createElement("div");
-  titleEl.className = "toast-title";
-  titleEl.textContent = String(title || "");
-  const messageEl = document.createElement("div");
-  messageEl.className = "toast-message";
-  renderToastMessage(messageEl, message, options);
-  content.append(titleEl, messageEl);
-
-  const closeButton = document.createElement("button");
-  closeButton.className = "toast-close";
-  closeButton.setAttribute("aria-label", t("toast.close"));
-  const closeIcon = document.createElement("i");
-  closeIcon.className = "fas fa-times";
-  closeButton.appendChild(closeIcon);
-
-  toast.append(icon, content, closeButton);
+  if (!toastContainer) return null;
+  const { toast, messageEl } = buildToastElement({
+    message,
+    type: "loading",
+    title,
+    onClickUndo: null,
+    accent: false,
+    options,
+  });
+  toast.classList.add("toast-info", "toast-loading");
+  const titleEl = toast.querySelector(".toast-title");
+  const progress = toast.querySelector(".toast-progress");
+  if (progress) progress.remove();
+  const closeButton = toast.querySelector(".toast-close");
 
   toastContainer.appendChild(toast);
 
@@ -315,7 +404,7 @@ function showLoading(
     toast.classList.add("show");
   }, 100);
 
-  closeButton.addEventListener("click", () => closeToast(toast));
+  closeButton?.addEventListener("click", () => closeToast(toast));
 
   return {
     close: () => closeToast(toast),

@@ -93,4 +93,15 @@ describe("settings template backup placement", () => {
       'data-i18n-html="settings.downloader.autoQualityModal"',
     );
   });
+
+  test("builds the standalone notifications lab page", () => {
+    const labPath = path.resolve(process.cwd(), "src/notifications-lab.html");
+    const html = fs.readFileSync(labPath, "utf8");
+
+    expect(html).toContain('id="toast-container"');
+    expect(html).toContain('data-ui="toast-container"');
+    expect(html).toContain('data-toast="success"');
+    expect(html).toContain('data-scenario="stack"');
+    expect(html).toContain('data-update="progress"');
+  });
 });

@@ -559,6 +559,42 @@ describe("Downloader history list", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
+  test("animates download history panel when footer button toggles it", async () => {
+    jest.useFakeTimers();
+    const { initHistory } = await import("../history.js");
+    const historyButton = document.getElementById("open-history");
+    const historyContainer = document.getElementById("history-container");
+    const filterInput = document.getElementById("filter-input");
+
+    initHistory();
+
+    expect(historyContainer.style.display).toBe("none");
+    expect(historyContainer.classList.contains("is-collapsed")).toBe(true);
+    expect(historyButton.getAttribute("aria-expanded")).toBe("false");
+
+    historyButton.click();
+    jest.advanceTimersByTime(16);
+
+    expect(historyContainer.style.display).toBe("block");
+    expect(historyContainer.classList.contains("is-open")).toBe(true);
+    expect(historyContainer.getAttribute("aria-hidden")).toBe("false");
+    expect(historyButton.getAttribute("aria-expanded")).toBe("true");
+    expect(filterInput.style.display).toBe("block");
+
+    historyButton.click();
+
+    expect(historyContainer.style.display).toBe("block");
+    expect(historyContainer.classList.contains("is-collapsed")).toBe(true);
+    expect(historyContainer.getAttribute("aria-hidden")).toBe("true");
+    expect(historyButton.getAttribute("aria-expanded")).toBe("false");
+
+    jest.advanceTimersByTime(260);
+
+    expect(historyContainer.style.display).toBe("none");
+    expect(filterInput.style.display).toBe("none");
+    jest.useRealTimers();
+  });
+
   test("updates active filters badge and resets filters to defaults", async () => {
     const sourceSelect = document.getElementById("history-source-filter");
     sourceSelect.innerHTML = `

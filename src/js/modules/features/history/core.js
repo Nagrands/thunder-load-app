@@ -42,6 +42,7 @@ const HISTORY_VIRTUAL_OVERSCAN_PX = 480;
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
+const HISTORY_TOGGLE_ANIMATION_MS = 260;
 const HISTORY_FILTER_DEFAULTS = {
   source: "",
   sortKey: "date",
@@ -100,6 +101,7 @@ let lastRenderedFiltered = [];
 let lastRenderedPageEntries = [];
 let historyTruncationBound = false;
 let historyTruncationResizeTimer = null;
+let historyVisibilityTimer = null;
 let historyMenuBound = false;
 let historyMoreMenuBound = false;
 let historyMoreTriggerButton = null;
@@ -355,6 +357,49 @@ const refreshHistoryLucideIcons = () => {
     console.warn("Не удалось обновить Lucide-иконки истории:", error);
   }
 };
+
+function setHistoryPanelVisible(isVisible, { animate = true } = {}) {
+  if (!historyContainer) return;
+  const visible = !!isVisible;
+
+  if (historyVisibilityTimer) {
+    clearTimeout(historyVisibilityTimer);
+    historyVisibilityTimer = null;
+  }
+
+  if (visible) {
+    historyContainer.style.display = "block";
+    historyContainer.setAttribute("aria-hidden", "false");
+    const applyOpenState = () => {
+      historyContainer.classList.remove("is-collapsed");
+      historyContainer.classList.add("is-open");
+    };
+    if (animate)
+      requestAnimationFrame(() => {
+        if (state.historyVisible) applyOpenState();
+      });
+    else applyOpenState();
+  } else {
+    historyContainer.classList.remove("is-open");
+    historyContainer.classList.add("is-collapsed");
+    historyContainer.setAttribute("aria-hidden", "true");
+    if (!animate) {
+      historyContainer.style.display = "none";
+    } else {
+      historyVisibilityTimer = window.setTimeout(() => {
+        if (!state.historyVisible && historyContainer) {
+          historyContainer.style.display = "none";
+        }
+        historyVisibilityTimer = null;
+      }, HISTORY_TOGGLE_ANIMATION_MS);
+    }
+  }
+
+  openHistoryButton?.setAttribute("aria-expanded", visible ? "true" : "false");
+  if (filterInput) {
+    filterInput.style.display = visible ? "block" : "none";
+  }
+}
 
 function goToPage(target) {
   const nextPage = Math.max(1, Math.min(target, lastPaginationMeta.totalPages));
@@ -3531,7 +3576,7 @@ async function initHistoryState() {
     updateSearchClearButtonVisibility();
     refreshHistoryLucideIcons();
     await updateDownloadCount();
-    historyContainer.style.display = state.historyVisible ? "block" : "none";
+    setHistoryPanelVisible(state.historyVisible, { animate: false });
     updateButtonState();
     updateIcon("");
   } catch (error) {
@@ -3626,15 +3671,13 @@ function initHistory() {
   openHistoryButton.addEventListener("click", () => {
     const newVisibility = !state.historyVisible;
     toggleHistoryVisibility(newVisibility);
-    historyContainer.style.display = state.historyVisible ? "block" : "none";
-    filterInput.style.display = state.historyVisible ? "block" : "none";
+    setHistoryPanelVisible(state.historyVisible);
     if (state.historyVisible) loadHistory();
     // queueMicrotask(() => initTooltips());
     // if (tooltipInstance) tooltipInstance.hide();
   });
 
-  historyContainer.style.display = state.historyVisible ? "block" : "none";
-  filterInput.style.display = state.historyVisible ? "block" : "none";
+  setHistoryPanelVisible(state.historyVisible, { animate: false });
   refreshHistoryLucideIcons();
 
   if (!historyTruncationBound) {

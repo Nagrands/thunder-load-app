@@ -59,6 +59,7 @@ function createUpdateFlyoverView({
     const badge = document.createElement("button");
     badge.type = "button";
     badge.className = "upd-ready-badge";
+    badge.dataset.ui = "update-ready-badge";
     badge.style.display = "none";
     badge.innerHTML = `
       <span class="upd-ready-badge__dot" aria-hidden="true"></span>
@@ -95,19 +96,20 @@ function createUpdateFlyoverView({
 
     element = document.createElement("div");
     element.className = "upd-flyover";
+    element.dataset.ui = "update-flyover";
     element.style.display = "none";
     element.innerHTML = `
-      <button id="upd-close" class="upd-close" aria-label="${t("modal.close")}" data-i18n-aria="modal.close">&times;</button>
-      <div class="state state-checking" role="status" aria-live="polite" style="display:none">
+      <button id="upd-close" class="upd-close" data-ui="update-close" aria-label="${t("modal.close")}" data-i18n-aria="modal.close">&times;</button>
+      <div class="state state-checking" data-ui="update-state-checking" role="status" aria-live="polite" style="display:none">
         <h3 class="hdr" data-i18n="update.flyover.checking.title">${t("update.flyover.checking.title")}</h3>
         <div class="muted" data-i18n="update.flyover.checking.body">${t("update.flyover.checking.body")}</div>
         <div class="upd-pulse" aria-hidden="true"></div>
       </div>
-      <div class="state state-up-to-date" role="status" aria-live="polite" style="display:none">
+      <div class="state state-up-to-date" data-ui="update-state-up-to-date" role="status" aria-live="polite" style="display:none">
         <h3 class="hdr" data-i18n="update.flyover.upToDate.title">${t("update.flyover.upToDate.title")}</h3>
         <div class="muted" data-i18n="update.flyover.upToDate.body">${t("update.flyover.upToDate.body")}</div>
       </div>
-      <div class="state state-available">
+      <div class="state state-available" data-ui="update-state-available">
         <h3 class="hdr" data-i18n="update.flyover.available.title">${t("update.flyover.available.title")}</h3>
         <div class="ver">
           <span data-i18n="update.flyover.available.current">${t("update.flyover.available.current")}</span>
@@ -117,10 +119,10 @@ function createUpdateFlyoverView({
           <span class="next" id="upd-next">—</span>
         </div>
         <div class="row">
-          <button id="upd-start" class="btn btn-sm btn-primary" data-i18n="update.flyover.available.action">${t("update.flyover.available.action")}</button>
+          <button id="upd-start" class="btn btn-sm btn-primary" data-ui="update-start" data-i18n="update.flyover.available.action">${t("update.flyover.available.action")}</button>
         </div>
       </div>
-      <div class="state state-progress" style="display:none">
+      <div class="state state-progress" data-ui="update-state-progress" style="display:none">
         <h3 class="hdr" data-i18n="update.flyover.progress.title">${t("update.flyover.progress.title")}</h3>
         <div class="ver muted">
           <span data-i18n="update.flyover.progress.version">${t("update.flyover.progress.version")}</span>
@@ -129,19 +131,19 @@ function createUpdateFlyoverView({
         <progress id="upd-bar" value="0" max="100"></progress>
         <div class="muted" id="upd-label" aria-live="polite">0%</div>
       </div>
-      <div class="state state-done" role="status" aria-live="polite" style="display:none">
+      <div class="state state-done" data-ui="update-state-done" role="status" aria-live="polite" style="display:none">
         <h3 class="hdr" data-i18n="update.flyover.done.title">${t("update.flyover.done.title")}</h3>
         <div class="muted" data-i18n="update.flyover.done.body">${t("update.flyover.done.body")}</div>
         <div class="row" style="margin-top:8px">
-          <button id="upd-restart" class="btn btn-sm btn-primary" data-i18n="update.flyover.done.action">${t("update.flyover.done.action")}</button>
+          <button id="upd-restart" class="btn btn-sm btn-primary" data-ui="update-restart" data-i18n="update.flyover.done.action">${t("update.flyover.done.action")}</button>
         </div>
       </div>
-      <div class="state state-error" role="alert" aria-live="assertive" style="display:none">
+      <div class="state state-error" data-ui="update-state-error" role="alert" aria-live="assertive" style="display:none">
         <h3 class="hdr" id="upd-error-title">${t("update.flyover.error.title")}</h3>
         <div class="muted" id="upd-err">${t("update.flyover.error.body")}</div>
         <div class="row upd-actions" style="margin-top:8px">
-          <button id="upd-retry" class="btn btn-sm btn-primary" data-i18n="update.flyover.error.retry">${t("update.flyover.error.retry")}</button>
-          <button id="upd-dismiss" class="btn btn-sm btn-ghost" data-i18n="update.flyover.error.dismiss">${t("update.flyover.error.dismiss")}</button>
+          <button id="upd-retry" class="btn btn-sm btn-primary" data-ui="update-retry" data-i18n="update.flyover.error.retry">${t("update.flyover.error.retry")}</button>
+          <button id="upd-dismiss" class="btn btn-sm btn-ghost" data-ui="update-dismiss" data-i18n="update.flyover.error.dismiss">${t("update.flyover.error.dismiss")}</button>
         </div>
       </div>`;
 
