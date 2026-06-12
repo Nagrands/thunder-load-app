@@ -38,19 +38,20 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 ## 6. Documentation
 
 - Update `docs/WORKFLOW.en.md` if the process changes.
-- Update root `whats-new.md` for user-facing changes (it is the source of truth).
+- Update both root `whats-new.md` and `whats-new.en.md` for user-facing changes.
+- Run `npm run whats-new:build` to validate the version and regenerate release notes.
 
 ## 7. Commits
 
 - Split into meaningful commits (lint/refactor separate from features).
-- Commit messages: short `type: summary`.
+- Use Conventional Commits: `type(scope): summary`.
 
 ## 8. Review Order
 
 1. Automated checks: `npm run lint`, `npm test`.
 2. Diff review: security, regressions, UX impact.
 3. Manual UI check (key flows + accessibility).
-4. Docs and `whatsNew.md` if user-facing changes were made.
+4. Docs and both `whats-new*.md` files if user-facing changes were made.
 5. Only then approve/merge.
 
 ## 9. Final Verification
@@ -62,21 +63,3 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 - Create a release note.
 - Plan the next improvement.
-
-## Improvements Backlog
-
-1. Add CSP without inline scripts to harden UI security.
-2. Replace dynamic HTML injections with safe templates/sanitizer where `insertAdjacentHTML` is used.
-3. Add a unified renderer logging helper (levels, disabled in prod).
-4. Improve update UX: show changelog from `whatsNew.md` in the update modal.
-5. Move supported platforms/hosts list into a config for easier expansion.
-6. Add IPC smoke tests for key channels.
-7. Auto‑verify `whatsNew.md` version during `npm run check`.
-8. Add an e2e smoke test (launch Electron, verify main window).
-9. Offline graceful degradation: visible “no network” banner.
-10. Refactor `history.js` into sub‑modules (render, pagination, filters).
-11. Stable download log schema with migrations.
-12. Configurable queue limits and parallel downloads.
-13. Mini diagnostics (CPU/RAM/disk) in Help/About.
-14. Auto‑build “What’s New” from `whats-new.md` for releases (`npm run whats-new:build`).
-15. Optional UI localization (RU/EN) via dictionaries.

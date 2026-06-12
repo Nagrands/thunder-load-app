@@ -33,9 +33,8 @@ alias: Проверка Tools на Windows и macOS
 
 - Открыть вкладку `Tools`.
 - Проверить launcher, счетчик инструментов, переходы между инструментами.
-- Ожидание:
-  - macOS: power-раздел виден, Windows-ярлыки не выполняются.
-  - Windows: power-раздел активен, ярлыки создаются.
+- Ожидание на macOS: Windows-действия не выполняются; developer-preview доступен только после разблокировки developer tools.
+- Ожидание на Windows: power-раздел активен, ярлыки создаются.
 
 2. **Settings -> Downloader -> `#tools-info`**
 
@@ -70,7 +69,28 @@ alias: Проверка Tools на Windows и macOS
 - Windows: создать все доступные ярлыки, проверить наличие файлов на Desktop и корректный запуск.
 - macOS: действия Windows не должны выполняться; должен быть корректный `unsupported/disabled`.
 
-8. **Регресс устойчивости**
+8. **Media Inspector**
+
+- Выбрать видео или аудиофайл и выполнить анализ.
+- Проверить контейнер, потоки, кодеки, предупреждения, копирование отчета и открытие папки.
+- При недоступном `ffprobe` должен отображаться понятный dependency error.
+
+9. **WG Unlock**
+
+- Проверить загрузку текущей конфигурации, preview изменений и запуск поддерживаемого сценария.
+- Убедиться, что платформенные команды и подсказки соответствуют текущей ОС.
+
+10. **Backup**
+
+- Создать профиль, выполнить префлайт и запустить резервное копирование.
+- Проверить лог, открытие source/destination, фильтры, bulk actions и обработку ошибок.
+
+11. **WinGet Installer**
+
+- Windows: проверить статус пакетов, генерацию скрипта, запуск и остановку операции.
+- macOS: должен отображаться preview без запуска Windows-команд.
+
+12. **Регресс устойчивости**
 
 - 5-10 раз открыть/закрыть `Settings` и `Tools`, переключать вкладки.
 - Убедиться, что нет визуальных вспышек, утечек слушателей и повторной привязки обработчиков.
@@ -87,8 +107,12 @@ alias: Проверка Tools на Windows и macOS
 | Check updates / update / install flow         |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Tools location flow                           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Hash tool                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Media Inspector                               |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | File Sorter dry-run + run                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| WG Unlock                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Backup                                        |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Power shortcuts (Windows-specific)            |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| WinGet Installer                              |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Reopen stability (5-10 циклов)                |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 
 ## Критерии приемки
@@ -97,4 +121,4 @@ alias: Проверка Tools на Windows и macOS
 2. Windows-специфичные действия выполняются только на Windows.
 3. На macOS нет ложной доступности Windows-функций.
 4. `#tools-info` стабильно обновляет состояние без полного перерендеринга.
-5. Нет платформенных регрессий для hash/sorter/location/update сценариев.
+5. Нет платформенных регрессий для WG Unlock, hash, media inspector, sorter, Backup, WinGet, location и update сценариев.

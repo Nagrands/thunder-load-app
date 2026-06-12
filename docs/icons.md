@@ -13,12 +13,14 @@
 
 ## Именование
 
-- Основная иконка приложения:
-  `app-icon.png`, `app-icon.ico`, `app-icon.icns`
+- Основные иконки приложения:
+  `assets/icons/app/app-icon.png`, `assets/icons/app/app-icon.ico`
+- Иконка сборки macOS:
+  `assets/icons/platform/macos/app-icon.icns`
 - Производные размеры:
   `app-icon-256.png`, `app-icon-512.png`
 - Иконки tray:
-  `tray-icon-windows.png`, `tray-icon-macos-template.png`, `tray-loading.png`
+  `tray-icon-windows.png`, `tray-icon-macos-template.png`
 - Иконки уведомлений:
   `info-done.png`, `info-error.png`
 
