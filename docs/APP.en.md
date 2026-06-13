@@ -35,12 +35,34 @@ The Tools launcher contains:
 | WG Unlock        | Apply and inspect WireGuard-related recovery settings                                        | Windows and macOS flows differ                                 |
 | Hash Check       | Calculate hashes, compare files, and reuse recent results                                    | Cross-platform                                                 |
 | Media Inspector  | Read container, stream, codec, bitrate, HDR, and subtitle data through `ffprobe`             | Requires `ffprobe`                                             |
-| File Sorter      | Preview and sort files by extension categories with conflict rules                           | Cross-platform                                                 |
+| File Sorter      | Editable categories, mandatory preview, selected operations, and one-step undo               | Cross-platform                                                 |
 | Backup           | Run reusable source-to-destination archive profiles with filters, logs, and preflight checks | Cross-platform behavior uses platform archive tools            |
 | Quick Shortcuts  | Create Windows power, recovery, and system shortcuts                                         | Actions are Windows-only; macOS can expose a developer preview |
 | WinGet Installer | Build, run, and inspect WinGet package operations                                            | Execution is Windows-only; macOS displays a preview            |
 
 Some tools can be hidden in Settings. Backup remains a tool inside this section, not a top-level tab.
+
+### File Sorter
+
+File Sorter follows a safe `configure → preview → apply` workflow:
+
+- categories and extension lists can be added, renamed, and deleted; each rule
+  uses a compact row with separate category, destination folder, and extension
+  fields, while the `Other` fallback always remains available;
+- the global rule set persists and can be reset to defaults;
+- the name-conflict policy uses the application's custom dropdown control;
+- every run starts with a complete operation plan whose compact control panel
+  combines search, filters, category totals, and localized problem reasons
+  above a full-width operation list;
+- the header preview button creates the plan, then hides and restores it without
+  rescanning; showing the plan scrolls it into view and moves keyboard focus to
+  its heading;
+- individual operations or all currently filtered selectable rows can be
+  included or excluded;
+- changing the folder or any sorting option marks the plan stale and requires a
+  new preview;
+- the most recent completed run can be undone until another run or application
+  restart.
 
 ## Download History
 

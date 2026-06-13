@@ -123,7 +123,9 @@ try {
     "tools:mediaInspectorAnalyze",
     "tools:sorterPickFolder",
     "tools:sorterOpenFolder",
-    "tools:sorterRun",
+    "tools:previewSorterPlan",
+    "tools:applySorterPlan",
+    "tools:undoSorterRun",
     "tools:sorterExport",
     "tools:createWindowsRestartShortcut",
     "tools:createWindowsShutdownShortcut",
@@ -396,7 +398,11 @@ try {
       pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
       openSorterFolder: (folderPath) =>
         safeInvoke("tools:sorterOpenFolder", folderPath),
-      sortFilesByCategory: (payload) => safeInvoke("tools:sorterRun", payload),
+      previewSorterPlan: (payload) =>
+        safeInvoke("tools:previewSorterPlan", payload),
+      applySorterPlan: (payload) =>
+        safeInvoke("tools:applySorterPlan", payload),
+      undoSorterRun: (payload) => safeInvoke("tools:undoSorterRun", payload),
       exportSorterResult: (payload) =>
         safeInvoke("tools:sorterExport", payload),
       createWindowsRestartShortcut: () =>

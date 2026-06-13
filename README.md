@@ -35,6 +35,7 @@
 - Download history with search, source filters, sorting, pagination, undo, and CSV/JSON export.
 - Products formatter for cleaning, grouping, validating, and copying structured product lists.
 - Tools workspace with WG Unlock, Hash Check, Media Inspector, File Sorter, Backup, Windows shortcuts, and WinGet Installer.
+- File Sorter uses persistent editable categories, mandatory operation preview, per-file selection, conflict handling, export, and one-step undo.
 - Automatic application updates and managed `yt-dlp`, `ffmpeg`, `ffprobe`, and Deno dependencies.
 - Russian and English interface, themes, keyboard shortcuts, and configurable modules.
 
@@ -120,4 +121,4 @@ or use the `*:watch` commands.
 
 ## Contributing
 
-Open issues and pull requests on the [GitHub repository](https://github.com/Nagrands/thunder-load-app). 
+Open issues and pull requests on the [GitHub repository](https://github.com/Nagrands/thunder-load-app).

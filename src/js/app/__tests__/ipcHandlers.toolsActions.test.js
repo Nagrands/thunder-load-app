@@ -1304,170 +1304,245 @@ describe("ipcHandlers tools quick actions", () => {
     });
   });
 
-  test("sorterRun supports dry-run with category stats", async () => {
+  test("previewSorterPlan uses custom rules with a locked Other fallback", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-dry-"));
     fs.writeFileSync(path.join(root, "photo.heic"), "img", "utf8");
     fs.writeFileSync(path.join(root, "readme.md"), "# test", "utf8");
-    fs.writeFileSync(path.join(root, "archive.zip"), "zip", "utf8");
-    fs.writeFileSync(path.join(root, ".hidden"), "ignore", "utf8");
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+    const result = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
       folderPath: root,
-      dryRun: true,
+      rules: [
+        {
+          id: "pictures",
+          name: "Pictures",
+          folderName: "My Pictures",
+          extensions: ["heic"],
+        },
+        {
+          id: "other",
+          name: "Editable Other",
+          folderName: "Anything",
+          extensions: ["md"],
+        },
+      ],
     });
 
     expect(result.success).toBe(true);
-    expect(result.dryRun).toBe(true);
-    expect(result.moved).toBe(3);
-    expect(result.skipped).toBe(1);
-    expect(result.categoryCount.Images).toBe(1);
-    expect(result.categoryCount.Documents).toBe(1);
-    expect(result.categoryCount.Archives).toBe(1);
+    expect(result.rules).toEqual([
+      expect.objectContaining({
+        id: "pictures",
+        folderName: "My Pictures",
+        extensions: [".heic"],
+      }),
+      expect.objectContaining({
+        id: "other",
+        name: "Other",
+        folderName: "Other",
+        locked: true,
+      }),
+    ]);
+    expect(result.operations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "photo.heic",
+          category: "Pictures",
+          ruleId: "pictures",
+          selectable: true,
+        }),
+        expect.objectContaining({
+          fileName: "readme.md",
+          category: "Other",
+          ruleId: "other",
+        }),
+      ]),
+    );
 
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  test("sorterRun moves files and generates unique names", async () => {
+  test("previewSorterPlan rejects extensions assigned to multiple rules", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-run-"));
-    fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
-    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
-    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "exists", "utf8");
-    const logPath = path.join(root, "sort.log");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-rules-"));
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+    const result = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
       folderPath: root,
-      dryRun: false,
-      logFilePath: logPath,
+      rules: [
+        {
+          id: "first",
+          name: "First",
+          folderName: "First",
+          extensions: [".txt"],
+        },
+        {
+          id: "second",
+          name: "Second",
+          folderName: "Second",
+          extensions: ["txt"],
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/duplicate sorter extension/i);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("previewSorterPlan keeps operation IDs stable", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-stable-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "a", "utf8");
+
+    initHandlers();
+    const first = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
+      folderPath: root,
+    });
+    const second = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
+      folderPath: root,
+    });
+
+    expect(first.planId).not.toBe(second.planId);
+    expect(first.operations[0].id).toBe(second.operations[0].id);
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("applySorterPlan applies selected operations only", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-selected-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "a", "utf8");
+    fs.writeFileSync(path.join(root, "b.txt"), "b", "utf8");
+
+    initHandlers();
+    const plan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
+      folderPath: root,
+    });
+    const selected = plan.operations.find((item) => item.fileName === "a.txt");
+    const result = await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      planId: plan.planId,
+      operationIds: [selected.id],
     });
 
     expect(result.success).toBe(true);
     expect(result.moved).toBe(1);
-    expect(result.errors).toEqual([]);
     expect(fs.existsSync(path.join(root, "a.txt"))).toBe(false);
-    expect(fs.existsSync(path.join(root, "Documents", "a (1).txt"))).toBe(true);
-    expect(fs.existsSync(logPath)).toBe(true);
+    expect(fs.existsSync(path.join(root, "Documents", "a.txt"))).toBe(true);
+    expect(fs.existsSync(path.join(root, "b.txt"))).toBe(true);
 
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  test("sorterRun supports skip conflict mode", async () => {
+  test("applySorterPlan rejects a source changed after preview", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-skip-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-stale-"));
     fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
-    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
-    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "exists", "utf8");
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+    const plan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
       folderPath: root,
-      dryRun: false,
-      conflictMode: "skip",
+    });
+    fs.writeFileSync(path.join(root, "a.txt"), "changed source", "utf8");
+    const result = await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      planId: plan.planId,
+      operationIds: [plan.operations[0].id],
     });
 
     expect(result.success).toBe(true);
     expect(result.moved).toBe(0);
-    expect(result.skipped).toBe(2);
-    expect(result.operations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          fileName: "a.txt",
-          status: "skipped",
-          action: "skip-existing",
-        }),
-      ]),
+    expect(result.errors[0].message).toMatch(/changed after preview/i);
+    expect(result.operations[0]).toEqual(
+      expect.objectContaining({
+        status: "error",
+        reasonCode: "source-changed",
+        reasonParams: {},
+      }),
     );
     expect(fs.existsSync(path.join(root, "a.txt"))).toBe(true);
 
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  test("sorterRun supports replace conflict mode", async () => {
+  test.each([
+    ["rename", "a (1).txt", 1],
+    ["skip", "a.txt", 0],
+  ])("sorter plan supports %s conflicts", async (mode, targetName, moved) => {
     const { CHANNELS } = require("../../ipc/channels");
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-replace-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), `sorter-${mode}-`));
     fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
     fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
-    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "exists", "utf8");
+    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "existing", "utf8");
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+    const plan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
       folderPath: root,
-      dryRun: false,
-      conflictMode: "replace",
+      conflictMode: mode,
+    });
+    const selectable = plan.operations.filter(
+      (item) => item.status === "planned",
+    );
+    const result = await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      planId: plan.planId,
+      operationIds: selectable.map((item) => item.id),
     });
 
-    expect(result.success).toBe(true);
-    expect(result.moved).toBe(1);
+    expect(result.moved).toBe(moved);
+    expect(fs.existsSync(path.join(root, "Documents", targetName))).toBe(true);
     expect(fs.readFileSync(path.join(root, "Documents", "a.txt"), "utf8")).toBe(
-      "source",
-    );
-    expect(result.operations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          fileName: "a.txt",
-          action: "replace",
-          status: "moved",
-        }),
-      ]),
+      "existing",
     );
 
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  test("sorterRun respects ignore lists and recursive mode", async () => {
+  test("previewSorterPlan respects recursive and ignore behavior", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-recursive-"));
     fs.mkdirSync(path.join(root, "nested"), { recursive: true });
     fs.mkdirSync(path.join(root, "Cache"), { recursive: true });
-    fs.mkdirSync(path.join(root, "Images"), { recursive: true });
+    fs.mkdirSync(path.join(root, "Cache", "nested"), { recursive: true });
     fs.writeFileSync(path.join(root, "nested", "track.mp3"), "audio", "utf8");
     fs.writeFileSync(path.join(root, "nested", "skip.tmp"), "tmp", "utf8");
-    fs.writeFileSync(path.join(root, "Cache", "cached.mp3"), "cache", "utf8");
-    fs.writeFileSync(path.join(root, "Images", "already.jpg"), "img", "utf8");
+    fs.writeFileSync(
+      path.join(root, "Cache", "nested", "cached.mp3"),
+      "cache",
+      "utf8",
+    );
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+    const result = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
       folderPath: root,
-      dryRun: true,
       recursive: true,
       ignoreExtensions: ".tmp",
       ignoreFolders: "Cache",
     });
 
     expect(result.success).toBe(true);
-    expect(result.moved).toBe(1);
-    expect(result.skipped).toBe(3);
-    expect(result.categoryCount.Music).toBe(1);
+    expect(result.planned).toBe(1);
+    expect(result.skipped).toBe(2);
     expect(result.operations).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           fileName: "track.mp3",
           relativeDir: "nested",
+          status: "planned",
         }),
-      ]),
-    );
-    expect(result.operations).toEqual(
-      expect.arrayContaining([
         expect.objectContaining({
           fileName: "skip.tmp",
-          relativeDir: "nested",
           status: "skipped",
           action: "ignored-extension",
+          reasonCode: "ignored-extension",
+          reasonParams: { extension: ".tmp" },
         }),
         expect.objectContaining({
           fileName: "cached.mp3",
-          relativeDir: "Cache",
+          relativeDir: path.join("Cache", "nested"),
           status: "skipped",
           action: "ignored-folder",
-        }),
-        expect.objectContaining({
-          fileName: "already.jpg",
-          relativeDir: "Images",
-          status: "skipped",
-          action: "managed-category",
+          reasonCode: "ignored-folder",
+          reasonParams: { folder: "Cache" },
         }),
       ]),
     );
@@ -1475,87 +1550,126 @@ describe("ipcHandlers tools quick actions", () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  test("sorterRun reports each skipped file with a reason", async () => {
+  test("replace apply backs up target and undo restores both files", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-skipped-"));
-    const logPath = path.join(root, "sort.log");
-    fs.mkdirSync(path.join(root, "Cache"), { recursive: true });
-    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
-    fs.writeFileSync(path.join(root, ".hidden"), "hidden", "utf8");
-    fs.writeFileSync(path.join(root, "video.tmp"), "tmp", "utf8");
-    fs.writeFileSync(path.join(root, "sort.log"), "", "utf8");
-    fs.writeFileSync(path.join(root, "Cache", "cached.mp3"), "cache", "utf8");
-    fs.writeFileSync(
-      path.join(root, "Documents", "existing.txt"),
-      "doc",
-      "utf8",
-    );
-
-    initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
-      folderPath: root,
-      dryRun: true,
-      recursive: true,
-      logFilePath: logPath,
-      ignoreExtensions: ".tmp",
-      ignoreFolders: "Cache",
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.skipped).toBe(5);
-    expect(result.operations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          fileName: ".hidden",
-          status: "skipped",
-          action: "ignored-hidden",
-        }),
-        expect.objectContaining({
-          fileName: "video.tmp",
-          status: "skipped",
-          action: "ignored-extension",
-        }),
-        expect.objectContaining({
-          fileName: "sort.log",
-          status: "skipped",
-          action: "log-file",
-        }),
-        expect.objectContaining({
-          fileName: "cached.mp3",
-          relativeDir: "Cache",
-          status: "skipped",
-          action: "ignored-folder",
-        }),
-        expect.objectContaining({
-          fileName: "existing.txt",
-          relativeDir: "Documents",
-          status: "skipped",
-          action: "managed-category",
-        }),
-      ]),
-    );
-
-    fs.rmSync(root, { recursive: true, force: true });
-  });
-
-  test("sorterRun returns error when log path points to a directory", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-logdir-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-replace-"));
     fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
-    const logDir = path.join(root, "log-dir");
-    fs.mkdirSync(logDir, { recursive: true });
+    fs.mkdirSync(path.join(root, "Documents"), { recursive: true });
+    fs.writeFileSync(path.join(root, "Documents", "a.txt"), "existing", "utf8");
 
     initHandlers();
-    const result = await handlers[CHANNELS.TOOLS_SORTER_RUN](null, {
+    const plan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
       folderPath: root,
-      dryRun: false,
-      logFilePath: logDir,
+      conflictMode: "replace",
+    });
+    const plannedOperation = plan.operations.find(
+      (item) => item.status === "planned",
+    );
+    const applied = await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      planId: plan.planId,
+      operationIds: [plannedOperation.id],
     });
 
-    expect(result.success).toBe(false);
-    expect(String(result.error || "")).toMatch(
-      /EISDIR|illegal operation on a directory/i,
+    expect(applied.moved).toBe(1);
+    expect(
+      fs.existsSync(
+        path.join(
+          require("electron").app.getPath("userData"),
+          "file-sorter-undo",
+          applied.runId,
+          `${plannedOperation.id}.backup`,
+        ),
+      ),
+    ).toBe(true);
+    expect(fs.readFileSync(path.join(root, "Documents", "a.txt"), "utf8")).toBe(
+      "source",
     );
+    const undo = await handlers[CHANNELS.TOOLS_SORTER_UNDO_RUN](null, {
+      runId: applied.runId,
+    });
+    expect(undo.success).toBe(true);
+    expect(fs.readFileSync(path.join(root, "a.txt"), "utf8")).toBe("source");
+    expect(fs.readFileSync(path.join(root, "Documents", "a.txt"), "utf8")).toBe(
+      "existing",
+    );
+    expect(
+      await handlers[CHANNELS.TOOLS_SORTER_UNDO_RUN](null, {
+        runId: applied.runId,
+      }),
+    ).toEqual(expect.objectContaining({ success: false }));
+
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test("a new apply clears the previous undo run", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const firstRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-first-"));
+    const secondRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-second-"));
+    fs.writeFileSync(path.join(firstRoot, "a.txt"), "a", "utf8");
+    fs.writeFileSync(path.join(secondRoot, "b.txt"), "b", "utf8");
+
+    initHandlers();
+    const firstPlan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
+      folderPath: firstRoot,
+    });
+    const firstRun = await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      operationIds: [firstPlan.operations[0].id],
+    });
+    const secondPlan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](
+      null,
+      { folderPath: secondRoot },
+    );
+    await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      operationIds: [secondPlan.operations[0].id],
+    });
+
+    const staleUndo = await handlers[CHANNELS.TOOLS_SORTER_UNDO_RUN](null, {
+      runId: firstRun.runId,
+    });
+    expect(staleUndo.success).toBe(false);
+    expect(staleUndo.error).toMatch(/no longer current/i);
+
+    fs.rmSync(firstRoot, { recursive: true, force: true });
+    fs.rmSync(secondRoot, { recursive: true, force: true });
+  });
+
+  test("undo keeps conflicting entries available for retry", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sorter-retry-"));
+    fs.writeFileSync(path.join(root, "a.txt"), "source", "utf8");
+
+    initHandlers();
+    const plan = await handlers[CHANNELS.TOOLS_SORTER_PREVIEW_PLAN](null, {
+      folderPath: root,
+    });
+    const applied = await handlers[CHANNELS.TOOLS_SORTER_APPLY_PLAN](null, {
+      planId: plan.planId,
+      operationIds: [plan.operations[0].id],
+    });
+    fs.writeFileSync(path.join(root, "a.txt"), "conflict", "utf8");
+
+    const blocked = await handlers[CHANNELS.TOOLS_SORTER_UNDO_RUN](null, {
+      runId: applied.runId,
+    });
+    expect(blocked).toEqual(
+      expect.objectContaining({ success: false, canUndo: true, undone: 0 }),
+    );
+    expect(blocked.operations[0]).toEqual(
+      expect.objectContaining({
+        status: "error",
+        reasonCode: "source-path-occupied",
+        reasonParams: { message: "Original source path is occupied" },
+      }),
+    );
+
+    fs.unlinkSync(path.join(root, "a.txt"));
+    const retried = await handlers[CHANNELS.TOOLS_SORTER_UNDO_RUN](null, {
+      runId: applied.runId,
+    });
+    expect(retried).toEqual(
+      expect.objectContaining({ success: true, canUndo: false, undone: 1 }),
+    );
+    expect(fs.readFileSync(path.join(root, "a.txt"), "utf8")).toBe("source");
 
     fs.rmSync(root, { recursive: true, force: true });
   });

@@ -1,883 +1,1011 @@
+import { showConfirmationDialog } from "../../modals.js";
+import { initTooltips } from "../../tooltipInitializer.js";
+
 const SORTER_LAST_FOLDER_KEY = "toolsSorterLastFolder";
-import {
-  acquireDocumentScrollLock,
-  releaseDocumentScrollLock,
-} from "../../scrollLockManager.js";
-const SORTER_LOG_PATH_KEY = "toolsSorterLogPath";
+const SORTER_RULES_KEY = "toolsSorterRules";
 const SORTER_CONFLICT_MODE_KEY = "toolsSorterConflictMode";
 const SORTER_RECURSIVE_KEY = "toolsSorterRecursive";
 const SORTER_IGNORE_EXTENSIONS_KEY = "toolsSorterIgnoreExtensions";
 const SORTER_IGNORE_FOLDERS_KEY = "toolsSorterIgnoreFolders";
-const SORTER_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-sorter";
 
-const SORTER_CATEGORY_ORDER = [
-  "Images",
-  "Videos",
-  "Music",
-  "Documents",
-  "Archives",
-  "Other",
+const DEFAULT_RULES = [
+  {
+    id: "images",
+    name: "Images",
+    folderName: "Images",
+    extensions: ".jpg, .jpeg, .png, .gif, .webp, .heic",
+  },
+  {
+    id: "videos",
+    name: "Videos",
+    folderName: "Videos",
+    extensions: ".mp4, .mov, .mkv, .webm, .avi",
+  },
+  {
+    id: "music",
+    name: "Music",
+    folderName: "Music",
+    extensions: ".mp3, .wav, .flac, .m4a, .aac",
+  },
+  {
+    id: "documents",
+    name: "Documents",
+    folderName: "Documents",
+    extensions: ".pdf, .doc, .docx, .txt, .xls, .xlsx",
+  },
+  {
+    id: "archives",
+    name: "Archives",
+    folderName: "Archives",
+    extensions: ".zip, .rar, .7z, .tar, .gz",
+  },
+  {
+    id: "other",
+    name: "Other",
+    folderName: "Other",
+    extensions: "",
+    locked: true,
+  },
 ];
 
-export function initFileSorterSection({ view, getEl, t, registerCleanup }) {
-  const SORTER_CATEGORY_SAMPLES = {
-    Images: ".jpg .png .heic .webp",
-    Videos: ".mp4 .mov .mkv .webm",
-    Music: ".mp3 .wav .flac .m4a",
-    Documents: ".pdf .docx .txt .xlsx",
-    Archives: ".zip .rar .7z .tar",
-    Other: t("tools.sorter.rules.other"),
-  };
+const cloneDefaultRules = () => DEFAULT_RULES.map((rule) => ({ ...rule }));
 
-  const sorterPickFolderBtn = getEl("sorter-pick-folder", view);
-  const sorterOpenFolderBtn = getEl("sorter-open-folder", view);
-  const sorterPreviewRunBtn = getEl("sorter-preview-run", view);
-  const sorterApplyRunBtn = getEl("sorter-apply-run", view);
-  const sorterFolderPillEl = getEl("sorter-folder-pill", view);
-  const sorterLogPathEl = getEl("sorter-log-path", view);
-  const sorterConflictModeEl = getEl("sorter-conflict-mode", view);
-  const sorterRecursiveEl = getEl("sorter-recursive", view);
-  const sorterIgnoreExtensionsEl = getEl("sorter-ignore-extensions", view);
-  const sorterIgnoreFoldersEl = getEl("sorter-ignore-folders", view);
-  const sorterResultEl = getEl("sorter-result", view);
-  const sorterPreviewPanelEl = getEl("sorter-preview-panel", view);
-  const sorterPreviewTitleEl = getEl("sorter-preview-title", view);
-  const sorterPreviewBadgeEl = getEl("sorter-preview-badge", view);
-  const sorterPreviewSearchEl = getEl("sorter-preview-search", view);
-  const sorterPreviewCategoryFilterEl = getEl(
-    "sorter-preview-category-filter",
-    view,
-  );
-  const sorterPreviewStatusFilterEl = getEl(
-    "sorter-preview-status-filter",
-    view,
-  );
-  const sorterExportFormatEl = getEl("sorter-export-format", view);
-  const sorterCopyResultBtn = getEl("sorter-copy-result", view);
-  const sorterExportResultBtn = getEl("sorter-export-result", view);
-  const sorterRulesListEl = getEl("sorter-rules-list", view);
-  const sorterBreakdownListEl = getEl("sorter-breakdown-list", view);
-  const sorterBreakdownCountEl = getEl("sorter-breakdown-count", view);
-  const sorterErrorsPanelEl = getEl("sorter-errors-panel", view);
-  const sorterErrorsListEl = getEl("sorter-errors-list", view);
-  const sorterErrorsCountEl = getEl("sorter-errors-count", view);
-  const sorterPreviewListEl = getEl("sorter-preview-list", view);
-  const sorterPreviewListCountEl = getEl("sorter-preview-list-count", view);
-  const sorterPreviewFilterEmptyEl = getEl("sorter-preview-filter-empty", view);
-  const sorterPreviewMoreEl = getEl("sorter-preview-more", view);
-  const sorterPreviewMovedEl = getEl("sorter-preview-stat-moved", view);
-  const sorterPreviewTotalEl = getEl("sorter-preview-stat-total", view);
-  const sorterPreviewSkippedEl = getEl("sorter-preview-stat-skipped", view);
-  const sorterPreviewErrorsEl = getEl("sorter-preview-stat-errors", view);
-  const sorterOpenHowtoBtn = getEl("sorter-open-howto", view);
-  const sorterHowtoModalEl = getEl("sorter-howto-modal", view);
-  const sorterHowtoDialogEl = getEl("sorter-howto-dialog", view);
-  const sorterHowtoTrackEl = getEl("sorter-howto-track", view);
-  const sorterHowtoStepEl = getEl("sorter-howto-step", view);
-  const sorterHowtoCloseBtn = getEl("sorter-howto-close", view);
-  const sorterHowtoPrevBtn = getEl("sorter-howto-prev", view);
-  const sorterHowtoNextBtn = getEl("sorter-howto-next", view);
-  const sorterHowtoDotsEl = getEl("sorter-howto-dots", view);
-  const sorterHowtoDots = Array.from(
-    sorterHowtoDotsEl?.querySelectorAll(".sorter-howto-dot") || [],
+const readStorage = (key, fallback = "") => {
+  try {
+    const value = window.localStorage.getItem(key);
+    return value == null ? fallback : value;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeStorage = (key, value) => {
+  try {
+    window.localStorage.setItem(key, String(value ?? ""));
+  } catch {}
+};
+
+const normalizeRules = (rules) => {
+  const editableRules = (Array.isArray(rules) ? rules : [])
+    .filter((rule) => rule && rule.id !== "other" && !rule.locked)
+    .map((rule, index) => ({
+      id: String(rule.id || `rule-${Date.now()}-${index}`),
+      name: String(rule.name || ""),
+      folderName: String(rule.folderName || rule.folder || ""),
+      extensions: String(rule.extensions || ""),
+    }));
+  return editableRules.concat({ ...DEFAULT_RULES.at(-1) });
+};
+
+const loadRules = () => {
+  try {
+    const stored = JSON.parse(readStorage(SORTER_RULES_KEY, "null"));
+    return stored ? normalizeRules(stored) : cloneDefaultRules();
+  } catch {
+    return cloneDefaultRules();
+  }
+};
+
+const operationId = (operation, index) =>
+  String(
+    operation?.id ||
+      operation?.operationId ||
+      operation?.sourcePath ||
+      `${operation?.fileName || "operation"}-${index}`,
   );
 
-  const SORTER_PREVIEW_LIMIT = 20;
-  const sorterHowtoSlideCount = 4;
-  let sorterSelectedFolder = "";
-  let sorterHowtoIndex = 0;
-  let sorterHowtoReturnFocusEl = null;
-  let sorterBusy = false;
-  let sorterLatestResult = null;
-  let sorterLatestMode = "preview";
+const operationCategory = (operation) =>
+  String(operation?.category || operation?.ruleName || "Other");
 
-  const saveSorterFolder = (folder) => {
-    try {
-      window.localStorage.setItem(SORTER_LAST_FOLDER_KEY, String(folder || ""));
-    } catch {}
+const operationStatus = (operation) => String(operation?.status || "planned");
+
+const SORTER_REASON_KEYS = Object.freeze({
+  "ignored-folder": "tools.sorter.reason.ignoredFolder",
+  "managed-category": "tools.sorter.reason.managedCategory",
+  "ignored-hidden": "tools.sorter.reason.ignoredHidden",
+  "log-file": "tools.sorter.reason.logFile",
+  "ignored-extension": "tools.sorter.reason.ignoredExtension",
+  "target-exists": "tools.sorter.reason.targetExists",
+  "path-outside-folder": "tools.sorter.reason.pathOutsideFolder",
+  "source-unavailable": "tools.sorter.reason.sourceUnavailable",
+  "source-changed": "tools.sorter.reason.sourceChanged",
+  "target-changed": "tools.sorter.reason.targetChanged",
+  "replacement-target-not-file": "tools.sorter.reason.replacementTargetNotFile",
+  "sorted-file-unavailable": "tools.sorter.reason.sortedFileUnavailable",
+  "source-path-occupied": "tools.sorter.reason.sourcePathOccupied",
+  "replacement-backup-unavailable":
+    "tools.sorter.reason.replacementBackupUnavailable",
+  "operation-failed": "tools.sorter.reason.operationFailed",
+});
+
+const countByCategory = (operations) =>
+  operations.reduce((counts, operation) => {
+    const category = operationCategory(operation);
+    counts[category] = Number(counts[category] || 0) + 1;
+    return counts;
+  }, {});
+
+export function initFileSorterSection({ view, getEl, t }) {
+  const elements = {
+    pickFolder: getEl("sorter-pick-folder", view),
+    openFolder: getEl("sorter-open-folder", view),
+    folderPill: getEl("sorter-folder-pill", view),
+    preview: getEl("sorter-preview-run", view),
+    apply: getEl("sorter-apply-run", view),
+    conflictMode: getEl("sorter-conflict-mode", view),
+    conflictToggle: getEl("sorter-conflict-toggle", view),
+    conflictLabel: getEl("sorter-conflict-label", view),
+    conflictMenu: getEl("sorter-conflict-menu", view),
+    recursive: getEl("sorter-recursive", view),
+    ignoreExtensions: getEl("sorter-ignore-extensions", view),
+    ignoreFolders: getEl("sorter-ignore-folders", view),
+    addRule: getEl("sorter-rule-add", view),
+    resetRules: getEl("sorter-rules-reset", view),
+    rulesList: getEl("sorter-rules-list", view),
+    result: getEl("sorter-result", view),
+    previewPanel: getEl("sorter-preview-panel", view),
+    previewTitle: getEl("sorter-preview-title", view),
+    previewList: getEl("sorter-preview-list", view),
+    previewListCount: getEl("sorter-preview-list-count", view),
+    previewEmpty: getEl("sorter-preview-filter-empty", view),
+    search: getEl("sorter-preview-search", view),
+    categoryFilter: getEl("sorter-preview-category-filter", view),
+    statusFilter: getEl("sorter-preview-status-filter", view),
+    selectAll: getEl("sorter-preview-select-all", view),
+    selectedCount: getEl("sorter-preview-selected-count", view),
+    moved: getEl("sorter-preview-stat-moved", view),
+    total: getEl("sorter-preview-stat-total", view),
+    skipped: getEl("sorter-preview-stat-skipped", view),
+    errors: getEl("sorter-preview-stat-errors", view),
+    breakdownList: getEl("sorter-breakdown-list", view),
+    breakdownCount: getEl("sorter-breakdown-count", view),
+    problems: getEl("sorter-problems", view),
+    problemsList: getEl("sorter-problems-list", view),
+    problemsCount: getEl("sorter-problems-count", view),
+    resultPanel: getEl("sorter-result-panel", view),
+    resultSummary: getEl("sorter-result-summary", view),
+    undo: getEl("sorter-undo-run", view),
+    exportFormat: getEl("sorter-export-format", view),
+    copy: getEl("sorter-copy-result", view),
+    export: getEl("sorter-export-result", view),
   };
 
-  const loadSorterFolder = () => {
-    try {
-      return window.localStorage.getItem(SORTER_LAST_FOLDER_KEY) || "";
-    } catch {
-      return "";
-    }
+  let folderPath = readStorage(SORTER_LAST_FOLDER_KEY);
+  let rules = loadRules();
+  let previewResult = null;
+  let latestResult = null;
+  let busy = false;
+  let selectedIds = new Set();
+  const conflictOptions = Array.from(
+    elements.conflictMenu?.querySelectorAll(".sorter-conflict-option") || [],
+  );
+
+  const closeConflictMenu = () => {
+    elements.conflictMenu?.classList.add("hidden");
+    elements.conflictToggle?.setAttribute("aria-expanded", "false");
   };
 
-  const saveSorterPref = (key, value) => {
-    try {
-      window.localStorage.setItem(key, String(value ?? ""));
-    } catch {}
+  const syncConflictMode = (mode) => {
+    if (!elements.conflictMode) return;
+    const option = conflictOptions.find(
+      (item) => item.dataset.conflictMode === mode,
+    );
+    if (!option) return;
+    elements.conflictMode.value = mode;
+    if (elements.conflictLabel) {
+      elements.conflictLabel.textContent =
+        option.querySelector("span")?.textContent || mode;
+      elements.conflictLabel.dataset.i18n =
+        option.querySelector("span")?.dataset.i18n || "";
+    }
+    conflictOptions.forEach((item) => {
+      item.setAttribute(
+        "aria-selected",
+        String(item.dataset.conflictMode === mode),
+      );
+    });
   };
 
-  const loadSorterPref = (key, fallback = "") => {
-    try {
-      const stored = window.localStorage.getItem(key);
-      return stored == null ? fallback : stored;
-    } catch {
-      return fallback;
-    }
+  const selectConflictMode = (mode) => {
+    if (!elements.conflictMode || elements.conflictToggle?.disabled) return;
+    syncConflictMode(mode);
+    elements.conflictMode.dispatchEvent(new Event("change", { bubbles: true }));
+    closeConflictMenu();
   };
 
-  const setSorterBusy = (busy) => {
-    sorterBusy = !!busy;
-    if (sorterPickFolderBtn) sorterPickFolderBtn.disabled = sorterBusy;
-    if (sorterPreviewRunBtn) sorterPreviewRunBtn.disabled = sorterBusy;
-    if (sorterApplyRunBtn) sorterApplyRunBtn.disabled = sorterBusy;
-    if (sorterLogPathEl) sorterLogPathEl.disabled = sorterBusy;
-    if (sorterConflictModeEl) sorterConflictModeEl.disabled = sorterBusy;
-    if (sorterRecursiveEl) sorterRecursiveEl.disabled = sorterBusy;
-    if (sorterIgnoreExtensionsEl)
-      sorterIgnoreExtensionsEl.disabled = sorterBusy;
-    if (sorterIgnoreFoldersEl) sorterIgnoreFoldersEl.disabled = sorterBusy;
-    if (sorterPreviewSearchEl) sorterPreviewSearchEl.disabled = sorterBusy;
-    if (sorterPreviewCategoryFilterEl) {
-      sorterPreviewCategoryFilterEl.disabled = sorterBusy;
+  const updatePreviewToggleUi = () => {
+    if (!elements.preview) return;
+    const isVisible =
+      !!previewResult && !elements.previewPanel?.classList.contains("hidden");
+    const key = isVisible
+      ? "tools.sorter.preview.hide"
+      : "tools.sorter.preview.show";
+    const label = t(key);
+    elements.preview.setAttribute("aria-expanded", String(isVisible));
+    elements.preview.setAttribute("aria-label", label);
+    elements.preview.setAttribute("title", label);
+    elements.preview.setAttribute("data-i18n-title", key);
+    elements.preview.setAttribute("data-i18n-aria", key);
+    elements.preview.classList.toggle("is-active", isVisible);
+    const icon = elements.preview.querySelector("i");
+    if (icon) {
+      icon.className = isVisible
+        ? "fa-regular fa-eye-slash"
+        : "fa-regular fa-eye";
     }
-    if (sorterPreviewStatusFilterEl) {
-      sorterPreviewStatusFilterEl.disabled = sorterBusy;
-    }
-    if (sorterExportFormatEl) sorterExportFormatEl.disabled = sorterBusy;
-    if (sorterCopyResultBtn) {
-      sorterCopyResultBtn.disabled = sorterBusy || !sorterLatestResult;
-    }
-    if (sorterExportResultBtn) {
-      sorterExportResultBtn.disabled = sorterBusy || !sorterLatestResult;
-    }
-    if (sorterOpenFolderBtn) {
-      sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
-    }
+    initTooltips(view);
   };
 
-  const getSorterOptions = () => ({
-    logFilePath: sorterLogPathEl?.value || "",
-    conflictMode: sorterConflictModeEl?.value || "rename",
-    recursive: !!sorterRecursiveEl?.checked,
-    ignoreExtensions: sorterIgnoreExtensionsEl?.value || "",
-    ignoreFolders: sorterIgnoreFoldersEl?.value || "",
+  const focusPreview = () => {
+    if (!elements.previewPanel || !elements.previewTitle) return;
+    const scheduleFrame =
+      window.requestAnimationFrame || ((callback) => setTimeout(callback, 0));
+    scheduleFrame(() => {
+      const reduceMotion = window.matchMedia?.(
+        "(prefers-reduced-motion: reduce)",
+      )?.matches;
+      elements.previewPanel.scrollIntoView?.({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+      elements.previewTitle.focus({ preventScroll: true });
+    });
+  };
+
+  const localizeOperationReason = (operation) => {
+    const key = SORTER_REASON_KEYS[String(operation?.reasonCode || "")];
+    if (!key) {
+      return String(operation?.message || operationStatus(operation));
+    }
+    return t(key, operation?.reasonParams || {});
+  };
+
+  const localizeCategory = (category) => {
+    const normalized = String(category || "Other");
+    const key = `tools.sorter.category.${normalized}`;
+    return DEFAULT_RULES.some((rule) => rule.name === normalized)
+      ? t(key)
+      : normalized;
+  };
+
+  const setResult = (message, tone = "muted") => {
+    if (!elements.result) return;
+    elements.result.textContent = message;
+    elements.result.className = `quick-action-result ${tone}`;
+  };
+
+  const getConfig = () => ({
+    conflictMode: elements.conflictMode?.value || "rename",
+    recursive: !!elements.recursive?.checked,
+    rules: rules.map((rule) => ({
+      id: rule.id,
+      name: rule.name.trim(),
+      folderName: rule.folderName.trim(),
+      extensions: rule.extensions,
+      locked: !!rule.locked,
+    })),
   });
 
-  const applySorterOptionState = () => {
-    if (sorterLogPathEl) {
-      sorterLogPathEl.value = loadSorterPref(SORTER_LOG_PATH_KEY, "");
-    }
-    if (sorterConflictModeEl) {
-      sorterConflictModeEl.value = loadSorterPref(
-        SORTER_CONFLICT_MODE_KEY,
-        "rename",
-      );
-    }
-    if (sorterRecursiveEl) {
-      sorterRecursiveEl.checked =
-        loadSorterPref(SORTER_RECURSIVE_KEY, "false") === "true";
-    }
-    if (sorterIgnoreExtensionsEl) {
-      sorterIgnoreExtensionsEl.value = loadSorterPref(
-        SORTER_IGNORE_EXTENSIONS_KEY,
-        "",
-      );
-    }
-    if (sorterIgnoreFoldersEl) {
-      sorterIgnoreFoldersEl.value = loadSorterPref(
-        SORTER_IGNORE_FOLDERS_KEY,
-        "",
-      );
-    }
-  };
-
-  const persistSorterOptions = () => {
-    const options = getSorterOptions();
-    saveSorterPref(SORTER_LOG_PATH_KEY, options.logFilePath);
-    saveSorterPref(SORTER_CONFLICT_MODE_KEY, options.conflictMode);
-    saveSorterPref(SORTER_RECURSIVE_KEY, options.recursive ? "true" : "false");
-    saveSorterPref(SORTER_IGNORE_EXTENSIONS_KEY, options.ignoreExtensions);
-    saveSorterPref(SORTER_IGNORE_FOLDERS_KEY, options.ignoreFolders);
-    return options;
-  };
-
-  const renderSorterRules = () => {
-    if (!sorterRulesListEl) return;
-    sorterRulesListEl.replaceChildren();
-    SORTER_CATEGORY_ORDER.forEach((category) => {
-      const item = document.createElement("article");
-      item.className = `sorter-rule-card sorter-rule-card--${category.toLowerCase()}`;
-
-      const title = document.createElement("strong");
-      title.textContent = t(`tools.sorter.category.${category}`);
-
-      const sample = document.createElement("span");
-      sample.className = "muted";
-      sample.textContent =
-        SORTER_CATEGORY_SAMPLES[category] || t("tools.sorter.rules.other");
-
-      item.append(title, sample);
-      sorterRulesListEl.appendChild(item);
-    });
-  };
-
-  const renderSorterBreakdown = (categoryCount = {}) => {
-    if (!sorterBreakdownListEl) return;
-    sorterBreakdownListEl.replaceChildren();
-
-    const entries = SORTER_CATEGORY_ORDER.map((category) => ({
-      category,
-      count: Number(categoryCount?.[category] || 0),
-    })).filter((entry) => entry.count > 0);
-
-    if (!entries.length) {
-      if (sorterBreakdownCountEl) sorterBreakdownCountEl.textContent = "0";
-      const empty = document.createElement("p");
-      empty.className = "sorter-breakdown-list__empty muted";
-      empty.textContent = t("tools.sorter.breakdown.empty");
-      sorterBreakdownListEl.appendChild(empty);
-      return;
-    }
-
-    if (sorterBreakdownCountEl) {
-      sorterBreakdownCountEl.textContent = String(entries.length);
-    }
-
-    entries.forEach(({ category, count }) => {
-      const item = document.createElement("div");
-      item.className = "sorter-breakdown-item";
-
-      const label = document.createElement("span");
-      label.textContent = t(`tools.sorter.category.${category}`);
-
-      const value = document.createElement("strong");
-      value.textContent = String(count);
-
-      item.append(label, value);
-      sorterBreakdownListEl.appendChild(item);
-    });
-  };
-
-  const updateSorterCategoryFilterOptions = (operations = []) => {
-    if (!sorterPreviewCategoryFilterEl) return;
-    const current = sorterPreviewCategoryFilterEl.value || "all";
-    sorterPreviewCategoryFilterEl.innerHTML = "";
-
-    const allOption = document.createElement("option");
-    allOption.value = "all";
-    allOption.textContent = t("tools.sorter.preview.filter.all");
-    sorterPreviewCategoryFilterEl.appendChild(allOption);
-
-    const presentCategories = new Set(
-      operations
-        .map((item) => String(item?.category || "").trim())
-        .filter(Boolean),
+  const persistConfig = () => {
+    writeStorage(SORTER_RULES_KEY, JSON.stringify(rules));
+    writeStorage(
+      SORTER_CONFLICT_MODE_KEY,
+      elements.conflictMode?.value || "rename",
     );
-    SORTER_CATEGORY_ORDER.forEach((category) => {
-      if (!presentCategories.has(category)) return;
-      const option = document.createElement("option");
-      option.value = category;
-      option.textContent = t(`tools.sorter.category.${category}`);
-      sorterPreviewCategoryFilterEl.appendChild(option);
+    writeStorage(
+      SORTER_RECURSIVE_KEY,
+      elements.recursive?.checked ? "true" : "false",
+    );
+    writeStorage(
+      SORTER_IGNORE_EXTENSIONS_KEY,
+      elements.ignoreExtensions?.value || "",
+    );
+    writeStorage(
+      SORTER_IGNORE_FOLDERS_KEY,
+      elements.ignoreFolders?.value || "",
+    );
+  };
+
+  const normalizedExtensions = (value) =>
+    String(value || "")
+      .split(",")
+      .map((extension) => extension.trim().toLowerCase())
+      .filter(Boolean)
+      .map((extension) =>
+        extension.startsWith(".") ? extension : `.${extension}`,
+      );
+
+  const validateRules = () => {
+    const folderNames = new Set();
+    const extensions = new Set();
+    for (const rule of rules) {
+      if (rule.locked) continue;
+      if (!rule.name.trim() || !rule.folderName.trim()) {
+        return t("tools.sorter.rules.validation.required");
+      }
+      const folderName = rule.folderName.trim().toLowerCase();
+      if (
+        folderName === "." ||
+        folderName === ".." ||
+        /[\\/]/.test(folderName)
+      ) {
+        return t("tools.sorter.rules.validation.folder");
+      }
+      if (folderNames.has(folderName)) {
+        return t("tools.sorter.rules.validation.duplicateFolder");
+      }
+      folderNames.add(folderName);
+      for (const extension of normalizedExtensions(rule.extensions)) {
+        if (extensions.has(extension)) {
+          return t("tools.sorter.rules.validation.duplicateExtension", {
+            extension,
+          });
+        }
+        extensions.add(extension);
+      }
+    }
+    return "";
+  };
+
+  const updateRuleValidity = () => {
+    const error = validateRules();
+    elements.rulesList?.classList.toggle("is-invalid", !!error);
+    elements.rulesList
+      ?.querySelectorAll(".sorter-category-item")
+      .forEach((card) => card.setAttribute("aria-invalid", String(!!error)));
+    if (elements.preview) elements.preview.disabled = busy || !!error;
+    return error;
+  };
+
+  const updateApplyState = () => {
+    if (elements.apply) {
+      elements.apply.disabled =
+        busy || !previewResult || selectedIds.size === 0;
+    }
+    if (elements.selectedCount) {
+      elements.selectedCount.textContent = t(
+        "tools.sorter.preview.selectedCount",
+        { count: selectedIds.size },
+      );
+    }
+  };
+
+  const setBusy = (nextBusy) => {
+    busy = !!nextBusy;
+    [
+      elements.pickFolder,
+      elements.preview,
+      elements.conflictToggle,
+      elements.recursive,
+      elements.ignoreExtensions,
+      elements.ignoreFolders,
+      elements.addRule,
+      elements.resetRules,
+    ].forEach((element) => {
+      if (element) element.disabled = busy;
     });
-    sorterPreviewCategoryFilterEl.value = Array.from(
-      sorterPreviewCategoryFilterEl.options,
-    ).some((option) => option.value === current)
-      ? current
-      : "all";
+    if (elements.openFolder) {
+      elements.openFolder.disabled = busy || !folderPath;
+    }
+    if (elements.undo) elements.undo.disabled = busy;
+    updateApplyState();
+    updateRuleValidity();
   };
 
-  const formatSorterOperationRow = (item = {}) => {
-    const fileName = String(item.fileName || "").trim() || "—";
-    const category = String(item.category || "").trim() || "Other";
-    const targetName =
-      String(item.targetPath || "")
-        .split(/[\\/]/)
-        .pop()
-        ?.trim() || fileName;
-    const relativeDir = String(item.relativeDir || "").trim();
-    const status = String(item.status || "").trim() || "planned";
-    const action = String(item.action || "").trim() || "";
-    return { fileName, targetName, category, relativeDir, status, action };
+  const setFolder = (nextFolder) => {
+    folderPath = String(nextFolder || "");
+    writeStorage(SORTER_LAST_FOLDER_KEY, folderPath);
+    if (elements.folderPill) {
+      elements.folderPill.textContent =
+        folderPath || t("tools.sorter.noFolder");
+      elements.folderPill.title = folderPath;
+      elements.folderPill.classList.toggle("muted", !folderPath);
+      elements.folderPill.classList.toggle("is-selected", !!folderPath);
+    }
+    if (elements.openFolder) {
+      elements.openFolder.disabled = busy || !folderPath;
+    }
   };
 
-  const getSorterDisplayName = (item = {}) => {
-    const row = formatSorterOperationRow(item);
-    return row.relativeDir && row.relativeDir !== "."
-      ? `${row.relativeDir}/${row.fileName}`
-      : row.fileName;
+  const invalidatePreview = () => {
+    previewResult = null;
+    selectedIds.clear();
+    elements.previewPanel?.classList.add("hidden");
+    updatePreviewToggleUi();
+    updateApplyState();
+    setResult(t("tools.sorter.preview.stale"), "warning");
   };
 
-  const getSorterProblemLabel = (item = {}) => {
-    if (item?.status === "error") {
-      return item.message || t("tools.sorter.error");
-    }
-
-    const action = String(item?.action || "").trim();
-    if (action === "ignored-hidden") {
-      return t("tools.sorter.status.ignoredHidden");
-    }
-    if (action === "ignored-extension") {
-      return item.message || t("tools.sorter.status.ignoredExtension");
-    }
-    if (action === "ignored-folder") {
-      return t("tools.sorter.status.ignoredFolder");
-    }
-    if (action === "managed-category") {
-      return t("tools.sorter.status.managedCategory");
-    }
-    if (action === "log-file") {
-      return t("tools.sorter.status.logFile");
-    }
-    return t("tools.sorter.status.skipExisting");
+  const configChanged = () => {
+    persistConfig();
+    if (previewResult) invalidatePreview();
   };
 
-  const getFilteredSorterOperations = (operations = []) => {
-    const query = String(sorterPreviewSearchEl?.value || "")
+  const renderRules = () => {
+    if (!elements.rulesList) return;
+    elements.rulesList.replaceChildren();
+    rules.forEach((rule) => {
+      const locked = !!rule.locked;
+      const card = document.createElement("article");
+      card.className = `sorter-category-item sorter-category-item--${rule.id}`;
+      card.dataset.ruleId = rule.id;
+
+      const name = document.createElement("input");
+      name.className = "wg-input sorter-category-input sorter-rule-name";
+      name.value = locked ? t("tools.sorter.category.Other") : rule.name;
+      name.disabled = locked;
+      name.setAttribute("aria-label", t("tools.sorter.rules.name"));
+      const nameField = document.createElement("label");
+      nameField.className = "sorter-category-field sorter-category-field--name";
+      const nameLabel = document.createElement("span");
+      nameLabel.textContent = t("tools.sorter.rules.nameShort");
+      nameLabel.title = t("tools.sorter.rules.nameHint");
+      nameLabel.dataset.i18n = "tools.sorter.rules.nameShort";
+      nameField.append(nameLabel, name);
+
+      const folder = document.createElement("input");
+      folder.className = "wg-input sorter-category-input sorter-rule-folder";
+      folder.value = rule.folderName;
+      folder.disabled = locked;
+      folder.setAttribute("aria-label", t("tools.sorter.rules.folder"));
+      const folderField = document.createElement("label");
+      folderField.className =
+        "sorter-category-field sorter-category-field--folder";
+      const folderLabel = document.createElement("span");
+      folderLabel.textContent = t("tools.sorter.rules.folderShort");
+      folderLabel.title = t("tools.sorter.rules.folderHint");
+      folderLabel.dataset.i18n = "tools.sorter.rules.folderShort";
+      folderField.append(folderLabel, folder);
+
+      const extensions = document.createElement("input");
+      extensions.className =
+        "wg-input sorter-category-input sorter-rule-extensions";
+      extensions.value = rule.extensions;
+      extensions.disabled = locked;
+      extensions.setAttribute("aria-label", t("tools.sorter.rules.extensions"));
+      const extensionsField = document.createElement("label");
+      extensionsField.className =
+        "sorter-category-field sorter-category-field--extensions";
+      const extensionsLabel = document.createElement("span");
+      extensionsLabel.textContent = t("tools.sorter.rules.extensionsShort");
+      extensionsLabel.dataset.i18n = "tools.sorter.rules.extensionsShort";
+      extensionsField.append(extensionsLabel, extensions);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "small-button sorter-category-delete";
+      remove.disabled = locked;
+      remove.innerHTML = locked
+        ? '<i class="fa-solid fa-lock"></i>'
+        : '<i class="fa-solid fa-trash"></i>';
+      const removeKey = locked
+        ? "tools.sorter.rules.locked"
+        : "tools.sorter.rules.delete";
+      remove.setAttribute("aria-label", t(removeKey));
+      remove.setAttribute("title", t(removeKey));
+      remove.setAttribute("data-bs-toggle", "tooltip");
+      remove.setAttribute("data-bs-placement", "top");
+      card.append(nameField, folderField, remove, extensionsField);
+      elements.rulesList.appendChild(card);
+
+      const updateRule = () => {
+        rule.name = name.value;
+        rule.folderName = folder.value;
+        rule.extensions = extensions.value;
+        configChanged();
+        updateRuleValidity();
+      };
+      name.addEventListener("input", updateRule);
+      folder.addEventListener("input", updateRule);
+      extensions.addEventListener("input", updateRule);
+      remove.addEventListener("click", () => {
+        rules = rules.filter((item) => item.id !== rule.id);
+        persistConfig();
+        renderRules();
+        if (previewResult) invalidatePreview();
+      });
+    });
+    updateRuleValidity();
+    initTooltips(view);
+  };
+
+  const getOperations = () =>
+    Array.isArray(previewResult?.operations) ? previewResult.operations : [];
+
+  const getFilteredOperations = () => {
+    const query = String(elements.search?.value || "")
       .trim()
       .toLowerCase();
-    const category = String(sorterPreviewCategoryFilterEl?.value || "all");
-    const statusFilter = String(sorterPreviewStatusFilterEl?.value || "all");
-
-    return operations.filter((item) => {
-      const rowData = formatSorterOperationRow(item);
-      const haystack = [
-        rowData.fileName,
-        rowData.targetName,
-        rowData.category,
-        rowData.relativeDir,
+    const category = elements.categoryFilter?.value || "all";
+    const status = elements.statusFilter?.value || "all";
+    return getOperations().filter((operation) => {
+      const text = [
+        operation.fileName,
+        operation.sourcePath,
+        operation.targetPath,
+        operationCategory(operation),
       ]
         .join(" ")
         .toLowerCase();
-      if (query && !haystack.includes(query)) return false;
-      if (category !== "all" && rowData.category !== category) return false;
-      if (statusFilter !== "all" && rowData.status !== statusFilter) {
-        return false;
-      }
-      return true;
+      return (
+        (!query || text.includes(query)) &&
+        (category === "all" || operationCategory(operation) === category) &&
+        (status === "all" || operationStatus(operation) === status)
+      );
     });
   };
 
-  const buildSorterExportContent = (
-    res = {},
-    operations = [],
-    format = "txt",
-  ) => {
-    if (format === "json") {
-      return JSON.stringify(
-        {
-          meta: {
-            dryRun: !!res?.dryRun,
-            folderPath: res?.folderPath || sorterSelectedFolder || "",
-            moved: Number(res?.moved || 0),
-            totalFiles: Number(res?.totalFiles || 0),
-            skipped: Number(res?.skipped || 0),
-            errors: Array.isArray(res?.errors) ? res.errors.length : 0,
-            conflictMode: res?.conflictMode || getSorterOptions().conflictMode,
-            recursive: !!res?.recursive,
-          },
-          operations: operations.map((item) => ({
-            ...formatSorterOperationRow(item),
-            message: String(item?.message || ""),
-            sourcePath: String(item?.sourcePath || ""),
-          })),
-        },
-        null,
-        2,
+  const updateSelectAll = (filteredOperations = getFilteredOperations()) => {
+    if (!elements.selectAll) return;
+    const ids = filteredOperations
+      .filter((operation) => operation.selectable !== false)
+      .map((operation) => operation.__sorterId);
+    const selectedVisible = ids.filter((id) => selectedIds.has(id)).length;
+    elements.selectAll.checked =
+      ids.length > 0 && selectedVisible === ids.length;
+    elements.selectAll.indeterminate =
+      selectedVisible > 0 && selectedVisible < ids.length;
+  };
+
+  const renderBreakdown = (operations) => {
+    if (!elements.breakdownList) return;
+    elements.breakdownList.replaceChildren();
+    const entries = Object.entries(
+      previewResult?.categoryCount || countByCategory(operations),
+    ).filter(([, count]) => Number(count) > 0);
+    if (elements.breakdownCount) {
+      elements.breakdownCount.textContent = String(entries.length);
+    }
+    entries.forEach(([category, count]) => {
+      const item = document.createElement("div");
+      item.className = "sorter-breakdown-item";
+      const label = document.createElement("span");
+      label.textContent = localizeCategory(category);
+      const value = document.createElement("strong");
+      value.textContent = String(count);
+      item.append(label, value);
+      elements.breakdownList.appendChild(item);
+    });
+  };
+
+  const renderProblems = (operations) => {
+    if (!elements.problems || !elements.problemsList) return;
+    const problems = operations.filter(
+      (operation) =>
+        operation.selectable === false ||
+        operationStatus(operation) !== "planned",
+    );
+    elements.problems.classList.toggle("hidden", problems.length === 0);
+    if (elements.problemsCount) {
+      elements.problemsCount.textContent = String(problems.length);
+    }
+    elements.problemsList.replaceChildren();
+    problems.forEach((operation) => {
+      const item = document.createElement("div");
+      item.className = "sorter-problem-item";
+      const file = document.createElement("strong");
+      file.textContent = String(
+        operation.fileName || operation.sourcePath || "",
       );
+      const message = document.createElement("span");
+      message.textContent = localizeOperationReason(operation);
+      item.append(file, message);
+      elements.problemsList.appendChild(item);
+    });
+  };
+
+  const renderPreview = ({ focus = false } = {}) => {
+    if (!previewResult || !elements.previewList) return;
+    const operations = getOperations();
+    const filtered = getFilteredOperations();
+    elements.previewList.replaceChildren();
+    elements.previewPanel?.classList.remove("hidden");
+    updatePreviewToggleUi();
+    if (elements.previewEmpty) {
+      elements.previewEmpty.textContent = t(
+        operations.length === 0
+          ? "tools.sorter.preview.list.empty"
+          : "tools.sorter.preview.filterEmpty",
+      );
+      elements.previewEmpty.classList.toggle("hidden", filtered.length > 0);
+    }
+    if (elements.previewListCount) {
+      elements.previewListCount.textContent = String(filtered.length);
     }
 
+    filtered.forEach((operation) => {
+      const row = document.createElement("label");
+      row.className = `sorter-preview-row sorter-preview-row--${operationStatus(operation)}`;
+      row.dataset.operationId = operation.__sorterId;
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "sorter-operation-select";
+      checkbox.checked = selectedIds.has(operation.__sorterId);
+      checkbox.disabled = operation.selectable === false;
+      const file = document.createElement("span");
+      file.className = "sorter-preview-row__file";
+      file.textContent = String(
+        operation.fileName || operation.sourcePath || "",
+      );
+      const target = document.createElement("span");
+      target.className = "sorter-preview-row__target muted";
+      target.textContent = String(operation.targetPath || "");
+      const category = document.createElement("span");
+      category.className = "sorter-preview-row__category";
+      category.textContent = localizeCategory(operationCategory(operation));
+      row.append(checkbox, file, target, category);
+      elements.previewList.appendChild(row);
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedIds.add(operation.__sorterId);
+        else selectedIds.delete(operation.__sorterId);
+        updateSelectAll(filtered);
+        updateApplyState();
+      });
+    });
+
+    if (elements.moved) {
+      elements.moved.textContent = String(
+        previewResult.planned ?? previewResult.moved ?? selectedIds.size,
+      );
+    }
+    if (elements.total) {
+      elements.total.textContent = String(
+        previewResult.totalFiles ?? operations.length,
+      );
+    }
+    if (elements.skipped) {
+      elements.skipped.textContent = String(previewResult.skipped || 0);
+    }
+    if (elements.errors) {
+      elements.errors.textContent = String(
+        Array.isArray(previewResult.errors) ? previewResult.errors.length : 0,
+      );
+    }
+    renderBreakdown(operations);
+    renderProblems(operations);
+    updateSelectAll(filtered);
+    updateApplyState();
+    if (focus) focusPreview();
+  };
+
+  const updateCategoryFilter = (operations) => {
+    if (!elements.categoryFilter) return;
+    const selected = elements.categoryFilter.value || "all";
+    const categories = [...new Set(operations.map(operationCategory))];
+    elements.categoryFilter.replaceChildren();
+    const all = document.createElement("option");
+    all.value = "all";
+    all.textContent = t("tools.sorter.preview.filter.all");
+    elements.categoryFilter.appendChild(all);
+    categories.forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = localizeCategory(category);
+      elements.categoryFilter.appendChild(option);
+    });
+    elements.categoryFilter.value = categories.includes(selected)
+      ? selected
+      : "all";
+  };
+
+  const buildExportContent = () => {
+    const format = elements.exportFormat?.value || "txt";
+    if (format === "json") return JSON.stringify(latestResult, null, 2);
+    const operations = Array.isArray(latestResult?.operations)
+      ? latestResult.operations
+      : [];
     if (format === "csv") {
-      const header = [
-        "status",
-        "action",
-        "fileName",
-        "targetName",
-        "category",
-        "relativeDir",
-        "message",
-      ];
-      const rows = operations.map((item) => {
-        const row = formatSorterOperationRow(item);
-        return [
-          row.status,
-          row.action,
-          row.fileName,
-          row.targetName,
-          row.category,
-          row.relativeDir,
-          String(item?.message || ""),
-        ]
-          .map((value) => `"${String(value || "").replace(/"/g, '""')}"`)
-          .join(",");
-      });
-      return [header.join(","), ...rows].join("\n");
+      return [
+        "status,fileName,category,targetPath",
+        ...operations.map((operation) =>
+          [
+            operationStatus(operation),
+            operation.fileName,
+            operationCategory(operation),
+            operation.targetPath,
+          ]
+            .map((value) => `"${String(value || "").replace(/"/g, '""')}"`)
+            .join(","),
+        ),
+      ].join("\n");
     }
-
-    const header = [
-      `File Sorter ${res?.dryRun ? "Preview" : "Results"}`,
-      `Folder: ${res?.folderPath || sorterSelectedFolder || "-"}`,
-      `Processed: ${Number(res?.moved || 0)}/${Number(res?.totalFiles || 0)}`,
-      `Skipped: ${Number(res?.skipped || 0)}`,
-      `Errors: ${Array.isArray(res?.errors) ? res.errors.length : 0}`,
-      `Conflict mode: ${res?.conflictMode || getSorterOptions().conflictMode}`,
-      `Recursive: ${res?.recursive ? "yes" : "no"}`,
-      "",
-      "Operations:",
-    ];
-
-    const body = operations.map((item) => {
-      const row = formatSorterOperationRow(item);
-      const sourcePrefix = row.relativeDir ? `${row.relativeDir} -> ` : "";
-      const suffix = item?.message ? ` | ${item.message}` : "";
-      return `- [${row.status}] ${row.fileName} => ${sourcePrefix}${row.targetName} (${row.category})${suffix}`;
-    });
-
-    return header.concat(body).join("\n");
+    return operations
+      .map(
+        (operation) =>
+          `[${operationStatus(operation)}] ${operation.fileName || ""} -> ${operation.targetPath || ""}`,
+      )
+      .join("\n");
   };
 
-  const setSorterFolder = (folderPath) => {
-    sorterSelectedFolder = String(folderPath || "");
-    if (sorterOpenFolderBtn) {
-      sorterOpenFolderBtn.disabled = sorterBusy || !sorterSelectedFolder;
-    }
-    if (!sorterFolderPillEl) return;
-    if (!sorterSelectedFolder) {
-      sorterFolderPillEl.classList.remove("is-selected");
-      sorterFolderPillEl.classList.add("muted");
-      sorterFolderPillEl.textContent = t("tools.sorter.noFolder");
-      sorterFolderPillEl.removeAttribute("title");
+  const runPreview = async () => {
+    if (busy) return;
+    if (!folderPath) {
+      setResult(t("tools.sorter.needFolder"), "warning");
       return;
     }
-    sorterFolderPillEl.classList.add("is-selected");
-    sorterFolderPillEl.classList.remove("muted");
-    sorterFolderPillEl.textContent = sorterSelectedFolder;
-    sorterFolderPillEl.title = sorterSelectedFolder;
-  };
-
-  const setSorterResult = (message, tone = "muted") => {
-    if (!sorterResultEl) return;
-    sorterResultEl.textContent = message;
-    sorterResultEl.className = `quick-action-result ${tone}`;
-  };
-
-  const hideSorterPreview = () => {
-    sorterPreviewPanelEl?.classList.add("hidden");
-    sorterPreviewPanelEl?.classList.remove("is-results");
-    sorterLatestResult = null;
-    if (sorterPreviewTitleEl) {
-      sorterPreviewTitleEl.textContent = t("tools.sorter.preview.title");
-    }
-    if (sorterPreviewBadgeEl) {
-      sorterPreviewBadgeEl.textContent = t("tools.sorter.preview.badge");
-    }
-    renderSorterBreakdown({});
-    sorterErrorsPanelEl?.classList.add("hidden");
-    if (sorterErrorsListEl) sorterErrorsListEl.replaceChildren();
-    if (sorterPreviewListEl) sorterPreviewListEl.replaceChildren();
-    if (sorterPreviewListCountEl) sorterPreviewListCountEl.textContent = "0";
-    if (sorterErrorsCountEl) sorterErrorsCountEl.textContent = "0";
-    sorterPreviewFilterEmptyEl?.classList.add("hidden");
-    if (sorterPreviewMoreEl) {
-      sorterPreviewMoreEl.classList.add("hidden");
-      sorterPreviewMoreEl.textContent = "";
-      delete sorterPreviewMoreEl.dataset.count;
-    }
-    if (sorterPreviewMovedEl) sorterPreviewMovedEl.textContent = "0";
-    if (sorterPreviewTotalEl) sorterPreviewTotalEl.textContent = "0";
-    if (sorterPreviewSkippedEl) sorterPreviewSkippedEl.textContent = "0";
-    if (sorterPreviewErrorsEl) sorterPreviewErrorsEl.textContent = "0";
-    if (sorterCopyResultBtn) sorterCopyResultBtn.disabled = true;
-    if (sorterExportResultBtn) sorterExportResultBtn.disabled = true;
-  };
-
-  const renderSorterErrors = (res = {}) => {
-    if (!sorterErrorsPanelEl || !sorterErrorsListEl) return;
-    sorterErrorsListEl.replaceChildren();
-
-    const problemItems = []
-      .concat(Array.isArray(res.operations) ? res.operations : [])
-      .filter((item) => item?.status === "skipped" || item?.status === "error");
-
-    if (!problemItems.length) {
-      if (sorterErrorsCountEl) sorterErrorsCountEl.textContent = "0";
-      sorterErrorsPanelEl.classList.add("hidden");
+    persistConfig();
+    const validationError = updateRuleValidity();
+    if (validationError) {
+      setResult(validationError, "error");
       return;
     }
-
-    if (sorterErrorsCountEl) {
-      sorterErrorsCountEl.textContent = String(problemItems.length);
-    }
-    sorterErrorsPanelEl.classList.remove("hidden");
-    problemItems.forEach((item) => {
-      const row = document.createElement("div");
-      row.className = "sorter-errors-row";
-
-      const name = document.createElement("strong");
-      name.textContent = getSorterDisplayName(item);
-      name.title = String(item.sourcePath || name.textContent);
-
-      const meta = document.createElement("span");
-      meta.className = "muted";
-      meta.textContent = getSorterProblemLabel(item);
-
-      row.append(name, meta);
-      sorterErrorsListEl.appendChild(row);
-    });
-  };
-
-  const renderSorterPreview = (res = {}, mode = "preview") => {
-    if (!sorterPreviewPanelEl || !sorterPreviewListEl) return;
-    const operations = Array.isArray(res.operations) ? res.operations : [];
-    sorterLatestResult = res;
-    sorterLatestMode = mode;
-    updateSorterCategoryFilterOptions(operations);
-    const filteredOperations = getFilteredSorterOperations(operations);
-    const shownOperations = filteredOperations.slice(0, SORTER_PREVIEW_LIMIT);
-    const remainingCount = Math.max(
-      0,
-      filteredOperations.length - shownOperations.length,
-    );
-
-    sorterPreviewPanelEl.classList.remove("hidden");
-    sorterPreviewPanelEl.classList.toggle("is-results", mode !== "preview");
-    if (sorterPreviewTitleEl) {
-      sorterPreviewTitleEl.textContent = t(
-        mode === "preview"
-          ? "tools.sorter.preview.title"
-          : "tools.sorter.results.title",
-      );
-    }
-    if (sorterPreviewBadgeEl) {
-      sorterPreviewBadgeEl.textContent = t(
-        mode === "preview"
-          ? "tools.sorter.preview.badge"
-          : "tools.sorter.results.badge",
-      );
-    }
-    if (sorterPreviewMovedEl) {
-      sorterPreviewMovedEl.textContent = String(Number(res.moved || 0));
-    }
-    if (sorterPreviewTotalEl) {
-      sorterPreviewTotalEl.textContent = String(Number(res.totalFiles || 0));
-    }
-    if (sorterPreviewSkippedEl) {
-      sorterPreviewSkippedEl.textContent = String(Number(res.skipped || 0));
-    }
-    if (sorterPreviewErrorsEl) {
-      sorterPreviewErrorsEl.textContent = String(
-        Array.isArray(res.errors) ? res.errors.length : 0,
-      );
-    }
-    renderSorterBreakdown(res.categoryCount || {});
-    renderSorterErrors(res);
-    if (sorterCopyResultBtn) sorterCopyResultBtn.disabled = false;
-    if (sorterExportResultBtn) sorterExportResultBtn.disabled = false;
-
-    sorterPreviewListEl.replaceChildren();
-    if (sorterPreviewListCountEl) {
-      sorterPreviewListCountEl.textContent = String(filteredOperations.length);
-    }
-    sorterPreviewFilterEmptyEl?.classList.toggle(
-      "hidden",
-      !(filteredOperations.length === 0 && operations.length > 0),
-    );
-
-    if (!shownOperations.length && operations.length === 0) {
-      const emptyEl = document.createElement("p");
-      emptyEl.className = "sorter-preview-list__empty muted";
-      emptyEl.textContent = t("tools.sorter.preview.list.empty");
-      sorterPreviewListEl.appendChild(emptyEl);
-    } else if (shownOperations.length) {
-      shownOperations.forEach((operation) => {
-        const rowData = formatSorterOperationRow(operation);
-        const row = document.createElement("div");
-        row.className = `sorter-preview-row sorter-preview-row--${rowData.status}`;
-
-        const fileEl = document.createElement("span");
-        fileEl.className = "sorter-preview-row__file";
-        fileEl.textContent = rowData.fileName;
-        fileEl.title = rowData.fileName;
-
-        const targetEl = document.createElement("span");
-        targetEl.className = "sorter-preview-row__target muted";
-        const sourcePrefix = rowData.relativeDir
-          ? `${rowData.relativeDir} -> `
-          : "";
-        const actionLabel =
-          rowData.action === "replace"
-            ? ` (${t("tools.sorter.status.replaced")})`
-            : rowData.action === "rename"
-              ? ` (${t("tools.sorter.status.renamed")})`
-              : rowData.status === "skipped"
-                ? ` (${t("tools.sorter.status.skipped")})`
-                : rowData.status === "error"
-                  ? ` (${t("tools.sorter.status.error")})`
-                  : "";
-        targetEl.textContent = `${sourcePrefix}${rowData.targetName}${actionLabel}`;
-        targetEl.title = targetEl.textContent;
-
-        const categoryEl = document.createElement("span");
-        categoryEl.className = "sorter-preview-row__category";
-        categoryEl.textContent = rowData.category;
-
-        const targetWrapEl = document.createElement("div");
-        targetWrapEl.className = "sorter-preview-row__target-wrap";
-        targetWrapEl.append(targetEl, categoryEl);
-
-        row.append(fileEl, targetEl, categoryEl);
-        row.replaceChildren(fileEl, targetWrapEl);
-        sorterPreviewListEl.appendChild(row);
-      });
-    }
-
-    if (sorterPreviewMoreEl) {
-      if (remainingCount > 0) {
-        sorterPreviewMoreEl.classList.remove("hidden");
-        sorterPreviewMoreEl.textContent = t("tools.sorter.preview.more", {
-          count: remainingCount,
-        });
-        sorterPreviewMoreEl.dataset.count = String(remainingCount);
-      } else {
-        sorterPreviewMoreEl.classList.add("hidden");
-        sorterPreviewMoreEl.textContent = "";
-        delete sorterPreviewMoreEl.dataset.count;
-      }
-    }
-  };
-
-  const updateSorterHowtoUi = () => {
-    if (!sorterHowtoTrackEl) return;
-    sorterHowtoTrackEl.style.transform = `translateX(-${sorterHowtoIndex * 100}%)`;
-    if (sorterHowtoStepEl) {
-      sorterHowtoStepEl.textContent = t("tools.sorter.howto.step", {
-        current: sorterHowtoIndex + 1,
-        total: sorterHowtoSlideCount,
-      });
-    }
-    if (sorterHowtoPrevBtn) sorterHowtoPrevBtn.disabled = sorterHowtoIndex <= 0;
-    if (sorterHowtoNextBtn) {
-      sorterHowtoNextBtn.disabled =
-        sorterHowtoIndex >= sorterHowtoSlideCount - 1;
-    }
-    sorterHowtoDots.forEach((dot, idx) => {
-      const isActive = idx === sorterHowtoIndex;
-      dot.classList.toggle("is-active", isActive);
-      dot.setAttribute("aria-current", isActive ? "true" : "false");
-    });
-  };
-
-  const setSorterHowtoSlide = (index) => {
-    const nextIndex = Math.max(
-      0,
-      Math.min(Number(index) || 0, sorterHowtoSlideCount - 1),
-    );
-    sorterHowtoIndex = nextIndex;
-    updateSorterHowtoUi();
-  };
-
-  const openSorterHowtoModal = () => {
-    if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
-    sorterHowtoReturnFocusEl = document.activeElement;
-    acquireDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
-    sorterHowtoModalEl.classList.remove("hidden");
-    sorterHowtoModalEl.setAttribute("aria-hidden", "false");
-    sorterHowtoDialogEl.setAttribute("aria-hidden", "false");
-    setSorterHowtoSlide(0);
-    setTimeout(() => sorterHowtoCloseBtn?.focus(), 0);
-  };
-
-  const closeSorterHowtoModal = ({ returnFocus = true } = {}) => {
-    if (!sorterHowtoModalEl || !sorterHowtoDialogEl) return;
-    sorterHowtoModalEl.classList.add("hidden");
-    sorterHowtoModalEl.setAttribute("aria-hidden", "true");
-    sorterHowtoDialogEl.setAttribute("aria-hidden", "true");
-    releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
-    if (returnFocus) {
-      if (sorterHowtoReturnFocusEl?.focus) sorterHowtoReturnFocusEl.focus();
-      else sorterOpenHowtoBtn?.focus();
-    }
-  };
-
-  const runSorter = async (dryRun) => {
-    if (sorterBusy) return;
-    if (!sorterSelectedFolder) {
-      hideSorterPreview();
-      setSorterResult(t("tools.sorter.needFolder"), "warning");
-      return;
-    }
-    const sorterOptions = persistSorterOptions();
-    setSorterBusy(true);
-    hideSorterPreview();
-    setSorterResult(
-      t(dryRun ? "tools.sorter.runningPreview" : "tools.sorter.runningApply"),
-      "muted",
-    );
+    setBusy(true);
+    setResult(t("tools.sorter.runningPreview"));
     try {
-      const res = await window.electron?.tools?.sortFilesByCategory?.({
-        folderPath: sorterSelectedFolder,
-        dryRun,
-        ...sorterOptions,
+      const result = await window.electron?.tools?.previewSorterPlan?.({
+        folderPath,
+        ignoreExtensions: elements.ignoreExtensions?.value || "",
+        ignoreFolders: elements.ignoreFolders?.value || "",
+        ...getConfig(),
       });
-      if (!res?.success) {
-        hideSorterPreview();
-        setSorterResult(res?.error || t("tools.sorter.error"), "error");
+      if (!result?.success) {
+        invalidatePreview();
+        setResult(result?.error || t("tools.sorter.error"), "error");
         return;
       }
-
-      const summary = t("tools.sorter.done", {
-        moved: Number(res.moved || 0),
-        total: Number(res.totalFiles || 0),
-        skipped: Number(res.skipped || 0),
-      });
-      const hasErrors = Array.isArray(res.errors) && res.errors.length > 0;
-      const modeHint = res.dryRun ? ` ${t("tools.sorter.dryRunHint")}` : "";
-      const errorHint = hasErrors
-        ? ` ${t("tools.sorter.errors", { count: res.errors.length })}`
-        : "";
-      setSorterResult(
-        `${summary}${modeHint}${errorHint}`,
-        hasErrors ? "warning" : "success",
+      const operations = (
+        Array.isArray(result.operations) ? result.operations : []
+      ).map((operation, index) => ({
+        ...operation,
+        __sorterId: operationId(operation, index),
+      }));
+      previewResult = { ...result, operations };
+      selectedIds = new Set(
+        operations
+          .filter((operation) => operation.selectable !== false)
+          .map((operation) => operation.__sorterId),
       );
-      renderSorterPreview(res, res.dryRun ? "preview" : "results");
+      updateCategoryFilter(operations);
+      renderPreview({ focus: true });
+      setResult(t("tools.sorter.preview.ready"), "success");
     } catch (error) {
-      hideSorterPreview();
-      setSorterResult(error?.message || t("tools.sorter.error"), "error");
+      invalidatePreview();
+      setResult(error?.message || t("tools.sorter.error"), "error");
     } finally {
-      setSorterBusy(false);
+      setBusy(false);
     }
   };
 
-  sorterPickFolderBtn?.addEventListener("click", async () => {
-    if (sorterBusy) return;
+  const applyPreview = async () => {
+    if (busy || !previewResult || selectedIds.size === 0) return;
+    const confirmed = await showConfirmationDialog({
+      title: t("tools.sorter.confirm.title"),
+      message: t("tools.sorter.confirm.message", {
+        count: selectedIds.size,
+      }),
+      confirmText: t("tools.sorter.confirm.apply"),
+      tone: "warning",
+    });
+    if (!confirmed || !previewResult) return;
+
+    setBusy(true);
+    setResult(t("tools.sorter.runningApply"));
     try {
-      const res = await window.electron?.tools?.pickSorterFolder?.();
-      if (!res?.success || !res?.folderPath) {
-        if (res?.canceled) return;
-        setSorterResult(res?.error || t("tools.sorter.pickError"), "error");
+      const result = await window.electron?.tools?.applySorterPlan?.({
+        planId: previewResult.planId,
+        operationIds: [...selectedIds],
+      });
+      if (!result?.success) {
+        setResult(result?.error || t("tools.sorter.error"), "error");
         return;
       }
-      setSorterFolder(res.folderPath);
-      saveSorterFolder(res.folderPath);
-      hideSorterPreview();
-      setSorterResult(t("tools.sorter.folderSelected"), "muted");
-    } catch (error) {
-      hideSorterPreview();
-      setSorterResult(error?.message || t("tools.sorter.pickError"), "error");
-    }
-  });
-
-  sorterOpenFolderBtn?.addEventListener("click", async () => {
-    if (sorterBusy || !sorterSelectedFolder) return;
-    try {
-      const res =
-        await window.electron?.tools?.openSorterFolder?.(sorterSelectedFolder);
-      if (!res?.success) {
-        setSorterResult(
-          res?.error || t("tools.sorter.openFolderError"),
-          "error",
-        );
+      latestResult = result;
+      previewResult = null;
+      selectedIds.clear();
+      elements.previewPanel?.classList.add("hidden");
+      updatePreviewToggleUi();
+      elements.resultPanel?.classList.remove("hidden");
+      if (elements.resultSummary) {
+        elements.resultSummary.textContent = t("tools.sorter.done", {
+          moved: Number(result.moved || 0),
+          total: Number(result.totalFiles || result.moved || 0),
+          skipped: Number(result.skipped || 0),
+        });
       }
+      elements.undo?.classList.toggle("hidden", !result.runId);
+      setResult(t("tools.sorter.apply.done"), "success");
     } catch (error) {
-      setSorterResult(
-        error?.message || t("tools.sorter.openFolderError"),
-        "error",
-      );
+      setResult(error?.message || t("tools.sorter.error"), "error");
+    } finally {
+      setBusy(false);
     }
-  });
+  };
 
-  sorterPreviewRunBtn?.addEventListener("click", async () => runSorter(true));
-  sorterApplyRunBtn?.addEventListener("click", async () => runSorter(false));
-  sorterLogPathEl?.addEventListener("change", persistSorterOptions);
-  sorterConflictModeEl?.addEventListener("change", persistSorterOptions);
-  sorterRecursiveEl?.addEventListener("change", persistSorterOptions);
-  sorterIgnoreExtensionsEl?.addEventListener("change", persistSorterOptions);
-  sorterIgnoreFoldersEl?.addEventListener("change", persistSorterOptions);
-  sorterPreviewSearchEl?.addEventListener("input", () => {
-    if (sorterLatestResult)
-      renderSorterPreview(sorterLatestResult, sorterLatestMode);
-  });
-  sorterPreviewCategoryFilterEl?.addEventListener("change", () => {
-    if (sorterLatestResult)
-      renderSorterPreview(sorterLatestResult, sorterLatestMode);
-  });
-  sorterPreviewStatusFilterEl?.addEventListener("change", () => {
-    if (sorterLatestResult)
-      renderSorterPreview(sorterLatestResult, sorterLatestMode);
-  });
-  sorterCopyResultBtn?.addEventListener("click", async () => {
-    if (!sorterLatestResult) return;
-    const format = String(sorterExportFormatEl?.value || "txt");
-    const content = buildSorterExportContent(
-      sorterLatestResult,
-      getFilteredSorterOperations(
-        Array.isArray(sorterLatestResult.operations)
-          ? sorterLatestResult.operations
-          : [],
-      ),
-      format,
-    );
+  elements.pickFolder?.addEventListener("click", async () => {
+    if (busy) return;
     try {
-      await navigator.clipboard?.writeText?.(content);
-      setSorterResult(t("tools.sorter.copyDone"), "success");
-    } catch (error) {
-      setSorterResult(error?.message || t("tools.sorter.copyError"), "error");
-    }
-  });
-  sorterExportResultBtn?.addEventListener("click", async () => {
-    if (!sorterLatestResult) return;
-    const format = String(sorterExportFormatEl?.value || "txt");
-    const content = buildSorterExportContent(
-      sorterLatestResult,
-      getFilteredSorterOperations(
-        Array.isArray(sorterLatestResult.operations)
-          ? sorterLatestResult.operations
-          : [],
-      ),
-      format,
-    );
-    try {
-      const res = await window.electron?.tools?.exportSorterResult?.({
-        content,
-        suggestedName: `file-sorter-${sorterLatestResult.dryRun ? "preview" : "result"}-${new Date().toISOString().slice(0, 10)}.${format}`,
-        format,
-      });
-      if (!res?.success) {
-        if (!res?.canceled) {
-          setSorterResult(res?.error || t("tools.sorter.exportError"), "error");
+      const result = await window.electron?.tools?.pickSorterFolder?.();
+      if (!result?.success || !result.folderPath) {
+        if (!result?.canceled) {
+          setResult(result?.error || t("tools.sorter.pickError"), "error");
         }
         return;
       }
-      setSorterResult(
-        t("tools.sorter.exportDone", { filePath: res.filePath || "" }),
-        "success",
-      );
+      setFolder(result.folderPath);
+      if (previewResult) invalidatePreview();
+      else setResult(t("tools.sorter.folderSelected"));
     } catch (error) {
-      setSorterResult(error?.message || t("tools.sorter.exportError"), "error");
+      setResult(error?.message || t("tools.sorter.pickError"), "error");
     }
   });
 
-  sorterOpenHowtoBtn?.addEventListener("click", () => openSorterHowtoModal());
-  sorterHowtoCloseBtn?.addEventListener("click", () => closeSorterHowtoModal());
-  sorterHowtoPrevBtn?.addEventListener("click", () =>
-    setSorterHowtoSlide(sorterHowtoIndex - 1),
-  );
-  sorterHowtoNextBtn?.addEventListener("click", () =>
-    setSorterHowtoSlide(sorterHowtoIndex + 1),
-  );
-  sorterHowtoDots.forEach((dot) => {
-    dot.addEventListener("click", () => {
-      setSorterHowtoSlide(Number(dot.dataset.index || "0"));
+  elements.openFolder?.addEventListener("click", async () => {
+    if (busy || !folderPath) return;
+    try {
+      const result =
+        await window.electron?.tools?.openSorterFolder?.(folderPath);
+      if (!result?.success) {
+        setResult(result?.error || t("tools.sorter.openFolderError"), "error");
+      }
+    } catch (error) {
+      setResult(error?.message || t("tools.sorter.openFolderError"), "error");
+    }
+  });
+
+  elements.preview?.addEventListener("click", () => {
+    if (!previewResult) {
+      runPreview();
+      return;
+    }
+    elements.previewPanel?.classList.toggle("hidden");
+    updatePreviewToggleUi();
+    if (!elements.previewPanel?.classList.contains("hidden")) {
+      focusPreview();
+    }
+  });
+  elements.apply?.addEventListener("click", applyPreview);
+  elements.conflictToggle?.addEventListener("click", () => {
+    if (busy) return;
+    const willOpen = elements.conflictMenu?.classList.contains("hidden");
+    elements.conflictMenu?.classList.toggle("hidden", !willOpen);
+    elements.conflictToggle.setAttribute(
+      "aria-expanded",
+      String(Boolean(willOpen)),
+    );
+    if (willOpen) {
+      const selected = conflictOptions.find(
+        (option) => option.getAttribute("aria-selected") === "true",
+      );
+      selected?.focus();
+    }
+  });
+  elements.conflictToggle?.addEventListener("keydown", (event) => {
+    if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+    event.preventDefault();
+    elements.conflictToggle.click();
+  });
+  conflictOptions.forEach((option, index) => {
+    option.addEventListener("click", () =>
+      selectConflictMode(option.dataset.conflictMode || "rename"),
+    );
+    option.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeConflictMenu();
+        elements.conflictToggle?.focus();
+        return;
+      }
+      if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+      event.preventDefault();
+      const offset = event.key === "ArrowDown" ? 1 : -1;
+      conflictOptions[
+        (index + offset + conflictOptions.length) % conflictOptions.length
+      ]?.focus();
     });
   });
-  sorterHowtoModalEl?.addEventListener("mousedown", (event) => {
-    if (event.target === sorterHowtoModalEl) closeSorterHowtoModal();
+  document.addEventListener("click", (event) => {
+    if (!event.target?.closest?.("[data-sorter-conflict-select]")) {
+      closeConflictMenu();
+    }
+  });
+  elements.conflictMode?.addEventListener("change", configChanged);
+  elements.recursive?.addEventListener("change", configChanged);
+  elements.ignoreExtensions?.addEventListener("input", configChanged);
+  elements.ignoreFolders?.addEventListener("input", configChanged);
+  elements.addRule?.addEventListener("click", () => {
+    const id = `rule-${Date.now()}`;
+    rules.splice(rules.length - 1, 0, {
+      id,
+      name: t("tools.sorter.rules.newName"),
+      folderName: "",
+      extensions: "",
+    });
+    persistConfig();
+    renderRules();
+    if (previewResult) invalidatePreview();
+  });
+  elements.resetRules?.addEventListener("click", () => {
+    rules = cloneDefaultRules();
+    persistConfig();
+    renderRules();
+    if (previewResult) invalidatePreview();
   });
 
-  setSorterFolder(loadSorterFolder());
-  hideSorterPreview();
-  renderSorterRules();
-  renderSorterBreakdown({});
-  applySorterOptionState();
-  setSorterResult(t("tools.sorter.resultIdle"), "muted");
-  updateSorterHowtoUi();
-
-  registerCleanup?.(() => {
-    releaseDocumentScrollLock(SORTER_HOWTO_SCROLL_LOCK_OWNER);
+  [elements.search, elements.categoryFilter, elements.statusFilter].forEach(
+    (element) => {
+      element?.addEventListener(
+        element === elements.search ? "input" : "change",
+        renderPreview,
+      );
+    },
+  );
+  elements.selectAll?.addEventListener("change", () => {
+    getFilteredOperations()
+      .filter((operation) => operation.selectable !== false)
+      .forEach((operation) => {
+        if (elements.selectAll.checked) selectedIds.add(operation.__sorterId);
+        else selectedIds.delete(operation.__sorterId);
+      });
+    renderPreview();
   });
+  elements.undo?.addEventListener("click", async () => {
+    if (busy || !latestResult?.runId) return;
+    setBusy(true);
+    try {
+      const result = await window.electron?.tools?.undoSorterRun?.({
+        runId: latestResult.runId,
+      });
+      if (!result?.success) {
+        if (result?.canUndo) {
+          latestResult = { ...latestResult, ...result };
+          elements.undo.classList.remove("hidden");
+        }
+        setResult(result?.error || t("tools.sorter.undo.error"), "error");
+        return;
+      }
+      latestResult = { ...latestResult, ...result };
+      elements.undo.classList.toggle("hidden", result.canUndo !== true);
+      setResult(t("tools.sorter.undo.done"), "success");
+    } catch (error) {
+      setResult(error?.message || t("tools.sorter.undo.error"), "error");
+    } finally {
+      setBusy(false);
+    }
+  });
+  elements.copy?.addEventListener("click", async () => {
+    if (!latestResult) return;
+    try {
+      await navigator.clipboard?.writeText?.(buildExportContent());
+      setResult(t("tools.sorter.copyDone"), "success");
+    } catch (error) {
+      setResult(error?.message || t("tools.sorter.copyError"), "error");
+    }
+  });
+  elements.export?.addEventListener("click", async () => {
+    if (!latestResult) return;
+    const format = elements.exportFormat?.value || "txt";
+    try {
+      const result = await window.electron?.tools?.exportSorterResult?.({
+        content: buildExportContent(),
+        format,
+        suggestedName: `file-sorter-result-${new Date().toISOString().slice(0, 10)}.${format}`,
+      });
+      if (!result?.success && !result?.canceled) {
+        setResult(result?.error || t("tools.sorter.exportError"), "error");
+      }
+    } catch (error) {
+      setResult(error?.message || t("tools.sorter.exportError"), "error");
+    }
+  });
+
+  if (elements.conflictMode) {
+    syncConflictMode(readStorage(SORTER_CONFLICT_MODE_KEY, "rename"));
+  }
+  if (elements.recursive) {
+    elements.recursive.checked =
+      readStorage(SORTER_RECURSIVE_KEY, "false") === "true";
+  }
+  if (elements.ignoreExtensions) {
+    elements.ignoreExtensions.value = readStorage(
+      SORTER_IGNORE_EXTENSIONS_KEY,
+      "",
+    );
+  }
+  if (elements.ignoreFolders) {
+    elements.ignoreFolders.value = readStorage(SORTER_IGNORE_FOLDERS_KEY, "");
+  }
+  setFolder(folderPath);
+  renderRules();
+  updatePreviewToggleUi();
+  updateApplyState();
+  setResult(t("tools.sorter.resultIdle"));
 }

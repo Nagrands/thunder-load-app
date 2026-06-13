@@ -214,8 +214,6 @@
   }
 
   input:focus-visible {
-    border-color: rgba(var(--color-accent-rgb), 0.78);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.22);
     outline: none;
   }
 
@@ -411,7 +409,6 @@
 
 .history-filters-title {
   font-size: 0.66rem;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.075em;
   color: rgba(185, 203, 228, 0.76);
@@ -930,8 +927,8 @@
 }
 
 .history-row__name {
-  font-size: 0.98rem;
-  // font-weight: 650;
+  // font-size: 0.98rem;
+  font-weight: 600;
   color: var(--color-highlight);
   min-width: 120px;
   flex: 1 1 auto;
@@ -1249,9 +1246,9 @@
 .history-row__details-meta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.74);
+  // gap: 8px;
+  // font-size: 0.82rem;
+  color: var(--color-quality);
 }
 
 .history-row__details-item {
@@ -1962,7 +1959,7 @@
 }
 
 .history-count-pill #total-downloads {
-  color: #8aa0bf;
+  color: var(--color-highlight);
 }
 
 .history-action-segment--more .history-action-button {
@@ -2206,12 +2203,6 @@
   gap: 14px;
 }
 
-.history-row__name {
-  font-size: 1.01rem;
-  line-height: 1.2;
-  color: #e2e8f0;
-}
-
 .history-row__source-chip {
   max-width: 180px;
 }
@@ -2366,12 +2357,12 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.history-row__details-meta {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  min-width: 0;
-}
+// .history-row__details-meta {
+//   display: grid;
+//   grid-template-columns: 1fr;
+//   gap: 8px;
+//   min-width: 0;
+// }
 
 .history-row__details-item {
   display: grid;
@@ -2570,7 +2561,6 @@
 #total-downloads,
 #total-download-size {
   color: var(--color-highlight);
-  font-weight: 600;
 }
 
 #total-downloads-label,
@@ -2738,12 +2728,6 @@
   min-height: 21px;
 }
 
-.history-row__name {
-  font-size: 1rem;
-  // line-height: 1.25;
-  font-weight: 600;
-}
-
 .history-row__summary {
   display: flex;
   align-items: center;
@@ -2833,7 +2817,6 @@
 }
 
 .history-more-menu {
-  background: #161b27;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -2893,10 +2876,6 @@
     grid-template-columns: 30px 64px minmax(0, 1fr) auto;
     gap: 10px;
     padding: 10px 12px;
-  }
-
-  .history-row__name {
-    font-size: 0.95rem;
   }
 
   .history-row__badges {

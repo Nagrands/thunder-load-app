@@ -1327,7 +1327,17 @@ function setupIpcHandlers(dependencies) {
     ]),
   });
 
+  const SORTER_OTHER_RULE = Object.freeze({
+    id: "other",
+    name: "Other",
+    folderName: "Other",
+    extensions: [],
+    locked: true,
+  });
+  const SORTER_UNDO_DIR_NAME = "file-sorter-undo";
   const sorterCategoryKeys = Object.keys(SORTER_CATEGORIES);
+  let latestSorterPlan = null;
+  let latestSorterRun = null;
 
   function expandUserPath(inputPath) {
     const raw = String(inputPath || "").trim();
@@ -1339,19 +1349,9 @@ function setupIpcHandlers(dependencies) {
     return raw;
   }
 
-  function getSorterCategory(extension) {
-    const ext = String(extension || "").toLowerCase();
-    for (const key of sorterCategoryKeys) {
-      if (SORTER_CATEGORIES[key].has(ext)) return key;
-    }
-    return "Other";
-  }
-
   function parseSorterCsvList(value) {
-    return String(value || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
+    const items = Array.isArray(value) ? value : String(value || "").split(",");
+    return items.map((item) => String(item).trim()).filter(Boolean);
   }
 
   function normalizeSorterConflictMode(value) {
@@ -1375,20 +1375,131 @@ function setupIpcHandlers(dependencies) {
     return new Set(parseSorterCsvList(value).map((item) => item.toLowerCase()));
   }
 
-  function isSorterManagedDirectoryName(name) {
+  function normalizeSorterExtension(value) {
+    const extension = String(value || "")
+      .trim()
+      .toLowerCase();
+    if (!extension) return "";
+    return extension.startsWith(".") ? extension : `.${extension}`;
+  }
+
+  function createDefaultSorterRules() {
+    return sorterCategoryKeys.map((name) => ({
+      id: name.toLowerCase(),
+      name,
+      folderName: name,
+      extensions: Array.from(SORTER_CATEGORIES[name]),
+      locked: false,
+    }));
+  }
+
+  function normalizeSorterRules(value) {
+    const inputRules = Array.isArray(value)
+      ? value
+      : createDefaultSorterRules();
+    const seenIds = new Set();
+    const seenFolders = new Set();
+    const seenExtensions = new Set();
+    const rules = [];
+
+    for (const inputRule of inputRules) {
+      const id = String(inputRule?.id || "").trim();
+      const name = String(inputRule?.name || "").trim();
+      const folderName = String(
+        inputRule?.folderName || inputRule?.folder || "",
+      ).trim();
+      if (!id || !name || !folderName) {
+        throw new Error("Each sorter rule requires id, name, and folderName");
+      }
+      if (
+        folderName === "." ||
+        folderName === ".." ||
+        folderName.includes("/") ||
+        folderName.includes("\\") ||
+        path.basename(folderName) !== folderName
+      ) {
+        throw new Error(`Invalid sorter folder name: ${folderName}`);
+      }
+
+      const normalizedId = id.toLowerCase();
+      const normalizedFolder = folderName.toLowerCase();
+      if (
+        normalizedId === SORTER_OTHER_RULE.id ||
+        normalizedFolder === SORTER_OTHER_RULE.folderName.toLowerCase()
+      ) {
+        continue;
+      }
+      if (seenIds.has(normalizedId) || seenFolders.has(normalizedFolder)) {
+        throw new Error(`Duplicate sorter rule: ${id}`);
+      }
+
+      seenIds.add(normalizedId);
+      seenFolders.add(normalizedFolder);
+      const extensions = Array.from(
+        new Set(
+          parseSorterCsvList(inputRule?.extensions)
+            .map(normalizeSorterExtension)
+            .filter(Boolean),
+        ),
+      );
+      for (const extension of extensions) {
+        if (seenExtensions.has(extension)) {
+          throw new Error(`Duplicate sorter extension: ${extension}`);
+        }
+        seenExtensions.add(extension);
+      }
+      rules.push({
+        id,
+        name,
+        folderName,
+        extensions,
+        locked: false,
+      });
+    }
+
+    return [...rules, { ...SORTER_OTHER_RULE }];
+  }
+
+  function getSorterRule(extension, rules) {
+    const normalizedExtension = normalizeSorterExtension(extension);
+    return (
+      rules.find(
+        (rule) => !rule.locked && rule.extensions.includes(normalizedExtension),
+      ) || rules[rules.length - 1]
+    );
+  }
+
+  function isSorterManagedDirectoryName(name, rules) {
     const normalized = String(name || "")
       .trim()
       .toLowerCase();
-    return (
-      normalized === "other" ||
-      sorterCategoryKeys.some((key) => key.toLowerCase() === normalized)
+    return rules.some((rule) => rule.folderName.toLowerCase() === normalized);
+  }
+
+  function createSorterReason(reasonCode, message, reasonParams = {}) {
+    return { reasonCode, reasonParams, message };
+  }
+
+  function getSorterErrorReason(error) {
+    const message = error?.message || String(error);
+    const reasonCodes = {
+      "Replacement target is not a file": "replacement-target-not-file",
+      "Sorted file is unavailable": "sorted-file-unavailable",
+      "Original source path is occupied": "source-path-occupied",
+      "Replacement backup is unavailable": "replacement-backup-unavailable",
+    };
+    return createSorterReason(
+      reasonCodes[message] || "operation-failed",
+      message,
+      { message },
     );
   }
 
   async function collectSkippedFilesInDirectory(
     rootDir,
     dir,
-    { action, message },
+    rules,
+    { action, message, reasonCode, reasonParams = {} },
   ) {
     const items = [];
     const entries = await fsPromises.readdir(dir, { withFileTypes: true });
@@ -1396,22 +1507,26 @@ function setupIpcHandlers(dependencies) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         items.push(
-          ...(await collectSkippedFilesInDirectory(rootDir, fullPath, {
+          ...(await collectSkippedFilesInDirectory(rootDir, fullPath, rules, {
             action,
             message,
+            reasonCode,
+            reasonParams,
           })),
         );
         continue;
       }
       if (!entry.isFile()) continue;
+      const rule = getSorterRule(path.extname(entry.name), rules);
       items.push({
         fileName: entry.name,
-        category: getSorterCategory(path.extname(entry.name)),
+        category: rule.name,
+        ruleId: rule.id,
         sourcePath: path.resolve(fullPath),
         relativeDir: path.relative(rootDir, path.dirname(fullPath)),
         status: "skipped",
         action,
-        message,
+        ...createSorterReason(reasonCode, message, reasonParams),
       });
     }
     return items;
@@ -1424,6 +1539,7 @@ function setupIpcHandlers(dependencies) {
       resolvedLogPath = null,
       ignoreExtensions = new Set(),
       ignoreFolders = new Set(),
+      rules,
     } = {},
   ) {
     const files = [];
@@ -1440,19 +1556,33 @@ function setupIpcHandlers(dependencies) {
         if (entry.isDirectory()) {
           if (ignoreFolders.has(normalizedName)) {
             skippedItems.push(
-              ...(await collectSkippedFilesInDirectory(rootDir, fullPath, {
-                action: "ignored-folder",
-                message: "Ignored by folder rule",
-              })),
+              ...(await collectSkippedFilesInDirectory(
+                rootDir,
+                fullPath,
+                rules,
+                {
+                  action: "ignored-folder",
+                  message: "Ignored by folder rule",
+                  reasonCode: "ignored-folder",
+                  reasonParams: { folder: entry.name },
+                },
+              )),
             );
             continue;
           }
-          if (depth === 0 && isSorterManagedDirectoryName(entry.name)) {
+          if (depth === 0 && isSorterManagedDirectoryName(entry.name, rules)) {
             skippedItems.push(
-              ...(await collectSkippedFilesInDirectory(rootDir, fullPath, {
-                action: "managed-category",
-                message: "Already inside a sorter category folder",
-              })),
+              ...(await collectSkippedFilesInDirectory(
+                rootDir,
+                fullPath,
+                rules,
+                {
+                  action: "managed-category",
+                  message: "Already inside a sorter category folder",
+                  reasonCode: "managed-category",
+                  reasonParams: { folder: entry.name },
+                },
+              )),
             );
             continue;
           }
@@ -1464,46 +1594,59 @@ function setupIpcHandlers(dependencies) {
 
         if (!entry.isFile()) continue;
         if (entry.name.startsWith(".")) {
+          const rule = getSorterRule(path.extname(entry.name), rules);
           skippedItems.push({
             fileName: entry.name,
-            category: "Other",
+            category: rule.name,
+            ruleId: rule.id,
             sourcePath: path.resolve(fullPath),
             relativeDir: path.relative(rootDir, currentDir),
             status: "skipped",
             action: "ignored-hidden",
-            message: "Hidden files are skipped",
+            ...createSorterReason("ignored-hidden", "Hidden files are skipped"),
           });
           continue;
         }
         if (resolvedLogPath && path.resolve(fullPath) === resolvedLogPath) {
+          const rule = getSorterRule(path.extname(entry.name), rules);
           skippedItems.push({
             fileName: entry.name,
-            category: getSorterCategory(path.extname(entry.name)),
+            category: rule.name,
+            ruleId: rule.id,
             sourcePath: path.resolve(fullPath),
             relativeDir: path.relative(rootDir, currentDir),
             status: "skipped",
             action: "log-file",
-            message: "Sorter log file is excluded",
+            ...createSorterReason("log-file", "Sorter log file is excluded"),
           });
           continue;
         }
         const extension = path.extname(entry.name).toLowerCase();
         if (ignoreExtensions.has(extension)) {
+          const rule = getSorterRule(extension, rules);
           skippedItems.push({
             fileName: entry.name,
-            category: getSorterCategory(extension),
+            category: rule.name,
+            ruleId: rule.id,
             sourcePath: path.resolve(fullPath),
             relativeDir: path.relative(rootDir, currentDir),
             status: "skipped",
             action: "ignored-extension",
-            message: `Ignored by extension rule (${extension})`,
+            ...createSorterReason(
+              "ignored-extension",
+              `Ignored by extension rule (${extension})`,
+              { extension },
+            ),
           });
           continue;
         }
+        const stat = await fsPromises.stat(fullPath);
         files.push({
           name: entry.name,
           sourcePath: path.resolve(fullPath),
           relativeDir: path.relative(rootDir, currentDir),
+          size: stat.size,
+          mtimeMs: stat.mtimeMs,
         });
       }
     }
@@ -1538,6 +1681,60 @@ function setupIpcHandlers(dependencies) {
       await fsPromises.copyFile(sourcePath, targetPath);
       await fsPromises.unlink(sourcePath);
     }
+  }
+
+  function createSorterOperationId(rootDir, sourcePath, ruleId) {
+    return crypto
+      .createHash("sha256")
+      .update(
+        `${path.relative(rootDir, sourcePath).split(path.sep).join("/")}\0${ruleId}`,
+      )
+      .digest("hex")
+      .slice(0, 24);
+  }
+
+  function getSorterUndoRoot() {
+    return path.join(app.getPath("userData"), SORTER_UNDO_DIR_NAME);
+  }
+
+  async function clearSorterUndo() {
+    latestSorterRun = null;
+    await fsPromises.rm(getSorterUndoRoot(), { recursive: true, force: true });
+  }
+
+  try {
+    fs.rmSync(getSorterUndoRoot(), { recursive: true, force: true });
+  } catch {}
+
+  async function validateSorterOperation(plan, operation) {
+    if (
+      !isPathInsideBaseDir(operation.sourcePath, plan.folderPath) ||
+      !isPathInsideBaseDir(operation.targetPath, plan.folderPath)
+    ) {
+      return createSorterReason(
+        "path-outside-folder",
+        "Operation path is outside the selected folder",
+      );
+    }
+    const sourceStat = await fsPromises
+      .stat(operation.sourcePath)
+      .catch(() => null);
+    if (!sourceStat?.isFile()) {
+      return createSorterReason(
+        "source-unavailable",
+        "Source file is unavailable",
+      );
+    }
+    if (
+      sourceStat.size !== operation.sourceSize ||
+      sourceStat.mtimeMs !== operation.sourceMtimeMs
+    ) {
+      return createSorterReason(
+        "source-changed",
+        "Source file changed after preview",
+      );
+    }
+    return null;
   }
 
   ipcMain.handle(CHANNELS.TOOLS_SORTER_PICK_FOLDER, async () => {
@@ -1585,210 +1782,375 @@ function setupIpcHandlers(dependencies) {
     },
   );
 
-  ipcMain.handle(CHANNELS.TOOLS_SORTER_RUN, async (_evt, payload = {}) => {
-    const dryRun = Boolean(payload?.dryRun);
-    const recursive = Boolean(payload?.recursive);
-    const conflictMode = normalizeSorterConflictMode(payload?.conflictMode);
-    const ignoreExtensions = normalizeSorterIgnoreExtensions(
-      payload?.ignoreExtensions,
-    );
-    const ignoreFolders = normalizeSorterIgnoreFolders(payload?.ignoreFolders);
-    const categoryCount = sorterCategoryKeys.reduce((acc, key) => {
-      acc[key] = 0;
-      return acc;
-    }, {});
-    categoryCount.Other = 0;
-
-    let logStream = null;
-    let logStreamHasError = false;
-    const operations = [];
-    const errors = [];
-
-    const writeLog = (message) => {
-      if (!logStream || logStreamHasError || logStream.destroyed) return;
+  ipcMain.handle(
+    CHANNELS.TOOLS_SORTER_PREVIEW_PLAN,
+    async (_evt, payload = {}) => {
       try {
-        logStream.write(`${message}\n`);
-      } catch {}
-    };
+        const folderPath = String(payload?.folderPath || "").trim();
+        if (!folderPath) {
+          return { success: false, error: "Folder path is required" };
+        }
 
-    try {
-      const folderPath = String(payload?.folderPath || "").trim();
-      if (!folderPath) {
-        return { success: false, error: "Folder path is required" };
-      }
+        const resolvedFolder = path.resolve(expandUserPath(folderPath));
+        const folderStat = await fsPromises
+          .stat(resolvedFolder)
+          .catch(() => null);
+        if (!folderStat?.isDirectory()) {
+          return {
+            success: false,
+            error: "Selected path is not a folder or is unavailable",
+          };
+        }
 
-      const resolvedFolder = path.resolve(expandUserPath(folderPath));
-      const folderStat = await fsPromises
-        .stat(resolvedFolder)
-        .catch(() => null);
-      if (!folderStat?.isDirectory()) {
+        const recursive = Boolean(payload?.recursive);
+        const conflictMode = normalizeSorterConflictMode(payload?.conflictMode);
+        const ignoreExtensions = normalizeSorterIgnoreExtensions(
+          payload?.ignoreExtensions,
+        );
+        const ignoreFolders = normalizeSorterIgnoreFolders(
+          payload?.ignoreFolders,
+        );
+        const rules = normalizeSorterRules(payload?.rules);
+        const { files, skippedItems } = await collectSorterFiles(
+          resolvedFolder,
+          {
+            recursive,
+            ignoreExtensions,
+            ignoreFolders,
+            rules,
+          },
+        );
+        const operations = [...skippedItems];
+        for (const operation of operations) {
+          operation.id = createSorterOperationId(
+            resolvedFolder,
+            operation.sourcePath,
+            operation.ruleId,
+          );
+        }
+        const categoryCount = Object.fromEntries(
+          rules.map((rule) => [rule.name, 0]),
+        );
+
+        for (const entry of files) {
+          const rule = getSorterRule(path.extname(entry.name), rules);
+          const targetDir = path.join(resolvedFolder, rule.folderName);
+          let targetPath = path.join(targetDir, entry.name);
+          let conflictAction = "move";
+
+          if (conflictMode === "rename") {
+            targetPath = await generateUniqueTarget(targetPath);
+            if (path.basename(targetPath) !== entry.name) {
+              conflictAction = "rename";
+            }
+          } else {
+            try {
+              await fsPromises.access(targetPath, fs.constants.F_OK);
+              if (conflictMode === "skip") {
+                operations.push({
+                  id: createSorterOperationId(
+                    resolvedFolder,
+                    entry.sourcePath,
+                    rule.id,
+                  ),
+                  fileName: entry.name,
+                  category: rule.name,
+                  ruleId: rule.id,
+                  sourcePath: entry.sourcePath,
+                  targetPath,
+                  renamed: false,
+                  status: "skipped",
+                  action: "skip-existing",
+                  ...createSorterReason(
+                    "target-exists",
+                    "Target file already exists",
+                  ),
+                });
+                continue;
+              }
+              if (conflictMode === "replace") {
+                conflictAction = "replace";
+              }
+            } catch {}
+          }
+
+          const item = {
+            id: createSorterOperationId(
+              resolvedFolder,
+              entry.sourcePath,
+              rule.id,
+            ),
+            fileName: entry.name,
+            category: rule.name,
+            ruleId: rule.id,
+            sourcePath: entry.sourcePath,
+            targetPath,
+            sourceSize: entry.size,
+            sourceMtimeMs: entry.mtimeMs,
+            renamed: path.basename(targetPath) !== entry.name,
+            relativeDir:
+              entry.relativeDir && entry.relativeDir !== "."
+                ? entry.relativeDir
+                : "",
+            status: "planned",
+            action: conflictAction,
+          };
+          operations.push(item);
+          categoryCount[rule.name] += 1;
+        }
+        operations.forEach((operation) => {
+          operation.selectable = operation.status === "planned";
+        });
+
+        const planId = crypto.randomUUID();
+        latestSorterPlan = {
+          planId,
+          folderPath: resolvedFolder,
+          conflictMode,
+          recursive,
+          ignoreExtensions: Array.from(ignoreExtensions),
+          ignoreFolders: Array.from(ignoreFolders),
+          rules,
+          operations,
+        };
         return {
-          success: false,
-          error: "Selected path is not a folder or is unavailable",
+          success: true,
+          ...latestSorterPlan,
+          planned: operations.filter((item) => item.status === "planned")
+            .length,
+          skipped: operations.filter((item) => item.status === "skipped")
+            .length,
+          totalFiles: operations.length,
+          processedFiles: files.length,
+          categoryCount,
         };
+      } catch (error) {
+        log.error("tools:previewSorterPlan error:", error);
+        return { success: false, error: error.message || String(error) };
       }
+    },
+  );
 
-      const rawLogPath = expandUserPath(payload?.logFilePath);
-      const resolvedLogPath = rawLogPath ? path.resolve(rawLogPath) : null;
-      if (resolvedLogPath) {
-        await fsPromises.mkdir(path.dirname(resolvedLogPath), {
-          recursive: true,
-        });
-        logStream = fs.createWriteStream(resolvedLogPath, {
-          flags: "a",
-          encoding: "utf8",
-        });
-        await new Promise((resolve, reject) => {
-          const onOpen = () => {
-            cleanup();
-            resolve();
+  ipcMain.handle(
+    CHANNELS.TOOLS_SORTER_APPLY_PLAN,
+    async (_evt, payload = {}) => {
+      try {
+        if (!latestSorterPlan) {
+          return { success: false, error: "No sorter plan is available" };
+        }
+        if (
+          payload?.planId &&
+          String(payload.planId) !== latestSorterPlan.planId
+        ) {
+          return { success: false, error: "Sorter plan is no longer current" };
+        }
+
+        const selectedIds = Array.isArray(payload?.operationIds)
+          ? payload.operationIds
+          : payload?.selectedOperationIds;
+        if (!Array.isArray(selectedIds)) {
+          return {
+            success: false,
+            error: "Selected operation IDs are required",
           };
-          const onError = (error) => {
-            cleanup();
-            reject(error);
+        }
+        const selectedSet = new Set(selectedIds.map(String));
+        const operations = latestSorterPlan.operations.filter(
+          (item) => item.status === "planned" && selectedSet.has(item.id),
+        );
+        if (operations.length !== selectedSet.size) {
+          return {
+            success: false,
+            error: "One or more selected operations are invalid",
           };
-          const cleanup = () => {
-            logStream.off("open", onOpen);
-            logStream.off("error", onError);
-          };
-          logStream.once("open", onOpen);
-          logStream.once("error", onError);
-        });
-        logStream.on("error", (error) => {
-          logStreamHasError = true;
-          log.error("tools:sorterRun log stream error:", error);
-        });
-      }
+        }
 
-      let moved = 0;
-      const { files, skippedItems } = await collectSorterFiles(resolvedFolder, {
-        recursive,
-        resolvedLogPath,
-        ignoreExtensions,
-        ignoreFolders,
-      });
-      operations.push(...skippedItems);
-      let skipped = skippedItems.length;
+        await clearSorterUndo();
+        const runId = crypto.randomUUID();
+        const backupDir = path.join(getSorterUndoRoot(), runId);
+        const completed = [];
+        const results = [];
 
-      for (const entry of files) {
-        const category = getSorterCategory(path.extname(entry.name));
-        const targetDir = path.join(resolvedFolder, category);
-        let targetPath = path.join(targetDir, entry.name);
-        let conflictAction = "move";
-
-        if (conflictMode === "rename") {
-          targetPath = await generateUniqueTarget(targetPath);
-          if (path.basename(targetPath) !== entry.name) {
-            conflictAction = "rename";
+        for (const operation of operations) {
+          const validationReason = await validateSorterOperation(
+            latestSorterPlan,
+            operation,
+          );
+          if (validationReason) {
+            results.push({
+              ...operation,
+              status: "error",
+              ...validationReason,
+            });
+            continue;
           }
-        } else {
+
+          let backupPath = "";
           try {
-            await fsPromises.access(targetPath, fs.constants.F_OK);
-            if (conflictMode === "skip") {
-              skipped += 1;
-              operations.push({
-                fileName: entry.name,
-                category,
-                sourcePath: entry.sourcePath,
-                targetPath,
-                renamed: false,
-                status: "skipped",
-                action: "skip-existing",
-                message: "Target file already exists",
-              });
-              writeLog(
-                `SKIP ${entry.name} -> ${category}/${path.basename(targetPath)} (exists)`,
+            const targetStat = await fsPromises
+              .stat(operation.targetPath)
+              .catch(() => null);
+            if (targetStat) {
+              if (latestSorterPlan.conflictMode === "skip") {
+                results.push({
+                  ...operation,
+                  status: "skipped",
+                  action: "skip-existing",
+                  ...createSorterReason(
+                    "target-exists",
+                    "Target file already exists",
+                  ),
+                });
+                continue;
+              }
+              if (latestSorterPlan.conflictMode === "rename") {
+                results.push({
+                  ...operation,
+                  status: "error",
+                  ...createSorterReason(
+                    "target-changed",
+                    "Target path changed after preview",
+                  ),
+                });
+                continue;
+              }
+              if (!targetStat.isFile()) {
+                throw new Error("Replacement target is not a file");
+              }
+              await fsPromises.mkdir(backupDir, { recursive: true });
+              backupPath = path.join(backupDir, `${operation.id}.backup`);
+              await moveFileSafe(operation.targetPath, backupPath);
+            }
+
+            await fsPromises.mkdir(path.dirname(operation.targetPath), {
+              recursive: true,
+            });
+            await moveFileSafe(operation.sourcePath, operation.targetPath);
+            const completedOperation = { ...operation, backupPath };
+            completed.push(completedOperation);
+            results.push({ ...operation, status: "moved" });
+          } catch (error) {
+            if (backupPath) {
+              await moveFileSafe(backupPath, operation.targetPath).catch(
+                () => {},
               );
-              continue;
             }
-            if (conflictMode === "replace") {
-              conflictAction = "replace";
-            }
-          } catch {}
-        }
-
-        const item = {
-          fileName: entry.name,
-          category,
-          sourcePath: entry.sourcePath,
-          targetPath,
-          renamed: path.basename(targetPath) !== entry.name,
-          relativeDir:
-            entry.relativeDir && entry.relativeDir !== "."
-              ? entry.relativeDir
-              : "",
-          status: dryRun ? "planned" : "moved",
-          action: dryRun ? conflictAction : "move",
-        };
-
-        if (dryRun) {
-          operations.push(item);
-          categoryCount[category] += 1;
-          moved += 1;
-          writeLog(
-            `[DRY-RUN] ${entry.name} -> ${category}/${path.basename(targetPath)}`,
-          );
-          continue;
-        }
-
-        try {
-          await fsPromises.mkdir(targetDir, { recursive: true });
-          if (conflictMode === "replace") {
-            await fsPromises.rm(targetPath, { force: true });
+            results.push({
+              ...operation,
+              status: "error",
+              ...getSorterErrorReason(error),
+            });
           }
-          await moveFileSafe(entry.sourcePath, targetPath);
-          item.action = conflictAction;
-          operations.push(item);
-          categoryCount[category] += 1;
-          moved += 1;
-          writeLog(
-            `OK ${entry.name} -> ${category}/${path.basename(targetPath)}${conflictAction === "replace" ? " (replaced)" : conflictAction === "rename" ? " (renamed)" : ""}`,
-          );
+        }
+
+        latestSorterRun = completed.length
+          ? {
+              runId,
+              planId: latestSorterPlan.planId,
+              backupDir,
+              operations: completed,
+            }
+          : null;
+        if (!latestSorterRun) {
+          await fsPromises.rm(backupDir, { recursive: true, force: true });
+        }
+
+        return {
+          success: true,
+          runId: latestSorterRun ? runId : "",
+          planId: latestSorterPlan.planId,
+          moved: completed.length,
+          skipped: results.filter((item) => item.status === "skipped").length,
+          totalFiles: results.length,
+          errors: results
+            .filter((item) => item.status === "error")
+            .map((item) => ({ id: item.id, message: item.message })),
+          operations: results,
+          canUndo: Boolean(latestSorterRun),
+        };
+      } catch (error) {
+        log.error("tools:applySorterPlan error:", error);
+        return { success: false, error: error.message || String(error) };
+      }
+    },
+  );
+
+  ipcMain.handle(CHANNELS.TOOLS_SORTER_UNDO_RUN, async (_evt, payload = {}) => {
+    try {
+      if (!latestSorterRun) {
+        return { success: false, error: "No sorter run is available to undo" };
+      }
+      if (payload?.runId && String(payload.runId) !== latestSorterRun.runId) {
+        return { success: false, error: "Sorter run is no longer current" };
+      }
+
+      const results = [];
+      const remainingOperations = [];
+      for (const operation of [...latestSorterRun.operations].reverse()) {
+        try {
+          const targetStat = await fsPromises
+            .stat(operation.targetPath)
+            .catch(() => null);
+          if (!targetStat?.isFile()) {
+            throw new Error("Sorted file is unavailable");
+          }
+          const sourceStat = await fsPromises
+            .stat(operation.sourcePath)
+            .catch(() => null);
+          if (sourceStat) {
+            throw new Error("Original source path is occupied");
+          }
+          if (operation.backupPath) {
+            const backupStat = await fsPromises
+              .stat(operation.backupPath)
+              .catch(() => null);
+            if (!backupStat?.isFile()) {
+              throw new Error("Replacement backup is unavailable");
+            }
+          }
+
+          await fsPromises.mkdir(path.dirname(operation.sourcePath), {
+            recursive: true,
+          });
+          await moveFileSafe(operation.targetPath, operation.sourcePath);
+          if (operation.backupPath) {
+            await fsPromises.mkdir(path.dirname(operation.targetPath), {
+              recursive: true,
+            });
+            await moveFileSafe(operation.backupPath, operation.targetPath);
+          }
+          results.push({ ...operation, status: "undone" });
         } catch (error) {
-          const message = error?.message || String(error);
-          item.status = "error";
-          item.action = "error";
-          item.message = message;
-          operations.push(item);
-          errors.push({ fileName: entry.name, message });
-          writeLog(`ERROR ${entry.name}: ${message}`);
+          remainingOperations.push(operation);
+          results.push({
+            ...operation,
+            status: "error",
+            ...getSorterErrorReason(error),
+          });
         }
       }
 
+      const runId = latestSorterRun.runId;
+      if (remainingOperations.length) {
+        latestSorterRun.operations = remainingOperations.reverse();
+      } else {
+        await clearSorterUndo();
+      }
+      const success = remainingOperations.length === 0;
       return {
-        success: true,
-        dryRun,
-        folderPath: resolvedFolder,
-        logFilePath: resolvedLogPath || "",
-        moved,
-        skipped,
-        totalFiles: files.length + skipped,
-        processedFiles: files.length,
-        categoryCount,
-        conflictMode,
-        recursive,
-        ignoreExtensions: Array.from(ignoreExtensions),
-        ignoreFolders: Array.from(ignoreFolders),
-        operations,
-        errors,
+        success,
+        error: success ? "" : "Some files could not be restored",
+        runId,
+        undone: results.filter((item) => item.status === "undone").length,
+        errors: results
+          .filter((item) => item.status === "error")
+          .map((item) => ({ id: item.id, message: item.message })),
+        operations: results,
+        canUndo: !success,
       };
     } catch (error) {
-      log.error("tools:sorterRun error:", error);
+      log.error("tools:undoSorterRun error:", error);
       return { success: false, error: error.message || String(error) };
-    } finally {
-      if (logStream) {
-        await new Promise((resolve) => {
-          try {
-            if (logStream.destroyed) {
-              resolve();
-              return;
-            }
-            logStream.end(resolve);
-          } catch {
-            resolve();
-          }
-        });
-      }
     }
   });
 

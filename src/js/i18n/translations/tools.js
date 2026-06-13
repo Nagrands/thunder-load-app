@@ -533,10 +533,10 @@ export const toolsTranslations = {
     "tools.mediaInspector.status.error": "Анализ завершился с ошибкой.",
     "tools.sorter.title": "Сортировщик",
     "tools.sorter.subtitle":
-      "Упрощает сортировку файлов по категориям, предпросмотр и запуск в один поток.",
+      "Спланируйте сортировку, проверьте каждую операцию и примените только выбранные изменения.",
     "tools.sorter.workspace.title": "Рабочая область",
     "tools.sorter.workspace.subtitle":
-      "Выберите папку, при необходимости укажите лог и сразу переходите к предпросмотру или применению.",
+      "Выберите исходную папку. Категории будут созданы внутри нее.",
     "tools.sorter.folder": "Папка для сортировки",
     "tools.sorter.pickFolder": "Выбрать папку",
     "tools.sorter.openFolder": "Открыть папку",
@@ -548,24 +548,30 @@ export const toolsTranslations = {
     "tools.sorter.dryRun": "Только предпросмотр (без перемещения файлов)",
     "tools.sorter.run": "Запустить",
     "tools.sorter.previewAction": "Показать предпросмотр",
+    "tools.sorter.preview.show": "Показать предпросмотр",
+    "tools.sorter.preview.hide": "Скрыть предпросмотр",
     "tools.sorter.applyAction": "Применить сортировку",
     "tools.sorter.running": "Сортировка запущена...",
     "tools.sorter.runningPreview": "Собираем предпросмотр сортировки...",
     "tools.sorter.runningApply": "Применяем сортировку...",
-    "tools.sorter.resultIdle": "Результат появится после запуска.",
+    "tools.sorter.resultIdle":
+      "Выберите папку и создайте обязательный предпросмотр.",
     "tools.sorter.pickError": "Не удалось выбрать папку.",
     "tools.sorter.openFolderError": "Не удалось открыть папку.",
     "tools.sorter.error": "Ошибка сортировки файлов.",
     "tools.sorter.done": "Обработано: {moved}/{total}. Пропущено: {skipped}.",
     "tools.sorter.dryRunHint": "Режим предпросмотра: файлы не перемещались.",
     "tools.sorter.errors": "Ошибок: {count}.",
-    "tools.sorter.preview.title": "Предпросмотр dry-run",
+    "tools.sorter.preview.title": "План операций",
     "tools.sorter.preview.badge": "Предпросмотр",
     "tools.sorter.preview.stats.moved": "Обработано",
     "tools.sorter.preview.stats.total": "Всего файлов",
     "tools.sorter.preview.stats.skipped": "Пропущено",
     "tools.sorter.preview.stats.errors": "Ошибок",
     "tools.sorter.preview.searchPlaceholder": "Поиск по имени файла или цели",
+    "tools.sorter.preview.searchLabel": "Поиск операций",
+    "tools.sorter.preview.categoryFilterLabel": "Фильтр по категории",
+    "tools.sorter.preview.statusFilterLabel": "Фильтр по статусу",
     "tools.sorter.preview.filter.all": "Все категории",
     "tools.sorter.preview.statusFilter.all": "Все статусы",
     "tools.sorter.preview.statusFilter.planned": "Только запланированные",
@@ -574,6 +580,14 @@ export const toolsTranslations = {
     "tools.sorter.preview.statusFilter.error": "Только ошибки",
     "tools.sorter.preview.filterEmpty":
       "По текущему фильтру ничего не найдено.",
+    "tools.sorter.preview.selectAll": "Выбрать видимые",
+    "tools.sorter.preview.selectedCount": "Выбрано: {count}",
+    "tools.sorter.preview.applyLabel": "Готово к применению",
+    "tools.sorter.preview.applyHint":
+      "Будут обработаны только выбранные операции.",
+    "tools.sorter.preview.ready": "План готов. Проверьте выбранные операции.",
+    "tools.sorter.preview.stale":
+      "Настройки изменились. Создайте новый предпросмотр.",
     "tools.sorter.breakdown.title": "По категориям",
     "tools.sorter.breakdown.empty":
       "После предпросмотра здесь появится разбивка по категориям.",
@@ -581,6 +595,7 @@ export const toolsTranslations = {
     "tools.sorter.preview.list.empty": "Нет операций для предпросмотра.",
     "tools.sorter.preview.more": "И еще {count}…",
     "tools.sorter.export": "Экспорт",
+    "tools.sorter.exportFormatLabel": "Формат экспорта",
     "tools.sorter.copy": "Копировать",
     "tools.sorter.copyDone":
       "Отфильтрованный результат скопирован в буфер обмена.",
@@ -590,7 +605,31 @@ export const toolsTranslations = {
       "Не удалось экспортировать результат сортировки.",
     "tools.sorter.rules.title": "Категории сортировки",
     "tools.sorter.rules.subtitle":
-      "Быстрый ориентир по папкам, в которые попадут файлы каждого типа.",
+      "Правила сохраняются глобально и применяются к любой выбранной папке.",
+    "tools.sorter.rules.compactHint":
+      "Категория отображается в интерфейсе, папка создаётся внутри выбранного каталога.",
+    "tools.sorter.rules.add": "Добавить",
+    "tools.sorter.rules.reset": "Сбросить",
+    "tools.sorter.rules.name": "Название категории",
+    "tools.sorter.rules.nameShort": "Категория",
+    "tools.sorter.rules.nameHint": "— подпись в интерфейсе, фильтрах и отчёте.",
+    "tools.sorter.rules.folder": "Папка назначения",
+    "tools.sorter.rules.folderShort": "Папка",
+    "tools.sorter.rules.folderHint":
+      "— каталог, который создаётся внутри выбранной папки.",
+    "tools.sorter.rules.extensions": "Расширения через запятую",
+    "tools.sorter.rules.extensionsShort": "Расширения",
+    "tools.sorter.rules.delete": "Удалить правило",
+    "tools.sorter.rules.locked": "Обязательная категория",
+    "tools.sorter.rules.newName": "Новая категория",
+    "tools.sorter.rules.validation.required":
+      "У каждой категории должны быть название и папка назначения.",
+    "tools.sorter.rules.validation.folder":
+      "Папка назначения должна быть простым именем без разделителей пути.",
+    "tools.sorter.rules.validation.duplicateFolder":
+      "Папки назначения категорий должны быть уникальными.",
+    "tools.sorter.rules.validation.duplicateExtension":
+      "Расширение {extension} уже назначено другой категории.",
     "tools.sorter.rules.other": "Все остальные расширения",
     "tools.sorter.options.title": "Параметры сортировки",
     "tools.sorter.options.subtitle":
@@ -613,6 +652,43 @@ export const toolsTranslations = {
     "tools.sorter.category.Archives": "Архивы",
     "tools.sorter.category.Other": "Остальное",
     "tools.sorter.results.title": "Итог сортировки",
+    "tools.sorter.problems.title": "Проблемы и пропуски",
+    "tools.sorter.reason.ignoredFolder":
+      "Папка «{folder}» находится в списке исключений.",
+    "tools.sorter.reason.managedCategory":
+      "Файл уже находится в папке категории «{folder}».",
+    "tools.sorter.reason.ignoredHidden": "Скрытые файлы пропускаются.",
+    "tools.sorter.reason.logFile": "Файл журнала Сортировщика исключен.",
+    "tools.sorter.reason.ignoredExtension":
+      "Расширение {extension} находится в списке исключений.",
+    "tools.sorter.reason.targetExists":
+      "Файл с таким именем уже существует в папке назначения.",
+    "tools.sorter.reason.pathOutsideFolder":
+      "Путь операции выходит за пределы выбранной папки.",
+    "tools.sorter.reason.sourceUnavailable": "Исходный файл недоступен.",
+    "tools.sorter.reason.sourceChanged":
+      "Исходный файл изменился после предпросмотра.",
+    "tools.sorter.reason.targetChanged":
+      "Путь назначения изменился после предпросмотра.",
+    "tools.sorter.reason.replacementTargetNotFile":
+      "Цель замены не является файлом.",
+    "tools.sorter.reason.sortedFileUnavailable":
+      "Перемещенный файл недоступен для отмены.",
+    "tools.sorter.reason.sourcePathOccupied":
+      "Исходный путь уже занят другим файлом.",
+    "tools.sorter.reason.replacementBackupUnavailable":
+      "Резервная копия замененного файла недоступна.",
+    "tools.sorter.reason.operationFailed":
+      "Операцию выполнить не удалось: {message}",
+    "tools.sorter.confirm.title": "Применить план сортировки?",
+    "tools.sorter.confirm.message":
+      "Будет выполнено выбранных операций: {count}.",
+    "tools.sorter.confirm.apply": "Применить",
+    "tools.sorter.apply.done": "Выбранные операции обработаны.",
+    "tools.sorter.undo": "Отменить запуск",
+    "tools.sorter.undo.done": "Последний запуск отменен.",
+    "tools.sorter.undo.error":
+      "Не все файлы удалось восстановить. Повторите попытку после устранения конфликтов.",
     "tools.sorter.results.badge": "Результат",
     "tools.sorter.errorsPanel.title": "Ошибки и пропуски",
     "tools.sorter.status.renamed": "переименован",
@@ -1498,10 +1574,10 @@ export const toolsTranslations = {
     "tools.mediaInspector.status.error": "Inspection failed.",
     "tools.sorter.title": "File Sorter",
     "tools.sorter.subtitle":
-      "Sort files in a selected folder into extension-based categories.",
+      "Plan the sort, review every operation, and apply only the selected changes.",
     "tools.sorter.workspace.title": "Workspace",
     "tools.sorter.workspace.subtitle":
-      "Choose a folder, add an optional log file, then start a preview or the actual sort.",
+      "Choose the source folder. Category folders stay inside it.",
     "tools.sorter.folder": "Folder to sort",
     "tools.sorter.pickFolder": "Choose folder",
     "tools.sorter.openFolder": "Open folder",
@@ -1513,24 +1589,30 @@ export const toolsTranslations = {
     "tools.sorter.dryRun": "Preview only (do not move files)",
     "tools.sorter.run": "Run sorting",
     "tools.sorter.previewAction": "Preview changes",
+    "tools.sorter.preview.show": "Show preview",
+    "tools.sorter.preview.hide": "Hide preview",
     "tools.sorter.applyAction": "Apply sorting",
     "tools.sorter.running": "Sorting in progress...",
     "tools.sorter.runningPreview": "Building sorting preview...",
     "tools.sorter.runningApply": "Applying sorting...",
-    "tools.sorter.resultIdle": "Result will appear after run.",
+    "tools.sorter.resultIdle":
+      "Choose a folder and build the required preview.",
     "tools.sorter.pickError": "Failed to select folder.",
     "tools.sorter.openFolderError": "Failed to open folder.",
     "tools.sorter.error": "File sorting failed.",
     "tools.sorter.done": "Processed: {moved}/{total}. Skipped: {skipped}.",
     "tools.sorter.dryRunHint": "Preview mode: files were not moved.",
     "tools.sorter.errors": "Errors: {count}.",
-    "tools.sorter.preview.title": "Dry-run preview",
+    "tools.sorter.preview.title": "Operation plan",
     "tools.sorter.preview.badge": "Preview",
     "tools.sorter.preview.stats.moved": "Processed",
     "tools.sorter.preview.stats.total": "Total files",
     "tools.sorter.preview.stats.skipped": "Skipped",
     "tools.sorter.preview.stats.errors": "Errors",
     "tools.sorter.preview.searchPlaceholder": "Search by file name or target",
+    "tools.sorter.preview.searchLabel": "Search operations",
+    "tools.sorter.preview.categoryFilterLabel": "Filter by category",
+    "tools.sorter.preview.statusFilterLabel": "Filter by status",
     "tools.sorter.preview.filter.all": "All categories",
     "tools.sorter.preview.statusFilter.all": "All statuses",
     "tools.sorter.preview.statusFilter.planned": "Planned only",
@@ -1538,6 +1620,14 @@ export const toolsTranslations = {
     "tools.sorter.preview.statusFilter.skipped": "Skipped only",
     "tools.sorter.preview.statusFilter.error": "Errors only",
     "tools.sorter.preview.filterEmpty": "Nothing matches the current filter.",
+    "tools.sorter.preview.selectAll": "Select visible",
+    "tools.sorter.preview.selectedCount": "Selected: {count}",
+    "tools.sorter.preview.applyLabel": "Ready to apply",
+    "tools.sorter.preview.applyHint":
+      "Only selected operations will be processed.",
+    "tools.sorter.preview.ready": "Plan ready. Review the selected operations.",
+    "tools.sorter.preview.stale":
+      "Settings changed. Build a new preview before applying.",
     "tools.sorter.breakdown.title": "By category",
     "tools.sorter.breakdown.empty":
       "Run a preview to see how files will be split by category.",
@@ -1545,6 +1635,7 @@ export const toolsTranslations = {
     "tools.sorter.preview.list.empty": "No operations to preview.",
     "tools.sorter.preview.more": "And {count} more…",
     "tools.sorter.export": "Export",
+    "tools.sorter.exportFormatLabel": "Export format",
     "tools.sorter.copy": "Copy",
     "tools.sorter.copyDone": "Filtered result copied to the clipboard.",
     "tools.sorter.copyError": "Failed to copy the result.",
@@ -1552,7 +1643,32 @@ export const toolsTranslations = {
     "tools.sorter.exportError": "Failed to export sorting result.",
     "tools.sorter.rules.title": "Sorting categories",
     "tools.sorter.rules.subtitle":
-      "Review which folders will be used for each file extension before you run it.",
+      "Rules are saved globally and apply to every selected folder.",
+    "tools.sorter.rules.compactHint":
+      "The category appears in the interface; the folder is created inside the selected directory.",
+    "tools.sorter.rules.add": "Add",
+    "tools.sorter.rules.reset": "Reset defaults",
+    "tools.sorter.rules.name": "Category name",
+    "tools.sorter.rules.nameShort": "Category",
+    "tools.sorter.rules.nameHint":
+      "— the label used in the interface, filters, and report.",
+    "tools.sorter.rules.folder": "Destination folder",
+    "tools.sorter.rules.folderShort": "Folder",
+    "tools.sorter.rules.folderHint":
+      "— the directory created inside the selected folder.",
+    "tools.sorter.rules.extensions": "Comma-separated extensions",
+    "tools.sorter.rules.extensionsShort": "Extensions",
+    "tools.sorter.rules.delete": "Delete rule",
+    "tools.sorter.rules.locked": "Required category",
+    "tools.sorter.rules.newName": "New category",
+    "tools.sorter.rules.validation.required":
+      "Every category needs a name and destination folder.",
+    "tools.sorter.rules.validation.folder":
+      "Destination folders must be simple names without path separators.",
+    "tools.sorter.rules.validation.duplicateFolder":
+      "Category destination folders must be unique.",
+    "tools.sorter.rules.validation.duplicateExtension":
+      "Extension {extension} already belongs to another category.",
     "tools.sorter.rules.other": "All other extensions",
     "tools.sorter.options.title": "Sorting options",
     "tools.sorter.options.subtitle":
@@ -1575,6 +1691,42 @@ export const toolsTranslations = {
     "tools.sorter.category.Archives": "Archives",
     "tools.sorter.category.Other": "Other",
     "tools.sorter.results.title": "Sorting results",
+    "tools.sorter.problems.title": "Problems and skipped files",
+    "tools.sorter.reason.ignoredFolder":
+      "Folder “{folder}” is in the ignore list.",
+    "tools.sorter.reason.managedCategory":
+      "The file is already inside the “{folder}” category folder.",
+    "tools.sorter.reason.ignoredHidden": "Hidden files are skipped.",
+    "tools.sorter.reason.logFile": "The File Sorter log is excluded.",
+    "tools.sorter.reason.ignoredExtension":
+      "Extension {extension} is in the ignore list.",
+    "tools.sorter.reason.targetExists":
+      "A file with the same name already exists in the destination folder.",
+    "tools.sorter.reason.pathOutsideFolder":
+      "The operation path is outside the selected folder.",
+    "tools.sorter.reason.sourceUnavailable": "The source file is unavailable.",
+    "tools.sorter.reason.sourceChanged":
+      "The source file changed after preview.",
+    "tools.sorter.reason.targetChanged":
+      "The destination path changed after preview.",
+    "tools.sorter.reason.replacementTargetNotFile":
+      "The replacement target is not a file.",
+    "tools.sorter.reason.sortedFileUnavailable":
+      "The moved file is unavailable for undo.",
+    "tools.sorter.reason.sourcePathOccupied":
+      "The original source path is occupied by another file.",
+    "tools.sorter.reason.replacementBackupUnavailable":
+      "The backup of the replaced file is unavailable.",
+    "tools.sorter.reason.operationFailed": "Operation failed: {message}",
+    "tools.sorter.confirm.title": "Apply the sorting plan?",
+    "tools.sorter.confirm.message":
+      "The selected {count} operations will be applied.",
+    "tools.sorter.confirm.apply": "Apply",
+    "tools.sorter.apply.done": "Selected operations processed.",
+    "tools.sorter.undo": "Undo run",
+    "tools.sorter.undo.done": "The latest run was undone.",
+    "tools.sorter.undo.error":
+      "Some files could not be restored. Resolve the conflicts and retry.",
     "tools.sorter.results.badge": "Results",
     "tools.sorter.errorsPanel.title": "Errors and skipped files",
     "tools.sorter.status.renamed": "renamed",

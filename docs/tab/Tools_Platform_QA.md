@@ -61,8 +61,12 @@ alias: Проверка Tools на Windows и macOS
 
 6. **File Sorter**
 
-- Запустить `dry-run`, затем реальную сортировку.
-- Проверить статистику, обработку ошибок и открытие папки результата.
+- Создать и изменить категории, проверить валидацию повторяющихся расширений и
+  сброс стандартных правил.
+- Выполнить обязательный предпросмотр, применить только часть выбранных операций
+  и убедиться, что изменение настроек инвалидирует старый план.
+- Проверить поиск, фильтры, выбор всех видимых строк, конфликты имен, экспорт,
+  открытие папки и отмену последнего запуска.
 
 7. **Power shortcuts**
 
@@ -108,7 +112,7 @@ alias: Проверка Tools на Windows и macOS
 | Tools location flow                           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Hash tool                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Media Inspector                               |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
-| File Sorter dry-run + run                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| File Sorter preview / selected apply / undo   |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | WG Unlock                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Backup                                        |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Power shortcuts (Windows-specific)            |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
