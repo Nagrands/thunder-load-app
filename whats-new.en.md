@@ -9,3 +9,4 @@
 | Download preparation notification was added         | The app now immediately shows that file processing has started and is waiting for a response                 |
 | The option to hide the Downloader tab was removed   | The Downloader tab is now always available                                                                     |
 | Application startup was accelerated                  | The loading screen now disappears as soon as the interface is ready                                            |
+| The download notification was improved               | It now shows the current stage and progress, then confirms successful completion                               |

@@ -3547,7 +3547,10 @@ describe("downloadManager pool loading toast", () => {
       showLoading,
     }));
     jest.doMock("../i18n", () => ({
-      t: jest.fn((key) => key),
+      t: jest.fn((key, vars = {}) => {
+        const values = Object.keys(vars);
+        return values.length ? `${key}:${JSON.stringify(vars)}` : key;
+      }),
     }));
   };
 
@@ -3600,6 +3603,141 @@ describe("downloadManager pool loading toast", () => {
     });
   });
 
+  it("updates one toast for single and parallel progress stages", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      const second = deferred();
+      const update = jest.fn();
+      const showLoading = jest.fn(() => ({ close: jest.fn(), update }));
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return url.endsWith("/a") ? first.promise : second.promise;
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        initiateDownload,
+      } = require("../downloadManager");
+      initDownloadButton();
+      state.maxParallelDownloads = 2;
+
+      const firstPromise = initiateDownload("https://example.com/a", "Source");
+      const firstJobId = state.activeDownloads[0].jobId;
+      window.dispatchEvent(
+        new CustomEvent("download:progress-item", {
+          detail: { jobId: firstJobId, progress: 25, phase: "download" },
+        }),
+      );
+      expect(update).toHaveBeenLastCalledWith(
+        'download.loading.stage.download.message:{"progress":25}',
+        "download.loading.stage.download.title",
+      );
+
+      const secondPromise = initiateDownload("https://example.com/b", "Source");
+      const secondJobId = state.activeDownloads.find(
+        (item) => item.jobId !== firstJobId,
+      ).jobId;
+      window.dispatchEvent(
+        new CustomEvent("download:progress-item", {
+          detail: { jobId: secondJobId, progress: 75, phase: "finalize" },
+        }),
+      );
+      expect(update).toHaveBeenLastCalledWith(
+        'download.loading.parallel.message:{"progress":50,"preparing":0,"downloading":1,"finalizing":1}',
+        'download.loading.parallel.title:{"count":2}',
+      );
+
+      first.resolve({ cancelled: true });
+      second.resolve({ cancelled: true });
+      await Promise.all([firstPromise, secondPromise]);
+    });
+  });
+
+  it("shows success only after every download in the session succeeds", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      const second = deferred();
+      const close = jest.fn();
+      const showLoading = jest.fn(() => ({ close, update: jest.fn() }));
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return url.endsWith("/a") ? first.promise : second.promise;
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { state } = require("../state");
+      const { showToast } = require("../toast");
+      const { initiateDownload } = require("../downloadManager");
+      state.maxParallelDownloads = 2;
+      const firstPromise = initiateDownload("https://example.com/a", "Source");
+      const secondPromise = initiateDownload("https://example.com/b", "Source");
+
+      first.resolve({ success: true, filePath: "/tmp/a.mp4" });
+      await firstPromise;
+      expect(showToast).not.toHaveBeenCalledWith(
+        "download.complete.sessionMessage",
+        "success",
+        5500,
+        "download.complete.title",
+      );
+
+      second.resolve({ success: true, filePath: "/tmp/b.mp4" });
+      await secondPromise;
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        "download.complete.sessionMessage",
+        "success",
+        5500,
+        "download.complete.title",
+      );
+    });
+  });
+
+  it.each([
+    ["error", { success: false, errorCode: "UNKNOWN", retryable: true }],
+    ["cancel", { cancelled: true }],
+  ])("does not show success when the session ends with %s", async (_label, response) => {
+    await jest.isolateModulesAsync(async () => {
+      const showLoading = jest.fn(() => ({
+        close: jest.fn(),
+        update: jest.fn(),
+      }));
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "download-video") return response;
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { showToast } = require("../toast");
+      const { initiateDownload } = require("../downloadManager");
+      await initiateDownload("https://example.com/result", "Source");
+      expect(showToast).not.toHaveBeenCalledWith(
+        "download.complete.sessionMessage",
+        "success",
+        5500,
+        "download.complete.title",
+      );
+    });
+  });
+
   it("keeps the same toast during queue handoff", async () => {
     await jest.isolateModulesAsync(async () => {
       const first = deferred();
@@ -3619,6 +3757,7 @@ describe("downloadManager pool loading toast", () => {
       mockDependencies(showLoading);
 
       const { state } = require("../state");
+      const { showToast } = require("../toast");
       const { initiateDownload } = require("../downloadManager");
       state.maxParallelDownloads = 1;
       state.downloadQueue = [
@@ -3626,17 +3765,19 @@ describe("downloadManager pool loading toast", () => {
       ];
 
       const firstPromise = initiateDownload("https://example.com/a", "Source");
-      first.resolve({ cancelled: true });
+      first.resolve({ success: true, filePath: "/tmp/a.mp4" });
       await firstPromise;
       await Promise.resolve();
 
       expect(showLoading).toHaveBeenCalledTimes(1);
       expect(close).not.toHaveBeenCalled();
+      expect(showToast).not.toHaveBeenCalled();
 
       second.resolve({ cancelled: true });
       await Promise.resolve();
       await Promise.resolve();
       expect(close).toHaveBeenCalledTimes(1);
+      expect(showToast).not.toHaveBeenCalled();
     });
   });
 
@@ -3689,6 +3830,46 @@ describe("downloadManager pool loading toast", () => {
     });
   });
 
+  it("allows final success after the loading toast was manually dismissed", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const active = deferred();
+      const showLoading = jest.fn(() => {
+        const toast = document.createElement("div");
+        toast.className = "toast toast-loading";
+        toast.innerHTML = '<button class="toast-close"></button>';
+        document.body.appendChild(toast);
+        return {
+          close: jest.fn(() => toast.remove()),
+          update: jest.fn(),
+        };
+      });
+      window.electron = {
+        invoke: jest.fn((channel) => {
+          if (channel === "download-video") return active.promise;
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { showToast } = require("../toast");
+      const { initiateDownload } = require("../downloadManager");
+      const promise = initiateDownload("https://example.com/a", "Source");
+      document.querySelector(".toast-loading .toast-close").click();
+      active.resolve({ success: true, filePath: "/tmp/a.mp4" });
+      await promise;
+
+      expect(showLoading).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        "download.complete.sessionMessage",
+        "success",
+        5500,
+        "download.complete.title",
+      );
+    });
+  });
+
   it.each([
     ["success", { ok: true }],
     ["error", { error: true, errorCode: "UNKNOWN", retryable: true }],
@@ -3732,12 +3913,28 @@ describe("downloadManager pool loading toast", () => {
         initiateDownload,
         resetDownloadUiState,
       } = require("../downloadManager");
-      void initiateDownload("https://example.com/reset", "Source");
+      const downloadPromise = initiateDownload(
+        "https://example.com/reset",
+        "Source",
+      );
       resetDownloadUiState({ suppressAutoPump: true });
       expect(close).toHaveBeenCalledTimes(1);
+      const { showToast } = require("../toast");
+      expect(showToast).not.toHaveBeenCalledWith(
+        "download.complete.sessionMessage",
+        "success",
+        5500,
+        "download.complete.title",
+      );
 
-      active.resolve({ cancelled: true });
-      await Promise.resolve();
+      active.resolve({ success: true, filePath: "/tmp/reset.mp4" });
+      await downloadPromise;
+      expect(showToast).not.toHaveBeenCalledWith(
+        "download.complete.sessionMessage",
+        "success",
+        5500,
+        "download.complete.title",
+      );
     });
   });
 });

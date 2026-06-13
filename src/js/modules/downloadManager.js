@@ -132,6 +132,77 @@ let downloadPoolLoadingToast = null;
 let downloadPoolLoadingToastElement = null;
 let downloadPoolToastDismissed = false;
 let downloadPoolSessionActive = false;
+let downloadPoolSessionSucceeded = 0;
+let downloadPoolSessionBlocked = false;
+
+function beginDownloadPoolSession() {
+  downloadPoolSessionActive = true;
+  downloadPoolToastDismissed = false;
+  downloadPoolSessionSucceeded = 0;
+  downloadPoolSessionBlocked = false;
+}
+
+function recordDownloadPoolResult(result) {
+  if (!downloadPoolSessionActive) return;
+  if (result?.ok) {
+    downloadPoolSessionSucceeded += 1;
+    return;
+  }
+  downloadPoolSessionBlocked = true;
+}
+
+function blockDownloadPoolSuccess() {
+  if (downloadPoolSessionActive) downloadPoolSessionBlocked = true;
+}
+
+function getDownloadPoolToastContent() {
+  const activeItems = getActiveDownloadJobs(state);
+  if (activeItems.length <= 1) {
+    const current = activeItems[0];
+    const stage = current?.stage || "prepare";
+    const progress = Math.round(
+      Math.max(0, Math.min(100, Number(current?.progress) || 0)),
+    );
+    if (stage === "prepare" && progress === 0) {
+      return {
+        title: t("download.loading.title"),
+        message: t("download.loading.message"),
+      };
+    }
+    return {
+      title: t(`download.loading.stage.${stage}.title`),
+      message: t(`download.loading.stage.${stage}.message`, { progress }),
+    };
+  }
+
+  const progressTotal = activeItems.reduce(
+    (total, item) =>
+      total + Math.max(0, Math.min(100, Number(item.progress) || 0)),
+    0,
+  );
+  const stageCounts = activeItems.reduce(
+    (counts, item) => {
+      const stage =
+        item.stage === "download" || item.stage === "finalize"
+          ? item.stage
+          : "prepare";
+      counts[stage] += 1;
+      return counts;
+    },
+    { prepare: 0, download: 0, finalize: 0 },
+  );
+  return {
+    title: t("download.loading.parallel.title", {
+      count: activeItems.length,
+    }),
+    message: t("download.loading.parallel.message", {
+      progress: Math.round(progressTotal / activeItems.length),
+      preparing: stageCounts.prepare,
+      downloading: stageCounts.download,
+      finalizing: stageCounts.finalize,
+    }),
+  };
+}
 
 function dismissDownloadPoolToast() {
   downloadPoolToastDismissed = true;
@@ -151,10 +222,11 @@ function attachDownloadPoolToastDismissHandlers(toastElement) {
 
 function openDownloadPoolToast() {
   if (typeof showLoading !== "function") return;
+  const content = getDownloadPoolToastContent();
   const existingToasts = new Set(document.querySelectorAll(".toast-loading"));
   downloadPoolLoadingToast = showLoading(
-    t("download.loading.message"),
-    t("download.loading.title"),
+    content.message,
+    content.title,
   );
   downloadPoolLoadingToastElement =
     Array.from(document.querySelectorAll(".toast-loading")).find(
@@ -167,17 +239,28 @@ function syncDownloadPoolToast() {
   const activeCount = getActiveDownloadJobs(state).length;
   if (activeCount === 0) {
     if (!downloadPoolSessionActive) return;
+    const shouldShowSuccess =
+      downloadPoolSessionSucceeded > 0 && !downloadPoolSessionBlocked;
     downloadPoolLoadingToast?.close?.();
     downloadPoolLoadingToast = null;
     downloadPoolLoadingToastElement = null;
     downloadPoolToastDismissed = false;
     downloadPoolSessionActive = false;
+    downloadPoolSessionSucceeded = 0;
+    downloadPoolSessionBlocked = false;
+    if (shouldShowSuccess) {
+      showToast(
+        t("download.complete.sessionMessage"),
+        "success",
+        5500,
+        t("download.complete.title"),
+      );
+    }
     return;
   }
 
   if (!downloadPoolSessionActive) {
-    downloadPoolSessionActive = true;
-    downloadPoolToastDismissed = false;
+    beginDownloadPoolSession();
   }
   if (downloadPoolToastDismissed) return;
   if (
@@ -192,9 +275,10 @@ function syncDownloadPoolToast() {
     openDownloadPoolToast();
     return;
   }
+  const content = getDownloadPoolToastContent();
   downloadPoolLoadingToast.update?.(
-    t("download.loading.message"),
-    t("download.loading.title"),
+    content.message,
+    content.title,
   );
 }
 
@@ -1356,6 +1440,7 @@ function resetDownloadUiState(options = {}) {
     resetActiveDownloads = true,
   } = options;
   clearProgressResetTimer();
+  blockDownloadPoolSuccess();
   state.suppressAutoPump = suppressAutoPump;
   if (resetActiveDownloads) {
     clearDownloadJobsByStatus(state, JOB_STATUS.running);
@@ -1862,6 +1947,7 @@ const initiateDownload = async (url, quality, options = {}) => {
       );
     }
 
+    recordDownloadPoolResult(result);
     syncDownloadState();
 
     if (getActiveDownloadJobs(state).length === 0) {
@@ -2537,8 +2623,10 @@ function initDownloadButton() {
     const active = findActiveDownload(jobId);
     if (!active) return;
     active.progress = Math.max(0, Math.min(100, progress));
+    if (phase === "prepare") active.stage = "prepare";
     if (phase === "download") active.stage = "download";
     if (phase === "merge" || phase === "finalize") active.stage = "finalize";
+    syncDownloadPoolToast();
     const now = Date.now();
     if (now - lastProgressRenderTs < PROGRESS_RENDER_THROTTLE_MS) return;
     lastProgressRenderTs = now;
