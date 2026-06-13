@@ -214,7 +214,7 @@ describe("Downloader history list", () => {
     ).not.toBeNull();
     expect(document.getElementById("total-downloads").textContent).toBe("3");
     expect(document.getElementById("total-downloads-label").textContent).toBe(
-      "файла",
+      "записи",
     );
     expect(document.getElementById("total-download-size").textContent).toBe(
       "3 MB",

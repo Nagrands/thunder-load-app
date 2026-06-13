@@ -21,7 +21,6 @@ import {
 } from "../../settingsStore.js";
 import { showToast } from "../../toast.js";
 import { showConfirmationDialog } from "../../modals.js";
-import { dispatchDownloaderTabDisabledChanged } from "../../developerMode.js";
 import { getLowEffects, setLowEffects } from "../../effectsMode.js";
 import { applyI18n, t } from "../../i18n.js";
 import {
@@ -1335,7 +1334,6 @@ async function collectCurrentConfig() {
     },
     modules: {
       wgUnlockDisabled: readJsonFlag("wgUnlockDisabled", true),
-      downloaderDisabled: readJsonFlag("developerDisableDownloaderTab", false),
       backupDisabled: readJsonFlag("backupDisabled", false),
     },
     backup: {
@@ -1402,7 +1400,9 @@ async function applyConfig(config, options = {}) {
   } catch {}
 
   writeJson("wgUnlockDisabled", !!cfg.modules.wgUnlockDisabled);
-  writeJson("developerDisableDownloaderTab", !!cfg.modules.downloaderDisabled);
+  try {
+    localStorage.removeItem("developerDisableDownloaderTab");
+  } catch {}
   writeJson("backupDisabled", !!cfg.modules.backupDisabled);
   writeJson(
     "bk_view_mode",
@@ -1410,7 +1410,6 @@ async function applyConfig(config, options = {}) {
   );
   writeJson("bk_log_visible", !!cfg.backup.logVisible);
   writeJson(WG_REMEMBER_LAST_TOOL_KEY, !!cfg.wg.rememberLastTool);
-  dispatchDownloaderTabDisabledChanged();
 
   try {
     window.electron?.ipcRenderer?.send?.("wg-set-config", {

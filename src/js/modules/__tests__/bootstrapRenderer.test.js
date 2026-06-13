@@ -4,6 +4,7 @@ describe("bootstrapRenderer", () => {
   beforeEach(() => {
     jest.resetModules();
     jest.useFakeTimers();
+    localStorage.clear();
     document.body.innerHTML = `
       <div id="app-preloader"></div>
       <div id="main-view"></div>
@@ -65,6 +66,7 @@ describe("bootstrapRenderer", () => {
   });
 
   test("marks body ready after critical init and defers non-critical modules", async () => {
+    localStorage.setItem("developerDisableDownloaderTab", "true");
     let idleCallback = null;
     window.requestIdleCallback = jest.fn((cb) => {
       idleCallback = cb;
@@ -188,8 +190,10 @@ describe("bootstrapRenderer", () => {
       ({ startRenderer } = require("../app/bootstrapRenderer.js"));
     });
 
+    const preloader = document.getElementById("app-preloader");
     await startRenderer();
 
+    expect(localStorage.getItem("developerDisableDownloaderTab")).toBeNull();
     expect(mocks.initI18n).toHaveBeenCalled();
     expect(mocks.initializeTheme).toHaveBeenCalled();
     expect(mocks.initializeFontSize).toHaveBeenCalled();
@@ -207,6 +211,7 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initFirstRunModal).toHaveBeenCalled();
     expect(mocks.registerStatusMessageListener).toHaveBeenCalled();
     expect(document.body.classList.contains("ready")).toBe(true);
+    expect(preloader.isConnected).toBe(false);
 
     expect(mocks.initSettings).not.toHaveBeenCalled();
     expect(mocks.initTooltips).not.toHaveBeenCalled();

@@ -3511,3 +3511,233 @@ describe("downloadManager parallel pool", () => {
     });
   });
 });
+
+describe("downloadManager pool loading toast", () => {
+  const deferred = () => {
+    let resolve;
+    const promise = new Promise((res) => {
+      resolve = res;
+    });
+    return { promise, resolve };
+  };
+
+  const mockDependencies = (showLoading) => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueStartButton: document.getElementById("queue-start-button"),
+      queuePauseButton: document.getElementById("queue-pause-button"),
+      queueToggleButton: document.getElementById("queue-toggle-button"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      addNewEntryToHistory: jest.fn(async () => {}),
+      updateDownloadCount: jest.fn(async () => {}),
+      getHistoryData: jest.fn(() => []),
+    }));
+    jest.doMock("../toast", () => ({
+      showToast: jest.fn(),
+      showLoading,
+    }));
+    jest.doMock("../i18n", () => ({
+      t: jest.fn((key) => key),
+    }));
+  };
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+    global.window = global.window || {};
+  });
+
+  it("uses one toast for parallel downloads and closes after the last active job", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      const second = deferred();
+      const close = jest.fn();
+      const update = jest.fn();
+      const showLoading = jest.fn(() => ({ close, update }));
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return url.endsWith("/a") ? first.promise : second.promise;
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { state } = require("../state");
+      const { initiateDownload } = require("../downloadManager");
+      state.maxParallelDownloads = 2;
+      const firstPromise = initiateDownload("https://example.com/a", "Source");
+      const secondPromise = initiateDownload("https://example.com/b", "Source");
+
+      expect(showLoading).toHaveBeenCalledTimes(1);
+      expect(showLoading).toHaveBeenCalledWith(
+        "download.loading.message",
+        "download.loading.title",
+      );
+
+      first.resolve({ cancelled: true });
+      await firstPromise;
+      expect(close).not.toHaveBeenCalled();
+
+      second.resolve({ cancelled: true });
+      await secondPromise;
+      expect(close).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("keeps the same toast during queue handoff", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const first = deferred();
+      const second = deferred();
+      const close = jest.fn();
+      const showLoading = jest.fn(() => ({ close, update: jest.fn() }));
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") {
+            return url.endsWith("/a") ? first.promise : second.promise;
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { state } = require("../state");
+      const { initiateDownload } = require("../downloadManager");
+      state.maxParallelDownloads = 1;
+      state.downloadQueue = [
+        { url: "https://example.com/b", quality: "Source" },
+      ];
+
+      const firstPromise = initiateDownload("https://example.com/a", "Source");
+      first.resolve({ cancelled: true });
+      await firstPromise;
+      await Promise.resolve();
+
+      expect(showLoading).toHaveBeenCalledTimes(1);
+      expect(close).not.toHaveBeenCalled();
+
+      second.resolve({ cancelled: true });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(close).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("does not reopen a manually dismissed toast until the next session", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const downloads = [deferred(), deferred(), deferred()];
+      let downloadIndex = 0;
+      const controllers = [];
+      const showLoading = jest.fn(() => {
+        const toast = document.createElement("div");
+        toast.className = "toast toast-loading";
+        toast.innerHTML = '<button class="toast-close"></button>';
+        document.body.appendChild(toast);
+        const controller = {
+          close: jest.fn(() => toast.remove()),
+          update: jest.fn(),
+        };
+        controllers.push(controller);
+        return controller;
+      });
+      window.electron = {
+        invoke: jest.fn((channel) => {
+          if (channel === "download-video") {
+            const current = downloads[downloadIndex];
+            downloadIndex += 1;
+            return current.promise;
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { initiateDownload } = require("../downloadManager");
+      const firstPromise = initiateDownload("https://example.com/a", "Source");
+      document.querySelector(".toast-loading .toast-close").click();
+      const secondPromise = initiateDownload("https://example.com/b", "Source");
+      expect(showLoading).toHaveBeenCalledTimes(1);
+
+      downloads[0].resolve({ cancelled: true });
+      downloads[1].resolve({ cancelled: true });
+      await Promise.all([firstPromise, secondPromise]);
+
+      const thirdPromise = initiateDownload("https://example.com/c", "Source");
+      expect(showLoading).toHaveBeenCalledTimes(2);
+      downloads[2].resolve({ cancelled: true });
+      await thirdPromise;
+      expect(controllers[1].close).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it.each([
+    ["success", { ok: true }],
+    ["error", { error: true, errorCode: "UNKNOWN", retryable: true }],
+    ["cancel", { cancelled: true }],
+  ])("closes the toast after %s ends the session", async (_label, response) => {
+    await jest.isolateModulesAsync(async () => {
+      const close = jest.fn();
+      const showLoading = jest.fn(() => ({ close, update: jest.fn() }));
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "download-video") return response;
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const { initiateDownload } = require("../downloadManager");
+      await initiateDownload("https://example.com/result", "Source");
+      expect(close).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("closes the toast when active jobs are reset by pause or cancel", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const active = deferred();
+      const close = jest.fn();
+      const showLoading = jest.fn(() => ({ close, update: jest.fn() }));
+      window.electron = {
+        invoke: jest.fn((channel) => {
+          if (channel === "download-video") return active.promise;
+          return Promise.resolve({});
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      mockDependencies(showLoading);
+
+      const {
+        initiateDownload,
+        resetDownloadUiState,
+      } = require("../downloadManager");
+      void initiateDownload("https://example.com/reset", "Source");
+      resetDownloadUiState({ suppressAutoPump: true });
+      expect(close).toHaveBeenCalledTimes(1);
+
+      active.resolve({ cancelled: true });
+      await Promise.resolve();
+    });
+  });
+});

@@ -29,7 +29,6 @@ export const DEFAULT_CONFIG = {
   },
   modules: {
     wgUnlockDisabled: true,
-    downloaderDisabled: false,
     backupDisabled: false,
   },
   backup: {

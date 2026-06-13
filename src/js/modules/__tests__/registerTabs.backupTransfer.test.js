@@ -104,16 +104,15 @@ describe("registerTabs backup transfer", () => {
     expect(document.getElementById("open-history").style.display).toBe("none");
   });
 
-  test("falls back to Tools when Downloader tab is disabled in developer mode", async () => {
+  test("ignores the removed Downloader developer preference", async () => {
     localStorage.setItem("developerToolsUnlocked", "true");
     localStorage.setItem("developerDisableDownloaderTab", "true");
-    localStorage.setItem("wgUnlockDisabled", "false");
     getDefaultTabMock.mockResolvedValueOnce("download");
 
     await registerTabs(document.getElementById("main-view"));
 
-    expect(activateTabMock).toHaveBeenCalledWith("wireguard");
-    expect(document.getElementById("open-history").style.display).toBe("none");
+    expect(activateTabMock).toHaveBeenCalledWith("download");
+    expect(document.getElementById("open-history").style.display).toBe("");
   });
 
   test("shows history button only for the Downloader tab callbacks", async () => {

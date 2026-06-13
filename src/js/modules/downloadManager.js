@@ -2,7 +2,7 @@
 
 import { historyContainer } from "./domElements.js";
 import { state, updateButtonState } from "./state.js";
-import { showToast } from "./toast.js";
+import { showLoading, showToast } from "./toast.js";
 import {
   addNewEntryToHistory,
   updateDownloadCount,
@@ -128,6 +128,75 @@ let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
 const queuePumpReservations = new Set();
+let downloadPoolLoadingToast = null;
+let downloadPoolLoadingToastElement = null;
+let downloadPoolToastDismissed = false;
+let downloadPoolSessionActive = false;
+
+function dismissDownloadPoolToast() {
+  downloadPoolToastDismissed = true;
+  downloadPoolLoadingToast = null;
+  downloadPoolLoadingToastElement = null;
+}
+
+function attachDownloadPoolToastDismissHandlers(toastElement) {
+  if (!toastElement) return;
+  toastElement
+    .querySelector(".toast-close")
+    ?.addEventListener("click", dismissDownloadPoolToast);
+  toastElement.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") dismissDownloadPoolToast();
+  });
+}
+
+function openDownloadPoolToast() {
+  if (typeof showLoading !== "function") return;
+  const existingToasts = new Set(document.querySelectorAll(".toast-loading"));
+  downloadPoolLoadingToast = showLoading(
+    t("download.loading.message"),
+    t("download.loading.title"),
+  );
+  downloadPoolLoadingToastElement =
+    Array.from(document.querySelectorAll(".toast-loading")).find(
+      (toast) => !existingToasts.has(toast),
+    ) || null;
+  attachDownloadPoolToastDismissHandlers(downloadPoolLoadingToastElement);
+}
+
+function syncDownloadPoolToast() {
+  const activeCount = getActiveDownloadJobs(state).length;
+  if (activeCount === 0) {
+    if (!downloadPoolSessionActive) return;
+    downloadPoolLoadingToast?.close?.();
+    downloadPoolLoadingToast = null;
+    downloadPoolLoadingToastElement = null;
+    downloadPoolToastDismissed = false;
+    downloadPoolSessionActive = false;
+    return;
+  }
+
+  if (!downloadPoolSessionActive) {
+    downloadPoolSessionActive = true;
+    downloadPoolToastDismissed = false;
+  }
+  if (downloadPoolToastDismissed) return;
+  if (
+    downloadPoolLoadingToastElement &&
+    (!downloadPoolLoadingToastElement.isConnected ||
+      downloadPoolLoadingToastElement.classList.contains("hide"))
+  ) {
+    dismissDownloadPoolToast();
+    return;
+  }
+  if (!downloadPoolLoadingToast) {
+    openDownloadPoolToast();
+    return;
+  }
+  downloadPoolLoadingToast.update?.(
+    t("download.loading.message"),
+    t("download.loading.title"),
+  );
+}
 
 const escapeQueueHtml = (value) =>
   String(value || "")
@@ -523,6 +592,7 @@ function addActiveDownload(entry) {
     stage: entry?.stage || "prepare",
   });
   syncDownloadState();
+  syncDownloadPoolToast();
 }
 
 function getCurrentDownloadSignatures() {
@@ -1318,6 +1388,7 @@ function resetDownloadUiState(options = {}) {
   }
   resetProgressIndicator();
   syncDownloadState();
+  syncDownloadPoolToast();
 }
 
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
@@ -1814,6 +1885,7 @@ const initiateDownload = async (url, quality, options = {}) => {
     }
 
     pumpDownloadPool("auto");
+    syncDownloadPoolToast();
   }
 };
 
@@ -2442,6 +2514,7 @@ function initDownloadButton() {
 
   window.addEventListener("i18n:changed", () => {
     updateQueueDisplay();
+    syncDownloadPoolToast();
   });
 
   window.addEventListener("download:parallel-limit-changed", (event) => {

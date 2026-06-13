@@ -6,7 +6,6 @@ import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
 import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
 import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
 import { getDefaultTab } from "../settings.js";
-import { isDownloaderTabEffectivelyDisabled } from "../developerMode.js";
 import { applyI18n, t } from "../i18n.js";
 import { requestToolsView } from "../toolsNavigation.js";
 
@@ -130,11 +129,7 @@ export async function registerTabs(mainView) {
       : ["download", "wireguard"].includes(defaultTab)
         ? defaultTab
         : "download";
-  const tabToActivate = wgConfig.autosend
-    ? "wireguard"
-    : resolvedDefaultTab === "download" && isDownloaderTabEffectivelyDisabled()
-      ? "wireguard"
-      : resolvedDefaultTab;
+  const tabToActivate = wgConfig.autosend ? "wireguard" : resolvedDefaultTab;
 
   if (requestedToolView && !wgConfig.autosend) {
     requestToolsView(requestedToolView);

@@ -449,12 +449,6 @@ describe("developer tools gate", () => {
         <input id="settings-developer-secret-input" />
         <button id="settings-developer-activate-button" type="button"></button>
         <small id="settings-developer-status"></small>
-        <div id="settings-developer-options" hidden>
-          <input
-            id="settings-developer-disable-downloader-tab"
-            type="checkbox"
-          />
-        </div>
       </div>`;
   };
 
@@ -491,10 +485,9 @@ describe("developer tools gate", () => {
     ).toBe(true);
   });
 
-  it("restores persisted developer state and downloader toggle on init", async () => {
+  it("restores persisted developer state on init", async () => {
     renderDevGateDom();
     localStorage.setItem("developerToolsUnlocked", "true");
-    localStorage.setItem("developerDisableDownloaderTab", "true");
 
     const mod = require("../settings");
     await mod.initSettings?.();
@@ -507,60 +500,6 @@ describe("developer tools gate", () => {
     expect(
       document.getElementById("settings-developer-status")?.textContent,
     ).toBe("settings.developer.status.enabled");
-    expect(document.getElementById("settings-developer-options")?.hidden).toBe(
-      false,
-    );
-    expect(
-      document.getElementById("settings-developer-disable-downloader-tab")
-        ?.checked,
-    ).toBe(true);
-  });
-
-  it("keeps downloader-tab setting hidden while developer mode is disabled", async () => {
-    renderDevGateDom();
-    localStorage.setItem("developerToolsUnlocked", "false");
-    localStorage.setItem("developerDisableDownloaderTab", "true");
-
-    const mod = require("../settings");
-    await mod.initSettings?.();
-
-    expect(document.getElementById("settings-developer-options")?.hidden).toBe(
-      true,
-    );
-    expect(
-      document.getElementById("settings-developer-disable-downloader-tab")
-        ?.checked,
-    ).toBe(false);
-    expect(localStorage.getItem("developerDisableDownloaderTab")).toBe("false");
-  });
-
-  it("toggles downloader tab from developer options", async () => {
-    renderDevGateDom();
-    localStorage.setItem("developerToolsUnlocked", "true");
-    const events = [];
-    window.addEventListener("download:toggleDisabled", (event) => {
-      events.push(event.detail);
-    });
-
-    const mod = require("../settings");
-    await mod.initSettings?.();
-
-    const checkbox = document.getElementById(
-      "settings-developer-disable-downloader-tab",
-    );
-    checkbox.checked = true;
-    checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-
-    expect(localStorage.getItem("developerDisableDownloaderTab")).toBe("true");
-    expect(events).toEqual(expect.arrayContaining([{ disabled: true }]));
-    expect(
-      window.electron.invoke.mock.calls.some(
-        (args) =>
-          args[0] === "toast" &&
-          args[1] === "settings.module.download.disabled" &&
-          args[2] === "info",
-      ),
-    ).toBe(true);
   });
 
   it("does not activate developer tools with invalid secret", async () => {
@@ -606,14 +545,6 @@ describe("developer tools gate", () => {
     expect(window.__thunder_dev_tools_unlocked__).toBe(false);
     expect(button?.textContent).toBe("settings.developer.activate");
     expect(status?.textContent).toBe("settings.developer.status.disabled");
-    expect(document.getElementById("settings-developer-options")?.hidden).toBe(
-      true,
-    );
-    expect(
-      document.getElementById("settings-developer-disable-downloader-tab")
-        ?.checked,
-    ).toBe(false);
-    expect(localStorage.getItem("developerDisableDownloaderTab")).toBe("false");
     expect(
       window.electron.invoke.mock.calls.some(
         (args) =>
@@ -933,6 +864,15 @@ describe("network status setting removal", () => {
     expect("showNetworkStatus" in config.appearance).toBe(false);
   });
 
+  it("does not export the removed Downloader developer preference", async () => {
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+    const mod = require("../settings");
+    const config = await mod.__test_collectCurrentConfig();
+
+    expect(config?.modules).toBeDefined();
+    expect("downloaderDisabled" in config.modules).toBe(false);
+  });
+
   it("applyConfig clears legacy topbarNetworkStatusVisible key", async () => {
     localStorage.setItem("topbarNetworkStatusVisible", "true");
     const mod = require("../settings");
@@ -944,5 +884,18 @@ describe("network status setting removal", () => {
       },
     });
     expect(localStorage.getItem("topbarNetworkStatusVisible")).toBeNull();
+  });
+
+  it("ignores legacy Downloader config and removes its storage key", async () => {
+    localStorage.setItem("developerDisableDownloaderTab", "true");
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      modules: {
+        downloaderDisabled: true,
+      },
+    });
+
+    expect(localStorage.getItem("developerDisableDownloaderTab")).toBeNull();
   });
 });

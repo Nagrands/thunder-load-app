@@ -1,9 +1,7 @@
 import { onOpenSettings } from "./openSettingsBus.js";
 import { t } from "../../i18n.js";
 import {
-  readDeveloperDisableDownloaderTab,
   readDeveloperModeEnabled,
-  setDeveloperDisableDownloaderTab,
   setDeveloperModeEnabled,
 } from "../../developerMode.js";
 
@@ -30,32 +28,12 @@ export function initDeveloperToolsGate() {
   const input = document.getElementById("settings-developer-secret-input");
   const button = document.getElementById("settings-developer-activate-button");
   const status = document.getElementById("settings-developer-status");
-  const options = document.getElementById("settings-developer-options");
-  const disableDownloaderTabToggle = document.getElementById(
-    "settings-developer-disable-downloader-tab",
-  );
 
   if (!input || !button || !status) return;
-
-  const resetDownloaderTabToggle = () => {
-    setDeveloperDisableDownloaderTab(false, { emit: false });
-    if (disableDownloaderTabToggle) {
-      disableDownloaderTabToggle.checked = false;
-    }
-  };
 
   const sync = () => {
     const enabled = readDeveloperModeEnabled();
     applyStatus(status, button, enabled);
-    if (options) options.hidden = !enabled;
-    if (disableDownloaderTabToggle) {
-      if (enabled) {
-        disableDownloaderTabToggle.checked =
-          readDeveloperDisableDownloaderTab();
-      } else {
-        resetDownloaderTabToggle();
-      }
-    }
     input.value = "";
   };
 
@@ -63,8 +41,6 @@ export function initDeveloperToolsGate() {
     if (readDeveloperModeEnabled()) {
       setDeveloperModeEnabled(false);
       applyStatus(status, button, false);
-      if (options) options.hidden = true;
-      resetDownloaderTabToggle();
       window.electron
         ?.invoke?.("toast", t("settings.developer.lock.success"), "success")
         .catch(() => {});
@@ -78,11 +54,6 @@ export function initDeveloperToolsGate() {
     if (value === DEVELOPER_SECRET_WORD) {
       setDeveloperModeEnabled(true);
       applyStatus(status, button, true);
-      if (options) options.hidden = false;
-      if (disableDownloaderTabToggle) {
-        disableDownloaderTabToggle.checked =
-          readDeveloperDisableDownloaderTab();
-      }
       window.electron
         ?.invoke?.("toast", t("settings.developer.unlock.success"), "success")
         .catch(() => {});
@@ -101,21 +72,6 @@ export function initDeveloperToolsGate() {
       if (event.key !== "Enter") return;
       event.preventDefault();
       tryUnlock();
-    });
-    disableDownloaderTabToggle?.addEventListener("change", () => {
-      const disabled = setDeveloperDisableDownloaderTab(
-        disableDownloaderTabToggle.checked,
-      );
-      window.electron
-        ?.invoke?.(
-          "toast",
-          disabled
-            ? t("settings.module.download.disabled")
-            : t("settings.module.download.enabled"),
-          disabled ? "info" : "success",
-          { allowHtml: true },
-        )
-        .catch(() => {});
     });
   }
 

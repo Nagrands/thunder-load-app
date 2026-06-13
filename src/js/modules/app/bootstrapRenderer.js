@@ -179,17 +179,7 @@ export async function startRenderer() {
     const runtime = await runCriticalInitialization(mainView);
 
     document.body.classList.add("ready");
-
-    const preloader = document.getElementById("app-preloader");
-    if (preloader) {
-      preloader.addEventListener(
-        "transitionend",
-        () => {
-          preloader.remove();
-        },
-        { once: true },
-      );
-    }
+    document.getElementById("app-preloader")?.remove();
 
     console.timeEnd("Renderer → Initialization");
     scheduleDeferredInitialization(async () => {

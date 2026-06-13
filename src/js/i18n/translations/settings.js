@@ -148,9 +148,6 @@ export const settingsTranslations = {
     "settings.developer.unlock.success": "Режим разработчика включён",
     "settings.developer.lock.success": "Режим разработчика отключён",
     "settings.developer.unlock.error": "Неверное секретное слово",
-    "settings.developer.disableDownloader": "Отключить вкладку «Загрузчик»",
-    "settings.developer.disableDownloader.hint":
-      "Скрывает вкладку «Загрузчик», пока активен режим разработчика.",
     "settings.other.disableHotkeys":
       "Отключить <strong>специальные</strong> (горячие) клавиши",
     "settings.other.appConfig": "Настройки приложения",
@@ -174,10 +171,6 @@ export const settingsTranslations = {
       "Вкладка <strong>Инструменты</strong> отключена",
     "settings.module.wg.enabled":
       "Вкладка <strong>Инструменты</strong> включена",
-    "settings.module.download.disabled":
-      "Вкладка <strong>Загрузчик</strong> отключена",
-    "settings.module.download.enabled":
-      "Вкладка <strong>Загрузчик</strong> включена",
     "settings.module.backup.disabled":
       "Инструмент <strong>Backup</strong> отключен",
     "settings.module.backup.enabled":
@@ -341,9 +334,6 @@ export const settingsTranslations = {
     "settings.developer.unlock.success": "Developer mode enabled",
     "settings.developer.lock.success": "Developer mode disabled",
     "settings.developer.unlock.error": "Invalid secret word",
-    "settings.developer.disableDownloader": "Disable the Downloader tab",
-    "settings.developer.disableDownloader.hint":
-      "Hides the Downloader tab while developer mode is active.",
     "settings.other.disableHotkeys":
       "Disable <strong>special</strong> (hot) keys",
     "settings.other.appConfig": "App settings",
@@ -365,10 +355,6 @@ export const settingsTranslations = {
       "<strong>Theme</strong> reset to <strong>{theme}</strong>",
     "settings.module.wg.disabled": "Tab <strong>Tools</strong> disabled",
     "settings.module.wg.enabled": "Tab <strong>Tools</strong> enabled",
-    "settings.module.download.disabled":
-      "Tab <strong>Downloader</strong> disabled",
-    "settings.module.download.enabled":
-      "Tab <strong>Downloader</strong> enabled",
     "settings.module.backup.disabled": "Backup <strong>tool</strong> disabled",
     "settings.module.backup.enabled": "Backup <strong>tool</strong> enabled",
     "settings.wg.disable.note":
