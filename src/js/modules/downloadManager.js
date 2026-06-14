@@ -120,6 +120,7 @@ const QUEUE_MAX = 200;
 const QUEUE_STORAGE_KEY = "downloadQueue";
 const QUEUE_FAILED_STORAGE_KEY = "downloadFailedQueue";
 const QUEUE_COLLAPSED_STORAGE_KEY = "downloadQueueCollapsed";
+const QUEUE_PAUSED_STORAGE_KEY = "downloadQueuePaused";
 const PARALLEL_DOWNLOAD_LIMIT = 2;
 const PROGRESS_RENDER_THROTTLE_MS = 220;
 const QUEUE_MAX_LABEL_LEN = 64;
@@ -766,6 +767,24 @@ function persistQueueCollapsedState() {
   } catch {}
 }
 
+function readQueuePausedState() {
+  try {
+    return window.localStorage.getItem(QUEUE_PAUSED_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function persistQueuePausedState() {
+  try {
+    if (state.suppressAutoPump) {
+      window.localStorage.setItem(QUEUE_PAUSED_STORAGE_KEY, "1");
+      return;
+    }
+    window.localStorage.removeItem(QUEUE_PAUSED_STORAGE_KEY);
+  } catch {}
+}
+
 function loadQueueFromStorage() {
   let raw = null;
   try {
@@ -1195,15 +1214,34 @@ function updateQueueDisplay() {
         activeCount <= 0 && pendingCount <= 0,
       );
       queuePauseButton.classList.toggle("is-active", state.suppressAutoPump);
+      const pauseKey = state.suppressAutoPump
+        ? "queue.resume.title"
+        : "queue.pause.title";
+      const pauseLabel = t(pauseKey);
+      const pauseIcon = queuePauseButton.querySelector("[data-lucide]");
+      if (pauseIcon) {
+        pauseIcon.setAttribute(
+          "data-lucide",
+          state.suppressAutoPump ? "play" : "pause",
+        );
+      }
+      queuePauseButton.setAttribute("title", pauseLabel);
+      queuePauseButton.setAttribute("aria-label", pauseLabel);
+      queuePauseButton.setAttribute("data-bs-original-title", pauseLabel);
+      queuePauseButton.setAttribute("data-i18n-title", pauseKey);
+      queuePauseButton.setAttribute("data-i18n-aria", pauseKey);
     }
     if (queueClearButton) {
       queueClearButton.disabled = totalVisible <= 1;
       queueClearButton.classList.toggle("hidden", totalVisible <= 1);
     }
     if (queueRetryFailedButton) {
-      const failedCount = errorItems.length;
-      queueRetryFailedButton.classList.toggle("hidden", failedCount <= 0);
-      queueRetryFailedButton.disabled = failedCount <= 0;
+      const retryableFailedCount = getRetryableFailedJobs().length;
+      queueRetryFailedButton.classList.toggle(
+        "hidden",
+        retryableFailedCount <= 0,
+      );
+      queueRetryFailedButton.disabled = retryableFailedCount <= 0;
     }
     if (queueRetryTransientButton) {
       const retryableFailedCount = getRetryableFailedJobs().length;
@@ -1333,7 +1371,7 @@ function updateQueueDisplay() {
             }
             ${
               group === "error"
-                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.manual.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.manual.title")}"><i data-lucide="rotate-cw"></i></button>`
+                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
                 : ""
             }
             ${
@@ -1342,7 +1380,11 @@ function updateQueueDisplay() {
                    <button type="button" class="queue-item-reveal" data-queue-reveal-done="1" data-index="${actionIndex}" title="${t("queue.item.reveal.title")}" aria-label="${t("queue.item.reveal.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="folder-open"></i></button>`
                 : ""
             }
-            <button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-index="${group === "pending" ? pendingIndex : actionIndex}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>
+            ${
+              group !== "active"
+                ? `<button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-index="${group === "pending" ? pendingIndex : actionIndex}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>`
+                : ""
+            }
           </div>
         </div>
         ${
@@ -1566,40 +1608,6 @@ async function revealCompletedDownload(task) {
     showToast(t("queue.item.reveal.error"), "error");
   }
 }
-
-const requeueActiveDownloads = () => {
-  const activeJobs = getActiveDownloadJobs(state);
-  if (activeJobs.length === 0) return 0;
-  const existingSignatures = new Set(
-    getPendingDownloadJobs(state).map((item) =>
-      getQueueSignature(item.url, item.quality),
-    ),
-  );
-  let requeuedCount = 0;
-  for (const item of activeJobs) {
-    if (!item?.url || !item?.quality) continue;
-    const signature = getQueueSignature(item.url, item.quality);
-    if (existingSignatures.has(signature)) continue;
-    existingSignatures.add(signature);
-    upsertDownloadJob(state, {
-      ...normalizeQueueItem({
-        id: item.id,
-        jobId: item.jobId,
-        url: item.url,
-        quality: item.quality,
-        title: item.title || makeQueueTitle(item.url),
-        status: "pending",
-        progress: 0,
-        signature,
-      }),
-      status: JOB_STATUS.pending,
-      stage: "",
-      progress: 0,
-    });
-    requeuedCount += 1;
-  }
-  return requeuedCount;
-};
 
 function normalizeSelection(selection) {
   if (selection && typeof selection === "object" && selection.enqueue) {
@@ -2016,8 +2024,6 @@ const initiateDownload = async (url, quality, options = {}) => {
 };
 
 const handleDownloadButtonClick = async (options = {}) => {
-  state.suppressAutoPump = false;
-  state.queuePaused = false;
   const raw = urlInput.value.trim();
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
@@ -2248,6 +2254,9 @@ function initDownloadButton() {
       );
       persistQueue();
       persistFailedQueue();
+      state.suppressAutoPump = false;
+      state.queuePaused = false;
+      persistQueuePausedState();
       updateQueueDisplay();
       console.log(QUEUE_LOG_TAG, "clear");
       showToast(t("queue.cleared"), "info");
@@ -2255,35 +2264,24 @@ function initDownloadButton() {
   }
 
   if (queuePauseButton) {
-    queuePauseButton.addEventListener("click", async () => {
+    queuePauseButton.addEventListener("click", () => {
       const activeCount = getActiveDownloadJobs(state).length;
       const pendingCount = getPendingDownloadJobs(state).length;
       if (activeCount <= 0 && pendingCount <= 0) return;
-      if (state.suppressAutoPump) return;
-      state.suppressAutoPump = true;
-      state.queuePaused = true;
-      const requeuedCount = activeCount > 0 ? requeueActiveDownloads() : 0;
-      if (requeuedCount > 0) {
-        persistQueue();
-      }
+      const isResuming = state.suppressAutoPump;
+      state.suppressAutoPump = !isResuming;
+      state.queuePaused = !isResuming;
+      persistQueuePausedState();
       updateQueueDisplay();
-      if (activeCount > 0) {
-        try {
-          const result = await window.electron.invoke("stop-download");
-          if (result?.success) {
-            showToast(t("queue.pause.stoppedAndQueued"), "info");
-          } else {
-            showToast(t("download.cancel.failed"), "error");
-          }
-        } catch (error) {
-          console.error("Error stopping download from queue pause:", error);
-          showToast(t("download.cancel.error"), "error");
-        } finally {
-          resetDownloadUiState({ suppressAutoPump: true });
-        }
-      } else {
-        showToast(t("queue.status.paused"), "info");
+      if (isResuming) {
+        showToast(t("queue.resume.toast"), "info");
+        pumpDownloadPool("manual");
+        return;
       }
+      showToast(
+        t(activeCount > 0 ? "queue.pause.afterActive" : "queue.pause.toast"),
+        "info",
+      );
     });
   }
 
@@ -2456,6 +2454,10 @@ function initDownloadButton() {
         if (!Number.isFinite(idx)) return;
         const task = getFailedDownloadJobs(state)[idx];
         if (!task) return;
+        if (task.retryable === false) {
+          showToast(t("queue.item.retry.disabled"), "warning");
+          return;
+        }
         const signature = getQueueSignature(task.url, task.quality);
         if (getCurrentDownloadSignatures().has(signature)) {
           showToast(t("download.url.active"), "warning");
@@ -2555,10 +2557,12 @@ function initDownloadButton() {
       if (startMode === QUEUE_START_MODE.single) {
         state.suppressAutoPump = true;
         state.queuePaused = true;
+        persistQueuePausedState();
         startSinglePendingQueueItem();
       } else {
         state.suppressAutoPump = false;
         state.queuePaused = false;
+        persistQueuePausedState();
         console.log(QUEUE_LOG_TAG, "manual-start");
         pumpDownloadPool("manual");
       }
@@ -2568,9 +2572,19 @@ function initDownloadButton() {
 
   if (queueRetryFailedButton) {
     queueRetryFailedButton.addEventListener("click", () => {
-      const tasks = [...getFailedDownloadJobs(state)];
+      const tasks = getFailedDownloadJobs(state).filter(
+        (task) => task.retryable !== false,
+      );
       if (!tasks.length) return;
-      clearDownloadJobsByStatus(state, JOB_STATUS.failed);
+      const retryableSignatures = new Set(
+        tasks.map((task) => getQueueSignature(task.url, task.quality)),
+      );
+      removeDownloadJob(
+        state,
+        (item) =>
+          item.status === JOB_STATUS.failed &&
+          retryableSignatures.has(getQueueSignature(item.url, item.quality)),
+      );
       persistFailedQueue();
       const existing = new Set(
         getPendingDownloadJobs(state).map((item) =>
@@ -2606,13 +2620,14 @@ function initDownloadButton() {
     });
   }
 
+  const queuePaused = readQueuePausedState();
   if (getPendingDownloadJobs(state).length === 0) {
     replaceDownloadJobsByStatus(
       state,
       [JOB_STATUS.pending, JOB_STATUS.paused],
       loadQueueFromStorage().map((item) => ({
         ...item,
-        status: JOB_STATUS.pending,
+        status: queuePaused ? JOB_STATUS.paused : JOB_STATUS.pending,
       })),
     );
   }
@@ -2626,6 +2641,9 @@ function initDownloadButton() {
       })),
     );
   }
+  state.suppressAutoPump =
+    queuePaused || Boolean(state.suppressAutoPump || state.queuePaused);
+  state.queuePaused = state.suppressAutoPump;
   state.queueCollapsed = readQueueCollapsedState();
   ensureDownloadJobsState(state);
   if (

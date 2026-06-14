@@ -1173,7 +1173,7 @@ describe("downloadManager queue smart logic", () => {
     };
   });
 
-  it("retries only retryable failed jobs via bulk action", async () => {
+  it("retry all repeats only retryable failed jobs", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -1235,7 +1235,7 @@ describe("downloadManager queue smart logic", () => {
 
       initDownloadButton();
       updateQueueDisplay();
-      document.getElementById("queue-retry-transient-button").click();
+      document.getElementById("queue-retry-failed-button").click();
 
       expect(state.activeDownloads).toHaveLength(1);
       expect(state.activeDownloads[0].url).toBe("https://example.com/a");
@@ -1610,6 +1610,7 @@ describe("downloadManager queue smart logic", () => {
         activeRow?.querySelector(".queue-status-chip")?.textContent,
       ).toContain("Загрузка");
       expect(activeRow?.getAttribute("role")).toBe("listitem");
+      expect(activeRow?.querySelector("[data-queue-remove]")).toBeNull();
     });
   });
 
@@ -1770,7 +1771,7 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("keeps manual retry available for non-retryable failed jobs and mirrors status in summary", async () => {
+  it("disables individual retry for non-retryable failed jobs", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -1824,8 +1825,8 @@ describe("downloadManager queue smart logic", () => {
             "queue.status.error": "Ошибка",
             "queue.reason.authRequired": "Нужна авторизация",
             "queue.retryState.needsAction": "Нужен ручной шаг",
-            "queue.item.retry.manual.title":
-              "Повторить после исправления причины",
+            "queue.item.retry.disabled.title":
+              "Для этой ошибки нужен ручной шаг",
             "downloader.jobSummary.badgeError": "Ошибка",
             "queue.pill.active": "0 активно",
           };
@@ -1858,9 +1859,9 @@ describe("downloadManager queue smart logic", () => {
 
       const retryBtn = document.querySelector("[data-queue-retry-failed]");
       expect(retryBtn).toBeTruthy();
-      expect(retryBtn.disabled).toBe(false);
+      expect(retryBtn.disabled).toBe(true);
       expect(retryBtn.getAttribute("title")).toBe(
-        "Повторить после исправления причины",
+        "Для этой ошибки нужен ручной шаг",
       );
       expect(
         document.getElementById("downloader-job-summary-title").textContent,
@@ -1870,12 +1871,13 @@ describe("downloadManager queue smart logic", () => {
       ).toContain("Нужна авторизация");
       retryBtn.click();
       await Promise.resolve();
-      expect(window.electron.invoke).toHaveBeenCalledWith(
+      expect(window.electron.invoke).not.toHaveBeenCalledWith(
         "download-video",
-        "https://example.com/private",
-        "Source",
-        expect.stringMatching(/^job-/),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
       );
+      expect(state.failedDownloads).toHaveLength(1);
     });
   });
 
@@ -2096,8 +2098,12 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("pause button stops active downloads and puts them back to queue", async () => {
+  it("pause suppresses auto-pump without stopping active jobs and resume continues the queue", async () => {
     await jest.isolateModulesAsync(async () => {
+      let resolvePendingDownload;
+      const pendingDownload = new Promise((resolve) => {
+        resolvePendingDownload = resolve;
+      });
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
         downloadButton: document.getElementById("download-button"),
@@ -2123,8 +2129,17 @@ describe("downloadManager queue smart logic", () => {
       } = require("../downloadManager");
       const pauseBtn = document.getElementById("queue-pause-button");
 
-      window.electron.invoke = jest.fn(async () => null);
+      window.electron.invoke = jest.fn((channel, url) => {
+        if (
+          channel === "download-video" &&
+          url === "https://example.com/pending"
+        ) {
+          return pendingDownload;
+        }
+        return Promise.resolve(null);
+      });
 
+      state.maxParallelDownloads = 2;
       state.downloadQueue = [
         { url: "https://example.com/pending", quality: "Source" },
       ];
@@ -2141,16 +2156,84 @@ describe("downloadManager queue smart logic", () => {
       updateQueueDisplay();
 
       pauseBtn.click();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
 
-      expect(window.electron.invoke).toHaveBeenCalledWith("stop-download");
+      expect(window.electron.invoke).not.toHaveBeenCalledWith("stop-download");
       expect(state.suppressAutoPump).toBe(true);
-      expect(state.activeDownloads).toHaveLength(0);
-      expect(state.downloadQueue).toHaveLength(2);
-      expect(state.downloadQueue[0].url).toBe("https://example.com/active");
-      expect(document.getElementById("queue-start-button").disabled).toBe(
-        false,
+      expect(state.activeDownloads).toHaveLength(1);
+      expect(state.activeDownloads[0].url).toBe("https://example.com/active");
+      expect(state.downloadQueue).toHaveLength(1);
+      expect(state.downloadQueue[0].url).toBe("https://example.com/pending");
+      expect(localStorage.getItem("downloadQueuePaused")).toBe("1");
+
+      pauseBtn.click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(state.suppressAutoPump).toBe(false);
+      expect(localStorage.getItem("downloadQueuePaused")).toBeNull();
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "download-video",
+        "https://example.com/pending",
+        "Source",
+        expect.stringMatching(/^job-/),
       );
+      expect(state.activeDownloads).toHaveLength(2);
+      expect(state.downloadQueue).toHaveLength(0);
+
+      resolvePendingDownload({
+        fileName: "pending.mp4",
+        filePath: "/tmp/pending.mp4",
+        quality: "Source",
+        actualQuality: "Source",
+        sourceUrl: "https://example.com/pending",
+        cancelled: false,
+      });
+      await Promise.resolve();
+    });
+  });
+
+  it("restores paused queue state from local storage", () => {
+    jest.isolateModules(() => {
+      localStorage.setItem("downloadQueuePaused", "1");
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        getHistoryData: jest.fn(() => []),
+      }));
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+
+      state.downloadQueue = [
+        { url: "https://example.com/pending", quality: "Source" },
+      ];
+      initDownloadButton();
+      updateQueueDisplay();
+
+      expect(state.suppressAutoPump).toBe(true);
+      expect(state.queuePaused).toBe(true);
+      expect(
+        document.getElementById("queue-pause-button").getAttribute("title"),
+      ).toBe("queue.resume.title");
+      expect(
+        document.querySelector(".queue-status-chip")?.textContent,
+      ).toContain("queue.status.paused");
     });
   });
 

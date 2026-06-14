@@ -234,7 +234,6 @@ export const downloaderTranslations = {
     "queue.item.pending": "В очереди",
     "queue.item.failed": "Ошибка",
     "queue.item.retry.title": "Повторить загрузку",
-    "queue.item.retry.manual.title": "Повторить после исправления причины",
     "queue.item.retry.disabled.title": "Для этой ошибки нужен ручной шаг",
     "queue.item.retry.disabled":
       "Эту задачу нельзя повторить автоматически. Сначала устраните причину ошибки.",
@@ -260,8 +259,11 @@ export const downloaderTranslations = {
     "queue.startChoice.all": "Загрузить всё",
     "queue.pause": "Пауза",
     "queue.pause.title": "Пауза очереди",
-    "queue.pause.stoppedAndQueued":
-      "Загрузка остановлена и возвращена в очередь.",
+    "queue.pause.toast": "Очередь приостановлена.",
+    "queue.pause.afterActive":
+      "Очередь приостановлена. Активные загрузки будут завершены.",
+    "queue.resume.title": "Продолжить очередь",
+    "queue.resume.toast": "Очередь продолжена.",
     "queue.toggle.collapse.title": "Свернуть очередь",
     "queue.toggle.expand.title": "Развернуть очередь",
     "queue.status.downloading": "Загрузка",
@@ -531,7 +533,6 @@ export const downloaderTranslations = {
     "queue.item.pending": "Queued",
     "queue.item.failed": "Failed",
     "queue.item.retry.title": "Retry download",
-    "queue.item.retry.manual.title": "Retry after fixing the issue",
     "queue.item.retry.disabled.title": "This error needs manual action",
     "queue.item.retry.disabled":
       "This job cannot be retried automatically yet. Resolve the issue first.",
@@ -557,8 +558,10 @@ export const downloaderTranslations = {
     "queue.startChoice.all": "Download all",
     "queue.pause": "Pause",
     "queue.pause.title": "Pause queue",
-    "queue.pause.stoppedAndQueued":
-      "Download was stopped and returned to queue.",
+    "queue.pause.toast": "Queue paused.",
+    "queue.pause.afterActive": "Queue paused. Active downloads will finish.",
+    "queue.resume.title": "Resume queue",
+    "queue.resume.toast": "Queue resumed.",
     "queue.toggle.collapse.title": "Collapse queue",
     "queue.toggle.expand.title": "Expand queue",
     "queue.status.downloading": "Downloading",

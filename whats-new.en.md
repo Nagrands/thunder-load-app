@@ -11,3 +11,4 @@
 | Application startup was accelerated                  | The loading screen now disappears as soon as the interface is ready                                            |
 | The download notification was improved               | It now shows the current stage and progress, then confirms successful completion                               |
 | The download queue was improved                      | Completed files can be opened from the queue, with cleaner contextual actions and counters                     |
+| Queue controls were fixed                            | Pausing no longer interrupts active downloads, and unavailable retries are now blocked                         |
