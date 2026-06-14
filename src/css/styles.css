@@ -22544,8 +22544,11 @@ hr {
   opacity: 1;
 }
 .download-queue-info .queue-source-pill {
+  width: max-content;
   min-width: 28px;
+  max-width: 100%;
   height: 28px;
+  justify-self: start;
   border-radius: var(--border-radius);
   font-size: 0.72rem;
   font-weight: 600;
@@ -22681,9 +22684,8 @@ hr {
   cursor: default;
 }
 .download-queue-info .queue-item:not([data-queue-pending-index]) {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 6px;
-  padding: 5px 6px;
 }
 .download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-index-wrap {
   display: none;

@@ -220,7 +220,8 @@ export const downloaderTranslations = {
     "queue.cleared": "Очередь очищена.",
     "queue.item.moveUp.title": "Поднять выше",
     "queue.item.moveDown.title": "Опустить ниже",
-    "queue.item.drag.title": "Перетащить для изменения порядка",
+    "queue.item.drag.title":
+      "Перетащите или используйте стрелки для изменения порядка",
     "queue.item.movedUp": "Элемент поднят выше.",
     "queue.item.movedDown": "Элемент опущен ниже.",
     "queue.item.reordered": "Порядок очереди обновлён.",
@@ -519,7 +520,7 @@ export const downloaderTranslations = {
     "queue.cleared": "Queue cleared.",
     "queue.item.moveUp.title": "Move up",
     "queue.item.moveDown.title": "Move down",
-    "queue.item.drag.title": "Drag to reorder",
+    "queue.item.drag.title": "Drag or use arrow keys to reorder",
     "queue.item.movedUp": "Item moved up.",
     "queue.item.movedDown": "Item moved down.",
     "queue.item.reordered": "Queue order updated.",

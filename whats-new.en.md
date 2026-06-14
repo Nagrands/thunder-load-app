@@ -12,3 +12,6 @@
 | The download notification was improved               | It now shows the current stage and progress, then confirms successful completion                               |
 | The download queue was improved                      | Completed files can be opened from the queue, with cleaner contextual actions and counters                     |
 | Queue controls were fixed                            | Pausing no longer interrupts active downloads, and unavailable retries are now blocked                         |
+| Completed downloads are now preserved                | The latest 30 completed files remain available in the queue after restarting the app                           |
+| Keyboard queue controls were added                    | Pending jobs can be reordered from the drag handle or with Alt and the arrow keys                              |
+| Queue source width was fixed                          | The YouTube badge no longer stretches across active download rows                                               |

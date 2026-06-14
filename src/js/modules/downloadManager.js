@@ -57,6 +57,10 @@ import {
   syncLegacyDownloadCollections,
   upsertDownloadJob,
 } from "./downloadJobs.js";
+import {
+  loadCompletedJobs,
+  persistCompletedJobs,
+} from "./downloadQueuePersistence.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
@@ -749,6 +753,10 @@ function persistFailedQueue() {
   } catch {}
 }
 
+function persistCompletedQueue() {
+  persistCompletedJobs(getCompletedDownloadJobs(state));
+}
+
 function readQueueCollapsedState() {
   try {
     return window.localStorage.getItem(QUEUE_COLLAPSED_STORAGE_KEY) === "1";
@@ -1343,10 +1351,10 @@ function updateQueueDisplay() {
     const isFirst = pendingIndex === 0;
     const isLast = pendingIndex === pendingItems.length - 1;
     return `
-      <li class="queue-item group ${isDownloading ? "is-downloading" : ""}" role="listitem" ${isPendingGroup ? `data-queue-pending-index="${pendingIndex}"` : ""} style="background:${isDownloading ? "linear-gradient(180deg, rgba(74,158,255,0.07), rgba(255,255,255,0.03))" : QUEUE_COLORS.cardBg};border:1px solid ${QUEUE_COLORS.cardBorder};">
+      <li class="queue-item group ${isDownloading ? "is-downloading" : ""}" role="listitem" ${isPendingGroup ? `data-queue-pending-index="${pendingIndex}" tabindex="0" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"` : ""} style="background:${isDownloading ? "linear-gradient(180deg, rgba(74,158,255,0.07), rgba(255,255,255,0.03))" : QUEUE_COLORS.cardBg};border:1px solid ${QUEUE_COLORS.cardBorder};">
         <div class="queue-item-index-wrap">
           <span class="queue-item-index">${String(displayIndex + 1).padStart(2, "0")}</span>
-          <span class="queue-item-grip" ${isPendingGroup ? `draggable="true" data-queue-drag-handle="1" data-index="${pendingIndex}" title="${t("queue.item.drag.title")}" aria-label="${t("queue.item.drag.title")}" role="button" tabindex="0"` : `aria-hidden="true"`}><i data-lucide="grip-vertical"></i></span>
+          <span class="queue-item-grip" ${isPendingGroup ? `draggable="true" data-queue-drag-handle="1" data-index="${pendingIndex}" title="${t("queue.item.drag.title")}" aria-label="${t("queue.item.drag.title")}" aria-keyshortcuts="ArrowUp ArrowDown" role="button" tabindex="0"` : `aria-hidden="true"`}><i data-lucide="grip-vertical"></i></span>
         </div>
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
@@ -1982,6 +1990,7 @@ const initiateDownload = async (url, quality, options = {}) => {
         filePath: result.filePath || "",
         signature,
       });
+      persistCompletedQueue();
     } else {
       removeDownloadJob(
         state,
@@ -2254,6 +2263,7 @@ function initDownloadButton() {
       );
       persistQueue();
       persistFailedQueue();
+      persistCompletedQueue();
       state.suppressAutoPump = false;
       state.queuePaused = false;
       persistQueuePausedState();
@@ -2347,6 +2357,7 @@ function initDownloadButton() {
     queueClearDoneButton.addEventListener("click", () => {
       if (getCompletedDownloadJobs(state).length <= 0) return;
       clearDownloadJobsByStatus(state, JOB_STATUS.done);
+      persistCompletedQueue();
       updateQueueDisplay();
       showToast(t("queue.clearDone.toast"), "info");
     });
@@ -2431,6 +2442,47 @@ function initDownloadButton() {
       queueDragState = null;
     });
 
+    queueList.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      const handle = e.target.closest("[data-queue-drag-handle]");
+      const row = e.target.closest(".queue-item[data-queue-pending-index]");
+      if (!row || !queueList.contains(row)) return;
+      const isRowShortcut = e.target === row && e.altKey;
+      const isHandleShortcut =
+        Boolean(handle) &&
+        !e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.shiftKey;
+      if (!isHandleShortcut && !isRowShortcut) return;
+
+      const fromIndex = Number(row.dataset.queuePendingIndex);
+      const direction = e.key === "ArrowUp" ? -1 : 1;
+      const toIndex = fromIndex + direction;
+      const pendingCount = getPendingDownloadJobs(state).length;
+      e.preventDefault();
+      if (
+        !Number.isInteger(fromIndex) ||
+        toIndex < 0 ||
+        toIndex >= pendingCount
+      ) {
+        return;
+      }
+
+      if (!movePendingQueueItem(fromIndex, toIndex)) return;
+      const movedRow = queueList.querySelector(
+        `.queue-item[data-queue-pending-index="${toIndex}"]`,
+      );
+      const focusTarget = isHandleShortcut
+        ? movedRow?.querySelector("[data-queue-drag-handle]")
+        : movedRow;
+      focusTarget?.focus();
+      showToast(
+        t(direction < 0 ? "queue.item.movedUp" : "queue.item.movedDown"),
+        "info",
+      );
+    });
+
     queueList.addEventListener("click", (e) => {
       const doneActionButton = e.target.closest(
         "[data-queue-open-done], [data-queue-reveal-done]",
@@ -2507,6 +2559,7 @@ function initDownloadButton() {
         const task = getCompletedDownloadJobs(state)[idx];
         if (!task) return;
         removeDownloadJob(state, task.signature || task.jobId || task.id);
+        persistCompletedQueue();
         updateQueueDisplay();
         showToast(t("queue.item.removed"), "info");
         return;
@@ -2640,6 +2693,17 @@ function initDownloadButton() {
         status: JOB_STATUS.failed,
       })),
     );
+  }
+  if (getCompletedDownloadJobs(state).length === 0) {
+    replaceDownloadJobsByStatus(
+      state,
+      JOB_STATUS.done,
+      loadCompletedJobs().map((item) => ({
+        ...item,
+        status: JOB_STATUS.done,
+      })),
+    );
+    persistCompletedQueue();
   }
   state.suppressAutoPump =
     queuePaused || Boolean(state.suppressAutoPump || state.queuePaused);

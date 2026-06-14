@@ -1173,6 +1173,34 @@ describe("downloadManager queue smart logic", () => {
     };
   });
 
+  const mockQueueReorderDependencies = () => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueStartButton: document.getElementById("queue-start-button"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      getHistoryData: jest.fn(() => []),
+    }));
+    jest.doMock("../i18n", () => ({
+      getLanguage: jest.fn(() => "en"),
+      t: jest.fn((key, params = {}) => {
+        if (key === "queue.limit.near") return `Slots left: ${params.count}`;
+        if (key === "queue.limit.full") return "Queue limit reached";
+        return key;
+      }),
+    }));
+    jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+  };
+
   it("retry all repeats only retryable failed jobs", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
@@ -1515,6 +1543,195 @@ describe("downloadManager queue smart logic", () => {
       expect(dataTransfer.setData).toHaveBeenCalledWith("text/plain", "2");
     });
   });
+
+  it.each([
+    {
+      key: "ArrowUp",
+      startIndex: 1,
+      expectedUrls: [
+        "https://example.com/b",
+        "https://example.com/a",
+        "https://example.com/c",
+      ],
+      expectedIndex: 0,
+    },
+    {
+      key: "ArrowDown",
+      startIndex: 1,
+      expectedUrls: [
+        "https://example.com/a",
+        "https://example.com/c",
+        "https://example.com/b",
+      ],
+      expectedIndex: 2,
+    },
+  ])(
+    "moves a pending item with $key on its drag handle and keeps handle focus",
+    ({ key, startIndex, expectedUrls, expectedIndex }) => {
+      jest.isolateModules(() => {
+        mockQueueReorderDependencies();
+        const { state } = require("../state");
+        const {
+          initDownloadButton,
+          updateQueueDisplay,
+        } = require("../downloadManager");
+
+        state.downloadQueue = [
+          { url: "https://example.com/a", quality: "Source" },
+          { url: "https://example.com/b", quality: "Source" },
+          { url: "https://example.com/c", quality: "Source" },
+        ];
+        initDownloadButton();
+        updateQueueDisplay();
+
+        const handle = document.querySelector(
+          `[data-queue-drag-handle][data-index="${startIndex}"]`,
+        );
+        handle.focus();
+        handle.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key,
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+
+        expect(state.downloadQueue.map((item) => item.url)).toEqual(
+          expectedUrls,
+        );
+        expect(JSON.parse(localStorage.getItem("downloadQueue"))).toEqual(
+          state.downloadQueue,
+        );
+        expect(document.activeElement).toBe(
+          document.querySelector(
+            `[data-queue-drag-handle][data-index="${expectedIndex}"]`,
+          ),
+        );
+      });
+    },
+  );
+
+  it.each([
+    {
+      key: "ArrowUp",
+      startIndex: 1,
+      expectedUrls: [
+        "https://example.com/b",
+        "https://example.com/a",
+        "https://example.com/c",
+      ],
+      expectedIndex: 0,
+    },
+    {
+      key: "ArrowDown",
+      startIndex: 1,
+      expectedUrls: [
+        "https://example.com/a",
+        "https://example.com/c",
+        "https://example.com/b",
+      ],
+      expectedIndex: 2,
+    },
+  ])(
+    "moves a pending item with Alt+$key on its row and keeps row focus",
+    ({ key, startIndex, expectedUrls, expectedIndex }) => {
+      jest.isolateModules(() => {
+        mockQueueReorderDependencies();
+        const { state } = require("../state");
+        const {
+          initDownloadButton,
+          updateQueueDisplay,
+        } = require("../downloadManager");
+
+        state.downloadQueue = [
+          { url: "https://example.com/a", quality: "Source" },
+          { url: "https://example.com/b", quality: "Source" },
+          { url: "https://example.com/c", quality: "Source" },
+        ];
+        initDownloadButton();
+        updateQueueDisplay();
+
+        const row = document.querySelector(
+          `.queue-item[data-queue-pending-index="${startIndex}"]`,
+        );
+        row.focus();
+        row.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key,
+            altKey: true,
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+
+        expect(state.downloadQueue.map((item) => item.url)).toEqual(
+          expectedUrls,
+        );
+        expect(JSON.parse(localStorage.getItem("downloadQueue"))).toEqual(
+          state.downloadQueue,
+        );
+        expect(document.activeElement).toBe(
+          document.querySelector(
+            `.queue-item[data-queue-pending-index="${expectedIndex}"]`,
+          ),
+        );
+      });
+    },
+  );
+
+  it.each([
+    { selector: '[data-queue-drag-handle][data-index="0"]', key: "ArrowUp" },
+    { selector: '[data-queue-drag-handle][data-index="2"]', key: "ArrowDown" },
+    {
+      selector: '.queue-item[data-queue-pending-index="0"]',
+      key: "ArrowUp",
+      altKey: true,
+    },
+    {
+      selector: '.queue-item[data-queue-pending-index="2"]',
+      key: "ArrowDown",
+      altKey: true,
+    },
+  ])(
+    "does not reorder beyond pending queue boundaries for $key",
+    ({ selector, key, altKey = false }) => {
+      jest.isolateModules(() => {
+        mockQueueReorderDependencies();
+        const { state } = require("../state");
+        const {
+          initDownloadButton,
+          updateQueueDisplay,
+        } = require("../downloadManager");
+        const initialQueue = [
+          { url: "https://example.com/a", quality: "Source" },
+          { url: "https://example.com/b", quality: "Source" },
+          { url: "https://example.com/c", quality: "Source" },
+        ];
+
+        state.downloadQueue = initialQueue.map((item) => ({ ...item }));
+        initDownloadButton();
+        updateQueueDisplay();
+        localStorage.removeItem("downloadQueue");
+
+        const target = document.querySelector(selector);
+        target.focus();
+        target.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key,
+            altKey,
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+
+        expect(state.downloadQueue.map((item) => item.url)).toEqual(
+          initialQueue.map((item) => item.url),
+        );
+        expect(localStorage.getItem("downloadQueue")).toBeNull();
+        expect(document.activeElement).toBe(target);
+      });
+    },
+  );
 
   it("renders 200 queued items when queue reaches max size", () => {
     jest.isolateModules(() => {
@@ -4241,6 +4458,228 @@ describe("downloadManager completed job actions", () => {
         "error",
       );
       expect(state.completedDownloads).toHaveLength(1);
+    });
+  });
+});
+
+describe("downloadManager completed queue persistence", () => {
+  const completedJob = (overrides = {}) => ({
+    jobId: "done-persisted",
+    title: "Persisted download",
+    url: "https://example.com/persisted",
+    sourceUrl: "https://example.com/persisted",
+    quality: "Source",
+    status: "done",
+    filePath: "/tmp/persisted.mp4",
+    ...overrides,
+  });
+
+  const mockCompletedPersistenceDependencies = ({
+    confirmClear = false,
+  } = {}) => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueStartButton: document.getElementById("queue-start-button"),
+      queuePauseButton: document.getElementById("queue-pause-button"),
+      queueToggleButton: document.getElementById("queue-toggle-button"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      queueRetryTransientButton: document.getElementById(
+        "queue-retry-transient-button",
+      ),
+      queueClearFailedButton: document.getElementById(
+        "queue-clear-failed-button",
+      ),
+      queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+      queueRetryFailedButton: document.getElementById(
+        "queue-retry-failed-button",
+      ),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      addNewEntryToHistory: jest.fn(async () => {}),
+      updateDownloadCount: jest.fn(async () => {}),
+      getHistoryData: jest.fn(() => []),
+    }));
+    jest.doMock("../i18n", () => ({
+      getLanguage: jest.fn(() => "en"),
+      t: jest.fn((key, params = {}) =>
+        params.count === undefined ? key : `${key}:${params.count}`,
+      ),
+    }));
+    jest.doMock("../toast", () => ({
+      showLoading: jest.fn(),
+      showToast: jest.fn(),
+    }));
+    jest.doMock("../modals", () => ({
+      showConfirmationDialog: jest.fn().mockResolvedValue(confirmClear),
+    }));
+  };
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+    window.electron = {
+      invoke: jest.fn(),
+      ipcRenderer: { invoke: jest.fn() },
+      on: jest.fn(),
+    };
+  });
+
+  it("persists a successful download as a done job", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedPersistenceDependencies();
+      window.electron.invoke.mockImplementation(async (channel, url) => {
+        if (channel === "download-video") {
+          return {
+            fileName: "persisted.mp4",
+            filePath: "/tmp/persisted.mp4",
+            quality: "Source",
+            actualQuality: "Source",
+            sourceUrl: url,
+          };
+        }
+        if (channel === "get-icon-path") return "";
+        return {};
+      });
+
+      const { initiateDownload } = require("../downloadManager");
+      const { loadCompletedJobs } = require("../downloadQueuePersistence");
+
+      await initiateDownload("https://example.com/persisted", "Source");
+
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeTruthy();
+      expect(loadCompletedJobs()).toEqual([
+        expect.objectContaining({
+          url: "https://example.com/persisted",
+          status: "done",
+          filePath: "/tmp/persisted.mp4",
+        }),
+      ]);
+    });
+  });
+
+  it("restores completed jobs during initialization", () => {
+    jest.isolateModules(() => {
+      mockCompletedPersistenceDependencies();
+      const {
+        loadCompletedJobs,
+        persistCompletedJobs,
+      } = require("../downloadQueuePersistence");
+      persistCompletedJobs([completedJob()]);
+
+      const { state } = require("../state");
+      const { initDownloadButton } = require("../downloadManager");
+      initDownloadButton();
+
+      expect(state.completedDownloads).toEqual([
+        expect.objectContaining({
+          jobId: "done-persisted",
+          status: "done",
+          filePath: "/tmp/persisted.mp4",
+        }),
+      ]);
+      expect(loadCompletedJobs()).toHaveLength(1);
+      expect(document.querySelector("[data-queue-remove-done]")).toBeTruthy();
+    });
+  });
+
+  it("syncs completed storage after removing one job and clearing done", () => {
+    jest.isolateModules(() => {
+      mockCompletedPersistenceDependencies();
+      const {
+        loadCompletedJobs,
+        persistCompletedJobs,
+      } = require("../downloadQueuePersistence");
+      persistCompletedJobs([
+        completedJob(),
+        completedJob({
+          jobId: "done-second",
+          title: "Second download",
+          url: "https://example.com/second",
+          sourceUrl: "https://example.com/second",
+          filePath: "/tmp/second.mp4",
+        }),
+      ]);
+
+      const { initDownloadButton } = require("../downloadManager");
+      initDownloadButton();
+
+      document.querySelector("[data-queue-remove-done]").click();
+      expect(loadCompletedJobs()).toEqual([
+        expect.objectContaining({
+          jobId: "done-second",
+          status: "done",
+        }),
+      ]);
+
+      document.getElementById("queue-clear-done-button").click();
+      expect(loadCompletedJobs()).toEqual([]);
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+    });
+  });
+
+  it("clears completed storage when clearing the whole queue", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedPersistenceDependencies({ confirmClear: true });
+      const {
+        loadCompletedJobs,
+        persistCompletedJobs,
+      } = require("../downloadQueuePersistence");
+      persistCompletedJobs([
+        completedJob(),
+        completedJob({
+          jobId: "done-clear-all-second",
+          url: "https://example.com/clear-all-second",
+          sourceUrl: "https://example.com/clear-all-second",
+          filePath: "/tmp/clear-all-second.mp4",
+        }),
+      ]);
+
+      const { initDownloadButton } = require("../downloadManager");
+      initDownloadButton();
+
+      document.getElementById("queue-clear-button").click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(loadCompletedJobs()).toEqual([]);
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+    });
+  });
+
+  it("opens and reveals a restored completed job", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedPersistenceDependencies();
+      const { persistCompletedJobs } = require("../downloadQueuePersistence");
+      persistCompletedJobs([completedJob()]);
+      window.electron.invoke.mockImplementation(async (channel) => {
+        if (channel === "open-last-video") return { success: true };
+        return undefined;
+      });
+
+      const { initDownloadButton } = require("../downloadManager");
+      initDownloadButton();
+
+      document.querySelector("[data-queue-open-done]").click();
+      document.querySelector("[data-queue-reveal-done]").click();
+      await Promise.resolve();
+
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "open-last-video",
+        "/tmp/persisted.mp4",
+      );
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "open-download-folder",
+        "/tmp/persisted.mp4",
+      );
     });
   });
 });
