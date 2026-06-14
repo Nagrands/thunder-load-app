@@ -133,6 +133,7 @@ let lastQueueMarkup = "";
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
 const queuePumpReservations = new Set();
+const cancellingDownloadJobIds = new Set();
 let downloadPoolLoadingToast = null;
 let downloadPoolLoadingToastElement = null;
 let downloadPoolToastDismissed = false;
@@ -1194,6 +1195,12 @@ function updateQueueDisplay() {
   const totalVisible =
     activeCount + pendingCount + errorItems.length + doneCount;
   const hasQueueItems = totalVisible > 0;
+  const activeJobIds = new Set(
+    activeItems.map((item) => item.jobId || item.id).filter(Boolean),
+  );
+  for (const jobId of cancellingDownloadJobIds) {
+    if (!activeJobIds.has(jobId)) cancellingDownloadJobIds.delete(jobId);
+  }
 
   state.queuePaused = Boolean(state.suppressAutoPump);
 
@@ -1345,6 +1352,7 @@ function updateQueueDisplay() {
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);
     const isDownloading = item.status === "downloading";
+    const isActiveGroup = group === "active";
     const isPendingGroup = group === "pending";
     const isDoneGroup = group === "done";
     const hasFilePath = Boolean(item.filePath);
@@ -1371,6 +1379,11 @@ function updateQueueDisplay() {
           ${kindLabel ? `<span class="queue-kind-chip">${escapeQueueHtml(kindLabel)}</span>` : ""}
           <span class="queue-quality-chip">${escapeQueueHtml(qualityLabel)}</span>
           <div class="queue-item-actions queue-hover-controls">
+            ${
+              isActiveGroup && item.jobId
+                ? `<button type="button" class="queue-item-cancel" data-queue-cancel-job="1" data-job-id="${escapeQueueHtml(item.jobId)}" title="${t("queue.item.cancel.title")}" aria-label="${t("queue.item.cancel.title")}" ${cancellingDownloadJobIds.has(item.jobId) ? 'disabled aria-busy="true"' : ""}><i data-lucide="square-x"></i></button>`
+                : ""
+            }
             ${
               isPendingGroup
                 ? `<button type="button" class="queue-item-move" data-queue-move="up" data-index="${pendingIndex}" title="${t("queue.item.moveUp.title")}" aria-label="${t("queue.item.moveUp.title")}" ${isFirst ? "disabled" : ""}><i data-lucide="chevron-up"></i></button>
@@ -2484,6 +2497,34 @@ function initDownloadButton() {
     });
 
     queueList.addEventListener("click", (e) => {
+      const cancelJobButton = e.target.closest("[data-queue-cancel-job]");
+      if (cancelJobButton) {
+        const jobId = String(cancelJobButton.dataset.jobId || "").trim();
+        if (!jobId || cancellingDownloadJobIds.has(jobId)) return;
+        cancellingDownloadJobIds.add(jobId);
+        updateQueueDisplay();
+        void window.electron
+          .invoke("cancel-download-job", { jobId })
+          .then((result) => {
+            if (!result?.success) {
+              throw new Error(result?.error || "Cancel failed");
+            }
+            if (result.cancelled) {
+              showToast(t("queue.item.cancelled"), "info");
+              return;
+            }
+            cancellingDownloadJobIds.delete(jobId);
+            updateQueueDisplay();
+          })
+          .catch((error) => {
+            console.error("Error cancelling queue download:", error);
+            cancellingDownloadJobIds.delete(jobId);
+            updateQueueDisplay();
+            showToast(t("queue.item.cancel.failed"), "error");
+          });
+        return;
+      }
+
       const doneActionButton = e.target.closest(
         "[data-queue-open-done], [data-queue-reveal-done]",
       );

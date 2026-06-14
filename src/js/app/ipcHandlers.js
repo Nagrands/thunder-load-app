@@ -4400,6 +4400,47 @@ function setupIpcHandlers(dependencies) {
     },
   );
 
+  ipcMain.handle(CHANNELS.CANCEL_DOWNLOAD_JOB, async (_event, payload) => {
+    const payloadPrototype =
+      payload !== null && typeof payload === "object"
+        ? Object.getPrototypeOf(payload)
+        : null;
+    const isPlainObject =
+      payload !== null &&
+      (payloadPrototype === Object.prototype || payloadPrototype === null);
+    const jobId = isPlainObject ? payload.jobId : null;
+
+    if (typeof jobId !== "string" || jobId.trim().length === 0) {
+      return {
+        success: false,
+        errorCode: "INVALID_JOB_ID",
+        error: "jobId must be a non-empty string",
+      };
+    }
+
+    const entry = downloadState.activeDownloads?.get(jobId);
+    if (!entry?.token) {
+      return {
+        success: true,
+        jobId,
+        cancelled: false,
+        reason: "not-active",
+      };
+    }
+
+    try {
+      const cancelled = await stopDownload(entry.token);
+      return { success: true, jobId, cancelled: Number(cancelled) > 0 };
+    } catch (error) {
+      return {
+        success: false,
+        jobId,
+        errorCode: "CANCEL_FAILED",
+        error: error.message,
+      };
+    }
+  });
+
   ipcMain.handle(CHANNELS.STOP_DOWNLOAD, async () => {
     console.log("A request to stop download was received.");
     try {

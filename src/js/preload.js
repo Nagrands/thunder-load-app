@@ -100,6 +100,7 @@ try {
     "set-open-on-download-complete-status",
     "set-theme",
     "show-system-notification",
+    "cancel-download-job",
     "stop-download",
     "toast",
     "toggle-auto-launch",

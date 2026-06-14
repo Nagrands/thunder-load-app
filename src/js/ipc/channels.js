@@ -68,6 +68,7 @@ const CHANNELS = Object.freeze({
   SET_OPEN_ON_DOWNLOAD_COMPLETE_STATUS: "set-open-on-download-complete-status",
   SET_THEME: "set-theme",
   SHOW_SYSTEM_NOTIFICATION: "show-system-notification",
+  CANCEL_DOWNLOAD_JOB: "cancel-download-job",
   STOP_DOWNLOAD: "stop-download",
   TOAST: "toast",
   TOGGLE_AUTO_LAUNCH: "toggle-auto-launch",

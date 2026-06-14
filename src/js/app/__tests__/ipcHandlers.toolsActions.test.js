@@ -1936,7 +1936,10 @@ describe("ipcHandlers download pool", () => {
     jest.clearAllMocks();
   });
 
-  function initHandlers({ storeValues = {} } = {}) {
+  function initHandlers({
+    storeValues = {},
+    downloadState = { downloadPath: "/tmp", downloadInProgress: false },
+  } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
     const setReloadMenuEnabled = jest.fn();
     const mainWindow = {
@@ -1958,7 +1961,7 @@ describe("ipcHandlers download pool", () => {
         set: jest.fn(),
         delete: jest.fn(),
       },
-      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
+      downloadState,
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
       setDownloadPath: jest.fn(),
       historyFilePath: path.join(os.tmpdir(), "history.json"),
@@ -1973,7 +1976,7 @@ describe("ipcHandlers download pool", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { mainWindow, setReloadMenuEnabled };
+    return { mainWindow, setReloadMenuEnabled, downloadState };
   }
 
   const deferred = () => {
@@ -2386,7 +2389,116 @@ describe("ipcHandlers download pool", () => {
     expect(send).not.toHaveBeenCalledWith("toast", expect.any(String), "error");
   });
 
-  test("STOP_DOWNLOAD cancels all active tokens", async () => {
+  test("CANCEL_DOWNLOAD_JOB cancels only the targeted active job", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const tokenA = { cancelled: false };
+    const tokenB = { cancelled: false };
+    const activeDownloads = new Map([
+      ["job-a", { token: tokenA }],
+      ["job-b", { token: tokenB }],
+    ]);
+    download.stopDownload.mockResolvedValue(1);
+    initHandlers({
+      downloadState: {
+        downloadPath: "/tmp",
+        downloadInProgress: true,
+        activeDownloads,
+      },
+    });
+
+    const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, {
+      jobId: "job-b",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      jobId: "job-b",
+      cancelled: true,
+    });
+    expect(download.stopDownload).toHaveBeenCalledTimes(1);
+    expect(download.stopDownload).toHaveBeenCalledWith(tokenB);
+    expect(activeDownloads).toEqual(
+      new Map([
+        ["job-a", { token: tokenA }],
+        ["job-b", { token: tokenB }],
+      ]),
+    );
+  });
+
+  test("CANCEL_DOWNLOAD_JOB is idempotent for an unknown job", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    initHandlers({
+      downloadState: {
+        downloadPath: "/tmp",
+        downloadInProgress: false,
+        activeDownloads: new Map(),
+      },
+    });
+
+    const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, {
+      jobId: "missing-job",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      jobId: "missing-job",
+      cancelled: false,
+      reason: "not-active",
+    });
+    expect(download.stopDownload).not.toHaveBeenCalled();
+  });
+
+  test("CANCEL_DOWNLOAD_JOB returns a structured cancellation error", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    const token = { cancelled: false };
+    download.stopDownload.mockRejectedValue(new Error("Cancel failed"));
+    initHandlers({
+      downloadState: {
+        downloadPath: "/tmp",
+        downloadInProgress: true,
+        activeDownloads: new Map([["job-a", { token }]]),
+      },
+    });
+
+    const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, {
+      jobId: "job-a",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      jobId: "job-a",
+      errorCode: "CANCEL_FAILED",
+      error: "Cancel failed",
+    });
+  });
+
+  test.each([
+    null,
+    [],
+    "job-a",
+    {},
+    { jobId: null },
+    { jobId: "" },
+    { jobId: "   " },
+  ])("CANCEL_DOWNLOAD_JOB rejects invalid payload %#", async (payload) => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const download = require("../../scripts/download.js");
+    initHandlers();
+
+    const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, payload);
+
+    expect(result).toEqual({
+      success: false,
+      errorCode: "INVALID_JOB_ID",
+      error: "jobId must be a non-empty string",
+    });
+    expect(download.stopDownload).not.toHaveBeenCalled();
+  });
+
+  test("STOP_DOWNLOAD still cancels all active tokens", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");
     const { getToolsVersions } = require("../toolsVersions");

@@ -4683,3 +4683,191 @@ describe("downloadManager completed queue persistence", () => {
     });
   });
 });
+
+describe("downloadManager active job cancellation", () => {
+  const deferred = () => {
+    let resolve;
+    const promise = new Promise((res) => {
+      resolve = res;
+    });
+    return { promise, resolve };
+  };
+
+  const mockActiveCancellationDependencies = () => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueStartButton: document.getElementById("queue-start-button"),
+      queuePauseButton: document.getElementById("queue-pause-button"),
+      queueToggleButton: document.getElementById("queue-toggle-button"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      queueRetryTransientButton: document.getElementById(
+        "queue-retry-transient-button",
+      ),
+      queueClearFailedButton: document.getElementById(
+        "queue-clear-failed-button",
+      ),
+      queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+      queueRetryFailedButton: document.getElementById(
+        "queue-retry-failed-button",
+      ),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      addNewEntryToHistory: jest.fn(async () => {}),
+      updateDownloadCount: jest.fn(async () => {}),
+      getHistoryData: jest.fn(() => []),
+    }));
+    jest.doMock("../i18n", () => ({
+      getLanguage: jest.fn(() => "en"),
+      t: jest.fn((key) => key),
+    }));
+    jest.doMock("../toast", () => ({
+      showLoading: jest.fn(),
+      showToast: jest.fn(),
+    }));
+    jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+  };
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+  });
+
+  it.each([
+    ["continues the pending pool when unpaused", false, 1],
+    ["does not continue the pending pool when paused", true, 0],
+  ])("%s", async (_label, paused, expectedPendingCalls) => {
+    await jest.isolateModulesAsync(async () => {
+      const cancelledDownload = deferred();
+      const neighbouringDownload = deferred();
+      const pendingDownload = deferred();
+      const cancelRequest = deferred();
+      const targetUrl = "https://example.com/cancel-target";
+      const neighbourUrl = "https://example.com/cancel-neighbour";
+      const pendingUrl = "https://example.com/cancel-pending";
+      const downloads = new Map([
+        [targetUrl, cancelledDownload],
+        [neighbourUrl, neighbouringDownload],
+        [pendingUrl, pendingDownload],
+      ]);
+
+      window.electron = {
+        invoke: jest.fn((channel, url) => {
+          if (channel === "download-video") return downloads.get(url).promise;
+          if (channel === "cancel-download-job") return cancelRequest.promise;
+          if (channel === "get-icon-path") return Promise.resolve("");
+          if (channel === "cache-history-preview") {
+            return Promise.resolve({ success: false });
+          }
+          return Promise.resolve({});
+        }),
+        ipcRenderer: {
+          invoke: jest.fn(async (_channel, url) => ({
+            success: true,
+            title: `Title ${url}`,
+          })),
+        },
+        on: jest.fn(),
+      };
+      mockActiveCancellationDependencies();
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        initiateDownload,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+
+      initDownloadButton();
+      state.maxParallelDownloads = 2;
+      const targetPromise = initiateDownload(targetUrl, "Source");
+      const neighbourPromise = initiateDownload(neighbourUrl, "Source");
+      await Promise.resolve();
+
+      state.downloadJobs.push({
+        id: "pending-cancel-test",
+        jobId: "pending-cancel-test",
+        url: pendingUrl,
+        quality: "Source",
+        status: paused ? "paused" : "pending",
+      });
+      state.suppressAutoPump = paused;
+      state.queuePaused = paused;
+      updateQueueDisplay();
+      expect(
+        state.downloadJobs.some(
+          (job) =>
+            job.url === pendingUrl &&
+            (job.status === "pending" || job.status === "paused"),
+        ),
+      ).toBe(true);
+
+      const targetJob = state.activeDownloads.find(
+        (job) => job.url === targetUrl,
+      );
+      const cancelButton = Array.from(
+        document.querySelectorAll("[data-queue-cancel-job]"),
+      ).find((button) => button.dataset.jobId === targetJob.jobId);
+
+      expect(cancelButton).toBeTruthy();
+      cancelButton.click();
+      document
+        .querySelector(`[data-job-id="${targetJob.jobId}"]`)
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "cancel-download-job",
+        { jobId: targetJob.jobId },
+      );
+      expect(
+        window.electron.invoke.mock.calls.filter(
+          ([channel]) => channel === "cancel-download-job",
+        ),
+      ).toHaveLength(1);
+
+      cancelRequest.resolve({ success: true, cancelled: true });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(state.activeDownloads).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ jobId: targetJob.jobId, url: targetUrl }),
+          expect.objectContaining({ url: neighbourUrl }),
+        ]),
+      );
+
+      cancelledDownload.resolve({ cancelled: true });
+      await targetPromise;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(
+        state.activeDownloads.some((job) => job.jobId === targetJob.jobId),
+      ).toBe(false);
+      expect(
+        state.activeDownloads.some((job) => job.url === neighbourUrl),
+      ).toBe(true);
+      expect(
+        window.electron.invoke.mock.calls.filter(
+          ([channel, url]) =>
+            channel === "download-video" && url === pendingUrl,
+        ),
+      ).toHaveLength(expectedPendingCalls);
+
+      neighbouringDownload.resolve({ cancelled: true });
+      await neighbourPromise;
+      if (expectedPendingCalls) {
+        pendingDownload.resolve({ cancelled: true });
+        await Promise.resolve();
+      }
+    });
+  });
+});

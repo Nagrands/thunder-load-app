@@ -15,3 +15,4 @@
 | Completed downloads are now preserved                | The latest 30 completed files remain available in the queue after restarting the app                           |
 | Keyboard queue controls were added                    | Pending jobs can be reordered from the drag handle or with Alt and the arrow keys                              |
 | Queue source width was fixed                          | The YouTube badge no longer stretches across active download rows                                               |
+| Individual download cancellation was added            | An active job can be stopped without interrupting other parallel downloads                                     |
