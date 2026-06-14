@@ -137,5 +137,4 @@ describe("TabSystem", () => {
         ?.classList.contains("active"),
     ).toBe(true);
   });
-
 });

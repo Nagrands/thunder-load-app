@@ -56,9 +56,9 @@ describe("toast safe html rendering", () => {
     expect(toast?.classList.contains("toast-accent-warning")).toBe(true);
     expect(toast?.querySelector(".toast-title")?.textContent).toBe("History");
 
-    toast?.querySelector("#undo-action")?.dispatchEvent(
-      new MouseEvent("click", { bubbles: true }),
-    );
+    toast
+      ?.querySelector("#undo-action")
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onUndo).toHaveBeenCalledTimes(1);
   });
 
@@ -115,9 +115,9 @@ describe("toast safe html rendering", () => {
   it("closes from the icon button and Escape", () => {
     jest.useFakeTimers();
     const first = showToast("Closable", "info", 1000);
-    first?.querySelector(".toast-close")?.dispatchEvent(
-      new MouseEvent("click", { bubbles: true }),
-    );
+    first
+      ?.querySelector(".toast-close")
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(first?.classList.contains("hide")).toBe(true);
     jest.advanceTimersByTime(220);
     expect(document.querySelectorAll(".toast")).toHaveLength(0);

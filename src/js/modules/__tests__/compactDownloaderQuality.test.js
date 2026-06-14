@@ -46,9 +46,10 @@ describe("compactDownloaderQuality", () => {
 
   it("persists compact view mode and applies shell classes", async () => {
     await jest.isolateModulesAsync(async () => {
-      const { initCompactDownloaderQuality, isCompactDownloaderMode } = require(
-        "../compactDownloaderQuality",
-      );
+      const {
+        initCompactDownloaderQuality,
+        isCompactDownloaderMode,
+      } = require("../compactDownloaderQuality");
       initCompactDownloaderQuality();
 
       document.getElementById("downloader-view-compact").click();
@@ -124,12 +125,12 @@ describe("compactDownloaderQuality", () => {
         }),
       );
 
-      expect(document.getElementById("compact-video-quality").options.length).toBe(
-        2,
-      );
-      expect(document.getElementById("compact-audio-quality").textContent).toContain(
-        "MP3",
-      );
+      expect(
+        document.getElementById("compact-video-quality").options.length,
+      ).toBe(2);
+      expect(
+        document.getElementById("compact-audio-quality").textContent,
+      ).toContain("MP3");
       expect(
         Array.from(document.querySelectorAll(".compact-quality-field")).every(
           (field) => !field.hidden,
@@ -149,9 +150,10 @@ describe("compactDownloaderQuality", () => {
 
   it("hides quality selectors again when preview formats are missing", async () => {
     await jest.isolateModulesAsync(async () => {
-      const { PREVIEW_EVENT, initCompactDownloaderQuality } = require(
-        "../compactDownloaderQuality",
-      );
+      const {
+        PREVIEW_EVENT,
+        initCompactDownloaderQuality,
+      } = require("../compactDownloaderQuality");
       initCompactDownloaderQuality();
 
       window.dispatchEvent(
@@ -188,12 +190,12 @@ describe("compactDownloaderQuality", () => {
           (field) => field.hidden,
         ),
       ).toBe(true);
-      expect(document.getElementById("compact-video-quality").options.length).toBe(
-        0,
-      );
-      expect(document.getElementById("compact-audio-quality").options.length).toBe(
-        0,
-      );
+      expect(
+        document.getElementById("compact-video-quality").options.length,
+      ).toBe(0);
+      expect(
+        document.getElementById("compact-audio-quality").options.length,
+      ).toBe(0);
     });
   });
 });

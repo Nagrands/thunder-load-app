@@ -14259,10 +14259,6 @@ body.is-mac .window-controls .btn-minimize {
   gap: 5px;
   align-content: center;
 }
-#preview-card.preview-card.is-collapsed .preview-title,
-.preview-card.preview-card.is-collapsed .preview-title {
-  -webkit-line-clamp: 1;
-}
 #preview-card.preview-card.is-collapsed .preview-card__controls,
 .preview-card.preview-card.is-collapsed .preview-card__controls {
   top: 50%;
@@ -20412,7 +20408,6 @@ hr {
   border-radius: var(--border-radius);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
   color: var(--color-quality);
-  font-size: 12px;
 }
 .settings-tabs .tabs-footer .tabs-footer-row {
   display: flex;
@@ -20614,9 +20609,6 @@ hr {
 }
 .settings-modal .settings-card__body {
   min-width: 0;
-}
-.settings-modal .settings-card__intro {
-  display: grid;
 }
 .settings-modal #about-settings .settings-grid {
   grid-template-columns: 1fr;
@@ -21354,9 +21346,6 @@ hr {
   font-size: 12px;
   line-height: 1.45;
 }
-.settings-modal .settings-card__intro {
-  padding-bottom: 6px;
-}
 .settings-modal .settings-card__eyebrow,
 .settings-modal .settings-general-hero,
 .settings-modal .settings-general-hero__eyebrow,
@@ -21492,9 +21481,6 @@ hr {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.025);
-}
-.settings-modal #appearance-settings .settings-card__intro {
-  gap: 2px;
 }
 .settings-modal #appearance-settings .settings-card__title {
   font-size: 14px;
@@ -25171,6 +25157,7 @@ video {
 .downloader-view .downloader-action-row > * {
   min-width: 0;
   justify-self: stretch;
+  gap: 12px;
 }
 .downloader-view .downloader-action-row__primary {
   display: grid;

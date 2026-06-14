@@ -125,7 +125,14 @@
   .wg-glass {
     @include backup-glass-panel();
     padding: 0;
-    background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(var(--color-accent-rgb), 0.12),
+        rgba(255, 255, 255, 0.015) 38%,
+        rgba(255, 255, 255, 0.03) 100%
+      ),
+      rgba(12, 16, 24, 0.76);
   }
 
   // .backup-shell-header {
@@ -924,7 +931,13 @@
 
         select.input {
           flex: 1;
-          @include mixins.native-select-control(40px, 12px, 8px 40px 8px 12px, 0.88rem, 700);
+          @include mixins.native-select-control(
+            40px,
+            12px,
+            8px 40px 8px 12px,
+            0.88rem,
+            700
+          );
           background-clip: padding-box;
           cursor: pointer;
 
@@ -1317,7 +1330,6 @@
         box-shadow: 0 2px 8px rgba(120, 180, 255, 0.12);
       }
     }
-
 
     // Autofill Fix
     input:-webkit-autofill,
@@ -2331,8 +2343,6 @@ h1.section-heading {
     opacity: 0.6;
   }
 }
-
-
 
 // Адаптивность для мобильных устройств
 @media (max-width: 640px) {

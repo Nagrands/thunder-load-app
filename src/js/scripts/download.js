@@ -1477,7 +1477,10 @@ function buildYtDlpVideoInfoArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
   return args;
 }
 
-function buildYtDlpVideoPreviewArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
+function buildYtDlpVideoPreviewArgs(
+  url,
+  ffmpegDir = resolveRuntimeFfmpegDir(),
+) {
   const args = [
     "-J",
     url,

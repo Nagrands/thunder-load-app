@@ -29,9 +29,11 @@ const getInvoke = () =>
 const getTtl = (info) =>
   info?.is_live || info?.live_status ? LIVE_TTL_MS : DEFAULT_TTL_MS;
 
-const isFresh = (entry) => Boolean(entry && Date.now() - entry.createdAt < entry.ttl);
+const isFresh = (entry) =>
+  Boolean(entry && Date.now() - entry.createdAt < entry.ttl);
 
-const hasFormats = (info) => Array.isArray(info?.formats) && info.formats.length > 0;
+const hasFormats = (info) =>
+  Array.isArray(info?.formats) && info.formats.length > 0;
 
 const toPreviewInfo = (info) => {
   if (!info) return info;

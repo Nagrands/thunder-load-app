@@ -644,7 +644,9 @@ describe("downloadManager enqueueOnly behavior", () => {
       }));
       jest.doMock("../compactDownloaderQuality", () => ({
         isCompactDownloaderMode: jest.fn(() => true),
-        resolveCompactQualityPayload: jest.fn().mockResolvedValue(compactPayload),
+        resolveCompactQualityPayload: jest
+          .fn()
+          .mockResolvedValue(compactPayload),
       }));
       window.electron.invoke.mockResolvedValue({
         fileName: "Video",
@@ -656,7 +658,9 @@ describe("downloadManager enqueueOnly behavior", () => {
 
       const { handleDownloadButtonClick } = require("../downloadManager");
       const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const { resolveCompactQualityPayload } = require("../compactDownloaderQuality");
+      const {
+        resolveCompactQualityPayload,
+      } = require("../compactDownloaderQuality");
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/compact";
 
@@ -702,7 +706,9 @@ describe("downloadManager enqueueOnly behavior", () => {
 
       const { handleDownloadButtonClick } = require("../downloadManager");
       const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const { resolveCompactQualityPayload } = require("../compactDownloaderQuality");
+      const {
+        resolveCompactQualityPayload,
+      } = require("../compactDownloaderQuality");
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/auto";
 
@@ -1452,7 +1458,7 @@ describe("downloadManager queue smart logic", () => {
       updateQueueDisplay();
 
       const downBtn = document.querySelector(
-        '.queue-item-actions [data-queue-move="down"][data-index="0"]',
+        '.queue-item[data-queue-pending-index="0"] [data-queue-move="down"]',
       );
       const pendingRow = document.querySelector("#queue-list li");
       expect(pendingRow?.querySelector(".queue-quality-chip")).toBeTruthy();
@@ -1460,7 +1466,7 @@ describe("downloadManager queue smart logic", () => {
       expect(state.downloadQueue[0].url).toBe("https://example.com/b");
 
       const upBtn = document.querySelector(
-        '.queue-item-actions [data-queue-move="up"][data-index="1"]',
+        '.queue-item[data-queue-pending-index="1"] [data-queue-move="up"]',
       );
       upBtn.click();
       expect(state.downloadQueue[0].url).toBe("https://example.com/a");
@@ -1522,7 +1528,9 @@ describe("downloadManager queue smart logic", () => {
         value: dataTransfer,
       });
       document
-        .querySelector('[data-queue-drag-handle][data-index="2"]')
+        .querySelector(
+          '.queue-item[data-queue-pending-index="2"] [data-queue-drag-handle]',
+        )
         .dispatchEvent(dragStart);
 
       const firstRow = document.querySelector(
@@ -1547,7 +1555,10 @@ describe("downloadManager queue smart logic", () => {
         "https://example.com/a",
         "https://example.com/b",
       ]);
-      expect(dataTransfer.setData).toHaveBeenCalledWith("text/plain", "2");
+      expect(dataTransfer.setData).toHaveBeenCalledWith(
+        "text/plain",
+        expect.stringContaining("https://example.com/c"),
+      );
     });
   });
 
@@ -1592,7 +1603,7 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay();
 
         const handle = document.querySelector(
-          `[data-queue-drag-handle][data-index="${startIndex}"]`,
+          `.queue-item[data-queue-pending-index="${startIndex}"] [data-queue-drag-handle]`,
         );
         handle.focus();
         handle.dispatchEvent(
@@ -1611,7 +1622,7 @@ describe("downloadManager queue smart logic", () => {
         );
         expect(document.activeElement).toBe(
           document.querySelector(
-            `[data-queue-drag-handle][data-index="${expectedIndex}"]`,
+            `.queue-item[data-queue-pending-index="${expectedIndex}"] [data-queue-drag-handle]`,
           ),
         );
       });
@@ -1687,8 +1698,16 @@ describe("downloadManager queue smart logic", () => {
   );
 
   it.each([
-    { selector: '[data-queue-drag-handle][data-index="0"]', key: "ArrowUp" },
-    { selector: '[data-queue-drag-handle][data-index="2"]', key: "ArrowDown" },
+    {
+      selector:
+        '.queue-item[data-queue-pending-index="0"] [data-queue-drag-handle]',
+      key: "ArrowUp",
+    },
+    {
+      selector:
+        '.queue-item[data-queue-pending-index="2"] [data-queue-drag-handle]',
+      key: "ArrowDown",
+    },
     {
       selector: '.queue-item[data-queue-pending-index="0"]',
       key: "ArrowUp",
@@ -1739,6 +1758,55 @@ describe("downloadManager queue smart logic", () => {
       });
     },
   );
+
+  it("removes the intended pending job when state changes before click", () => {
+    jest.isolateModules(() => {
+      mockQueueReorderDependencies();
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+
+      state.downloadQueue = [
+        {
+          jobId: "pending-a",
+          url: "https://example.com/a",
+          quality: "Source",
+        },
+        {
+          jobId: "pending-b",
+          url: "https://example.com/b",
+          quality: "Source",
+        },
+      ];
+      initDownloadButton();
+      updateQueueDisplay();
+
+      const removeButton = document.querySelector(
+        '[data-queue-remove][data-job-id="pending-b"]',
+      );
+      expect(removeButton).toBeTruthy();
+      expect(removeButton.hasAttribute("data-index")).toBe(false);
+
+      state.downloadJobs.unshift({
+        id: "pending-inserted",
+        jobId: "pending-inserted",
+        url: "https://example.com/inserted",
+        quality: "Source",
+        signature: "pending-inserted",
+        status: "pending",
+      });
+      removeButton.click();
+
+      expect(state.downloadJobs.some((job) => job.jobId === "pending-b")).toBe(
+        false,
+      );
+      expect(
+        state.downloadJobs.some((job) => job.jobId === "pending-inserted"),
+      ).toBe(true);
+    });
+  });
 
   it("renders 200 queued items when queue reaches max size", () => {
     jest.isolateModules(() => {
@@ -4017,33 +4085,36 @@ describe("downloadManager pool loading toast", () => {
   it.each([
     ["error", { success: false, errorCode: "UNKNOWN", retryable: true }],
     ["cancel", { cancelled: true }],
-  ])("does not show success when the session ends with %s", async (_label, response) => {
-    await jest.isolateModulesAsync(async () => {
-      const showLoading = jest.fn(() => ({
-        close: jest.fn(),
-        update: jest.fn(),
-      }));
-      window.electron = {
-        invoke: jest.fn(async (channel) => {
-          if (channel === "download-video") return response;
-          return {};
-        }),
-        ipcRenderer: { invoke: jest.fn() },
-        on: jest.fn(),
-      };
-      mockDependencies(showLoading);
+  ])(
+    "does not show success when the session ends with %s",
+    async (_label, response) => {
+      await jest.isolateModulesAsync(async () => {
+        const showLoading = jest.fn(() => ({
+          close: jest.fn(),
+          update: jest.fn(),
+        }));
+        window.electron = {
+          invoke: jest.fn(async (channel) => {
+            if (channel === "download-video") return response;
+            return {};
+          }),
+          ipcRenderer: { invoke: jest.fn() },
+          on: jest.fn(),
+        };
+        mockDependencies(showLoading);
 
-      const { showToast } = require("../toast");
-      const { initiateDownload } = require("../downloadManager");
-      await initiateDownload("https://example.com/result", "Source");
-      expect(showToast).not.toHaveBeenCalledWith(
-        "download.complete.sessionMessage",
-        "success",
-        5500,
-        "download.complete.title",
-      );
-    });
-  });
+        const { showToast } = require("../toast");
+        const { initiateDownload } = require("../downloadManager");
+        await initiateDownload("https://example.com/result", "Source");
+        expect(showToast).not.toHaveBeenCalledWith(
+          "download.complete.sessionMessage",
+          "success",
+          5500,
+          "download.complete.title",
+        );
+      });
+    },
+  );
 
   it("keeps the same toast during queue handoff", async () => {
     await jest.isolateModulesAsync(async () => {
@@ -4465,6 +4536,64 @@ describe("downloadManager completed job actions", () => {
         "error",
       );
       expect(state.completedDownloads).toHaveLength(1);
+    });
+  });
+
+  it("opens the intended completed job when state changes before click", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedJobDependencies();
+      window.electron.invoke.mockResolvedValue({ success: true });
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+      state.downloadJobs = [
+        {
+          id: "done-first",
+          jobId: "done-first",
+          url: "https://example.com/first",
+          quality: "Source",
+          signature: "done-first",
+          status: "done",
+          filePath: "/tmp/first.mp4",
+        },
+        {
+          id: "done-target",
+          jobId: "done-target",
+          url: "https://example.com/target",
+          quality: "Source",
+          signature: "done-target",
+          status: "done",
+          filePath: "/tmp/target.mp4",
+        },
+      ];
+
+      initDownloadButton();
+      updateQueueDisplay();
+      const openButton = document.querySelector(
+        '[data-queue-open-done][data-job-id="done-target"]',
+      );
+      expect(openButton).toBeTruthy();
+      expect(openButton.hasAttribute("data-index")).toBe(false);
+
+      state.downloadJobs.unshift({
+        id: "done-inserted",
+        jobId: "done-inserted",
+        url: "https://example.com/inserted",
+        quality: "Source",
+        signature: "done-inserted",
+        status: "done",
+        filePath: "/tmp/inserted.mp4",
+      });
+      openButton.click();
+      await Promise.resolve();
+
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "open-last-video",
+        "/tmp/target.mp4",
+      );
     });
   });
 });
@@ -4900,9 +5029,7 @@ describe("downloadManager queue filters", () => {
         enqueueButton: document.getElementById("enqueue-button"),
         downloadCancelButton: document.getElementById("download-cancel"),
         buttonText: document.querySelector(".button-text"),
-        progressBarContainer: document.getElementById(
-          "progress-bar-container",
-        ),
+        progressBarContainer: document.getElementById("progress-bar-container"),
         progressBar: document.getElementById("progress-bar"),
         openLastVideoButton: document.getElementById("open-last-video"),
         queueStartButton: document.getElementById("queue-start-button"),

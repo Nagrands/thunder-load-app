@@ -547,7 +547,13 @@
     select {
       width: 100%;
       min-width: 0;
-      @include mixins.native-select-control(32px, 10px, 0 34px 0 10px, 13px, 700);
+      @include mixins.native-select-control(
+        32px,
+        10px,
+        0 34px 0 10px,
+        13px,
+        700
+      );
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -812,7 +818,14 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
   border: 1px solid rgba(255, 255, 255, 0.09);
   transition:
     box-shadow 0.2s ease,
@@ -1510,7 +1523,13 @@
 
   select {
     min-width: 92px;
-    @include mixins.native-select-control(34px, 10px, 4px 34px 4px 12px, 0.84rem, 700);
+    @include mixins.native-select-control(
+      34px,
+      10px,
+      4px 34px 4px 12px,
+      0.84rem,
+      700
+    );
   }
 }
 
@@ -2807,7 +2826,14 @@
   min-height: 34px;
   border-radius: 9px;
   border-color: var(--color-hover);
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
 }
 
 .history-row__action:hover:not(:disabled),

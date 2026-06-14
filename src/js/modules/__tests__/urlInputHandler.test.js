@@ -541,13 +541,10 @@ describe("urlInputHandler", () => {
     input.value = "https://youtube.com/watch?v=warm-new";
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
-    expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "cancel-video-info-request",
-      {
-        url: "https://youtube.com/watch?v=warm-old",
-        previewOnly: false,
-      },
-    );
+    expect(getVideoInfoMock).toHaveBeenCalledWith("cancel-video-info-request", {
+      url: "https://youtube.com/watch?v=warm-old",
+      previewOnly: false,
+    });
   });
 
   test("auto-opens quality selection when yt-dlp returns preview only in thumbnails", async () => {
@@ -753,25 +750,28 @@ describe("urlInputHandler", () => {
     input.value = "https://youtube.com/watch?v=new";
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
-    expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "cancel-video-info-request",
-      {
-        url: "https://youtube.com/watch?v=old",
-        previewOnly: true,
-      },
-    );
+    expect(getVideoInfoMock).toHaveBeenCalledWith("cancel-video-info-request", {
+      url: "https://youtube.com/watch?v=old",
+      previewOnly: true,
+    });
   });
 
   test("ignores stale preview response after rapid URL replacement", async () => {
     const { input, previewCard } = getState();
     let resolveOldPreview;
     getVideoInfoMock.mockImplementation((channel, url) => {
-      if (channel === "get-video-preview" && url === "https://example.com/old") {
+      if (
+        channel === "get-video-preview" &&
+        url === "https://example.com/old"
+      ) {
         return new Promise((resolve) => {
           resolveOldPreview = resolve;
         });
       }
-      if (channel === "get-video-preview" && url === "https://example.com/new") {
+      if (
+        channel === "get-video-preview" &&
+        url === "https://example.com/new"
+      ) {
         return Promise.resolve({
           success: true,
           title: "New preview",
@@ -1150,12 +1150,12 @@ describe("urlInputHandler", () => {
     expect(document.getElementById("preview-duration").textContent).toContain(
       "3:24",
     );
-    expect(document.getElementById("preview-duration-overlay").textContent).toBe(
-      "",
-    );
-    expect(document.getElementById("preview-duration-overlay").classList).toContain(
-      "hidden",
-    );
+    expect(
+      document.getElementById("preview-duration-overlay").textContent,
+    ).toBe("");
+    expect(
+      document.getElementById("preview-duration-overlay").classList,
+    ).toContain("hidden");
     expect(document.getElementById("preview-source").textContent).toContain(
       "YouTube",
     );

@@ -17,7 +17,8 @@ export const coreTranslations = {
     "topbar.action.github": "GitHub",
     "topbar.action.reload": "Обновить",
     "topbar.reload": "Обновить окно",
-    "topbar.reload.disabled": "Обновление недоступно во время активной загрузки",
+    "topbar.reload.disabled":
+      "Обновление недоступно во время активной загрузки",
     "topbar.minimize": "Свернуть",
     "topbar.close": "Закрыть",
     "footer.kicker": "Thunder Load",

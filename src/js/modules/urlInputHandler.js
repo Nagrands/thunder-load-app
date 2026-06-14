@@ -276,7 +276,8 @@ function initUrlInputHandler() {
   };
 
   const detectPreviewHost = (data = {}) => {
-    const rawUrl = data.webpage_url || data.original_url || lastPreviewUrl || "";
+    const rawUrl =
+      data.webpage_url || data.original_url || lastPreviewUrl || "";
     try {
       const host = new URL(rawUrl).hostname.replace(/^www\./, "");
       if (/youtu\.be|youtube\.com/i.test(host)) return "YouTube";
@@ -289,7 +290,9 @@ function initUrlInputHandler() {
   };
 
   const getFormatExt = (format = {}) =>
-    String(format.ext || format.container || "").trim().toUpperCase();
+    String(format.ext || format.container || "")
+      .trim()
+      .toUpperCase();
 
   const getBestVideoFormat = (formats = []) =>
     formats
@@ -304,8 +307,7 @@ function initUrlInputHandler() {
     formats
       .filter((format) => Number(format.abr || format.tbr || 0) > 0)
       .sort(
-        (a, b) =>
-          Number(b.abr || b.tbr || 0) - Number(a.abr || a.tbr || 0),
+        (a, b) => Number(b.abr || b.tbr || 0) - Number(a.abr || a.tbr || 0),
       )[0] || null;
 
   const updatePreviewDetails = (data = {}) => {
@@ -320,7 +322,6 @@ function initUrlInputHandler() {
     const video = getBestVideoFormat(formats);
     const audio = getBestAudioFormat(formats);
     const host = detectPreviewHost(data);
-    const duration = data.duration ? durationToStr(data.duration) : "";
 
     if (sourceEl) {
       const sourceIcon =
@@ -528,7 +529,10 @@ function initUrlInputHandler() {
       previewActionsEl.className = "preview-card__actions preview-actions";
       card.appendChild(previewActionsEl);
     } else {
-      previewActionsEl.classList.add("preview-card__actions", "preview-actions");
+      previewActionsEl.classList.add(
+        "preview-card__actions",
+        "preview-actions",
+      );
     }
     if (!livePreviewButton) {
       livePreviewButton = document.createElement("button");
@@ -630,7 +634,8 @@ function initUrlInputHandler() {
       closeBtn.className = "preview-close";
       closeBtn.setAttribute("type", "button");
       closeBtn.setAttribute("aria-label", t("input.url.preview.close"));
-      closeBtn.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+      closeBtn.innerHTML =
+        '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
       const controls = card.querySelector(".preview-card__controls");
       if (controls) {
         controls.appendChild(closeBtn);
@@ -791,11 +796,11 @@ function initUrlInputHandler() {
   const shouldWarmupFullInfo = (data) =>
     Boolean(
       data?.success &&
-        (data.title || data.name) &&
-        (data.thumbnail ||
-          (Array.isArray(data.thumbnails) && data.thumbnails.length)) &&
-        (!Array.isArray(data.formats) || data.formats.length === 0) &&
-        (!Array.isArray(data.entries) || data.entries.length <= 1),
+      (data.title || data.name) &&
+      (data.thumbnail ||
+        (Array.isArray(data.thumbnails) && data.thumbnails.length)) &&
+      (!Array.isArray(data.formats) || data.formats.length === 0) &&
+      (!Array.isArray(data.entries) || data.entries.length <= 1),
     );
 
   const scheduleFullInfoWarmup = (url, data, requestId = previewRequestId) => {
@@ -825,8 +830,8 @@ function initUrlInputHandler() {
             detail: { info, url: normalizedUrl },
           }),
         );
-      } catch (_) {}
-      finally {
+      } catch (_) {
+      } finally {
         if (fullInfoWarmupUrl === normalizedUrl) {
           fullInfoWarmupUrl = "";
         }

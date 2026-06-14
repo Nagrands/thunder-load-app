@@ -26,10 +26,7 @@ function persistQueueFilter() {
       window.localStorage.removeItem(QUEUE_FILTER_STORAGE_KEY);
       return;
     }
-    window.localStorage.setItem(
-      QUEUE_FILTER_STORAGE_KEY,
-      currentQueueFilter,
-    );
+    window.localStorage.setItem(QUEUE_FILTER_STORAGE_KEY, currentQueueFilter);
   } catch {}
 }
 

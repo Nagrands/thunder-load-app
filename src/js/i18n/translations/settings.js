@@ -293,8 +293,7 @@ export const settingsTranslations = {
     "settings.appearance.theme.violet": "Violet",
     "settings.appearance.interfaceHint":
       "Interface language and baseline readability.",
-    "settings.appearance.themeHint":
-      "Theme choice and reduced visual load.",
+    "settings.appearance.themeHint": "Theme choice and reduced visual load.",
     "settings.appearance.theme.reset": "Reset theme to default",
     "settings.appearance.fontSize": "Text size",
     "settings.appearance.fontSize.reset": "Reset font size to default",

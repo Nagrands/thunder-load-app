@@ -25,9 +25,8 @@ export default class TabSystem {
     this._applyProductsVisibility =
       this._applyProductsVisibility?.bind(this) ||
       this._applyProductsVisibility;
-    window.addEventListener(
-      "wg:toggleDisabled",
-      () => this._applyWgVisibility(),
+    window.addEventListener("wg:toggleDisabled", () =>
+      this._applyWgVisibility(),
     );
     window.addEventListener("backup:toggleDisabled", () =>
       this._applyBackupVisibility(),

@@ -36,15 +36,13 @@ describe("state", () => {
 
       expect(document.getElementById("download-button").disabled).toBe(true);
       expect(
-        document.getElementById("download-button").getAttribute(
-          "aria-disabled",
-        ),
+        document
+          .getElementById("download-button")
+          .getAttribute("aria-disabled"),
       ).toBe("true");
       expect(document.getElementById("enqueue-button").disabled).toBe(true);
       expect(
-        document.getElementById("enqueue-button").getAttribute(
-          "aria-disabled",
-        ),
+        document.getElementById("enqueue-button").getAttribute("aria-disabled"),
       ).toBe("true");
     });
   });

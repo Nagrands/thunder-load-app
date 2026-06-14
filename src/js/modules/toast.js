@@ -99,7 +99,14 @@ function renderToastMessage(messageEl, message, options = {}) {
   messageEl.textContent = text;
 }
 
-function buildToastElement({ message, type, title, onClickUndo, accent, options }) {
+function buildToastElement({
+  message,
+  type,
+  title,
+  onClickUndo,
+  accent,
+  options,
+}) {
   const toast = document.createElement("div");
   const toastClass = accent
     ? `toast toast-${type} toast-accent-${type}`
@@ -213,11 +220,7 @@ function showToast(
   }, 100);
 
   // Обработчики событий
-  setupToastEventHandlers(
-    toast,
-    normalized.duration,
-    normalized.onClickUndo,
-  );
+  setupToastEventHandlers(toast, normalized.duration, normalized.onClickUndo);
 
   // Ограничиваем количество одновременно отображаемых тостов
   manageToastLimit();

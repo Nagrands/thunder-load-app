@@ -417,7 +417,8 @@ describe("Downloader history list", () => {
 
     const menuButtons = document.querySelectorAll(".history-row__menu-button");
     menuButtons[0].click();
-    document.querySelector('.history-row__menu-item[data-action="inspect"]')
+    document
+      .querySelector('.history-row__menu-item[data-action="inspect"]')
       .click();
     await Promise.resolve();
     await Promise.resolve();

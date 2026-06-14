@@ -814,7 +814,6 @@
     border-radius: 12px;
     font-size: 0.9rem;
   }
-
 }
 
 /* Карточка предпросмотра для Downloader */
@@ -1368,10 +1367,6 @@
       min-height: 0;
       gap: 5px;
       align-content: center;
-    }
-
-    .preview-title {
-      -webkit-line-clamp: 1;
     }
 
     .preview-card__controls {

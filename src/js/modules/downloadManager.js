@@ -235,10 +235,7 @@ function openDownloadPoolToast() {
   if (typeof showLoading !== "function") return;
   const content = getDownloadPoolToastContent();
   const existingToasts = new Set(document.querySelectorAll(".toast-loading"));
-  downloadPoolLoadingToast = showLoading(
-    content.message,
-    content.title,
-  );
+  downloadPoolLoadingToast = showLoading(content.message, content.title);
   downloadPoolLoadingToastElement =
     Array.from(document.querySelectorAll(".toast-loading")).find(
       (toast) => !existingToasts.has(toast),
@@ -287,10 +284,7 @@ function syncDownloadPoolToast() {
     return;
   }
   const content = getDownloadPoolToastContent();
-  downloadPoolLoadingToast.update?.(
-    content.message,
-    content.title,
-  );
+  downloadPoolLoadingToast.update?.(content.message, content.title);
 }
 
 const escapeQueueHtml = (value) =>
@@ -396,10 +390,15 @@ function warmupDownloadIntentInfo() {
     return;
   }
   const candidate = normalizeUrlInput(urlInput?.value || "").trim();
-  if (!candidate || !isValidUrl(candidate) || !isSupportedUrl(candidate)) return;
+  if (!candidate || !isValidUrl(candidate) || !isSupportedUrl(candidate))
+    return;
   const url = normalizeUrl(candidate);
   const cached = getCachedVideoInfo(url);
-  if (cached?.success && Array.isArray(cached.formats) && cached.formats.length) {
+  if (
+    cached?.success &&
+    Array.isArray(cached.formats) &&
+    cached.formats.length
+  ) {
     return;
   }
   const now = Date.now();
@@ -417,10 +416,10 @@ function shouldWarmQueueFormats(quality) {
   if (!quality || typeof quality !== "object") return false;
   return Boolean(
     quality.formatId ||
-      quality.videoFormatId ||
-      quality.audioFormatId ||
-      quality.video?.format_id ||
-      quality.audio?.format_id,
+    quality.videoFormatId ||
+    quality.audioFormatId ||
+    quality.video?.format_id ||
+    quality.audio?.format_id,
   );
 }
 
@@ -536,6 +535,8 @@ function detectSource(url) {
 function normalizeQueueItem(item) {
   const url = String(item?.url || "").trim();
   const quality = item?.quality;
+  const signature = item?.signature || getQueueSignature(url, quality);
+  const identity = item?.jobId || item?.id || signature || nextQueueItemId();
   const title = String(item?.title || makeQueueTitle(url) || "");
   const downloadType =
     item?.type === "audio" || resolveDownloadKind(quality) === "audio"
@@ -543,8 +544,8 @@ function normalizeQueueItem(item) {
       : "video";
   const status = item?.status || "pending";
   return {
-    id: item?.id || nextQueueItemId(),
-    jobId: item?.jobId || item?.id || "",
+    id: item?.id || identity,
+    jobId: item?.jobId || item?.id || signature,
     title,
     url,
     quality,
@@ -554,7 +555,7 @@ function normalizeQueueItem(item) {
     size: item?.size ? String(item.size) : "",
     filePath: item?.filePath ? String(item.filePath) : "",
     stage: item?.stage ? String(item.stage) : "",
-    signature: item?.signature || getQueueSignature(url, quality),
+    signature,
     reason: item?.reason ? String(item.reason) : "",
     errorCode: item?.errorCode ? String(item.errorCode) : "",
     retryable:
@@ -563,6 +564,19 @@ function normalizeQueueItem(item) {
     createdAt: Number(item?.createdAt) || 0,
   };
 }
+
+const getQueueItemIdentity = (item = {}) =>
+  String(item.jobId || item.id || item.signature || "").trim();
+
+const findPendingQueueIndex = (identity) =>
+  getPendingDownloadJobs(state).findIndex(
+    (item) => getQueueItemIdentity(item) === identity,
+  );
+
+const findQueueRow = (identity) =>
+  Array.from(
+    queueList?.querySelectorAll(".queue-item[data-job-id]") || [],
+  ).find((row) => row.dataset.jobId === identity) || null;
 
 function formatEtaEstimate(createdAt, progress) {
   const pct = Number(progress);
@@ -1338,13 +1352,7 @@ function updateQueueDisplay() {
     };
   };
 
-  const rowMarkup = (
-    item,
-    displayIndex,
-    group,
-    pendingIndex = -1,
-    actionIndex = displayIndex,
-  ) => {
+  const rowMarkup = (item, displayIndex, group, pendingIndex = -1) => {
     const fullUrl = String(item.url || "");
     const urlLabel = makeQueueUrlLabel(fullUrl);
     const cachedTitle = makeQueueTitle(fullUrl);
@@ -1374,11 +1382,15 @@ function updateQueueDisplay() {
     const hasFilePath = Boolean(item.filePath);
     const isFirst = pendingIndex === 0;
     const isLast = pendingIndex === pendingItems.length - 1;
+    const itemIdentity = getQueueItemIdentity(item);
+    const identityAttribute = itemIdentity
+      ? `data-job-id="${escapeQueueHtml(itemIdentity)}"`
+      : "";
     return `
-      <li class="queue-item group ${isDownloading ? "is-downloading" : ""}" role="listitem" ${isPendingGroup ? `data-queue-pending-index="${pendingIndex}" tabindex="0" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"` : ""} style="background:${isDownloading ? "linear-gradient(180deg, rgba(74,158,255,0.07), rgba(255,255,255,0.03))" : QUEUE_COLORS.cardBg};border:1px solid ${QUEUE_COLORS.cardBorder};">
+      <li class="queue-item group ${isDownloading ? "is-downloading" : ""}" role="listitem" ${identityAttribute} ${isPendingGroup ? `data-queue-pending-index="${pendingIndex}" tabindex="0" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"` : ""} style="background:${isDownloading ? "linear-gradient(180deg, rgba(74,158,255,0.07), rgba(255,255,255,0.03))" : QUEUE_COLORS.cardBg};border:1px solid ${QUEUE_COLORS.cardBorder};">
         <div class="queue-item-index-wrap">
           <span class="queue-item-index">${String(displayIndex + 1).padStart(2, "0")}</span>
-          <span class="queue-item-grip" ${isPendingGroup ? `draggable="true" data-queue-drag-handle="1" data-index="${pendingIndex}" title="${t("queue.item.drag.title")}" aria-label="${t("queue.item.drag.title")}" aria-keyshortcuts="ArrowUp ArrowDown" role="button" tabindex="0"` : `aria-hidden="true"`}><i data-lucide="grip-vertical"></i></span>
+          <span class="queue-item-grip" ${isPendingGroup ? `draggable="true" data-queue-drag-handle="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.drag.title")}" aria-label="${t("queue.item.drag.title")}" aria-keyshortcuts="ArrowUp ArrowDown" role="button" tabindex="0"` : `aria-hidden="true"`}><i data-lucide="grip-vertical"></i></span>
         </div>
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
@@ -1402,24 +1414,24 @@ function updateQueueDisplay() {
             }
             ${
               isPendingGroup
-                ? `<button type="button" class="queue-item-move" data-queue-move="up" data-index="${pendingIndex}" title="${t("queue.item.moveUp.title")}" aria-label="${t("queue.item.moveUp.title")}" ${isFirst ? "disabled" : ""}><i data-lucide="chevron-up"></i></button>
-                   <button type="button" class="queue-item-move" data-queue-move="down" data-index="${pendingIndex}" title="${t("queue.item.moveDown.title")}" aria-label="${t("queue.item.moveDown.title")}" ${isLast ? "disabled" : ""}><i data-lucide="chevron-down"></i></button>`
+                ? `<button type="button" class="queue-item-move" data-queue-move="up" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.moveUp.title")}" aria-label="${t("queue.item.moveUp.title")}" ${isFirst ? "disabled" : ""}><i data-lucide="chevron-up"></i></button>
+                   <button type="button" class="queue-item-move" data-queue-move="down" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.moveDown.title")}" aria-label="${t("queue.item.moveDown.title")}" ${isLast ? "disabled" : ""}><i data-lucide="chevron-down"></i></button>`
                 : ""
             }
             ${
               group === "error"
-                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
+                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
                 : ""
             }
             ${
               isDoneGroup
-                ? `<button type="button" class="queue-item-open" data-queue-open-done="1" data-index="${actionIndex}" title="${t("queue.item.open.title")}" aria-label="${t("queue.item.open.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="play"></i></button>
-                   <button type="button" class="queue-item-reveal" data-queue-reveal-done="1" data-index="${actionIndex}" title="${t("queue.item.reveal.title")}" aria-label="${t("queue.item.reveal.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="folder-open"></i></button>`
+                ? `<button type="button" class="queue-item-open" data-queue-open-done="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.open.title")}" aria-label="${t("queue.item.open.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="play"></i></button>
+                   <button type="button" class="queue-item-reveal" data-queue-reveal-done="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.reveal.title")}" aria-label="${t("queue.item.reveal.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="folder-open"></i></button>`
                 : ""
             }
             ${
               group !== "active"
-                ? `<button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-index="${group === "pending" ? pendingIndex : actionIndex}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>`
+                ? `<button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>`
                 : ""
             }
           </div>
@@ -1449,26 +1461,22 @@ function updateQueueDisplay() {
       }
     } else {
       const groupedRows = {
-        active: activeItems.map((item, actionIndex) => ({
+        active: activeItems.map((item) => ({
           item,
           group: "active",
-          actionIndex,
         })),
         pending: pendingItems.map((item, pendingIndex) => ({
           item,
           group: "pending",
           pendingIndex,
-          actionIndex: pendingIndex,
         })),
-        error: errorItems.map((item, actionIndex) => ({
+        error: errorItems.map((item) => ({
           item,
           group: "error",
-          actionIndex,
         })),
-        done: doneItems.map((item, actionIndex) => ({
+        done: doneItems.map((item) => ({
           item,
           group: "done",
-          actionIndex,
         })),
       };
       const visibleGroups =
@@ -1479,13 +1487,7 @@ function updateQueueDisplay() {
         (group) => groupedRows[group] || [],
       );
       const rows = visibleRows.map((row, displayIndex) =>
-        rowMarkup(
-          row.item,
-          displayIndex,
-          row.group,
-          row.pendingIndex ?? -1,
-          row.actionIndex,
-        ),
+        rowMarkup(row.item, displayIndex, row.group, row.pendingIndex ?? -1),
       );
       const nextMarkup = rows.length
         ? `<ul role="list" class="queue-items">${rows.join("")}</ul>`
@@ -2438,12 +2440,12 @@ function initDownloadButton() {
     queueList.addEventListener("dragstart", (e) => {
       const handle = e.target.closest("[data-queue-drag-handle]");
       if (!handle || !queueList.contains(handle)) return;
-      const fromIndex = Number(handle.dataset.index);
-      if (!Number.isInteger(fromIndex)) return;
-      queueDragState = { fromIndex };
+      const jobId = String(handle.dataset.jobId || "").trim();
+      if (!jobId || findPendingQueueIndex(jobId) < 0) return;
+      queueDragState = { jobId };
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(fromIndex));
+        e.dataTransfer.setData("text/plain", jobId);
       }
       handle.closest(".queue-item")?.classList.add("is-dragging");
       queueList.classList.add("is-dragging");
@@ -2476,8 +2478,14 @@ function initDownloadButton() {
         return;
       }
       e.preventDefault();
-      const fromIndex = queueDragState.fromIndex;
-      const targetIndex = Number(row.dataset.queuePendingIndex);
+      const fromIndex = findPendingQueueIndex(queueDragState.jobId);
+      const targetJobId = String(row.dataset.jobId || "").trim();
+      const targetIndex = findPendingQueueIndex(targetJobId);
+      if (fromIndex < 0 || targetIndex < 0) {
+        clearQueueDragMarkers();
+        queueDragState = null;
+        return;
+      }
       const rect = row.getBoundingClientRect();
       const dropAfter = e.clientY > rect.top + rect.height / 2;
       let toIndex = targetIndex + (dropAfter ? 1 : 0);
@@ -2503,14 +2511,11 @@ function initDownloadButton() {
       if (!row || !queueList.contains(row)) return;
       const isRowShortcut = e.target === row && e.altKey;
       const isHandleShortcut =
-        Boolean(handle) &&
-        !e.altKey &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.shiftKey;
+        Boolean(handle) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
       if (!isHandleShortcut && !isRowShortcut) return;
 
-      const fromIndex = Number(row.dataset.queuePendingIndex);
+      const jobId = String(row.dataset.jobId || "").trim();
+      const fromIndex = findPendingQueueIndex(jobId);
       const direction = e.key === "ArrowUp" ? -1 : 1;
       const toIndex = fromIndex + direction;
       const pendingCount = getPendingDownloadJobs(state).length;
@@ -2524,9 +2529,7 @@ function initDownloadButton() {
       }
 
       if (!movePendingQueueItem(fromIndex, toIndex)) return;
-      const movedRow = queueList.querySelector(
-        `.queue-item[data-queue-pending-index="${toIndex}"]`,
-      );
+      const movedRow = findQueueRow(jobId);
       const focusTarget = isHandleShortcut
         ? movedRow?.querySelector("[data-queue-drag-handle]")
         : movedRow;
@@ -2570,10 +2573,9 @@ function initDownloadButton() {
         "[data-queue-open-done], [data-queue-reveal-done]",
       );
       if (doneActionButton) {
-        const idx = Number(doneActionButton.dataset.index);
-        if (!Number.isFinite(idx)) return;
-        const task = getCompletedDownloadJobs(state)[idx];
-        if (!task?.filePath) return;
+        const jobId = String(doneActionButton.dataset.jobId || "").trim();
+        const task = findDownloadJob(state, jobId);
+        if (task?.status !== JOB_STATUS.done || !task.filePath) return;
         if (doneActionButton.hasAttribute("data-queue-open-done")) {
           void openCompletedDownload(task);
         } else {
@@ -2584,10 +2586,9 @@ function initDownloadButton() {
 
       const retryFailedBtn = e.target.closest("[data-queue-retry-failed]");
       if (retryFailedBtn) {
-        const idx = Number(retryFailedBtn.dataset.index);
-        if (!Number.isFinite(idx)) return;
-        const task = getFailedDownloadJobs(state)[idx];
-        if (!task) return;
+        const jobId = String(retryFailedBtn.dataset.jobId || "").trim();
+        const task = findDownloadJob(state, jobId);
+        if (task?.status !== JOB_STATUS.failed) return;
         if (task.retryable === false) {
           showToast(t("queue.item.retry.disabled"), "warning");
           return;
@@ -2597,12 +2598,7 @@ function initDownloadButton() {
           showToast(t("download.url.active"), "warning");
           return;
         }
-        removeDownloadJob(
-          state,
-          (item) =>
-            item.status === JOB_STATUS.failed &&
-            getQueueSignature(item.url, item.quality) === signature,
-        );
+        removeDownloadJob(state, jobId);
         persistFailedQueue();
         initiateDownload(task.url, task.quality, { fromQueue: false });
         pumpDownloadPool("auto");
@@ -2613,9 +2609,10 @@ function initDownloadButton() {
 
       const moveBtn = e.target.closest("[data-queue-move]");
       if (moveBtn) {
-        const idx = Number(moveBtn.dataset.index);
+        const jobId = String(moveBtn.dataset.jobId || "").trim();
+        const idx = findPendingQueueIndex(jobId);
         const direction = moveBtn.dataset.queueMove;
-        if (!Number.isFinite(idx)) return;
+        if (idx < 0) return;
         if (direction === "up" && idx > 0) {
           if (movePendingQueueItem(idx, idx - 1)) {
             showToast(t("queue.item.movedUp"), "info");
@@ -2636,46 +2633,38 @@ function initDownloadButton() {
       const failedRemoveBtn = e.target.closest("[data-queue-remove-failed]");
       const doneRemoveBtn = e.target.closest("[data-queue-remove-done]");
       if (doneRemoveBtn) {
-        const idx = Number(doneRemoveBtn.dataset.index);
-        if (!Number.isFinite(idx)) return;
-        const task = getCompletedDownloadJobs(state)[idx];
-        if (!task) return;
-        removeDownloadJob(state, task.signature || task.jobId || task.id);
+        const jobId = String(doneRemoveBtn.dataset.jobId || "").trim();
+        const task = findDownloadJob(state, jobId);
+        if (task?.status !== JOB_STATUS.done) return;
+        removeDownloadJob(state, jobId);
         persistCompletedQueue();
         updateQueueDisplay();
         showToast(t("queue.item.removed"), "info");
         return;
       }
       if (failedRemoveBtn) {
-        const idx = Number(failedRemoveBtn.dataset.index);
-        if (!Number.isFinite(idx)) return;
-        const task = getFailedDownloadJobs(state)[idx];
-        if (!task) return;
-        removeDownloadJob(
-          state,
-          (item) =>
-            item.status === JOB_STATUS.failed &&
-            getQueueSignature(item.url, item.quality) ===
-              getQueueSignature(task.url, task.quality),
-        );
+        const jobId = String(failedRemoveBtn.dataset.jobId || "").trim();
+        const task = findDownloadJob(state, jobId);
+        if (task?.status !== JOB_STATUS.failed) return;
+        removeDownloadJob(state, jobId);
         persistFailedQueue();
         updateQueueDisplay();
         showToast(t("queue.item.removed"), "info");
         return;
       }
       if (!btn) return;
-      const idx = Number(btn.dataset.index);
-      if (!Number.isFinite(idx)) return;
-      const removed = getPendingDownloadJobs(state)[idx];
-      if (!removed) return;
-      removeDownloadJob(
-        state,
-        removed.signature || getQueueSignature(removed.url, removed.quality),
-      );
+      const jobId = String(btn.dataset.jobId || "").trim();
+      const removed = findDownloadJob(state, jobId);
+      if (
+        removed?.status !== JOB_STATUS.pending &&
+        removed?.status !== JOB_STATUS.paused
+      )
+        return;
+      removeDownloadJob(state, jobId);
       persistQueue();
       updateQueueDisplay();
       console.log(QUEUE_LOG_TAG, "remove-item", {
-        index: idx,
+        jobId,
         url: removed?.url || "",
       });
       showToast(t("queue.item.removed"), "info");

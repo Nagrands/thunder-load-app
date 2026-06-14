@@ -129,7 +129,13 @@
   $font-size: 0.9rem,
   $font-weight: 700
 ) {
-  @include dropdown-control($min-height, $radius, $padding, $font-size, $font-weight);
+  @include dropdown-control(
+    $min-height,
+    $radius,
+    $padding,
+    $font-size,
+    $font-weight
+  );
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;

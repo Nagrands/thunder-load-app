@@ -353,7 +353,7 @@ if (!app.requestSingleInstanceLock()) {
         const activeDownloads = dependencies.downloadState.activeDownloads;
         return Boolean(
           dependencies.downloadState.downloadInProgress ||
-            (activeDownloads && activeDownloads.size > 0),
+          (activeDownloads && activeDownloads.size > 0),
         );
       },
     );

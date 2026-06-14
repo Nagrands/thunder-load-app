@@ -42,11 +42,7 @@ const normalizeJob = (job) => {
     }
   }
 
-  if (
-    normalized.status !== "done" ||
-    !normalized.url ||
-    !normalized.filePath
-  ) {
+  if (normalized.status !== "done" || !normalized.url || !normalized.filePath) {
     return null;
   }
 

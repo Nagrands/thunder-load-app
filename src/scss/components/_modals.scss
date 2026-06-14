@@ -56,7 +56,14 @@
 .first-run-modal-content,
 .bk-modal {
   @include mixins.modal-content-base;
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
   border: 1px solid rgba(255, 255, 255, 0.15);
   // box-shadow:
   //   0 8px 32px rgba(0, 0, 0, 0.2),
@@ -2635,7 +2642,6 @@
       rgba(255, 255, 255, 0.02)
     );
     color: var(--color-quality);
-    font-size: 12px;
 
     .tabs-footer-row {
       display: flex;
@@ -2885,10 +2891,6 @@
 
   .settings-card__body {
     min-width: 0;
-  }
-
-  .settings-card__intro {
-    display: grid;
   }
 
   #about-settings {
@@ -3783,10 +3785,6 @@
     line-height: 1.45;
   }
 
-  .settings-card__intro {
-    padding-bottom: 6px;
-  }
-
   .settings-card__eyebrow,
   .settings-general-hero,
   .settings-general-hero__eyebrow,
@@ -3965,10 +3963,6 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.025);
-  }
-
-  #appearance-settings .settings-card__intro {
-    gap: 2px;
   }
 
   #appearance-settings .settings-card__title {

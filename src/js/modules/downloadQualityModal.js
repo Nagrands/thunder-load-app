@@ -1191,10 +1191,7 @@ async function loadFormatsWithRetry(
       Array.isArray(cachedInfo?.formats) &&
       cachedInfo.formats.length > 0
         ? cachedInfo
-        : await withTimeout(
-            getVideoInfo(url),
-            INFO_REQUEST_TIMEOUT,
-          );
+        : await withTimeout(getVideoInfo(url), INFO_REQUEST_TIMEOUT);
     if (!info || info.success === false) {
       throw (
         info || {

@@ -379,12 +379,11 @@
 
     &.is-drag-over {
       border-color: rgba(var(--color-accent-rgb), 0.72) !important;
-      background:
-        linear-gradient(
-          180deg,
-          rgba(var(--color-accent-rgb), 0.13),
-          rgba(255, 255, 255, 0.035)
-        ) !important;
+      background: linear-gradient(
+        180deg,
+        rgba(var(--color-accent-rgb), 0.13),
+        rgba(255, 255, 255, 0.035)
+      ) !important;
     }
   }
 

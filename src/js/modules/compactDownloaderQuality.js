@@ -91,10 +91,7 @@ function setMode(mode, { persist = true } = {}) {
     "active",
     state.mode === "detailed",
   );
-  elements.toggleCompact?.classList.toggle(
-    "active",
-    state.mode === "compact",
-  );
+  elements.toggleCompact?.classList.toggle("active", state.mode === "compact");
   elements.toggleDetailed?.setAttribute(
     "aria-pressed",
     state.mode === "detailed" ? "true" : "false",
@@ -242,7 +239,9 @@ function renderSelect(selectEl, options, selectedId = "") {
 }
 
 function getSelectedOption(options, selectedId) {
-  return options.find((option) => option.id === selectedId) || options[0] || null;
+  return (
+    options.find((option) => option.id === selectedId) || options[0] || null
+  );
 }
 
 function syncAudioAvailability() {
@@ -250,7 +249,9 @@ function syncAudioAvailability() {
     state.videoOptions,
     elements.videoSelect?.value,
   );
-  const mp3Options = state.audioOptions.filter((option) => option.source === "mp3");
+  const mp3Options = state.audioOptions.filter(
+    (option) => option.source === "mp3",
+  );
   const allowAudioOnlyFormats = video?.kind === "none";
   mp3Options.forEach((option) => {
     option.disabled = !allowAudioOnlyFormats;
@@ -259,15 +260,20 @@ function syncAudioAvailability() {
   if (noAudio) {
     noAudio.disabled = video?.source !== "video-only";
   }
-  renderSelect(elements.audioSelect, state.audioOptions, elements.audioSelect?.value);
+  renderSelect(
+    elements.audioSelect,
+    state.audioOptions,
+    elements.audioSelect?.value,
+  );
   const selectedAudio = getSelectedOption(
     state.audioOptions,
     elements.audioSelect?.value,
   );
   if (selectedAudio?.disabled) {
     const fallback =
-      state.audioOptions.find((option) => !option.disabled && option.kind === "audio") ||
-      state.audioOptions.find((option) => !option.disabled);
+      state.audioOptions.find(
+        (option) => !option.disabled && option.kind === "audio",
+      ) || state.audioOptions.find((option) => !option.disabled);
     if (fallback && elements.audioSelect) {
       elements.audioSelect.value = fallback.id;
       syncCustomSelect(elements.audioSelect);
@@ -328,7 +334,11 @@ function renderQualityControls(info, url = "") {
 async function ensureCompactQualityReady(url) {
   const normalized = normalizeUrlInput(url).trim();
   const cached = getCachedVideoInfo(normalized);
-  if (cached?.success && Array.isArray(cached.formats) && cached.formats.length) {
+  if (
+    cached?.success &&
+    Array.isArray(cached.formats) &&
+    cached.formats.length
+  ) {
     renderQualityControls(cached, normalized);
     return true;
   }
@@ -337,7 +347,11 @@ async function ensureCompactQualityReady(url) {
   setStatus("quality.compact.loading", "muted");
   try {
     const info = await getVideoInfo(normalized);
-    if (!info?.success || !Array.isArray(info.formats) || !info.formats.length) {
+    if (
+      !info?.success ||
+      !Array.isArray(info.formats) ||
+      !info.formats.length
+    ) {
       setStatus("quality.compact.error", "warning");
       return false;
     }

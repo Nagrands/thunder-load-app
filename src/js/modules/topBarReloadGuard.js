@@ -7,9 +7,9 @@ function isDownloadActive(detail = {}) {
   const activeCount = Number(detail?.activeCount || 0);
   return Boolean(
     detail?.isDownloading ||
-      activeCount > 0 ||
-      state.isDownloading ||
-      (Array.isArray(state.activeDownloads) && state.activeDownloads.length > 0),
+    activeCount > 0 ||
+    state.isDownloading ||
+    (Array.isArray(state.activeDownloads) && state.activeDownloads.length > 0),
   );
 }
 

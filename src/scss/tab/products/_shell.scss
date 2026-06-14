@@ -116,7 +116,14 @@
 
 .products-pane--result {
   grid-template-rows: auto auto minmax(0, 1fr);
-  background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 16, 24, 0.76);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
 }
 
 .products-pane__header {
