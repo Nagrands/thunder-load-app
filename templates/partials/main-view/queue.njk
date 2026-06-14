@@ -95,6 +95,35 @@
       </div>
     </div>
 
+    <div
+      id="queue-filters"
+      class="queue-filters"
+      role="toolbar"
+      aria-label="Фильтр очереди"
+      data-i18n-aria="queue.filter.label"
+    >
+      <button type="button" class="queue-filter-button is-active" data-queue-filter="all" aria-pressed="true">
+        <span data-i18n="queue.filter.all">Все</span>
+        <span class="queue-filter-count" data-queue-filter-count>0</span>
+      </button>
+      <button type="button" class="queue-filter-button" data-queue-filter="active" aria-pressed="false">
+        <span data-i18n="queue.filter.active">Активные</span>
+        <span class="queue-filter-count" data-queue-filter-count>0</span>
+      </button>
+      <button type="button" class="queue-filter-button" data-queue-filter="pending" aria-pressed="false">
+        <span data-i18n="queue.filter.pending">Ожидают</span>
+        <span class="queue-filter-count" data-queue-filter-count>0</span>
+      </button>
+      <button type="button" class="queue-filter-button" data-queue-filter="error" aria-pressed="false">
+        <span data-i18n="queue.filter.error">Ошибки</span>
+        <span class="queue-filter-count" data-queue-filter-count>0</span>
+      </button>
+      <button type="button" class="queue-filter-button" data-queue-filter="done" aria-pressed="false">
+        <span data-i18n="queue.filter.done">Готово</span>
+        <span class="queue-filter-count" data-queue-filter-count>0</span>
+      </button>
+    </div>
+
     <div id="queue-list" class="queue-list" aria-live="polite" role="list">
       <div class="queue-empty">
         <span class="queue-empty-icon" aria-hidden="true"><i data-lucide="inbox"></i></span>

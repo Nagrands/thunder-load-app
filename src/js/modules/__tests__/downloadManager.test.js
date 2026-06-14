@@ -25,6 +25,13 @@ const buildDom = () => {
     <button id="queue-retry-transient-button"></button>
     <button id="queue-clear-failed-button"></button>
     <button id="queue-clear-done-button"></button>
+    <div id="queue-filters">
+      <button data-queue-filter="all" aria-pressed="true"><span data-queue-filter-count></span></button>
+      <button data-queue-filter="active" aria-pressed="false"><span data-queue-filter-count></span></button>
+      <button data-queue-filter="pending" aria-pressed="false"><span data-queue-filter-count></span></button>
+      <button data-queue-filter="error" aria-pressed="false"><span data-queue-filter-count></span></button>
+      <button data-queue-filter="done" aria-pressed="false"><span data-queue-filter-count></span></button>
+    </div>
     <div id="queue-list"></div>
     <span id="download-cancel-count" class="hidden"></span>
   `;
@@ -4868,6 +4875,158 @@ describe("downloadManager active job cancellation", () => {
         pendingDownload.resolve({ cancelled: true });
         await Promise.resolve();
       }
+    });
+  });
+});
+
+describe("downloadManager queue filters", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+    window.electron = {
+      invoke: jest.fn(async () => ({})),
+      ipcRenderer: { invoke: jest.fn(async () => ({ success: false })) },
+      on: jest.fn(),
+    };
+  });
+
+  it("filters complete status groups without changing queue counters", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById(
+          "progress-bar-container",
+        ),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueStartButton: document.getElementById("queue-start-button"),
+        queuePauseButton: document.getElementById("queue-pause-button"),
+        queueToggleButton: document.getElementById("queue-toggle-button"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        queueRetryTransientButton: document.getElementById(
+          "queue-retry-transient-button",
+        ),
+        queueClearFailedButton: document.getElementById(
+          "queue-clear-failed-button",
+        ),
+        queueClearDoneButton: document.getElementById(
+          "queue-clear-done-button",
+        ),
+        queueRetryFailedButton: document.getElementById(
+          "queue-retry-failed-button",
+        ),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      jest.doMock("../i18n", () => ({
+        getLanguage: jest.fn(() => "en"),
+        t: jest.fn((key, params = {}) => {
+          if (key.startsWith("queue.pill.")) {
+            return `${key}:${params.count || 0}`;
+          }
+          return key;
+        }),
+      }));
+      jest.doMock("../toast", () => ({
+        showLoading: jest.fn(),
+        showToast: jest.fn(),
+      }));
+      jest.doMock("../iconUpdater", () => ({ updateIcon: jest.fn() }));
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+
+      initDownloadButton();
+      state.downloadJobs = [
+        {
+          id: "active",
+          jobId: "active",
+          url: "https://example.com/active",
+          quality: "Source",
+          status: "running",
+        },
+        {
+          id: "pending",
+          jobId: "pending",
+          url: "https://example.com/pending",
+          quality: "Source",
+          status: "pending",
+        },
+        {
+          id: "paused",
+          jobId: "paused",
+          url: "https://example.com/paused",
+          quality: "Source",
+          status: "paused",
+        },
+        {
+          id: "failed",
+          jobId: "failed",
+          url: "https://example.com/failed",
+          quality: "Source",
+          status: "failed",
+        },
+        {
+          id: "done",
+          jobId: "done",
+          url: "https://example.com/done",
+          quality: "Source",
+          status: "done",
+        },
+      ];
+      updateQueueDisplay();
+
+      const allCounter = document.querySelector(
+        '[data-queue-filter="all"] [data-queue-filter-count]',
+      );
+      const pendingCounter = document.querySelector(
+        '[data-queue-filter="pending"] [data-queue-filter-count]',
+      );
+      expect(allCounter.textContent).toBe("5");
+      expect(pendingCounter.textContent).toBe("2");
+
+      document.querySelector('[data-queue-filter="pending"]').click();
+
+      const queueText = document.getElementById("queue-list").textContent;
+      expect(queueText).toContain("example.com/pending");
+      expect(queueText).toContain("example.com/paused");
+      expect(queueText).not.toContain("example.com/active");
+      expect(queueText).not.toContain("example.com/failed");
+      expect(queueText).not.toContain("example.com/done");
+      expect(localStorage.getItem("downloadQueueFilter")).toBe("pending");
+      expect(
+        document
+          .querySelector('[data-queue-filter="pending"]')
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+      expect(document.getElementById("queue-active-count").textContent).toBe(
+        "queue.pill.active:1",
+      );
+
+      state.downloadJobs = state.downloadJobs.filter(
+        (job) => job.status !== "pending" && job.status !== "paused",
+      );
+      updateQueueDisplay();
+
+      expect(document.getElementById("queue-list").textContent).toContain(
+        "queue.filter.empty.title",
+      );
+      expect(
+        document.getElementById("download-queue-info").classList,
+      ).not.toContain("hidden");
     });
   });
 });

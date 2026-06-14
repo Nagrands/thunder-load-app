@@ -22467,6 +22467,55 @@ hr {
   border-color: rgba(255, 127, 137, 0.45);
   background: rgba(255, 127, 137, 0.1);
 }
+.download-queue-info .queue-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.download-queue-info .queue-filters::-webkit-scrollbar {
+  display: none;
+}
+.download-queue-info .queue-filters.hidden {
+  display: none;
+}
+.download-queue-info .queue-filter-button {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(220, 230, 245, 0.72);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.72rem;
+}
+.download-queue-info .queue-filter-button:hover {
+  color: var(--color-highlight);
+  border-color: rgba(var(--color-accent-rgb), 0.32);
+}
+.download-queue-info .queue-filter-button.is-active {
+  color: #a9d0ff;
+  border-color: rgba(var(--color-accent-rgb), 0.42);
+  background: rgba(var(--color-accent-rgb), 0.14);
+}
+.download-queue-info .queue-filter-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(235, 243, 255, 0.86);
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+}
 .download-queue-info .queue-list {
   width: 100%;
   margin-top: 12px;

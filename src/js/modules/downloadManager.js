@@ -61,6 +61,11 @@ import {
   loadCompletedJobs,
   persistCompletedJobs,
 } from "./downloadQueuePersistence.js";
+import {
+  getDownloadQueueFilter,
+  initDownloadQueueFilter,
+  syncQueueFilterControls,
+} from "./downloadQueueFilter.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueCount = document.getElementById("queue-count");
@@ -1195,6 +1200,7 @@ function updateQueueDisplay() {
   const totalVisible =
     activeCount + pendingCount + errorItems.length + doneCount;
   const hasQueueItems = totalVisible > 0;
+  const queueFilter = getDownloadQueueFilter();
   const activeJobIds = new Set(
     activeItems.map((item) => item.jobId || item.id).filter(Boolean),
   );
@@ -1203,6 +1209,16 @@ function updateQueueDisplay() {
   }
 
   state.queuePaused = Boolean(state.suppressAutoPump);
+  syncQueueFilterControls(
+    {
+      total: totalVisible,
+      active: activeCount,
+      pending: pendingCount,
+      error: errorItems.length,
+      done: doneCount,
+    },
+    { hidden: state.queueCollapsed },
+  );
 
   if (queueInfo && queueCount) {
     queueInfo.classList.toggle("hidden", !hasQueueItems);
@@ -1432,31 +1448,54 @@ function updateQueueDisplay() {
         lastQueueMarkup = emptyMarkup;
       }
     } else {
-      const rows = [
-        ...activeItems.map((item, idx) => rowMarkup(item, idx, "active")),
-        ...pendingItems.map((item, idx) =>
-          rowMarkup(item, activeItems.length + idx, "pending", idx, idx),
+      const groupedRows = {
+        active: activeItems.map((item, actionIndex) => ({
+          item,
+          group: "active",
+          actionIndex,
+        })),
+        pending: pendingItems.map((item, pendingIndex) => ({
+          item,
+          group: "pending",
+          pendingIndex,
+          actionIndex: pendingIndex,
+        })),
+        error: errorItems.map((item, actionIndex) => ({
+          item,
+          group: "error",
+          actionIndex,
+        })),
+        done: doneItems.map((item, actionIndex) => ({
+          item,
+          group: "done",
+          actionIndex,
+        })),
+      };
+      const visibleGroups =
+        queueFilter === "all"
+          ? ["active", "pending", "error", "done"]
+          : [queueFilter];
+      const visibleRows = visibleGroups.flatMap(
+        (group) => groupedRows[group] || [],
+      );
+      const rows = visibleRows.map((row, displayIndex) =>
+        rowMarkup(
+          row.item,
+          displayIndex,
+          row.group,
+          row.pendingIndex ?? -1,
+          row.actionIndex,
         ),
-        ...errorItems.map((item, idx) =>
-          rowMarkup(
-            item,
-            activeItems.length + pendingItems.length + idx,
-            "error",
-            -1,
-            idx,
-          ),
-        ),
-        ...doneItems.map((item, idx) =>
-          rowMarkup(
-            item,
-            activeItems.length + pendingItems.length + errorItems.length + idx,
-            "done",
-            -1,
-            idx,
-          ),
-        ),
-      ];
-      const nextMarkup = `<ul role="list" class="queue-items">${rows.join("")}</ul>`;
+      );
+      const nextMarkup = rows.length
+        ? `<ul role="list" class="queue-items">${rows.join("")}</ul>`
+        : `
+          <div class="queue-empty">
+            <span class="queue-empty-icon" aria-hidden="true"><i data-lucide="list-filter"></i></span>
+            <p class="queue-empty-title">${escapeQueueHtml(t("queue.filter.empty.title"))}</p>
+            <p class="queue-empty-hint">${escapeQueueHtml(t("queue.filter.empty.hint"))}</p>
+          </div>
+        `;
       if (nextMarkup !== lastQueueMarkup) {
         queueList.innerHTML = nextMarkup;
         lastQueueMarkup = nextMarkup;
@@ -2223,6 +2262,8 @@ const handleDownloadButtonClick = async (options = {}) => {
 };
 
 function initDownloadButton() {
+  initDownloadQueueFilter(() => updateQueueDisplay());
+
   downloadButton.addEventListener("pointerenter", warmupDownloadIntentInfo);
   downloadButton.addEventListener("focus", warmupDownloadIntentInfo);
 

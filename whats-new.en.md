@@ -16,3 +16,4 @@
 | Keyboard queue controls were added                    | Pending jobs can be reordered from the drag handle or with Alt and the arrow keys                              |
 | Queue source width was fixed                          | The YouTube badge no longer stretches across active download rows                                               |
 | Individual download cancellation was added            | An active job can be stopped without interrupting other parallel downloads                                     |
+| Queue filters were added                               | Jobs can be filtered by active, queued, failed, and completed status                                            |
