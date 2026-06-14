@@ -22645,7 +22645,8 @@ hr {
   pointer-events: none;
   transition: opacity 0.2s ease;
 }
-.download-queue-info .queue-item:hover .queue-hover-controls {
+.download-queue-info .queue-item:hover .queue-hover-controls,
+.download-queue-info .queue-item:focus-within .queue-hover-controls {
   opacity: 1;
   pointer-events: auto;
 }
@@ -22678,6 +22679,64 @@ hr {
 .download-queue-info .queue-item-actions button:disabled {
   opacity: 0.4;
   cursor: default;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 5px 6px;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-index-wrap {
+  display: none;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-source-pill {
+  min-width: 24px;
+  height: 24px;
+  padding: 8px;
+  font-size: 0.65rem;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-title {
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-subtitle {
+  margin-top: 1px;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-right {
+  gap: 5px;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-status-chip,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-quality-chip,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-stage-chip,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-kind-chip,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-reason-chip,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-retry-chip {
+  gap: 4px;
+  min-height: 20px;
+  padding: 0 8px;
+  font-size: 0.64rem;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-status-chip svg,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-quality-chip svg,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-stage-chip svg,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-kind-chip svg,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-reason-chip svg,
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-retry-chip svg {
+  width: 10px;
+  height: 10px;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-actions {
+  gap: 3px;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-actions button {
+  width: 21px;
+  height: 21px;
+  border-radius: 6px;
+}
+.download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-actions button svg {
+  width: 11px;
+  height: 11px;
 }
 .download-queue-info .queue-progress-line {
   position: absolute;
@@ -22755,6 +22814,25 @@ hr {
   .download-queue-info .queue-item-actions {
     order: 3;
     margin-left: 0;
+  }
+  .download-queue-info .queue-item:not([data-queue-pending-index]) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 5px 6px;
+  }
+  .download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-meta,
+  .download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-right {
+    grid-column: 1;
+  }
+  .download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-right {
+    gap: 4px;
+  }
+  .download-queue-info .queue-item:not([data-queue-pending-index]) .queue-item-actions {
+    margin-left: auto;
+  }
+  .download-queue-info .queue-item:not([data-queue-pending-index]) .queue-hover-controls {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 

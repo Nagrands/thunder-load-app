@@ -54,6 +54,7 @@ describe("downloadJobs selectors", () => {
       quality: "Source",
       signature: "done",
       status: JOB_STATUS.done,
+      filePath: "/tmp/done.mp4",
     });
 
     expect(getActiveDownloadJobs(state)).toHaveLength(1);
@@ -64,6 +65,8 @@ describe("downloadJobs selectors", () => {
     expect(state.downloadQueue).toHaveLength(1);
     expect(state.failedDownloads).toHaveLength(1);
     expect(state.completedDownloads).toHaveLength(1);
+    expect(getCompletedDownloadJobs(state)[0].filePath).toBe("/tmp/done.mp4");
+    expect(state.completedDownloads[0].filePath).toBe("/tmp/done.mp4");
 
     removeDownloadJob(state, "failed");
 

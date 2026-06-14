@@ -541,6 +541,7 @@ function normalizeQueueItem(item) {
     status,
     progress: Number(item?.progress) || 0,
     size: item?.size ? String(item.size) : "",
+    filePath: item?.filePath ? String(item.filePath) : "",
     stage: item?.stage ? String(item.stage) : "",
     signature: item?.signature || getQueueSignature(url, quality),
     reason: item?.reason ? String(item.reason) : "",
@@ -1139,6 +1140,7 @@ function updateQueueDisplay() {
       status: "downloading",
       progress: Number(item.progress) || 0,
       size: item.size || "",
+      filePath: item.filePath || "",
       stage: item.stage || "prepare",
       createdAt: item.createdAt || 0,
     }),
@@ -1171,6 +1173,7 @@ function updateQueueDisplay() {
   if (queueInfo && queueCount) {
     queueInfo.classList.toggle("hidden", !hasQueueItems);
     queueCount.textContent = t("queue.pill.pending", { count: pendingCount });
+    queueCount.classList.toggle("hidden", pendingCount <= 0);
     if (queueActiveCount) {
       queueActiveCount.textContent = t("queue.pill.active", {
         count: activeCount,
@@ -1183,13 +1186,19 @@ function updateQueueDisplay() {
     }
     if (queueStartButton) {
       queueStartButton.disabled = pendingCount <= 0 || activeCount > 0;
+      queueStartButton.classList.toggle("hidden", pendingCount <= 0);
     }
     if (queuePauseButton) {
       queuePauseButton.disabled = activeCount <= 0 && pendingCount <= 0;
+      queuePauseButton.classList.toggle(
+        "hidden",
+        activeCount <= 0 && pendingCount <= 0,
+      );
       queuePauseButton.classList.toggle("is-active", state.suppressAutoPump);
     }
     if (queueClearButton) {
-      queueClearButton.disabled = totalVisible <= 0;
+      queueClearButton.disabled = totalVisible <= 1;
+      queueClearButton.classList.toggle("hidden", totalVisible <= 1);
     }
     if (queueRetryFailedButton) {
       const failedCount = errorItems.length;
@@ -1291,6 +1300,8 @@ function updateQueueDisplay() {
     const meta = statusMeta(item.status, item.progress);
     const isDownloading = item.status === "downloading";
     const isPendingGroup = group === "pending";
+    const isDoneGroup = group === "done";
+    const hasFilePath = Boolean(item.filePath);
     const isFirst = pendingIndex === 0;
     const isLast = pendingIndex === pendingItems.length - 1;
     return `
@@ -1323,6 +1334,12 @@ function updateQueueDisplay() {
             ${
               group === "error"
                 ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-index="${actionIndex}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.manual.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.manual.title")}"><i data-lucide="rotate-cw"></i></button>`
+                : ""
+            }
+            ${
+              isDoneGroup
+                ? `<button type="button" class="queue-item-open" data-queue-open-done="1" data-index="${actionIndex}" title="${t("queue.item.open.title")}" aria-label="${t("queue.item.open.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="play"></i></button>
+                   <button type="button" class="queue-item-reveal" data-queue-reveal-done="1" data-index="${actionIndex}" title="${t("queue.item.reveal.title")}" aria-label="${t("queue.item.reveal.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="folder-open"></i></button>`
                 : ""
             }
             <button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-index="${group === "pending" ? pendingIndex : actionIndex}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>
@@ -1528,6 +1545,28 @@ const clearUrlInputAfterSubmit = () => {
   } catch {}
 };
 
+async function openCompletedDownload(task) {
+  try {
+    const result = await window.electron.invoke(
+      "open-last-video",
+      task.filePath,
+    );
+    if (!result?.success) throw new Error(result?.error || "Open failed");
+  } catch (error) {
+    console.error("Error opening completed download:", error);
+    showToast(t("queue.item.open.error"), "error");
+  }
+}
+
+async function revealCompletedDownload(task) {
+  try {
+    await window.electron.invoke("open-download-folder", task.filePath);
+  } catch (error) {
+    console.error("Error revealing completed download:", error);
+    showToast(t("queue.item.reveal.error"), "error");
+  }
+}
+
 const requeueActiveDownloads = () => {
   const activeJobs = getActiveDownloadJobs(state);
   if (activeJobs.length === 0) return 0;
@@ -1689,7 +1728,7 @@ const downloadVideo = async (url, quality, options = {}) => {
 
     window.localStorage.setItem("lastDownloadedFile", filePath);
     openLastVideoButton.disabled = false;
-    return { ok: true };
+    return { ok: true, filePath };
   } catch (error) {
     if (error.message === "Download cancelled") {
       showToast(t("download.cancelled"), "warning");
@@ -1932,6 +1971,7 @@ const initiateDownload = async (url, quality, options = {}) => {
         status: JOB_STATUS.done,
         stage: "finalize",
         progress: 100,
+        filePath: result.filePath || "",
         signature,
       });
     } else {
@@ -2394,6 +2434,22 @@ function initDownloadButton() {
     });
 
     queueList.addEventListener("click", (e) => {
+      const doneActionButton = e.target.closest(
+        "[data-queue-open-done], [data-queue-reveal-done]",
+      );
+      if (doneActionButton) {
+        const idx = Number(doneActionButton.dataset.index);
+        if (!Number.isFinite(idx)) return;
+        const task = getCompletedDownloadJobs(state)[idx];
+        if (!task?.filePath) return;
+        if (doneActionButton.hasAttribute("data-queue-open-done")) {
+          void openCompletedDownload(task);
+        } else {
+          void revealCompletedDownload(task);
+        }
+        return;
+      }
+
       const retryFailedBtn = e.target.closest("[data-queue-retry-failed]");
       if (retryFailedBtn) {
         const idx = Number(retryFailedBtn.dataset.index);

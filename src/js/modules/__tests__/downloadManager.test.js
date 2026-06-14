@@ -3938,3 +3938,226 @@ describe("downloadManager pool loading toast", () => {
     });
   });
 });
+
+describe("downloadManager completed job actions", () => {
+  const mockCompletedJobDependencies = () => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueStartButton: document.getElementById("queue-start-button"),
+      queuePauseButton: document.getElementById("queue-pause-button"),
+      queueToggleButton: document.getElementById("queue-toggle-button"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      queueRetryTransientButton: document.getElementById(
+        "queue-retry-transient-button",
+      ),
+      queueClearFailedButton: document.getElementById(
+        "queue-clear-failed-button",
+      ),
+      queueClearDoneButton: document.getElementById("queue-clear-done-button"),
+      queueRetryFailedButton: document.getElementById(
+        "queue-retry-failed-button",
+      ),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      addNewEntryToHistory: jest.fn(async () => {}),
+      updateDownloadCount: jest.fn(async () => {}),
+      getHistoryData: jest.fn(() => []),
+    }));
+    jest.doMock("../i18n", () => ({
+      getLanguage: jest.fn(() => "en"),
+      t: jest.fn((key, params = {}) =>
+        params.count === undefined ? key : `${key}:${params.count}`,
+      ),
+    }));
+    jest.doMock("../toast", () => ({
+      showLoading: jest.fn(),
+      showToast: jest.fn(),
+    }));
+  };
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.dontMock("../compactDownloaderQuality");
+    localStorage.clear();
+    buildDom();
+    window.electron = {
+      invoke: jest.fn(),
+      ipcRenderer: { invoke: jest.fn() },
+      on: jest.fn(),
+    };
+  });
+
+  it("stores the completed file path in job state", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedJobDependencies();
+      window.electron.invoke.mockImplementation(async (channel, url) => {
+        if (channel === "download-video") {
+          return {
+            fileName: "done.mp4",
+            filePath: "/tmp/done.mp4",
+            quality: "Source",
+            actualQuality: "Source",
+            sourceUrl: url,
+          };
+        }
+        if (channel === "get-icon-path") return "";
+        return {};
+      });
+
+      const { state } = require("../state");
+      const { initiateDownload } = require("../downloadManager");
+
+      await initiateDownload("https://example.com/done", "Source");
+
+      expect(state.completedDownloads).toHaveLength(1);
+      expect(state.completedDownloads[0].filePath).toBe("/tmp/done.mp4");
+    });
+  });
+
+  it("hides empty counters and queue controls according to visible jobs", () => {
+    jest.isolateModules(() => {
+      mockCompletedJobDependencies();
+      const { state } = require("../state");
+      const { updateQueueDisplay } = require("../downloadManager");
+
+      state.downloadJobs = [
+        {
+          jobId: "done-1",
+          url: "https://example.com/done",
+          quality: "Source",
+          status: "done",
+          filePath: "/tmp/done.mp4",
+        },
+      ];
+      updateQueueDisplay();
+
+      expect(document.getElementById("queue-count").classList).toContain(
+        "hidden",
+      );
+      expect(document.getElementById("queue-active-count").classList).toContain(
+        "hidden",
+      );
+      expect(document.getElementById("queue-start-button").classList).toContain(
+        "hidden",
+      );
+      expect(document.getElementById("queue-pause-button").classList).toContain(
+        "hidden",
+      );
+      expect(document.getElementById("queue-clear-button").classList).toContain(
+        "hidden",
+      );
+
+      state.downloadJobs.push({
+        jobId: "pending-1",
+        url: "https://example.com/pending",
+        quality: "Source",
+        status: "pending",
+      });
+      updateQueueDisplay();
+
+      expect(
+        document.getElementById("queue-start-button").classList,
+      ).not.toContain("hidden");
+      expect(
+        document.getElementById("queue-pause-button").classList,
+      ).not.toContain("hidden");
+      expect(
+        document.getElementById("queue-clear-button").classList,
+      ).not.toContain("hidden");
+    });
+  });
+
+  it("opens and reveals a completed file from accessible actions", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedJobDependencies();
+      window.electron.invoke.mockImplementation(async (channel) => {
+        if (channel === "open-last-video") return { success: true };
+        return undefined;
+      });
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+      state.downloadJobs = [
+        {
+          jobId: "done-actions",
+          url: "https://example.com/done",
+          quality: "Source",
+          signature: "done-actions",
+          status: "done",
+          filePath: "/tmp/done.mp4",
+        },
+      ];
+
+      initDownloadButton();
+      updateQueueDisplay();
+
+      const openButton = document.querySelector("[data-queue-open-done]");
+      const revealButton = document.querySelector("[data-queue-reveal-done]");
+      for (const button of [openButton, revealButton]) {
+        expect(button.getAttribute("title")).toBeTruthy();
+        expect(button.getAttribute("aria-label")).toBe(button.title);
+      }
+
+      openButton.click();
+      revealButton.click();
+      await Promise.resolve();
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "open-last-video",
+        "/tmp/done.mp4",
+      );
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "open-download-folder",
+        "/tmp/done.mp4",
+      );
+      expect(state.completedDownloads).toHaveLength(1);
+    });
+  });
+
+  it("shows localized toast errors when completed file IPC fails", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockCompletedJobDependencies();
+      window.electron.invoke.mockRejectedValue(new Error("IPC failed"));
+
+      const { state } = require("../state");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+      const { showToast } = require("../toast");
+      state.downloadJobs = [
+        {
+          jobId: "done-errors",
+          url: "https://example.com/done",
+          quality: "Source",
+          status: "done",
+          filePath: "/tmp/done.mp4",
+        },
+      ];
+
+      initDownloadButton();
+      updateQueueDisplay();
+      document.querySelector("[data-queue-open-done]").click();
+      document.querySelector("[data-queue-reveal-done]").click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(showToast).toHaveBeenCalledWith("queue.item.open.error", "error");
+      expect(showToast).toHaveBeenCalledWith(
+        "queue.item.reveal.error",
+        "error",
+      );
+      expect(state.completedDownloads).toHaveLength(1);
+    });
+  });
+});
