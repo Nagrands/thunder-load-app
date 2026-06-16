@@ -6,6 +6,10 @@
 
 $breakpoint-tablet: 900px;
 $breakpoint-mobile: 560px;
+$footer-action-size: 42px;
+$footer-action-radius: 50%;
+$footer-action-radius-soft: 12px;
+$footer-mobile-tab-height: 38px;
 
 // Базовые переходы
 $transition-fade-slide:
@@ -13,6 +17,36 @@ $transition-fade-slide:
   transform 280ms ease;
 $transition-fade: opacity 180ms ease;
 $transition-transform: transform 180ms ease;
+$transition-interactive:
+  $transition-transform,
+  background-color 180ms ease,
+  border-color 180ms ease,
+  color 180ms ease,
+  box-shadow 180ms ease;
+
+%footer-inline-center {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+%footer-focus-ring {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
+  outline-offset: 3px;
+}
+
+@mixin footer-glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.12),
+      rgba(255, 255, 255, 0.015) 38%,
+      rgba(255, 255, 255, 0.03) 100%
+    ),
+    rgba(12, 16, 24, 0.76);
+  backdrop-filter: blur(16px) saturate(140%);
+}
 
 // Миксин для скрытых состояний (мягкое исчезновение)
 @mixin soft-hidden {
@@ -27,6 +61,11 @@ $transition-transform: transform 180ms ease;
   animation: footer-tools-busy-pulse 1.2s ease-in-out infinite;
 }
 
+// Миксин для полностью скрытых служебных состояний
+@mixin hard-hidden {
+  display: none;
+}
+
 // ============================================================
 //  Контейнер футера
 // ============================================================
@@ -39,7 +78,7 @@ $transition-transform: transform 180ms ease;
   position: fixed;
   left: var(--app-footer-offset-x);
   right: var(--app-footer-offset-x);
-  bottom: var(--app-footer-offset-y);
+  bottom: calc(var(--app-footer-offset-y) + env(safe-area-inset-bottom, 0px));
   z-index: 940;
   pointer-events: none;
 
@@ -63,16 +102,7 @@ $transition-transform: transform 180ms ease;
   min-height: var(--app-footer-height);
   padding: 14px 16px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(var(--color-accent-rgb), 0.12),
-      rgba(255, 255, 255, 0.015) 38%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(12, 16, 24, 0.76);
-  backdrop-filter: blur(16px) saturate(140%);
+  @include footer-glass-panel;
   transition:
     $transition-fade-slide,
     border-color 180ms ease,
@@ -201,7 +231,7 @@ $transition-transform: transform 180ms ease;
 
   &.hidden,
   &.is-context-hidden {
-    display: none;
+    @include hard-hidden;
   }
 
   .downloader-tools-status__line {
@@ -247,8 +277,7 @@ $transition-transform: transform 180ms ease;
 
 // Бейдж инструмента (переиспользуемый блок – можно вынести в отдельный partial)
 .tool-badge {
-  display: inline-flex;
-  align-items: center;
+  @extend %footer-inline-center;
   gap: 6px;
   min-height: 23px;
   padding: 2px 9px 2px 7px;
@@ -267,9 +296,7 @@ $transition-transform: transform 180ms ease;
     width: 13px;
     height: 13px;
     border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    @extend %footer-inline-center;
     background: rgba(126, 222, 169, 0.14);
     color: #9cf2c3;
 
@@ -318,7 +345,7 @@ $transition-transform: transform 180ms ease;
   padding: 0 9px;
 
   &.hidden {
-    display: none;
+    @include hard-hidden;
   }
 }
 
@@ -362,12 +389,7 @@ $transition-transform: transform 180ms ease;
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
-    transition:
-      $transition-transform,
-      background-color 180ms ease,
-      border-color 180ms ease,
-      color 180ms ease,
-      box-shadow 180ms ease;
+    transition: $transition-interactive;
 
     .menu-progress {
       position: absolute;
@@ -424,10 +446,12 @@ $transition-transform: transform 180ms ease;
       );
     }
 
-    &:hover:not(.active):not(.disabled) {
-      color: var(--color-accent);
-      border-color: rgba(var(--color-accent-rgb), 0.28);
-      background: rgba(var(--color-accent-rgb), 0.06);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(.active):not(.disabled) {
+        color: var(--color-accent);
+        border-color: rgba(var(--color-accent-rgb), 0.28);
+        background: rgba(var(--color-accent-rgb), 0.06);
+      }
     }
 
     &:active:not(.disabled) {
@@ -447,8 +471,7 @@ $transition-transform: transform 180ms ease;
     }
 
     &:focus-visible {
-      outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
-      outline-offset: 3px;
+      @extend %footer-focus-ring;
     }
 
     .menu-badge {
@@ -466,9 +489,7 @@ $transition-transform: transform 180ms ease;
       display: none;
 
       &.is-visible {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        @extend %footer-inline-center;
       }
     }
   }
@@ -479,35 +500,29 @@ $transition-transform: transform 180ms ease;
 // ============================================================
 
 .app-footer__action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  width: 42px;
-  min-width: 42px;
+  @extend %footer-inline-center;
+  height: $footer-action-size;
+  width: $footer-action-size;
+  min-width: $footer-action-size;
   padding: 0;
-  flex: 0 0 42px;
-  border-radius: 50%;
+  flex: 0 0 $footer-action-size;
+  border-radius: $footer-action-radius;
   background: rgba(var(--color-accent-rgb), 0.1);
   color: var(--color-highlight);
   cursor: pointer;
-  transition:
-    $transition-transform,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+  transition: $transition-interactive;
 
-  &:hover {
-    transform: translateY(-1px);
-    color: var(--color-accent);
-    background: rgba(var(--color-accent-rgb), 0.16);
-    border-color: rgba(var(--color-accent-rgb), 0.34);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-1px);
+      color: var(--color-accent);
+      background: rgba(var(--color-accent-rgb), 0.16);
+      border-color: rgba(var(--color-accent-rgb), 0.34);
+    }
   }
 
   &:focus-visible {
-    outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
-    outline-offset: 3px;
+    @extend %footer-focus-ring;
   }
 
   &:active {
@@ -515,9 +530,7 @@ $transition-transform: transform 180ms ease;
   }
 
   i {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    @extend %footer-inline-center;
     width: 16px;
     height: 16px;
     font-size: 14px;
@@ -559,11 +572,11 @@ $transition-transform: transform 180ms ease;
     position: relative;
     overflow: hidden;
     width: auto;
-    min-width: 42px;
+    min-width: $footer-action-size;
     flex: 0 0 auto;
     gap: 8px;
     padding: 0 12px;
-    border-radius: 12px;
+    border-radius: $footer-action-radius-soft;
     background: rgba(87, 58, 22, 0.38);
     border: 1px solid rgba(255, 188, 112, 0.34);
     color: #ffdca8;
@@ -575,10 +588,12 @@ $transition-transform: transform 180ms ease;
       line-height: 1;
     }
 
-    &:hover {
-      color: #ffe6be;
-      background: rgba(103, 68, 26, 0.46);
-      border-color: rgba(255, 198, 122, 0.42);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        color: #ffe6be;
+        background: rgba(103, 68, 26, 0.46);
+        border-color: rgba(255, 198, 122, 0.42);
+      }
     }
 
     &.is-busy {
@@ -618,7 +633,7 @@ $transition-transform: transform 180ms ease;
 
 // Класс .is-context-hidden для любых элементов
 .is-context-hidden {
-  display: none;
+  @include hard-hidden;
 }
 
 // ============================================================
@@ -719,12 +734,12 @@ body.low-effects .app-footer__action--tools.is-busy {
 
 @media (max-width: $breakpoint-mobile) {
   .app-footer__action {
-    width: 42px;
+    width: $footer-action-size;
     padding: 0;
 
     &--tools {
       width: auto;
-      min-width: 42px;
+      min-width: $footer-action-size;
       padding: 0 10px;
 
       span {
@@ -738,7 +753,7 @@ body.low-effects .app-footer__action--tools.is-busy {
   }
 
   .app-footer__tab-nav .menu-item {
-    min-height: 38px;
+    min-height: $footer-mobile-tab-height;
     padding: 0 10px;
     font-size: 13px;
   }

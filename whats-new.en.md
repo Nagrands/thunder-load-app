@@ -1,4 +1,4 @@
-<!-- version: 1.5.2 -->
+<!-- version: 1.5.3 -->
 
 # Release date: June 14, 2026
 
