@@ -59,7 +59,7 @@ const setupDom = () => {
         </div>
 
         <div class="history-search-filters-card">
-          <div class="history-controls-row history-controls-row--primary">
+          <div class="history-controls-row history-controls-row--primary history-controls-row--search-filter">
             <div class="history-search-card">
               <div class="history-search-wrapper">
                 <i id="icon-filter-search"></i>
@@ -504,8 +504,16 @@ describe("Downloader history list", () => {
     ).toBe(true);
 
     const toggle = row.querySelector(".history-row__toggle");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.classList.contains("is-open")).toBe(false);
     toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(toggle.classList.contains("is-open")).toBe(true);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(row.textContent).toContain("Нужна авторизация");
+
+    toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(toggle.classList.contains("is-open")).toBe(false);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
   test("renders explicit error history entry with error highlight", async () => {
@@ -679,6 +687,11 @@ describe("Downloader history list", () => {
   test("renders unified search+filters card with required controls", async () => {
     const unifiedCard = document.querySelector(".history-search-filters-card");
     expect(unifiedCard).not.toBeNull();
+    expect(
+      unifiedCard
+        .querySelector(".history-controls-row--primary")
+        .classList.contains("history-controls-row--search-filter"),
+    ).toBe(true);
     expect(unifiedCard.querySelector("#filter-input")).not.toBeNull();
     expect(unifiedCard.querySelector("#history-filters-card")).not.toBeNull();
   });

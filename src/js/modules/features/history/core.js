@@ -1686,6 +1686,7 @@ function toggleAllHistoryDetails(forceState = null) {
     if (!details || !toggle) return;
     row.classList.toggle("is-open", shouldOpen);
     details.classList.toggle("is-open", shouldOpen);
+    toggle.classList.toggle("is-open", shouldOpen);
     toggle.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
     const label = shouldOpen
       ? t("history.details.collapse")
@@ -2927,6 +2928,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   toggle.className = "history-row__toggle";
   toggle.dataset.action = "details";
   const initialDetailsOpen = state.historyDetailsExpanded === true;
+  toggle.classList.toggle("is-open", initialDetailsOpen);
   toggle.setAttribute("aria-expanded", initialDetailsOpen ? "true" : "false");
   const initialToggleLabel = initialDetailsOpen
     ? t("history.details.collapse")
@@ -3105,6 +3107,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     }
     details.classList.toggle("is-open", isOpen);
     el.classList.toggle("is-open", isOpen);
+    toggle.classList.toggle("is-open", isOpen);
     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     const label = isOpen
       ? t("history.details.collapse")
