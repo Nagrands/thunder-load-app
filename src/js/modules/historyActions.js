@@ -22,6 +22,45 @@ import { t } from "./i18n.js";
 let isClearingHistory = false;
 const CLEAR_HISTORY_UNDO_MS = 5500;
 const CLEAR_HISTORY_PREVIEW_CLEANUP_MS = 6000;
+const CLEAR_HISTORY_MODE_ALL = "all";
+const CLEAR_HISTORY_MODE_PROBLEM = "problem";
+
+function isFailedHistoryEntry(entry) {
+  return entry?.downloadStatus === "failed" || entry?.error === true;
+}
+
+function isProblemHistoryEntry(entry) {
+  return Boolean(entry?.isMissing) || isFailedHistoryEntry(entry);
+}
+
+function collectPreviewPaths(entries) {
+  return entries.map((entry) => entry?.thumbnailCacheFile).filter(Boolean);
+}
+
+function schedulePreviewCleanup(previewPaths) {
+  if (!previewPaths.length) return null;
+
+  return setTimeout(() => {
+    window.electron
+      .invoke("delete-history-preview", previewPaths)
+      .catch((error) =>
+        console.warn("Не удалось очистить превью после очистки истории:", error),
+      );
+  }, CLEAR_HISTORY_PREVIEW_CLEANUP_MS);
+}
+
+function resetHistoryViewAfterClear(remainingHistory) {
+  clearHistorySelection();
+  state.currentSearchQuery = "";
+  state.historyPage = 1;
+  localStorage.removeItem("lastSearch");
+  setFilterInputValue("");
+  renderHistory(remainingHistory);
+  localStorage.setItem(
+    "historyVisible",
+    remainingHistory.length > 0 ? "true" : "false",
+  );
+}
 
 /**
  * Обработчик очистки истории
@@ -31,53 +70,64 @@ async function handleClearHistory() {
   isClearingHistory = true;
 
   try {
-    const confirmed = await showConfirmationDialog({
+    const previousHistory = [
+      ...(getHistoryData() || state.downloadHistory || []),
+    ];
+    const hasProblemEntries = previousHistory.some(isProblemHistoryEntry);
+    const clearMode = await showConfirmationDialog({
       title: t("history.clear.title"),
       subtitle: t("history.clear.subtitle"),
       message: t("history.clear.message"),
       confirmText: t("history.clear.confirm"),
       cancelText: t("history.clear.cancel"),
       tone: "danger",
+      choices: [
+        {
+          value: CLEAR_HISTORY_MODE_ALL,
+          label: t("history.clear.choice.all"),
+          description: t("history.clear.choice.allDescription"),
+        },
+        {
+          value: CLEAR_HISTORY_MODE_PROBLEM,
+          label: t("history.clear.choice.problem"),
+          description: t("history.clear.choice.problemDescription"),
+        },
+      ],
+      defaultChoice: hasProblemEntries
+        ? CLEAR_HISTORY_MODE_PROBLEM
+        : CLEAR_HISTORY_MODE_ALL,
     });
-    if (!confirmed) return;
+    if (!clearMode) return;
 
-    const previousHistory = [
-      ...(getHistoryData() || state.downloadHistory || []),
-    ];
-    const previewPaths = previousHistory
-      .map((entry) => entry?.thumbnailCacheFile)
-      .filter(Boolean);
+    const removedEntries =
+      clearMode === CLEAR_HISTORY_MODE_PROBLEM
+        ? previousHistory.filter(isProblemHistoryEntry)
+        : previousHistory;
+    const remainingHistory =
+      clearMode === CLEAR_HISTORY_MODE_PROBLEM
+        ? previousHistory.filter((entry) => !isProblemHistoryEntry(entry))
+        : [];
 
-    state.downloadHistory = [];
-    setHistoryData([]);
-
-    // ✅ очищаем интерфейс и локальное состояние
-    clearHistorySelection();
-    state.currentSearchQuery = "";
-    state.historyPage = 1;
-    localStorage.removeItem("lastSearch");
-    setFilterInputValue("");
-    await window.electron.invoke("save-history", []);
-    renderHistory([]);
-    await updateDownloadCount();
-    localStorage.setItem("historyVisible", "false");
-
-    let cleanupTimer = null;
-    if (previewPaths.length) {
-      cleanupTimer = setTimeout(() => {
-        window.electron
-          .invoke("delete-history-preview", previewPaths)
-          .catch((error) =>
-            console.warn(
-              "Не удалось очистить превью после очистки истории:",
-              error,
-            ),
-          );
-      }, CLEAR_HISTORY_PREVIEW_CLEANUP_MS);
+    if (!removedEntries.length) {
+      if (clearMode === CLEAR_HISTORY_MODE_PROBLEM) {
+        showToast(t("history.clear.noProblemEntries"), "info");
+      }
+      return;
     }
 
+    const previewPaths = collectPreviewPaths(removedEntries);
+
+    state.downloadHistory = [...remainingHistory];
+    setHistoryData(remainingHistory);
+
+    resetHistoryViewAfterClear(remainingHistory);
+    await window.electron.invoke("save-history", remainingHistory);
+    await updateDownloadCount();
+
+    let cleanupTimer = schedulePreviewCleanup(previewPaths);
+
     showToast(
-      t("history.toast.deletedEntries", { count: previousHistory.length }),
+      t("history.toast.deletedEntries", { count: removedEntries.length }),
       "info",
       CLEAR_HISTORY_UNDO_MS,
       null,

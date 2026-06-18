@@ -137,4 +137,40 @@ describe("showConfirmationDialog (allowHtml)", () => {
     confirmationModal.querySelector(".close-modal").click();
     await expect(closePromise).resolves.toBe(false);
   });
+
+  test("renders choices and returns selected value on confirm", async () => {
+    const confirmationModal = createConfirmationModalDom();
+    jest.doMock("../domElements.js", () => ({
+      confirmationModal,
+      shortcutsModal: null,
+      whatsNewModal: null,
+      settingsModal: null,
+    }));
+
+    const { showConfirmationDialog } = await import("../modals.js");
+
+    const resultPromise = showConfirmationDialog({
+      message: "Choose clear mode",
+      choices: [
+        { value: "all", label: "All", description: "Clear everything" },
+        {
+          value: "problem",
+          label: "Problems",
+          description: "Clear failed and missing",
+        },
+      ],
+      defaultChoice: "problem",
+    });
+
+    const choices = confirmationModal.querySelectorAll(".confirmation-choice");
+    expect(choices).toHaveLength(2);
+    expect(
+      confirmationModal.querySelector('input[value="problem"]').checked,
+    ).toBe(true);
+
+    confirmationModal.querySelector('input[value="all"]').click();
+    confirmationModal.querySelector(".confirm-button").click();
+
+    await expect(resultPromise).resolves.toBe("all");
+  });
 });

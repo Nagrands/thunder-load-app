@@ -29,6 +29,94 @@ const CONFIRMATION_HTML_ALLOWED_TAGS = [
 ];
 const CONFIRMATION_MODAL_OVERLAY_OWNER = "confirmation-modal";
 
+function normalizeConfirmationChoices(choices) {
+  return Array.isArray(choices)
+    ? choices
+        .map((choice) => ({
+          value: String(choice?.value || ""),
+          label: String(choice?.label || ""),
+          description: String(choice?.description || ""),
+        }))
+        .filter((choice) => choice.value && choice.label)
+    : [];
+}
+
+function renderConfirmationMessage(messageEl, message, allowHtml) {
+  const msgText = String(message || "");
+  if (!allowHtml) {
+    messageEl.textContent = msgText;
+    return;
+  }
+
+  const safeHtml = sanitizeConfirmationHtml(msgText);
+  if (typeof safeHtml === "string") {
+    messageEl.innerHTML = safeHtml;
+  } else {
+    // Fallback: avoid rendering raw HTML when DOMPurify is unavailable.
+    messageEl.textContent = msgText;
+  }
+}
+
+function renderConfirmationChoices(messageEl, choices, selectedValue, onSelect) {
+  if (!choices.length) return null;
+
+  const list = document.createElement("div");
+  list.className = "confirmation-choice-list";
+  list.setAttribute("role", "radiogroup");
+
+  choices.forEach((choice, index) => {
+    const option = document.createElement("label");
+    option.className = "confirmation-choice";
+    option.dataset.value = choice.value;
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "confirmation-choice";
+    input.value = choice.value;
+    input.checked = choice.value === selectedValue;
+
+    const marker = document.createElement("span");
+    marker.className = "confirmation-choice__marker";
+    marker.setAttribute("aria-hidden", "true");
+
+    const body = document.createElement("span");
+    body.className = "confirmation-choice__body";
+
+    const label = document.createElement("span");
+    label.className = "confirmation-choice__label";
+    label.textContent = choice.label;
+    body.appendChild(label);
+
+    if (choice.description) {
+      const description = document.createElement("span");
+      description.className = "confirmation-choice__description";
+      description.textContent = choice.description;
+      body.appendChild(description);
+    }
+
+    option.append(input, marker, body);
+    option.classList.toggle("is-selected", input.checked);
+    option.addEventListener("change", () => {
+      onSelect(choice.value);
+      list.querySelectorAll(".confirmation-choice").forEach((item) => {
+        const radio = item.querySelector("input");
+        item.classList.toggle("is-selected", Boolean(radio?.checked));
+      });
+    });
+
+    if (index === 0 && !choices.some((item) => item.value === selectedValue)) {
+      input.checked = true;
+      option.classList.add("is-selected");
+      onSelect(choice.value);
+    }
+
+    list.appendChild(option);
+  });
+
+  messageEl.appendChild(list);
+  return list;
+}
+
 function sanitizeConfirmationHtml(html) {
   const purifier = window?.DOMPurify;
   if (!purifier || typeof purifier.sanitize !== "function") {
@@ -85,9 +173,16 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     confirmResult = true,
     cancelResult = false,
     closeResult = false,
+    choices: rawChoices = [],
+    defaultChoice = "",
     onConfirm: confirmCb,
     onCancel: cancelCb,
   } = opts;
+  const choices = normalizeConfirmationChoices(rawChoices);
+  let selectedChoiceValue =
+    choices.find((choice) => choice.value === String(defaultChoice))?.value ||
+    choices[0]?.value ||
+    "";
 
   // Получаем элементы модального окна
   const confirmationMessage = confirmationModal?.querySelector(
@@ -112,18 +207,15 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
     return Promise.resolve(false);
   }
 
-  const msgText = String(message || "");
-  if (!allowHtml) {
-    confirmationMessage.textContent = msgText;
-  } else {
-    const safeHtml = sanitizeConfirmationHtml(msgText);
-    if (typeof safeHtml === "string") {
-      confirmationMessage.innerHTML = safeHtml;
-    } else {
-      // Fallback: avoid rendering raw HTML when DOMPurify is unavailable.
-      confirmationMessage.textContent = msgText;
-    }
-  }
+  renderConfirmationMessage(confirmationMessage, message, allowHtml);
+  renderConfirmationChoices(
+    confirmationMessage,
+    choices,
+    selectedChoiceValue,
+    (value) => {
+      selectedChoiceValue = value;
+    },
+  );
   titleEl.textContent = title;
   subtitleEl.textContent = subtitle;
   confirmButton.textContent = confirmText;
@@ -155,7 +247,7 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
       try {
         if (typeof confirmCb === "function") await confirmCb();
         if (typeof onConfirm === "function") await onConfirm();
-        finalize(confirmResult);
+        finalize(choices.length ? selectedChoiceValue : confirmResult);
       } catch (err) {
         console.error("Ошибка в обработчике подтверждения:", err);
       } finally {

@@ -19901,6 +19901,62 @@ hr {
   margin-right: 6px;
   color: var(--color-accent);
 }
+.confirmation-modal .confirmation-choice-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+.confirmation-modal .confirmation-choice {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+.confirmation-modal .confirmation-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.confirmation-modal .confirmation-choice:hover, .confirmation-modal .confirmation-choice:focus-within {
+  border-color: rgba(var(--color-accent-rgb), 0.45);
+  background: rgba(var(--color-accent-rgb), 0.08);
+}
+.confirmation-modal .confirmation-choice.is-selected {
+  border-color: rgba(var(--color-accent-rgb), 0.62);
+  background: rgba(var(--color-accent-rgb), 0.12);
+}
+.confirmation-modal .confirmation-choice__marker {
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.28);
+}
+.confirmation-modal .confirmation-choice.is-selected .confirmation-choice__marker {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+.confirmation-modal .confirmation-choice__body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.confirmation-modal .confirmation-choice__label {
+  color: var(--color-highlight);
+  font-weight: 600;
+}
+.confirmation-modal .confirmation-choice__description {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
 .confirmation-modal .confirmation-footer {
   justify-content: flex-end;
   padding: 8px 20px 20px;

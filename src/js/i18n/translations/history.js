@@ -131,9 +131,17 @@ export const historyTranslations = {
     "history.clear.title": "Очистить историю?",
     "history.clear.subtitle": "История загрузок",
     "history.clear.message":
-      "Вы уверены, что хотите удалить всю историю загрузок?",
+      "Выберите, какие записи удалить из истории загрузок.",
     "history.clear.confirm": "Очистить",
     "history.clear.cancel": "Отмена",
+    "history.clear.choice.all": "Всю историю записей",
+    "history.clear.choice.allDescription":
+      "Удалить все записи истории загрузок.",
+    "history.clear.choice.problem": "Только ошибки и удалённые файлы",
+    "history.clear.choice.problemDescription":
+      "Удалить записи с ошибкой и записи, где локальный файл уже отсутствует.",
+    "history.clear.noProblemEntries":
+      "В истории нет записей с ошибками или удалёнными файлами.",
     "history.delete.title": "Удалить запись?",
     "history.delete.subtitle": "История загрузок",
     "history.delete.confirm": "Удалить",
@@ -289,9 +297,17 @@ export const historyTranslations = {
     "history.clear.title": "Clear history?",
     "history.clear.subtitle": "Download history",
     "history.clear.message":
-      "Are you sure you want to delete the entire download history?",
+      "Choose which download history entries to delete.",
     "history.clear.confirm": "Clear",
     "history.clear.cancel": "Cancel",
+    "history.clear.choice.all": "Entire history",
+    "history.clear.choice.allDescription":
+      "Delete every download history entry.",
+    "history.clear.choice.problem": "Only errors and deleted files",
+    "history.clear.choice.problemDescription":
+      "Delete failed entries and entries whose local file is already missing.",
+    "history.clear.noProblemEntries":
+      "There are no failed entries or deleted files in history.",
     "history.delete.title": "Delete entry?",
     "history.delete.subtitle": "Download history",
     "history.delete.confirm": "Delete",
