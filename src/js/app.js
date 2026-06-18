@@ -26,6 +26,7 @@ const ElectronStore = require("electron-store").default;
 const log = require("electron-log");
 
 const { app, BrowserWindow, dialog } = require("electron");
+const { configureLegacyUserDataPath } = require("./app/userDataPath.js");
 
 function configureVersionedLogFile() {
   let versionTag = "unknown";
@@ -45,6 +46,7 @@ function configureVersionedLogFile() {
   }
 }
 
+configureLegacyUserDataPath(app, fs);
 configureVersionedLogFile();
 
 const { createWindow, setReloadMenuEnabled } = require("./app/window.js");
@@ -64,7 +66,7 @@ const { setupGlobalShortcuts } = require("./app/shortcuts.js");
 const store = new ElectronStore();
 const isDev = process.argv.includes("--dev");
 
-// Set application user model ID (for Windows notifications)
+// Keep the legacy Windows notification identity for update compatibility.
 app.setAppUserModelId("Thunderload");
 
 // Define essential paths

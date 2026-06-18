@@ -1,10 +1,17 @@
-# Документация Thunder Load
+# Документация Thunder
 
 Карта документов и краткие конвенции оформления.
 
 ## Основные документы
 
 - `README.md` — основное описание проекта, сборки и команды разработки.
+- `docs/brand/brand-guide.md` — бренд‑основа Thunder Spark.
+- `docs/brand/logo-rules.md` — правила использования логотипа.
+- `docs/brand/color-guide.md` — официальная палитра и роли цветов.
+- `docs/brand/typography-guide.md` — типографика и масштаб текста.
+- `docs/brand/icon-guide.md` — язык иконок.
+- `docs/brand/naming-convention.md` — правила именования продукта и ассетов.
+- `docs/brand/release-naming.md` — коды релизов начиная с Thunder Spark.
 - `docs/APP.ru.md` — актуальное руководство по возможностям приложения.
 - `docs/APP.en.md` — application guide in English.
 - `docs/WORKFLOW.ru.md` — рабочий процесс разработки и выпуска.

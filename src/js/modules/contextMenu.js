@@ -2,7 +2,7 @@
  * @file contextMenu.js
  * @description
  * Provides right-click context menu functionality for history log entries
- * in the Thunder Load application.
+ * in the Thunder application.
  *
  * Responsibilities:
  *  - Show and position a custom context menu near the mouse cursor

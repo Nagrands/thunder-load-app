@@ -1,6 +1,6 @@
 export const coreTranslations = {
   ru: {
-    "app.title": "Thunder Load",
+    "app.title": "Thunder",
     "topbar.nav": "Навигация по разделам",
     "topbar.appVersion": "Версия приложения",
     "topbar.history": "История загрузок",
@@ -21,7 +21,7 @@ export const coreTranslations = {
       "Обновление недоступно во время активной загрузки",
     "topbar.minimize": "Свернуть",
     "topbar.close": "Закрыть",
-    "footer.kicker": "Thunder Load",
+    "footer.kicker": "Thunder",
     "footer.context": "Версия приложения",
     "footer.sectionLabel": "Вкладка",
     "footer.themeLabel": "Тема",
@@ -127,7 +127,7 @@ export const coreTranslations = {
     "language.ru": "Русский",
     "language.en": "English",
     "firstRun.eyebrow": "Первый запуск",
-    "firstRun.title": "Добро пожаловать в Thunder Load",
+    "firstRun.title": "Добро пожаловать в Thunder",
     "firstRun.subtitle": "Настройте язык, вкладки и тему перед началом работы.",
     "firstRun.stepCounter": "Шаг {current} из {total}",
     "firstRun.steps.language": "Язык",
@@ -214,7 +214,7 @@ export const coreTranslations = {
     "toast.loading.title": "Пожалуйста, подождите",
   },
   en: {
-    "app.title": "Thunder Load",
+    "app.title": "Thunder",
     "topbar.nav": "Section navigation",
     "topbar.appVersion": "App version",
     "topbar.history": "Download history",
@@ -234,7 +234,7 @@ export const coreTranslations = {
     "topbar.reload.disabled": "Reload is unavailable during an active download",
     "topbar.minimize": "Minimize",
     "topbar.close": "Close",
-    "footer.kicker": "Thunder Load",
+    "footer.kicker": "Thunder",
     "footer.context": "App version",
     "footer.sectionLabel": "Tab",
     "footer.themeLabel": "Theme",
@@ -338,7 +338,7 @@ export const coreTranslations = {
     "language.ru": "Russian",
     "language.en": "English",
     "firstRun.eyebrow": "First launch",
-    "firstRun.title": "Welcome to Thunder Load",
+    "firstRun.title": "Welcome to Thunder",
     "firstRun.subtitle":
       "Choose language, tabs, and theme before getting started.",
     "firstRun.stepCounter": "Step {current} of {total}",

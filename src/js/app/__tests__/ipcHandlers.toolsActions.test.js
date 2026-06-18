@@ -47,7 +47,7 @@ jest.mock("electron", () => ({
       return os.tmpdir();
     }),
     getAppPath: jest.fn(() => process.cwd()),
-    getName: jest.fn(() => "Thunder Load"),
+    getName: jest.fn(() => "Thunder"),
   },
 }));
 

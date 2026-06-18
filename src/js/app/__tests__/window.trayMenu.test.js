@@ -51,7 +51,7 @@ function findMenuItem(template, startsWithLabel) {
 describe("window tray/dock menu templates", () => {
   test("disables 'Последнее видео' when file is missing", () => {
     const template = buildTrayMenuTemplate({
-      app: { getName: () => "Thunder Load", getVersion: () => "1.3.6" },
+      app: { getName: () => "Thunder", getVersion: () => "1.3.6" },
       store: createStore({ lastDownloadedFile: "/tmp/does-not-exist.mp4" }),
       downloadPath: "/tmp",
       mainWindow: {},
@@ -73,7 +73,7 @@ describe("window tray/dock menu templates", () => {
     fs.writeFileSync(filePath, "ok");
 
     const template = buildTrayMenuTemplate({
-      app: { getName: () => "Thunder Load", getVersion: () => "1.3.6" },
+      app: { getName: () => "Thunder", getVersion: () => "1.3.6" },
       store: createStore({ lastDownloadedFile: filePath }),
       downloadPath: "/tmp",
       mainWindow: {},
@@ -92,7 +92,7 @@ describe("window tray/dock menu templates", () => {
 
   test("disables 'Папка загрузок' when download path is invalid", () => {
     const template = buildTrayMenuTemplate({
-      app: { getName: () => "Thunder Load", getVersion: () => "1.3.6" },
+      app: { getName: () => "Thunder", getVersion: () => "1.3.6" },
       store: createStore({ downloadPath: "/tmp/missing-download-dir" }),
       downloadPath: "/tmp/missing-download-dir",
       mainWindow: {},
@@ -137,7 +137,7 @@ describe("window tray/dock menu templates", () => {
       webContents: { send: jest.fn() },
     };
     const app = {
-      getName: () => "Thunder Load",
+      getName: () => "Thunder",
       getVersion: () => "1.3.6",
       isQuitting: false,
       quit: jest.fn(),
@@ -191,7 +191,7 @@ describe("window tray/dock menu templates", () => {
     const downloadDir = os.tmpdir();
 
     const app = {
-      getName: () => "Thunder Load",
+      getName: () => "Thunder",
       getVersion: () => "1.3.6",
       isQuitting: false,
       quit: jest.fn(),

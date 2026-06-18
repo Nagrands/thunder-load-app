@@ -148,20 +148,18 @@ def add_tile_background(canvas: Image.Image, size: int) -> None:
     canvas.alpha_composite(border)
 
 
-def t_mask(size: int) -> Image.Image:
+def lightning_mask(size: int) -> Image.Image:
     mask = Image.new("L", (size, size), 0)
     draw = ImageDraw.Draw(mask)
-
-    corner = max(8, size // 18)
-
-    draw.rounded_rectangle(
-        fit_bbox((228, 232, 796, 398), size),
-        radius=corner,
-        fill=255,
-    )
-    draw.rounded_rectangle(
-        fit_bbox((430, 232, 594, 810), size),
-        radius=corner,
+    draw.polygon(
+        [
+            (scale_value(size, 586), scale_value(size, 84)),
+            (scale_value(size, 246), scale_value(size, 576)),
+            (scale_value(size, 468), scale_value(size, 576)),
+            (scale_value(size, 394), scale_value(size, 920)),
+            (scale_value(size, 786), scale_value(size, 468)),
+            (scale_value(size, 554), scale_value(size, 468)),
+        ],
         fill=255,
     )
     return mask
@@ -209,8 +207,28 @@ def colored_shape(
     return out
 
 
-def render_t_symbol(size: int) -> Image.Image:
-    mask = t_mask(size)
+def render_lightning_symbol(size: int) -> Image.Image:
+    mask = lightning_mask(size)
+
+    ring = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ring_draw = ImageDraw.Draw(ring)
+    ring_width = max(5, scale_value(size, 54))
+    ring_bbox = fit_bbox((148, 150, 876, 878), size)
+    ring_draw.arc(
+        ring_bbox,
+        start=118,
+        end=388,
+        fill=(248, 251, 255, 236),
+        width=ring_width,
+    )
+    ring_draw.arc(
+        ring_bbox,
+        start=300,
+        end=62,
+        fill=(22, 216, 255, 220),
+        width=max(4, int(ring_width * 0.78)),
+    )
+    ring_glow = ring.filter(ImageFilter.GaussianBlur(max(1, size // 30)))
 
     shadow = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow)
@@ -221,62 +239,59 @@ def render_t_symbol(size: int) -> Image.Image:
         shadow_draw.bitmap((dx, dy), mask, fill=(0, 0, 0, 128))
     shadow = shadow.filter(ImageFilter.GaussianBlur(max(1, size // 22)))
 
-    t_shape = colored_shape(
+    lightning_shape = colored_shape(
         size,
         mask,
-        "#f8fbff",
-        "#aebfd8",
-        glow_color=(90, 194, 255, 72),
-        glow_bbox=(168, 190, 818, 860),
-        outline_color=(220, 235, 255, 28),
-        highlight_alpha=40,
+        "#ffffff",
+        "#128bff",
+        glow_color=(22, 216, 255, 118),
+        glow_bbox=(198, 154, 852, 932),
+        outline_color=(248, 251, 255, 74),
+        highlight_alpha=54,
     )
-
-    inner_shadow = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    inner_shadow_draw = ImageDraw.Draw(inner_shadow)
-    inner_shadow_draw.rounded_rectangle(
-        fit_bbox((438, 296, 592, 802), size),
-        radius=max(8, size // 18),
-        fill=(0, 0, 0, 40),
-    )
-    inner_shadow = inner_shadow.filter(ImageFilter.GaussianBlur(max(1, size // 28)))
 
     warm_accent = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    ImageDraw.Draw(warm_accent).rounded_rectangle(
-        fit_bbox((526, 220, 804, 418), size),
-        radius=max(8, size // 14),
-        fill=(255, 175, 52, 72),
+    ImageDraw.Draw(warm_accent).ellipse(
+        fit_bbox((548, 176, 942, 670), size),
+        fill=(255, 138, 0, 40),
     )
-    warm_accent = warm_accent.filter(ImageFilter.GaussianBlur(max(1, size // 24)))
+    warm_accent = warm_accent.filter(ImageFilter.GaussianBlur(max(1, size // 18)))
 
     symbol = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    symbol.alpha_composite(ring_glow)
+    symbol.alpha_composite(ring)
     symbol.alpha_composite(shadow)
     symbol.alpha_composite(warm_accent)
-    symbol.alpha_composite(t_shape)
-    symbol.alpha_composite(inner_shadow)
+    symbol.alpha_composite(lightning_shape)
     return symbol
 
 
 def create_app_icon(size: int = APP_ICON_SIZE) -> Image.Image:
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     add_tile_background(canvas, size)
-    canvas.alpha_composite(render_t_symbol(size))
+    canvas.alpha_composite(render_lightning_symbol(size))
     return canvas
 
 
 def create_windows_tray_icon(size: int = 32) -> Image.Image:
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    circle = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    ImageDraw.Draw(circle).ellipse((2, 2, size - 2, size - 2), fill=(45, 150, 255, 255))
-    circle = Image.alpha_composite(
-        circle,
-        glow(size, (255, 170, 50, 70), (400, 420, 960, 980), 70).resize((size, size), Image.Resampling.LANCZOS),
-    )
-    canvas.alpha_composite(circle)
-
     draw = ImageDraw.Draw(canvas)
-    draw.rounded_rectangle((8, 8, 24, 13), radius=3, fill=(255, 255, 255, 255))
-    draw.rounded_rectangle((13, 8, 18, 24), radius=3, fill=(255, 255, 255, 255))
+    draw.ellipse(
+        (2, 2, size - 2, size - 2),
+        outline=(22, 216, 255, 255),
+        width=max(2, size // 10),
+    )
+    draw.polygon(
+        [
+            (int(size * 0.56), int(size * 0.1)),
+            (int(size * 0.22), int(size * 0.56)),
+            (int(size * 0.45), int(size * 0.56)),
+            (int(size * 0.36), int(size * 0.9)),
+            (int(size * 0.78), int(size * 0.42)),
+            (int(size * 0.54), int(size * 0.42)),
+        ],
+        fill=(248, 251, 255, 255),
+    )
     return canvas
 
 
@@ -285,9 +300,11 @@ def create_macos_template(size: int = 24) -> Image.Image:
     large_size = size * scale
     canvas = Image.new("RGBA", (large_size, large_size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
-    draw.ellipse((14, 14, 82, 82), fill=(0, 0, 0, 255))
-    draw.rounded_rectangle((31, 30, 65, 40), radius=6, fill=(0, 0, 0, 0))
-    draw.rounded_rectangle((43, 30, 53, 64), radius=6, fill=(0, 0, 0, 0))
+    draw.ellipse((14, 14, 82, 82), outline=(0, 0, 0, 255), width=12)
+    draw.polygon(
+        [(54, 10), (24, 58), (44, 58), (36, 86), (74, 42), (52, 42)],
+        fill=(0, 0, 0, 255),
+    )
 
     return canvas.resize((size, size), Image.Resampling.LANCZOS)
 

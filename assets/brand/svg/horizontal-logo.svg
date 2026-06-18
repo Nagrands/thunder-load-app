@@ -1,0 +1,16 @@
+<svg width="520" height="132" viewBox="0 0 520 132" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark horizontal logo</title>
+  <defs>
+    <linearGradient id="bolt" x1="38" y1="8" x2="112" y2="124" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".44" stop-color="#7BE8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="68" cy="66" r="52" fill="none" stroke="#16D8FF" stroke-width="7" stroke-linecap="round" stroke-dasharray="250 52"/>
+  <path d="M82 12 38 74h29l-9 46 50-66H76z" fill="url(#bolt)"/>
+  <text x="140" y="58" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="40" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="140" y="102" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="42" font-style="italic" font-weight="800">SPARK</text>
+  <rect x="360" y="75" width="58" height="22" rx="7" fill="none" stroke="#16D8FF" stroke-width="2"/>
+  <text x="371" y="92" fill="#85C9FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-style="italic" font-weight="700">1.6.0</text>
+</svg>

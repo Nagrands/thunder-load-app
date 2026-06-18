@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/icons/app/app-icon.png" alt="ThunderLoad Logo" width="120" />
+  <img src="assets/icons/app/app-icon.png" alt="Thunder Logo" width="120" />
 </p>
 
-<h1 align="center">Thunder Load</h1>
+<h1 align="center">Thunder</h1>
 
 <p align="center"><em>Desktop media downloader and utility toolbox</em></p>
 
@@ -108,13 +108,14 @@ or use the `*:watch` commands.
 ## Configuration
 
 - Choose the downloads folder from Downloader. Settings controls the managed tools directory, language, theme, enabled modules, and Downloader behavior.
-- Default data locations: macOS `~/Library/Application Support/Thunder Load`, Windows `%APPDATA%/Thunder Load`, Linux `~/.config/Thunder Load`.
+- Default data locations remain under the legacy `Thunder Load` folder for compatibility: macOS `~/Library/Application Support/Thunder Load`, Windows `%APPDATA%/Thunder Load`, Linux `~/.config/Thunder Load`.
 - Use the Tools manager in Settings to inspect, update, reinstall, migrate, or reset runtime dependencies. Linux may require `ffmpeg`/`ffprobe` from the system package manager, and compatible tools can also be resolved from `PATH`.
 
 ## Documentation
 
 - [Application guide](docs/APP.en.md)
 - [Russian application guide](docs/APP.ru.md)
+- [Thunder brand guide](docs/brand/brand-guide.md)
 - [Developer workflow](docs/WORKFLOW.en.md)
 - [D.O.C.S. delivery method](docs/DOCS.en.md)
 - [Documentation index](docs/INDEX.md)

@@ -1,4 +1,4 @@
-# D.O.C.S. Methodology for Thunder Load
+# D.O.C.S. Methodology for Thunder
 
 A single delivery loop so every change follows the same path from request to release notes.
 

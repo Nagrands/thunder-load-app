@@ -1,0 +1,27 @@
+<svg width="760" height="220" viewBox="0 0 760 220" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark main logo</title>
+  <desc id="desc">Thunder Spark lockup with lightning-circle symbol, version chip, Spark tag, and slogan.</desc>
+  <defs>
+    <linearGradient id="bolt" x1="42" y1="12" x2="138" y2="178" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".44" stop-color="#7BE8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#16D8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="220" rx="28" fill="#050914"/>
+  <circle cx="100" cy="104" r="82" fill="none" stroke="#16D8FF" stroke-width="10" stroke-linecap="round" stroke-dasharray="395 80"/>
+  <circle cx="100" cy="104" r="96" fill="#2D9CFF" opacity=".11"/>
+  <path d="M118 18 50 118h45l-14 76 76-106h-47z" fill="url(#bolt)"/>
+  <text x="214" y="82" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="48" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="214" y="136" fill="url(#spark)" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="52" font-style="italic" font-weight="800">SPARK</text>
+  <rect x="510" y="103" width="74" height="28" rx="8" fill="none" stroke="#16D8FF" stroke-width="2" opacity=".8"/>
+  <text x="524" y="124" fill="#85C9FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-style="italic" font-weight="700">1.6.0</text>
+  <line x1="604" y1="103" x2="604" y2="132" stroke="#CFE1FA" stroke-width="2" opacity=".5"/>
+  <text x="626" y="124" fill="#FF8A00" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="4">SPARK</text>
+  <line x1="214" y1="160" x2="520" y2="160" stroke="#2D9CFF" stroke-width="2" opacity=".45"/>
+  <text x="214" y="194" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-style="italic" font-weight="600"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+</svg>

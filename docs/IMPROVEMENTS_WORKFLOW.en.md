@@ -1,4 +1,4 @@
-# Thunder Load Improvements Workflow
+# Thunder Improvements Workflow
 
 This document describes a consistent, safe, and repeatable flow for project improvements.
 

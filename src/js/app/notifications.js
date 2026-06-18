@@ -26,7 +26,7 @@ function formatDownloadErrorMessage(errorLike) {
 
 function showTrayNotification(message) {
   const notification = new Notification({
-    title: "Thunder Load",
+    title: "Thunder",
     body: message,
     icon: resolveIconPathFromAppDir("APP_ICON_256"),
   });

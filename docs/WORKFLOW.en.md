@@ -1,10 +1,10 @@
-# Thunder Load Workflow
+# Thunder Workflow
 
 Short reference for where things live and what to do during development and releases.
 
 ## What This Project Is
 
-Thunder Load is an Electron app for downloading video/audio and managing related tools
+Thunder is an Electron app for downloading video/audio and managing related tools
 (yt-dlp, ffmpeg, Deno).
 
 ## D.O.C.S. Delivery Method

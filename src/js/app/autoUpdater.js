@@ -36,7 +36,7 @@ function setupAutoUpdater(mainWindow) {
 
     if (Notification.isSupported()) {
       new Notification({
-        title: "Thunder Load - Обновление доступно",
+        title: "Thunder - Обновление доступно",
         body: message,
         icon: iconPath,
       }).show();

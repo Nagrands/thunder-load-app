@@ -1,0 +1,17 @@
+<svg width="900" height="560" viewBox="0 0 900 560" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark splash template</title>
+  <defs>
+    <linearGradient id="bolt" x1="398" y1="74" x2="510" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".45" stop-color="#7BE8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="560" rx="32" fill="#050914"/>
+  <circle cx="450" cy="178" r="104" fill="none" stroke="#16D8FF" stroke-width="12" stroke-linecap="round" stroke-dasharray="500 95"/>
+  <circle cx="450" cy="178" r="134" fill="#2D9CFF" opacity=".12"/>
+  <path d="M475 50 386 182h58l-18 97 98-134h-62z" fill="url(#bolt)"/>
+  <text x="450" y="354" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="52" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="450" y="410" text-anchor="middle" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="56" font-style="italic" font-weight="800">SPARK</text>
+  <text x="450" y="454" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+</svg>

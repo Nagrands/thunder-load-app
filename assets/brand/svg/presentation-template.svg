@@ -1,0 +1,10 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark presentation template</title>
+  <rect width="1920" height="1080" fill="#050914"/>
+  <circle cx="236" cy="216" r="96" fill="none" stroke="#16D8FF" stroke-width="12" stroke-linecap="round" stroke-dasharray="462 92"/>
+  <path d="M260 70 180 218h52l-16 96 88-132h-56z" fill="#F8FBFF"/>
+  <text x="390" y="190" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="88" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="390" y="286" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="96" font-style="italic" font-weight="800">SPARK</text>
+  <text x="394" y="350" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="26" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+  <rect x="120" y="900" width="1680" height="2" fill="#223149"/>
+</svg>

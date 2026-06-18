@@ -1,0 +1,14 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark release banner template</title>
+  <rect width="1600" height="900" fill="#050914"/>
+  <circle cx="310" cy="286" r="172" fill="none" stroke="#16D8FF" stroke-width="16" stroke-linecap="round" stroke-dasharray="830 152"/>
+  <circle cx="310" cy="286" r="260" fill="#2D9CFF" opacity=".13"/>
+  <path d="M352 70 206 286h96l-30 162 160-222H332z" fill="#F8FBFF"/>
+  <text x="600" y="248" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="110" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="600" y="370" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="124" font-style="italic" font-weight="800">SPARK</text>
+  <rect x="1040" y="286" width="132" height="48" rx="12" fill="none" stroke="#16D8FF" stroke-width="3"/>
+  <text x="1067" y="320" fill="#85C9FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-style="italic" font-weight="700">1.6.0</text>
+  <text x="1210" y="320" fill="#FF8A00" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="6">SPARK</text>
+  <line x1="600" y1="455" x2="1180" y2="455" stroke="#2D9CFF" stroke-width="3" opacity=".5"/>
+  <text x="600" y="530" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="42" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+</svg>

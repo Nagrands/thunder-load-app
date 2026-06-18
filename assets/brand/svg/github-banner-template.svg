@@ -1,0 +1,22 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark GitHub banner template</title>
+  <desc id="desc">A Thunder Spark banner with electric lightning and release lockup.</desc>
+  <defs>
+    <linearGradient id="bolt" x1="138" y1="76" x2="306" y2="404" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".45" stop-color="#7BE8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="#050914"/>
+  <circle cx="214" cy="254" r="154" fill="none" stroke="#16D8FF" stroke-width="15" stroke-linecap="round" stroke-dasharray="740 140"/>
+  <circle cx="214" cy="254" r="210" fill="#2D9CFF" opacity=".13"/>
+  <path d="M252 62 124 252h84l-26 142 140-194h-88z" fill="url(#bolt)"/>
+  <text x="430" y="174" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="78" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="430" y="262" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="86" font-style="italic" font-weight="800">SPARK</text>
+  <rect x="780" y="206" width="94" height="34" rx="9" fill="none" stroke="#16D8FF" stroke-width="2"/>
+  <text x="798" y="231" fill="#85C9FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-style="italic" font-weight="700">1.6.0</text>
+  <text x="910" y="231" fill="#FF8A00" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" letter-spacing="5">SPARK</text>
+  <text x="430" y="348" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="32" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+  <text x="96" y="560" fill="#85C9FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20">Fast · Smart · Reliable · Future</text>
+</svg>

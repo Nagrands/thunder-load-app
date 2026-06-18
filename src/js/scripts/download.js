@@ -2,7 +2,7 @@
  * @file download.js
  * @description
  * Utility script for managing external tools (yt-dlp, ffmpeg) and handling
- * video/audio downloads in the Thunder Load application.
+ * video/audio downloads in the Thunder application.
  *
  * Responsibilities:
  *  - Detects and installs required dependencies (yt-dlp, ffmpeg, ffprobe)

@@ -1,0 +1,26 @@
+<svg width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark symbol</title>
+  <desc id="desc">An electric lightning bolt inside a circular energy ring.</desc>
+  <defs>
+    <radialGradient id="aura" cx="50%" cy="48%" r="54%">
+      <stop offset="0" stop-color="#16D8FF" stop-opacity=".4"/>
+      <stop offset=".62" stop-color="#2D9CFF" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#040813" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bolt" x1="62" y1="18" x2="182" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".42" stop-color="#7BE8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="54" y1="38" x2="206" y2="222" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FBFF"/>
+      <stop offset=".48" stop-color="#16D8FF"/>
+      <stop offset="1" stop-color="#2D9CFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="236" height="236" rx="56" fill="#050914"/>
+  <circle cx="128" cy="128" r="108" fill="url(#aura)"/>
+  <path d="M178 49a88 88 0 1 0 39 73" fill="none" stroke="url(#ring)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M148 18 60 143h56l-17 95 96-133h-58z" fill="#021528" opacity=".55" transform="translate(7 8)"/>
+  <path d="M148 18 60 143h56l-17 95 96-133h-58z" fill="url(#bolt)"/>
+</svg>

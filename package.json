@@ -1,8 +1,8 @@
 {
-  "name": "thunder-load-app",
-  "productName": "Thunder Load",
-  "version": "1.5.3",
-  "description": "Thunder Load",
+  "name": "thunder-app",
+  "productName": "Thunder",
+  "version": "1.6.0",
+  "description": "Thunder Spark",
   "main": "src/js/app.js",
   "private": true,
   "scripts": {
@@ -72,7 +72,7 @@
   },
   "build": {
     "appId": "com.thunderload.app",
-    "productName": "Thunder Load",
+    "productName": "Thunder",
     "asar": true,
     "extraResources": [
       {

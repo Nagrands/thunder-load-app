@@ -114,8 +114,8 @@ export const settingsTranslations = {
       "Режим <strong>экономии эффектов</strong>",
     "settings.about.title": "О приложении",
     "settings.about.hint":
-      "Краткая информация о Thunder Load, версии приложения и его runtime.",
-    "settings.about.productTitle": "Thunder Load",
+      "Краткая информация о Thunder, версии приложения и его runtime.",
+    "settings.about.productTitle": "Thunder",
     "settings.about.productHint":
       "Desktop-приложение на Electron для загрузки медиа и встроенных инструментов.",
     "settings.about.appVersion": "Версия приложения",
@@ -302,8 +302,8 @@ export const settingsTranslations = {
     "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
     "settings.about.title": "About app",
     "settings.about.hint":
-      "Brief information about Thunder Load, the app version, and its runtime.",
-    "settings.about.productTitle": "Thunder Load",
+      "Brief information about Thunder, the app version, and its runtime.",
+    "settings.about.productTitle": "Thunder",
     "settings.about.productHint":
       "An Electron desktop app for media downloads and built-in utilities.",
     "settings.about.appVersion": "App version",

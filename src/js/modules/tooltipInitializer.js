@@ -1,7 +1,7 @@
 /**
  * @file tooltipInitializer.js
  * @description
- * Initializes and manages Bootstrap tooltips across the Thunder Load UI.
+ * Initializes and manages Bootstrap tooltips across the Thunder UI.
  *
  * Responsibilities:
  *  - Normalize and format hotkey strings (remove duplicates, reorder modifiers)

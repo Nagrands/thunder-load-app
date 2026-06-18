@@ -1,0 +1,9 @@
+<svg width="720" height="360" viewBox="0 0 720 360" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark loading template</title>
+  <rect width="720" height="360" rx="28" fill="#050914"/>
+  <circle cx="360" cy="118" r="58" fill="none" stroke="#16D8FF" stroke-width="7" stroke-linecap="round" stroke-dasharray="278 58"/>
+  <path d="M374 46 325 120h32l-10 55 54-76h-34z" fill="#F8FBFF"/>
+  <text x="360" y="226" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-style="italic" font-weight="800">THUNDER <tspan fill="#16D8FF">SPARK</tspan></text>
+  <rect x="230" y="270" width="260" height="8" rx="4" fill="#223149"/>
+  <rect x="230" y="270" width="178" height="8" rx="4" fill="#16D8FF"/>
+</svg>

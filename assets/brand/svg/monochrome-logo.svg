@@ -1,0 +1,7 @@
+<svg width="360" height="112" viewBox="0 0 360 112" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark monochrome logo</title>
+  <circle cx="56" cy="56" r="42" fill="none" stroke="#F8FBFF" stroke-width="7" stroke-linecap="round" stroke-dasharray="202 44"/>
+  <path d="M68 10 32 64h25l-8 38 42-58H64z" fill="#F8FBFF"/>
+  <text x="120" y="50" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="120" y="86" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-style="italic" font-weight="800">SPARK</text>
+</svg>

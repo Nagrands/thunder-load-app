@@ -50,7 +50,7 @@ describe("bootstrapRenderer", () => {
       initPageBackgroundMode: jest.fn(),
       initScrollLockRepair: jest.fn(),
       initI18n: jest.fn(),
-      t: jest.fn(() => "Thunder Load"),
+      t: jest.fn(() => "Thunder"),
       registerTabs: jest.fn().mockResolvedValue({
         tabs: { setTabLabel: jest.fn() },
       }),

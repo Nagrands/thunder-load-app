@@ -28,10 +28,10 @@ export const updatesTranslations = {
     "update.flyover.available.action": "Обновить",
     "update.flyover.checking.title": "Проверка обновлений…",
     "update.flyover.checking.body":
-      "Thunder Load проверяет наличие новой версии. Можно продолжать работу.",
+      "Thunder проверяет наличие новой версии. Можно продолжать работу.",
     "update.flyover.upToDate.title": "У вас актуальная версия",
     "update.flyover.upToDate.body":
-      "Thunder Load уже обновлён до последней доступной версии.",
+      "Thunder уже обновлён до последней доступной версии.",
     "update.flyover.progress.title": "Загрузка обновления…",
     "update.flyover.progress.version": "Версия:",
     "update.flyover.done.title": "Обновление загружено",
@@ -44,7 +44,7 @@ export const updatesTranslations = {
       "Похоже на проблему с сетью или соединением с сервером обновлений.",
     "update.flyover.error.download.title": "Не удалось загрузить обновление",
     "update.flyover.error.download.body":
-      "Thunder Load нашёл новую версию, но не смог скачать её файлы.",
+      "Thunder нашёл новую версию, но не смог скачать её файлы.",
     "update.flyover.error.install.title": "Не удалось запустить установку",
     "update.flyover.error.install.body":
       "Обновление уже загружено, но приложение не смогло перейти к установке.",
@@ -81,10 +81,10 @@ export const updatesTranslations = {
     "update.flyover.available.action": "Update",
     "update.flyover.checking.title": "Checking for updates…",
     "update.flyover.checking.body":
-      "Thunder Load is checking for a newer version. You can keep working.",
+      "Thunder is checking for a newer version. You can keep working.",
     "update.flyover.upToDate.title": "You are up to date",
     "update.flyover.upToDate.body":
-      "Thunder Load is already on the latest available version.",
+      "Thunder is already on the latest available version.",
     "update.flyover.progress.title": "Downloading update…",
     "update.flyover.progress.version": "Version:",
     "update.flyover.done.title": "Update downloaded",
@@ -97,7 +97,7 @@ export const updatesTranslations = {
       "This looks like a network or update server connectivity problem.",
     "update.flyover.error.download.title": "Could not download the update",
     "update.flyover.error.download.body":
-      "Thunder Load found a new version but could not download its files.",
+      "Thunder found a new version but could not download its files.",
     "update.flyover.error.install.title": "Could not start installation",
     "update.flyover.error.install.body":
       "The update is already downloaded, but the app could not continue to install it.",

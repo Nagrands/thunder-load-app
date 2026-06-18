@@ -123,7 +123,7 @@ async function copyAboutSectionInfo() {
     window.electron?.getPlatformInfo?.(),
   ]);
   const lines = [
-    "Thunder Load",
+    "Thunder",
     `App: v${String(version || "—").trim() || "—"}`,
     `Electron: v${String(runtimeInfo?.electron || "—").trim() || "—"}`,
     `Chrome: v${String(runtimeInfo?.chrome || "—").trim() || "—"}`,

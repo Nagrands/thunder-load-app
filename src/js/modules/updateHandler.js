@@ -1,7 +1,7 @@
 /**
  * @file updateHandler.js
  * @description
- * Manages application update notifications and progress UI for Thunder Load.
+ * Manages application update notifications and progress UI for Thunder.
  * Handles communication with the Electron main process via contextBridge.
  */
 

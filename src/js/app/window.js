@@ -495,7 +495,7 @@ function createTray(mainWindow, app, store, downloadPath) {
     refreshTrayMenu();
   };
 
-  windowTray.setToolTip("Thunder Load");
+  windowTray.setToolTip("Thunder");
   refreshTrayMenu();
   app?.on?.("thunder-load:tray-refresh", handleTrayRefreshRequest);
 

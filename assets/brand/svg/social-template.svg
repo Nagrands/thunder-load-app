@@ -1,0 +1,9 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark social template</title>
+  <rect width="1200" height="630" fill="#050914"/>
+  <circle cx="220" cy="230" r="132" fill="none" stroke="#16D8FF" stroke-width="14" stroke-linecap="round" stroke-dasharray="635 116"/>
+  <path d="M252 58 140 228h74l-23 126 124-172h-78z" fill="#F8FBFF"/>
+  <text x="420" y="190" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="78" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="420" y="278" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="86" font-style="italic" font-weight="800">SPARK</text>
+  <text x="424" y="356" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+</svg>

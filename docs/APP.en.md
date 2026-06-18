@@ -1,4 +1,4 @@
-# Thunder Load Application Guide
+# Thunder Application Guide
 
 This guide describes the current user-facing application.
 
@@ -100,6 +100,9 @@ Default Electron data directories:
 - macOS: `~/Library/Application Support/Thunder Load`
 - Windows: `%APPDATA%/Thunder Load`
 - Linux: `~/.config/Thunder Load`
+
+The data folder keeps the historical `Thunder Load` name for compatibility, so
+upgrading to Thunder does not move settings or history.
 
 History, settings, cached previews, queue state, and tool metadata are stored under the application profile or renderer storage. Runtime binaries use the configured tools directory and can be checked, updated, reinstalled, migrated, or reset from the tools manager.
 

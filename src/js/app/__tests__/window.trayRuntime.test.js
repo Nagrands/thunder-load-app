@@ -132,7 +132,7 @@ describe("tray runtime behavior", () => {
   test("handles click/double-click/right-click and refresh events on windows tray", () => {
     setPlatform("win32");
     const app = new EventEmitter();
-    app.getName = () => "Thunder Load";
+    app.getName = () => "Thunder";
     app.getVersion = () => "1.3.6";
     app.getAppPath = () => "/tmp/app";
     app.quit = jest.fn();
@@ -209,7 +209,7 @@ describe("tray runtime behavior", () => {
   test("creates a template tray image on macOS and keeps it on download events", () => {
     setPlatform("darwin");
     const app = new EventEmitter();
-    app.getName = () => "Thunder Load";
+    app.getName = () => "Thunder";
     app.getVersion = () => "1.3.6";
     app.getAppPath = () => "/tmp/app";
     app.quit = jest.fn();
@@ -271,7 +271,7 @@ describe("tray runtime behavior", () => {
   test("window-close IPC respects minimize-to-tray behavior on Windows", () => {
     setPlatform("win32");
     const app = new EventEmitter();
-    app.getName = () => "Thunder Load";
+    app.getName = () => "Thunder";
     app.getVersion = () => "1.3.6";
     app.getAppPath = () => "/tmp/app";
     app.quit = jest.fn();
@@ -317,7 +317,7 @@ describe("tray runtime behavior", () => {
     setPlatform("win32");
     const { dialog } = require("electron");
     const app = new EventEmitter();
-    app.getName = () => "Thunder Load";
+    app.getName = () => "Thunder";
     app.getVersion = () => "1.3.6";
     app.getAppPath = () => "/tmp/app";
     app.quit = jest.fn();

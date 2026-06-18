@@ -550,7 +550,7 @@ function setupIpcHandlers(dependencies) {
     (typeof previewCacheDir === "string" && previewCacheDir) ||
     path.join(app.getPath("userData"), "thunderload-previews");
   const PREVIEW_REDIRECT_LIMIT = 5;
-  const PREVIEW_USER_AGENT = "ThunderLoad/1.0 PreviewCache";
+  const PREVIEW_USER_AGENT = "Thunder/1.0 PreviewCache";
 
   async function ensurePreviewCacheDir() {
     try {
@@ -3117,7 +3117,7 @@ function setupIpcHandlers(dependencies) {
         url,
         {
           headers: {
-            "User-Agent": "ThunderLoad/1.0 (+https://example.local)",
+            "User-Agent": "Thunder/1.0 (+https://example.local)",
             Accept: "application/vnd.github+json",
           },
         },
@@ -3145,7 +3145,7 @@ function setupIpcHandlers(dependencies) {
         url,
         {
           headers: {
-            "User-Agent": "ThunderLoad/1.0 (+https://example.local)",
+            "User-Agent": "Thunder/1.0 (+https://example.local)",
             Accept: "text/plain, text/html,*/*;q=0.8",
           },
         },

@@ -1,0 +1,16 @@
+<svg width="260" height="320" viewBox="0 0 260 320" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark vertical logo</title>
+  <defs>
+    <linearGradient id="bolt" x1="86" y1="30" x2="176" y2="202" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".44" stop-color="#7BE8FF"/>
+      <stop offset="1" stop-color="#128BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="260" height="320" rx="32" fill="#050914"/>
+  <circle cx="130" cy="118" r="82" fill="none" stroke="#16D8FF" stroke-width="9" stroke-linecap="round" stroke-dasharray="395 78"/>
+  <path d="M150 30 82 128h44l-13 74 76-104h-48z" fill="url(#bolt)"/>
+  <text x="130" y="242" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="33" font-style="italic" font-weight="800">THUNDER</text>
+  <text x="130" y="280" text-anchor="middle" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="36" font-style="italic" font-weight="800">SPARK</text>
+  <text x="130" y="304" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+</svg>

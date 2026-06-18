@@ -1,0 +1,65 @@
+{
+  "brand": {
+    "productName": "Thunder",
+    "releaseName": "Thunder Spark",
+    "releaseVersion": "1.6.0",
+    "slogan": "Spark ignites the future of downloads.",
+    "symbol": "lightning-circle"
+  },
+  "color": {
+    "primary": {
+      "blue600": "#2D9CFF",
+      "blue500": "#4AA8FF",
+      "blue300": "#85C9FF",
+      "electricCyan400": "#16D8FF"
+    },
+    "accent": {
+      "sparkAmber500": "#FFB238",
+      "sparkAmber300": "#FFD27A",
+      "sparkOrange500": "#FF8A00",
+      "boltWhite": "#F8FBFF"
+    },
+    "neutral": {
+      "ink950": "#040813",
+      "ink900": "#0D1118",
+      "ink800": "#151D29",
+      "ink700": "#223149",
+      "slate300": "#CFE1FA",
+      "slate100": "#F4F8FF"
+    },
+    "semantic": {
+      "success500": "#3EE36B",
+      "warning500": "#FFD43B",
+      "danger500": "#FF5D58",
+      "info500": "#5EC4FF"
+    }
+  },
+  "space": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "2xl": "48px"
+  },
+  "radius": {
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px"
+  },
+  "shadow": {
+    "raised": "0 10px 24px rgba(4, 8, 15, 0.52)",
+    "focus": "0 0 0 3px rgba(74, 168, 255, 0.28)",
+    "sparkGlow": "0 0 32px rgba(255, 178, 56, 0.28)",
+    "electricGlow": "0 0 44px rgba(22, 216, 255, 0.42)"
+  },
+  "motion": {
+    "durationFast": "100ms",
+    "durationBase": "200ms",
+    "curveStandard": "cubic-bezier(0.2, 0, 0, 1)"
+  },
+  "typography": {
+    "primary": "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+    "monospace": "JetBrains Mono, SFMono-Regular, Consolas, monospace"
+  }
+}

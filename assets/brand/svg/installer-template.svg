@@ -1,0 +1,9 @@
+<svg width="1024" height="500" viewBox="0 0 1024 500" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Thunder Spark installer template</title>
+  <rect width="1024" height="500" fill="#050914"/>
+  <circle cx="150" cy="156" r="82" fill="none" stroke="#16D8FF" stroke-width="10" stroke-linecap="round" stroke-dasharray="395 78"/>
+  <path d="M170 36 102 156h45l-14 80 76-110h-48z" fill="#F8FBFF"/>
+  <text x="286" y="138" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="56" font-style="italic" font-weight="800">INSTALL THUNDER</text>
+  <text x="288" y="198" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="48" font-style="italic" font-weight="800">SPARK</text>
+  <text x="290" y="250" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+</svg>

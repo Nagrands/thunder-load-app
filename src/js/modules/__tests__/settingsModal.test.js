@@ -300,9 +300,8 @@ describe("settingsModal mobile sections navigation", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      expect.stringContaining("Thunder Load"),
-    );
+    const copiedText = navigator.clipboard.writeText.mock.calls[0][0];
+    expect(copiedText.split("\n")[0]).toBe("Thunder");
     expect(window.electron.getPlatformInfo).toHaveBeenCalled();
   });
 
