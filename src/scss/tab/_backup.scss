@@ -40,8 +40,6 @@
   }
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(100, 160, 255, 0.4);
 
     &::before {
       width: 100%;

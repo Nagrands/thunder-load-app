@@ -55,7 +55,9 @@ const setupDom = () => {
           <button id="history-export-csv" class="history-more-menu__item"></button>
           <button id="history-density-compact" class="history-more-menu__item"></button>
           <button id="history-density-comfort" class="history-more-menu__item"></button>
-          <button id="toggle-all-details" class="history-more-menu__item"></button>
+          <button id="toggle-all-details" class="history-more-menu__item">
+            <i data-lucide="chevron-down"></i>
+          </button>
         </div>
 
         <div class="history-search-filters-card">
@@ -67,7 +69,6 @@ const setupDom = () => {
                 <button id="clear-filter-input" class="hidden"></button>
               </div>
             </div>
-            <button id="history-reset-filters" class="hidden"></button>
           </div>
 
           <div class="history-controls-row history-controls-row--filters history-filters-row">
@@ -75,13 +76,29 @@ const setupDom = () => {
               <button id="history-filters-toggle" aria-expanded="true">
                 <i data-lucide="chevron-up"></i>
               </button>
+              <div class="history-filters-head-actions">
+                <span id="history-active-filters-count" class="hidden"></span>
+                <button
+                  id="history-reset-filters"
+                  class="history-filter-reset hidden"
+                  aria-label="Сбросить фильтры"
+                  title="Сбросить активные фильтры"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  data-hint="Сбросить активные фильтры"
+                  data-i18n-aria="history.filters.reset"
+                  data-i18n-title="history.filters.resetHint"
+                  data-i18n-hint="history.filters.resetHint"
+                >
+                  <i data-lucide="rotate-ccw"></i>
+                </button>
+              </div>
               <div id="history-filters-body"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <span id="history-active-filters-count" class="hidden"></span>
       <select id="history-source-filter"></select>
       <select id="history-sort-key"></select>
       <select id="history-sort-mode"></select>
@@ -366,6 +383,25 @@ describe("Downloader history list", () => {
     expect(menuButton).not.toBeNull();
     expect(menuList).not.toBeNull();
     expect(menuList.textContent).toContain("Проверить");
+    expect(
+      menuList.querySelector(
+        '.history-row__menu-item[data-action="inspect"] .history-row__menu-icon',
+      ),
+    ).not.toBeNull();
+    expect(
+      menuList
+        .querySelector(
+          '.history-row__menu-item[data-action="inspect"] .history-row__menu-label',
+        )
+        ?.textContent.trim(),
+    ).toBe("Проверить");
+    const deleteItem = menuList.querySelector(
+      '.history-row__menu-item[data-action="delete-entry"]',
+    );
+    expect(deleteItem?.classList.contains("history-row__delete")).toBe(true);
+    expect(
+      deleteItem?.classList.contains("history-row__menu-item--danger"),
+    ).toBe(true);
     expect(menu.classList.contains("is-open")).toBe(false);
 
     menuButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -654,6 +690,26 @@ describe("Downloader history list", () => {
 
     const badge = document.getElementById("history-active-filters-count");
     const resetBtn = document.getElementById("history-reset-filters");
+    const actions = document.querySelector(".history-filters-head-actions");
+
+    expect(actions).not.toBeNull();
+    expect(badge.parentElement).toBe(actions);
+    expect(resetBtn.parentElement).toBe(actions);
+    expect(Array.from(actions.children)).toEqual([badge, resetBtn]);
+    expect(resetBtn.textContent.trim()).toBe("");
+    expect(resetBtn.getAttribute("aria-label")).toBe("Сбросить фильтры");
+    expect(resetBtn.getAttribute("data-i18n-aria")).toBe(
+      "history.filters.reset",
+    );
+    expect(resetBtn.getAttribute("data-bs-toggle")).toBe("tooltip");
+    expect(resetBtn.getAttribute("data-bs-placement")).toBe("top");
+    expect(resetBtn.getAttribute("title")).toBe("Сбросить активные фильтры");
+    expect(resetBtn.getAttribute("data-i18n-title")).toBe(
+      "history.filters.resetHint",
+    );
+    expect(resetBtn.getAttribute("data-i18n-hint")).toBe(
+      "history.filters.resetHint",
+    );
 
     expect(badge.classList.contains("hidden")).toBe(true);
     expect(resetBtn.disabled).toBe(true);
@@ -668,11 +724,11 @@ describe("Downloader history list", () => {
     expect(badge.textContent).toContain("2");
     expect(resetBtn.disabled).toBe(false);
     expect(resetBtn.classList.contains("hidden")).toBe(false);
-    expect(
-      resetBtn
-        .closest(".history-controls-row")
-        .classList.contains("has-filter-reset"),
-    ).toBe(true);
+    expect(resetBtn.closest(".history-filters-head-actions")).toBe(actions);
+    expect(resetBtn.querySelector('[data-lucide="rotate-ccw"]')).not.toBeNull();
+    expect(resetBtn.getAttribute("data-hint")).toBe(
+      "Сбросить активные фильтры",
+    );
 
     resetBtn.click();
 
@@ -759,6 +815,35 @@ describe("Downloader history list", () => {
 
     row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(details.classList.contains("is-open")).toBe(false);
+  });
+
+  test("keeps toggle-all details chevron state in sync", async () => {
+    const { renderHistory, initHistory } = await import("../history.js");
+
+    initHistory();
+    renderHistory([
+      createEntry({ id: "1" }),
+      createEntry({ id: "2", fileName: "Second video" }),
+    ]);
+
+    const toggleAll = document.getElementById("toggle-all-details");
+    const icon = toggleAll.querySelector('[data-lucide="chevron-down"]');
+    const rows = Array.from(document.querySelectorAll(".history-row"));
+
+    expect(icon).not.toBeNull();
+    expect(toggleAll.classList.contains("is-open")).toBe(false);
+    expect(rows.every((row) => row.classList.contains("is-open"))).toBe(false);
+
+    toggleAll.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(toggleAll.classList.contains("is-open")).toBe(true);
+    expect(toggleAll.querySelector('[data-lucide="chevron-down"]')).toBe(icon);
+    expect(rows.every((row) => row.classList.contains("is-open"))).toBe(true);
+
+    toggleAll.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(toggleAll.classList.contains("is-open")).toBe(false);
+    expect(rows.every((row) => row.classList.contains("is-open"))).toBe(false);
   });
 
   test("renders copy controls for source and file detail rows", async () => {

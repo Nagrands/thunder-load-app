@@ -56,18 +56,9 @@
 .first-run-modal-content,
 .bk-modal {
   @include mixins.modal-content-base;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(var(--color-accent-rgb), 0.12),
-      rgba(255, 255, 255, 0.015) 38%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(12, 16, 24, 0.76);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  // box-shadow:
-  //   0 8px 32px rgba(0, 0, 0, 0.2),
-  //   inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .first-run-modal {
@@ -1974,33 +1965,8 @@
   width: min(1120px, calc(100vw - 32px));
   max-height: calc(100vh - 36px);
   margin: 0 auto;
-  padding: 18px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background:
-    radial-gradient(
-      90% 70% at 0% 0%,
-      rgba(var(--color-accent-rgb), 0.12) 0%,
-      rgba(var(--color-accent-rgb), 0.04) 30%,
-      transparent 64%
-    ),
-    radial-gradient(
-      70% 58% at 100% 0%,
-      rgba(255, 255, 255, 0.08) 0%,
-      transparent 58%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.055),
-      rgba(255, 255, 255, 0.025)
-    ),
-    var(--color-bg-secondary);
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.42),
-    0 8px 24px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   scrollbar-gutter: stable;
 
   &::-webkit-scrollbar {
@@ -2474,14 +2440,13 @@
   }
 
   .confirmation-choice__label {
-    color: var(--color-highlight);
+    color: var(--color-accent);
     font-weight: 600;
   }
 
   .confirmation-choice__description {
-    color: var(--color-text-muted);
+    color: var(--color-quality);
     font-size: 12px;
-    line-height: 1.45;
   }
 
   .confirmation-footer {
@@ -2529,10 +2494,8 @@
   flex-direction: column;
   min-width: 228px;
   min-height: 430px;
-  padding: 8px;
+  // padding: 6px;
   position: relative;
-  border-radius: var(--border-radius);
-  border: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
   isolation: isolate;
 
@@ -2562,23 +2525,9 @@
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    margin: 2px 0;
     text-align: left;
-    font-size: 14px;
-    font-weight: 600;
     letter-spacing: 0.02rem;
     color: var(--color-highlight);
-    border-radius: 12px;
-    border: 1px solid transparent;
-    background: linear-gradient(
-        110deg,
-        rgba(255, 255, 255, 0.06),
-        rgba(255, 255, 255, 0.03)
-      )
-      padding-box;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     cursor: pointer;
     transition:
       transform 0.16s ease,
@@ -2698,18 +2647,9 @@
   }
 
   .tabs-footer {
-    margin-top: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
     padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: var(--border-radius);
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.02)
-    );
     color: var(--color-quality);
 
     .tabs-footer-row {
@@ -2725,8 +2665,7 @@
     }
 
     strong {
-      color: var(--color-text-main);
-      font-weight: 600;
+      color: var(--color-accent);
     }
   }
 }
@@ -2792,7 +2731,7 @@
     border: 1px solid var(--color-hover);
     padding: 8px 14px;
     display: grid;
-    gap: 4px;
+    gap: 12px;
 
     &--stacked {
       grid-column: 1 / -1;
@@ -3007,10 +2946,6 @@
   }
 
   .settings-about-metric__value {
-    font-size: 14px;
-    line-height: 1.2;
-    font-weight: 700;
-    color: var(--color-text-main);
     overflow-wrap: anywhere;
   }
 
@@ -3477,13 +3412,7 @@
     }
 
     .tab-link {
-      margin: 0 0 4px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      box-shadow: none;
       transform: none;
-      padding: 11px 12px;
-      letter-spacing: 0.01rem;
       color: rgba(226, 234, 246, 0.82);
       transition:
         border-color 0.15s ease,
@@ -3523,10 +3452,9 @@
   }
 
   .tabs-footer {
-    gap: 8px;
-    border-radius: 16px;
+    gap: 6px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .tab-content {
@@ -3752,11 +3680,8 @@
     width: 100%;
     box-sizing: border-box;
     min-height: 44px;
-    padding: 10px 12px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     border-color: transparent;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.72);
     font-weight: 500;
 
     &:hover {
@@ -3766,17 +3691,11 @@
     }
 
     &.active {
-      border-color: rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
-    }
-
-    i {
-      color: rgba(255, 255, 255, 0.72);
+      color: var(--color-accent);
     }
 
     &.active i {
-      color: #fff;
+      color: var(--color-accent);
     }
   }
 
@@ -3786,9 +3705,6 @@
 
   .tabs-footer {
     margin-top: 8px;
-    padding: 8px 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.05);
   }
 
   .settings-shell-main {
@@ -3937,7 +3853,7 @@
     display: flex;
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     background: rgba(255, 255, 255, 0.03);
   }
 
@@ -3947,7 +3863,7 @@
     label {
     width: 100%;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     background: transparent;
     transform: none;
   }
@@ -3966,8 +3882,6 @@
     input[type="radio"]:checked
     + label {
     background: rgba(255, 255, 255, 0.09);
-    border: none;
-    color: #fff;
   }
 
   #general-settings
@@ -4052,7 +3966,6 @@
   #appearance-settings .settings-control {
     min-height: 40px;
     padding: 6px 10px;
-    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.055);
     background: rgba(255, 255, 255, 0.035);
   }
@@ -4082,9 +3995,6 @@
     width: 100%;
     justify-content: space-between;
     height: 34px;
-    border-radius: 9px;
-    padding: 0 12px;
-    background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: none;
 

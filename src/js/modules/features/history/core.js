@@ -268,9 +268,6 @@ const updateHistoryActiveFiltersUi = () => {
   if (historyResetFiltersButton) {
     historyResetFiltersButton.disabled = count === 0;
     historyResetFiltersButton.classList.toggle("hidden", count === 0);
-    historyResetFiltersButton
-      .closest(".history-controls-row")
-      ?.classList.toggle("has-filter-reset", count > 0);
   }
   if (!historyActiveFiltersCount) return;
   if (count === 0) {
@@ -2821,7 +2818,12 @@ function createLogEntry(entry, groupKey = "unknown") {
     if (options.action) item.dataset.action = options.action;
     item.setAttribute("role", "menuitem");
     if (options.disabled) item.disabled = true;
-    item.innerHTML = `<i data-lucide="${icon}"></i><span>${label}</span>`;
+    item.innerHTML = `
+      <span class="history-row__menu-icon" aria-hidden="true">
+        <i data-lucide="${icon}"></i>
+      </span>
+      <span class="history-row__menu-label">${label}</span>
+    `;
     if (options.onClick) {
       item.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -2878,7 +2880,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     t("history.action.deleteFromHistory"),
     "trash-2",
     {
-      className: " history-row__delete",
+      className: " history-row__delete history-row__menu-item--danger",
       action: "delete-entry",
     },
   );
