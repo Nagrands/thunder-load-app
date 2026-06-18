@@ -2598,6 +2598,10 @@ function markEntryMissing(entry) {
   renderHistoryCards(updated);
 }
 
+function isFailedHistoryEntry(entry) {
+  return entry?.downloadStatus === "failed" || entry?.error === true;
+}
+
 function createLogEntry(entry, groupKey = "unknown") {
   const el = document.createElement("div");
   el.className = "log-entry history-row";
@@ -2734,11 +2738,12 @@ function createLogEntry(entry, groupKey = "unknown") {
     statusCluster.appendChild(missingBadge);
     el.classList.add("history-row--deleted");
   }
-  if (entry.downloadStatus === "failed") {
+  if (isFailedHistoryEntry(entry)) {
     const failedBadge = document.createElement("span");
-    failedBadge.className = "history-badge history-badge--missing";
+    failedBadge.className = "history-badge history-badge--error";
     failedBadge.textContent = t("history.failed.badge");
     statusCluster.appendChild(failedBadge);
+    el.classList.add("history-row--error");
   }
 
   titleRow.append(name);
@@ -3053,7 +3058,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     copyable: true,
     copyValue: entry.filePath || "",
   });
-  if (entry.downloadStatus === "failed") {
+  if (isFailedHistoryEntry(entry)) {
     addDetail(t("history.detail.status"), t("history.failed.badge"));
     addDetail(
       t("history.detail.failureReason"),

@@ -160,6 +160,7 @@ const createEntry = (overrides = {}) => ({
   sizeBytes: overrides.sizeBytes,
   filePath: overrides.filePath ?? "/tmp/video.mp4",
   downloadStatus: overrides.downloadStatus ?? "done",
+  error: overrides.error ?? false,
   errorCode: overrides.errorCode ?? "",
   retryable: overrides.retryable,
   isMissing: overrides.isMissing ?? false,
@@ -487,7 +488,12 @@ describe("Downloader history list", () => {
     ]);
 
     const row = document.querySelector(".history-row");
+    expect(row.classList.contains("history-row--error")).toBe(true);
+    expect(row.classList.contains("history-row--deleted")).toBe(false);
     expect(row.textContent).toContain("Ошибка");
+    expect(row.querySelector(".history-badge--error").textContent).toContain(
+      "Ошибка",
+    );
     expect(
       row.querySelector('.history-row__action[data-action="open-file"]')
         ?.disabled,
@@ -500,6 +506,26 @@ describe("Downloader history list", () => {
     const toggle = row.querySelector(".history-row__toggle");
     toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(row.textContent).toContain("Нужна авторизация");
+  });
+
+  test("renders explicit error history entry with error highlight", async () => {
+    const { renderHistory } = await import("../history.js");
+    renderHistory([
+      createEntry({
+        filePath: "",
+        formattedSize: "",
+        error: true,
+        errorCode: "NETWORK_TIMEOUT",
+        retryable: true,
+      }),
+    ]);
+
+    const row = document.querySelector(".history-row");
+    expect(row.classList.contains("history-row--error")).toBe(true);
+    expect(row.classList.contains("history-row--deleted")).toBe(false);
+    expect(row.querySelector(".history-badge--error").textContent).toContain(
+      "Ошибка",
+    );
   });
 
   test("retry from row menu scrolls to URL input and focuses it", async () => {
@@ -805,6 +831,7 @@ describe("Downloader history list", () => {
 
     const row = document.querySelector(".history-row");
     expect(row.classList.contains("history-row--deleted")).toBe(true);
+    expect(row.classList.contains("history-row--error")).toBe(false);
     expect(row.querySelector(".history-row__status")).not.toBeNull();
     expect(row.querySelector(".history-badge--missing").textContent).toContain(
       "удал",
