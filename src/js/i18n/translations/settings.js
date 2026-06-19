@@ -75,9 +75,14 @@ export const settingsTranslations = {
       "Управление загрузчиком из браузера на этом компьютере.",
     "settings.web.enable":
       "Включить <strong>локальный веб-интерфейс</strong>",
-    "settings.web.url": "Адрес",
+    "settings.web.url": "Адрес на этом компьютере",
+    "settings.web.lanUrl": "Адрес для телефона",
     "settings.web.open": "Открыть веб-интерфейс",
     "settings.web.restart": "Перезапустить веб-интерфейс",
+    "settings.web.copyLan": "Копировать адрес для телефона",
+    "settings.web.copyLanDone": "Адрес для телефона скопирован",
+    "settings.web.lanWarning":
+      "При включении любое устройство в вашей локальной сети сможет управлять загрузчиком.",
     "settings.web.status.off": "Выключено",
     "settings.web.status.starting": "Запускается",
     "settings.web.status.on": "Работает на порту {port}",
@@ -276,9 +281,14 @@ export const settingsTranslations = {
     "settings.web.hint":
       "Control the downloader from a browser on this computer.",
     "settings.web.enable": "Enable <strong>local web interface</strong>",
-    "settings.web.url": "Address",
+    "settings.web.url": "Address on this computer",
+    "settings.web.lanUrl": "Phone address",
     "settings.web.open": "Open web interface",
     "settings.web.restart": "Restart web interface",
+    "settings.web.copyLan": "Copy phone address",
+    "settings.web.copyLanDone": "Phone address copied",
+    "settings.web.lanWarning":
+      "When enabled, any device on your local network can control the downloader.",
     "settings.web.status.off": "Off",
     "settings.web.status.starting": "Starting",
     "settings.web.status.on": "Running on port {port}",

@@ -763,7 +763,10 @@ function setupIpcHandlers(dependencies) {
         status: webControlServer?.getStatus?.() || {
           enabled: false,
           running: false,
-          host: "127.0.0.1",
+          host: "0.0.0.0",
+          localUrl: "",
+          lanUrls: [],
+          urls: { local: "", lan: [] },
           port: 0,
           url: "",
         },

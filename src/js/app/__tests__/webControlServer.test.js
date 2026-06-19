@@ -9,9 +9,27 @@ jest.mock("electron-log", () => ({
 }));
 
 const http = require("http");
+const os = require("os");
 const path = require("path");
 const { createWebControlServer, HOST } = require("../webControlServer");
 const { CHANNELS } = require("../../ipc/channels");
+
+jest.spyOn(os, "networkInterfaces").mockReturnValue({
+  en0: [
+    {
+      address: "192.168.1.20",
+      family: "IPv4",
+      internal: false,
+    },
+  ],
+  lo0: [
+    {
+      address: "127.0.0.1",
+      family: "IPv4",
+      internal: true,
+    },
+  ],
+});
 
 function createStore() {
   const data = new Map();
@@ -65,7 +83,7 @@ describe("webControlServer", () => {
     server = null;
   });
 
-  it("is disabled by default and binds to localhost when enabled", async () => {
+  it("is disabled by default and binds to LAN when enabled", async () => {
     const store = createStore();
     server = createWebControlServer({
       appPath: path.resolve(__dirname, "../../../.."),
@@ -81,23 +99,36 @@ describe("webControlServer", () => {
     const status = await server.setEnabled(true);
     expect(status.enabled).toBe(true);
     expect(status.running).toBe(true);
-    expect(status.host).toBe("127.0.0.1");
-    expect(status.url).toContain("token=");
+    expect(status.host).toBe("0.0.0.0");
+    expect(status.localUrl).toContain("127.0.0.1");
+    expect(status.lanUrls[0]).toContain("192.168.1.20");
   });
 
-  it("rejects API requests without the generated token", async () => {
+  it("allows API requests without a token in LAN mode", async () => {
     const store = createStore();
     server = createWebControlServer({
       appPath: path.resolve(__dirname, "../../../.."),
       store,
     });
     const status = await server.setEnabled(true);
-    const url = new URL("/api/status", status.url);
+    server.setMainWindow({
+      isDestroyed: () => false,
+      webContents: {
+        send: jest.fn((channel, payload) => {
+          server.resolveRendererResponse({
+            requestId: payload.requestId,
+            success: true,
+            result: { ok: true },
+          });
+        }),
+      },
+    });
+    const url = new URL("/api/status", status.localUrl);
     url.search = "";
 
     const response = await requestJson(url);
-    expect(response.statusCode).toBe(401);
-    expect(response.body.success).toBe(false);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.success).toBe(true);
   });
 
   it("forwards API actions to the renderer bridge", async () => {
@@ -124,8 +155,7 @@ describe("webControlServer", () => {
     });
     const status = await server.setEnabled(true);
 
-    const actionUrl = new URL("/api/action", status.url);
-    actionUrl.searchParams.set("token", new URL(status.url).searchParams.get("token"));
+    const actionUrl = new URL("/api/action", status.localUrl);
     const response = await requestJson(actionUrl, {
       method: "POST",
       body: { action: "downloader:pause" },

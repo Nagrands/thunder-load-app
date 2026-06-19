@@ -100,8 +100,54 @@ describe("settings template backup placement", () => {
 
     expect(html).toContain('id="settings-web-control-toggle"');
     expect(html).toContain('id="settings-web-control-url"');
+    expect(html).toContain('id="settings-web-control-lan-url"');
     expect(html).toContain('id="settings-web-control-open"');
     expect(html).toContain('id="settings-web-control-restart"');
+    expect(html).toContain('id="settings-web-control-copy-lan"');
+    expect(html).toContain('data-i18n="settings.web.lanWarning"');
+  });
+
+  test("web control page follows the app shell structure", () => {
+    const webPath = path.resolve(process.cwd(), "src/web-control/index.html");
+    const html = fs.readFileSync(webPath, "utf8");
+
+    expect(html).toContain('class="top-bar"');
+    expect(html).toContain('class="group-menu"');
+    expect(html).toContain('class="downloader-shell"');
+    expect(html).toContain('class="downloader-toolbar"');
+    expect(html).toContain('class="input-container"');
+    expect(html).toContain('id="download-queue-info"');
+    expect(html).toContain('id="queue-filters"');
+    expect(html).toContain('class="app-footer"');
+    expect(html).not.toContain('class="settings-dock"');
+    expect(html).not.toContain('class="title-content"');
+  });
+
+  test("web control page exposes app-like settings modal controls", () => {
+    const webPath = path.resolve(process.cwd(), "src/web-control/index.html");
+    const html = fs.readFileSync(webPath, "utf8");
+
+    expect(html).toContain('id="settings-modal"');
+    expect(html).toContain('class="settings-modal__dialog"');
+    expect(html).toContain('data-settings-open');
+    expect(html).toContain('data-settings-tab="downloader"');
+    expect(html).toContain('data-settings-tab="appearance"');
+    [
+      "setting-download-path",
+      "setting-parallel",
+      "setting-quality-profile",
+      "setting-auto-quality",
+      "setting-open-copy",
+      "setting-open-complete",
+      "setting-disable-complete",
+      "setting-tools-status",
+      "setting-theme",
+      "setting-language",
+      "setting-font-size",
+      "save-settings",
+    ].forEach((id) => {
+      expect(html).toContain(`id="${id}"`);
+    });
   });
 
   test("builds the standalone notifications lab page", () => {

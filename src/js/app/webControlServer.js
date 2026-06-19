@@ -3,12 +3,14 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const http = require("http");
+const os = require("os");
 const path = require("path");
 const { shell } = require("electron");
 const log = require("electron-log");
 const { CHANNELS } = require("../ipc/channels");
 
-const HOST = "127.0.0.1";
+const HOST = "0.0.0.0";
+const LOCAL_HOST = "127.0.0.1";
 const DEFAULT_PORT = 0;
 const REQUEST_TIMEOUT_MS = 8000;
 const STORE_KEYS = Object.freeze({
@@ -55,6 +57,22 @@ function ensureToken(store) {
   return token;
 }
 
+function getLanAddresses() {
+  const interfaces = os.networkInterfaces();
+  const addresses = [];
+  Object.values(interfaces).forEach((entries = []) => {
+    entries.forEach((entry = {}) => {
+      if (entry.family !== "IPv4" || entry.internal || !entry.address) return;
+      addresses.push(entry.address);
+    });
+  });
+  return [...new Set(addresses)].sort();
+}
+
+function buildUrl(host, port) {
+  return `http://${host}:${port}/`;
+}
+
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -93,16 +111,25 @@ function createWebControlServer({ appPath, store }) {
 
   function getUrl() {
     if (!runningPort) return "";
-    return `http://${HOST}:${runningPort}/?token=${ensureToken(store)}`;
+    return buildUrl(LOCAL_HOST, runningPort);
   }
 
   function getStatus() {
+    const lanAddresses = runningPort ? getLanAddresses() : [];
+    const lanUrls = lanAddresses.map((address) => buildUrl(address, runningPort));
+    const localUrl = getUrl();
     return {
       enabled: store.get(STORE_KEYS.enabled, false) === true,
       running: Boolean(server && runningPort),
       host: HOST,
+      localUrl,
+      lanUrls,
+      urls: {
+        local: localUrl,
+        lan: lanUrls,
+      },
       port: runningPort || normalizePort(store.get(STORE_KEYS.port, 0)),
-      url: getUrl(),
+      url: lanUrls[0] || localUrl,
     };
   }
 
@@ -144,19 +171,6 @@ function createWebControlServer({ appPath, store }) {
     return true;
   }
 
-  function hasValidToken(reqUrl, req) {
-    const expected = ensureToken(store);
-    const provided =
-      reqUrl.searchParams.get("token") ||
-      req.headers["x-thunder-web-token"] ||
-      "";
-    if (String(provided).length !== expected.length) return false;
-    return crypto.timingSafeEqual(
-      Buffer.from(String(provided)),
-      Buffer.from(expected),
-    );
-  }
-
   async function serveStatic(reqUrl, res) {
     const pathname = reqUrl.pathname === "/" ? "/index.html" : reqUrl.pathname;
     const normalized = path.normalize(pathname).replace(/^(\.\.[/\\])+/, "");
@@ -188,11 +202,6 @@ function createWebControlServer({ appPath, store }) {
   }
 
   async function handleApi(req, res, reqUrl) {
-    if (!hasValidToken(reqUrl, req)) {
-      createJsonResponse(res, 401, { success: false, error: "Unauthorized" });
-      return;
-    }
-
     if (req.method === "GET" && reqUrl.pathname === "/api/status") {
       createJsonResponse(res, 200, { success: true, status: getStatus() });
       return;
@@ -229,11 +238,7 @@ function createWebControlServer({ appPath, store }) {
     createJsonResponse(res, 404, { success: false, error: "Unknown API" });
   }
 
-  function handleEvents(req, res, reqUrl) {
-    if (!hasValidToken(reqUrl, req)) {
-      createJsonResponse(res, 401, { success: false, error: "Unauthorized" });
-      return;
-    }
+  function handleEvents(req, res, _reqUrl) {
     res.writeHead(200, {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-store",
@@ -341,7 +346,7 @@ function createWebControlServer({ appPath, store }) {
 
   async function open() {
     const status = server ? getStatus() : await start();
-    if (status.url) await shell.openExternal(status.url);
+    if (status.localUrl) await shell.openExternal(status.localUrl);
     return status;
   }
 
@@ -373,4 +378,6 @@ module.exports = {
   createWebControlServer,
   STORE_KEYS,
   HOST,
+  LOCAL_HOST,
+  getLanAddresses,
 };

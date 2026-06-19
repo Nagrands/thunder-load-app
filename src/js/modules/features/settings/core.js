@@ -294,23 +294,40 @@ async function initSettings() {
   (function initWebControlSettings() {
     const toggle = document.getElementById("settings-web-control-toggle");
     const urlInput = document.getElementById("settings-web-control-url");
+    const lanUrlInput = document.getElementById("settings-web-control-lan-url");
     const statusEl = document.getElementById("settings-web-control-status");
     const openBtn = document.getElementById("settings-web-control-open");
     const restartBtn = document.getElementById("settings-web-control-restart");
-    if (!toggle || !urlInput || !statusEl || !openBtn || !restartBtn) return;
+    const copyLanBtn = document.getElementById("settings-web-control-copy-lan");
+    if (
+      !toggle ||
+      !urlInput ||
+      !lanUrlInput ||
+      !statusEl ||
+      !openBtn ||
+      !restartBtn ||
+      !copyLanBtn
+    )
+      return;
 
     const render = (status = {}) => {
       const enabled = status.enabled === true;
       const running = status.running === true;
+      const lanUrl = Array.isArray(status.lanUrls) ? status.lanUrls[0] || "" : "";
       toggle.checked = enabled;
-      urlInput.value = status.url || "";
-      openBtn.disabled = !running || !status.url;
+      urlInput.value = status.localUrl || status.url || "";
+      lanUrlInput.value = lanUrl;
+      openBtn.disabled = !running || !urlInput.value;
       restartBtn.disabled = !enabled;
+      copyLanBtn.disabled = !running || !lanUrl;
       const key = running
         ? "settings.web.status.on"
         : enabled
           ? "settings.web.status.starting"
           : "settings.web.status.off";
+      statusEl
+        .closest(".settings-web-control-panel__status-row")
+        ?.classList.toggle("is-running", running);
       statusEl.setAttribute("data-i18n", key);
       statusEl.textContent = t(key, { port: status.port || "" });
     };
@@ -343,6 +360,21 @@ async function initSettings() {
     openBtn.addEventListener("click", async () => {
       const result = await window.electron.invoke("web:open");
       if (result?.success) render(result.status);
+    });
+
+    copyLanBtn.addEventListener("click", async () => {
+      const value = lanUrlInput.value.trim();
+      if (!value) return;
+      try {
+        await navigator.clipboard.writeText(value);
+        await window.electron.invoke(
+          "toast",
+          t("settings.web.copyLanDone"),
+          "success",
+        );
+      } catch (error) {
+        console.error("[settings] web LAN copy failed:", error);
+      }
     });
 
     restartBtn.addEventListener("click", async () => {
