@@ -464,6 +464,61 @@
                       </div>
                     </div>
                   </section>
+
+                  <section class="settings-card settings-card--web-control">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.web.title">
+                        Веб-интерфейс
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.web.hint">
+                        Управление загрузчиком из браузера на этом компьютере.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-web-control-toggle" />
+                          <label for="settings-web-control-toggle">
+                            <i class="fa-solid fa-globe"></i>
+                            <span data-i18n-html="settings.web.enable">
+                              Включить <strong>локальный веб-интерфейс</strong>
+                            </span>
+                          </label>
+                        </li>
+                      </ul>
+                      <div class="settings-web-control-panel">
+                        <label class="settings-web-control-panel__label" for="settings-web-control-url" data-i18n="settings.web.url">
+                          Адрес
+                        </label>
+                        <div class="settings-web-control-panel__row">
+                          <input id="settings-web-control-url" type="text" readonly value="" />
+                          <button
+                            type="button"
+                            class="small-button"
+                            id="settings-web-control-open"
+                            data-i18n-title="settings.web.open"
+                            title="Открыть"
+                            aria-label="Открыть"
+                          >
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="small-button"
+                            id="settings-web-control-restart"
+                            data-i18n-title="settings.web.restart"
+                            title="Перезапустить"
+                            aria-label="Перезапустить"
+                          >
+                            <i class="fa-solid fa-rotate"></i>
+                          </button>
+                        </div>
+                        <p id="settings-web-control-status" class="settings-web-control-panel__status muted" data-i18n="settings.web.status.off">
+                          Выключено
+                        </p>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               </div>
 

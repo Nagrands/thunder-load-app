@@ -70,6 +70,17 @@ export const settingsTranslations = {
     "settings.downloader.disableComplete":
       "Отключить <strong>окно открытия файла</strong> после завершения загрузки",
     "settings.downloader.toolsStatus": "Показывать статус инструментов",
+    "settings.web.title": "Веб-интерфейс",
+    "settings.web.hint":
+      "Управление загрузчиком из браузера на этом компьютере.",
+    "settings.web.enable":
+      "Включить <strong>локальный веб-интерфейс</strong>",
+    "settings.web.url": "Адрес",
+    "settings.web.open": "Открыть веб-интерфейс",
+    "settings.web.restart": "Перезапустить веб-интерфейс",
+    "settings.web.status.off": "Выключено",
+    "settings.web.status.starting": "Запускается",
+    "settings.web.status.on": "Работает на порту {port}",
     "settings.tools.title": "Инструменты",
     "settings.tools.loading": "Загружаем сведения о зависимостях…",
     "settings.tools.openModal": "Открыть инструменты",
@@ -261,6 +272,16 @@ export const settingsTranslations = {
     "settings.downloader.disableComplete":
       "Disable <strong>file open dialog</strong> after download",
     "settings.downloader.toolsStatus": "Show tools status",
+    "settings.web.title": "Web interface",
+    "settings.web.hint":
+      "Control the downloader from a browser on this computer.",
+    "settings.web.enable": "Enable <strong>local web interface</strong>",
+    "settings.web.url": "Address",
+    "settings.web.open": "Open web interface",
+    "settings.web.restart": "Restart web interface",
+    "settings.web.status.off": "Off",
+    "settings.web.status.starting": "Starting",
+    "settings.web.status.on": "Running on port {port}",
     "settings.tools.title": "Tools",
     "settings.tools.loading": "Loading dependency information…",
     "settings.tools.openModal": "Open tools",

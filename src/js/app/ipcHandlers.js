@@ -502,6 +502,7 @@ function setupIpcHandlers(dependencies) {
     sendDownloadCompletionNotification,
     showTrayNotification,
     setReloadMenuEnabled,
+    webControlServer,
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;
@@ -753,6 +754,57 @@ function setupIpcHandlers(dependencies) {
       log.error("whats-new:ack error:", error);
       return { success: false, error: error.message || String(error) };
     }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_GET_STATUS, async () => {
+    try {
+      return {
+        success: true,
+        status: webControlServer?.getStatus?.() || {
+          enabled: false,
+          running: false,
+          host: "127.0.0.1",
+          port: 0,
+          url: "",
+        },
+      };
+    } catch (error) {
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_SET_ENABLED, async (_evt, enabled) => {
+    try {
+      const status = await webControlServer?.setEnabled?.(Boolean(enabled));
+      return { success: true, status };
+    } catch (error) {
+      log.error("[web-control] set enabled failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_RESTART, async () => {
+    try {
+      const status = await webControlServer?.restart?.();
+      return { success: true, status };
+    } catch (error) {
+      log.error("[web-control] restart failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_OPEN, async () => {
+    try {
+      const status = await webControlServer?.open?.();
+      return { success: true, status };
+    } catch (error) {
+      log.error("[web-control] open failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.on(CHANNELS.WEB_RENDERER_RESPONSE, (_event, payload) => {
+    webControlServer?.resolveRendererResponse?.(payload);
   });
 
   // ───── Update notification: dev helpers for in-app flyover ─────

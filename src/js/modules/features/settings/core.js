@@ -290,6 +290,75 @@ async function initSettings() {
       syncFromStore();
     });
   })();
+
+  (function initWebControlSettings() {
+    const toggle = document.getElementById("settings-web-control-toggle");
+    const urlInput = document.getElementById("settings-web-control-url");
+    const statusEl = document.getElementById("settings-web-control-status");
+    const openBtn = document.getElementById("settings-web-control-open");
+    const restartBtn = document.getElementById("settings-web-control-restart");
+    if (!toggle || !urlInput || !statusEl || !openBtn || !restartBtn) return;
+
+    const render = (status = {}) => {
+      const enabled = status.enabled === true;
+      const running = status.running === true;
+      toggle.checked = enabled;
+      urlInput.value = status.url || "";
+      openBtn.disabled = !running || !status.url;
+      restartBtn.disabled = !enabled;
+      const key = running
+        ? "settings.web.status.on"
+        : enabled
+          ? "settings.web.status.starting"
+          : "settings.web.status.off";
+      statusEl.setAttribute("data-i18n", key);
+      statusEl.textContent = t(key, { port: status.port || "" });
+    };
+
+    const refresh = async () => {
+      try {
+        const result = await window.electron.invoke("web:getStatus");
+        if (result?.success) render(result.status);
+      } catch (error) {
+        console.error("[settings] web status failed:", error);
+      }
+    };
+
+    toggle.addEventListener("change", async () => {
+      toggle.disabled = true;
+      try {
+        const result = await window.electron.invoke(
+          "web:setEnabled",
+          toggle.checked,
+        );
+        if (result?.success) render(result.status);
+      } catch (error) {
+        console.error("[settings] web toggle failed:", error);
+        toggle.checked = !toggle.checked;
+      } finally {
+        toggle.disabled = false;
+      }
+    });
+
+    openBtn.addEventListener("click", async () => {
+      const result = await window.electron.invoke("web:open");
+      if (result?.success) render(result.status);
+    });
+
+    restartBtn.addEventListener("click", async () => {
+      restartBtn.disabled = true;
+      try {
+        const result = await window.electron.invoke("web:restart");
+        if (result?.success) render(result.status);
+      } finally {
+        restartBtn.disabled = false;
+      }
+    });
+
+    onOpenSettings("web-control", refresh);
+    refresh();
+  })();
+
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");
   const fontSizeDropdownMenu = document.getElementById(
     "font-size-dropdown-menu",

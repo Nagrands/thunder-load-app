@@ -94,6 +94,16 @@ describe("settings template backup placement", () => {
     );
   });
 
+  test("includes web control settings in downloader settings", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('id="settings-web-control-toggle"');
+    expect(html).toContain('id="settings-web-control-url"');
+    expect(html).toContain('id="settings-web-control-open"');
+    expect(html).toContain('id="settings-web-control-restart"');
+  });
+
   test("builds the standalone notifications lab page", () => {
     const labPath = path.resolve(process.cwd(), "src/notifications-lab.html");
     const html = fs.readFileSync(labPath, "utf8");

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thunder Web</title>
+    <link rel="stylesheet" href="/web-control.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topline">
+        <div>
+          <p class="eyebrow">Thunder</p>
+          <h1>Загрузчик</h1>
+        </div>
+        <span class="status-pill" id="connection-status">Подключение</span>
+      </header>
+
+      <section class="panel downloader-panel">
+        <div class="input-grid">
+          <label>
+            <span>Ссылка</span>
+            <textarea id="url-input" rows="3" placeholder="https://..."></textarea>
+          </label>
+          <label>
+            <span>Качество</span>
+            <select id="quality-select">
+              <option value="source">Source</option>
+              <option value="audio">Audio Only</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="download-now">Скачать</button>
+          <button id="add-queue" class="secondary">В очередь</button>
+          <button id="start-queue" class="secondary">Старт очереди</button>
+          <button id="pause-queue" class="secondary">Пауза</button>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <article class="metric"><span>Ожидают</span><strong id="count-pending">0</strong></article>
+        <article class="metric"><span>Активные</span><strong id="count-running">0</strong></article>
+        <article class="metric"><span>Ошибки</span><strong id="count-failed">0</strong></article>
+        <article class="metric"><span>Готово</span><strong id="count-done">0</strong></article>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Очередь</h2>
+          <div class="actions compact">
+            <button data-clear="failed" class="secondary">Очистить ошибки</button>
+            <button data-clear="done" class="secondary">Очистить готовые</button>
+            <button data-clear="all" class="danger">Очистить всё</button>
+          </div>
+        </div>
+        <ul id="queue-list" class="queue-list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>Настройки</h2>
+        <div class="settings-grid">
+          <label>
+            <span>Папка загрузок</span>
+            <input id="setting-download-path" type="text" />
+          </label>
+          <label>
+            <span>Параллельные загрузки</span>
+            <select id="setting-parallel">
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+          </label>
+          <label>
+            <span>Профиль качества</span>
+            <select id="setting-quality-profile">
+              <option value="remember">Последний</option>
+              <option value="audio">Аудио</option>
+            </select>
+          </label>
+          <label>
+            <span>Тема</span>
+            <select id="setting-theme">
+              <option value="dark">Dark</option>
+              <option value="midnight">Midnight</option>
+              <option value="emerald">Emerald</option>
+              <option value="sunset">Sunset</option>
+              <option value="violet">Violet</option>
+            </select>
+          </label>
+          <label>
+            <span>Язык</span>
+            <select id="setting-language">
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <label>
+            <span>Размер текста</span>
+            <select id="setting-font-size">
+              <option value="14">14 px</option>
+              <option value="16">16 px</option>
+              <option value="18">18 px</option>
+              <option value="20">20 px</option>
+            </select>
+          </label>
+        </div>
+        <div class="toggle-grid">
+          <label><input id="setting-auto-quality" type="checkbox" /> Автовыбор качества</label>
+          <label><input id="setting-open-copy" type="checkbox" /> Открывать при копировании URL</label>
+          <label><input id="setting-open-complete" type="checkbox" /> Открывать после загрузки</label>
+          <label><input id="setting-disable-complete" type="checkbox" /> Отключить окно завершения</label>
+          <label><input id="setting-tools-status" type="checkbox" /> Показывать статус инструментов</label>
+        </div>
+        <div class="actions">
+          <button id="save-settings">Сохранить настройки</button>
+        </div>
+      </section>
+    </main>
+    <script src="/web-control.js"></script>
+  </body>
+</html>

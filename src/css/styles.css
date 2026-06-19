@@ -24493,6 +24493,44 @@ hr {
   }
 }
 
+.settings-web-control-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.settings-web-control-panel__label {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.settings-web-control-panel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.settings-web-control-panel__row input {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-web-control-panel__status {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 640px) {
+  .settings-web-control-panel__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings-web-control-panel__row .small-button {
+    width: 100%;
+  }
+}
 #app-preloader {
   position: fixed;
   inset: 0;

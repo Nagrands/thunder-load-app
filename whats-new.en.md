@@ -9,4 +9,5 @@
 | Brand documentation was prepared          | Brand guide, logo rules, colors, typography, icons, and naming are ready for later phases |
 | Brand assets were added                   | SVG logos, lightning-circle symbol, favicon, and GitHub, release, splash, installer templates live in `assets/brand` |
 | Shared interface shell was refreshed      | Topbar, footer, buttons, forms, menus, tooltips, modals, and progress now use Thunder tokens |
+| Local downloader web interface was added  | Enable it in settings to control downloads from a browser on this computer    |
 | Data compatibility was preserved          | Settings and history continue to use the historical Thunder Load data folder  |

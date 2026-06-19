@@ -29,6 +29,7 @@ import { initUpdateHandler } from "../updateHandler.js";
 import { initTopBarThemeToggle } from "../topBarThemeToggle.js";
 import { initTopBarResponsive } from "../topBarResponsive.js";
 import { initTopBarReloadGuard } from "../topBarReloadGuard.js";
+import { initWebControlBridge } from "../webControlBridge.js";
 import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
@@ -117,6 +118,7 @@ async function runDeferredInitialization({ tabs }) {
     initInterfaceHandlers();
     initSettingsModal();
     initTopBarThemeToggle();
+    initWebControlBridge();
 
     registerWgControls();
 

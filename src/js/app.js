@@ -61,6 +61,7 @@ const ClipboardMonitor = require("./app/clipboardMonitor.js");
 const { isValidUrl, isSupportedUrl } = require("./app/utils.js");
 const { setupAutoUpdater } = require("./app/autoUpdater.js");
 const { setupGlobalShortcuts } = require("./app/shortcuts.js");
+const { createWebControlServer } = require("./app/webControlServer.js");
 
 // Initialize store and logging
 const store = new ElectronStore();
@@ -104,6 +105,7 @@ console.time("App → Total Startup Time");
 
 let mainWindow;
 let clipboardMonitorInstance;
+let webControlServer;
 const WHATS_NEW_PENDING_KEY = "pendingWhatsNewVersion";
 
 // Cache for file existence checks
@@ -188,6 +190,7 @@ if (!app.requestSingleInstanceLock()) {
     sendDownloadCompletionNotification,
     showTrayNotification,
     setReloadMenuEnabled,
+    webControlServer: null,
     dispatchPendingWhatsNew: () => false,
     clearPendingWhatsNewVersion: () => false,
   };
@@ -366,8 +369,19 @@ if (!app.requestSingleInstanceLock()) {
     }
 
     dependencies.mainWindow = mainWindow;
+    webControlServer = createWebControlServer({
+      appPath: app.getAppPath(),
+      store,
+    });
+    webControlServer.setMainWindow(mainWindow);
+    dependencies.webControlServer = webControlServer;
 
     setupIpcHandlers(dependencies);
+    try {
+      await webControlServer.startIfEnabled();
+    } catch (error) {
+      log.warn("Failed to start web control server:", error);
+    }
 
     // Setup auto updater
     setupAutoUpdater(mainWindow);
@@ -447,6 +461,12 @@ app.on("before-quit", () => {
   // Stop clipboard monitoring
   if (clipboardMonitorInstance) {
     clipboardMonitorInstance.stop();
+  }
+
+  if (webControlServer) {
+    webControlServer.stop().catch((error) => {
+      log.warn("Failed to stop web control server:", error);
+    });
   }
 });
 
