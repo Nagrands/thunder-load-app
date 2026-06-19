@@ -36,15 +36,11 @@ $transition-interactive:
 }
 
 @mixin footer-glass-panel {
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(var(--color-accent-rgb), 0.12),
-      rgba(255, 255, 255, 0.015) 38%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(12, 16, 24, 0.76);
+  border: 1px solid var(--thunder-border);
+  background: var(--thunder-panel-bg);
+  box-shadow:
+    var(--thunder-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(16px) saturate(140%);
 }
 
@@ -101,7 +97,7 @@ $transition-interactive:
   gap: 14px;
   min-height: var(--app-footer-height);
   padding: 14px 16px;
-  border-radius: 20px;
+  border-radius: var(--thunder-radius-lg);
   @include footer-glass-panel;
   transition:
     $transition-fade-slide,
@@ -111,7 +107,7 @@ $transition-interactive:
 
   // Упрощённый стиль для режима low-effects
   body.low-effects & {
-    background: rgba(16, 20, 28, 0.92);
+    background: var(--thunder-surface-strong);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
     backdrop-filter: none;
   }
@@ -179,9 +175,10 @@ $transition-interactive:
 
 .app-footer__kicker {
   padding: 8px 10px;
-  color: var(--color-text-main);
+  color: var(--thunder-bolt);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 750;
+  text-shadow: 0 0 18px rgba(var(--thunder-electric-rgb), 0.18);
 }
 
 .app-footer__context,
@@ -194,11 +191,13 @@ $transition-interactive:
 .app-footer__context {
   cursor: pointer;
   padding: 6px 12px;
-  border-radius: var(--border-radius);
-  background-color: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  background: rgba(var(--thunder-electric-rgb), 0.06);
+  border: 1px solid rgba(var(--thunder-electric-rgb), 0.12);
 
   &:hover {
-    color: var(--color-accent);
+    color: var(--thunder-electric);
+    border-color: rgba(var(--thunder-electric-rgb), 0.28);
   }
 }
 
@@ -282,13 +281,13 @@ $transition-interactive:
   min-height: 23px;
   padding: 2px 9px 2px 7px;
   border-radius: 999px;
-  border: 1px solid rgba(124, 194, 160, 0.26);
+  border: 1px solid rgba(var(--thunder-electric-rgb), 0.24);
   background: linear-gradient(
     140deg,
-    rgba(19, 45, 36, 0.72),
-    rgba(18, 49, 39, 0.44)
+    rgba(var(--thunder-electric-rgb), 0.12),
+    rgba(18, 49, 58, 0.44)
   );
-  color: #d6f1e3;
+  color: var(--thunder-muted);
   font-size: 11px;
   line-height: 1;
 
@@ -297,8 +296,8 @@ $transition-interactive:
     height: 13px;
     border-radius: 50%;
     @extend %footer-inline-center;
-    background: rgba(126, 222, 169, 0.14);
-    color: #9cf2c3;
+    background: rgba(var(--thunder-electric-rgb), 0.14);
+    color: var(--thunder-electric);
 
     i {
       font-size: 8px;
@@ -307,12 +306,12 @@ $transition-interactive:
 
   &__label {
     font-weight: 500;
-    color: #e8f8f0;
+    color: var(--thunder-bolt);
     white-space: nowrap;
   }
 
   &__version {
-    color: rgba(220, 243, 231, 0.88);
+    color: rgba(207, 225, 250, 0.88);
     white-space: nowrap;
   }
 

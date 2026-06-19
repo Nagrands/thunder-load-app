@@ -13,13 +13,14 @@
   z-index: 9999;
 
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: var(--thunder-radius-md);
   font-size: 15px;
   font-weight: 500;
 
-  background-color: var(--color-bg-secondary);
+  background: var(--thunder-panel-bg);
   color: var(--color-text-main);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--thunder-border);
+  box-shadow: var(--thunder-shadow);
 
   transition:
     opacity 0.3s ease,
@@ -29,7 +30,7 @@
 .spinner-message .spinner {
   width: 16px;
   height: 16px;
-  border: 3px solid var(--color-accent);
+  border: 3px solid var(--thunder-electric);
   border-top: 3px solid transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;

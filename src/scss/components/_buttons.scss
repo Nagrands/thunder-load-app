@@ -3,9 +3,9 @@
 :root {
   --btn-hover-duration: 0.2s;
   --btn-ripple-duration: 0.45s;
-  --btn-focus-shadow: rgba(var(--color-accent-rgb), 0.35);
+  --btn-focus-shadow: rgba(var(--thunder-electric-rgb), 0.35);
   --glass-blur: 0px;
-  --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --glass-shadow: var(--thunder-shadow);
 }
 
 /* ========== Базовые стили кнопок ========== */
@@ -17,7 +17,7 @@
   transition: all var(--btn-hover-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
   color: var(--color-highlight);
-  border: 1px solid var(--color-hover);
+  border: 1px solid var(--thunder-border);
   // border-radius: 16px;
 
   &::before,
@@ -27,12 +27,10 @@
 
   &:hover {
     transform: translateY(-1px);
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.06) 100%
-    );
-    border-color: rgba(255, 255, 255, 0.18);
+    background: var(--thunder-control-hover);
+    border-color: var(--thunder-border-strong);
+    color: var(--thunder-bolt);
+    box-shadow: var(--thunder-glow);
   }
 
   &:active {
@@ -49,7 +47,7 @@
   &:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 2px var(--btn-focus-shadow),
+      var(--thunder-focus-ring),
       var(--glass-shadow),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
@@ -81,13 +79,9 @@
 .btn,
 .small-button,
 .large-button {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
+  background: var(--thunder-control-bg);
   color: var(--color-highlight);
-  border-radius: 14px;
+  border-radius: var(--thunder-radius-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -118,32 +112,32 @@
 .btn-primary {
   background: linear-gradient(
     135deg,
-    rgba(var(--color-accent-rgb), 0.25) 0%,
-    rgba(var(--color-accent-rgb), 0.15) 50%,
-    rgba(var(--color-accent-rgb), 0.08) 100%
+    rgba(var(--thunder-electric-rgb), 0.28) 0%,
+    rgba(var(--thunder-blue-rgb), 0.18) 52%,
+    rgba(var(--thunder-electric-rgb), 0.08) 100%
   );
-  border-color: rgba(var(--color-accent-rgb), 0.3);
+  border-color: rgba(var(--thunder-electric-rgb), 0.38);
 }
 
 .btn-primary:hover {
   background: linear-gradient(
     135deg,
-    rgba(var(--color-accent-rgb), 0.35) 0%,
-    rgba(var(--color-accent-rgb), 0.22) 50%,
-    rgba(var(--color-accent-rgb), 0.12) 100%
+    rgba(var(--thunder-electric-rgb), 0.36) 0%,
+    rgba(var(--thunder-blue-rgb), 0.24) 50%,
+    rgba(var(--thunder-electric-rgb), 0.14) 100%
   );
-  border-color: rgba(var(--color-accent-rgb), 0.5);
+  border-color: rgba(var(--thunder-electric-rgb), 0.56);
 }
 
 .btn-secondary {
   gap: 0;
   background: linear-gradient(
     135deg,
-    rgba(100, 150, 255, 0.2) 0%,
-    rgba(100, 150, 255, 0.1) 50%,
-    rgba(100, 150, 255, 0.05) 100%
+    rgba(var(--thunder-blue-rgb), 0.18) 0%,
+    rgba(var(--thunder-electric-rgb), 0.09) 50%,
+    rgba(255, 255, 255, 0.035) 100%
   );
-  border-color: rgba(100, 150, 255, 0.25);
+  border-color: rgba(var(--thunder-electric-rgb), 0.22);
 }
 
 .btn-ghost {

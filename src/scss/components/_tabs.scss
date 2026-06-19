@@ -21,17 +21,17 @@
     background:
       radial-gradient(
         120% 90% at 18% 18%,
-        rgba(110, 180, 255, 0.2),
+        rgba(var(--thunder-electric-rgb), 0.18),
         transparent 55%
       ),
       radial-gradient(
         110% 80% at 80% 12%,
-        rgba(140, 240, 255, 0.16),
+        rgba(var(--thunder-blue-rgb), 0.14),
         transparent 58%
       ),
       radial-gradient(
         120% 100% at 72% 82%,
-        rgba(255, 170, 120, 0.12),
+        rgba(var(--thunder-spark-rgb), 0.09),
         transparent 60%
       ),
       repeating-linear-gradient(
@@ -98,8 +98,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  border: 1px solid rgba(170, 206, 255, 0.18);
-  border-radius: var(--border-radius);
+  border: 1px solid var(--thunder-border);
+  border-radius: var(--thunder-radius-md);
+  background: rgba(4, 8, 19, 0.34);
   backdrop-filter: blur(6px);
   padding: 12px;
   margin: 10px 0;

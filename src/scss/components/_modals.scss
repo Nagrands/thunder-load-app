@@ -56,8 +56,12 @@
 .first-run-modal-content,
 .bk-modal {
   @include mixins.modal-content-base;
+  border: 1px solid var(--thunder-border);
+  border-radius: var(--thunder-radius-lg);
+  background: var(--thunder-panel-bg);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.2),
+    var(--thunder-shadow),
+    0 0 32px rgba(var(--thunder-electric-rgb), 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -80,7 +84,7 @@
         rgba(255, 255, 255, 0.08),
         transparent 24%
       ),
-      var(--color-bg-main);
+      var(--thunder-surface-strong);
   }
 
   .first-run-header {

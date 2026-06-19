@@ -450,6 +450,48 @@ $themes: (
   --spacing-medium: #{$spacing-medium};
   --spacing-large: #{$spacing-large};
   --border-radius: #{$border-radius};
+  --thunder-ink-950: #040813;
+  --thunder-ink-900: #0d1118;
+  --thunder-ink-800: #151d29;
+  --thunder-surface: rgba(13, 17, 28, 0.82);
+  --thunder-surface-strong: rgba(7, 12, 22, 0.92);
+  --thunder-surface-soft: rgba(255, 255, 255, 0.045);
+  --thunder-border: rgba(133, 201, 255, 0.18);
+  --thunder-border-strong: rgba(22, 216, 255, 0.38);
+  --thunder-electric: #16d8ff;
+  --thunder-electric-rgb: 22, 216, 255;
+  --thunder-blue: #2d9cff;
+  --thunder-blue-rgb: 45, 156, 255;
+  --thunder-spark: #ff8a00;
+  --thunder-spark-rgb: 255, 138, 0;
+  --thunder-bolt: #f8fbff;
+  --thunder-muted: #cfe1fa;
+  --thunder-radius-sm: 8px;
+  --thunder-radius-md: 14px;
+  --thunder-radius-lg: 22px;
+  --thunder-focus-ring: 0 0 0 3px rgba(var(--thunder-electric-rgb), 0.24);
+  --thunder-glow: 0 0 28px rgba(var(--thunder-electric-rgb), 0.22);
+  --thunder-shadow: 0 18px 44px rgba(1, 5, 14, 0.44);
+  --thunder-panel-bg:
+    linear-gradient(
+      145deg,
+      rgba(var(--thunder-electric-rgb), 0.1),
+      rgba(255, 255, 255, 0.026) 38%,
+      rgba(var(--thunder-spark-rgb), 0.035) 100%
+    ),
+    var(--thunder-surface);
+  --thunder-control-bg:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.074),
+      rgba(255, 255, 255, 0.026)
+    );
+  --thunder-control-hover:
+    linear-gradient(
+      180deg,
+      rgba(var(--thunder-electric-rgb), 0.16),
+      rgba(255, 255, 255, 0.038)
+    );
   --toast-width: 360px;
   --toast-radius: 8px;
   --toast-padding-y: 10px;
