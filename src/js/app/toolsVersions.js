@@ -2,24 +2,14 @@
 
 const { spawn } = require("node:child_process");
 const fs = require("fs");
-const fsPromises = require("fs/promises");
-const { getEffectiveToolsDir, resolveToolPath } = require("./toolsPaths");
+const {
+  prepareBinaryForExecution,
+  resolveRuntimeBinaryDetails,
+} = require("./runtimeTools");
 
 /**
  * Run a binary with args and return its first line of stdout (or null).
  */
-async function prepareBinaryForExecution(cmd) {
-  if (process.platform === "win32" || !cmd || !fs.existsSync(cmd)) return;
-
-  try {
-    await fsPromises.access(cmd, fs.constants.X_OK);
-  } catch {
-    try {
-      await fsPromises.chmod(cmd, 0o755);
-    } catch {}
-  }
-}
-
 function runVersion(cmd, args, timeoutMs = 8000) {
   return new Promise((resolve) => {
     let output = "";
@@ -80,30 +70,32 @@ function runVersion(cmd, args, timeoutMs = 8000) {
  * @param {any} store optional store/getter to resolve custom dir
  */
 async function getToolsVersions(store) {
-  const dir = getEffectiveToolsDir(store);
-  const ytPath = resolveToolPath("yt-dlp", dir);
-  const ffPath = resolveToolPath("ffmpeg", dir);
-  const denoPath = resolveToolPath("deno", dir);
+  const ytDetails = resolveRuntimeBinaryDetails("yt-dlp", store);
+  const ffDetails = resolveRuntimeBinaryDetails("ffmpeg", store);
+  const denoDetails = resolveRuntimeBinaryDetails("deno", store);
+  const ytPath = ytDetails.path;
+  const ffPath = ffDetails.path;
+  const denoPath = denoDetails.path;
 
-  const ytExists = fs.existsSync(ytPath);
-  let yt = { ok: ytExists, path: ytPath };
-  if (ytExists) {
+  const ytExists = !!ytPath && fs.existsSync(ytPath);
+  const yt = { ok: ytExists && ytDetails.executable, path: ytPath };
+  if (yt.ok) {
     await prepareBinaryForExecution(ytPath);
     const ver = await runVersion(ytPath, ["--version"]);
     if (ver) yt.version = ver;
   }
 
-  const ffExists = fs.existsSync(ffPath);
-  let ff = { ok: ffExists, path: ffPath };
-  if (ffExists) {
+  const ffExists = !!ffPath && fs.existsSync(ffPath);
+  const ff = { ok: ffExists && ffDetails.executable, path: ffPath };
+  if (ff.ok) {
     await prepareBinaryForExecution(ffPath);
     const ver = await runVersion(ffPath, ["-version"]);
     if (ver) ff.version = ver;
   }
 
-  const denoExists = fs.existsSync(denoPath);
-  let deno = { ok: denoExists, path: denoPath };
-  if (denoExists) {
+  const denoExists = !!denoPath && fs.existsSync(denoPath);
+  const deno = { ok: denoExists && denoDetails.executable, path: denoPath };
+  if (deno.ok) {
     await prepareBinaryForExecution(denoPath);
     const ver = await runVersion(denoPath, ["--version"]);
     if (ver) deno.version = ver;

@@ -2,12 +2,18 @@ const { EventEmitter } = require("events");
 
 jest.mock("../toolsPaths", () => ({
   getEffectiveToolsDir: jest.fn(() => "/tmp/tools"),
+  getDefaultToolsDir: jest.fn(() => "/tmp/tools"),
   resolveToolPath: jest.fn((tool, dir) => `${dir}/${tool}`),
 }));
 
 jest.mock("fs", () => ({
   existsSync: jest.fn(() => true),
+  accessSync: jest.fn(),
+  openSync: jest.fn(),
+  readSync: jest.fn(),
+  closeSync: jest.fn(),
   constants: {
+    F_OK: 0,
     X_OK: 1,
   },
 }));
@@ -39,14 +45,29 @@ function createProc({ code = 0, stdout = "", stderr = "" } = {}) {
 }
 
 describe("getToolsVersions", () => {
+  const originalPlatform = process.platform;
+
   beforeEach(() => {
     jest.resetModules();
     mockSpawn.mockReset();
+    Object.defineProperty(process, "platform", {
+      value: originalPlatform,
+    });
     const fs = require("fs");
     fs.existsSync.mockReturnValue(true);
+    fs.accessSync.mockReturnValue(undefined);
+    fs.openSync.mockReset();
+    fs.readSync.mockReset();
+    fs.closeSync.mockReset();
     const fsPromises = require("fs/promises");
     fsPromises.access.mockResolvedValue(undefined);
     fsPromises.chmod.mockResolvedValue(undefined);
+  });
+
+  afterAll(() => {
+    Object.defineProperty(process, "platform", {
+      value: originalPlatform,
+    });
   });
 
   test("reads yt-dlp version from stdout", async () => {
@@ -85,5 +106,43 @@ describe("getToolsVersions", () => {
     const versions = await getToolsVersions();
 
     expect(versions.ytDlp.version).toBe("2026.03.05");
+  });
+
+  test("does not spawn Python-backed yt-dlp on macOS", async () => {
+    Object.defineProperty(process, "platform", {
+      value: "darwin",
+    });
+    const fs = require("fs");
+    fs.openSync.mockImplementation((targetPath) => targetPath);
+    fs.readSync.mockImplementation((fd, buffer) => {
+      const header = String(fd).includes("yt-dlp")
+        ? "#!/Library/Frameworks/Python.framework/Versions/3.14/bin/python3\n"
+        : "\u0000\u0000standalone-binary";
+      buffer.write(header);
+      return header.length;
+    });
+    mockSpawn
+      .mockImplementationOnce(() =>
+        createProc({ stdout: "ffmpeg version 7.1\n" }),
+      )
+      .mockImplementationOnce(() => createProc({ stdout: "deno 2.2.0\n" }));
+
+    const { getToolsVersions } = require("../toolsVersions");
+    const versions = await getToolsVersions();
+
+    expect(versions.ytDlp).toMatchObject({
+      ok: false,
+      path: "/tmp/tools/yt-dlp",
+    });
+    expect(mockSpawn).not.toHaveBeenCalledWith(
+      "/tmp/tools/yt-dlp",
+      expect.any(Array),
+      expect.any(Object),
+    );
+    expect(mockSpawn).toHaveBeenCalledWith(
+      "/tmp/tools/ffmpeg",
+      ["-version"],
+      expect.any(Object),
+    );
   });
 });

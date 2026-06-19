@@ -26,6 +26,26 @@ function isExecutableFile(filePath) {
   }
 }
 
+function isDarwinPythonBackedYtDlp(name, filePath) {
+  if (process.platform !== "darwin" || name !== "yt-dlp" || !filePath) {
+    return false;
+  }
+
+  try {
+    const fd = fs.openSync(filePath, "r");
+    try {
+      const buffer = Buffer.alloc(512);
+      const bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
+      const header = buffer.toString("utf8", 0, bytesRead).toLowerCase();
+      return header.startsWith("#!") && header.includes("python");
+    } finally {
+      fs.closeSync(fd);
+    }
+  } catch {
+    return false;
+  }
+}
+
 function resolveBinaryFromPath(name) {
   const envPath = String(process.env.PATH || "");
   if (!envPath) return "";
@@ -60,10 +80,16 @@ function resolveRuntimeBinaryCandidates(name, storeOrGetter) {
     const normalized = String(candidatePath || "").trim();
     if (!normalized || seen.has(normalized)) return;
     seen.add(normalized);
+    const executable = isExecutableFile(normalized);
+    const blockedReason =
+      executable && isDarwinPythonBackedYtDlp(name, normalized)
+        ? "python-backed-yt-dlp"
+        : null;
     candidates.push({
       path: normalized,
       source,
-      executable: isExecutableFile(normalized),
+      executable: executable && !blockedReason,
+      blockedReason,
     });
   };
 

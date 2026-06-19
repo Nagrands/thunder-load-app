@@ -341,11 +341,12 @@ describe("yt-dlp video info optimization helpers", () => {
       getRuntimeFfprobePath: jest.fn(() => path.join(tmpDir, "ffprobe")),
       resolveRuntimeBinaryPath: jest.fn(() => binaryPath),
       resolveRuntimeBinaryCandidates: jest.fn(() => [
-        { path: binaryPath, source: "test" },
+        { path: binaryPath, source: "test", executable: true },
       ]),
       resolveRuntimeBinaryDetails: jest.fn(() => ({
         path: binaryPath,
         source: "test",
+        executable: true,
       })),
       prepareBinaryForExecution: jest.fn(),
       resolveRuntimeFfmpegDir: jest.fn(() => tmpDir),
@@ -358,6 +359,78 @@ describe("yt-dlp video info optimization helpers", () => {
     await mod._resolveUsableYtDlpBinary();
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
+
+    jest.dontMock("child_process");
+    jest.dontMock("../../app/toolsPaths");
+    jest.dontMock("../../app/runtimeTools");
+  });
+
+  it("skips blocked yt-dlp candidates during preflight", async () => {
+    jest.resetModules();
+    const { EventEmitter } = require("events");
+    const fs = require("fs");
+    const os = require("os");
+    const path = require("path");
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "yt-dlp-blocked-"));
+    const blockedPath = path.join(tmpDir, "blocked-yt-dlp");
+    const binaryPath = path.join(tmpDir, "yt-dlp");
+    fs.writeFileSync(blockedPath, "#!/usr/bin/python3\n");
+    fs.writeFileSync(binaryPath, "demo");
+
+    const spawnMock = jest.fn(() => {
+      const proc = new EventEmitter();
+      proc.stdout = new EventEmitter();
+      proc.stderr = new EventEmitter();
+      proc.kill = jest.fn();
+      process.nextTick(() => {
+        proc.stdout.emit("data", "2026.01.01\n");
+        proc.emit("close", 0);
+      });
+      return proc;
+    });
+
+    jest.doMock("child_process", () => ({
+      spawn: spawnMock,
+    }));
+    jest.doMock("../../app/toolsPaths", () => ({
+      getEffectiveToolsDir: jest.fn(() => tmpDir),
+      getDefaultToolsDir: jest.fn(() => tmpDir),
+      ensureToolsDir: jest.fn(() => tmpDir),
+      resolveToolPath: jest.fn(() => binaryPath),
+    }));
+    jest.doMock("../../app/runtimeTools", () => ({
+      getRuntimeFfprobePath: jest.fn(() => path.join(tmpDir, "ffprobe")),
+      resolveRuntimeBinaryPath: jest.fn(() => binaryPath),
+      resolveRuntimeBinaryCandidates: jest.fn(() => [
+        {
+          path: blockedPath,
+          source: "path",
+          executable: false,
+          blockedReason: "python-backed-yt-dlp",
+        },
+        { path: binaryPath, source: "default", executable: true },
+      ]),
+      resolveRuntimeBinaryDetails: jest.fn(() => ({
+        path: binaryPath,
+        source: "default",
+        executable: true,
+      })),
+      prepareBinaryForExecution: jest.fn(),
+      resolveRuntimeFfmpegDir: jest.fn(() => tmpDir),
+    }));
+
+    const mod = require("../download.js");
+    mod._resetYtDlpBinaryCache();
+
+    const resolved = await mod._resolveUsableYtDlpBinary();
+
+    expect(resolved).toEqual({ path: binaryPath, source: "default" });
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    expect(spawnMock).toHaveBeenCalledWith(
+      binaryPath,
+      ["--version"],
+      expect.any(Object),
+    );
 
     jest.dontMock("child_process");
     jest.dontMock("../../app/toolsPaths");

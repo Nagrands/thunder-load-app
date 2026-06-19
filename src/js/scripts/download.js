@@ -785,8 +785,11 @@ async function getYtDlpVersion(token = null) {
   const details = resolveRuntimeToolDetails("yt-dlp");
   const ytDlpPath = details.path || getYtDlpPath();
   try {
-    if (!fs.existsSync(ytDlpPath)) {
-      log.warn("yt-dlp binary not found at path:", ytDlpPath);
+    if (!details.executable || !fs.existsSync(ytDlpPath)) {
+      log.warn("yt-dlp binary is unavailable:", {
+        path: ytDlpPath,
+        blockedReason: details.blockedReason || "not-found",
+      });
       return null;
     }
     await prepareBinaryForExecution(ytDlpPath);
@@ -889,22 +892,7 @@ async function installYtDlp(token = null) {
       try {
         fs.unlinkSync(ytDlpPath);
       } catch (_) {}
-      if (process.platform === "darwin") {
-        log.info("Attempting fallback: brew install yt-dlp");
-        try {
-          const { execSync } = require("child_process");
-          execSync("brew install yt-dlp", { stdio: "inherit" });
-          log.info("brew install yt-dlp succeeded");
-        } catch (brewErr) {
-          throw new Error(
-            "Fallback brew install yt-dlp failed: " + brewErr.message,
-          );
-        }
-      } else {
-        throw new Error(
-          "Downloaded yt-dlp binary seems invalid (too small) and no fallback available.",
-        );
-      }
+      throw new Error("Downloaded yt-dlp binary seems invalid (too small).");
     }
 
     // Проверяем версию после установки
@@ -1814,6 +1802,14 @@ async function resolveUsableYtDlpBinary(token = null) {
   for (const candidate of candidates) {
     const candidatePath = String(candidate?.path || "");
     if (!candidatePath || !fs.existsSync(candidatePath)) {
+      continue;
+    }
+    if (!candidate.executable) {
+      log.warn("[download] yt-dlp candidate skipped", {
+        candidatePath,
+        source: candidate.source,
+        blockedReason: candidate.blockedReason || "not-executable",
+      });
       continue;
     }
     try {
