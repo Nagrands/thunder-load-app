@@ -2842,26 +2842,81 @@
         aria-labelledby="whats-new-title"
       >
         <div class="whats-modal-content">
-          <div class="whats-modal-header">
-            <div class="whats-title-block">
-              <h2 id="whats-new-title">
-                <i class="fa fa-question-circle" aria-hidden="true"></i>
+          <h2
+            id="whats-new-title"
+            class="whats-modal-title"
+            data-i18n="modal.whatsNew"
+          >
+            Что нового?
+          </h2>
+          <div class="whats-modal-hero" aria-hidden="true">
+            <div class="whats-modal-code-text">
+              const thunder = await update();
+              queue.map((item) => item.ready);
+              spark.ignite(downloads);
+            </div>
+            <div class="whats-modal-orb">
+              <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            </div>
+          </div>
+          <button
+            class="close-whats-new"
+            aria-label="Закрыть"
+            data-i18n-aria="modal.close"
+            data-ui="whats-close"
+          >
+            &times;
+          </button>
+          <section class="whats-presentation" data-ui="whats-presentation">
+            <div class="whats-slide-meta">
+              <span class="whats-slide-count" data-ui="whats-slide-count">
+                1 из 1
+              </span>
+              <span class="whats-slide-summary" data-ui="whats-slide-summary">
                 <span data-i18n="modal.whatsNew">Что нового?</span>
-              </h2>
-              <div class="whats-subtitle" data-i18n="modal.whatsNew.subtitle">
-                Информация об обновлении
-              </div>
+              </span>
+            </div>
+            <div
+              id="whats-new-content"
+              class="whats-slide-viewport"
+              aria-live="polite"
+              data-ui="whats-slide-viewport"
+            ></div>
+            <div class="whats-slide-footer">
+              <button
+                type="button"
+                class="whats-nav-button"
+                aria-label="Назад"
+                data-i18n-aria="whatsnew.back"
+                data-ui="whats-prev"
+              >
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+              </button>
+              <div
+                class="whats-slide-dots"
+                role="tablist"
+                aria-label="Навигация по слайдам"
+                data-i18n-aria="whatsnew.slideNavigation"
+                data-ui="whats-dots"
+              ></div>
+              <button
+                type="button"
+                class="whats-nav-button"
+                aria-label="Далее"
+                data-i18n-aria="whatsnew.next"
+                data-ui="whats-next"
+              >
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </button>
             </div>
             <button
-              class="close-whats-new"
-              aria-label="Закрыть"
-              data-i18n-aria="modal.close"
+              type="button"
+              class="whats-primary-action"
+              data-ui="whats-continue"
             >
-              &times;
+              <span data-i18n="whatsnew.continue">Продолжить</span>
             </button>
-          </div>
-          <div class="whats-divider" aria-hidden="true"></div>
-          <div id="whats-new-content"></div>
+          </section>
         </div>
       </div>
 

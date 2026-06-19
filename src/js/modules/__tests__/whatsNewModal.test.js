@@ -1,44 +1,72 @@
+import fs from "fs";
+import path from "path";
 import createDOMPurify from "dompurify";
 
-jest.mock("../domElements.js", () => {
-  const makeEl = () => ({
-    style: {},
-    addEventListener: jest.fn(),
-    querySelector: jest.fn(),
-    insertAdjacentHTML: jest.fn(),
-    setAttribute: jest.fn(),
-  });
+function setupDom() {
+  document.body.innerHTML = `
+    <button class="version-container"></button>
+    <div
+      id="whats-new-modal"
+      style="display:none"
+      aria-hidden="true"
+      aria-labelledby="whats-new-title"
+    >
+      <div class="whats-modal-content">
+        <h2 id="whats-new-title">Что нового?</h2>
+        <button class="close-whats-new" data-ui="whats-close"></button>
+        <section data-ui="whats-presentation">
+          <span data-ui="whats-slide-count"></span>
+          <span data-ui="whats-slide-summary"></span>
+          <div id="whats-new-content" data-ui="whats-slide-viewport"></div>
+          <button type="button" data-ui="whats-prev">Назад</button>
+          <div data-ui="whats-dots"></div>
+          <button type="button" data-ui="whats-next">Далее</button>
+          <button type="button" data-ui="whats-continue">Продолжить</button>
+        </section>
+      </div>
+    </div>
+  `;
+}
 
-  return {
-    versionContainer: makeEl(),
-    whatsNewModal: makeEl(),
-    whatsNewContent: makeEl(),
-    closeWhatsNewBtn: makeEl(),
-    shortcutsModal: makeEl(),
-    confirmationModal: makeEl(),
-    settingsModal: makeEl(),
-  };
-});
+async function importWithDomMocks() {
+  const versionContainer = document.querySelector(".version-container");
+  const whatsNewModal = document.getElementById("whats-new-modal");
+  const whatsNewContent = document.getElementById("whats-new-content");
+  const closeWhatsNewBtn = document.querySelector(".close-whats-new");
 
-let sanitize;
+  jest.doMock("../domElements.js", () => ({
+    versionContainer,
+    whatsNewModal,
+    whatsNewContent,
+    closeWhatsNewBtn,
+    shortcutsModal: null,
+    confirmationModal: null,
+    settingsModal: null,
+  }));
+  jest.doMock("../modalManager.js", () => ({
+    closeAllModals: jest.fn(),
+  }));
 
-beforeAll(async () => {
-  global.DOMPurify = createDOMPurify(window);
-  const mod = await import("../whatsNewModal.js");
-  sanitize = mod.__test_sanitizeWhatsNewHtml;
-});
+  return import("../whatsNewModal.js");
+}
 
 describe("whatsNew sanitizer", () => {
+  let sanitize;
+
+  beforeEach(async () => {
+    jest.resetModules();
+    setupDom();
+    window.DOMPurify = createDOMPurify(window);
+    const mod = await importWithDomMocks();
+    sanitize = mod.__test_sanitizeWhatsNewHtml;
+  });
+
   test("keeps allowed tags", () => {
-    const input = "<p>ok</p>";
-    const output = sanitize(input);
-    expect(output).toBe("<p>ok</p>");
+    expect(sanitize("<p>ok</p>")).toBe("<p>ok</p>");
   });
 
   test("removes script tags", () => {
-    const input = "<script>alert(1)</script><p>x</p>";
-    const output = sanitize(input);
-    expect(output).toBe("<p>x</p>");
+    expect(sanitize("<script>alert(1)</script><p>x</p>")).toBe("<p>x</p>");
   });
 
   test("keeps h1 and table tags for rich markdown", () => {
@@ -52,92 +80,120 @@ describe("whatsNew sanitizer", () => {
   });
 
   test("strips javascript: href", () => {
-    const input = '<a href="javascript:alert(1)">x</a>';
-    const output = sanitize(input);
-    expect(output).toBe("<a>x</a>");
+    expect(sanitize('<a href="javascript:alert(1)">x</a>')).toBe("<a>x</a>");
   });
 });
 
-describe("whatsNew overlay state", () => {
-  test("adds and removes modal overlay class when modal opens and closes", async () => {
+describe("whatsNew presentation slides", () => {
+  beforeEach(() => {
     jest.resetModules();
+    setupDom();
+    window.DOMPurify = createDOMPurify(window);
+    localStorage.setItem("uiLanguage", "ru");
+  });
 
-    const listeners = {};
-    const header = {
-      innerHTML: "",
-      appendChild: jest.fn(),
-      insertAdjacentText: jest.fn(),
-    };
-    const whatsNewModal = {
-      style: {},
-      setAttribute: jest.fn(),
-      querySelector: jest.fn(() => header),
-    };
-    const whatsNewContent = {
-      innerHTML: "",
-      insertAdjacentHTML: jest.fn(),
-    };
-    const versionContainer = {
-      addEventListener: jest.fn((event, handler) => {
-        listeners[event] = handler;
-      }),
-    };
-    const closeWhatsNewBtn = {
-      addEventListener: jest.fn((event, handler) => {
-        listeners[`close:${event}`] = handler;
-      }),
-    };
+  test("builds overview and feature slides from release notes table", async () => {
+    const mod = await importWithDomMocks();
+    const slides = mod.__test_buildSlidesFromHtml(
+      [
+        `
+          <h1>Thunder Spark — 1.6.0</h1>
+          <table>
+            <thead><tr><th>Изменения</th><th>Что это даёт</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Запущен</strong> бренд</td><td>Новый бренд без редизайна рабочих экранов</td></tr>
+              <tr><td><strong>Исправлена</strong> проверка</td><td>Без повторной проверки Python.framework</td></tr>
+            </tbody>
+          </table>
+        `,
+      ],
+      "1.6.0",
+    );
 
-    jest.doMock("../domElements.js", () => ({
-      versionContainer,
-      whatsNewModal,
-      whatsNewContent,
-      closeWhatsNewBtn,
-      shortcutsModal: null,
-      confirmationModal: null,
-      settingsModal: null,
-    }));
-    jest.doMock("../modalManager.js", () => ({
-      closeAllModals: jest.fn(),
-    }));
-    jest.doMock("../i18n.js", () => ({
-      getLanguage: jest.fn(() => "en"),
-      t: (key, vars = {}) =>
-        key === "whatsnew.version" ? `Version ${vars.version}` : key,
-    }));
+    expect(slides).toHaveLength(3);
+    expect(slides[0]).toMatchObject({
+      type: "overview",
+      titleText: "Thunder Spark — 1.6.0",
+      featureCount: 2,
+    });
+    expect(slides[1]).toMatchObject({
+      type: "feature",
+      bodyHtml: "Новый бренд без редизайна рабочих экранов",
+    });
+  });
 
+  test("adds and removes modal overlay class when modal opens and closes", async () => {
     window.electron = {
       invoke: jest.fn(async (channel) => {
-        if (channel === "get-version") return "1.4.4";
+        if (channel === "get-version") return "1.6.0";
         if (channel === "get-whats-new") {
-          return { version: "1.4.4", changes: ["<p>ok</p>"] };
+          return {
+            version: "1.6.0",
+            changes: [
+              `
+                <h1>Thunder Spark — 1.6.0</h1>
+                <table>
+                  <tbody>
+                    <tr><td><strong>Первое</strong></td><td>Описание первого</td></tr>
+                    <tr><td><strong>Второе</strong></td><td>Описание второго</td></tr>
+                  </tbody>
+                </table>
+              `,
+            ],
+          };
         }
         return undefined;
       }),
       onShowWhatsNew: jest.fn(),
     };
 
-    const mod = await import("../whatsNewModal.js");
+    const mod = await importWithDomMocks();
     mod.initWhatsNewModal();
 
-    await listeners.click();
+    document.querySelector(".version-container").click();
+    await Promise.resolve();
+    await Promise.resolve();
 
-    expect(whatsNewModal.style.display).toBe("flex");
-    expect(whatsNewModal.setAttribute).toHaveBeenCalledWith(
-      "aria-hidden",
-      "false",
-    );
+    const modal = document.getElementById("whats-new-modal");
+    const content = document.getElementById("whats-new-content");
+    const dots = modal.querySelectorAll(".whats-slide-dot");
+
+    expect(modal.style.display).toBe("flex");
+    expect(modal.getAttribute("aria-hidden")).toBe("false");
     expect(document.body.classList.contains("modal-overlay-active")).toBe(true);
+    expect(content.textContent).toContain("Thunder Spark — 1.6.0");
+    expect(dots).toHaveLength(3);
 
-    listeners["close:click"]();
+    modal.querySelector('[data-ui="whats-next"]').click();
+    expect(content.textContent).toContain("Первое");
 
-    expect(whatsNewModal.style.display).toBe("none");
-    expect(whatsNewModal.setAttribute).toHaveBeenCalledWith(
-      "aria-hidden",
-      "true",
+    dots[2].click();
+    expect(content.textContent).toContain("Второе");
+    expect(modal.querySelector('[data-ui="whats-continue"]').textContent).toBe(
+      "Закрыть",
     );
+
+    modal.querySelector('[data-ui="whats-continue"]').click();
+    expect(modal.style.display).toBe("none");
+    expect(modal.getAttribute("aria-hidden")).toBe("true");
     expect(document.body.classList.contains("modal-overlay-active")).toBe(
       false,
     );
+  });
+
+  test("template keeps accessible label and carousel hooks", () => {
+    const templatePath = path.resolve(
+      process.cwd(),
+      "templates/partials/modals/whats-new.njk",
+    );
+    const template = fs.readFileSync(templatePath, "utf8");
+
+    expect(template).toContain('aria-labelledby="whats-new-title"');
+    expect(template).toContain('id="whats-new-title"');
+    expect(template).toContain('id="whats-new-content"');
+    expect(template).toContain('data-ui="whats-prev"');
+    expect(template).toContain('data-ui="whats-next"');
+    expect(template).toContain('data-ui="whats-dots"');
+    expect(template).toContain('data-ui="whats-continue"');
   });
 });

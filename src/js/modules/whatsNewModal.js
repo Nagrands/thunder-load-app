@@ -15,6 +15,7 @@ import {
   acquireOverlayActive,
   releaseOverlayActive,
 } from "./scrollLockManager.js";
+
 const WHATSNEW_ALLOWED_TAGS = [
   "h1",
   "h2",
@@ -41,6 +42,7 @@ const WHATSNEW_ALLOWED_TAGS = [
   "td",
 ];
 const WHATS_NEW_MODAL_OVERLAY_OWNER = "whats-new-modal";
+const INITIAL_SLIDE_INDEX = 0;
 
 const WHATSNEW_ALLOWED_ATTR = {
   "*": ["title"],
@@ -51,8 +53,11 @@ const WHATSNEW_ALLOWED_ATTR = {
 
 const WHATSNEW_ALLOWED_URI = /^(https?:|mailto:)/i;
 
+let slides = [];
+let currentIndex = INITIAL_SLIDE_INDEX;
+
 function sanitizeWhatsNewHtml(html) {
-  const purifier = window?.DOMPurify;
+  const purifier = window?.DOMPurify || globalThis?.DOMPurify;
   if (!purifier || typeof purifier.sanitize !== "function") {
     console.warn("[WhatsNew] DOMPurify is not available; rendering raw HTML.");
     return html;
@@ -65,19 +70,259 @@ function sanitizeWhatsNewHtml(html) {
   });
 }
 
-// Export for tests only
-export const __test_sanitizeWhatsNewHtml = sanitizeWhatsNewHtml;
+function getModalElement(selector) {
+  return whatsNewModal?.querySelector(selector) || null;
+}
 
-/**
- * Функция для отображения модального окна "Что нового".
- * @param {string} version - Текущая версия приложения.
- */
+function getTextContent(html) {
+  const template = document.createElement("template");
+  template.innerHTML = html || "";
+  return (template.content.textContent || "").trim();
+}
+
+function parseSafeDocument(htmlParts = []) {
+  const root = document.createElement("div");
+  htmlParts
+    .map((part) => sanitizeWhatsNewHtml(part))
+    .filter((part) => part.trim() !== "")
+    .forEach((part) => {
+      root.insertAdjacentHTML("beforeend", part);
+    });
+  return root;
+}
+
+function buildSlidesFromHtml(htmlParts = [], version = "") {
+  const root = parseSafeDocument(htmlParts);
+  const releaseTitle =
+    root.querySelector("h1")?.textContent?.trim() ||
+    t("whatsnew.version", { version });
+  const tableRows = Array.from(root.querySelectorAll("table tbody tr"));
+  const featureSlides = tableRows
+    .map((row, index) => {
+      const cells = Array.from(row.querySelectorAll("td"));
+      const titleHtml = (cells[0]?.innerHTML || "").trim();
+      const bodyHtml = (cells[1]?.innerHTML || "").trim();
+      if (!titleHtml && !bodyHtml) return null;
+      return {
+        id: `feature-${index}`,
+        type: "feature",
+        titleHtml,
+        bodyHtml,
+      };
+    })
+    .filter(Boolean);
+
+  if (featureSlides.length === 0) {
+    return [
+      {
+        id: "fallback",
+        type: "fallback",
+        titleText: releaseTitle,
+        bodyHtml: root.innerHTML,
+        featureCount: 0,
+      },
+    ];
+  }
+
+  return [
+    {
+      id: "overview",
+      type: "overview",
+      titleText: releaseTitle,
+      subtitleText: t("modal.whatsNew.subtitle"),
+      featureCount: featureSlides.length,
+      previewItems: featureSlides.slice(0, 2).map((slide) => ({
+        titleHtml: slide.titleHtml,
+        bodyText: getTextContent(slide.bodyHtml),
+      })),
+    },
+    ...featureSlides,
+  ];
+}
+
+function closeWhatsNewModal() {
+  if (!whatsNewModal) return;
+  whatsNewModal.style.display = "none";
+  whatsNewModal.setAttribute("aria-hidden", "true");
+  releaseOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
+}
+
+function openWhatsNewModal() {
+  if (!whatsNewModal) return;
+  whatsNewModal.style.display = "flex";
+  whatsNewModal.style.flexWrap = "wrap";
+  whatsNewModal.style.justifyContent = "center";
+  whatsNewModal.style.alignItems = "center";
+  whatsNewModal.setAttribute("aria-hidden", "false");
+  acquireOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
+}
+
+function updateHeaderMeta() {
+  const countEl = getModalElement('[data-ui="whats-slide-count"]');
+  const summaryEl = getModalElement('[data-ui="whats-slide-summary"]');
+  const total = Math.max(slides.length, 1);
+  const current = Math.min(currentIndex + 1, total);
+  if (countEl) {
+    countEl.textContent = t("whatsnew.slideCounter", { current, total });
+  }
+  if (summaryEl) {
+    const featureCount = slides.find(
+      (slide) => slide.type === "overview",
+    )?.featureCount;
+    summaryEl.textContent =
+      typeof featureCount === "number"
+        ? t("whatsnew.changesCount", { count: featureCount })
+        : t("modal.whatsNew");
+  }
+}
+
+function renderOverviewSlide(slide) {
+  const preview = slide.previewItems
+    .map(
+      (item) => `
+        <li class="whats-overview-item">
+          <span class="whats-overview-icon" aria-hidden="true">
+            <i class="fa-solid fa-bolt"></i>
+          </span>
+          <span>
+            <strong>${item.titleHtml}</strong>
+            <small>${item.bodyText}</small>
+          </span>
+        </li>
+      `,
+    )
+    .join("");
+
+  return `
+    <article class="whats-slide whats-slide--overview">
+      <div class="whats-slide-kicker">${t("modal.whatsNew")}</div>
+      <h2>${slide.titleText}</h2>
+      <p>${slide.subtitleText}</p>
+      <ul class="whats-overview-list">${preview}</ul>
+    </article>
+  `;
+}
+
+function renderFeatureSlide(slide) {
+  return `
+    <article class="whats-slide whats-slide--feature">
+      <div class="whats-slide-kicker">${t("modal.whatsNew")}</div>
+      <h2>${slide.titleHtml}</h2>
+      <div class="whats-feature-body">${slide.bodyHtml}</div>
+    </article>
+  `;
+}
+
+function renderFallbackSlide(slide) {
+  return `
+    <article class="whats-slide whats-slide--fallback">
+      <div class="whats-slide-kicker">${t("modal.whatsNew")}</div>
+      <h2>${slide.titleText}</h2>
+      <div class="whats-feature-body">${slide.bodyHtml}</div>
+    </article>
+  `;
+}
+
+function renderCurrentSlide() {
+  if (!whatsNewContent || slides.length === 0) return;
+  const slide = slides[currentIndex] || slides[INITIAL_SLIDE_INDEX];
+  const slideHtml =
+    slide.type === "overview"
+      ? renderOverviewSlide(slide)
+      : slide.type === "feature"
+        ? renderFeatureSlide(slide)
+        : renderFallbackSlide(slide);
+  whatsNewContent.innerHTML = slideHtml;
+}
+
+function renderDots() {
+  const dotsEl = getModalElement('[data-ui="whats-dots"]');
+  if (!dotsEl) return;
+  dotsEl.innerHTML = "";
+  slides.forEach((slide, index) => {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "whats-slide-dot";
+    dot.dataset.index = String(index);
+    dot.setAttribute("role", "tab");
+    dot.setAttribute(
+      "aria-label",
+      t("whatsnew.goToSlide", {
+        current: index + 1,
+        total: slides.length,
+      }),
+    );
+    dot.setAttribute(
+      "aria-selected",
+      index === currentIndex ? "true" : "false",
+    );
+    dot.classList.toggle("is-active", index === currentIndex);
+    dot.addEventListener("click", () => {
+      setCurrentSlide(index);
+    });
+    dotsEl.appendChild(dot);
+  });
+}
+
+function updateControls() {
+  const prevButton = getModalElement('[data-ui="whats-prev"]');
+  const nextButton = getModalElement('[data-ui="whats-next"]');
+  const continueButton = getModalElement('[data-ui="whats-continue"]');
+  const isFirst = currentIndex === 0;
+  const isLast = currentIndex === slides.length - 1;
+
+  if (prevButton) prevButton.disabled = isFirst;
+  if (nextButton) nextButton.disabled = isLast;
+  if (continueButton) {
+    continueButton.textContent = isLast
+      ? t("whatsnew.close")
+      : t("whatsnew.continue");
+  }
+}
+
+function renderPresentation() {
+  currentIndex = Math.min(currentIndex, Math.max(slides.length - 1, 0));
+  renderCurrentSlide();
+  renderDots();
+  updateHeaderMeta();
+  updateControls();
+}
+
+function setCurrentSlide(index) {
+  const nextIndex = Math.max(0, Math.min(index, slides.length - 1));
+  if (nextIndex === currentIndex) return;
+  currentIndex = nextIndex;
+  renderPresentation();
+}
+
+function goToNextSlide() {
+  setCurrentSlide(currentIndex + 1);
+}
+
+function goToPreviousSlide() {
+  setCurrentSlide(currentIndex - 1);
+}
+
+function handleKeydown(event) {
+  if (!whatsNewModal || whatsNewModal.getAttribute("aria-hidden") === "true") {
+    return;
+  }
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    goToNextSlide();
+  } else if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    goToPreviousSlide();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    closeWhatsNewModal();
+  }
+}
+
 async function showWhatsNew(version) {
   try {
     const data = await window.electron.invoke("get-whats-new", getLanguage());
-    console.log("Полученные данные для 'Что нового?':", data); // Для отладки
 
-    // Проверяем, соответствует ли версия в JSON текущей версии приложения
     if (data.version !== version) {
       console.warn(
         `Версия в whatsNew.json (${data.version}) не соответствует текущей версии приложения (${version}).`,
@@ -85,48 +330,11 @@ async function showWhatsNew(version) {
       return;
     }
 
-    // Обновляем заголовок модального окна с версией
-    const header = whatsNewModal.querySelector("h2");
-    if (header) {
-      // Очищаем текущий текст и вставляем новый с версией
-      header.innerHTML = ""; // Очищаем содержимое h2
-      const icon = document.createElement("i");
-      icon.className = "fa fa-question-circle";
-      icon.setAttribute("aria-hidden", "true");
-      header.appendChild(icon);
-      header.insertAdjacentText("afterbegin", " "); // Добавить пробел после иконки
-      header.insertAdjacentText(
-        "beforeend",
-        t("whatsnew.version", { version: data.version }),
-      );
-    }
+    slides = buildSlidesFromHtml(data.changes || [], data.version);
+    currentIndex = INITIAL_SLIDE_INDEX;
+    renderPresentation();
+    openWhatsNewModal();
 
-    // Очищаем содержимое контейнера
-    if (!whatsNewContent) {
-      console.error("whatsNewContent элемент не найден");
-      return;
-    }
-
-    whatsNewContent.innerHTML = "";
-
-    // Заполняем содержимое контейнера HTML-строками из JSON
-    data.changes.forEach((change) => {
-      if (change.trim() !== "") {
-        // Пропускаем пустые строки
-        const safeHtml = sanitizeWhatsNewHtml(change);
-        whatsNewContent.insertAdjacentHTML("beforeend", safeHtml);
-      }
-    });
-
-    // Показываем модальное окно
-    whatsNewModal.style.display = "flex";
-    whatsNewModal.style.flexWrap = "wrap";
-    whatsNewModal.style.justifyContent = "center";
-    whatsNewModal.style.alignItems = "center";
-    whatsNewModal.setAttribute("aria-hidden", "false");
-    acquireOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
-
-    console.log("Модальное окно 'Что нового?' отображено с содержимым."); // Для отладки
     try {
       await window.electron.invoke("whats-new:ack", data.version);
     } catch (ackError) {
@@ -140,11 +348,28 @@ async function showWhatsNew(version) {
   }
 }
 
-/**
- * Функция для инициализации модального окна "Что нового" при клике на элемент версии.
- */
+function bindPresentationControls() {
+  getModalElement('[data-ui="whats-prev"]')?.addEventListener(
+    "click",
+    goToPreviousSlide,
+  );
+  getModalElement('[data-ui="whats-next"]')?.addEventListener(
+    "click",
+    goToNextSlide,
+  );
+  getModalElement('[data-ui="whats-continue"]')?.addEventListener(
+    "click",
+    () => {
+      if (currentIndex >= slides.length - 1) {
+        closeWhatsNewModal();
+        return;
+      }
+      goToNextSlide();
+    },
+  );
+}
+
 function initWhatsNewModal() {
-  // Обработчик клика на контейнер версии
   if (versionContainer) {
     versionContainer.addEventListener("click", async () => {
       const currentVersion = await window.electron.invoke("get-version");
@@ -153,37 +378,31 @@ function initWhatsNewModal() {
         shortcutsModal,
         confirmationModal,
         settingsModal,
-      ]); // Закрываем все модальные окна перед открытием нового
+      ]);
       showWhatsNew(currentVersion);
     });
   }
 
-  // Обработчик клика на кнопку закрытия модального окна
   if (closeWhatsNewBtn) {
-    closeWhatsNewBtn.addEventListener("click", () => {
-      whatsNewModal.style.display = "none";
-      whatsNewModal.setAttribute("aria-hidden", "true");
-      releaseOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
-    });
+    closeWhatsNewBtn.addEventListener("click", closeWhatsNewModal);
   }
 
-  // Закрытие модального окна при клике вне его области
+  bindPresentationControls();
+
   window.addEventListener("click", (event) => {
     if (event.target === whatsNewModal) {
-      whatsNewModal.style.display = "none";
-      whatsNewModal.setAttribute("aria-hidden", "true");
-      releaseOverlayActive(WHATS_NEW_MODAL_OVERLAY_OWNER);
+      closeWhatsNewModal();
     }
   });
+  window.addEventListener("keydown", handleKeydown);
 
-  // Подписываемся на IPC-сообщение для отображения модального окна
   window.electron.onShowWhatsNew((version) => {
     closeAllModals([
       whatsNewModal,
       shortcutsModal,
       confirmationModal,
       settingsModal,
-    ]); // Закрываем все модальные окна перед открытием нового
+    ]);
     showWhatsNew(version);
   });
 
@@ -193,5 +412,8 @@ function initWhatsNewModal() {
     console.warn("[WhatsNew] Не удалось отправить сигнал готовности:", error);
   }
 }
+
+export const __test_sanitizeWhatsNewHtml = sanitizeWhatsNewHtml;
+export const __test_buildSlidesFromHtml = buildSlidesFromHtml;
 
 export { initWhatsNewModal };
