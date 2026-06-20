@@ -12,9 +12,13 @@ const buildDom = () => {
     <div id="progress-bar"></div>
     <button id="open-last-video"></button>
     <div id="download-queue-info" class="hidden"></div>
-    <span id="queue-count"></span>
-    <span id="queue-active-count" class="hidden"></span>
-    <span id="queue-done-count" class="hidden"></span>
+    <div class="queue-pills" role="toolbar">
+      <button id="queue-total-count" data-queue-filter="all" aria-pressed="true"><span>All</span><span data-queue-filter-count></span></button>
+      <button id="queue-active-count" class="hidden" data-queue-filter="active" aria-pressed="false"><span>Active</span><span data-queue-filter-count></span></button>
+      <button id="queue-count" class="hidden" data-queue-filter="pending" aria-pressed="false"><span>Queued</span><span data-queue-filter-count></span></button>
+      <button id="queue-error-count" class="hidden" data-queue-filter="error" aria-pressed="false"><span>Errors</span><span data-queue-filter-count></span></button>
+      <button id="queue-done-count" class="hidden" data-queue-filter="done" aria-pressed="false"><span>Done</span><span data-queue-filter-count></span></button>
+    </div>
     <span id="queue-cap-state" class="hidden"></span>
     <div id="queue-start-indicator" class="hidden"></div>
     <button id="queue-retry-failed-button"></button>
@@ -25,13 +29,6 @@ const buildDom = () => {
     <button id="queue-retry-transient-button"></button>
     <button id="queue-clear-failed-button"></button>
     <button id="queue-clear-done-button"></button>
-    <div id="queue-filters">
-      <button data-queue-filter="all" aria-pressed="true"><span data-queue-filter-count></span></button>
-      <button data-queue-filter="active" aria-pressed="false"><span data-queue-filter-count></span></button>
-      <button data-queue-filter="pending" aria-pressed="false"><span data-queue-filter-count></span></button>
-      <button data-queue-filter="error" aria-pressed="false"><span data-queue-filter-count></span></button>
-      <button data-queue-filter="done" aria-pressed="false"><span data-queue-filter-count></span></button>
-    </div>
     <div id="queue-list"></div>
     <span id="download-cancel-count" class="hidden"></span>
   `;
@@ -1893,7 +1890,10 @@ describe("downloadManager queue smart logic", () => {
       ];
       updateQueueDisplay();
 
-      expect(activeCounter?.textContent).toBe("1 активно");
+      expect(activeCounter?.textContent).toContain("Active");
+      expect(
+        activeCounter?.querySelector("[data-queue-filter-count]")?.textContent,
+      ).toBe("1");
       expect(activeCounter?.classList.contains("hidden")).toBe(false);
       const activeRow = document.querySelector("#queue-list li");
       expect(activeRow).toBeTruthy();
@@ -4423,6 +4423,17 @@ describe("downloadManager completed job actions", () => {
       expect(document.getElementById("queue-active-count").classList).toContain(
         "hidden",
       );
+      expect(document.getElementById("queue-error-count").classList).toContain(
+        "hidden",
+      );
+      expect(
+        document.getElementById("queue-done-count").classList,
+      ).not.toContain("hidden");
+      expect(
+        document.querySelector(
+          '[data-queue-filter="done"] [data-queue-filter-count]',
+        ).textContent,
+      ).toBe("1");
       expect(document.getElementById("queue-start-button").classList).toContain(
         "hidden",
       );
@@ -5122,8 +5133,12 @@ describe("downloadManager queue filters", () => {
       const pendingCounter = document.querySelector(
         '[data-queue-filter="pending"] [data-queue-filter-count]',
       );
+      const errorCounter = document.querySelector(
+        '[data-queue-filter="error"] [data-queue-filter-count]',
+      );
       expect(allCounter.textContent).toBe("5");
       expect(pendingCounter.textContent).toBe("2");
+      expect(errorCounter.textContent).toBe("1");
 
       document.querySelector('[data-queue-filter="pending"]').click();
 
@@ -5139,8 +5154,13 @@ describe("downloadManager queue filters", () => {
           .querySelector('[data-queue-filter="pending"]')
           .getAttribute("aria-pressed"),
       ).toBe("true");
-      expect(document.getElementById("queue-active-count").textContent).toBe(
-        "queue.pill.active:1",
+      expect(
+        document.querySelector(
+          '[data-queue-filter="active"] [data-queue-filter-count]',
+        ).textContent,
+      ).toBe("1");
+      expect(document.getElementById("queue-active-count").textContent).toContain(
+        "Active",
       );
 
       state.downloadJobs = state.downloadJobs.filter(
@@ -5148,8 +5168,23 @@ describe("downloadManager queue filters", () => {
       );
       updateQueueDisplay();
 
+      expect(localStorage.getItem("downloadQueueFilter")).toBe(null);
+      expect(
+        document
+          .querySelector('[data-queue-filter="all"]')
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+      expect(document.getElementById("queue-count").classList).toContain(
+        "hidden",
+      );
       expect(document.getElementById("queue-list").textContent).toContain(
-        "queue.filter.empty.title",
+        "example.com/active",
+      );
+      expect(document.getElementById("queue-list").textContent).toContain(
+        "example.com/failed",
+      );
+      expect(document.getElementById("queue-list").textContent).toContain(
+        "example.com/done",
       );
       expect(
         document.getElementById("download-queue-info").classList,

@@ -1,9 +1,51 @@
-<svg width="1024" height="500" viewBox="0 0 1024 500" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+<svg width="900" height="420" viewBox="0 0 900 420" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
   <title id="title">Thunder Spark installer template</title>
-  <rect width="1024" height="500" fill="#050914"/>
-  <circle cx="150" cy="156" r="82" fill="none" stroke="#16D8FF" stroke-width="10" stroke-linecap="round" stroke-dasharray="395 78"/>
-  <path d="M170 36 102 156h45l-14 80 76-110h-48z" fill="#F8FBFF"/>
-  <text x="286" y="138" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="56" font-style="italic" font-weight="800">INSTALL THUNDER</text>
-  <text x="288" y="198" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="48" font-style="italic" font-weight="800">SPARK</text>
-  <text x="290" y="250" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+  <defs>
+    <filter id="installertemplate-glow" x="-80%" y="-80%" width="260%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.73 0 0 0 0 1 0 0 0 .85 0" result="cyan"/>
+      <feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="installertemplate-bolt" x1="62" y1="18" x2="184" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".36" stop-color="#BFF7FF"/>
+      <stop offset=".66" stop-color="#36CCFF"/>
+      <stop offset="1" stop-color="#087BFF"/>
+    </linearGradient>
+    <linearGradient id="installertemplate-ring" x1="40" y1="34" x2="216" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#7BE7FF"/>
+      <stop offset=".58" stop-color="#00A8FF"/>
+      <stop offset="1" stop-color="#0B4DFF"/>
+    </linearGradient>
+    <linearGradient id="installertemplate-metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#EFF6FF"/>
+      <stop offset=".45" stop-color="#93ABC5"/>
+      <stop offset=".58" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#5FCFFF"/>
+    </linearGradient>
+    <linearGradient id="installertemplate-spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset=".46" stop-color="#7BE7FF"/>
+      <stop offset="1" stop-color="#0A8BFF"/>
+    </linearGradient>
+    <radialGradient id="installertemplate-aura" cx="50%" cy="48%" r="58%">
+      <stop offset="0" stop-color="#16D8FF" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#2D9CFF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#040813" stop-opacity="0"/>
+    </radialGradient>
+    <style>@font-face{font-family:Orbitron;src:url('../../../src/assets/webfonts/orbitron/orbitron-latin-900-normal.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}.word{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:900;font-style:italic;letter-spacing:.035em}.tag{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:800;font-style:italic;letter-spacing:.08em}</style>
+  </defs><rect width="900" height="420" fill="#050914"/><circle cx="162" cy="134" r="134" fill="#0A8BFF" opacity=".16" filter="url(#installertemplate-glow)"/><circle cx="648" cy="101" r="84" fill="#16D8FF" opacity=".1"/><g transform="translate(126.32 113.12) scale(0.56)" filter="url(#installertemplate-glow)">
+    <circle cx="128" cy="128" r="111" fill="url(#installertemplate-aura)"/>
+    <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#installertemplate-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#installertemplate-bolt)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+  </g>
+  <text class="word" x="378" y="181" fill="url(#installertemplate-metal)" font-size="58">THUNDER</text>
+  <text class="word" x="378" y="239" fill="url(#installertemplate-spark)" font-size="62">SPARK</text>
+  <rect x="688" y="252" width="84" height="29" rx="9" fill="none" stroke="#16D8FF" stroke-width="2" opacity=".88"/>
+  <text class="tag" x="704" y="272" fill="#85C9FF" font-size="17">1.6.0</text>
+  <text x="378" y="311" fill="#F8FBFF" font-family="Orbitron,Inter,'Segoe UI',sans-serif" font-size="20" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
 </svg>

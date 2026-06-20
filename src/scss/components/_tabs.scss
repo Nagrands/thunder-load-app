@@ -178,12 +178,47 @@
   .queue-count-pill {
     display: inline-flex;
     align-items: center;
+    gap: 7px;
     height: 25px;
     padding: 0 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius);
     font-size: 0.65rem;
     font-weight: 600;
     color: var(--color-highlight);
+    background: rgba(255, 255, 255, 0.055);
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      color 0.18s ease,
+      transform 0.18s ease;
+
+    &:hover:not(:disabled) {
+      border-color: rgba(var(--color-accent-rgb), 0.38);
+      background: rgba(var(--color-accent-rgb), 0.12);
+      transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(var(--color-accent-rgb), 0.65);
+      outline-offset: 2px;
+    }
+
+    &.is-active {
+      color: #a9d0ff;
+      border-color: rgba(var(--color-accent-rgb), 0.46);
+      background: rgba(var(--color-accent-rgb), 0.16);
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+  }
+
+  .queue-count-pill--all {
+    color: #cfe1fa;
+    background: rgba(255, 255, 255, 0.075);
   }
 
   .queue-count-pill--active {
@@ -196,6 +231,12 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
+  .queue-count-pill--error {
+    background: rgba(255, 93, 88, 0.16);
+    border-color: rgba(255, 93, 88, 0.34);
+    color: #ff9ca2;
+  }
+
   .queue-count-pill--done {
     background: rgba(81, 203, 132, 0.18);
     border-color: rgba(81, 203, 132, 0.35);
@@ -204,6 +245,20 @@
 
   .queue-count-pill.hidden {
     display: none;
+  }
+
+  .queue-pill-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(235, 243, 255, 0.86);
+    background: rgba(255, 255, 255, 0.09);
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .queue-actions {
@@ -273,62 +328,6 @@
     color: #ff7f89;
     border-color: rgba(255, 127, 137, 0.45);
     background: rgba(255, 127, 137, 0.1);
-  }
-
-  .queue-filters {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-
-    &.hidden {
-      display: none;
-    }
-  }
-
-  .queue-filter-button {
-    flex: 0 0 auto;
-    min-height: 28px;
-    padding: 0 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--border-radius);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: rgba(220, 230, 245, 0.72);
-    background: rgba(255, 255, 255, 0.035);
-    font-size: 0.72rem;
-
-    &:hover {
-      color: var(--color-highlight);
-      border-color: rgba(var(--color-accent-rgb), 0.32);
-    }
-
-    &.is-active {
-      color: #a9d0ff;
-      border-color: rgba(var(--color-accent-rgb), 0.42);
-      background: rgba(var(--color-accent-rgb), 0.14);
-    }
-  }
-
-  .queue-filter-count {
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(235, 243, 255, 0.86);
-    background: rgba(255, 255, 255, 0.09);
-    font-size: 0.65rem;
-    font-variant-numeric: tabular-nums;
   }
 
   .queue-list {

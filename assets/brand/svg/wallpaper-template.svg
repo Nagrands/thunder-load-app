@@ -1,9 +1,51 @@
 <svg width="2560" height="1440" viewBox="0 0 2560 1440" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
   <title id="title">Thunder Spark wallpaper template</title>
-  <rect width="2560" height="1440" fill="#050914"/>
-  <circle cx="1280" cy="640" r="270" fill="none" stroke="#16D8FF" stroke-width="24" stroke-linecap="round" stroke-dasharray="1300 230"/>
-  <circle cx="1280" cy="640" r="470" fill="#2D9CFF" opacity=".1"/>
-  <circle cx="1680" cy="430" r="390" fill="#FF8A00" opacity=".06"/>
-  <path d="M1340 300 1112 640h150l-47 252 250-348h-158z" fill="#F8FBFF"/>
-  <text x="1280" y="1080" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="96" font-style="italic" font-weight="800">THUNDER <tspan fill="#16D8FF">SPARK</tspan></text>
+  <defs>
+    <filter id="wallpapertemplate-glow" x="-80%" y="-80%" width="260%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.73 0 0 0 0 1 0 0 0 .85 0" result="cyan"/>
+      <feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="wallpapertemplate-bolt" x1="62" y1="18" x2="184" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".36" stop-color="#BFF7FF"/>
+      <stop offset=".66" stop-color="#36CCFF"/>
+      <stop offset="1" stop-color="#087BFF"/>
+    </linearGradient>
+    <linearGradient id="wallpapertemplate-ring" x1="40" y1="34" x2="216" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#7BE7FF"/>
+      <stop offset=".58" stop-color="#00A8FF"/>
+      <stop offset="1" stop-color="#0B4DFF"/>
+    </linearGradient>
+    <linearGradient id="wallpapertemplate-metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#EFF6FF"/>
+      <stop offset=".45" stop-color="#93ABC5"/>
+      <stop offset=".58" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#5FCFFF"/>
+    </linearGradient>
+    <linearGradient id="wallpapertemplate-spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset=".46" stop-color="#7BE7FF"/>
+      <stop offset="1" stop-color="#0A8BFF"/>
+    </linearGradient>
+    <radialGradient id="wallpapertemplate-aura" cx="50%" cy="48%" r="58%">
+      <stop offset="0" stop-color="#16D8FF" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#2D9CFF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#040813" stop-opacity="0"/>
+    </radialGradient>
+    <style>@font-face{font-family:Orbitron;src:url('../../../src/assets/webfonts/orbitron/orbitron-latin-900-normal.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}.word{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:900;font-style:italic;letter-spacing:.035em}.tag{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:800;font-style:italic;letter-spacing:.08em}</style>
+  </defs><rect width="2560" height="1440" fill="#050914"/><circle cx="461" cy="461" r="461" fill="#0A8BFF" opacity=".16" filter="url(#wallpapertemplate-glow)"/><circle cx="1843" cy="346" r="288" fill="#16D8FF" opacity=".1"/><g transform="translate(491.52000000000004 561.9200000000001) scale(0.56)" filter="url(#wallpapertemplate-glow)">
+    <circle cx="128" cy="128" r="111" fill="url(#wallpapertemplate-aura)"/>
+    <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#wallpapertemplate-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#wallpapertemplate-bolt)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+  </g>
+  <text class="word" x="1075.2" y="619" fill="url(#wallpapertemplate-metal)" font-size="78">THUNDER</text>
+  <text class="word" x="1075.2" y="821" fill="url(#wallpapertemplate-spark)" font-size="86">SPARK</text>
+  <rect x="1385.2" y="864" width="84" height="29" rx="9" fill="none" stroke="#16D8FF" stroke-width="2" opacity=".88"/>
+  <text class="tag" x="1401.2" y="884" fill="#85C9FF" font-size="17">1.6.0</text>
+  <text x="1075.2" y="1066" fill="#F8FBFF" font-family="Orbitron,Inter,'Segoe UI',sans-serif" font-size="20" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
 </svg>

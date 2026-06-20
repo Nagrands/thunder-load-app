@@ -1,10 +1,51 @@
-<svg width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+<svg width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
   <title id="title">Thunder Spark presentation template</title>
-  <rect width="1920" height="1080" fill="#050914"/>
-  <circle cx="236" cy="216" r="96" fill="none" stroke="#16D8FF" stroke-width="12" stroke-linecap="round" stroke-dasharray="462 92"/>
-  <path d="M260 70 180 218h52l-16 96 88-132h-56z" fill="#F8FBFF"/>
-  <text x="390" y="190" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="88" font-style="italic" font-weight="800">THUNDER</text>
-  <text x="390" y="286" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="96" font-style="italic" font-weight="800">SPARK</text>
-  <text x="394" y="350" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="26" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
-  <rect x="120" y="900" width="1680" height="2" fill="#223149"/>
+  <defs>
+    <filter id="presentationtemplate-glow" x="-80%" y="-80%" width="260%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.73 0 0 0 0 1 0 0 0 .85 0" result="cyan"/>
+      <feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="presentationtemplate-bolt" x1="62" y1="18" x2="184" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".36" stop-color="#BFF7FF"/>
+      <stop offset=".66" stop-color="#36CCFF"/>
+      <stop offset="1" stop-color="#087BFF"/>
+    </linearGradient>
+    <linearGradient id="presentationtemplate-ring" x1="40" y1="34" x2="216" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#7BE7FF"/>
+      <stop offset=".58" stop-color="#00A8FF"/>
+      <stop offset="1" stop-color="#0B4DFF"/>
+    </linearGradient>
+    <linearGradient id="presentationtemplate-metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#EFF6FF"/>
+      <stop offset=".45" stop-color="#93ABC5"/>
+      <stop offset=".58" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#5FCFFF"/>
+    </linearGradient>
+    <linearGradient id="presentationtemplate-spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset=".46" stop-color="#7BE7FF"/>
+      <stop offset="1" stop-color="#0A8BFF"/>
+    </linearGradient>
+    <radialGradient id="presentationtemplate-aura" cx="50%" cy="48%" r="58%">
+      <stop offset="0" stop-color="#16D8FF" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#2D9CFF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#040813" stop-opacity="0"/>
+    </radialGradient>
+    <style>@font-face{font-family:Orbitron;src:url('../../../src/assets/webfonts/orbitron/orbitron-latin-900-normal.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}.word{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:900;font-style:italic;letter-spacing:.035em}.tag{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:800;font-style:italic;letter-spacing:.08em}</style>
+  </defs><rect width="1280" height="720" fill="#050914"/><circle cx="230" cy="230" r="230" fill="#0A8BFF" opacity=".16" filter="url(#presentationtemplate-glow)"/><circle cx="922" cy="173" r="144" fill="#16D8FF" opacity=".1"/><g transform="translate(209.92000000000002 245.12) scale(0.56)" filter="url(#presentationtemplate-glow)">
+    <circle cx="128" cy="128" r="111" fill="url(#presentationtemplate-aura)"/>
+    <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#presentationtemplate-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#presentationtemplate-bolt)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+  </g>
+  <text class="word" x="537.6" y="310" fill="url(#presentationtemplate-metal)" font-size="78">THUNDER</text>
+  <text class="word" x="537.6" y="410" fill="url(#presentationtemplate-spark)" font-size="86">SPARK</text>
+  <rect x="847.6" y="432" width="84" height="29" rx="9" fill="none" stroke="#16D8FF" stroke-width="2" opacity=".88"/>
+  <text class="tag" x="863.6" y="452" fill="#85C9FF" font-size="17">1.6.0</text>
+  <text x="537.6" y="533" fill="#F8FBFF" font-family="Orbitron,Inter,'Segoe UI',sans-serif" font-size="20" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
 </svg>

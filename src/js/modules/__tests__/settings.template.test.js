@@ -2,6 +2,32 @@ import fs from "fs";
 import path from "path";
 
 describe("settings template backup placement", () => {
+  test("includes Thunder Spark brand lockup in the footer", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('class="app-footer__brand"');
+    expect(html).toContain('class="app-footer__brand-mark"');
+    expect(html).toContain('class="app-footer__brand-title"');
+    expect(html).toContain('id="app-version-label"');
+    expect(html).not.toContain('class="top-bar__left"');
+    expect(html).not.toContain('data-ui="brand-chip"');
+    expect(html).toContain("Thunder Spark");
+    expect(html).toContain('id="footer-app-version"');
+  });
+
+  test("keeps queue filters in the queue header pills", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).not.toContain('id="queue-filters"');
+    expect(html).toContain('id="queue-total-count"');
+    expect(html).toContain('id="queue-error-count"');
+    expect(html).toContain('data-queue-filter="all"');
+    expect(html).toContain('data-queue-filter="error"');
+    expect(html).toContain("data-queue-filter-count");
+  });
+
   test("keeps Backup controls inside Tools and removes separate sidebar tab", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");

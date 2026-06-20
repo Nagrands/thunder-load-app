@@ -212,23 +212,23 @@ def render_lightning_symbol(size: int) -> Image.Image:
 
     ring = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     ring_draw = ImageDraw.Draw(ring)
-    ring_width = max(5, scale_value(size, 54))
-    ring_bbox = fit_bbox((148, 150, 876, 878), size)
+    ring_width = max(6, scale_value(size, 58))
+    ring_bbox = fit_bbox((140, 146, 884, 890), size)
     ring_draw.arc(
         ring_bbox,
-        start=118,
-        end=388,
+        start=124,
+        end=386,
         fill=(248, 251, 255, 236),
         width=ring_width,
     )
     ring_draw.arc(
         ring_bbox,
-        start=300,
-        end=62,
-        fill=(22, 216, 255, 220),
-        width=max(4, int(ring_width * 0.78)),
+        start=292,
+        end=68,
+        fill=(0, 168, 255, 232),
+        width=max(4, int(ring_width * 0.82)),
     )
-    ring_glow = ring.filter(ImageFilter.GaussianBlur(max(1, size // 30)))
+    ring_glow = ring.filter(ImageFilter.GaussianBlur(max(1, size // 24)))
 
     shadow = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow)
@@ -244,16 +244,16 @@ def render_lightning_symbol(size: int) -> Image.Image:
         mask,
         "#ffffff",
         "#128bff",
-        glow_color=(22, 216, 255, 118),
+        glow_color=(22, 216, 255, 148),
         glow_bbox=(198, 154, 852, 932),
-        outline_color=(248, 251, 255, 74),
-        highlight_alpha=54,
+        outline_color=(248, 251, 255, 96),
+        highlight_alpha=68,
     )
 
     warm_accent = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     ImageDraw.Draw(warm_accent).ellipse(
         fit_bbox((548, 176, 942, 670), size),
-        fill=(255, 138, 0, 40),
+        fill=(22, 216, 255, 56),
     )
     warm_accent = warm_accent.filter(ImageFilter.GaussianBlur(max(1, size // 18)))
 

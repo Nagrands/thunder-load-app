@@ -1,14 +1,53 @@
-<svg width="360" height="112" viewBox="0 0 360 112" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
+<svg width="460" height="112" viewBox="0 0 460 112" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
   <title id="title">Thunder Spark logo for light backgrounds</title>
+  <desc id="desc">Thunder Spark lockup with lightning-circle symbol and Orbitron wordmark.</desc>
   <defs>
-    <linearGradient id="bolt" x1="32" y1="8" x2="92" y2="104" gradientUnits="userSpaceOnUse">
+    <filter id="light-glow" x="-80%" y="-80%" width="260%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.73 0 0 0 0 1 0 0 0 .85 0" result="cyan"/>
+      <feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="light-bolt" x1="62" y1="18" x2="184" y2="232" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset=".45" stop-color="#16D8FF"/>
-      <stop offset="1" stop-color="#128BFF"/>
+      <stop offset=".36" stop-color="#BFF7FF"/>
+      <stop offset=".66" stop-color="#36CCFF"/>
+      <stop offset="1" stop-color="#087BFF"/>
     </linearGradient>
+    <linearGradient id="light-ring" x1="40" y1="34" x2="216" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#7BE7FF"/>
+      <stop offset=".58" stop-color="#00A8FF"/>
+      <stop offset="1" stop-color="#0B4DFF"/>
+    </linearGradient>
+    <linearGradient id="light-metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#EFF6FF"/>
+      <stop offset=".45" stop-color="#93ABC5"/>
+      <stop offset=".58" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#5FCFFF"/>
+    </linearGradient>
+    <linearGradient id="light-spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset=".46" stop-color="#7BE7FF"/>
+      <stop offset="1" stop-color="#0A8BFF"/>
+    </linearGradient>
+    <radialGradient id="light-aura" cx="50%" cy="48%" r="58%">
+      <stop offset="0" stop-color="#16D8FF" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#2D9CFF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#040813" stop-opacity="0"/>
+    </radialGradient>
+    <style>@font-face{font-family:Orbitron;src:url('../../../src/assets/webfonts/orbitron/orbitron-latin-900-normal.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}.word{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:900;font-style:italic;letter-spacing:.035em}.tag{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:800;font-style:italic;letter-spacing:.08em}</style>
   </defs>
-  <circle cx="56" cy="56" r="42" fill="none" stroke="#128BFF" stroke-width="7" stroke-linecap="round" stroke-dasharray="202 44"/>
-  <path d="M68 10 32 64h25l-8 38 42-58H64z" fill="url(#bolt)" stroke="#0D1118" stroke-width="1"/>
-  <text x="120" y="50" fill="#0D1118" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-style="italic" font-weight="800">THUNDER</text>
-  <text x="120" y="86" fill="#128BFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-style="italic" font-weight="800">SPARK</text>
+  <rect width="460" height="112" rx="22" fill="#F8FBFF"/>
+  <g transform="translate(4.479999999999997 12.479999999999997) scale(0.34)" filter="url(#light-glow)">
+    <circle cx="128" cy="128" r="111" fill="url(#light-aura)"/>
+    <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#light-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#light-bolt)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+  </g>
+  <text class="word" x="108" y="56" fill="#07111F" font-size="25">THUNDER</text>
+  <text class="word" x="108" y="84" fill="#087BFF" font-size="25">SPARK</text>
+  <rect x="372" y="65" width="58" height="22" rx="7" fill="none" stroke="#16D8FF" stroke-width="2" opacity=".88"/>
+  <text class="tag" x="383" y="81" fill="#85C9FF" font-size="13">1.6.0</text>
 </svg>

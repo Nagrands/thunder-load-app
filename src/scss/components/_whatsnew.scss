@@ -62,27 +62,7 @@
   min-height: 168px;
   overflow: hidden;
   background:
-    radial-gradient(
-      circle at 31% 78%,
-      rgba(154, 226, 21, 0.9),
-      transparent 24%
-    ),
-    radial-gradient(
-      circle at 73% 74%,
-      rgba(255, 178, 27, 0.86),
-      transparent 26%
-    ),
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(230, 194, 255, 0.88),
-      transparent 36%
-    ),
-    radial-gradient(
-      circle at 14% 18%,
-      rgba(69, 199, 242, 0.92),
-      transparent 35%
-    ),
-    linear-gradient(135deg, #49c9ee 0%, #bbc6ff 48%, #f0c6ff 100%);
+    radial-gradient(circle at 31% 78%, rgb(190 205 239 / 43%), transparent 24%), radial-gradient(circle at 73% 74%, rgb(28 32 44 / 70%), transparent 26%), radial-gradient(circle at 90% 10%, rgb(70 122 187 / 88%), #00000075 36%), radial-gradient(circle at 14% 18%, rgb(76 84 129), transparent 35%), linear-gradient(135deg, rgb(72 101 140) 0%, #bbc6ff 48%, #becdef 100%);
 
   &::before {
     content: "";
@@ -140,12 +120,7 @@
   color: #f5fbff;
   border-radius: 26px;
   background:
-    radial-gradient(
-      circle at 30% 18%,
-      rgba(255, 255, 255, 0.44),
-      transparent 30%
-    ),
-    linear-gradient(145deg, #b28dff 0%, #5474ff 52%, #33c0ff 100%);
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.44), transparent 30%), linear-gradient(145deg, #b28dffa1 0%, #5474ff00 52%, #33c0ff 100%);
   box-shadow:
     0 16px 36px rgba(49, 87, 220, 0.36),
     inset 0 1px 0 rgba(255, 255, 255, 0.38);
@@ -187,7 +162,7 @@
   align-items: center;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.2px;
 }
 
@@ -219,8 +194,6 @@
     margin: 0;
     color: #dfe8ff;
     font-size: 26px;
-    font-weight: 760;
-    line-height: 1.12;
     letter-spacing: 0;
   }
 

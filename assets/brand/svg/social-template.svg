@@ -1,9 +1,51 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title" xmlns="http://www.w3.org/2000/svg">
   <title id="title">Thunder Spark social template</title>
-  <rect width="1200" height="630" fill="#050914"/>
-  <circle cx="220" cy="230" r="132" fill="none" stroke="#16D8FF" stroke-width="14" stroke-linecap="round" stroke-dasharray="635 116"/>
-  <path d="M252 58 140 228h74l-23 126 124-172h-78z" fill="#F8FBFF"/>
-  <text x="420" y="190" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="78" font-style="italic" font-weight="800">THUNDER</text>
-  <text x="420" y="278" fill="#16D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="86" font-style="italic" font-weight="800">SPARK</text>
-  <text x="424" y="356" fill="#F8FBFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
+  <defs>
+    <filter id="socialtemplate-glow" x="-80%" y="-80%" width="260%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.73 0 0 0 0 1 0 0 0 .85 0" result="cyan"/>
+      <feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="socialtemplate-bolt" x1="62" y1="18" x2="184" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".36" stop-color="#BFF7FF"/>
+      <stop offset=".66" stop-color="#36CCFF"/>
+      <stop offset="1" stop-color="#087BFF"/>
+    </linearGradient>
+    <linearGradient id="socialtemplate-ring" x1="40" y1="34" x2="216" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#7BE7FF"/>
+      <stop offset=".58" stop-color="#00A8FF"/>
+      <stop offset="1" stop-color="#0B4DFF"/>
+    </linearGradient>
+    <linearGradient id="socialtemplate-metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".22" stop-color="#EFF6FF"/>
+      <stop offset=".45" stop-color="#93ABC5"/>
+      <stop offset=".58" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#5FCFFF"/>
+    </linearGradient>
+    <linearGradient id="socialtemplate-spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset=".46" stop-color="#7BE7FF"/>
+      <stop offset="1" stop-color="#0A8BFF"/>
+    </linearGradient>
+    <radialGradient id="socialtemplate-aura" cx="50%" cy="48%" r="58%">
+      <stop offset="0" stop-color="#16D8FF" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#2D9CFF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#040813" stop-opacity="0"/>
+    </radialGradient>
+    <style>@font-face{font-family:Orbitron;src:url('../../../src/assets/webfonts/orbitron/orbitron-latin-900-normal.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}.word{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:900;font-style:italic;letter-spacing:.035em}.tag{font-family:Orbitron,Inter,'Segoe UI',sans-serif;font-weight:800;font-style:italic;letter-spacing:.08em}</style>
+  </defs><rect width="1200" height="630" fill="#050914"/><circle cx="216" cy="202" r="202" fill="#0A8BFF" opacity=".16" filter="url(#socialtemplate-glow)"/><circle cx="864" cy="151" r="126" fill="#16D8FF" opacity=".1"/><g transform="translate(192.32 205.51999999999998) scale(0.56)" filter="url(#socialtemplate-glow)">
+    <circle cx="128" cy="128" r="111" fill="url(#socialtemplate-aura)"/>
+    <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#socialtemplate-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#socialtemplate-bolt)"/>
+    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+  </g>
+  <text class="word" x="504" y="271" fill="url(#socialtemplate-metal)" font-size="58">THUNDER</text>
+  <text class="word" x="504" y="359" fill="url(#socialtemplate-spark)" font-size="62">SPARK</text>
+  <rect x="814" y="378" width="84" height="29" rx="9" fill="none" stroke="#16D8FF" stroke-width="2" opacity=".88"/>
+  <text class="tag" x="830" y="398" fill="#85C9FF" font-size="17">1.6.0</text>
+  <text x="504" y="466" fill="#F8FBFF" font-family="Orbitron,Inter,'Segoe UI',sans-serif" font-size="20" font-style="italic"><tspan fill="#16D8FF">Spark</tspan> ignites the future of downloads.</text>
 </svg>

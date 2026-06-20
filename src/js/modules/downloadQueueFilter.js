@@ -19,6 +19,8 @@ function readQueueFilter() {
 }
 
 let currentQueueFilter = readQueueFilter();
+let lastQueueCounts = {};
+let hasQueueCounts = false;
 
 function persistQueueFilter() {
   try {
@@ -31,39 +33,62 @@ function persistQueueFilter() {
 }
 
 function syncQueueFilterControls(counts = {}, options = {}) {
-  const container = document.getElementById("queue-filters");
-  container?.classList.toggle("hidden", Boolean(options.hidden));
+  if (Object.keys(counts).length > 0) {
+    lastQueueCounts = counts;
+    hasQueueCounts = true;
+  }
+
+  const resolvedCounts = lastQueueCounts;
+
+  if (
+    hasQueueCounts &&
+    currentQueueFilter !== "all" &&
+    (resolvedCounts[currentQueueFilter] || 0) <= 0
+  ) {
+    currentQueueFilter = "all";
+    persistQueueFilter();
+  }
 
   document.querySelectorAll("[data-queue-filter]").forEach((button) => {
     const filter = button.dataset.queueFilter;
+    const countValue =
+      filter === "all"
+        ? resolvedCounts.total || 0
+        : resolvedCounts[filter] || 0;
     const isActive = filter === currentQueueFilter;
+    const isHidden =
+      Boolean(options.hidden) ||
+      (hasQueueCounts && filter !== "all" && countValue <= 0);
+
+    button.classList.toggle("hidden", isHidden);
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
+    button.disabled = Boolean(options.hidden) || (hasQueueCounts && countValue <= 0);
 
     const count = button.querySelector("[data-queue-filter-count]");
     if (count) {
-      count.textContent = String(
-        filter === "all" ? counts.total || 0 : counts[filter] || 0,
-      );
+      count.textContent = String(countValue);
     }
   });
 }
 
 function initDownloadQueueFilter(onChange) {
-  const container = document.getElementById("queue-filters");
-  if (!container || container.dataset.bound === "true") return;
+  const controls = Array.from(document.querySelectorAll("[data-queue-filter]"));
+  if (!controls.length) return;
 
-  container.dataset.bound = "true";
-  container.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-queue-filter]");
-    if (!button || !container.contains(button)) return;
-    const filter = button.dataset.queueFilter;
-    if (!isQueueFilter(filter) || filter === currentQueueFilter) return;
+  controls.forEach((button) => {
+    if (button.dataset.bound === "true") return;
 
-    currentQueueFilter = filter;
-    persistQueueFilter();
-    syncQueueFilterControls();
-    onChange?.(filter);
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const filter = button.dataset.queueFilter;
+      if (!isQueueFilter(filter) || filter === currentQueueFilter) return;
+
+      currentQueueFilter = filter;
+      persistQueueFilter();
+      syncQueueFilterControls();
+      onChange?.(filter);
+    });
   });
 }
 

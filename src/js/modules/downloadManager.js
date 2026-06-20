@@ -68,9 +68,6 @@ import {
 } from "./downloadQueueFilter.js";
 
 const queueInfo = document.getElementById("download-queue-info");
-const queueCount = document.getElementById("queue-count");
-const queueActiveCount = document.getElementById("queue-active-count");
-const queueDoneCount = document.getElementById("queue-done-count");
 const queueIndicator = document.getElementById("queue-start-indicator");
 const queueList = document.getElementById("queue-list");
 const cancelCountBadge = document.getElementById("download-cancel-count");
@@ -1214,7 +1211,6 @@ function updateQueueDisplay() {
   const totalVisible =
     activeCount + pendingCount + errorItems.length + doneCount;
   const hasQueueItems = totalVisible > 0;
-  const queueFilter = getDownloadQueueFilter();
   const activeJobIds = new Set(
     activeItems.map((item) => item.jobId || item.id).filter(Boolean),
   );
@@ -1233,21 +1229,10 @@ function updateQueueDisplay() {
     },
     { hidden: state.queueCollapsed },
   );
+  const queueFilter = getDownloadQueueFilter();
 
-  if (queueInfo && queueCount) {
+  if (queueInfo) {
     queueInfo.classList.toggle("hidden", !hasQueueItems);
-    queueCount.textContent = t("queue.pill.pending", { count: pendingCount });
-    queueCount.classList.toggle("hidden", pendingCount <= 0);
-    if (queueActiveCount) {
-      queueActiveCount.textContent = t("queue.pill.active", {
-        count: activeCount,
-      });
-      queueActiveCount.classList.toggle("hidden", activeCount <= 0);
-    }
-    if (queueDoneCount) {
-      queueDoneCount.textContent = t("queue.pill.done", { count: doneCount });
-      queueDoneCount.classList.toggle("hidden", doneCount <= 0);
-    }
     if (queueStartButton) {
       queueStartButton.disabled = pendingCount <= 0 || activeCount > 0;
       queueStartButton.classList.toggle("hidden", pendingCount <= 0);

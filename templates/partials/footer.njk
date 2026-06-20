@@ -7,15 +7,26 @@
     >
       <div class="app-footer__bar">
         <div class="app-footer__zone app-footer__zone--lead">
-          <span class="app-footer__kicker" data-i18n="footer.kicker">Thunder</span>
-          <div
+          <div class="app-footer__brand" role="img" aria-label="Thunder Spark">
+            <img
+              class="app-footer__brand-mark"
+              src="../assets/brand/svg/favicon.svg"
+              alt=""
+              aria-hidden="true"
+            />
+            <span class="app-footer__brand-title">Thunder Spark</span>
+          </div>
+          <button
             id="app-version-label"
-            class="app-footer__context version-container"
+            class="app-footer__context app-footer__brand-version version-container"
+            type="button"
             title="Версия приложения"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
             data-i18n-title="topbar.appVersion"
           >
             <span id="footer-app-version">v?</span>
-          </div>
+          </button>
         </div>
 
         <div class="app-footer__zone app-footer__zone--center">

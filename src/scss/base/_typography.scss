@@ -2,3 +2,39 @@
 
 /* **** Импорт шрифтов **** */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap");
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/webfonts/orbitron/orbitron-latin-600-normal.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/webfonts/orbitron/orbitron-latin-700-normal.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../assets/webfonts/orbitron/orbitron-latin-800-normal.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("../assets/webfonts/orbitron/orbitron-latin-900-normal.woff2")
+    format("woff2");
+}

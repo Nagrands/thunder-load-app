@@ -33,9 +33,17 @@ describe("footerStatusBar", () => {
       <footer id="app-footer" class="app-footer">
         <div class="app-footer__bar">
           <div class="app-footer__zone app-footer__zone--lead">
-            <div id="app-version-label" class="app-footer__context version-container">
-              <span id="footer-app-version"></span>
+            <div class="app-footer__brand" role="img" aria-label="Thunder Spark">
+              <img class="app-footer__brand-mark" src="../assets/brand/svg/symbol.svg" alt="" />
+              <span class="app-footer__brand-title">Thunder Spark</span>
             </div>
+            <button
+              id="app-version-label"
+              class="app-footer__context app-footer__brand-version version-container"
+              type="button"
+            >
+              <span id="footer-app-version"></span>
+            </button>
           </div>
           <div class="app-footer__zone app-footer__zone--center">
             <div id="footer-status-cluster">

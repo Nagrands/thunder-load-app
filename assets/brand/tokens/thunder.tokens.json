@@ -59,6 +59,7 @@
     "curveStandard": "cubic-bezier(0.2, 0, 0, 1)"
   },
   "typography": {
+    "brand": "Orbitron, Inter, Segoe UI, sans-serif",
     "primary": "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     "monospace": "JetBrains Mono, SFMono-Regular, Consolas, monospace"
   }
