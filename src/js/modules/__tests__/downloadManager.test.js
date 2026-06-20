@@ -26,9 +26,6 @@ const buildDom = () => {
     <button id="queue-pause-button"></button>
     <button id="queue-toggle-button"></button>
     <button id="queue-clear-button"></button>
-    <button id="queue-retry-transient-button"></button>
-    <button id="queue-clear-failed-button"></button>
-    <button id="queue-clear-done-button"></button>
     <div id="queue-list"></div>
     <span id="download-cancel-count" class="hidden"></span>
   `;
@@ -1104,15 +1101,6 @@ describe("downloadManager job summary", () => {
         queuePauseButton: document.getElementById("queue-pause-button"),
         queueToggleButton: document.getElementById("queue-toggle-button"),
         queueClearButton: document.getElementById("queue-clear-button"),
-        queueRetryTransientButton: document.getElementById(
-          "queue-retry-transient-button",
-        ),
-        queueClearFailedButton: document.getElementById(
-          "queue-clear-failed-button",
-        ),
-        queueClearDoneButton: document.getElementById(
-          "queue-clear-done-button",
-        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -1161,15 +1149,6 @@ describe("downloadManager job summary", () => {
         queuePauseButton: document.getElementById("queue-pause-button"),
         queueToggleButton: document.getElementById("queue-toggle-button"),
         queueClearButton: document.getElementById("queue-clear-button"),
-        queueRetryTransientButton: document.getElementById(
-          "queue-retry-transient-button",
-        ),
-        queueClearFailedButton: document.getElementById(
-          "queue-clear-failed-button",
-        ),
-        queueClearDoneButton: document.getElementById(
-          "queue-clear-done-button",
-        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -1263,15 +1242,6 @@ describe("downloadManager queue smart logic", () => {
         queuePauseButton: document.getElementById("queue-pause-button"),
         queueToggleButton: document.getElementById("queue-toggle-button"),
         queueClearButton: document.getElementById("queue-clear-button"),
-        queueRetryTransientButton: document.getElementById(
-          "queue-retry-transient-button",
-        ),
-        queueClearFailedButton: document.getElementById(
-          "queue-clear-failed-button",
-        ),
-        queueClearDoneButton: document.getElementById(
-          "queue-clear-done-button",
-        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -1319,7 +1289,7 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("clears completed jobs via bulk action", async () => {
+  it("removes completed jobs via row action", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -1334,15 +1304,6 @@ describe("downloadManager queue smart logic", () => {
         queuePauseButton: document.getElementById("queue-pause-button"),
         queueToggleButton: document.getElementById("queue-toggle-button"),
         queueClearButton: document.getElementById("queue-clear-button"),
-        queueRetryTransientButton: document.getElementById(
-          "queue-retry-transient-button",
-        ),
-        queueClearFailedButton: document.getElementById(
-          "queue-clear-failed-button",
-        ),
-        queueClearDoneButton: document.getElementById(
-          "queue-clear-done-button",
-        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
@@ -1371,7 +1332,7 @@ describe("downloadManager queue smart logic", () => {
 
       initDownloadButton();
       updateQueueDisplay();
-      document.getElementById("queue-clear-done-button").click();
+      document.querySelector("[data-queue-remove-done]").click();
 
       expect(state.completedDownloads).toHaveLength(0);
     });
@@ -4369,13 +4330,6 @@ describe("downloadManager completed job actions", () => {
       queuePauseButton: document.getElementById("queue-pause-button"),
       queueToggleButton: document.getElementById("queue-toggle-button"),
       queueClearButton: document.getElementById("queue-clear-button"),
-      queueRetryTransientButton: document.getElementById(
-        "queue-retry-transient-button",
-      ),
-      queueClearFailedButton: document.getElementById(
-        "queue-clear-failed-button",
-      ),
-      queueClearDoneButton: document.getElementById("queue-clear-done-button"),
       queueRetryFailedButton: document.getElementById(
         "queue-retry-failed-button",
       ),
@@ -4674,13 +4628,6 @@ describe("downloadManager completed queue persistence", () => {
       queuePauseButton: document.getElementById("queue-pause-button"),
       queueToggleButton: document.getElementById("queue-toggle-button"),
       queueClearButton: document.getElementById("queue-clear-button"),
-      queueRetryTransientButton: document.getElementById(
-        "queue-retry-transient-button",
-      ),
-      queueClearFailedButton: document.getElementById(
-        "queue-clear-failed-button",
-      ),
-      queueClearDoneButton: document.getElementById("queue-clear-done-button"),
       queueRetryFailedButton: document.getElementById(
         "queue-retry-failed-button",
       ),
@@ -4776,7 +4723,7 @@ describe("downloadManager completed queue persistence", () => {
     });
   });
 
-  it("syncs completed storage after removing one job and clearing done", () => {
+  it("syncs completed storage after removing completed jobs", () => {
     jest.isolateModules(() => {
       mockCompletedPersistenceDependencies();
       const {
@@ -4805,7 +4752,7 @@ describe("downloadManager completed queue persistence", () => {
         }),
       ]);
 
-      document.getElementById("queue-clear-done-button").click();
+      document.querySelector("[data-queue-remove-done]").click();
       expect(loadCompletedJobs()).toEqual([]);
       expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
     });
@@ -4891,13 +4838,6 @@ describe("downloadManager active job cancellation", () => {
       queuePauseButton: document.getElementById("queue-pause-button"),
       queueToggleButton: document.getElementById("queue-toggle-button"),
       queueClearButton: document.getElementById("queue-clear-button"),
-      queueRetryTransientButton: document.getElementById(
-        "queue-retry-transient-button",
-      ),
-      queueClearFailedButton: document.getElementById(
-        "queue-clear-failed-button",
-      ),
-      queueClearDoneButton: document.getElementById("queue-clear-done-button"),
       queueRetryFailedButton: document.getElementById(
         "queue-retry-failed-button",
       ),
@@ -5084,15 +5024,6 @@ describe("downloadManager queue filters", () => {
         queuePauseButton: document.getElementById("queue-pause-button"),
         queueToggleButton: document.getElementById("queue-toggle-button"),
         queueClearButton: document.getElementById("queue-clear-button"),
-        queueRetryTransientButton: document.getElementById(
-          "queue-retry-transient-button",
-        ),
-        queueClearFailedButton: document.getElementById(
-          "queue-clear-failed-button",
-        ),
-        queueClearDoneButton: document.getElementById(
-          "queue-clear-done-button",
-        ),
         queueRetryFailedButton: document.getElementById(
           "queue-retry-failed-button",
         ),
