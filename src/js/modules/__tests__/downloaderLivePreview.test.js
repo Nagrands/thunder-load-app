@@ -9,7 +9,9 @@ describe("downloaderLivePreview", () => {
   beforeEach(() => {
     jest.resetModules();
     document.body.innerHTML = `
-      <button id="preview-open-live" type="button">open</button>
+      <button id="preview-open-live" class="preview-live-play" type="button" aria-label="Open live preview">
+        <i class="fa-solid fa-play" aria-hidden="true"></i>
+      </button>
       <div id="preview-live-player" class="preview-live-player-modal modal-overlay hidden" aria-hidden="true">
         <div class="preview-live-player-modal__dialog">
           <button id="preview-live-close" type="button"></button>

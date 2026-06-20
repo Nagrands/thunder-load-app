@@ -46,6 +46,9 @@ const buildDom = () => {
         <div class="preview-card__thumb preview-media">
           <div class="preview-thumb-wrap">
             <img id="preview-thumb" style="display:none;" />
+            <button id="preview-open-live" class="preview-live-play hidden" type="button" aria-pressed="false">
+              <i class="fa-solid fa-play" aria-hidden="true"></i>
+            </button>
             <span id="preview-duration-overlay" class="preview-duration-overlay hidden"></span>
           </div>
         </div>
@@ -191,14 +194,8 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.duration") {
             return `Длительность: ${vars.duration}`;
           }
-          if (key === "input.url.preview.openLive") {
-            return "Открыть live preview";
-          }
           if (key === "input.url.preview.openLiveTitle") {
             return "Открыть встроенный preview-плеер со звуком";
-          }
-          if (key === "input.url.preview.closeLive") {
-            return "Закрыть live preview";
           }
           if (key === "input.url.preview.closeLiveTitle") {
             return "Закрыть встроенный preview-плеер со звуком";
@@ -1147,15 +1144,16 @@ describe("urlInputHandler", () => {
     expect(document.getElementById("preview-title").textContent).toBe(
       "Demo title",
     );
-    expect(document.getElementById("preview-duration").textContent).toContain(
-      "3:24",
+    expect(document.getElementById("preview-duration").textContent).toBe("");
+    expect(document.getElementById("preview-duration").classList).toContain(
+      "hidden",
     );
     expect(
       document.getElementById("preview-duration-overlay").textContent,
-    ).toBe("");
+    ).toBe("3:24");
     expect(
       document.getElementById("preview-duration-overlay").classList,
-    ).toContain("hidden");
+    ).not.toContain("hidden");
     expect(document.getElementById("preview-source").textContent).toContain(
       "YouTube",
     );
@@ -1260,8 +1258,10 @@ describe("urlInputHandler", () => {
     );
   });
 
-  test("shows live preview action only when livePreview is available", async () => {
+  test("shows live preview overlay only when livePreview is available", async () => {
     const { input, previewCard } = getState();
+    const playButton = document.getElementById("preview-open-live");
+    expect(playButton?.classList).toContain("hidden");
     getVideoInfoMock.mockResolvedValueOnce({
       success: true,
       title: "YouTube demo",
@@ -1279,9 +1279,12 @@ describe("urlInputHandler", () => {
     jest.advanceTimersByTime(600);
     await flushPromises();
 
-    expect(previewCard.textContent).toContain("Открыть live preview");
-    expect(document.getElementById("preview-open-live")?.style.display).toBe(
-      "",
+    expect(previewCard.textContent).not.toContain("Открыть live preview");
+    expect(playButton?.closest(".preview-thumb-wrap")).not.toBeNull();
+    expect(playButton?.textContent.trim()).toBe("");
+    expect(playButton?.classList).not.toContain("hidden");
+    expect(playButton?.getAttribute("aria-label")).toBe(
+      "Открыть встроенный preview-плеер со звуком",
     );
   });
 
@@ -1338,7 +1341,9 @@ describe("urlInputHandler", () => {
     );
 
     const btn = document.getElementById("preview-open-live");
-    expect(btn?.textContent).toContain("Закрыть live preview");
+    expect(btn?.textContent.trim()).toBe("");
+    expect(btn?.classList).toContain("is-active");
+    expect(btn?.getAttribute("aria-pressed")).toBe("true");
     btn.click();
     expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });

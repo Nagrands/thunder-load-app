@@ -384,32 +384,50 @@ function initUrlInputHandler() {
   };
 
   const syncLivePreviewButton = () => {
+    if (!livePreviewButton) {
+      livePreviewButton = document.getElementById("preview-open-live");
+    }
     if (!livePreviewButton) return;
     if (!currentLivePreview?.src) {
-      livePreviewButton.style.display = "none";
+      livePreviewButton.classList.add("hidden");
+      livePreviewButton.classList.remove("is-active");
+      livePreviewButton.setAttribute("aria-pressed", "false");
       livePreviewButton.onclick = null;
       return;
     }
 
+    livePreviewButton.classList.remove("hidden");
     if (livePreviewOpen) {
-      livePreviewButton.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ${t("input.url.preview.closeLive")}`;
+      livePreviewButton.innerHTML =
+        '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>';
+      livePreviewButton.classList.add("is-active");
+      livePreviewButton.setAttribute("aria-pressed", "true");
+      livePreviewButton.setAttribute(
+        "aria-label",
+        t("input.url.preview.closeLiveTitle"),
+      );
       livePreviewButton.setAttribute(
         "title",
         t("input.url.preview.closeLiveTitle"),
       );
-      livePreviewButton.style.display = "";
       livePreviewButton.onclick = () => {
         hideDownloaderLivePreview();
       };
       return;
     }
 
-    livePreviewButton.innerHTML = `<i class="fa-solid fa-volume-high"></i> ${t("input.url.preview.openLive")}`;
+    livePreviewButton.innerHTML =
+      '<i class="fa-solid fa-play" aria-hidden="true"></i>';
+    livePreviewButton.classList.remove("is-active");
+    livePreviewButton.setAttribute("aria-pressed", "false");
+    livePreviewButton.setAttribute(
+      "aria-label",
+      t("input.url.preview.openLiveTitle"),
+    );
     livePreviewButton.setAttribute(
       "title",
       t("input.url.preview.openLiveTitle"),
     );
-    livePreviewButton.style.display = "";
     livePreviewButton.onclick = () => {
       window.dispatchEvent(
         new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
@@ -439,7 +457,8 @@ function initUrlInputHandler() {
     let previewActionsEl = document.getElementById("preview-actions");
     let currentOnlyBtn = document.getElementById("preview-current-only");
     let addAllBtn = document.getElementById("preview-enqueue-all");
-    if (!card || !previewTitleEl || !previewDurationEl || !img) return;
+    if (!card || !previewTitleEl || !img) return;
+    livePreviewButton = document.getElementById("preview-open-live");
     if (!data || !data.success) {
       currentLivePreview = null;
       livePreviewOpen = false;
@@ -447,7 +466,11 @@ function initUrlInputHandler() {
       card.classList.remove("pos-top");
       setStateClass("has-preview", false);
       if (addAllBtn) addAllBtn.style.display = "none";
-      if (livePreviewButton) livePreviewButton.style.display = "none";
+      if (livePreviewButton) {
+        livePreviewButton.classList.add("hidden");
+        livePreviewButton.classList.remove("is-active");
+        livePreviewButton.onclick = null;
+      }
       clearDownloaderBackgroundPreview();
       hideDownloaderLivePreview();
       window.dispatchEvent(
@@ -470,13 +493,13 @@ function initUrlInputHandler() {
     hideInlineError();
     previewTitleEl.textContent = data.title || "";
     const durationLabel = data.duration ? durationToStr(data.duration) : "";
-    previewDurationEl.innerHTML = durationLabel
-      ? `<i class="fa-regular fa-clock" aria-hidden="true"></i><span>${durationLabel}</span>`
-      : "";
-    previewDurationEl.classList.toggle("hidden", !durationLabel);
+    if (previewDurationEl) {
+      previewDurationEl.textContent = "";
+      previewDurationEl.classList.add("hidden");
+    }
     if (previewDurationOverlayEl) {
-      previewDurationOverlayEl.textContent = "";
-      previewDurationOverlayEl.classList.add("hidden");
+      previewDurationOverlayEl.textContent = durationLabel;
+      previewDurationOverlayEl.classList.toggle("hidden", !durationLabel);
     }
     previewTitleEl.setAttribute("title", data.title || "");
     if (data.thumbnail) {
@@ -521,7 +544,9 @@ function initUrlInputHandler() {
       playlistMetaEl = document.createElement("div");
       playlistMetaEl.id = "preview-playlist-meta";
       playlistMetaEl.className = "preview-playlist-meta hidden";
-      previewDurationEl.insertAdjacentElement("afterend", playlistMetaEl);
+      const badgeAnchor =
+        previewDurationEl || document.getElementById("preview-source");
+      badgeAnchor?.insertAdjacentElement("afterend", playlistMetaEl);
     }
     if (!previewActionsEl) {
       previewActionsEl = document.createElement("div");
@@ -533,14 +558,6 @@ function initUrlInputHandler() {
         "preview-card__actions",
         "preview-actions",
       );
-    }
-    if (!livePreviewButton) {
-      livePreviewButton = document.createElement("button");
-      livePreviewButton.id = "preview-open-live";
-      livePreviewButton.className =
-        "preview-action-button preview-action-button--secondary";
-      livePreviewButton.setAttribute("type", "button");
-      previewActionsEl?.appendChild(livePreviewButton);
     }
     if (!currentLivePreview?.src) {
       livePreviewOpen = false;

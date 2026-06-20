@@ -28,6 +28,24 @@ describe("settings template backup placement", () => {
     expect(html).toContain("data-queue-filter-count");
   });
 
+  test("keeps preview live player trigger on the thumbnail", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+    const previewStart = html.indexOf('<div id="preview-card"');
+    const livePlayerStart = html.indexOf('<div\n  id="preview-live-player"');
+    const previewHtml = html.slice(previewStart, livePlayerStart);
+    const thumbStart = previewHtml.indexOf('class="preview-thumb-wrap"');
+    const actionsStart = previewHtml.indexOf('id="preview-actions"');
+    const thumbHtml = previewHtml.slice(thumbStart, actionsStart);
+    const actionsHtml = previewHtml.slice(actionsStart);
+
+    expect(previewHtml).toContain('id="preview-duration-overlay"');
+    expect(thumbHtml).toContain('id="preview-open-live"');
+    expect(thumbHtml).toContain('class="preview-live-play hidden"');
+    expect(actionsHtml).not.toContain('id="preview-open-live"');
+    expect(actionsHtml).not.toContain("Открыть live preview");
+  });
+
   test("keeps Backup controls inside Tools and removes separate sidebar tab", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
