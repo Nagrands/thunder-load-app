@@ -1288,31 +1288,6 @@ async function openHistorySourceLink(url) {
   }
 }
 
-async function copyHistoryValue(value) {
-  const text = String(value || "").trim();
-  if (!text) return;
-
-  try {
-    if (navigator?.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-    } else {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "absolute";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand?.("copy");
-      document.body.removeChild(textarea);
-    }
-    showToast(t("history.toast.copySuccess"), "success");
-  } catch (error) {
-    console.warn("Не удалось скопировать значение истории:", error);
-    showToast(t("history.toast.copyError"), "error");
-  }
-}
-
 function _showFilterInput() {
   filterInput.classList.remove("hidden");
   filterInput.style.display = "block";
@@ -1382,9 +1357,9 @@ function estimateVirtualItemHeight(type) {
   if (type === "group") return 42;
   if (state.historyDetailsExpanded) {
     const density = normalizeDensity(state.historyDensity);
-    if (density === "compact") return 290;
-    if (density === "comfort") return 340;
-    return 320;
+    if (density === "compact") return 360;
+    if (density === "comfort") return 410;
+    return 390;
   }
   const density = normalizeDensity(state.historyDensity);
   if (density === "compact") return 88;
@@ -2169,6 +2144,32 @@ const formatSizeLabel = (entry) => {
   return t("history.file.sizeUnknown");
 };
 
+const formatDurationLabel = (entry = {}) => {
+  const rawDuration =
+    entry.durationSec ??
+    entry.durationSeconds ??
+    entry.duration ??
+    entry.mediaDurationSec;
+  const totalSeconds = Math.floor(Number(rawDuration));
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return "";
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
+const formatHistoryQualityDetails = (entry = {}) => {
+  const parts = [];
+  if (entry.resolution) parts.push(entry.resolution);
+  if (entry.fps) parts.push(`${entry.fps}fps`);
+  if (parts.length > 0) return parts.join(" • ");
+  return entry.quality || "";
+};
+
 const escapeHtml = (value = "") =>
   String(value)
     .replace(/&/g, "&amp;")
@@ -2948,8 +2949,11 @@ function createLogEntry(entry, groupKey = "unknown") {
     el.classList.add("is-open");
   }
 
+  const detailsContent = document.createElement("div");
+  detailsContent.className = "history-row__details-content";
+
   const preview = document.createElement("div");
-  preview.className = `history-row__preview${hasPreview ? "" : " is-placeholder"}`;
+  preview.className = `history-row__details-preview history-row__preview${hasPreview ? "" : " is-placeholder"}`;
   if (thumbSrc) {
     const downloadPreviewBtn = document.createElement("button");
     downloadPreviewBtn.type = "button";
@@ -2988,6 +2992,29 @@ function createLogEntry(entry, groupKey = "unknown") {
     icon.setAttribute("data-lucide", "image");
     preview.appendChild(icon);
   }
+  const previewOverlay = document.createElement("button");
+  previewOverlay.type = "button";
+  previewOverlay.className = "history-row__preview-play";
+  previewOverlay.setAttribute("aria-label", t("history.action.openFile"));
+  previewOverlay.setAttribute("data-i18n-aria", "history.action.openFile");
+  previewOverlay.setAttribute("data-bs-toggle", "tooltip");
+  previewOverlay.setAttribute("data-bs-placement", "top");
+  previewOverlay.title = t("history.action.openFile");
+  previewOverlay.disabled = entry.isMissing || !entry.filePath;
+  previewOverlay.innerHTML = '<i data-lucide="play"></i>';
+  previewOverlay.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    await openHistoryCardFile(entry);
+  });
+  preview.appendChild(previewOverlay);
+  const durationLabel = formatDurationLabel(entry);
+  if (durationLabel) {
+    const durationBadge = document.createElement("span");
+    durationBadge.className = "history-row__preview-duration";
+    durationBadge.textContent = durationLabel;
+    preview.appendChild(durationBadge);
+  }
   if (thumbSrc) {
     preview.addEventListener("click", (event) => {
       if (event.target.closest(".history-row__preview-download")) return;
@@ -2999,8 +3026,8 @@ function createLogEntry(entry, groupKey = "unknown") {
     });
   }
 
-  const detailsMeta = document.createElement("div");
-  detailsMeta.className = "history-row__details-meta";
+  const detailsList = document.createElement("div");
+  detailsList.className = "history-row__details-list";
   const inspectorSlot = document.createElement("section");
   inspectorSlot.className = "history-row-inspector-slot hidden";
 
@@ -3008,9 +3035,17 @@ function createLogEntry(entry, groupKey = "unknown") {
     if (!value) return;
     const row = document.createElement("div");
     row.className = "history-row__details-item";
+    if (options.kind) row.dataset.detailKind = options.kind;
+    const labelWrap = document.createElement("div");
+    labelWrap.className = "history-row__details-label";
+    const icon = document.createElement("span");
+    icon.className = "history-row__details-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.innerHTML = `<i data-lucide="${options.icon || "info"}"></i>`;
     const key = document.createElement("span");
     key.className = "history-row__details-key";
     key.textContent = label;
+    labelWrap.append(icon, key);
     const valueWrap = document.createElement("div");
     valueWrap.className = "history-row__details-value-wrap";
     const val = document.createElement("span");
@@ -3025,45 +3060,60 @@ function createLogEntry(entry, groupKey = "unknown") {
       val.title = options.copyValue || val.textContent || "";
     }
     valueWrap.appendChild(val);
-    if (options.copyable && options.copyValue) {
-      const copyBtn = document.createElement("button");
-      copyBtn.type = "button";
-      copyBtn.className = "history-row__copy";
-      copyBtn.setAttribute("aria-label", t("history.action.copy"));
-      copyBtn.setAttribute("data-i18n-aria", "history.action.copy");
-      copyBtn.setAttribute("data-bs-toggle", "tooltip");
-      copyBtn.setAttribute("data-bs-placement", "top");
-      copyBtn.title = t("history.action.copy");
-      copyBtn.setAttribute("data-i18n-title", "history.action.copy");
-      copyBtn.innerHTML = '<i data-lucide="copy"></i>';
-      copyBtn.addEventListener("click", async (event) => {
+    if (options.actionIcon && options.actionLabel && options.onAction) {
+      const actionBtn = document.createElement("button");
+      actionBtn.type = "button";
+      actionBtn.className = "history-row__details-action history-row__copy";
+      if (options.actionName) actionBtn.dataset.action = options.actionName;
+      actionBtn.setAttribute("aria-label", options.actionLabel);
+      actionBtn.setAttribute("data-bs-toggle", "tooltip");
+      actionBtn.setAttribute("data-bs-placement", "top");
+      actionBtn.title = options.actionLabel;
+      actionBtn.innerHTML = `<i data-lucide="${options.actionIcon}"></i>`;
+      actionBtn.disabled = options.actionDisabled === true;
+      actionBtn.addEventListener("click", async (event) => {
         event.preventDefault();
         event.stopPropagation();
-        await copyHistoryValue(options.copyValue);
+        await options.onAction();
       });
-      valueWrap.appendChild(copyBtn);
+      valueWrap.appendChild(actionBtn);
     }
-    row.append(key, valueWrap);
-    detailsMeta.appendChild(row);
+    row.append(labelWrap, valueWrap);
+    detailsList.appendChild(row);
   };
 
   addDetail(
     t("history.detail.source"),
     highlightText(entry.sourceUrl || "", state.currentSearchQuery),
     {
+      icon: "link",
+      kind: "source",
       html: true,
       truncate: true,
-      copyable: true,
       copyValue: entry.sourceUrl || "",
+      actionIcon: "external-link",
+      actionLabel: t("history.action.openSource"),
+      actionName: "open-source",
+      actionDisabled: !entry.sourceUrl,
+      onAction: () => openHistorySourceLink(entry.sourceUrl),
     },
   );
   addDetail(t("history.detail.file"), entry.filePath || "", {
+    icon: "file",
+    kind: "file",
     truncate: true,
-    copyable: true,
     copyValue: entry.filePath || "",
+    actionIcon: "folder-open",
+    actionLabel: t("history.action.openFolderShort"),
+    actionName: "open-folder",
+    actionDisabled: entry.isMissing || !entry.filePath,
+    onAction: () => openHistoryCardFolder(entry),
   });
   if (isFailedHistoryEntry(entry)) {
-    addDetail(t("history.detail.status"), t("history.failed.badge"));
+    addDetail(t("history.detail.status"), t("history.failed.badge"), {
+      icon: "circle-alert",
+      kind: "status",
+    });
     addDetail(
       t("history.detail.failureReason"),
       formatDownloadHistoryReason({
@@ -3071,18 +3121,35 @@ function createLogEntry(entry, groupKey = "unknown") {
         message: entry?.errorMessage || "",
         retryable: entry?.retryable,
       }),
+      {
+        icon: "triangle-alert",
+        kind: "failure-reason",
+      },
     );
     addDetail(
       t("history.detail.retryState"),
       t(getHistoryRetryStateKey(entry)),
+      {
+        icon: "refresh-cw",
+        kind: "retry-state",
+      },
     );
   }
-  addDetail(t("history.detail.quality"), entry.quality || "");
-  addDetail(t("history.detail.resolution"), entry.resolution || "");
-  addDetail(t("history.detail.size"), formatSizeLabel(entry));
-  addDetail(t("history.detail.date"), entry.dateText || "");
+  addDetail(t("history.detail.quality"), formatHistoryQualityDetails(entry), {
+    icon: "monitor-play",
+    kind: "quality",
+  });
+  addDetail(t("history.detail.size"), formatSizeLabel(entry), {
+    icon: "hard-drive",
+    kind: "size",
+  });
+  addDetail(t("history.detail.date"), entry.dateText || "", {
+    icon: "calendar-clock",
+    kind: "date",
+  });
 
-  details.append(preview, detailsMeta, inspectorSlot);
+  detailsContent.append(preview, detailsList);
+  details.append(detailsContent, inspectorSlot);
 
   checkbox.addEventListener("change", (e) => {
     const isChecked = e.target.checked;

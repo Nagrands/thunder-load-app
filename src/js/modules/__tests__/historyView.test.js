@@ -173,6 +173,8 @@ const createEntry = (overrides = {}) => ({
   dateText: overrides.dateText ?? "2026-02-07 12:00",
   quality: overrides.quality ?? "1080p",
   resolution: overrides.resolution ?? "1920x1080",
+  fps: overrides.fps,
+  durationSec: overrides.durationSec,
   formattedSize: overrides.formattedSize ?? "10 MB",
   sizeBytes: overrides.sizeBytes,
   filePath: overrides.filePath ?? "/tmp/video.mp4",
@@ -546,6 +548,14 @@ describe("Downloader history list", () => {
     expect(toggle.classList.contains("is-open")).toBe(true);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(row.textContent).toContain("Нужна авторизация");
+    expect(
+      row.querySelector('.history-row__details-item[data-detail-kind="status"]'),
+    ).not.toBeNull();
+    expect(
+      row.querySelector(
+        '.history-row__details-item[data-detail-kind="failure-reason"]',
+      ),
+    ).not.toBeNull();
 
     toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(toggle.classList.contains("is-open")).toBe(false);
@@ -846,7 +856,7 @@ describe("Downloader history list", () => {
     expect(rows.every((row) => row.classList.contains("is-open"))).toBe(false);
   });
 
-  test("renders copy controls for source and file detail rows", async () => {
+  test("renders source and file detail action controls", async () => {
     const { renderHistory } = await import("../history.js");
     const entry = createEntry({
       sourceUrl:
@@ -857,35 +867,124 @@ describe("Downloader history list", () => {
 
     renderHistory([entry]);
 
-    const copyButtons = document.querySelectorAll(".history-row__copy");
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "check-file-exists") return Promise.resolve(true);
+      return Promise.resolve(true);
+    });
+
+    const actionButtons = document.querySelectorAll(
+      ".history-row__details-action",
+    );
     const truncatedValues = document.querySelectorAll(
       ".history-row__details-value--truncate",
     );
 
-    expect(copyButtons).toHaveLength(2);
+    expect(actionButtons).toHaveLength(2);
     expect(truncatedValues.length).toBeGreaterThanOrEqual(2);
+    expect(
+      document.querySelector(
+        '.history-row__details-item[data-detail-kind="source"] [data-action="open-source"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      document.querySelector(
+        '.history-row__details-item[data-detail-kind="file"] [data-action="open-folder"]',
+      ),
+    ).not.toBeNull();
+
+    document
+      .querySelector(
+        '.history-row__details-item[data-detail-kind="source"] [data-action="open-source"]',
+      )
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-external-link",
+      entry.sourceUrl,
+    );
+
+    document
+      .querySelector(
+        '.history-row__details-item[data-detail-kind="file"] [data-action="open-folder"]',
+      )
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-download-folder",
+      entry.filePath,
+    );
   });
 
-  test("renders redesigned details structure including size field", async () => {
+  test("renders redesigned details structure including ordered fields", async () => {
     const { renderHistory } = await import("../history.js");
     renderHistory([
       createEntry({
         formattedSize: "74.9 MB",
         resolution: "1920x822",
         fps: 30,
+        durationSec: 227,
       }),
     ]);
 
     const row = document.querySelector(".history-row");
     const details = row.querySelector(".history-row__details");
+    const content = details.querySelector(".history-row__details-content");
     const preview = details.querySelector(".history-row__preview");
-    const meta = details.querySelector(".history-row__details-meta");
+    const list = details.querySelector(".history-row__details-list");
     const items = details.querySelectorAll(".history-row__details-item");
+    const kinds = [...items].map((item) => item.dataset.detailKind);
+
+    expect(content).not.toBeNull();
+    expect(preview).not.toBeNull();
+    expect(list).not.toBeNull();
+    expect(preview.querySelector(".history-row__preview-play")).not.toBeNull();
+    expect(preview.querySelector(".history-row__preview-progress")).toBeNull();
+    expect(preview.querySelector(".history-row__preview-duration").textContent).toBe(
+      "3:47",
+    );
+    expect(kinds).toEqual(["source", "file", "quality", "size", "date"]);
+    expect(items).toHaveLength(5);
+    expect(
+      details.querySelector(
+        '.history-row__details-item[data-detail-kind="quality"] [data-lucide="monitor-play"]',
+      ),
+    ).not.toBeNull();
+    expect(details.textContent).toContain("1920x822 • 30fps");
+    expect(details.textContent).toContain("74.9 MB");
+  });
+
+  test("renders placeholder details preview when thumbnail is unavailable", async () => {
+    const { renderHistory } = await import("../history.js");
+    renderHistory([createEntry({ thumbnail: "" })]);
+
+    const preview = document.querySelector(".history-row__details-preview");
 
     expect(preview).not.toBeNull();
-    expect(meta).not.toBeNull();
-    expect(items.length).toBeGreaterThanOrEqual(6);
-    expect(details.textContent).toContain("74.9 MB");
+    expect(preview.classList.contains("is-placeholder")).toBe(true);
+    expect(preview.querySelector("img")).not.toBeNull();
+    expect(preview.querySelector(".history-row__preview-play")).not.toBeNull();
+  });
+
+  test("opens downloaded file from details preview play button", async () => {
+    const { renderHistory } = await import("../history.js");
+    const entry = createEntry({ filePath: "/tmp/downloaded-video.mp4" });
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "check-file-exists") return Promise.resolve(true);
+      return Promise.resolve(true);
+    });
+
+    renderHistory([entry]);
+
+    const playButton = document.querySelector(".history-row__preview-play");
+    playButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-last-video",
+      entry.filePath,
+    );
   });
 
   test("toggles select all / unselect all for a date group", async () => {

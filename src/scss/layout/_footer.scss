@@ -189,9 +189,9 @@ $transition-interactive:
     inset: 0;
     border-radius: inherit;
     background: linear-gradient(
-      140deg,
+      160deg,
       rgba(var(--thunder-electric-rgb), 0.16),
-      transparent 48%
+      transparent 55%
     );
     opacity: 0.25;
     pointer-events: none;
@@ -240,7 +240,6 @@ $transition-interactive:
   padding: 6px 12px;
   border-radius: 999px;
   background: rgba(var(--thunder-electric-rgb), 0.06);
-  border: 1px solid rgba(var(--thunder-electric-rgb), 0.12);
 
   &:hover {
     color: var(--thunder-electric);

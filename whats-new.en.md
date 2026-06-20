@@ -9,4 +9,6 @@
 | Subtitle downloads were added      | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                  |
 | Subtitle downloads were fixed      | Case-sensitive language codes such as `pt-BR` and `zh-Hans` stay unchanged, and found VTT/TTML files convert to SRT      |
 | Download queue was simplified      | Queue filters moved into the header, zero-count statuses no longer take space, and extra bulk buttons were removed        |
+| Download history was redesigned    | Expanded entries now show a larger preview and clean detail rows for source, file, quality, size, and date                |
+| Download history was fixed         | Preview images no longer cover details, and Play now opens the downloaded file instead of the image preview               |
 | macOS yt-dlp checks were fixed     | Thunder no longer launches Python-backed `yt-dlp`, preventing repeated `Python.framework` verification prompts            |
