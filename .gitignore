@@ -39,7 +39,6 @@ pnpm-lock.yaml
 dist/
 bin/
 build/
-Prompts - Spark/
 
 # ─── Environment & Local Config ────────────────────────────
 .env

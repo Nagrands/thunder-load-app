@@ -15,11 +15,14 @@ const {
   selectFormatsByQuality,
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
+  _buildSubtitleDownloadArgs,
   _buildYtDlpVideoInfoArgs,
   _buildYtDlpVideoPreviewArgs,
+  _findSubtitleOutputPath,
   _getVideoInfoCacheTtl,
   _getPersistentPreviewCachePath,
   _getPersistentPreviewMetadata,
+  _normalizeSubtitleDownloadOptions,
   _setPersistentPreviewMetadata,
 } = require("../download.js");
 
@@ -101,6 +104,92 @@ describe("selectFormatsByQuality object fallback", () => {
     expect(picked.audioFormat).toBe("251");
     expect(picked.audioExt).toBe("mp3");
     expect(picked.resolution).toBe("MP3");
+  });
+
+  it("returns empty media formats for subtitle-only selections", () => {
+    const picked = selectFormatsByQuality([], {
+      type: "subtitle-only",
+      downloadKind: "subtitle",
+      subtitleLang: "ru",
+    });
+
+    expect(picked).toMatchObject({
+      videoFormat: null,
+      audioFormat: null,
+      resolution: "ru",
+    });
+  });
+});
+
+describe("subtitle download helpers", () => {
+  it("builds manual subtitle-only yt-dlp args with SRT conversion", () => {
+    expect(
+      _buildSubtitleDownloadArgs({ lang: "pt-BR", source: "manual" }),
+    ).toEqual(
+      expect.arrayContaining([
+        "--skip-download",
+        "--write-subs",
+        "--sub-langs",
+        "pt-BR",
+        "--sub-format",
+        "best",
+        "--convert-subs",
+        "srt",
+      ]),
+    );
+  });
+
+  it("builds automatic subtitle args and falls back unsafe languages to English", () => {
+    expect(
+      _normalizeSubtitleDownloadOptions({
+        type: "subtitle-only",
+        subtitleLang: "../../ru",
+        subtitleSource: "automatic",
+      }),
+    ).toMatchObject({ lang: "en", source: "automatic", format: "srt" });
+
+    expect(
+      _buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
+    ).toEqual(expect.arrayContaining(["--write-auto-subs"]));
+  });
+
+  it("can request both manual and automatic subtitle sources for fallback", () => {
+    const args = _buildSubtitleDownloadArgs({
+      lang: "zh-Hans",
+      source: "manual",
+      includeBothSources: true,
+    });
+
+    expect(args).toEqual(
+      expect.arrayContaining([
+        "--write-subs",
+        "--write-auto-subs",
+        "--sub-langs",
+        "zh-Hans",
+      ]),
+    );
+  });
+
+  it("finds the requested converted subtitle output by temp prefix", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "subs-"));
+    const outputPath = path.join(dir, "subs_key.ru.srt");
+    fs.writeFileSync(outputPath, "1\n00:00:00,000 --> 00:00:01,000\nText");
+
+    expect(_findSubtitleOutputPath(dir, "subs_key", "ru")).toBe(outputPath);
+  });
+
+  it("falls back to source subtitle artifacts when SRT was not produced", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "subs-"));
+    const outputPath = path.join(dir, "subs_key.zh-Hans.vtt");
+    fs.writeFileSync(outputPath, "WEBVTT\n\n00:00.000 --> 00:01.000\nText");
+
+    expect(_findSubtitleOutputPath(dir, "subs_key", "zh-Hans")).toBe(
+      outputPath,
+    );
   });
 });
 

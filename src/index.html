@@ -285,6 +285,10 @@
                 <label id="compact-audio-quality-label" for="compact-audio-quality" data-i18n="quality.compact.audio">Аудио</label>
                 <select id="compact-audio-quality" class="compact-quality-select" aria-labelledby="compact-audio-quality-label"></select>
               </div>
+              <div class="compact-quality-field">
+                <label id="compact-subtitle-quality-label" for="compact-subtitle-quality" data-i18n="quality.compact.subtitles">Субтитры</label>
+                <select id="compact-subtitle-quality" class="compact-quality-select" aria-labelledby="compact-subtitle-quality-label"></select>
+              </div>
             </div>
             <p
               id="compact-quality-status"
@@ -629,6 +633,30 @@
               <span
                 class="quality-tab-count"
                 id="download-quality-count-audio"
+                aria-hidden="true"
+              >
+                0
+              </span>
+            </button>
+            <button
+              type="button"
+              id="download-quality-tab-subtitles"
+              class="quality-tab"
+              data-quality-tab="subtitles"
+              role="tab"
+              aria-selected="false"
+              tabindex="-1"
+              aria-controls="download-quality-options-panel"
+              title="Субтитры"
+              data-i18n-title="quality.tab.subtitles"
+              aria-label="Субтитры"
+              data-i18n-aria="quality.aria.tab.subtitles"
+            >
+              <i class="fa-solid fa-closed-captioning" aria-hidden="true"></i>
+              <span data-i18n="quality.tab.subtitles">Субтитры</span>
+              <span
+                class="quality-tab-count"
+                id="download-quality-count-subtitles"
                 aria-hidden="true"
               >
                 0

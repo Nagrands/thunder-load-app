@@ -36,6 +36,7 @@ const COVER_GENRE_LABELS = [
   "RAP",
 ];
 const MP3_AUDIO_EXT = "mp3";
+const SUBTITLE_FORMAT = "srt";
 
 const modal = document.getElementById("download-quality-modal");
 const optionsContainer = document.getElementById("download-quality-options");
@@ -64,6 +65,7 @@ const tabCountEls = {
   video: document.getElementById("download-quality-count-video"),
   "video-only": document.getElementById("download-quality-count-video-only"),
   audio: document.getElementById("download-quality-count-audio"),
+  subtitles: document.getElementById("download-quality-count-subtitles"),
 };
 const bestCurrentBtn = document.getElementById("download-quality-best-current");
 const thumbEl = document.getElementById("download-quality-thumb");
@@ -739,6 +741,8 @@ function describeOption(option) {
       return bitrate
         ? `${t("quality.desc.audioOnly")} • ${t("quality.metric.bitrate")}: ${bitrate}`
         : t("quality.desc.audioOnly");
+    case "subtitle-only":
+      return t("quality.desc.subtitleOnly");
     default:
       return option.description || "";
   }
@@ -785,6 +789,83 @@ function collectFormats(info) {
   };
 }
 
+function subtitlePriority(track) {
+  const lang = String(track?.lang || "").toLowerCase();
+  const source = track?.source === "automatic" ? "automatic" : "manual";
+  if (source === "manual" && lang === "ru") return 400;
+  if (source === "manual" && lang === "en") return 390;
+  if (source === "automatic" && lang === "ru") return 380;
+  if (source === "automatic" && lang === "en") return 370;
+  return source === "manual" ? 200 : 100;
+}
+
+function collectSubtitleTracks(info) {
+  const normalize = (items, source) =>
+    (Array.isArray(items) ? items : [])
+      .map((track) => ({
+        lang: String(track?.lang || "").trim(),
+        source,
+        formats: Array.isArray(track?.formats) ? track.formats : [],
+      }))
+      .filter((track) => track.lang);
+  return [
+    ...normalize(info?.subtitles, "manual"),
+    ...normalize(info?.automatic_captions, "automatic"),
+  ].sort((a, b) => {
+    const priorityDiff = subtitlePriority(b) - subtitlePriority(a);
+    if (priorityDiff) return priorityDiff;
+    return a.lang.toLowerCase().localeCompare(b.lang.toLowerCase());
+  });
+}
+
+function buildSubtitleOptions(info) {
+  return collectSubtitleTracks(info).map((track, index) => {
+    const langLabel = track.lang.toUpperCase();
+    const sourceLabel =
+      track.source === "automatic"
+        ? t("quality.subtitle.sourceAutomatic")
+        : t("quality.subtitle.sourceManual");
+    const title = t("quality.subtitle.optionTitle", {
+      lang: langLabel,
+      source: sourceLabel,
+    });
+    return {
+      id: `subtitle-${track.source}-${track.lang}`,
+      tab: "subtitles",
+      title,
+      description: t("quality.desc.subtitleOnly"),
+      extLabel: SUBTITLE_FORMAT.toUpperCase(),
+      sizeLabel: "",
+      extra:
+        index === 0
+          ? t("quality.subtitle.recommended")
+          : track.source === "automatic"
+            ? t("quality.subtitle.autoTag")
+            : "",
+      resolutionLabel: t("quality.label.subtitles"),
+      fpsLabel: "—",
+      codecLabel: SUBTITLE_FORMAT.toUpperCase(),
+      containerLabel: SUBTITLE_FORMAT.toUpperCase(),
+      audioBitrateLabel: "",
+      score: subtitlePriority(track),
+      payload: buildOptionPayload({
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        label: title,
+        videoFormat: null,
+        audioFormat: null,
+        videoExt: null,
+        audioExt: null,
+        resolution: track.lang,
+        fps: null,
+        subtitleLang: track.lang,
+        subtitleSource: track.source,
+        subtitleFormat: SUBTITLE_FORMAT,
+      }),
+    };
+  });
+}
+
 function buildOptionPayload({
   type,
   label,
@@ -795,10 +876,15 @@ function buildOptionPayload({
   resolution,
   fps,
   isMuxed,
+  downloadKind,
+  subtitleLang,
+  subtitleSource,
+  subtitleFormat,
 }) {
   return {
     type,
     label,
+    downloadKind: downloadKind || undefined,
     videoFormatId: videoFormat || null,
     audioFormatId: audioFormat || null,
     videoExt: videoExt || null,
@@ -806,6 +892,9 @@ function buildOptionPayload({
     resolution: resolution || "",
     fps: fps || null,
     isMuxed: !!isMuxed,
+    subtitleLang: subtitleLang || undefined,
+    subtitleSource: subtitleSource || undefined,
+    subtitleFormat: subtitleFormat || undefined,
   };
 }
 
@@ -829,6 +918,7 @@ function buildOptions(info) {
     video: [],
     "video-only": [],
     audio: [],
+    subtitles: buildSubtitleOptions(info),
   };
 
   muxed.forEach((fmt) => {
@@ -1238,8 +1328,12 @@ async function loadFormatsWithRetry(
           selectBestVideoOption();
         }
       } else {
-        if (!selectBestVideoOption() && !selectBestFromTab("video-only")) {
-          selectBestFromTab("audio");
+        if (
+          !selectBestVideoOption() &&
+          !selectBestFromTab("video-only") &&
+          !selectBestFromTab("audio")
+        ) {
+          selectBestFromTab("subtitles");
         }
       }
     }
@@ -1295,7 +1389,7 @@ function selectBestVideoOption(showWarning = false) {
 
 function selectByPreferredLabel(label) {
   if (!label) return false;
-  const tabs = ["video", "video-only", "audio"];
+  const tabs = ["video", "video-only", "audio", "subtitles"];
   for (const tab of tabs) {
     const options = state.optionMap.get(tab) || [];
     const match = options.find(

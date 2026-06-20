@@ -170,6 +170,9 @@ const QUALITY_SOURCE = "Source";
 const QUALITY_FHD = "FHD 1080p";
 const QUALITY_HD = "HD 720p";
 const QUALITY_SD = "SD 360p";
+const SUBTITLE_OUTPUT_EXT = "srt";
+const SAFE_SUBTITLE_LANG_RE = /^[a-z0-9._-]{1,24}$/i;
+const SUBTITLE_ARTIFACT_EXTS = new Set(["srt", "vtt", "ttml", "dfxp", "ass"]);
 
 function isAudioOnlyQuality(quality, videoFormat, audioFormat) {
   if (quality === QUALITY_AUDIO_ONLY) return true;
@@ -177,6 +180,83 @@ function isAudioOnlyQuality(quality, videoFormat, audioFormat) {
     return true;
   }
   return videoFormat === null && !!audioFormat;
+}
+
+function isSubtitleOnlyQuality(quality) {
+  return (
+    quality?.type === "subtitle-only" || quality?.downloadKind === "subtitle"
+  );
+}
+
+function normalizeSubtitleDownloadOptions(quality = {}) {
+  if (!isSubtitleOnlyQuality(quality)) return null;
+  const rawLang = String(quality.subtitleLang || "").trim();
+  const subtitleLang = SAFE_SUBTITLE_LANG_RE.test(rawLang) ? rawLang : "en";
+  const rawSource = String(quality.subtitleSource || "").trim().toLowerCase();
+  const subtitleSource = rawSource === "automatic" ? "automatic" : "manual";
+  return {
+    lang: subtitleLang,
+    source: subtitleSource,
+    format: SUBTITLE_OUTPUT_EXT,
+  };
+}
+
+function buildSubtitleDownloadArgs(options = {}) {
+  const normalized = normalizeSubtitleDownloadOptions({
+    type: "subtitle-only",
+    subtitleLang: options.lang,
+    subtitleSource: options.source,
+  });
+  const writeArgs =
+    options.includeBothSources === true
+      ? ["--write-subs", "--write-auto-subs"]
+      : [
+          normalized.source === "automatic"
+            ? "--write-auto-subs"
+            : "--write-subs",
+        ];
+  return [
+    "--skip-download",
+    ...writeArgs,
+    "--sub-langs",
+    normalized.lang,
+    "--sub-format",
+    "best",
+    "--convert-subs",
+    SUBTITLE_OUTPUT_EXT,
+    "--no-playlist",
+  ];
+}
+
+function getSubtitleArtifactEntries(downloadPath, tempPrefix, lang) {
+  try {
+    const requestedLang = String(lang || "").toLowerCase();
+    return fs
+      .readdirSync(downloadPath)
+      .filter((entry) => {
+        if (!entry.startsWith(tempPrefix)) return false;
+        const ext = path.extname(entry).slice(1).toLowerCase();
+        return SUBTITLE_ARTIFACT_EXTS.has(ext);
+      })
+      .sort((a, b) => {
+        const aHasLang = a.toLowerCase().includes(`.${requestedLang}.`);
+        const bHasLang = b.toLowerCase().includes(`.${requestedLang}.`);
+        if (aHasLang !== bHasLang) return aHasLang ? -1 : 1;
+        const aIsSrt = a.toLowerCase().endsWith(`.${SUBTITLE_OUTPUT_EXT}`);
+        const bIsSrt = b.toLowerCase().endsWith(`.${SUBTITLE_OUTPUT_EXT}`);
+        if (aIsSrt !== bIsSrt) return aIsSrt ? -1 : 1;
+        const aStat = fs.statSync(path.join(downloadPath, a));
+        const bStat = fs.statSync(path.join(downloadPath, b));
+        return bStat.mtimeMs - aStat.mtimeMs;
+      });
+  } catch {
+    return [];
+  }
+}
+
+function findSubtitleOutputPath(downloadPath, tempPrefix, lang) {
+  const matched = getSubtitleArtifactEntries(downloadPath, tempPrefix, lang)[0];
+  return matched ? path.join(downloadPath, matched) : null;
 }
 
 const PREFERRED_AUDIO_LANGS = [
@@ -530,6 +610,16 @@ function selectFormatsByQuality(formats, desiredQuality) {
   };
 
   if (desiredQuality && typeof desiredQuality === "object") {
+    if (isSubtitleOnlyQuality(desiredQuality)) {
+      return {
+        videoFormat: null,
+        audioFormat: null,
+        resolution: desiredQuality.subtitleLang || "subtitle",
+        fps: null,
+        videoExt: null,
+        audioExt: null,
+      };
+    }
     const findFmt = (id) =>
       id ? formats.find((fmt) => fmt?.format_id === id) : null;
     const requestedVideoId = desiredQuality.videoFormatId || null;
@@ -2335,6 +2425,54 @@ function convertAudioToMp3(inputPath, outputPath, options = {}) {
   });
 }
 
+function convertSubtitleToSrt(inputPath, outputPath, options = {}) {
+  const { token = null, processKey = "videoDownload" } = options;
+  const processStore = getProcessStore(token);
+  return new Promise((resolve, reject) => {
+    if (isCancelled(token)) {
+      return reject(new Error(token.cancelReason || "Download cancelled"));
+    }
+    const ffmpegPath = resolveRuntimeToolPath("ffmpeg");
+    const args = ["-y", "-i", inputPath, outputPath];
+    log.info("[download] Spawning ffmpeg for subtitle conversion", {
+      inputPath,
+      outputPath,
+      ffmpegPath,
+    });
+    const proc = spawn(
+      ffmpegPath,
+      args,
+      getYtDlpSpawnOptionsForBinary(ffmpegPath),
+    );
+    processStore[processKey] = proc;
+    let stderrOutput = "";
+    proc.stderr.on("data", (data) => {
+      const text = data?.toString?.() || "";
+      stderrOutput += text;
+      log.error(text);
+    });
+    proc.on("close", (code) => {
+      processStore[processKey] = null;
+      if (isCancelled(token)) {
+        return reject(new Error(token.cancelReason || "Download cancelled"));
+      }
+      if (code !== 0) {
+        const detail = stderrOutput.trim().split("\n").filter(Boolean).pop();
+        return reject(
+          new Error(
+            `ffmpeg subtitle conversion exited with code ${code}${detail ? `: ${detail}` : ""}`,
+          ),
+        );
+      }
+      resolve();
+    });
+    proc.on("error", (err) => {
+      processStore[processKey] = null;
+      reject(err);
+    });
+  });
+}
+
 const isCancelError = (err) =>
   err && typeof err.message === "string"
     ? err.message.includes("Download cancelled")
@@ -2471,6 +2609,7 @@ async function downloadMedia(
     setActiveDownloadToken(token);
     const processStore = getProcessStore(token);
     const sanitizedFilename = outputFilename.replace(/[\\/:*?"<>|]/g, "");
+    const subtitleOptions = normalizeSubtitleDownloadOptions(quality);
     const resumeKey = buildResumeKey([
       url,
       quality,
@@ -2480,6 +2619,9 @@ async function downloadMedia(
       fps,
       audioExt,
       videoExt,
+      subtitleOptions
+        ? `${subtitleOptions.lang}:${subtitleOptions.source}:${subtitleOptions.format}`
+        : "",
       sanitizedFilename,
     ]);
     const resumePrefix = `${sanitizedFilename}__${resumeKey}`;
@@ -2512,6 +2654,99 @@ async function downloadMedia(
       denoPath: fs.existsSync(denoPath) ? denoPath : "deno not found",
       envPath: getYtDlpEnvironment().PATH,
     });
+
+    if (isSubtitleOnlyQuality(quality)) {
+      const tempPrefix = `subs_${resumePrefix}`;
+      const tempOutputTemplate = path.join(
+        downloadPath,
+        `${tempPrefix}.%(language)s.%(ext)s`,
+      );
+      const finalSubtitlePath = path.join(
+        downloadPath,
+        `${sanitizedFilename}.${subtitleOptions.lang}.${SUBTITLE_OUTPUT_EXT}`,
+      );
+      const updateProgress = (progress) => {
+        emitDownloadProgress(event, progress, { jobId, phase: "download" });
+      };
+      log.info("[download] Spawning yt-dlp for subtitle-only download", {
+        outputTemplate: tempOutputTemplate,
+        finalOutput: finalSubtitlePath,
+        lang: subtitleOptions.lang,
+        source: subtitleOptions.source,
+        url,
+      });
+      writeResumeState(downloadPath, resumeKey, {
+        mode: "subtitle-only",
+        url,
+        quality,
+        targetPath: finalSubtitlePath,
+        tempPath: tempOutputTemplate,
+      });
+      const runSubtitleDownload = async (includeBothSources = false) => {
+        emitDownloadProgress(event, includeBothSources ? 35 : 5, {
+          jobId,
+          phase: "download",
+        });
+        await spawnDownloadProcess(
+          null,
+          tempOutputTemplate,
+          url,
+          updateProgress,
+          {
+            extraArgs: buildSubtitleDownloadArgs({
+              ...subtitleOptions,
+              includeBothSources,
+            }),
+            processKey: "videoDownload",
+            token,
+            retryable: true,
+          },
+        );
+        return findSubtitleOutputPath(
+          downloadPath,
+          tempPrefix,
+          subtitleOptions.lang,
+        );
+      };
+      let producedPath = await runSubtitleDownload(false);
+      if (!producedPath) {
+        log.warn("[download] Subtitle artifact not found; retrying sources", {
+          lang: subtitleOptions.lang,
+          source: subtitleOptions.source,
+          artifacts: getSubtitleArtifactEntries(
+            downloadPath,
+            tempPrefix,
+            subtitleOptions.lang,
+          ),
+        });
+        producedPath = await runSubtitleDownload(true);
+      }
+      if (!producedPath || !fs.existsSync(producedPath)) {
+        const artifacts = getSubtitleArtifactEntries(
+          downloadPath,
+          tempPrefix,
+          subtitleOptions.lang,
+        );
+        throw new Error(
+          `Субтитры не были сохранены${artifacts.length ? `: найдено ${artifacts.join(", ")}` : ""}`,
+        );
+      }
+      if (path.extname(producedPath).toLowerCase() === `.${SUBTITLE_OUTPUT_EXT}`) {
+        safeMoveFile(producedPath, finalSubtitlePath);
+      } else {
+        await convertSubtitleToSrt(producedPath, finalSubtitlePath, {
+          token,
+          processKey: "videoDownload",
+        });
+        try {
+          await fs.promises.unlink(producedPath);
+        } catch {}
+      }
+      clearResumeState(downloadPath, resumeKey);
+      emitDownloadProgress(event, 100, { jobId, phase: "download" });
+      log.info(`[download] Subtitle saved as ${finalSubtitlePath}`);
+      return finalSubtitlePath;
+    }
 
     // Audio Only режим
     if (isAudioOnlyQuality(quality, videoFormat, audioFormat)) {
@@ -2892,6 +3127,9 @@ module.exports = {
   setSharedStore,
   _buildYtDlpVideoInfoArgs: buildYtDlpVideoInfoArgs,
   _buildYtDlpVideoPreviewArgs: buildYtDlpVideoPreviewArgs,
+  _buildSubtitleDownloadArgs: buildSubtitleDownloadArgs,
+  _findSubtitleOutputPath: findSubtitleOutputPath,
+  _normalizeSubtitleDownloadOptions: normalizeSubtitleDownloadOptions,
   _getVideoInfoCacheTtl: getVideoInfoCacheTtl,
   _getPersistentPreviewCachePath: getPersistentPreviewCachePath,
   _getPersistentPreviewMetadata: getPersistentPreviewMetadata,

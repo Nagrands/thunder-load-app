@@ -1930,6 +1930,40 @@ describe("ipcHandlers tools quick actions", () => {
   });
 });
 
+describe("subtitle metadata normalization", () => {
+  test("keeps only safe subtitle fields and drops unsafe languages", () => {
+    const { _normalizeSubtitleTracks } = require("../ipcHandlers");
+
+    expect(
+      _normalizeSubtitleTracks(
+        {
+          ru: [
+            {
+              ext: "vtt",
+              name: "Russian",
+              url: "https://cdn.example.com/private.vtt",
+            },
+          ],
+          "pt-BR": [{ ext: "vtt", name: "Portuguese" }],
+          "../../en": [{ ext: "vtt" }],
+        },
+        { source: "manual" },
+      ),
+    ).toEqual([
+      {
+        lang: "ru",
+        source: "manual",
+        formats: [{ ext: "vtt", name: "Russian" }],
+      },
+      {
+        lang: "pt-BR",
+        source: "manual",
+        formats: [{ ext: "vtt", name: "Portuguese" }],
+      },
+    ]);
+  });
+});
+
 describe("ipcHandlers download pool", () => {
   beforeEach(() => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);

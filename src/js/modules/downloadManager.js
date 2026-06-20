@@ -965,11 +965,16 @@ function summarizeEnqueueResult(res) {
 
 function resolveDownloadKind(payloadOrEntry) {
   const explicitKind = payloadOrEntry?.downloadKind;
-  if (explicitKind === "audio" || explicitKind === "video") {
+  if (
+    explicitKind === "audio" ||
+    explicitKind === "video" ||
+    explicitKind === "subtitle"
+  ) {
     return explicitKind;
   }
   const payloadType =
     payloadOrEntry?.type || payloadOrEntry?.payload?.type || "";
+  if (payloadType === "subtitle-only") return "subtitle";
   if (payloadType === "audio-only") return "audio";
   const qualityLike =
     payloadOrEntry?.quality || payloadOrEntry?.label || payloadOrEntry || "";
@@ -989,6 +994,7 @@ function getQueueQualityLabel(quality) {
   if (typeof quality?.quality === "string" && quality.quality.trim()) {
     return quality.quality.trim();
   }
+  if (quality?.type === "subtitle-only") return t("quality.label.subtitles");
   if (quality?.type === "audio-only") return t("quality.audioOnly");
   return t("quality.custom");
 }
@@ -1357,7 +1363,12 @@ function updateQueueDisplay() {
     const retryStateLabel =
       item.status === "error" ? getQueueRetryStateLabel(item) : "";
     const qualityLabel = getQueueQualityLabel(item.quality);
-    const kindLabel = item.type === "audio" ? t("queue.kind.audio") : "";
+    const kindLabel =
+      item.type === "audio"
+        ? t("queue.kind.audio")
+        : item.type === "subtitle"
+          ? t("queue.kind.subtitle")
+          : "";
     const source = detectSource(fullUrl);
     const meta = statusMeta(item.status, item.progress);
     const isDownloading = item.status === "downloading";
@@ -2838,4 +2849,6 @@ export {
   resolvePresetQuality,
   loadQueueFromStorage,
   persistQueue,
+  resolveDownloadKind as _resolveDownloadKind,
+  getQueueSignature as _getQueueSignature,
 };

@@ -13607,7 +13607,7 @@ body.is-mac .window-controls .btn-minimize {
 
 .compact-quality-panel__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
   gap: 10px;
 }
 
@@ -13886,7 +13886,6 @@ body.is-mac .window-controls .btn-minimize {
   position: absolute;
   left: 50%;
   top: 50%;
-  z-index: 3;
   width: 52px;
   height: 52px;
   padding: 0;
@@ -13940,7 +13939,6 @@ body.is-mac .window-controls .btn-minimize {
   position: absolute;
   right: 10px;
   top: 10px;
-  z-index: 3;
   width: 34px;
   height: 34px;
   padding: 0;
@@ -13973,7 +13971,6 @@ body.is-mac .window-controls .btn-minimize {
   position: absolute;
   right: 10px;
   bottom: 10px;
-  z-index: 3;
   min-height: 28px;
   padding: 3px 10px;
   border-radius: 10px;
@@ -14138,7 +14135,6 @@ body.is-mac .window-controls .btn-minimize {
   position: absolute;
   top: 10px;
   right: 12px;
-  z-index: 4;
   display: flex;
   gap: 6px;
   transform: none;
@@ -21984,7 +21980,6 @@ hr {
   gap: 7px;
   height: 25px;
   padding: 0 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
   font-size: 0.65rem;
   font-weight: 600;
@@ -25272,6 +25267,7 @@ video {
   display: inline-flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 .download-quality-modal .quality-tabs .quality-tab {
   min-height: 34px;

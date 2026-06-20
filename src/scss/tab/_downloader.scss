@@ -641,6 +641,7 @@
     display: inline-flex;
     gap: 8px;
     flex-wrap: wrap;
+    justify-content: center;
 
     .quality-tab {
       min-height: 34px;

@@ -92,6 +92,43 @@ describe("downloadManager queue persistence", () => {
     });
   });
 
+  it("classifies subtitle-only payloads and gives them a distinct queue signature", () => {
+    jest.isolateModules(() => {
+      jest.doMock("../domElements", () => ({
+        urlInput: document.getElementById("url"),
+        downloadButton: document.getElementById("download-button"),
+        enqueueButton: document.getElementById("enqueue-button"),
+        downloadCancelButton: document.getElementById("download-cancel"),
+        buttonText: document.querySelector(".button-text"),
+        progressBarContainer: document.getElementById("progress-bar-container"),
+        progressBar: document.getElementById("progress-bar"),
+        openLastVideoButton: document.getElementById("open-last-video"),
+        queueClearButton: document.getElementById("queue-clear-button"),
+        historyContainer: null,
+      }));
+      jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
+        updateDownloadCount: jest.fn(async () => {}),
+        getHistoryData: jest.fn(() => []),
+      }));
+      const {
+        _getQueueSignature,
+        _resolveDownloadKind,
+      } = require("../downloadManager");
+      const subtitleQuality = {
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        label: "RU subtitles",
+        subtitleLang: "ru",
+      };
+
+      expect(_resolveDownloadKind(subtitleQuality)).toBe("subtitle");
+      expect(
+        _getQueueSignature("https://example.com/video", subtitleQuality),
+      ).not.toBe(_getQueueSignature("https://example.com/video", "Source"));
+    });
+  });
+
   it("persistQueue stores the queue in localStorage", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({

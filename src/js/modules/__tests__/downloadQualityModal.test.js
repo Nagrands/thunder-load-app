@@ -69,9 +69,19 @@ const buildDom = () => {
         tabindex="-1"
         aria-controls="download-quality-options-panel"
       ></button>
+      <button
+        id="download-quality-tab-subtitles"
+        class="quality-tab"
+        data-quality-tab="subtitles"
+        role="tab"
+        aria-selected="false"
+        tabindex="-1"
+        aria-controls="download-quality-options-panel"
+      ></button>
       <span id="download-quality-count-video"></span>
       <span id="download-quality-count-video-only"></span>
       <span id="download-quality-count-audio"></span>
+      <span id="download-quality-count-subtitles"></span>
       <button id="download-quality-best-current" type="button"></button>
       <div class="quality-thumb">
         <img id="download-quality-thumb" />
@@ -1283,6 +1293,83 @@ describe("downloadQualityModal close behavior", () => {
       const cancelBtn = document.getElementById("download-quality-cancel");
       cancelBtn.click();
       await modalPromise;
+    });
+  });
+
+  it("builds subtitle tab options and prefers manual Russian subtitles", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        uploader: "Uploader",
+        duration: 120,
+        formats: [],
+        subtitles: [
+          { lang: "en", source: "manual", formats: [{ ext: "vtt" }] },
+          { lang: "ru", source: "manual", formats: [{ ext: "vtt" }] },
+          { lang: "pt-BR", source: "manual", formats: [{ ext: "vtt" }] },
+        ],
+        automatic_captions: [
+          { lang: "ru", source: "automatic", formats: [{ ext: "vtt" }] },
+        ],
+      });
+
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const modalPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        document.getElementById("download-quality-count-subtitles").textContent,
+      ).toBe("4");
+
+      document.getElementById("download-quality-tab-subtitles").click();
+      await Promise.resolve();
+
+      document.getElementById("download-quality-primary").click();
+      const result = await modalPromise;
+
+      expect(result).toMatchObject({
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        subtitleLang: "ru",
+        subtitleSource: "manual",
+        subtitleFormat: "srt",
+      });
+    });
+  });
+
+  it("keeps mixed-case subtitle language codes in payloads", async () => {
+    await jest.isolateModulesAsync(async () => {
+      window.electron.ipcRenderer.invoke = jest.fn().mockResolvedValue({
+        success: true,
+        title: "Video title",
+        formats: [],
+        subtitles: [
+          { lang: "pt-BR", source: "manual", formats: [{ ext: "vtt" }] },
+        ],
+      });
+
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const modalPromise = openDownloadQualityModal(
+        "https://example.com/video",
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      document.getElementById("download-quality-tab-subtitles").click();
+      await Promise.resolve();
+      document.getElementById("download-quality-primary").click();
+
+      await expect(modalPromise).resolves.toMatchObject({
+        subtitleLang: "pt-BR",
+      });
     });
   });
 });

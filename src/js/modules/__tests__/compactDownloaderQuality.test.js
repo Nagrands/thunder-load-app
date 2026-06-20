@@ -18,6 +18,10 @@ const buildDom = () => {
               <label for="compact-audio-quality">Аудио</label>
               <select id="compact-audio-quality"></select>
             </div>
+            <div class="compact-quality-field">
+              <label for="compact-subtitle-quality">Субтитры</label>
+              <select id="compact-subtitle-quality"></select>
+            </div>
           </div>
           <p id="compact-quality-status" class="hidden"></p>
         </section>
@@ -136,7 +140,7 @@ describe("compactDownloaderQuality", () => {
           (field) => !field.hidden,
         ),
       ).toBe(true);
-      expect(document.querySelectorAll(".compact-quality-menu").length).toBe(2);
+      expect(document.querySelectorAll(".compact-quality-menu").length).toBe(3);
       expect(
         document.querySelector(".compact-quality-menu__value").textContent,
       ).toContain("1080p");
@@ -144,6 +148,55 @@ describe("compactDownloaderQuality", () => {
         type: "pair",
         videoFormatId: "137",
         audioFormatId: "140",
+      });
+    });
+  });
+
+  it("returns subtitle-only payload when a compact subtitle option is selected", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const {
+        PREVIEW_EVENT,
+        getCompactQualityPayload,
+        initCompactDownloaderQuality,
+      } = require("../compactDownloaderQuality");
+      initCompactDownloaderQuality();
+
+      window.dispatchEvent(
+        new CustomEvent(PREVIEW_EVENT, {
+          detail: {
+            url: "https://example.com/video",
+            info: {
+              success: true,
+              title: "Video",
+              formats: [
+                {
+                  format_id: "18",
+                  vcodec: "avc1",
+                  acodec: "mp4a.40.2",
+                  height: 720,
+                  ext: "mp4",
+                },
+              ],
+              subtitles: [
+                { lang: "en", source: "manual", formats: [{ ext: "vtt" }] },
+                { lang: "pt-BR", source: "manual", formats: [{ ext: "vtt" }] },
+              ],
+            },
+          },
+        }),
+      );
+
+      const subtitleSelect = document.getElementById(
+        "compact-subtitle-quality",
+      );
+      subtitleSelect.value = "subtitle-manual-pt-BR";
+      subtitleSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+      expect(getCompactQualityPayload()).toMatchObject({
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        subtitleLang: "pt-BR",
+        subtitleSource: "manual",
       });
     });
   });

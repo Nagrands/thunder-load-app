@@ -235,6 +235,29 @@ function hasActiveDownloads(downloadState = {}) {
   );
 }
 
+function normalizeSubtitleTracks(tracks, { source = "manual" } = {}) {
+  if (!tracks || typeof tracks !== "object" || Array.isArray(tracks)) {
+    return [];
+  }
+  return Object.entries(tracks)
+    .map(([lang, entries]) => {
+      const normalizedLang = String(lang || "").trim();
+      if (!/^[a-z0-9._-]{1,24}$/i.test(normalizedLang)) return null;
+      const formats = (Array.isArray(entries) ? entries : [])
+        .map((entry) => ({
+          ext: String(entry?.ext || "").trim().toLowerCase(),
+          name: String(entry?.name || entry?.format || "").trim(),
+        }))
+        .filter((entry) => entry.ext);
+      return {
+        lang: normalizedLang,
+        source,
+        formats,
+      };
+    })
+    .filter(Boolean);
+}
+
 async function cleanupResumeStateDirAfterDownloadPathChange({
   oldPath,
   newPath,
@@ -890,6 +913,12 @@ function setupIpcHandlers(dependencies) {
       formats: includeFormats ? info?.formats || [] : [],
       is_live: info?.is_live || false,
       extractor: info?.extractor || "",
+      subtitles: includeFormats ? normalizeSubtitleTracks(info?.subtitles) : [],
+      automatic_captions: includeFormats
+        ? normalizeSubtitleTracks(info?.automatic_captions, {
+            source: "automatic",
+          })
+        : [],
     };
   };
 
@@ -3843,10 +3872,20 @@ function setupIpcHandlers(dependencies) {
       const audioFormat = selectedFormats.audioFormat;
       const audioExt = selectedFormats.audioExt;
       const videoExt = selectedFormats.videoExt;
+      const isSubtitleDownload =
+        quality?.type === "subtitle-only" ||
+        quality?.downloadKind === "subtitle";
 
       // Получаем разрешение и fps
       const resolution = selectedFormats.resolution;
       const fps = selectedFormats.fps;
+      const actualQuality = isSubtitleDownload
+        ? `subtitle: ${quality.subtitleLang || "unknown"}`
+        : videoFormat === null
+          ? `audio: ${resolution}`
+          : resolution !== "unknown"
+            ? `${resolution} ${fps ? fps + "fps" : ""}`
+            : "unknown";
       const downloadMetadata = {
         thumbnail: videoInfo.thumbnail || "",
         title: videoInfo.title || "",
@@ -3889,26 +3928,13 @@ function setupIpcHandlers(dependencies) {
         log.info(`[Download Complete] ${title}`);
         log.info(`Path: ${filePath}`);
         log.info(`Quality: ${quality}`);
-        log.info(
-          `Actual: ${
-            videoFormat === null
-              ? `audio: ${resolution}`
-              : resolution !== "unknown"
-                ? `${resolution} ${fps ? fps + "fps" : ""}`
-                : "unknown"
-          }`,
-        );
+        log.info(`Actual: ${actualQuality}`);
         log.info(`Source: ${normalizedUrl}`);
         return {
           fileName: title,
           filePath,
           quality,
-          actualQuality:
-            videoFormat === null
-              ? `audio: ${resolution}`
-              : resolution !== "unknown"
-                ? `${resolution} ${fps ? fps + "fps" : ""}`
-                : "unknown",
+          actualQuality,
           resolution,
           fps,
           sourceUrl: normalizedUrl,
@@ -3922,27 +3948,14 @@ function setupIpcHandlers(dependencies) {
       log.info(`[Download Complete] ${title}`);
       log.info(`Path: ${filePath}`);
       log.info(`Quality: ${quality}`);
-      log.info(
-        `Actual: ${
-          videoFormat === null
-            ? `audio: ${resolution}`
-            : resolution !== "unknown"
-              ? `${resolution} ${fps ? fps + "fps" : ""}`
-              : "unknown"
-        }`,
-      );
+      log.info(`Actual: ${actualQuality}`);
       log.info(`Source: ${normalizedUrl}`);
 
       return {
         fileName: title,
         filePath,
         quality,
-        actualQuality:
-          videoFormat === null
-            ? `audio: ${resolution}`
-            : resolution !== "unknown"
-              ? `${resolution} ${fps ? fps + "fps" : ""}`
-              : "unknown",
+        actualQuality,
         resolution,
         fps,
         sourceUrl: normalizedUrl,
@@ -4830,4 +4843,8 @@ function setupIpcHandlers(dependencies) {
   });
 }
 
-module.exports = { setupIpcHandlers, selectYouTubeBackgroundPreview };
+module.exports = {
+  setupIpcHandlers,
+  selectYouTubeBackgroundPreview,
+  _normalizeSubtitleTracks: normalizeSubtitleTracks,
+};
