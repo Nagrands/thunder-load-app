@@ -419,7 +419,14 @@
 >
   <div class="preview-live-player-modal__dialog">
     <div class="preview-live-player-modal__header">
-      <strong id="preview-live-title" data-i18n="input.url.preview.liveTitle">Live preview</strong>
+      <div class="preview-live-player-modal__heading">
+        <span class="preview-live-player-modal__eyebrow" data-i18n="input.url.preview.liveTitle">Live preview</span>
+        <strong id="preview-live-title" class="preview-live-player-modal__title" data-i18n="input.url.preview.liveTitle">Live preview</strong>
+        <div id="preview-live-meta" class="preview-live-player-modal__meta hidden">
+          <span id="preview-live-source" class="preview-live-player-modal__badge hidden"></span>
+          <span id="preview-live-duration" class="preview-live-player-modal__badge hidden"></span>
+        </div>
+      </div>
       <button
         id="preview-live-close"
         type="button"

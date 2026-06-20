@@ -12,12 +12,26 @@ let dialogEl = null;
 let videoEl = null;
 let sourceEl = null;
 let closeButtonEl = null;
+let titleEl = null;
+let metaEl = null;
+let sourceBadgeEl = null;
+let durationBadgeEl = null;
 let hasInitialized = false;
 let currentPageUrl = "";
 let retryTriggered = false;
 let pendingResumeTime = null;
 let lastFocusedElement = null;
 const DOWNLOADER_LIVE_PREVIEW_SCROLL_LOCK_OWNER = "downloader-live-preview";
+const DEFAULT_TITLE = "Live preview";
+const FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "video[controls]",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
 
 function syncRefs() {
   panelEl = document.getElementById("preview-live-player");
@@ -26,6 +40,10 @@ function syncRefs() {
   videoEl = document.getElementById("preview-live-video");
   sourceEl = document.getElementById("preview-live-video-source");
   closeButtonEl = document.getElementById("preview-live-close");
+  titleEl = document.getElementById("preview-live-title");
+  metaEl = document.getElementById("preview-live-meta");
+  sourceBadgeEl = document.getElementById("preview-live-source");
+  durationBadgeEl = document.getElementById("preview-live-duration");
 }
 
 function emitState(isOpen) {
@@ -53,9 +71,71 @@ function resetPlayerState() {
   if (!videoEl || !sourceEl) return;
   pauseLivePreview();
   videoEl.removeAttribute("poster");
+  videoEl.removeAttribute("aria-label");
   sourceEl.removeAttribute("src");
   sourceEl.removeAttribute("type");
   videoEl.load();
+}
+
+function setTextBadge(element, value = "") {
+  if (!element) return;
+  const text = String(value || "").trim();
+  element.textContent = text;
+  element.classList.toggle("hidden", !text);
+}
+
+function syncPlayerMeta(preview = {}, options = {}) {
+  const title = String(options?.title || preview?.title || "").trim();
+  const source = String(options?.source || preview?.source || "").trim();
+  const duration = String(options?.duration || preview?.duration || "").trim();
+  const displayTitle = title || DEFAULT_TITLE;
+
+  if (titleEl) {
+    titleEl.textContent = displayTitle;
+  }
+  panelEl?.setAttribute("aria-label", displayTitle);
+  videoEl?.setAttribute("aria-label", displayTitle);
+  setTextBadge(sourceBadgeEl, source);
+  setTextBadge(durationBadgeEl, duration);
+  metaEl?.classList.toggle("hidden", !(source || duration));
+}
+
+function focusFirstDialogControl() {
+  const target =
+    closeButtonEl || dialogEl?.querySelector(FOCUSABLE_SELECTOR) || dialogEl;
+  try {
+    target?.focus?.();
+  } catch {}
+}
+
+function handleFocusTrap(event) {
+  if (event.key !== "Tab" || !panelEl?.classList.contains("is-open")) return;
+  if (!dialogEl) return;
+
+  const focusable = Array.from(dialogEl.querySelectorAll(FOCUSABLE_SELECTOR))
+    .filter((element) => {
+      if (!(element instanceof HTMLElement)) return false;
+      return !element.hidden && element.getAttribute("aria-hidden") !== "true";
+    });
+
+  if (!focusable.length) {
+    event.preventDefault();
+    focusFirstDialogControl();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+  if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
 }
 
 function syncBodyScrollLock() {
@@ -89,6 +169,7 @@ function hideDownloaderLivePreview(options = {}) {
   retryTriggered = false;
   pendingResumeTime = null;
   resetPlayerState();
+  syncPlayerMeta();
   emitState(false);
   if (options?.restoreFocus === true) {
     restoreFocus();
@@ -120,6 +201,7 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   if (preview.poster) {
     videoEl.setAttribute("poster", preview.poster);
   }
+  syncPlayerMeta(preview, options);
   sourceEl.src = preview.src;
   if (preview.mime) {
     sourceEl.type = preview.mime;
@@ -140,7 +222,7 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   panelEl.setAttribute("aria-hidden", "false");
   syncBodyScrollLock();
   emitState(true);
-  closeButtonEl?.focus();
+  focusFirstDialogControl();
 
   try {
     const playAttempt = videoEl.play();
@@ -185,7 +267,12 @@ function handleVisibilityPause() {
 }
 
 function handleEscapeClose(event) {
-  if (event.key !== "Escape" || !panelEl?.classList.contains("is-open")) return;
+  if (!panelEl?.classList.contains("is-open")) return;
+  if (event.key === "Tab") {
+    handleFocusTrap(event);
+    return;
+  }
+  if (event.key !== "Escape") return;
   event.preventDefault();
   hideDownloaderLivePreview({ restoreFocus: true });
 }

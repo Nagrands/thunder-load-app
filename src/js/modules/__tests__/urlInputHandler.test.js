@@ -1313,6 +1313,13 @@ describe("urlInputHandler", () => {
 
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener.mock.calls[0][0].detail.preview.src).toContain("demo-live");
+    expect(listener.mock.calls[0][0].detail.options).toEqual(
+      expect.objectContaining({
+        title: "YouTube demo",
+        source: "YouTube",
+        duration: "2:00",
+      }),
+    );
   });
 
   test("live preview action becomes a close toggle while player is open", async () => {

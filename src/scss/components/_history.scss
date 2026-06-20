@@ -62,9 +62,7 @@
   margin-top: 14px;
   padding: 10px;
   border-radius: var(--border-radius);
-  background:
-    linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.12), rgba(255, 255, 255, 0.015) 38%, rgba(255, 255, 255, 0.03) 100%),
-    rgba(12, 16, 24, 0.76);
+  background: var(--thunder-panel-bg);
   border: 1px solid rgba(170, 206, 255, 0.18);
   position: relative;
   z-index: 0;

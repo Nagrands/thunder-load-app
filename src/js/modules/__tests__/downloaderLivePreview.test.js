@@ -14,8 +14,18 @@ describe("downloaderLivePreview", () => {
       </button>
       <div id="preview-live-player" class="preview-live-player-modal modal-overlay hidden" aria-hidden="true">
         <div class="preview-live-player-modal__dialog">
-          <button id="preview-live-close" type="button"></button>
-          <video id="preview-live-video">
+          <div class="preview-live-player-modal__header">
+            <div class="preview-live-player-modal__heading">
+              <span class="preview-live-player-modal__eyebrow">Live preview</span>
+              <strong id="preview-live-title" class="preview-live-player-modal__title">Live preview</strong>
+              <div id="preview-live-meta" class="preview-live-player-modal__meta hidden">
+                <span id="preview-live-source" class="preview-live-player-modal__badge hidden"></span>
+                <span id="preview-live-duration" class="preview-live-player-modal__badge hidden"></span>
+              </div>
+            </div>
+            <button id="preview-live-close" type="button"></button>
+          </div>
+          <video id="preview-live-video" controls tabindex="0">
             <source id="preview-live-video-source" />
           </video>
         </div>
@@ -60,6 +70,11 @@ describe("downloaderLivePreview", () => {
             mime: "video/mp4",
             poster: "https://cdn.example.com/poster.jpg",
           },
+          options: {
+            title: "Demo live title",
+            source: "YouTube",
+            duration: "3:03",
+          },
         },
       }),
     );
@@ -78,6 +93,16 @@ describe("downloaderLivePreview", () => {
     expect(video.getAttribute("poster")).toBe(
       "https://cdn.example.com/poster.jpg",
     );
+    expect(document.getElementById("preview-live-title").textContent).toBe(
+      "Demo live title",
+    );
+    expect(document.getElementById("preview-live-source").textContent).toBe(
+      "YouTube",
+    );
+    expect(document.getElementById("preview-live-duration").textContent).toBe(
+      "3:03",
+    );
+    expect(video.getAttribute("aria-label")).toBe("Demo live title");
     expect(video.muted).toBe(false);
     expect(video.volume).toBe(0.5);
     expect(playMock).toHaveBeenCalled();
@@ -119,6 +144,25 @@ describe("downloaderLivePreview", () => {
     const panel = document.getElementById("preview-live-player");
     expect(panel.classList.contains("is-open")).toBe(false);
     expect(openerFocusSpy).toHaveBeenCalled();
+  });
+
+  test("keeps keyboard tab focus inside the modal", async () => {
+    api.initDownloaderLivePreview();
+    await api.openDownloaderLivePreview({
+      src: "https://cdn.example.com/live.mp4",
+      mime: "video/mp4",
+    });
+
+    const video = document.getElementById("preview-live-video");
+    const closeButton = document.getElementById("preview-live-close");
+    const closeFocusSpy = jest.spyOn(closeButton, "focus");
+    video.focus();
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
+    );
+
+    expect(closeFocusSpy).toHaveBeenCalled();
   });
 
   test("closes modal when backdrop is clicked", async () => {

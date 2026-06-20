@@ -383,6 +383,19 @@ function initUrlInputHandler() {
     }
   };
 
+  const buildLivePreviewOptions = (
+    preview = currentLivePreview,
+    fallback = {},
+  ) => ({
+    pageUrl: preview?.pageUrl || fallback.pageUrl || lastPreviewUrl || "",
+    title: preview?.title || fallback.title || "",
+    source: preview?.source || fallback.source || "",
+    duration: preview?.duration || fallback.duration || "",
+    ...(Number.isFinite(Number(fallback.resumeTime))
+      ? { resumeTime: Number(fallback.resumeTime) }
+      : {}),
+  });
+
   const syncLivePreviewButton = () => {
     if (!livePreviewButton) {
       livePreviewButton = document.getElementById("preview-open-live");
@@ -433,12 +446,9 @@ function initUrlInputHandler() {
         new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
           detail: {
             preview: currentLivePreview,
-            options: {
-              pageUrl:
-                currentLivePreview?.pageUrl ||
-                lastPreviewUrl ||
-                urlInput.value.trim(),
-            },
+            options: buildLivePreviewOptions(currentLivePreview, {
+              pageUrl: urlInput.value.trim(),
+            }),
           },
         }),
       );
@@ -519,6 +529,9 @@ function initUrlInputHandler() {
           ...data.livePreview,
           pageUrl:
             data?.webpage_url || data?.original_url || lastPreviewUrl || "",
+          title: data.title || "",
+          source: detectPreviewHost(data),
+          duration: durationLabel,
         }
       : null;
 
@@ -898,6 +911,9 @@ function initUrlInputHandler() {
       currentLivePreview = {
         ...data.livePreview,
         pageUrl: data?.webpage_url || data?.original_url || url,
+        title: data.title || "",
+        source: detectPreviewHost(data),
+        duration: data.duration ? durationToStr(data.duration) : "",
       };
       livePreviewOpen = true;
       syncLivePreviewButton();
@@ -905,10 +921,9 @@ function initUrlInputHandler() {
         new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
           detail: {
             preview: currentLivePreview,
-            options: {
-              pageUrl: currentLivePreview.pageUrl,
+            options: buildLivePreviewOptions(currentLivePreview, {
               resumeTime,
-            },
+            }),
           },
         }),
       );
