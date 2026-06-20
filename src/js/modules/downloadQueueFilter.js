@@ -39,6 +39,11 @@ function syncQueueFilterControls(counts = {}, options = {}) {
   }
 
   const resolvedCounts = lastQueueCounts;
+  const totalCount = resolvedCounts.total || 0;
+  const totalCounter = document.getElementById("queue-total-count");
+  if (totalCounter) {
+    totalCounter.textContent = `(${totalCount})`;
+  }
 
   if (
     hasQueueCounts &&
@@ -51,10 +56,7 @@ function syncQueueFilterControls(counts = {}, options = {}) {
 
   document.querySelectorAll("[data-queue-filter]").forEach((button) => {
     const filter = button.dataset.queueFilter;
-    const countValue =
-      filter === "all"
-        ? resolvedCounts.total || 0
-        : resolvedCounts[filter] || 0;
+    const countValue = resolvedCounts[filter] || 0;
     const isActive = filter === currentQueueFilter;
     const isHidden =
       Boolean(options.hidden) ||

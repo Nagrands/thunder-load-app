@@ -22,8 +22,9 @@ describe("settings template backup placement", () => {
 
     expect(html).not.toContain('id="queue-filters"');
     expect(html).toContain('id="queue-total-count"');
+    expect(html).toContain('class="queue-title-count"');
     expect(html).toContain('id="queue-error-count"');
-    expect(html).toContain('data-queue-filter="all"');
+    expect(html).not.toContain('data-queue-filter="all"');
     expect(html).toContain('data-queue-filter="error"');
     expect(html).toContain("data-queue-filter-count");
   });

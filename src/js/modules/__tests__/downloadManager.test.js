@@ -12,8 +12,8 @@ const buildDom = () => {
     <div id="progress-bar"></div>
     <button id="open-last-video"></button>
     <div id="download-queue-info" class="hidden"></div>
+    <h3 class="queue-title"><span>Queue</span><span id="queue-total-count" class="queue-title-count">(0)</span></h3>
     <div class="queue-pills" role="toolbar">
-      <button id="queue-total-count" data-queue-filter="all" aria-pressed="true"><span>All</span><span data-queue-filter-count></span></button>
       <button id="queue-active-count" class="hidden" data-queue-filter="active" aria-pressed="false"><span>Active</span><span data-queue-filter-count></span></button>
       <button id="queue-count" class="hidden" data-queue-filter="pending" aria-pressed="false"><span>Queued</span><span data-queue-filter-count></span></button>
       <button id="queue-error-count" class="hidden" data-queue-filter="error" aria-pressed="false"><span>Errors</span><span data-queue-filter-count></span></button>
@@ -5095,16 +5095,14 @@ describe("downloadManager queue filters", () => {
       ];
       updateQueueDisplay();
 
-      const allCounter = document.querySelector(
-        '[data-queue-filter="all"] [data-queue-filter-count]',
-      );
+      const allCounter = document.getElementById("queue-total-count");
       const pendingCounter = document.querySelector(
         '[data-queue-filter="pending"] [data-queue-filter-count]',
       );
       const errorCounter = document.querySelector(
         '[data-queue-filter="error"] [data-queue-filter-count]',
       );
-      expect(allCounter.textContent).toBe("5");
+      expect(allCounter.textContent).toBe("(5)");
       expect(pendingCounter.textContent).toBe("2");
       expect(errorCounter.textContent).toBe("1");
 
@@ -5139,9 +5137,12 @@ describe("downloadManager queue filters", () => {
       expect(localStorage.getItem("downloadQueueFilter")).toBe(null);
       expect(
         document
-          .querySelector('[data-queue-filter="all"]')
+          .querySelector('[data-queue-filter="pending"]')
           .getAttribute("aria-pressed"),
-      ).toBe("true");
+      ).toBe("false");
+      expect(document.getElementById("queue-total-count").textContent).toBe(
+        "(3)",
+      );
       expect(document.getElementById("queue-count").classList).toContain(
         "hidden",
       );

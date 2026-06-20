@@ -142,6 +142,16 @@
     margin: 0;
     font-size: 1.1rem;
     color: rgba(255, 255, 255, 0.95);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+  }
+
+  .queue-title-count {
+    color: rgba(215, 229, 255, 0.72);
+    font-size: 0.92rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
   .queue-toggle-button {
@@ -215,11 +225,6 @@
     }
   }
 
-  .queue-count-pill--all {
-    color: #cfe1fa;
-    background: rgba(255, 255, 255, 0.075);
-  }
-
   .queue-count-pill--active {
     background: rgba(74, 158, 255, 0.18);
     border-color: rgba(74, 158, 255, 0.38);
@@ -247,17 +252,16 @@
   }
 
   .queue-pill-count {
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
+    min-width: 22px;
+    height: 14px;
+    padding: 0 2px;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    color: rgba(235, 243, 255, 0.86);
-    background: rgba(255, 255, 255, 0.09);
-    font-size: 0.65rem;
+    background: var(--color-hover);
+    font-size: 0.6rem;
     font-variant-numeric: tabular-nums;
+    justify-content: center;
   }
 
   .queue-actions {

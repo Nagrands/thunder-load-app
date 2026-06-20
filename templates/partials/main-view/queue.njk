@@ -2,12 +2,11 @@
     <div class="queue-header">
       <div class="queue-header-left">
         <span class="queue-title-icon" aria-hidden="true"><i data-lucide="list-video"></i></span>
-        <h3 class="queue-title" data-i18n="queue.title">Очередь</h3>
+        <h3 class="queue-title">
+          <span data-i18n="queue.title">Очередь</span>
+          <span id="queue-total-count" class="queue-title-count" aria-live="polite">(0)</span>
+        </h3>
         <div class="queue-pills" role="toolbar" aria-label="Фильтр очереди" data-i18n-aria="queue.filter.label">
-          <button type="button" id="queue-total-count" class="queue-count-pill queue-count-pill--all is-active" data-queue-filter="all" aria-pressed="true">
-            <span data-i18n="queue.filter.all">Все</span>
-            <span class="queue-pill-count" data-queue-filter-count>0</span>
-          </button>
           <button type="button" id="queue-active-count" class="queue-count-pill queue-count-pill--active hidden" data-queue-filter="active" aria-pressed="false">
             <span data-i18n="queue.filter.active">Активные</span>
             <span class="queue-pill-count" data-queue-filter-count>0</span>

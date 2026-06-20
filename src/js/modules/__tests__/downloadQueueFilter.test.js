@@ -1,7 +1,7 @@
 const buildFilterDom = () => {
   document.body.innerHTML = `
+    <h3 class="queue-title"><span>Queue</span><span id="queue-total-count" class="queue-title-count">(0)</span></h3>
     <div class="queue-pills" role="toolbar">
-      <button id="queue-total-count" data-queue-filter="all" aria-pressed="true"><span>All</span><span data-queue-filter-count></span></button>
       <button id="queue-active-count" data-queue-filter="active" aria-pressed="false"><span>Active</span><span data-queue-filter-count></span></button>
       <button id="queue-count" data-queue-filter="pending" aria-pressed="false"><span>Queued</span><span data-queue-filter-count></span></button>
       <button id="queue-error-count" data-queue-filter="error" aria-pressed="false"><span>Errors</span><span data-queue-filter-count></span></button>
@@ -28,11 +28,8 @@ describe("downloadQueueFilter", () => {
     syncQueueFilterControls({ total: 7, pending: 3 });
 
     expect(getDownloadQueueFilter()).toBe("all");
-    expect(
-      document
-        .querySelector('[data-queue-filter="all"]')
-        .getAttribute("aria-pressed"),
-    ).toBe("true");
+    expect(document.getElementById("queue-total-count").textContent).toBe("(7)");
+    expect(document.querySelector('[data-queue-filter="all"]')).toBeNull();
     expect(
       document.querySelector(
         '[data-queue-filter="pending"] [data-queue-filter-count]',
@@ -86,9 +83,10 @@ describe("downloadQueueFilter", () => {
     expect(localStorage.getItem("downloadQueueFilter")).toBe(null);
     expect(
       document
-        .querySelector('[data-queue-filter="all"]')
+        .querySelector('[data-queue-filter="error"]')
         .getAttribute("aria-pressed"),
-    ).toBe("true");
+    ).toBe("false");
+    expect(document.getElementById("queue-total-count").textContent).toBe("(1)");
     expect(document.querySelector('[data-queue-filter="error"]').classList).toContain(
       "hidden",
     );
