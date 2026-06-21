@@ -24,6 +24,7 @@
 | App startup was refined            | Whats-new handlers moved out of the shared IPC module, and the markdown parser now loads only for release notes          |
 | App startup was refined            | Basic UI/settings IPC for default tab, theme, font size, platform info, and toast moved into a separate module           |
 | App startup was refined            | File/shell IPC for opening folders, external links, and deleting files moved out of the shared IPC module                |
+| App startup was refined            | WG Unlock IPC for config, network settings, and log export moved into a separate app module                              |
 | Download queue was simplified      | Queue filters moved into the header, zero-count statuses no longer take space, and extra bulk buttons were removed        |
 | Download queue was refined         | The All button was removed, and the total task count now appears beside the Queue title                                  |
 | Download history was redesigned    | Expanded entries now show a larger preview and clean detail rows for source, file, quality, size, and date                |

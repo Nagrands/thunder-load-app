@@ -55,6 +55,7 @@
   - Выполнено: UI settings IPC вынесен в отдельный app-модуль с покрытием default tab, theme, font size, platform info и toast.
   - Выполнено: Shell/file utility IPC вынесен в отдельный app-модуль с покрытием удаления, открытия файлов и внешних ссылок.
 - Привести WG Unlock к регистрации через общий IPC entry.
+  - Выполнено: WG Unlock IPC вынесен в отдельный app-модуль с покрытием config/network/log export.
 - Обновить IPC tests по группам.
 
 ## Этап 6. Tray, menu и legacy startup cleanup
