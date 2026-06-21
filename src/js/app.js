@@ -27,6 +27,7 @@ const log = require("electron-log");
 
 const { app, BrowserWindow, dialog } = require("electron");
 const { configureLegacyUserDataPath } = require("./app/userDataPath.js");
+const { createStartupMetrics } = require("./app/startupMetrics.js");
 
 function configureVersionedLogFile() {
   let versionTag = "unknown";
@@ -49,8 +50,16 @@ function configureVersionedLogFile() {
 configureLegacyUserDataPath(app, fs);
 configureVersionedLogFile();
 
-const { createWindow, setReloadMenuEnabled } = require("./app/window.js");
-const { setupIpcHandlers } = require("./app/ipcHandlers.js");
+const startupMetrics = createStartupMetrics(log);
+
+const { createWindow, setReloadMenuEnabled } = startupMetrics.measure(
+  "require window.js",
+  () => require("./app/window.js"),
+);
+const { setupIpcHandlers } = startupMetrics.measure(
+  "require ipcHandlers.js",
+  () => require("./app/ipcHandlers.js"),
+);
 require("./app/wgunlock.js"); // регистрируем UDP и настройки WG Unlock
 const {
   showTrayNotification,
@@ -59,7 +68,10 @@ const {
 } = require("./app/notifications.js");
 const ClipboardMonitor = require("./app/clipboardMonitor.js");
 const { isValidUrl, isSupportedUrl } = require("./app/utils.js");
-const { setupAutoUpdater } = require("./app/autoUpdater.js");
+const { scheduleAutoUpdateCheck, setupAutoUpdater } = startupMetrics.measure(
+  "require autoUpdater.js",
+  () => require("./app/autoUpdater.js"),
+);
 const { setupGlobalShortcuts } = require("./app/shortcuts.js");
 
 // Initialize store and logging
@@ -341,23 +353,25 @@ if (!app.requestSingleInstanceLock()) {
       log.error("Failed to preload download path from store:", e);
     }
     // Create the main application window
-    mainWindow = createWindow(
-      isDev,
-      app,
-      store,
-      downloadPath,
-      getAppVersion,
-      ytDlpPath,
-      ffmpegPath,
-      ffprobePath,
-      fileExists,
-      () => {
-        const activeDownloads = dependencies.downloadState.activeDownloads;
-        return Boolean(
-          dependencies.downloadState.downloadInProgress ||
-          (activeDownloads && activeDownloads.size > 0),
-        );
-      },
+    mainWindow = startupMetrics.measure("create main window", () =>
+      createWindow(
+        isDev,
+        app,
+        store,
+        downloadPath,
+        getAppVersion,
+        ytDlpPath,
+        ffmpegPath,
+        ffprobePath,
+        fileExists,
+        () => {
+          const activeDownloads = dependencies.downloadState.activeDownloads;
+          return Boolean(
+            dependencies.downloadState.downloadInProgress ||
+              (activeDownloads && activeDownloads.size > 0),
+          );
+        },
+      ),
     );
 
     // DevTools noticeably increase GPU usage; keep them closed in production
@@ -367,13 +381,20 @@ if (!app.requestSingleInstanceLock()) {
 
     dependencies.mainWindow = mainWindow;
 
-    setupIpcHandlers(dependencies);
+    startupMetrics.measure("setup IPC handlers", () =>
+      setupIpcHandlers(dependencies),
+    );
 
-    // Setup auto updater
-    setupAutoUpdater(mainWindow);
+    // Register updater events now, but delay network checks until the first UI is ready.
+    startupMetrics.measure("setup auto updater", () =>
+      setupAutoUpdater(mainWindow),
+    );
+    scheduleAutoUpdateCheck(mainWindow);
 
     // Setup global shortcuts
-    setupGlobalShortcuts(mainWindow);
+    startupMetrics.measure("setup global shortcuts", () =>
+      setupGlobalShortcuts(mainWindow),
+    );
 
     // Initialize clipboard monitor
     initializeClipboardMonitor();
@@ -382,6 +403,7 @@ if (!app.requestSingleInstanceLock()) {
       "App → Total Startup Time",
       "Main window created & IPC ready",
     );
+    startupMetrics.mark("main window created and IPC ready");
     // Setup mainWindow events
     initializeMainWindowEvents();
   }

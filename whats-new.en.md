@@ -12,6 +12,7 @@
 | Subtitle downloads were fixed      | Case-sensitive language codes such as `pt-BR` and `zh-Hans` stay unchanged, and found VTT/TTML files convert to SRT      |
 | Subtitle downloads were fixed      | Thunder now finds subtitle files more reliably when yt-dlp saves converted files or automatic caption artifacts           |
 | Subtitle downloads were fixed      | Translated automatic captions now download only the selected track instead of mixing it with original subtitles           |
+| App startup was refined            | Update checks now start after the window is ready, and the main process has timing marks for startup bottlenecks          |
 | Download queue was simplified      | Queue filters moved into the header, zero-count statuses no longer take space, and extra bulk buttons were removed        |
 | Download queue was refined         | The All button was removed, and the total task count now appears beside the Queue title                                  |
 | Download history was redesigned    | Expanded entries now show a larger preview and clean detail rows for source, file, quality, size, and date                |
