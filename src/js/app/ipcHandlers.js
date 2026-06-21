@@ -34,7 +34,6 @@ const net = require("net");
 const { execFile, spawn } = require("child_process");
 const { promisify } = require("util");
 const { pipeline } = require("stream");
-const { marked } = require("marked");
 const execFileAsync = promisify(execFile);
 const streamPipeline = promisify(pipeline);
 const { registerAppUpdateIpcHandlers } = require("./appUpdateIpcHandlers");
@@ -46,6 +45,7 @@ const {
   registerToolsVersionsIpcHandlers,
 } = require("./toolsVersionsIpcHandlers");
 const { registerUpdateDevIpcHandlers } = require("./updateDevIpcHandlers");
+const { registerWhatsNewIpcHandlers } = require("./whatsNewIpcHandlers");
 const { setReloadShortcutSuppressed } = require("./shortcuts.js");
 const {
   installYtDlp,
@@ -75,10 +75,6 @@ const {
 } = require("./downloaderBackgroundPreview");
 console.log("ipcHandlers loaded");
 
-function parseWhatsNewVersion(markdown = "") {
-  const match = String(markdown).match(/version:\s*([0-9A-Za-z._-]+)/i);
-  return match ? match[1] : null;
-}
 /**
  * Проверяет, находится ли filePath внутри baseDir
  * @param {string} filePath - Абсолютный путь к файлу
@@ -775,56 +771,12 @@ function setupIpcHandlers(dependencies) {
     store.set("defaultTab", tabId),
   );
 
-  ipcMain.handle(CHANNELS.GET_WHATS_NEW, async (_event, lang) => {
-    try {
-      const langSuffix = String(lang || "").toLowerCase() === "en" ? ".en" : "";
-      const whatsNewPath = path.join(
-        app.getAppPath(),
-        `whats-new${langSuffix}.md`,
-      );
-      let finalPath = whatsNewPath;
-      try {
-        await fs.promises.access(finalPath, fs.constants.F_OK);
-      } catch {
-        finalPath = path.join(app.getAppPath(), "whats-new.md");
-      }
-      log.info(`Reading the file: ${finalPath}`);
-      const markdown = await fs.promises.readFile(finalPath, "utf-8");
-      const version = parseWhatsNewVersion(markdown) || (await getAppVersion());
-      const html = marked.parse(markdown, {
-        mangle: false,
-        headerIds: false,
-      });
-      return { version, changes: [html], source: "markdown" };
-    } catch (error) {
-      log.error("Reading error: whatsNew.md:", error);
-      return { version: "unknown", changes: [] };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.WHATS_NEW_READY, async () => {
-    try {
-      if (typeof dispatchPendingWhatsNew === "function") {
-        dispatchPendingWhatsNew();
-      }
-      return { success: true };
-    } catch (error) {
-      log.error("whats-new:ready error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.WHATS_NEW_ACK, async (_evt, version) => {
-    try {
-      let cleared = false;
-      if (typeof clearPendingWhatsNewVersion === "function") {
-        cleared = clearPendingWhatsNewVersion(version);
-      }
-      return { success: true, cleared };
-    } catch (error) {
-      log.error("whats-new:ack error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
+  registerWhatsNewIpcHandlers({
+    ipcMain,
+    app,
+    getAppVersion,
+    dispatchPendingWhatsNew,
+    clearPendingWhatsNewVersion,
   });
 
   registerUpdateDevIpcHandlers({ ipcMain, mainWindow, getAppVersion });

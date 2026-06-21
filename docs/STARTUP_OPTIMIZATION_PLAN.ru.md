@@ -51,6 +51,7 @@
   - Выполнено: Tools versions/availability IPC вынесен в отдельный app-модуль с отдельным покрытием macOS и error-path.
   - Выполнено: Update dev IPC вынесен в отдельный app-модуль с отдельным покрытием renderer-событий.
   - Выполнено: App update IPC вынесен в отдельный app-модуль с отдельным покрытием updater-команд.
+  - Выполнено: Whats-new IPC вынесен в отдельный app-модуль, `marked` загружается только при чтении release notes.
 - Привести WG Unlock к регистрации через общий IPC entry.
 - Обновить IPC tests по группам.
 

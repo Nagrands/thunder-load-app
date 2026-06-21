@@ -21,6 +21,7 @@
 | App startup was refined            | Tool version and availability IPC moved into its own module while preserving macOS ffmpeg behavior                        |
 | App startup was refined            | Dev update notification handlers moved out of the shared IPC module with focused event tests                             |
 | App startup was refined            | Manual update check, download, and install IPC moved into a dedicated updater command module                             |
+| App startup was refined            | Whats-new handlers moved out of the shared IPC module, and the markdown parser now loads only for release notes          |
 | Download queue was simplified      | Queue filters moved into the header, zero-count statuses no longer take space, and extra bulk buttons were removed        |
 | Download queue was refined         | The All button was removed, and the total task count now appears beside the Queue title                                  |
 | Download history was redesigned    | Expanded entries now show a larger preview and clean detail rows for source, file, quality, size, and date                |
