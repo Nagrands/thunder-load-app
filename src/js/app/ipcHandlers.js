@@ -16,7 +16,6 @@ const {
 } = require("./iconPaths");
 
 const {
-  getToolsAvailability,
   getToolsVersions,
 } = require("./toolsVersions");
 const {
@@ -42,6 +41,9 @@ const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const {
   registerToolsLocationIpcHandlers,
 } = require("./toolsLocationIpcHandlers");
+const {
+  registerToolsVersionsIpcHandlers,
+} = require("./toolsVersionsIpcHandlers");
 const { setReloadShortcutSuppressed } = require("./shortcuts.js");
 const {
   installYtDlp,
@@ -874,45 +876,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, async () => {
-    try {
-      const tools = await getToolsVersions(store);
-      if (process.platform === "darwin" && tools?.ffmpeg) {
-        tools.ffmpeg.skipUpdates = true;
-      }
-
-      log.info("Загрузчик → Проверка версий инструментов завершена", {
-        ytDlpOk: tools?.ytDlp?.ok === true,
-        ffmpegOk: tools?.ffmpeg?.ok === true,
-        ffmpegVersion: tools?.ffmpeg?.version || null,
-      });
-
-      return tools;
-    } catch (error) {
-      log.error("Error in TOOLS_GETVERSIONS:", error);
-      return {
-        ytDlp: { ok: false, error: error.message },
-        ffmpeg: { ok: false, error: error.message },
-      };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.TOOLS_GET_AVAILABILITY, async () => {
-    try {
-      const tools = getToolsAvailability(store);
-      if (process.platform === "darwin" && tools?.ffmpeg) {
-        tools.ffmpeg.skipUpdates = true;
-      }
-      return tools;
-    } catch (error) {
-      log.error("Error in TOOLS_GET_AVAILABILITY:", error);
-      return {
-        ytDlp: { ok: false, error: error.message },
-        ffmpeg: { ok: false, error: error.message },
-        deno: { ok: false, error: error.message },
-      };
-    }
-  });
+  registerToolsVersionsIpcHandlers({ ipcMain, store });
 
   const formatVideoInfoResponse = (
     info,

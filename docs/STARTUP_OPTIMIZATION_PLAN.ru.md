@@ -48,6 +48,7 @@
 - Перенести тяжелые зависимости в lazy factories внутри feature handlers.
   - Выполнено: Backup IPC вынесен в отдельный app-модуль, `backupManager` загружается только при backup-действиях.
   - Выполнено: Tools location IPC вынесен в отдельный app-модуль с отдельным покрытием миграции бинарников.
+  - Выполнено: Tools versions/availability IPC вынесен в отдельный app-модуль с отдельным покрытием macOS и error-path.
 - Привести WG Unlock к регистрации через общий IPC entry.
 - Обновить IPC tests по группам.
 
