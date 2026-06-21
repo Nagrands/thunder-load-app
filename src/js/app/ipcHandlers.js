@@ -44,6 +44,7 @@ const {
 const {
   registerToolsVersionsIpcHandlers,
 } = require("./toolsVersionsIpcHandlers");
+const { registerUiSettingsIpcHandlers } = require("./uiSettingsIpcHandlers");
 const { registerUpdateDevIpcHandlers } = require("./updateDevIpcHandlers");
 const { registerWhatsNewIpcHandlers } = require("./whatsNewIpcHandlers");
 const { setReloadShortcutSuppressed } = require("./shortcuts.js");
@@ -764,12 +765,7 @@ function setupIpcHandlers(dependencies) {
     });
   }
 
-  ipcMain.handle(CHANNELS.GET_DEFAULT_TAB, () =>
-    store.get("defaultTab", "download"),
-  );
-  ipcMain.handle(CHANNELS.SET_DEFAULT_TAB, (_, tabId) =>
-    store.set("defaultTab", tabId),
-  );
+  registerUiSettingsIpcHandlers({ ipcMain, mainWindow, store });
 
   registerWhatsNewIpcHandlers({
     ipcMain,
@@ -3496,40 +3492,6 @@ function setupIpcHandlers(dependencies) {
       log.error("tools:updateFfmpeg: Error updating ffmpeg:", error);
       return { success: false, error: error.message || String(error) };
     }
-  });
-
-  ipcMain.handle(CHANNELS.GET_PLATFORM_INFO, () => {
-    console.log("get-platform-info handler registered");
-    return { isMac: process.platform === "darwin" };
-  });
-
-  // Обработчики IPC для темы
-  ipcMain.handle(CHANNELS.GET_THEME, () => {
-    return store.get("theme", "system"); // 'system' - тема по умолчанию
-  });
-
-  ipcMain.handle(CHANNELS.SET_THEME, (event, theme) => {
-    store.set("theme", theme);
-    return { success: true };
-  });
-
-  ipcMain.handle(
-    CHANNELS.TOAST,
-    (event, message, type = "success", options = {}) => {
-      if (mainWindow && mainWindow.webContents) {
-        mainWindow.webContents.send("toast", message, type, options);
-      }
-    },
-  );
-
-  // Обработчики IPC для размера шрифта
-  ipcMain.handle(CHANNELS.GET_FONT_SIZE, () => {
-    return store.get("fontSize", "16px"); // '16px' - размер по умолчанию
-  });
-
-  ipcMain.handle(CHANNELS.SET_FONT_SIZE, (event, fontSize) => {
-    store.set("fontSize", fontSize);
-    return { success: true };
   });
 
   registerBackupIpcHandlers({

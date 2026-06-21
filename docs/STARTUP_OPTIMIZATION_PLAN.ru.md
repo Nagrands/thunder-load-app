@@ -52,6 +52,7 @@
   - Выполнено: Update dev IPC вынесен в отдельный app-модуль с отдельным покрытием renderer-событий.
   - Выполнено: App update IPC вынесен в отдельный app-модуль с отдельным покрытием updater-команд.
   - Выполнено: Whats-new IPC вынесен в отдельный app-модуль, `marked` загружается только при чтении release notes.
+  - Выполнено: UI settings IPC вынесен в отдельный app-модуль с покрытием default tab, theme, font size, platform info и toast.
 - Привести WG Unlock к регистрации через общий IPC entry.
 - Обновить IPC tests по группам.
 
