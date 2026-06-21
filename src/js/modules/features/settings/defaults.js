@@ -43,4 +43,11 @@ export const DEFAULT_CONFIG = {
     resetLocation: false,
     locationPath: null,
   },
+  ytDlp: {
+    cookies: {
+      mode: "off",
+      browser: "chrome",
+      filePath: "",
+    },
+  },
 };

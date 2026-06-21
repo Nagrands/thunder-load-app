@@ -1988,13 +1988,14 @@ describe("ipcHandlers download pool", () => {
         ? storeValues[key]
         : def,
     );
+    const store = {
+      get: storeGet,
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
     setupIpcHandlers({
       mainWindow,
-      store: {
-        get: storeGet,
-        set: jest.fn(),
-        delete: jest.fn(),
-      },
+      store,
       downloadState,
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
       setDownloadPath: jest.fn(),
@@ -2010,7 +2011,7 @@ describe("ipcHandlers download pool", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { mainWindow, setReloadMenuEnabled, downloadState };
+    return { mainWindow, store, setReloadMenuEnabled, downloadState };
   }
 
   const deferred = () => {
@@ -2192,6 +2193,96 @@ describe("ipcHandlers download pool", () => {
         sourceUrl: expect.stringContaining("https://example.com/a"),
       }),
     );
+  });
+
+  test("returns default yt-dlp cookies settings", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    initHandlers();
+
+    await expect(
+      handlers[CHANNELS.GET_YTDLP_COOKIES_SETTINGS](),
+    ).resolves.toEqual({
+      mode: "off",
+      browser: "chrome",
+      filePath: "",
+    });
+  });
+
+  test("normalizes and stores yt-dlp cookies settings", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { store } = initHandlers();
+
+    await expect(
+      handlers[CHANNELS.SET_YTDLP_COOKIES_SETTINGS](null, {
+        mode: "browser",
+        browser: "firefox",
+        filePath: "/tmp/cookies.txt",
+        extra: true,
+      }),
+    ).resolves.toEqual({
+      success: true,
+      settings: {
+        mode: "browser",
+        browser: "firefox",
+        filePath: "/tmp/cookies.txt",
+      },
+    });
+    expect(store.set).toHaveBeenCalledWith("ytDlp.cookies", {
+      mode: "browser",
+      browser: "firefox",
+      filePath: "/tmp/cookies.txt",
+    });
+  });
+
+  test("rejects invalid yt-dlp cookies file path", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { store } = initHandlers();
+
+    await expect(
+      handlers[CHANNELS.SET_YTDLP_COOKIES_SETTINGS](null, {
+        mode: "file",
+        browser: "chrome",
+        filePath: "relative/cookies.txt",
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: "Invalid cookies file path",
+      }),
+    );
+    expect(store.set).not.toHaveBeenCalledWith(
+      "ytDlp.cookies",
+      expect.anything(),
+    );
+  });
+
+  test("select-ytdlp-cookies-file returns selected file or cancel", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const { dialog } = require("electron");
+    const cookiesPath = path.join(os.tmpdir(), "cookies.txt");
+    initHandlers();
+
+    dialog.showOpenDialog.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: [cookiesPath],
+    });
+    await expect(
+      handlers[CHANNELS.SELECT_YTDLP_COOKIES_FILE](),
+    ).resolves.toEqual({
+      success: true,
+      filePath: cookiesPath,
+    });
+
+    dialog.showOpenDialog.mockResolvedValueOnce({
+      canceled: true,
+      filePaths: [],
+    });
+    await expect(
+      handlers[CHANNELS.SELECT_YTDLP_COOKIES_FILE](),
+    ).resolves.toEqual({
+      success: false,
+      canceled: true,
+    });
   });
 
   test("DOWNLOAD_VIDEO shows warning when yt-dlp and ffmpeg are missing", async () => {

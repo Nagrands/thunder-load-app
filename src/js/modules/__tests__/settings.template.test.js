@@ -139,6 +139,21 @@ describe("settings template backup placement", () => {
     );
   });
 
+  test("includes yt-dlp cookies controls in downloader settings", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('id="settings-ytdlp-cookies-mode"');
+    expect(html).toContain('id="settings-ytdlp-cookies-mode-trigger"');
+    expect(html).toContain('id="settings-ytdlp-cookies-mode-menu"');
+    expect(html).toContain('id="settings-ytdlp-cookies-browser"');
+    expect(html).toContain('id="settings-ytdlp-cookies-browser-trigger"');
+    expect(html).toContain('id="settings-ytdlp-cookies-browser-menu"');
+    expect(html).toContain('class="settings-cookies-select__option"');
+    expect(html).toContain('id="settings-ytdlp-cookies-file-button"');
+    expect(html).toContain('data-i18n="settings.downloader.cookies.title"');
+  });
+
   test("builds the standalone notifications lab page", () => {
     const labPath = path.resolve(process.cwd(), "src/notifications-lab.html");
     const html = fs.readFileSync(labPath, "utf8");

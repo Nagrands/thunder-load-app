@@ -1697,6 +1697,128 @@
                         </div>
                       </div>
 
+                      <div class="settings-control-group settings-control-group--section settings-control-group--cookies">
+                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.cookies.title">
+                          YouTube cookies
+                        </h4>
+                        <ul class="module settings-control-list settings-cookies-list">
+                          <li class="settings-control settings-cookies-row">
+                            <label class="settings-cookies-label" for="settings-ytdlp-cookies-mode">
+                              <i class="fa-solid fa-cookie-bite"></i>
+                              <span data-i18n="settings.downloader.cookies.mode">
+                                Режим cookies
+                              </span>
+                            </label>
+                            <div class="settings-cookies-select" data-settings-cookies-select="mode">
+                              <button
+                                type="button"
+                                class="settings-cookies-select__trigger"
+                                id="settings-ytdlp-cookies-mode-trigger"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                                aria-controls="settings-ytdlp-cookies-mode-menu"
+                              >
+                                <span id="settings-ytdlp-cookies-mode-label" data-i18n="settings.downloader.cookies.mode.off">
+                                  Выкл.
+                                </span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                              </button>
+                              <select class="settings-cookies-native-select" id="settings-ytdlp-cookies-mode" aria-hidden="true" tabindex="-1">
+                                <option value="off" data-i18n="settings.downloader.cookies.mode.off">
+                                  Выкл.
+                                </option>
+                                <option value="browser" data-i18n="settings.downloader.cookies.mode.browser">
+                                  Из браузера
+                                </option>
+                                <option value="file" data-i18n="settings.downloader.cookies.mode.file">
+                                  Файл cookies.txt
+                                </option>
+                              </select>
+                              <div class="settings-cookies-select__menu hidden" id="settings-ytdlp-cookies-mode-menu" role="listbox" data-settings-cookies-menu>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="off" data-label-key="settings.downloader.cookies.mode.off" aria-selected="true">
+                                  <span data-i18n="settings.downloader.cookies.mode.off">Выкл.</span>
+                                  <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                </button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="browser" data-label-key="settings.downloader.cookies.mode.browser" aria-selected="false">
+                                  <span data-i18n="settings.downloader.cookies.mode.browser">Из браузера</span>
+                                  <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                </button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="file" data-label-key="settings.downloader.cookies.mode.file" aria-selected="false">
+                                  <span data-i18n="settings.downloader.cookies.mode.file">Файл cookies.txt</span>
+                                  <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </li>
+                          <li class="settings-control settings-cookies-row" id="settings-ytdlp-cookies-browser-row">
+                            <label class="settings-cookies-label" for="settings-ytdlp-cookies-browser">
+                              <i class="fa-solid fa-globe"></i>
+                              <span data-i18n="settings.downloader.cookies.browser">
+                                Браузер
+                              </span>
+                            </label>
+                            <div class="settings-cookies-select" data-settings-cookies-select="browser">
+                              <button
+                                type="button"
+                                class="settings-cookies-select__trigger"
+                                id="settings-ytdlp-cookies-browser-trigger"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                                aria-controls="settings-ytdlp-cookies-browser-menu"
+                              >
+                                <span id="settings-ytdlp-cookies-browser-label">Chrome</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                              </button>
+                              <select class="settings-cookies-native-select" id="settings-ytdlp-cookies-browser" aria-hidden="true" tabindex="-1">
+                                <option value="chrome">Chrome</option>
+                                <option value="firefox">Firefox</option>
+                                <option value="safari">Safari</option>
+                                <option value="edge">Edge</option>
+                                <option value="brave">Brave</option>
+                                <option value="chromium">Chromium</option>
+                                <option value="vivaldi">Vivaldi</option>
+                                <option value="opera">Opera</option>
+                              </select>
+                              <div class="settings-cookies-select__menu hidden" id="settings-ytdlp-cookies-browser-menu" role="listbox" data-settings-cookies-menu>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="chrome" aria-selected="true"><span>Chrome</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="firefox" aria-selected="false"><span>Firefox</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="safari" aria-selected="false"><span>Safari</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="edge" aria-selected="false"><span>Edge</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="brave" aria-selected="false"><span>Brave</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="chromium" aria-selected="false"><span>Chromium</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="vivaldi" aria-selected="false"><span>Vivaldi</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="settings-cookies-select__option" role="option" data-value="opera" aria-selected="false"><span>Opera</span><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                              </div>
+                            </div>
+                          </li>
+                          <li class="settings-control settings-cookies-row" id="settings-ytdlp-cookies-file-row">
+                            <label class="settings-cookies-label" for="settings-ytdlp-cookies-file-button">
+                              <i class="fa-solid fa-file-lines"></i>
+                              <span data-i18n="settings.downloader.cookies.file">
+                                Файл cookies.txt
+                              </span>
+                            </label>
+                            <button class="settings-cookies-file-button" type="button" id="settings-ytdlp-cookies-file-button">
+                              <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                              <span data-i18n="settings.downloader.cookies.file.pick">
+                                Выбрать файл
+                              </span>
+                            </button>
+                          </li>
+                          <li class="settings-control settings-cookies-row settings-cookies-row--hint">
+                            <label class="settings-cookies-label">
+                              <i class="fa-solid fa-circle-info"></i>
+                              <span data-i18n="settings.downloader.cookies.hint">
+                                Помогает пройти проверку YouTube через cookies браузера или Netscape cookies.txt.
+                              </span>
+                            </label>
+                            <span class="settings-cookies-file-label" id="settings-ytdlp-cookies-file-label" data-i18n="settings.downloader.cookies.file.empty">
+                              Файл не выбран
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+
                       <div class="settings-control-group settings-control-group--section">
                         <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.parallel">
                           Параллельность и запуск

@@ -46,6 +46,37 @@ function normalizeDefaultTabId(tabId) {
 }
 
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
+const YTDLP_COOKIES_DEFAULT = Object.freeze({
+  mode: "off",
+  browser: "chrome",
+  filePath: "",
+});
+const YTDLP_COOKIES_MODES = ["off", "browser", "file"];
+const YTDLP_COOKIES_BROWSERS = [
+  "chrome",
+  "firefox",
+  "safari",
+  "edge",
+  "brave",
+  "chromium",
+  "vivaldi",
+  "opera",
+];
+
+function normalizeYtDlpCookiesSettings(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const mode = YTDLP_COOKIES_MODES.includes(raw.mode)
+    ? raw.mode
+    : YTDLP_COOKIES_DEFAULT.mode;
+  const browser = YTDLP_COOKIES_BROWSERS.includes(raw.browser)
+    ? raw.browser
+    : YTDLP_COOKIES_DEFAULT.browser;
+  const filePath =
+    typeof raw.filePath === "string" && !raw.filePath.includes("\u0000")
+      ? raw.filePath.trim()
+      : "";
+  return { mode, browser, filePath };
+}
 
 /**
  * Функция для инициализации настроек
@@ -288,6 +319,198 @@ async function initSettings() {
 
     onOpenSettings("download-parallel-limit", () => {
       syncFromStore();
+    });
+  })();
+
+  (function initYtDlpCookiesSettings() {
+    const modeSelect = document.getElementById("settings-ytdlp-cookies-mode");
+    const browserSelect = document.getElementById(
+      "settings-ytdlp-cookies-browser",
+    );
+    const browserRow = document.getElementById(
+      "settings-ytdlp-cookies-browser-row",
+    );
+    const fileRow = document.getElementById("settings-ytdlp-cookies-file-row");
+    const fileButton = document.getElementById(
+      "settings-ytdlp-cookies-file-button",
+    );
+    const fileLabel = document.getElementById(
+      "settings-ytdlp-cookies-file-label",
+    );
+    if (!modeSelect || !browserSelect || !fileButton || !fileLabel) return;
+
+    let current = { ...YTDLP_COOKIES_DEFAULT };
+    const customSelects = [
+      {
+        select: modeSelect,
+        root: document.querySelector('[data-settings-cookies-select="mode"]'),
+        trigger: document.getElementById("settings-ytdlp-cookies-mode-trigger"),
+        label: document.getElementById("settings-ytdlp-cookies-mode-label"),
+        menu: document.getElementById("settings-ytdlp-cookies-mode-menu"),
+      },
+      {
+        select: browserSelect,
+        root: document.querySelector(
+          '[data-settings-cookies-select="browser"]',
+        ),
+        trigger: document.getElementById(
+          "settings-ytdlp-cookies-browser-trigger",
+        ),
+        label: document.getElementById("settings-ytdlp-cookies-browser-label"),
+        menu: document.getElementById("settings-ytdlp-cookies-browser-menu"),
+      },
+    ];
+
+    const closeCustomSelect = (instance) => {
+      instance?.root?.classList.remove("is-open");
+      instance?.trigger?.setAttribute("aria-expanded", "false");
+      instance?.menu?.classList.add("hidden");
+    };
+
+    const closeAllCustomSelects = (except = null) => {
+      customSelects.forEach((instance) => {
+        if (instance !== except) closeCustomSelect(instance);
+      });
+    };
+
+    const getOptionLabel = (option) => {
+      const key = option?.dataset?.labelKey || "";
+      if (key) return t(key);
+      return option?.querySelector("span")?.textContent?.trim() || "";
+    };
+
+    const syncCustomSelect = (instance) => {
+      if (!instance?.select) return;
+      const options = Array.from(
+        instance.menu?.querySelectorAll(".settings-cookies-select__option") ||
+          [],
+      );
+      const selected = options.find(
+        (option) => option.dataset.value === instance.select.value,
+      );
+      options.forEach((option) => {
+        option.setAttribute(
+          "aria-selected",
+          option === selected ? "true" : "false",
+        );
+      });
+      if (instance.label && selected) {
+        instance.label.textContent = getOptionLabel(selected);
+      }
+    };
+
+    const syncAllCustomSelects = () => {
+      customSelects.forEach(syncCustomSelect);
+    };
+
+    customSelects.forEach((instance) => {
+      if (!instance.root || !instance.trigger || !instance.menu) return;
+      instance.trigger.addEventListener("click", () => {
+        const willOpen = !instance.root.classList.contains("is-open");
+        closeAllCustomSelects(instance);
+        instance.root.classList.toggle("is-open", willOpen);
+        instance.trigger.setAttribute("aria-expanded", String(willOpen));
+        instance.menu.classList.toggle("hidden", !willOpen);
+      });
+      instance.menu
+        .querySelectorAll(".settings-cookies-select__option")
+        .forEach((option) => {
+          option.addEventListener("click", () => {
+            instance.select.value = option.dataset.value || "";
+            instance.select.dispatchEvent(
+              new Event("change", { bubbles: true }),
+            );
+            closeCustomSelect(instance);
+          });
+        });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (event.target?.closest?.("[data-settings-cookies-select]")) return;
+      closeAllCustomSelects();
+    });
+    window.addEventListener("i18n:changed", () => {
+      syncAllCustomSelects();
+    });
+
+    const apply = (settings) => {
+      current = normalizeYtDlpCookiesSettings(settings);
+      modeSelect.value = current.mode;
+      browserSelect.value = current.browser;
+      syncAllCustomSelects();
+      closeAllCustomSelects();
+      if (browserRow) browserRow.hidden = current.mode !== "browser";
+      if (fileRow) fileRow.hidden = current.mode !== "file";
+      fileLabel.textContent =
+        current.filePath || t("settings.downloader.cookies.file.empty");
+    };
+
+    const save = async (next, { toast = true } = {}) => {
+      const settings = normalizeYtDlpCookiesSettings(next);
+      try {
+        const result = await window.electron.invoke(
+          "set-ytdlp-cookies-settings",
+          settings,
+        );
+        if (result?.success === false) {
+          throw new Error(result.error || "Unable to save cookies settings");
+        }
+        apply(result?.settings || settings);
+        if (toast) {
+          showToast(t("settings.downloader.cookies.saved"), "success");
+        }
+      } catch (error) {
+        apply(current);
+        showToast(
+          t("settings.downloader.cookies.saveError", {
+            message: error?.message || String(error),
+          }),
+          "error",
+        );
+      }
+    };
+
+    const load = async () => {
+      try {
+        const settings = await window.electron.invoke(
+          "get-ytdlp-cookies-settings",
+        );
+        apply(settings);
+      } catch {
+        apply(YTDLP_COOKIES_DEFAULT);
+      }
+    };
+
+    modeSelect.addEventListener("change", () => {
+      save({ ...current, mode: modeSelect.value });
+    });
+    browserSelect.addEventListener("change", () => {
+      save({ ...current, browser: browserSelect.value });
+    });
+    fileButton.addEventListener("click", async () => {
+      try {
+        const result = await window.electron.invoke(
+          "select-ytdlp-cookies-file",
+        );
+        if (result?.canceled) return;
+        if (result?.success && result.filePath) {
+          await save({ ...current, mode: "file", filePath: result.filePath });
+          return;
+        }
+        throw new Error(result?.error || "Unable to select cookies file");
+      } catch (error) {
+        showToast(
+          t("settings.downloader.cookies.file.error", {
+            message: error?.message || String(error),
+          }),
+          "error",
+        );
+      }
+    });
+
+    load();
+    onOpenSettings("ytdlp-cookies-settings", () => {
+      load();
     });
   })();
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");
@@ -1220,6 +1443,7 @@ async function collectCurrentConfig() {
     defaultTab,
     minimizeToTray,
     toolsLocation,
+    ytDlpCookies,
   ] = await Promise.all([
     getTheme(),
     getFontSize(),
@@ -1234,6 +1458,9 @@ async function collectCurrentConfig() {
     getDefaultTab(),
     window.electron.invoke("get-minimize-to-tray-status").catch(() => false),
     window.electron.tools?.getLocation?.().catch(() => null),
+    window.electron
+      .invoke("get-ytdlp-cookies-settings")
+      .catch(() => YTDLP_COOKIES_DEFAULT),
   ]);
 
   const qualityProfile = (() => {
@@ -1349,6 +1576,9 @@ async function collectCurrentConfig() {
       locationPath: toolsLocation?.path || null,
       isDefault: toolsLocation?.isDefault ?? null,
     },
+    ytDlp: {
+      cookies: normalizeYtDlpCookiesSettings(ytDlpCookies),
+    },
   });
 
   return merged;
@@ -1452,6 +1682,10 @@ async function applyConfig(config, options = {}) {
     window.electron.invoke(
       "set-minimize-to-tray-status",
       !!cfg.general.minimizeToTray,
+    ),
+    window.electron.invoke(
+      "set-ytdlp-cookies-settings",
+      normalizeYtDlpCookiesSettings(cfg.ytDlp?.cookies),
     ),
   ];
 

@@ -539,6 +539,44 @@ function setupIpcHandlers(dependencies) {
   };
   const getParallelDownloadLimit = () =>
     normalizeParallelDownloadLimit(store.get("downloadParallelLimit", 1));
+  const ytDlpCookiesDefault = Object.freeze({
+    mode: "off",
+    browser: "chrome",
+    filePath: "",
+  });
+  const ytDlpCookiesModes = new Set(["off", "browser", "file"]);
+  const ytDlpCookiesBrowsers = new Set([
+    "chrome",
+    "firefox",
+    "safari",
+    "edge",
+    "brave",
+    "chromium",
+    "vivaldi",
+    "opera",
+  ]);
+  const normalizeYtDlpCookiesSettings = (value) => {
+    const raw = value && typeof value === "object" ? value : {};
+    const mode = ytDlpCookiesModes.has(raw.mode)
+      ? raw.mode
+      : ytDlpCookiesDefault.mode;
+    const browser = ytDlpCookiesBrowsers.has(raw.browser)
+      ? raw.browser
+      : ytDlpCookiesDefault.browser;
+    const filePath =
+      typeof raw.filePath === "string" && !raw.filePath.includes("\u0000")
+        ? raw.filePath.trim()
+        : "";
+    return { mode, browser, filePath };
+  };
+  const getYtDlpCookiesSettings = () =>
+    normalizeYtDlpCookiesSettings(
+      store.get("ytDlp.cookies", ytDlpCookiesDefault),
+    );
+  const isValidCookiesFilePath = (filePath) =>
+    typeof filePath === "string" &&
+    path.isAbsolute(filePath) &&
+    isValidFilePath(filePath);
 
   try {
     setSharedStore(store);
@@ -4506,6 +4544,50 @@ function setupIpcHandlers(dependencies) {
 
   ipcMain.handle(CHANNELS.GET_DOWNLOAD_PARALLEL_LIMIT, async () => {
     return getParallelDownloadLimit();
+  });
+
+  ipcMain.handle(CHANNELS.GET_YTDLP_COOKIES_SETTINGS, async () => {
+    return getYtDlpCookiesSettings();
+  });
+
+  ipcMain.handle(CHANNELS.SET_YTDLP_COOKIES_SETTINGS, async (_event, value) => {
+    const settings = normalizeYtDlpCookiesSettings(value);
+    if (
+      settings.mode === "file" &&
+      settings.filePath &&
+      !isValidCookiesFilePath(settings.filePath)
+    ) {
+      return {
+        success: false,
+        error: "Invalid cookies file path",
+        settings: getYtDlpCookiesSettings(),
+      };
+    }
+    store.set("ytDlp.cookies", settings);
+    return { success: true, settings };
+  });
+
+  ipcMain.handle(CHANNELS.SELECT_YTDLP_COOKIES_FILE, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openFile"],
+        filters: [
+          { name: "Cookies", extensions: ["txt"] },
+          { name: "All Files", extensions: ["*"] },
+        ],
+      });
+      if (result.canceled || !result.filePaths?.length) {
+        return { success: false, canceled: true };
+      }
+      const filePath = result.filePaths[0];
+      if (!isValidCookiesFilePath(filePath)) {
+        return { success: false, error: "Invalid cookies file path" };
+      }
+      return { success: true, filePath };
+    } catch (error) {
+      log.error("select-ytdlp-cookies-file error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
   });
 
   ipcMain.handle(CHANNELS.GET_DOWNLOAD_PATH, async () => {

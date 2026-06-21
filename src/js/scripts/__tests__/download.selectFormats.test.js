@@ -11,11 +11,16 @@ jest.mock("electron-log", () => ({
   error: jest.fn(),
 }));
 
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
 const {
   selectFormatsByQuality,
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
   _buildSubtitleDownloadArgs,
+  _buildYtDlpCookiesArgs,
   _buildYtDlpVideoInfoArgs,
   _buildYtDlpVideoPreviewArgs,
   _findSubtitleOutputPath,
@@ -23,8 +28,109 @@ const {
   _getPersistentPreviewCachePath,
   _getPersistentPreviewMetadata,
   _normalizeSubtitleDownloadOptions,
+  _normalizeYtDlpCookiesSettings,
   _setPersistentPreviewMetadata,
+  setSharedStore,
 } = require("../download.js");
+
+describe("yt-dlp cookies args", () => {
+  afterEach(() => {
+    setSharedStore(null);
+  });
+
+  it("normalizes cookies settings and defaults to off", () => {
+    expect(_normalizeYtDlpCookiesSettings(null)).toEqual({
+      mode: "off",
+      browser: "chrome",
+      filePath: "",
+    });
+    expect(
+      _normalizeYtDlpCookiesSettings({
+        mode: "unknown",
+        browser: "netscape",
+        filePath: "bad\u0000path",
+        extra: true,
+      }),
+    ).toEqual({
+      mode: "off",
+      browser: "chrome",
+      filePath: "",
+    });
+  });
+
+  it("does not add cookies args by default", () => {
+    setSharedStore({
+      get: jest.fn(() => ({ mode: "off", browser: "chrome", filePath: "" })),
+    });
+
+    expect(_buildYtDlpCookiesArgs()).toEqual([]);
+    expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).not.toContain(
+      "--cookies",
+    );
+  });
+
+  it("adds browser cookies args to info and preview calls", () => {
+    setSharedStore({
+      get: jest.fn(() => ({ mode: "browser", browser: "chrome" })),
+    });
+
+    expect(_buildYtDlpCookiesArgs()).toEqual([
+      "--cookies-from-browser",
+      "chrome",
+    ]);
+    expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
+      expect.arrayContaining(["--cookies-from-browser", "chrome"]),
+    );
+    expect(_buildYtDlpVideoPreviewArgs("https://youtube.com/watch?v=abc")).toEqual(
+      expect.arrayContaining(["--cookies-from-browser", "chrome"]),
+    );
+  });
+
+  it("does not add configured cookies args to non-YouTube urls", () => {
+    setSharedStore({
+      get: jest.fn(() => ({ mode: "browser", browser: "chrome" })),
+    });
+
+    expect(_buildYtDlpVideoInfoArgs("https://example.com/video")).not.toContain(
+      "--cookies-from-browser",
+    );
+    expect(_buildYtDlpVideoPreviewArgs("https://example.com/video")).not.toContain(
+      "--cookies-from-browser",
+    );
+  });
+
+  it("adds cookies file args only for an existing absolute file", () => {
+    const cookiesPath = path.join(
+      fs.mkdtempSync(path.join(os.tmpdir(), "cookies-")),
+      "cookies.txt",
+    );
+    fs.writeFileSync(cookiesPath, "# Netscape HTTP Cookie File\n");
+    setSharedStore({
+      get: jest.fn(() => ({
+        mode: "file",
+        browser: "chrome",
+        filePath: cookiesPath,
+      })),
+    });
+
+    expect(_buildYtDlpCookiesArgs()).toEqual(["--cookies", cookiesPath]);
+    expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
+      expect.arrayContaining(["--cookies", cookiesPath]),
+    );
+  });
+
+  it("skips invalid or missing cookies files", () => {
+    setSharedStore({
+      get: jest.fn(() => ({
+        mode: "file",
+        browser: "chrome",
+        filePath: path.join(os.tmpdir(), "missing-cookies.txt"),
+      })),
+    });
+
+    expect(_buildYtDlpCookiesArgs()).toEqual([]);
+  });
+});
 
 describe("selectFormatsByQuality object fallback", () => {
   it("falls back by quality label when stored format IDs are unavailable", () => {
@@ -132,7 +238,7 @@ describe("subtitle download helpers", () => {
         "--sub-langs",
         "pt-BR",
         "--sub-format",
-        "best",
+        "srt/vtt/best",
         "--convert-subs",
         "srt",
       ]),
@@ -151,23 +257,20 @@ describe("subtitle download helpers", () => {
     expect(
       _buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
     ).toEqual(expect.arrayContaining(["--write-auto-subs"]));
+    expect(
+      _buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
+    ).not.toContain("--write-subs");
   });
 
-  it("can request both manual and automatic subtitle sources for fallback", () => {
+  it("downloads only the explicitly selected subtitle source", () => {
     const args = _buildSubtitleDownloadArgs({
       lang: "zh-Hans",
       source: "manual",
-      includeBothSources: true,
     });
 
-    expect(args).toEqual(
-      expect.arrayContaining([
-        "--write-subs",
-        "--write-auto-subs",
-        "--sub-langs",
-        "zh-Hans",
-      ]),
-    );
+    expect(args).toEqual(expect.arrayContaining(["--write-subs"]));
+    expect(args).not.toContain("--write-auto-subs");
+    expect(args).toEqual(expect.arrayContaining(["--sub-langs", "zh-Hans"]));
   });
 
   it("finds the requested converted subtitle output by temp prefix", () => {
@@ -190,6 +293,16 @@ describe("subtitle download helpers", () => {
     expect(_findSubtitleOutputPath(dir, "subs_key", "zh-Hans")).toBe(
       outputPath,
     );
+  });
+
+  it("finds yt-dlp automatic caption artifacts before conversion", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "subs-"));
+    const outputPath = path.join(dir, "subs_key.pt-BR.json3");
+    fs.writeFileSync(outputPath, '{"events":[]}');
+
+    expect(_findSubtitleOutputPath(dir, "subs_key", "pt-BR")).toBe(outputPath);
   });
 });
 

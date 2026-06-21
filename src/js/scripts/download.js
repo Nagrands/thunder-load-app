@@ -70,6 +70,89 @@ function getStore() {
 function getToolsDir() {
   return getEffectiveToolsDir(getStore());
 }
+
+const YTDLP_COOKIES_STORE_KEY = "ytDlp.cookies";
+const YTDLP_COOKIES_DEFAULT = Object.freeze({
+  mode: "off",
+  browser: "chrome",
+  filePath: "",
+});
+const YTDLP_COOKIES_MODES = new Set(["off", "browser", "file"]);
+const YTDLP_COOKIES_BROWSERS = new Set([
+  "chrome",
+  "firefox",
+  "safari",
+  "edge",
+  "brave",
+  "chromium",
+  "vivaldi",
+  "opera",
+]);
+
+function normalizeYtDlpCookiesSettings(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const mode = YTDLP_COOKIES_MODES.has(raw.mode)
+    ? raw.mode
+    : YTDLP_COOKIES_DEFAULT.mode;
+  const browser = YTDLP_COOKIES_BROWSERS.has(raw.browser)
+    ? raw.browser
+    : YTDLP_COOKIES_DEFAULT.browser;
+  const filePath =
+    typeof raw.filePath === "string" && !raw.filePath.includes("\u0000")
+      ? raw.filePath.trim()
+      : "";
+  return { mode, browser, filePath };
+}
+
+function getYtDlpCookiesSettings() {
+  try {
+    return normalizeYtDlpCookiesSettings(
+      getStore()?.get?.(YTDLP_COOKIES_STORE_KEY, YTDLP_COOKIES_DEFAULT),
+    );
+  } catch {
+    return { ...YTDLP_COOKIES_DEFAULT };
+  }
+}
+
+function isUsableCookiesFile(filePath) {
+  if (
+    typeof filePath !== "string" ||
+    !filePath.trim() ||
+    filePath.includes("\u0000") ||
+    !path.isAbsolute(filePath)
+  ) {
+    return false;
+  }
+  try {
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function buildYtDlpCookiesArgs(
+  settings = getYtDlpCookiesSettings(),
+  { url = "" } = {},
+) {
+  const normalized = normalizeYtDlpCookiesSettings(settings);
+  if (url && !isYouTubeUrl(url)) {
+    return [];
+  }
+  if (normalized.mode === "browser") {
+    return ["--cookies-from-browser", normalized.browser];
+  }
+  if (normalized.mode === "file") {
+    if (!isUsableCookiesFile(normalized.filePath)) {
+      log.warn("[download] yt-dlp cookies file is not usable; skipping", {
+        filePath: normalized.filePath,
+      });
+      return [];
+    }
+    return ["--cookies", normalized.filePath];
+  }
+  return [];
+}
+
 function getYtDlpPath() {
   return resolveToolPath("yt-dlp", getToolsDir());
 }
@@ -172,7 +255,17 @@ const QUALITY_HD = "HD 720p";
 const QUALITY_SD = "SD 360p";
 const SUBTITLE_OUTPUT_EXT = "srt";
 const SAFE_SUBTITLE_LANG_RE = /^[a-z0-9._-]{1,24}$/i;
-const SUBTITLE_ARTIFACT_EXTS = new Set(["srt", "vtt", "ttml", "dfxp", "ass"]);
+const SUBTITLE_ARTIFACT_EXTS = new Set([
+  "srt",
+  "vtt",
+  "ttml",
+  "dfxp",
+  "ass",
+  "json3",
+  "srv1",
+  "srv2",
+  "srv3",
+]);
 
 function isAudioOnlyQuality(quality, videoFormat, audioFormat) {
   if (quality === QUALITY_AUDIO_ONLY) return true;
@@ -207,21 +300,15 @@ function buildSubtitleDownloadArgs(options = {}) {
     subtitleLang: options.lang,
     subtitleSource: options.source,
   });
-  const writeArgs =
-    options.includeBothSources === true
-      ? ["--write-subs", "--write-auto-subs"]
-      : [
-          normalized.source === "automatic"
-            ? "--write-auto-subs"
-            : "--write-subs",
-        ];
+  const writeArg =
+    normalized.source === "automatic" ? "--write-auto-subs" : "--write-subs";
   return [
     "--skip-download",
-    ...writeArgs,
+    writeArg,
     "--sub-langs",
     normalized.lang,
     "--sub-format",
-    "best",
+    "srt/vtt/best",
     "--convert-subs",
     SUBTITLE_OUTPUT_EXT,
     "--no-playlist",
@@ -1549,6 +1636,7 @@ function buildYtDlpVideoInfoArgs(url, ffmpegDir = resolveRuntimeFfmpegDir()) {
     "--no-warnings",
     "--ignore-config",
   ];
+  args.push(...buildYtDlpCookiesArgs(undefined, { url }));
   if (isYouTubeSingleVideoUrl(url)) {
     args.push("--no-playlist");
   }
@@ -1569,6 +1657,7 @@ function buildYtDlpVideoPreviewArgs(
     "--no-warnings",
     "--ignore-config",
   ];
+  args.push(...buildYtDlpCookiesArgs(undefined, { url }));
   if (isYouTubeSingleVideoUrl(url)) {
     args.push("--no-playlist");
   } else if (isExplicitYouTubePlaylistUrl(url)) {
@@ -2290,6 +2379,7 @@ function spawnDownloadProcess(
             "--ignore-errors",
             "--no-warnings",
           );
+          args.push(...buildYtDlpCookiesArgs(undefined, { url }));
           if (extraArgs.length) {
             args.push(...extraArgs);
           }
@@ -2659,7 +2749,7 @@ async function downloadMedia(
       const tempPrefix = `subs_${resumePrefix}`;
       const tempOutputTemplate = path.join(
         downloadPath,
-        `${tempPrefix}.%(language)s.%(ext)s`,
+        `${tempPrefix}.%(ext)s`,
       );
       const finalSubtitlePath = path.join(
         downloadPath,
@@ -2682,8 +2772,8 @@ async function downloadMedia(
         targetPath: finalSubtitlePath,
         tempPath: tempOutputTemplate,
       });
-      const runSubtitleDownload = async (includeBothSources = false) => {
-        emitDownloadProgress(event, includeBothSources ? 35 : 5, {
+      const runSubtitleDownload = async () => {
+        emitDownloadProgress(event, 5, {
           jobId,
           phase: "download",
         });
@@ -2695,7 +2785,6 @@ async function downloadMedia(
           {
             extraArgs: buildSubtitleDownloadArgs({
               ...subtitleOptions,
-              includeBothSources,
             }),
             processKey: "videoDownload",
             token,
@@ -2708,9 +2797,9 @@ async function downloadMedia(
           subtitleOptions.lang,
         );
       };
-      let producedPath = await runSubtitleDownload(false);
+      const producedPath = await runSubtitleDownload();
       if (!producedPath) {
-        log.warn("[download] Subtitle artifact not found; retrying sources", {
+        log.warn("[download] Subtitle artifact not found", {
           lang: subtitleOptions.lang,
           source: subtitleOptions.source,
           artifacts: getSubtitleArtifactEntries(
@@ -2719,7 +2808,6 @@ async function downloadMedia(
             subtitleOptions.lang,
           ),
         });
-        producedPath = await runSubtitleDownload(true);
       }
       if (!producedPath || !fs.existsSync(producedPath)) {
         const artifacts = getSubtitleArtifactEntries(
@@ -2728,7 +2816,7 @@ async function downloadMedia(
           subtitleOptions.lang,
         );
         throw new Error(
-          `Субтитры не были сохранены${artifacts.length ? `: найдено ${artifacts.join(", ")}` : ""}`,
+          `Субтитры ${subtitleOptions.lang} (${subtitleOptions.source}) не были сохранены${artifacts.length ? `: найдено ${artifacts.join(", ")}` : ""}`,
         );
       }
       if (path.extname(producedPath).toLowerCase() === `.${SUBTITLE_OUTPUT_EXT}`) {
@@ -3127,6 +3215,8 @@ module.exports = {
   setSharedStore,
   _buildYtDlpVideoInfoArgs: buildYtDlpVideoInfoArgs,
   _buildYtDlpVideoPreviewArgs: buildYtDlpVideoPreviewArgs,
+  _buildYtDlpCookiesArgs: buildYtDlpCookiesArgs,
+  _normalizeYtDlpCookiesSettings: normalizeYtDlpCookiesSettings,
   _buildSubtitleDownloadArgs: buildSubtitleDownloadArgs,
   _findSubtitleOutputPath: findSubtitleOutputPath,
   _normalizeSubtitleDownloadOptions: normalizeSubtitleDownloadOptions,

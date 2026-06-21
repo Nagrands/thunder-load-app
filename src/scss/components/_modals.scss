@@ -2717,6 +2717,202 @@
     .quality-profile-summary__hint {
       color: rgba(255, 255, 255, 0.46);
     }
+
+    .settings-control-group--cookies {
+      gap: 9px;
+    }
+
+    .settings-cookies-list {
+      gap: 6px;
+    }
+
+    .settings-cookies-row {
+      min-height: 42px;
+      padding: 6px 10px;
+      justify-content: space-between;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.04);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.065);
+      }
+    }
+
+    .settings-cookies-row--hint {
+      min-height: 58px;
+      align-items: center;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.065);
+    }
+
+    .settings-cookies-label {
+      flex: 1 1 auto;
+      width: auto;
+      min-width: 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-weight: 700;
+
+      i {
+        width: 18px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.72);
+        flex: 0 0 auto;
+      }
+
+      span {
+        overflow-wrap: anywhere;
+      }
+    }
+
+    .settings-cookies-select {
+      flex: 0 0 auto;
+      position: relative;
+      min-width: 132px;
+      max-width: min(220px, 42vw);
+    }
+
+    .settings-cookies-native-select {
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 1px;
+      min-width: 0;
+      max-width: 1px;
+      height: 1px;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      clip-path: inset(50%);
+      pointer-events: none;
+    }
+
+    .settings-cookies-select__trigger {
+      width: 100%;
+      min-width: 0;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      @include mixins.dropdown-control(32px, 10px, 6px 10px, 12px, 700);
+      font: inherit;
+      cursor: pointer;
+
+      span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      i {
+        flex: 0 0 auto;
+        transition: transform 0.18s ease;
+      }
+
+      &:focus-visible,
+      &[aria-expanded="true"] {
+        outline: none;
+        border-color: rgba(var(--color-accent-rgb), 0.58);
+        box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.15);
+      }
+
+      &[aria-expanded="true"] i {
+        transform: rotate(180deg);
+      }
+    }
+
+    .settings-cookies-select__menu {
+      position: absolute;
+      z-index: 40;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      display: grid;
+      gap: 4px;
+      overflow-x: hidden;
+      @include mixins.dropdown-menu-surface(8px, 240px);
+
+      &.hidden {
+        display: none;
+      }
+    }
+
+    .settings-cookies-select__option {
+      width: 100%;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      @include mixins.dropdown-option(8px, 0.84rem);
+      font: inherit;
+      cursor: pointer;
+
+      span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      i {
+        opacity: 0;
+        color: var(--color-accent);
+        flex: 0 0 auto;
+      }
+
+      &[aria-selected="true"] i {
+        opacity: 1;
+      }
+    }
+
+    .settings-cookies-file-button {
+      flex: 0 0 auto;
+      min-height: 30px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--color-text-main);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition:
+        background 0.14s ease,
+        border-color 0.14s ease,
+        transform 0.14s ease;
+
+      &:hover {
+        border-color: rgba(var(--color-accent-rgb), 0.36);
+        background: rgba(var(--color-accent-rgb), 0.16);
+        transform: translateY(-1px);
+      }
+
+      &:focus-visible {
+        outline: 2px solid rgba(var(--color-accent-rgb), 0.7);
+        outline-offset: 2px;
+      }
+    }
+
+    .settings-cookies-file-label {
+      flex: 0 0 auto;
+      max-width: min(220px, 34vw);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 12px;
+      font-weight: 700;
+    }
   }
 
   .settings-card__title {

@@ -70,6 +70,22 @@ export const settingsTranslations = {
     "settings.downloader.disableComplete":
       "Отключить <strong>окно открытия файла</strong> после завершения загрузки",
     "settings.downloader.toolsStatus": "Показывать статус инструментов",
+    "settings.downloader.cookies.title": "YouTube cookies",
+    "settings.downloader.cookies.mode": "Режим cookies",
+    "settings.downloader.cookies.mode.off": "Выкл.",
+    "settings.downloader.cookies.mode.browser": "Из браузера",
+    "settings.downloader.cookies.mode.file": "Файл cookies.txt",
+    "settings.downloader.cookies.browser": "Браузер",
+    "settings.downloader.cookies.file": "Файл cookies.txt",
+    "settings.downloader.cookies.file.pick": "Выбрать файл",
+    "settings.downloader.cookies.file.empty": "Файл не выбран",
+    "settings.downloader.cookies.hint":
+      "Помогает пройти проверку YouTube через cookies браузера или Netscape cookies.txt. Для импорта из браузера может потребоваться закрыть браузер или выдать доступ macOS.",
+    "settings.downloader.cookies.saved": "Настройки cookies сохранены",
+    "settings.downloader.cookies.saveError":
+      "Не удалось сохранить настройки cookies: {message}",
+    "settings.downloader.cookies.file.error":
+      "Не удалось выбрать файл cookies: {message}",
     "settings.tools.title": "Инструменты",
     "settings.tools.loading": "Загружаем сведения о зависимостях…",
     "settings.tools.openModal": "Открыть инструменты",
@@ -261,6 +277,22 @@ export const settingsTranslations = {
     "settings.downloader.disableComplete":
       "Disable <strong>file open dialog</strong> after download",
     "settings.downloader.toolsStatus": "Show tools status",
+    "settings.downloader.cookies.title": "YouTube cookies",
+    "settings.downloader.cookies.mode": "Cookies mode",
+    "settings.downloader.cookies.mode.off": "Off",
+    "settings.downloader.cookies.mode.browser": "From browser",
+    "settings.downloader.cookies.mode.file": "cookies.txt file",
+    "settings.downloader.cookies.browser": "Browser",
+    "settings.downloader.cookies.file": "cookies.txt file",
+    "settings.downloader.cookies.file.pick": "Choose file",
+    "settings.downloader.cookies.file.empty": "No file selected",
+    "settings.downloader.cookies.hint":
+      "Helps pass YouTube checks through browser cookies or a Netscape cookies.txt file. Browser import may require closing the browser or granting macOS access.",
+    "settings.downloader.cookies.saved": "Cookies settings saved",
+    "settings.downloader.cookies.saveError":
+      "Unable to save cookies settings: {message}",
+    "settings.downloader.cookies.file.error":
+      "Unable to choose cookies file: {message}",
     "settings.tools.title": "Tools",
     "settings.tools.loading": "Loading dependency information…",
     "settings.tools.openModal": "Open tools",

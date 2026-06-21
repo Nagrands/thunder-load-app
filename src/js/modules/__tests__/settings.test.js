@@ -628,6 +628,184 @@ describe("download parallel limit toggle", () => {
   });
 });
 
+describe("yt-dlp cookies settings", () => {
+  const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    window.electron = {
+      invoke: jest.fn((channel, payload) => {
+        if (channel === "get-ytdlp-cookies-settings") {
+          return Promise.resolve({
+            mode: "browser",
+            browser: "firefox",
+            filePath: "",
+          });
+        }
+        if (channel === "set-ytdlp-cookies-settings") {
+          return Promise.resolve({ success: true, settings: payload });
+        }
+        if (channel === "select-ytdlp-cookies-file") {
+          return Promise.resolve({
+            success: true,
+            filePath: "/tmp/cookies.txt",
+          });
+        }
+        return Promise.resolve({ success: true });
+      }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+  });
+
+  function renderCookiesSettingsDom() {
+    document.body.innerHTML = `
+      <div id="window-settings">
+        <div data-settings-cookies-select="mode">
+          <button id="settings-ytdlp-cookies-mode-trigger" type="button" aria-expanded="false"></button>
+          <span id="settings-ytdlp-cookies-mode-label"></span>
+          <select id="settings-ytdlp-cookies-mode">
+            <option value="off">Off</option>
+            <option value="browser">Browser</option>
+            <option value="file">File</option>
+          </select>
+          <div id="settings-ytdlp-cookies-mode-menu" class="hidden">
+            <button class="settings-cookies-select__option" data-value="off" data-label-key="settings.downloader.cookies.mode.off"><span>Off</span></button>
+            <button class="settings-cookies-select__option" data-value="browser" data-label-key="settings.downloader.cookies.mode.browser"><span>Browser</span></button>
+            <button class="settings-cookies-select__option" data-value="file" data-label-key="settings.downloader.cookies.mode.file"><span>File</span></button>
+          </div>
+        </div>
+        <div id="settings-ytdlp-cookies-browser-row">
+          <div data-settings-cookies-select="browser">
+            <button id="settings-ytdlp-cookies-browser-trigger" type="button" aria-expanded="false"></button>
+            <span id="settings-ytdlp-cookies-browser-label"></span>
+            <select id="settings-ytdlp-cookies-browser">
+              <option value="chrome">Chrome</option>
+              <option value="firefox">Firefox</option>
+            </select>
+            <div id="settings-ytdlp-cookies-browser-menu" class="hidden">
+              <button class="settings-cookies-select__option" data-value="chrome"><span>Chrome</span></button>
+              <button class="settings-cookies-select__option" data-value="firefox"><span>Firefox</span></button>
+            </div>
+          </div>
+        </div>
+        <div id="settings-ytdlp-cookies-file-row">
+          <button id="settings-ytdlp-cookies-file-button" type="button"></button>
+        </div>
+        <span id="settings-ytdlp-cookies-file-label"></span>
+      </div>`;
+  }
+
+  it("loads cookies settings and toggles browser/file rows", async () => {
+    renderCookiesSettingsDom();
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+    await flushPromises();
+
+    expect(document.getElementById("settings-ytdlp-cookies-mode")?.value).toBe(
+      "browser",
+    );
+    expect(
+      document.getElementById("settings-ytdlp-cookies-browser")?.value,
+    ).toBe("firefox");
+    expect(
+      document.getElementById("settings-ytdlp-cookies-mode-label")?.textContent,
+    ).toBe("settings.downloader.cookies.mode.browser");
+    expect(
+      document.getElementById("settings-ytdlp-cookies-browser-label")
+        ?.textContent,
+    ).toBe("Firefox");
+    expect(
+      document.getElementById("settings-ytdlp-cookies-browser-row")?.hidden,
+    ).toBe(false);
+    expect(
+      document.getElementById("settings-ytdlp-cookies-file-row")?.hidden,
+    ).toBe(true);
+  });
+
+  it("saves mode changes", async () => {
+    renderCookiesSettingsDom();
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+    await flushPromises();
+
+    const mode = document.getElementById("settings-ytdlp-cookies-mode");
+    mode.value = "file";
+    mode.dispatchEvent(new Event("change"));
+    await flushPromises();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-ytdlp-cookies-settings",
+      {
+        mode: "file",
+        browser: "firefox",
+        filePath: "",
+      },
+    );
+  });
+
+  it("saves mode changes from the custom dropdown option", async () => {
+    renderCookiesSettingsDom();
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+    await flushPromises();
+
+    const menu = document.getElementById("settings-ytdlp-cookies-mode-menu");
+    menu
+      ?.querySelector('[data-value="file"]')
+      ?.dispatchEvent(new Event("click", { bubbles: true }));
+    await flushPromises();
+
+    expect(document.getElementById("settings-ytdlp-cookies-mode")?.value).toBe(
+      "file",
+    );
+    expect(
+      menu?.querySelector('[data-value="file"]')?.getAttribute("aria-selected"),
+    ).toBe("true");
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-ytdlp-cookies-settings",
+      {
+        mode: "file",
+        browser: "firefox",
+        filePath: "",
+      },
+    );
+  });
+
+  it("selects a cookies file and saves file mode", async () => {
+    renderCookiesSettingsDom();
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+    await flushPromises();
+
+    document
+      .getElementById("settings-ytdlp-cookies-file-button")
+      ?.dispatchEvent(new Event("click"));
+    await flushPromises();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "select-ytdlp-cookies-file",
+    );
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-ytdlp-cookies-settings",
+      {
+        mode: "file",
+        browser: "firefox",
+        filePath: "/tmp/cookies.txt",
+      },
+    );
+    expect(
+      document.getElementById("settings-ytdlp-cookies-file-label")?.textContent,
+    ).toBe("/tmp/cookies.txt");
+  });
+});
+
 describe("downloader tools status visibility toggle", () => {
   beforeEach(() => {
     jest.resetModules();
@@ -873,6 +1051,27 @@ describe("network status setting removal", () => {
     expect("downloaderDisabled" in config.modules).toBe(false);
   });
 
+  it("exports yt-dlp cookies settings", async () => {
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "get-ytdlp-cookies-settings") {
+        return Promise.resolve({
+          mode: "file",
+          browser: "chrome",
+          filePath: "/tmp/cookies.txt",
+        });
+      }
+      return Promise.resolve(false);
+    });
+    const mod = require("../settings");
+    const config = await mod.__test_collectCurrentConfig();
+
+    expect(config?.ytDlp?.cookies).toEqual({
+      mode: "file",
+      browser: "chrome",
+      filePath: "/tmp/cookies.txt",
+    });
+  });
+
   it("applyConfig clears legacy topbarNetworkStatusVisible key", async () => {
     localStorage.setItem("topbarNetworkStatusVisible", "true");
     const mod = require("../settings");
@@ -897,5 +1096,28 @@ describe("network status setting removal", () => {
     });
 
     expect(localStorage.getItem("developerDisableDownloaderTab")).toBeNull();
+  });
+
+  it("applies yt-dlp cookies settings", async () => {
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      ytDlp: {
+        cookies: {
+          mode: "browser",
+          browser: "firefox",
+          filePath: "",
+        },
+      },
+    });
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "set-ytdlp-cookies-settings",
+      {
+        mode: "browser",
+        browser: "firefox",
+        filePath: "",
+      },
+    );
   });
 });
