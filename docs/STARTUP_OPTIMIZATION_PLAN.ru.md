@@ -42,8 +42,11 @@
 
 ## Этап 5. Разделение main-process IPC
 
+Статус: в работе.
+
 - Разнести `ipcHandlers.js` на core/download/tools/backup/update/history modules.
 - Перенести тяжелые зависимости в lazy factories внутри feature handlers.
+  - Выполнено: Backup IPC вынесен в отдельный app-модуль, `backupManager` загружается только при backup-действиях.
 - Привести WG Unlock к регистрации через общий IPC entry.
 - Обновить IPC tests по группам.
 
