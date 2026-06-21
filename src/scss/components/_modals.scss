@@ -2751,7 +2751,6 @@
       width: auto;
       min-width: 0;
       color: rgba(255, 255, 255, 0.84);
-      font-weight: 700;
 
       i {
         width: 18px;
@@ -2768,7 +2767,7 @@
     .settings-cookies-select {
       flex: 0 0 auto;
       position: relative;
-      min-width: 132px;
+      min-width: 165px;
       max-width: min(220px, 42vw);
     }
 
