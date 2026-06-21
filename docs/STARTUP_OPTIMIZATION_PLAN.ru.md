@@ -47,6 +47,7 @@
 - Разнести `ipcHandlers.js` на core/download/tools/backup/update/history modules.
 - Перенести тяжелые зависимости в lazy factories внутри feature handlers.
   - Выполнено: Backup IPC вынесен в отдельный app-модуль, `backupManager` загружается только при backup-действиях.
+  - Выполнено: Tools location IPC вынесен в отдельный app-модуль с отдельным покрытием миграции бинарников.
 - Привести WG Unlock к регистрации через общий IPC entry.
 - Обновить IPC tests по группам.
 

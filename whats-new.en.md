@@ -17,6 +17,7 @@
 | App startup was refined            | Tools and Products tabs now lazy-load heavy modules only when they are opened                                             |
 | App startup was refined            | `yt-dlp`, ffmpeg, and Deno availability now checks without launching binaries during early startup                        |
 | App startup was refined            | The Backup module no longer loads with shared IPC handlers and initializes only for backup actions                        |
+| App startup was refined            | Tool-folder handlers moved out of the shared IPC module with focused binary migration coverage                            |
 | Download queue was simplified      | Queue filters moved into the header, zero-count statuses no longer take space, and extra bulk buttons were removed        |
 | Download queue was refined         | The All button was removed, and the total task count now appears beside the Queue title                                  |
 | Download history was redesigned    | Expanded entries now show a larger preview and clean detail rows for source, file, quality, size, and date                |
