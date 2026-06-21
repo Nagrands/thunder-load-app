@@ -66,6 +66,7 @@ jest.mock("marked", () => ({
 }));
 
 jest.mock("../toolsVersions", () => ({
+  getToolsAvailability: jest.fn().mockReturnValue({}),
   getToolsVersions: jest.fn().mockResolvedValue({}),
 }));
 
@@ -2023,6 +2024,30 @@ describe("ipcHandlers download pool", () => {
     });
     return { promise, resolve, reject };
   };
+
+  test("tools:getAvailability returns fast tools status without version checks", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const toolsVersions = require("../toolsVersions");
+
+    toolsVersions.getToolsAvailability.mockReturnValue({
+      ytDlp: { ok: true, path: "/tmp/tools/yt-dlp" },
+      ffmpeg: { ok: true, path: "/tmp/tools/ffmpeg" },
+      deno: { ok: false, error: "missing" },
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_GET_AVAILABILITY]();
+
+    expect(result).toMatchObject({
+      ytDlp: { ok: true, path: "/tmp/tools/yt-dlp" },
+      ffmpeg: { ok: true, path: "/tmp/tools/ffmpeg" },
+      deno: { ok: false, error: "missing" },
+    });
+    expect(toolsVersions.getToolsAvailability).toHaveBeenCalledWith(
+      expect.objectContaining({ get: expect.any(Function) }),
+    );
+    expect(toolsVersions.getToolsVersions).not.toHaveBeenCalled();
+  });
 
   test("allows two parallel DOWNLOAD_VIDEO and rejects third", async () => {
     const { CHANNELS } = require("../../ipc/channels");

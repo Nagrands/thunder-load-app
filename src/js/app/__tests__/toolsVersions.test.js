@@ -44,7 +44,7 @@ function createProc({ code = 0, stdout = "", stderr = "" } = {}) {
   return proc;
 }
 
-describe("getToolsVersions", () => {
+describe("toolsVersions", () => {
   const originalPlatform = process.platform;
 
   beforeEach(() => {
@@ -90,6 +90,18 @@ describe("getToolsVersions", () => {
         windowsHide: true,
       }),
     );
+  });
+
+  test("returns availability without spawning binaries", () => {
+    const { getToolsAvailability } = require("../toolsVersions");
+    const availability = getToolsAvailability();
+
+    expect(availability).toMatchObject({
+      ytDlp: { ok: true, path: "/tmp/tools/yt-dlp", source: "preferred" },
+      ffmpeg: { ok: true, path: "/tmp/tools/ffmpeg", source: "preferred" },
+      deno: { ok: true, path: "/tmp/tools/deno", source: "preferred" },
+    });
+    expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   test("falls back to stderr output for yt-dlp version", async () => {

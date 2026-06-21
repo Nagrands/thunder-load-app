@@ -36,6 +36,7 @@ describe("downloaderAvailability", () => {
     buildDom();
     window.electron = {
       tools: {
+        getAvailability: jest.fn(),
         getVersions: jest.fn(),
       },
     };
@@ -56,7 +57,7 @@ describe("downloaderAvailability", () => {
   });
 
   test("disables URL controls when yt-dlp is missing", async () => {
-    window.electron.tools.getVersions.mockResolvedValue({
+    window.electron.tools.getAvailability.mockResolvedValue({
       ytDlp: { ok: false },
       ffmpeg: { ok: true, path: "/tmp/ffmpeg" },
       deno: { ok: true, path: "/tmp/deno" },
@@ -84,10 +85,11 @@ describe("downloaderAvailability", () => {
     expect(dom.helper.textContent).toBe(
       "Install yt-dlp to paste links and start downloads.",
     );
+    expect(window.electron.tools.getVersions).not.toHaveBeenCalled();
   });
 
   test("enables URL input controls when yt-dlp is available", async () => {
-    window.electron.tools.getVersions.mockResolvedValue({
+    window.electron.tools.getAvailability.mockResolvedValue({
       ytDlp: { ok: true, path: "/tmp/yt-dlp" },
       ffmpeg: { ok: false },
       deno: { ok: false },
@@ -106,10 +108,11 @@ describe("downloaderAvailability", () => {
     expect(dom.input.disabled).toBe(false);
     expect(dom.paste.disabled).toBe(false);
     expect(dom.download.disabled).toBe(true);
+    expect(window.electron.tools.getVersions).not.toHaveBeenCalled();
   });
 
   test("updates availability from tools:status events", async () => {
-    window.electron.tools.getVersions.mockResolvedValue({
+    window.electron.tools.getAvailability.mockResolvedValue({
       ytDlp: { ok: true, path: "/tmp/yt-dlp" },
     });
 

@@ -66,6 +66,36 @@ function runVersion(cmd, args, timeoutMs = 8000) {
 }
 
 /**
+ * Get fast availability of yt-dlp, ffmpeg and deno without spawning binaries.
+ * @param {any} store optional store/getter to resolve custom dir
+ */
+function getToolsAvailability(store) {
+  const buildStatus = (name) => {
+    const details = resolveRuntimeBinaryDetails(name, store);
+    const exists = !!details.path && fs.existsSync(details.path);
+    const status = {
+      ok: exists && details.executable,
+      path: details.path,
+      source: details.source,
+    };
+    if (!exists) {
+      status.error = "missing";
+    } else if (details.blockedReason) {
+      status.error = details.blockedReason;
+    } else if (!details.executable) {
+      status.error = "not-executable";
+    }
+    return status;
+  };
+
+  return {
+    ytDlp: buildStatus("yt-dlp"),
+    ffmpeg: buildStatus("ffmpeg"),
+    deno: buildStatus("deno"),
+  };
+}
+
+/**
  * Get current versions of yt-dlp, ffmpeg and deno from effective tools directory.
  * @param {any} store optional store/getter to resolve custom dir
  */
@@ -104,4 +134,4 @@ async function getToolsVersions(store) {
   return { ytDlp: yt, ffmpeg: ff, deno };
 }
 
-module.exports = { getToolsVersions };
+module.exports = { getToolsAvailability, getToolsVersions };

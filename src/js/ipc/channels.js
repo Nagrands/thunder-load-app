@@ -76,6 +76,7 @@ const CHANNELS = Object.freeze({
   TOAST: "toast",
   TOGGLE_AUTO_LAUNCH: "toggle-auto-launch",
   TOOLS_CHECKUPDATES: "tools:checkUpdates",
+  TOOLS_GET_AVAILABILITY: "tools:getAvailability",
   TOOLS_GETVERSIONS: "tools:getVersions",
   TOOLS_INSTALLALL: "tools:installAll",
   TOOLS_SHOWINFOLDER: "tools:showInFolder",

@@ -33,10 +33,12 @@
 
 ## Этап 4. Доступность инструментов без ранних spawn
 
-- Создать общий кеш состояния downloader tools.
+Статус: выполнено.
+
 - Разделить быстрый availability-check и получение версий бинарников.
-- Выполнять `yt-dlp`, `ffmpeg`, `deno` проверки лениво и параллельно.
-- Обновить tests для tools versions/status.
+- Добавить `tools:getAvailability` для startup preflight без запуска `yt-dlp`, `ffmpeg`, `deno`.
+- Оставить `tools:getVersions` для footer/tools UI, где нужны версии и проверка обновлений.
+- Обновить tests для tools availability, IPC и downloader availability.
 
 ## Этап 5. Разделение main-process IPC
 

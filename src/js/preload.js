@@ -108,6 +108,7 @@ try {
     "toast",
     "toggle-auto-launch",
     "tools:checkUpdates",
+    "tools:getAvailability",
     "tools:getVersions",
     "tools:installAll",
     "tools:showInFolder",
@@ -323,6 +324,7 @@ try {
    * @property {(channel: string, ...args: any[]) => void} send
    * @property {(listener: (...args: any[]) => void) => (() => void)|undefined} onShowWhatsNew
    * @property {{
+   *   getAvailability: () => Promise<any>,
    *   getVersions: () => Promise<any>,
    *   showInFolder: (p: string) => Promise<any>,
    *   installAll: () => Promise<any>,
@@ -371,6 +373,7 @@ try {
 
     // Инструменты
     tools: {
+      getAvailability: () => safeInvoke("tools:getAvailability"),
       getVersions: () => safeInvoke("tools:getVersions"),
       showInFolder: (p) => safeInvoke("tools:showInFolder", p),
       installAll: () => safeInvoke("tools:installAll"),

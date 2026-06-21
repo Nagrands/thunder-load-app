@@ -108,10 +108,10 @@ function setYtDlpAvailability(nextValue) {
 
 async function fetchInitialAvailability() {
   try {
-    const versions = await window.electron?.tools?.getVersions?.();
-    setYtDlpAvailability(hasUsableYtDlp(versions));
+    const availability = await window.electron?.tools?.getAvailability?.();
+    setYtDlpAvailability(hasUsableYtDlp(availability));
   } catch (error) {
-    console.warn("[downloaderAvailability] getVersions failed:", error);
+    console.warn("[downloaderAvailability] getAvailability failed:", error);
     setYtDlpAvailability(false);
   }
 }

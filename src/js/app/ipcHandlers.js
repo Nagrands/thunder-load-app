@@ -15,7 +15,10 @@ const {
   resolveIconPathFrom,
 } = require("./iconPaths");
 
-const { getToolsVersions } = require("./toolsVersions");
+const {
+  getToolsAvailability,
+  getToolsVersions,
+} = require("./toolsVersions");
 const {
   classifyDownloadError,
   formatMissingDownloadToolsMessage,
@@ -886,6 +889,23 @@ function setupIpcHandlers(dependencies) {
       return {
         ytDlp: { ok: false, error: error.message },
         ffmpeg: { ok: false, error: error.message },
+      };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_GET_AVAILABILITY, async () => {
+    try {
+      const tools = getToolsAvailability(store);
+      if (process.platform === "darwin" && tools?.ffmpeg) {
+        tools.ffmpeg.skipUpdates = true;
+      }
+      return tools;
+    } catch (error) {
+      log.error("Error in TOOLS_GET_AVAILABILITY:", error);
+      return {
+        ytDlp: { ok: false, error: error.message },
+        ffmpeg: { ok: false, error: error.message },
+        deno: { ok: false, error: error.message },
       };
     }
   });
