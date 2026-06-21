@@ -1,11 +1,8 @@
 import TabSystem from "../tabSystem.js";
-import renderToolsView from "../views/toolsView.js";
 import renderDownloaderView from "../views/downloaderView.js";
-import renderProductFormatterView from "../views/productFormatterView.js";
-import { initDownloaderToolsStatus } from "../downloaderToolsStatus.js";
 import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
 import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
-import { getDefaultTab } from "../settings.js";
+import { getDefaultTab } from "../features/settings/defaultTabStore.js";
 import { applyI18n, t } from "../i18n.js";
 import { requestToolsView } from "../toolsNavigation.js";
 
@@ -51,6 +48,7 @@ function createWrappers(mainView) {
 }
 
 function disposeToolsWrapperContent(wireguardWrapper) {
+  toolsRenderVersion += 1;
   const toolsView = wireguardWrapper?.firstElementChild;
   if (!toolsView) return;
   try {
@@ -59,6 +57,97 @@ function disposeToolsWrapperContent(wireguardWrapper) {
     );
   } catch {}
   wireguardWrapper.replaceChildren();
+}
+
+let downloaderToolsStatusModulePromise = null;
+let toolsViewModulePromise = null;
+let productFormatterViewModulePromise = null;
+let toolsRenderVersion = 0;
+let lazyModuleLoaders = {
+  loadDownloaderToolsStatusModule: () => import("../downloaderToolsStatus.js"),
+  loadToolsViewModule: () => import("../views/toolsView.js"),
+  loadProductFormatterViewModule: () =>
+    import("../views/productFormatterView.js"),
+};
+
+function loadDownloaderToolsStatusModule() {
+  if (!downloaderToolsStatusModulePromise) {
+    downloaderToolsStatusModulePromise =
+      lazyModuleLoaders.loadDownloaderToolsStatusModule();
+  }
+  return downloaderToolsStatusModulePromise;
+}
+
+function loadToolsViewModule() {
+  if (!toolsViewModulePromise) {
+    toolsViewModulePromise = lazyModuleLoaders.loadToolsViewModule();
+  }
+  return toolsViewModulePromise;
+}
+
+function loadProductFormatterViewModule() {
+  if (!productFormatterViewModulePromise) {
+    productFormatterViewModulePromise =
+      lazyModuleLoaders.loadProductFormatterViewModule();
+  }
+  return productFormatterViewModulePromise;
+}
+
+function initializeDownloaderToolsStatus() {
+  loadDownloaderToolsStatusModule()
+    .then(({ initDownloaderToolsStatus }) => {
+      initDownloaderToolsStatus();
+    })
+    .catch((error) => {
+      console.error("[Startup] Downloader tools status lazy init failed:", error);
+    });
+}
+
+async function renderToolsTab(wireguardWrapper) {
+  try {
+    const renderVersion = ++toolsRenderVersion;
+    const shouldAppend = !wireguardWrapper.hasChildNodes();
+    if (!wireguardWrapper.hasChildNodes()) {
+      const { default: renderToolsView } = await loadToolsViewModule();
+      if (
+        !wireguardWrapper.isConnected ||
+        !shouldAppend ||
+        renderVersion !== toolsRenderVersion
+      ) {
+        return;
+      }
+      if (wireguardWrapper.hasChildNodes()) {
+        applyI18n(wireguardWrapper);
+        return;
+      }
+      wireguardWrapper.appendChild(renderToolsView());
+    }
+    applyI18n(wireguardWrapper);
+  } catch (error) {
+    console.error("[Startup] Tools view lazy render failed:", error);
+  }
+}
+
+async function renderProductsTab(productsWrapper) {
+  try {
+    const { default: renderProductFormatterView } =
+      await loadProductFormatterViewModule();
+    if (!productsWrapper.isConnected) return;
+    renderProductFormatterView(productsWrapper);
+    applyI18n(productsWrapper);
+  } catch (error) {
+    console.error("[Startup] Products view lazy render failed:", error);
+  }
+}
+
+async function ensureInitialTabReady(tabId, wrappers) {
+  if (tabId === "wireguard") {
+    await renderToolsTab(wrappers.wireguardWrapper);
+    return;
+  }
+  if (tabId === "products") {
+    await renderProductsTab(wrappers.productsWrapper);
+  }
 }
 
 export async function registerTabs(mainView) {
@@ -79,7 +168,7 @@ export async function registerTabs(mainView) {
       renderDownloaderView(wrappers.downloaderWrapper);
       initDownloaderBackgroundPreview();
       initDownloaderLivePreview();
-      initDownloaderToolsStatus();
+      initializeDownloaderToolsStatus();
       applyI18n(wrappers.downloaderWrapper);
       return wrappers.downloaderWrapper;
     },
@@ -91,10 +180,7 @@ export async function registerTabs(mainView) {
     t("tabs.tools"),
     "fa-solid fa-screwdriver-wrench",
     () => {
-      if (!wrappers.wireguardWrapper.hasChildNodes()) {
-        wrappers.wireguardWrapper.appendChild(renderToolsView());
-      }
-      applyI18n(wrappers.wireguardWrapper);
+      void renderToolsTab(wrappers.wireguardWrapper);
       return wrappers.wireguardWrapper;
     },
     {
@@ -110,8 +196,7 @@ export async function registerTabs(mainView) {
     t("tabs.products"),
     "fa-solid fa-list-check",
     () => {
-      renderProductFormatterView(wrappers.productsWrapper);
-      applyI18n(wrappers.productsWrapper);
+      void renderProductsTab(wrappers.productsWrapper);
       return wrappers.productsWrapper;
     },
     {
@@ -134,8 +219,20 @@ export async function registerTabs(mainView) {
   if (requestedToolView && !wgConfig.autosend) {
     requestToolsView(requestedToolView);
   }
+  await ensureInitialTabReady(tabToActivate, wrappers);
   showHistory(tabToActivate === "download");
   tabs.activateTab(tabToActivate);
 
   return { tabs, wgConfig, wrappers };
+}
+
+export function __test_setLazyModuleLoaders(loaders = {}) {
+  downloaderToolsStatusModulePromise = null;
+  toolsViewModulePromise = null;
+  productFormatterViewModulePromise = null;
+  toolsRenderVersion = 0;
+  lazyModuleLoaders = {
+    ...lazyModuleLoaders,
+    ...loaders,
+  };
 }

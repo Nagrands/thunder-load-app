@@ -12,6 +12,7 @@ describe("registerTabs backup transfer", () => {
   let initDownloaderLivePreviewMock;
   let applyI18nMock;
   let registerTabs;
+  let setLazyModuleLoaders;
 
   beforeEach(() => {
     jest.resetModules();
@@ -52,14 +53,18 @@ describe("registerTabs backup transfer", () => {
         activateTab: activateTabMock,
       })),
     );
-    jest.doMock("../views/toolsView.js", () => renderToolsViewMock);
+    jest.doMock("../views/toolsView.js", () => ({
+      __esModule: true,
+      default: renderToolsViewMock,
+    }));
     jest.doMock("../views/backupView.js", () => renderBackupMock);
     jest.doMock("../views/downloaderView.js", () => renderDownloaderViewMock);
-    jest.doMock(
-      "../views/productFormatterView.js",
-      () => renderProductFormatterViewMock,
-    );
+    jest.doMock("../views/productFormatterView.js", () => ({
+      __esModule: true,
+      default: renderProductFormatterViewMock,
+    }));
     jest.doMock("../downloaderToolsStatus.js", () => ({
+      __esModule: true,
       initDownloaderToolsStatus: initDownloaderToolsStatusMock,
     }));
     jest.doMock("../downloaderBackgroundPreview.js", () => ({
@@ -68,7 +73,7 @@ describe("registerTabs backup transfer", () => {
     jest.doMock("../downloaderLivePreview.js", () => ({
       initDownloaderLivePreview: initDownloaderLivePreviewMock,
     }));
-    jest.doMock("../settings.js", () => ({
+    jest.doMock("../features/settings/defaultTabStore.js", () => ({
       getDefaultTab: getDefaultTabMock,
     }));
     jest.doMock("../toolsNavigation.js", () => ({
@@ -79,7 +84,17 @@ describe("registerTabs backup transfer", () => {
       t: (key) => key,
     }));
 
-    ({ registerTabs } = require("../app/registerTabs.js"));
+    ({ __test_setLazyModuleLoaders: setLazyModuleLoaders, registerTabs } =
+      require("../app/registerTabs.js"));
+    setLazyModuleLoaders({
+      loadDownloaderToolsStatusModule: () =>
+        Promise.resolve({
+          initDownloaderToolsStatus: initDownloaderToolsStatusMock,
+        }),
+      loadProductFormatterViewModule: () =>
+        Promise.resolve({ default: renderProductFormatterViewMock }),
+      loadToolsViewModule: () => Promise.resolve({ default: renderToolsViewMock }),
+    });
   });
 
   test("registers Download, Tools, and Products tabs", async () => {
@@ -146,10 +161,46 @@ describe("registerTabs backup transfer", () => {
 
     const [, , , downloadFactory] = addTabMock.mock.calls[0];
     downloadFactory();
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(renderDownloaderViewMock).toHaveBeenCalled();
     expect(initDownloaderBackgroundPreviewMock).toHaveBeenCalled();
     expect(initDownloaderLivePreviewMock).toHaveBeenCalled();
     expect(initDownloaderToolsStatusMock).toHaveBeenCalled();
+  });
+
+  test("loads Tools view only when Tools tab renderer runs", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+
+    await registerTabs(document.getElementById("main-view"));
+
+    expect(renderToolsViewMock).not.toHaveBeenCalled();
+
+    const [, , , toolsFactory] = addTabMock.mock.calls[1];
+    const wrapper = toolsFactory();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(wrapper.id).toBe("wireguard-view-wrapper");
+    expect(renderToolsViewMock).toHaveBeenCalledTimes(1);
+    expect(applyI18nMock).toHaveBeenCalledWith(wrapper);
+  });
+
+  test("loads Products view only when Products tab renderer runs", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+
+    await registerTabs(document.getElementById("main-view"));
+
+    expect(renderProductFormatterViewMock).not.toHaveBeenCalled();
+
+    const [, , , productsFactory] = addTabMock.mock.calls[2];
+    const wrapper = productsFactory();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(wrapper.id).toBe("products-view-wrapper");
+    expect(renderProductFormatterViewMock).toHaveBeenCalledWith(wrapper);
+    expect(applyI18nMock).toHaveBeenCalledWith(wrapper);
   });
 });

@@ -28,6 +28,7 @@ import {
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./defaults.js";
+import { getDefaultTab, setDefaultTab } from "./defaultTabStore.js";
 import {
   clearOpenSettingsHandlers,
   onOpenSettings,
@@ -40,10 +41,6 @@ import {
 import { initDeveloperToolsGate } from "./developerToolsGate.js";
 import { initLanguageDropdown } from "./languageDropdown.js";
 import { ensureToolsInfo } from "./toolsInfoController.js";
-
-function normalizeDefaultTabId(tabId) {
-  return tabId === "backup" ? "wireguard" : tabId;
-}
 
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 const YTDLP_COOKIES_DEFAULT = Object.freeze({
@@ -1812,13 +1809,9 @@ export async function resetConfigToDefaults() {
   location.reload();
 }
 
-export const getDefaultTab = () => window.electron.invoke("get-default-tab");
-export const setDefaultTab = (tabId) =>
-  window.electron.invoke("set-default-tab", normalizeDefaultTabId(tabId));
-
 export const __test_updateModuleBadge = updateModuleBadge;
 export const __test_collectCurrentConfig = collectCurrentConfig;
 export const __test_applyConfig = applyConfig;
 export { updateModuleBadge };
 
-export { initSettings };
+export { getDefaultTab, initSettings, setDefaultTab };

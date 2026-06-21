@@ -24,6 +24,8 @@
 
 ## Этап 3. Lazy imports renderer-вкладок
 
+Статус: выполнено.
+
 - Убрать статические импорты тяжелых Tools/Products view из `registerTabs`.
 - Вынести чтение default tab в маленький settings-store модуль.
 - Загружать тяжелые views только при первом открытии вкладки.
