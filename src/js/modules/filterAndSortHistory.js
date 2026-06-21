@@ -132,7 +132,11 @@ function filterAndSortHistory(
   });
 
   let filtersNormalized = false;
-  if (sourceFilter && !availableHosts.has(sourceFilter)) {
+  if (
+    state.historyHydrated &&
+    sourceFilter &&
+    !availableHosts.has(sourceFilter)
+  ) {
     state.historySourceFilter = "";
     try {
       localStorage.removeItem("historySourceFilter");

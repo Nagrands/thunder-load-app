@@ -114,6 +114,7 @@ let historySearchClearBound = false;
 let activeHistoryInspectorEntryId = "";
 let activeHistoryInspectorRoot = null;
 let activeHistoryInspectorTrigger = null;
+let historyLoadPromise = null;
 
 const HISTORY_FILTERS_COLLAPSED_KEY = "historyFiltersCollapsed";
 
@@ -3510,13 +3511,6 @@ function renderHistory(entries, meta = {}) {
     sizeBytes: headerStats.sizeBytes,
   });
 
-  // ВСТАВКА: лог в начале renderHistory
-  console.log(
-    "🧾 renderHistory получил entries:",
-    fullEntries.map((e) => e.id),
-  );
-  console.log("renderHistory called at", new Date().toISOString());
-
   const container = document.getElementById("history");
   applyHistoryDensity();
   bindHistoryMenuClose();
@@ -3650,7 +3644,7 @@ async function initHistoryState() {
     setFilterInputValue(state.currentSearchQuery || "");
     updateSearchClearButtonVisibility();
     refreshHistoryLucideIcons();
-    await updateDownloadCount();
+    syncHistoryHeaderStatsFromCache();
     setHistoryPanelVisible(state.historyVisible, { animate: false });
     updateButtonState();
     updateIcon("");
@@ -3766,7 +3760,6 @@ function initHistory() {
     });
   }
 
-  if (state.historyVisible) loadHistory();
 }
 
 const sortHistory = (order = "desc") => {
@@ -3790,8 +3783,18 @@ const updateDownloadCount = async () => {
   }
 };
 
+function syncHistoryHeaderStatsFromCache() {
+  const stats = getHistoryStats(getHistoryData());
+  updateHistoryHeaderStats({
+    count: stats.count,
+    sizeBytes: stats.sizeBytes,
+  });
+}
+
 const loadHistory = async (forceRender = false) => {
-  try {
+  if (historyLoadPromise) return historyLoadPromise;
+
+  historyLoadPromise = (async () => {
     const loadedHistory = await window.electron.invoke("load-history");
     const rawHistory = Array.isArray(loadedHistory)
       ? loadedHistory.map((entry) => ({ ...entry }))
@@ -3806,6 +3809,7 @@ const loadHistory = async (forceRender = false) => {
     }
 
     setHistoryData(entries);
+    state.historyHydrated = true;
     state.historyPage = 1;
 
     const hasRealEntries = entries.length > 0;
@@ -3832,9 +3836,17 @@ const loadHistory = async (forceRender = false) => {
     restoreMissingHistoryPreviews(entries, rawHistory).catch((error) => {
       console.warn("Ошибка при восстановлении превью истории:", error);
     });
+    return entries;
+  })();
+
+  try {
+    return await historyLoadPromise;
   } catch (error) {
     console.error("Ошибка загрузки истории:", error);
     showToast(t("history.toast.loadError"), "error");
+    return [];
+  } finally {
+    historyLoadPromise = null;
   }
 };
 

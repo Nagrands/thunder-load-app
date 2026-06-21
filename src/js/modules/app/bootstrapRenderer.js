@@ -82,7 +82,6 @@ async function runCriticalInitialization(mainView) {
   initUrlInputHandler();
   initDownloaderAvailability();
   initHistory();
-  await initHistoryState();
   initTopBarReloadGuard();
   initTopBarResponsive();
   initFirstRunModal();
@@ -96,6 +95,9 @@ async function runDeferredInitialization({ tabs }) {
   console.time("[Startup] Deferred init");
 
   try {
+    void initHistoryState().catch((error) => {
+      console.error("[Startup] Deferred history init failed:", error);
+    });
     initHotkeys(tabs);
     initWhatsNewModal();
     initNetworkListeners();

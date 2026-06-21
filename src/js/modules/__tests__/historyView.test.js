@@ -241,6 +241,69 @@ describe("Downloader history list", () => {
     );
   });
 
+  test("does not load history during shell initialization", async () => {
+    localStorage.setItem("historyVisible", "true");
+    const { initHistory } = await import("../history.js");
+
+    initHistory();
+
+    expect(window.electron.invoke).not.toHaveBeenCalledWith("load-history");
+  });
+
+  test("initial state load uses cached stats instead of count IPC", async () => {
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "load-history") {
+        return Promise.resolve([
+          createEntry({
+            id: "1",
+            filePath: "/tmp/video.mp4",
+          }),
+        ]);
+      }
+      if (channel === "check-file-exists") return Promise.resolve(true);
+      if (channel === "get-file-size") return Promise.resolve(3 * 1024 * 1024);
+      if (channel === "get-download-count") return Promise.resolve(999);
+      return Promise.resolve(null);
+    });
+    const { initHistoryState } = await import("../history.js");
+
+    await initHistoryState();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith("load-history");
+    expect(window.electron.invoke).not.toHaveBeenCalledWith(
+      "get-download-count",
+    );
+    expect(document.getElementById("total-downloads").textContent).toBe("1");
+    expect(document.getElementById("total-download-size").textContent).toBe(
+      "3 MB",
+    );
+  });
+
+  test("reuses in-flight history load when panel opens during hydration", async () => {
+    let resolveHistory;
+    const historyPromise = new Promise((resolve) => {
+      resolveHistory = resolve;
+    });
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "load-history") return historyPromise;
+      return Promise.resolve(null);
+    });
+    const { initHistory, initHistoryState } = await import("../history.js");
+
+    initHistory();
+    const hydration = initHistoryState();
+    document.getElementById("open-history").click();
+
+    expect(
+      window.electron.invoke.mock.calls.filter(
+        ([channel]) => channel === "load-history",
+      ),
+    ).toHaveLength(1);
+
+    resolveHistory([]);
+    await hydration;
+  });
+
   test("renders compact pagination controls with page-size options", async () => {
     const { renderHistory } = await import("../history.js");
     const entries = Array.from({ length: 12 }, (_, idx) =>

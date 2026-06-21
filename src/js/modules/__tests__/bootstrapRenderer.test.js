@@ -72,6 +72,7 @@ describe("bootstrapRenderer", () => {
       idleCallback = cb;
       return 1;
     });
+    mocks.initHistoryState.mockReturnValue(new Promise(() => {}));
 
     let startRenderer;
     jest.isolateModules(() => {
@@ -206,7 +207,7 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initDownloaderLivePreview).toHaveBeenCalled();
     expect(mocks.initUrlInputHandler).toHaveBeenCalled();
     expect(mocks.initHistory).toHaveBeenCalled();
-    expect(mocks.initHistoryState).toHaveBeenCalled();
+    expect(mocks.initHistoryState).not.toHaveBeenCalled();
     expect(mocks.initTopBarResponsive).toHaveBeenCalled();
     expect(mocks.initFirstRunModal).toHaveBeenCalled();
     expect(mocks.registerStatusMessageListener).toHaveBeenCalled();
@@ -220,7 +221,9 @@ describe("bootstrapRenderer", () => {
 
     idleCallback();
     await Promise.resolve();
+    await Promise.resolve();
 
+    expect(mocks.initHistoryState).toHaveBeenCalled();
     expect(mocks.initSettings).toHaveBeenCalled();
     expect(mocks.initFooterStatusBar).toHaveBeenCalled();
     expect(mocks.initTooltips).toHaveBeenCalled();

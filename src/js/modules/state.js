@@ -70,6 +70,7 @@ const state = {
       return "comfort";
     }
   })(),
+  historyHydrated: false,
   historyDetailsExpanded: (() => {
     try {
       return window.localStorage.getItem("historyDetailsExpanded") === "true";

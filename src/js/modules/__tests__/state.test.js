@@ -46,4 +46,10 @@ describe("state", () => {
       ).toBe("true");
     });
   });
+
+  test("marks history as not hydrated by default", async () => {
+    const { state } = await import("../state.js");
+
+    expect(state.historyHydrated).toBe(false);
+  });
 });
