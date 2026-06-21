@@ -37,6 +37,7 @@ const { pipeline } = require("stream");
 const { marked } = require("marked");
 const execFileAsync = promisify(execFile);
 const streamPipeline = promisify(pipeline);
+const { registerAppUpdateIpcHandlers } = require("./appUpdateIpcHandlers");
 const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const {
   registerToolsLocationIpcHandlers,
@@ -3981,41 +3982,7 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  // Обработка запроса на загрузку обновления из рендер-процесса
-  ipcMain.handle(CHANNELS.CHECK_APP_UPDATES, async () => {
-    try {
-      log.info("Запрос на ручную проверку обновлений получен.");
-      autoUpdater.checkForUpdates();
-      return { success: true };
-    } catch (error) {
-      log.error("Ошибка при ручной проверке обновлений:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  // Обработка запроса на загрузку обновления из рендер-процесса
-  ipcMain.handle(CHANNELS.DOWNLOAD_UPDATE, async () => {
-    try {
-      log.info("Запрос на загрузку обновления получен.");
-      autoUpdater.downloadUpdate();
-      return { success: true };
-    } catch (error) {
-      log.error("Ошибка при загрузке обновления:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  // Обработка запроса на перезапуск и установку обновления из рендер-процесса
-  ipcMain.handle(CHANNELS.RESTART_APP, async () => {
-    try {
-      log.info("Запрос на перезапуск приложения получен.");
-      autoUpdater.quitAndInstall();
-      return { success: true };
-    } catch (error) {
-      log.error("Ошибка при перезапуске приложения:", error);
-      return { success: false, error: error.message };
-    }
-  });
+  registerAppUpdateIpcHandlers({ ipcMain, autoUpdater });
 
   ipcMain.handle(CHANNELS.CHECK_FILE_EXISTS, async (event, filePath) => {
     try {
