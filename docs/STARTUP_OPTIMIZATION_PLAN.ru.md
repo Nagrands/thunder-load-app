@@ -57,6 +57,7 @@
   - Выполнено: App preferences IPC вынесен в отдельный app-модуль с покрытием auto-launch, tray/minimize и shortcut flags.
   - Выполнено: History storage IPC вынесен в отдельный app-модуль с покрытием load/save/clear/count.
   - Выполнено: History preview IPC вынесен в отдельный app-модуль с покрытием cache/delete preview.
+  - Выполнено: Hash tools IPC вынесен в отдельный app-модуль с покрытием pick/inspect/calculate/progress.
 - Привести WG Unlock к регистрации через общий IPC entry.
   - Выполнено: WG Unlock IPC вынесен в отдельный app-модуль с покрытием config/network/log export.
 - Обновить IPC tests по группам.

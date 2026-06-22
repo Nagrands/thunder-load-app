@@ -8,5 +8,6 @@
 | YouTube cookies were added         | Downloader settings can pass cookies from a browser or cookies.txt file for videos that require sign-in or verification   |
 | App startup was refined            | Download history storage IPC moved into a separate module with focused load/save/clear/count coverage                     |
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
+| App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |
 | Download history was fixed         | Preview images no longer cover details, and Play now opens the downloaded file instead of the image preview               |
 | macOS yt-dlp checks were fixed     | Thunder no longer launches Python-backed `yt-dlp`, preventing repeated `Python.framework` verification prompts            |
