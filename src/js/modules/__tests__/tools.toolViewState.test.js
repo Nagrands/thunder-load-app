@@ -67,4 +67,14 @@ describe("createToolViewState", () => {
     expect(state.isToolAvailable("media-inspector")).toBe(true);
     expect(state.resolveInitialToolView()).toBe("media-inspector");
   });
+
+  test("remembers downloader tools as a valid last tool view", () => {
+    const state = createToolViewState();
+
+    localStorage.setItem("toolsRememberLastView", "true");
+    localStorage.setItem("toolsLastView", "downloader-tools");
+
+    expect(state.isToolAvailable("downloader-tools")).toBe(true);
+    expect(state.resolveInitialToolView()).toBe("downloader-tools");
+  });
 });

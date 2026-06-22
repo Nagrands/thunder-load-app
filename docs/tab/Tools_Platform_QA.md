@@ -5,7 +5,7 @@ alias: Проверка Tools на Windows и macOS
 
 # Проверка блока «Инструменты» на Windows и macOS
 
-Этот документ нужен для ручного smoke/regression прогона вкладки `Tools` и блока `#tools-info` в `Settings -> Downloader`.
+Этот документ нужен для ручного smoke/regression прогона вкладки `Tools` и инструмента зависимостей загрузчика (`#tools-info` внутри `Tools -> Зависимости загрузчика`).
 
 ## Подготовка окружения
 
@@ -36,9 +36,10 @@ alias: Проверка Tools на Windows и macOS
 - Ожидание на macOS: Windows-действия не выполняются; developer-preview доступен только после разблокировки developer tools.
 - Ожидание на Windows: power-раздел активен, ярлыки создаются.
 
-2. **Settings -> Downloader -> `#tools-info`**
+2. **Tools -> Зависимости загрузчика -> `#tools-info`**
 
-- Проверить compact summary, badge, раскрытие `details`, quick actions.
+- Открыть карточку `Зависимости загрузчика` в launcher вкладки `Tools`.
+- Проверить summary, badge, quick actions и переход назад к launcher.
 - Ожидание: действия `Проверить обновления`, `Обновить`, `Папка`, `Дополнительно` работают без полного перерендеринга.
 
 3. **Lifecycle зависимостей**

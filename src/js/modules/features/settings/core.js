@@ -40,7 +40,6 @@ import {
 } from "./moduleBadges.js";
 import { initDeveloperToolsGate } from "./developerToolsGate.js";
 import { initLanguageDropdown } from "./languageDropdown.js";
-import { ensureToolsInfo } from "./toolsInfoController.js";
 
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 const YTDLP_COOKIES_DEFAULT = Object.freeze({
@@ -1325,29 +1324,6 @@ async function initSettings() {
     });
   })();
 
-  // Встроенный блок "Инструменты" во вкладке Загрузчик
-  (function initEmbeddedToolsInfo() {
-    const toolsSection = document.getElementById("tools-info");
-    const downloaderTabBtn = document.querySelector(
-      '.tab-link[data-tab="window-settings"]',
-    );
-    const downloaderPane = document.getElementById("window-settings");
-    if (!toolsSection || !downloaderPane) return;
-
-    const maybeRenderToolsInfo = async () => {
-      if (!downloaderPane.classList.contains("active")) return;
-      await ensureToolsInfo(false);
-    };
-
-    downloaderTabBtn?.addEventListener("click", () => {
-      maybeRenderToolsInfo();
-    });
-
-    window.addEventListener("settings:opened", () => {
-      maybeRenderToolsInfo();
-    });
-  })();
-
   // Переключатель отображения статуса инструментов в шапке Загрузчика
   (function initAutoOpenQualityModalToggle() {
     const checkbox = document.getElementById(
@@ -1700,7 +1676,11 @@ async function applyConfig(config, options = {}) {
 
   if (options.refreshToolsInfo) {
     try {
-      await ensureToolsInfo(true);
+      window.dispatchEvent(
+        new CustomEvent("tools:refresh-info", {
+          detail: { force: true, source: "settings" },
+        }),
+      );
     } catch {}
   }
 }

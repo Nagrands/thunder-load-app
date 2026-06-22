@@ -60,7 +60,12 @@ function createToolViewState() {
     if (toolView === "backup") {
       return !readBooleanStorage(BACKUP_DISABLED_STORAGE_KEY, false);
     }
-    return toolView === "launcher" || toolView === "wg" || toolView === "hash";
+    return (
+      toolView === "launcher" ||
+      toolView === "wg" ||
+      toolView === "hash" ||
+      toolView === "downloader-tools"
+    );
   };
 
   const readLastToolView = () =>

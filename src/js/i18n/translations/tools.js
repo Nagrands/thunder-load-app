@@ -306,6 +306,7 @@ export const toolsTranslations = {
     "tools.launcher.open.power": "Быстрые ярлыки",
     "tools.launcher.open.backup": "Backup",
     "tools.launcher.open.mediaInspector": "Media Inspector",
+    "tools.launcher.open.downloaderTools": "Зависимости загрузчика",
     "tools.launcher.open.sorter": "Сортировщик",
     "tools.launcher.open.wingetInstaller": "WinGet Installer",
     "tools.launcher.desc.wg": "Быстрое восстановление WireGuard.",
@@ -316,6 +317,8 @@ export const toolsTranslations = {
       "Профили резервного копирования и журнал операций.",
     "tools.launcher.desc.mediaInspector":
       "Проверка контейнера, дорожек локального медиафайла.",
+    "tools.launcher.desc.downloaderTools":
+      "Установка и обновление yt-dlp, ffmpeg и Deno.",
     "tools.launcher.desc.sorter": "Сортировка файлов по категориям расширений.",
     "tools.launcher.desc.wingetInstaller":
       "Установка и обновление Windows-приложений через WinGet.",
@@ -333,6 +336,7 @@ export const toolsTranslations = {
     "tools.nav.back": "Назад к инструментам",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Проверка хеша",
+    "tools.nav.current.downloaderTools": "Зависимости загрузчика",
     "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.power": "Быстрые ярлыки",
     "tools.nav.current.backup": "Backup",
@@ -967,6 +971,7 @@ export const toolsTranslations = {
     "tools.status.checking": "Проверяем инструменты…",
     "tools.status.bridgeMissing": "Инструменты: bridge недоступен",
     "tools.status.error": "Ошибка проверки инструментов",
+    "tools.loading": "Загружаем сведения о зависимостях…",
     "tools.title": "Инструменты",
     "tools.summary.checking": "Проверка",
     "tools.summary.checkingText": "Проверяем версии и обновления",
@@ -1352,6 +1357,7 @@ export const toolsTranslations = {
     "tools.launcher.open.power": "Shortcuts",
     "tools.launcher.open.backup": "Backup",
     "tools.launcher.open.mediaInspector": "Media Inspector",
+    "tools.launcher.open.downloaderTools": "Downloader Dependencies",
     "tools.launcher.open.sorter": "File Sorter",
     "tools.launcher.open.wingetInstaller": "WinGet Installer",
     "tools.launcher.desc.wg": "Quick WireGuard recovery actions.",
@@ -1361,6 +1367,8 @@ export const toolsTranslations = {
     "tools.launcher.desc.backup": "Backup profiles and operations log.",
     "tools.launcher.desc.mediaInspector":
       "Inspect the container, tracks, and technical metadata of a local media file.",
+    "tools.launcher.desc.downloaderTools":
+      "Install and update yt-dlp, ffmpeg, and Deno.",
     "tools.launcher.desc.sorter": "Sort files by extension categories.",
     "tools.launcher.desc.wingetInstaller":
       "Install and update Windows apps through WinGet.",
@@ -1377,6 +1385,7 @@ export const toolsTranslations = {
     "tools.nav.back": "Back to tools",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Hash Check",
+    "tools.nav.current.downloaderTools": "Downloader Dependencies",
     "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.power": "Power Shortcuts",
     "tools.nav.current.backup": "Backup",
@@ -1997,6 +2006,7 @@ export const toolsTranslations = {
     "tools.status.checking": "Checking tools…",
     "tools.status.bridgeMissing": "Tools: bridge unavailable",
     "tools.status.error": "Tools check failed",
+    "tools.loading": "Loading dependency information…",
     "tools.title": "Tools",
     "tools.summary.checking": "Checking",
     "tools.summary.checkingText": "Checking versions and updates",

@@ -114,6 +114,24 @@ describe("settings template backup placement", () => {
     });
   });
 
+  test("moves downloader tools block out of downloader settings", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+    const downloaderPaneStart = html.indexOf(
+      '<div id="window-settings" class="tab-pane">',
+    );
+    const toolsPaneStart = html.indexOf(
+      '<div id="wgunlock-settings" class="tab-pane">',
+    );
+    const downloaderPaneHtml = html.slice(downloaderPaneStart, toolsPaneStart);
+
+    expect(downloaderPaneHtml).not.toContain('id="tools-info"');
+    expect(downloaderPaneHtml).not.toContain("settings-card--tools-compact");
+    expect(downloaderPaneHtml).toContain('id="settings-show-tools-status"');
+    expect(downloaderPaneHtml).toContain('id="settings-ytdlp-cookies-mode"');
+    expect(downloaderPaneHtml).toContain('id="quality-profile-segment"');
+  });
+
   test("includes about app tab and version fields in settings template", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");

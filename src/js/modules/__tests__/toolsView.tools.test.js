@@ -10,6 +10,11 @@ jest.mock("../tooltipInitializer", () => ({
   initTooltips: jest.fn(),
 }));
 
+jest.mock("../toolsInfo", () => ({
+  refreshToolsInfoState: jest.fn().mockResolvedValue(undefined),
+  renderToolsInfo: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock("../i18n", () => ({
   applyI18n: jest.fn(),
   getLanguage: jest.fn(() => "en"),
@@ -18,6 +23,7 @@ jest.mock("../i18n", () => ({
 
 import renderToolsView from "../views/toolsView";
 import { showConfirmationDialog } from "../modals";
+import { refreshToolsInfoState, renderToolsInfo } from "../toolsInfo";
 import { toolsTranslations } from "../../i18n/translations/tools";
 
 const nextTick = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -80,15 +86,17 @@ async function openTool(el, tool) {
       ? "#tools-open-wg"
       : tool === "hash"
         ? "#tools-open-hash"
-        : tool === "media-inspector"
-          ? "#tools-open-media-inspector"
-          : tool === "winget-installer"
-            ? "#tools-open-winget-installer"
-            : tool === "power"
-              ? "#tools-open-power"
-              : tool === "backup"
-                ? "#tools-open-backup"
-                : "#tools-open-sorter";
+        : tool === "downloader-tools"
+          ? "#tools-open-downloader-tools"
+          : tool === "media-inspector"
+            ? "#tools-open-media-inspector"
+            : tool === "winget-installer"
+              ? "#tools-open-winget-installer"
+              : tool === "power"
+                ? "#tools-open-power"
+                : tool === "backup"
+                  ? "#tools-open-backup"
+                  : "#tools-open-sorter";
   el.querySelector(id)?.click();
   await nextTick();
 }
@@ -102,6 +110,8 @@ describe("toolsView quick actions", () => {
   beforeEach(() => {
     showConfirmationDialog.mockReset();
     showConfirmationDialog.mockResolvedValue(true);
+    renderToolsInfo.mockClear();
+    refreshToolsInfoState.mockClear();
     localStorage.clear();
     delete window.__thunder_dev_tools_unlocked__;
     localStorage.setItem("wgUnlockDisabled", "false");
@@ -367,6 +377,7 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(el.querySelector("#tools-open-wg")).not.toBeNull();
     expect(el.querySelector("#tools-open-hash")).not.toBeNull();
+    expect(el.querySelector("#tools-open-downloader-tools")).not.toBeNull();
     expect(powerBtn?.classList.contains("hidden")).toBe(false);
     expect(powerBtn?.disabled).toBe(true);
     expect(powerBtn?.classList.contains("is-unavailable")).toBe(true);
@@ -417,8 +428,39 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 6",
+      "tools.launcher.totalLabel: 7",
     );
+  });
+
+  test("opens downloader dependencies tool view from launcher", async () => {
+    const el = await renderView();
+
+    await openTool(el, "downloader-tools");
+
+    expect(
+      el
+        .querySelector('[data-tool-view="downloader-tools"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(el.querySelectorAll("#tools-info")).toHaveLength(1);
+    expect(
+      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
+    ).toBe("tools.nav.current.downloaderTools");
+    expect(renderToolsInfo).toHaveBeenCalledTimes(1);
+  });
+
+  test("forces downloader dependencies refresh after settings update", async () => {
+    const el = await renderView();
+
+    await openTool(el, "hash");
+    window.dispatchEvent(
+      new CustomEvent("tools:refresh-info", {
+        detail: { force: true, source: "settings" },
+      }),
+    );
+    await openTool(el, "downloader-tools");
+
+    expect(renderToolsInfo).toHaveBeenCalledWith({ force: true });
   });
 
   test("does not render launcher hotkey labels", async () => {
@@ -455,7 +497,7 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(7);
+    ).toBe(8);
     expect(el.querySelector("#tools-open-media-inspector")).not.toBeNull();
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
@@ -525,7 +567,7 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 5",
+      "tools.launcher.totalLabel: 6",
     );
   });
 
@@ -842,7 +884,7 @@ describe("toolsView quick actions", () => {
     expect(powerBtn?.disabled).toBe(false);
     expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 7",
+      "tools.launcher.totalLabel: 8",
     );
 
     sorterBtn?.click();

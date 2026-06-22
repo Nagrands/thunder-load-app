@@ -2603,26 +2603,10 @@
       min-height: 100%;
     }
 
-    .settings-card--tools-top {
-      gap: 10px;
-    }
-
-    .settings-card--tools-compact {
-      align-content: start;
-      min-width: 0;
-      min-height: 100%;
-    }
-
-    .settings-card--tools-compact .settings-card__body,
     .settings-card--downloader .settings-card__body {
       display: grid;
       gap: 8px;
       align-content: start;
-    }
-
-    .settings-card--tools-compact #tools-info {
-      margin: 0;
-      min-width: 0;
     }
 
     .settings-control-group {
@@ -2653,12 +2637,6 @@
       text-transform: uppercase;
       color: var(--color-quality);
       opacity: 0.95;
-    }
-
-    .settings-tools-shell {
-      min-height: 100%;
-      display: grid;
-      align-content: start;
     }
 
     .quality-profile-shell {
@@ -3784,7 +3762,6 @@
     grid-template-areas: none;
   }
 
-  #window-settings .settings-card--tools-top,
   #window-settings .settings-card--downloader {
     grid-area: auto;
     min-height: 0;
@@ -4081,8 +4058,7 @@
 
   .settings-action-group button,
   .settings-about-actions button,
-  .settings-developer-gate__button,
-  .settings-tools-open {
+  .settings-developer-gate__button {
     min-height: 38px;
     border-radius: 10px;
     display: inline-flex;
@@ -4112,13 +4088,9 @@
     #window-settings {
       .settings-grid {
         grid-template-columns: 1fr;
-        grid-template-areas:
-          "tools"
-          "downloader";
       }
 
       .settings-card--downloader,
-      .settings-card--tools-compact,
       .settings-card--quality {
         min-height: 0;
       }

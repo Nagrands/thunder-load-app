@@ -987,32 +987,28 @@ describe("tools settings modal", () => {
     };
   });
 
-  it("renders embedded tools info when downloader settings tab is active", async () => {
+  it("does not render embedded tools info when downloader settings tab is active", async () => {
     document.body.innerHTML = `
       <div id="settings-modal">
         <button class="tab-link active" data-tab="window-settings" type="button">
           <span>Downloader</span>
         </button>
         <div id="window-settings" class="tab-pane active">
-          <section id="tools-info"></section>
+          <section class="settings-card settings-card--downloader"></section>
         </div>
       </div>`;
 
     let mod;
-    let toolsInfoController;
     jest.isolateModules(() => {
-      jest.doMock("../features/settings/toolsInfoController.js", () => ({
-        ensureToolsInfo: jest.fn().mockResolvedValue(undefined),
-      }));
       mod = require("../settings");
-      toolsInfoController = require("../features/settings/toolsInfoController.js");
     });
 
     await mod.initSettings?.();
     window.dispatchEvent(new Event("settings:opened"));
     await Promise.resolve();
 
-    expect(toolsInfoController.ensureToolsInfo).toHaveBeenCalledWith(false);
+    expect(document.querySelector("#window-settings #tools-info")).toBeNull();
+    expect(window.electron.tools.getLocation).not.toHaveBeenCalled();
   });
 });
 

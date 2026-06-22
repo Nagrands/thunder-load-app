@@ -59,8 +59,6 @@ export const settingsTranslations = {
       "Основные параметры загрузки и поведения окна.",
     "settings.downloader.group.parallel": "Параллельность и запуск",
     "settings.downloader.group.behavior": "Поведение окна и завершения",
-    "settings.downloader.tools.hint":
-      "Проверка статуса и обновление зависимостей загрузчика.",
     "settings.downloader.expandAfter":
       "Разворачивать окно <strong>по окончанию загрузки</strong>",
     "settings.downloader.expandOnCopy":
@@ -86,12 +84,6 @@ export const settingsTranslations = {
       "Не удалось сохранить настройки cookies: {message}",
     "settings.downloader.cookies.file.error":
       "Не удалось выбрать файл cookies: {message}",
-    "settings.tools.title": "Инструменты",
-    "settings.tools.loading": "Загружаем сведения о зависимостях…",
-    "settings.tools.openModal": "Открыть инструменты",
-    "settings.tools.modal.title": "Управление инструментами",
-    "settings.tools.modal.subtitle":
-      "Проверка статуса, переустановка и смена папки зависимостей.",
     "settings.disableTab": "Отключить вкладку",
     "settings.wg.title": "Вкладка «Инструменты»",
     "settings.wg.disable.hint":
@@ -266,8 +258,6 @@ export const settingsTranslations = {
       "Core download options and window behavior settings.",
     "settings.downloader.group.parallel": "Parallelism and startup",
     "settings.downloader.group.behavior": "Window and completion behavior",
-    "settings.downloader.tools.hint":
-      "Check status and update downloader dependencies.",
     "settings.downloader.expandAfter":
       "Expand the window <strong>after download</strong>",
     "settings.downloader.expandOnCopy":
@@ -293,12 +283,6 @@ export const settingsTranslations = {
       "Unable to save cookies settings: {message}",
     "settings.downloader.cookies.file.error":
       "Unable to choose cookies file: {message}",
-    "settings.tools.title": "Tools",
-    "settings.tools.loading": "Loading dependency information…",
-    "settings.tools.openModal": "Open tools",
-    "settings.tools.modal.title": "Tools management",
-    "settings.tools.modal.subtitle":
-      "Check status, reinstall dependencies, and change the tools folder.",
     "settings.disableTab": "Disable tab",
     "settings.wg.title": "Tab “Tools”",
     "settings.wg.disable.hint":

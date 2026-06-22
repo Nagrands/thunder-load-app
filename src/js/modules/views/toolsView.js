@@ -5,6 +5,7 @@ import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import { applyI18n, getLanguage, t } from "../i18n.js";
 import { consumeRequestedToolsView } from "../toolsNavigation.js";
+import { refreshToolsInfoState, renderToolsInfo } from "../toolsInfo.js";
 import renderBackup from "./backupView.js";
 import { initMediaInspectorSection } from "./tools/mediaInspectorSection.js";
 import { initFileSorterSection } from "./tools/fileSorterSection.js";
@@ -372,6 +373,13 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.hash")}
               </small>
             </button>
+            <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-download"></i>
+              <span data-i18n="tools.launcher.open.downloaderTools">${t("tools.launcher.open.downloaderTools")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.downloaderTools">
+                ${t("tools.launcher.desc.downloaderTools")}
+              </small>
+            </button>
             <button id="tools-open-media-inspector" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-film"></i>
               <span data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
@@ -632,6 +640,16 @@ export default function renderToolsView() {
 
         ${renderHashCheckSection()}
 
+        <section class="tools-view hidden" data-tool-view="downloader-tools" aria-label="${t("tools.nav.current.downloaderTools")}">
+          <article class="tools-card tools-detail-card tools-downloader-dependencies">
+            <section id="tools-info" class="tools-downloader-dependencies__info">
+              <p class="muted" data-i18n="tools.loading">
+                ${t("tools.loading")}
+              </p>
+            </section>
+          </article>
+        </section>
+
         <section class="tools-view hidden" data-tool-view="media-inspector" aria-label="${t("tools.nav.current.mediaInspector")}"></section>
 
         ${renderWingetInstallerSection(t)}
@@ -789,6 +807,7 @@ export default function renderToolsView() {
     const availableToolViews = [
       "wg",
       "hash",
+      "downloader-tools",
       "media-inspector",
       "winget-installer",
       "power",
@@ -808,6 +827,22 @@ export default function renderToolsView() {
     );
     if (!backupSection || backupSection.childNodes.length > 0) return;
     backupSection.appendChild(renderBackup());
+  };
+
+  let pendingDownloaderToolsRefresh = false;
+
+  const ensureDownloaderToolsInfo = async ({ force = false } = {}) => {
+    try {
+      const section = view.querySelector("#tools-info");
+      if (!section) return;
+      if (section.__toolsInfoCtx) {
+        await refreshToolsInfoState({ force });
+        return;
+      }
+      await renderToolsInfo({ force });
+    } catch (error) {
+      console.error("[toolsView] renderToolsInfo failed:", error);
+    }
   };
 
   const setToolView = (
@@ -848,15 +883,17 @@ export default function renderToolsView() {
         ? "tools.nav.current.wg"
         : targetView === "hash"
           ? "tools.nav.current.hash"
-          : targetView === "media-inspector"
-            ? "tools.nav.current.mediaInspector"
-            : targetView === "winget-installer"
-              ? "tools.nav.current.wingetInstaller"
-              : targetView === "power"
-                ? "tools.nav.current.power"
-                : targetView === "backup"
-                  ? "tools.nav.current.backup"
-                  : "tools.nav.current.sorter";
+          : targetView === "downloader-tools"
+            ? "tools.nav.current.downloaderTools"
+            : targetView === "media-inspector"
+              ? "tools.nav.current.mediaInspector"
+              : targetView === "winget-installer"
+                ? "tools.nav.current.wingetInstaller"
+                : targetView === "power"
+                  ? "tools.nav.current.power"
+                  : targetView === "backup"
+                    ? "tools.nav.current.backup"
+                    : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
@@ -874,6 +911,12 @@ export default function renderToolsView() {
         }),
       );
     } catch {}
+
+    if (targetView === "downloader-tools") {
+      const forceToolsRefresh = pendingDownloaderToolsRefresh;
+      pendingDownloaderToolsRefresh = false;
+      ensureDownloaderToolsInfo({ force: forceToolsRefresh });
+    }
 
     if (showLauncher && focusLauncher) {
       const firstLauncherBtn = getEl("tools-open-wg", view);
@@ -1073,6 +1116,7 @@ export default function renderToolsView() {
     );
     const openWgBtn = getEl("tools-open-wg", view);
     const openHashBtn = getEl("tools-open-hash", view);
+    const openDownloaderToolsBtn = getEl("tools-open-downloader-tools", view);
     const openMediaInspectorBtn = getEl("tools-open-media-inspector", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
@@ -1160,6 +1204,9 @@ export default function renderToolsView() {
 
     openWgBtn?.addEventListener("click", () => setToolView("wg"));
     openHashBtn?.addEventListener("click", () => setToolView("hash"));
+    openDownloaderToolsBtn?.addEventListener("click", () =>
+      setToolView("downloader-tools"),
+    );
     openMediaInspectorBtn?.addEventListener("click", () =>
       setToolView("media-inspector"),
     );
@@ -2243,6 +2290,13 @@ export default function renderToolsView() {
           ensureBackupToolView();
         }
         setToolView(requestedTool, { persist: false });
+      });
+      cleanup.onWindowEvent("tools:refresh-info", (event) => {
+        if (toolState.currentToolView !== "downloader-tools") {
+          pendingDownloaderToolsRefresh = true;
+          return;
+        }
+        ensureDownloaderToolsInfo({ force: event?.detail?.force !== false });
       });
 
       const initNetworkSettingsButton = async () => {
