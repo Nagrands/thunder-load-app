@@ -193,7 +193,7 @@ $transition-interactive:
       rgba(var(--thunder-electric-rgb), 0.16),
       transparent 55%
     );
-    opacity: 0.25;
+    opacity: 0.75;
     pointer-events: none;
   }
 }
@@ -248,11 +248,8 @@ $transition-interactive:
 }
 
 .app-footer__brand-version {
-  height: 30px;
   font-family: var(--font-brand);
   color: var(--thunder-electric);
-  appearance: none;
-  line-height: 1;
 }
 
 .app-footer__status-value {

@@ -10,5 +10,6 @@
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
 | App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |
 | Tools were reorganized             | yt-dlp, ffmpeg, and Deno dependency management moved from Downloader settings into its own tool                           |
+| Tools were reorganized             | Tool cards now show a version badge, and Downloader Dependencies is pinned first with a New label                         |
 | Download history was fixed         | Preview images no longer cover details, and Play now opens the downloaded file instead of the image preview               |
 | macOS yt-dlp checks were fixed     | Thunder no longer launches Python-backed `yt-dlp`, preventing repeated `Python.framework` verification prompts            |

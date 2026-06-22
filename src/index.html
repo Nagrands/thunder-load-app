@@ -1681,6 +1681,129 @@
                         </div>
                       </div>
 
+                                            <div class="settings-control-group settings-control-group--section">
+                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.parallel">
+                          Параллельность и запуск
+                        </h4>
+                        <ul class="module settings-control-list">
+                          <li class="settings-control">
+                            <div class="settings-parallel-item">
+                              <i class="fa-solid fa-layer-group"></i>
+                              <div class="settings-parallel-meta">
+                                <span data-i18n="settings.downloader.parallel.title">
+                                  Одновременные загрузки
+                                </span>
+                                <small
+                                  class="settings-parallel-hint"
+                                  data-i18n="settings.downloader.parallel.hint"
+                                >
+                                  2 быстрее, но выше нагрузка на систему.
+                                </small>
+                              </div>
+                              <div
+                                class="settings-parallel-segment"
+                                id="settings-download-parallel-segment"
+                                role="radiogroup"
+                                aria-label="Одновременные загрузки"
+                                data-i18n-aria="settings.downloader.parallel.aria"
+                              >
+                                <button
+                                  type="button"
+                                  class="settings-parallel-segment__btn"
+                                  id="settings-download-parallel-1"
+                                  role="radio"
+                                  aria-checked="false"
+                                  data-limit="1"
+                                  data-i18n="settings.downloader.parallel.option1"
+                                >
+                                  1
+                                </button>
+                                <button
+                                  type="button"
+                                  class="settings-parallel-segment__btn"
+                                  id="settings-download-parallel-2"
+                                  role="radio"
+                                  aria-checked="true"
+                                  data-limit="2"
+                                  data-i18n="settings.downloader.parallel.option2"
+                                >
+                                  2
+                                </button>
+                              </div>
+                              <strong id="settings-download-parallel-value">1</strong>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+
+                                            <div class="settings-control-group settings-control-group--section">
+                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.behavior">
+                          Поведение окна и завершения
+                        </h4>
+                        <ul class="module settings-control-list">
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-expand-window-after-load"
+                            />
+                            <label for="settings-expand-window-after-load">
+                              <i class="fa-solid fa-maximize"></i>
+                              <span data-i18n-html="settings.downloader.expandAfter">
+                                Разворачивать окно <strong>по окончанию загрузки</strong>
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input type="checkbox" id="settings-expand-window-copy" />
+                            <label for="settings-expand-window-copy">
+                              <i class="fa-solid fa-maximize"></i>
+                              <span data-i18n-html="settings.downloader.expandOnCopy">
+                                Разворачивать окно <strong>при копировании URL</strong>
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-auto-open-quality-modal"
+                              checked
+                            />
+                            <label for="settings-auto-open-quality-modal">
+                              <i class="fa-solid fa-sliders"></i>
+                              <span data-i18n-html="settings.downloader.autoQualityModal">
+                                Автоматически открывать <strong>выбор качества</strong> после вставки URL
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-disable-complete-modal-toggle"
+                            />
+                            <label for="settings-disable-complete-modal-toggle">
+                              <i class="fa-solid fa-window-close"></i>
+                              <span data-i18n-html="settings.downloader.disableComplete">
+                                Отключить <strong>окно открытия файла</strong> после
+                                завершения загрузки
+                              </span>
+                            </label>
+                          </li>
+                          <li class="settings-control">
+                            <input
+                              type="checkbox"
+                              id="settings-show-tools-status"
+                              checked
+                            />
+                            <label for="settings-show-tools-status">
+                              <i class="fa-solid fa-eye"></i>
+                              <span data-i18n="settings.downloader.toolsStatus">
+                                Показывать статус инструментов
+                              </span>
+                            </label>
+                          </li>
+                        </ul>
+                      </div>
+
                       <div class="settings-control-group settings-control-group--section settings-control-group--cookies">
                         <h4 class="settings-control-group__title" data-i18n="settings.downloader.cookies.title">
                           YouTube cookies
@@ -1799,129 +1922,6 @@
                             <span class="settings-cookies-file-label" id="settings-ytdlp-cookies-file-label" data-i18n="settings.downloader.cookies.file.empty">
                               Файл не выбран
                             </span>
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div class="settings-control-group settings-control-group--section">
-                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.parallel">
-                          Параллельность и запуск
-                        </h4>
-                        <ul class="module settings-control-list">
-                          <li class="settings-control">
-                            <div class="settings-parallel-item">
-                              <i class="fa-solid fa-layer-group"></i>
-                              <div class="settings-parallel-meta">
-                                <span data-i18n="settings.downloader.parallel.title">
-                                  Одновременные загрузки
-                                </span>
-                                <small
-                                  class="settings-parallel-hint"
-                                  data-i18n="settings.downloader.parallel.hint"
-                                >
-                                  2 быстрее, но выше нагрузка на систему.
-                                </small>
-                              </div>
-                              <div
-                                class="settings-parallel-segment"
-                                id="settings-download-parallel-segment"
-                                role="radiogroup"
-                                aria-label="Одновременные загрузки"
-                                data-i18n-aria="settings.downloader.parallel.aria"
-                              >
-                                <button
-                                  type="button"
-                                  class="settings-parallel-segment__btn"
-                                  id="settings-download-parallel-1"
-                                  role="radio"
-                                  aria-checked="false"
-                                  data-limit="1"
-                                  data-i18n="settings.downloader.parallel.option1"
-                                >
-                                  1
-                                </button>
-                                <button
-                                  type="button"
-                                  class="settings-parallel-segment__btn"
-                                  id="settings-download-parallel-2"
-                                  role="radio"
-                                  aria-checked="true"
-                                  data-limit="2"
-                                  data-i18n="settings.downloader.parallel.option2"
-                                >
-                                  2
-                                </button>
-                              </div>
-                              <strong id="settings-download-parallel-value">1</strong>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div class="settings-control-group settings-control-group--section">
-                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.group.behavior">
-                          Поведение окна и завершения
-                        </h4>
-                        <ul class="module settings-control-list">
-                          <li class="settings-control">
-                            <input
-                              type="checkbox"
-                              id="settings-expand-window-after-load"
-                            />
-                            <label for="settings-expand-window-after-load">
-                              <i class="fa-solid fa-maximize"></i>
-                              <span data-i18n-html="settings.downloader.expandAfter">
-                                Разворачивать окно <strong>по окончанию загрузки</strong>
-                              </span>
-                            </label>
-                          </li>
-                          <li class="settings-control">
-                            <input type="checkbox" id="settings-expand-window-copy" />
-                            <label for="settings-expand-window-copy">
-                              <i class="fa-solid fa-maximize"></i>
-                              <span data-i18n-html="settings.downloader.expandOnCopy">
-                                Разворачивать окно <strong>при копировании URL</strong>
-                              </span>
-                            </label>
-                          </li>
-                          <li class="settings-control">
-                            <input
-                              type="checkbox"
-                              id="settings-auto-open-quality-modal"
-                              checked
-                            />
-                            <label for="settings-auto-open-quality-modal">
-                              <i class="fa-solid fa-sliders"></i>
-                              <span data-i18n-html="settings.downloader.autoQualityModal">
-                                Автоматически открывать <strong>выбор качества</strong> после вставки URL
-                              </span>
-                            </label>
-                          </li>
-                          <li class="settings-control">
-                            <input
-                              type="checkbox"
-                              id="settings-disable-complete-modal-toggle"
-                            />
-                            <label for="settings-disable-complete-modal-toggle">
-                              <i class="fa-solid fa-window-close"></i>
-                              <span data-i18n-html="settings.downloader.disableComplete">
-                                Отключить <strong>окно открытия файла</strong> после
-                                завершения загрузки
-                              </span>
-                            </label>
-                          </li>
-                          <li class="settings-control">
-                            <input
-                              type="checkbox"
-                              id="settings-show-tools-status"
-                              checked
-                            />
-                            <label for="settings-show-tools-status">
-                              <i class="fa-solid fa-eye"></i>
-                              <span data-i18n="settings.downloader.toolsStatus">
-                                Показывать статус инструментов
-                              </span>
-                            </label>
                           </li>
                         </ul>
                       </div>

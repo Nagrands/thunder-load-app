@@ -359,7 +359,21 @@ export default function renderToolsView() {
       <section id="tools-launcher" class="tools-launcher" aria-label="${t("tools.launcher.title")}">
         <div class="tools-launcher-inner">
           <div class="tools-launcher-grid">
+            <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button">
+              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
+                <span class="tools-launcher-badge">Update</span>
+              </span>
+              <i class="fa-solid fa-download"></i>
+              <span data-i18n="tools.launcher.open.downloaderTools">${t("tools.launcher.open.downloaderTools")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.downloaderTools">
+                ${t("tools.launcher.desc.downloaderTools")}
+              </small>
+            </button>
             <button id="tools-open-power" type="button" class="tools-launcher-button">
+              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge">Update</span>
+              </span>
               <i class="fa-solid fa-power-off"></i>
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
@@ -373,14 +387,10 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.hash")}
               </small>
             </button>
-            <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button">
-              <i class="fa-solid fa-download"></i>
-              <span data-i18n="tools.launcher.open.downloaderTools">${t("tools.launcher.open.downloaderTools")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.downloaderTools">
-                ${t("tools.launcher.desc.downloaderTools")}
-              </small>
-            </button>
             <button id="tools-open-media-inspector" type="button" class="tools-launcher-button">
+              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge">Update</span>
+              </span>
               <i class="fa-solid fa-film"></i>
               <span data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaInspector">
@@ -402,6 +412,10 @@ export default function renderToolsView() {
               </small>
             </button>
             <button id="tools-open-winget-installer" type="button" class="tools-launcher-button">
+              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
+                <span class="tools-launcher-badge">Update</span>
+              </span>
               <i class="fa-brands fa-windows"></i>
               <span data-i18n="tools.launcher.open.wingetInstaller">${t("tools.launcher.open.wingetInstaller")}</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wingetInstaller">
@@ -426,11 +440,11 @@ export default function renderToolsView() {
                 type="button"
                 class="tools-launcher-button"
               >
-              <i class="fa-solid fa-folder-tree"></i>
-              <span data-i18n="tools.launcher.open.sorter">${t("tools.launcher.open.sorter")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
-                ${t("tools.launcher.desc.sorter")}
-              </small>
+                <i class="fa-solid fa-folder-tree"></i>
+                <span data-i18n="tools.launcher.open.sorter">${t("tools.launcher.open.sorter")}</span>
+                <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
+                  ${t("tools.launcher.desc.sorter")}
+                </small>
               </button>
             </div>
           </div>
@@ -919,7 +933,9 @@ export default function renderToolsView() {
     }
 
     if (showLauncher && focusLauncher) {
-      const firstLauncherBtn = getEl("tools-open-wg", view);
+      const firstLauncherBtn = view.querySelector(
+        ".tools-launcher-button:not(.hidden):not(:disabled)",
+      );
       firstLauncherBtn?.focus();
     }
   };
@@ -1318,15 +1334,10 @@ export default function renderToolsView() {
           e.key === "ArrowUp" ||
           e.key === "ArrowDown";
         if (isArrowKey) {
-          const launcherButtons = [
-            openWgBtn,
-            openHashBtn,
-            openPowerBtn,
-            openBackupBtn,
-            openSorterBtn,
-          ].filter(
+          const launcherButtons = Array.from(
+            view.querySelectorAll(".tools-launcher-button"),
+          ).filter(
             (btn) =>
-              btn &&
               !btn.disabled &&
               !btn.classList.contains("hidden") &&
               btn.closest(".tools-launcher"),

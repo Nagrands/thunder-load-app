@@ -432,6 +432,32 @@ describe("toolsView quick actions", () => {
     );
   });
 
+  test("shows version badges on launcher cards and marks dependencies as new", async () => {
+    const el = await renderView();
+    const launcherButtons = Array.from(
+      el.querySelectorAll(".tools-launcher-button"),
+    );
+    const dependencyButton = el.querySelector("#tools-open-downloader-tools");
+
+    expect(launcherButtons[0]?.id).toBe("tools-open-downloader-tools");
+    expect(
+      dependencyButton?.querySelector(".tools-launcher-badge--new")
+        ?.textContent,
+    ).toBe("tools.launcher.badge.new");
+    expect(
+      dependencyButton?.querySelector(
+        ".tools-launcher-badge:not(.tools-launcher-badge--new)",
+      )?.textContent,
+    ).toBe("v1.0");
+    launcherButtons.forEach((button) => {
+      expect(
+        Array.from(button.querySelectorAll(".tools-launcher-badge")).some(
+          (badge) => badge.textContent === "v1.0",
+        ),
+      ).toBe(true);
+    });
+  });
+
   test("opens downloader dependencies tool view from launcher", async () => {
     const el = await renderView();
 
@@ -1822,9 +1848,9 @@ describe("toolsView quick actions", () => {
   test("launcher arrow navigation moves focus to next tool", async () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
-    const wgBtn = el.querySelector("#tools-open-wg");
+    const downloaderToolsBtn = el.querySelector("#tools-open-downloader-tools");
     const hashBtn = el.querySelector("#tools-open-hash");
-    wgBtn?.focus();
+    downloaderToolsBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: "ArrowRight",
@@ -1838,9 +1864,9 @@ describe("toolsView quick actions", () => {
   test("launcher arrow navigation supports reverse wrap", async () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
-    const wgBtn = el.querySelector("#tools-open-wg");
+    const downloaderToolsBtn = el.querySelector("#tools-open-downloader-tools");
     const sorterBtn = el.querySelector("#tools-open-sorter");
-    wgBtn?.focus();
+    downloaderToolsBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: "ArrowLeft",
