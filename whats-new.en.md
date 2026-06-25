@@ -6,6 +6,8 @@
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Subtitle downloads were added      | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                   |
 | YouTube cookies were added         | Downloader settings can pass cookies from a browser or cookies.txt file for videos that require sign-in or verification   |
+| Settings accessibility improved    | Sections, language, theme, and text-size controls now support keyboard navigation and expose correct screen-reader states  |
+| Settings modal behavior was fixed  | Escape, close actions, and Ctrl/Cmd+, now share one lifecycle without reopening the modal or losing focus                  |
 | App startup was refined            | Download history storage IPC moved into a separate module with focused load/save/clear/count coverage                     |
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
 | App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |

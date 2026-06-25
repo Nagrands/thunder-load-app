@@ -40,6 +40,10 @@ import {
 } from "./moduleBadges.js";
 import { initDeveloperToolsGate } from "./developerToolsGate.js";
 import { initLanguageDropdown } from "./languageDropdown.js";
+import {
+  initAccessibleDropdown,
+  syncAccessibleDropdownSelection,
+} from "./accessibleDropdown.js";
 
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 const YTDLP_COOKIES_DEFAULT = Object.freeze({
@@ -522,16 +526,8 @@ async function initSettings() {
     document.body.style.setProperty("--font-size", `${savedSize}px`);
 
     // Highlight selected font size on init
-    fontSizeDropdownMenu.querySelectorAll("li").forEach((item) => {
-      item.classList.remove("active");
-      if (item.getAttribute("data-value") === savedSize) {
-        item.classList.add("active");
-      }
-    });
-
-    fontSizeDropdownBtn.addEventListener("click", () => {
-      fontSizeDropdownMenu.classList.toggle("show");
-    });
+    syncAccessibleDropdownSelection(fontSizeDropdownMenu, savedSize);
+    initAccessibleDropdown(fontSizeDropdownBtn, fontSizeDropdownMenu);
 
     fontSizeDropdownMenu.querySelectorAll("li").forEach((item) => {
       item.addEventListener("click", async () => {
@@ -539,12 +535,10 @@ async function initSettings() {
         localStorage.setItem("fontSize", newSize);
         fontSizeLabel.textContent = `${newSize} px`;
         // Highlight selected font size in dropdown
-        fontSizeDropdownMenu
-          .querySelectorAll("li")
-          .forEach((li) => li.classList.remove("active"));
-        item.classList.add("active");
+        syncAccessibleDropdownSelection(fontSizeDropdownMenu, newSize);
         await setFontSize(newSize);
         fontSizeDropdownMenu.classList.remove("show");
+        fontSizeDropdownBtn.setAttribute("aria-expanded", "false");
         showToast(
           t("settings.fontSize.set", { size: newSize }),
           "success",
@@ -556,27 +550,13 @@ async function initSettings() {
         );
       });
     });
-
-    document.addEventListener("click", (e) => {
-      if (
-        !fontSizeDropdownBtn.contains(e.target) &&
-        !fontSizeDropdownMenu.contains(e.target)
-      ) {
-        fontSizeDropdownMenu.classList.remove("show");
-      }
-    });
   }
   if (resetFontSizeBtn && fontSizeLabel) {
     resetFontSizeBtn.addEventListener("click", async () => {
       const defaultSize = "16";
       localStorage.setItem("fontSize", defaultSize);
       fontSizeLabel.textContent = `${defaultSize} px`;
-      fontSizeDropdownMenu.querySelectorAll("li").forEach((li) => {
-        li.classList.remove("active");
-        if (li.getAttribute("data-value") === defaultSize) {
-          li.classList.add("active");
-        }
-      });
+      syncAccessibleDropdownSelection(fontSizeDropdownMenu, defaultSize);
       await setFontSize(defaultSize);
       showToast(
         t("settings.fontSize.reset", { size: defaultSize }),
@@ -622,12 +602,7 @@ async function initSettings() {
     const normalizedTheme = normalizeTheme(theme);
 
     themeLabel.textContent = formatThemeLabel(normalizedTheme);
-    themeDropdownMenu.querySelectorAll("li").forEach((item) => {
-      item.classList.toggle(
-        "active",
-        item.getAttribute("data-value") === normalizedTheme,
-      );
-    });
+    syncAccessibleDropdownSelection(themeDropdownMenu, normalizedTheme);
     themeDropdownBtn.setAttribute("data-current-theme", normalizedTheme);
   };
 
@@ -637,23 +612,7 @@ async function initSettings() {
     document.documentElement.setAttribute("data-theme", savedTheme);
     syncThemeDropdownState(savedTheme);
 
-    // Новый, более надёжный обработчик открытия dropdown для темы
-    themeDropdownBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const isOpen = themeDropdownMenu.classList.contains("show");
-
-      // Закрываем все dropdown-меню
-      document
-        .querySelectorAll(".dropdown-menu")
-        .forEach((menu) => menu.classList.remove("show"));
-
-      // Показываем только если ранее не был открыт
-      if (!isOpen) {
-        themeDropdownMenu.classList.add("show");
-      }
-    });
+    initAccessibleDropdown(themeDropdownBtn, themeDropdownMenu);
 
     themeDropdownMenu.querySelectorAll("li").forEach((item) => {
       item.addEventListener("click", async () => {
@@ -662,6 +621,7 @@ async function initSettings() {
         await setTheme(selectedTheme);
         syncThemeDropdownState(selectedTheme);
         themeDropdownMenu.classList.remove("show");
+        themeDropdownBtn.setAttribute("aria-expanded", "false");
         setTimeout(
           () => document.documentElement.classList.remove("theme-transition"),
           260,
@@ -682,16 +642,6 @@ async function initSettings() {
       const currentTheme = await getTheme();
       syncThemeDropdownState(currentTheme);
     });
-
-    // Глобальный обработчик клика вне меню только для темы
-    document.addEventListener("click", (e) => {
-      if (
-        !themeDropdownBtn.contains(e.target) &&
-        !themeDropdownMenu.contains(e.target)
-      ) {
-        themeDropdownMenu.classList.remove("show");
-      }
-    });
   }
   // Глобальный обработчик закрытия всех dropdown-меню, не мешает кастомным выпадающим меню
   document.addEventListener("click", (e) => {
@@ -700,6 +650,7 @@ async function initSettings() {
       const button = menu.previousElementSibling;
       if (!menu.contains(e.target) && !(button && button.contains(e.target))) {
         menu.classList.remove("show");
+        button?.setAttribute("aria-expanded", "false");
       }
     });
   });

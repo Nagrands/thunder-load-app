@@ -41,6 +41,7 @@ describe("hotkeys backup transfer", () => {
 
   beforeEach(() => {
     jest.resetModules();
+    jest.clearAllMocks();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     buildDom();
   });
@@ -76,5 +77,41 @@ describe("hotkeys backup transfer", () => {
     expect(requestToolsView).toHaveBeenNthCalledWith(2, "backup");
     expect(tabs.activateTab).toHaveBeenNthCalledWith(1, "wireguard");
     expect(tabs.activateTab).toHaveBeenNthCalledWith(2, "wireguard");
+  });
+
+  test.each([
+    ["Ctrl+,", { ctrlKey: true }],
+    ["Meta+,", { metaKey: true }],
+  ])("%s toggles settings through its lifecycle", (_combo, modifiers) => {
+    const settingsModal = document.getElementById("settings-modal");
+    const settingsLifecycle = require("../settingsModal.js");
+    const modalManager = require("../modalManager.js");
+
+    jest.isolateModules(() => {
+      const { initHotkeys, disableHotkeys } = require("../hotkeys.js");
+      initHotkeys({ activateTab: jest.fn() });
+
+      settingsModal.style.display = "flex";
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: ",", ...modifiers }),
+      );
+      document.dispatchEvent(
+        new KeyboardEvent("keyup", { key: ",", ...modifiers }),
+      );
+
+      expect(settingsLifecycle.closeSettings).toHaveBeenCalledTimes(1);
+      expect(settingsLifecycle.openSettings).not.toHaveBeenCalled();
+      expect(modalManager.closeAllModals).not.toHaveBeenCalled();
+
+      settingsModal.style.display = "none";
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: ",", ...modifiers }),
+      );
+
+      disableHotkeys();
+    });
+
+    expect(modalManager.closeAllModals).toHaveBeenCalledTimes(1);
+    expect(settingsLifecycle.openSettings).toHaveBeenCalledTimes(1);
   });
 });

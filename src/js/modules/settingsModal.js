@@ -17,6 +17,7 @@ import {
   acquireBodyScrollLock,
   releaseBodyScrollLock,
 } from "./scrollLockManager.js";
+import { syncAccessibleDropdownSelection } from "./features/settings/accessibleDropdown.js";
 
 let previousFocus = null;
 let trapHandler = null;
@@ -26,6 +27,15 @@ function isDownloadQualityModalOpen() {
   return !!document
     .getElementById("download-quality-modal")
     ?.classList.contains("is-open");
+}
+
+function isDropdownHandlingEscape(event) {
+  const dropdown = event.target?.closest?.(".dropdown");
+  const openMenu = dropdown?.querySelector(".dropdown-menu.show");
+  const expandedTrigger = dropdown?.querySelector(
+    '.dropdown-toggle[aria-expanded="true"]',
+  );
+  return !!(openMenu || expandedTrigger);
 }
 
 function syncModalScrollLock() {
@@ -41,6 +51,18 @@ function getSettingsTabsWrapper() {
 
 function getSettingsSectionsToggle() {
   return document.getElementById("settings-sections-toggle");
+}
+
+function getSettingsTabLinks() {
+  return settingsModal
+    ? Array.from(settingsModal.querySelectorAll(".settings-tabs .tab-link"))
+    : [];
+}
+
+function getSettingsTabPanes() {
+  return settingsModal
+    ? Array.from(settingsModal.querySelectorAll(".tab-content .tab-pane"))
+    : [];
 }
 
 function closeSettingsSectionsPanel() {
@@ -162,7 +184,21 @@ export function openSettings() {
     settingsModal.focus?.();
   }
 
+  if (trapHandler) {
+    window.removeEventListener("keydown", trapHandler, true);
+  }
+
   trapHandler = (event) => {
+    if (
+      event.key === "Escape" &&
+      !isDownloadQualityModalOpen() &&
+      !isDropdownHandlingEscape(event)
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSettings();
+      return;
+    }
     if (event.key !== "Tab") return;
     const nodes = getTabbables(settingsModal);
     if (!nodes.length) return;
@@ -184,12 +220,8 @@ export function openSettings() {
 
 function activateSettingsTab(tabId) {
   if (!tabId) return;
-  const tabLinks = document.querySelectorAll(".tab-link");
-  tabLinks.forEach((btn) => {
-    if (btn.dataset.tab === tabId) {
-      btn.click();
-    }
-  });
+  const button = getSettingsTabLinks().find((btn) => btn.dataset.tab === tabId);
+  button?.click();
 }
 
 export function openSettingsWithTab(tabId) {
@@ -234,14 +266,13 @@ export function updateThemeDropdownUI(theme) {
 
   if (label && item) {
     label.textContent = item.textContent;
-    menu.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
-    item.classList.add("active");
+    syncAccessibleDropdownSelection(menu, next);
     if (btn) btn.setAttribute("data-current-theme", next);
   }
 }
 
 export function initSettingsModal() {
-  const tabLinks = document.querySelectorAll(".tab-link");
+  const tabLinks = getSettingsTabLinks();
   const exportBtn = document.getElementById("export-config-button");
   const importBtn = document.getElementById("import-config-button");
   const importInput = document.getElementById("import-config-input");
@@ -258,6 +289,14 @@ export function initSettingsModal() {
     "settings-about-check-updates-button",
   );
   const sectionsToggle = getSettingsSectionsToggle();
+
+  if (settingsModal && settingsModal.dataset.closeLifecycleBound !== "1") {
+    settingsModal.dataset.closeLifecycleBound = "1";
+    settingsModal.addEventListener("modal:close-request", (event) => {
+      event.preventDefault();
+      closeSettings();
+    });
+  }
 
   const initDefaultTabSetting = async () => {
     const radios = document.querySelectorAll('input[name="defaultTab"]');
@@ -285,25 +324,45 @@ export function initSettingsModal() {
       });
     }
 
-    tabLinks.forEach((button) => {
-      button.addEventListener("click", () => {
-        // Удаляем активный класс со всех вкладок
-        tabLinks.forEach((btn) => btn.classList.remove("active"));
-        button.classList.add("active");
+    const activateTab = (button, { moveFocus = false } = {}) => {
+      const tabId = button.dataset.tab;
+      if (!tabId) return;
 
-        // Скрываем все табы
-        const tabPanes = document.querySelectorAll(".tab-pane");
-        tabPanes.forEach((pane) => pane.classList.remove("active"));
+      tabLinks.forEach((tab) => {
+        const isActive = tab === button;
+        tab.classList.toggle("active", isActive);
+        tab.setAttribute("aria-selected", String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
+      });
 
-        // Показываем выбранный таб
-        const tabId = button.getAttribute("data-tab");
-        const activePane = document.getElementById(tabId);
-        if (activePane) activePane.classList.add("active");
+      getSettingsTabPanes().forEach((pane) => {
+        const isActive = pane.id === tabId;
+        pane.classList.toggle("active", isActive);
+        pane.hidden = !isActive;
+      });
 
-        // Сохраняем выбранную вкладку
-        localStorage.setItem("lastSettingsTab", tabId);
-        syncActiveSettingsSectionLabel();
-        closeSettingsSectionsPanel();
+      localStorage.setItem("lastSettingsTab", tabId);
+      syncActiveSettingsSectionLabel();
+      closeSettingsSectionsPanel();
+      if (moveFocus) button.focus();
+    };
+
+    tabLinks.forEach((button, index) => {
+      button.addEventListener("click", () => activateTab(button));
+      button.addEventListener("keydown", (event) => {
+        const lastIndex = tabLinks.length - 1;
+        const keyTargets = {
+          ArrowDown: index === lastIndex ? 0 : index + 1,
+          ArrowRight: index === lastIndex ? 0 : index + 1,
+          ArrowUp: index === 0 ? lastIndex : index - 1,
+          ArrowLeft: index === 0 ? lastIndex : index - 1,
+          Home: 0,
+          End: lastIndex,
+        };
+        const targetIndex = keyTargets[event.key];
+        if (targetIndex === undefined) return;
+        event.preventDefault();
+        activateTab(tabLinks[targetIndex], { moveFocus: true });
       });
     });
 

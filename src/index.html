@@ -1408,34 +1408,91 @@
                 class="settings-tabs-wrapper"
                 data-open="false"
               >
-                <div class="settings-tabs">
+                <div
+                  class="settings-tabs"
+                  role="tablist"
+                  aria-label="Разделы настроек"
+                  data-i18n-aria="settings.sections.menu"
+                  aria-orientation="vertical"
+                >
                 <button
+                  id="settings-section-tab-general"
                   class="tab-link active"
                   data-tab="general-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="general-settings"
+                  tabindex="0"
                 >
                   <i class="fa-solid fa-house"></i>
                   <span data-i18n="settings.tabs.general">Общие</span>
                 </button>
-                <button class="tab-link" data-tab="window-settings">
+                <button
+                  id="settings-section-tab-downloader"
+                  class="tab-link"
+                  data-tab="window-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="window-settings"
+                  tabindex="-1"
+                >
                   <i class="fa-solid fa-download"></i>
                   <span data-i18n="settings.tabs.downloader">Downloader</span>
                 </button>
-                <button class="tab-link" data-tab="wgunlock-settings">
+                <button
+                  id="settings-section-tab-tools"
+                  class="tab-link"
+                  data-tab="wgunlock-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="wgunlock-settings"
+                  tabindex="-1"
+                >
                   <i class="fa-solid fa-screwdriver-wrench"></i>
                   <span data-i18n="settings.tabs.wg">Инструменты</span>
                   <span class="tab-badge tab-badge-off" id="tab-badge-wg" hidden>
                     <span data-i18n="settings.tab.disabled">Выкл</span>
                   </span>
                 </button>
-                <button class="tab-link" data-tab="appearance-settings">
+                <button
+                  id="settings-section-tab-appearance"
+                  class="tab-link"
+                  data-tab="appearance-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="appearance-settings"
+                  tabindex="-1"
+                >
                   <i class="fa-solid fa-palette"></i>
                   <span data-i18n="settings.tabs.appearance">Внешний вид</span>
                 </button>
-                <button class="tab-link" data-tab="about-settings">
+                <button
+                  id="settings-section-tab-about"
+                  class="tab-link"
+                  data-tab="about-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="about-settings"
+                  tabindex="-1"
+                >
                   <i class="fa-solid fa-circle-info"></i>
                   <span data-i18n="settings.tabs.about">О приложении</span>
                 </button>
-                <button class="tab-link" data-tab="other-settings">
+                <button
+                  id="settings-section-tab-other"
+                  class="tab-link"
+                  data-tab="other-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="other-settings"
+                  tabindex="-1"
+                >
                   <i class="fa-solid fa-wrench"></i>
                   <span data-i18n="settings.tabs.other">Другое</span>
                 </button>
@@ -1465,7 +1522,13 @@
             <div class="settings-shell-main">
             <div class="tab-content">
               <!-- General Settings Tab -->
-              <div id="general-settings" class="tab-pane active">
+              <div
+                id="general-settings"
+                class="tab-pane active"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-general"
+                tabindex="0"
+              >
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.tabs.general">Общие</h2>
@@ -1607,7 +1670,14 @@
               </div>
 
               <!-- Window Settings Tab -->
-              <div id="window-settings" class="tab-pane">
+              <div
+                id="window-settings"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-downloader"
+                tabindex="0"
+                hidden
+              >
                 <div class="settings-pane-header">
                   <h2 data-i18n="settings.downloader.title">Вкладка «Downloader»</h2>
                 </div>
@@ -1930,7 +2000,14 @@
                 </div>
               </div>
 
-              <div id="wgunlock-settings" class="tab-pane">
+              <div
+                id="wgunlock-settings"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-tools"
+                tabindex="0"
+                hidden
+              >
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.wg.title">Вкладка «Инструменты»</h2>
@@ -2058,7 +2135,14 @@
               </div>
 
               <!-- Appearance Settings Tab -->
-              <div id="appearance-settings" class="tab-pane">
+              <div
+                id="appearance-settings"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-appearance"
+                tabindex="0"
+                hidden
+              >
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
@@ -2085,15 +2169,38 @@
                           </div>
                           <div class="settings-control__actions">
                             <div class="dropdown">
-                              <button class="dropdown-toggle" id="language-dropdown-btn" type="button">
+                              <button
+                                class="dropdown-toggle"
+                                id="language-dropdown-btn"
+                                type="button"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                                aria-controls="language-dropdown-menu"
+                              >
                                 <span id="language-selected-label" data-i18n="language.ru">
                                   Русский
                                 </span>
                                 <i class="fa-solid fa-chevron-down"></i>
                               </button>
-                              <ul class="dropdown-menu" id="language-dropdown-menu">
-                                <li data-value="ru" data-i18n="language.ru">Русский</li>
-                                <li data-value="en" data-i18n="language.en">English</li>
+                              <ul
+                                class="dropdown-menu"
+                                id="language-dropdown-menu"
+                                role="listbox"
+                              >
+                                <li
+                                  data-value="ru"
+                                  data-i18n="language.ru"
+                                  role="option"
+                                  aria-selected="true"
+                                  tabindex="-1"
+                                >Русский</li>
+                                <li
+                                  data-value="en"
+                                  data-i18n="language.en"
+                                  role="option"
+                                  aria-selected="false"
+                                  tabindex="-1"
+                                >English</li>
                               </ul>
                             </div>
                           </div>
@@ -2112,15 +2219,22 @@
                                 class="dropdown-toggle"
                                 id="font-size-dropdown-btn"
                                 type="button"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                                aria-controls="font-size-dropdown-menu"
                               >
                                 <span id="font-size-selected-label">16 px</span>
                                 <i class="fa-solid fa-chevron-down"></i>
                               </button>
-                              <ul class="dropdown-menu" id="font-size-dropdown-menu">
-                                <li data-value="14">14 px</li>
-                                <li data-value="16">16 px</li>
-                                <li data-value="18">18 px</li>
-                                <li data-value="20">20 px</li>
+                              <ul
+                                class="dropdown-menu"
+                                id="font-size-dropdown-menu"
+                                role="listbox"
+                              >
+                                <li data-value="14" role="option" aria-selected="false" tabindex="-1">14 px</li>
+                                <li data-value="16" role="option" aria-selected="true" tabindex="-1">16 px</li>
+                                <li data-value="18" role="option" aria-selected="false" tabindex="-1">18 px</li>
+                                <li data-value="20" role="option" aria-selected="false" tabindex="-1">20 px</li>
                               </ul>
                             </div>
                             <button
@@ -2158,26 +2272,37 @@
                           </div>
                           <div class="settings-control__actions">
                             <div class="dropdown">
-                              <button class="dropdown-toggle" id="theme-dropdown-btn" type="button">
+                              <button
+                                class="dropdown-toggle"
+                                id="theme-dropdown-btn"
+                                type="button"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
+                                aria-controls="theme-dropdown-menu"
+                              >
                                 <span id="theme-selected-label" data-i18n="settings.appearance.theme.dark">
                                   Dark
                                 </span>
                                 <i class="fa-solid fa-chevron-down"></i>
                               </button>
-                              <ul class="dropdown-menu" id="theme-dropdown-menu">
-                                <li data-value="dark" data-i18n="settings.appearance.theme.dark">
+                              <ul
+                                class="dropdown-menu"
+                                id="theme-dropdown-menu"
+                                role="listbox"
+                              >
+                                <li data-value="dark" data-i18n="settings.appearance.theme.dark" role="option" aria-selected="true" tabindex="-1">
                                   Dark
                                 </li>
-                                <li data-value="midnight" data-i18n="settings.appearance.theme.midnight">
+                                <li data-value="midnight" data-i18n="settings.appearance.theme.midnight" role="option" aria-selected="false" tabindex="-1">
                                   Midnight
                                 </li>
-                                <li data-value="emerald" data-i18n="settings.appearance.theme.emerald">
+                                <li data-value="emerald" data-i18n="settings.appearance.theme.emerald" role="option" aria-selected="false" tabindex="-1">
                                   Emerald
                                 </li>
-                                <li data-value="sunset" data-i18n="settings.appearance.theme.sunset">
+                                <li data-value="sunset" data-i18n="settings.appearance.theme.sunset" role="option" aria-selected="false" tabindex="-1">
                                   Sunset
                                 </li>
-                                <li data-value="violet" data-i18n="settings.appearance.theme.violet">
+                                <li data-value="violet" data-i18n="settings.appearance.theme.violet" role="option" aria-selected="false" tabindex="-1">
                                   Violet
                                 </li>
                               </ul>
@@ -2220,7 +2345,14 @@
               </div>
 
               <!-- Other Settings Tab -->
-              <div id="about-settings" class="tab-pane">
+              <div
+                id="about-settings"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-about"
+                tabindex="0"
+                hidden
+              >
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.about.title">О приложении</h2>
@@ -2286,7 +2418,14 @@
               </div>
 
               <!-- Other Settings Tab -->
-              <div id="other-settings" class="tab-pane">
+              <div
+                id="other-settings"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-other"
+                tabindex="0"
+                hidden
+              >
                 <div class="settings-pane-header">
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.other.title">Другие настройки</h2>

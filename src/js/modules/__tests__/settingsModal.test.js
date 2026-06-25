@@ -47,31 +47,35 @@ describe("settingsModal mobile sections navigation", () => {
         <button id="settings-about-whats-new-button" type="button"></button>
         <button id="settings-about-copy-info-button" type="button"></button>
         <button id="settings-about-check-updates-button" type="button"></button>
+        <div class="dropdown">
+          <button class="dropdown-toggle" aria-expanded="true" type="button"></button>
+          <ul class="dropdown-menu show"><li id="dropdown-option" tabindex="-1">Option</li></ul>
+        </div>
         <strong id="settings-app-version">—</strong>
         <strong id="settings-about-electron-version">—</strong>
         <strong id="settings-about-chrome-version">—</strong>
         <strong id="settings-about-node-version">—</strong>
         <span id="settings-active-section-label"></span>
         <div id="settings-tabs-panel" class="settings-tabs-wrapper" data-open="false">
-          <div class="settings-tabs">
-            <button class="tab-link active" data-tab="general-settings">
+          <div class="settings-tabs" role="tablist">
+            <button class="tab-link active" data-tab="general-settings" role="tab" aria-selected="true" tabindex="0">
               <i class="fa-solid fa-house"></i>
               <span>Общие</span>
             </button>
-            <button class="tab-link" data-tab="window-settings">
+            <button class="tab-link" data-tab="window-settings" role="tab" aria-selected="false" tabindex="-1">
               <i class="fa-solid fa-download"></i>
               <span>Downloader</span>
             </button>
-            <button class="tab-link" data-tab="about-settings">
+            <button class="tab-link" data-tab="about-settings" role="tab" aria-selected="false" tabindex="-1">
               <i class="fa-solid fa-circle-info"></i>
               <span>О приложении</span>
             </button>
           </div>
         </div>
         <div class="tab-content">
-          <div id="general-settings" class="tab-pane active"></div>
-          <div id="window-settings" class="tab-pane"></div>
-          <div id="about-settings" class="tab-pane"></div>
+          <div id="general-settings" class="tab-pane active" role="tabpanel"></div>
+          <div id="window-settings" class="tab-pane" role="tabpanel" hidden></div>
+          <div id="about-settings" class="tab-pane" role="tabpanel" hidden></div>
         </div>
       </div>
     `;
@@ -146,6 +150,43 @@ describe("settingsModal mobile sections navigation", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(label.textContent).toBe("Downloader");
     expect(localStorage.getItem("lastSettingsTab")).toBe("window-settings");
+    expect(nextTab.getAttribute("aria-selected")).toBe("true");
+    expect(nextTab.tabIndex).toBe(0);
+    expect(document.getElementById("general-settings").hidden).toBe(true);
+    expect(document.getElementById("window-settings").hidden).toBe(false);
+  });
+
+  test("supports arrow, Home and End keyboard navigation between tabs", () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+    });
+
+    const generalTab = document.querySelector(
+      '.tab-link[data-tab="general-settings"]',
+    );
+    const windowTab = document.querySelector(
+      '.tab-link[data-tab="window-settings"]',
+    );
+    const aboutTab = document.querySelector(
+      '.tab-link[data-tab="about-settings"]',
+    );
+
+    generalTab.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(windowTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(windowTab);
+
+    windowTab.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true }),
+    );
+    expect(aboutTab.getAttribute("aria-selected")).toBe("true");
+
+    aboutTab.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Home", bubbles: true }),
+    );
+    expect(generalTab.getAttribute("aria-selected")).toBe("true");
   });
 
   test("restores label from saved lastSettingsTab on init", () => {
@@ -230,6 +271,91 @@ describe("settingsModal mobile sections navigation", () => {
     expect(modal.getAttribute("aria-hidden")).toBe("true");
     expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
     expect(closedHandler).toHaveBeenCalledTimes(1);
+  });
+
+  test("Escape closes settings through the modal lifecycle", () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+    });
+
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(document.getElementById("settings-modal").style.display).toBe(
+      "none",
+    );
+    expect(document.activeElement).toBe(
+      document.getElementById("footer-open-settings"),
+    );
+  });
+
+  test("Escape inside an open dropdown is left to the dropdown handler", () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+    });
+
+    document
+      .getElementById("dropdown-option")
+      .dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+
+    expect(document.getElementById("settings-modal").style.display).toBe(
+      "flex",
+    );
+  });
+
+  test("external theme updates synchronize aria-selected", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `
+        <button id="theme-dropdown-btn" type="button"></button>
+        <span id="theme-selected-label"></span>
+        <ul id="theme-dropdown-menu">
+          <li data-value="dark" aria-selected="true">Dark</li>
+          <li data-value="violet" aria-selected="false">Violet</li>
+        </ul>
+      `,
+    );
+
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.updateThemeDropdownUI("violet");
+    });
+
+    expect(
+      document
+        .querySelector('[data-value="violet"]')
+        .getAttribute("aria-selected"),
+    ).toBe("true");
+    expect(
+      document
+        .querySelector('[data-value="dark"]')
+        .getAttribute("aria-selected"),
+    ).toBe("false");
+  });
+
+  test("modal manager close request uses closeSettings cleanup", () => {
+    jest.isolateModules(() => {
+      const mod = require("../settingsModal.js");
+      mod.initSettingsModal();
+      mod.openSettings();
+    });
+
+    const modal = document.getElementById("settings-modal");
+    const closeRequest = new CustomEvent("modal:close-request", {
+      cancelable: true,
+    });
+    modal.dispatchEvent(closeRequest);
+
+    expect(closeRequest.defaultPrevented).toBe(true);
+    expect(modal.style.display).toBe("none");
+    expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
   });
 
   test("closeSettings suppresses settings trigger tooltip while focus is restored", async () => {

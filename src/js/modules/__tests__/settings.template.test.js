@@ -55,12 +55,8 @@ describe("settings template backup placement", () => {
     expect(html).not.toContain('data-tab="backup-settings"');
     expect(html).not.toContain('<div id="backup-settings" class="tab-pane">');
 
-    const toolsPaneStart = html.indexOf(
-      '<div id="wgunlock-settings" class="tab-pane">',
-    );
-    const appearancePaneStart = html.indexOf(
-      '<div id="appearance-settings" class="tab-pane">',
-    );
+    const toolsPaneStart = html.indexOf('id="wgunlock-settings"');
+    const appearancePaneStart = html.indexOf('id="appearance-settings"');
     const toolsPaneHtml = html.slice(toolsPaneStart, appearancePaneStart);
 
     expect(toolsPaneHtml).not.toContain('id="backup-disable-toggle"');
@@ -83,12 +79,8 @@ describe("settings template backup placement", () => {
   test("uses compact appearance panel and preserves control ids", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
-    const appearancePaneStart = html.indexOf(
-      '<div id="appearance-settings" class="tab-pane">',
-    );
-    const aboutPaneStart = html.indexOf(
-      '<div id="about-settings" class="tab-pane">',
-    );
+    const appearancePaneStart = html.indexOf('id="appearance-settings"');
+    const aboutPaneStart = html.indexOf('id="about-settings"');
     const appearancePaneHtml = html.slice(appearancePaneStart, aboutPaneStart);
 
     expect(appearancePaneHtml).toContain("settings-card--appearance-panel");
@@ -114,15 +106,27 @@ describe("settings template backup placement", () => {
     });
   });
 
+  test("uses accessible tabs and appearance listboxes", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain(
+      'class="settings-tabs"\n                  role="tablist"',
+    );
+    expect(html).toContain('role="tab"');
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain('role="tabpanel"');
+    expect(html).toContain('aria-labelledby="settings-section-tab-general"');
+    expect(html).toContain('aria-haspopup="listbox"');
+    expect(html).toContain('role="listbox"');
+    expect(html).toContain('role="option"');
+  });
+
   test("moves downloader tools block out of downloader settings", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
-    const downloaderPaneStart = html.indexOf(
-      '<div id="window-settings" class="tab-pane">',
-    );
-    const toolsPaneStart = html.indexOf(
-      '<div id="wgunlock-settings" class="tab-pane">',
-    );
+    const downloaderPaneStart = html.indexOf('id="window-settings"');
+    const toolsPaneStart = html.indexOf('id="wgunlock-settings"');
     const downloaderPaneHtml = html.slice(downloaderPaneStart, toolsPaneStart);
 
     expect(downloaderPaneHtml).not.toContain('id="tools-info"');
@@ -137,7 +141,8 @@ describe("settings template backup placement", () => {
     const html = fs.readFileSync(indexPath, "utf8");
 
     expect(html).toContain('data-tab="about-settings"');
-    expect(html).toContain('<div id="about-settings" class="tab-pane">');
+    expect(html).toContain('id="about-settings"');
+    expect(html).toContain('aria-labelledby="settings-section-tab-about"');
     expect(html).toContain('id="settings-app-version"');
     expect(html).toContain('id="settings-about-electron-version"');
     expect(html).toContain('id="settings-about-chrome-version"');

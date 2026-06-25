@@ -51,6 +51,16 @@ const modals = [
   // Добавьте другие модальные окна здесь
 ];
 
+const toggleSettings = () => {
+  if (settingsModal.style.display === "flex") {
+    closeSettings();
+    return;
+  }
+
+  closeAllModals(modals);
+  openSettings();
+};
+
 const THEME_ORDER = ["dark", "midnight", "emerald", "sunset", "violet"];
 
 const normalizeTheme = (value) =>
@@ -244,28 +254,8 @@ const localHotkeys = new Map([
       clearHistoryButton.click();
     },
   ],
-  [
-    "Ctrl+,",
-    () => {
-      closeAllModals(modals);
-      if (settingsModal.style.display === "flex") {
-        closeSettings();
-      } else {
-        openSettings();
-      }
-    },
-  ],
-  [
-    "Meta+,",
-    () => {
-      closeAllModals(modals);
-      if (settingsModal.style.display === "flex") {
-        closeSettings();
-      } else {
-        openSettings();
-      }
-    },
-  ],
+  ["Ctrl+,", toggleSettings],
+  ["Meta+,", toggleSettings],
   [
     "Ctrl+P",
     () => {

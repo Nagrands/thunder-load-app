@@ -15,6 +15,14 @@ const SETTINGS_MODAL_SCROLL_LOCK_OWNER = "settings-modal";
 function closeAllModals(modals) {
   modals.forEach((modal) => {
     if (modal && modal.style.display === "flex") {
+      const closeRequest = new CustomEvent("modal:close-request", {
+        cancelable: true,
+      });
+      modal.dispatchEvent(closeRequest);
+      if (closeRequest.defaultPrevented) {
+        return;
+      }
+
       modal.style.display = "none";
       if (modal.id) {
         modal.setAttribute("aria-hidden", "true");

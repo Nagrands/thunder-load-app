@@ -1,4 +1,8 @@
 import { getLanguage, setLanguage, t } from "../../i18n.js";
+import {
+  initAccessibleDropdown,
+  syncAccessibleDropdownSelection,
+} from "./accessibleDropdown.js";
 
 const LANGUAGE_DROPDOWN_BOUND_KEY = "settingsLanguageDropdownBound";
 const LANGUAGE_DROPDOWN_STATE_KEY =
@@ -14,9 +18,7 @@ function formatLanguageLabel(lang) {
 
 function syncLanguageDropdownState(languageDropdownMenu, languageLabel, lang) {
   languageLabel.textContent = formatLanguageLabel(lang);
-  languageDropdownMenu.querySelectorAll("li").forEach((item) => {
-    item.classList.toggle("active", item.getAttribute("data-value") === lang);
-  });
+  syncAccessibleDropdownSelection(languageDropdownMenu, lang);
 }
 
 function getLanguageDropdownState() {
@@ -48,17 +50,7 @@ export function initLanguageDropdown() {
   }
   languageDropdownBtn.dataset[LANGUAGE_DROPDOWN_BOUND_KEY] = "1";
 
-  languageDropdownBtn.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const isOpen = languageDropdownMenu.classList.contains("show");
-    document
-      .querySelectorAll(".dropdown-menu")
-      .forEach((menu) => menu.classList.remove("show"));
-    if (!isOpen) {
-      languageDropdownMenu.classList.add("show");
-    }
-  });
+  initAccessibleDropdown(languageDropdownBtn, languageDropdownMenu);
 
   languageDropdownMenu.querySelectorAll("li").forEach((item) => {
     item.addEventListener("click", () => {
