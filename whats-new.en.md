@@ -11,6 +11,7 @@
 | Downloader settings were simplified | YouTube cookies moved into a compact advanced section that still shows the currently selected mode                         |
 | Settings architecture was refined  | YouTube cookies logic moved out of the shared settings module into a focused, tested component                             |
 | Web interface settings were fixed   | Web-control settings show localized labels again, control the server, and restart it after app relaunch                   |
+| Settings architecture was refined  | Web-control settings moved into a focused module with repeated-initialization protection                                  |
 | App startup was refined            | Download history storage IPC moved into a separate module with focused load/save/clear/count coverage                     |
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
 | App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |

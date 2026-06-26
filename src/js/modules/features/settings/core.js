@@ -49,6 +49,7 @@ import {
   normalizeYtDlpCookiesSettings,
   YTDLP_COOKIES_DEFAULT,
 } from "./ytDlpCookiesSettings.js";
+import { initWebControlSettings } from "./webControlSettings.js";
 
 const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 
@@ -297,109 +298,7 @@ async function initSettings() {
   })();
 
   initYtDlpCookiesSettings();
-
-  (function initWebControlSettings() {
-    const toggle = document.getElementById("settings-web-control-toggle");
-    const urlInput = document.getElementById("settings-web-control-url");
-    const lanUrlInput = document.getElementById("settings-web-control-lan-url");
-    const statusEl = document.getElementById("settings-web-control-status");
-    const openBtn = document.getElementById("settings-web-control-open");
-    const restartBtn = document.getElementById("settings-web-control-restart");
-    const copyLanBtn = document.getElementById("settings-web-control-copy-lan");
-    if (
-      !toggle ||
-      !urlInput ||
-      !lanUrlInput ||
-      !statusEl ||
-      !openBtn ||
-      !restartBtn ||
-      !copyLanBtn
-    ) {
-      return;
-    }
-
-    const render = (status = {}) => {
-      const enabled = status.enabled === true;
-      const running = status.running === true;
-      const lanUrl = Array.isArray(status.lanUrls) ? status.lanUrls[0] || "" : "";
-      toggle.checked = enabled;
-      urlInput.value = status.localUrl || status.url || "";
-      lanUrlInput.value = lanUrl;
-      openBtn.disabled = !running || !urlInput.value;
-      restartBtn.disabled = !enabled;
-      copyLanBtn.disabled = !running || !lanUrl;
-      const key = running
-        ? "settings.web.status.on"
-        : enabled
-          ? "settings.web.status.starting"
-          : "settings.web.status.off";
-      statusEl
-        .closest(".settings-web-control-panel__status-row")
-        ?.classList.toggle("is-running", running);
-      statusEl.setAttribute("data-i18n", key);
-      statusEl.textContent = t(key, { port: status.port || "" });
-    };
-
-    const refresh = async () => {
-      try {
-        const result = await window.electron.invoke("web:getStatus");
-        if (result?.success) render(result.status);
-      } catch (error) {
-        console.error("[settings] web status failed:", error);
-      }
-    };
-
-    toggle.addEventListener("change", async () => {
-      toggle.disabled = true;
-      render({ enabled: toggle.checked, running: false });
-      try {
-        const result = await window.electron.invoke(
-          "web:setEnabled",
-          toggle.checked,
-        );
-        if (result?.success) render(result.status);
-      } catch (error) {
-        console.error("[settings] web toggle failed:", error);
-      } finally {
-        toggle.disabled = false;
-      }
-    });
-
-    openBtn.addEventListener("click", async () => {
-      const result = await window.electron.invoke("web:open");
-      if (result?.success) render(result.status);
-    });
-
-    copyLanBtn.addEventListener("click", async () => {
-      const value = lanUrlInput.value.trim();
-      if (!value) return;
-      try {
-        await navigator.clipboard.writeText(value);
-        await window.electron.invoke(
-          "toast",
-          t("settings.web.copyLanDone"),
-          "success",
-        );
-      } catch (error) {
-        console.error("[settings] web LAN copy failed:", error);
-      }
-    });
-
-    restartBtn.addEventListener("click", async () => {
-      restartBtn.disabled = true;
-      try {
-        const result = await window.electron.invoke("web:restart");
-        if (result?.success) render(result.status);
-      } catch (error) {
-        console.error("[settings] web restart failed:", error);
-      } finally {
-        restartBtn.disabled = false;
-      }
-    });
-
-    onOpenSettings("web-control", refresh);
-    refresh();
-  })();
+  initWebControlSettings();
 
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");
   const fontSizeDropdownMenu = document.getElementById(
