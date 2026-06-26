@@ -818,6 +818,61 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
+  ipcMain.handle(CHANNELS.WEB_GET_STATUS, async () => {
+    try {
+      return {
+        success: true,
+        status: webControlServer?.getStatus?.() || {
+          enabled: false,
+          running: false,
+          host: "0.0.0.0",
+          localUrl: "",
+          lanUrls: [],
+          urls: { local: "", lan: [] },
+          port: 0,
+          url: "",
+        },
+      };
+    } catch (error) {
+      log.error("[web-control] status failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_SET_ENABLED, async (_evt, enabled) => {
+    try {
+      const status = await webControlServer?.setEnabled?.(Boolean(enabled));
+      return { success: true, status };
+    } catch (error) {
+      log.error("[web-control] set enabled failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_RESTART, async () => {
+    try {
+      const status = await webControlServer?.restart?.();
+      return { success: true, status };
+    } catch (error) {
+      log.error("[web-control] restart failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.WEB_OPEN, async () => {
+    try {
+      const status = await webControlServer?.open?.();
+      return { success: true, status };
+    } catch (error) {
+      log.error("[web-control] open failed:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.on(CHANNELS.WEB_RENDERER_RESPONSE, (_event, payload) => {
+    webControlServer?.resolveRendererResponse?.(payload);
+  });
+
   ipcMain.handle(CHANNELS.TOOLS_SHOWINFOLDER, async (_evt, filePath) => {
     try {
       if (filePath && typeof filePath === "string") {

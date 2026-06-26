@@ -2944,6 +2944,8 @@ export {
   resolvePresetQuality,
   loadQueueFromStorage,
   persistQueue,
+  getWebControlSnapshot,
+  handleWebControlDownloaderAction,
   resolveDownloadKind as _resolveDownloadKind,
   getQueueSignature as _getQueueSignature,
 };
