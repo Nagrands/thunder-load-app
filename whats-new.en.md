@@ -8,6 +8,9 @@
 | YouTube cookies were added         | Downloader settings can pass cookies from a browser or cookies.txt file for videos that require sign-in or verification   |
 | Settings accessibility improved    | Sections, language, theme, and text-size controls now support keyboard navigation and expose correct screen-reader states  |
 | Settings modal behavior was fixed  | Escape, close actions, and Ctrl/Cmd+, now share one lifecycle without reopening the modal or losing focus                  |
+| Downloader settings were simplified | YouTube cookies moved into a compact advanced section that still shows the currently selected mode                         |
+| Settings architecture was refined  | YouTube cookies logic moved out of the shared settings module into a focused, tested component                             |
+| Web interface settings were fixed   | Web-control settings show localized labels again, control the server, and restart it after app relaunch                   |
 | App startup was refined            | Download history storage IPC moved into a separate module with focused load/save/clear/count coverage                     |
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
 | App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |

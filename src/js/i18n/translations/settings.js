@@ -59,6 +59,9 @@ export const settingsTranslations = {
       "Основные параметры загрузки и поведения окна.",
     "settings.downloader.group.parallel": "Параллельность и запуск",
     "settings.downloader.group.behavior": "Поведение окна и завершения",
+    "settings.downloader.advanced.title": "Дополнительно: доступ к YouTube",
+    "settings.downloader.advanced.hint":
+      "Cookies для роликов, требующих вход или проверку.",
     "settings.downloader.expandAfter":
       "Разворачивать окно <strong>по окончанию загрузки</strong>",
     "settings.downloader.expandOnCopy":
@@ -68,6 +71,22 @@ export const settingsTranslations = {
     "settings.downloader.disableComplete":
       "Отключить <strong>окно открытия файла</strong> после завершения загрузки",
     "settings.downloader.toolsStatus": "Показывать статус инструментов",
+    "settings.web.title": "Веб-интерфейс",
+    "settings.web.hint":
+      "Управление загрузчиком из браузера на этом компьютере.",
+    "settings.web.enable":
+      "Включить <strong>локальный веб-интерфейс</strong>",
+    "settings.web.url": "Адрес на этом компьютере",
+    "settings.web.lanUrl": "Адрес для телефона",
+    "settings.web.open": "Открыть веб-интерфейс",
+    "settings.web.restart": "Перезапустить веб-интерфейс",
+    "settings.web.copyLan": "Копировать адрес для телефона",
+    "settings.web.copyLanDone": "Адрес для телефона скопирован",
+    "settings.web.lanWarning":
+      "При включении любое устройство в вашей локальной сети сможет управлять загрузчиком.",
+    "settings.web.status.off": "Выключено",
+    "settings.web.status.starting": "Запускается",
+    "settings.web.status.on": "Работает на порту {port}",
     "settings.downloader.cookies.title": "YouTube cookies",
     "settings.downloader.cookies.mode": "Режим cookies",
     "settings.downloader.cookies.mode.off": "Выкл.",
@@ -258,6 +277,9 @@ export const settingsTranslations = {
       "Core download options and window behavior settings.",
     "settings.downloader.group.parallel": "Parallelism and startup",
     "settings.downloader.group.behavior": "Window and completion behavior",
+    "settings.downloader.advanced.title": "Advanced: YouTube access",
+    "settings.downloader.advanced.hint":
+      "Cookies for videos that require sign-in or verification.",
     "settings.downloader.expandAfter":
       "Expand the window <strong>after download</strong>",
     "settings.downloader.expandOnCopy":
@@ -267,6 +289,21 @@ export const settingsTranslations = {
     "settings.downloader.disableComplete":
       "Disable <strong>file open dialog</strong> after download",
     "settings.downloader.toolsStatus": "Show tools status",
+    "settings.web.title": "Web interface",
+    "settings.web.hint":
+      "Control the downloader from a browser on this computer.",
+    "settings.web.enable": "Enable <strong>local web interface</strong>",
+    "settings.web.url": "Address on this computer",
+    "settings.web.lanUrl": "Phone address",
+    "settings.web.open": "Open web interface",
+    "settings.web.restart": "Restart web interface",
+    "settings.web.copyLan": "Copy phone address",
+    "settings.web.copyLanDone": "Phone address copied",
+    "settings.web.lanWarning":
+      "When enabled, any device on your local network can control the downloader.",
+    "settings.web.status.off": "Off",
+    "settings.web.status.starting": "Starting",
+    "settings.web.status.on": "Running on port {port}",
     "settings.downloader.cookies.title": "YouTube cookies",
     "settings.downloader.cookies.mode": "Cookies mode",
     "settings.downloader.cookies.mode.off": "Off",

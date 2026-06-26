@@ -20216,7 +20216,6 @@ hr {
   padding: 10px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.025);
 }
 .settings-modal #window-settings .settings-control-group:last-child {
   margin-bottom: 0;
@@ -20282,6 +20281,91 @@ hr {
 }
 .settings-modal #window-settings .settings-control-group--cookies {
   gap: 9px;
+}
+.settings-modal #window-settings .settings-advanced {
+  padding: 0;
+  overflow: visible;
+}
+.settings-modal #window-settings .settings-advanced[open] {
+  padding-bottom: 10px;
+}
+.settings-modal #window-settings .settings-advanced__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-text-main);
+}
+.settings-modal #window-settings .settings-advanced__summary::-webkit-details-marker {
+  display: none;
+}
+.settings-modal #window-settings .settings-advanced__summary:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.settings-modal #window-settings .settings-advanced__summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.settings-modal #window-settings .settings-advanced__heading,
+.settings-modal #window-settings .settings-advanced__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.settings-modal #window-settings .settings-advanced__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.1);
+}
+.settings-modal #window-settings .settings-advanced__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.settings-modal #window-settings .settings-advanced__copy strong {
+  font-size: 12px;
+  line-height: 1.3;
+}
+.settings-modal #window-settings .settings-advanced__copy small {
+  color: rgba(255, 255, 255, 0.46);
+  line-height: 1.35;
+}
+.settings-modal #window-settings .settings-advanced__state {
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.settings-modal #window-settings .settings-advanced__state:not([data-mode=off]) {
+  color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.12);
+}
+.settings-modal #window-settings .settings-advanced__chevron {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.54);
+  transition: transform 0.16s ease;
+}
+.settings-modal #window-settings .settings-advanced[open] .settings-advanced__chevron {
+  transform: rotate(180deg);
+}
+.settings-modal #window-settings .settings-advanced__content {
+  display: grid;
+  gap: 9px;
+  padding: 4px 10px 0;
 }
 .settings-modal #window-settings .settings-cookies-list {
   gap: 6px;
@@ -20940,6 +21024,7 @@ hr {
 }
 .settings-modal .settings-tabs {
   min-height: 0;
+  padding: 4px;
 }
 .settings-modal .settings-tabs::before {
   display: none;
@@ -21561,6 +21646,23 @@ hr {
   }
   .settings-modal .settings-control-list--startup-choice {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .settings-modal .settings-advanced__summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .settings-modal .settings-advanced__meta {
+    width: 100%;
+    padding-left: 42px;
+    justify-content: space-between;
+  }
+  .settings-modal .settings-advanced__state {
+    width: max-content;
+    max-width: calc(100% - 28px);
+    overflow: visible;
   }
 }
 .dropdown-menu {

@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+import { settingsTranslations } from "../../i18n/translations/settings.js";
+
 describe("settings template backup placement", () => {
   test("includes Thunder Spark brand lockup in the footer", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
@@ -174,7 +176,39 @@ describe("settings template backup placement", () => {
     expect(html).toContain('id="settings-ytdlp-cookies-browser-menu"');
     expect(html).toContain('class="settings-cookies-select__option"');
     expect(html).toContain('id="settings-ytdlp-cookies-file-button"');
+    expect(html).toContain('id="settings-downloader-advanced"');
+    expect(html).toContain('class="settings-advanced__summary"');
+    expect(html).toContain('id="settings-ytdlp-cookies-summary-state"');
     expect(html).toContain('data-i18n="settings.downloader.cookies.title"');
+  });
+
+  test("includes localized web control settings", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+    const keys = [
+      "settings.web.title",
+      "settings.web.hint",
+      "settings.web.enable",
+      "settings.web.url",
+      "settings.web.lanUrl",
+      "settings.web.open",
+      "settings.web.restart",
+      "settings.web.copyLan",
+      "settings.web.lanWarning",
+      "settings.web.status.off",
+      "settings.web.status.starting",
+      "settings.web.status.on",
+    ];
+
+    expect(html).toContain('class="settings-card settings-card--web-control"');
+    expect(html).toContain('id="settings-web-control-toggle"');
+    expect(html).toContain('id="settings-web-control-url"');
+    expect(html).toContain('id="settings-web-control-lan-url"');
+    expect(html).toContain('id="settings-web-control-status"');
+    keys.forEach((key) => {
+      expect(settingsTranslations.ru[key]).toBeTruthy();
+      expect(settingsTranslations.en[key]).toBeTruthy();
+    });
   });
 
   test("builds the standalone notifications lab page", () => {

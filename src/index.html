@@ -1874,10 +1874,39 @@
                         </ul>
                       </div>
 
-                      <div class="settings-control-group settings-control-group--section settings-control-group--cookies">
-                        <h4 class="settings-control-group__title" data-i18n="settings.downloader.cookies.title">
-                          YouTube cookies
-                        </h4>
+                      <details
+                        class="settings-control-group settings-control-group--section settings-control-group--cookies settings-advanced"
+                        id="settings-downloader-advanced"
+                      >
+                        <summary class="settings-advanced__summary">
+                          <span class="settings-advanced__heading">
+                            <span class="settings-advanced__icon" aria-hidden="true">
+                              <i class="fa-solid fa-cookie-bite"></i>
+                            </span>
+                            <span class="settings-advanced__copy">
+                              <strong data-i18n="settings.downloader.advanced.title">
+                                Дополнительно: доступ к YouTube
+                              </strong>
+                              <small data-i18n="settings.downloader.advanced.hint">
+                                Cookies для роликов, требующих вход или проверку.
+                              </small>
+                            </span>
+                          </span>
+                          <span class="settings-advanced__meta">
+                            <span
+                              class="settings-advanced__state"
+                              id="settings-ytdlp-cookies-summary-state"
+                              data-i18n="settings.downloader.cookies.mode.off"
+                            >
+                              Выкл.
+                            </span>
+                            <i class="fa-solid fa-chevron-down settings-advanced__chevron" aria-hidden="true"></i>
+                          </span>
+                        </summary>
+                        <div class="settings-advanced__content">
+                          <h4 class="settings-control-group__title" data-i18n="settings.downloader.cookies.title">
+                            YouTube cookies
+                          </h4>
                         <ul class="module settings-control-list settings-cookies-list">
                           <li class="settings-control settings-cookies-row">
                             <label class="settings-cookies-label" for="settings-ytdlp-cookies-mode">
@@ -1994,7 +2023,8 @@
                             </span>
                           </li>
                         </ul>
-                      </div>
+                        </div>
+                      </details>
                     </div>
                   </section>
 

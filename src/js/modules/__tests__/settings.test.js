@@ -228,6 +228,114 @@ describe("tools remember last tool setting", () => {
   });
 });
 
+describe("web control settings", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    global.window = global.window || {};
+    Object.defineProperty(global.navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: jest.fn().mockResolvedValue(undefined),
+      },
+    });
+  });
+
+  it("renders status and wires web-control IPC actions", async () => {
+    window.electron = {
+      invoke: jest.fn(async (channel, value) => {
+        if (channel === "web:getStatus") {
+          return {
+            success: true,
+            status: {
+              enabled: true,
+              running: true,
+              localUrl: "http://127.0.0.1:4321/",
+              lanUrls: ["http://192.168.1.10:4321/"],
+              port: 4321,
+            },
+          };
+        }
+        if (channel === "web:setEnabled") {
+          return {
+            success: true,
+            status: {
+              enabled: Boolean(value),
+              running: Boolean(value),
+              localUrl: value ? "http://127.0.0.1:4321/" : "",
+              lanUrls: value ? ["http://192.168.1.10:4321/"] : [],
+              port: value ? 4321 : 0,
+            },
+          };
+        }
+        if (channel === "web:restart" || channel === "web:open") {
+          return {
+            success: true,
+            status: {
+              enabled: true,
+              running: true,
+              localUrl: "http://127.0.0.1:4321/",
+              lanUrls: ["http://192.168.1.10:4321/"],
+              port: 4321,
+            },
+          };
+        }
+        return false;
+      }),
+      on: jest.fn(),
+      send: jest.fn(),
+    };
+    document.body.innerHTML = `
+      <div id="settings-modal">
+        <input id="settings-web-control-toggle" type="checkbox" />
+        <input id="settings-web-control-url" readonly />
+        <input id="settings-web-control-lan-url" readonly />
+        <button id="settings-web-control-open"></button>
+        <button id="settings-web-control-restart"></button>
+        <button id="settings-web-control-copy-lan"></button>
+        <div class="settings-web-control-panel__status-row">
+          <span id="settings-web-control-status"></span>
+        </div>
+      </div>`;
+
+    const mod = require("../settings");
+    await mod.initSettings?.();
+    await Promise.resolve();
+
+    const toggle = document.getElementById("settings-web-control-toggle");
+    const status = document.getElementById("settings-web-control-status");
+    const localUrl = document.getElementById("settings-web-control-url");
+    const lanUrl = document.getElementById("settings-web-control-lan-url");
+    const copyLan = document.getElementById("settings-web-control-copy-lan");
+
+    expect(status?.textContent).toBe("Работает на порту 4321");
+    expect(localUrl?.value).toBe("http://127.0.0.1:4321/");
+    expect(lanUrl?.value).toBe("http://192.168.1.10:4321/");
+    expect(copyLan?.disabled).toBe(false);
+
+    copyLan.click();
+    await Promise.resolve();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      "http://192.168.1.10:4321/",
+    );
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "toast",
+      "Адрес для телефона скопирован",
+      "success",
+    );
+
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event("change"));
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "web:setEnabled",
+      false,
+    );
+  });
+});
+
 describe("backup settings inside tools section", () => {
   beforeEach(() => {
     jest.resetModules();

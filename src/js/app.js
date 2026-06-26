@@ -394,6 +394,12 @@ if (!app.requestSingleInstanceLock()) {
       setupIpcHandlers(dependencies),
     );
 
+    try {
+      await webControlServer.startIfEnabled();
+    } catch (error) {
+      log.warn("Failed to start web control server:", error);
+    }
+
     // Register updater events now, but delay network checks until the first UI is ready.
     startupMetrics.measure("setup auto updater", () =>
       setupAutoUpdater(mainWindow),
