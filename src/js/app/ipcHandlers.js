@@ -536,6 +536,7 @@ function setupIpcHandlers(dependencies) {
     sendDownloadCompletionNotification,
     showTrayNotification,
     setReloadMenuEnabled,
+    webControlServer,
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;

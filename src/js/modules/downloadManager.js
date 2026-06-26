@@ -2751,6 +2751,189 @@ function initDownloadButton() {
   });
 }
 
+function normalizeWebControlQuality(value) {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "audio" || normalized === "audio-only") {
+    return "Audio Only";
+  }
+  return "Source";
+}
+
+function getWebControlSnapshot() {
+  ensureDownloadJobsState(state);
+  const jobs = state.downloadJobs.map((job) => ({ ...job }));
+  return {
+    jobs,
+    queuePaused: Boolean(state.suppressAutoPump || state.queuePaused),
+    maxParallelDownloads: Number(state.maxParallelDownloads) || 1,
+    counts: {
+      pending: getPendingDownloadJobs(state).length,
+      running: getActiveDownloadJobs(state).length,
+      failed: getFailedDownloadJobs(state).length,
+      done: getCompletedDownloadJobs(state).length,
+    },
+  };
+}
+
+async function addWebControlDownload(payload = {}) {
+  const rawUrls = Array.isArray(payload.urls)
+    ? payload.urls
+    : extractUrls(payload.url || payload.text || "");
+  const urls = rawUrls.filter((url) => isValidUrl(url) && isSupportedUrl(url));
+  if (!urls.length) {
+    return { ...getWebControlSnapshot(), added: 0, invalid: rawUrls.length || 1 };
+  }
+  const quality = normalizeWebControlQuality(payload.quality);
+  if (payload.start === true && urls.length === 1) {
+    initiateDownload(urls[0], quality, { fromQueue: false });
+  } else {
+    const downloadedMap = await getDownloadedUrlMap();
+    enqueueMany(urls, quality, { downloadedMap });
+  }
+  pumpDownloadPool(payload.start === true ? "manual" : "auto");
+  updateQueueDisplay();
+  return { ...getWebControlSnapshot(), added: urls.length };
+}
+
+function setWebControlQueuePaused(paused) {
+  state.suppressAutoPump = Boolean(paused);
+  state.queuePaused = Boolean(paused);
+  persistQueuePausedState();
+  updateQueueDisplay();
+  if (!paused) pumpDownloadPool("manual");
+  return getWebControlSnapshot();
+}
+
+function startWebControlQueue() {
+  state.suppressAutoPump = false;
+  state.queuePaused = false;
+  persistQueuePausedState();
+  pumpDownloadPool("manual");
+  updateQueueDisplay();
+  return getWebControlSnapshot();
+}
+
+async function cancelWebControlJob(payload = {}) {
+  const jobId = String(payload.jobId || payload.id || "").trim();
+  const task = findDownloadJob(state, jobId);
+  if (!task) return getWebControlSnapshot();
+  if (task.status === JOB_STATUS.running && task.jobId) {
+    await window.electron.invoke("cancel-download-job", { jobId: task.jobId });
+    return getWebControlSnapshot();
+  }
+  if (task.status === JOB_STATUS.pending || task.status === JOB_STATUS.paused) {
+    removeDownloadJob(state, jobId);
+    persistQueue();
+  }
+  updateQueueDisplay();
+  return getWebControlSnapshot();
+}
+
+function retryWebControlJob(payload = {}) {
+  const jobId = String(payload.jobId || payload.id || "").trim();
+  const task = findDownloadJob(state, jobId);
+  const tasks =
+    jobId && task?.status === JOB_STATUS.failed
+      ? [task]
+      : getFailedDownloadJobs(state).filter((entry) => entry.retryable !== false);
+  for (const entry of tasks) {
+    if (entry.retryable === false) continue;
+    removeDownloadJob(state, entry.jobId || entry.id || entry.signature);
+    upsertDownloadJob(state, {
+      ...entry,
+      status: JOB_STATUS.pending,
+      stage: "",
+      progress: 0,
+      reason: "",
+      errorCode: "",
+    });
+  }
+  persistFailedQueue();
+  persistQueue();
+  pumpDownloadPool("manual");
+  updateQueueDisplay();
+  return getWebControlSnapshot();
+}
+
+function removeWebControlJob(payload = {}) {
+  const jobId = String(payload.jobId || payload.id || "").trim();
+  const task = findDownloadJob(state, jobId);
+  if (!task || task.status === JOB_STATUS.running) return getWebControlSnapshot();
+  removeDownloadJob(state, jobId);
+  persistQueue();
+  persistFailedQueue();
+  persistCompletedQueue();
+  updateQueueDisplay();
+  return getWebControlSnapshot();
+}
+
+function clearWebControlJobs(payload = {}) {
+  const target = String(payload.target || "all").trim().toLowerCase();
+  const statuses =
+    target === "failed"
+      ? [JOB_STATUS.failed]
+      : target === "done"
+        ? [JOB_STATUS.done]
+        : target === "pending"
+          ? [JOB_STATUS.pending, JOB_STATUS.paused]
+          : [JOB_STATUS.pending, JOB_STATUS.paused, JOB_STATUS.failed, JOB_STATUS.done];
+  clearDownloadJobsByStatus(state, statuses);
+  persistQueue();
+  persistFailedQueue();
+  persistCompletedQueue();
+  if (target === "all" || target === "pending") {
+    state.suppressAutoPump = false;
+    state.queuePaused = false;
+    persistQueuePausedState();
+  }
+  updateQueueDisplay();
+  return getWebControlSnapshot();
+}
+
+async function openWebControlCompleted(payload = {}, reveal = false) {
+  const jobId = String(payload.jobId || payload.id || "").trim();
+  const task = findDownloadJob(state, jobId);
+  if (task?.status === JOB_STATUS.done && task.filePath) {
+    if (reveal) {
+      await revealCompletedDownload(task);
+    } else {
+      await openCompletedDownload(task);
+    }
+  }
+  return getWebControlSnapshot();
+}
+
+async function handleWebControlDownloaderAction(action, payload = {}) {
+  switch (action) {
+    case "downloader:add":
+      return addWebControlDownload({ ...payload, start: false });
+    case "downloader:start":
+      return addWebControlDownload({ ...payload, start: true });
+    case "downloader:start-pending":
+      return startWebControlQueue();
+    case "downloader:pause":
+      return setWebControlQueuePaused(true);
+    case "downloader:resume":
+      return setWebControlQueuePaused(false);
+    case "downloader:cancel":
+      return cancelWebControlJob(payload);
+    case "downloader:retry":
+      return retryWebControlJob(payload);
+    case "downloader:remove":
+      return removeWebControlJob(payload);
+    case "downloader:clear":
+      return clearWebControlJobs(payload);
+    case "downloader:open":
+      return openWebControlCompleted(payload, false);
+    case "downloader:reveal":
+      return openWebControlCompleted(payload, true);
+    default:
+      throw new Error(`Unknown downloader action: ${action}`);
+  }
+}
+
 export {
   downloadVideo,
   initiateDownload,

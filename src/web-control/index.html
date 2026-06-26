@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thunder Web</title>
+    <link rel="stylesheet" href="/web-control.css" />
+  </head>
+  <body>
+    <div class="web-app">
+      <header class="top-bar">
+        <div class="top-bar__left">
+          <span class="top-bar__brand">Thunder</span>
+        </div>
+        <div class="top-bar__center">
+          <nav class="group-menu" aria-label="Навигация по разделам">
+            <button class="menu-item active" type="button" aria-current="page">
+              <span class="menu-main">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
+                </svg>
+                <span class="menu-text">Загрузчик</span>
+              </span>
+              <span class="menu-badge" id="topbar-queue-count">0</span>
+            </button>
+            <button class="menu-item is-disabled" type="button" disabled>
+              <span class="menu-main">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l2-2a6 6 0 0 1-7.8 7.8l-4.6 4.6a2 2 0 0 1-2.8-2.8l4.6-4.6A6 6 0 0 1 16.9 4.5l-2.2 1.8Z" />
+                </svg>
+                <span class="menu-text">Инструменты</span>
+              </span>
+            </button>
+          </nav>
+        </div>
+        <div class="top-bar__right">
+          <span class="top-bar__chip" id="connection-status">Подключение</span>
+          <button class="top-bar__action" type="button" data-settings-open aria-label="Настройки">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="main-view">
+        <section class="downloader-shell" aria-labelledby="downloader-title">
+          <div class="downloader-toolbar">
+            <div class="downloader-view-mode" aria-label="Режим просмотра">
+              <button type="button" class="downloader-view-mode__btn active">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5h16M4 12h16M4 19h16" />
+                </svg>
+                <span>Подробно</span>
+              </button>
+              <button type="button" class="downloader-view-mode__btn" disabled>
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
+                </svg>
+                <span>Компактно</span>
+              </button>
+            </div>
+            <div class="downloader-job-summary" id="web-job-summary">
+              <span class="downloader-job-summary__badge">WEB</span>
+              <div class="downloader-job-summary__content">
+                <strong id="job-summary-title">Очередь синхронизирована</strong>
+                <span id="job-summary-meta">Ожидаем новые ссылки</span>
+              </div>
+            </div>
+          </div>
+
+          <h1 id="downloader-title" class="visually-hidden">Загрузчик</h1>
+
+          <section class="input-container" aria-label="Добавление загрузки">
+            <div class="url-entry-shell">
+              <div class="url-input-wrapper">
+                <div class="url-input-main">
+                  <div class="url-input-leading">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M10 13a5 5 0 0 0 7.1 0l2.1-2.1a5 5 0 1 0-7.1-7.1L11 4.9" />
+                      <path d="M14 11a5 5 0 0 0-7.1 0l-2.1 2.1a5 5 0 1 0 7.1 7.1L13 19.1" />
+                    </svg>
+                    <span class="url-input-leading__label">URL</span>
+                  </div>
+                  <div class="url-input-field">
+                    <textarea
+                      id="url-input"
+                      rows="2"
+                      placeholder="Введите URL видео или аудио"
+                      aria-label="Введите URL видео или аудио"
+                    ></textarea>
+                  </div>
+                  <div class="button-grid" aria-label="Действия поля URL">
+                    <button id="clear-url" type="button" class="clear-button" title="Очистить">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="url-input-service-row">
+                  <div class="url-input-statusline">
+                    <span class="url-input-statusline__dot" aria-hidden="true"></span>
+                    <span class="url-helper-text">Вставьте ссылку или несколько ссылок</span>
+                  </div>
+                  <div class="url-input-shortcuts" aria-hidden="true">
+                    <span class="url-shortcut-chip">Enter</span>
+                    <span class="url-shortcut-chip">LAN</span>
+                  </div>
+                </div>
+                <div class="button-group downloader-action-row url-input-action-row">
+                  <div class="download-quality-group downloader-action-row__primary">
+                    <select id="quality-select" class="quality-select" aria-label="Качество">
+                      <option value="source">Source</option>
+                      <option value="audio">Audio Only</option>
+                    </select>
+                    <button id="download-now" class="large-button downloader-action-row__download">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
+                      </svg>
+                      <span>Скачать</span>
+                    </button>
+                    <button id="add-queue" class="small-button downloader-action-row__aside">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                      <span>В очередь</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="download-queue-info" class="download-queue-info">
+            <div class="queue-header">
+              <div class="queue-header-left">
+                <span class="queue-title-icon" aria-hidden="true">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                  </svg>
+                </span>
+                <h2 class="queue-title">Очередь</h2>
+                <div class="queue-pills" aria-label="Сводка очереди">
+                  <span id="queue-active-count" class="queue-count-pill queue-count-pill--active">0 активно</span>
+                  <span id="queue-count" class="queue-count-pill queue-count-pill--pending">0 в очереди</span>
+                  <span id="queue-done-count" class="queue-count-pill queue-count-pill--done">0 готово</span>
+                  <span id="queue-failed-count" class="queue-count-pill queue-count-pill--failed">0 ошибок</span>
+                </div>
+              </div>
+              <div class="queue-actions">
+                <button id="start-queue" class="queue-action-button queue-action-button--start" title="Запустить очередь">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m8 5 11 7-11 7Z" />
+                  </svg>
+                  <span>Запустить</span>
+                </button>
+                <button id="pause-queue" class="queue-action-button queue-action-button--pause" aria-label="Пауза очереди"></button>
+                <button data-clear="failed" class="queue-action-button queue-action-button--ghost" aria-label="Очистить ошибки" title="Очистить ошибки">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18M8 6V4h8v2m-1 5v6M9 11v6M5 6l1 14h12l1-14" />
+                  </svg>
+                </button>
+                <button data-clear="done" class="queue-action-button queue-action-button--ghost" aria-label="Очистить готовые" title="Очистить готовые">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m20 6-11 11-5-5" />
+                  </svg>
+                </button>
+                <button data-clear="all" class="queue-action-button queue-action-button--clear" aria-label="Очистить всё" title="Очистить всё">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18M8 6V4h8v2m-1 5v6M9 11v6M5 6l1 14h12l1-14" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div id="queue-filters" class="queue-filters" aria-label="Фильтр очереди">
+              <button type="button" class="queue-filter-button is-active" data-filter="all" aria-pressed="true">
+                <span>Все</span>
+                <span class="queue-filter-count" data-filter-count="all">0</span>
+              </button>
+              <button type="button" class="queue-filter-button" data-filter="active" aria-pressed="false">
+                <span>Активные</span>
+                <span class="queue-filter-count" data-filter-count="active">0</span>
+              </button>
+              <button type="button" class="queue-filter-button" data-filter="pending" aria-pressed="false">
+                <span>Ожидают</span>
+                <span class="queue-filter-count" data-filter-count="pending">0</span>
+              </button>
+              <button type="button" class="queue-filter-button" data-filter="failed" aria-pressed="false">
+                <span>Ошибки</span>
+                <span class="queue-filter-count" data-filter-count="failed">0</span>
+              </button>
+              <button type="button" class="queue-filter-button" data-filter="done" aria-pressed="false">
+                <span>Готово</span>
+                <span class="queue-filter-count" data-filter-count="done">0</span>
+              </button>
+            </div>
+            <div id="queue-list" class="queue-list" aria-live="polite" role="list"></div>
+          </section>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <div class="app-footer__bar">
+          <div class="app-footer__zone app-footer__zone--lead">
+            <span class="app-footer__kicker">Thunder</span>
+            <span class="app-footer__context">Web</span>
+          </div>
+          <div class="app-footer__zone app-footer__zone--center">
+            <span class="app-footer__status-meta">Вкладка</span>
+            <strong class="app-footer__status-value">Загрузчик</strong>
+          </div>
+          <div class="app-footer__zone app-footer__zone--actions">
+            <span id="footer-network-url" class="app-footer__context">LAN</span>
+            <button class="app-footer__action" type="button" data-settings-open aria-label="Открыть настройки">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      <div id="settings-modal" class="settings-modal" aria-hidden="true">
+        <div class="settings-modal__backdrop" data-settings-close></div>
+        <section class="settings-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+          <header class="settings-modal__header">
+            <div>
+              <h2 id="settings-modal-title">Настройки</h2>
+              <p>Параметры загрузчика и внешнего вида web-интерфейса.</p>
+            </div>
+            <button class="settings-modal__close" type="button" data-settings-close aria-label="Закрыть настройки">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </header>
+          <div class="settings-modal__layout">
+            <aside class="settings-tabs" aria-label="Разделы настроек">
+              <button class="settings-tab is-active" type="button" data-settings-tab="downloader">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
+                </svg>
+                <span>Загрузчик</span>
+              </button>
+              <button class="settings-tab" type="button" data-settings-tab="appearance">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3a9 9 0 0 0 0 18h1.5a1.5 1.5 0 0 0 1.1-2.5 1.5 1.5 0 0 1 1.1-2.5H17a4 4 0 0 0 0-8h-1a4 4 0 0 1-4-4Z" />
+                  <path d="M7.5 10.5h.01M9.5 7.5h.01M13.5 7.5h.01" />
+                </svg>
+                <span>Внешний вид</span>
+              </button>
+            </aside>
+            <div class="settings-content">
+              <div class="settings-pane is-active" data-settings-pane="downloader">
+                <section class="settings-card">
+                  <div class="settings-card__intro">
+                    <h3>Загрузчик</h3>
+                    <p>Путь, параллельность и поведение очереди.</p>
+                  </div>
+                  <div class="settings-card__body">
+                    <label class="settings-field">
+                      <span>Папка загрузок</span>
+                      <input id="setting-download-path" type="text" />
+                    </label>
+                    <div class="settings-field-grid">
+                      <label class="settings-field">
+                        <span>Параллельные загрузки</span>
+                        <select id="setting-parallel">
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                        </select>
+                      </label>
+                      <label class="settings-field">
+                        <span>Профиль качества</span>
+                        <select id="setting-quality-profile">
+                          <option value="remember">Последний</option>
+                          <option value="audio">Аудио</option>
+                        </select>
+                      </label>
+                    </div>
+                    <ul class="settings-control-list">
+                      <li class="settings-control">
+                        <input id="setting-auto-quality" type="checkbox" />
+                        <label for="setting-auto-quality">
+                          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
+                          </svg>
+                          <span>Автоматически открывать окно качества</span>
+                        </label>
+                      </li>
+                      <li class="settings-control">
+                        <input id="setting-open-copy" type="checkbox" />
+                        <label for="setting-open-copy">
+                          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10 13a5 5 0 0 0 7.1 0l2.1-2.1a5 5 0 1 0-7.1-7.1L11 4.9" />
+                            <path d="M14 11a5 5 0 0 0-7.1 0l-2.1 2.1a5 5 0 1 0 7.1 7.1L13 19.1" />
+                          </svg>
+                          <span>Открывать при копировании URL</span>
+                        </label>
+                      </li>
+                      <li class="settings-control">
+                        <input id="setting-open-complete" type="checkbox" />
+                        <label for="setting-open-complete">
+                          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m20 6-11 11-5-5" />
+                          </svg>
+                          <span>Открывать после загрузки</span>
+                        </label>
+                      </li>
+                      <li class="settings-control">
+                        <input id="setting-disable-complete" type="checkbox" />
+                        <label for="setting-disable-complete">
+                          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M3 5h18v14H3zM9 9l6 6M15 9l-6 6" />
+                          </svg>
+                          <span>Отключить окно завершения</span>
+                        </label>
+                      </li>
+                      <li class="settings-control">
+                        <input id="setting-tools-status" type="checkbox" />
+                        <label for="setting-tools-status">
+                          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                          </svg>
+                          <span>Показывать статус инструментов</span>
+                        </label>
+                      </li>
+                    </ul>
+                  </div>
+                </section>
+              </div>
+              <div class="settings-pane" data-settings-pane="appearance">
+                <section class="settings-card">
+                  <div class="settings-card__intro">
+                    <h3>Внешний вид</h3>
+                    <p>Тема, язык и размер текста.</p>
+                  </div>
+                  <div class="settings-card__body">
+                    <div class="settings-field-grid">
+                      <label class="settings-field">
+                        <span>Тема</span>
+                        <select id="setting-theme">
+                          <option value="dark">Dark</option>
+                          <option value="midnight">Midnight</option>
+                          <option value="emerald">Emerald</option>
+                          <option value="sunset">Sunset</option>
+                          <option value="violet">Violet</option>
+                        </select>
+                      </label>
+                      <label class="settings-field">
+                        <span>Язык</span>
+                        <select id="setting-language">
+                          <option value="ru">Русский</option>
+                          <option value="en">English</option>
+                        </select>
+                      </label>
+                      <label class="settings-field">
+                        <span>Размер текста</span>
+                        <select id="setting-font-size">
+                          <option value="14">14 px</option>
+                          <option value="16">16 px</option>
+                          <option value="18">18 px</option>
+                          <option value="20">20 px</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <footer class="settings-modal__footer">
+            <span id="settings-save-status" class="settings-save-status" aria-live="polite"></span>
+            <button type="button" class="small-button" data-settings-close>Закрыть</button>
+            <button id="save-settings" type="button" class="large-button settings-save-button">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+                <path d="M17 21v-8H7v8M7 3v5h8" />
+              </svg>
+              <span>Сохранить</span>
+            </button>
+          </footer>
+        </section>
+      </div>
+    </div>
+    <script src="/web-control.js"></script>
+  </body>
+</html>

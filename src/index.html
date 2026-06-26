@@ -1997,6 +1997,86 @@
                       </div>
                     </div>
                   </section>
+
+                  <section class="settings-card settings-card--web-control">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.web.title">
+                        Веб-интерфейс
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.web.hint">
+                        Управление загрузчиком из браузера на этом компьютере.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-web-control-toggle" />
+                          <label for="settings-web-control-toggle">
+                            <i class="fa-solid fa-globe"></i>
+                            <span data-i18n-html="settings.web.enable">
+                              Включить <strong>локальный веб-интерфейс</strong>
+                            </span>
+                          </label>
+                        </li>
+                      </ul>
+                      <div class="settings-web-control-panel">
+                        <label class="settings-web-control-panel__label" for="settings-web-control-url" data-i18n="settings.web.url">
+                          Адрес на этом компьютере
+                        </label>
+                        <div class="settings-web-control-panel__row settings-web-control-panel__row--local">
+                          <input id="settings-web-control-url" type="text" readonly value="" />
+                          <button
+                            type="button"
+                            class="small-button"
+                            id="settings-web-control-open"
+                            data-i18n-title="settings.web.open"
+                            title="Открыть"
+                            aria-label="Открыть"
+                          >
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="small-button"
+                            id="settings-web-control-restart"
+                            data-i18n-title="settings.web.restart"
+                            title="Перезапустить"
+                            aria-label="Перезапустить"
+                          >
+                            <i class="fa-solid fa-rotate"></i>
+                          </button>
+                        </div>
+                        <label class="settings-web-control-panel__label" for="settings-web-control-lan-url" data-i18n="settings.web.lanUrl">
+                          Адрес для телефона
+                        </label>
+                        <div class="settings-web-control-panel__row settings-web-control-panel__row--lan">
+                          <input id="settings-web-control-lan-url" type="text" readonly value="" />
+                          <button
+                            type="button"
+                            class="small-button"
+                            id="settings-web-control-copy-lan"
+                            data-i18n-title="settings.web.copyLan"
+                            title="Копировать адрес для телефона"
+                            aria-label="Копировать адрес для телефона"
+                          >
+                            <i class="fa-regular fa-copy"></i>
+                          </button>
+                        </div>
+                        <div class="settings-web-control-panel__notice">
+                          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                          <span data-i18n="settings.web.lanWarning">
+                            При включении любое устройство в вашей локальной сети сможет управлять загрузчиком.
+                          </span>
+                        </div>
+                        <div class="settings-web-control-panel__status-row">
+                          <span class="settings-web-control-panel__status-dot" aria-hidden="true"></span>
+                          <span id="settings-web-control-status" class="settings-web-control-panel__status" data-i18n="settings.web.status.off">
+                            Выключено
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               </div>
 
