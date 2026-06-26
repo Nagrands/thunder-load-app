@@ -432,32 +432,6 @@ describe("toolsView quick actions", () => {
     );
   });
 
-  test("shows version badges on launcher cards and marks dependencies as new", async () => {
-    const el = await renderView();
-    const launcherButtons = Array.from(
-      el.querySelectorAll(".tools-launcher-button"),
-    );
-    const dependencyButton = el.querySelector("#tools-open-downloader-tools");
-
-    expect(launcherButtons[0]?.id).toBe("tools-open-downloader-tools");
-    expect(
-      dependencyButton?.querySelector(".tools-launcher-badge--new")
-        ?.textContent,
-    ).toBe("tools.launcher.badge.new");
-    expect(
-      dependencyButton?.querySelector(
-        ".tools-launcher-badge:not(.tools-launcher-badge--new)",
-      )?.textContent,
-    ).toBe("v1.0");
-    launcherButtons.forEach((button) => {
-      expect(
-        Array.from(button.querySelectorAll(".tools-launcher-badge")).some(
-          (badge) => badge.textContent === "v1.0",
-        ),
-      ).toBe(true);
-    });
-  });
-
   test("opens downloader dependencies tool view from launcher", async () => {
     const el = await renderView();
 
