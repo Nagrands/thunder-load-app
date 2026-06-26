@@ -224,6 +224,13 @@ function activateSettingsTab(tabId) {
   button?.click();
 }
 
+function resolveStoredSettingsTab(tabId) {
+  const fallbackTab = "general-settings";
+  if (!tabId || tabId === "about-settings") return fallbackTab;
+  const exists = getSettingsTabLinks().some((btn) => btn.dataset.tab === tabId);
+  return exists ? tabId : fallbackTab;
+}
+
 export function openSettingsWithTab(tabId) {
   openSettings();
   setTimeout(() => activateSettingsTab(tabId), 0);
@@ -369,7 +376,11 @@ export function initSettingsModal() {
     // Восстанавливаем вкладку при открытии
     const savedTab = localStorage.getItem("lastSettingsTab");
     if (savedTab) {
-      activateSettingsTab(savedTab);
+      const resolvedTab = resolveStoredSettingsTab(savedTab);
+      if (resolvedTab !== savedTab) {
+        localStorage.setItem("lastSettingsTab", resolvedTab);
+      }
+      activateSettingsTab(resolvedTab);
     }
     syncActiveSettingsSectionLabel();
   }

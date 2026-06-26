@@ -82,8 +82,8 @@ describe("settings template backup placement", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
     const appearancePaneStart = html.indexOf('id="appearance-settings"');
-    const aboutPaneStart = html.indexOf('id="about-settings"');
-    const appearancePaneHtml = html.slice(appearancePaneStart, aboutPaneStart);
+    const otherPaneStart = html.indexOf('id="other-settings"');
+    const appearancePaneHtml = html.slice(appearancePaneStart, otherPaneStart);
 
     expect(appearancePaneHtml).toContain("settings-card--appearance-panel");
     expect(appearancePaneHtml).not.toContain("settings-card--appearance-main");
@@ -138,20 +138,44 @@ describe("settings template backup placement", () => {
     expect(downloaderPaneHtml).toContain('id="quality-profile-segment"');
   });
 
-  test("includes about app tab and version fields in settings template", () => {
+  test("uses compact icon tabs in the download quality modal", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
 
-    expect(html).toContain('data-tab="about-settings"');
-    expect(html).toContain('id="about-settings"');
-    expect(html).toContain('aria-labelledby="settings-section-tab-about"');
-    expect(html).toContain('id="settings-app-version"');
-    expect(html).toContain('id="settings-about-electron-version"');
-    expect(html).toContain('id="settings-about-chrome-version"');
-    expect(html).toContain('id="settings-about-node-version"');
-    expect(html).toContain('id="settings-about-whats-new-button"');
-    expect(html).toContain('id="settings-about-copy-info-button"');
-    expect(html).toContain('id="settings-about-check-updates-button"');
+    [
+      "download-quality-tab-video",
+      "download-quality-tab-video-only",
+      "download-quality-tab-audio",
+      "download-quality-tab-subtitles",
+    ].forEach((id) => {
+      expect(html).toContain(`id="${id}"`);
+    });
+    expect(html).toContain('class="quality-tab-label"');
+    expect(html).toContain('class="quality-tab-count"');
+    expect(html).toContain('data-i18n-title="quality.tab.audio"');
+    expect(html).toContain('data-i18n-aria="quality.aria.tab.audio"');
+  });
+
+  test("moves about app information into the general settings tab", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+    const generalPaneStart = html.indexOf('id="general-settings"');
+    const downloaderPaneStart = html.indexOf('id="window-settings"');
+    const generalPaneHtml = html.slice(generalPaneStart, downloaderPaneStart);
+
+    expect(html).not.toContain('data-tab="about-settings"');
+    expect(html).not.toContain('id="about-settings"');
+    expect(html).not.toContain('id="settings-section-tab-about"');
+    expect(generalPaneHtml).toContain("settings-about-card--compact");
+    expect(generalPaneHtml).toContain('id="settings-app-version"');
+    expect(generalPaneHtml).toContain('id="settings-about-electron-version"');
+    expect(generalPaneHtml).toContain('id="settings-about-chrome-version"');
+    expect(generalPaneHtml).toContain('id="settings-about-node-version"');
+    expect(generalPaneHtml).toContain('id="settings-about-whats-new-button"');
+    expect(generalPaneHtml).toContain('id="settings-about-copy-info-button"');
+    expect(generalPaneHtml).toContain(
+      'id="settings-about-check-updates-button"',
+    );
   });
 
   test("includes auto quality modal toggle in downloader settings", () => {

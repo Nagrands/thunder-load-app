@@ -1505,6 +1505,8 @@
   #window-settings {
     .quality-profile-shell {
       display: grid;
+      grid-template-columns: minmax(180px, 0.72fr) minmax(220px, 1fr);
+      align-items: stretch;
       gap: 8px;
     }
 
@@ -1552,7 +1554,7 @@
     }
 
     .quality-profile-summary {
-      min-height: 64px;
+      min-height: 0;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 10px;
       padding: 10px 12px;
@@ -1595,6 +1597,10 @@
     }
 
     @media (max-width: 960px) {
+      .quality-profile-shell {
+        grid-template-columns: 1fr;
+      }
+
       .quality-profile-segment {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -2626,7 +2632,7 @@
     }
 
     .settings-control-group--quality {
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .settings-control-group__title {
@@ -2639,7 +2645,10 @@
     }
 
     .quality-profile-shell {
-      gap: 6px;
+      display: grid;
+      grid-template-columns: minmax(180px, 0.72fr) minmax(220px, 1fr);
+      align-items: stretch;
+      gap: 8px;
     }
 
     .quality-profile-segment {
@@ -2650,9 +2659,10 @@
     }
 
     .quality-profile-segment__btn {
-      min-height: 32px;
+      min-height: 30px;
       border-radius: 7px;
       color: rgba(255, 255, 255, 0.62);
+      font-size: 11px;
       letter-spacing: 0;
 
       &:hover {
@@ -2669,7 +2679,7 @@
 
     .quality-profile-summary {
       min-height: 0;
-      padding: 9px 10px;
+      padding: 8px 10px;
       border-radius: 9px;
       border-color: rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.03);
@@ -2677,8 +2687,8 @@
     }
 
     .quality-profile-summary__icon {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 8px;
       border-color: rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.06);
@@ -3011,66 +3021,65 @@
     min-width: 0;
   }
 
-  #about-settings {
-    .settings-grid {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-  }
-
   .settings-about-card {
-    padding: 12px 14px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .settings-about-shell {
     display: grid;
-    gap: 12px;
+    grid-template-columns: minmax(180px, 0.8fr) minmax(280px, 1.3fr) auto;
+    align-items: center;
+    gap: 10px;
   }
 
   .settings-about-intro {
-    gap: 4px;
-    max-width: 720px;
+    gap: 3px;
+    min-width: 0;
   }
 
   .settings-about-metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
   }
 
   .settings-about-metric {
-    padding: 10px 12px;
+    padding: 7px 9px;
     display: grid;
-    gap: 4px;
-    border-radius: 12px;
+    gap: 2px;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.035);
     min-width: 0;
   }
 
   .settings-about-metric__label {
-    font-size: 11px;
+    font-size: 10px;
     line-height: 1.3;
     color: var(--color-quality);
   }
 
   .settings-about-metric__value {
     overflow-wrap: anywhere;
+    font-size: 12px;
+    line-height: 1.2;
   }
 
   .settings-about-actions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    min-width: 172px;
   }
 
   .settings-about-actions button {
-    min-height: 36px;
-    padding: 0 12px;
-    border-radius: 10px;
+    min-height: 30px;
+    padding: 0 9px;
+    border-radius: 9px;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
+    font-size: 11px;
   }
 
   .settings-card__heading {
@@ -3869,9 +3878,12 @@
   }
 
   .settings-card__title {
+    font-family: var(--font-brand);
     font-size: 15px;
     font-weight: 600;
-    color: #fff;
+    color: var(--thunder-electric);
+    text-shadow: 0 0 2px rgba(var(--thunder-electric-rgb), 0.18), 0 1px 0 rgba(255, 255, 255, 0.18);
+    letter-spacing: 0.05em;
   }
 
   .settings-card__desc {
@@ -4191,6 +4203,10 @@
         grid-template-columns: 1fr;
       }
 
+      .quality-profile-shell {
+        grid-template-columns: 1fr;
+      }
+
       .settings-card--downloader,
       .settings-card--quality {
         min-height: 0;
@@ -4205,12 +4221,13 @@
       }
     }
 
-    #about-settings {
-      .settings-grid,
-      .settings-about-metrics,
-      .settings-about-actions {
-        grid-template-columns: 1fr;
-      }
+    .settings-about-shell,
+    .settings-about-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .settings-about-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .settings-card {

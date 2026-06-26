@@ -66,16 +66,11 @@ describe("settingsModal mobile sections navigation", () => {
               <i class="fa-solid fa-download"></i>
               <span>Downloader</span>
             </button>
-            <button class="tab-link" data-tab="about-settings" role="tab" aria-selected="false" tabindex="-1">
-              <i class="fa-solid fa-circle-info"></i>
-              <span>О приложении</span>
-            </button>
           </div>
         </div>
         <div class="tab-content">
           <div id="general-settings" class="tab-pane active" role="tabpanel"></div>
           <div id="window-settings" class="tab-pane" role="tabpanel" hidden></div>
-          <div id="about-settings" class="tab-pane" role="tabpanel" hidden></div>
         </div>
       </div>
     `;
@@ -168,9 +163,6 @@ describe("settingsModal mobile sections navigation", () => {
     const windowTab = document.querySelector(
       '.tab-link[data-tab="window-settings"]',
     );
-    const aboutTab = document.querySelector(
-      '.tab-link[data-tab="about-settings"]',
-    );
 
     generalTab.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
@@ -181,9 +173,9 @@ describe("settingsModal mobile sections navigation", () => {
     windowTab.dispatchEvent(
       new KeyboardEvent("keydown", { key: "End", bubbles: true }),
     );
-    expect(aboutTab.getAttribute("aria-selected")).toBe("true");
+    expect(windowTab.getAttribute("aria-selected")).toBe("true");
 
-    aboutTab.dispatchEvent(
+    windowTab.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Home", bubbles: true }),
     );
     expect(generalTab.getAttribute("aria-selected")).toBe("true");
@@ -208,7 +200,7 @@ describe("settingsModal mobile sections navigation", () => {
     expect(label.textContent).toBe("Downloader");
   });
 
-  test("restores about label from saved lastSettingsTab on init", () => {
+  test("migrates removed about tab from saved lastSettingsTab to general", () => {
     localStorage.setItem("lastSettingsTab", "about-settings");
 
     jest.isolateModules(() => {
@@ -217,14 +209,15 @@ describe("settingsModal mobile sections navigation", () => {
     });
 
     const label = document.getElementById("settings-active-section-label");
-    const aboutTab = document.querySelector(
-      '.tab-link[data-tab="about-settings"]',
+    const generalTab = document.querySelector(
+      '.tab-link[data-tab="general-settings"]',
     );
-    const aboutPane = document.getElementById("about-settings");
+    const generalPane = document.getElementById("general-settings");
 
-    expect(aboutTab.classList.contains("active")).toBe(true);
-    expect(aboutPane.classList.contains("active")).toBe(true);
-    expect(label.textContent).toBe("О приложении");
+    expect(generalTab.classList.contains("active")).toBe(true);
+    expect(generalPane.classList.contains("active")).toBe(true);
+    expect(label.textContent).toBe("Общие");
+    expect(localStorage.getItem("lastSettingsTab")).toBe("general-settings");
   });
 
   test("openSettings resets mobile panel state and syncs label", () => {
