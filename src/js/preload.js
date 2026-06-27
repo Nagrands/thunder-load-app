@@ -132,6 +132,11 @@ try {
     "tools:hashProgress",
     "tools:mediaInspectorPickFile",
     "tools:mediaInspectorAnalyze",
+    "tools:converterPickFile",
+    "tools:converterPickFolder",
+    "tools:converterConvert",
+    "tools:converterCancel",
+    "tools:converterProgress",
     "tools:sorterPickFolder",
     "tools:sorterOpenFolder",
     "tools:previewSorterPlan",
@@ -408,6 +413,14 @@ try {
       pickMediaInspectorFile: () => safeInvoke("tools:mediaInspectorPickFile"),
       analyzeMediaFile: (payload) =>
         safeInvoke("tools:mediaInspectorAnalyze", payload),
+      pickConverterFile: () => safeInvoke("tools:converterPickFile"),
+      pickConverterFolder: () => safeInvoke("tools:converterPickFolder"),
+      convertMediaFile: (payload) =>
+        safeInvoke("tools:converterConvert", payload),
+      cancelMediaConversion: (payload) =>
+        safeInvoke("tools:converterCancel", payload),
+      onConverterProgress: (callback) =>
+        safeOn("tools:converterProgress", callback),
       pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
       openSorterFolder: (folderPath) =>
         safeInvoke("tools:sorterOpenFolder", folderPath),

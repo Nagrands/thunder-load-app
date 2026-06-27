@@ -4265,6 +4265,210 @@ $wg-max-width: 1200px;
   }
 }
 
+.converter-card {
+  display: grid;
+  gap: 16px;
+}
+
+.converter-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.converter-panel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.1);
+  display: grid;
+  gap: 12px;
+  align-content: start;
+
+  &--run {
+    grid-column: 1 / -1;
+  }
+}
+
+.converter-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  h3 {
+    margin: 0;
+    color: var(--color-highlight);
+    font-size: 0.96rem;
+  }
+}
+
+.converter-drop-zone {
+  min-height: 112px;
+  border: 1px dashed rgba(var(--color-accent-rgb), 0.3);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-accent-rgb), 0.08),
+      transparent 72%
+    ),
+    rgba(255, 255, 255, 0.03);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+
+  > i {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: rgba(var(--color-accent-rgb), 0.12);
+    color: rgba(var(--color-accent-rgb), 0.95);
+  }
+
+  strong,
+  span {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  strong {
+    color: var(--color-highlight);
+    margin-bottom: 4px;
+  }
+
+  &.is-drag-over {
+    border-color: rgba(var(--color-accent-rgb), 0.58);
+    background: rgba(var(--color-accent-rgb), 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.13);
+  }
+}
+
+.converter-control-group {
+  display: grid;
+  gap: 8px;
+}
+
+.converter-label {
+  color: var(--color-quality);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.converter-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.converter-option {
+  min-height: 62px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-highlight);
+  padding: 8px 10px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  cursor: pointer;
+
+  span {
+    color: var(--color-quality);
+    font-size: 0.74rem;
+    line-height: 1.3;
+  }
+
+  &[aria-selected="true"] {
+    border-color: rgba(var(--color-accent-rgb), 0.45);
+    background: rgba(var(--color-accent-rgb), 0.1);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+}
+
+.converter-output-pill {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-highlight);
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+}
+
+.converter-progress {
+  display: grid;
+  gap: 8px;
+}
+
+.converter-progress__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.converter-progress__track {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.converter-progress__bar {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-highlight)
+  );
+  transition: width 0.18s ease;
+}
+
+.converter-result {
+  min-height: 36px;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.03);
+
+  &.is-success {
+    color: #d1fae5;
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  &.is-error {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  &.is-warning {
+    color: #fef3c7;
+    background: rgba(245, 158, 11, 0.1);
+  }
+}
+
+.converter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .media-inspector-inline-header {
   display: flex;
   align-items: flex-start;
@@ -5843,6 +6047,17 @@ $wg-max-width: 1200px;
   .media-inspector-summary-grid,
   .media-inspector-streams-grid {
     grid-template-columns: 1fr;
+  }
+
+  .converter-shell,
+  .converter-options {
+    grid-template-columns: 1fr;
+  }
+
+  .converter-panel__header,
+  .converter-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .media-inspector-stream-section {

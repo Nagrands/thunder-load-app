@@ -98,6 +98,10 @@ jest.mock("../toolsPaths", () => ({
   getDefaultToolsDir: jest.fn(() => "/tmp/tools"),
   getEffectiveToolsDir: jest.fn(() => "/tmp/tools"),
   ensureToolsDir: jest.fn(async (v) => v || "/tmp/tools"),
+  resolveToolPath: jest.fn((tool, dir = "/tmp/tools") => {
+    const path = require("path");
+    return path.join(dir, process.platform === "win32" ? `${tool}.exe` : tool);
+  }),
   detectLegacyLocations: jest.fn(async () => []),
   migrateLegacy: jest.fn(async () => ({ copied: [], skipped: [] })),
 }));
@@ -131,6 +135,7 @@ describe("ipcHandlers tools quick actions", () => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);
     jest.clearAllMocks();
     require("child_process").execFile.mockReset();
+    require("child_process").spawn.mockReset();
     fs.mkdirSync(toolsDir, { recursive: true });
     const toolsPaths = require("../toolsPaths");
     toolsPaths.getDefaultToolsDir.mockImplementation(() => toolsDir);
@@ -142,13 +147,28 @@ describe("ipcHandlers tools quick actions", () => {
       skipped: [],
     }));
   });
+  const createSpawnProcess = () => {
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn(() => {
+      setTimeout(() => proc.emit("close", null), 0);
+      return true;
+    });
+    return proc;
+  };
 
   afterEach(() => {
     const ffprobeName =
       process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
+    const ffmpegName = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
     const ffprobePath = path.join(toolsDir, ffprobeName);
+    const ffmpegPath = path.join(toolsDir, ffmpegName);
     if (fs.existsSync(ffprobePath)) {
       fs.unlinkSync(ffprobePath);
+    }
+    if (fs.existsSync(ffmpegPath)) {
+      fs.unlinkSync(ffmpegPath);
     }
     Object.defineProperty(process, "platform", {
       value: originalPlatform,
@@ -246,6 +266,222 @@ describe("ipcHandlers tools quick actions", () => {
     const result = await handlers[CHANNELS.TOOLS_MEDIA_INSPECTOR_PICK_FILE]();
 
     expect(result).toEqual({ success: true, filePath: "/tmp/movie.webm" });
+  });
+
+  test("converterPickFile and converterPickFolder return selected paths", async () => {
+    const { dialog } = require("electron");
+    const { CHANNELS } = require("../../ipc/channels");
+    dialog.showOpenDialog
+      .mockResolvedValueOnce({
+        canceled: false,
+        filePaths: ["/tmp/source.mp4"],
+      })
+      .mockResolvedValueOnce({
+        canceled: false,
+        filePaths: ["/tmp/output"],
+      });
+
+    initHandlers();
+
+    await expect(handlers[CHANNELS.TOOLS_CONVERTER_PICK_FILE]()).resolves.toEqual({
+      success: true,
+      filePath: "/tmp/source.mp4",
+    });
+    await expect(handlers[CHANNELS.TOOLS_CONVERTER_PICK_FOLDER]()).resolves.toEqual({
+      success: true,
+      folderPath: "/tmp/output",
+    });
+  });
+
+  test("converterConvert validates payload and missing files", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    initHandlers();
+
+    await expect(
+      handlers[CHANNELS.TOOLS_CONVERTER_CONVERT](null, {
+        requestId: "bad-path",
+        inputPath: "relative.mp4",
+        targetFormat: "mp4",
+        quality: "balanced",
+      }),
+    ).resolves.toMatchObject({
+      success: false,
+      code: "invalidPayload",
+    });
+
+    await expect(
+      handlers[CHANNELS.TOOLS_CONVERTER_CONVERT](null, {
+        requestId: "missing",
+        inputPath: "/tmp/missing-source.mp4",
+        targetFormat: "mp4",
+        quality: "balanced",
+      }),
+    ).resolves.toMatchObject({
+      success: false,
+      code: "fileNotFound",
+    });
+  });
+
+  test("converterConvert returns missingDependency when ffmpeg is absent", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const inputPath = path.join(os.tmpdir(), "converter-missing.mp4");
+    fs.writeFileSync(inputPath, "demo");
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_CONVERTER_CONVERT](null, {
+      requestId: "missing-ffmpeg",
+      inputPath,
+      targetFormat: "mp4",
+      quality: "balanced",
+    });
+
+    expect(result).toMatchObject({
+      success: false,
+      code: "missingDependency",
+    });
+  });
+
+  test("converterConvert builds ffmpeg args and emits progress", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const ffmpegPath = path.join(
+      toolsDir,
+      process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg",
+    );
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "converter-"));
+    const inputPath = path.join(tempDir, "source.mov");
+    const outputDir = path.join(tempDir, "out");
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(inputPath, "demo");
+    fs.writeFileSync(ffmpegPath, "ffmpeg");
+    fs.chmodSync(ffmpegPath, 0o755);
+    const proc = createSpawnProcess();
+    childProcess.spawn.mockImplementation(() => {
+      setTimeout(() => {
+        proc.stderr.emit("data", "Duration: 00:01:00.00\n");
+        proc.stderr.emit("data", "time=00:00:30.00 bitrate=1000kbits/s\n");
+        proc.emit("close", 0);
+      }, 0);
+      return proc;
+    });
+
+    const { mainWindow } = initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_CONVERTER_CONVERT](null, {
+      requestId: "convert-video",
+      inputPath,
+      outputDir,
+      targetFormat: "mp4",
+      quality: "high",
+    });
+
+    expect(result).toMatchObject({
+      success: true,
+      requestId: "convert-video",
+      targetFormat: "mp4",
+    });
+    expect(result.outputPath).toBe(path.join(outputDir, "source-converted.mp4"));
+    expect(childProcess.spawn).toHaveBeenCalledWith(
+      ffmpegPath,
+      expect.arrayContaining([
+        "-i",
+        inputPath,
+        "-c:v",
+        "libx264",
+        "-crf",
+        "18",
+        "-movflags",
+        "+faststart",
+        result.outputPath,
+      ]),
+      { windowsHide: true },
+    );
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      CHANNELS.TOOLS_CONVERTER_PROGRESS,
+      expect.objectContaining({
+        requestId: "convert-video",
+        percent: 50,
+      }),
+    );
+  });
+
+  test("converterConvert builds audio extraction args and avoids overwrite", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const ffmpegPath = path.join(
+      toolsDir,
+      process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg",
+    );
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "converter-audio-"));
+    const inputPath = path.join(tempDir, "clip.mkv");
+    fs.writeFileSync(inputPath, "demo");
+    fs.writeFileSync(path.join(tempDir, "clip-converted.mp3"), "existing");
+    fs.writeFileSync(ffmpegPath, "ffmpeg");
+    fs.chmodSync(ffmpegPath, 0o755);
+    const proc = createSpawnProcess();
+    childProcess.spawn.mockImplementation(() => {
+      setTimeout(() => proc.emit("close", 0), 0);
+      return proc;
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_CONVERTER_CONVERT](null, {
+      requestId: "convert-audio",
+      inputPath,
+      targetFormat: "mp3",
+      quality: "small",
+    });
+
+    expect(result.outputPath).toBe(path.join(tempDir, "clip-converted-2.mp3"));
+    expect(childProcess.spawn).toHaveBeenCalledWith(
+      ffmpegPath,
+      expect.arrayContaining([
+        "-vn",
+        "-c:a",
+        "libmp3lame",
+        "-b:a",
+        "128k",
+        result.outputPath,
+      ]),
+      { windowsHide: true },
+    );
+  });
+
+  test("converterCancel stops the active conversion process", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const ffmpegPath = path.join(
+      toolsDir,
+      process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg",
+    );
+    const inputPath = path.join(os.tmpdir(), "converter-cancel.mp4");
+    fs.writeFileSync(inputPath, "demo");
+    fs.writeFileSync(ffmpegPath, "ffmpeg");
+    fs.chmodSync(ffmpegPath, 0o755);
+    const proc = createSpawnProcess();
+    childProcess.spawn.mockReturnValue(proc);
+
+    initHandlers();
+    const convertPromise = handlers[CHANNELS.TOOLS_CONVERTER_CONVERT](null, {
+      requestId: "cancel-run",
+      inputPath,
+      targetFormat: "mp4",
+      quality: "balanced",
+    });
+    while (childProcess.spawn.mock.calls.length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const cancelResult = await handlers[CHANNELS.TOOLS_CONVERTER_CANCEL](null, {
+      requestId: "cancel-run",
+    });
+    const convertResult = await convertPromise;
+
+    expect(cancelResult).toEqual({ success: true, cancelled: true });
+    expect(proc.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(convertResult).toMatchObject({
+      success: false,
+      code: "cancelled",
+    });
   });
 
   test("set-download-path removes resume state from previous downloads folder", async () => {

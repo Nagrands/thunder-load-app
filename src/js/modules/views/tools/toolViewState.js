@@ -54,6 +54,7 @@ function createToolViewState() {
     if (toolView === "power") return isPowerToolAvailable(info);
     if (toolView === "sorter") return true;
     if (toolView === "media-inspector") return true;
+    if (toolView === "media-converter") return true;
     if (toolView === "winget-installer") {
       return !!info?.isWindows || String(info?.platform || "") === "darwin";
     }

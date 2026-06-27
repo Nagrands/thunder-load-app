@@ -27,6 +27,7 @@ import { refreshToolsInfoState, renderToolsInfo } from "../toolsInfo";
 import { toolsTranslations } from "../../i18n/translations/tools";
 
 const nextTick = () => new Promise((resolve) => setTimeout(resolve, 0));
+let converterProgressHandler = null;
 
 function makeDroppedFile(filePath) {
   const fileName = String(filePath).split("/").pop();
@@ -90,13 +91,15 @@ async function openTool(el, tool) {
           ? "#tools-open-downloader-tools"
           : tool === "media-inspector"
             ? "#tools-open-media-inspector"
-            : tool === "winget-installer"
-              ? "#tools-open-winget-installer"
-              : tool === "power"
-                ? "#tools-open-power"
-                : tool === "backup"
-                  ? "#tools-open-backup"
-                  : "#tools-open-sorter";
+            : tool === "media-converter"
+              ? "#tools-open-media-converter"
+              : tool === "winget-installer"
+                ? "#tools-open-winget-installer"
+                : tool === "power"
+                  ? "#tools-open-power"
+                  : tool === "backup"
+                    ? "#tools-open-backup"
+                    : "#tools-open-sorter";
   el.querySelector(id)?.click();
   await nextTick();
 }
@@ -116,6 +119,7 @@ describe("toolsView quick actions", () => {
     delete window.__thunder_dev_tools_unlocked__;
     localStorage.setItem("wgUnlockDisabled", "false");
     document.body.innerHTML = "";
+    converterProgressHandler = null;
 
     window.electron = {
       tools: {
@@ -272,6 +276,28 @@ describe("toolsView quick actions", () => {
         }),
         showInFolder: jest.fn().mockResolvedValue({
           success: true,
+        }),
+        pickConverterFile: jest.fn().mockResolvedValue({
+          success: true,
+          filePath: "/tmp/source-video.mkv",
+        }),
+        pickConverterFolder: jest.fn().mockResolvedValue({
+          success: true,
+          folderPath: "/tmp/converted",
+        }),
+        convertMediaFile: jest.fn().mockResolvedValue({
+          success: true,
+          requestId: "converter-test",
+          outputPath: "/tmp/source-video-converted.mp4",
+          targetFormat: "mp4",
+        }),
+        cancelMediaConversion: jest.fn().mockResolvedValue({
+          success: true,
+          cancelled: true,
+        }),
+        onConverterProgress: jest.fn((callback) => {
+          converterProgressHandler = callback;
+          return jest.fn();
         }),
         createWindowsRestartShortcut: jest.fn().mockResolvedValue({
           success: false,
@@ -430,7 +456,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 7",
+      "tools.launcher.totalLabel: 8",
     );
   });
 
@@ -463,6 +489,168 @@ describe("toolsView quick actions", () => {
     await openTool(el, "downloader-tools");
 
     expect(renderToolsInfo).toHaveBeenCalledWith({ force: true });
+  });
+
+  test("shows Format Converter as available tool and opens it", async () => {
+    const el = await renderView();
+    const converterBtn = el.querySelector("#tools-open-media-converter");
+
+    expect(converterBtn).not.toBeNull();
+    expect(converterBtn?.closest(".tools-launcher-grid")).not.toBeNull();
+
+    await openTool(el, "media-converter");
+
+    expect(
+      el
+        .querySelector('[data-tool-view="media-converter"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(el.querySelector("#converter-pick-file")).not.toBeNull();
+    expect(
+      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
+    ).toBe("tools.nav.current.mediaConverter");
+  });
+
+  test("picks a converter source file and enables conversion", async () => {
+    const el = await renderView();
+    await openTool(el, "media-converter");
+
+    expect(el.querySelector("#converter-run")?.hasAttribute("disabled")).toBe(
+      true,
+    );
+    el.querySelector("#converter-pick-file")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.pickConverterFile).toHaveBeenCalledTimes(1);
+    expect(el.querySelector("#converter-file-name")?.textContent).toBe(
+      "source-video.mkv",
+    );
+    expect(el.querySelector("#converter-run")?.hasAttribute("disabled")).toBe(
+      false,
+    );
+  });
+
+  test("accepts dropped converter files", async () => {
+    const el = await renderView();
+    await openTool(el, "media-converter");
+    const dropZone = el.querySelector("#converter-drop-zone");
+
+    dispatchFileDrop(dropZone, ["/tmp/drop-source.webm"]);
+    await nextTick();
+
+    expect(window.electron.tools.getDroppedFilePath).toHaveBeenCalled();
+    expect(el.querySelector("#converter-file-name")?.textContent).toBe(
+      "drop-source.webm",
+    );
+    expect(el.querySelector("#converter-run")?.hasAttribute("disabled")).toBe(
+      false,
+    );
+  });
+
+  test("runs converter with selected format, quality, and output folder", async () => {
+    const el = await renderView();
+    await openTool(el, "media-converter");
+
+    el.querySelector("#converter-pick-file")?.click();
+    await nextTick();
+    el.querySelector("#converter-pick-folder")?.click();
+    await nextTick();
+    el.querySelector('[data-converter-format="mp3"]')?.click();
+    el.querySelector('[data-converter-quality="high"]')?.click();
+    el.querySelector("#converter-run")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.convertMediaFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        inputPath: "/tmp/source-video.mkv",
+        outputDir: "/tmp/converted",
+        targetFormat: "mp3",
+        quality: "high",
+      }),
+    );
+    expect(el.querySelector("#converter-result")?.textContent).toBe(
+      "tools.converter.status.done",
+    );
+    expect(el.querySelector("#converter-open-result")?.hasAttribute("disabled")).toBe(
+      false,
+    );
+  });
+
+  test("updates converter progress and opens conversion result", async () => {
+    const el = await renderView();
+    await openTool(el, "media-converter");
+
+    el.querySelector("#converter-pick-file")?.click();
+    await nextTick();
+    el.querySelector("#converter-run")?.click();
+    await nextTick();
+    const payload = window.electron.tools.convertMediaFile.mock.calls[0][0];
+    converterProgressHandler?.({
+      requestId: payload.requestId,
+      percent: 42,
+    });
+    await nextTick();
+
+    expect(el.querySelector("#converter-progress-percent")?.textContent).toBe(
+      "42%",
+    );
+
+    el.querySelector("#converter-open-result")?.click();
+    await nextTick();
+    expect(window.electron.tools.showInFolder).toHaveBeenCalledWith(
+      "/tmp/source-video-converted.mp4",
+    );
+  });
+
+  test("shows structured converter failures", async () => {
+    window.electron.tools.convertMediaFile.mockResolvedValueOnce({
+      success: false,
+      code: "missingDependency",
+      error: "ffmpeg is not available",
+    });
+    const el = await renderView();
+    await openTool(el, "media-converter");
+
+    el.querySelector("#converter-pick-file")?.click();
+    await nextTick();
+    el.querySelector("#converter-run")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(el.querySelector("#converter-result")?.textContent).toBe(
+      "ffmpeg is not available",
+    );
+    expect(
+      el.querySelector("#converter-result")?.classList.contains("is-error"),
+    ).toBe(true);
+  });
+
+  test("cancels an active converter run", async () => {
+    window.electron.tools.convertMediaFile.mockImplementationOnce(
+      () => new Promise(() => {}),
+    );
+    const el = await renderView();
+    await openTool(el, "media-converter");
+
+    el.querySelector("#converter-pick-file")?.click();
+    await nextTick();
+    el.querySelector("#converter-run")?.click();
+    await nextTick();
+    const payload = window.electron.tools.convertMediaFile.mock.calls[0][0];
+
+    expect(el.querySelector("#converter-cancel")?.hasAttribute("disabled")).toBe(
+      false,
+    );
+    el.querySelector("#converter-cancel")?.click();
+    await nextTick();
+
+    expect(window.electron.tools.cancelMediaConversion).toHaveBeenCalledWith({
+      requestId: payload.requestId,
+    });
+    expect(el.querySelector("#converter-result")?.textContent).toBe(
+      "tools.converter.status.cancelled",
+    );
   });
 
   test("does not render launcher hotkey labels", async () => {
@@ -499,7 +687,7 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(8);
+    ).toBe(9);
     expect(el.querySelector("#tools-open-media-inspector")).not.toBeNull();
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
@@ -569,7 +757,7 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 6",
+      "tools.launcher.totalLabel: 7",
     );
   });
 
@@ -886,7 +1074,7 @@ describe("toolsView quick actions", () => {
     expect(powerBtn?.disabled).toBe(false);
     expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 8",
+      "tools.launcher.totalLabel: 9",
     );
 
     sorterBtn?.click();

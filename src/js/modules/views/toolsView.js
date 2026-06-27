@@ -7,6 +7,10 @@ import { applyI18n, getLanguage, t } from "../i18n.js";
 import { consumeRequestedToolsView } from "../toolsNavigation.js";
 import { refreshToolsInfoState, renderToolsInfo } from "../toolsInfo.js";
 import renderBackup from "./backupView.js";
+import {
+  initMediaConverterSection,
+  renderMediaConverterSection,
+} from "./tools/mediaConverterSection.js";
 import { initMediaInspectorSection } from "./tools/mediaInspectorSection.js";
 import { initFileSorterSection } from "./tools/fileSorterSection.js";
 import { renderFileSorterView } from "./tools/fileSorterView.js";
@@ -397,6 +401,16 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.mediaInspector")}
               </small>
             </button>
+            <button id="tools-open-media-converter" type="button" class="tools-launcher-button">
+              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
+              </span>
+              <i class="fa-solid fa-right-left"></i>
+              <span data-i18n="tools.launcher.open.mediaConverter">${t("tools.launcher.open.mediaConverter")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaConverter">
+                ${t("tools.launcher.desc.mediaConverter")}
+              </small>
+            </button>
             <button id="tools-open-wg" type="button" class="tools-launcher-button">
               <i class="fa-solid fa-satellite-dish"></i>
               <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
@@ -666,6 +680,8 @@ export default function renderToolsView() {
 
         <section class="tools-view hidden" data-tool-view="media-inspector" aria-label="${t("tools.nav.current.mediaInspector")}"></section>
 
+        ${renderMediaConverterSection(t)}
+
         ${renderWingetInstallerSection(t)}
 
         <section class="tools-view hidden" data-tool-view="power" aria-label="${t("tools.nav.current.power")}">
@@ -823,6 +839,7 @@ export default function renderToolsView() {
       "hash",
       "downloader-tools",
       "media-inspector",
+      "media-converter",
       "winget-installer",
       "power",
       "backup",
@@ -901,13 +918,15 @@ export default function renderToolsView() {
             ? "tools.nav.current.downloaderTools"
             : targetView === "media-inspector"
               ? "tools.nav.current.mediaInspector"
-              : targetView === "winget-installer"
-                ? "tools.nav.current.wingetInstaller"
-                : targetView === "power"
-                  ? "tools.nav.current.power"
-                  : targetView === "backup"
-                    ? "tools.nav.current.backup"
-                    : "tools.nav.current.sorter";
+              : targetView === "media-converter"
+                ? "tools.nav.current.mediaConverter"
+                : targetView === "winget-installer"
+                  ? "tools.nav.current.wingetInstaller"
+                  : targetView === "power"
+                    ? "tools.nav.current.power"
+                    : targetView === "backup"
+                      ? "tools.nav.current.backup"
+                      : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
@@ -1134,6 +1153,7 @@ export default function renderToolsView() {
     const openHashBtn = getEl("tools-open-hash", view);
     const openDownloaderToolsBtn = getEl("tools-open-downloader-tools", view);
     const openMediaInspectorBtn = getEl("tools-open-media-inspector", view);
+    const openMediaConverterBtn = getEl("tools-open-media-converter", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
     const openWingetInstallerBtn = getEl("tools-open-winget-installer", view);
@@ -1225,6 +1245,9 @@ export default function renderToolsView() {
     );
     openMediaInspectorBtn?.addEventListener("click", () =>
       setToolView("media-inspector"),
+    );
+    openMediaConverterBtn?.addEventListener("click", () =>
+      setToolView("media-converter"),
     );
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
     openWingetInstallerBtn?.addEventListener("click", () =>
@@ -1650,6 +1673,12 @@ export default function renderToolsView() {
       registerCleanup: cleanup.addCleanup,
     });
     initMediaInspectorSection({
+      view,
+      getEl,
+      t,
+      registerCleanup: cleanup.addCleanup,
+    });
+    initMediaConverterSection({
       view,
       getEl,
       t,

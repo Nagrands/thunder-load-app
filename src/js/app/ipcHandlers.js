@@ -74,6 +74,7 @@ const {
   ensureToolsDir,
 } = require("./toolsPaths");
 const {
+  getRuntimeFfmpegPath,
   getRuntimeFfprobePath,
   prepareBinaryForExecution,
 } = require("./runtimeTools");
@@ -184,6 +185,27 @@ const COMMON_AUDIO_CODECS = new Set([
 
 const MEDIA_INSPECTOR_HIGH_BITRATE_THRESHOLD = 50 * 1000 * 1000;
 const RESUME_STATE_DIR_NAME = ".thunderload-resume";
+const CONVERTER_ALLOWED_FORMATS = new Set([
+  "mp4",
+  "webm",
+  "mkv",
+  "mp3",
+  "m4a",
+  "wav",
+  "flac",
+  "ogg",
+  "opus",
+]);
+const CONVERTER_VIDEO_FORMATS = new Set(["mp4", "webm", "mkv"]);
+const CONVERTER_AUDIO_FORMATS = new Set([
+  "mp3",
+  "m4a",
+  "wav",
+  "flac",
+  "ogg",
+  "opus",
+]);
+const CONVERTER_QUALITY_PRESETS = new Set(["small", "balanced", "high"]);
 
 function normalizeMediaInspectorText(value) {
   const text = String(value ?? "").trim();
@@ -470,6 +492,117 @@ function buildMediaInspectorReport({ filePath, fileStat, probeData = {} }) {
   return report;
 }
 
+function normalizeConverterFailure(error, fallbackCode = "conversionFailed") {
+  const allowedCodes = new Set([
+    "invalidPayload",
+    "missingDependency",
+    "fileNotFound",
+    "accessDenied",
+    "conversionFailed",
+    "cancelled",
+  ]);
+  const codeValue = String(error?.code || "");
+  return {
+    success: false,
+    code: allowedCodes.has(codeValue) ? codeValue : fallbackCode,
+    error: error?.message || String(error || "Conversion failed"),
+  };
+}
+
+function normalizeConverterPayload(payload = {}) {
+  const inputPath =
+    typeof payload?.inputPath === "string" ? payload.inputPath.trim() : "";
+  const outputDir =
+    typeof payload?.outputDir === "string" ? payload.outputDir.trim() : "";
+  const targetFormat = String(payload?.targetFormat || "")
+    .trim()
+    .toLowerCase();
+  const quality = String(payload?.quality || "balanced")
+    .trim()
+    .toLowerCase();
+  const requestId = String(payload?.requestId || crypto.randomUUID()).trim();
+  return { inputPath, outputDir, targetFormat, quality, requestId };
+}
+
+function buildConverterArgs({ inputPath, outputPath, targetFormat, quality }) {
+  const args = ["-hide_banner", "-n", "-i", inputPath];
+  const videoCrf = quality === "small" ? "30" : quality === "high" ? "18" : "23";
+  const webmCrf = quality === "small" ? "38" : quality === "high" ? "24" : "31";
+  const audioBitrate =
+    quality === "small" ? "128k" : quality === "high" ? "320k" : "192k";
+
+  if (CONVERTER_VIDEO_FORMATS.has(targetFormat)) {
+    if (targetFormat === "webm") {
+      args.push(
+        "-c:v",
+        "libvpx-vp9",
+        "-crf",
+        webmCrf,
+        "-b:v",
+        "0",
+        "-c:a",
+        "libopus",
+      );
+    } else {
+      args.push("-c:v", "libx264", "-preset", "medium", "-crf", videoCrf);
+      args.push("-c:a", "aac", "-b:a", audioBitrate);
+      if (targetFormat === "mp4") args.push("-movflags", "+faststart");
+    }
+  } else if (CONVERTER_AUDIO_FORMATS.has(targetFormat)) {
+    args.push("-vn");
+    if (targetFormat === "mp3") args.push("-c:a", "libmp3lame", "-b:a", audioBitrate);
+    if (targetFormat === "m4a") args.push("-c:a", "aac", "-b:a", audioBitrate);
+    if (targetFormat === "wav") args.push("-c:a", "pcm_s16le");
+    if (targetFormat === "flac") args.push("-c:a", "flac");
+    if (targetFormat === "ogg") args.push("-c:a", "libvorbis", "-q:a", quality === "small" ? "3" : quality === "high" ? "7" : "5");
+    if (targetFormat === "opus") args.push("-c:a", "libopus", "-b:a", quality === "small" ? "96k" : quality === "high" ? "256k" : "160k");
+  }
+
+  args.push(outputPath);
+  return args;
+}
+
+async function resolveConverterOutputPath({
+  inputPath,
+  outputDir,
+  targetFormat,
+}) {
+  const sourceDir = path.dirname(inputPath);
+  const targetDir = outputDir || sourceDir;
+  await fsPromises.mkdir(targetDir, { recursive: true });
+  const parsed = path.parse(inputPath);
+  const baseName = `${parsed.name}-converted`;
+  let candidate = path.join(targetDir, `${baseName}.${targetFormat}`);
+  let index = 2;
+  while (fs.existsSync(candidate)) {
+    candidate = path.join(targetDir, `${baseName}-${index}.${targetFormat}`);
+    index += 1;
+  }
+  return candidate;
+}
+
+function parseFfmpegTimeToSeconds(value) {
+  const match = String(value || "").match(/(\d+):(\d+):(\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const [, hours, minutes, seconds] = match;
+  const total =
+    Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+  return Number.isFinite(total) ? total : null;
+}
+
+function extractFfmpegProgress(text, totalDurationSec) {
+  const durationMatch = String(text || "").match(/Duration:\s*([0-9:.]+)/);
+  const timeMatch = String(text || "").match(/time=([0-9:.]+)/);
+  const durationSec = parseFfmpegTimeToSeconds(durationMatch?.[1]);
+  const currentSec = parseFfmpegTimeToSeconds(timeMatch?.[1]);
+  const total = totalDurationSec || durationSec;
+  const percent =
+    total && currentSec
+      ? Math.max(0, Math.min(99, Math.round((currentSec / total) * 100)))
+      : null;
+  return { durationSec, currentSec, percent };
+}
+
 function normalizeMediaInspectorFailure(error, fallbackCode = "analyzeFailed") {
   const message = error?.message || String(error || "Unknown error");
   const allowedCodes = new Set([
@@ -542,6 +675,7 @@ function setupIpcHandlers(dependencies) {
   } = dependencies;
   const activeVideoInfoTokens = new Map();
   const activeWingetRuns = new Map();
+  const activeConverterRuns = new Map();
   const makeVideoInfoTokenKey = (url, previewOnly = false) =>
     `${previewOnly ? "preview" : "info"}:${url}`;
   const normalizeParallelDownloadLimit = (value) => {
@@ -1019,6 +1153,262 @@ function setupIpcHandlers(dependencies) {
         }
         log.error("tools:mediaInspectorAnalyze error:", error);
         return normalizeMediaInspectorFailure(error, "analyzeFailed");
+      }
+    },
+  );
+
+  ipcMain.handle(CHANNELS.TOOLS_CONVERTER_PICK_FILE, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openFile"],
+        filters: [
+          {
+            name: "Media files",
+            extensions: [
+              "mp4",
+              "webm",
+              "mkv",
+              "mov",
+              "avi",
+              "m4v",
+              "mp3",
+              "m4a",
+              "wav",
+              "flac",
+              "ogg",
+              "opus",
+              "aac",
+            ],
+          },
+          { name: "All files", extensions: ["*"] },
+        ],
+      });
+      if (result.canceled || !result.filePaths?.length) {
+        return { success: false, canceled: true };
+      }
+      return { success: true, filePath: result.filePaths[0] };
+    } catch (error) {
+      log.error("tools:converterPickFile error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_CONVERTER_PICK_FOLDER, async () => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openDirectory", "createDirectory"],
+      });
+      if (result.canceled || !result.filePaths?.length) {
+        return { success: false, canceled: true };
+      }
+      return { success: true, folderPath: result.filePaths[0] };
+    } catch (error) {
+      log.error("tools:converterPickFolder error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+  });
+
+  ipcMain.handle(CHANNELS.TOOLS_CONVERTER_CANCEL, async (_evt, payload = {}) => {
+    const requestId = String(payload?.requestId || "");
+    const active = activeConverterRuns.get(requestId);
+    if (!requestId || !active) return { success: true, cancelled: false };
+    active.cancelled = true;
+    try {
+      active.proc?.kill?.("SIGTERM");
+    } catch (error) {
+      log.warn("tools:converterCancel kill failed:", error?.message || error);
+    }
+    return { success: true, cancelled: true };
+  });
+
+  ipcMain.handle(
+    CHANNELS.TOOLS_CONVERTER_CONVERT,
+    async (_evt, payload = {}) => {
+      let ffmpegPath = "";
+      const normalized = normalizeConverterPayload(payload);
+      try {
+        const { inputPath, outputDir, targetFormat, quality, requestId } =
+          normalized;
+        if (!requestId || activeConverterRuns.has(requestId)) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Invalid or duplicate requestId",
+          };
+        }
+        if (!inputPath || !path.isAbsolute(inputPath)) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Input path must be absolute",
+          };
+        }
+        if (outputDir && !path.isAbsolute(outputDir)) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Output directory must be absolute",
+          };
+        }
+        if (!CONVERTER_ALLOWED_FORMATS.has(targetFormat)) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Unsupported target format",
+          };
+        }
+        if (!CONVERTER_QUALITY_PRESETS.has(quality)) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Unsupported quality preset",
+          };
+        }
+
+        const resolvedInputPath = path.resolve(inputPath);
+        const inputStat = await fsPromises.stat(resolvedInputPath);
+        if (!inputStat.isFile()) {
+          return {
+            success: false,
+            code: "invalidPayload",
+            error: "Selected path is not a file",
+          };
+        }
+        await fsPromises.access(resolvedInputPath, fs.constants.R_OK);
+
+        ffmpegPath = getRuntimeFfmpegPath(store);
+        await prepareBinaryForExecution(ffmpegPath);
+        if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
+          try {
+            await installFfmpeg();
+          } catch (error) {
+            log.warn(
+              "[tools:converterConvert] ffmpeg install failed:",
+              error?.message || error,
+            );
+          }
+          ffmpegPath = getRuntimeFfmpegPath(store);
+          await prepareBinaryForExecution(ffmpegPath);
+        }
+        if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
+          return {
+            success: false,
+            code: "missingDependency",
+            error: "ffmpeg is not available",
+          };
+        }
+
+        const resolvedOutputPath = await resolveConverterOutputPath({
+          inputPath: resolvedInputPath,
+          outputDir: outputDir ? path.resolve(outputDir) : "",
+          targetFormat,
+        });
+        const args = buildConverterArgs({
+          inputPath: resolvedInputPath,
+          outputPath: resolvedOutputPath,
+          targetFormat,
+          quality,
+        });
+
+        return await new Promise((resolve) => {
+          let stderrText = "";
+          let durationSec = null;
+          const sendProgress = (progress) => {
+            try {
+              mainWindow?.webContents?.send?.(
+                CHANNELS.TOOLS_CONVERTER_PROGRESS,
+                {
+                  requestId,
+                  outputPath: resolvedOutputPath,
+                  ...progress,
+                },
+              );
+            } catch {}
+          };
+
+          const proc = spawn(ffmpegPath, args, { windowsHide: true });
+          const active = { proc, cancelled: false };
+          activeConverterRuns.set(requestId, active);
+          sendProgress({ state: "running", percent: 0 });
+
+          proc.stderr?.on?.("data", (chunk) => {
+            const text = String(chunk || "");
+            stderrText += text;
+            const progress = extractFfmpegProgress(text, durationSec);
+            if (progress.durationSec) durationSec = progress.durationSec;
+            sendProgress({
+              state: "running",
+              percent: progress.percent,
+              currentSec: progress.currentSec,
+              durationSec,
+            });
+          });
+
+          proc.on("error", (error) => {
+            activeConverterRuns.delete(requestId);
+            const failure = normalizeConverterFailure(
+              error,
+              String(error?.code || "") === "ENOENT"
+                ? "missingDependency"
+                : "conversionFailed",
+            );
+            sendProgress({ state: "error", percent: null });
+            resolve(failure);
+          });
+
+          proc.on("close", (code) => {
+            const activeRun = activeConverterRuns.get(requestId);
+            activeConverterRuns.delete(requestId);
+            if (activeRun?.cancelled) {
+              sendProgress({ state: "cancelled", percent: null });
+              resolve({
+                success: false,
+                code: "cancelled",
+                error: "Conversion cancelled",
+              });
+              return;
+            }
+            if (code === 0) {
+              sendProgress({ state: "done", percent: 100 });
+              resolve({
+                success: true,
+                requestId,
+                inputPath: resolvedInputPath,
+                outputPath: resolvedOutputPath,
+                targetFormat,
+              });
+              return;
+            }
+            sendProgress({ state: "error", percent: null });
+            resolve({
+              success: false,
+              code: "conversionFailed",
+              error: stderrText.trim() || `ffmpeg exited with code ${code}`,
+            });
+          });
+        });
+      } catch (error) {
+        const fsCode = classifyMediaInspectorFsCode(error);
+        if (fsCode) {
+          return {
+            success: false,
+            code: fsCode,
+            error: error.message || String(error),
+          };
+        }
+        if (
+          String(error?.code || "") === "ENOENT" &&
+          ffmpegPath &&
+          String(error?.path || "") === String(ffmpegPath || "")
+        ) {
+          return {
+            success: false,
+            code: "missingDependency",
+            error: "ffmpeg is not available",
+          };
+        }
+        log.error("tools:converterConvert error:", error);
+        return normalizeConverterFailure(error);
       }
     },
   );
