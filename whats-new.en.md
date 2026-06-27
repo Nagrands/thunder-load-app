@@ -14,7 +14,8 @@
 | Settings architecture was refined  | Web-control settings moved into a focused module with repeated-initialization protection                                  |
 | Settings architecture was refined  | Download quality profile settings moved into a focused module with stable keyboard state                                  |
 | Settings were compacted            | App information moved to the top of General settings, and download quality selection is more compact                      |
-| Quality selection was compacted     | Format-type tabs now use compact icon controls with tooltip labels and visible counters                                  |
+| Quality selection was compacted     | The active format tab shows its full label, while inactive tabs stay compact icons with tooltip labels                   |
+| Quality selection was refined       | Added smooth animations for modal opening, tab switching, and preview reveal after loading                               |
 | App startup was refined            | Download history storage IPC moved into a separate module with focused load/save/clear/count coverage                     |
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
 | App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |

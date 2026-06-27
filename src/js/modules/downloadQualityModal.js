@@ -57,6 +57,7 @@ const actionEnqueueBtn = document.getElementById(
 );
 const cancelBtn = document.getElementById("download-quality-cancel");
 const closeBtn = modal?.querySelector("[data-quality-close]");
+const qualityPreviewEl = modal?.querySelector(".quality-preview");
 const tabButtons = Array.from(
   document.querySelectorAll(".quality-tab[data-quality-tab]"),
 );
@@ -348,6 +349,7 @@ function resetModalState() {
   if (actionEnqueueBtn) actionEnqueueBtn.disabled = true;
   emptyEl?.classList.add("hidden");
   errorEl?.classList.add("hidden");
+  qualityPreviewEl?.classList.remove("is-ready");
   optionsPlaceholderEl?.classList.add("hidden");
   clearLoadingTimer();
   optionsContainer?.setAttribute("aria-busy", "false");
@@ -414,6 +416,7 @@ function syncLoadingUi(isLoading) {
 
 function setLoading(flag) {
   if (flag) {
+    qualityPreviewEl?.classList.remove("is-ready");
     loadingEl?.classList.remove("hidden");
     optionsPlaceholderEl?.classList.remove("hidden");
     state.loadingStartedAt = Date.now();
@@ -426,6 +429,7 @@ function setLoading(flag) {
     optionsPlaceholderEl?.classList.add("hidden");
     clearLoadingTimer();
     optionsContainer?.setAttribute("aria-busy", "false");
+    if (state.info) qualityPreviewEl?.classList.add("is-ready");
   }
   syncLoadingUi(flag);
 }

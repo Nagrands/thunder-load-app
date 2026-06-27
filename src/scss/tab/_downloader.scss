@@ -445,6 +445,12 @@
 
   &.is-open {
     display: flex;
+    animation: qualityModalOverlayIn 180ms ease-out both;
+
+    .download-quality-content {
+      animation: qualityModalContentIn 220ms cubic-bezier(0.2, 0.9, 0.32, 1)
+        both;
+    }
   }
 
   .download-quality-content {
@@ -529,6 +535,10 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+
+    &.is-ready {
+      animation: qualityPreviewReveal 240ms ease-out both;
+    }
 
     .quality-thumb {
       width: 100%;
@@ -655,17 +665,44 @@
       transition:
         color 0.2s ease,
         background 0.2s ease,
-        border-color 0.2s ease;
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        min-width 0.2s ease,
+        padding 0.2s ease,
+        transform 0.2s ease;
 
       &.active {
         background: var(--color-hover);
         border: 1px var(--color-hover) solid;
         font-weight: 600;
         color: var(--color-accent);
+        min-width: 0;
+        padding-inline: 12px 10px;
+        animation: qualityTabActivate 180ms ease-out both;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
       }
     }
 
     .quality-tab-label {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition:
+        max-width 0.22s ease,
+        opacity 0.16s ease,
+        transform 0.18s ease;
+    }
+
+    .quality-tab.active .quality-tab-label {
+      max-width: none;
+      overflow: visible;
+      text-overflow: clip;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .quality-tab:not(.active) .quality-tab-label {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -675,6 +712,8 @@
       clip: rect(0, 0, 0, 0);
       white-space: nowrap;
       border: 0;
+      opacity: 0;
+      transform: translateX(-3px);
     }
 
     .quality-tab-count {
@@ -885,6 +924,7 @@
       border-color 0.2s ease,
       background 0.2s ease,
       transform 0.15s ease;
+    animation: qualityOptionReveal 160ms ease-out both;
 
     &.active {
       border-color: rgba(127, 196, 255, 0.95);
@@ -1999,12 +2039,83 @@
   }
 }
 
+@keyframes qualityModalOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes qualityModalContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes qualityTabActivate {
+  from {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes qualityPreviewReveal {
+  from {
+    opacity: 0.72;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes qualityOptionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes qualityLoadingShimmer {
   from {
     background-position: 200% 0;
   }
   to {
     background-position: -20% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .download-quality-modal,
+  .download-quality-modal .download-quality-content,
+  .download-quality-modal .quality-preview,
+  .download-quality-modal .quality-tab,
+  .download-quality-modal .quality-option {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .download-quality-modal .quality-tab-label {
+    transition: none !important;
   }
 }
 

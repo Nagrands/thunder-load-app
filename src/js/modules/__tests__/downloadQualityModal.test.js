@@ -44,12 +44,18 @@ const buildDom = () => {
       </div>
       <button
         id="download-quality-tab-video"
-        class="quality-tab"
+        class="quality-tab active"
         data-quality-tab="video"
         role="tab"
         aria-selected="true"
         tabindex="0"
         aria-controls="download-quality-options-panel"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Видео + аудио"
+        data-i18n-title="quality.tab.video"
+        aria-label="Видео + аудио"
+        data-i18n-aria="quality.aria.tab.video"
       ></button>
       <button
         id="download-quality-tab-video-only"
@@ -59,6 +65,12 @@ const buildDom = () => {
         aria-selected="false"
         tabindex="-1"
         aria-controls="download-quality-options-panel"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Только видео"
+        data-i18n-title="quality.tab.videoOnly"
+        aria-label="Только видео"
+        data-i18n-aria="quality.aria.tab.videoOnly"
       ></button>
       <button
         id="download-quality-tab-audio"
@@ -68,6 +80,12 @@ const buildDom = () => {
         aria-selected="false"
         tabindex="-1"
         aria-controls="download-quality-options-panel"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Только аудио"
+        data-i18n-title="quality.tab.audio"
+        aria-label="Только аудио"
+        data-i18n-aria="quality.aria.tab.audio"
       ></button>
       <button
         id="download-quality-tab-subtitles"
@@ -77,30 +95,38 @@ const buildDom = () => {
         aria-selected="false"
         tabindex="-1"
         aria-controls="download-quality-options-panel"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Субтитры"
+        data-i18n-title="quality.tab.subtitles"
+        aria-label="Субтитры"
+        data-i18n-aria="quality.aria.tab.subtitles"
       ></button>
       <span id="download-quality-count-video"></span>
       <span id="download-quality-count-video-only"></span>
       <span id="download-quality-count-audio"></span>
       <span id="download-quality-count-subtitles"></span>
       <button id="download-quality-best-current" type="button"></button>
-      <div class="quality-thumb">
-        <img id="download-quality-thumb" />
-        <div class="quality-thumb-overlay" aria-hidden="true">
-          <span id="download-quality-cover-title" class="quality-thumb-kicker"></span>
-          <strong id="download-quality-cover-genre" class="quality-thumb-genre hidden"></strong>
+      <div class="quality-preview">
+        <div class="quality-thumb">
+          <img id="download-quality-thumb" />
+          <div class="quality-thumb-overlay" aria-hidden="true">
+            <span id="download-quality-cover-title" class="quality-thumb-kicker"></span>
+            <strong id="download-quality-cover-genre" class="quality-thumb-genre hidden"></strong>
+          </div>
+          <div id="download-quality-thumb-fallback" class="hidden"></div>
         </div>
-        <div id="download-quality-thumb-fallback" class="hidden"></div>
+        <div class="quality-title-row">
+          <h4 id="download-quality-name"></h4>
+          <button id="download-quality-copy-title" type="button"></button>
+        </div>
+        <p id="download-quality-uploader"></p>
+        <p id="download-quality-duration"></p>
+        <p id="download-quality-preview-resolution"></p>
+        <button id="download-quality-open-source" type="button"></button>
+        <button id="download-quality-download-preview" type="button"></button>
+        <button id="download-quality-copy-source" type="button"></button>
       </div>
-      <div class="quality-title-row">
-        <h4 id="download-quality-name"></h4>
-        <button id="download-quality-copy-title" type="button"></button>
-      </div>
-      <p id="download-quality-uploader"></p>
-      <p id="download-quality-duration"></p>
-      <p id="download-quality-preview-resolution"></p>
-      <button id="download-quality-open-source" type="button"></button>
-      <button id="download-quality-download-preview" type="button"></button>
-      <button id="download-quality-copy-source" type="button"></button>
       <div id="download-quality-selection-summary">
         <div class="quality-selection-text">
           <span class="quality-selection-label">Выбрано</span>
@@ -1074,6 +1100,7 @@ describe("downloadQualityModal close behavior", () => {
       const panel = document.getElementById("download-quality-options-panel");
 
       expect(tabVideo.getAttribute("aria-selected")).toBe("true");
+      expect(tabVideo.classList.contains("active")).toBe(true);
       expect(tabVideo.tabIndex).toBe(0);
       expect(panel.getAttribute("aria-labelledby")).toBe(
         "download-quality-tab-video",
@@ -1082,8 +1109,10 @@ describe("downloadQualityModal close behavior", () => {
       tabAudio.click();
 
       expect(tabVideo.getAttribute("aria-selected")).toBe("false");
+      expect(tabVideo.classList.contains("active")).toBe(false);
       expect(tabVideo.tabIndex).toBe(-1);
       expect(tabAudio.getAttribute("aria-selected")).toBe("true");
+      expect(tabAudio.classList.contains("active")).toBe(true);
       expect(tabAudio.tabIndex).toBe(0);
       expect(panel.getAttribute("aria-labelledby")).toBe(
         "download-quality-tab-audio",
@@ -1247,6 +1276,7 @@ describe("downloadQualityModal close behavior", () => {
       const placeholder = document.getElementById(
         "download-quality-options-placeholder",
       );
+      const preview = document.querySelector(".quality-preview");
       const primaryBtn = document.getElementById("download-quality-primary");
       const actionEnqueueBtn = document.getElementById(
         "download-quality-action-enqueue",
@@ -1257,6 +1287,7 @@ describe("downloadQualityModal close behavior", () => {
       expect(previewBtn.classList.contains("hidden")).toBe(true);
       expect(copyBtn.classList.contains("hidden")).toBe(true);
       expect(placeholder.classList.contains("hidden")).toBe(false);
+      expect(preview.classList.contains("is-ready")).toBe(false);
       expect(primaryBtn.disabled).toBe(true);
       expect(actionEnqueueBtn.disabled).toBe(true);
       expect(primaryBtn.textContent).toContain("Выберите");
@@ -1286,6 +1317,7 @@ describe("downloadQualityModal close behavior", () => {
       expect(previewBtn.classList.contains("hidden")).toBe(false);
       expect(copyBtn.classList.contains("hidden")).toBe(false);
       expect(placeholder.classList.contains("hidden")).toBe(true);
+      expect(preview.classList.contains("is-ready")).toBe(true);
       expect(primaryBtn.disabled).toBe(false);
       expect(actionEnqueueBtn.disabled).toBe(false);
       expect(primaryBtn.textContent).toContain("Скачать");
@@ -1293,6 +1325,7 @@ describe("downloadQualityModal close behavior", () => {
       const cancelBtn = document.getElementById("download-quality-cancel");
       cancelBtn.click();
       await modalPromise;
+      expect(preview.classList.contains("is-ready")).toBe(false);
     });
   });
 

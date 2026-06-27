@@ -138,7 +138,7 @@ describe("settings template backup placement", () => {
     expect(downloaderPaneHtml).toContain('id="quality-profile-segment"');
   });
 
-  test("uses compact icon tabs in the download quality modal", () => {
+  test("uses compact icon tabs with tooltip titles in the download quality modal", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
 
@@ -152,6 +152,8 @@ describe("settings template backup placement", () => {
     });
     expect(html).toContain('class="quality-tab-label"');
     expect(html).toContain('class="quality-tab-count"');
+    expect(html).toContain('data-bs-toggle="tooltip"');
+    expect(html).toContain('data-bs-placement="top"');
     expect(html).toContain('data-i18n-title="quality.tab.audio"');
     expect(html).toContain('data-i18n-aria="quality.aria.tab.audio"');
   });
