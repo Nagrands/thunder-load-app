@@ -128,6 +128,7 @@ function createMarkup(t, { allowPickFile = true, variant = "tools" } = {}) {
       ${headerMarkup}
 
       <section
+        id="media-inspector-drop-zone"
         class="media-inspector-path-panel"
         data-i18n-aria="tools.mediaInspector.pathPanel.aria"
         aria-label="${t("tools.mediaInspector.pathPanel.aria")}"
@@ -136,6 +137,11 @@ function createMarkup(t, { allowPickFile = true, variant = "tools" } = {}) {
           <span class="media-inspector-path-panel__label" data-i18n="tools.mediaInspector.selectedFileLabel">${t("tools.mediaInspector.selectedFileLabel")}</span>
           <span id="media-inspector-file-pill" class="media-inspector-file-pill is-empty" data-i18n="tools.mediaInspector.noFile">${t("tools.mediaInspector.noFile")}</span>
         </div>
+        ${
+          allowPickFile
+            ? `<span id="media-inspector-drop-hint" class="media-inspector-drop-hint" data-i18n="tools.mediaInspector.dropHint">${t("tools.mediaInspector.dropHint")}</span>`
+            : ""
+        }
         <span id="media-inspector-status" class="media-inspector-status is-idle" data-i18n="tools.mediaInspector.status.idle">${t("tools.mediaInspector.status.idle")}</span>
       </section>
 
@@ -345,6 +351,7 @@ function buildReportText(t, report) {
         stream.width && stream.height
           ? `${stream.width}x${stream.height}`
           : "-",
+        `${t("tools.mediaInspector.fields.pixelFormat")}: ${stream.pixelFormat || "-"}`,
         `${formatFps(stream.fps)} fps`,
         formatBitrate(stream.bitrate),
         stream.hdr ? "HDR" : "SDR",
@@ -403,6 +410,7 @@ export function initMediaInspectorPanel({
   const analyzeBtn = getEl("media-inspector-analyze", root);
   const openFolderBtn = getEl("media-inspector-open-folder", root);
   const copyReportBtn = getEl("media-inspector-copy-report", root);
+  const dropZoneEl = getEl("media-inspector-drop-zone", root);
   const filePillEl = getEl("media-inspector-file-pill", root);
   const statusEl = getEl("media-inspector-status", root);
   const stateEl = getEl("media-inspector-state", root);
@@ -434,6 +442,28 @@ export function initMediaInspectorPanel({
   let latestReport = null;
   let busy = false;
   let copyFeedbackTimer = null;
+
+  const getDroppedFilePath = (entry) => {
+    if (!entry) return "";
+    try {
+      const file =
+        typeof entry.getAsFile === "function" ? entry.getAsFile() : entry;
+      return window.electron?.tools?.getDroppedFilePath?.(file || entry) || "";
+    } catch {
+      return "";
+    }
+  };
+
+  const collectDroppedFilePaths = (dataTransfer) => {
+    if (!dataTransfer) return [];
+    const files = Array.from(dataTransfer.files || [])
+      .map(getDroppedFilePath)
+      .filter(Boolean);
+    const items = Array.from(dataTransfer.items || [])
+      .map(getDroppedFilePath)
+      .filter(Boolean);
+    return [...files, ...items];
+  };
 
   const setBusy = (nextBusy) => {
     busy = !!nextBusy;
@@ -625,6 +655,10 @@ export function initMediaInspectorPanel({
           stream.width && stream.height
             ? `${stream.width}x${stream.height}`
             : "-",
+        ),
+        createField(
+          t("tools.mediaInspector.fields.pixelFormat"),
+          stream.pixelFormat || "-",
         ),
         createField(
           t("tools.mediaInspector.fields.fps"),
@@ -867,6 +901,36 @@ export function initMediaInspectorPanel({
   analyzeBtn?.addEventListener("click", () => {
     analyze();
   });
+
+  if (allowPickFile && dropZoneEl) {
+    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+      dropZoneEl.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+    });
+
+    dropZoneEl.addEventListener("dragenter", () => {
+      if (!busy) dropZoneEl.classList.add("is-drag-over");
+    });
+
+    dropZoneEl.addEventListener("dragover", () => {
+      if (!busy) dropZoneEl.classList.add("is-drag-over");
+    });
+
+    dropZoneEl.addEventListener("dragleave", () => {
+      dropZoneEl.classList.remove("is-drag-over");
+    });
+
+    dropZoneEl.addEventListener("drop", async (event) => {
+      dropZoneEl.classList.remove("is-drag-over");
+      if (busy) return;
+      const [filePath] = collectDroppedFilePaths(event.dataTransfer);
+      if (!filePath) return;
+      setSelectedFile(filePath);
+      await analyze();
+    });
+  }
 
   openFolderBtn?.addEventListener("click", async () => {
     if (!selectedFilePath || busy) return;

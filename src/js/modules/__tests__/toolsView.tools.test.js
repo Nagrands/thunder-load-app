@@ -196,6 +196,7 @@ describe("toolsView quick actions", () => {
           matches: null,
         }),
         onHashProgress: jest.fn(() => jest.fn()),
+        getDroppedFilePath: jest.fn((file) => file?.path || ""),
         inspectHashFile: jest.fn(async ({ filePath }) => ({
           success: true,
           filePath,
@@ -239,6 +240,7 @@ describe("toolsView quick actions", () => {
                 bitrate: 3900000,
                 hdr: false,
                 colorSpace: "bt709",
+                pixelFormat: "yuv420p",
               },
             ],
             audioStreams: [
@@ -1363,6 +1365,93 @@ describe("toolsView quick actions", () => {
         .querySelector("#media-inspector-open-folder")
         ?.hasAttribute("disabled"),
     ).toBe(false);
+    expect(el.textContent).toContain("tools.mediaInspector.fields.pixelFormat");
+    expect(el.textContent).toContain("yuv420p");
+  });
+
+  test("highlights Media Inspector drop zone during drag operations", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+    const dropZone = el.querySelector("#media-inspector-drop-zone");
+
+    dropZone?.dispatchEvent(new Event("dragenter", { bubbles: true }));
+    expect(dropZone?.classList.contains("is-drag-over")).toBe(true);
+
+    dropZone?.dispatchEvent(new Event("dragleave", { bubbles: true }));
+    expect(dropZone?.classList.contains("is-drag-over")).toBe(false);
+  });
+
+  test("accepts a dropped file for media inspection", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+    const dropZone = el.querySelector("#media-inspector-drop-zone");
+
+    dispatchFileDrop(dropZone, ["/tmp/dropped-video.mkv"]);
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.getDroppedFilePath).toHaveBeenCalled();
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
+      filePath: "/tmp/dropped-video.mkv",
+    });
+    expect(
+      el.querySelector("#media-inspector-file-pill")?.getAttribute("title"),
+    ).toBe("/tmp/dropped-video.mkv");
+  });
+
+  test("accepts a dropped dataTransfer item for media inspection", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+    const dropZone = el.querySelector("#media-inspector-drop-zone");
+
+    dispatchFileDropFromMixedSources(dropZone, {
+      items: ["/tmp/item-video.mov"],
+    });
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
+      filePath: "/tmp/item-video.mov",
+    });
+  });
+
+  test("ignores empty media drops without clearing the current report", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+    const dropZone = el.querySelector("#media-inspector-drop-zone");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    window.electron.tools.getDroppedFilePath.mockReturnValueOnce("");
+    dispatchFileDrop(dropZone, ["/tmp/unresolved-video.mp4"]);
+    await nextTick();
+    await nextTick();
+
+    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledTimes(1);
+    expect(
+      el.querySelector("#media-inspector-report")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
+      el.querySelector("#media-inspector-summary-container")?.textContent,
+    ).toContain("mov,mp4");
+  });
+
+  test("copies media report with video pixel format", async () => {
+    const el = await renderView();
+    await openTool(el, "media-inspector");
+
+    el.querySelector("#media-inspector-pick-file")?.click();
+    await nextTick();
+    await nextTick();
+
+    el.querySelector("#media-inspector-copy-report")?.click();
+    await nextTick();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining("tools.mediaInspector.fields.pixelFormat: yuv420p"),
+    );
   });
 
   test("renders compact empty states for sections without streams", async () => {

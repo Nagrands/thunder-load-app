@@ -459,6 +459,8 @@ export const toolsTranslations = {
     "tools.mediaInspector.selectedFileLabel": "Выбранный файл",
     "tools.mediaInspector.selectedFile": "Выбран: {fileName}",
     "tools.mediaInspector.noFile": "Файл не выбран",
+    "tools.mediaInspector.dropHint":
+      "Перетащите файл сюда, чтобы сразу запустить анализ.",
     "tools.mediaInspector.pathPanel.aria": "Выбранный файл и действия",
     "tools.mediaInspector.empty.title": "Файл не выбран",
     "tools.mediaInspector.empty.body":
@@ -503,6 +505,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.fields.codec": "Кодек",
     "tools.mediaInspector.fields.profile": "Профиль",
     "tools.mediaInspector.fields.resolution": "Разрешение",
+    "tools.mediaInspector.fields.pixelFormat": "Pixel format",
     "tools.mediaInspector.fields.fps": "FPS",
     "tools.mediaInspector.fields.bitrate": "Bitrate",
     "tools.mediaInspector.fields.hdr": "HDR",
@@ -1509,6 +1512,8 @@ export const toolsTranslations = {
     "tools.mediaInspector.selectedFileLabel": "Selected file",
     "tools.mediaInspector.selectedFile": "Selected: {fileName}",
     "tools.mediaInspector.noFile": "No file selected",
+    "tools.mediaInspector.dropHint":
+      "Drop a file here to start inspection immediately.",
     "tools.mediaInspector.pathPanel.aria": "Selected file and actions",
     "tools.mediaInspector.empty.title": "No file selected",
     "tools.mediaInspector.empty.body":
@@ -1552,6 +1557,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.fields.codec": "Codec",
     "tools.mediaInspector.fields.profile": "Profile",
     "tools.mediaInspector.fields.resolution": "Resolution",
+    "tools.mediaInspector.fields.pixelFormat": "Pixel format",
     "tools.mediaInspector.fields.fps": "Frame rate",
     "tools.mediaInspector.fields.bitrate": "Bitrate",
     "tools.mediaInspector.fields.hdr": "HDR",
