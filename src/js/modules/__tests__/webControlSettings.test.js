@@ -8,6 +8,7 @@ describe("webControlSettings", () => {
       <button id="settings-web-control-open"></button>
       <button id="settings-web-control-restart"></button>
       <button id="settings-web-control-copy-lan"></button>
+      <span id="settings-web-control-summary-state"></span>
       <div class="settings-web-control-panel__status-row">
         <span id="settings-web-control-status"></span>
       </div>`;
@@ -68,11 +69,16 @@ describe("webControlSettings", () => {
 
     const toggle = document.getElementById("settings-web-control-toggle");
     const status = document.getElementById("settings-web-control-status");
+    const summaryStatus = document.getElementById(
+      "settings-web-control-summary-state",
+    );
     const localUrl = document.getElementById("settings-web-control-url");
     const lanUrl = document.getElementById("settings-web-control-lan-url");
     const copyLan = document.getElementById("settings-web-control-copy-lan");
 
     expect(status?.textContent).toBe("Работает на порту 4321");
+    expect(summaryStatus?.textContent).toBe("Работает на порту 4321");
+    expect(summaryStatus?.dataset.mode).toBe("on");
     expect(localUrl?.value).toBe("http://127.0.0.1:4321/");
     expect(lanUrl?.value).toBe("http://192.168.1.10:4321/");
     expect(copyLan?.disabled).toBe(false);
@@ -97,6 +103,8 @@ describe("webControlSettings", () => {
       "web:setEnabled",
       false,
     );
+    expect(summaryStatus?.textContent).toBe("Выключено");
+    expect(summaryStatus?.dataset.mode).toBe("off");
   });
 
   it("reinitializes without duplicating DOM listeners", async () => {
@@ -136,6 +144,9 @@ describe("webControlSettings", () => {
     const { initWebControlSettings } = require("../features/settings/webControlSettings.js");
     const toggle = document.getElementById("settings-web-control-toggle");
     const status = document.getElementById("settings-web-control-status");
+    const summaryStatus = document.getElementById(
+      "settings-web-control-summary-state",
+    );
 
     initWebControlSettings();
     await Promise.resolve();
@@ -157,6 +168,7 @@ describe("webControlSettings", () => {
     await Promise.resolve();
 
     expect(status?.textContent).toBe("Работает на порту 2222");
+    expect(summaryStatus?.textContent).toBe("Работает на порту 2222");
     expect(toggle.checked).toBe(true);
   });
 });

@@ -16,6 +16,7 @@
 | Settings were compacted            | App information moved to the top of General settings, and download quality selection is more compact                      |
 | Quality selection was compacted     | The active format tab shows its full label, while inactive tabs stay compact icons with tooltip labels                   |
 | Quality selection was refined       | Added smooth animations for modal opening, tab switching, and preview reveal after loading                               |
+| Settings were refined               | The Web interface section now starts collapsed and shows its current status in the header                                |
 | App startup was refined            | Download history storage IPC moved into a separate module with focused load/save/clear/count coverage                     |
 | App startup was refined            | Download history preview cache IPC moved into a separate module with focused cache/delete coverage                        |
 | App startup was refined            | Hash check IPC moved into a separate module with focused pick, inspect, calculate, and progress coverage                  |

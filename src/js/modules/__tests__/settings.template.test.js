@@ -227,6 +227,9 @@ describe("settings template backup placement", () => {
     ];
 
     expect(html).toContain('class="settings-card settings-card--web-control"');
+    expect(html).toContain('id="settings-web-control-advanced"');
+    expect(html).toContain('class="settings-advanced__summary"');
+    expect(html).toContain('id="settings-web-control-summary-state"');
     expect(html).toContain('id="settings-web-control-toggle"');
     expect(html).toContain('id="settings-web-control-url"');
     expect(html).toContain('id="settings-web-control-lan-url"');

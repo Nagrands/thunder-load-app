@@ -714,15 +714,37 @@
                   </section>
 
                   <section class="settings-card settings-card--web-control">
-                    <div class="settings-card__intro">
-                      <h3 class="settings-card__title" data-i18n="settings.web.title">
-                        Веб-интерфейс
-                      </h3>
-                      <p class="settings-card__desc" data-i18n="settings.web.hint">
-                        Управление загрузчиком из браузера на этом компьютере.
-                      </p>
-                    </div>
-                    <div class="settings-card__body">
+                    <details
+                      class="settings-control-group settings-control-group--section settings-advanced settings-advanced--web-control"
+                      id="settings-web-control-advanced"
+                    >
+                      <summary class="settings-advanced__summary">
+                        <span class="settings-advanced__heading">
+                          <span class="settings-advanced__icon" aria-hidden="true">
+                            <i class="fa-solid fa-globe"></i>
+                          </span>
+                          <span class="settings-advanced__copy">
+                            <strong data-i18n="settings.web.title">
+                              Веб-интерфейс
+                            </strong>
+                            <small data-i18n="settings.web.hint">
+                              Управление загрузчиком из браузера на этом компьютере.
+                            </small>
+                          </span>
+                        </span>
+                        <span class="settings-advanced__meta">
+                          <span
+                            class="settings-advanced__state"
+                            id="settings-web-control-summary-state"
+                            data-i18n="settings.web.status.off"
+                          >
+                            Выключено
+                          </span>
+                          <i class="fa-solid fa-chevron-down settings-advanced__chevron" aria-hidden="true"></i>
+                        </span>
+                      </summary>
+                      <div class="settings-advanced__content">
+                        <div class="settings-card__body">
                       <ul class="module settings-control-list">
                         <li class="settings-control">
                           <input type="checkbox" id="settings-web-control-toggle" />
@@ -790,7 +812,9 @@
                           </span>
                         </div>
                       </div>
-                    </div>
+                        </div>
+                      </div>
+                    </details>
                   </section>
                 </div>
               </div>

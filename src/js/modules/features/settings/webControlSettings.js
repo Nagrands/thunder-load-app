@@ -8,6 +8,9 @@ function getElements() {
   const urlInput = document.getElementById("settings-web-control-url");
   const lanUrlInput = document.getElementById("settings-web-control-lan-url");
   const statusEl = document.getElementById("settings-web-control-status");
+  const summaryStatusEl = document.getElementById(
+    "settings-web-control-summary-state",
+  );
   const openBtn = document.getElementById("settings-web-control-open");
   const restartBtn = document.getElementById("settings-web-control-restart");
   const copyLanBtn = document.getElementById("settings-web-control-copy-lan");
@@ -28,6 +31,7 @@ function getElements() {
     urlInput,
     lanUrlInput,
     statusEl,
+    summaryStatusEl,
     openBtn,
     restartBtn,
     copyLanBtn,
@@ -55,6 +59,11 @@ function renderWebControlStatus(elements, status = {}) {
     ?.classList.toggle("is-running", running);
   elements.statusEl.setAttribute("data-i18n", key);
   elements.statusEl.textContent = t(key, { port: status.port || "" });
+  if (elements.summaryStatusEl) {
+    elements.summaryStatusEl.setAttribute("data-i18n", key);
+    elements.summaryStatusEl.textContent = t(key, { port: status.port || "" });
+    elements.summaryStatusEl.dataset.mode = enabled ? "on" : "off";
+  }
 }
 
 function createWebControlController(elements) {
