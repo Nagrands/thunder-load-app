@@ -374,14 +374,25 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.downloaderTools")}
               </small>
             </button>
-            <button id="tools-open-power" type="button" class="tools-launcher-button">
+            <button id="tools-open-media-converter" type="button" class="tools-launcher-button">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
+              </span>
+              <i class="fa-solid fa-right-left"></i>
+              <span data-i18n="tools.launcher.open.mediaConverter">${t("tools.launcher.open.mediaConverter")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaConverter">
+                ${t("tools.launcher.desc.mediaConverter")}
+              </small>
+            </button>
+            <button id="tools-open-winget-installer" type="button" class="tools-launcher-button">
+              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
+                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
                 <span class="tools-launcher-badge">Update</span>
               </span>
-              <i class="fa-solid fa-power-off"></i>
-              <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
-                ${t("tools.launcher.desc.power")}
+              <i class="fa-brands fa-windows"></i>
+              <span data-i18n="tools.launcher.open.wingetInstaller">${t("tools.launcher.open.wingetInstaller")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wingetInstaller">
+                ${t("tools.launcher.desc.wingetInstaller")}
               </small>
             </button>
             <button id="tools-open-hash" type="button" class="tools-launcher-button">
@@ -389,6 +400,13 @@ export default function renderToolsView() {
               <span data-i18n="tools.launcher.open.hash">Hash Check</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">
                 ${t("tools.launcher.desc.hash")}
+              </small>
+            </button>
+            <button id="tools-open-backup" type="button" class="tools-launcher-button">
+              <i class="fa-solid fa-box-archive"></i>
+              <span data-i18n="tools.launcher.open.backup">Backup</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.backup">
+                ${t("tools.launcher.desc.backup")}
               </small>
             </button>
             <button id="tools-open-media-inspector" type="button" class="tools-launcher-button">
@@ -401,14 +419,14 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.mediaInspector")}
               </small>
             </button>
-            <button id="tools-open-media-converter" type="button" class="tools-launcher-button">
+            <button id="tools-open-power" type="button" class="tools-launcher-button">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
+                <span class="tools-launcher-badge">Update</span>
               </span>
-              <i class="fa-solid fa-right-left"></i>
-              <span data-i18n="tools.launcher.open.mediaConverter">${t("tools.launcher.open.mediaConverter")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaConverter">
-                ${t("tools.launcher.desc.mediaConverter")}
+              <i class="fa-solid fa-power-off"></i>
+              <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
+                ${t("tools.launcher.desc.power")}
               </small>
             </button>
             <button id="tools-open-wg" type="button" class="tools-launcher-button">
@@ -416,24 +434,6 @@ export default function renderToolsView() {
               <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">
                 ${t("tools.launcher.desc.wg")}
-              </small>
-            </button>
-            <button id="tools-open-backup" type="button" class="tools-launcher-button">
-              <i class="fa-solid fa-box-archive"></i>
-              <span data-i18n="tools.launcher.open.backup">Backup</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.backup">
-                ${t("tools.launcher.desc.backup")}
-              </small>
-            </button>
-            <button id="tools-open-winget-installer" type="button" class="tools-launcher-button">
-              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
-                <span class="tools-launcher-badge">Update</span>
-              </span>
-              <i class="fa-brands fa-windows"></i>
-              <span data-i18n="tools.launcher.open.wingetInstaller">${t("tools.launcher.open.wingetInstaller")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wingetInstaller">
-                ${t("tools.launcher.desc.wingetInstaller")}
               </small>
             </button>
           </div>

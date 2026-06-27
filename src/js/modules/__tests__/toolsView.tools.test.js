@@ -885,9 +885,13 @@ describe("toolsView quick actions", () => {
     expect(toolsTranslations.ru["tools.winget.mode.uninstall"]).toBe(
       "Удаление",
     );
-    expect(toolsTranslations.ru["tools.winget.script.title"]).toBe("Script");
-    expect(toolsTranslations.ru["tools.winget.log.title"]).toBe(
-      "PowerShell Лог",
+    expect(toolsTranslations.ru["tools.winget.script.title"]).toBe("Сценарий");
+    expect(toolsTranslations.ru["tools.winget.log.title"]).toBe("Лог PowerShell");
+    expect(toolsTranslations.ru["tools.winget.platform.preview"]).toBe(
+      "Предпросмотр",
+    );
+    expect(toolsTranslations.ru["tools.winget.category.develop"]).toBe(
+      "Разработка",
     );
   });
 
@@ -928,6 +932,49 @@ describe("toolsView quick actions", () => {
       packageIds: ["Git.Git"],
       runId: expect.stringMatching(/^winget-/),
     });
+  });
+
+  test("applies WinGet run package results before silent status refresh", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.runWingetInstall.mockResolvedValueOnce({
+      exitCode: 0,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "",
+          packageId: "Git.Git",
+          status: "installed",
+        },
+      ],
+      success: true,
+    });
+    window.electron.tools.checkWingetStatus
+      .mockResolvedValueOnce({
+        success: true,
+        items: [],
+      })
+      .mockImplementationOnce(() => new Promise(() => {}));
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
+
+    el.querySelector("#winget-clear-selection")?.click();
+    await nextTick();
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
+    el.querySelector("#winget-run-script")?.click();
+    await nextTick();
+    await nextTick();
+
+    expect(
+      el.querySelector('[data-winget-package-status="git"]')?.textContent,
+    ).toContain("tools.winget.status.installed");
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(2);
   });
 
   test("runs WinGet uninstall on windows with selected package IDs", async () => {
@@ -1023,6 +1070,8 @@ describe("toolsView quick actions", () => {
     await openTool(el, "winget-installer");
     await nextTick();
     await nextTick();
+    const logBlock = el.querySelector("#winget-log-block");
+    logBlock.scrollIntoView = jest.fn();
 
     el.querySelector("#winget-clear-selection")?.click();
     await nextTick();
@@ -1031,6 +1080,12 @@ describe("toolsView quick actions", () => {
     await nextTick();
     el.querySelector("#winget-run-script")?.click();
     await nextTick();
+
+    expect(logBlock.scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+    expect(document.activeElement).toBe(logBlock);
 
     const runId = window.electron.tools.runWingetInstall.mock.calls[0][0].runId;
     logHandler?.({
@@ -1060,6 +1115,54 @@ describe("toolsView quick actions", () => {
     await nextTick();
     expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(
       expect.stringContaining("Installing Git.Git"),
+    );
+  });
+
+  test("cancels active WinGet run without marking package as error", async () => {
+    let resolveRun;
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.runWingetInstall.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRun = resolve;
+        }),
+    );
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    await nextTick();
+    await nextTick();
+
+    el.querySelector("#winget-clear-selection")?.click();
+    await nextTick();
+    el.querySelector("#winget-package-git").checked = true;
+    el.querySelector("#winget-package-git").dispatchEvent(new Event("change"));
+    await nextTick();
+    el.querySelector("#winget-run-script")?.click();
+    await nextTick();
+
+    const runId = window.electron.tools.runWingetInstall.mock.calls[0][0].runId;
+    expect(el.querySelector("#winget-cancel-run")?.classList).not.toContain(
+      "hidden",
+    );
+
+    el.querySelector("#winget-cancel-run")?.click();
+    await nextTick();
+    expect(window.electron.tools.cancelWingetRun).toHaveBeenCalledWith({
+      runId,
+    });
+
+    resolveRun({ code: "cancelled", success: false });
+    await nextTick();
+    await nextTick();
+
+    expect(
+      el.querySelector('[data-winget-package-status="git"]')?.textContent,
+    ).not.toContain("tools.winget.status.error");
+    expect(el.querySelector("#winget-cancel-run")?.classList).toContain(
+      "hidden",
     );
   });
 

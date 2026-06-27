@@ -116,7 +116,7 @@ function renderWingetInstallerSection(t) {
           </div>
         </div>
 
-        <details id="winget-log-block" class="winget-log-block hidden" open>
+        <details id="winget-log-block" class="winget-log-block hidden" open tabindex="-1">
           <summary>
             <span class="winget-log-title">
               <i class="fa-solid fa-terminal"></i>
@@ -410,6 +410,16 @@ function initWingetInstallerSection({
     if (logBlock) logBlock.open = true;
   };
 
+  const focusActiveRunBlock = () => {
+    const logBlock = controls.logBlock();
+    if (!logBlock) return;
+    logBlock.scrollIntoView?.({
+      behavior: "smooth",
+      block: "start",
+    });
+    logBlock.focus?.({ preventScroll: true });
+  };
+
   const updatePlatformUi = () => {
     const badge = getEl("winget-platform-badge", view);
     const banner = getEl("winget-platform-banner", view);
@@ -696,11 +706,13 @@ function initWingetInstallerSection({
 
   const checkPackageStatus = async (
     packageIds = [],
-    { silent = false } = {},
+    { markChecking = true, silent = false } = {},
   ) => {
     const validPackageIds = packageIds.filter(isValidWingetPackageId);
     if (!validPackageIds.length || !state.isWindows || state.running) return;
-    setTransientStatuses(validPackageIds, "checking");
+    if (markChecking) {
+      setTransientStatuses(validPackageIds, "checking");
+    }
     setChecking(true);
     if (!silent) appendLog(t("tools.winget.log.statusStart"));
     try {
@@ -714,14 +726,20 @@ function initWingetInstallerSection({
             "error",
           );
         }
-        setTransientStatuses(validPackageIds, "error");
+        if (markChecking) {
+          setTransientStatuses(validPackageIds, "error");
+        }
         return;
       }
       renderStatuses(result.items || []);
-      clearTransientStatuses(validPackageIds);
+      if (markChecking) {
+        clearTransientStatuses(validPackageIds);
+      }
       if (!silent) appendLog(t("tools.winget.log.statusDone"), "success");
     } catch (error) {
-      setTransientStatuses(validPackageIds, "error");
+      if (markChecking) {
+        setTransientStatuses(validPackageIds, "error");
+      }
       if (!silent) appendLog(error?.message || String(error), "error");
     } finally {
       setChecking(false);
@@ -763,6 +781,7 @@ function initWingetInstallerSection({
     state.operationActive = true;
     state.lastOperationEntries = [];
     revealLog();
+    focusActiveRunBlock();
     appendLog(t("tools.winget.log.runStart", { mode: getModeLabel() }));
     setTransientStatuses(packageIds, runStatus);
     setRunning(true);
@@ -780,7 +799,15 @@ function initWingetInstallerSection({
       if (result?.success) {
         appendLog(t("tools.winget.log.runDone"), "success");
         clearTransientStatuses(packageIds);
-        await checkPackageStatus(packageIds, { silent: true });
+        renderStatuses(result.items || []);
+        setRunning(false);
+        await checkPackageStatus(packageIds, {
+          markChecking: false,
+          silent: true,
+        });
+      } else if (result?.code === "cancelled") {
+        clearTransientStatuses(packageIds);
+        appendLog(t("tools.winget.log.cancelled"), "warning");
       } else {
         setTransientStatuses(packageIds, "error");
         appendLog(result?.error || t("tools.winget.log.runError"), "error");

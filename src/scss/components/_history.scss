@@ -2452,12 +2452,6 @@
   padding: 18px;
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.14);
-  background:
-    linear-gradient(145deg, rgba(25, 34, 52, 0.78), rgba(8, 12, 20, 0.94)),
-    #0b101a;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 16px 34px rgba(2, 6, 23, 0.22);
 
   &.is-open {
     display: block;

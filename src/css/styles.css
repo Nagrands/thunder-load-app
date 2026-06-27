@@ -11942,7 +11942,6 @@ body.low-effects .app-footer__bar {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(160deg, rgba(var(--thunder-electric-rgb), 0.16), transparent 55%);
   opacity: 0.75;
   pointer-events: none;
 }
@@ -11950,11 +11949,10 @@ body.low-effects .app-footer__bar {
 .app-footer__brand-mark {
   position: relative;
   z-index: 1;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   object-fit: contain;
-  filter: drop-shadow(0 0 8px rgba(var(--thunder-electric-rgb), 0.42));
 }
 
 .app-footer__brand-title {
@@ -11963,10 +11961,9 @@ body.low-effects .app-footer__bar {
   max-width: 142px;
   overflow: hidden;
   font-family: var(--font-brand);
-  font-size: 13px;
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: 0.05em;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-overflow: ellipsis;
   color: transparent;
   background: linear-gradient(180deg, #ffffff 0%, #d7e6f7 46%, #7be7ff 100%);
@@ -11995,7 +11992,6 @@ body.low-effects .app-footer__bar {
 
 .app-footer__brand-version {
   font-family: var(--font-brand);
-  color: var(--thunder-electric);
 }
 
 .app-footer__status-value {
@@ -12200,7 +12196,7 @@ body.low-effects .app-footer__bar {
   transform: scale(0.98);
 }
 .app-footer__tab-nav .menu-item.active {
-  color: var(--color-accent);
+  color: var(--thunder-electric);
   border-color: rgba(var(--color-accent-rgb), 0.42);
   background: rgba(var(--color-accent-rgb), 0.14);
 }
@@ -17399,8 +17395,6 @@ hr {
   padding: 18px;
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.14);
-  background: linear-gradient(145deg, rgba(25, 34, 52, 0.78), rgba(8, 12, 20, 0.94)), #0b101a;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 34px rgba(2, 6, 23, 0.22);
 }
 .history-row__details.is-open {
   display: block;
@@ -28069,7 +28063,7 @@ video {
 }
 
 .tools-breadcrumbs__item.is-active {
-  color: rgba(var(--color-accent-rgb), 0.95);
+  color: var(--thunder-electric);
 }
 
 .tools-breadcrumbs__sep {
@@ -28134,8 +28128,8 @@ video {
 
 .tools-launcher-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .tools-launcher-unavailable-section {
@@ -28158,31 +28152,30 @@ video {
 
 .tools-launcher-button {
   position: relative;
-  min-height: 260px;
+  min-height: 290px;
   border-radius: var(--border-radius);
   border: 1px solid var(--color-hover);
-  background-color: var(--topbar-chip-bg);
-  backdrop-filter: blur(2px);
-  color: var(--color-highlight);
+  backdrop-filter: blur(16px) saturate(140%);
+  color: var(--thunder-electric);
   display: grid;
   place-items: center;
   place-content: center;
-  gap: 6px;
-  padding: 50px 20px;
+  gap: 12px;
   text-align: center;
   transition: transform 0.24s ease, border-color 0.24s ease, background-color 0.24s ease;
 }
 .tools-launcher-button i {
-  font-size: 3.35rem;
+  font-size: 2.85rem;
   color: rgba(var(--color-accent-rgb), 0.98);
 }
 .tools-launcher-button > span {
-  font-weight: 600;
-  font-size: 1.55rem;
+  font-weight: 500;
+  font-size: 1.42rem;
 }
 .tools-launcher-button .tools-launcher-button__desc {
   margin: 0;
   max-width: 20ch;
+  font-style: italic;
   color: var(--color-quality);
 }
 .tools-launcher-button:hover {
@@ -28303,8 +28296,8 @@ video {
 }
 .tools-card__header h2 {
   margin: 0;
-  font-size: 1.02rem;
-  color: var(--color-highlight);
+  font-size: 1.06rem;
+  color: var(--thunder-electric);
 }
 
 .tools-card__header-actions {

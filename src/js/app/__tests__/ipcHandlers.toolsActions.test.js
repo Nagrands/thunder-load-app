@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { EventEmitter } = require("events");
+const { promisify } = require("util");
 
 const handlers = {};
 
@@ -135,6 +136,9 @@ describe("ipcHandlers tools quick actions", () => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);
     jest.clearAllMocks();
     require("child_process").execFile.mockReset();
+    require("child_process").execFile[promisify.custom]
+      .mockReset()
+      .mockResolvedValue({ stdout: "", stderr: "" });
     require("child_process").spawn.mockReset();
     fs.mkdirSync(toolsDir, { recursive: true });
     const toolsPaths = require("../toolsPaths");
@@ -2977,12 +2981,10 @@ describe("ipcHandlers download pool", () => {
       if (wingetArgs[0] === "list") {
         cb(
           null,
-          [
-            "Name      Id            Version  Source",
-            "----------------------------------------",
-            "Git       Git.Git       2.50.0   winget",
-            "VLC       VideoLAN.VLC  3.0.20   winget",
-          ].join("\n"),
+          JSON.stringify([
+            { Id: "Git.Git", Version: "2.50.0" },
+            { Id: "VideoLAN.VLC", Version: "3.0.20" },
+          ]),
           "",
         );
         return;
@@ -2990,11 +2992,9 @@ describe("ipcHandlers download pool", () => {
       if (wingetArgs[0] === "upgrade") {
         cb(
           null,
-          [
-            "Name      Id       Version  Available  Source",
-            "-----------------------------------------------",
-            "Git       Git.Git  2.50.0   2.51.0     winget",
-          ].join("\n"),
+          JSON.stringify([
+            { Available: "2.51.0", Id: "Git.Git", Version: "2.50.0" },
+          ]),
           "",
         );
         return;
@@ -3034,7 +3034,7 @@ describe("ipcHandlers download pool", () => {
       "powershell.exe",
       expect.arrayContaining([
         "-Command",
-        expect.stringContaining("& 'winget' 'list'"),
+        expect.stringContaining("& 'winget' 'list' '--output' 'json'"),
       ]),
       expect.any(Object),
       expect.any(Function),
@@ -3043,7 +3043,9 @@ describe("ipcHandlers download pool", () => {
       "powershell.exe",
       expect.arrayContaining([
         "-Command",
-        expect.stringContaining("& 'winget' 'upgrade' '--include-unknown'"),
+        expect.stringContaining(
+          "& 'winget' 'upgrade' '--include-unknown' '--output' 'json'",
+        ),
       ]),
       expect.any(Object),
       expect.any(Function),
@@ -3116,7 +3118,8 @@ describe("ipcHandlers download pool", () => {
         cb(null, "v1.8.0", "");
         return;
       }
-      const usesBulkList = wingetArgs[0] === "list" && wingetArgs.length === 1;
+      const usesBulkList =
+        wingetArgs[0] === "list" && wingetArgs.includes("--output");
       if (usesBulkList) {
         cb(null, "unexpected output", "");
         return;
@@ -3178,6 +3181,7 @@ describe("ipcHandlers download pool", () => {
 
     expect(result).toMatchObject({
       success: false,
+      code: "invalidPayload",
       error: expect.stringContaining("Invalid WinGet package ID"),
     });
   });
@@ -3197,7 +3201,28 @@ describe("ipcHandlers download pool", () => {
 
     expect(result).toMatchObject({
       success: false,
+      code: "invalidPayload",
       error: expect.stringContaining("Invalid WinGet package ID"),
+    });
+  });
+
+  test("wingetRunInstall returns structured unsupported platform error", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+
+    Object.defineProperty(process, "platform", {
+      value: "darwin",
+      configurable: true,
+    });
+    initHandlers();
+
+    const result = await handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git"],
+    });
+
+    expect(result).toMatchObject({
+      code: "unsupportedPlatform",
+      success: false,
+      unsupported: true,
     });
   });
 
@@ -3226,7 +3251,18 @@ describe("ipcHandlers download pool", () => {
       runId: "run-1",
     });
 
-    expect(result).toMatchObject({ success: true, exitCode: 0 });
+    expect(result).toMatchObject({
+      exitCode: 0,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "",
+          packageId: "Git.Git",
+          status: "installed",
+        },
+      ],
+      success: true,
+    });
     expect(childProcess.spawn).toHaveBeenCalledWith(
       "powershell.exe",
       expect.arrayContaining(["-NoProfile", "-ExecutionPolicy", "Bypass"]),
@@ -3310,6 +3346,7 @@ describe("ipcHandlers download pool", () => {
     });
 
     expect(result).toMatchObject({
+      code: "powerShellFailed",
       success: false,
       exitCode: 12,
       error: "PowerShell exited with 12",
@@ -3343,7 +3380,18 @@ describe("ipcHandlers download pool", () => {
 
     const script = childProcess.spawn.mock.calls[0][1].at(-1);
 
-    expect(result).toMatchObject({ success: true, exitCode: 0 });
+    expect(result).toMatchObject({
+      exitCode: 0,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "",
+          packageId: "Git.Git",
+          status: "notInstalled",
+        },
+      ],
+      success: true,
+    });
     expect(childProcess.spawn).toHaveBeenCalledWith(
       "powershell.exe",
       expect.arrayContaining(["-NoProfile", "-ExecutionPolicy", "Bypass"]),
@@ -3351,5 +3399,80 @@ describe("ipcHandlers download pool", () => {
     );
     expect(script).toContain("winget uninstall --id $packageId --exact");
     expect(script).not.toContain("--accept-package-agreements");
+  });
+
+  test("wingetCancel terminates Windows process tree and marks run as cancelled", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const proc = new EventEmitter();
+    proc.pid = 4321;
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    childProcess.spawn.mockImplementation(() => proc);
+    childProcess.execFile[promisify.custom].mockResolvedValue({
+      stderr: "",
+      stdout: "",
+    });
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+
+    initHandlers();
+    const runPromise = handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git"],
+      runId: "run-cancel",
+    });
+
+    const cancelResult = await handlers[CHANNELS.TOOLS_WINGET_CANCEL](null, {
+      runId: "run-cancel",
+    });
+    proc.emit("close", 1);
+    const runResult = await runPromise;
+
+    expect(cancelResult).toEqual({ success: true });
+    expect(childProcess.execFile[promisify.custom]).toHaveBeenCalledWith(
+      "taskkill.exe",
+      ["/PID", "4321", "/T", "/F"],
+    );
+    expect(proc.kill).not.toHaveBeenCalled();
+    expect(runResult).toMatchObject({
+      code: "cancelled",
+      success: false,
+    });
+  });
+
+  test("wingetCancel falls back to process kill when taskkill fails", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+    const proc = new EventEmitter();
+    proc.pid = 4322;
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    childProcess.spawn.mockImplementation(() => proc);
+    childProcess.execFile[promisify.custom].mockRejectedValue(
+      new Error("taskkill failed"),
+    );
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+
+    initHandlers();
+    const runPromise = handlers[CHANNELS.TOOLS_WINGET_RUN_INSTALL](null, {
+      packageIds: ["Git.Git"],
+      runId: "run-cancel-fallback",
+    });
+
+    const cancelResult = await handlers[CHANNELS.TOOLS_WINGET_CANCEL](null, {
+      runId: "run-cancel-fallback",
+    });
+
+    expect(cancelResult).toEqual({ success: true });
+    expect(proc.kill).toHaveBeenCalledTimes(1);
+    proc.emit("close", 1);
+    await runPromise;
   });
 });

@@ -43,6 +43,22 @@ The Tools launcher contains:
 
 Some tools can be hidden in Settings. Backup remains a tool inside this section, not a top-level tab.
 
+### WinGet Installer
+
+WinGet Installer helps prepare Windows app install, update, and uninstall
+operations through `winget`:
+
+- the built-in catalog is grouped by category, and custom WinGet IDs can be
+  added in a separate list;
+- the app builds a PowerShell script only from validated package IDs and lets
+  the user copy it before running;
+- on Windows, the tool can check current versions, run `install`, `upgrade`, or
+  `uninstall`, stream the PowerShell live log, and copy the last operation log;
+- after a run, the selected packages get an immediate operation result before
+  WinGet status is checked again for exact versions;
+- on macOS and Linux, the section is preview-only: the list and script can be
+  prepared and copied, but execution and status checks are disabled.
+
 ### File Sorter
 
 File Sorter follows a safe `configure → preview → apply` workflow:

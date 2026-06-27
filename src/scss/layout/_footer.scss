@@ -188,11 +188,6 @@ $transition-interactive:
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(
-      160deg,
-      rgba(var(--thunder-electric-rgb), 0.16),
-      transparent 55%
-    );
     opacity: 0.75;
     pointer-events: none;
   }
@@ -201,11 +196,10 @@ $transition-interactive:
 .app-footer__brand-mark {
   position: relative;
   z-index: 1;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   object-fit: contain;
-  filter: drop-shadow(0 0 8px rgba(var(--thunder-electric-rgb), 0.42));
 }
 
 .app-footer__brand-title {
@@ -214,10 +208,9 @@ $transition-interactive:
   max-width: 142px;
   overflow: hidden;
   font-family: var(--font-brand);
-  font-size: 13px;
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: 0.05em;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-overflow: ellipsis;
   color: transparent;
   background: linear-gradient(180deg, #ffffff 0%, #d7e6f7 46%, #7be7ff 100%);
@@ -249,7 +242,6 @@ $transition-interactive:
 
 .app-footer__brand-version {
   font-family: var(--font-brand);
-  color: var(--thunder-electric);
 }
 
 .app-footer__status-value {
@@ -509,7 +501,7 @@ $transition-interactive:
     }
 
     &.active {
-      color: var(--color-accent);
+      color: var(--thunder-electric);
       border-color: rgba(var(--color-accent-rgb), 0.42);
       background: rgba(var(--color-accent-rgb), 0.14);
     }

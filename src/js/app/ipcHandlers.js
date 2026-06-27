@@ -675,6 +675,7 @@ function setupIpcHandlers(dependencies) {
   } = dependencies;
   const activeVideoInfoTokens = new Map();
   const activeWingetRuns = new Map();
+  const cancelledWingetRuns = new Set();
   const activeConverterRuns = new Map();
   const makeVideoInfoTokenKey = (url, previewOnly = false) =>
     `${previewOnly ? "preview" : "info"}:${url}`;
@@ -2472,6 +2473,7 @@ function setupIpcHandlers(dependencies) {
       if (!packageId || seen.has(key)) continue;
       if (!WINGET_PACKAGE_ID_PATTERN.test(packageId)) {
         return {
+          code: "invalidPayload",
           error: `Invalid WinGet package ID: ${packageId || "(empty)"}`,
           packageIds: [],
         };
@@ -2482,6 +2484,7 @@ function setupIpcHandlers(dependencies) {
 
     if (packageIds.length > 80) {
       return {
+        code: "invalidPayload",
         error: "Too many WinGet packages requested",
         packageIds: [],
       };
@@ -2596,6 +2599,16 @@ function setupIpcHandlers(dependencies) {
         });
       });
     } catch {}
+  }
+
+  function createWingetOperationItems(packageIds = [], mode = "install") {
+    const status = mode === "uninstall" ? "notInstalled" : "installed";
+    return packageIds.map((packageId) => ({
+      availableVersion: "",
+      currentVersion: "",
+      packageId,
+      status,
+    }));
   }
 
   const wingetAvailabilityCache = {
@@ -2888,12 +2901,12 @@ function setupIpcHandlers(dependencies) {
   }
 
   async function collectWingetStatus(packageIds = []) {
-    const listResult = await runWingetCommand(["list"], {
+    const listResult = await runWingetCommand(["list", "--output", "json"], {
       maxBuffer: 1024 * 1024 * 16,
       timeout: 60000,
     });
     const upgradeResult = await runWingetCommand(
-      ["upgrade", "--include-unknown"],
+      ["upgrade", "--include-unknown", "--output", "json"],
       {
         maxBuffer: 1024 * 1024 * 16,
         timeout: 60000,
@@ -2980,7 +2993,11 @@ function setupIpcHandlers(dependencies) {
 
     const normalized = normalizeWingetPackageIds(payload);
     if (normalized.error) {
-      return { success: false, error: normalized.error };
+      return {
+        success: false,
+        code: normalized.code || "invalidPayload",
+        error: normalized.error,
+      };
     }
 
     try {
@@ -3012,6 +3029,7 @@ function setupIpcHandlers(dependencies) {
     if (process.platform !== "win32") {
       return {
         success: false,
+        code: "unsupportedPlatform",
         unsupported: true,
         error: "Available only on Windows",
       };
@@ -3019,14 +3037,23 @@ function setupIpcHandlers(dependencies) {
 
     const normalized = normalizeWingetPackageIds(payload);
     if (normalized.error) {
-      return { success: false, error: normalized.error };
+      return {
+        success: false,
+        code: normalized.code || "invalidPayload",
+        error: normalized.error,
+      };
     }
     if (!normalized.packageIds.length) {
-      return { success: false, error: "No packages selected" };
+      return {
+        success: false,
+        code: "invalidPayload",
+        error: "No packages selected",
+      };
     }
 
     const runId = String(payload?.runId || `winget-${Date.now()}`);
     const script = buildWingetPowerShell(normalized.packageIds, mode);
+    cancelledWingetRuns.delete(runId);
 
     return new Promise((resolve) => {
       let output = "";
@@ -3037,6 +3064,7 @@ function setupIpcHandlers(dependencies) {
         if (settled) return;
         settled = true;
         activeWingetRuns.delete(runId);
+        cancelledWingetRuns.delete(runId);
         resolve(result);
       };
 
@@ -3053,6 +3081,7 @@ function setupIpcHandlers(dependencies) {
       } catch (error) {
         return done({
           success: false,
+          code: "powerShellFailed",
           error: error.message || String(error),
         });
       }
@@ -3071,18 +3100,35 @@ function setupIpcHandlers(dependencies) {
         sendWingetLog(runId, error.message || String(error), "error");
         done({
           success: false,
+          code: "powerShellFailed",
           error: error.message || String(error),
           output,
           stderr: errorOutput,
         });
       });
       proc.on("close", (exitCode) => {
+        const cancelled = cancelledWingetRuns.has(runId);
         done({
+          code:
+            exitCode === 0
+              ? ""
+              : cancelled
+                ? "cancelled"
+                : "powerShellFailed",
           exitCode,
+          items:
+            exitCode === 0
+              ? createWingetOperationItems(normalized.packageIds, mode)
+              : [],
           output,
           stderr: errorOutput,
           success: exitCode === 0,
-          error: exitCode === 0 ? "" : `PowerShell exited with ${exitCode}`,
+          error:
+            exitCode === 0
+              ? ""
+              : cancelled
+                ? "WinGet run cancelled"
+                : `PowerShell exited with ${exitCode}`,
         });
       });
     });
@@ -3103,13 +3149,35 @@ function setupIpcHandlers(dependencies) {
   ipcMain.handle(CHANNELS.TOOLS_WINGET_CANCEL, async (_evt, payload = {}) => {
     const runId = String(payload?.runId || "");
     const proc = activeWingetRuns.get(runId);
-    if (!proc) return { success: false, error: "Run not found" };
+    if (!proc) {
+      return { success: false, code: "notFound", error: "Run not found" };
+    }
     try {
-      proc.kill();
+      cancelledWingetRuns.add(runId);
+      if (process.platform === "win32" && proc.pid) {
+        try {
+          await execFileAsync("taskkill.exe", [
+            "/PID",
+            String(proc.pid),
+            "/T",
+            "/F",
+          ]);
+        } catch (error) {
+          log.warn("tools:wingetCancel taskkill failed:", error);
+          proc.kill();
+        }
+      } else {
+        proc.kill();
+      }
       activeWingetRuns.delete(runId);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message || String(error) };
+      cancelledWingetRuns.delete(runId);
+      return {
+        success: false,
+        code: "cancelFailed",
+        error: error.message || String(error),
+      };
     }
   });
 
