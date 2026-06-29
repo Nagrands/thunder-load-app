@@ -4,8 +4,18 @@ const buildDom = () => {
   document.body.innerHTML = `
     <div class="input-container">
       <div class="url-entry-shell">
-        <button id="downloader-view-detailed" type="button"></button>
-        <button id="downloader-view-compact" type="button"></button>
+        <div class="url-input-wrapper">
+          <div class="url-input-service-row">
+            <div class="url-input-statusline">
+              <span id="url-helper-text" class="url-helper-text"></span>
+            </div>
+            <div class="downloader-view-mode">
+              <button id="downloader-view-detailed" type="button"></button>
+              <button id="downloader-view-compact" type="button"></button>
+              <span id="downloader-view-mode-label" data-i18n="quality.compact.modeDetailed">Подробно</span>
+            </div>
+          </div>
+        </div>
       </div>
       <nav class="button-group downloader-action-row url-input-action-row">
         <section id="compact-quality-panel" hidden>
@@ -56,6 +66,13 @@ describe("compactDownloaderQuality", () => {
       } = require("../compactDownloaderQuality");
       initCompactDownloaderQuality();
 
+      expect(
+        document.getElementById("downloader-view-mode-label").textContent,
+      ).toBe("Подробно");
+      expect(
+        document.getElementById("downloader-view-mode-label").dataset.i18n,
+      ).toBe("quality.compact.modeDetailed");
+
       document.getElementById("downloader-view-compact").click();
 
       expect(isCompactDownloaderMode()).toBe(true);
@@ -89,6 +106,42 @@ describe("compactDownloaderQuality", () => {
           (field) => field.hidden,
         ),
       ).toBe(true);
+      expect(
+        document.getElementById("downloader-view-mode-label").textContent,
+      ).toBe("Компактно");
+      expect(
+        document.getElementById("downloader-view-mode-label").dataset.i18n,
+      ).toBe("quality.compact.modeCompact");
+
+      document.getElementById("downloader-view-detailed").click();
+
+      expect(isCompactDownloaderMode()).toBe(false);
+      expect(
+        document.getElementById("downloader-view-mode-label").textContent,
+      ).toBe("Подробно");
+      expect(
+        document.getElementById("downloader-view-mode-label").dataset.i18n,
+      ).toBe("quality.compact.modeDetailed");
+    });
+  });
+
+  it("initializes the visible mode label from saved compact mode", async () => {
+    localStorage.setItem("downloaderViewMode", "compact");
+
+    await jest.isolateModulesAsync(async () => {
+      const {
+        initCompactDownloaderQuality,
+        isCompactDownloaderMode,
+      } = require("../compactDownloaderQuality");
+      initCompactDownloaderQuality();
+
+      expect(isCompactDownloaderMode()).toBe(true);
+      expect(
+        document.getElementById("downloader-view-mode-label").textContent,
+      ).toBe("Компактно");
+      expect(
+        document.getElementById("downloader-view-mode-label").dataset.i18n,
+      ).toBe("quality.compact.modeCompact");
     });
   });
 

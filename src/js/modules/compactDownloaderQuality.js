@@ -25,6 +25,7 @@ const elements = {
   shell: document.querySelector(".url-entry-shell"),
   toggleDetailed: document.getElementById("downloader-view-detailed"),
   toggleCompact: document.getElementById("downloader-view-compact"),
+  modeLabel: document.getElementById("downloader-view-mode-label"),
   panel: document.getElementById("compact-quality-panel"),
   grid: document.querySelector(".compact-quality-panel__grid"),
   videoField: document
@@ -105,6 +106,14 @@ function setMode(mode, { persist = true } = {}) {
     "aria-pressed",
     state.mode === "compact" ? "true" : "false",
   );
+  if (elements.modeLabel) {
+    const labelKey =
+      state.mode === "compact"
+        ? "quality.compact.modeCompact"
+        : "quality.compact.modeDetailed";
+    elements.modeLabel.textContent = t(labelKey);
+    elements.modeLabel.dataset.i18n = labelKey;
+  }
   if (persist) writeMode(state.mode);
 }
 
