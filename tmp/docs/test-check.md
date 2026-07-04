@@ -1,5 +1,3 @@
-
-
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
@@ -9,15 +7,18 @@
 <!-- AUTO-JEST-TESTS:START -->
 
 ### `src/js/app/__tests__/backupManager.test.js` (2)
+
 - [ ] returns true for Compress-Archive module autoload failure
 - [ ] returns false for unrelated powershell error
 
 ### `src/js/app/__tests__/clipboardMonitor.test.js` (3)
+
 - [ ] expands window for valid supported URLs
 - [ ] does not start when open-on-copy is disabled
 - [ ] does not expand window for invalid or unsupported URLs
 
 ### `src/js/app/__tests__/downloaderBackgroundPreview.test.js` (8)
+
 - [ ] selects a moderate playable YouTube mp4/webm source
 - [ ] returns null for live YouTube videos
 - [ ] returns null for video-less or unsupported YouTube formats
@@ -28,6 +29,7 @@
 - [ ] keeps background and live preview selection independent
 
 ### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (83)
+
 - [ ] set-open-on-copy-url-status toggles clipboard monitor and persists state
 - [ ] hashPickFile returns selected path
 - [ ] mediaInspectorPickFile returns selected path
@@ -113,6 +115,7 @@
 - [ ] wingetRunUninstall starts PowerShell with uninstall command
 
 ### `src/js/app/__tests__/notifications.test.js` (10)
+
 - [ ] classifies rate-limited downloader errors with retry delay
 - [ ] marks auth-required downloader errors as non-retryable
 - [ ] formats downloader auth errors into user-friendly text
@@ -125,13 +128,16 @@
 - [ ] does not expand window on download complete when toggle is disabled
 
 ### `src/js/app/__tests__/runtimeTools.test.js` (1)
+
 - [ ] falls back from preferred yt-dlp path to default path when preferred is not executable
 
 ### `src/js/app/__tests__/toolsVersions.test.js` (2)
+
 - [ ] reads yt-dlp version from stdout
 - [ ] falls back to stderr output for yt-dlp version
 
 ### `src/js/app/__tests__/utils.test.js` (6)
+
 - [ ] adds https:// when scheme is missing
 - [ ] preserves existing scheme
 - [ ] trims whitespace and surrounding quotes/brackets
@@ -140,10 +146,12 @@
 - [ ] rejects unsupported schemes and invalid strings
 
 ### `src/js/app/__tests__/whatsNewVersion.test.js` (2)
+
 - [ ] matches package.json
 - [ ] english whatsNew stays in sync when present
 
 ### `src/js/app/__tests__/window.trayMenu.test.js` (7)
+
 - [ ] disables 'Последнее видео' when file is missing
 - [ ] enables 'Последнее видео' and adds file name in label when file exists
 - [ ] disables 'Папка загрузок' when download path is invalid
@@ -153,12 +161,14 @@
 - [ ] tray and dock keep identical action order
 
 ### `src/js/app/__tests__/window.trayRuntime.test.js` (4)
+
 - [ ] handles click/double-click/right-click and refresh events on windows tray
 - [ ] creates a template tray image on macOS and keeps it on download events
 - [ ] window-close IPC respects minimize-to-tray behavior on Windows
 - [ ] warns and keeps window open when closing during active download
 
 ### `src/js/app/__tests__/windowActivation.test.js` (6)
+
 - [ ] activates and focuses window on macOS
 - [ ] returns false for missing window
 - [ ] focuses visible non-maximized window on Windows without maximizing
@@ -167,6 +177,7 @@
 - [ ] keeps non-Windows behavior unchanged
 
 ### `src/js/modules/__tests__/backupView.performance.test.js` (7)
+
 - [ ] does not start backup hints timers on tab activation
 - [ ] renders compact backup toolbar without hints block
 - [ ] uses localized backup toolbar strings in initial markup
@@ -176,19 +187,23 @@
 - [ ] renders delete confirmation markup without treating profile name as HTML
 
 ### `src/js/modules/__tests__/bootstrapRenderer.test.js` (1)
+
 - [ ] marks body ready after critical init and defers non-critical modules
 
 ### `src/js/modules/__tests__/clipboardHandler.test.js` (3)
+
 - [ ] does not auto-paste focused clipboard URL when open-on-copy is disabled
 - [ ] auto-pastes focused clipboard URL when open-on-copy is enabled
 - [ ] does not auto-paste focused clipboard URL when yt-dlp is unavailable
 
 ### `src/js/modules/__tests__/compactDownloaderQuality.test.js` (3)
+
 - [ ] persists compact view mode and applies shell classes
 - [ ] builds video and audio selectors from preview formats
 - [ ] hides quality selectors again when preview formats are missing
 
 ### `src/js/modules/__tests__/contextMenu.test.js` (9)
+
 - [ ] opens and focuses first enabled menu item
 - [ ] supports ArrowUp/ArrowDown/Home/End keyboard navigation
 - [ ] runs action on Enter
@@ -200,29 +215,35 @@
 - [ ] deletes history entry when stored id is a string
 
 ### `src/js/modules/__tests__/developerModeFooter.test.js` (2)
+
 - [ ] keeps app footer visible in developer mode
 - [ ] keeps app footer visible when developer mode is disabled
 
 ### `src/js/modules/__tests__/developerModeTopBar.test.js` (2)
+
 - [ ] hides configured topbar buttons in developer mode
 - [ ] restores topbar buttons when developer mode is disabled
 
 ### `src/js/modules/__tests__/downloadActions.test.js` (4)
+
 - [ ] shows warning when current download folder cannot be resolved
 - [ ] shows warning when last downloaded file path is missing
 - [ ] shows warning when folder selection is canceled
 - [ ] shows localized toast when downloads folder changes
 
 ### `src/js/modules/__tests__/downloadCompleteHandler.test.js` (2)
+
 - [ ] does not open completion modal when setting is disabled
 - [ ] opens completion modal when setting is enabled
 
 ### `src/js/modules/__tests__/downloaderAvailability.test.js` (3)
+
 - [ ] disables URL controls when yt-dlp is missing
 - [ ] enables URL input controls when yt-dlp is available
 - [ ] updates availability from tools:status events
 
 ### `src/js/modules/__tests__/downloaderBackgroundPreview.test.js` (6)
+
 - [ ] fades in the background video after media becomes ready
 - [ ] pauses when document becomes hidden and resumes on focus
 - [ ] pauses background preview while live preview is open and resumes after close
@@ -231,6 +252,7 @@
 - [ ] dispatches a single recovery event on playback error
 
 ### `src/js/modules/__tests__/downloaderLivePreview.test.js` (7)
+
 - [ ] opens player and starts playback with sound from explicit event
 - [ ] hides and clears player on close
 - [ ] closes modal on Escape and returns focus to opener
@@ -240,12 +262,14 @@
 - [ ] restores playback position when reopened for the same page
 
 ### `src/js/modules/__tests__/downloadErrorClassifier.shared.test.js` (4)
+
 - [ ] classifies auth-required errors consistently
 - [ ] classifies network timeout with neutral default message
 - [ ] classifies unsupported, not found, exec failed and rate limit errors
 - [ ] classifies private content, captcha, disk full and permission errors
 
 ### `src/js/modules/__tests__/downloadErrorUi.test.js` (5)
+
 - [ ] formats rate limit toast with minutes
 - [ ] formats queue reason via shared metadata
 - [ ] formats known toast keys for all focused downloader codes
@@ -253,6 +277,7 @@
 - [ ] keeps retryable flags and unknown fallback stable
 
 ### `src/js/modules/__tests__/downloaderToolsStatus.test.js` (8)
+
 - [ ] shows ready state when yt-dlp/ffmpeg/Deno present
 - [ ] shows install action when tools are missing
 - [ ] shows bridge missing state when tools bridge is unavailable
@@ -263,13 +288,16 @@
 - [ ] settings visibility event hides container until re-enabled
 
 ### `src/js/modules/__tests__/downloaderView.test.js` (1)
+
 - [ ] builds full-width hero with separate meta row and preserved ids
 
 ### `src/js/modules/__tests__/downloadJobs.test.js` (2)
+
 - [ ] keeps legacy collections in sync with the job store
 - [ ] replaces and clears jobs by status without touching other groups
 
 ### `src/js/modules/__tests__/downloadManager.test.js` (76)
+
 - [ ] loadQueueFromStorage filters invalid entries and exact duplicates
 - [ ] persistQueue stores the queue in localStorage
 - [ ] removes queue key from localStorage when queue becomes empty
@@ -348,6 +376,7 @@
 - [ ] filters complete status groups without changing queue counters
 
 ### `src/js/modules/__tests__/downloadProgress.test.js` (5)
+
 - [ ] supports legacy numeric progress payload
 - [ ] aggregates object payload progress for two active jobs
 - [ ] resets tracking when download state transitions to idle
@@ -355,6 +384,7 @@
 - [ ] keeps queue count in downloader tab accessibility while progress is active
 
 ### `src/js/modules/__tests__/downloadQualityModal.test.js` (27)
+
 - [ ] closes modal when close button is clicked
 - [ ] uses cached formats without requesting video info again
 - [ ] does not remove another modal body lock when quality modal closes
@@ -384,10 +414,12 @@
 - [ ] hides selection/actions and disables split actions while formats are loading
 
 ### `src/js/modules/__tests__/downloadQueueFilter.test.js` (2)
+
 - [ ] restores only supported persisted filters
 - [ ] persists selection and invokes the render callback once
 
 ### `src/js/modules/__tests__/downloadQueuePersistence.test.js` (12)
+
 - [ ] loads, normalizes, sorts, and filters persisted jobs
 - [ ] uses createdAt when updatedAt is absent or invalid
 - [ ] returns an empty list when storage access fails
@@ -402,19 +434,23 @@
 - [ ] uses window.localStorage by default
 
 ### `src/js/modules/__tests__/downloadTabUi.test.js` (2)
+
 - [ ] keeps queue count in aria label when progress is not active
 - [ ] combines queue count and progress in aria label
 
 ### `src/js/modules/__tests__/electronEvents.test.js` (2)
+
 - [ ] forwards toast options to showToast
 - [ ] updates about settings version fields
 
 ### `src/js/modules/__tests__/firstRunModal.test.js` (3)
+
 - [ ] shows wizard on first run, preserves selections, and applies them
 - [ ] treats Backup as a tool inside Tools in the summary
 - [ ] does not show modal when already completed
 
 ### `src/js/modules/__tests__/footerStatusBar.test.js` (11)
+
 - [ ] loads and renders global footer state in top mode
 - [ ] moves group-menu into footer when sentinel leaves top viewport
 - [ ] moves group-menu back to top bar when returning to top
@@ -428,9 +464,11 @@
 - [ ] does not switch modes while sentinel stays inside hysteresis band
 
 ### `src/js/modules/__tests__/historyActions.test.js` (1)
+
 - [ ] refresh button updates search query and pulls history
 
 ### `src/js/modules/__tests__/historyView.test.js` (24)
+
 - [ ] applies density class and active button
 - [ ] updates header icon and total files size summary
 - [ ] renders compact pagination controls with page-size options
@@ -457,42 +495,51 @@
 - [ ] collapses and expands filters with persisted state
 
 ### `src/js/modules/__tests__/hotkeys.backupTransfer.test.js` (1)
+
 - [ ] routes Ctrl+3 and Meta+3 to the Tools backup entry point
 
 ### `src/js/modules/__tests__/i18n.test.js` (2)
+
 - [ ] keeps translations accessible after split
 - [ ] t and applyI18n work with merged translation sections
 
 ### `src/js/modules/__tests__/modalHandlers.test.js` (1)
+
 - [ ] marks shortcuts modal as overlay-active while open
 
 ### `src/js/modules/__tests__/modals.confirmationHtml.test.js` (3)
+
 - [ ] sanitizes HTML when allowHtml=true
 - [ ] falls back to text when DOMPurify is missing
 - [ ] returns custom confirm, cancel, and close results
 
 ### `src/js/modules/__tests__/network.test.js` (3)
+
 - [ ] shows error toast on offline event
 - [ ] shows success toast on online event
 - [ ] does not require network indicator DOM nodes
 
 ### `src/js/modules/__tests__/pageBackgroundMode.test.js` (3)
+
 - [ ] defaults to downloader mode and reacts to tab changes
 - [ ] switches to backup mode for the backup tool view and returns to tools
 - [ ] tracks settings modal mode without losing current page mode
 
 ### `src/js/modules/__tests__/powerShortcuts.test.js` (3)
+
 - [ ] defines complete action config for every power shortcut
 - [ ] maps action states to unified tones
 - [ ] enables actions only when tool is visible on windows and not busy
 
 ### `src/js/modules/__tests__/productFormatterDictionary.test.js` (4)
+
 - [ ] parses valid rules and keeps the last duplicate key
 - [ ] inspects invalid, duplicate, no-op, and override rules
 - [ ] removes only invalid dictionary lines
 - [ ] parses structured alias, normalize, and token rules
 
 ### `src/js/modules/__tests__/productFormatterView.test.js` (45)
+
 - [ ] renders the upgraded workspace with utility actions and empty result state
 - [ ] formats into a single preview flow with summary at the end and enables the compact result controls
 - [ ] appends the greens summary block when the optional toggle is enabled
@@ -540,6 +587,7 @@
 - [ ] resets comparison history after paste and demo actions
 
 ### `src/js/modules/__tests__/productListFormatter.test.js` (28)
+
 - [ ] formats the prompt sample and appends the summary
 - [ ] normalizes decimal commas, grams, and unit names in sections
 - [ ] applies shop-specific rules, dedupes entries, and excludes greenery from summary
@@ -570,6 +618,7 @@
 - [ ] applies new produce aliases and keeps size notes only in summary
 
 ### `src/js/modules/__tests__/registerTabs.backupTransfer.test.js` (5)
+
 - [ ] registers Download, Tools, and Products tabs
 - [ ] redirects legacy backup default tab to Tools entry point
 - [ ] ignores the removed Downloader developer preference
@@ -577,9 +626,11 @@
 - [ ] initializes downloader preview modules when Download tab renderer runs
 
 ### `src/js/modules/__tests__/scrollbarVisibility.test.js` (1)
+
 - [ ] shows scrollbars during wheel activity and hides them after idle
 
 ### `src/js/modules/__tests__/scrollLockManager.test.js` (5)
+
 - [ ] keeps body lock until the last owner releases it
 - [ ] does not break on repeated acquire for the same owner
 - [ ] supports body and document locks independently
@@ -587,6 +638,7 @@
 - [ ] supports overlay-only owners without forcing body scroll lock
 
 ### `src/js/modules/__tests__/scrollLockRepair.test.js` (5)
+
 - [ ] removes stale body scroll lock on refocus when no modal is open
 - [ ] keeps body scroll lock when a lock owner is still active
 - [ ] clears stale document overflow lock when no overlay is visible
@@ -594,6 +646,7 @@
 - [ ] clears all scroll locks when tools view is hidden
 
 ### `src/js/modules/__tests__/settings.template.test.js` (6)
+
 - [ ] keeps Backup controls inside Tools and removes separate sidebar tab
 - [ ] includes the emerald theme in settings and first-run templates
 - [ ] uses compact appearance panel and preserves control ids
@@ -602,6 +655,7 @@
 - [ ] builds the standalone notifications lab page
 
 ### `src/js/modules/__tests__/settings.test.js` (26)
+
 - [ ] shows badge and marks button disabled when disabled = true
 - [ ] hides badge and removes disabled class when disabled = false
 - [ ] sets accessibility attrs for wg sidebar badge
@@ -630,10 +684,12 @@
 - [ ] ignores legacy Downloader config and removes its storage key
 
 ### `src/js/modules/__tests__/settings.toastHtml.test.js` (2)
+
 - [ ] uses showToast allowHtml for font size toasts
 - [ ] uses showToast allowHtml for theme toasts
 
 ### `src/js/modules/__tests__/settingsModal.test.js` (12)
+
 - [ ] opens and closes mobile sections panel via toggle
 - [ ] closes mobile panel and updates active label after tab click
 - [ ] restores label from saved lastSettingsTab on init
@@ -648,18 +704,22 @@
 - [ ] opens whats new from about section via existing version trigger
 
 ### `src/js/modules/__tests__/state.test.js` (1)
+
 - [ ] keeps download actions disabled when downloader is unavailable
 
 ### `src/js/modules/__tests__/tabSystem.test.js` (4)
+
 - [ ] does not append a tab wrapper into itself when re-rendering an emptied tab
 - [ ] keeps Downloader available when legacy developer preference exists
 - [ ] keeps products tab hidden until developer mode is enabled
 - [ ] falls back from products tab when developer mode is disabled
 
 ### `src/js/modules/__tests__/themeManager.test.js` (1)
+
 - [ ] falls back from removed light theme to dark
 
 ### `src/js/modules/__tests__/toast.test.js` (8)
+
 - [ ] keeps the legacy positional API and renders compact toast metadata
 - [ ] supports object options without breaking existing callers
 - [ ] renders allowed html tags when allowHtml=true
@@ -670,10 +730,12 @@
 - [ ] returns a loading toast controller that updates and closes
 
 ### `src/js/modules/__tests__/tools.cleanupRegistry.test.js` (2)
+
 - [ ] removes window listeners and pending timers on dispose
 - [ ] clears intervals through the registry
 
 ### `src/js/modules/__tests__/tools.toolViewState.test.js` (5)
+
 - [ ] resolves remembered tool only when it is available
 - [ ] resolves remembered backup tool and falls back when disabled
 - [ ] tracks developer unlock state for macOS power tools
@@ -681,6 +743,7 @@
 - [ ] remembers media-inspector as a valid last tool view
 
 ### `src/js/modules/__tests__/tools.wingetPackages.test.js` (6)
+
 - [ ] catalog keeps Afterburner stable and moves 7-Zip into system
 - [ ] returns renderable categories sorted by localized title
 - [ ] validates custom package IDs conservatively
@@ -689,6 +752,7 @@
 - [ ] builds install, upgrade, and uninstall scripts with winget version preflight
 
 ### `src/js/modules/__tests__/toolsInfo.test.js` (16)
+
 - [ ] renders dynamic tools UI with ti- prefixed ids
 - [ ] shows tools version summary when all tools exist
 - [ ] keeps checking copy split between eyebrow, badge and detailed status
@@ -707,6 +771,7 @@
 - [ ] throws localized error when installAll bridge is unavailable
 
 ### `src/js/modules/__tests__/toolsView.tools.test.js` (91)
+
 - [ ] opens launcher by default and keeps power tool unavailable on macos
 - [ ] renders combined header with breadcrumbs and tools section header
 - [ ] uses localized launcher strings in initial markup
@@ -800,6 +865,7 @@
 - [ ] create another clears current power status and returns focus to the last action
 
 ### `src/js/modules/__tests__/tooltipInitializer.test.js` (6)
+
 - [ ] repeated initTooltips does not duplicate tooltip instances
 - [ ] updates tooltip content when title changes
 - [ ] fallback title update without setContent does not force dispose
@@ -808,16 +874,19 @@
 - [ ] body click hides shown tooltips
 
 ### `src/js/modules/__tests__/topBarReloadGuard.test.js` (2)
+
 - [ ] reloads when there is no active download
 - [ ] disables reload button during active download and restores it after
 
 ### `src/js/modules/__tests__/topBarResponsive.test.js` (4)
+
 - [ ] sets --topbar-current-height CSS variable
 - [ ] updates --topbar-current-height on resize
 - [ ] does nothing when top bar is absent
 - [ ] does not require the removed More overflow controls
 
 ### `src/js/modules/__tests__/updateHandler.test.js` (15)
+
 - [ ] renders localized update available flyover and focuses primary action
 - [ ] opens flyover below anchor when there is not enough room above
 - [ ] shows checking then up-to-date and auto-hides
@@ -835,6 +904,7 @@
 - [ ] closes flyover on Escape
 
 ### `src/js/modules/__tests__/urlInputHandler.test.js` (51)
+
 - [ ] does not show inline error while typing before blur/enter
 - [ ] does not paste from clipboard when downloader is unavailable
 - [ ] hides action row when URL is empty and shows it after input
@@ -888,6 +958,7 @@
 - [ ] opens current source URL when clicking the source icon button
 
 ### `src/js/modules/__tests__/videoInfoBroker.test.js` (6)
+
 - [ ] deduplicates parallel preview requests by URL
 - [ ] serves preview from cached full info without another IPC request
 - [ ] deduplicates full info requests and stores the successful result
@@ -896,9 +967,11 @@
 - [ ] cancels an in-flight full info request by URL
 
 ### `src/js/modules/__tests__/videoInfoCache.test.js` (1)
+
 - [ ] stores full video info for quality modal reuse
 
 ### `src/js/modules/__tests__/whatsNewModal.test.js` (5)
+
 - [ ] keeps allowed tags
 - [ ] removes script tags
 - [ ] keeps h1 and table tags for rich markdown
@@ -906,6 +979,7 @@
 - [ ] adds and removes modal overlay class when modal opens and closes
 
 ### `src/js/scripts/__tests__/download.selectFormats.test.js` (15)
+
 - [ ] falls back by quality label when stored format IDs are unavailable
 - [ ] falls back to audio-only when object has stale audio format ID
 - [ ] preserves mp3 audio output for explicit audio-only selections

@@ -1,6 +1,6 @@
-<!-- version: 1.5.3 -->
+<!-- version: 1.5.4 -->
 
-# Release date: June 14, 2026
+# Release date: July 4, 2026
 
 | What changed                                        | What you get                                                                                                 |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -12,4 +12,3 @@
 | Queue controls were fixed                           | Pausing no longer interrupts active downloads, and unavailable retries are now blocked                       |
 | Completed downloads are now preserved               | The latest 30 completed files remain available in the queue after restarting the app                         |
 | Keyboard queue controls were added                  | Pending jobs can be reordered from the drag handle or with Alt and the arrow keys                            |
-
