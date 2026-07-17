@@ -393,6 +393,7 @@ describe("toolsView quick actions", () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     Array.from(document.body.children).forEach((child) => {
       child.dispatchEvent(
         new CustomEvent("tools:view-hidden", { bubbles: true }),
@@ -874,22 +875,96 @@ describe("toolsView quick actions", () => {
     expect(saved.openCategoryIds).not.toContain("browsers");
   });
 
-  test("automatically checks built-in WinGet statuses when opened on windows", async () => {
+  test("does not invoke WinGet while rendering or repeatedly opening the tool on windows", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    const el = await renderView();
+
+    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
+
+    await openTool(el, "winget-installer");
+    await nextTick();
+    el.querySelector("#tools-back-btn")?.click();
+    await nextTick();
+    await openTool(el, "winget-installer");
+
+    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
+  });
+
+  test("does not invoke WinGet for remembered restore or focus events", async () => {
+    localStorage.setItem("toolsRememberLastView", "true");
+    localStorage.setItem("toolsLastView", "winget-installer");
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+
+    let el = await renderView();
+    window.dispatchEvent(new Event("focus"));
+    window.dispatchEvent(new Event("window-focused"));
+    await nextTick();
+
+    expect(
+      el
+        .querySelector('[data-tool-view="winget-installer"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
+
+    el.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
+    el.remove();
+    el = await renderView();
+    await nextTick();
+
+    expect(
+      el
+        .querySelector('[data-tool-view="winget-installer"]')
+        ?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
+    expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
+  });
+
+  test("validates custom WinGet IDs locally without checking after the debounce", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
     });
     const el = await renderView();
     await openTool(el, "winget-installer");
-    await nextTick();
-    await nextTick();
+    const customInput = el.querySelector("#winget-custom-packages");
+    const runButton = el.querySelector("#winget-run-script");
+    const checkButton = el.querySelector("#winget-check-status");
 
-    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledWith({
-      packageIds: expect.arrayContaining(["Git.Git", "VideoLAN.VLC"]),
-    });
-    expect(
-      el.querySelector('[data-winget-package-version="git"]')?.textContent,
-    ).toContain("1.0.0");
+    jest.useFakeTimers();
+    try {
+      customInput.value = "Git.Git\nbad/id";
+      customInput.dispatchEvent(new Event("input"));
+      jest.advanceTimersByTime(601);
+      await Promise.resolve();
+
+      expect(el.querySelector("#winget-custom-hint")?.classList).toContain(
+        "error",
+      );
+      expect(runButton?.disabled).toBe(true);
+      expect(checkButton?.disabled).toBe(true);
+      expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test("uses Russian WinGet mode labels in translations", () => {
@@ -951,7 +1026,7 @@ describe("toolsView quick actions", () => {
     });
   });
 
-  test("applies WinGet run package results before silent status refresh", async () => {
+  test("applies successful WinGet results without a post-run check and re-enables run", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
@@ -968,12 +1043,6 @@ describe("toolsView quick actions", () => {
       ],
       success: true,
     });
-    window.electron.tools.checkWingetStatus
-      .mockResolvedValueOnce({
-        success: true,
-        items: [],
-      })
-      .mockImplementationOnce(() => new Promise(() => {}));
     const el = await renderView();
     await openTool(el, "winget-installer");
     await nextTick();
@@ -991,8 +1060,54 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector('[data-winget-package-status="git"]')?.textContent,
     ).toContain("tools.winget.status.installed");
-    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(2);
+    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(el.querySelector("#winget-run-script")?.disabled).toBe(false);
   });
+
+  test.each([
+    [
+      "failed result",
+      () =>
+        window.electron.tools.runWingetInstall.mockResolvedValueOnce({
+          code: "powerShellFailed",
+          error: "PowerShell failed",
+          success: false,
+        }),
+    ],
+    [
+      "rejected request",
+      () =>
+        window.electron.tools.runWingetInstall.mockRejectedValueOnce(
+          new Error("IPC failed"),
+        ),
+    ],
+  ])(
+    "restores WinGet controls after a %s without checking status",
+    async (_label, arrangeRun) => {
+      window.electron.getPlatformInfo.mockResolvedValue({
+        isWindows: true,
+        platform: "win32",
+      });
+      arrangeRun();
+      const el = await renderView();
+      await openTool(el, "winget-installer");
+
+      el.querySelector("#winget-package-git").checked = true;
+      el
+        .querySelector("#winget-package-git")
+        .dispatchEvent(new Event("change"));
+      await nextTick();
+      el.querySelector("#winget-run-script")?.click();
+      await nextTick();
+      await nextTick();
+
+      expect(el.querySelector("#winget-run-script")?.disabled).toBe(false);
+      expect(el.querySelector("#winget-cancel-run")?.classList).toContain(
+        "hidden",
+      );
+      expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    },
+  );
 
   test("runs WinGet uninstall on windows with selected package IDs", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
@@ -1040,6 +1155,7 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
     expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledWith({
       packageIds: expect.arrayContaining(["Git.Git", "VideoLAN.VLC"]),
     });
@@ -1068,6 +1184,7 @@ describe("toolsView quick actions", () => {
       packageIds: ["VideoLAN.VLC"],
       runId: expect.stringMatching(/^winget-/),
     });
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
   });
 
   test("renders WinGet live log events for active run", async () => {

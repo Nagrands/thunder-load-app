@@ -2,7 +2,6 @@ import {
   WINGET_PACKAGE_GROUPS,
   aggregateWingetPackageStatus,
   buildWingetScript,
-  getAllBuiltInWingetPackageIds,
   getWingetPackageIdsFromSelection,
   getRenderableWingetPackageCategories,
   isValidWingetPackageId,
@@ -15,7 +14,6 @@ import {
 } from "./storage.js";
 
 const WINGET_LOG_MAX_ENTRIES = 400;
-const WINGET_CUSTOM_STATUS_DEBOUNCE_MS = 600;
 
 function renderWingetInstallerSection(t) {
   const savedState = readJsonStorage(
@@ -287,7 +285,6 @@ function initWingetInstallerSection({
   platformInfo = {},
 }) {
   const state = {
-    autoStatusChecked: false,
     checking: false,
     entries: [],
     isWindows: !!platformInfo?.isWindows,
@@ -315,8 +312,6 @@ function initWingetInstallerSection({
     logBlock: () => getEl("winget-log-block", view),
     customStatusList: () => getEl("winget-custom-status-list", view),
   };
-  let customStatusTimer = null;
-
   const readSavedState = () =>
     readJsonStorage(TOOLS_STORAGE_KEYS.WINGET_INSTALLER_STATE, {
       customPackageIds: [],
@@ -752,24 +747,6 @@ function initWingetInstallerSection({
     await checkPackageStatus(getAllVisiblePackageIds(), { silent: true });
   };
 
-  const scheduleCustomStatusCheck = () => {
-    if (customStatusTimer) clearTimeout(customStatusTimer);
-    if (!state.isWindows || state.running || state.checking) return;
-    const selection = getSelection();
-    if (selection.invalidPackageIds.length) return;
-    const customPackageIds = getValidCustomPackageIds();
-    if (!customPackageIds.length) return;
-    customStatusTimer = setTimeout(() => {
-      checkPackageStatus(customPackageIds, { silent: true });
-    }, WINGET_CUSTOM_STATUS_DEBOUNCE_MS);
-  };
-
-  const runInitialStatusCheck = () => {
-    if (state.autoStatusChecked || !state.isWindows) return;
-    state.autoStatusChecked = true;
-    checkPackageStatus(getAllBuiltInWingetPackageIds(), { silent: true });
-  };
-
   const runScript = async () => {
     const selection = getSelection();
     if (!selection.packageIds.length || selection.invalidPackageIds.length)
@@ -800,11 +777,6 @@ function initWingetInstallerSection({
         appendLog(t("tools.winget.log.runDone"), "success");
         clearTransientStatuses(packageIds);
         renderStatuses(result.items || []);
-        setRunning(false);
-        await checkPackageStatus(packageIds, {
-          markChecking: false,
-          silent: true,
-        });
       } else if (result?.code === "cancelled") {
         clearTransientStatuses(packageIds);
         appendLog(t("tools.winget.log.cancelled"), "warning");
@@ -851,27 +823,11 @@ function initWingetInstallerSection({
     appendLog(entry.text, entry.level || "info");
   });
   cleanup.addCleanup(() => unsubscribeLog?.());
-  cleanup.addCleanup(() => {
-    if (customStatusTimer) clearTimeout(customStatusTimer);
-  });
-
-  const handleToolsViewChanged = (event) => {
-    if (event?.detail?.toolView === "winget-installer") {
-      runInitialStatusCheck();
-    }
-  };
-  window.addEventListener("tools:view-changed", handleToolsViewChanged);
-  cleanup.addCleanup(() => {
-    window.removeEventListener("tools:view-changed", handleToolsViewChanged);
-  });
 
   controls.checkboxes().forEach((checkbox) => {
     checkbox.addEventListener("change", renderPreview);
   });
-  controls.customInput()?.addEventListener("input", () => {
-    renderPreview();
-    scheduleCustomStatusCheck();
-  });
+  controls.customInput()?.addEventListener("input", renderPreview);
   getEl("winget-select-all", view)?.addEventListener("click", () => {
     controls.checkboxes().forEach((checkbox) => {
       checkbox.checked = true;
