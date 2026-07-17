@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG = {
   },
   shortcuts: {
     disableGlobalShortcuts: false,
+    assignments: null,
   },
   modules: {
     wgUnlockDisabled: true,

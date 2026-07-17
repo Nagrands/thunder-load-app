@@ -216,10 +216,12 @@ export function openSettings() {
   window.addEventListener("keydown", trapHandler, true);
 }
 
-function activateSettingsTab(tabId) {
-  if (!tabId) return;
+function activateSettingsTab(tabId, { moveFocus = false } = {}) {
+  if (!tabId) return null;
   const button = getSettingsTabLinks().find((btn) => btn.dataset.tab === tabId);
   button?.click();
+  if (moveFocus) button?.focus();
+  return button || null;
 }
 
 function resolveStoredSettingsTab(tabId) {
@@ -231,12 +233,21 @@ function resolveStoredSettingsTab(tabId) {
 
 export function openSettingsWithTab(tabId) {
   openSettings();
-  setTimeout(() => activateSettingsTab(tabId), 0);
+  setTimeout(() => {
+    const tab = activateSettingsTab(tabId, { moveFocus: true });
+    if (tabId === "shortcuts-settings") {
+      const search = document.getElementById("shortcuts-search");
+      (search || tab)?.focus();
+    }
+  }, 0);
 }
 
 export function closeSettings() {
   if (!settingsModal) return;
-  const restoreTarget = settingsTrigger || previousFocus;
+  const restoreTarget =
+    previousFocus instanceof HTMLElement && previousFocus !== document.body
+      ? previousFocus
+      : settingsTrigger;
   hideAllTooltips();
   settingsModal.style.display = "none";
   settingsModal.setAttribute("aria-hidden", "true");

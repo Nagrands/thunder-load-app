@@ -39,7 +39,6 @@ async function importWithDomMocks() {
     whatsNewModal,
     whatsNewContent,
     closeWhatsNewBtn,
-    shortcutsModal: null,
     confirmationModal: null,
     settingsModal: null,
   }));

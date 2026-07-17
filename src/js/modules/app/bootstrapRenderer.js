@@ -40,6 +40,7 @@ import { initScrollLockRepair } from "../scrollLockRepair.js";
 import { initScrollbarVisibility } from "../scrollbarVisibility.js";
 import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
 import { syncDeveloperModeState } from "../developerMode.js";
+import { initShortcutEditor } from "../features/settings/shortcutEditor.js";
 import { initI18n, t } from "../i18n.js";
 import { registerTabs } from "./registerTabs.js";
 import {
@@ -119,6 +120,7 @@ async function runDeferredInitialization({ tabs }) {
     initClipboardHandler();
     initInterfaceHandlers();
     initSettingsModal();
+    void initShortcutEditor();
     initTopBarThemeToggle();
     initWebControlBridge();
 

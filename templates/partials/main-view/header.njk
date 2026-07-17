@@ -168,6 +168,7 @@
 
           <button
             id="open-last-video"
+            data-shortcut-action="downloads.last.open"
             class="small-button btn btn-sm btn-secondary downloader-action-row__aside"
             aria-label="Открыть последнее скачанное видео"
             data-i18n-aria="actions.openLast"
@@ -181,7 +182,7 @@
           </button>
 
           <div class="download-quality-group downloader-action-row__primary">
-            <button id="download-button" class="large-button btn btn-lg btn-primary downloader-action-row__download" disabled aria-disabled="true">
+            <button id="download-button" class="large-button btn btn-lg btn-primary downloader-action-row__download" data-shortcut-action="downloads.start" disabled aria-disabled="true">
               <i class="fas fa-download"></i>
               <span class="button-text" data-i18n="actions.download">Скачать</span>
             </button>
@@ -204,6 +205,7 @@
 
           <button
             id="open-folder"
+            data-shortcut-action="downloads.folder.open"
             class="small-button btn btn-sm btn-secondary downloader-action-row__aside"
             aria-label="Открыть папку с видео"
             data-i18n-aria="actions.openFolder"

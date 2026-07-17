@@ -5,7 +5,6 @@ const {
   dialog,
   Notification,
   shell,
-  globalShortcut,
   app,
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
@@ -38,6 +37,9 @@ const { registerAppUpdateIpcHandlers } = require("./appUpdateIpcHandlers");
 const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const { registerFileShellIpcHandlers } = require("./fileShellIpcHandlers");
 const { registerHistoryIpcHandlers } = require("./historyIpcHandlers");
+const {
+  registerShortcutIpcHandlers,
+} = require("./shortcutIpcHandlers");
 const { createHistoryPreviewCache } = require("./historyPreviewIpcHandlers");
 const {
   registerToolsLocationIpcHandlers,
@@ -50,7 +52,11 @@ const { registerUiSettingsIpcHandlers } = require("./uiSettingsIpcHandlers");
 const { registerUpdateDevIpcHandlers } = require("./updateDevIpcHandlers");
 const { registerWhatsNewIpcHandlers } = require("./whatsNewIpcHandlers");
 const { registerWgUnlockIpcHandlers } = require("./wgUnlockIpcHandlers");
-const { setReloadShortcutSuppressed } = require("./shortcuts.js");
+const {
+  configureShortcutService,
+  setGlobalShortcutsDisabled,
+  setReloadShortcutSuppressed,
+} = require("./shortcuts.js");
 const {
   installYtDlp,
   installFfmpeg,
@@ -4037,14 +4043,16 @@ function setupIpcHandlers(dependencies) {
   registerWgUnlockIpcHandlers({ ipcMain, app, dialog, shell });
 
   registerAppUpdateIpcHandlers({ ipcMain, autoUpdater });
+  const shortcutService = configureShortcutService({ store, mainWindow });
+  registerShortcutIpcHandlers({ ipcMain, mainWindow, shortcutService });
   registerAppPreferencesIpcHandlers({
     ipcMain,
     app,
     clipboardMonitor,
-    globalShortcut,
     mainWindow,
     Notification,
     setupGlobalShortcuts,
+    setGlobalShortcutsDisabled,
     shell,
     showTrayNotification,
     store,

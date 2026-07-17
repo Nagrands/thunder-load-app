@@ -10,7 +10,6 @@ const GLOBAL_SELECTOR = [
   "#nav-visibility-sentinel",
   ".modal-overlay",
   ".settings-modal",
-  ".shortcuts-modal",
   ".whats-modal",
   "#context-menu",
 ].join(",");

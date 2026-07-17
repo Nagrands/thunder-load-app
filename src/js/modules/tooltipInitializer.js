@@ -43,6 +43,7 @@ let tooltipSafetyPatched = false;
 let bodyClickListenerAttached = false;
 let delegatedPopoverListenersAttached = false;
 let activeTriggerPatched = false;
+let hotkeyChangedListenerAttached = false;
 
 function ensureTooltipSafety() {
   if (tooltipSafetyPatched) return;
@@ -172,6 +173,10 @@ function ensureTooltipSafety() {
 }
 
 function replaceModifiers(text, isMac) {
+  text = text.replace(
+    /\bCommandOrControl\b/g,
+    isMac ? "Meta" : "Ctrl",
+  );
   if (!isMac) return text;
 
   // Замена конкретных комбинаций
@@ -473,6 +478,15 @@ function initTooltips(root = document) {
   cleanupOrphanTooltips();
 
   const isMac = navigator.platform.toUpperCase().includes("MAC");
+  if (!hotkeyChangedListenerAttached) {
+    document.addEventListener("hotkey:changed", (event) => {
+      const element = event.target;
+      if (!(element instanceof HTMLElement)) return;
+      applyHotkeyTitles([element], isMac);
+      syncTooltipInstance(element);
+    });
+    hotkeyChangedListenerAttached = true;
+  }
 
   if (isMac) {
     document.querySelectorAll("[data-hotkey]").forEach((el) => {
@@ -516,32 +530,6 @@ function initTooltips(root = document) {
   });
   cleanupOrphanTooltips();
   initPopovers(contextRoot);
-
-  // Обработка текста горячих клавиш в модальном окне (кроме блока "открытие сайтов")
-  document
-    .querySelectorAll(
-      "#shortcuts-modal strong:not(.additional-hotkeys li strong)",
-    )
-    .forEach((el) => {
-      let text = el.textContent;
-      const cleaned = removeDuplicateModifiers(text);
-      el.textContent = replaceModifiers(cleaned, isMac);
-    });
-
-  // Замена для дополнительных горячих клавиш открытия сайтов
-  document
-    .querySelectorAll("#shortcuts-modal .additional-hotkeys li strong")
-    .forEach((el) => {
-      let text = el.textContent;
-      if (isMac) {
-        const match = text.match(/^Ctrl\s*\+\s*Shift\s*\+\s*(\d)$/);
-        if (match) {
-          text = `Alt + ${match[1]}`;
-        }
-      }
-      const cleaned = removeDuplicateModifiers(text);
-      el.textContent = replaceModifiers(cleaned, isMac);
-    });
 
   // Глобальное скрытие тултипов при клике вне
   if (!bodyClickListenerAttached) {

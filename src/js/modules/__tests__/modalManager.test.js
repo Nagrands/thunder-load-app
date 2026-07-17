@@ -9,7 +9,7 @@ describe("modalManager", () => {
     jest.clearAllMocks();
     document.body.innerHTML = `
       <div id="settings-modal" style="display:flex" aria-hidden="false"></div>
-      <div id="shortcuts-modal" style="display:flex" aria-hidden="false"></div>
+      <div id="confirmation-modal" style="display:flex" aria-hidden="false"></div>
     `;
   });
 
@@ -20,17 +20,17 @@ describe("modalManager", () => {
     } = require("../scrollLockManager.js");
     const { closeAllModals } = require("../modalManager.js");
     const settingsModal = document.getElementById("settings-modal");
-    const shortcutsModal = document.getElementById("shortcuts-modal");
+    const confirmationModal = document.getElementById("confirmation-modal");
     const lifecycleHandler = jest.fn((event) => event.preventDefault());
     settingsModal.addEventListener("modal:close-request", lifecycleHandler);
 
-    closeAllModals([settingsModal, shortcutsModal]);
+    closeAllModals([settingsModal, confirmationModal]);
 
     expect(lifecycleHandler).toHaveBeenCalledTimes(1);
     expect(settingsModal.style.display).toBe("flex");
-    expect(shortcutsModal.style.display).toBe("none");
-    expect(shortcutsModal.getAttribute("aria-hidden")).toBe("true");
-    expect(releaseOverlayActive).toHaveBeenCalledWith("shortcuts-modal");
+    expect(confirmationModal.style.display).toBe("none");
+    expect(confirmationModal.getAttribute("aria-hidden")).toBe("true");
+    expect(releaseOverlayActive).toHaveBeenCalledWith("confirmation-modal");
     expect(repairScrollLocks).toHaveBeenCalledTimes(1);
   });
 });

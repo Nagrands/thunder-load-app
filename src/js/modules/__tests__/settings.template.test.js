@@ -124,6 +124,69 @@ describe("settings template backup placement", () => {
     expect(html).toContain('role="option"');
   });
 
+  test("embeds the shortcut editor in Settings and removes its legacy modal", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('id="settings-section-tab-shortcuts"');
+    expect(html).toContain('data-tab="shortcuts-settings"');
+    expect(html).toContain('id="shortcuts-settings"');
+    expect(html).toContain(
+      'aria-labelledby="settings-section-tab-shortcuts"',
+    );
+    [
+      "shortcuts-search",
+      "shortcuts-list",
+      "shortcuts-empty",
+      "shortcuts-reset",
+      "shortcuts-reset-confirm",
+      "shortcuts-live",
+      "settings-disable-global-shortcuts-toggle",
+    ].forEach((id) => {
+      expect(html).toContain(`id="${id}"`);
+    });
+    expect(html).toContain('data-action="confirm"');
+    expect(html).toContain('data-action="cancel"');
+    expect(html).not.toContain('id="shortcuts-modal"');
+    expect(html).not.toContain("partials/modals/shortcuts.njk");
+  });
+
+  test("localizes every shortcut catalog action in Russian and English", () => {
+    const actionKeys = [
+      "openShortcutSettings",
+      "openSettings",
+      "toggleTheme",
+      "openDownloader",
+      "openTools",
+      "openBackup",
+      "startDownload",
+      "openDownloadsFolder",
+      "openHistory",
+      "openLastVideo",
+      "clearHistory",
+      "reload",
+      "openYoutube",
+      "openTwitch",
+      "openVkVideo",
+      "openCoub",
+    ];
+
+    ["ru", "en"].forEach((locale) => {
+      actionKeys.forEach((actionKey) => {
+        expect(
+          settingsTranslations[locale][
+            `shortcuts.actions.${actionKey}.title`
+          ],
+        ).toBeTruthy();
+        expect(
+          settingsTranslations[locale][
+            `shortcuts.actions.${actionKey}.description`
+          ],
+        ).toBeTruthy();
+      });
+    });
+  });
+
   test("moves downloader tools block out of downloader settings", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");

@@ -1,415 +1,266 @@
 // src/js/modules/hotkeys.js
 
-let hotkeysEnabled = false;
-
-/**
- * Модуль управления локальными горячими клавишами приложения.
- *
- * Обеспечивает нормализацию сочетаний клавиш с учётом платформы,
- * обработку событий нажатия и отпускания клавиш,
- * а также выполнение связанных с ними действий.
- */
-
-/**
- * Модификаторы клавиш, используемые в сочетаниях.
- */
-const MODIFIERS = {
-  CTRL: "Ctrl",
-  SHIFT: "Shift",
-  ALT: "Alt",
-  META: "Meta",
-};
-
 import {
+  clearHistoryButton,
+  confirmationModal,
   downloadButton,
   openFolderButton,
   openHistoryButton,
   openLastVideoButton,
-  clearHistoryButton,
-  shortcutsModal,
-  whatsNewModal,
-  confirmationModal,
   settingsModal,
+  whatsNewModal,
 } from "./domElements.js";
 import {
-  updateThemeDropdownUI,
-  openSettings,
   closeSettings,
+  openSettings,
+  openSettingsWithTab,
+  updateThemeDropdownUI,
 } from "./settingsModal.js";
 import { setTheme } from "./settingsStore.js";
 import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
 import { requestToolsView } from "./toolsNavigation.js";
-import { closeAllModals } from "./modalManager.js"; // Импортируем функцию закрытия всех модалов
-
-// Список всех модальных окон
-const modals = [
-  shortcutsModal,
-  whatsNewModal,
-  confirmationModal,
-  settingsModal,
-  // Добавьте другие модальные окна здесь
-];
-
-const toggleSettings = () => {
-  if (settingsModal.style.display === "flex") {
-    closeSettings();
-    return;
-  }
-
-  closeAllModals(modals);
-  openSettings();
-};
+import { closeAllModals } from "./modalManager.js";
 
 const THEME_ORDER = ["dark", "midnight", "emerald", "sunset", "violet"];
+const MODIFIER_KEYS = new Set([
+  "Alt",
+  "AltGraph",
+  "Control",
+  "Meta",
+  "Shift",
+]);
+const modals = [whatsNewModal, confirmationModal, settingsModal];
+
+let assignments = {};
+let catalog = [];
+let hotkeysEnabled = false;
+let tabSystemReference = null;
+let shortcutsChangedBound = false;
 
 const normalizeTheme = (value) =>
   value === "system" || !value || !THEME_ORDER.includes(value) ? "dark" : value;
 
 const getThemeLabel = (theme) => {
-  const map = {
-    dark: t("settings.appearance.theme.dark"),
-    midnight: t("settings.appearance.theme.midnight"),
-    emerald: t("settings.appearance.theme.emerald"),
-    sunset: t("settings.appearance.theme.sunset"),
-    violet: t("settings.appearance.theme.violet"),
-  };
-  return map[normalizeTheme(theme)] || theme;
+  const key = `settings.appearance.theme.${normalizeTheme(theme)}`;
+  return t(key);
 };
 
 const updateThemeToggleTooltip = (theme) => {
-  const btn = document.getElementById("theme-toggle");
-  if (!btn) return;
-  const label = getThemeLabel(theme);
-  const title = `${t("topbar.theme")}: ${label}`;
-  btn.setAttribute("title", title);
-  btn.setAttribute("data-bs-original-title", title);
+  const button = document.getElementById("theme-toggle");
+  if (!button) return;
+  const title = `${t("topbar.theme")}: ${getThemeLabel(theme)}`;
+  button.setAttribute("title", title);
+  button.setAttribute("data-bs-original-title", title);
 };
 
-// Определяем список локальных горячих клавиш
-const localHotkeys = new Map([
+const toggleSettings = () => {
+  if (settingsModal?.style.display === "flex") {
+    closeSettings();
+    return;
+  }
+  closeAllModals(modals);
+  openSettings();
+};
+
+const toggleTheme = async () => {
+  closeAllModals(modals);
+  const currentAttribute =
+    document.documentElement.getAttribute("data-theme") ||
+    localStorage.getItem("theme");
+  const current = normalizeTheme(currentAttribute);
+  const index = Math.max(0, THEME_ORDER.indexOf(current));
+  const next = THEME_ORDER[(index + 1) % THEME_ORDER.length];
+  document.documentElement.classList.add("theme-transition");
+  try {
+    await setTheme(next);
+    updateThemeDropdownUI(next);
+    updateThemeToggleTooltip(next);
+  } finally {
+    window.setTimeout(
+      () => document.documentElement.classList.remove("theme-transition"),
+      260,
+    );
+  }
+};
+
+const activateDownload = () => tabSystemReference?.activateTab("download");
+const activateTools = () => tabSystemReference?.activateTab("wireguard");
+const activateBackup = () => {
+  requestToolsView("backup");
+  tabSystemReference?.activateTab("wireguard");
+};
+
+const clickAfterClosingModals = (element) => {
+  closeAllModals(modals);
+  element?.click();
+};
+
+const LOCAL_ACTIONS = new Map([
+  ["settings.shortcuts.open", () => openSettingsWithTab("shortcuts-settings")],
+  ["settings.open", toggleSettings],
+  ["theme.toggle", toggleTheme],
+  ["navigation.downloader", activateDownload],
+  ["navigation.tools", activateTools],
+  ["navigation.backup", activateBackup],
+  ["downloads.start", () => clickAfterClosingModals(downloadButton)],
   [
-    "Ctrl+1",
+    "downloads.folder.open",
     () => {
-      if (tabSystemReference) {
-        tabSystemReference.activateTab("download");
-        console.log("Переключено на вкладку Загрузчик (Ctrl+1)");
-      }
-    },
-  ],
-  [
-    "Meta+1",
-    () => {
-      if (tabSystemReference) {
-        tabSystemReference.activateTab("download");
-        console.log("Переключено на вкладку Загрузчик (Meta+1)");
-      }
-    },
-  ],
-  [
-    "Ctrl+2",
-    () => {
-      if (tabSystemReference) {
-        tabSystemReference.activateTab("wireguard");
-        console.log("Переключено на вкладку Tools (Ctrl+2)");
-      }
-    },
-  ],
-  [
-    "Meta+2",
-    () => {
-      if (tabSystemReference) {
-        tabSystemReference.activateTab("wireguard");
-        console.log("Переключено на вкладку Tools (Meta+2)");
-      }
-    },
-  ],
-  [
-    "Ctrl+3",
-    () => {
-      if (tabSystemReference) {
-        requestToolsView("backup");
-        tabSystemReference.activateTab("wireguard");
-        console.log("Переключено на инструмент Backup в Tools (Ctrl+3)");
-      }
-    },
-  ],
-  [
-    "Meta+3",
-    () => {
-      if (tabSystemReference) {
-        requestToolsView("backup");
-        tabSystemReference.activateTab("wireguard");
-        console.log("Переключено на инструмент Backup в Tools (Meta+3)");
-      }
-    },
-  ],
-  [
-    "Ctrl+D",
-    () => {
-      closeAllModals(modals);
-      downloadButton.click();
-    },
-  ],
-  [
-    "Meta+D",
-    () => {
-      closeAllModals(modals);
-      downloadButton.click();
-    },
-  ],
-  [
-    "Ctrl+K",
-    () => {
-      closeAllModals(modals);
-      openFolderButton.click();
+      clickAfterClosingModals(openFolderButton);
       showToast(t("hotkeys.openLastFolder"), "info");
     },
   ],
+  ["history.open", () => clickAfterClosingModals(openHistoryButton)],
   [
-    "Meta+K",
+    "downloads.last.open",
     () => {
-      closeAllModals(modals);
-      openFolderButton.click();
-      showToast(t("hotkeys.openLastFolder"), "info");
-    },
-  ],
-  [
-    "Ctrl+T",
-    async () => {
-      closeAllModals(modals);
-      const curAttr = document.documentElement.getAttribute("data-theme");
-      const cur = normalizeTheme(curAttr || localStorage.getItem("theme"));
-      const idx = Math.max(0, THEME_ORDER.indexOf(cur));
-      const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
-      document.documentElement.classList.add("theme-transition");
-      await setTheme(next);
-      updateThemeDropdownUI(next);
-      updateThemeToggleTooltip(next);
-      setTimeout(
-        () => document.documentElement.classList.remove("theme-transition"),
-        260,
-      );
-    },
-  ],
-  [
-    "Meta+T",
-    async () => {
-      closeAllModals(modals);
-      const curAttr = document.documentElement.getAttribute("data-theme");
-      const cur = normalizeTheme(curAttr || localStorage.getItem("theme"));
-      const idx = Math.max(0, THEME_ORDER.indexOf(cur));
-      const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
-      document.documentElement.classList.add("theme-transition");
-      await setTheme(next);
-      updateThemeDropdownUI(next);
-      updateThemeToggleTooltip(next);
-      setTimeout(
-        () => document.documentElement.classList.remove("theme-transition"),
-        260,
-      );
-    },
-  ],
-  [
-    "Ctrl+H",
-    () => {
-      closeAllModals(modals);
-      openHistoryButton.click();
-    },
-  ],
-  [
-    "Meta+H",
-    () => {
-      closeAllModals(modals);
-      openHistoryButton.click();
-    },
-  ],
-  [
-    "Ctrl+L",
-    () => {
-      closeAllModals(modals);
-      openLastVideoButton.click();
+      clickAfterClosingModals(openLastVideoButton);
       showToast(t("hotkeys.openLastVideo"), "info");
     },
   ],
-  [
-    "Meta+L",
-    () => {
-      closeAllModals(modals);
-      openLastVideoButton.click();
-      showToast(t("hotkeys.openLastVideo"), "info");
-    },
-  ],
-  [
-    "Ctrl+M",
-    () => {
-      closeAllModals(modals);
-      clearHistoryButton.click();
-    },
-  ],
-  [
-    "Meta+M",
-    () => {
-      closeAllModals(modals);
-      clearHistoryButton.click();
-    },
-  ],
-  ["Ctrl+,", toggleSettings],
-  ["Meta+,", toggleSettings],
-  [
-    "Ctrl+P",
-    () => {
-      closeAllModals(modals);
-      if (shortcutsModal.style.display === "flex") {
-        shortcutsModal.style.display = "none";
-      } else {
-        shortcutsModal.style.display =
-          shortcutsModal.style.display === "block" ? "none" : "flex";
-        shortcutsModal.style.flexWrap = "wrap";
-        shortcutsModal.style.justifyContent = "center";
-        shortcutsModal.style.alignItems = "center";
-      }
-    },
-  ],
-  [
-    "Meta+P",
-    () => {
-      closeAllModals(modals);
-      if (shortcutsModal.style.display === "flex") {
-        shortcutsModal.style.display = "none";
-      } else {
-        shortcutsModal.style.display =
-          shortcutsModal.style.display === "block" ? "none" : "flex";
-        shortcutsModal.style.flexWrap = "wrap";
-        shortcutsModal.style.justifyContent = "center";
-        shortcutsModal.style.alignItems = "center";
-      }
-    },
-  ],
+  ["history.clear", () => clickAfterClosingModals(clearHistoryButton)],
 ]);
 
-/**
- * Проверяет и добавляет ключ в массив, если условие истинно и ключ ещё не добавлен.
- * @param {string[]} keys - Массив текущих ключей.
- * @param {boolean} condition - Условие для добавления ключа.
- * @param {string} keyName - Ключ для добавления.
- */
-function addKeyIfNotPresent(keys, condition, keyName) {
-  if (condition && !keys.includes(keyName)) {
-    keys.push(keyName);
+function normalizeKeyName(key) {
+  const aliases = {
+    " ": "Space",
+    ArrowDown: "Down",
+    ArrowLeft: "Left",
+    ArrowRight: "Right",
+    ArrowUp: "Up",
+    ",": ",",
+    ".": ".",
+  };
+  if (aliases[key]) return aliases[key];
+  if (/^F([1-9]|1[0-2])$/i.test(key)) return key.toUpperCase();
+  return key.length === 1 ? key.toUpperCase() : key;
+}
+
+export function acceleratorFromKeyboardEvent(event) {
+  if (!event?.key || MODIFIER_KEYS.has(event.key)) return "";
+  const parts = [];
+  if (event.ctrlKey || event.metaKey) parts.push("CommandOrControl");
+  if (event.altKey) parts.push("Alt");
+  if (event.shiftKey) parts.push("Shift");
+  parts.push(normalizeKeyName(event.key));
+  return parts.join("+");
+}
+
+function normalizeAccelerator(accelerator) {
+  return String(accelerator || "")
+    .replace(/\b(Ctrl|Control|Cmd|Command|Meta)\b/gi, "CommandOrControl")
+    .replace(/\s*\+\s*/g, "+")
+    .toLowerCase();
+}
+
+function resolveGetPayload(payload) {
+  const value = payload?.data || payload || {};
+  return {
+    assignments: value.assignments || value.shortcutAssignments || {},
+    catalog: value.catalog || value.actions || [],
+  };
+}
+
+function updateStaticHotkeyLabels() {
+  document.querySelectorAll("[data-shortcut-action]").forEach((element) => {
+    const accelerator = assignments[element.dataset.shortcutAction];
+    if (!accelerator) return;
+    element.dataset.hotkey = accelerator;
+    element.dispatchEvent(
+      new CustomEvent("hotkey:changed", {
+        detail: { accelerator },
+        bubbles: true,
+      }),
+    );
+  });
+}
+
+function applyShortcutsState(payload) {
+  const next = resolveGetPayload(payload);
+  if (Object.keys(next.assignments).length) assignments = next.assignments;
+  if (next.catalog.length) catalog = next.catalog;
+  updateStaticHotkeyLabels();
+  window.dispatchEvent(
+    new CustomEvent("shortcuts:updated", {
+      detail: { assignments: { ...assignments }, catalog: [...catalog] },
+    }),
+  );
+}
+
+async function loadShortcuts() {
+  try {
+    const result = await window.electron?.invoke?.("shortcuts:get");
+    if (result?.success === false) {
+      throw new Error(result.error || "Failed to load shortcuts");
+    }
+    applyShortcutsState(result);
+  } catch (error) {
+    console.error("[Hotkeys] Failed to load shortcuts:", error);
   }
 }
 
-/**
- * Нормализует комбинацию нажатых клавиш в строку для сопоставления.
- * @param {KeyboardEvent} event - Событие нажатия клавиши.
- * @returns {string} Нормализованная строка комбинации клавиш.
- */
-const normalizeKeyCombo = (event) => {
-  let keys = [];
+function bindShortcutsChanged() {
+  if (shortcutsChangedBound || !window.electron?.on) return;
+  window.electron.on("shortcuts:changed", (payload) => {
+    applyShortcutsState(payload);
+  });
+  shortcutsChangedBound = true;
+}
 
-  // Добавляем модификаторы, если они нажаты
-  addKeyIfNotPresent(keys, event.ctrlKey, MODIFIERS.CTRL);
-  addKeyIfNotPresent(keys, event.shiftKey, MODIFIERS.SHIFT);
-  addKeyIfNotPresent(keys, event.altKey, MODIFIERS.ALT);
-  addKeyIfNotPresent(keys, event.metaKey, MODIFIERS.META);
+function findActionId(accelerator) {
+  const normalized = normalizeAccelerator(accelerator);
+  return Object.entries(assignments).find(
+    ([, value]) => normalizeAccelerator(value) === normalized,
+  )?.[0];
+}
 
-  const key = event.key.toUpperCase();
-  // Добавляем основной ключ, если это не модификатор
-  if (
-    !Object.values(MODIFIERS)
-      .map((k) => k.toUpperCase())
-      .includes(key)
-  ) {
-    keys.push(key);
-  }
+function isEditableTarget(target) {
+  return (
+    target instanceof HTMLElement &&
+    (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.isContentEditable)
+  );
+}
 
-  // Убрано преобразование для отображения символов, возвращаем текстовые имена модификаторов
-
-  return keys.join("+");
-};
-
-/**
- * Обработчик события нажатия клавиши.
- * @param {KeyboardEvent} event
- */
-const handleKeyDown = (event) => {
+async function handleKeyDown(event) {
   try {
-    if (event.repeat) return; // Игнорируем повторные события при удержании клавиши
-
-    const activeElement = document.activeElement;
-    const isInputFocused =
-      ["INPUT", "TEXTAREA"].includes(activeElement.tagName) ||
-      activeElement.isContentEditable;
-
-    if (isInputFocused) {
-      return; // Не обрабатываем горячие клавиши, если фокус на вводе
-    }
-
-    const keyCombo = normalizeKeyCombo(event);
-
-    // Проверяем, была ли уже обработана эта комбинация
-    if (pressedKeys.has(keyCombo)) {
+    if (event.repeat || event.defaultPrevented || isEditableTarget(event.target)) {
       return;
     }
+    const accelerator = acceleratorFromKeyboardEvent(event);
+    const actionId = findActionId(accelerator);
+    const action = LOCAL_ACTIONS.get(actionId);
+    if (!action) return;
 
-    // Добавляем комбинацию в Set для предотвращения повторного срабатывания
-    pressedKeys.add(keyCombo);
-
-    // Проверяем, есть ли действие для этой комбинации
-    if (localHotkeys.has(keyCombo)) {
-      event.preventDefault(); // Предотвращаем дефолтное поведение
-      localHotkeys.get(keyCombo)();
-      console.log(`Local hotkey: ${keyCombo}`);
-    }
+    event.preventDefault();
+    await action();
   } catch (error) {
-    console.error("Error handling keydown event:", error);
+    console.error("[Hotkeys] Failed to execute shortcut:", error);
   }
-};
+}
 
-/**
- * Обработчик события отпускания клавиши.
- * @param {KeyboardEvent} event
- */
-const handleKeyUp = (event) => {
-  const keyCombo = normalizeKeyCombo(event);
-  // Удаляем комбинацию из Set, чтобы она могла быть обработана снова
-  pressedKeys.delete(keyCombo);
-};
+export function registerLocalShortcutAction(actionId, handler) {
+  if (!actionId || typeof handler !== "function") return false;
+  LOCAL_ACTIONS.set(actionId, handler);
+  return true;
+}
 
-let tabSystemReference = null;
-
-/**
- * Инициализирует обработчики горячих клавиш.
- * @param {object} tabsInstance - Экземпляр системы вкладок.
- */
-const initHotkeys = (tabsInstance) => {
+export function initHotkeys(tabsInstance) {
   tabSystemReference = tabsInstance;
+  bindShortcutsChanged();
   enableHotkeys();
-};
+  void loadShortcuts();
+}
 
-/**
- * Включает обработку горячих клавиш.
- */
-function enableHotkeys() {
+export function enableHotkeys() {
   if (hotkeysEnabled) return;
   document.addEventListener("keydown", handleKeyDown);
-  document.addEventListener("keyup", handleKeyUp);
   hotkeysEnabled = true;
 }
 
-/**
- * Отключает обработку горячих клавиш.
- */
-function disableHotkeys() {
+export function disableHotkeys() {
   if (!hotkeysEnabled) return;
   document.removeEventListener("keydown", handleKeyDown);
-  document.removeEventListener("keyup", handleKeyUp);
-  pressedKeys.clear(); // очищаем кэш комбинаций
   hotkeysEnabled = false;
 }
-
-export { initHotkeys, enableHotkeys, disableHotkeys };
-
-// Набор для предотвращения повторного срабатывания комбинаций клавиш при удержании
-const pressedKeys = new Set();

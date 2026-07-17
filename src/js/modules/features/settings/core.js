@@ -419,21 +419,27 @@ async function initSettings() {
 
   // Обработчик изменения состояния "Отключить глобальные Горячие клавиши на открытие сайтов"
   if (settingsDisableGlobalShortcutsToggle) {
-    settingsDisableGlobalShortcutsToggle.addEventListener("change", () => {
+    settingsDisableGlobalShortcutsToggle.addEventListener("change", async () => {
       const enable = settingsDisableGlobalShortcutsToggle.checked;
-      window.electron
-        .invoke("set-disable-global-shortcuts-status", enable)
-        .then(() => {
-          console.log(
-            `Отключение глобальных горячих клавиш ${enable ? "включено" : "отключено"}`,
-          );
-        })
-        .catch((error) => {
-          console.error(
-            "Ошибка при изменении состояния глобальных горячих клавиш:",
-            error,
-          );
-        });
+      try {
+        const result = await window.electron.invoke(
+          "set-disable-global-shortcuts-status",
+          enable,
+        );
+        if (result?.success === false) {
+          throw new Error(result.error || "Unable to update global shortcuts");
+        }
+        console.log(
+          `Отключение глобальных горячих клавиш ${enable ? "включено" : "отключено"}`,
+        );
+      } catch (error) {
+        settingsDisableGlobalShortcutsToggle.checked = !enable;
+        console.error(
+          "Ошибка при изменении состояния глобальных горячих клавиш:",
+          error,
+        );
+        showToast(t("settings.shortcuts.error"), "error");
+      }
     });
   }
 
@@ -1023,6 +1029,7 @@ async function collectCurrentConfig() {
     minimizeToTray,
     toolsLocation,
     ytDlpCookies,
+    shortcutsState,
   ] = await Promise.all([
     getTheme(),
     getFontSize(),
@@ -1040,6 +1047,7 @@ async function collectCurrentConfig() {
     window.electron
       .invoke("get-ytdlp-cookies-settings")
       .catch(() => YTDLP_COOKIES_DEFAULT),
+    window.electron.invoke("shortcuts:get").catch(() => null),
   ]);
 
   const qualityProfile = (() => {
@@ -1137,6 +1145,12 @@ async function collectCurrentConfig() {
     },
     shortcuts: {
       disableGlobalShortcuts,
+      assignments:
+        shortcutsState?.success !== false &&
+        shortcutsState?.assignments &&
+        typeof shortcutsState.assignments === "object"
+          ? { ...shortcutsState.assignments }
+          : {},
     },
     modules: {
       wgUnlockDisabled: readJsonFlag("wgUnlockDisabled", true),
@@ -1164,6 +1178,11 @@ async function collectCurrentConfig() {
 }
 
 async function applyConfig(config, options = {}) {
+  const importedShortcuts = config?.shortcuts;
+  const hasShortcutAssignments =
+    importedShortcuts &&
+    Object.prototype.hasOwnProperty.call(importedShortcuts, "assignments") &&
+    importedShortcuts.assignments !== null;
   const cfg = deepMergeConfig(DEFAULT_CONFIG, config || {});
   try {
     localStorage.removeItem("topbarNetworkStatusVisible");
@@ -1238,10 +1257,6 @@ async function applyConfig(config, options = {}) {
       !!cfg.general.closeNotification,
     ),
     window.electron.invoke(
-      "set-disable-global-shortcuts-status",
-      !!cfg.shortcuts.disableGlobalShortcuts,
-    ),
-    window.electron.invoke(
       "set-open-on-copy-url-status",
       !!cfg.window.openOnCopyUrl,
     ),
@@ -1269,6 +1284,46 @@ async function applyConfig(config, options = {}) {
   ];
 
   await Promise.all(ipcTasks);
+
+  const assertShortcutResult = (result) => {
+    if (result?.success !== false) return result;
+    const error = new Error(
+      result.message ||
+        result.error ||
+        result.code ||
+        "Unable to apply shortcuts",
+    );
+    error.code = result.code || result.error;
+    error.details = result;
+    throw error;
+  };
+
+  const disableGlobalShortcuts = !!cfg.shortcuts.disableGlobalShortcuts;
+  if (disableGlobalShortcuts) {
+    assertShortcutResult(
+      await window.electron.invoke(
+        "set-disable-global-shortcuts-status",
+        true,
+      ),
+    );
+  }
+
+  const shortcutsResult = await window.electron.invoke(
+    hasShortcutAssignments ? "shortcuts:replace" : "shortcuts:reset",
+    hasShortcutAssignments
+      ? { assignments: cfg.shortcuts.assignments }
+      : undefined,
+  );
+  assertShortcutResult(shortcutsResult);
+
+  if (!disableGlobalShortcuts) {
+    assertShortcutResult(
+      await window.electron.invoke(
+        "set-disable-global-shortcuts-status",
+        false,
+      ),
+    );
+  }
 
   if (options.forceToolsReset || cfg.tools.resetLocation) {
     try {
@@ -1369,17 +1424,26 @@ export async function importConfig(file) {
         setTimeout(() => URL.revokeObjectURL(url), 0);
       } catch {}
 
-      await applyConfig(config, {
-        forceToolsReset: config?.tools?.resetLocation === true,
-        refreshToolsInfo: true,
-      });
+      try {
+        await applyConfig(config, {
+          forceToolsReset: config?.tools?.resetLocation === true,
+          refreshToolsInfo: true,
+        });
 
-      await window.electron.invoke(
-        "toast",
-        t("settings.config.import.success"),
-        "success",
-      );
-      location.reload();
+        await window.electron.invoke(
+          "toast",
+          t("settings.config.import.success"),
+          "success",
+        );
+        location.reload();
+      } catch (error) {
+        console.error("[settings] Failed to import configuration:", error);
+        alert(
+          t("settings.config.import.error", {
+            error: error?.message || String(error),
+          }),
+        );
+      }
     });
   } catch (e) {
     alert(t("settings.config.import.error", { error: e.message }));

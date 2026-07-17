@@ -100,6 +100,8 @@ Settings control:
 
 - interface language and theme;
 - font size and visual effects;
+- the built-in editor for all 16 shortcuts, including search, conflict
+  detection, and restoring defaults;
 - default section and enabled modules;
 - managed tools directory and Downloader behavior;
 - download quality behavior and parallel limit;
@@ -107,6 +109,19 @@ Settings control:
 - Downloader tool-status visibility;
 - Backup list and log presentation;
 - developer-only tool visibility.
+
+### Keyboard Shortcuts
+
+The Shortcuts section in Settings lists every application action, its scope,
+and its current key combination. Choose Change on a row and press the new
+combination; `Esc` cancels recording. When a combination is already assigned,
+Thunder lets you cancel or swap the two actions.
+
+The editor accepts combinations containing `Ctrl`/`Cmd` or `Alt`, plus
+`F1`–`F12`. Global shortcuts for reload and websites can be disabled without
+affecting in-app shortcuts. Assignments apply immediately, persist across
+launches, and are included in configuration exports. Importing an older file
+without shortcut data uses the platform defaults.
 
 The interface is localized in Russian and English.
 

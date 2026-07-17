@@ -108,6 +108,13 @@ jest.mock("../toolsPaths", () => ({
 }));
 
 jest.mock("../shortcuts.js", () => ({
+  configureShortcutService: jest.fn(() => ({
+    getState: jest.fn(() => ({ success: true, actions: [], assignments: {} })),
+    setShortcut: jest.fn(() => ({ success: true, assignments: {} })),
+    replaceAssignments: jest.fn(() => ({ success: true, assignments: {} })),
+    reset: jest.fn(() => ({ success: true, assignments: {} })),
+  })),
+  setGlobalShortcutsDisabled: jest.fn(),
   setReloadShortcutSuppressed: jest.fn(),
 }));
 

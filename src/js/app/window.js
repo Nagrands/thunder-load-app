@@ -321,6 +321,14 @@ function createWindow(
 
   mainWindow.setMenuBarVisibility(false);
 
+  mainWindow.webContents.on?.("before-input-event", (event, input) => {
+    const key = String(input?.key || "").toLowerCase();
+    const primary = isMacPlatform() ? input?.meta : input?.control;
+    if ((primary && key === "r") || key === "f5") {
+      event.preventDefault();
+    }
+  });
+
   mainWindow.on("resize", () => {
     const [width, height] = mainWindow.getSize();
     const [minWidth, minHeight] = mainWindow.getMinimumSize();
@@ -579,8 +587,16 @@ function createAppMenu(isDev, app) {
     {
       label: "Вид",
       submenu: [
-        { id: "view-reload", role: "reload" },
-        { id: "view-force-reload", role: "forcereload" },
+        {
+          id: "view-reload",
+          label: "Перезагрузить",
+          click: (_item, window) => window?.reload?.(),
+        },
+        {
+          id: "view-force-reload",
+          label: "Принудительно перезагрузить",
+          click: (_item, window) => window?.webContents?.reloadIgnoringCache?.(),
+        },
         { role: "toggledevtools", visible: isDev },
         { type: "separator" },
         { role: "resetzoom" },

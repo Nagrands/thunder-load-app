@@ -5,7 +5,6 @@ import {
   whatsNewModal,
   whatsNewContent,
   closeWhatsNewBtn,
-  shortcutsModal,
   confirmationModal,
   settingsModal,
 } from "./domElements.js";
@@ -375,7 +374,6 @@ function initWhatsNewModal() {
       const currentVersion = await window.electron.invoke("get-version");
       closeAllModals([
         whatsNewModal,
-        shortcutsModal,
         confirmationModal,
         settingsModal,
       ]);
@@ -399,7 +397,6 @@ function initWhatsNewModal() {
   window.electron.onShowWhatsNew((version) => {
     closeAllModals([
       whatsNewModal,
-      shortcutsModal,
       confirmationModal,
       settingsModal,
     ]);

@@ -2,7 +2,6 @@
 
 import { closeAllModals } from "./modalManager.js";
 import {
-  shortcutsModal,
   whatsNewModal,
   confirmationModal,
   settingsModal,
@@ -139,7 +138,6 @@ function sanitizeConfirmationHtml(html) {
  */
 function closeAllModalsFunction() {
   const modals = [
-    shortcutsModal,
     whatsNewModal,
     confirmationModal,
     settingsModal,

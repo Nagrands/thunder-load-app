@@ -5,6 +5,7 @@ export const settingsTranslations = {
     "settings.tabs.wg": "Инструменты",
     "settings.tabs.backup": "Инструмент Backup",
     "settings.tabs.appearance": "Внешний вид",
+    "settings.tabs.shortcuts": "Горячие клавиши",
     "settings.tabs.about": "О приложении",
     "settings.tabs.other": "Другое",
     "settings.sections.menu": "Разделы",
@@ -172,8 +173,95 @@ export const settingsTranslations = {
     "settings.developer.unlock.success": "Режим разработчика включён",
     "settings.developer.lock.success": "Режим разработчика отключён",
     "settings.developer.unlock.error": "Неверное секретное слово",
-    "settings.other.disableHotkeys":
-      "Отключить <strong>специальные</strong> (горячие) клавиши",
+    "settings.shortcuts.title": "Горячие клавиши",
+    "settings.shortcuts.hint":
+      "Назначайте сочетания для действий приложения. Изменения применяются сразу.",
+    "settings.shortcuts.search.label": "Поиск по действиям",
+    "settings.shortcuts.search.placeholder": "Найти действие…",
+    "settings.shortcuts.search.empty.title": "Ничего не найдено",
+    "settings.shortcuts.search.empty.hint":
+      "Попробуйте изменить поисковый запрос.",
+    "settings.shortcuts.list.aria": "Назначения горячих клавиш",
+    "settings.shortcuts.global.disable":
+      "Отключить глобальные горячие клавиши",
+    "settings.shortcuts.global.hint":
+      "Сочетания для перезагрузки и открытия сайтов будут отключены.",
+    "settings.shortcuts.edit": "Изменить",
+    "settings.shortcuts.recording": "Нажмите новую комбинацию клавиш…",
+    "settings.shortcuts.scopeLocal": "В приложении",
+    "settings.shortcuts.scopeGlobal": "Глобально",
+    "settings.shortcuts.empty": "Действия не найдены",
+    "settings.shortcuts.reset.title": "Сброс горячих клавиш",
+    "settings.shortcuts.reset.hint":
+      "Восстановить платформенные сочетания по умолчанию.",
+    "settings.shortcuts.reset.button": "Сбросить горячие клавиши",
+    "settings.shortcuts.reset.confirm":
+      "Восстановить все сочетания по умолчанию?",
+    "settings.shortcuts.reset.confirmButton": "Восстановить",
+    "settings.shortcuts.resetSuccess":
+      "Горячие клавиши восстановлены по умолчанию",
+    "settings.shortcuts.error": "Не удалось изменить горячую клавишу.",
+    "settings.shortcuts.invalid":
+      "Используйте Ctrl/Cmd или Alt с клавишей либо F1–F12.",
+    "settings.shortcuts.conflict":
+      "Сочетание уже используется действием «{action}».",
+    "settings.shortcuts.swap": "Обменять",
+    "settings.shortcuts.cancel": "Отмена",
+    "shortcuts.categories.settings": "Настройки и интерфейс",
+    "shortcuts.categories.navigation": "Навигация",
+    "shortcuts.categories.downloads": "Загрузки",
+    "shortcuts.categories.system": "Система",
+    "shortcuts.categories.sites": "Сайты",
+    "shortcuts.actions.openShortcutSettings.title":
+      "Открыть горячие клавиши",
+    "shortcuts.actions.openShortcutSettings.description":
+      "Открывает раздел горячих клавиш в настройках.",
+    "shortcuts.actions.openSettings.title": "Открыть настройки",
+    "shortcuts.actions.openSettings.description":
+      "Открывает окно настроек приложения.",
+    "shortcuts.actions.toggleTheme.title": "Переключить тему",
+    "shortcuts.actions.toggleTheme.description":
+      "Переключает доступные цветовые темы.",
+    "shortcuts.actions.openDownloader.title": "Открыть Загрузчик",
+    "shortcuts.actions.openDownloader.description":
+      "Переходит в основной раздел загрузки.",
+    "shortcuts.actions.openTools.title": "Открыть Инструменты",
+    "shortcuts.actions.openTools.description":
+      "Переходит в раздел инструментов.",
+    "shortcuts.actions.openBackup.title": "Открыть Backup",
+    "shortcuts.actions.openBackup.description":
+      "Открывает инструмент резервного копирования.",
+    "shortcuts.actions.startDownload.title": "Начать скачивание",
+    "shortcuts.actions.startDownload.description":
+      "Запускает скачивание ссылки из поля URL.",
+    "shortcuts.actions.openDownloadsFolder.title":
+      "Открыть папку загрузок",
+    "shortcuts.actions.openDownloadsFolder.description":
+      "Открывает папку с загруженными файлами.",
+    "shortcuts.actions.openHistory.title": "Открыть историю",
+    "shortcuts.actions.openHistory.description":
+      "Открывает историю завершённых загрузок.",
+    "shortcuts.actions.openLastVideo.title": "Открыть последнее видео",
+    "shortcuts.actions.openLastVideo.description":
+      "Открывает последний загруженный видеофайл.",
+    "shortcuts.actions.clearHistory.title": "Очистить историю",
+    "shortcuts.actions.clearHistory.description":
+      "Запрашивает очистку истории загрузок.",
+    "shortcuts.actions.reload.title": "Перезагрузить приложение",
+    "shortcuts.actions.reload.description":
+      "Перезагружает окно, когда нет активных операций.",
+    "shortcuts.actions.openYoutube.title": "Открыть YouTube",
+    "shortcuts.actions.openYoutube.description":
+      "Открывает YouTube в браузере.",
+    "shortcuts.actions.openTwitch.title": "Открыть Twitch",
+    "shortcuts.actions.openTwitch.description":
+      "Открывает Twitch в браузере.",
+    "shortcuts.actions.openVkVideo.title": "Открыть VK Видео",
+    "shortcuts.actions.openVkVideo.description":
+      "Открывает VK Видео в браузере.",
+    "shortcuts.actions.openCoub.title": "Открыть Coub",
+    "shortcuts.actions.openCoub.description":
+      "Открывает Coub в браузере.",
     "settings.other.appConfig": "Настройки приложения",
     "settings.other.export": "Сохранить",
     "settings.other.import": "Загрузить",
@@ -224,6 +312,7 @@ export const settingsTranslations = {
     "settings.tabs.wg": "Tools",
     "settings.tabs.backup": "Backup tool",
     "settings.tabs.appearance": "Appearance",
+    "settings.tabs.shortcuts": "Shortcuts",
     "settings.tabs.about": "About app",
     "settings.tabs.other": "Other",
     "settings.sections.menu": "Sections",
@@ -381,8 +470,86 @@ export const settingsTranslations = {
     "settings.developer.unlock.success": "Developer mode enabled",
     "settings.developer.lock.success": "Developer mode disabled",
     "settings.developer.unlock.error": "Invalid secret word",
-    "settings.other.disableHotkeys":
-      "Disable <strong>special</strong> (hot) keys",
+    "settings.shortcuts.title": "Shortcuts",
+    "settings.shortcuts.hint":
+      "Assign shortcuts to app actions. Changes take effect immediately.",
+    "settings.shortcuts.search.label": "Search actions",
+    "settings.shortcuts.search.placeholder": "Find an action…",
+    "settings.shortcuts.search.empty.title": "No matches",
+    "settings.shortcuts.search.empty.hint": "Try a different search query.",
+    "settings.shortcuts.list.aria": "Keyboard shortcut assignments",
+    "settings.shortcuts.global.disable": "Disable global shortcuts",
+    "settings.shortcuts.global.hint":
+      "Reload and website shortcut combinations will be disabled.",
+    "settings.shortcuts.edit": "Change",
+    "settings.shortcuts.recording": "Press a new key combination…",
+    "settings.shortcuts.scopeLocal": "In app",
+    "settings.shortcuts.scopeGlobal": "Global",
+    "settings.shortcuts.empty": "No actions found",
+    "settings.shortcuts.reset.title": "Reset shortcuts",
+    "settings.shortcuts.reset.hint":
+      "Restore the default shortcuts for this platform.",
+    "settings.shortcuts.reset.button": "Reset shortcuts",
+    "settings.shortcuts.reset.confirm":
+      "Restore all shortcuts to their defaults?",
+    "settings.shortcuts.reset.confirmButton": "Restore",
+    "settings.shortcuts.resetSuccess": "Shortcuts restored to defaults",
+    "settings.shortcuts.error": "Could not change the shortcut.",
+    "settings.shortcuts.invalid":
+      "Use Ctrl/Cmd or Alt with a key, or use F1–F12.",
+    "settings.shortcuts.conflict":
+      "This shortcut is already used by “{action}”.",
+    "settings.shortcuts.swap": "Swap",
+    "settings.shortcuts.cancel": "Cancel",
+    "shortcuts.categories.settings": "Settings and interface",
+    "shortcuts.categories.navigation": "Navigation",
+    "shortcuts.categories.downloads": "Downloads",
+    "shortcuts.categories.system": "System",
+    "shortcuts.categories.sites": "Websites",
+    "shortcuts.actions.openShortcutSettings.title": "Open shortcuts",
+    "shortcuts.actions.openShortcutSettings.description":
+      "Opens the Shortcuts section in Settings.",
+    "shortcuts.actions.openSettings.title": "Open Settings",
+    "shortcuts.actions.openSettings.description":
+      "Opens the application settings.",
+    "shortcuts.actions.toggleTheme.title": "Toggle theme",
+    "shortcuts.actions.toggleTheme.description":
+      "Cycles through the available color themes.",
+    "shortcuts.actions.openDownloader.title": "Open Downloader",
+    "shortcuts.actions.openDownloader.description":
+      "Switches to the main download section.",
+    "shortcuts.actions.openTools.title": "Open Tools",
+    "shortcuts.actions.openTools.description": "Switches to the Tools section.",
+    "shortcuts.actions.openBackup.title": "Open Backup",
+    "shortcuts.actions.openBackup.description":
+      "Opens the backup tool.",
+    "shortcuts.actions.startDownload.title": "Start download",
+    "shortcuts.actions.startDownload.description":
+      "Starts downloading the link in the URL field.",
+    "shortcuts.actions.openDownloadsFolder.title": "Open downloads folder",
+    "shortcuts.actions.openDownloadsFolder.description":
+      "Opens the folder containing downloaded files.",
+    "shortcuts.actions.openHistory.title": "Open history",
+    "shortcuts.actions.openHistory.description":
+      "Opens the completed download history.",
+    "shortcuts.actions.openLastVideo.title": "Open last video",
+    "shortcuts.actions.openLastVideo.description":
+      "Opens the most recently downloaded video file.",
+    "shortcuts.actions.clearHistory.title": "Clear history",
+    "shortcuts.actions.clearHistory.description":
+      "Prompts to clear the download history.",
+    "shortcuts.actions.reload.title": "Reload app",
+    "shortcuts.actions.reload.description":
+      "Reloads the window when no operation is active.",
+    "shortcuts.actions.openYoutube.title": "Open YouTube",
+    "shortcuts.actions.openYoutube.description": "Opens YouTube in a browser.",
+    "shortcuts.actions.openTwitch.title": "Open Twitch",
+    "shortcuts.actions.openTwitch.description": "Opens Twitch in a browser.",
+    "shortcuts.actions.openVkVideo.title": "Open VK Video",
+    "shortcuts.actions.openVkVideo.description":
+      "Opens VK Video in a browser.",
+    "shortcuts.actions.openCoub.title": "Open Coub",
+    "shortcuts.actions.openCoub.description": "Opens Coub in a browser.",
     "settings.other.appConfig": "App settings",
     "settings.other.export": "Save",
     "settings.other.import": "Load",

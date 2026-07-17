@@ -48,11 +48,7 @@ const elements = {
   progressBar: document.getElementById("progress-bar"),
   toastContainer: document.getElementById("toast-container"),
   shortcutsButton: document.getElementById("shortcuts-button"),
-  shortcutsModal: document.getElementById("shortcuts-modal"),
   confirmationModal: document.getElementById("confirmation-modal"),
-  closeSpan: document
-    .getElementById("shortcuts-modal")
-    ?.querySelector(".close"),
   sortButton: document.getElementById("sort-button"),
   historySortKey: document.getElementById("history-sort-key"),
   historySortMode: document.getElementById("history-sort-mode"),
@@ -175,9 +171,7 @@ export const {
   progressBar,
   toastContainer,
   shortcutsButton,
-  shortcutsModal,
   confirmationModal,
-  closeSpan,
   sortButton,
   historySortKey,
   historySortMode,

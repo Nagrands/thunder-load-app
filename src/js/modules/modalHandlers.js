@@ -2,20 +2,17 @@
 
 import {
   shortcutsButton,
-  shortcutsModal,
-  closeSpan,
   whatsNewModal,
   confirmationModal,
   settingsModal,
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
-import { acquireOverlayActive } from "./scrollLockManager.js";
+import { openSettingsWithTab } from "./settingsModal.js";
 
 function initModalHandlers() {
   const firstRunModal = document.getElementById("first-run-modal");
   // Список всех модальных окон
   const modals = [
-    shortcutsModal,
     whatsNewModal,
     confirmationModal,
     settingsModal,
@@ -23,20 +20,9 @@ function initModalHandlers() {
     // Добавьте другие модальные окна здесь
   ];
 
-  // Обработчик открытия модального окна с горячими клавишами
-  shortcutsButton.addEventListener("click", () => {
-    closeAllModals(modals); // Закрываем все модальные окна перед открытием нового
-    shortcutsModal.style.display = "flex";
-    shortcutsModal.style.flexWrap = "wrap";
-    shortcutsModal.style.justifyContent = "center";
-    shortcutsModal.style.alignItems = "center";
-    shortcutsModal.setAttribute("aria-hidden", "false");
-    acquireOverlayActive("shortcuts-modal");
-  });
-
-  // Обработчик закрытия модального окна
-  closeSpan.addEventListener("click", () => {
+  shortcutsButton?.addEventListener("click", () => {
     closeAllModals(modals);
+    openSettingsWithTab("shortcuts-settings");
   });
 
   // Закрытие модальных окон при клике вне их области

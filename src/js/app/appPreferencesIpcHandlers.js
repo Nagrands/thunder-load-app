@@ -53,6 +53,7 @@ function registerAppPreferencesIpcHandlers({
   mainWindow,
   Notification,
   setupGlobalShortcuts,
+  setGlobalShortcutsDisabled,
   shell,
   showTrayNotification,
   store,
@@ -180,14 +181,15 @@ function registerAppPreferencesIpcHandlers({
   ipcMain.handle(
     CHANNELS.SET_DISABLE_GLOBAL_SHORTCUTS_STATUS,
     (event, enable) => {
-      store.set("disableGlobalShortcuts", enable);
-      if (enable) {
-        globalShortcut.unregisterAll();
-        log.info("Global hotkeys are disabled.");
-      } else {
-        setupGlobalShortcuts(mainWindow);
-        log.info("Global hotkeys are enabled.");
-      }
+      const result =
+        typeof setGlobalShortcutsDisabled === "function"
+          ? setGlobalShortcutsDisabled(enable)
+          : (store.set("disableGlobalShortcuts", enable),
+            enable
+              ? globalShortcut?.unregisterAll?.()
+              : setupGlobalShortcuts(mainWindow));
+      log.info(`Global hotkeys are ${enable ? "disabled" : "enabled"}.`);
+      return result;
     },
   );
 

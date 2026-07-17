@@ -43,7 +43,6 @@ describe("showConfirmationDialog (allowHtml)", () => {
 
     jest.doMock("../domElements.js", () => ({
       confirmationModal,
-      shortcutsModal: null,
       whatsNewModal: null,
       settingsModal: null,
     }));
@@ -79,7 +78,6 @@ describe("showConfirmationDialog (allowHtml)", () => {
     const confirmationModal = createConfirmationModalDom();
     jest.doMock("../domElements.js", () => ({
       confirmationModal,
-      shortcutsModal: null,
       whatsNewModal: null,
       settingsModal: null,
     }));
@@ -103,7 +101,6 @@ describe("showConfirmationDialog (allowHtml)", () => {
     const confirmationModal = createConfirmationModalDom();
     jest.doMock("../domElements.js", () => ({
       confirmationModal,
-      shortcutsModal: null,
       whatsNewModal: null,
       settingsModal: null,
     }));
@@ -142,7 +139,6 @@ describe("showConfirmationDialog (allowHtml)", () => {
     const confirmationModal = createConfirmationModalDom();
     jest.doMock("../domElements.js", () => ({
       confirmationModal,
-      shortcutsModal: null,
       whatsNewModal: null,
       settingsModal: null,
     }));

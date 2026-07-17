@@ -1176,6 +1176,28 @@ describe("network status setting removal", () => {
     });
   });
 
+  it("exports effective shortcut assignments", async () => {
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "shortcuts:get") {
+        return Promise.resolve({
+          success: true,
+          assignments: {
+            "settings.open": "CommandOrControl+,",
+            "app.reload": "CommandOrControl+R",
+          },
+        });
+      }
+      return Promise.resolve(false);
+    });
+    const mod = require("../settings");
+    const config = await mod.__test_collectCurrentConfig();
+
+    expect(config?.shortcuts?.assignments).toEqual({
+      "settings.open": "CommandOrControl+,",
+      "app.reload": "CommandOrControl+R",
+    });
+  });
+
   it("applyConfig clears legacy topbarNetworkStatusVisible key", async () => {
     localStorage.setItem("topbarNetworkStatusVisible", "true");
     const mod = require("../settings");
@@ -1223,5 +1245,68 @@ describe("network status setting removal", () => {
         filePath: "",
       },
     );
+  });
+
+  it("replaces shortcut assignments from a current config", async () => {
+    const mod = require("../settings");
+    const assignments = {
+      "settings.open": "CommandOrControl+O",
+    };
+
+    await mod.__test_applyConfig({
+      shortcuts: {
+        disableGlobalShortcuts: false,
+        assignments,
+      },
+    });
+
+    expect(window.electron.invoke).toHaveBeenCalledWith("shortcuts:replace", {
+      assignments,
+    });
+    const replaceCall = window.electron.invoke.mock.calls.findIndex(
+      ([channel]) => channel === "shortcuts:replace",
+    );
+    const enableCall = window.electron.invoke.mock.calls.findIndex(
+      ([channel, enabled]) =>
+        channel === "set-disable-global-shortcuts-status" && enabled === false,
+    );
+    expect(replaceCall).toBeLessThan(enableCall);
+  });
+
+  it("resets shortcuts when importing a legacy config without assignments", async () => {
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      shortcuts: {
+        disableGlobalShortcuts: false,
+      },
+    });
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "shortcuts:reset",
+      undefined,
+    );
+  });
+
+  it("disables global shortcuts before applying assignments", async () => {
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      shortcuts: {
+        disableGlobalShortcuts: true,
+        assignments: {
+          "app.reload": "CommandOrControl+R",
+        },
+      },
+    });
+
+    const disableCall = window.electron.invoke.mock.calls.findIndex(
+      ([channel, disabled]) =>
+        channel === "set-disable-global-shortcuts-status" && disabled === true,
+    );
+    const replaceCall = window.electron.invoke.mock.calls.findIndex(
+      ([channel]) => channel === "shortcuts:replace",
+    );
+    expect(disableCall).toBeLessThan(replaceCall);
   });
 });
