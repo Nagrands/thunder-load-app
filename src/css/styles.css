@@ -27825,6 +27825,26 @@ video {
     transform: translateX(20px) scale(1.2);
   }
 }
+@keyframes tools-entrance-header {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes tools-entrance-card {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 #wireguard-view-wrapper {
   width: 100%;
 }
@@ -28825,6 +28845,42 @@ video {
   z-index: 1;
 }
 
+.tools-entrance .tools-entrance__item {
+  opacity: 0;
+}
+.tools-entrance .tools-entrance__header {
+  transform: translateY(8px);
+}
+.tools-entrance .tools-entrance__card {
+  transform: translateY(12px) scale(0.97);
+}
+.tools-entrance.is-entering .tools-entrance__item {
+  will-change: opacity, transform;
+}
+.tools-entrance.is-entering .tools-entrance__header {
+  animation: tools-entrance-header 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tools-entrance.is-entering .tools-entrance__header--secondary {
+  animation-delay: 60ms;
+}
+.tools-entrance.is-entering .tools-entrance__card {
+  animation: tools-entrance-card 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(140ms + 28ms * var(--tools-entrance-index, 0));
+}
+
+.low-effects .tools-entrance .tools-entrance__item {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tools-entrance .tools-entrance__item {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
 .tools-shell-header {
   position: relative;
 }

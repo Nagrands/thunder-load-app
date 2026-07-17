@@ -23,6 +23,7 @@ import {
   renderWingetInstallerSection,
 } from "./tools/wingetInstallerSection.js";
 import { createCleanupRegistry } from "./tools/cleanupRegistry.js";
+import { createToolsEntranceAnimation } from "./tools/toolsEntranceAnimation.js";
 import { TOOLS_STORAGE_KEYS } from "./tools/storage.js";
 import { createLogController } from "./tools/logController.js";
 import { createToolViewState } from "./tools/toolViewState.js";
@@ -310,8 +311,12 @@ export default function renderToolsView() {
   ).join("");
 
   view.innerHTML = `
-    <div class="tools-shell">
-      <header id="tools-launcher-header" class="tools-shell-header">
+    <div class="tools-shell" data-ui="tools-entrance-root">
+      <header
+        id="tools-launcher-header"
+        class="tools-shell-header"
+        data-ui="tools-entrance-header"
+      >
         <div class="title">
           <i class="fa-solid fa-screwdriver-wrench"></i>
           <div class="title-content">
@@ -355,7 +360,11 @@ export default function renderToolsView() {
         </div>
       </div>
 
-      <div id="tools-launcher-section-header" class="tools-launcher-section-header">
+      <div
+        id="tools-launcher-section-header"
+        class="tools-launcher-section-header"
+        data-ui="tools-entrance-header"
+      >
         <h2 class="tools-launcher-section-title" data-i18n="tools.launcher.availableTitle">${t("tools.launcher.availableTitle")}</h2>
         <span id="tools-launcher-tools-count" class="tools-launcher-tools-count" data-i18n="tools.launcher.totalLabel">${t("tools.launcher.totalLabel")}</span>
       </div>
@@ -363,7 +372,7 @@ export default function renderToolsView() {
       <section id="tools-launcher" class="tools-launcher" aria-label="${t("tools.launcher.title")}">
         <div class="tools-launcher-inner">
           <div class="tools-launcher-grid">
-            <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button">
+            <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
                 <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
                 <span class="tools-launcher-badge">Update</span>
@@ -374,7 +383,7 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.downloaderTools")}
               </small>
             </button>
-            <button id="tools-open-media-converter" type="button" class="tools-launcher-button">
+            <button id="tools-open-media-converter" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
                 <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
               </span>
@@ -384,7 +393,7 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.mediaConverter")}
               </small>
             </button>
-            <button id="tools-open-winget-installer" type="button" class="tools-launcher-button">
+            <button id="tools-open-winget-installer" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
                 <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
                 <span class="tools-launcher-badge">Update</span>
@@ -395,21 +404,21 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.wingetInstaller")}
               </small>
             </button>
-            <button id="tools-open-hash" type="button" class="tools-launcher-button">
+            <button id="tools-open-hash" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <i class="fa-solid fa-fingerprint"></i>
               <span data-i18n="tools.launcher.open.hash">Hash Check</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">
                 ${t("tools.launcher.desc.hash")}
               </small>
             </button>
-            <button id="tools-open-backup" type="button" class="tools-launcher-button">
+            <button id="tools-open-backup" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <i class="fa-solid fa-box-archive"></i>
               <span data-i18n="tools.launcher.open.backup">Backup</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.backup">
                 ${t("tools.launcher.desc.backup")}
               </small>
             </button>
-            <button id="tools-open-media-inspector" type="button" class="tools-launcher-button">
+            <button id="tools-open-media-inspector" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
                 <span class="tools-launcher-badge">Update</span>
               </span>
@@ -419,7 +428,7 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.mediaInspector")}
               </small>
             </button>
-            <button id="tools-open-power" type="button" class="tools-launcher-button">
+            <button id="tools-open-power" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
                 <span class="tools-launcher-badge">Update</span>
               </span>
@@ -429,7 +438,7 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.power")}
               </small>
             </button>
-            <button id="tools-open-wg" type="button" class="tools-launcher-button">
+            <button id="tools-open-wg" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <i class="fa-solid fa-satellite-dish"></i>
               <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">
@@ -453,6 +462,7 @@ export default function renderToolsView() {
                 id="tools-open-sorter"
                 type="button"
                 class="tools-launcher-button"
+                data-ui="tools-launcher-card"
               >
                 <i class="fa-solid fa-folder-tree"></i>
                 <span data-i18n="tools.launcher.open.sorter">${t("tools.launcher.open.sorter")}</span>
@@ -824,6 +834,9 @@ export default function renderToolsView() {
 
   container.appendChild(view);
   applyI18n(view);
+  const entranceAnimation = createToolsEntranceAnimation(view);
+  cleanup.addCleanup(entranceAnimation.cancel);
+  entranceAnimation.prepare();
 
   const isPowerToolSupportedPlatform = (info = toolState.toolsPlatformInfo) =>
     toolState.isPowerToolSupportedPlatform(info);
@@ -2197,6 +2210,7 @@ export default function renderToolsView() {
       setupFieldEvents();
       setupEasterEgg();
       setupEventHandlers();
+      entranceAnimation.play();
       updateLogControls();
       // Анимация и автосмена советов
       const initTipsRotation = async (lang = "ru") => {
@@ -2397,6 +2411,7 @@ export default function renderToolsView() {
         log(t("wg.log.debug.active"));
       }
     } catch (error) {
+      entranceAnimation.cancel();
       console.error("Ошибка инициализации WireGuard:", error);
       log(t("wg.log.error.init", { message: error.message }), true);
     }

@@ -11,4 +11,5 @@
 | Compact quality selection was simplified | Compact mode now shows only video and audio options; subtitle selection remains available in the full quality dialog                                    |
 | Interface diagnostics were refined       | Required DOM elements are now validated once during renderer startup without false errors when individual modules load                                  |
 | Rapid tab switching was stabilized       | Rapid hotkey switching no longer hides the active tab content when a previous transition finishes                                                       |
+| The Tools tab now opens more smoothly     | Its header and tool cards appear in a quick sequence on every visit, while the system reduced-motion preference is fully respected                       |
 | Release workflow was stabilized          | macOS and Windows builds now publish sequentially so GitHub Releases are not duplicated for the same tag                                                |

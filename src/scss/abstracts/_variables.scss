@@ -20,6 +20,17 @@ $border-radius: 24px;
 // Transitions
 $transition-duration: 0.2s;
 
+// Tools entrance motion
+$tools-entrance-header-duration: 180ms;
+$tools-entrance-card-duration: 220ms;
+$tools-entrance-secondary-header-delay: 60ms;
+$tools-entrance-card-delay: 140ms;
+$tools-entrance-card-stagger: 28ms;
+$tools-entrance-easing: cubic-bezier(0.22, 1, 0.36, 1);
+$tools-entrance-header-offset: 8px;
+$tools-entrance-card-offset: 12px;
+$tools-entrance-card-scale: 0.97;
+
 // Color Palettes
 $themes: (
   dark: (

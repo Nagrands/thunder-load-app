@@ -432,7 +432,16 @@ describe("toolsView quick actions", () => {
     expect(header?.contains(breadcrumbs)).toBe(false);
     expect(nav?.contains(breadcrumbs)).toBe(true);
     expect(breadcrumbs?.firstElementChild?.id).toBe("tools-breadcrumb-tools");
-    expect(el.querySelector("#tools-launcher-section-header")).not.toBeNull();
+    expect(header?.dataset.ui).toBe("tools-entrance-header");
+    expect(
+      el.querySelector("#tools-launcher-section-header")?.dataset.ui,
+    ).toBe("tools-entrance-header");
+    expect(
+      el.querySelector('[data-ui="tools-entrance-root"]'),
+    ).not.toBeNull();
+    expect(
+      el.querySelectorAll('[data-ui="tools-launcher-card"]').length,
+    ).toBe(9);
     expect(
       el
         .querySelector(".tools-launcher-section-title")

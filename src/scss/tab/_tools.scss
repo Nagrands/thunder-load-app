@@ -1,6 +1,7 @@
 // src/scss/tab/_tools.scss
 
 @use "../abstracts/mixins" as *;
+@use "../abstracts/variables" as variables;
 
 // =============================================
 // VARIABLES
@@ -78,6 +79,31 @@ $wg-max-width: 1200px;
 
   50% {
     transform: translateX(20px) scale(1.2);
+  }
+}
+
+@keyframes tools-entrance-header {
+  from {
+    opacity: 0;
+    transform: translateY(variables.$tools-entrance-header-offset);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tools-entrance-card {
+  from {
+    opacity: 0;
+    transform: translateY(variables.$tools-entrance-card-offset)
+      scale(variables.$tools-entrance-card-scale);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1251,6 +1277,67 @@ $wg-max-width: 1200px;
   > * {
     position: relative;
     z-index: 1;
+  }
+}
+
+.tools-entrance {
+  .tools-entrance__item {
+    opacity: 0;
+  }
+
+  .tools-entrance__header {
+    transform: translateY(variables.$tools-entrance-header-offset);
+  }
+
+  .tools-entrance__card {
+    transform: translateY(variables.$tools-entrance-card-offset)
+      scale(variables.$tools-entrance-card-scale);
+  }
+
+  &.is-entering {
+    .tools-entrance__item {
+      will-change: opacity, transform;
+    }
+
+    .tools-entrance__header {
+      animation: tools-entrance-header
+        variables.$tools-entrance-header-duration
+        variables.$tools-entrance-easing both;
+    }
+
+    .tools-entrance__header--secondary {
+      animation-delay: variables.$tools-entrance-secondary-header-delay;
+    }
+
+    .tools-entrance__card {
+      animation: tools-entrance-card variables.$tools-entrance-card-duration
+        variables.$tools-entrance-easing both;
+      animation-delay: calc(
+        variables.$tools-entrance-card-delay +
+          (
+            variables.$tools-entrance-card-stagger *
+              var(--tools-entrance-index, 0)
+          )
+      );
+    }
+  }
+}
+
+.low-effects .tools-entrance {
+  .tools-entrance__item {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tools-entrance {
+    .tools-entrance__item {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
   }
 }
 
