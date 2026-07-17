@@ -16,7 +16,6 @@ const state = {
   info: null,
   videoOptions: [],
   audioOptions: [],
-  subtitleOptions: [],
   loading: false,
 };
 
@@ -33,12 +32,8 @@ const elements = {
   audioField: document
     .getElementById("compact-audio-quality")
     ?.closest(".compact-quality-field"),
-  subtitleField: document
-    .getElementById("compact-subtitle-quality")
-    ?.closest(".compact-quality-field"),
   videoSelect: document.getElementById("compact-video-quality"),
   audioSelect: document.getElementById("compact-audio-quality"),
-  subtitleSelect: document.getElementById("compact-subtitle-quality"),
   status: document.getElementById("compact-quality-status"),
 };
 
@@ -126,11 +121,7 @@ function closeCustomSelect(instance) {
 }
 
 function closeOtherCustomSelects(current) {
-  [
-    elements.videoSelect,
-    elements.audioSelect,
-    elements.subtitleSelect,
-  ].forEach((selectEl) => {
+  [elements.videoSelect, elements.audioSelect].forEach((selectEl) => {
     const instance = customSelects.get(selectEl);
     if (instance && instance !== current) closeCustomSelect(instance);
   });
@@ -221,7 +212,7 @@ function enhanceSelect(selectEl) {
 }
 
 function setQualityFieldsVisible(visible) {
-  [elements.videoField, elements.audioField, elements.subtitleField].forEach((field) => {
+  [elements.videoField, elements.audioField].forEach((field) => {
     if (!field) return;
     field.hidden = !visible;
     field.setAttribute("aria-hidden", visible ? "false" : "true");
@@ -307,17 +298,11 @@ function selectDefaults() {
     state.audioOptions.find(
       (option) => option.kind === "audio" && option.source !== "mp3",
     ) || state.audioOptions.find((option) => option.kind === "audio");
-  const defaultSubtitle =
-    state.subtitleOptions.find((option) => option.kind === "none") ||
-    state.subtitleOptions[0];
   if (elements.videoSelect && defaultVideo) {
     elements.videoSelect.value = defaultVideo.id;
   }
   if (elements.audioSelect && defaultAudio) {
     elements.audioSelect.value = defaultAudio.id;
-  }
-  if (elements.subtitleSelect && defaultSubtitle) {
-    elements.subtitleSelect.value = defaultSubtitle.id;
   }
   syncAudioAvailability();
   syncStatusForSelection();
@@ -329,10 +314,8 @@ function renderQualityControls(info, url = "") {
     state.currentUrl = "";
     state.videoOptions = [];
     state.audioOptions = [];
-    state.subtitleOptions = [];
     renderSelect(elements.videoSelect, []);
     renderSelect(elements.audioSelect, []);
-    renderSelect(elements.subtitleSelect, []);
     setQualityFieldsVisible(false);
     setStatus("quality.compact.waiting", "muted");
     return;
@@ -342,10 +325,8 @@ function renderQualityControls(info, url = "") {
   const groups = buildCompactQualityOptions(info, t);
   state.videoOptions = groups.videoOptions;
   state.audioOptions = groups.audioOptions;
-  state.subtitleOptions = groups.subtitleOptions;
   renderSelect(elements.videoSelect, state.videoOptions);
   renderSelect(elements.audioSelect, state.audioOptions);
-  renderSelect(elements.subtitleSelect, state.subtitleOptions);
   setQualityFieldsVisible(true);
   selectDefaults();
 }
@@ -395,11 +376,7 @@ function getCompactQualityPayload({ fetchIfMissing = false } = {}) {
     state.audioOptions,
     elements.audioSelect?.value,
   );
-  const subtitleOption = getSelectedOption(
-    state.subtitleOptions,
-    elements.subtitleSelect?.value,
-  );
-  return buildCompactPayload({ videoOption, audioOption, subtitleOption, t });
+  return buildCompactPayload({ videoOption, audioOption, t });
 }
 
 async function resolveCompactQualityPayload(url) {
@@ -421,7 +398,6 @@ function initCompactDownloaderQuality() {
   }
   enhanceSelect(elements.videoSelect);
   enhanceSelect(elements.audioSelect);
-  enhanceSelect(elements.subtitleSelect);
   setQualityFieldsVisible(false);
   setMode(readMode(), { persist: false });
   setStatus("quality.compact.waiting", "muted");
@@ -433,7 +409,6 @@ function initCompactDownloaderQuality() {
     syncStatusForSelection();
   });
   elements.audioSelect?.addEventListener("change", syncStatusForSelection);
-  elements.subtitleSelect?.addEventListener("change", syncStatusForSelection);
 
   window.addEventListener(PREVIEW_EVENT, (event) => {
     const info = event?.detail?.info || null;

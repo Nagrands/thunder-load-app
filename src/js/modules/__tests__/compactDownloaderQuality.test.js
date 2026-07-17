@@ -18,10 +18,6 @@ const buildDom = () => {
               <label for="compact-audio-quality">Аудио</label>
               <select id="compact-audio-quality"></select>
             </div>
-            <div class="compact-quality-field">
-              <label for="compact-subtitle-quality">Субтитры</label>
-              <select id="compact-subtitle-quality"></select>
-            </div>
           </div>
           <p id="compact-quality-status" class="hidden"></p>
         </section>
@@ -140,7 +136,7 @@ describe("compactDownloaderQuality", () => {
           (field) => !field.hidden,
         ),
       ).toBe(true);
-      expect(document.querySelectorAll(".compact-quality-menu").length).toBe(3);
+      expect(document.querySelectorAll(".compact-quality-menu").length).toBe(2);
       expect(
         document.querySelector(".compact-quality-menu__value").textContent,
       ).toContain("1080p");
@@ -152,7 +148,7 @@ describe("compactDownloaderQuality", () => {
     });
   });
 
-  it("returns subtitle-only payload when a compact subtitle option is selected", async () => {
+  it("keeps subtitles out of compact quality controls", async () => {
     await jest.isolateModulesAsync(async () => {
       const {
         PREVIEW_EVENT,
@@ -186,18 +182,11 @@ describe("compactDownloaderQuality", () => {
         }),
       );
 
-      const subtitleSelect = document.getElementById(
-        "compact-subtitle-quality",
+      expect(document.getElementById("compact-subtitle-quality")).toBeNull();
+      expect(document.querySelectorAll(".compact-quality-field")).toHaveLength(
+        2,
       );
-      subtitleSelect.value = "subtitle-manual-pt-BR";
-      subtitleSelect.dispatchEvent(new Event("change", { bubbles: true }));
-
-      expect(getCompactQualityPayload()).toMatchObject({
-        type: "subtitle-only",
-        downloadKind: "subtitle",
-        subtitleLang: "pt-BR",
-        subtitleSource: "manual",
-      });
+      expect(getCompactQualityPayload()?.type).not.toBe("subtitle-only");
     });
   });
 

@@ -1,5 +1,4 @@
 const MP3_AUDIO_EXT = "mp3";
-const SUBTITLE_FORMAT = "srt";
 
 const extractHeight = (fmt) => {
   if (fmt?.height) return Number(fmt.height) || 0;
@@ -87,15 +86,10 @@ function buildOptionPayload({
   resolution,
   fps,
   isMuxed,
-  downloadKind,
-  subtitleLang,
-  subtitleSource,
-  subtitleFormat,
 }) {
   return {
     type,
     label,
-    downloadKind: downloadKind || undefined,
     videoFormatId: videoFormat || null,
     audioFormatId: audioFormat || null,
     videoExt: videoExt || null,
@@ -103,83 +97,7 @@ function buildOptionPayload({
     resolution: resolution || "",
     fps: fps || null,
     isMuxed: !!isMuxed,
-    subtitleLang: subtitleLang || undefined,
-    subtitleSource: subtitleSource || undefined,
-    subtitleFormat: subtitleFormat || undefined,
   };
-}
-
-function subtitlePriority(track) {
-  const lang = String(track?.lang || "").toLowerCase();
-  const source = track?.source === "automatic" ? "automatic" : "manual";
-  if (source === "manual" && lang === "ru") return 400;
-  if (source === "manual" && lang === "en") return 390;
-  if (source === "automatic" && lang === "ru") return 380;
-  if (source === "automatic" && lang === "en") return 370;
-  return source === "manual" ? 200 : 100;
-}
-
-function collectSubtitleTracks(info) {
-  const normalize = (items, source) =>
-    (Array.isArray(items) ? items : [])
-      .map((track) => ({
-        lang: String(track?.lang || "").trim(),
-        source,
-      }))
-      .filter((track) => track.lang);
-  return [
-    ...normalize(info?.subtitles, "manual"),
-    ...normalize(info?.automatic_captions, "automatic"),
-  ].sort((a, b) => {
-    const priorityDiff = subtitlePriority(b) - subtitlePriority(a);
-    if (priorityDiff) return priorityDiff;
-    return a.lang.toLowerCase().localeCompare(b.lang.toLowerCase());
-  });
-}
-
-function buildSubtitleOptions(info, t) {
-  const subtitleOptions = [
-    {
-      id: "no-subtitles",
-      kind: "none",
-      title: t("quality.compact.noSubtitles"),
-      meta: t("quality.compact.noSubtitlesHint"),
-      payload: null,
-    },
-  ];
-  collectSubtitleTracks(info).forEach((track) => {
-    const langLabel = track.lang.toUpperCase();
-    const sourceLabel =
-      track.source === "automatic"
-        ? t("quality.subtitle.sourceAutomatic")
-        : t("quality.subtitle.sourceManual");
-    const label = t("quality.subtitle.optionTitle", {
-      lang: langLabel,
-      source: sourceLabel,
-    });
-    subtitleOptions.push({
-      id: `subtitle-${track.source}-${track.lang}`,
-      kind: "subtitle",
-      source: track.source,
-      title: label,
-      meta: SUBTITLE_FORMAT.toUpperCase(),
-      payload: buildOptionPayload({
-        type: "subtitle-only",
-        downloadKind: "subtitle",
-        label,
-        videoFormat: null,
-        audioFormat: null,
-        videoExt: null,
-        audioExt: null,
-        resolution: track.lang,
-        fps: null,
-        subtitleLang: track.lang,
-        subtitleSource: track.source,
-        subtitleFormat: SUBTITLE_FORMAT,
-      }),
-    });
-  });
-  return subtitleOptions;
 }
 
 function buildCompactQualityOptions(info, t) {
@@ -187,7 +105,6 @@ function buildCompactQualityOptions(info, t) {
   const bestAudio = audioOnly[0] || null;
   const videoOptions = [];
   const audioOptions = [];
-  const subtitleOptions = buildSubtitleOptions(info, t);
 
   videoOnly.forEach((fmt) => {
     const { resolution, fps, videoExt } = formatOptionData(fmt);
@@ -302,14 +219,12 @@ function buildCompactQualityOptions(info, t) {
   return {
     videoOptions,
     audioOptions,
-    subtitleOptions,
     canUseVideoOnly: videoOnly.length > 0,
     bestAudio,
   };
 }
 
-function buildCompactPayload({ videoOption, audioOption, subtitleOption, t }) {
-  if (subtitleOption?.kind === "subtitle") return subtitleOption.payload;
+function buildCompactPayload({ videoOption, audioOption, t }) {
   if (!videoOption || !audioOption) return null;
   if (videoOption.kind === "none" && audioOption.kind === "none") return null;
   if (videoOption.kind === "none") return audioOption.payload;
