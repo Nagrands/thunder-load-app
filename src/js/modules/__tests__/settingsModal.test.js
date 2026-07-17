@@ -53,8 +53,6 @@ describe("settingsModal mobile sections navigation", () => {
         </div>
         <strong id="settings-app-version">—</strong>
         <strong id="settings-about-electron-version">—</strong>
-        <strong id="settings-about-chrome-version">—</strong>
-        <strong id="settings-about-node-version">—</strong>
         <span id="settings-active-section-label"></span>
         <div id="settings-tabs-panel" class="settings-tabs-wrapper" data-open="false">
           <div class="settings-tabs" role="tablist">
@@ -401,12 +399,6 @@ describe("settingsModal mobile sections navigation", () => {
     expect(
       document.getElementById("settings-about-electron-version")?.textContent,
     ).toBe("v39.0.0");
-    expect(
-      document.getElementById("settings-about-chrome-version")?.textContent,
-    ).toBe("v140.0.0.0");
-    expect(
-      document.getElementById("settings-about-node-version")?.textContent,
-    ).toBe("v22.18.0");
   });
 
   test("copies app info from about section", async () => {
@@ -420,7 +412,17 @@ describe("settingsModal mobile sections navigation", () => {
     await Promise.resolve();
 
     const copiedText = navigator.clipboard.writeText.mock.calls[0][0];
-    expect(copiedText.split("\n")[0]).toBe("Thunder");
+    expect(copiedText).toBe(
+      [
+        "Thunder",
+        "App: v1.4.4",
+        "Electron: v39.0.0",
+        "Chrome: v140.0.0.0",
+        "Node: v22.18.0",
+        "Platform: darwin",
+        "Arch: arm64",
+      ].join("\n"),
+    );
     expect(window.electron.getPlatformInfo).toHaveBeenCalled();
   });
 

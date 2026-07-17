@@ -150,11 +150,9 @@
     "downloader",
     "video",
     "audio",
-    "backup",
     "tools",
     "ytdlp",
-    "ffmpeg",
-    "electron"
+    "ffmpeg"
   ],
-  "author": "ThunderDev"
+  "author": "NGR Software"
 }

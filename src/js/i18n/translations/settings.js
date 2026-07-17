@@ -144,11 +144,9 @@ export const settingsTranslations = {
       "Краткая информация о Thunder, версии приложения и его runtime.",
     "settings.about.productTitle": "Thunder",
     "settings.about.productHint":
-      "Desktop-приложение на Electron для загрузки медиа и встроенных инструментов.",
+      "Desktop-приложение для загрузки видео и аудио файлов.",
     "settings.about.appVersion": "Версия приложения",
     "settings.about.electronVersion": "Версия Electron",
-    "settings.about.chromeVersion": "Версия Chrome",
-    "settings.about.nodeVersion": "Версия Node",
     "settings.about.actionsTitle": "Действия",
     "settings.about.actionsHint":
       "Быстрые действия для просмотра изменений, копирования сведений и проверки обновлений.",
@@ -361,8 +359,6 @@ export const settingsTranslations = {
       "An Electron desktop app for media downloads and built-in utilities.",
     "settings.about.appVersion": "App version",
     "settings.about.electronVersion": "Electron version",
-    "settings.about.chromeVersion": "Chrome version",
-    "settings.about.nodeVersion": "Node version",
     "settings.about.actionsTitle": "Actions",
     "settings.about.actionsHint":
       "Quick actions to review changes, copy app details, and check for updates.",

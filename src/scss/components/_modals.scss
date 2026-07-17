@@ -3028,7 +3028,7 @@
 
   .settings-about-shell {
     display: grid;
-    grid-template-columns: minmax(180px, 0.8fr) minmax(280px, 1.3fr) auto;
+    grid-template-columns: minmax(120px, 0.7fr) minmax(220px, 1fr) auto;
     align-items: center;
     gap: 10px;
   }
@@ -3040,7 +3040,7 @@
 
   .settings-about-metrics {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -3062,24 +3062,63 @@
 
   .settings-about-metric__value {
     overflow-wrap: anywhere;
-    font-size: 12px;
-    line-height: 1.2;
+    font-size: 11px;
+    color: var(--thunder-electric);
   }
 
   .settings-about-actions {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     gap: 6px;
-    min-width: 172px;
   }
 
-  .settings-about-actions button {
-    min-height: 30px;
-    padding: 0 9px;
-    border-radius: 9px;
+  .settings-about-action {
+    flex: 0 0 32px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    gap: 5px;
-    font-size: 11px;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.78);
+    box-shadow: none;
+    cursor: pointer;
+    transition:
+      color 0.14s ease,
+      background 0.14s ease,
+      border-color 0.14s ease,
+      transform 0.14s ease;
+
+    i {
+      width: 14px;
+      font-size: 13px;
+      line-height: 1;
+      text-align: center;
+    }
+
+    &:hover {
+      color: var(--color-text-main);
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(var(--color-accent-rgb), 0.28);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
+      outline-offset: 2px;
+      color: var(--color-text-main);
+      border-color: rgba(var(--color-accent-rgb), 0.4);
+    }
+
+    &:active {
+      transform: scale(0.96);
+      background: rgba(var(--color-accent-rgb), 0.14);
+    }
   }
 
   .settings-card__heading {
@@ -3879,7 +3918,6 @@
 
   .settings-card__title {
     font-family: var(--font-brand);
-    font-size: 15px;
     font-weight: 600;
     color: var(--thunder-electric);
     text-shadow: 0 0 2px rgba(var(--thunder-electric-rgb), 0.18), 0 1px 0 rgba(255, 255, 255, 0.18);
@@ -4170,7 +4208,6 @@
   }
 
   .settings-action-group button,
-  .settings-about-actions button,
   .settings-developer-gate__button {
     min-height: 38px;
     border-radius: 10px;
@@ -4221,9 +4258,12 @@
       }
     }
 
-    .settings-about-shell,
-    .settings-about-actions {
+    .settings-about-shell {
       grid-template-columns: 1fr;
+    }
+
+    .settings-about-actions {
+      justify-content: flex-start;
     }
 
     .settings-about-metrics {

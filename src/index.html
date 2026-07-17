@@ -1547,7 +1547,7 @@
                           Thunder
                         </h3>
                         <p class="settings-card__desc" data-i18n="settings.about.productHint">
-                          Desktop-приложение на Electron для загрузки медиа и встроенных инструментов.
+                          Desktop-приложение для загрузки видео и аудио файлов.
                         </p>
                       </div>
 
@@ -1564,32 +1564,55 @@
                           </span>
                           <strong id="settings-about-electron-version" class="settings-about-metric__value muted">—</strong>
                         </div>
-                        <div class="settings-about-metric">
-                          <span class="settings-about-metric__label" data-i18n="settings.about.chromeVersion">
-                            Версия Chrome
-                          </span>
-                          <strong id="settings-about-chrome-version" class="settings-about-metric__value muted">—</strong>
-                        </div>
-                        <div class="settings-about-metric">
-                          <span class="settings-about-metric__label" data-i18n="settings.about.nodeVersion">
-                            Версия Node
-                          </span>
-                          <strong id="settings-about-node-version" class="settings-about-metric__value muted">—</strong>
-                        </div>
                       </div>
 
-                      <div class="settings-about-actions">
-                        <button id="settings-about-whats-new-button" type="button">
-                          <i class="fa-solid fa-sparkles"></i>
-                          <span data-i18n="settings.about.whatsNew">Что нового</span>
+                      <div
+                        class="settings-about-actions"
+                        role="group"
+                        aria-label="Действия"
+                        data-i18n-aria="settings.about.actionsTitle"
+                      >
+                        <button
+                          id="settings-about-whats-new-button"
+                          class="settings-about-action"
+                          type="button"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-delay='{"show":300,"hide":100}'
+                          title="Что нового"
+                          data-i18n-title="settings.about.whatsNew"
+                          aria-label="Что нового"
+                          data-i18n-aria="settings.about.whatsNew"
+                        >
+                          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
                         </button>
-                        <button id="settings-about-copy-info-button" type="button">
-                          <i class="fa-regular fa-copy"></i>
-                          <span data-i18n="settings.about.copyInfo">Скопировать информацию</span>
+                        <button
+                          id="settings-about-copy-info-button"
+                          class="settings-about-action"
+                          type="button"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-delay='{"show":300,"hide":100}'
+                          title="Скопировать информацию"
+                          data-i18n-title="settings.about.copyInfo"
+                          aria-label="Скопировать информацию"
+                          data-i18n-aria="settings.about.copyInfo"
+                        >
+                          <i class="fa-solid fa-copy" aria-hidden="true"></i>
                         </button>
-                        <button id="settings-about-check-updates-button" type="button">
-                          <i class="fa-solid fa-rotate"></i>
-                          <span data-i18n="settings.about.checkUpdates">Проверить обновления</span>
+                        <button
+                          id="settings-about-check-updates-button"
+                          class="settings-about-action"
+                          type="button"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-delay='{"show":300,"hide":100}'
+                          title="Проверить обновления"
+                          data-i18n-title="settings.about.checkUpdates"
+                          aria-label="Проверить обновления"
+                          data-i18n-aria="settings.about.checkUpdates"
+                        >
+                          <i class="fa-solid fa-rotate" aria-hidden="true"></i>
                         </button>
                       </div>
                     </div>

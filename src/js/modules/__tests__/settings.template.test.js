@@ -171,12 +171,42 @@ describe("settings template backup placement", () => {
     expect(generalPaneHtml).toContain("settings-about-card--compact");
     expect(generalPaneHtml).toContain('id="settings-app-version"');
     expect(generalPaneHtml).toContain('id="settings-about-electron-version"');
-    expect(generalPaneHtml).toContain('id="settings-about-chrome-version"');
-    expect(generalPaneHtml).toContain('id="settings-about-node-version"');
+    expect(generalPaneHtml).not.toContain('id="settings-about-chrome-version"');
+    expect(generalPaneHtml).not.toContain('id="settings-about-node-version"');
     expect(generalPaneHtml).toContain('id="settings-about-whats-new-button"');
     expect(generalPaneHtml).toContain('id="settings-about-copy-info-button"');
     expect(generalPaneHtml).toContain(
       'id="settings-about-check-updates-button"',
+    );
+    expect(
+      generalPaneHtml.match(/class="settings-about-action"/g),
+    ).toHaveLength(3);
+    expect(
+      generalPaneHtml.match(/data-bs-delay='{"show":300,"hide":100}'/g),
+    ).toHaveLength(3);
+    expect(generalPaneHtml).toContain(
+      'data-i18n-title="settings.about.whatsNew"',
+    );
+    expect(generalPaneHtml).toContain(
+      'data-i18n-aria="settings.about.copyInfo"',
+    );
+    expect(generalPaneHtml).toContain(
+      '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>',
+    );
+    expect(generalPaneHtml).toContain(
+      '<i class="fa-solid fa-copy" aria-hidden="true"></i>',
+    );
+    expect(generalPaneHtml).toContain(
+      '<i class="fa-solid fa-rotate" aria-hidden="true"></i>',
+    );
+    expect(generalPaneHtml).not.toContain(
+      '<span data-i18n="settings.about.whatsNew">',
+    );
+    expect(generalPaneHtml).not.toContain(
+      '<span data-i18n="settings.about.copyInfo">',
+    );
+    expect(generalPaneHtml).not.toContain(
+      '<span data-i18n="settings.about.checkUpdates">',
     );
   });
 

@@ -126,14 +126,7 @@
     align-items: center;
     justify-content: flex-start;
     margin-bottom: 0;
-    background:
-      linear-gradient(
-        135deg,
-        rgba(var(--color-accent-rgb), 0.12),
-        rgba(255, 255, 255, 0.02) 42%,
-        rgba(255, 255, 255, 0.008) 100%
-      ),
-      rgba(255, 255, 255, 0.014);
+    background: var(--color-hover);
 
     i {
       font-size: 2rem;

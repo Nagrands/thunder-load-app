@@ -133,8 +133,6 @@ async function populateAboutSection() {
 
     setText("settings-app-version", version);
     setText("settings-about-electron-version", runtimeInfo?.electron);
-    setText("settings-about-chrome-version", runtimeInfo?.chrome);
-    setText("settings-about-node-version", runtimeInfo?.node);
   } catch {}
 }
 

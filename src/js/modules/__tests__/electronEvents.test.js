@@ -54,8 +54,6 @@ describe("electronEvents", () => {
       <strong id="settings-tabs-version">—</strong>
       <strong id="settings-tabs-electron-version">—</strong>
       <strong id="settings-about-electron-version">—</strong>
-      <strong id="settings-about-chrome-version">—</strong>
-      <strong id="settings-about-node-version">—</strong>
     `;
 
     await jest.isolateModulesAsync(async () => {
@@ -95,11 +93,5 @@ describe("electronEvents", () => {
     expect(
       document.getElementById("settings-about-electron-version")?.textContent,
     ).toBe("v39.0.0");
-    expect(
-      document.getElementById("settings-about-chrome-version")?.textContent,
-    ).toBe("v140.0.0.0");
-    expect(
-      document.getElementById("settings-about-node-version")?.textContent,
-    ).toBe("v22.18.0");
   });
 });
