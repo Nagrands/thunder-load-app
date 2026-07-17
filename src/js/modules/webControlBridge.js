@@ -2,7 +2,12 @@ import {
   getWebControlSnapshot,
   handleWebControlDownloaderAction,
 } from "./downloadManager.js";
-import { getTheme, setTheme, getFontSize, setFontSize } from "./settingsStore.js";
+import {
+  getTheme,
+  setTheme,
+  getFontSize,
+  setFontSize,
+} from "./settingsStore.js";
 import { getLanguage, setLanguagePreview } from "./i18n.js";
 import {
   QUALITY_PROFILE_DEFAULT,
@@ -61,7 +66,8 @@ async function getWebControlSettings() {
     openOnCopyUrl: Boolean(openOnCopyUrl),
     openOnDownloadComplete: Boolean(openOnDownloadComplete),
     disableCompleteModal: Boolean(disableCompleteModal),
-    showToolsStatus: localStorage.getItem("downloaderToolsStatusHidden") !== "1",
+    showToolsStatus:
+      localStorage.getItem("downloaderToolsStatusHidden") !== "1",
     theme: await getTheme(),
     language: getLanguage(),
     fontSize: await getFontSize(),
@@ -117,10 +123,7 @@ async function setWebControlSettings(payload = {}) {
         }),
       );
     } else if (key === "qualityProfile") {
-      localStorage.setItem(
-        QUALITY_PROFILE_KEY,
-        normalizeQualityProfile(value),
-      );
+      localStorage.setItem(QUALITY_PROFILE_KEY, normalizeQualityProfile(value));
     } else if (key === "theme") {
       await setTheme(String(value || "dark"));
     } else if (key === "fontSize") {
@@ -161,4 +164,8 @@ export function initWebControlBridge() {
   });
 }
 
-export { getWebControlSettings, setWebControlSettings, handleWebControlRequest };
+export {
+  getWebControlSettings,
+  setWebControlSettings,
+  handleWebControlRequest,
+};

@@ -31,7 +31,11 @@ import { urlInput, downloadButton } from "./domElements.js";
 import { history, historyContainer, contextMenu } from "./domElements.js";
 import { showToast } from "./toast.js";
 import { showConfirmationDialog as showConfirmationModal } from "./modals.js";
-import { updateDownloadCount, sortHistory } from "./history.js";
+import {
+  rememberDeletedEntries,
+  updateDownloadCount,
+  sortHistory,
+} from "./history.js";
 import { state, updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { registerDismissibleOverlay } from "./overlayManager.js";
@@ -441,7 +445,6 @@ async function handleDeleteEntry(logEntry) {
     setHistoryData(currentHistory);
     if (deletedEntry) {
       try {
-        const { rememberDeletedEntries } = await import("./history.js");
         rememberDeletedEntries([deletedEntry]);
       } catch (err) {
         console.warn("Не удалось сохранить удалённую запись:", err);

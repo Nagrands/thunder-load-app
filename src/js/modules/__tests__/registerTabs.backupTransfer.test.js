@@ -84,8 +84,10 @@ describe("registerTabs backup transfer", () => {
       t: (key) => key,
     }));
 
-    ({ __test_setLazyModuleLoaders: setLazyModuleLoaders, registerTabs } =
-      require("../app/registerTabs.js"));
+    ({
+      __test_setLazyModuleLoaders: setLazyModuleLoaders,
+      registerTabs,
+    } = require("../app/registerTabs.js"));
     setLazyModuleLoaders({
       loadDownloaderToolsStatusModule: () =>
         Promise.resolve({
@@ -93,7 +95,8 @@ describe("registerTabs backup transfer", () => {
         }),
       loadProductFormatterViewModule: () =>
         Promise.resolve({ default: renderProductFormatterViewMock }),
-      loadToolsViewModule: () => Promise.resolve({ default: renderToolsViewMock }),
+      loadToolsViewModule: () =>
+        Promise.resolve({ default: renderToolsViewMock }),
     });
   });
 

@@ -38,7 +38,12 @@
   --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-family:
-    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   background: var(--color-bg-main);
   color: var(--color-text-main);
 }
@@ -52,7 +57,7 @@ html {
   background: var(--color-bg-main);
   /* Улучшенный скроллбар для всей страницы */
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -63,11 +68,11 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 body {
@@ -139,7 +144,10 @@ button:disabled {
   z-index: 30;
   min-height: var(--topbar-height);
   display: grid;
-  grid-template-columns: minmax(104px, 0.8fr) minmax(0, 1.3fr) minmax(104px, 0.8fr);
+  grid-template-columns: minmax(104px, 0.8fr) minmax(0, 1.3fr) minmax(
+      104px,
+      0.8fr
+    );
   align-items: center;
   gap: 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.075);
@@ -190,7 +198,11 @@ button:disabled {
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 12px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.02)
+    ),
     rgba(255, 255, 255, 0.035);
   color: rgba(231, 240, 252, 0.9);
 }
@@ -211,7 +223,11 @@ button:disabled {
 .menu-item.active {
   border-color: rgba(var(--color-accent-rgb), 0.4);
   background:
-    linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.18), rgba(255, 255, 255, 0.025)),
+    linear-gradient(
+      180deg,
+      rgba(var(--color-accent-rgb), 0.18),
+      rgba(255, 255, 255, 0.025)
+    ),
     rgba(var(--color-accent-rgb), 0.08);
   color: #f5f9ff;
 }
@@ -343,7 +359,7 @@ button:disabled {
   transition: all var(--transition-smooth);
 }
 .downloader-view-mode__btn:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 .downloader-view-mode__btn.active {
   border-color: rgba(var(--color-accent-rgb), 0.28);
@@ -431,11 +447,15 @@ button:disabled {
   background: rgba(10, 16, 26, 0.86);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   padding: 8px;
-  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+  transition:
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
 }
 .url-input-main:focus-within {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow:
+    0 0 0 3px rgba(var(--color-accent-rgb), 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .url-input-leading {
@@ -500,7 +520,11 @@ button:disabled {
 .queue-action-button {
   min-height: 38px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.025)
+    ),
     rgba(255, 255, 255, 0.04);
   padding: 8px 12px;
 }
@@ -569,8 +593,15 @@ button:disabled {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 @keyframes pulse-dot {
-  0%, 100% { opacity: 0.6; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 .url-shortcut-chip {
@@ -610,11 +641,17 @@ button:disabled {
   border-radius: var(--radius-control);
   outline: none;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.02)
+    ),
     rgba(8, 14, 24, 0.78);
   color: var(--color-text-main);
   padding: 9px 12px;
-  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+  transition:
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
 }
 .quality-select:focus,
 .settings-field input:focus,
@@ -704,7 +741,7 @@ button:disabled {
   background: linear-gradient(180deg, #4aa8ff, #0d5ea8);
 }
 .queue-action-button--start:hover:not(:disabled) {
-  box-shadow: 0 8px 20px rgba(13,94,168,0.4);
+  box-shadow: 0 8px 20px rgba(13, 94, 168, 0.4);
 }
 .queue-action-button--pause.is-active {
   border-color: rgba(var(--color-warning-rgb), 0.32);
@@ -713,7 +750,11 @@ button:disabled {
 .queue-action-button--clear {
   border-color: rgba(var(--color-danger-rgb), 0.32);
   background:
-    linear-gradient(180deg, rgba(var(--color-danger-rgb), 0.44), rgba(255, 255, 255, 0.035)),
+    linear-gradient(
+      180deg,
+      rgba(var(--color-danger-rgb), 0.44),
+      rgba(255, 255, 255, 0.035)
+    ),
     rgba(var(--color-danger-rgb), 0.08);
 }
 .queue-action-button--clear:hover:not(:disabled) {
@@ -744,7 +785,7 @@ button:disabled {
   transition: all var(--transition-smooth);
 }
 .queue-filter-button:hover {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 .queue-filter-button.is-active {
   border-color: rgba(var(--color-accent-rgb), 0.35);
@@ -790,7 +831,7 @@ button:disabled {
     linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.08), transparent),
     rgba(255, 255, 255, 0.04);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 .queue-item:active {
   transform: scale(0.99);
@@ -874,9 +915,15 @@ button:disabled {
   animation: shimmer 1.8s infinite;
 }
 @keyframes shimmer {
-  0% { opacity: 0.7; }
-  50% { opacity: 1; }
-  100% { opacity: 0.7; }
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
 }
 
 .queue-item.is-done .queue-status-chip {
@@ -1020,8 +1067,12 @@ button:disabled {
   animation: fadeIn 0.3s ease;
 }
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .settings-modal__dialog {
@@ -1041,8 +1092,14 @@ button:disabled {
   animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes slideUp {
-  from { transform: translateY(30px) scale(0.96); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from {
+    transform: translateY(30px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .settings-modal__header,
@@ -1087,7 +1144,7 @@ button:disabled {
   transition: all var(--transition-smooth);
 }
 .settings-modal__close:hover {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   transform: rotate(90deg) scale(1.05);
 }
 .settings-modal__close:active {
@@ -1124,7 +1181,7 @@ button:disabled {
   transition: all var(--transition-smooth);
 }
 .settings-tab:hover {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 .settings-tab.is-active {
   border-color: rgba(var(--color-accent-rgb), 0.3);
@@ -1233,7 +1290,7 @@ button:disabled {
   cursor: pointer;
 }
 .settings-control label:hover {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 .settings-control label::before {
   content: "";

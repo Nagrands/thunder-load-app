@@ -65,7 +65,8 @@ function syncQueueFilterControls(counts = {}, options = {}) {
     button.classList.toggle("hidden", isHidden);
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
-    button.disabled = Boolean(options.hidden) || (hasQueueCounts && countValue <= 0);
+    button.disabled =
+      Boolean(options.hidden) || (hasQueueCounts && countValue <= 0);
 
     const count = button.querySelector("[data-queue-filter-count]");
     if (count) {

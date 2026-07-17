@@ -27,6 +27,7 @@ jest.mock("../toast.js", () => ({
 }));
 
 jest.mock("../history.js", () => ({
+  rememberDeletedEntries: jest.fn(),
   updateDownloadCount: jest.fn(),
   sortHistory: jest.fn(),
 }));

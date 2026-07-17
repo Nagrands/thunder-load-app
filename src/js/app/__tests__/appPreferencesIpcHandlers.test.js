@@ -37,9 +37,9 @@ describe("appPreferencesIpcHandlers", () => {
 
   function register(storeValues = {}, overrides = {}) {
     const { CHANNELS } = require("../../ipc/channels");
-    const { registerAppPreferencesIpcHandlers } = require(
-      "../appPreferencesIpcHandlers",
-    );
+    const {
+      registerAppPreferencesIpcHandlers,
+    } = require("../appPreferencesIpcHandlers");
     const ipcMain = {
       handle: jest.fn((channel, callback) => {
         handlers[channel] = callback;
@@ -137,7 +137,10 @@ describe("appPreferencesIpcHandlers", () => {
       CHANNELS.SHOW_SYSTEM_NOTIFICATION,
       CHANNELS.GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS,
     ].forEach((channel) => {
-      expect(ipcMain.handle).toHaveBeenCalledWith(channel, expect.any(Function));
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        channel,
+        expect.any(Function),
+      );
     });
   });
 
@@ -156,15 +159,17 @@ describe("appPreferencesIpcHandlers", () => {
     expect(handlers[CHANNELS.GET_DISABLE_COMPLETE_MODAL_STATUS]()).toBe(false);
     expect(await handlers[CHANNELS.GET_MINIMIZE_ON_LAUNCH_STATUS]()).toBe(true);
     expect(await handlers[CHANNELS.GET_MINIMIZE_TO_TRAY_STATUS]()).toBe(true);
-    expect(await handlers[CHANNELS.GET_CLOSE_NOTIFICATION_STATUS]()).toBe(false);
-    expect(await handlers[CHANNELS.GET_OPEN_ON_DOWNLOAD_COMPLETE_STATUS]()).toBe(
-      true,
+    expect(await handlers[CHANNELS.GET_CLOSE_NOTIFICATION_STATUS]()).toBe(
+      false,
     );
+    expect(
+      await handlers[CHANNELS.GET_OPEN_ON_DOWNLOAD_COMPLETE_STATUS](),
+    ).toBe(true);
     expect(await handlers[CHANNELS.GET_OPEN_ON_COPY_URL_STATUS]()).toBe(true);
     expect(handlers[CHANNELS.GET_DISABLE_GLOBAL_SHORTCUTS_STATUS]()).toBe(true);
-    expect(await handlers[CHANNELS.GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS]()).toBe(
-      true,
-    );
+    expect(
+      await handlers[CHANNELS.GET_MINIMIZE_INSTEAD_OF_CLOSE_STATUS](),
+    ).toBe(true);
 
     handlers[CHANNELS.SET_DISABLE_COMPLETE_MODAL_STATUS](null, true);
     handlers[CHANNELS.SET_MINIMIZE_TO_TRAY_STATUS](null, false);

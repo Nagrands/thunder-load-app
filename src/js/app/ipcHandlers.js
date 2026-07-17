@@ -15,9 +15,7 @@ const {
   resolveIconPathFrom,
 } = require("./iconPaths");
 
-const {
-  getToolsVersions,
-} = require("./toolsVersions");
+const { getToolsVersions } = require("./toolsVersions");
 const {
   classifyDownloadError,
   formatMissingDownloadToolsMessage,
@@ -40,9 +38,7 @@ const { registerAppUpdateIpcHandlers } = require("./appUpdateIpcHandlers");
 const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const { registerFileShellIpcHandlers } = require("./fileShellIpcHandlers");
 const { registerHistoryIpcHandlers } = require("./historyIpcHandlers");
-const {
-  createHistoryPreviewCache,
-} = require("./historyPreviewIpcHandlers");
+const { createHistoryPreviewCache } = require("./historyPreviewIpcHandlers");
 const {
   registerToolsLocationIpcHandlers,
 } = require("./toolsLocationIpcHandlers");
@@ -69,10 +65,7 @@ const {
   setSharedStore,
 } = require("../scripts/download.js");
 const { isValidUrl, normalizeUrl } = require("./utils.js");
-const {
-  getEffectiveToolsDir,
-  ensureToolsDir,
-} = require("./toolsPaths");
+const { getEffectiveToolsDir, ensureToolsDir } = require("./toolsPaths");
 const {
   getRuntimeFfmpegPath,
   getRuntimeFfprobePath,
@@ -278,7 +271,9 @@ function normalizeSubtitleTracks(tracks, { source = "manual" } = {}) {
       if (!/^[a-z0-9._-]{1,24}$/i.test(normalizedLang)) return null;
       const formats = (Array.isArray(entries) ? entries : [])
         .map((entry) => ({
-          ext: String(entry?.ext || "").trim().toLowerCase(),
+          ext: String(entry?.ext || "")
+            .trim()
+            .toLowerCase(),
           name: String(entry?.name || entry?.format || "").trim(),
         }))
         .filter((entry) => entry.ext);
@@ -526,7 +521,8 @@ function normalizeConverterPayload(payload = {}) {
 
 function buildConverterArgs({ inputPath, outputPath, targetFormat, quality }) {
   const args = ["-hide_banner", "-n", "-i", inputPath];
-  const videoCrf = quality === "small" ? "30" : quality === "high" ? "18" : "23";
+  const videoCrf =
+    quality === "small" ? "30" : quality === "high" ? "18" : "23";
   const webmCrf = quality === "small" ? "38" : quality === "high" ? "24" : "31";
   const audioBitrate =
     quality === "small" ? "128k" : quality === "high" ? "320k" : "192k";
@@ -550,12 +546,25 @@ function buildConverterArgs({ inputPath, outputPath, targetFormat, quality }) {
     }
   } else if (CONVERTER_AUDIO_FORMATS.has(targetFormat)) {
     args.push("-vn");
-    if (targetFormat === "mp3") args.push("-c:a", "libmp3lame", "-b:a", audioBitrate);
+    if (targetFormat === "mp3")
+      args.push("-c:a", "libmp3lame", "-b:a", audioBitrate);
     if (targetFormat === "m4a") args.push("-c:a", "aac", "-b:a", audioBitrate);
     if (targetFormat === "wav") args.push("-c:a", "pcm_s16le");
     if (targetFormat === "flac") args.push("-c:a", "flac");
-    if (targetFormat === "ogg") args.push("-c:a", "libvorbis", "-q:a", quality === "small" ? "3" : quality === "high" ? "7" : "5");
-    if (targetFormat === "opus") args.push("-c:a", "libopus", "-b:a", quality === "small" ? "96k" : quality === "high" ? "256k" : "160k");
+    if (targetFormat === "ogg")
+      args.push(
+        "-c:a",
+        "libvorbis",
+        "-q:a",
+        quality === "small" ? "3" : quality === "high" ? "7" : "5",
+      );
+    if (targetFormat === "opus")
+      args.push(
+        "-c:a",
+        "libopus",
+        "-b:a",
+        quality === "small" ? "96k" : quality === "high" ? "256k" : "160k",
+      );
   }
 
   args.push(outputPath);
@@ -585,8 +594,7 @@ function parseFfmpegTimeToSeconds(value) {
   const match = String(value || "").match(/(\d+):(\d+):(\d+(?:\.\d+)?)/);
   if (!match) return null;
   const [, hours, minutes, seconds] = match;
-  const total =
-    Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+  const total = Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
   return Number.isFinite(total) ? total : null;
 }
 
@@ -1209,18 +1217,21 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  ipcMain.handle(CHANNELS.TOOLS_CONVERTER_CANCEL, async (_evt, payload = {}) => {
-    const requestId = String(payload?.requestId || "");
-    const active = activeConverterRuns.get(requestId);
-    if (!requestId || !active) return { success: true, cancelled: false };
-    active.cancelled = true;
-    try {
-      active.proc?.kill?.("SIGTERM");
-    } catch (error) {
-      log.warn("tools:converterCancel kill failed:", error?.message || error);
-    }
-    return { success: true, cancelled: true };
-  });
+  ipcMain.handle(
+    CHANNELS.TOOLS_CONVERTER_CANCEL,
+    async (_evt, payload = {}) => {
+      const requestId = String(payload?.requestId || "");
+      const active = activeConverterRuns.get(requestId);
+      if (!requestId || !active) return { success: true, cancelled: false };
+      active.cancelled = true;
+      try {
+        active.proc?.kill?.("SIGTERM");
+      } catch (error) {
+        log.warn("tools:converterCancel kill failed:", error?.message || error);
+      }
+      return { success: true, cancelled: true };
+    },
+  );
 
   ipcMain.handle(
     CHANNELS.TOOLS_CONVERTER_CONVERT,
@@ -3110,11 +3121,7 @@ function setupIpcHandlers(dependencies) {
         const cancelled = cancelledWingetRuns.has(runId);
         done({
           code:
-            exitCode === 0
-              ? ""
-              : cancelled
-                ? "cancelled"
-                : "powerShellFailed",
+            exitCode === 0 ? "" : cancelled ? "cancelled" : "powerShellFailed",
           exitCode,
           items:
             exitCode === 0
@@ -4308,7 +4315,6 @@ function setupIpcHandlers(dependencies) {
     const iconName = getIconNameFromUrl(url);
     return await getAppIconPath(iconName);
   });
-
 }
 
 module.exports = {

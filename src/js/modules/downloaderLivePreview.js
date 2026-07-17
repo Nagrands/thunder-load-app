@@ -112,11 +112,12 @@ function handleFocusTrap(event) {
   if (event.key !== "Tab" || !panelEl?.classList.contains("is-open")) return;
   if (!dialogEl) return;
 
-  const focusable = Array.from(dialogEl.querySelectorAll(FOCUSABLE_SELECTOR))
-    .filter((element) => {
-      if (!(element instanceof HTMLElement)) return false;
-      return !element.hidden && element.getAttribute("aria-hidden") !== "true";
-    });
+  const focusable = Array.from(
+    dialogEl.querySelectorAll(FOCUSABLE_SELECTOR),
+  ).filter((element) => {
+    if (!(element instanceof HTMLElement)) return false;
+    return !element.hidden && element.getAttribute("aria-hidden") !== "true";
+  });
 
   if (!focusable.length) {
     event.preventDefault();

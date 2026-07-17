@@ -30,7 +30,9 @@ describe("historyPreviewIpcHandlers", () => {
 
   function register() {
     const { CHANNELS } = require("../../ipc/channels");
-    const { createHistoryPreviewCache } = require("../historyPreviewIpcHandlers");
+    const {
+      createHistoryPreviewCache,
+    } = require("../historyPreviewIpcHandlers");
     const ipcMain = {
       handle: jest.fn((channel, callback) => {
         handlers[channel] = callback;

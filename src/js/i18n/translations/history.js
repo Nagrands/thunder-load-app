@@ -298,8 +298,7 @@ export const historyTranslations = {
     "history.toast.addError": "Failed to add entry to history",
     "history.clear.title": "Clear history?",
     "history.clear.subtitle": "Download history",
-    "history.clear.message":
-      "Choose which download history entries to delete.",
+    "history.clear.message": "Choose which download history entries to delete.",
     "history.clear.confirm": "Clear",
     "history.clear.cancel": "Cancel",
     "history.clear.choice.all": "Entire history",

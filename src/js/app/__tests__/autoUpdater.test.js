@@ -65,8 +65,10 @@ describe("autoUpdater startup scheduling", () => {
   });
 
   test("scheduleAutoUpdateCheck checks after ready-to-show and delay", () => {
-    const { scheduleAutoUpdateCheck, setupAutoUpdater } =
-      require("../autoUpdater");
+    const {
+      scheduleAutoUpdateCheck,
+      setupAutoUpdater,
+    } = require("../autoUpdater");
     const mainWindow = createMainWindow();
 
     setupAutoUpdater(mainWindow);
@@ -84,8 +86,10 @@ describe("autoUpdater startup scheduling", () => {
   });
 
   test("scheduleAutoUpdateCheck falls back when ready-to-show does not fire", () => {
-    const { scheduleAutoUpdateCheck, setupAutoUpdater } =
-      require("../autoUpdater");
+    const {
+      scheduleAutoUpdateCheck,
+      setupAutoUpdater,
+    } = require("../autoUpdater");
     const mainWindow = createMainWindow();
 
     setupAutoUpdater(mainWindow);
@@ -99,8 +103,10 @@ describe("autoUpdater startup scheduling", () => {
   });
 
   test("scheduleAutoUpdateCheck skips destroyed windows", () => {
-    const { scheduleAutoUpdateCheck, setupAutoUpdater } =
-      require("../autoUpdater");
+    const {
+      scheduleAutoUpdateCheck,
+      setupAutoUpdater,
+    } = require("../autoUpdater");
     const mainWindow = createMainWindow({ isLoading: false, destroyed: true });
 
     setupAutoUpdater(mainWindow);

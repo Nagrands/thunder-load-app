@@ -99,7 +99,10 @@ function initializeDownloaderToolsStatus() {
       initDownloaderToolsStatus();
     })
     .catch((error) => {
-      console.error("[Startup] Downloader tools status lazy init failed:", error);
+      console.error(
+        "[Startup] Downloader tools status lazy init failed:",
+        error,
+      );
     });
 }
 

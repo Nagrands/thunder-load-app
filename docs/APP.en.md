@@ -35,7 +35,7 @@ The Tools launcher contains:
 | WG Unlock        | Apply and inspect WireGuard-related recovery settings                                        | Windows and macOS flows differ                                 |
 | Hash Check       | Calculate hashes, compare files, and reuse recent results                                    | Cross-platform                                                 |
 | Media Inspector  | Read container, stream, codec, bitrate, HDR, and subtitle data through `ffprobe`             | Requires `ffprobe`                                             |
-| Format Converter | Convert one local audio or video file through `ffmpeg`                                      | Requires `ffmpeg`                                              |
+| Format Converter | Convert one local audio or video file through `ffmpeg`                                       | Requires `ffmpeg`                                              |
 | File Sorter      | Editable categories, mandatory preview, selected operations, and one-step undo               | Cross-platform                                                 |
 | Backup           | Run reusable source-to-destination archive profiles with filters, logs, and preflight checks | Cross-platform behavior uses platform archive tools            |
 | Quick Shortcuts  | Create Windows power, recovery, and system shortcuts                                         | Actions are Windows-only; macOS can expose a developer preview |

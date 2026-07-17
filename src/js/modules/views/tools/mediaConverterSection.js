@@ -172,9 +172,7 @@ export function initMediaConverterSection({
     progressPercent: getEl("converter-progress-percent", root),
     progressBar: getEl("converter-progress-bar", root),
     progressTrack: root.querySelector(".converter-progress__track"),
-    formatOptions: Array.from(
-      root.querySelectorAll("[data-converter-format]"),
-    ),
+    formatOptions: Array.from(root.querySelectorAll("[data-converter-format]")),
     qualityOptions: Array.from(
       root.querySelectorAll("[data-converter-quality]"),
     ),
@@ -225,9 +223,14 @@ export function initMediaConverterSection({
     });
   };
 
-  const setResult = (messageKeyOrText, { isText = false, tone = "idle" } = {}) => {
+  const setResult = (
+    messageKeyOrText,
+    { isText = false, tone = "idle" } = {},
+  ) => {
     if (!elements.result) return;
-    elements.result.textContent = isText ? messageKeyOrText : t(messageKeyOrText);
+    elements.result.textContent = isText
+      ? messageKeyOrText
+      : t(messageKeyOrText);
     elements.result.className = `converter-result is-${tone}`;
   };
 
@@ -253,7 +256,9 @@ export function initMediaConverterSection({
     elements.formatOptions.forEach((option) => {
       option.setAttribute(
         "aria-selected",
-        option.dataset.converterFormat === state.targetFormat ? "true" : "false",
+        option.dataset.converterFormat === state.targetFormat
+          ? "true"
+          : "false",
       );
     });
     elements.qualityOptions.forEach((option) => {
@@ -291,7 +296,9 @@ export function initMediaConverterSection({
     state.outputDir = String(folderPath || "");
     if (elements.outputDir) {
       elements.outputDir.textContent =
-        state.outputDir || getDirName(state.inputPath) || t("tools.converter.output.auto");
+        state.outputDir ||
+        getDirName(state.inputPath) ||
+        t("tools.converter.output.auto");
     }
   };
 
@@ -371,7 +378,11 @@ export function initMediaConverterSection({
     setBusy(false);
     if (response?.success) {
       state.outputPath = response.outputPath || "";
-      setProgress({ percent: 100, visible: true, labelKey: "tools.converter.progress.done" });
+      setProgress({
+        percent: 100,
+        visible: true,
+        labelKey: "tools.converter.progress.done",
+      });
       setResult(
         t("tools.converter.status.done", {
           fileName: getFileName(state.outputPath, state.outputPath),
@@ -387,7 +398,10 @@ export function initMediaConverterSection({
         : response?.code === "cancelled"
           ? "tools.converter.status.cancelled"
           : "tools.converter.error.failed";
-    setResult(response?.error || t(key), { isText: !!response?.error, tone: "error" });
+    setResult(response?.error || t(key), {
+      isText: !!response?.error,
+      tone: "error",
+    });
   });
 
   elements.cancel?.addEventListener("click", async () => {

@@ -136,8 +136,8 @@ describe("ipcHandlers tools quick actions", () => {
     Object.keys(handlers).forEach((k) => delete handlers[k]);
     jest.clearAllMocks();
     require("child_process").execFile.mockReset();
-    require("child_process").execFile[promisify.custom]
-      .mockReset()
+    require("child_process")
+      .execFile[promisify.custom].mockReset()
       .mockResolvedValue({ stdout: "", stderr: "" });
     require("child_process").spawn.mockReset();
     fs.mkdirSync(toolsDir, { recursive: true });
@@ -287,11 +287,15 @@ describe("ipcHandlers tools quick actions", () => {
 
     initHandlers();
 
-    await expect(handlers[CHANNELS.TOOLS_CONVERTER_PICK_FILE]()).resolves.toEqual({
+    await expect(
+      handlers[CHANNELS.TOOLS_CONVERTER_PICK_FILE](),
+    ).resolves.toEqual({
       success: true,
       filePath: "/tmp/source.mp4",
     });
-    await expect(handlers[CHANNELS.TOOLS_CONVERTER_PICK_FOLDER]()).resolves.toEqual({
+    await expect(
+      handlers[CHANNELS.TOOLS_CONVERTER_PICK_FOLDER](),
+    ).resolves.toEqual({
       success: true,
       folderPath: "/tmp/output",
     });
@@ -383,7 +387,9 @@ describe("ipcHandlers tools quick actions", () => {
       requestId: "convert-video",
       targetFormat: "mp4",
     });
-    expect(result.outputPath).toBe(path.join(outputDir, "source-converted.mp4"));
+    expect(result.outputPath).toBe(
+      path.join(outputDir, "source-converted.mp4"),
+    );
     expect(childProcess.spawn).toHaveBeenCalledWith(
       ffmpegPath,
       expect.arrayContaining([

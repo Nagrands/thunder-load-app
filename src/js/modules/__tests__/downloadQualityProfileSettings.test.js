@@ -41,7 +41,9 @@ describe("downloadQualityProfileSettings", () => {
   it("initializes remember mode from storage and updates summary", () => {
     localStorage.setItem("downloadQualityProfile", "remember");
     renderQualityDom();
-    const { initDownloadQualityProfileSettings } = require("../features/settings/downloadQualityProfileSettings.js");
+    const {
+      initDownloadQualityProfileSettings,
+    } = require("../features/settings/downloadQualityProfileSettings.js");
 
     initDownloadQualityProfileSettings();
 
@@ -61,7 +63,9 @@ describe("downloadQualityProfileSettings", () => {
   it("falls back to remember for invalid stored values", () => {
     localStorage.setItem("downloadQualityProfile", "bad");
     renderQualityDom();
-    const { initDownloadQualityProfileSettings } = require("../features/settings/downloadQualityProfileSettings.js");
+    const {
+      initDownloadQualityProfileSettings,
+    } = require("../features/settings/downloadQualityProfileSettings.js");
 
     initDownloadQualityProfileSettings();
 
@@ -75,7 +79,9 @@ describe("downloadQualityProfileSettings", () => {
   it("switches to audio on click and persists value", () => {
     localStorage.setItem("downloadQualityProfile", "remember");
     renderQualityDom();
-    const { initDownloadQualityProfileSettings } = require("../features/settings/downloadQualityProfileSettings.js");
+    const {
+      initDownloadQualityProfileSettings,
+    } = require("../features/settings/downloadQualityProfileSettings.js");
 
     initDownloadQualityProfileSettings();
     document
@@ -93,7 +99,9 @@ describe("downloadQualityProfileSettings", () => {
   it("supports keyboard preview, commit, and open-settings refresh", () => {
     localStorage.setItem("downloadQualityProfile", "remember");
     renderQualityDom();
-    const { initDownloadQualityProfileSettings } = require("../features/settings/downloadQualityProfileSettings.js");
+    const {
+      initDownloadQualityProfileSettings,
+    } = require("../features/settings/downloadQualityProfileSettings.js");
 
     initDownloadQualityProfileSettings();
 
@@ -127,7 +135,9 @@ describe("downloadQualityProfileSettings", () => {
 
   it("reinitializes without duplicating DOM listeners", () => {
     renderQualityDom();
-    const { initDownloadQualityProfileSettings } = require("../features/settings/downloadQualityProfileSettings.js");
+    const {
+      initDownloadQualityProfileSettings,
+    } = require("../features/settings/downloadQualityProfileSettings.js");
 
     initDownloadQualityProfileSettings();
     initDownloadQualityProfileSettings();
@@ -144,7 +154,9 @@ describe("downloadQualityProfileSettings", () => {
   it("does not fail without DOM or electron invoke", () => {
     document.body.innerHTML = "";
     window.electron = {};
-    const { initDownloadQualityProfileSettings } = require("../features/settings/downloadQualityProfileSettings.js");
+    const {
+      initDownloadQualityProfileSettings,
+    } = require("../features/settings/downloadQualityProfileSettings.js");
 
     expect(() => initDownloadQualityProfileSettings()).not.toThrow();
     expect(initDownloadQualityProfileSettings()).toBeNull();

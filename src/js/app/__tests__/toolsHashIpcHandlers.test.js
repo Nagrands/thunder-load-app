@@ -52,7 +52,10 @@ describe("toolsHashIpcHandlers", () => {
       CHANNELS.TOOLS_HASH_INSPECT_FILE,
       CHANNELS.TOOLS_HASH_CALCULATE,
     ].forEach((channel) => {
-      expect(ipcMain.handle).toHaveBeenCalledWith(channel, expect.any(Function));
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        channel,
+        expect.any(Function),
+      );
     });
   });
 

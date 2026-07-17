@@ -108,6 +108,10 @@ export default class TabSystem {
     const next = this.tabs.get(id);
     const prev = this.activeTabId ? this.tabs.get(this.activeTabId) : null;
 
+    if (next.hideTimer) {
+      clearTimeout(next.hideTimer);
+      next.hideTimer = null;
+    }
     prev?.button.classList.remove("active");
     next.button.classList.add("active");
 
@@ -132,10 +136,17 @@ export default class TabSystem {
 
     // скрываем предыдущий с fade‑out
     if (prev?.element) {
+      if (prev.hideTimer) clearTimeout(prev.hideTimer);
       prev.element.classList.remove("tab-show");
       prev.element.classList.add("tab-hide");
-      setTimeout(() => {
-        prev.element.style.display = "none";
+      prev.hideTimer = setTimeout(() => {
+        prev.hideTimer = null;
+        if (
+          this.activeTabId !== prev.element.dataset.tabId &&
+          prev.element.classList.contains("tab-hide")
+        ) {
+          prev.element.style.display = "none";
+        }
       }, this.ANIM_MS);
     }
 
@@ -143,15 +154,19 @@ export default class TabSystem {
     const el = next.element;
     el.style.display = "";
     el.classList.remove("tab-hide"); //  <<<  важно!
+    this.activeTabId = id;
+    this._syncActiveTabLayoutState(id);
     // небольшая пауза – чтобы transition сработал
-    requestAnimationFrame(() => el.classList.add("tab-show"));
+    requestAnimationFrame(() => {
+      if (this.activeTabId === id && !el.classList.contains("tab-hide")) {
+        el.classList.add("tab-show");
+      }
+    });
 
     // хуки
     prev?.onHide?.();
     next.onShow?.();
 
-    this.activeTabId = id;
-    this._syncActiveTabLayoutState(id);
     try {
       window.dispatchEvent(
         new CustomEvent("tabs:activated", { detail: { id } }),

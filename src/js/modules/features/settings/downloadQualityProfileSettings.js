@@ -1,8 +1,5 @@
 import { t } from "../../i18n.js";
-import {
-  QUALITY_PROFILE_DEFAULT,
-  QUALITY_PROFILE_KEY,
-} from "./defaults.js";
+import { QUALITY_PROFILE_DEFAULT, QUALITY_PROFILE_KEY } from "./defaults.js";
 import { onOpenSettings } from "./openSettingsBus.js";
 
 const OPTIONS = ["remember", "audio"];

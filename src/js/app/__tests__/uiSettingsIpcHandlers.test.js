@@ -21,7 +21,9 @@ describe("uiSettingsIpcHandlers", () => {
 
   function register(storeValues = {}) {
     const { CHANNELS } = require("../../ipc/channels");
-    const { registerUiSettingsIpcHandlers } = require("../uiSettingsIpcHandlers");
+    const {
+      registerUiSettingsIpcHandlers,
+    } = require("../uiSettingsIpcHandlers");
     const ipcMain = {
       handle: jest.fn((channel, callback) => {
         handlers[channel] = callback;
@@ -59,7 +61,10 @@ describe("uiSettingsIpcHandlers", () => {
       CHANNELS.GET_FONT_SIZE,
       CHANNELS.SET_FONT_SIZE,
     ].forEach((channel) => {
-      expect(ipcMain.handle).toHaveBeenCalledWith(channel, expect.any(Function));
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        channel,
+        expect.any(Function),
+      );
     });
   });
 
@@ -67,7 +72,9 @@ describe("uiSettingsIpcHandlers", () => {
     const { CHANNELS, store } = register({ defaultTab: "tools" });
 
     expect(handlers[CHANNELS.GET_DEFAULT_TAB]()).toBe("tools");
-    expect(handlers[CHANNELS.SET_DEFAULT_TAB](null, "products")).toBeUndefined();
+    expect(
+      handlers[CHANNELS.SET_DEFAULT_TAB](null, "products"),
+    ).toBeUndefined();
     expect(store.set).toHaveBeenCalledWith("defaultTab", "products");
   });
 

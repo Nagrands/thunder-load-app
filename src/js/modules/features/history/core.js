@@ -3759,7 +3759,6 @@ function initHistory() {
       }, 120);
     });
   }
-
 }
 
 const sortHistory = (order = "desc") => {

@@ -62,7 +62,9 @@ describe("webControlSettings", () => {
   });
 
   it("renders status and wires web-control actions", async () => {
-    const { initWebControlSettings } = require("../features/settings/webControlSettings.js");
+    const {
+      initWebControlSettings,
+    } = require("../features/settings/webControlSettings.js");
 
     initWebControlSettings();
     await Promise.resolve();
@@ -108,7 +110,9 @@ describe("webControlSettings", () => {
   });
 
   it("reinitializes without duplicating DOM listeners", async () => {
-    const { initWebControlSettings } = require("../features/settings/webControlSettings.js");
+    const {
+      initWebControlSettings,
+    } = require("../features/settings/webControlSettings.js");
     const toggle = document.getElementById("settings-web-control-toggle");
 
     initWebControlSettings();
@@ -141,7 +145,9 @@ describe("webControlSettings", () => {
       }
       return Promise.resolve(false);
     });
-    const { initWebControlSettings } = require("../features/settings/webControlSettings.js");
+    const {
+      initWebControlSettings,
+    } = require("../features/settings/webControlSettings.js");
     const toggle = document.getElementById("settings-web-control-toggle");
     const status = document.getElementById("settings-web-control-status");
     const summaryStatus = document.getElementById(

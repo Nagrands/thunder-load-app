@@ -31,9 +31,9 @@ describe("toolsVersionsIpcHandlers", () => {
 
   function register() {
     const { CHANNELS } = require("../../ipc/channels");
-    const { registerToolsVersionsIpcHandlers } = require(
-      "../toolsVersionsIpcHandlers",
-    );
+    const {
+      registerToolsVersionsIpcHandlers,
+    } = require("../toolsVersionsIpcHandlers");
     const ipcMain = {
       handle: jest.fn((channel, callback) => {
         handlers[channel] = callback;
@@ -76,8 +76,10 @@ describe("toolsVersionsIpcHandlers", () => {
   });
 
   test("returns availability without version checks", async () => {
-    const { getToolsAvailability, getToolsVersions } =
-      require("../toolsVersions");
+    const {
+      getToolsAvailability,
+      getToolsVersions,
+    } = require("../toolsVersions");
     const { CHANNELS, store } = register();
     getToolsAvailability.mockReturnValue({
       ytDlp: { ok: true, path: "/tmp/yt-dlp" },
@@ -101,8 +103,10 @@ describe("toolsVersionsIpcHandlers", () => {
       value: "darwin",
       configurable: true,
     });
-    const { getToolsAvailability, getToolsVersions } =
-      require("../toolsVersions");
+    const {
+      getToolsAvailability,
+      getToolsVersions,
+    } = require("../toolsVersions");
     const { CHANNELS } = register();
     getToolsVersions.mockResolvedValue({
       ytDlp: { ok: true },

@@ -22,7 +22,9 @@ describe("toolsLocationIpcHandlers", () => {
     Object.keys(handlers).forEach((key) => delete handlers[key]);
     jest.clearAllMocks();
     const toolsPaths = require("../toolsPaths");
-    toolsPaths.getDefaultToolsDir.mockImplementation(() => "/tmp/tools-default");
+    toolsPaths.getDefaultToolsDir.mockImplementation(
+      () => "/tmp/tools-default",
+    );
     toolsPaths.getEffectiveToolsDir.mockImplementation(
       () => "/tmp/tools-default",
     );
@@ -152,9 +154,8 @@ describe("toolsLocationIpcHandlers", () => {
       canceled: false,
       filePaths: ["/tmp/tools"],
     });
-    expect(dialog.showOpenDialog).toHaveBeenCalledWith(
-      expect.any(Object),
-      { properties: ["openDirectory", "createDirectory"] },
-    );
+    expect(dialog.showOpenDialog).toHaveBeenCalledWith(expect.any(Object), {
+      properties: ["openDirectory", "createDirectory"],
+    });
   });
 });

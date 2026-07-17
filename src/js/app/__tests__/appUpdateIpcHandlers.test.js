@@ -98,17 +98,20 @@ describe("appUpdateIpcHandlers", () => {
     ["check-app-updates", "checkForUpdates", "CHECK_APP_UPDATES"],
     ["download-update", "downloadUpdate", "DOWNLOAD_UPDATE"],
     ["restart-app", "quitAndInstall", "RESTART_APP"],
-  ])("returns structured error for %s failures", async (_label, method, key) => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const { autoUpdater } = register({
-      [method]: jest.fn(() => {
-        throw new Error("boom");
-      }),
-    });
+  ])(
+    "returns structured error for %s failures",
+    async (_label, method, key) => {
+      const { CHANNELS } = require("../../ipc/channels");
+      const { autoUpdater } = register({
+        [method]: jest.fn(() => {
+          throw new Error("boom");
+        }),
+      });
 
-    const result = await handlers[CHANNELS[key]]();
+      const result = await handlers[CHANNELS[key]]();
 
-    expect(result).toEqual({ success: false, error: "boom" });
-    expect(autoUpdater[method]).toHaveBeenCalledTimes(1);
-  });
+      expect(result).toEqual({ success: false, error: "boom" });
+      expect(autoUpdater[method]).toHaveBeenCalledTimes(1);
+    },
+  );
 });

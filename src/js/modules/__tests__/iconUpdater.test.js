@@ -5,6 +5,8 @@ function setupDom(value = "") {
     </button>
     <button id="clear-url" type="button">Clear</button>
     <input id="url" value="${value}" />
+    <button id="download-button" type="button"></button>
+    <button id="download-cancel" type="button"></button>
   `;
 }
 

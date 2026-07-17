@@ -34,7 +34,9 @@ function createStartupMetrics(log, { prefix = "[Startup]" } = {}) {
   }
 
   function mark(label) {
-    write(`${prefix} ${label}: +${formatDuration(performance.now() - startedAt)}`);
+    write(
+      `${prefix} ${label}: +${formatDuration(performance.now() - startedAt)}`,
+    );
   }
 
   return {

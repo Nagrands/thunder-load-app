@@ -459,7 +459,9 @@ describe("downloadManager enqueueOnly behavior", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
+        updateDownloadCount: jest.fn(async () => {}),
       }));
       jest.doMock("../downloadQualityModal", () => ({
         openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
@@ -496,7 +498,9 @@ describe("downloadManager enqueueOnly behavior", () => {
         historyContainer: null,
       }));
       jest.doMock("../history", () => ({
+        addNewEntryToHistory: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
+        updateDownloadCount: jest.fn(async () => {}),
       }));
       jest.doMock("../downloadQualityModal", () => ({
         openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
@@ -4506,6 +4510,9 @@ describe("downloadManager completed job actions", () => {
 
   it("shows localized toast errors when completed file IPC fails", async () => {
     await jest.isolateModulesAsync(async () => {
+      const errorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       mockCompletedJobDependencies();
       window.electron.invoke.mockRejectedValue(new Error("IPC failed"));
 
@@ -4537,7 +4544,16 @@ describe("downloadManager completed job actions", () => {
         "queue.item.reveal.error",
         "error",
       );
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Error opening completed download:",
+        expect.any(Error),
+      );
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Error revealing completed download:",
+        expect.any(Error),
+      );
       expect(state.completedDownloads).toHaveLength(1);
+      errorSpy.mockRestore();
     });
   });
 
@@ -5125,9 +5141,9 @@ describe("downloadManager queue filters", () => {
           '[data-queue-filter="active"] [data-queue-filter-count]',
         ).textContent,
       ).toBe("1");
-      expect(document.getElementById("queue-active-count").textContent).toContain(
-        "Active",
-      );
+      expect(
+        document.getElementById("queue-active-count").textContent,
+      ).toContain("Active");
 
       state.downloadJobs = state.downloadJobs.filter(
         (job) => job.status !== "pending" && job.status !== "paused",

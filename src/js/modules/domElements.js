@@ -118,21 +118,22 @@ const OPTIONAL_KEYS = new Set([
   "progressBar",
 ]);
 
-// Проверка наличия всех элементов и вывод ошибок
-for (const [key, element] of Object.entries(elements)) {
-  if (!element && !OPTIONAL_KEYS.has(key)) {
-    console.error(`Element with key '${key}' is missing in the DOM.`);
-  }
-}
+function validateDomElements() {
+  const missingKeys = Object.entries(elements)
+    .filter(([key, element]) => !element && !OPTIONAL_KEYS.has(key))
+    .map(([key]) => key);
+  if (!missingKeys.length) return true;
 
-if (
-  Object.entries(elements).some(([key, el]) => !el && !OPTIONAL_KEYS.has(key))
-) {
+  missingKeys.forEach((key) => {
+    console.error(`Element with key '${key}' is missing in the DOM.`);
+  });
   console.error("One or more elements are missing in the DOM.");
+  return false;
 }
 
 // Экспорт объекта elements по умолчанию
 export default elements;
+export { validateDomElements };
 
 // Также экспорт отдельных элементов, если это необходимо
 export const {

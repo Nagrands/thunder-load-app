@@ -89,16 +89,19 @@ describe("downloadActions", () => {
   });
 
   test("shows warning when last downloaded file path is missing", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const { initDownloadActions } = await loadModule();
 
     initDownloadActions();
     document.getElementById("open-last-video").click();
     await Promise.resolve();
 
+    expect(warnSpy).toHaveBeenCalledWith("No last downloaded file path found.");
     expect(showToastMock).toHaveBeenCalledWith(
       "The path to the last downloaded file was not found.",
       "warning",
     );
+    warnSpy.mockRestore();
   });
 
   test("shows warning when folder selection is canceled", async () => {

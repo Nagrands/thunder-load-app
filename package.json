@@ -11,7 +11,7 @@
     "dev:watch": "node scripts/dev-with-whatsnew.mjs",
     "prestart": "npm run whats-new:build && npm run templates:build && npm run css:build",
     "start": "electron .",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --no-cache",
     "build": "electron-builder",
     "build-linux": "electron-builder --linux AppImage",
     "build-mac": "electron-builder --mac",

@@ -57,7 +57,12 @@ function renderConfirmationMessage(messageEl, message, allowHtml) {
   }
 }
 
-function renderConfirmationChoices(messageEl, choices, selectedValue, onSelect) {
+function renderConfirmationChoices(
+  messageEl,
+  choices,
+  selectedValue,
+  onSelect,
+) {
   if (!choices.length) return null;
 
   const list = document.createElement("div");

@@ -11,14 +11,12 @@ const ICONS = {
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13L22 12v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7Z"/></svg>',
   pause:
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>',
-  play:
-    '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>',
+  play: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>',
   refresh:
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>',
   trash:
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-1 5v6M9 11v6M5 6l1 14h12l1-14"/></svg>',
-  x:
-    '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  x: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
 };
 
 const el = {
@@ -144,7 +142,8 @@ function filterJobs(jobs = []) {
 function renderNetworkStatus(status = {}) {
   const lanUrls = Array.isArray(status.lanUrls) ? status.lanUrls : [];
   const lanUrl = lanUrls[0] || "";
-  el.footerNetworkUrl.textContent = lanUrl || status.localUrl || "LAN недоступен";
+  el.footerNetworkUrl.textContent =
+    lanUrl || status.localUrl || "LAN недоступен";
 }
 
 function renderSummary(state = {}) {
@@ -179,7 +178,9 @@ function renderEmptyQueue(filtered = false) {
       filtered ? "Нет задач в этом фильтре" : "Очередь пуста"
     }</p>
     <p class="queue-empty-hint">${
-      filtered ? "Выберите другой фильтр или добавьте новую ссылку." : "Добавьте URL выше, чтобы начать."
+      filtered
+        ? "Выберите другой фильтр или добавьте новую ссылку."
+        : "Добавьте URL выше, чтобы начать."
     }</p>
   </div>`;
 }
@@ -400,7 +401,10 @@ document.getElementById("save-settings").addEventListener("click", async () => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && el.settingsModal.classList.contains("is-open")) {
+  if (
+    event.key === "Escape" &&
+    el.settingsModal.classList.contains("is-open")
+  ) {
     closeSettingsModal();
   }
 });

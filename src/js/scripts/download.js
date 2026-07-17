@@ -285,7 +285,9 @@ function normalizeSubtitleDownloadOptions(quality = {}) {
   if (!isSubtitleOnlyQuality(quality)) return null;
   const rawLang = String(quality.subtitleLang || "").trim();
   const subtitleLang = SAFE_SUBTITLE_LANG_RE.test(rawLang) ? rawLang : "en";
-  const rawSource = String(quality.subtitleSource || "").trim().toLowerCase();
+  const rawSource = String(quality.subtitleSource || "")
+    .trim()
+    .toLowerCase();
   const subtitleSource = rawSource === "automatic" ? "automatic" : "manual";
   return {
     lang: subtitleLang,
@@ -2819,7 +2821,9 @@ async function downloadMedia(
           `Субтитры ${subtitleOptions.lang} (${subtitleOptions.source}) не были сохранены${artifacts.length ? `: найдено ${artifacts.join(", ")}` : ""}`,
         );
       }
-      if (path.extname(producedPath).toLowerCase() === `.${SUBTITLE_OUTPUT_EXT}`) {
+      if (
+        path.extname(producedPath).toLowerCase() === `.${SUBTITLE_OUTPUT_EXT}`
+      ) {
         safeMoveFile(producedPath, finalSubtitlePath);
       } else {
         await convertSubtitleToSrt(producedPath, finalSubtitlePath, {

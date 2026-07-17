@@ -64,9 +64,9 @@ describe("yt-dlp cookies args", () => {
     });
 
     expect(_buildYtDlpCookiesArgs()).toEqual([]);
-    expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).not.toContain(
-      "--cookies",
-    );
+    expect(
+      _buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc"),
+    ).not.toContain("--cookies");
   });
 
   it("adds browser cookies args to info and preview calls", () => {
@@ -81,9 +81,9 @@ describe("yt-dlp cookies args", () => {
     expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
       expect.arrayContaining(["--cookies-from-browser", "chrome"]),
     );
-    expect(_buildYtDlpVideoPreviewArgs("https://youtube.com/watch?v=abc")).toEqual(
-      expect.arrayContaining(["--cookies-from-browser", "chrome"]),
-    );
+    expect(
+      _buildYtDlpVideoPreviewArgs("https://youtube.com/watch?v=abc"),
+    ).toEqual(expect.arrayContaining(["--cookies-from-browser", "chrome"]));
   });
 
   it("does not add configured cookies args to non-YouTube urls", () => {
@@ -94,9 +94,9 @@ describe("yt-dlp cookies args", () => {
     expect(_buildYtDlpVideoInfoArgs("https://example.com/video")).not.toContain(
       "--cookies-from-browser",
     );
-    expect(_buildYtDlpVideoPreviewArgs("https://example.com/video")).not.toContain(
-      "--cookies-from-browser",
-    );
+    expect(
+      _buildYtDlpVideoPreviewArgs("https://example.com/video"),
+    ).not.toContain("--cookies-from-browser");
   });
 
   it("adds cookies file args only for an existing absolute file", () => {

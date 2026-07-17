@@ -116,7 +116,9 @@ function createWebControlServer({ appPath, store }) {
 
   function getStatus() {
     const lanAddresses = runningPort ? getLanAddresses() : [];
-    const lanUrls = lanAddresses.map((address) => buildUrl(address, runningPort));
+    const lanUrls = lanAddresses.map((address) =>
+      buildUrl(address, runningPort),
+    );
     const localUrl = getUrl();
     return {
       enabled: store.get(STORE_KEYS.enabled, false) === true,

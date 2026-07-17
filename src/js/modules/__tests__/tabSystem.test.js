@@ -10,6 +10,10 @@ describe("TabSystem", () => {
     `;
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   test("does not append a tab wrapper into itself when re-rendering an emptied tab", () => {
     const tabs = new TabSystem(".group-menu", "#main-view");
     const wrapper = document.createElement("div");
@@ -46,6 +50,36 @@ describe("TabSystem", () => {
         .querySelector('[data-menu="tools"]')
         ?.querySelector(".menu-progress"),
     ).not.toBeNull();
+  });
+
+  test("keeps the latest tab visible after rapid hotkey-style switching", () => {
+    jest.useFakeTimers();
+    const tabs = new TabSystem(".group-menu", "#main-view");
+    const renderTab = (text) => {
+      const el = document.createElement("div");
+      el.textContent = text;
+      return el;
+    };
+
+    tabs.addTab("download", "Download", "fa-solid fa-download", () =>
+      renderTab("download"),
+    );
+    tabs.addTab("tools", "Tools", "fa-solid fa-toolbox", () =>
+      renderTab("tools"),
+    );
+
+    tabs.activateTab("download");
+    tabs.activateTab("tools");
+    tabs.activateTab("download");
+    jest.advanceTimersByTime(tabs.ANIM_MS);
+
+    const downloadView = document.querySelector('[data-tab-id="download"]');
+    const toolsView = document.querySelector('[data-tab-id="tools"]');
+    expect(tabs.activeTabId).toBe("download");
+    expect(downloadView.style.display).not.toBe("none");
+    expect(downloadView.classList.contains("tab-show")).toBe(true);
+    expect(downloadView.classList.contains("tab-hide")).toBe(false);
+    expect(toolsView.style.display).toBe("none");
   });
 
   test("keeps Downloader available when legacy developer preference exists", () => {

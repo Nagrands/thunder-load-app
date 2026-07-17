@@ -26,8 +26,13 @@
   overflow: hidden;
   pointer-events: auto;
   color: var(--color-toast-text);
-  background: color-mix(in srgb, var(--toast-surface) 88%, var(--thunder-surface));
-  border: 1px solid color-mix(in srgb, var(--toast-border) 72%, var(--thunder-border));
+  background: color-mix(
+    in srgb,
+    var(--toast-surface) 88%,
+    var(--thunder-surface)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--toast-border) 72%, var(--thunder-border));
   border-radius: var(--thunder-radius-md);
   box-shadow: var(--toast-shadow);
   opacity: 0;

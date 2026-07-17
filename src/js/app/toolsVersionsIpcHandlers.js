@@ -2,10 +2,7 @@
 
 const log = require("electron-log");
 const { CHANNELS } = require("../ipc/channels");
-const {
-  getToolsAvailability,
-  getToolsVersions,
-} = require("./toolsVersions");
+const { getToolsAvailability, getToolsVersions } = require("./toolsVersions");
 
 function markDarwinFfmpegSkipUpdates(tools) {
   if (process.platform === "darwin" && tools?.ffmpeg) {
@@ -17,9 +14,7 @@ function markDarwinFfmpegSkipUpdates(tools) {
 function registerToolsVersionsIpcHandlers({ ipcMain, store }) {
   ipcMain.handle(CHANNELS.TOOLS_GETVERSIONS, async () => {
     try {
-      const tools = markDarwinFfmpegSkipUpdates(
-        await getToolsVersions(store),
-      );
+      const tools = markDarwinFfmpegSkipUpdates(await getToolsVersions(store));
 
       log.info("Загрузчик → Проверка версий инструментов завершена", {
         ytDlpOk: tools?.ytDlp?.ok === true,

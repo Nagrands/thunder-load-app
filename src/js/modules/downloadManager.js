@@ -2783,7 +2783,11 @@ async function addWebControlDownload(payload = {}) {
     : extractUrls(payload.url || payload.text || "");
   const urls = rawUrls.filter((url) => isValidUrl(url) && isSupportedUrl(url));
   if (!urls.length) {
-    return { ...getWebControlSnapshot(), added: 0, invalid: rawUrls.length || 1 };
+    return {
+      ...getWebControlSnapshot(),
+      added: 0,
+      invalid: rawUrls.length || 1,
+    };
   }
   const quality = normalizeWebControlQuality(payload.quality);
   if (payload.start === true && urls.length === 1) {
@@ -2837,7 +2841,9 @@ function retryWebControlJob(payload = {}) {
   const tasks =
     jobId && task?.status === JOB_STATUS.failed
       ? [task]
-      : getFailedDownloadJobs(state).filter((entry) => entry.retryable !== false);
+      : getFailedDownloadJobs(state).filter(
+          (entry) => entry.retryable !== false,
+        );
   for (const entry of tasks) {
     if (entry.retryable === false) continue;
     removeDownloadJob(state, entry.jobId || entry.id || entry.signature);
@@ -2860,7 +2866,8 @@ function retryWebControlJob(payload = {}) {
 function removeWebControlJob(payload = {}) {
   const jobId = String(payload.jobId || payload.id || "").trim();
   const task = findDownloadJob(state, jobId);
-  if (!task || task.status === JOB_STATUS.running) return getWebControlSnapshot();
+  if (!task || task.status === JOB_STATUS.running)
+    return getWebControlSnapshot();
   removeDownloadJob(state, jobId);
   persistQueue();
   persistFailedQueue();
@@ -2870,7 +2877,9 @@ function removeWebControlJob(payload = {}) {
 }
 
 function clearWebControlJobs(payload = {}) {
-  const target = String(payload.target || "all").trim().toLowerCase();
+  const target = String(payload.target || "all")
+    .trim()
+    .toLowerCase();
   const statuses =
     target === "failed"
       ? [JOB_STATUS.failed]
@@ -2878,7 +2887,12 @@ function clearWebControlJobs(payload = {}) {
         ? [JOB_STATUS.done]
         : target === "pending"
           ? [JOB_STATUS.pending, JOB_STATUS.paused]
-          : [JOB_STATUS.pending, JOB_STATUS.paused, JOB_STATUS.failed, JOB_STATUS.done];
+          : [
+              JOB_STATUS.pending,
+              JOB_STATUS.paused,
+              JOB_STATUS.failed,
+              JOB_STATUS.done,
+            ];
   clearDownloadJobsByStatus(state, statuses);
   persistQueue();
   persistFailedQueue();

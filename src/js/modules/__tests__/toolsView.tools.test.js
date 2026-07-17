@@ -367,6 +367,12 @@ describe("toolsView quick actions", () => {
               autosend: false,
             };
           }
+          if (channel === "backup:getPrograms") {
+            return { success: true, programs: [] };
+          }
+          if (channel === "backup:getLastTimes") {
+            return { success: true, map: {} };
+          }
           return null;
         }),
         send: jest.fn(),
@@ -572,9 +578,9 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#converter-result")?.textContent).toBe(
       "tools.converter.status.done",
     );
-    expect(el.querySelector("#converter-open-result")?.hasAttribute("disabled")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#converter-open-result")?.hasAttribute("disabled"),
+    ).toBe(false);
   });
 
   test("updates converter progress and opens conversion result", async () => {
@@ -639,9 +645,9 @@ describe("toolsView quick actions", () => {
     await nextTick();
     const payload = window.electron.tools.convertMediaFile.mock.calls[0][0];
 
-    expect(el.querySelector("#converter-cancel")?.hasAttribute("disabled")).toBe(
-      false,
-    );
+    expect(
+      el.querySelector("#converter-cancel")?.hasAttribute("disabled"),
+    ).toBe(false);
     el.querySelector("#converter-cancel")?.click();
     await nextTick();
 
@@ -886,7 +892,9 @@ describe("toolsView quick actions", () => {
       "Удаление",
     );
     expect(toolsTranslations.ru["tools.winget.script.title"]).toBe("Сценарий");
-    expect(toolsTranslations.ru["tools.winget.log.title"]).toBe("Лог PowerShell");
+    expect(toolsTranslations.ru["tools.winget.log.title"]).toBe(
+      "Лог PowerShell",
+    );
     expect(toolsTranslations.ru["tools.winget.platform.preview"]).toBe(
       "Предпросмотр",
     );
@@ -1741,7 +1749,9 @@ describe("toolsView quick actions", () => {
     await nextTick();
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      expect.stringContaining("tools.mediaInspector.fields.pixelFormat: yuv420p"),
+      expect.stringContaining(
+        "tools.mediaInspector.fields.pixelFormat: yuv420p",
+      ),
     );
   });
 
@@ -2203,7 +2213,7 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
     const downloaderToolsBtn = el.querySelector("#tools-open-downloader-tools");
-    const hashBtn = el.querySelector("#tools-open-hash");
+    const mediaConverterBtn = el.querySelector("#tools-open-media-converter");
     downloaderToolsBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -2212,7 +2222,7 @@ describe("toolsView quick actions", () => {
       }),
     );
     await nextTick();
-    expect(document.activeElement).toBe(hashBtn);
+    expect(document.activeElement).toBe(mediaConverterBtn);
   });
 
   test("launcher arrow navigation supports reverse wrap", async () => {

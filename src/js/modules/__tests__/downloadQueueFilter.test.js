@@ -28,19 +28,21 @@ describe("downloadQueueFilter", () => {
     syncQueueFilterControls({ total: 7, pending: 3 });
 
     expect(getDownloadQueueFilter()).toBe("all");
-    expect(document.getElementById("queue-total-count").textContent).toBe("(7)");
+    expect(document.getElementById("queue-total-count").textContent).toBe(
+      "(7)",
+    );
     expect(document.querySelector('[data-queue-filter="all"]')).toBeNull();
     expect(
       document.querySelector(
         '[data-queue-filter="pending"] [data-queue-filter-count]',
       ).textContent,
     ).toBe("3");
-    expect(document.querySelector('[data-queue-filter="pending"]').textContent).toContain(
-      "Queued",
-    );
-    expect(document.querySelector('[data-queue-filter="active"]').classList).toContain(
-      "hidden",
-    );
+    expect(
+      document.querySelector('[data-queue-filter="pending"]').textContent,
+    ).toContain("Queued");
+    expect(
+      document.querySelector('[data-queue-filter="active"]').classList,
+    ).toContain("hidden");
   });
 
   it("persists selection and invokes the render callback once", () => {
@@ -86,9 +88,11 @@ describe("downloadQueueFilter", () => {
         .querySelector('[data-queue-filter="error"]')
         .getAttribute("aria-pressed"),
     ).toBe("false");
-    expect(document.getElementById("queue-total-count").textContent).toBe("(1)");
-    expect(document.querySelector('[data-queue-filter="error"]').classList).toContain(
-      "hidden",
+    expect(document.getElementById("queue-total-count").textContent).toBe(
+      "(1)",
     );
+    expect(
+      document.querySelector('[data-queue-filter="error"]').classList,
+    ).toContain("hidden");
   });
 });

@@ -1552,8 +1552,7 @@ export const toolsTranslations = {
     "tools.converter.pickFile": "Choose file",
     "tools.converter.pickFolder": "Choose folder",
     "tools.converter.noFile": "No file selected",
-    "tools.converter.dropHint":
-      "Drop a media file here or choose it manually.",
+    "tools.converter.dropHint": "Drop a media file here or choose it manually.",
     "tools.converter.format": "Format",
     "tools.converter.quality": "Quality",
     "tools.converter.group.video": "Video",

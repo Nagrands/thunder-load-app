@@ -612,7 +612,9 @@ describe("Downloader history list", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(row.textContent).toContain("Нужна авторизация");
     expect(
-      row.querySelector('.history-row__details-item[data-detail-kind="status"]'),
+      row.querySelector(
+        '.history-row__details-item[data-detail-kind="status"]',
+      ),
     ).not.toBeNull();
     expect(
       row.querySelector(
@@ -1003,9 +1005,9 @@ describe("Downloader history list", () => {
     expect(list).not.toBeNull();
     expect(preview.querySelector(".history-row__preview-play")).not.toBeNull();
     expect(preview.querySelector(".history-row__preview-progress")).toBeNull();
-    expect(preview.querySelector(".history-row__preview-duration").textContent).toBe(
-      "3:47",
-    );
+    expect(
+      preview.querySelector(".history-row__preview-duration").textContent,
+    ).toBe("3:47");
     expect(kinds).toEqual(["source", "file", "quality", "size", "date"]);
     expect(items).toHaveLength(5);
     expect(

@@ -3920,7 +3920,9 @@
     font-family: var(--font-brand);
     font-weight: 600;
     color: var(--thunder-electric);
-    text-shadow: 0 0 2px rgba(var(--thunder-electric-rgb), 0.18), 0 1px 0 rgba(255, 255, 255, 0.18);
+    text-shadow:
+      0 0 2px rgba(var(--thunder-electric-rgb), 0.18),
+      0 1px 0 rgba(255, 255, 255, 0.18);
     letter-spacing: 0.05em;
   }
 

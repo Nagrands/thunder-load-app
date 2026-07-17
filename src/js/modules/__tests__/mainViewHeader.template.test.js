@@ -23,7 +23,9 @@ describe("main view header template", () => {
     expect(serviceRowHtml).toContain('id="downloader-view-detailed"');
     expect(serviceRowHtml).toContain('id="downloader-view-compact"');
     expect(serviceRowHtml).toContain('id="downloader-view-mode-label"');
-    expect(serviceRowHtml).toContain('data-i18n="quality.compact.modeDetailed"');
+    expect(serviceRowHtml).toContain(
+      'data-i18n="quality.compact.modeDetailed"',
+    );
     expect(serviceRowHtml).not.toContain('class="url-input-shortcuts"');
   });
 });

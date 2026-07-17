@@ -63,7 +63,10 @@ describe("historyIpcHandlers", () => {
       CHANNELS.CLEAR_HISTORY,
       CHANNELS.GET_DOWNLOAD_COUNT,
     ].forEach((channel) => {
-      expect(ipcMain.handle).toHaveBeenCalledWith(channel, expect.any(Function));
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        channel,
+        expect.any(Function),
+      );
     });
   });
 

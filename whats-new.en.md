@@ -2,10 +2,12 @@
 
 # New in version 1.6.0
 
-| What changed                        | What you get                                                                                                                                            |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Subtitle downloads were added       | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                                                 |
-| App settings were simplified        | The version block now shows only Thunder and Electron, with compact icon actions and accessible tooltips                                                |
-| URL source recognition was improved | The source icon now switches instantly to YouTube, Twitch, VK Video, or Coub as a link is recognized and returns to the globe when the field is cleared |
-| Compact quality selection was simplified | Compact mode now shows only video and audio options; subtitle selection remains available in the full quality dialog |
-| Release workflow was stabilized     | macOS and Windows builds now publish sequentially so GitHub Releases are not duplicated for the same tag                                                |
+| What changed                             | What you get                                                                                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Subtitle downloads were added            | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                                                 |
+| App settings were simplified             | The version block now shows only Thunder and Electron, with compact icon actions and accessible tooltips                                                |
+| URL source recognition was improved      | The source icon now switches instantly to YouTube, Twitch, VK Video, or Coub as a link is recognized and returns to the globe when the field is cleared |
+| Compact quality selection was simplified | Compact mode now shows only video and audio options; subtitle selection remains available in the full quality dialog                                    |
+| Interface diagnostics were refined       | Required DOM elements are now validated once during renderer startup without false errors when individual modules load                                  |
+| Rapid tab switching was stabilized       | Rapid hotkey switching no longer hides the active tab content when a previous transition finishes                                                       |
+| Release workflow was stabilized          | macOS and Windows builds now publish sequentially so GitHub Releases are not duplicated for the same tag                                                |

@@ -117,7 +117,8 @@ describe("historyActions", () => {
     }));
 
     const { initHistoryActions } = await import("../historyActions.js");
-    const { state, setHistoryData, getHistoryData } = await import("../state.js");
+    const { state, setHistoryData, getHistoryData } =
+      await import("../state.js");
     state.downloadHistory = [...initialHistory];
     state.currentSearchQuery = "test";
     state.historyPage = 3;

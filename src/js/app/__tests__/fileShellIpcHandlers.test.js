@@ -56,7 +56,8 @@ describe("fileShellIpcHandlers", () => {
         ((filePath, baseDir) => path.resolve(filePath).startsWith(baseDir)),
       isValidFilePath:
         overrides.isValidFilePath ||
-        ((filePath) => typeof filePath === "string" && path.isAbsolute(filePath)),
+        ((filePath) =>
+          typeof filePath === "string" && path.isAbsolute(filePath)),
       isValidUrl:
         overrides.isValidUrl ||
         ((url) => typeof url === "string" && url.startsWith("https://")),
@@ -80,7 +81,10 @@ describe("fileShellIpcHandlers", () => {
       CHANNELS.OPEN_EXTERNAL_LINK,
       CHANNELS.OPEN_LAST_VIDEO,
     ].forEach((channel) => {
-      expect(ipcMain.handle).toHaveBeenCalledWith(channel, expect.any(Function));
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        channel,
+        expect.any(Function),
+      );
     });
   });
 
@@ -101,12 +105,12 @@ describe("fileShellIpcHandlers", () => {
     const filePath = path.join(root, "file.txt");
     fs.writeFileSync(filePath, "hello", "utf8");
 
-    await expect(handlers[CHANNELS.CHECK_FILE_EXISTS](null, filePath)).resolves.toBe(
-      true,
-    );
-    await expect(handlers[CHANNELS.GET_FILE_SIZE](null, filePath)).resolves.toBe(
-      5,
-    );
+    await expect(
+      handlers[CHANNELS.CHECK_FILE_EXISTS](null, filePath),
+    ).resolves.toBe(true);
+    await expect(
+      handlers[CHANNELS.GET_FILE_SIZE](null, filePath),
+    ).resolves.toBe(5);
     await expect(
       handlers[CHANNELS.CHECK_FILE_EXISTS](null, path.join(root, "missing")),
     ).resolves.toBe(false);
@@ -163,9 +167,9 @@ describe("fileShellIpcHandlers", () => {
     await expect(
       handlers[CHANNELS.OPEN_DOWNLOAD_FOLDER](null, filePath),
     ).resolves.toBeUndefined();
-    await expect(handlers[CHANNELS.OPEN_LAST_VIDEO](null, filePath)).resolves.toEqual(
-      { success: true },
-    );
+    await expect(
+      handlers[CHANNELS.OPEN_LAST_VIDEO](null, filePath),
+    ).resolves.toEqual({ success: true });
 
     expect(shell.showItemInFolder).toHaveBeenCalledWith(filePath);
     expect(shell.openPath).toHaveBeenCalledWith(filePath);

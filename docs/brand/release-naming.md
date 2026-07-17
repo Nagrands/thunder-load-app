@@ -4,9 +4,9 @@ Beginning with version 1.6.0, major releases use official codenames.
 
 ## Current Release
 
-| Version | Codename | Public Name |
-| --- | --- | --- |
-| 1.6.0 | Spark | Thunder Spark |
+| Version | Codename | Public Name   |
+| ------- | -------- | ------------- |
+| 1.6.0   | Spark    | Thunder Spark |
 
 Release slogan: `Spark ignites the future of downloads.`
 

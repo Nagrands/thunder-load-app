@@ -321,6 +321,7 @@ describe("downloaderToolsStatus", () => {
   });
 
   test("shows error state when update check fails without breaking footer CTA", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     window.electron.tools.getVersions.mockResolvedValue({
       ytDlp: { ok: true, path: "/tmp/yt-dlp", version: "2024.01.01" },
       ffmpeg: {
@@ -344,6 +345,11 @@ describe("downloaderToolsStatus", () => {
     expect(
       document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[downloaderToolsStatus] getVersions failed:",
+      expect.any(Error),
+    );
+    errorSpy.mockRestore();
   });
 
   test("settings visibility event hides container until re-enabled", async () => {

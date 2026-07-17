@@ -44,7 +44,10 @@ function schedulePreviewCleanup(previewPaths) {
     window.electron
       .invoke("delete-history-preview", previewPaths)
       .catch((error) =>
-        console.warn("Не удалось очистить превью после очистки истории:", error),
+        console.warn(
+          "Не удалось очистить превью после очистки истории:",
+          error,
+        ),
       );
   }, CLEAR_HISTORY_PREVIEW_CLEANUP_MS);
 }

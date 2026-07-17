@@ -74,8 +74,7 @@ export const settingsTranslations = {
     "settings.web.title": "Веб-интерфейс",
     "settings.web.hint":
       "Управление загрузчиком из браузера на этом компьютере.",
-    "settings.web.enable":
-      "Включить <strong>локальный веб-интерфейс</strong>",
+    "settings.web.enable": "Включить <strong>локальный веб-интерфейс</strong>",
     "settings.web.url": "Адрес на этом компьютере",
     "settings.web.lanUrl": "Адрес для телефона",
     "settings.web.open": "Открыть веб-интерфейс",

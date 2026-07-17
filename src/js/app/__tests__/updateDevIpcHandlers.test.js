@@ -110,8 +110,8 @@ describe("updateDevIpcHandlers", () => {
       },
     });
 
-    await expect(handlers[CHANNELS.UPDATE_DEV_PROGRESS](null, 10)).resolves.toBe(
-      false,
-    );
+    await expect(
+      handlers[CHANNELS.UPDATE_DEV_PROGRESS](null, 10),
+    ).resolves.toBe(false);
   });
 });

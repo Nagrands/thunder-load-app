@@ -94,8 +94,11 @@
     }
 
     input:checked + .slider {
-      background:
-        linear-gradient(90deg, var(--thunder-blue), var(--thunder-electric));
+      background: linear-gradient(
+        90deg,
+        var(--thunder-blue),
+        var(--thunder-electric)
+      );
       box-shadow: 0 0 18px rgba(var(--thunder-electric-rgb), 0.22);
 
       &:before {

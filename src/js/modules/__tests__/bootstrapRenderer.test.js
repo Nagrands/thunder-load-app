@@ -8,6 +8,9 @@ describe("bootstrapRenderer", () => {
     document.body.innerHTML = `
       <div id="app-preloader"></div>
       <div id="main-view"></div>
+      <input id="url" />
+      <button id="download-button" type="button"></button>
+      <button id="download-cancel" type="button"></button>
     `;
     window.bootstrap = {};
     window.electron = {
