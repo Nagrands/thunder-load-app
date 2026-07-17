@@ -29,6 +29,11 @@ function createWrappers(mainView) {
   productsWrapper.className = "view-wrapper tab-view";
   productsWrapper.style.display = "none";
 
+  const nowPlayingWrapper = document.createElement("section");
+  nowPlayingWrapper.id = "now-playing-view-wrapper";
+  nowPlayingWrapper.className = "view-wrapper tab-view";
+  nowPlayingWrapper.style.display = "none";
+
   Array.from(mainView.children).forEach((child) => {
     if (!child.matches(GLOBAL_SELECTOR)) {
       downloaderWrapper.appendChild(child);
@@ -38,11 +43,13 @@ function createWrappers(mainView) {
   mainView.prepend(downloaderWrapper);
   mainView.appendChild(wireguardWrapper);
   mainView.appendChild(productsWrapper);
+  mainView.appendChild(nowPlayingWrapper);
 
   return {
     downloaderWrapper,
     wireguardWrapper,
     productsWrapper,
+    nowPlayingWrapper,
   };
 }
 
@@ -61,12 +68,16 @@ function disposeToolsWrapperContent(wireguardWrapper) {
 let downloaderToolsStatusModulePromise = null;
 let toolsViewModulePromise = null;
 let productFormatterViewModulePromise = null;
+let nowPlayingViewModulePromise = null;
+let nowPlayingViewInstance = null;
+let nowPlayingShouldBeActive = false;
 let toolsRenderVersion = 0;
 let lazyModuleLoaders = {
   loadDownloaderToolsStatusModule: () => import("../downloaderToolsStatus.js"),
   loadToolsViewModule: () => import("../views/toolsView.js"),
   loadProductFormatterViewModule: () =>
     import("../views/productFormatterView.js"),
+  loadNowPlayingViewModule: () => import("../nowPlaying/index.js"),
 };
 
 function loadDownloaderToolsStatusModule() {
@@ -90,6 +101,13 @@ function loadProductFormatterViewModule() {
       lazyModuleLoaders.loadProductFormatterViewModule();
   }
   return productFormatterViewModulePromise;
+}
+
+function loadNowPlayingViewModule() {
+  if (!nowPlayingViewModulePromise) {
+    nowPlayingViewModulePromise = lazyModuleLoaders.loadNowPlayingViewModule();
+  }
+  return nowPlayingViewModulePromise;
 }
 
 function initializeDownloaderToolsStatus() {
@@ -139,6 +157,23 @@ async function renderProductsTab(productsWrapper) {
     applyI18n(productsWrapper);
   } catch (error) {
     console.error("[Startup] Products view lazy render failed:", error);
+  }
+}
+
+async function renderNowPlayingTab(nowPlayingWrapper) {
+  try {
+    if (!nowPlayingViewInstance) {
+      const { createNowPlayingView } = await loadNowPlayingViewModule();
+      if (!nowPlayingWrapper.isConnected) return;
+      nowPlayingViewInstance = createNowPlayingView({
+        element: nowPlayingWrapper,
+      });
+      applyI18n(nowPlayingWrapper);
+      await nowPlayingViewInstance.ready;
+    }
+    if (nowPlayingShouldBeActive) nowPlayingViewInstance.onShow();
+  } catch (error) {
+    console.error("[Startup] Now Playing lazy render failed:", error);
   }
 }
 
@@ -207,6 +242,27 @@ export async function registerTabs(mainView) {
     },
   );
 
+  tabs.addTab(
+    "now-playing",
+    t("tabs.nowPlaying"),
+    "fa-solid fa-music",
+    () => {
+      void renderNowPlayingTab(wrappers.nowPlayingWrapper);
+      return wrappers.nowPlayingWrapper;
+    },
+    {
+      onShow: () => {
+        showHistory(false);
+        nowPlayingShouldBeActive = true;
+        nowPlayingViewInstance?.onShow();
+      },
+      onHide: () => {
+        nowPlayingShouldBeActive = false;
+        nowPlayingViewInstance?.onHide();
+      },
+    },
+  );
+
   const defaultTab = await getDefaultTab();
   const wgConfig = await window.electron.ipcRenderer.invoke("wg-get-config");
   const requestedToolView = defaultTab === "backup" ? "backup" : "";
@@ -232,6 +288,10 @@ export function __test_setLazyModuleLoaders(loaders = {}) {
   downloaderToolsStatusModulePromise = null;
   toolsViewModulePromise = null;
   productFormatterViewModulePromise = null;
+  nowPlayingViewModulePromise = null;
+  nowPlayingViewInstance?.dispose?.();
+  nowPlayingViewInstance = null;
+  nowPlayingShouldBeActive = false;
   toolsRenderVersion = 0;
   lazyModuleLoaders = {
     ...lazyModuleLoaders,

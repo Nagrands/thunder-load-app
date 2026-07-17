@@ -2,6 +2,7 @@ const TAB_MODE_MAP = {
   download: "downloader",
   wireguard: "tools",
   backup: "backup",
+  "now-playing": "now-playing",
 };
 
 const TOOL_MODE_MAP = {

@@ -5,6 +5,7 @@ const TAB_LABEL_MAP = {
   download: "tabs.download",
   wireguard: "tabs.tools",
   backup: "tabs.backup",
+  "now-playing": "tabs.nowPlaying",
 };
 
 const dom = {

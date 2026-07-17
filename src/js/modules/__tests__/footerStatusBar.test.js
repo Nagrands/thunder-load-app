@@ -123,6 +123,7 @@ describe("footerStatusBar", () => {
         const map = {
           "tabs.download": "Downloader",
           "tabs.tools": "Tools",
+          "tabs.nowPlaying": "Now Playing",
           "footer.sectionLabel": "Tab",
         };
         return map[key] || key;
@@ -285,6 +286,23 @@ describe("footerStatusBar", () => {
         .getElementById("dl-tools-action")
         .classList.contains("is-context-hidden"),
     ).toBe(true);
+  });
+
+  test("uses the localized Now Playing label", async () => {
+    window.electron.invoke.mockResolvedValue("1.4.4");
+    const { initFooterStatusBar } = await loadModule();
+
+    initFooterStatusBar();
+    await Promise.resolve();
+    window.dispatchEvent(
+      new CustomEvent("tabs:activated", {
+        detail: { id: "now-playing" },
+      }),
+    );
+
+    expect(document.getElementById("footer-active-section").textContent).toBe(
+      "Now Playing",
+    );
   });
 
   test("hides footer tools block when settings toggle broadcasts hidden state", async () => {

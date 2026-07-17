@@ -76,6 +76,10 @@ try {
     "get-theme",
     "get-version",
     "get-whats-new",
+    "now-playing:import-files",
+    "now-playing:import-folder",
+    "now-playing:get-state",
+    "now-playing:set-state",
     "whats-new:ready",
     "whats-new:ack",
     "web:getStatus",
@@ -357,6 +361,12 @@ try {
    *   detectLegacy: () => Promise<{ success: boolean, found?: any[], error?: string }>,
    *   resetLocation: () => Promise<{ success: boolean, path?: string, error?: string }>,
    * }} tools
+   * @property {{
+   *   importFiles: () => Promise<any>,
+   *   importFolder: () => Promise<any>,
+   *   getState: () => Promise<any>,
+   *   setState: (state: any) => Promise<any>,
+   * }} nowPlaying
    * @property {(cb: (v:any)=>void) => void} onVersion
    * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onWindowFocused
    * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onProgress
@@ -457,6 +467,13 @@ try {
       runWingetUninstall: (payload) =>
         safeInvoke("tools:wingetRunUninstall", payload),
       cancelWingetRun: (payload) => safeInvoke("tools:wingetCancel", payload),
+    },
+
+    nowPlaying: {
+      importFiles: () => safeInvoke("now-playing:import-files"),
+      importFolder: () => safeInvoke("now-playing:import-folder"),
+      getState: () => safeInvoke("now-playing:get-state"),
+      setState: (state) => safeInvoke("now-playing:set-state", state),
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код

@@ -82,6 +82,27 @@ describe("TabSystem", () => {
     expect(toolsView.style.display).toBe("none");
   });
 
+  test("keeps generated tabs and panels accessible", () => {
+    const tabs = new TabSystem(".group-menu", "#main-view");
+    tabs.addTab("now-playing", "Now Playing", "fa-solid fa-music", () => {
+      const el = document.createElement("section");
+      return el;
+    });
+
+    tabs.activateTab("now-playing");
+
+    const button = document.querySelector('[data-menu="now-playing"]');
+    const panel = document.querySelector('[data-tab-id="now-playing"]');
+    expect(button.getAttribute("role")).toBe("tab");
+    expect(button.getAttribute("aria-selected")).toBe("true");
+    expect(button.getAttribute("aria-controls")).toBe(panel.id);
+    expect(panel.getAttribute("role")).toBe("tabpanel");
+    expect(panel.getAttribute("aria-labelledby")).toBe(button.id);
+    expect(document.body.classList.contains("is-now-playing-active")).toBe(
+      true,
+    );
+  });
+
   test("keeps Downloader available when legacy developer preference exists", () => {
     localStorage.setItem("developerToolsUnlocked", "true");
     localStorage.setItem("developerDisableDownloaderTab", "true");

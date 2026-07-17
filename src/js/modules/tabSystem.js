@@ -18,6 +18,7 @@ export default class TabSystem {
     this._BK_ID = "backup";
     // Developer-only products tab
     this._PRD_ID = "products";
+    this._NOW_PLAYING_ID = "now-playing";
     this._applyWgVisibility =
       this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
     this._applyBackupVisibility =
@@ -47,12 +48,25 @@ export default class TabSystem {
       "main-view--products-active",
       id === this._PRD_ID,
     );
+    this.view.classList.toggle(
+      "main-view--now-playing-active",
+      id === this._NOW_PLAYING_ID,
+    );
+    document.body?.classList.toggle(
+      "is-now-playing-active",
+      id === this._NOW_PLAYING_ID,
+    );
   }
 
   addTab(id, label, iconCls, renderCb, hooks = {}) {
     if (this.tabs.has(id)) return;
     const btn = document.createElement("button");
     btn.classList.add("menu-item");
+    btn.type = "button";
+    btn.id = `app-tab-${id}`;
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", "false");
+    btn.tabIndex = -1;
     btn.dataset.menu = id;
     btn.dataset.tabgen = "true";
     btn.innerHTML = `
@@ -113,13 +127,21 @@ export default class TabSystem {
       next.hideTimer = null;
     }
     prev?.button.classList.remove("active");
+    prev?.button.setAttribute("aria-selected", "false");
+    if (prev?.button) prev.button.tabIndex = -1;
     next.button.classList.add("active");
+    next.button.setAttribute("aria-selected", "true");
+    next.button.tabIndex = 0;
 
     // создаём view один раз
     if (!next.element) {
       const rendered = next.render?.() || document.createElement("div");
       rendered.dataset.tabId = id;
       rendered.classList.add("tab-view");
+      if (!rendered.id) rendered.id = `app-tabpanel-${id}`;
+      rendered.setAttribute("role", "tabpanel");
+      rendered.setAttribute("aria-labelledby", next.button.id);
+      next.button.setAttribute("aria-controls", rendered.id);
       this.view.appendChild(rendered);
       next.element = rendered;
     } else {
@@ -285,6 +307,8 @@ export default class TabSystem {
   _clearActiveTab() {
     const prev = this.activeTabId ? this.tabs.get(this.activeTabId) : null;
     prev?.button?.classList.remove("active");
+    prev?.button?.setAttribute("aria-selected", "false");
+    if (prev?.button) prev.button.tabIndex = -1;
     if (prev?.element) {
       prev.element.classList.remove("tab-show");
       prev.element.classList.add("tab-hide");

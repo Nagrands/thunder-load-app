@@ -6,6 +6,8 @@ describe("registerTabs backup transfer", () => {
   let renderDownloaderViewMock;
   let renderToolsViewMock;
   let renderProductFormatterViewMock;
+  let createNowPlayingViewMock;
+  let nowPlayingViewInstance;
   let getDefaultTabMock;
   let initDownloaderToolsStatusMock;
   let initDownloaderBackgroundPreviewMock;
@@ -30,6 +32,17 @@ describe("registerTabs backup transfer", () => {
     renderDownloaderViewMock = jest.fn();
     renderToolsViewMock = jest.fn(() => document.createElement("div"));
     renderProductFormatterViewMock = jest.fn();
+    nowPlayingViewInstance = {
+      element: null,
+      ready: Promise.resolve(),
+      onShow: jest.fn(),
+      onHide: jest.fn(),
+      dispose: jest.fn(),
+    };
+    createNowPlayingViewMock = jest.fn(({ element }) => {
+      nowPlayingViewInstance.element = element;
+      return nowPlayingViewInstance;
+    });
     getDefaultTabMock = jest.fn(async () => "backup");
     initDownloaderToolsStatusMock = jest.fn();
     initDownloaderBackgroundPreviewMock = jest.fn();
@@ -97,17 +110,20 @@ describe("registerTabs backup transfer", () => {
         Promise.resolve({ default: renderProductFormatterViewMock }),
       loadToolsViewModule: () =>
         Promise.resolve({ default: renderToolsViewMock }),
+      loadNowPlayingViewModule: () =>
+        Promise.resolve({ createNowPlayingView: createNowPlayingViewMock }),
     });
   });
 
-  test("registers Download, Tools, and Products tabs", async () => {
+  test("registers Download, Tools, Products, and Now Playing tabs", async () => {
     await registerTabs(document.getElementById("main-view"));
 
-    expect(addTabMock).toHaveBeenCalledTimes(3);
+    expect(addTabMock).toHaveBeenCalledTimes(4);
     expect(addTabMock.mock.calls.map(([id]) => id)).toEqual([
       "download",
       "wireguard",
       "products",
+      "now-playing",
     ]);
     expect(renderBackupMock).not.toHaveBeenCalled();
   });
@@ -205,5 +221,27 @@ describe("registerTabs backup transfer", () => {
     expect(wrapper.id).toBe("products-view-wrapper");
     expect(renderProductFormatterViewMock).toHaveBeenCalledWith(wrapper);
     expect(applyI18nMock).toHaveBeenCalledWith(wrapper);
+  });
+
+  test("keeps Now Playing mounted and forwards tab lifecycle hooks", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+
+    await registerTabs(document.getElementById("main-view"));
+
+    expect(createNowPlayingViewMock).not.toHaveBeenCalled();
+    const [, , , nowPlayingFactory, nowPlayingOptions] =
+      addTabMock.mock.calls[3];
+    const wrapper = nowPlayingFactory();
+    nowPlayingOptions.onShow();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(wrapper.id).toBe("now-playing-view-wrapper");
+    expect(createNowPlayingViewMock).toHaveBeenCalledWith({ element: wrapper });
+    expect(nowPlayingViewInstance.onShow).toHaveBeenCalled();
+
+    nowPlayingOptions.onHide();
+    expect(nowPlayingViewInstance.onHide).toHaveBeenCalled();
+    expect(wrapper.isConnected).toBe(true);
   });
 });

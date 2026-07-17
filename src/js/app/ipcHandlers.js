@@ -38,6 +38,9 @@ const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const { registerFileShellIpcHandlers } = require("./fileShellIpcHandlers");
 const { registerHistoryIpcHandlers } = require("./historyIpcHandlers");
 const {
+  registerNowPlayingIpcHandlers,
+} = require("./nowPlayingIpcHandlers");
+const {
   registerShortcutIpcHandlers,
 } = require("./shortcutIpcHandlers");
 const { createHistoryPreviewCache } = require("./historyPreviewIpcHandlers");
@@ -819,6 +822,16 @@ function setupIpcHandlers(dependencies) {
   });
 
   registerToolsVersionsIpcHandlers({ ipcMain, store });
+
+  registerNowPlayingIpcHandlers({
+    app,
+    dialog,
+    ffmpegPathResolver: getRuntimeFfmpegPath,
+    ffprobePathResolver: getRuntimeFfprobePath,
+    ipcMain,
+    mainWindow,
+    store,
+  });
 
   const formatVideoInfoResponse = (
     info,
