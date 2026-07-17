@@ -13877,6 +13877,21 @@ body.is-mac .window-controls .btn-minimize {
 .url-input-leading__icon i {
   font-size: 1rem;
 }
+.url-input-leading__icon .url-service-icon {
+  transition: color 0.18s ease;
+}
+.url-input-leading__icon .url-service-icon--youtube {
+  color: var(--color-youtube);
+}
+.url-input-leading__icon .url-service-icon--twitch {
+  color: var(--color-twitch);
+}
+.url-input-leading__icon .url-service-icon--vkvideo {
+  color: var(--color-vkvideo);
+}
+.url-input-leading__icon .url-service-icon--coub {
+  color: var(--color-coub);
+}
 .url-input-leading__icon > img,
 .url-input-leading__icon > #icon-url-globe,
 .url-input-leading__icon > .search-icon {

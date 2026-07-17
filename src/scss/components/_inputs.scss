@@ -53,7 +53,8 @@
   border-radius: var(--thunder-radius-lg);
   z-index: 1;
   border: 1px solid var(--thunder-border);
-  background: var(--thunder-panel-bg);
+  background:
+    var(--thunder-panel-bg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition:
     border-color 0.22s ease,
@@ -275,6 +276,26 @@
 
   i {
     font-size: 1rem;
+  }
+
+  .url-service-icon {
+    transition: color 0.18s ease;
+  }
+
+  .url-service-icon--youtube {
+    color: var(--color-youtube);
+  }
+
+  .url-service-icon--twitch {
+    color: var(--color-twitch);
+  }
+
+  .url-service-icon--vkvideo {
+    color: var(--color-vkvideo);
+  }
+
+  .url-service-icon--coub {
+    color: var(--color-coub);
   }
 
   > img,
@@ -820,8 +841,7 @@
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid rgba(132, 171, 218, 0.2);
-  background:
-    var(--thunder-panel-bg);
+  background: var(--thunder-panel-bg);
   color: var(--color-text-main);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
