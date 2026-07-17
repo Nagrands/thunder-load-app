@@ -13782,18 +13782,19 @@ body.is-mac .window-controls .btn-minimize {
   display: grid;
   gap: 6px;
 }
-.url-entry-shell.is-downloader-unavailable .downloader-view-mode,
-.url-entry-shell.is-downloader-unavailable .url-input-shortcuts {
+.url-entry-shell.is-downloader-unavailable .downloader-view-mode {
   opacity: 0.54;
 }
 
 .downloader-view-mode {
   position: relative;
-  display: flex;
-  justify-content: flex-end;
-  justify-self: end;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 2px;
-  padding: 3px;
+  min-width: 0;
+  padding: 3px 10px 3px 3px;
   border-radius: 999px;
   border: 1px solid rgba(126, 201, 255, 0.18);
 }
@@ -13802,18 +13803,17 @@ body.is-mac .window-controls .btn-minimize {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: calc(50% - 3px);
+  width: 36px;
   height: calc(100% - 6px);
   border-radius: 999px;
   background: rgba(var(--color-accent-rgb), 0.22);
-  border: 1px solid rgba(var(--color-accent-rgb), 0.34);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: transform 0.18s ease;
   pointer-events: none;
 }
 
 .url-entry-shell.is-downloader-compact .downloader-view-mode::before {
-  transform: translateX(100%);
+  transform: translateX(38px);
 }
 
 .downloader-view-mode__btn {
@@ -13844,6 +13844,19 @@ body.is-mac .window-controls .btn-minimize {
 .downloader-view-mode__btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.18);
+}
+
+.downloader-view-mode__label {
+  position: relative;
+  z-index: 1;
+  min-width: 72px;
+  margin-left: 8px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(220, 231, 247, 0.12);
+  color: var(--thunder-electric-rgb);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .url-input-main {
@@ -14137,42 +14150,6 @@ body.is-mac .window-controls .btn-minimize {
   letter-spacing: 0.008em;
   text-wrap: pretty;
   color: var(--color-highlight);
-}
-
-.url-input-shortcuts {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-  opacity: 0;
-  transform: translateY(2px);
-  pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.url-input-wrapper:focus-within .url-input-shortcuts {
-  opacity: 0.52;
-  transform: translateY(0);
-}
-
-.url-shortcut-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 0;
-  padding: 0;
-  border-radius: 0;
-  border: none;
-  background: transparent;
-  color: rgba(213, 225, 244, 0.42);
-  font-size: 0.64rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.url-shortcut-chip + .url-shortcut-chip::before {
-  content: "•";
-  margin-right: 6px;
-  color: rgba(213, 225, 244, 0.18);
 }
 
 .url-inline-error {
@@ -15031,22 +15008,22 @@ body.is-mac .window-controls .btn-minimize {
     padding-left: 0;
     padding-right: 0;
   }
-  .url-input-shortcuts {
+  .downloader-view-mode {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: stretch;
+  }
+  .downloader-view-mode__btn {
+    flex: 0 0 36px;
+    width: auto;
+  }
+  .downloader-view-mode__label {
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .paste-button,
   .clear-button,
   .folder-button {
     flex: 0 0 auto;
-  }
-  .downloader-view-mode {
-    justify-content: stretch;
-    justify-self: stretch;
-  }
-  .downloader-view-mode__btn {
-    flex: 1 1 0;
-    width: auto;
   }
   .compact-quality-panel__grid {
     grid-template-columns: 1fr;
