@@ -2637,6 +2637,11 @@ function setupIpcHandlers(dependencies) {
   async function ensureWingetAvailable() {
     const now = Date.now();
     if (wingetAvailabilityCache.checkedAt > now - 60000) {
+      if (!wingetAvailabilityCache.ok) {
+        throw new Error(
+          wingetAvailabilityCache.version || "WinGet is unavailable",
+        );
+      }
       return wingetAvailabilityCache;
     }
     const result = await runWingetCommand(["--version"], { timeout: 8000 });
@@ -3036,7 +3041,7 @@ function setupIpcHandlers(dependencies) {
         items: normalized.packageIds.map((packageId) => ({
           error: error.message || String(error),
           packageId,
-          status: "unknown",
+          status: "error",
         })),
       };
     }

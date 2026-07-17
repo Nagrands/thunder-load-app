@@ -5623,6 +5623,20 @@ $wg-max-width: 1200px;
   color: var(--color-warning, #ffd166);
 }
 
+.winget-package-status-detail {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-error, #ff6b6b);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+
+  &:empty,
+  &.hidden {
+    display: none;
+  }
+}
+
 .winget-status-pill {
   display: inline-flex;
   align-items: center;

@@ -819,6 +819,12 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#winget-script-preview")?.textContent).toBe(
       "tools.winget.script.empty",
     );
+    expect(
+      el.querySelector('[data-winget-package-version="git"]')?.classList,
+    ).toContain("hidden");
+    expect(
+      el.querySelector('[data-winget-package-version="git"]')?.textContent,
+    ).toBe("");
     expect(el.querySelector("#winget-package-git")?.checked).toBe(false);
     expect(el.querySelector("details.winget-package-category")).not.toBeNull();
     expect(el.querySelector(".winget-package-item__icon")).not.toBeNull();
@@ -875,7 +881,7 @@ describe("toolsView quick actions", () => {
     expect(saved.openCategoryIds).not.toContain("browsers");
   });
 
-  test("does not invoke WinGet while rendering or repeatedly opening the tool on windows", async () => {
+  test("checks WinGet on every completed opening without invoking run methods", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
@@ -893,13 +899,13 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await openTool(el, "winget-installer");
 
-    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(2);
     expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
     expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
     expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
   });
 
-  test("does not invoke WinGet for remembered restore or focus events", async () => {
+  test("checks a remembered WinGet view once and ignores focus events", async () => {
     localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "winget-installer");
     window.electron.getPlatformInfo.mockResolvedValue({
@@ -907,7 +913,7 @@ describe("toolsView quick actions", () => {
       platform: "win32",
     });
 
-    let el = await renderView();
+    const el = await renderView();
     window.dispatchEvent(new Event("focus"));
     window.dispatchEvent(new Event("window-focused"));
     await nextTick();
@@ -917,28 +923,184 @@ describe("toolsView quick actions", () => {
         .querySelector('[data-tool-view="winget-installer"]')
         ?.classList.contains("hidden"),
     ).toBe(false);
-    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
-    expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
-    expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
-    expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
-
-    el.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
-    el.remove();
-    el = await renderView();
-    await nextTick();
-
-    expect(
-      el
-        .querySelector('[data-tool-view="winget-installer"]')
-        ?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
     expect(window.electron.tools.runWingetInstall).not.toHaveBeenCalled();
     expect(window.electron.tools.runWingetUpdate).not.toHaveBeenCalled();
     expect(window.electron.tools.runWingetUninstall).not.toHaveBeenCalled();
   });
 
-  test("validates custom WinGet IDs locally without checking after the debounce", async () => {
+  test("deduplicates repeated openings while a status check is in flight", async () => {
+    let resolveCheck;
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.checkWingetStatus.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    const el = await renderView();
+
+    await openTool(el, "winget-installer");
+    el.querySelector("#tools-back-btn")?.click();
+    await nextTick();
+    await openTool(el, "winget-installer");
+
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
+
+    resolveCheck({
+      success: true,
+      items: [],
+    });
+    await nextTick();
+    await nextTick();
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
+  });
+
+  test("renders WinGet status versions and error details consistently", async () => {
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.checkWingetStatus.mockResolvedValueOnce({
+      success: true,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "2.50.0",
+          packageId: "Git.Git",
+          status: "installed",
+        },
+        {
+          availableVersion: "3.1.0",
+          currentVersion: "3.0.0",
+          packageId: "VideoLAN.VLC",
+          status: "updateAvailable",
+        },
+        {
+          availableVersion: "",
+          currentVersion: "",
+          packageId: "Mozilla.Firefox",
+          status: "notInstalled",
+        },
+        {
+          availableVersion: "",
+          currentVersion: "",
+          packageId: "Google.Chrome",
+          status: "error",
+        },
+      ],
+    });
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    await nextTick();
+
+    const gitVersion = el.querySelector(
+      '[data-winget-package-version="git"]',
+    );
+    const gitLatest = el.querySelector(
+      '[data-winget-package-latest="git"]',
+    );
+    const vlcVersion = el.querySelector(
+      '[data-winget-package-version="vlc"]',
+    );
+    const vlcLatest = el.querySelector(
+      '[data-winget-package-latest="vlc"]',
+    );
+    const firefoxVersion = el.querySelector(
+      '[data-winget-package-version="firefox"]',
+    );
+    const firefoxLatest = el.querySelector(
+      '[data-winget-package-latest="firefox"]',
+    );
+    const chromeError = el.querySelector(
+      '[data-winget-package-error="chrome"]',
+    );
+    const chromeVersion = el.querySelector(
+      '[data-winget-package-version="chrome"]',
+    );
+    const chromeLatest = el.querySelector(
+      '[data-winget-package-latest="chrome"]',
+    );
+
+    expect(
+      el.querySelector('[data-winget-package-status="git"]')?.textContent,
+    ).toContain("tools.winget.status.installed");
+    expect(gitVersion?.classList).not.toContain("hidden");
+    expect(gitVersion?.textContent).toContain("2.50.0");
+    expect(gitLatest?.classList).toContain("hidden");
+
+    expect(
+      el.querySelector('[data-winget-package-status="vlc"]')?.textContent,
+    ).toContain("tools.winget.status.updateAvailable");
+    expect(vlcVersion?.classList).not.toContain("hidden");
+    expect(vlcVersion?.textContent).toContain("3.0.0");
+    expect(vlcLatest?.classList).not.toContain("hidden");
+    expect(vlcLatest?.textContent).toContain("3.1.0");
+
+    expect(
+      el.querySelector('[data-winget-package-status="firefox"]')?.textContent,
+    ).toContain("tools.winget.status.notInstalled");
+    expect(firefoxVersion?.classList).toContain("hidden");
+    expect(firefoxLatest?.classList).toContain("hidden");
+
+    expect(
+      el.querySelector('[data-winget-package-status="chrome"]')?.textContent,
+    ).toContain("tools.winget.status.error");
+    expect(chromeVersion?.classList).toContain("hidden");
+    expect(chromeLatest?.classList).toContain("hidden");
+    expect(chromeError?.classList).not.toContain("hidden");
+    expect(chromeError?.textContent).toBe("tools.winget.status.errorDetail");
+  });
+
+  test("ignores a late WinGet status response after the view is disposed", async () => {
+    let resolveCheck;
+    window.electron.getPlatformInfo.mockResolvedValue({
+      isWindows: true,
+      platform: "win32",
+    });
+    window.electron.tools.checkWingetStatus.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    const el = await renderView();
+    await openTool(el, "winget-installer");
+    const gitStatus = el.querySelector(
+      '[data-winget-package-status="git"]',
+    );
+
+    expect(gitStatus?.textContent).toContain("tools.winget.status.checking");
+    expect(
+      el.querySelector('[data-winget-package-version="git"]')?.classList,
+    ).toContain("hidden");
+
+    el.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
+    el.remove();
+    resolveCheck({
+      success: true,
+      items: [
+        {
+          availableVersion: "",
+          currentVersion: "2.50.0",
+          packageId: "Git.Git",
+          status: "installed",
+        },
+      ],
+    });
+    await nextTick();
+    await nextTick();
+
+    expect(gitStatus?.textContent).toContain("tools.winget.status.checking");
+    expect(gitStatus?.textContent).not.toContain(
+      "tools.winget.status.installed",
+    );
+  });
+
+  test("validates custom WinGet IDs locally without an extra status check", async () => {
     window.electron.getPlatformInfo.mockResolvedValue({
       isWindows: true,
       platform: "win32",
@@ -951,6 +1113,7 @@ describe("toolsView quick actions", () => {
 
     jest.useFakeTimers();
     try {
+      customInput.focus();
       customInput.value = "Git.Git\nbad/id";
       customInput.dispatchEvent(new Event("input"));
       jest.advanceTimersByTime(601);
@@ -961,7 +1124,7 @@ describe("toolsView quick actions", () => {
       );
       expect(runButton?.disabled).toBe(true);
       expect(checkButton?.disabled).toBe(true);
-      expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+      expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
     } finally {
       jest.useRealTimers();
     }
@@ -1024,6 +1187,7 @@ describe("toolsView quick actions", () => {
       packageIds: ["Git.Git"],
       runId: expect.stringMatching(/^winget-/),
     });
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
   });
 
   test("applies successful WinGet results without a post-run check and re-enables run", async () => {
@@ -1060,7 +1224,7 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector('[data-winget-package-status="git"]')?.textContent,
     ).toContain("tools.winget.status.installed");
-    expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
     expect(el.querySelector("#winget-run-script")?.disabled).toBe(false);
   });
 
@@ -1105,7 +1269,7 @@ describe("toolsView quick actions", () => {
       expect(el.querySelector("#winget-cancel-run")?.classList).toContain(
         "hidden",
       );
-      expect(window.electron.tools.checkWingetStatus).not.toHaveBeenCalled();
+      expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -1136,6 +1300,7 @@ describe("toolsView quick actions", () => {
       packageIds: ["Git.Git"],
       runId: expect.stringMatching(/^winget-/),
     });
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
   });
 
   test("checks WinGet status and runs update for selected packages", async () => {
@@ -1155,8 +1320,8 @@ describe("toolsView quick actions", () => {
     await nextTick();
     await nextTick();
 
-    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
-    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledWith({
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(2);
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenLastCalledWith({
       packageIds: expect.arrayContaining(["Git.Git", "VideoLAN.VLC"]),
     });
     expect(
@@ -1184,7 +1349,7 @@ describe("toolsView quick actions", () => {
       packageIds: ["VideoLAN.VLC"],
       runId: expect.stringMatching(/^winget-/),
     });
-    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(1);
+    expect(window.electron.tools.checkWingetStatus).toHaveBeenCalledTimes(2);
   });
 
   test("renders WinGet live log events for active run", async () => {

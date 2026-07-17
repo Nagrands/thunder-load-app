@@ -3063,6 +3063,79 @@ describe("ipcHandlers download pool", () => {
       expect.any(Object),
       expect.any(Function),
     );
+    expect(childProcess.spawn).not.toHaveBeenCalled();
+  });
+
+  test("wingetCheckStatus reuses a cached availability failure", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    childProcess.execFile.mockImplementation((_cmd, _args, _opts, cb) => {
+      const error = Object.assign(new Error("winget unavailable"), {
+        code: 1,
+      });
+      cb(error, "", "winget unavailable");
+    });
+
+    initHandlers();
+    const payload = { packageIds: ["Git.Git"] };
+    const firstResult =
+      await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, payload);
+    const secondResult =
+      await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, payload);
+
+    expect(firstResult).toEqual({
+      success: false,
+      code: "wingetUnavailable",
+      error: "winget unavailable",
+    });
+    expect(secondResult).toEqual(firstResult);
+    expect(childProcess.execFile).toHaveBeenCalledTimes(1);
+    expect(childProcess.spawn).not.toHaveBeenCalled();
+  });
+
+  test("wingetCheckStatus returns error items when collection fails", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+    const childProcess = require("child_process");
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    childProcess.execFile.mockImplementation((_cmd, args, _opts, cb) => {
+      const wingetArgs = extractWingetArgs(args);
+      if (wingetArgs[0] === "--version") {
+        cb(null, "v1.8.0", "");
+        return;
+      }
+      throw new Error("status collection failed");
+    });
+
+    initHandlers();
+    const result = await handlers[CHANNELS.TOOLS_WINGET_CHECK_STATUS](null, {
+      packageIds: ["Git.Git", "VideoLAN.VLC"],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      items: [
+        {
+          error: "status collection failed",
+          packageId: "Git.Git",
+          status: "error",
+        },
+        {
+          error: "status collection failed",
+          packageId: "VideoLAN.VLC",
+          status: "error",
+        },
+      ],
+    });
+    expect(childProcess.spawn).not.toHaveBeenCalled();
   });
 
   test("wingetCheckStatus parses bulk table output", async () => {

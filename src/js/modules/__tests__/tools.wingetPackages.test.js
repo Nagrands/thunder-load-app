@@ -133,6 +133,17 @@ describe("wingetPackages", () => {
       availableVersion: "4.6.7",
       status: "updateAvailable",
     });
+
+    expect(
+      aggregateWingetPackageStatus(
+        ["Vendor.App"],
+        [{ packageId: "Vendor.App", status: "error" }],
+      ),
+    ).toEqual({
+      availableVersion: "",
+      currentVersion: "",
+      status: "error",
+    });
   });
 
   test("builds install, upgrade, and uninstall scripts with winget version preflight", () => {

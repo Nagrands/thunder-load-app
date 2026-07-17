@@ -422,7 +422,7 @@ export const toolsTranslations = {
     "tools.winget.status.state": "Состояние",
     "tools.winget.status.current": "Текущая версия",
     "tools.winget.status.latest": "Обновление",
-    "tools.winget.status.installed": "Установлено",
+    "tools.winget.status.installed": "Установлен",
     "tools.winget.status.notInstalled": "Не установлено",
     "tools.winget.status.updateAvailable": "Есть обновление",
     "tools.winget.status.partial": "Частично установлено",
@@ -431,6 +431,8 @@ export const toolsTranslations = {
     "tools.winget.status.updating": "Обновляется",
     "tools.winget.status.uninstalling": "Удаляется",
     "tools.winget.status.error": "Ошибка",
+    "tools.winget.status.errorDetail":
+      "Не удалось получить статус пакета. Повторите проверку.",
     "tools.winget.status.unknown": "Неизвестно",
     "tools.winget.status.checked": "Проверено: {count}",
     "tools.winget.status.updates": "Обновлений: {count}",
@@ -1523,6 +1525,8 @@ export const toolsTranslations = {
     "tools.winget.status.updating": "Updating",
     "tools.winget.status.uninstalling": "Uninstalling",
     "tools.winget.status.error": "Error",
+    "tools.winget.status.errorDetail":
+      "Could not retrieve the package status. Try checking again.",
     "tools.winget.status.unknown": "Unknown",
     "tools.winget.status.checked": "Checked: {count}",
     "tools.winget.status.updates": "Updates: {count}",

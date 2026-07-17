@@ -12,6 +12,7 @@ import {
   readJsonStorage,
   writeJsonStorage,
 } from "./storage.js";
+import { loadWingetPackageStatuses } from "./wingetStatusService.js";
 
 const WINGET_LOG_MAX_ENTRIES = 400;
 
@@ -49,10 +50,11 @@ function renderWingetInstallerSection(t) {
             <span class="winget-package-item__content">
               <strong>${group.label}</strong>
               ${description}
-              <span class="winget-package-item__meta">
+              <span class="winget-package-item__meta" aria-live="polite">
                 <span class="winget-status-pill is-unknown" data-winget-package-status="${group.id}" data-i18n="tools.winget.status.unknown">${t("tools.winget.status.unknown")}</span>
-                <span class="winget-package-version" data-winget-package-version="${group.id}" data-i18n="tools.winget.version.empty">${t("tools.winget.version.empty")}</span>
+                <span class="winget-package-version hidden" data-winget-package-version="${group.id}"></span>
                 <span class="winget-package-latest hidden" data-winget-package-latest="${group.id}"></span>
+                <span class="winget-package-status-detail hidden" data-winget-package-error="${group.id}"></span>
               </span>
             </span>
           </label>
@@ -312,6 +314,8 @@ function initWingetInstallerSection({
     logBlock: () => getEl("winget-log-block", view),
     customStatusList: () => getEl("winget-custom-status-list", view),
   };
+  let disposed = false;
+  let statusRequestToken = 0;
   const readSavedState = () =>
     readJsonStorage(TOOLS_STORAGE_KEYS.WINGET_INSTALLER_STATE, {
       customPackageIds: [],
@@ -511,6 +515,7 @@ function initWingetInstallerSection({
   const renderStatusMeta = ({
     availableVersion = "",
     currentVersion = "",
+    errorEl,
     latestEl,
     status = "unknown",
     statusEl,
@@ -526,16 +531,29 @@ function initWingetInstallerSection({
       statusEl.className = `winget-status-pill is-${status}`;
       statusEl.textContent = t(`tools.winget.status.${status}`);
     }
+    const showCurrentVersion =
+      ["installed", "updateAvailable", "partial"].includes(status) &&
+      !!currentVersion;
     if (versionEl) {
-      versionEl.textContent = currentVersion
+      versionEl.textContent = showCurrentVersion
         ? formatVersionText("tools.winget.version.current", currentVersion)
-        : t("tools.winget.version.empty");
+        : "";
+      versionEl.classList.toggle("hidden", !showCurrentVersion);
     }
+    const showAvailableVersion =
+      ["updateAvailable", "partial"].includes(status) && !!availableVersion;
     if (latestEl) {
-      latestEl.textContent = availableVersion
+      latestEl.textContent = showAvailableVersion
         ? formatVersionText("tools.winget.version.latest", availableVersion)
         : "";
-      latestEl.classList.toggle("hidden", !availableVersion);
+      latestEl.classList.toggle("hidden", !showAvailableVersion);
+    }
+    if (errorEl) {
+      const showError = status === "error";
+      errorEl.textContent = showError
+        ? t("tools.winget.status.errorDetail")
+        : "";
+      errorEl.classList.toggle("hidden", !showError);
     }
   };
 
@@ -545,6 +563,9 @@ function initWingetInstallerSection({
       const aggregate = aggregateWingetPackageStatus(group.packageIds, items);
       renderStatusMeta({
         ...aggregate,
+        errorEl: view.querySelector(
+          `[data-winget-package-error="${group.id}"]`,
+        ),
         latestEl: view.querySelector(
           `[data-winget-package-latest="${group.id}"]`,
         ),
@@ -578,15 +599,18 @@ function initWingetInstallerSection({
       versionEl.className = "winget-package-version";
       const latestEl = document.createElement("span");
       latestEl.className = "winget-package-latest";
+      const errorEl = document.createElement("span");
+      errorEl.className = "winget-package-status-detail hidden";
 
       renderStatusMeta({
         ...item,
+        errorEl,
         latestEl,
         statusEl,
         versionEl,
       });
 
-      row.append(code, statusEl, versionEl, latestEl);
+      row.append(code, statusEl, versionEl, latestEl, errorEl);
       list.appendChild(row);
     });
   };
@@ -704,16 +728,27 @@ function initWingetInstallerSection({
     { markChecking = true, silent = false } = {},
   ) => {
     const validPackageIds = packageIds.filter(isValidWingetPackageId);
-    if (!validPackageIds.length || !state.isWindows || state.running) return;
+    if (
+      !validPackageIds.length ||
+      !state.isWindows ||
+      state.running ||
+      state.checking
+    ) {
+      return;
+    }
+    const requestToken = ++statusRequestToken;
+    const isCurrentRequest = () =>
+      !disposed &&
+      requestToken === statusRequestToken &&
+      view.isConnected;
     if (markChecking) {
       setTransientStatuses(validPackageIds, "checking");
     }
     setChecking(true);
     if (!silent) appendLog(t("tools.winget.log.statusStart"));
     try {
-      const result = await window.electron.tools.checkWingetStatus({
-        packageIds: validPackageIds,
-      });
+      const result = await loadWingetPackageStatuses(validPackageIds);
+      if (!isCurrentRequest()) return;
       if (!result?.success) {
         if (!silent) {
           appendLog(
@@ -726,18 +761,34 @@ function initWingetInstallerSection({
         }
         return;
       }
-      renderStatuses(result.items || []);
+      const resultByPackageId = new Map(
+        (Array.isArray(result.items) ? result.items : []).map((item) => [
+          packageStatusKey(item?.packageId),
+          item,
+        ]),
+      );
+      const completeItems = validPackageIds.map(
+        (packageId) =>
+          resultByPackageId.get(packageStatusKey(packageId)) || {
+            availableVersion: "",
+            currentVersion: "",
+            packageId,
+            status: "error",
+          },
+      );
+      renderStatuses(completeItems);
       if (markChecking) {
         clearTransientStatuses(validPackageIds);
       }
       if (!silent) appendLog(t("tools.winget.log.statusDone"), "success");
     } catch (error) {
+      if (!isCurrentRequest()) return;
       if (markChecking) {
         setTransientStatuses(validPackageIds, "error");
       }
       if (!silent) appendLog(error?.message || String(error), "error");
     } finally {
-      setChecking(false);
+      if (isCurrentRequest()) setChecking(false);
     }
   };
 
@@ -746,6 +797,9 @@ function initWingetInstallerSection({
     if (selection.invalidPackageIds.length) return;
     await checkPackageStatus(getAllVisiblePackageIds(), { silent: true });
   };
+
+  const refreshStatusOnOpen = () =>
+    checkPackageStatus(getAllVisiblePackageIds(), { silent: true });
 
   const runScript = async () => {
     const selection = getSelection();
@@ -823,6 +877,19 @@ function initWingetInstallerSection({
     appendLog(entry.text, entry.level || "info");
   });
   cleanup.addCleanup(() => unsubscribeLog?.());
+  cleanup.addCleanup(() => {
+    disposed = true;
+    statusRequestToken += 1;
+  });
+
+  const handleToolsViewChanged = (event) => {
+    if (event?.detail?.toolView !== "winget-installer") return;
+    void refreshStatusOnOpen();
+  };
+  window.addEventListener("tools:view-changed", handleToolsViewChanged);
+  cleanup.addCleanup(() => {
+    window.removeEventListener("tools:view-changed", handleToolsViewChanged);
+  });
 
   controls.checkboxes().forEach((checkbox) => {
     checkbox.addEventListener("change", renderPreview);
