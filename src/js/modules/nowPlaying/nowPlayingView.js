@@ -1,28 +1,16 @@
 import { applyI18n, t } from "../i18n.js";
+import createControlsVisibility from "./controlsVisibility.js";
+import createFullscreenController from "./fullscreenController.js";
+import createImmersiveOverlayVisibility from "./immersiveOverlayVisibility.js";
 import LocalMusicProvider from "./localMusicProvider.js";
+import createPlaybackControlsView from "./playbackControlsView.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
 import PlaybackController from "./playbackController.js";
+import createNowPlayingPreferences from "./preferencesController.js";
 import MusicProviderRegistry from "./providerRegistry.js";
+import createVisualTransitionController from "./visualTransitionController.js";
 import buildNowPlayingMarkup from "./viewMarkup.js";
-
-function formatTime(value) {
-  const seconds = Math.max(0, Math.floor(Number(value) || 0));
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
-}
-
-function getStateData(result) {
-  if (result?.success === false) {
-    throw new Error(result.error?.message || "Unable to restore music library");
-  }
-  return result?.data ?? result ?? {};
-}
-
-function setButtonPressed(button, pressed) {
-  button?.classList.toggle("is-active", pressed);
-  button?.setAttribute("aria-pressed", String(pressed));
-}
-
+import { unwrapNowPlayingState } from "./viewUtils.js";
 export function createNowPlayingView({
   api = window.electron?.nowPlaying,
   element = null,
@@ -41,14 +29,23 @@ export function createNowPlayingView({
   const playlist = root.querySelector(".now-playing__playlist");
   const empty = root.querySelector(".now-playing__empty");
   const errorPanel = root.querySelector(".now-playing__error");
-  const title = root.querySelector(".now-playing__track-title");
-  const artist = root.querySelector(".now-playing__track-artist");
-  const artwork = root.querySelector(".now-playing__artwork");
-  const artworkFallback = root.querySelector(".now-playing__artwork-fallback");
-  const album = root.querySelector('[data-ui="album"]');
+  const dock = root.querySelector(".now-playing__dock");
+  const sidebar = root.querySelector(".now-playing__sidebar");
+  const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
+  const topbarZone = root.querySelector(".now-playing__topbar-reveal-zone");
+  const trackStage = root.querySelector(".now-playing__track-stage");
+  const playlistSection = root.querySelector(".now-playing__playlist-section");
+  const artworkLayers = Array.from(
+    root.querySelectorAll(".now-playing__artwork-layer"),
+  );
+  const metadataSlots = Array.from(
+    root.querySelectorAll(".now-playing__metadata-slot"),
+  );
   const progress = root.querySelector('[data-action="seek"]');
   const volume = root.querySelector('[data-action="volume"]');
   const status = root.querySelector(".now-playing__status");
+  const brandLabel = root.querySelector('[data-ui="brand-label"]');
+  const fullscreenButton = root.querySelector('[data-action="fullscreen"]');
   const playButton = root.querySelector('[data-action="play-pause"]');
   const muteButton = root.querySelector('[data-action="mute"]');
   const shuffleButton = root.querySelector('[data-action="shuffle"]');
@@ -66,96 +63,63 @@ export function createNowPlayingView({
   let initialized = false;
   let disposed = false;
   let initialPlaybackAttempted = false;
+  let latestSnapshot = null;
   let persistentSignature = "";
   let saveQueued = false;
   const renderPlaylist = createPlaylistRenderer(playlist);
-
-  function updateVisuals(snapshot) {
-    const track = snapshot.currentTrack;
-    visualLayers.forEach((layer, index) => {
-      layer.classList.toggle("is-visible", index === snapshot.activeLayerIndex);
-      layer.classList.toggle("is-active", index === snapshot.activeLayerIndex);
-      const video = mediaLayers[index];
-      video.classList.toggle(
-        "is-visible",
-        index === snapshot.activeLayerIndex && track?.kind === "video",
-      );
-      ambientLayers[index].classList.toggle(
-        "is-visible",
-        index === snapshot.activeLayerIndex && track?.kind !== "video",
-      );
-    });
-    if (!track) return;
-    const ambient = ambientLayers[snapshot.activeLayerIndex];
-    ambient.style.backgroundImage = track.artworkUrl
-      ? `url("${String(track.artworkUrl).replaceAll('"', "%22")}")`
-      : "";
-  }
-
-  function updateControls(snapshot) {
-    playButton
-      ?.querySelector("i")
-      ?.classList.toggle("fa-play", !snapshot.isPlaying);
-    playButton
-      ?.querySelector("i")
-      ?.classList.toggle("fa-pause", snapshot.isPlaying);
-    playButton?.setAttribute(
-      "aria-label",
-      t(snapshot.isPlaying ? "nowPlaying.pause" : "nowPlaying.play"),
-    );
-    setButtonPressed(shuffleButton, snapshot.shuffle);
-    setButtonPressed(repeatButton, snapshot.repeat !== "off");
-    if (repeatButton) {
-      repeatButton.dataset.mode = snapshot.repeat;
-      repeatButton.setAttribute(
-        "aria-label",
-        t(`nowPlaying.repeat.${snapshot.repeat}`),
-      );
-    }
-    if (progress) {
-      progress.max = String(snapshot.duration || 0);
-      progress.value = String(
-        Math.min(snapshot.currentTime, snapshot.duration || 0),
-      );
-      const progressPercent = snapshot.duration
-        ? (snapshot.currentTime / snapshot.duration) * 100
-        : 0;
-      progress.style.setProperty(
-        "--range-progress",
-        `${Math.min(100, progressPercent)}%`,
-      );
-      progress.setAttribute(
-        "aria-valuetext",
-        `${formatTime(snapshot.currentTime)} / ${formatTime(snapshot.duration)}`,
-      );
-    }
-    if (volume) {
-      const effectiveVolume = snapshot.muted ? 0 : snapshot.volume;
-      volume.value = String(effectiveVolume);
-      volume.style.setProperty("--range-progress", `${effectiveVolume * 100}%`);
-      volume.setAttribute(
-        "aria-valuetext",
-        `${Math.round(effectiveVolume * 100)}%`,
-      );
-    }
-    if (currentTime) currentTime.textContent = formatTime(snapshot.currentTime);
-    if (duration) duration.textContent = formatTime(snapshot.duration);
-    const muted = snapshot.muted || snapshot.volume === 0;
-    setButtonPressed(muteButton, muted);
-    muteButton?.querySelector("i")?.classList.toggle("fa-volume-high", !muted);
-    muteButton?.querySelector("i")?.classList.toggle("fa-volume-xmark", muted);
-    root.classList.toggle("is-playing", snapshot.isPlaying);
-  }
+  const controlsVisibility = createControlsVisibility({ root, dock });
+  const visualTransitions = createVisualTransitionController({
+    root,
+    mediaLayers,
+    visualLayers,
+    ambientLayers,
+    artworkLayers,
+    metadataSlots,
+    trackStage,
+    playlistSection,
+  });
+  const overlayVisibility = createImmersiveOverlayVisibility({
+    root,
+    sidebar,
+    sidebarZone,
+    topbarZone,
+  });
+  const fullscreen = createFullscreenController({
+    root,
+    button: fullscreenButton,
+    onError: (error) => {
+      status.textContent = error?.message || t("nowPlaying.error");
+    },
+  });
+  const preferences = createNowPlayingPreferences({
+    backgroundButton: root.querySelector('[data-action="background-playback"]'),
+    pinButton: root.querySelector('[data-action="pin-sidebar"]'),
+    overlayVisibility,
+    onChange: queuePersistence,
+  });
+  const updateControls = createPlaybackControlsView({
+    root,
+    controlsVisibility,
+    brandLabel,
+    playButton,
+    muteButton,
+    shuffleButton,
+    repeatButton,
+    progress,
+    volume,
+    currentTime,
+    duration,
+  });
 
   function queuePersistence() {
     if (!initialized || disposed) return;
-    const nextState = controller.getPersistentState();
+    const nextState = getPersistentState();
     const signature = JSON.stringify(nextState);
     if (signature === persistentSignature || saveQueued) return;
     saveQueued = true;
     queueMicrotask(async () => {
       saveQueued = false;
-      const state = controller.getPersistentState();
+      const state = getPersistentState();
       const currentSignature = JSON.stringify(state);
       if (currentSignature === persistentSignature || disposed) return;
       try {
@@ -172,22 +136,20 @@ export function createNowPlayingView({
     });
   }
 
+  function getPersistentState() {
+    return {
+      ...controller.getPersistentState(),
+      ...preferences.getState(),
+    };
+  }
+
   function render(snapshot) {
+    latestSnapshot = snapshot;
     renderPlaylist(snapshot);
-    updateVisuals(snapshot);
+    visualTransitions.update(snapshot);
     updateControls(snapshot);
-    const track = snapshot.currentTrack;
-    title.textContent = track?.title || t("nowPlaying.empty.title");
-    artist.textContent =
-      track?.artist ||
-      track?.album ||
-      (track ? t("nowPlaying.unknownArtist") : "");
-    album.textContent = track?.album || "";
-    artwork.hidden = !track?.artworkUrl;
-    artwork.classList.toggle("is-loaded", !!track?.artworkUrl);
-    artworkFallback.hidden = !!track?.artworkUrl;
-    if (track?.artworkUrl) artwork.src = track.artworkUrl;
     count.textContent = String(snapshot.queue.length);
+    root.classList.toggle("is-empty", snapshot.queue.length === 0);
     empty.hidden = snapshot.queue.length > 0;
     empty.classList.toggle("is-visible", snapshot.queue.length === 0);
     playlist.hidden = snapshot.queue.length === 0;
@@ -196,6 +158,12 @@ export function createNowPlayingView({
     root.querySelector('[data-ui="error-message"]').textContent =
       snapshot.error?.message || "";
     queuePersistence();
+  }
+
+  function onI18nChanged() {
+    applyI18n(root);
+    if (latestSnapshot) updateControls(latestSnapshot);
+    fullscreen.refresh();
   }
 
   async function importSource(source) {
@@ -240,6 +208,7 @@ export function createNowPlayingView({
   }
 
   async function handleAction(action, target) {
+    if (preferences.handleAction(action)) return true;
     if (action === "add-files") return importSource("files");
     if (action === "add-folder") return importSource("folder");
     if (action === "clear") return clearQueue();
@@ -249,6 +218,7 @@ export function createNowPlayingView({
     if (action === "shuffle") return controller.toggleShuffle();
     if (action === "repeat") return controller.cycleRepeat();
     if (action === "mute") return controller.toggleMute();
+    if (action === "fullscreen") return fullscreen.toggle();
     if (action === "retry") return controller.retry();
     const row = target.closest(".now-playing__track");
     if (action === "select-track")
@@ -280,7 +250,9 @@ export function createNowPlayingView({
   }
 
   function onWindowBlur() {
-    if (active) controller.suspend();
+    if (active && preferences.shouldSuspendInBackground()) {
+      controller.suspend();
+    }
   }
 
   function onWindowFocus() {
@@ -288,8 +260,11 @@ export function createNowPlayingView({
   }
 
   function onVisibilityChange() {
-    if (document.hidden) controller.suspend();
-    else if (active) void controller.resume();
+    if (document.hidden) {
+      if (preferences.shouldSuspendInBackground()) controller.suspend();
+      return;
+    }
+    if (active) void controller.resume();
   }
 
   root.addEventListener("click", onClick);
@@ -297,12 +272,14 @@ export function createNowPlayingView({
   root.addEventListener("input", onInput);
   window.addEventListener("blur", onWindowBlur);
   window.addEventListener("focus", onWindowFocus);
+  window.addEventListener("i18n:changed", onI18nChanged);
   document.addEventListener("visibilitychange", onVisibilityChange);
   const unsubscribe = controller.subscribe(render);
 
   const ready = (async () => {
     try {
-      const state = getStateData(await api.getState());
+      const state = unwrapNowPlayingState(await api.getState());
+      preferences.restore(state);
       const restored = provider.restore(state.playlist || state);
       controller.restoreState({ ...state, playlist: restored });
       applyI18n(root);
@@ -311,7 +288,7 @@ export function createNowPlayingView({
           autoplay: false,
         });
       }
-      persistentSignature = JSON.stringify(controller.getPersistentState());
+      persistentSignature = JSON.stringify(getPersistentState());
       initialized = true;
       if (active && controller.currentTrack) {
         initialPlaybackAttempted = true;
@@ -322,6 +299,7 @@ export function createNowPlayingView({
       status.textContent = error?.message || t("nowPlaying.error");
     }
     root.classList.add("is-ready");
+    await fullscreen.ready;
     return root;
   })();
 
@@ -330,7 +308,10 @@ export function createNowPlayingView({
     ready,
     onShow() {
       active = true;
-      root.classList.add("is-active");
+      root.classList.add("is-active", "is-visible");
+      visualTransitions.onShow();
+      controlsVisibility.onShow();
+      overlayVisibility.onShow();
       if (document.hidden || !initialized) return;
       if (!initialPlaybackAttempted && controller.currentTrack) {
         initialPlaybackAttempted = true;
@@ -341,7 +322,10 @@ export function createNowPlayingView({
     },
     onHide() {
       active = false;
-      root.classList.remove("is-active");
+      root.classList.remove("is-active", "is-visible");
+      controlsVisibility.onHide();
+      overlayVisibility.onHide();
+      fullscreen.onHide();
       controller.suspend();
     },
     dispose() {
@@ -350,11 +334,16 @@ export function createNowPlayingView({
       unsubscribe();
       controller.dispose();
       providers.dispose();
+      controlsVisibility.dispose();
+      overlayVisibility.dispose();
+      fullscreen.dispose();
+      visualTransitions.dispose();
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("input", onInput);
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", onWindowFocus);
+      window.removeEventListener("i18n:changed", onI18nChanged);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     },
   };

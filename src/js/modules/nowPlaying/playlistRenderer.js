@@ -39,6 +39,13 @@ function createTrackRow(track, index, currentTrackId, isPlaying) {
   duration.className = "now-playing__track-duration";
   duration.textContent = formatTime(track.duration);
 
+  const waveform = document.createElement("span");
+  waveform.className = "now-playing__waveform";
+  waveform.setAttribute("aria-hidden", "true");
+  waveform.append(
+    ...Array.from({ length: 4 }, () => document.createElement("span")),
+  );
+
   const remove = document.createElement("button");
   remove.type = "button";
   remove.className = "now-playing__track-remove";
@@ -49,7 +56,7 @@ function createTrackRow(track, index, currentTrackId, isPlaying) {
   const leading = document.createElement("span");
   leading.className = "now-playing__track-leading";
   leading.append(indexLabel, play);
-  row.append(leading, name, duration, remove);
+  row.append(leading, name, waveform, duration, remove);
   return row;
 }
 

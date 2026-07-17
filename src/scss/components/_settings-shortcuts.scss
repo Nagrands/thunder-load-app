@@ -170,8 +170,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 12px 22px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   background:
@@ -204,7 +204,8 @@
 
 .shortcut-editor__copy {
   display: grid;
-  gap: 4px;
+  gap: 6px;
+  justify-items: start;
   min-width: 0;
 }
 
@@ -219,15 +220,12 @@
   margin: 0;
   color: var(--color-text-main);
   font-size: 14px;
-  font-weight: 650;
-  line-height: 1.35;
 }
 
 .shortcut-editor__description {
   margin: 0;
   color: var(--color-quality);
   font-size: 12px;
-  line-height: 1.4;
 }
 
 .shortcut-editor__scope {
@@ -239,8 +237,8 @@
   border-radius: 999px;
   background: rgba(var(--color-accent-rgb), 0.08);
   color: var(--color-accent);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .shortcut-editor__controls {
@@ -253,21 +251,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 96px;
+  min-width: 88px;
   min-height: 34px;
-  padding: 0 11px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-bottom-color: rgba(255, 255, 255, 0.26);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.065);
+  padding: 0 8px;
+  border-radius: var(--border-radius);
+  background: var(--color-hover);
   color: var(--color-accent);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.24);
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
   white-space: nowrap;
+  letter-spacing: 0.12em;
 }
 
 .shortcut-editor__edit,
@@ -276,13 +271,12 @@
 .settings-shortcuts__reset-actions button {
   min-height: 36px;
   padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-main);
+  border-radius: 12px;
+  background: var(--color-hover);
+  color: var(--color-quality);
   font: inherit;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 500;
   cursor: pointer;
   transition:
     border-color 0.16s ease,
@@ -292,6 +286,7 @@
   &:hover {
     border-color: rgba(var(--color-accent-rgb), 0.4);
     background: rgba(var(--color-accent-rgb), 0.12);
+    color: var(--color-text-main);
     transform: translateY(-1px);
   }
 

@@ -36,6 +36,7 @@ const {
 const { registerAppUpdateIpcHandlers } = require("./appUpdateIpcHandlers");
 const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const { registerFileShellIpcHandlers } = require("./fileShellIpcHandlers");
+const { registerFullscreenIpcHandlers } = require("./fullscreenIpcHandlers");
 const { registerHistoryIpcHandlers } = require("./historyIpcHandlers");
 const {
   registerNowPlayingIpcHandlers,
@@ -832,6 +833,8 @@ function setupIpcHandlers(dependencies) {
     mainWindow,
     store,
   });
+
+  registerFullscreenIpcHandlers({ ipcMain, mainWindow });
 
   const formatVideoInfoResponse = (
     info,

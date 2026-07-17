@@ -80,6 +80,9 @@ try {
     "now-playing:import-folder",
     "now-playing:get-state",
     "now-playing:set-state",
+    "window:get-fullscreen",
+    "window:set-fullscreen",
+    "window:fullscreen-changed",
     "whats-new:ready",
     "whats-new:ack",
     "web:getStatus",
@@ -367,6 +370,11 @@ try {
    *   getState: () => Promise<any>,
    *   setState: (state: any) => Promise<any>,
    * }} nowPlaying
+   * @property {{
+   *   getState: () => Promise<{ success: boolean, data: { isFullscreen: boolean }|null, error: any }>,
+   *   setState: (enabled: boolean) => Promise<{ success: boolean, data: { isFullscreen: boolean }|null, error: any }>,
+   *   onChanged: (callback: (isFullscreen: boolean) => void) => (() => void)|undefined,
+   * }} fullscreen
    * @property {(cb: (v:any)=>void) => void} onVersion
    * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onWindowFocused
    * @property {(cb: (...args:any[])=>void) => (()=>void)|undefined} onProgress
@@ -474,6 +482,17 @@ try {
       importFolder: () => safeInvoke("now-playing:import-folder"),
       getState: () => safeInvoke("now-playing:get-state"),
       setState: (state) => safeInvoke("now-playing:set-state", state),
+    },
+
+    fullscreen: {
+      getState: () => safeInvoke("window:get-fullscreen"),
+      setState: (enabled) => safeInvoke("window:set-fullscreen", enabled),
+      onChanged: (callback) => {
+        if (typeof callback !== "function") return undefined;
+        return safeOn("window:fullscreen-changed", (payload) => {
+          callback(Boolean(payload?.isFullscreen));
+        });
+      },
     },
 
     // Совместимые подписки/вызовы, которые ждёт старый код

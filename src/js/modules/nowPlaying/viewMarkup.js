@@ -14,6 +14,27 @@ function iconButton(action, icon, labelKey, extraClass = "") {
   `;
 }
 
+function artworkLayer(index) {
+  return `
+    <div class="now-playing__artwork-layer" data-artwork-layer="${index}">
+      <img class="now-playing__artwork" alt="" />
+      <span class="now-playing__artwork-fallback">
+        <i class="fa-solid fa-music"></i>
+      </span>
+    </div>
+  `;
+}
+
+function metadataSlot(index) {
+  return `
+    <div class="now-playing__metadata-slot" data-metadata-slot="${index}">
+      <h1 class="now-playing__track-title"></h1>
+      <p class="now-playing__track-artist"></p>
+      <p class="now-playing__album"></p>
+    </div>
+  `;
+}
+
 export function buildNowPlayingMarkup() {
   return `
     <div class="now-playing__media-stack" aria-hidden="true">
@@ -29,60 +50,48 @@ export function buildNowPlayingMarkup() {
       <div class="now-playing__color-wash"></div>
     </div>
 
+    <div
+      class="now-playing__topbar-reveal-zone"
+      tabindex="0"
+      aria-label="${t("topbar.nav")}"
+    ></div>
+    <div
+      class="now-playing__sidebar-reveal-zone"
+      tabindex="0"
+      aria-label="${t("nowPlaying.playlist")}"
+    ></div>
+
     <div class="now-playing__layout">
-      <aside class="now-playing__sidebar" aria-labelledby="now-playing-title">
-        <div class="now-playing__metadata">
-          <span class="now-playing__now-label" data-i18n="nowPlaying.label">${t("nowPlaying.label")}</span>
-          <div class="now-playing__track-heading">
-            <div class="now-playing__track-copy">
-              <h1 id="now-playing-title" class="now-playing__track-title">—</h1>
-              <p class="now-playing__track-artist">—</p>
-            </div>
+      <aside class="now-playing__sidebar" aria-label="${t("nowPlaying.playlist")}">
+        <span class="now-playing__brand-label" data-ui="brand-label">${t("nowPlaying.label")}</span>
+        <div class="now-playing__library-heading">
+          <h2 class="now-playing__library-title" data-i18n="nowPlaying.libraryTitle">${t("nowPlaying.libraryTitle")}</h2>
+          <span class="now-playing__library-count" data-ui="playlist-count"></span>
+        </div>
+
+        <div class="now-playing__track-stage">
+          <div class="now-playing__artwork-stack" aria-hidden="true">
+            ${artworkLayer(0)}
+            ${artworkLayer(1)}
           </div>
-          <div class="now-playing__summary">
-            <div class="now-playing__artwork-frame" aria-hidden="true">
-              <img class="now-playing__artwork" alt="" hidden />
-              <span class="now-playing__artwork-fallback">
-                <i class="fa-solid fa-music"></i>
-              </span>
-            </div>
-            <div class="now-playing__metadata-row">
-              <i class="fa-solid fa-compact-disc" aria-hidden="true"></i>
-              <span class="now-playing__album" data-ui="album"></span>
-            </div>
+          <div class="now-playing__metadata-stage" aria-live="polite">
+            ${metadataSlot(0)}
+            ${metadataSlot(1)}
           </div>
         </div>
 
         <div class="now-playing__playlist-section">
           <div class="now-playing__playlist-header">
-            <div>
-              <span class="now-playing__playlist-label" data-i18n="nowPlaying.playlist">${t("nowPlaying.playlist")}</span>
-              <small data-ui="playlist-count"></small>
-            </div>
+            <span class="now-playing__playlist-label" data-i18n="nowPlaying.playlist">${t("nowPlaying.playlist")}</span>
             <div class="now-playing__playlist-actions">
+              ${iconButton("background-playback", "fa-solid fa-headphones", "nowPlaying.backgroundPlayback", "now-playing__preference-control")}
+              ${iconButton("pin-sidebar", "fa-solid fa-thumbtack", "nowPlaying.pinSidebar", "now-playing__preference-control")}
               ${iconButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles")}
               ${iconButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
               ${iconButton("clear", "fa-solid fa-trash", "nowPlaying.clear")}
             </div>
           </div>
-
           <div class="now-playing__playlist" role="listbox" aria-label="${t("nowPlaying.playlist")}"></div>
-          <div class="now-playing__empty">
-            <i class="fa-solid fa-music" aria-hidden="true"></i>
-            <h2 data-i18n="nowPlaying.empty.title">${t("nowPlaying.empty.title")}</h2>
-            <p data-i18n="nowPlaying.empty.hint">${t("nowPlaying.empty.hint")}</p>
-            <div class="now-playing__empty-actions">
-              <button class="now-playing__empty-button" type="button" data-action="add-files" data-i18n="nowPlaying.addFiles">${t("nowPlaying.addFiles")}</button>
-              <button class="now-playing__empty-button" type="button" data-action="add-folder" data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</button>
-            </div>
-          </div>
-          <div class="now-playing__error" role="alert" hidden>
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-            <p data-ui="error-message"></p>
-            <div class="now-playing__error-actions">
-              <button class="now-playing__empty-button now-playing__retry" type="button" data-action="retry" data-i18n="nowPlaying.retry">${t("nowPlaying.retry")}</button>
-            </div>
-          </div>
         </div>
       </aside>
 
@@ -122,9 +131,27 @@ export function buildNowPlayingMarkup() {
             data-i18n-aria="nowPlaying.volume"
             aria-label="${t("nowPlaying.volume")}"
           />
+          ${iconButton("fullscreen", "fa-solid fa-expand", "nowPlaying.enterFullscreen", "now-playing__control--fullscreen")}
         </div>
       </section>
     </div>
+
+    <section class="now-playing__scene-overlay now-playing__empty" aria-labelledby="now-playing-empty-title">
+      <i class="fa-solid fa-music" aria-hidden="true"></i>
+      <h2 id="now-playing-empty-title" data-i18n="nowPlaying.empty.title">${t("nowPlaying.empty.title")}</h2>
+      <p data-i18n="nowPlaying.empty.hint">${t("nowPlaying.empty.hint")}</p>
+      <div class="now-playing__empty-actions">
+        <button class="now-playing__empty-button" type="button" data-action="add-files" data-i18n="nowPlaying.addFiles">${t("nowPlaying.addFiles")}</button>
+        <button class="now-playing__empty-button" type="button" data-action="add-folder" data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</button>
+      </div>
+    </section>
+    <section class="now-playing__scene-overlay now-playing__error" role="alert" hidden>
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <p data-ui="error-message"></p>
+      <div class="now-playing__error-actions">
+        <button class="now-playing__empty-button now-playing__retry" type="button" data-action="retry" data-i18n="nowPlaying.retry">${t("nowPlaying.retry")}</button>
+      </div>
+    </section>
     <div class="now-playing__status" role="status" aria-live="polite"></div>
   `;
 }

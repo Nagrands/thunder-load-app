@@ -4,7 +4,7 @@
 
 | What changed                             | What you get                                                                                                                                            |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now Playing music mode was added         | A new tab plays local audio and video files, preserves the current queue, and combines a cinematic backdrop, playlist, and compact Thunder-styled controls |
+| Now Playing music mode was added         | A full-window media scene plays local audio and video files, preserves the queue, keeps playing in the background, and provides a pinnable hover panel, native fullscreen, and auto-hiding controls |
 | Subtitle downloads were added            | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                                                 |
 | App settings were simplified             | The version block now shows only Thunder and Electron, with compact icon actions and accessible tooltips                                                |
 | Shortcut management was redesigned       | All 16 shortcuts now live in Settings, where they can be searched, reassigned with conflict checks, reset, and transferred through configuration export/import |

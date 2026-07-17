@@ -39,6 +39,8 @@ function defaultState() {
     muted: false,
     shuffle: false,
     repeat: "off",
+    backgroundPlayback: true,
+    sidebarPinned: false,
   };
 }
 
@@ -112,6 +114,12 @@ function sanitizeState(value) {
     muted: Boolean(source.muted),
     shuffle: Boolean(source.shuffle),
     repeat: REPEAT_MODES.has(source.repeat) ? source.repeat : "off",
+    backgroundPlayback:
+      typeof source.backgroundPlayback === "boolean"
+        ? source.backgroundPlayback
+        : true,
+    sidebarPinned:
+      typeof source.sidebarPinned === "boolean" ? source.sidebarPinned : false,
   };
 }
 

@@ -144,6 +144,8 @@ describe("nowPlayingIpcHandlers", () => {
       },
       volume: 3,
       repeat: "invalid",
+      backgroundPlayback: false,
+      sidebarPinned: true,
     });
 
     expect(result.success).toBe(true);
@@ -152,6 +154,8 @@ describe("nowPlayingIpcHandlers", () => {
       selectedTrackId: "gone",
       volume: 1,
       repeat: "off",
+      backgroundPlayback: false,
+      sidebarPinned: true,
     });
     expect(result.data.playlist.tracks).toEqual([
       expect.objectContaining({
@@ -160,6 +164,36 @@ describe("nowPlayingIpcHandlers", () => {
         playbackUrl: null,
       }),
     ]);
+  });
+
+  test("defaults legacy and invalid Now Playing preferences safely", async () => {
+    const { CHANNELS } = register();
+    storeValues["nowPlaying.state"] = {
+      playlist: { tracks: [] },
+    };
+
+    const legacyResult = await handlers[CHANNELS.NOW_PLAYING_GET_STATE]();
+    const invalidResult = await handlers[CHANNELS.NOW_PLAYING_SET_STATE](null, {
+      playlist: { tracks: [] },
+      backgroundPlayback: "false",
+      sidebarPinned: 1,
+    });
+
+    expect(legacyResult.data).toMatchObject({
+      backgroundPlayback: true,
+      sidebarPinned: false,
+    });
+    expect(invalidResult.data).toMatchObject({
+      backgroundPlayback: true,
+      sidebarPinned: false,
+    });
+    expect(store.set).toHaveBeenCalledWith(
+      "nowPlaying.state",
+      expect.objectContaining({
+        backgroundPlayback: true,
+        sidebarPinned: false,
+      }),
+    );
   });
 
   test("rejects an oversized state with a structured error", async () => {
