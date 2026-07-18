@@ -125,6 +125,10 @@ describe("registerTabs backup transfer", () => {
       "products",
       "now-playing",
     ]);
+    expect(addTabMock.mock.calls[3].slice(1, 3)).toEqual([
+      "tabs.nowPlaying",
+      "fa-solid fa-circle-play",
+    ]);
     expect(renderBackupMock).not.toHaveBeenCalled();
   });
 

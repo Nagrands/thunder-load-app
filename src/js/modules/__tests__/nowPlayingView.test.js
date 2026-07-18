@@ -2,7 +2,11 @@ jest.mock("../i18n.js", () => ({
   applyI18n: jest.fn(),
   t: (key) => key,
 }));
+jest.mock("../modals.js", () => ({
+  showConfirmationDialog: jest.fn().mockResolvedValue(true),
+}));
 
+import { showConfirmationDialog } from "../modals.js";
 import { createNowPlayingView } from "../nowPlaying/nowPlayingView.js";
 
 let fullscreenChangedHandler = null;
@@ -303,6 +307,66 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test("shows YouTube preparation without a false playing indicator", async () => {
+    const youtubeTrack = {
+      ...sampleTrack,
+      id: "youtube:demo123",
+      providerId: "youtube",
+      sourceRef: "https://www.youtube.com/watch?v=demo123",
+      title: "YouTube video",
+      kind: "video",
+    };
+    let resolveYouTube;
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 2,
+          catalog: { tracks: [sampleTrack, youtubeTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: sampleTrack.id,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+      resolveYouTubeTrack: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveYouTube = resolve;
+          }),
+      ),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const row = view.element.querySelector(
+      '.now-playing__track[data-track-id="youtube:demo123"]',
+    );
+
+    row.querySelector('[data-action="select-track"]').click();
+
+    expect(row.classList.contains("is-loading")).toBe(true);
+    expect(row.classList.contains("is-playing")).toBe(false);
+    expect(row.getAttribute("aria-busy")).toBe("true");
+    expect(
+      view.element.querySelector('[data-ui="brand-label"]').textContent,
+    ).toBe("nowPlaying.playback.preparing");
+
+    resolveYouTube({
+      success: true,
+      data: {
+        src: "https://media.example/video.mp4",
+        mimeType: "video/mp4",
+      },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(row.classList.contains("is-loading")).toBe(false);
+    expect(row.classList.contains("is-playing")).toBe(true);
+    view.dispose();
+  });
+
   test("loads restored media silently and attempts playback on first show", async () => {
     const api = {
       getState: jest.fn().mockResolvedValue({
@@ -582,6 +646,14 @@ describe("Now Playing view", () => {
     expect(secondRow.getAttribute("aria-selected")).toBe("true");
 
     secondRow.querySelector('[data-action="remove-track"]').click();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(showConfirmationDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "nowPlaying.library.deleteTitle",
+        confirmText: "nowPlaying.library.deleteAction",
+      }),
+    );
     expect(
       view.element.querySelector('.now-playing__track[data-track-id="second"]'),
     ).toBeNull();
@@ -589,6 +661,212 @@ describe("Now Playing view", () => {
     expect(view.element.querySelector(".now-playing__empty").hidden).toBe(
       false,
     );
+    view.dispose();
+  });
+
+  test("renders the V2 media library, playlists and persistent mini-player", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 2,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [
+            {
+              id: "favorites",
+              title: "Favorites",
+              trackIds: ["demo"],
+              createdAt: "1",
+              updatedAt: "1",
+            },
+          ],
+          activePlaylistId: "media-library",
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="show-library"]').click();
+    const library = view.element.querySelector('[data-ui="library-view"]');
+    expect(library.hidden).toBe(false);
+    expect(view.element.classList.contains("is-library-view")).toBe(true);
+    expect(
+      library.querySelectorAll(".player-library__playlist-card"),
+    ).toHaveLength(2);
+    expect(
+      library.querySelector(
+        '.player-library__playlist-card[data-playlist-id="media-library"]',
+      ),
+    ).not.toBeNull();
+    expect(library.querySelector('[data-ui="mini-player"]').hidden).toBe(false);
+    expect(library.querySelector('[data-ui="mini-title"]').textContent).toBe(
+      "Demo track",
+    );
+    const sidebarSwitcher = view.element.querySelector(
+      '[data-ui="sidebar-playlist-switcher"]',
+    );
+    expect(
+      Array.from(sidebarSwitcher.options).map((option) => option.value),
+    ).toEqual(["media-library", "favorites"]);
+    expect(sidebarSwitcher.value).toBe("media-library");
+    const libraryCard = library.querySelector(
+      '.player-library__playlist-card[data-playlist-id="media-library"]',
+    );
+    const libraryTrack = library.querySelector(
+      '.player-library__track[data-track-id="demo"]',
+    );
+    view.element
+      .querySelectorAll(".now-playing__video")
+      .forEach((media) => media.dispatchEvent(new Event("timeupdate")));
+    expect(
+      library.querySelector(
+        '.player-library__playlist-card[data-playlist-id="media-library"]',
+      ),
+    ).toBe(libraryCard);
+    expect(
+      library.querySelector('.player-library__track[data-track-id="demo"]'),
+    ).toBe(libraryTrack);
+
+    library
+      .querySelector(
+        '.player-library__playlist-card[data-playlist-id="favorites"]',
+      )
+      .click();
+    expect(
+      library.querySelector('[data-ui="active-playlist-title"]').textContent,
+    ).toBe("Favorites");
+    expect(
+      library.querySelector('[data-ui="playlist-management-actions"]').hidden,
+    ).toBe(false);
+    expect(sidebarSwitcher.value).toBe("favorites");
+
+    sidebarSwitcher.value = "media-library";
+    sidebarSwitcher.dispatchEvent(new Event("change", { bubbles: true }));
+    await Promise.resolve();
+    expect(
+      library.querySelector('[data-ui="active-playlist-title"]').textContent,
+    ).toBe("nowPlaying.library.title");
+    expect(sidebarSwitcher.value).toBe("media-library");
+
+    library.querySelector('[data-action="show-player"]').click();
+    expect(library.hidden).toBe(true);
+    expect(view.element.classList.contains("is-library-view")).toBe(false);
+    view.dispose();
+  });
+
+  test("creates a playlist with the accessible library dialog", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 2,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    view.element
+      .querySelector('[data-action="open-create-playlist-dialog"]')
+      .click();
+
+    const dialog = view.element.querySelector('[data-ui="library-dialog"]');
+    const input = dialog.querySelector('[data-ui="library-dialog-input"]');
+    expect(dialog.getAttribute("aria-hidden")).toBe("false");
+    input.value = "Road trip";
+    dialog
+      .querySelector('[data-ui="library-dialog-form"]')
+      .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+
+    expect(dialog.getAttribute("aria-hidden")).toBe("true");
+    expect(
+      Array.from(
+        view.element.querySelectorAll(".player-library__playlist-copy strong"),
+      ).some((label) => label.textContent === "Road trip"),
+    ).toBe(true);
+    expect(api.setState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        version: 2,
+        activePlaylistId: "media-library",
+        playlists: expect.arrayContaining([
+          expect.objectContaining({ title: "Road trip" }),
+        ]),
+      }),
+    );
+    view.dispose();
+  });
+
+  test("imports a single YouTube video from the library dialog", async () => {
+    const youtubeTrack = {
+      ...sampleTrack,
+      id: "youtube:demo123",
+      providerId: "youtube",
+      sourceRef: "https://www.youtube.com/watch?v=demo123",
+      title: "Thunder video",
+      kind: "video",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 2,
+          catalog: { tracks: [] },
+          playlists: [],
+          activePlaylistId: "media-library",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+      importYouTubeVideo: jest.fn().mockResolvedValue({
+        success: true,
+        data: { track: youtubeTrack },
+      }),
+      resolveYouTubeTrack: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          src: "https://media.example/video.mp4",
+          mimeType: "video/mp4",
+        },
+      }),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    view.element.querySelector('[data-action="open-youtube-dialog"]').click();
+    const dialog = view.element.querySelector('[data-ui="library-dialog"]');
+    dialog.querySelector('[data-ui="library-dialog-input"]').value =
+      youtubeTrack.sourceRef;
+    dialog
+      .querySelector('[data-ui="library-dialog-form"]')
+      .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.importYouTubeVideo).toHaveBeenCalledWith(youtubeTrack.sourceRef);
+    expect(
+      view.element.querySelector(
+        '.player-library__track[data-track-id="youtube:demo123"]',
+      ),
+    ).not.toBeNull();
+    expect(api.resolveYouTubeTrack).not.toHaveBeenCalled();
+    expect(
+      view.element.querySelector('[data-ui="library-operation-status"]')
+        .textContent,
+    ).toContain("nowPlaying.youtube.added");
     view.dispose();
   });
 });

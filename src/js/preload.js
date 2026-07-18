@@ -78,6 +78,8 @@ try {
     "get-whats-new",
     "now-playing:import-files",
     "now-playing:import-folder",
+    "now-playing:import-youtube-video",
+    "now-playing:resolve-youtube-track",
     "now-playing:get-state",
     "now-playing:set-state",
     "window:get-fullscreen",
@@ -465,6 +467,10 @@ try {
     nowPlaying: {
       importFiles: () => safeInvoke("now-playing:import-files"),
       importFolder: () => safeInvoke("now-playing:import-folder"),
+      importYouTubeVideo: (url) =>
+        safeInvoke("now-playing:import-youtube-video", url),
+      resolveYouTubeTrack: (sourceRef, options = {}) =>
+        safeInvoke("now-playing:resolve-youtube-track", sourceRef, options),
       getState: () => safeInvoke("now-playing:get-state"),
       setState: (state) => safeInvoke("now-playing:set-state", state),
     },

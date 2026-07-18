@@ -33,4 +33,59 @@ describe("modalManager", () => {
     expect(releaseOverlayActive).toHaveBeenCalledWith("confirmation-modal");
     expect(repairScrollLocks).toHaveBeenCalledTimes(1);
   });
+
+  test("registers and controls feature-owned dialogs", () => {
+    const {
+      closeRegisteredModal,
+      openRegisteredModal,
+      registerModal,
+    } = require("../modalManager.js");
+    const dialog = document.createElement("div");
+    document.body.appendChild(dialog);
+    const unregister = registerModal(dialog);
+
+    openRegisteredModal(dialog);
+    expect(dialog.getAttribute("open")).toBe("");
+    expect(dialog.getAttribute("aria-hidden")).toBe("false");
+
+    closeRegisteredModal(dialog);
+    expect(dialog.hasAttribute("open")).toBe(false);
+    expect(dialog.getAttribute("aria-hidden")).toBe("true");
+    expect(() => unregister()).not.toThrow();
+  });
+
+  test("opens feature dialogs without making the document inert when requested", () => {
+    const {
+      closeRegisteredModal,
+      openRegisteredModal,
+      registerModal,
+    } = require("../modalManager.js");
+    const dialog = document.createElement("dialog");
+    const show = jest.fn(() => dialog.setAttribute("open", ""));
+    const showModal = jest.fn();
+    const close = jest.fn(() => dialog.removeAttribute("open"));
+    Object.defineProperties(dialog, {
+      show: { value: show },
+      showModal: { value: showModal },
+      close: { value: close },
+      open: { get: () => dialog.hasAttribute("open") },
+    });
+    document.body.appendChild(dialog);
+    const unregister = registerModal(dialog);
+
+    openRegisteredModal(dialog, { blocking: false });
+
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(showModal).not.toHaveBeenCalled();
+    expect(dialog.getAttribute("aria-hidden")).toBe("false");
+
+    closeRegisteredModal(dialog);
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(dialog.open).toBe(false);
+    closeRegisteredModal(dialog);
+    openRegisteredModal(dialog, { blocking: false });
+    expect(show).toHaveBeenCalledTimes(2);
+    expect(dialog.style.display).toBe("");
+    unregister();
+  });
 });

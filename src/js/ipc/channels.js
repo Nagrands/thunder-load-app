@@ -46,6 +46,8 @@ const CHANNELS = Object.freeze({
   GET_WHATS_NEW: "get-whats-new",
   NOW_PLAYING_IMPORT_FILES: "now-playing:import-files",
   NOW_PLAYING_IMPORT_FOLDER: "now-playing:import-folder",
+  NOW_PLAYING_IMPORT_YOUTUBE_VIDEO: "now-playing:import-youtube-video",
+  NOW_PLAYING_RESOLVE_YOUTUBE_TRACK: "now-playing:resolve-youtube-track",
   NOW_PLAYING_GET_STATE: "now-playing:get-state",
   NOW_PLAYING_SET_STATE: "now-playing:set-state",
   WINDOW_GET_FULLSCREEN: "window:get-fullscreen",

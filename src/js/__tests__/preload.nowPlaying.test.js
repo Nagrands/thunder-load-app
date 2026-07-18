@@ -24,16 +24,31 @@ describe("preload Now Playing API", () => {
 
   test("exposes typed wrappers for all Now Playing invokes", async () => {
     const api = mockExposeInMainWorld.mock.calls[0][1];
-    const state = { version: 1 };
+    const state = { version: 2 };
 
     await api.nowPlaying.importFiles();
     await api.nowPlaying.importFolder();
+    await api.nowPlaying.importYouTubeVideo(
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    );
+    await api.nowPlaying.resolveYouTubeTrack(
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    );
     await api.nowPlaying.getState();
     await api.nowPlaying.setState(state);
 
     expect(mockInvoke.mock.calls).toEqual([
       ["now-playing:import-files"],
       ["now-playing:import-folder"],
+      [
+        "now-playing:import-youtube-video",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      ],
+      [
+        "now-playing:resolve-youtube-track",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        {},
+      ],
       ["now-playing:get-state"],
       ["now-playing:set-state", state],
     ]);

@@ -20,6 +20,10 @@ describe("i18n translations split", () => {
       "Обновление загружено",
     );
     expect(translations.en["backup.common.hide"]).toBe("Hide");
+    expect(translations.ru["tabs.nowPlaying"]).toBe("Плеер");
+    expect(translations.en["tabs.nowPlaying"]).toBe("Player");
+    expect(translations.ru["nowPlaying.library.title"]).toBe("Медиатека");
+    expect(translations.en["nowPlaying.youtube.add"]).toBe("Add YouTube video");
   });
 
   test("t and applyI18n work with merged translation sections", async () => {

@@ -1771,6 +1771,8 @@ function toPersistentPreviewMetadata(info) {
     playlistDuration,
     webpage_url: info.webpage_url || "",
     original_url: info.original_url || "",
+    channel: info.channel || "",
+    uploader: info.uploader || "",
   };
 }
 
@@ -2256,7 +2258,7 @@ function checkYoutubeRateLimitCooldown(url) {
   }
 }
 
-function getVideoInfo(url, token = null) {
+function getVideoInfo(url, token = null, { forceRefresh = false } = {}) {
   log.info(`Getting video information for URL: ${url}`);
   const key = normalizeCacheKey(url);
   try {
@@ -2264,7 +2266,9 @@ function getVideoInfo(url, token = null) {
   } catch (err) {
     return Promise.reject(err);
   }
-  if (videoInfoCache.has(key)) {
+  if (forceRefresh) {
+    videoInfoCache.delete(key);
+  } else if (videoInfoCache.has(key)) {
     const cached = videoInfoCache.get(key);
     if (Date.now() - cached.timestamp < getVideoInfoCacheTtl(cached.data)) {
       log.info(`[download] Using cached video info for ${key}`);

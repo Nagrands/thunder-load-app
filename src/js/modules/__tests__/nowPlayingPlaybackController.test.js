@@ -66,7 +66,9 @@ describe("Now Playing playback controller", () => {
 
     await controller.selectTrack("two");
 
-    expect(providers.resolveTrack).toHaveBeenCalledWith(tracks[1]);
+    expect(providers.resolveTrack).toHaveBeenCalledWith(tracks[1], {
+      forceRefresh: false,
+    });
     expect(controller.currentTrack.id).toBe("two");
     expect(controller.activeLayerIndex).toBe(1);
     expect(mediaLayers[1].src).toContain("/two.mp3");
@@ -117,6 +119,65 @@ describe("Now Playing playback controller", () => {
     expect(controller.getPersistentState()).not.toHaveProperty("currentTime");
   });
 
+  test("restores a V2 active playlist without taking ownership of library CRUD", () => {
+    const { controller } = createController();
+    controller.restoreState({
+      version: 2,
+      catalog: { tracks },
+      playlists: [
+        {
+          id: "favorites",
+          title: "Favorites",
+          trackIds: ["three", "one"],
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      activePlaylistId: "favorites",
+      selectedTrackId: "one",
+      volume: 0.7,
+      muted: false,
+      shuffle: true,
+      repeat: "all",
+    });
+
+    expect(controller.queue.map((track) => track.id)).toEqual(["three", "one"]);
+    expect(controller.currentTrack.id).toBe("one");
+    expect(controller.getPersistentState()).toMatchObject({
+      version: 2,
+      activePlaylistId: "favorites",
+      selectedTrackId: "one",
+      volume: 0.7,
+      shuffle: true,
+      repeat: "all",
+    });
+    expect(controller.getPersistentState().playlists[0].trackIds).toEqual([
+      "three",
+      "one",
+    ]);
+  });
+
+  test("updates its queue from a library model state", () => {
+    const { controller } = createController();
+    controller.setQueue(tracks, { selectedTrackId: "two" });
+
+    controller.setLibraryState({
+      version: 2,
+      catalog: { tracks },
+      playlists: [
+        {
+          id: "short-list",
+          title: "Short list",
+          trackIds: ["two", "three"],
+        },
+      ],
+      activePlaylistId: "short-list",
+    });
+
+    expect(controller.queue.map((track) => track.id)).toEqual(["two", "three"]);
+    expect(controller.currentTrack.id).toBe("two");
+  });
+
   test("pauses while hidden and resumes only when it was playing", async () => {
     const { controller } = createController();
     controller.setQueue(tracks);
@@ -147,5 +208,55 @@ describe("Now Playing playback controller", () => {
     expect(controller.currentTrack.id).toBe("one");
     expect(controller.getSnapshot().error.code).toBe("TRACK_UNAVAILABLE");
     expect(providers.resolveTrack).not.toHaveBeenCalled();
+  });
+
+  test("shows a distinct loading state and pauses the old track while resolving", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    let resolvePlayback;
+    providers.resolveTrack.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePlayback = resolve;
+        }),
+    );
+
+    const selection = controller.selectTrack("two");
+
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTrack: { id: "two" },
+      isPlaying: false,
+      isLoading: true,
+      loadingTrackId: "two",
+    });
+    expect(mediaLayers[1].pause).toHaveBeenCalled();
+
+    resolvePlayback({
+      src: "file:///two.mp3",
+      mimeType: "audio/mpeg",
+      posterUrl: "",
+    });
+    await selection;
+
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTrack: { id: "two" },
+      isPlaying: true,
+      isLoading: false,
+      loadingTrackId: null,
+    });
+  });
+
+  test("requests a forced refresh only when retrying playback", async () => {
+    const { controller, providers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+    providers.resolveTrack.mockClear();
+
+    await controller.retry();
+
+    expect(providers.resolveTrack).toHaveBeenCalledWith(tracks[0], {
+      forceRefresh: true,
+    });
   });
 });

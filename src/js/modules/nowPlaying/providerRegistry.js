@@ -25,12 +25,12 @@ export class MusicProviderRegistry {
     return this.providers.get(providerId) || null;
   }
 
-  async resolveTrack(track) {
+  async resolveTrack(track, options = {}) {
     const provider = this.get(track?.providerId);
     if (!provider) {
       throw new Error(`Unknown music provider: ${track?.providerId || ""}`);
     }
-    return provider.resolveTrack(track);
+    return provider.resolveTrack(track, options);
   }
 
   dispose() {

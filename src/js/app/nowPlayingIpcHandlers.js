@@ -2,19 +2,22 @@ const path = require("path");
 const log = require("electron-log");
 const { CHANNELS } = require("../ipc/channels");
 const {
-  createTrackId,
   importMediaPaths,
-  isSupportedMediaPath,
-  normalizeSourcePath,
   refreshAvailability,
   scanMediaDirectory,
 } = require("./nowPlayingLibrary");
+const {
+  MAX_TRACKS,
+  STATE_VERSION,
+  canonicalizeYouTubeUrl,
+  defaultState,
+  getTrackKey,
+  sanitizeState,
+} = require("./nowPlayingState");
+const { createYouTubeHandlers } = require("./nowPlayingYouTube");
 
 const STATE_KEY = "nowPlaying.state";
-const STATE_VERSION = 1;
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
-const MAX_TRACKS = 5000;
-const REPEAT_MODES = new Set(["off", "all", "one"]);
 
 function success(data) {
   return { success: true, data, error: null };
@@ -24,108 +27,14 @@ function failure(code, message) {
   return { success: false, data: null, error: { code, message } };
 }
 
-function defaultState() {
-  return {
-    version: STATE_VERSION,
-    playlist: {
-      id: "local-library",
-      providerId: "local",
-      title: "Local library",
-      sourceDescriptor: { type: "local" },
-      tracks: [],
-    },
-    selectedTrackId: null,
-    volume: 1,
-    muted: false,
-    shuffle: false,
-    repeat: "off",
-    backgroundPlayback: true,
-    sidebarPinned: false,
-  };
-}
-
-function sanitizeText(value, maxLength = 512) {
-  return typeof value === "string" ? value.slice(0, maxLength) : "";
-}
-
-function sanitizeTrack(track) {
-  if (!track || typeof track !== "object") return null;
-  const sourceRef = sanitizeText(track.sourceRef, 32768);
-  if (
-    !sourceRef ||
-    sourceRef.includes("\u0000") ||
-    !path.isAbsolute(sourceRef) ||
-    !isSupportedMediaPath(sourceRef)
-  ) {
-    return null;
-  }
-  const duration = Number(track.duration);
-  return {
-    id: sanitizeText(track.id, 128) || createTrackId(sourceRef),
-    providerId: "local",
-    sourceRef: path.resolve(sourceRef),
-    title: sanitizeText(track.title, 1024) || path.basename(sourceRef),
-    artist: sanitizeText(track.artist, 1024),
-    album: sanitizeText(track.album, 1024),
-    duration: Number.isFinite(duration) && duration >= 0 ? duration : 0,
-    artworkUrl:
-      typeof track.artworkUrl === "string"
-        ? track.artworkUrl.slice(0, 32768)
-        : null,
-    kind: track.kind === "video" ? "video" : "audio",
-    availability: track.availability === "missing" ? "missing" : "available",
-    mimeType: sanitizeText(track.mimeType, 128),
-  };
-}
-
-function sanitizeState(value) {
-  const source = value && typeof value === "object" ? value : {};
-  const sourceTracks = Array.isArray(source.playlist?.tracks)
-    ? source.playlist.tracks
-    : [];
-  const tracks = [];
-  const seen = new Set();
-  for (const sourceTrack of sourceTracks.slice(0, MAX_TRACKS)) {
-    const track = sanitizeTrack(sourceTrack);
-    if (!track) continue;
-    const normalized = normalizeSourcePath(track.sourceRef);
-    if (seen.has(normalized)) continue;
-    seen.add(normalized);
-    tracks.push(track);
-  }
-  const volume = Number(source.volume);
-  const selectedTrackId =
-    sanitizeText(source.selectedTrackId, 128) ||
-    sanitizeText(source.currentTrackId, 128) ||
-    null;
-  return {
-    version: STATE_VERSION,
-    playlist: {
-      id: sanitizeText(source.playlist?.id, 128) || "local-library",
-      providerId: "local",
-      title: sanitizeText(source.playlist?.title, 256) || "Local library",
-      sourceDescriptor: { type: "local" },
-      tracks,
-    },
-    selectedTrackId: tracks.some((track) => track.id === selectedTrackId)
-      ? selectedTrackId
-      : tracks[0]?.id || null,
-    volume: Number.isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 1,
-    muted: Boolean(source.muted),
-    shuffle: Boolean(source.shuffle),
-    repeat: REPEAT_MODES.has(source.repeat) ? source.repeat : "off",
-    backgroundPlayback:
-      typeof source.backgroundPlayback === "boolean"
-        ? source.backgroundPlayback
-        : true,
-    sidebarPinned:
-      typeof source.sidebarPinned === "boolean" ? source.sidebarPinned : false,
-  };
-}
-
 function readState(store) {
   try {
-    return sanitizeState(store.get(STATE_KEY, defaultState()));
+    const stored = store.get(STATE_KEY, defaultState());
+    const state = sanitizeState(stored);
+    if (stored?.version !== STATE_VERSION) {
+      store.set(STATE_KEY, state);
+    }
+    return state;
   } catch (error) {
     log.warn("[now-playing] Failed to read state:", error);
     return defaultState();
@@ -146,12 +55,11 @@ function writeState(store, state) {
 
 async function hydrateState(state) {
   const tracks = await Promise.all(
-    state.playlist.tracks.map((track) => refreshAvailability(track)),
+    state.catalog.tracks.map((track) =>
+      track.providerId === "local" ? refreshAvailability(track) : track,
+    ),
   );
-  return {
-    ...state,
-    playlist: { ...state.playlist, tracks },
-  };
+  return { ...state, catalog: { tracks } };
 }
 
 function resolveToolPath(resolver, store) {
@@ -162,15 +70,61 @@ function resolveToolPath(resolver, store) {
   }
 }
 
+function appendImportedTracks(state, imported) {
+  const existingByKey = new Map(
+    state.catalog.tracks.map((track) => [
+      `${track.providerId}:${getTrackKey(track)}`,
+      track,
+    ]),
+  );
+  const availableSlots = Math.max(0, MAX_TRACKS - state.catalog.tracks.length);
+  const added = imported
+    .filter(
+      (track) =>
+        !existingByKey.has(`${track.providerId}:${getTrackKey(track)}`),
+    )
+    .slice(0, availableSlots);
+  const addedByKey = new Map(
+    added.map((track) => [`${track.providerId}:${getTrackKey(track)}`, track]),
+  );
+  const importedIds = imported
+    .map((track) => {
+      const key = `${track.providerId}:${getTrackKey(track)}`;
+      return existingByKey.get(key)?.id || addedByKey.get(key)?.id;
+    })
+    .filter(Boolean);
+  const playlists = state.playlists.map((playlist) => {
+    const shouldAppend = playlist.id === state.activePlaylistId;
+    if (!shouldAppend) return playlist;
+    return {
+      ...playlist,
+      trackIds: [...new Set([...playlist.trackIds, ...importedIds])],
+    };
+  });
+  return {
+    added,
+    importedIds,
+    state: {
+      ...state,
+      catalog: { tracks: [...state.catalog.tracks, ...added] },
+      playlists,
+      selectedTrackId: state.selectedTrackId || importedIds[0] || null,
+    },
+  };
+}
+
 function registerNowPlayingIpcHandlers({
   app,
   dialog,
   ffmpegPathResolver,
   ffprobePathResolver,
+  getVideoInfo,
+  getVideoPreview,
   ipcMain,
   mainWindow,
   store,
 }) {
+  const youtube = createYouTubeHandlers({ getVideoInfo, getVideoPreview });
   const importOptions = () => ({
     artworkDir: path.join(app.getPath("userData"), "now-playing-artwork"),
     ffmpegPath: resolveToolPath(ffmpegPathResolver, store),
@@ -179,33 +133,13 @@ function registerNowPlayingIpcHandlers({
 
   const importFiles = async (filePaths) => {
     const imported = await importMediaPaths(filePaths, importOptions());
-    const state = readState(store);
-    const existingPaths = new Set(
-      state.playlist.tracks.map((track) =>
-        normalizeSourcePath(track.sourceRef),
-      ),
-    );
-    const availableSlots = Math.max(
-      0,
-      MAX_TRACKS - state.playlist.tracks.length,
-    );
-    const added = imported
-      .filter(
-        (track) => !existingPaths.has(normalizeSourcePath(track.sourceRef)),
-      )
-      .slice(0, availableSlots);
-    const nextState = writeState(store, {
-      ...state,
-      playlist: {
-        ...state.playlist,
-        tracks: [...state.playlist.tracks, ...added],
-      },
-      selectedTrackId: state.selectedTrackId || added[0]?.id || null,
-    });
+    const result = appendImportedTracks(readState(store), imported);
+    const nextState = writeState(store, result.state);
     return success({
       canceled: false,
-      added,
-      tracks: added,
+      added: result.added,
+      tracks: result.added,
+      importedTrackIds: result.importedIds,
       state: await hydrateState(nextState),
     });
   };
@@ -270,15 +204,62 @@ function registerNowPlayingIpcHandlers({
         folderPath.includes("\u0000") ||
         !path.isAbsolute(folderPath)
       ) {
-        return failure("INVALID_PATH", "Invalid music folder path");
+        return failure("INVALID_PATH", "Invalid media folder path");
       }
-      const filePaths = await scanMediaDirectory(folderPath);
-      return await importFiles(filePaths);
+      return await importFiles(await scanMediaDirectory(folderPath));
     } catch (error) {
       log.error("[now-playing] Folder import failed:", error);
       return failure(error.code || "IMPORT_FAILED", error.message);
     }
   });
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_IMPORT_YOUTUBE_VIDEO,
+    async (_event, url) => {
+      const canonical = canonicalizeYouTubeUrl(url);
+      const currentState = readState(store);
+      const existingTrack = canonical
+        ? currentState.catalog.tracks.find(
+            (track) =>
+              track.providerId === "youtube" &&
+              getTrackKey(track) === canonical.videoId,
+          )
+        : null;
+      if (existingTrack) {
+        const appended = appendImportedTracks(currentState, [existingTrack]);
+        const state = await hydrateState(writeState(store, appended.state));
+        return success({
+          track: existingTrack,
+          added: [],
+          importedTrackIds: appended.importedIds,
+          state,
+        });
+      }
+      const result = await youtube.importVideo(url);
+      if (!result.success) return result;
+      try {
+        const appended = appendImportedTracks(currentState, [result.data]);
+        const state = await hydrateState(writeState(store, appended.state));
+        return success({
+          track: result.data,
+          added: appended.added,
+          importedTrackIds: appended.importedIds,
+          state,
+        });
+      } catch (error) {
+        log.error("[now-playing] YouTube import failed:", error);
+        return failure(error.code || "IMPORT_FAILED", error.message);
+      }
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_RESOLVE_YOUTUBE_TRACK,
+    async (_event, sourceRef, options = {}) =>
+      youtube.resolveTrack(sourceRef, {
+        forceRefresh: options?.forceRefresh === true,
+      }),
+  );
 
   ipcMain.handle(CHANNELS.NOW_PLAYING_GET_STATE, async () => {
     try {
@@ -310,6 +291,7 @@ module.exports = {
   MAX_STATE_BYTES,
   STATE_KEY,
   STATE_VERSION,
+  appendImportedTracks,
   defaultState,
   registerNowPlayingIpcHandlers,
   sanitizeState,

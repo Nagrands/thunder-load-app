@@ -15,15 +15,27 @@ export function createPlaybackControlsView({
   duration,
 }) {
   return (snapshot) => {
-    playButton
-      ?.querySelector("i")
-      ?.classList.toggle("fa-play", !snapshot.isPlaying);
-    playButton
-      ?.querySelector("i")
-      ?.classList.toggle("fa-pause", snapshot.isPlaying);
+    const playIcon = playButton?.querySelector("i");
+    playIcon?.classList.toggle(
+      "fa-play",
+      !snapshot.isPlaying && !snapshot.isLoading,
+    );
+    playIcon?.classList.toggle("fa-pause", snapshot.isPlaying);
+    playIcon?.classList.toggle("fa-spinner", snapshot.isLoading);
+    playIcon?.classList.toggle("fa-spin", snapshot.isLoading);
+    if (playButton) {
+      playButton.disabled = snapshot.isLoading;
+      playButton.setAttribute("aria-busy", String(snapshot.isLoading));
+    }
     playButton?.setAttribute(
       "aria-label",
-      t(snapshot.isPlaying ? "nowPlaying.pause" : "nowPlaying.play"),
+      t(
+        snapshot.isLoading
+          ? "nowPlaying.playback.preparing"
+          : snapshot.isPlaying
+            ? "nowPlaying.pause"
+            : "nowPlaying.play",
+      ),
     );
     setPressedState(shuffleButton, snapshot.shuffle);
     setPressedState(repeatButton, snapshot.repeat !== "off");
@@ -69,10 +81,13 @@ export function createPlaybackControlsView({
     muteButton?.querySelector("i")?.classList.toggle("fa-volume-high", !muted);
     muteButton?.querySelector("i")?.classList.toggle("fa-volume-xmark", muted);
     root.classList.toggle("is-playing", snapshot.isPlaying);
+    root.classList.toggle("is-loading", snapshot.isLoading);
     brandLabel.textContent = t(
-      snapshot.currentTrack && !snapshot.isPlaying
-        ? "nowPlaying.paused"
-        : "nowPlaying.label",
+      snapshot.isLoading
+        ? "nowPlaying.playback.preparing"
+        : snapshot.currentTrack && !snapshot.isPlaying
+          ? "nowPlaying.paused"
+          : "nowPlaying.label",
     );
     controlsVisibility.setPlaybackState(snapshot.isPlaying);
   };

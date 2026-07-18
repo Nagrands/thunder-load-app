@@ -4,6 +4,7 @@
 
 | What changed                             | What you get                                                                                                                                                                                        |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Player and media library were added      | The Music tab is now a universal **Player** with named playlists, sidebar switching, and non-blocking YouTube imports; a dedicated status clearly shows when a stream is still being prepared       |
 | Now Playing music mode was added         | A full-window media scene plays local audio and video files, preserves the queue, keeps playing in the background, and provides a pinnable hover panel, native fullscreen, and auto-hiding controls |
 | Subtitle downloads were added            | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                                                                                             |
 | App settings were simplified             | The version block now shows only Thunder and Electron, with compact icon actions and accessible tooltips                                                                                            |

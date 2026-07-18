@@ -817,6 +817,8 @@ function setupIpcHandlers(dependencies) {
     dialog,
     ffmpegPathResolver: getRuntimeFfmpegPath,
     ffprobePathResolver: getRuntimeFfprobePath,
+    getVideoInfo,
+    getVideoPreview,
     ipcMain,
     mainWindow,
     store,

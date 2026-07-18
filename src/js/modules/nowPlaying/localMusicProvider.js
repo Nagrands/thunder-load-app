@@ -86,7 +86,16 @@ export class LocalMusicProvider {
       throw new Error(`Now Playing preload API does not implement ${method}()`);
     }
     const payload = unwrapResult(await this.api[method]());
-    return this.mergeTracks(extractTracks(payload));
+    const importedTracks = extractTracks(payload);
+    const playlist = this.mergeTracks(importedTracks);
+    return {
+      ...playlist,
+      importedTrackIds: Array.isArray(payload?.importedTrackIds)
+        ? payload.importedTrackIds.map(String)
+        : importedTracks.map(
+            (track, index) => normalizeLocalTrack(track, index).id,
+          ),
+    };
   }
 
   restore(descriptor = {}) {

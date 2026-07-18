@@ -6,7 +6,13 @@ function formatTime(value) {
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-function createTrackRow(track, index, currentTrackId, isPlaying) {
+function createTrackRow(
+  track,
+  index,
+  currentTrackId,
+  isPlaying,
+  loadingTrackId,
+) {
   const row = document.createElement("div");
   const unavailable = track.availability !== "available";
   row.className = "now-playing__track";
@@ -17,6 +23,8 @@ function createTrackRow(track, index, currentTrackId, isPlaying) {
   if (track.id === currentTrackId) row.setAttribute("aria-current", "true");
   row.classList.toggle("is-current", track.id === currentTrackId);
   row.classList.toggle("is-playing", track.id === currentTrackId && isPlaying);
+  row.classList.toggle("is-loading", track.id === loadingTrackId);
+  row.setAttribute("aria-busy", String(track.id === loadingTrackId));
   row.classList.toggle("is-unavailable", unavailable);
 
   const indexLabel = document.createElement("span");
@@ -28,8 +36,11 @@ function createTrackRow(track, index, currentTrackId, isPlaying) {
   play.className = "now-playing__track-play";
   play.dataset.action = "select-track";
   play.setAttribute("aria-label", `${t("nowPlaying.play")} ${track.title}`);
-  play.disabled = unavailable;
-  play.innerHTML = '<i class="fa-solid fa-play" aria-hidden="true"></i>';
+  play.disabled = unavailable || track.id === loadingTrackId;
+  play.innerHTML =
+    track.id === loadingTrackId
+      ? '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>'
+      : '<i class="fa-solid fa-play" aria-hidden="true"></i>';
 
   const name = document.createElement("span");
   name.className = "now-playing__track-name";
@@ -75,6 +86,7 @@ export function createPlaylistRenderer(playlist) {
             index,
             snapshot.currentTrack?.id,
             snapshot.isPlaying,
+            snapshot.loadingTrackId,
           ),
         ),
       );
@@ -84,6 +96,17 @@ export function createPlaylistRenderer(playlist) {
       const current = row.dataset.trackId === snapshot.currentTrack?.id;
       row.classList.toggle("is-current", current);
       row.classList.toggle("is-playing", current && snapshot.isPlaying);
+      const loading = row.dataset.trackId === snapshot.loadingTrackId;
+      row.classList.toggle("is-loading", loading);
+      row.setAttribute("aria-busy", String(loading));
+      const play = row.querySelector(".now-playing__track-play");
+      const icon = play?.querySelector("i");
+      if (play && icon) {
+        play.disabled = row.classList.contains("is-unavailable") || loading;
+        icon.className = loading
+          ? "fa-solid fa-spinner fa-spin"
+          : "fa-solid fa-play";
+      }
       row.setAttribute("aria-selected", String(current));
       if (current) row.setAttribute("aria-current", "true");
       else row.removeAttribute("aria-current");

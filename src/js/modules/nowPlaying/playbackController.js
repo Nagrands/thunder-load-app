@@ -1,3 +1,8 @@
+import {
+  getActiveTracksFromState,
+  normalizeMediaLibraryState,
+} from "./mediaLibraryModel.js";
+
 const REPEAT_MODES = new Set(["off", "all", "one"]);
 
 function clamp(value, min, max) {
@@ -27,6 +32,8 @@ export class PlaybackController {
     this.currentIndex = -1;
     this.activeLayerIndex = 0;
     this.isPlaying = false;
+    this.isLoading = false;
+    this.loadingTrackId = null;
     this.isSuspended = false;
     this.resumeOnShow = false;
     this.shuffle = false;
@@ -34,6 +41,7 @@ export class PlaybackController {
     this.volume = 1;
     this.muted = false;
     this.error = null;
+    this.libraryState = null;
     this.selectionVersion = 0;
     this.animationFrame = null;
     this.bindMediaEvents();
@@ -62,6 +70,8 @@ export class PlaybackController {
       currentIndex: this.currentIndex,
       activeLayerIndex: this.activeLayerIndex,
       isPlaying: this.isPlaying,
+      isLoading: this.isLoading,
+      loadingTrackId: this.loadingTrackId,
       isSuspended: this.isSuspended,
       shuffle: this.shuffle,
       repeat: this.repeat,
@@ -80,6 +90,9 @@ export class PlaybackController {
   }
 
   setQueue(tracks = [], { selectedTrackId = null } = {}) {
+    this.selectionVersion += 1;
+    this.isLoading = false;
+    this.loadingTrackId = null;
     const previousId = selectedTrackId || this.currentTrack?.id;
     this.queue = Array.isArray(tracks) ? [...tracks] : [];
     this.currentIndex = previousId
@@ -101,12 +114,30 @@ export class PlaybackController {
     this.volume = clamp(state.volume ?? 1, 0, 1);
     this.muted = state.muted === true;
     this.applyVolume();
+    if (state.version === 2 || state.catalog || state.playlists) {
+      this.libraryState = normalizeMediaLibraryState(state);
+      this.setQueue(getActiveTracksFromState(this.libraryState), {
+        selectedTrackId: state.selectedTrackId,
+      });
+      return;
+    }
+    this.libraryState = null;
     this.setQueue(state.playlist?.tracks || state.tracks || [], {
       selectedTrackId: state.selectedTrackId,
     });
   }
 
   getPersistentState() {
+    if (this.libraryState) {
+      return {
+        ...normalizeMediaLibraryState(this.libraryState),
+        selectedTrackId: this.currentTrack?.id || null,
+        volume: this.volume,
+        muted: this.muted,
+        shuffle: this.shuffle,
+        repeat: this.repeat,
+      };
+    }
     return {
       version: 1,
       playlist: {
@@ -123,7 +154,17 @@ export class PlaybackController {
     };
   }
 
-  async selectTrack(trackId, { autoplay = true } = {}) {
+  setLibraryState(state, { selectedTrackId = null } = {}) {
+    this.libraryState = normalizeMediaLibraryState(state);
+    this.setQueue(getActiveTracksFromState(this.libraryState), {
+      selectedTrackId:
+        selectedTrackId ||
+        this.currentTrack?.id ||
+        this.libraryState.selectedTrackId,
+    });
+  }
+
+  async selectTrack(trackId, { autoplay = true, forceRefresh = false } = {}) {
     const index = this.queue.findIndex((track) => track.id === trackId);
     if (index === -1) return false;
     const track = this.queue[index];
@@ -131,20 +172,34 @@ export class PlaybackController {
       this.currentIndex = index;
       this.error = { code: "TRACK_UNAVAILABLE", message: "Track unavailable" };
       this.isPlaying = false;
+      this.isLoading = false;
+      this.loadingTrackId = null;
       this.emit();
       return false;
     }
 
     const version = ++this.selectionVersion;
+    safeMediaCall(this.activeMedia, "pause");
+    this.stopProgressFrames();
     this.currentIndex = index;
+    this.isPlaying = false;
+    this.isLoading = true;
+    this.loadingTrackId = track.id;
     this.error = null;
     this.emit();
     try {
-      const playback = await this.providers.resolveTrack(track);
+      const playback = await this.providers.resolveTrack(track, {
+        forceRefresh,
+      });
       if (version !== this.selectionVersion) return false;
       this.loadPlayback(track, playback);
-      if (autoplay && !this.isSuspended) await this.play();
-      else this.emit();
+      if (autoplay && !this.isSuspended) {
+        await this.play({ selectionVersion: version });
+      } else {
+        this.isLoading = false;
+        this.loadingTrackId = null;
+        this.emit();
+      }
       return true;
     } catch (error) {
       if (version !== this.selectionVersion) return false;
@@ -153,6 +208,8 @@ export class PlaybackController {
         message: error?.message || "Unable to load track",
       };
       this.isPlaying = false;
+      this.isLoading = false;
+      this.loadingTrackId = null;
       this.emit();
       return false;
     }
@@ -175,21 +232,34 @@ export class PlaybackController {
     this.emit();
   }
 
-  async play() {
+  async play({ selectionVersion = null } = {}) {
     if (!this.currentTrack) return false;
     if (!this.activeMedia?.src) {
       return this.selectTrack(this.currentTrack.id, { autoplay: true });
     }
     try {
-      const result = safeMediaCall(this.activeMedia, "play");
+      const media = this.activeMedia;
+      const result = safeMediaCall(media, "play");
       if (result && typeof result.catch === "function") await result;
+      if (
+        (selectionVersion !== null &&
+          selectionVersion !== this.selectionVersion) ||
+        media !== this.activeMedia
+      ) {
+        safeMediaCall(media, "pause");
+        return false;
+      }
       this.isPlaying = true;
+      this.isLoading = false;
+      this.loadingTrackId = null;
       this.error = null;
       this.startProgressFrames();
       this.emit();
       return true;
     } catch (error) {
       this.isPlaying = false;
+      this.isLoading = false;
+      this.loadingTrackId = null;
       this.error = {
         code: "PLAYBACK_BLOCKED",
         message: error?.message || "Playback was blocked",
@@ -200,8 +270,11 @@ export class PlaybackController {
   }
 
   pause() {
+    if (this.isLoading) this.selectionVersion += 1;
     safeMediaCall(this.activeMedia, "pause");
     this.isPlaying = false;
+    this.isLoading = false;
+    this.loadingTrackId = null;
     this.stopProgressFrames();
     this.emit();
   }
@@ -291,7 +364,10 @@ export class PlaybackController {
 
   retry() {
     return this.currentTrack
-      ? this.selectTrack(this.currentTrack.id, { autoplay: true })
+      ? this.selectTrack(this.currentTrack.id, {
+          autoplay: true,
+          forceRefresh: true,
+        })
       : false;
   }
 
@@ -309,6 +385,8 @@ export class PlaybackController {
       media.addEventListener("error", () => {
         if (media !== this.activeMedia) return;
         this.isPlaying = false;
+        this.isLoading = false;
+        this.loadingTrackId = null;
         this.stopProgressFrames();
         this.error = {
           code: "MEDIA_LOAD_FAILED",

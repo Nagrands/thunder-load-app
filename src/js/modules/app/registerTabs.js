@@ -245,7 +245,7 @@ export async function registerTabs(mainView) {
   tabs.addTab(
     "now-playing",
     t("tabs.nowPlaying"),
-    "fa-solid fa-music",
+    "fa-solid fa-circle-play",
     () => {
       void renderNowPlayingTab(wrappers.nowPlayingWrapper);
       return wrappers.nowPlayingWrapper;

@@ -2,6 +2,10 @@ import LocalMusicProvider, {
   normalizeLocalTrack,
 } from "../nowPlaying/localMusicProvider.js";
 import MusicProviderRegistry from "../nowPlaying/providerRegistry.js";
+import YouTubeProvider, {
+  canonicalizeYouTubeUrl,
+  normalizeYouTubeTrack,
+} from "../nowPlaying/youtubeProvider.js";
 
 describe("Now Playing providers", () => {
   test("normalizes metadata and deduplicates local paths", () => {
@@ -33,6 +37,7 @@ describe("Now Playing providers", () => {
       importFiles: jest.fn().mockResolvedValue({
         success: true,
         data: {
+          importedTrackIds: ["second"],
           tracks: [
             {
               id: "second",
@@ -56,6 +61,7 @@ describe("Now Playing providers", () => {
       "first",
       "second",
     ]);
+    expect(playlist.importedTrackIds).toEqual(["second"]);
   });
 
   test("resolves local files into playback DTOs and rejects missing tracks", async () => {
@@ -102,5 +108,104 @@ describe("Now Playing providers", () => {
     ).resolves.toEqual({ src: "demo" });
     registry.dispose();
     expect(provider.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  test("canonicalizes and imports a single YouTube video", async () => {
+    const api = {
+      importYouTubeVideo: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          track: {
+            videoId: "abcdefghijk",
+            title: "Thunder video",
+            channel: "Thunder",
+            duration: 123,
+            thumbnail: "https://img.example/cover.jpg",
+          },
+        },
+      }),
+      resolveYouTubeTrack: jest.fn(),
+    };
+    const provider = new YouTubeProvider(api);
+
+    const track = await provider.importSource(
+      "https://youtu.be/abcdefghijk?feature=shared",
+    );
+
+    expect(api.importYouTubeVideo).toHaveBeenCalledWith(
+      "https://www.youtube.com/watch?v=abcdefghijk",
+    );
+    expect(track).toEqual(
+      expect.objectContaining({
+        id: "youtube:abcdefghijk",
+        providerId: "youtube",
+        title: "Thunder video",
+        artist: "Thunder",
+        kind: "video",
+      }),
+    );
+  });
+
+  test("rejects YouTube playlist URLs and invalid hosts", () => {
+    expect(() =>
+      canonicalizeYouTubeUrl(
+        "https://www.youtube.com/watch?v=abcdefghijk&list=PL123",
+      ),
+    ).toThrow(
+      expect.objectContaining({ code: "YOUTUBE_PLAYLIST_UNSUPPORTED" }),
+    );
+    expect(() =>
+      canonicalizeYouTubeUrl("https://example.com/watch?v=abcdefghijk"),
+    ).toThrow(expect.objectContaining({ code: "INVALID_YOUTUBE_URL" }));
+  });
+
+  test("restores canonical YouTube tracks and resolves fresh playback URLs", async () => {
+    const api = {
+      importYouTubeVideo: jest.fn(),
+      resolveYouTubeTrack: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          src: "https://stream.example/fresh",
+          mimeType: "video/mp4",
+        },
+      }),
+    };
+    const provider = new YouTubeProvider(api);
+    const track = normalizeYouTubeTrack({
+      sourceRef: "https://youtu.be/abcdefghijk",
+      title: "Video",
+      playback: { src: "https://expired.example" },
+    });
+
+    expect(provider.restore({ tracks: [track, track] })).toHaveLength(1);
+    await expect(provider.resolveTrack(track)).resolves.toEqual({
+      src: "https://stream.example/fresh",
+      mimeType: "video/mp4",
+      posterUrl: "",
+    });
+    expect(api.resolveYouTubeTrack).toHaveBeenCalledWith(
+      "https://www.youtube.com/watch?v=abcdefghijk",
+      { forceRefresh: false },
+    );
+  });
+
+  test("surfaces structured YouTube resolve errors", async () => {
+    const provider = new YouTubeProvider({
+      importYouTubeVideo: jest.fn(),
+      resolveYouTubeTrack: jest.fn().mockResolvedValue({
+        success: false,
+        error: { code: "YOUTUBE_PRIVATE", message: "Private video" },
+      }),
+    });
+
+    await expect(
+      provider.resolveTrack({
+        providerId: "youtube",
+        sourceRef: "https://youtu.be/abcdefghijk",
+      }),
+    ).rejects.toMatchObject({
+      code: "YOUTUBE_PRIVATE",
+      message: "Private video",
+    });
   });
 });

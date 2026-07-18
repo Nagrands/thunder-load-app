@@ -1,8 +1,14 @@
 import { applyI18n, t } from "../i18n.js";
+import { showConfirmationDialog } from "../modals.js";
 import createControlsVisibility from "./controlsVisibility.js";
 import createFullscreenController from "./fullscreenController.js";
 import createImmersiveOverlayVisibility from "./immersiveOverlayVisibility.js";
 import LocalMusicProvider from "./localMusicProvider.js";
+import {
+  createMediaLibraryModel,
+  MEDIA_LIBRARY_ID,
+} from "./mediaLibraryModel.js";
+import createMediaLibraryView from "./mediaLibraryView.js";
 import createPlaybackControlsView from "./playbackControlsView.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
 import PlaybackController from "./playbackController.js";
@@ -11,6 +17,7 @@ import MusicProviderRegistry from "./providerRegistry.js";
 import createVisualTransitionController from "./visualTransitionController.js";
 import buildNowPlayingMarkup from "./viewMarkup.js";
 import { unwrapNowPlayingState } from "./viewUtils.js";
+import YouTubeProvider from "./youtubeProvider.js";
 export function createNowPlayingView({
   api = window.electron?.nowPlaying,
   element = null,
@@ -23,8 +30,10 @@ export function createNowPlayingView({
 
   const mediaLayers = Array.from(root.querySelectorAll(".now-playing__video"));
   const provider = new LocalMusicProvider(api);
+  const youtubeProvider = new YouTubeProvider(api);
   const providers = new MusicProviderRegistry();
   providers.register(provider);
+  providers.register(youtubeProvider);
   const controller = new PlaybackController({ providers, mediaLayers });
   const playlist = root.querySelector(".now-playing__playlist");
   const empty = root.querySelector(".now-playing__empty");
@@ -65,7 +74,9 @@ export function createNowPlayingView({
   let initialPlaybackAttempted = false;
   let latestSnapshot = null;
   let persistentSignature = "";
+  let playbackPersistenceKey = "";
   let saveQueued = false;
+  let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
   const controlsVisibility = createControlsVisibility({ root, dock });
   const visualTransitions = createVisualTransitionController({
@@ -110,6 +121,10 @@ export function createNowPlayingView({
     currentTime,
     duration,
   });
+  const libraryView = createMediaLibraryView({
+    root,
+    onDialogSubmit: handleLibraryDialogSubmit,
+  });
 
   function queuePersistence() {
     if (!initialized || disposed) return;
@@ -137,8 +152,20 @@ export function createNowPlayingView({
   }
 
   function getPersistentState() {
+    const playbackState = controller.getPersistentState();
+    if (libraryModel) {
+      return {
+        ...libraryModel.getState(),
+        selectedTrackId: playbackState.selectedTrackId,
+        volume: playbackState.volume,
+        muted: playbackState.muted,
+        shuffle: playbackState.shuffle,
+        repeat: playbackState.repeat,
+        ...preferences.getState(),
+      };
+    }
     return {
-      ...controller.getPersistentState(),
+      ...playbackState,
       ...preferences.getState(),
     };
   }
@@ -157,12 +184,26 @@ export function createNowPlayingView({
     errorPanel.classList.toggle("is-visible", !!snapshot.error);
     root.querySelector('[data-ui="error-message"]').textContent =
       snapshot.error?.message || "";
-    queuePersistence();
+    if (libraryModel) libraryView.renderPlayback(snapshot);
+    const nextPlaybackPersistenceKey = JSON.stringify({
+      selectedTrackId: snapshot.currentTrack?.id || null,
+      volume: snapshot.volume,
+      muted: snapshot.muted,
+      shuffle: snapshot.shuffle,
+      repeat: snapshot.repeat,
+    });
+    if (nextPlaybackPersistenceKey !== playbackPersistenceKey) {
+      playbackPersistenceKey = nextPlaybackPersistenceKey;
+      queuePersistence();
+    }
   }
 
   function onI18nChanged() {
     applyI18n(root);
     if (latestSnapshot) updateControls(latestSnapshot);
+    if (libraryModel && latestSnapshot) {
+      libraryView.render(libraryModel.getState(), latestSnapshot);
+    }
     fullscreen.refresh();
   }
 
@@ -171,10 +212,15 @@ export function createNowPlayingView({
     try {
       const previousIds = new Set(provider.tracks.map((track) => track.id));
       const imported = await provider.importSource(source);
-      controller.setQueue(imported.tracks);
-      const firstNewTrack = imported.tracks.find(
-        (track) => !previousIds.has(track.id),
+      const importedIds = new Set(imported.importedTrackIds || []);
+      const incomingTracks = imported.tracks.filter(
+        (track) => importedIds.has(track.id) || !previousIds.has(track.id),
       );
+      const addedIds = libraryModel.addTracks(incomingTracks);
+      syncLibraryQueue();
+      const firstNewTrack = libraryModel
+        .getState()
+        .catalog.tracks.find((track) => addedIds.includes(track.id));
       if (firstNewTrack) await controller.selectTrack(firstNewTrack.id);
       status.textContent = "";
     } catch (error) {
@@ -182,25 +228,130 @@ export function createNowPlayingView({
     }
   }
 
-  function removeTrack(trackId) {
-    const wasCurrent = controller.currentTrack?.id === trackId;
-    const playlistState = provider.removeTrack(trackId);
-    if (!playlistState.tracks.length) {
-      clearQueue();
-      return;
+  async function importYouTube(url) {
+    const loadingMessage = t("nowPlaying.youtube.fetching");
+    status.textContent = loadingMessage;
+    libraryView.setOperationStatus(loadingMessage, { loading: true });
+    try {
+      const track = await youtubeProvider.importSource(url);
+      libraryModel.addTracks([track]);
+      syncLibraryQueue();
+      const addedMessage = t("nowPlaying.youtube.added");
+      status.textContent = addedMessage;
+      libraryView.setOperationStatus(addedMessage);
+      return true;
+    } catch (error) {
+      const message = error?.message || t("nowPlaying.error");
+      libraryView.showDialogError(message);
+      libraryView.setOperationStatus(message, { error: true });
+      status.textContent = message;
+      return false;
     }
-    controller.setQueue(playlistState.tracks);
+  }
+
+  function syncLibraryQueue({ selectedTrackId = null } = {}) {
+    if (!libraryModel) return;
+    controller.setLibraryState(libraryModel.getState(), {
+      selectedTrackId:
+        selectedTrackId || controller.currentTrack?.id || undefined,
+    });
+    libraryView.render(libraryModel.getState(), latestSnapshot);
+    queuePersistence();
+  }
+
+  async function handleLibraryDialogSubmit(mode, value, context = {}) {
+    if (mode === "youtube") return importYouTube(value);
+    if (mode === "create") {
+      libraryModel.createPlaylist(value);
+      libraryView.render(libraryModel.getState(), latestSnapshot);
+      queuePersistence();
+      return true;
+    }
+    if (mode === "rename") {
+      const activePlaylist = libraryView.getActivePlaylist();
+      if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
+        return false;
+      }
+      libraryModel.renamePlaylist(activePlaylist.id, value);
+      libraryView.render(libraryModel.getState(), latestSnapshot);
+      queuePersistence();
+      return true;
+    }
+    if (mode === "addTrack") {
+      const added = libraryModel.addTrackToPlaylist(context.trackId, value);
+      if (!added) {
+        libraryView.showDialogError(t("nowPlaying.playlists.alreadyAdded"));
+        return false;
+      }
+      libraryView.render(libraryModel.getState(), latestSnapshot);
+      queuePersistence();
+      return true;
+    }
+    return false;
+  }
+
+  async function removeFromActivePlaylist(trackId) {
+    const activePlaylist = libraryView.getActivePlaylist();
+    if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
+      return deleteCatalogTrack(trackId);
+    }
+    const wasCurrent = controller.currentTrack?.id === trackId;
+    const wasPlaying = controller.isPlaying;
+    libraryModel.removeTrackFromPlaylist(trackId, activePlaylist.id);
+    syncLibraryQueue();
     if (wasCurrent && controller.currentTrack) {
       void controller.selectTrack(controller.currentTrack.id, {
-        autoplay: controller.isPlaying,
+        autoplay: wasPlaying,
       });
     }
+    return true;
+  }
+
+  async function deleteCatalogTrack(trackId) {
+    const track = libraryModel
+      .getState()
+      .catalog.tracks.find((item) => item.id === trackId);
+    const confirmed = await showConfirmationDialog({
+      title: t("nowPlaying.library.deleteTitle"),
+      message: t("nowPlaying.library.deleteConfirm", {
+        title: track?.title || t("nowPlaying.library.unknownItem"),
+      }),
+      confirmText: t("nowPlaying.library.deleteAction"),
+    });
+    if (!confirmed) return false;
+    const wasCurrent = controller.currentTrack?.id === trackId;
+    const wasPlaying = controller.isPlaying;
+    libraryModel.deleteFromCatalog(trackId);
+    if (wasCurrent) controller.pause();
+    syncLibraryQueue();
+    if (wasCurrent && controller.currentTrack) {
+      void controller.selectTrack(controller.currentTrack.id, {
+        autoplay: wasPlaying,
+      });
+    }
+    return true;
+  }
+
+  function removeTrack(trackId) {
+    return removeFromActivePlaylist(trackId);
   }
 
   function clearQueue() {
     controller.pause();
-    provider.clear();
-    controller.setQueue([]);
+    const state = libraryModel.getState();
+    const activePlaylist = libraryView.getActivePlaylist();
+    if (activePlaylist?.id === MEDIA_LIBRARY_ID) {
+      state.catalog.tracks.forEach((track) =>
+        libraryModel.deleteFromCatalog(track.id),
+      );
+      provider.clear();
+      youtubeProvider.restore([]);
+    } else if (activePlaylist) {
+      [...(activePlaylist.trackIds || [])].forEach((trackId) =>
+        libraryModel.removeTrackFromPlaylist(trackId, activePlaylist.id),
+      );
+    }
+    syncLibraryQueue();
     mediaLayers.forEach((media) => {
       media.removeAttribute("src");
       media.load();
@@ -220,6 +371,63 @@ export function createNowPlayingView({
     if (action === "mute") return controller.toggleMute();
     if (action === "fullscreen") return fullscreen.toggle();
     if (action === "retry") return controller.retry();
+    if (action === "show-library") return libraryView.show();
+    if (action === "show-player") return libraryView.hide();
+    if (action === "open-create-playlist-dialog")
+      return libraryView.openDialog("create");
+    if (action === "open-rename-playlist-dialog")
+      return libraryView.openDialog("rename");
+    if (action === "open-youtube-dialog")
+      return libraryView.openDialog("youtube");
+    if (action === "open-add-to-playlist-dialog") {
+      return libraryView.openDialog("addTrack", {
+        trackId: target.dataset.trackId,
+      });
+    }
+    if (action === "close-library-dialog") return libraryView.closeDialog();
+    if (action === "select-playlist") {
+      return selectPlaylist(target.dataset.playlistId);
+    }
+    if (action === "select-library-track") {
+      return controller.selectTrack(target.dataset.trackId);
+    }
+    if (action === "remove-from-playlist") {
+      return removeFromActivePlaylist(target.dataset.trackId);
+    }
+    if (action === "delete-from-catalog") {
+      return deleteCatalogTrack(target.dataset.trackId);
+    }
+    if (
+      action === "move-library-track-up" ||
+      action === "move-library-track-down"
+    ) {
+      const activePlaylist = libraryView.getActivePlaylist();
+      const offset = action.endsWith("-up") ? -1 : 1;
+      libraryModel.reorderTrack(
+        activePlaylist.id,
+        target.dataset.trackId,
+        Number(target.dataset.trackIndex) + offset,
+      );
+      syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
+      return true;
+    }
+    if (action === "delete-playlist") {
+      const activePlaylist = libraryView.getActivePlaylist();
+      if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
+        return false;
+      }
+      const confirmed = await showConfirmationDialog({
+        title: t("nowPlaying.playlists.delete"),
+        message: t("nowPlaying.playlists.deleteConfirm", {
+          title: activePlaylist.title,
+        }),
+        confirmText: t("nowPlaying.playlists.delete"),
+      });
+      if (!confirmed) return false;
+      libraryModel.deletePlaylist(activePlaylist.id);
+      syncLibraryQueue();
+      return true;
+    }
     const row = target.closest(".now-playing__track");
     if (action === "select-track")
       return controller.selectTrack(row?.dataset.trackId);
@@ -249,6 +457,32 @@ export function createNowPlayingView({
     }
   }
 
+  function onChange(event) {
+    if (event.target.matches('[data-ui="sidebar-playlist-switcher"]')) {
+      void selectPlaylist(event.target.value);
+    }
+  }
+
+  async function selectPlaylist(playlistId) {
+    const previousTrack = controller.currentTrack;
+    const wasPlaying = controller.isPlaying;
+    if (!libraryModel.setActivePlaylist(playlistId)) return false;
+    const nextTracks = libraryModel.getActiveTracks();
+    const selectedTrackId = nextTracks.some(
+      (track) => track.id === previousTrack?.id,
+    )
+      ? previousTrack.id
+      : nextTracks[0]?.id;
+    if (previousTrack && previousTrack.id !== selectedTrackId) {
+      controller.pause();
+    }
+    syncLibraryQueue({ selectedTrackId });
+    if (selectedTrackId && previousTrack?.id !== selectedTrackId) {
+      await controller.selectTrack(selectedTrackId, { autoplay: wasPlaying });
+    }
+    return true;
+  }
+
   function onWindowBlur() {
     if (active && preferences.shouldSuspendInBackground()) {
       controller.suspend();
@@ -270,6 +504,7 @@ export function createNowPlayingView({
   root.addEventListener("click", onClick);
   root.addEventListener("keydown", onKeydown);
   root.addEventListener("input", onInput);
+  root.addEventListener("change", onChange);
   window.addEventListener("blur", onWindowBlur);
   window.addEventListener("focus", onWindowFocus);
   window.addEventListener("i18n:changed", onI18nChanged);
@@ -280,9 +515,21 @@ export function createNowPlayingView({
     try {
       const state = unwrapNowPlayingState(await api.getState());
       preferences.restore(state);
-      const restored = provider.restore(state.playlist || state);
-      controller.restoreState({ ...state, playlist: restored });
+      libraryModel = createMediaLibraryModel(state);
+      const libraryState = libraryModel.getState();
+      provider.restore({
+        tracks: libraryState.catalog.tracks.filter(
+          (track) => track.providerId === "local",
+        ),
+      });
+      youtubeProvider.restore(
+        libraryState.catalog.tracks.filter(
+          (track) => track.providerId === "youtube",
+        ),
+      );
+      controller.restoreState(libraryState);
       applyI18n(root);
+      libraryView.render(libraryState, latestSnapshot);
       if (controller.currentTrack) {
         await controller.selectTrack(controller.currentTrack.id, {
           autoplay: false,
@@ -326,6 +573,7 @@ export function createNowPlayingView({
       controlsVisibility.onHide();
       overlayVisibility.onHide();
       fullscreen.onHide();
+      libraryView.closeDialog();
       controller.suspend();
     },
     dispose() {
@@ -338,9 +586,11 @@ export function createNowPlayingView({
       overlayVisibility.dispose();
       fullscreen.dispose();
       visualTransitions.dispose();
+      libraryView.dispose();
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("input", onInput);
+      root.removeEventListener("change", onChange);
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", onWindowFocus);
       window.removeEventListener("i18n:changed", onI18nChanged);
