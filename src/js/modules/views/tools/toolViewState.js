@@ -55,9 +55,6 @@ function createToolViewState() {
     if (toolView === "sorter") return true;
     if (toolView === "media-inspector") return true;
     if (toolView === "media-converter") return true;
-    if (toolView === "winget-installer") {
-      return !!info?.isWindows || String(info?.platform || "") === "darwin";
-    }
     if (toolView === "backup") {
       return !readBooleanStorage(BACKUP_DISABLED_STORAGE_KEY, false);
     }

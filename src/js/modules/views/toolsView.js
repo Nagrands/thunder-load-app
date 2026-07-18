@@ -18,10 +18,6 @@ import {
   initHashCheckSection,
   renderHashCheckSection,
 } from "./tools/hashCheckSection.js";
-import {
-  initWingetInstallerSection,
-  renderWingetInstallerSection,
-} from "./tools/wingetInstallerSection.js";
 import { createCleanupRegistry } from "./tools/cleanupRegistry.js";
 import { createToolsEntranceAnimation } from "./tools/toolsEntranceAnimation.js";
 import { TOOLS_STORAGE_KEYS } from "./tools/storage.js";
@@ -393,17 +389,6 @@ export default function renderToolsView() {
                 ${t("tools.launcher.desc.mediaConverter")}
               </small>
             </button>
-            <button id="tools-open-winget-installer" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
-                <span class="tools-launcher-badge">Update</span>
-              </span>
-              <i class="fa-brands fa-windows"></i>
-              <span data-i18n="tools.launcher.open.wingetInstaller">${t("tools.launcher.open.wingetInstaller")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wingetInstaller">
-                ${t("tools.launcher.desc.wingetInstaller")}
-              </small>
-            </button>
             <button id="tools-open-hash" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
               <i class="fa-solid fa-fingerprint"></i>
               <span data-i18n="tools.launcher.open.hash">Hash Check</span>
@@ -692,8 +677,6 @@ export default function renderToolsView() {
 
         ${renderMediaConverterSection(t)}
 
-        ${renderWingetInstallerSection(t)}
-
         <section class="tools-view hidden" data-tool-view="power" aria-label="${t("tools.nav.current.power")}">
           <article id="tools-restart-card" class="tools-card tools-detail-card">
             <div class="power-shortcuts-dashboard">
@@ -853,7 +836,6 @@ export default function renderToolsView() {
       "downloader-tools",
       "media-inspector",
       "media-converter",
-      "winget-installer",
       "power",
       "backup",
       "sorter",
@@ -933,13 +915,11 @@ export default function renderToolsView() {
               ? "tools.nav.current.mediaInspector"
               : targetView === "media-converter"
                 ? "tools.nav.current.mediaConverter"
-                : targetView === "winget-installer"
-                  ? "tools.nav.current.wingetInstaller"
-                  : targetView === "power"
-                    ? "tools.nav.current.power"
-                    : targetView === "backup"
-                      ? "tools.nav.current.backup"
-                      : "tools.nav.current.sorter";
+                : targetView === "power"
+                  ? "tools.nav.current.power"
+                  : targetView === "backup"
+                    ? "tools.nav.current.backup"
+                    : "tools.nav.current.sorter";
     if (title) title.textContent = t(titleKey);
     if (breadcrumbCurrent)
       breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
@@ -1169,7 +1149,6 @@ export default function renderToolsView() {
     const openMediaConverterBtn = getEl("tools-open-media-converter", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
-    const openWingetInstallerBtn = getEl("tools-open-winget-installer", view);
     const openSorterBtn = getEl("tools-open-sorter", view);
     const backBtn = getEl("tools-back-btn", view);
     const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
@@ -1181,7 +1160,6 @@ export default function renderToolsView() {
       if (
         !openPowerBtn ||
         !openBackupBtn ||
-        !openWingetInstallerBtn ||
         !openSorterBtn ||
         !launcherAvailableGrid ||
         !launcherUnavailableGrid ||
@@ -1222,21 +1200,6 @@ export default function renderToolsView() {
       if (openBackupBtn.parentElement !== launcherAvailableGrid) {
         launcherAvailableGrid.appendChild(openBackupBtn);
       }
-      if (isToolAvailable("winget-installer")) {
-        if (openWingetInstallerBtn.parentElement !== launcherAvailableGrid) {
-          launcherAvailableGrid.appendChild(openWingetInstallerBtn);
-        }
-        openWingetInstallerBtn.disabled = false;
-        openWingetInstallerBtn.removeAttribute("aria-disabled");
-        openWingetInstallerBtn.classList.remove("is-unavailable");
-      } else {
-        if (openWingetInstallerBtn.parentElement !== launcherUnavailableGrid) {
-          launcherUnavailableGrid.appendChild(openWingetInstallerBtn);
-        }
-        openWingetInstallerBtn.disabled = true;
-        openWingetInstallerBtn.setAttribute("aria-disabled", "true");
-        openWingetInstallerBtn.classList.add("is-unavailable");
-      }
       openSorterBtn.disabled = false;
       openSorterBtn.removeAttribute("aria-disabled");
       openSorterBtn.classList.remove("is-unavailable");
@@ -1263,9 +1226,6 @@ export default function renderToolsView() {
       setToolView("media-converter"),
     );
     openPowerBtn?.addEventListener("click", () => setToolView("power"));
-    openWingetInstallerBtn?.addEventListener("click", () =>
-      setToolView("winget-installer"),
-    );
     openBackupBtn?.addEventListener("click", () => {
       ensureBackupToolView();
       setToolView("backup");
@@ -2186,14 +2146,6 @@ export default function renderToolsView() {
           platform: "",
         },
       );
-      initWingetInstallerSection({
-        cleanup,
-        getEl,
-        platformInfo: toolState.toolsPlatformInfo,
-        showToast,
-        t,
-        view,
-      });
       toolState.setDeveloperToolsUnlocked(
         toolState.readDeveloperToolsUnlocked(),
       );

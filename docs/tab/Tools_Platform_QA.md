@@ -90,16 +90,7 @@ alias: Проверка Tools на Windows и macOS
 - Создать профиль, выполнить префлайт и запустить резервное копирование.
 - Проверить лог, открытие source/destination, фильтры, bulk actions и обработку ошибок.
 
-11. **WinGet Installer**
-
-- Windows: проверить статус пакетов, генерацию скрипта, запуск и остановку операции.
-- Проверить custom WinGet ID, режимы install/update/uninstall, live-лог,
-  копирование последней операции и итоговый статус выбранных пакетов после run.
-- При остановке операции пакеты не должны оставаться в состоянии ошибки, а
-  дочерний `winget` должен завершаться вместе с PowerShell.
-- macOS: должен отображаться preview без запуска Windows-команд.
-
-12. **Регресс устойчивости**
+11. **Регресс устойчивости**
 
 - 5-10 раз открыть/закрыть `Settings` и `Tools`, переключать вкладки.
 - Убедиться, что нет визуальных вспышек, утечек слушателей и повторной привязки обработчиков.
@@ -121,7 +112,6 @@ alias: Проверка Tools на Windows и macOS
 | WG Unlock                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Backup                                        |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Power shortcuts (Windows-specific)            |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
-| WinGet Installer                              |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Reopen stability (5-10 циклов)                |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 
 ## Критерии приемки
@@ -130,4 +120,4 @@ alias: Проверка Tools на Windows и macOS
 2. Windows-специфичные действия выполняются только на Windows.
 3. На macOS нет ложной доступности Windows-функций.
 4. `#tools-info` стабильно обновляет состояние без полного перерендеринга.
-5. Нет платформенных регрессий для WG Unlock, hash, media inspector, sorter, Backup, WinGet, location и update сценариев.
+5. Нет платформенных регрессий для WG Unlock, hash, media inspector, sorter, Backup, location и update сценариев.
